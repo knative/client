@@ -36,7 +36,7 @@ var revisionListCmd = &cobra.Command{
 		// use the current context in kubeconfig
 		config, err := clientcmd.BuildConfigFromFlags("", kubeCfgFile)
 		if err != nil {
-			panic(err.Error())
+			return err
 		}
 		client, err := serving.NewForConfig(config)
 		if err != nil {
