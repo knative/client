@@ -15,7 +15,6 @@
 package commands
 
 import (
-	"fmt"
 	"os"
 
 	serving "github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
@@ -33,7 +32,7 @@ var revisionListPrintFlags *genericclioptions.PrintFlags
 var revisionListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List available revisions.",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) {
 		// use the current context in kubeconfig
 		config, err := clientcmd.BuildConfigFromFlags("", kubeCfgFile)
 		if err != nil {
@@ -41,20 +40,17 @@ var revisionListCmd = &cobra.Command{
 		}
 		client, err := serving.NewForConfig(config)
 		if err != nil {
-			fmt.Println(os.Stderr, err)
-			os.Exit(1)
+			return err
 		}
 		namespace := cmd.Flag("namespace").Value.String()
 		revision, err := client.Revisions(namespace).List(v1.ListOptions{})
 		if err != nil {
-			fmt.Println(os.Stderr, err)
-			os.Exit(1)
+			return err
 		}
 
 		printer, err := revisionListPrintFlags.ToPrinter()
 		if err != nil {
-			fmt.Println(os.Stderr, err)
-			os.Exit(1)
+			return err
 		}
 		revision.GetObjectKind().SetGroupVersionKind(schema.GroupVersionKind{
 			Group:   "knative.dev",
@@ -62,8 +58,7 @@ var revisionListCmd = &cobra.Command{
 			Kind:    "Revision"})
 		err = printer.PrintObj(revision, os.Stdout)
 		if err != nil {
-			fmt.Println(os.Stderr, err)
-			os.Exit(1)
+			return err
 		}
 	},
 }

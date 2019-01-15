@@ -40,7 +40,7 @@ Eventing: Manage event subscriptions and channels. Connect up event sources.`,
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
+		fmt.Println(os.Stderr, err)
 		os.Exit(1)
 	}
 }
