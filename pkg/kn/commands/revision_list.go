@@ -32,7 +32,7 @@ var revisionListPrintFlags *genericclioptions.PrintFlags
 var revisionListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List available revisions.",
-	RunE: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		// use the current context in kubeconfig
 		config, err := clientcmd.BuildConfigFromFlags("", kubeCfgFile)
 		if err != nil {
@@ -60,6 +60,7 @@ var revisionListCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+		return nil
 	},
 }
 

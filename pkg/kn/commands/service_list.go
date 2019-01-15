@@ -32,7 +32,7 @@ var serviceListPrintFlags *genericclioptions.PrintFlags
 var serviceListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List available services.",
-	RunE: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		// use the current context in kubeconfig
 		config, err := clientcmd.BuildConfigFromFlags("", kubeCfgFile)
 		if err != nil {
@@ -60,6 +60,7 @@ var serviceListCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+		return nil
 	},
 }
 
