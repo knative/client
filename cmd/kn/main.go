@@ -14,7 +14,7 @@
 
 package main
 
-import "github.com/knative/client/cmd/kn/commands"
+import "github.com/knative/client/pkg/kn/commands"
 
 func main() {
 	commands.Execute()
