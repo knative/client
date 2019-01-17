@@ -14,8 +14,21 @@
 
 package main
 
-import "github.com/knative/client/pkg/kn/commands"
+import (
+	"fmt"
+	"os"
+
+	"github.com/knative/client/pkg/kn/commands"
+)
+
+func init() {
+	commands.InitializeConfig()
+}
 
 func main() {
-	commands.Execute()
+	err := commands.NewKnCommand().Execute()
+	if err != nil {
+		fmt.Println(os.Stderr, err)
+		os.Exit(1)
+	}
 }
