@@ -18,13 +18,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var serviceCmd = &cobra.Command{
-	Use:   "service",
-	Short: "Service command group.",
-}
-
-func init() {
-	rootCmd.AddCommand(serviceCmd)
-
+func NewServiceCommand() *cobra.Command {
+	serviceCmd := &cobra.Command{
+		Use:   "service",
+		Short: "Service command group.",
+	}
 	serviceCmd.PersistentFlags().StringP("namespace", "n", "default", "Namespace to use.")
+	serviceCmd.AddCommand(NewServiceListCommand())
+	return serviceCmd
 }

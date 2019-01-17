@@ -28,17 +28,25 @@ var cfgFile string
 var kubeCfgFile string
 
 // rootCmd represents the base command when called without any subcommands
-var rootCmd = &cobra.Command{
-	Use:   "kn",
-	Short: "Knative client.",
-	Long: `Manage your Knative building blokcs:
+func NewKnCommand() *cobra.Command {
+	rootCmd := &cobra.Command{
+		Use:   "kn",
+		Short: "Knative client.",
+		Long: `Manage your Knative building blokcs:
 
 Serving: Manage your services and release new software to them.
 Build: Create builds and keep track of their results.
 Eventing: Manage event subscriptions and channels. Connect up event sources.`,
+	}
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.kn.yaml)")
+	rootCmd.PersistentFlags().StringVar(&kubeCfgFile, "kubeconfig", "", "kubectl config file (default is $HOME/.kube/config)")
+	rootCmd.AddCommand(NewServiceCommand())
+	rootCmd.AddCommand(NewRevisionCommand())
+	return rootCmd
 }
 
 func Execute() {
+	rootCmd := NewKnCommand()
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(os.Stderr, err)
 		os.Exit(1)
@@ -49,10 +57,8 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	cobra.OnInitialize(initKubeConfig)
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.kn.yaml)")
-	rootCmd.PersistentFlags().StringVar(&kubeCfgFile, "kubeconfig", "", "kubectl config file (default is $HOME/.kube/config)")
-
 }
+
 func initKubeConfig() {
 	if kubeCfgFile == "" {
 		home, err := homedir.Dir()

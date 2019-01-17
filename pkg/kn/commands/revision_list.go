@@ -29,45 +29,43 @@ import (
 var revisionListPrintFlags *genericclioptions.PrintFlags
 
 // listCmd represents the list command
-var revisionListCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List available revisions.",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		// use the current context in kubeconfig
-		config, err := clientcmd.BuildConfigFromFlags("", kubeCfgFile)
-		if err != nil {
-			return err
-		}
-		client, err := serving.NewForConfig(config)
-		if err != nil {
-			return err
-		}
-		namespace := cmd.Flag("namespace").Value.String()
-		revision, err := client.Revisions(namespace).List(v1.ListOptions{})
-		if err != nil {
-			return err
-		}
-
-		printer, err := revisionListPrintFlags.ToPrinter()
-		if err != nil {
-			return err
-		}
-		revision.GetObjectKind().SetGroupVersionKind(schema.GroupVersionKind{
-			Group:   "knative.dev",
-			Version: "v1alpha1",
-			Kind:    "Revision"})
-		err = printer.PrintObj(revision, os.Stdout)
-		if err != nil {
-			return err
-		}
-		return nil
-	},
-}
-
-func init() {
-	revisionCmd.AddCommand(revisionListCmd)
-
+func NewRevisionListCommand() *cobra.Command {
 	revisionListPrintFlags = genericclioptions.NewPrintFlags("").WithDefaultOutput(
 		"jsonpath={range .items[*]}{.metadata.name}{\"\\n\"}{end}")
+	revisionListCmd := &cobra.Command{
+		Use:   "list",
+		Short: "List available revisions.",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// use the current context in kubeconfig
+			config, err := clientcmd.BuildConfigFromFlags("", kubeCfgFile)
+			if err != nil {
+				return err
+			}
+			client, err := serving.NewForConfig(config)
+			if err != nil {
+				return err
+			}
+			namespace := cmd.Flag("namespace").Value.String()
+			revision, err := client.Revisions(namespace).List(v1.ListOptions{})
+			if err != nil {
+				return err
+			}
+
+			printer, err := revisionListPrintFlags.ToPrinter()
+			if err != nil {
+				return err
+			}
+			revision.GetObjectKind().SetGroupVersionKind(schema.GroupVersionKind{
+				Group:   "knative.dev",
+				Version: "v1alpha1",
+				Kind:    "Revision"})
+			err = printer.PrintObj(revision, os.Stdout)
+			if err != nil {
+				return err
+			}
+			return nil
+		},
+	}
 	revisionListPrintFlags.AddFlags(revisionListCmd)
+	return revisionListCmd
 }

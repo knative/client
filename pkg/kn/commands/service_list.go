@@ -29,45 +29,44 @@ import (
 var serviceListPrintFlags *genericclioptions.PrintFlags
 
 // listCmd represents the list command
-var serviceListCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List available services.",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		// use the current context in kubeconfig
-		config, err := clientcmd.BuildConfigFromFlags("", kubeCfgFile)
-		if err != nil {
-			return err
-		}
-		client, err := serving.NewForConfig(config)
-		if err != nil {
-			return err
-		}
-		namespace := cmd.Flag("namespace").Value.String()
-		service, err := client.Services(namespace).List(v1.ListOptions{})
-		if err != nil {
-			return err
-		}
+func NewServiceListCommand() *cobra.Command {
 
-		printer, err := serviceListPrintFlags.ToPrinter()
-		if err != nil {
-			return err
-		}
-		service.GetObjectKind().SetGroupVersionKind(schema.GroupVersionKind{
-			Group:   "knative.dev",
-			Version: "v1alpha1",
-			Kind:    "Service"})
-		err = printer.PrintObj(service, os.Stdout)
-		if err != nil {
-			return err
-		}
-		return nil
-	},
-}
-
-func init() {
-	serviceCmd.AddCommand(serviceListCmd)
-
-	serviceListPrintFlags = genericclioptions.NewPrintFlags("").WithDefaultOutput(
+	serviceListPrintFlags := genericclioptions.NewPrintFlags("").WithDefaultOutput(
 		"jsonpath={range .items[*]}{.metadata.name}{\"\\n\"}{end}")
-	serviceListPrintFlags.AddFlags(serviceListCmd)
+	serviceListCommand := &cobra.Command{
+		Use:   "list",
+		Short: "List available services.",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// use the current context in kubeconfig
+			config, err := clientcmd.BuildConfigFromFlags("", kubeCfgFile)
+			if err != nil {
+				return err
+			}
+			client, err := serving.NewForConfig(config)
+			if err != nil {
+				return err
+			}
+			namespace := cmd.Flag("namespace").Value.String()
+			service, err := client.Services(namespace).List(v1.ListOptions{})
+			if err != nil {
+				return err
+			}
+
+			printer, err := serviceListPrintFlags.ToPrinter()
+			if err != nil {
+				return err
+			}
+			service.GetObjectKind().SetGroupVersionKind(schema.GroupVersionKind{
+				Group:   "knative.dev",
+				Version: "v1alpha1",
+				Kind:    "Service"})
+			err = printer.PrintObj(service, os.Stdout)
+			if err != nil {
+				return err
+			}
+			return nil
+		},
+	}
+	serviceListPrintFlags.AddFlags(serviceListCommand)
+	return serviceListCommand
 }

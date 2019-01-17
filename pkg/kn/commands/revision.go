@@ -18,13 +18,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var revisionCmd = &cobra.Command{
-	Use:   "revision",
-	Short: "Revision command group.",
-}
-
-func init() {
-	rootCmd.AddCommand(revisionCmd)
-
+func NewRevisionCommand() *cobra.Command {
+	revisionCmd := &cobra.Command{
+		Use:   "revision",
+		Short: "Revision command group.",
+	}
 	revisionCmd.PersistentFlags().StringP("namespace", "n", "default", "Namespace to use.")
+	revisionCmd.AddCommand(NewRevisionListCommand())
+	return revisionCmd
 }
