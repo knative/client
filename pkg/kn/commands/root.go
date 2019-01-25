@@ -16,19 +16,44 @@ package commands
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 
+	serving "github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 var cfgFile string
 var kubeCfgFile string
 
+// Parameters for creating commands. Useful for inserting mocks for testing.
+type KnParams struct {
+	output         io.Writer
+	ServingFactory func() (serving.ServingV1alpha1Interface, error)
+}
+
+func (c *KnParams) Initialize() {
+	if c.ServingFactory == nil {
+		c.ServingFactory = GetConfig
+	}
+}
+
 // rootCmd represents the base command when called without any subcommands
-func NewKnCommand() *cobra.Command {
+func NewKnCommand(params ...KnParams) *cobra.Command {
+	var p *KnParams
+	if len(params) == 0 {
+		p = &KnParams{}
+	} else if len(params) == 1 {
+		p = &params[0]
+	} else {
+		panic("Too many params objects to NewKnCommand")
+	}
+	p.Initialize()
+
 	rootCmd := &cobra.Command{
 		Use:   "kn",
 		Short: "Knative client.",
@@ -38,10 +63,13 @@ Serving: Manage your services and release new software to them.
 Build: Create builds and keep track of their results.
 Eventing: Manage event subscriptions and channels. Connect up event sources.`,
 	}
+	if p.output != nil {
+		rootCmd.SetOutput(p.output)
+	}
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.kn.yaml)")
 	rootCmd.PersistentFlags().StringVar(&kubeCfgFile, "kubeconfig", "", "kubectl config file (default is $HOME/.kube/config)")
-	rootCmd.AddCommand(NewServiceCommand())
-	rootCmd.AddCommand(NewRevisionCommand())
+	rootCmd.AddCommand(NewServiceCommand(p))
+	rootCmd.AddCommand(NewRevisionCommand(p))
 	return rootCmd
 }
 
@@ -55,7 +83,7 @@ func initKubeConfig() {
 	if kubeCfgFile == "" {
 		home, err := homedir.Dir()
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println(os.Stderr, err)
 			os.Exit(1)
 		}
 		kubeCfgFile = filepath.Join(home, ".kube", "config")
@@ -71,7 +99,7 @@ func initConfig() {
 		// Find home directory.
 		home, err := homedir.Dir()
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println(os.Stderr, err)
 			os.Exit(1)
 		}
 
@@ -86,4 +114,16 @@ func initConfig() {
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
 	}
+}
+
+func GetConfig() (serving.ServingV1alpha1Interface, error) {
+	config, err := clientcmd.BuildConfigFromFlags("", kubeCfgFile)
+	if err != nil {
+		return nil, err
+	}
+	client, err := serving.NewForConfig(config)
+	if err != nil {
+		return nil, err
+	}
+	return client, nil
 }
