@@ -15,8 +15,6 @@
 package commands
 
 import (
-	"os"
-
 	"github.com/spf13/cobra"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -53,7 +51,7 @@ func NewServiceListCommand(p *KnParams) *cobra.Command {
 				Group:   "knative.dev",
 				Version: "v1alpha1",
 				Kind:    "Service"})
-			err = printer.PrintObj(service, os.Stdout)
+			err = printer.PrintObj(service, cmd.OutOrStdout())
 			if err != nil {
 				return err
 			}

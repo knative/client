@@ -15,8 +15,6 @@
 package commands
 
 import (
-	"os"
-
 	"github.com/spf13/cobra"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -52,7 +50,7 @@ func NewRevisionListCommand(p *KnParams) *cobra.Command {
 				Group:   "knative.dev",
 				Version: "v1alpha1",
 				Kind:    "Revision"})
-			err = printer.PrintObj(revision, os.Stdout)
+			err = printer.PrintObj(revision, cmd.OutOrStdout())
 			if err != nil {
 				return err
 			}

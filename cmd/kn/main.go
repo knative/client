@@ -28,7 +28,7 @@ func init() {
 func main() {
 	err := commands.NewKnCommand().Execute()
 	if err != nil {
-		fmt.Println(os.Stderr, err)
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }

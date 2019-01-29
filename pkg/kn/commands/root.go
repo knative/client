@@ -32,7 +32,7 @@ var kubeCfgFile string
 
 // Parameters for creating commands. Useful for inserting mocks for testing.
 type KnParams struct {
-	output         io.Writer
+	Output         io.Writer
 	ServingFactory func() (serving.ServingV1alpha1Interface, error)
 }
 
@@ -63,8 +63,8 @@ Serving: Manage your services and release new software to them.
 Build: Create builds and keep track of their results.
 Eventing: Manage event subscriptions and channels. Connect up event sources.`,
 	}
-	if p.output != nil {
-		rootCmd.SetOutput(p.output)
+	if p.Output != nil {
+		rootCmd.SetOutput(p.Output)
 	}
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.kn.yaml)")
 	rootCmd.PersistentFlags().StringVar(&kubeCfgFile, "kubeconfig", "", "kubectl config file (default is $HOME/.kube/config)")
@@ -83,7 +83,7 @@ func initKubeConfig() {
 	if kubeCfgFile == "" {
 		home, err := homedir.Dir()
 		if err != nil {
-			fmt.Println(os.Stderr, err)
+			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
 		kubeCfgFile = filepath.Join(home, ".kube", "config")
@@ -99,7 +99,7 @@ func initConfig() {
 		// Find home directory.
 		home, err := homedir.Dir()
 		if err != nil {
-			fmt.Println(os.Stderr, err)
+			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
 
@@ -112,7 +112,7 @@ func initConfig() {
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
+		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
 	}
 }
 
