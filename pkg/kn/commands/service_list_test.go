@@ -16,6 +16,7 @@ package commands
 
 import (
 	"bytes"
+	"strings"
 	"testing"
 
 	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
@@ -43,13 +44,7 @@ func fakeList(args []string, response *v1alpha1.ServiceList) (action client_test
 	if err != nil {
 		return
 	}
-	for {
-		s, end := buf.ReadString('\n')
-		output = append(output, s)
-		if end != nil {
-			break
-		}
-	}
+	output = strings.Split(buf.String(), "\n")
 	return
 }
 
@@ -94,10 +89,9 @@ func TestListDefaultOutput(t *testing.T) {
 		},
 	})
 	if err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
-	expected := []string{"foo\n", "bar\n", ""}
+	expected := []string{"foo", "bar", ""}
 	for i, s := range output {
 		if s != expected[i] {
 			t.Errorf("Bad output line %v expected %v", s, expected[i])
