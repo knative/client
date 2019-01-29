@@ -7,6 +7,7 @@ require (
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/go-openapi/spec v0.18.0 // indirect
 	github.com/gogo/protobuf v1.2.0 // indirect
+	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b // indirect
 	github.com/golang/protobuf v1.2.0 // indirect
 	github.com/google/btree v0.0.0-20180813153112-4030bb1f1f0c // indirect
 	github.com/google/go-cmp v0.2.0 // indirect
@@ -43,7 +44,7 @@ require (
 	k8s.io/api v0.0.0-20181221193117-173ce66c1e39 // indirect
 	k8s.io/apimachinery v0.0.0-20190104073114-849b284f3b75
 	k8s.io/cli-runtime v0.0.0-20190107235426-31214e12222d
-	k8s.io/client-go v10.0.0+incompatible
+	k8s.io/client-go v2.0.0-alpha.0.0.20181015214059-cbd9965a0e71+incompatible
 	k8s.io/klog v0.1.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20181114233023-0317810137be // indirect
 	sigs.k8s.io/kustomize v1.0.11 // indirect

@@ -15,21 +15,17 @@
 package commands
 
 import (
-	"os"
-
-	serving "github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
 	"github.com/spf13/cobra"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 var serviceListPrintFlags *genericclioptions.PrintFlags
 
 // listCmd represents the list command
-func NewServiceListCommand() *cobra.Command {
+func NewServiceListCommand(p *KnParams) *cobra.Command {
 
 	serviceListPrintFlags := genericclioptions.NewPrintFlags("").WithDefaultOutput(
 		"jsonpath={range .items[*]}{.metadata.name}{\"\\n\"}{end}")
@@ -37,12 +33,7 @@ func NewServiceListCommand() *cobra.Command {
 		Use:   "list",
 		Short: "List available services.",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// use the current context in kubeconfig
-			config, err := clientcmd.BuildConfigFromFlags("", kubeCfgFile)
-			if err != nil {
-				return err
-			}
-			client, err := serving.NewForConfig(config)
+			client, err := p.ServingFactory()
 			if err != nil {
 				return err
 			}
@@ -60,7 +51,7 @@ func NewServiceListCommand() *cobra.Command {
 				Group:   "knative.dev",
 				Version: "v1alpha1",
 				Kind:    "Service"})
-			err = printer.PrintObj(service, os.Stdout)
+			err = printer.PrintObj(service, cmd.OutOrStdout())
 			if err != nil {
 				return err
 			}
