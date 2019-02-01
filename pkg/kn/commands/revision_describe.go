@@ -1,4 +1,4 @@
-// Copyright © 2018 The Knative Authors
+// Copyright © 2019 The Knative Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,33 +15,36 @@
 package commands
 
 import (
+	"errors"
+
 	"github.com/spf13/cobra"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
-var revisionListPrintFlags *genericclioptions.PrintFlags
-
-// listCmd represents the list command
-func NewRevisionListCommand(p *KnParams) *cobra.Command {
-	revisionListPrintFlags = genericclioptions.NewPrintFlags("").WithDefaultOutput(
-		"jsonpath={range .items[*]}{.metadata.name}{\"\\n\"}{end}")
-	revisionListCmd := &cobra.Command{
-		Use:   "list",
-		Short: "List available revisions.",
+func NewRevisionDescribeCommand(p *KnParams) *cobra.Command {
+	revisionDescribePrintFlags := genericclioptions.NewPrintFlags("").WithDefaultOutput("yaml")
+	revisionDescribeCmd := &cobra.Command{
+		Use:   "describe NAME",
+		Short: "Describe revisions.",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				return errors.New("requires the revision name.")
+			}
+
 			client, err := p.ServingFactory()
 			if err != nil {
 				return err
 			}
+
 			namespace := cmd.Flag("namespace").Value.String()
-			revision, err := client.Revisions(namespace).List(v1.ListOptions{})
+			revision, err := client.Revisions(namespace).Get(args[0], v1.GetOptions{})
 			if err != nil {
 				return err
 			}
 
-			printer, err := revisionListPrintFlags.ToPrinter()
+			printer, err := revisionDescribePrintFlags.ToPrinter()
 			if err != nil {
 				return err
 			}
@@ -56,6 +59,6 @@ func NewRevisionListCommand(p *KnParams) *cobra.Command {
 			return nil
 		},
 	}
-	revisionListPrintFlags.AddFlags(revisionListCmd)
-	return revisionListCmd
+	revisionDescribePrintFlags.AddFlags(revisionDescribeCmd)
+	return revisionDescribeCmd
 }
