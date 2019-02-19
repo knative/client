@@ -58,8 +58,8 @@ func NewKnCommand(params ...KnParams) *cobra.Command {
 
 	rootCmd := &cobra.Command{
 		Use:   "kn",
-		Short: "Knative client.",
-		Long: `Manage your Knative building blokcs:
+		Short: "Knative client",
+		Long: `Manage your Knative building blocks:
 
 Serving: Manage your services and release new software to them.
 Build: Create builds and keep track of their results.

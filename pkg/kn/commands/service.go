@@ -21,7 +21,7 @@ import (
 func NewServiceCommand(p *KnParams) *cobra.Command {
 	serviceCmd := &cobra.Command{
 		Use:   "service",
-		Short: "Service command group.",
+		Short: "Service command group",
 	}
 	serviceCmd.PersistentFlags().StringP("namespace", "n", "default", "Namespace to use.")
 	serviceCmd.AddCommand(NewServiceListCommand(p))

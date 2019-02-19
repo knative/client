@@ -21,7 +21,7 @@ import (
 func NewRevisionCommand(p *KnParams) *cobra.Command {
 	revisionCmd := &cobra.Command{
 		Use:   "revision",
-		Short: "Revision command group.",
+		Short: "Revision command group",
 	}
 	revisionCmd.PersistentFlags().StringP("namespace", "n", "default", "Namespace to use.")
 	revisionCmd.AddCommand(NewRevisionListCommand(p))
