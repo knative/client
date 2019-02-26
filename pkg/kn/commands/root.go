@@ -72,6 +72,7 @@ Eventing: Manage event subscriptions and channels. Connect up event sources.`,
 	rootCmd.PersistentFlags().StringVar(&kubeCfgFile, "kubeconfig", "", "kubectl config file (default is $HOME/.kube/config)")
 	rootCmd.AddCommand(NewServiceCommand(p))
 	rootCmd.AddCommand(NewRevisionCommand(p))
+	rootCmd.AddCommand(NewCompletionCommand(p))
 	return rootCmd
 }
 
