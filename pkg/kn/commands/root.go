@@ -82,7 +82,12 @@ func InitializeConfig() {
 }
 
 func initKubeConfig() {
-	if kubeCfgFile == "" {
+	if kubeCfgFile != "" {
+		return
+	}
+	if kubeEnvConf, ok := os.LookupEnv("KUBECONFIG"); ok {
+		kubeCfgFile = kubeEnvConf
+	} else {
 		home, err := homedir.Dir()
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
