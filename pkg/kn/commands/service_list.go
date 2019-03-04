@@ -25,7 +25,7 @@ var serviceListPrintFlags *genericclioptions.PrintFlags
 
 // listCmd represents the list command
 func NewServiceListCommand(p *KnParams) *cobra.Command {
-
+	var getAllNamespaces bool
 	serviceListPrintFlags := genericclioptions.NewPrintFlags("").WithDefaultOutput(
 		"jsonpath={range .items[*]}{.metadata.name}{\"\\n\"}{end}")
 	serviceListCommand := &cobra.Command{
@@ -37,6 +37,9 @@ func NewServiceListCommand(p *KnParams) *cobra.Command {
 				return err
 			}
 			namespace := cmd.Flag("namespace").Value.String()
+			if getAllNamespaces {
+				namespace = ""
+			}
 			service, err := client.Services(namespace).List(v1.ListOptions{})
 			if err != nil {
 				return err
@@ -58,5 +61,8 @@ func NewServiceListCommand(p *KnParams) *cobra.Command {
 		},
 	}
 	serviceListPrintFlags.AddFlags(serviceListCommand)
+	serviceListCommand.PersistentFlags().BoolVar(&getAllNamespaces, "all-namespaces", false,
+		"If present, list the requested object(s) across all namespaces. Namespace in current "+
+			"context is ignored even if specified with --namespace.")
 	return serviceListCommand
 }
