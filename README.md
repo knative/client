@@ -27,3 +27,22 @@ $ go build ./cmd/...
 
 - knative CLI must be built outside of the $GOPATH folder unless you explicitly use `export GO111MODULE=on`.
 - For building, Go `1.11.4` is required [due to a go mod issue](https://github.com/golang/go/issues/27925)
+
+
+**Bash auto completion:**
+
+Run following to enable bash auto completion
+
+```sh
+$ source <(kn completion)
+```
+
+Use TAB to list available sub-commands
+
+```sh
+$ kn <TAB>
+completion revision service
+
+$ kn revision <TAB>
+describe list
+```
