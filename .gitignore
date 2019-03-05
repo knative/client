@@ -44,4 +44,4 @@ vendor/*
 vendor/github.com/*
 !vendor/github.com/knative/
 vendor/github.com/knative/*
-!vendor.github.com/knative/test-infra/
+!vendor/github.com/knative/test-infra/
