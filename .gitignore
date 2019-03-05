@@ -37,3 +37,11 @@ tags
 
 # VSCode specific
 .vscode
+# Ignore everything in vendor except github.com/knative/test-infra
+
+vendor/*
+!vendor/github.com/
+vendor/github.com/*
+!vendor/github.com/knative/
+vendor/github.com/knative/*
+!vendor.github.com/knative/test-infra/
