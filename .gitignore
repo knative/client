@@ -38,6 +38,7 @@ tags
 # VSCode specific
 .vscode
 # Ignore everything in vendor except github.com/knative/test-infra
+# (we need that to make our automated tests go)
 
 vendor/*
 !vendor/github.com/
