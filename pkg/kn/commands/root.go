@@ -17,6 +17,7 @@ package commands
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -27,10 +28,24 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
 	"k8s.io/client-go/tools/clientcmd"
+	"sigs.k8s.io/yaml"
 )
 
-var cfgFile string
-var kubeCfgFile string
+var (
+	cfgFile     string
+	kubeCfgFile string
+	namespace   string
+)
+
+type config struct {
+	Contexts []struct {
+		Name    string
+		Context struct {
+			Namespace string
+		}
+	}
+	CurrentContext string `json:"current-context"`
+}
 
 // Parameters for creating commands. Useful for inserting mocks for testing.
 type KnParams struct {
@@ -70,6 +85,7 @@ Eventing: Manage event subscriptions and channels. Connect up event sources.`,
 	}
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.kn.yaml)")
 	rootCmd.PersistentFlags().StringVar(&kubeCfgFile, "kubeconfig", "", "kubectl config file (default is $HOME/.kube/config)")
+	rootCmd.PersistentFlags().StringVarP(&namespace, "namespace", "n", "", "Namespace to use.")
 	rootCmd.AddCommand(NewServiceCommand(p))
 	rootCmd.AddCommand(NewRevisionCommand(p))
 	return rootCmd
@@ -78,7 +94,7 @@ Eventing: Manage event subscriptions and channels. Connect up event sources.`,
 func InitializeConfig() {
 	cobra.OnInitialize(initConfig)
 	cobra.OnInitialize(initKubeConfig)
-
+	cobra.OnInitialize(setNamespace)
 }
 
 func initKubeConfig() {
@@ -133,4 +149,29 @@ func GetConfig() (serving.ServingV1alpha1Interface, error) {
 		return nil, err
 	}
 	return client, nil
+}
+
+func setNamespace() {
+	if namespace != "" {
+		return
+	}
+	namespace = "default"
+	data, err := ioutil.ReadFile(kubeCfgFile)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Can't read config file:", err)
+		return
+	}
+	var c config
+	if err := yaml.Unmarshal(data, &c); err != nil {
+		fmt.Fprintln(os.Stderr, "Can't parse config body:", err)
+		return
+	}
+	for _, context := range c.Contexts {
+		if context.Name == c.CurrentContext {
+			if context.Context.Namespace != "" {
+				namespace = context.Context.Namespace
+			}
+			return
+		}
+	}
 }

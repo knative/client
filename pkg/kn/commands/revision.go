@@ -23,7 +23,6 @@ func NewRevisionCommand(p *KnParams) *cobra.Command {
 		Use:   "revision",
 		Short: "Revision command group",
 	}
-	revisionCmd.PersistentFlags().StringP("namespace", "n", "default", "Namespace to use.")
 	revisionCmd.AddCommand(NewRevisionListCommand(p))
 	revisionCmd.AddCommand(NewRevisionDescribeCommand(p))
 	return revisionCmd
