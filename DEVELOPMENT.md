@@ -1,10 +1,10 @@
 # Development
 
 This doc explains how to setup a development environment so you can get started
-[contributing](https://github.com/knative/docs/blob/master/community/CONTRIBUTING.md)
-to `Knative Client`. Also take a look at:
+[contributing](https://www.knative.dev/contributing/) to `Knative Client`.
+Also take a look at:
 
-- [The pull request workflow](https://github.com/knative/docs/blob/master/community/CONTRIBUTING.md#pull-requests)
+- [The pull request workflow](https://www.knative.dev/contributing/reviewing/)
 
 ## Prerequisites
 
@@ -12,7 +12,7 @@ Follow the instructions below to set up your development environment. Once you
 meet these requirements, you can make changes and
 [build your own version of Knative Client](#building-knative-client)!
 
-Before submitting a PR, see also [CONTRIBUTING.md](./CONTRIBUTING.md).
+Before submitting a PR, see also [contribution guide](https://www.knative.dev/contributing/).
 
 ### Sign up for GitHub
 
@@ -31,36 +31,18 @@ You must install these tools:
 
 ### Create a cluster
 
-1. [Set up a Knative](https://github.com/knative/docs/blob/master/install/README.md#install-guides)
+1. [Set up a Knative](https://www.knative.dev/docs/install/)
    - You can also setup using limited install guides for eg: Minikube/Minishift.
 
 ### Setup your environment
 
-To start your environment you'll need to set these environment variables (we
-recommend adding them to your `.bashrc`):
-
-1. `GOPATH`: If you don't have one, simply pick a directory and add
-   `export GOPATH=...`
-1. `$GOPATH/bin` on `PATH`: This is so that tooling installed via `go get` will
-   work properly.
-
-`.bashrc` example:
-
-```sh
-export GOPATH="$HOME/go"
-export PATH="${PATH}:${GOPATH}/bin"
-```
+Let's setup local development envrionment.
 
 ### Checkout your fork
 
-The Go tools require that you clone the repository to the
-`src/github.com/knative/client` directory in your
-[`GOPATH`](https://github.com/golang/go/wiki/SettingGOPATH).
-
 To check out this repository:
 
-1. Create your own
-   [fork of this repo](https://help.github.com/articles/fork-a-repo/)
+1. Create your own [fork of this repo](https://help.github.com/articles/fork-a-repo/)
 1. Clone it to your machine:
 
 ```sh
@@ -90,7 +72,7 @@ Once you've [setup your development environment](#prerequisites), let's build
 **Building:**
 
 ```sh
-$ GO111MODULE=on go build ./cmd/...
+$ go build ./cmd/...
 ```
 
 It builds `kn` binary in your current directory. You can start playing with it.
@@ -98,11 +80,11 @@ It builds `kn` binary in your current directory. You can start playing with it.
 **Notes:**
 
 - For building, Go `1.11.4` is required [due to a go mod issue](https://github.com/golang/go/issues/27925).
-- If you are building outside of your `$GOPATH` folder, no need to specify `GO111MODULE` for building it
+- If you are building in your `$GOPATH` folder, you need to specify `GO111MODULE` for building it
 
 ```sh
-# if you are building outside your $GOPATH
-go build ./cmd/...
+# if you are building in your $GOPATH
+GO111MODULE=on go build ./cmd/...
 ```
 
 You can now try updating code for client and test out the changes by building the `kn` binary.
