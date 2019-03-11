@@ -25,7 +25,6 @@ var revisionListPrintFlags *genericclioptions.PrintFlags
 
 // listCmd represents the list command
 func NewRevisionListCommand(p *KnParams) *cobra.Command {
-	var getAllNamespaces bool
 	revisionListPrintFlags = genericclioptions.NewPrintFlags("").WithDefaultOutput(
 		"jsonpath={range .items[*]}{.metadata.name}{\"\\n\"}{end}")
 	revisionListCmd := &cobra.Command{
@@ -37,7 +36,7 @@ func NewRevisionListCommand(p *KnParams) *cobra.Command {
 				return err
 			}
 			namespace := cmd.Flag("namespace").Value.String()
-			if getAllNamespaces {
+			if p.getAllNamespaces {
 				namespace = ""
 			}
 			revision, err := client.Revisions(namespace).List(v1.ListOptions{})
@@ -61,8 +60,5 @@ func NewRevisionListCommand(p *KnParams) *cobra.Command {
 		},
 	}
 	revisionListPrintFlags.AddFlags(revisionListCmd)
-	revisionListCmd.PersistentFlags().BoolVar(&getAllNamespaces, "all-namespaces", false,
-		"If present, list the requested object(s) across all namespaces. Namespace in current "+
-			"context is ignored even if specified with --namespace.")
 	return revisionListCmd
 }

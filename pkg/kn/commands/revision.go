@@ -24,6 +24,9 @@ func NewRevisionCommand(p *KnParams) *cobra.Command {
 		Short: "Revision command group",
 	}
 	revisionCmd.PersistentFlags().StringP("namespace", "n", "default", "Namespace to use.")
+	revisionCmd.PersistentFlags().BoolVar(&p.getAllNamespaces, "all-namespaces", false,
+		"If present, list the requested object(s) across all namespaces. Namespace in current "+
+			"context is ignored even if specified with --namespace.")
 	revisionCmd.AddCommand(NewRevisionListCommand(p))
 	revisionCmd.AddCommand(NewRevisionDescribeCommand(p))
 	return revisionCmd
