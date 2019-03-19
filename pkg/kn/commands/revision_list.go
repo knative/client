@@ -59,6 +59,7 @@ func NewRevisionListCommand(p *KnParams) *cobra.Command {
 			return nil
 		},
 	}
+	AddNamespaceFlags(revisionListCmd.Flags(), true)
 	revisionListPrintFlags.AddFlags(revisionListCmd)
 	return revisionListCmd
 }

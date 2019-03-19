@@ -59,6 +59,7 @@ func NewRevisionDescribeCommand(p *KnParams) *cobra.Command {
 			return nil
 		},
 	}
+	AddNamespaceFlags(revisionDescribeCmd.Flags(), false)
 	revisionDescribePrintFlags.AddFlags(revisionDescribeCmd)
 	return revisionDescribeCmd
 }

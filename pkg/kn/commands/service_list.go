@@ -59,6 +59,7 @@ func NewServiceListCommand(p *KnParams) *cobra.Command {
 			return nil
 		},
 	}
+	AddNamespaceFlags(serviceListCommand.Flags(), true)
 	serviceListPrintFlags.AddFlags(serviceListCommand)
 	return serviceListCommand
 }

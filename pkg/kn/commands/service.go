@@ -23,10 +23,6 @@ func NewServiceCommand(p *KnParams) *cobra.Command {
 		Use:   "service",
 		Short: "Service command group",
 	}
-	serviceCmd.PersistentFlags().StringP("namespace", "n", "default", "Namespace to use.")
-	serviceCmd.PersistentFlags().BoolVar(&p.getAllNamespaces, "all-namespaces", false,
-		"If present, list the requested object(s) across all namespaces. Namespace in current "+
-			"context is ignored even if specified with --namespace.")
 	serviceCmd.AddCommand(NewServiceListCommand(p))
 	serviceCmd.AddCommand(NewServiceDescribeCommand(p))
 	serviceCmd.AddCommand(NewServiceCreateCommand(p))
