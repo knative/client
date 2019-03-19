@@ -15,6 +15,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 
@@ -26,6 +27,7 @@ func init() {
 }
 
 func main() {
+	flag.Parse()
 	err := commands.NewKnCommand().Execute()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
