@@ -37,8 +37,6 @@ var kubeCfgFile string
 type KnParams struct {
 	Output         io.Writer
 	ServingFactory func() (serving.ServingV1alpha1Interface, error)
-
-	getAllNamespaces bool
 }
 
 func (c *KnParams) Initialize() {

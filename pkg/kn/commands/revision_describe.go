@@ -38,7 +38,10 @@ func NewRevisionDescribeCommand(p *KnParams) *cobra.Command {
 				return err
 			}
 
-			namespace := cmd.Flag("namespace").Value.String()
+			namespace, err := GetNamespace(cmd)
+			if err != nil {
+				return err
+			}
 			revision, err := client.Revisions(namespace).Get(args[0], v1.GetOptions{})
 			if err != nil {
 				return err

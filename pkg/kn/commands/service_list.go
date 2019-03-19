@@ -35,9 +35,9 @@ func NewServiceListCommand(p *KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			namespace := cmd.Flag("namespace").Value.String()
-			if p.getAllNamespaces {
-				namespace = ""
+			namespace, err := GetNamespace(cmd)
+			if err != nil {
+				return err
 			}
 			service, err := client.Services(namespace).List(v1.ListOptions{})
 			if err != nil {
