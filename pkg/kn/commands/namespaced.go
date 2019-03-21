@@ -16,14 +16,14 @@ func AddNamespaceFlags(flags *pflag.FlagSet, allowAll bool) {
 		"namespace",
 		"n",
 		"",
-		"Namespace to use. (default \"default\")",
+		"List the requested object(s) in given namespace.",
 	)
 
 	if allowAll {
 		flags.Bool(
 			"all-namespaces",
 			false,
-			"If present, list the requested object(s) across all namespaces. Namespace in current context is ignored even if specified with --namespace",
+			"If present, list the requested object(s) across all namespaces. Namespace in current context is ignored even if specified with --namespace.",
 		)
 	}
 }
