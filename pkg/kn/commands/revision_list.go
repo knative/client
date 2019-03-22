@@ -31,6 +31,8 @@ func NewRevisionListCommand(p *KnParams) *cobra.Command {
 		Use:   "list",
 		Short: "List available revisions.",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			cmd.SilenceUsage = true
+
 			client, err := p.ServingFactory()
 			if err != nil {
 				return err

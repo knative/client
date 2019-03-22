@@ -32,6 +32,8 @@ func NewServiceListCommand(p *KnParams) *cobra.Command {
 		Use:   "list",
 		Short: "List available services.",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			cmd.SilenceUsage = true
+
 			client, err := p.ServingFactory()
 			if err != nil {
 				return err
