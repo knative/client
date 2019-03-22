@@ -15,6 +15,7 @@
 package commands
 
 import (
+	"flag"
 	"fmt"
 	"io"
 	"os"
@@ -73,6 +74,9 @@ Eventing: Manage event subscriptions and channels. Connect up event sources.`,
 	rootCmd.AddCommand(NewServiceCommand(p))
 	rootCmd.AddCommand(NewRevisionCommand(p))
 	rootCmd.AddCommand(NewCompletionCommand(p))
+
+	// For glog parse error.
+	flag.CommandLine.Parse([]string{})
 	return rootCmd
 }
 
