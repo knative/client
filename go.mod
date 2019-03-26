@@ -23,6 +23,7 @@ require (
 	github.com/knative/build v0.3.0 // indirect
 	github.com/knative/pkg v0.0.0-20190110005142-b6044a7d1795 // indirect
 	github.com/knative/serving v0.3.0
+	github.com/knative/test-infra v0.0.0-20190326053250-44d850784ecb
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/mattbaird/jsonpatch v0.0.0-20171005235357-81af80346b1a // indirect
 	github.com/mitchellh/go-homedir v1.0.0
