@@ -17,7 +17,6 @@ package commands
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -28,7 +27,6 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
 	"k8s.io/client-go/tools/clientcmd"
-	"sigs.k8s.io/yaml"
 )
 
 var (
@@ -36,16 +34,6 @@ var (
 	kubeCfgFile string
 	namespace   string
 )
-
-type config struct {
-	Contexts []struct {
-		Name    string
-		Context struct {
-			Namespace string
-		}
-	}
-	CurrentContext string `json:"current-context"`
-}
 
 // Parameters for creating commands. Useful for inserting mocks for testing.
 type KnParams struct {
@@ -156,22 +144,15 @@ func setNamespace() {
 		return
 	}
 	namespace = "default"
-	data, err := ioutil.ReadFile(kubeCfgFile)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Can't read config file:", err)
-		return
+	config := clientConfig(kubeCfgFile)
+	if ns, _, err := config.Namespace(); err == nil {
+		namespace = ns
 	}
-	var c config
-	if err := yaml.Unmarshal(data, &c); err != nil {
-		fmt.Fprintln(os.Stderr, "Can't parse config body:", err)
-		return
-	}
-	for _, context := range c.Contexts {
-		if context.Name == c.CurrentContext {
-			if context.Context.Namespace != "" {
-				namespace = context.Context.Namespace
-			}
-			return
-		}
-	}
+}
+
+func clientConfig(path string) clientcmd.ClientConfig {
+	return clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+		&clientcmd.ClientConfigLoadingRules{ExplicitPath: path},
+		&clientcmd.ConfigOverrides{},
+	)
 }
