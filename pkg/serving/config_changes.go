@@ -15,11 +15,38 @@
 package serving
 
 import (
+	corev1 "k8s.io/api/core/v1"
+
 	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 )
 
 type ConfigChange func(*servingv1alpha1.ConfigurationSpec) error
 
 func EnvVarUpdate(vars map[string]string) ConfigChange {
+	return func(config *servingv1alpha1.ConfigurationSpec) error {
+		set := make(map[string]bool)
+		for _, env_var := range config.RevisionTemplate.Spec.Container.Env {
+			value, present := vars[env_var.Name]
+			if present {
+				env_var.Value = value
+				set[env_var.Name] = true
+			}
+		}
+		for name, value := range vars {
+			if !set[name] {
+				config.RevisionTemplate.Spec.Container.Env = append(config.RevisionTemplate.Spec.Container.Env, corev1.EnvVar{
+					Name:  name,
+					Value: value,
+				})
+			}
+		}
+		return nil
+	}
+}
 
+func ImageUpdate(image string) ConfigChange {
+	return func(config *servingv1alpha1.ConfigurationSpec) error {
+		config.RevisionTemplate.Spec.Container.Image = image
+		return nil
+	}
 }

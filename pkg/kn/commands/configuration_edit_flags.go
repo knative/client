@@ -14,18 +14,10 @@
 
 package commands
 
-import (
-	"github.com/spf13/cobra"
-)
+import "github.com/spf13/cobra"
 
-func NewServiceCommand(p *KnParams) *cobra.Command {
-	serviceCmd := &cobra.Command{
-		Use:   "service",
-		Short: "Service command group",
-	}
-	serviceCmd.PersistentFlags().StringP("namespace", "n", "default", "Namespace to use.")
-	serviceCmd.AddCommand(NewServiceListCommand(p))
-	serviceCmd.AddCommand(NewServiceDescribeCommand(p))
-	serviceCmd.AddCommand(NewServiceCreateCommand(p))
-	return serviceCmd
+func AddConfigurationEditFlags(command *cobra.Command, image *string, env *map[string]string) {
+	command.Flags().StringVar(image, "image", "", "Image to run.")
+	command.Flags().StringToStringVar(env, "env", map[string]string{},
+		"Environment, comma-separated NAME=value.")
 }
