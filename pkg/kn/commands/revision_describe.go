@@ -32,7 +32,6 @@ func NewRevisionDescribeCommand(p *KnParams) *cobra.Command {
 			if len(args) < 1 {
 				return errors.New("requires the revision name.")
 			}
-			cmd.SilenceUsage = true
 
 			client, err := p.ServingFactory()
 			if err != nil {
