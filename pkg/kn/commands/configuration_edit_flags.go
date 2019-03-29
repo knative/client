@@ -14,10 +14,31 @@
 
 package commands
 
-import "github.com/spf13/cobra"
+import (
+	serving_lib "github.com/knative/client/pkg/serving"
+	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
+	"github.com/spf13/cobra"
+)
 
-func AddConfigurationEditFlags(command *cobra.Command, image *string, env *map[string]string) {
-	command.Flags().StringVar(image, "image", "", "Image to run.")
-	command.Flags().StringToStringVar(env, "env", map[string]string{},
+type ConfigurationEditFlags struct {
+	Image string
+	Env   map[string]string
+}
+
+func (p *ConfigurationEditFlags) AddFlags(command *cobra.Command) {
+	command.Flags().StringVar(&p.Image, "image", "", "Image to run.")
+	command.Flags().StringToStringVar(&p.Env, "env", map[string]string{},
 		"Environment, comma-separated NAME=value.")
+}
+
+func (p *ConfigurationEditFlags) Apply(config *servingv1alpha1.ConfigurationSpec) (err error) {
+	err = serving_lib.UpdateEnvVars(config, p.Env)
+	if err != nil {
+		return err
+	}
+	err = serving_lib.UpdateImage(config, p.Image)
+	if err != nil {
+		return err
+	}
+	return nil
 }
