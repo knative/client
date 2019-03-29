@@ -22,6 +22,9 @@ import (
 	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 )
 
+// Give the configuration all the env var values listed in the given map of
+// vars.  Does not touch any environment variables not mentioned, but it can add
+// new env vars and change the values of existing ones.
 func UpdateEnvVars(config *servingv1alpha1.ConfigurationSpec, vars map[string]string) error {
 	set := make(map[string]bool)
 	for i, _ := range config.RevisionTemplate.Spec.Container.Env {
@@ -34,16 +37,20 @@ func UpdateEnvVars(config *servingv1alpha1.ConfigurationSpec, vars map[string]st
 	}
 	for name, value := range vars {
 		if !set[name] {
-			config.RevisionTemplate.Spec.Container.Env = append(config.RevisionTemplate.Spec.Container.Env, corev1.EnvVar{
-				Name:  name,
-				Value: value,
-			})
+			config.RevisionTemplate.Spec.Container.Env = append(
+				config.RevisionTemplate.Spec.Container.Env,
+				corev1.EnvVar{
+					Name:  name,
+					Value: value,
+				})
 		}
 	}
 	return nil
 
 }
 
+// Utility function to translate between the API list form of env vars, and the
+// more convenient map form.
 func EnvToMap(vars []corev1.EnvVar) (map[string]string, error) {
 	result := map[string]string{}
 	for _, env_var := range vars {
