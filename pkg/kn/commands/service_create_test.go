@@ -91,10 +91,12 @@ func TestServiceCreateEnv(t *testing.T) {
 	} else if !action.Matches("create", "services") {
 		t.Fatalf("Bad action %v", action)
 	}
-	conf, err := serving_lib.GetConfiguration(created)
+
 	expectedEnvVars := []corev1.EnvVar{
 		corev1.EnvVar{Name: "A", Value: "DOGS"},
 		corev1.EnvVar{Name: "B", Value: "WOLVES"}}
+
+	conf, err := serving_lib.GetConfiguration(created)
 	if err != nil {
 		t.Fatal(err)
 	} else if conf.RevisionTemplate.Spec.Container.Image != "gcr.io/foo/bar:baz" {

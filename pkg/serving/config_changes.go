@@ -1,4 +1,4 @@
-// Copyright ¬© 2018 The Knative Authors
+// Copyright ¬© 2019 The Knative Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
 package serving
 
 import (
+	"fmt"
+
 	corev1 "k8s.io/api/core/v1"
 
 	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
@@ -22,7 +24,8 @@ import (
 
 func UpdateEnvVars(config *servingv1alpha1.ConfigurationSpec, vars map[string]string) error {
 	set := make(map[string]bool)
-	for _, env_var := range config.RevisionTemplate.Spec.Container.Env {
+	for i, _ := range config.RevisionTemplate.Spec.Container.Env {
+		env_var := &config.RevisionTemplate.Spec.Container.Env[i]
 		value, present := vars[env_var.Name]
 		if present {
 			env_var.Value = value
@@ -39,6 +42,18 @@ func UpdateEnvVars(config *servingv1alpha1.ConfigurationSpec, vars map[string]st
 	}
 	return nil
 
+}
+
+func EnvToMap(vars []corev1.EnvVar) (map[string]string, error) {
+	result := map[string]string{}
+	for _, env_var := range vars {
+		_, present := result[env_var.Name]
+		if present {
+			return nil, fmt.Errorf("Env var name present more than once: %v", env_var.Name)
+		}
+		result[env_var.Name] = env_var.Value
+	}
+	return result, nil
 }
 
 func UpdateImage(config *servingv1alpha1.ConfigurationSpec, image string) error {
