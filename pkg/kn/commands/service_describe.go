@@ -30,13 +30,12 @@ func NewServiceDescribeCommand(p *KnParams) *cobra.Command {
 		Use:   "describe NAME",
 		Short: "Describe available services.",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				return errors.New("requires the service name.")
+			}
 			client, err := p.ServingFactory()
 			if err != nil {
 				return err
-			}
-
-			if len(args) < 1 {
-				return errors.New("requires the service name.")
 			}
 
 			namespace := cmd.Flag("namespace").Value.String()

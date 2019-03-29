@@ -65,6 +65,9 @@ func NewKnCommand(params ...KnParams) *cobra.Command {
 Serving: Manage your services and release new software to them.
 Build: Create builds and keep track of their results.
 Eventing: Manage event subscriptions and channels. Connect up event sources.`,
+
+		// Affects children as well
+		SilenceUsage: true,
 	}
 	if p.Output != nil {
 		rootCmd.SetOutput(p.Output)
