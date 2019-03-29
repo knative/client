@@ -20,8 +20,6 @@ import (
 	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 )
 
-type ConfigChange func(*servingv1alpha1.ConfigurationSpec) error
-
 func UpdateEnvVars(config *servingv1alpha1.ConfigurationSpec, vars map[string]string) error {
 	set := make(map[string]bool)
 	for _, env_var := range config.RevisionTemplate.Spec.Container.Env {
