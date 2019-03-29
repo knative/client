@@ -22,7 +22,6 @@ import (
 	"testing"
 
 	serving_lib "github.com/knative/client/pkg/serving"
-	corev1 "k8s.io/api/core/v1"
 
 	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	serving "github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
@@ -84,7 +83,7 @@ func TestServiceCreateImage(t *testing.T) {
 
 func TestServiceCreateEnv(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--env", "A=DOGS,B=WOLVES"})
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "-e", "A=DOGS", "--env", "B=WOLVES"})
 
 	if err != nil {
 		t.Fatal(err)
@@ -92,16 +91,23 @@ func TestServiceCreateEnv(t *testing.T) {
 		t.Fatalf("Bad action %v", action)
 	}
 
-	expectedEnvVars := []corev1.EnvVar{
-		corev1.EnvVar{Name: "A", Value: "DOGS"},
-		corev1.EnvVar{Name: "B", Value: "WOLVES"}}
+	expectedEnvVars := map[string]string{
+		"A": "DOGS",
+		"B": "WOLVES"}
 
 	conf, err := serving_lib.GetConfiguration(created)
+	actualEnvVars, err := serving_lib.EnvToMap(conf.RevisionTemplate.Spec.Container.Env)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	if err != nil {
 		t.Fatal(err)
 	} else if conf.RevisionTemplate.Spec.Container.Image != "gcr.io/foo/bar:baz" {
 		t.Fatalf("wrong image set: %v", conf.RevisionTemplate.Spec.Container.Image)
-	} else if !reflect.DeepEqual(conf.RevisionTemplate.Spec.Container.Env, expectedEnvVars) {
+	} else if !reflect.DeepEqual(
+		actualEnvVars,
+		expectedEnvVars) {
 		t.Fatalf("wrong env vars %v", conf.RevisionTemplate.Spec.Container.Env)
 	}
 

@@ -15,6 +15,9 @@
 package commands
 
 import (
+	"fmt"
+	"strings"
+
 	serving_lib "github.com/knative/client/pkg/serving"
 	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"github.com/spf13/cobra"
@@ -22,17 +25,28 @@ import (
 
 type ConfigurationEditFlags struct {
 	Image string
-	Env   map[string]string
+	Env   []string
 }
 
 func (p *ConfigurationEditFlags) AddFlags(command *cobra.Command) {
 	command.Flags().StringVar(&p.Image, "image", "", "Image to run.")
-	command.Flags().StringToStringVar(&p.Env, "env", map[string]string{},
-		"Environment, comma-separated NAME=value.")
+	command.Flags().StringArrayVarP(&p.Env, "env", "e", []string{},
+		"Environment variable to set. NAME=value; you may provide this flag "+
+			"any number of times to set multiple environment variables.")
 }
 
 func (p *ConfigurationEditFlags) Apply(config *servingv1alpha1.ConfigurationSpec) (err error) {
-	err = serving_lib.UpdateEnvVars(config, p.Env)
+	envMap := map[string]string{}
+	for _, pairStr := range p.Env {
+		pairSlice := strings.SplitN(pairStr, "=", 2)
+		if len(pairSlice) <= 1 {
+			return fmt.Errorf(
+				"--env argument requires a value that contains the '=' character; got %s",
+				pairStr)
+		}
+		envMap[pairSlice[0]] = pairSlice[1]
+	}
+	err = serving_lib.UpdateEnvVars(config, envMap)
 	if err != nil {
 		return err
 	}
