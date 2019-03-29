@@ -18,7 +18,6 @@ import (
 	"errors"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 
@@ -27,14 +26,13 @@ import (
 )
 
 func NewServiceCreateCommand(p *KnParams) *cobra.Command {
-
 	var editFlags ConfigurationEditFlags
 
 	serviceCreateCommand := &cobra.Command{
 		Use:   "create NAME",
 		Short: "Create a service.",
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			if len(args) < 1 {
+			if len(args) != 1 {
 				return errors.New("requires the service name.")
 			}
 
@@ -47,11 +45,6 @@ func NewServiceCreateCommand(p *KnParams) *cobra.Command {
 				},
 			}
 			service.Spec.RunLatest = &servingv1alpha1.RunLatestType{}
-			service.GetObjectKind().SetGroupVersionKind(schema.GroupVersionKind{
-				Group:   "knative.dev",
-				Version: "v1alpha1",
-				Kind:    "Service"},
-			)
 
 			config, err := serving_lib.GetConfiguration(&service)
 			if err != nil {

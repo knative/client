@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"strings"
 
-	serving_lib "github.com/knative/client/pkg/serving"
+	servinglib "github.com/knative/client/pkg/serving"
 	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"github.com/spf13/cobra"
 )
@@ -35,7 +35,7 @@ func (p *ConfigurationEditFlags) AddFlags(command *cobra.Command) {
 			"any number of times to set multiple environment variables.")
 }
 
-func (p *ConfigurationEditFlags) Apply(config *servingv1alpha1.ConfigurationSpec) (err error) {
+func (p *ConfigurationEditFlags) Apply(config *servingv1alpha1.ConfigurationSpec) error {
 	envMap := map[string]string{}
 	for _, pairStr := range p.Env {
 		pairSlice := strings.SplitN(pairStr, "=", 2)
@@ -46,11 +46,11 @@ func (p *ConfigurationEditFlags) Apply(config *servingv1alpha1.ConfigurationSpec
 		}
 		envMap[pairSlice[0]] = pairSlice[1]
 	}
-	err = serving_lib.UpdateEnvVars(config, envMap)
+	err := servinglib.UpdateEnvVars(config, envMap)
 	if err != nil {
 		return err
 	}
-	err = serving_lib.UpdateImage(config, p.Image)
+	err = servinglib.UpdateImage(config, p.Image)
 	if err != nil {
 		return err
 	}

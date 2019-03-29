@@ -28,11 +28,11 @@ import (
 func UpdateEnvVars(config *servingv1alpha1.ConfigurationSpec, vars map[string]string) error {
 	set := make(map[string]bool)
 	for i, _ := range config.RevisionTemplate.Spec.Container.Env {
-		env_var := &config.RevisionTemplate.Spec.Container.Env[i]
-		value, present := vars[env_var.Name]
+		envVar := &config.RevisionTemplate.Spec.Container.Env[i]
+		value, present := vars[envVar.Name]
 		if present {
-			env_var.Value = value
-			set[env_var.Name] = true
+			envVar.Value = value
+			set[envVar.Name] = true
 		}
 	}
 	for name, value := range vars {
@@ -53,12 +53,12 @@ func UpdateEnvVars(config *servingv1alpha1.ConfigurationSpec, vars map[string]st
 // more convenient map form.
 func EnvToMap(vars []corev1.EnvVar) (map[string]string, error) {
 	result := map[string]string{}
-	for _, env_var := range vars {
-		_, present := result[env_var.Name]
+	for _, envVar := range vars {
+		_, present := result[envVar.Name]
 		if present {
-			return nil, fmt.Errorf("Env var name present more than once: %v", env_var.Name)
+			return nil, fmt.Errorf("Env var name present more than once: %v", envVar.Name)
 		}
-		result[env_var.Name] = env_var.Value
+		result[envVar.Name] = envVar.Value
 	}
 	return result, nil
 }

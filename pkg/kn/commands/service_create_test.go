@@ -21,7 +21,7 @@ import (
 	"reflect"
 	"testing"
 
-	serving_lib "github.com/knative/client/pkg/serving"
+	servinglib "github.com/knative/client/pkg/serving"
 
 	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	serving "github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
@@ -73,7 +73,7 @@ func TestServiceCreateImage(t *testing.T) {
 	} else if !action.Matches("create", "services") {
 		t.Fatalf("Bad action %v", action)
 	}
-	conf, err := serving_lib.GetConfiguration(created)
+	conf, err := servinglib.GetConfiguration(created)
 	if err != nil {
 		t.Fatal(err)
 	} else if conf.RevisionTemplate.Spec.Container.Image != "gcr.io/foo/bar:baz" {
@@ -95,8 +95,8 @@ func TestServiceCreateEnv(t *testing.T) {
 		"A": "DOGS",
 		"B": "WOLVES"}
 
-	conf, err := serving_lib.GetConfiguration(created)
-	actualEnvVars, err := serving_lib.EnvToMap(conf.RevisionTemplate.Spec.Container.Env)
+	conf, err := servinglib.GetConfiguration(created)
+	actualEnvVars, err := servinglib.EnvToMap(conf.RevisionTemplate.Spec.Container.Env)
 	if err != nil {
 		t.Fatal(err)
 	}
