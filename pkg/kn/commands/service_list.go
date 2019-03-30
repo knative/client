@@ -23,11 +23,10 @@ import (
 
 var serviceListPrintFlags *genericclioptions.PrintFlags
 
-// listCmd represents the list command
+// NewServiceListCommand represents the service list command
 func NewServiceListCommand(p *KnParams) *cobra.Command {
-
 	serviceListPrintFlags := genericclioptions.NewPrintFlags("").WithDefaultOutput(
-		"jsonpath={range .items[*]}{.metadata.name}{\"\\n\"}{end}")
+		"jsonpath={range .items[*]}{.metadata.namespace}{\"\\t\"}{.metadata.name}{\"\\n\"}{end}")
 	serviceListCommand := &cobra.Command{
 		Use:   "list",
 		Short: "List available services.",
@@ -50,11 +49,7 @@ func NewServiceListCommand(p *KnParams) *cobra.Command {
 				Group:   "knative.dev",
 				Version: "v1alpha1",
 				Kind:    "Service"})
-			err = printer.PrintObj(service, cmd.OutOrStdout())
-			if err != nil {
-				return err
-			}
-			return nil
+			return printer.PrintObj(service, cmd.OutOrStdout())
 		},
 	}
 	serviceListPrintFlags.AddFlags(serviceListCommand)

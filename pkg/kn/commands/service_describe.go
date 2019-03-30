@@ -24,7 +24,6 @@ import (
 )
 
 func NewServiceDescribeCommand(p *KnParams) *cobra.Command {
-
 	serviceDescribePrintFlags := genericclioptions.NewPrintFlags("").WithDefaultOutput("yaml")
 	serviceDescribeCommand := &cobra.Command{
 		Use:   "describe NAME",

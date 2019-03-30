@@ -23,10 +23,10 @@ import (
 
 var revisionListPrintFlags *genericclioptions.PrintFlags
 
-// listCmd represents the list command
+// NewRevisionListCommand represents the revision list command
 func NewRevisionListCommand(p *KnParams) *cobra.Command {
 	revisionListPrintFlags = genericclioptions.NewPrintFlags("").WithDefaultOutput(
-		"jsonpath={range .items[*]}{.metadata.name}{\"\\n\"}{end}")
+		"jsonpath={range .items[*]}{.metadata.namespace}{\"\\t\"}{.metadata.name}{\"\\n\"}{end}")
 	revisionListCmd := &cobra.Command{
 		Use:   "list",
 		Short: "List available revisions.",
@@ -49,11 +49,7 @@ func NewRevisionListCommand(p *KnParams) *cobra.Command {
 				Group:   "knative.dev",
 				Version: "v1alpha1",
 				Kind:    "Revision"})
-			err = printer.PrintObj(revision, cmd.OutOrStdout())
-			if err != nil {
-				return err
-			}
-			return nil
+			return printer.PrintObj(revision, cmd.OutOrStdout())
 		},
 	}
 	revisionListPrintFlags.AddFlags(revisionListCmd)

@@ -18,21 +18,22 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 
 	serving "github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
 var (
-	cfgFile     string
-	kubeCfgFile string
-	namespace   string
+	cfgFile         string
+	rootCmd         *cobra.Command
+	config          clientcmd.ClientConfig
+	kubeConfigFlags *genericclioptions.ConfigFlags
 )
 
 // Parameters for creating commands. Useful for inserting mocks for testing.
@@ -43,7 +44,7 @@ type KnParams struct {
 
 func (c *KnParams) Initialize() {
 	if c.ServingFactory == nil {
-		c.ServingFactory = GetConfig
+		c.ServingFactory = ServingConfig
 	}
 }
 
@@ -59,7 +60,7 @@ func NewKnCommand(params ...KnParams) *cobra.Command {
 	}
 	p.Initialize()
 
-	rootCmd := &cobra.Command{
+	rootCmd = &cobra.Command{
 		Use:   "kn",
 		Short: "Knative client",
 		Long: `Manage your Knative building blocks:
@@ -71,9 +72,12 @@ Eventing: Manage event subscriptions and channels. Connect up event sources.`,
 	if p.Output != nil {
 		rootCmd.SetOutput(p.Output)
 	}
+
+	flags := rootCmd.PersistentFlags()
+	kubeConfigFlags = genericclioptions.NewConfigFlags()
+	kubeConfigFlags.AddFlags(flags)
+
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.kn.yaml)")
-	rootCmd.PersistentFlags().StringVar(&kubeCfgFile, "kubeconfig", "", "kubectl config file (default is $HOME/.kube/config)")
-	rootCmd.PersistentFlags().StringVarP(&namespace, "namespace", "n", "", "Namespace to use.")
 	rootCmd.AddCommand(NewServiceCommand(p))
 	rootCmd.AddCommand(NewRevisionCommand(p))
 	return rootCmd
@@ -82,23 +86,6 @@ Eventing: Manage event subscriptions and channels. Connect up event sources.`,
 func InitializeConfig() {
 	cobra.OnInitialize(initConfig)
 	cobra.OnInitialize(initKubeConfig)
-	cobra.OnInitialize(setNamespace)
-}
-
-func initKubeConfig() {
-	if kubeCfgFile != "" {
-		return
-	}
-	if kubeEnvConf, ok := os.LookupEnv("KUBECONFIG"); ok {
-		kubeCfgFile = kubeEnvConf
-	} else {
-		home, err := homedir.Dir()
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(1)
-		}
-		kubeCfgFile = filepath.Join(home, ".kube", "config")
-	}
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -127,32 +114,19 @@ func initConfig() {
 	}
 }
 
-func GetConfig() (serving.ServingV1alpha1Interface, error) {
-	config, err := clientcmd.BuildConfigFromFlags("", kubeCfgFile)
+func initKubeConfig() {
+	config = kubeConfigFlags.ToRawKubeConfigLoader()
+	ns, _, err := config.Namespace()
+	if err != nil {
+		ns = "default"
+	}
+	rootCmd.PersistentFlags().Set("namespace", ns)
+}
+
+func ServingConfig() (serving.ServingV1alpha1Interface, error) {
+	clientConfig, err := config.ClientConfig()
 	if err != nil {
 		return nil, err
 	}
-	client, err := serving.NewForConfig(config)
-	if err != nil {
-		return nil, err
-	}
-	return client, nil
-}
-
-func setNamespace() {
-	if namespace != "" {
-		return
-	}
-	namespace = "default"
-	config := clientConfig(kubeCfgFile)
-	if ns, _, err := config.Namespace(); err == nil {
-		namespace = ns
-	}
-}
-
-func clientConfig(path string) clientcmd.ClientConfig {
-	return clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
-		&clientcmd.ClientConfigLoadingRules{ExplicitPath: path},
-		&clientcmd.ConfigOverrides{},
-	)
+	return serving.NewForConfig(clientConfig)
 }
