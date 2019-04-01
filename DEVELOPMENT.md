@@ -34,10 +34,6 @@ You must install these tools:
 1. [Set up a Knative](https://www.knative.dev/docs/install/)
    - You can also setup using limited install guides for eg: Minikube/Minishift.
 
-### Setup your environment
-
-Let's setup local development envrionment.
-
 ### Checkout your fork
 
 To check out this repository:
@@ -46,8 +42,6 @@ To check out this repository:
 1. Clone it to your machine:
 
 ```sh
-mkdir -p ${GOPATH}/src/github.com/knative
-cd ${GOPATH}/src/github.com/knative
 git clone git@github.com:${YOUR_GITHUB_USERNAME}/client.git
 cd client
 git remote add upstream git@github.com:knative/client.git
