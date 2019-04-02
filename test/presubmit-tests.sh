@@ -56,4 +56,10 @@ function build_tests() {
   return ${failed}
 }
 
+# Build kn before integration tests, so we fail fast in case of error.
+function pre_integration_tests() {
+  subheader "Building client"
+  go build -v ./cmd/... || return 1
+}
+
 main $@
