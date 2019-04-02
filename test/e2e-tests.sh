@@ -32,12 +32,16 @@ function knative_setup() {
   start_latest_knative_serving
 }
 
+function build_kn() {
+  header "Building client"
+  GO111MODULE=on go build -v ./cmd/... || fail_test "Error building kn"
+}
+
 
 # Script entry point.
 
-header "Building client"
-
-GO111MODULE=on go build -v ./cmd/...
+# Build kn before starting knative, so we fail fast in case of error.
+(( ! RUN_TESTS )) && build_kn
 
 initialize $@
 
