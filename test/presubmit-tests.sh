@@ -57,8 +57,8 @@ function build_tests() {
 }
 
 function pre_integration_tests() {
-  subheader "Building go code"
-  go build -v ./... || return 1
+  subheader "Building client"
+  go build -v ./cmd/... || return 1
 }
 
 main $@
