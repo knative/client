@@ -56,4 +56,9 @@ function build_tests() {
   return ${failed}
 }
 
+function pre_integration_tests() {
+  subheader "Building go code"
+  go build -v ./... || return 1
+}
+
 main $@

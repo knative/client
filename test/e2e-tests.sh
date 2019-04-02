@@ -25,7 +25,6 @@
 # project $PROJECT_ID, start Knative serving and the eventing system, run
 # the tests and delete the cluster.
 
-export GO111MODULE=on
 source $(dirname $0)/../vendor/github.com/knative/test-infra/scripts/e2e-tests.sh
 
 # Helper functions.
@@ -45,7 +44,7 @@ function knative_teardown() {
 
 initialize $@
 
-go build -v ./... || fail_test
+header "Running tests"
 
 ./kn service list || fail_test
 
