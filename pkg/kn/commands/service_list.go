@@ -15,6 +15,12 @@
 package commands
 
 import (
+	"fmt"
+	"strings"
+	"text/tabwriter"
+
+	printers "github.com/knative/client/pkg/util/printers"
+	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"github.com/spf13/cobra"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -23,10 +29,8 @@ import (
 
 var serviceListPrintFlags *genericclioptions.PrintFlags
 
-// listCmd represents the list command
+// NewServiceListCommand represents the list command
 func NewServiceListCommand(p *KnParams) *cobra.Command {
-	serviceListPrintFlags := genericclioptions.NewPrintFlags("").WithDefaultOutput(
-		"jsonpath={range .items[*]}{.metadata.name}{\"\\n\"}{end}")
 	serviceListCommand := &cobra.Command{
 		Use:   "list",
 		Short: "List available services.",
@@ -44,22 +48,41 @@ func NewServiceListCommand(p *KnParams) *cobra.Command {
 				return err
 			}
 
-			printer, err := serviceListPrintFlags.ToPrinter()
-			if err != nil {
-				return err
-			}
 			service.GetObjectKind().SetGroupVersionKind(schema.GroupVersionKind{
 				Group:   "knative.dev",
 				Version: "v1alpha1",
 				Kind:    "Service"})
-			err = printer.PrintObj(service, cmd.OutOrStdout())
-			if err != nil {
+
+			printer := printers.GetNewTabWriter(cmd.OutOrStdout())
+
+			if err := printServiceList(printer, *service); err != nil {
 				return err
 			}
-			return nil
+			printer.Flush()
+
+			return err
 		},
 	}
 	AddNamespaceFlags(serviceListCommand.Flags(), true)
-	serviceListPrintFlags.AddFlags(serviceListCommand)
 	return serviceListCommand
+}
+
+func printServiceList(printer *tabwriter.Writer, services servingv1alpha1.ServiceList) error {
+	// case where no services are present
+	if len(services.Items) < 1 {
+		fmt.Fprintln(printer, "No resources found.")
+		return nil
+	}
+	columnNames := []string{"NAME", "DOMAIN", "LATESTCREATED", "LATESTREADY"}
+	if _, err := fmt.Fprintf(printer, "%s\n", strings.Join(columnNames, "\t")); err != nil {
+		return err
+	}
+	for _, ksvc := range services.Items {
+		_, err := fmt.Fprintf(printer, "%s\n", strings.Join([]string{ksvc.Name, ksvc.Status.Domain,
+			ksvc.Status.LatestCreatedRevisionName, ksvc.Status.LatestReadyRevisionName}, "\t"))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
