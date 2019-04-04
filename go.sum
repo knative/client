@@ -65,6 +65,8 @@ github.com/knative/serving v0.3.0 h1:kALSwD+P5GLdRj2mtZ2W4ZRRD//Q7nKjLqCPSpihkTY
 github.com/knative/serving v0.3.0/go.mod h1:ljvMfwQy2qanaM/8xnBSK4Mz3Vv2NawC2fo5kFRJS1A=
 github.com/knative/test-infra v0.0.0-20190326053250-44d850784ecb h1:4wAx6g3pRhmnnxvrX2pYB7z/2nhBtgLO/JJEZSjP1pY=
 github.com/knative/test-infra v0.0.0-20190326053250-44d850784ecb/go.mod h1:l77IWBscEV5T4sYb64/9iwRCVY4UXEIqMcAppsblHW4=
+github.com/knative/test-infra v0.0.0-20190404172656-4ce16d390c55 h1:2tpTEN6OydMWVmkKJC3iVNrYbA+iHNL9qjLXe7hocfE=
+github.com/knative/test-infra v0.0.0-20190404172656-4ce16d390c55/go.mod h1:l77IWBscEV5T4sYb64/9iwRCVY4UXEIqMcAppsblHW4=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=

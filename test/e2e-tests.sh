@@ -28,6 +28,12 @@ source $(dirname $0)/../vendor/github.com/knative/test-infra/scripts/e2e-tests.s
 
 # Helper functions.
 
+# Build kn before integration tests, so we fail fast in case of error.
+function cluster_setup() {
+  header "Building client"
+  go build -v ./cmd/... || return 1
+}
+
 function knative_setup() {
   start_latest_knative_serving
 }
