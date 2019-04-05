@@ -73,13 +73,14 @@ func printServiceList(printer *tabwriter.Writer, services servingv1alpha1.Servic
 		fmt.Fprintln(printer, "No resources found.")
 		return nil
 	}
-	columnNames := []string{"NAME", "DOMAIN", "LATESTCREATED", "LATESTREADY"}
+	columnNames := []string{"NAME", "DOMAIN", "LATESTCREATED", "LATESTREADY", "AGE"}
 	if _, err := fmt.Fprintf(printer, "%s\n", strings.Join(columnNames, "\t")); err != nil {
 		return err
 	}
 	for _, ksvc := range services.Items {
 		_, err := fmt.Fprintf(printer, "%s\n", strings.Join([]string{ksvc.Name, ksvc.Status.Domain,
-			ksvc.Status.LatestCreatedRevisionName, ksvc.Status.LatestReadyRevisionName}, "\t"))
+			ksvc.Status.LatestCreatedRevisionName, ksvc.Status.LatestReadyRevisionName,
+			printers.CalculateAge(ksvc.CreationTimestamp.Time)}, "\t"))
 		if err != nil {
 			return err
 		}
