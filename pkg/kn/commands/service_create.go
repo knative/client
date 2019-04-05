@@ -31,6 +31,13 @@ func NewServiceCreateCommand(p *KnParams) *cobra.Command {
 	serviceCreateCommand := &cobra.Command{
 		Use:   "create NAME",
 		Short: "Create a service.",
+		Example: `
+# Create a service 'mysvc' using image at dev.local/ns/image:latest
+kn service create mysvc --image dev.local/ns/image:latest
+
+# Create a service with multiple environment variables
+kn service create mysvc --env KEY1=VALUE1 --env KEY2=VALUE2 --image dev.local/ns/image:latest`,
+
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
 				return errors.New("requires the service name.")
