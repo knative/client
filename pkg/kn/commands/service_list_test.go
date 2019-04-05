@@ -54,9 +54,10 @@ func TestListEmpty(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	for _, s := range output {
-		if s != "" {
-			t.Errorf("Bad output line %v", s)
+	expected := []string{"No resources found.", ""}
+	for i, s := range output {
+		if s != expected[i] {
+			t.Errorf("%d Bad output line %v", i, s)
 		}
 	}
 	if action == nil {
