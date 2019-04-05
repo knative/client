@@ -26,5 +26,6 @@ func NewServiceCommand(p *KnParams) *cobra.Command {
 	serviceCmd.PersistentFlags().StringP("namespace", "n", "default", "Namespace to use.")
 	serviceCmd.AddCommand(NewServiceListCommand(p))
 	serviceCmd.AddCommand(NewServiceDescribeCommand(p))
+	serviceCmd.AddCommand(NewServiceCreateCommand(p))
 	return serviceCmd
 }
