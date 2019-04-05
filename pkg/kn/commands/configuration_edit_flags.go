@@ -33,6 +33,7 @@ func (p *ConfigurationEditFlags) AddFlags(command *cobra.Command) {
 	command.Flags().StringArrayVarP(&p.Env, "env", "e", []string{},
 		"Environment variable to set. NAME=value; you may provide this flag "+
 			"any number of times to set multiple environment variables.")
+	command.MarkFlagRequired("image")
 }
 
 func (p *ConfigurationEditFlags) Apply(config *servingv1alpha1.ConfigurationSpec) error {
