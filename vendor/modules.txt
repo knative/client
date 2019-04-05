@@ -45,13 +45,6 @@ github.com/google/go-cmp/cmp/internal/value
 github.com/google/go-containerregistry/pkg/name
 # github.com/google/gofuzz v0.0.0-20170612174753-24818f796faf
 github.com/google/gofuzz
-# github.com/google/licenseclassifier v0.0.0-20190103191631-c2a262e3078a
-github.com/google/licenseclassifier
-github.com/google/licenseclassifier/internal/sets
-github.com/google/licenseclassifier/stringclassifier
-github.com/google/licenseclassifier/stringclassifier/searchset
-github.com/google/licenseclassifier/stringclassifier/internal/pq
-github.com/google/licenseclassifier/stringclassifier/searchset/tokenizer
 # github.com/googleapis/gnostic v0.2.0
 github.com/googleapis/gnostic/OpenAPIv2
 github.com/googleapis/gnostic/compiler
@@ -89,16 +82,16 @@ github.com/knative/pkg/kmeta
 github.com/knative/pkg/kmp
 github.com/knative/pkg/apis/duck
 # github.com/knative/serving v0.3.0
-github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1
 github.com/knative/serving/pkg/apis/serving/v1alpha1
-github.com/knative/serving/pkg/client/clientset/versioned/scheme
-github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake
+github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1
 github.com/knative/serving/pkg/apis/autoscaling
 github.com/knative/serving/pkg/apis/networking/v1alpha1
 github.com/knative/serving/pkg/apis/serving
-github.com/knative/serving/pkg/apis/autoscaling/v1alpha1
+github.com/knative/serving/pkg/client/clientset/versioned/scheme
+github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake
 github.com/knative/serving/pkg/apis/networking
-# github.com/knative/test-infra v0.0.0-20190304225739-6bb6546d833a
+github.com/knative/serving/pkg/apis/autoscaling/v1alpha1
+# github.com/knative/test-infra v0.0.0-20190326053250-44d850784ecb
 github.com/knative/test-infra/scripts
 # github.com/magiconair/properties v1.8.0
 github.com/magiconair/properties
@@ -122,8 +115,6 @@ github.com/pelletier/go-toml
 github.com/peterbourgon/diskv
 # github.com/pkg/errors v0.8.1
 github.com/pkg/errors
-# github.com/sergi/go-diff v1.0.0
-github.com/sergi/go-diff/diffmatchpatch
 # github.com/spf13/afero v1.2.0
 github.com/spf13/afero
 github.com/spf13/afero/mem
@@ -219,6 +210,11 @@ k8s.io/api/storage/v1beta1
 # k8s.io/apimachinery v0.0.0-20190104073114-849b284f3b75
 k8s.io/apimachinery/pkg/apis/meta/v1
 k8s.io/apimachinery/pkg/runtime/schema
+k8s.io/apimachinery/pkg/api/equality
+k8s.io/apimachinery/pkg/apis/meta/v1/unstructured
+k8s.io/apimachinery/pkg/runtime
+k8s.io/apimachinery/pkg/util/intstr
+k8s.io/apimachinery/pkg/util/validation
 k8s.io/apimachinery/pkg/runtime/serializer
 k8s.io/apimachinery/pkg/types
 k8s.io/apimachinery/pkg/watch
@@ -226,43 +222,38 @@ k8s.io/apimachinery/pkg/api/resource
 k8s.io/apimachinery/pkg/conversion
 k8s.io/apimachinery/pkg/fields
 k8s.io/apimachinery/pkg/labels
-k8s.io/apimachinery/pkg/runtime
 k8s.io/apimachinery/pkg/selection
-k8s.io/apimachinery/pkg/util/intstr
 k8s.io/apimachinery/pkg/util/runtime
 k8s.io/apimachinery/pkg/api/meta
 k8s.io/apimachinery/pkg/util/json
 k8s.io/apimachinery/pkg/util/net
 k8s.io/apimachinery/pkg/util/yaml
 k8s.io/apimachinery/pkg/util/errors
-k8s.io/apimachinery/pkg/util/validation
-k8s.io/apimachinery/pkg/api/equality
-k8s.io/apimachinery/pkg/apis/meta/v1/unstructured
+k8s.io/apimachinery/pkg/conversion/queryparams
+k8s.io/apimachinery/pkg/util/naming
+k8s.io/apimachinery/pkg/util/sets
+k8s.io/apimachinery/pkg/util/validation/field
 k8s.io/apimachinery/pkg/runtime/serializer/json
 k8s.io/apimachinery/pkg/runtime/serializer/protobuf
 k8s.io/apimachinery/pkg/runtime/serializer/recognizer
 k8s.io/apimachinery/pkg/runtime/serializer/versioning
 k8s.io/apimachinery/pkg/api/errors
 k8s.io/apimachinery/pkg/runtime/serializer/streaming
-k8s.io/apimachinery/pkg/util/sets
 k8s.io/apimachinery/third_party/forked/golang/reflect
-k8s.io/apimachinery/pkg/conversion/queryparams
-k8s.io/apimachinery/pkg/util/naming
 k8s.io/apimachinery/pkg/apis/meta/v1beta1
 k8s.io/apimachinery/pkg/apis/meta/v1/unstructured/unstructuredscheme
 k8s.io/apimachinery/pkg/version
-k8s.io/apimachinery/pkg/util/validation/field
 k8s.io/apimachinery/pkg/util/strategicpatch
-k8s.io/apimachinery/pkg/util/framer
-k8s.io/apimachinery/pkg/util/clock
-k8s.io/apimachinery/pkg/util/mergepatch
-k8s.io/apimachinery/third_party/forked/golang/json
 k8s.io/apimachinery/pkg/util/cache
+k8s.io/apimachinery/pkg/util/clock
 k8s.io/apimachinery/pkg/util/diff
 k8s.io/apimachinery/pkg/util/wait
+k8s.io/apimachinery/pkg/util/framer
+k8s.io/apimachinery/pkg/util/mergepatch
+k8s.io/apimachinery/third_party/forked/golang/json
+k8s.io/apimachinery/pkg/apis/meta/internalversion
 k8s.io/apimachinery/pkg/api/validation
 k8s.io/apimachinery/pkg/apis/meta/v1/validation
-k8s.io/apimachinery/pkg/apis/meta/internalversion
 # k8s.io/cli-runtime v0.0.0-20190107235426-31214e12222d
 k8s.io/cli-runtime/pkg/genericclioptions
 k8s.io/cli-runtime/pkg/genericclioptions/printers
@@ -276,6 +267,7 @@ k8s.io/cli-runtime/pkg/kustomize/k8sdeps/transformer/hash
 k8s.io/cli-runtime/pkg/kustomize/k8sdeps/transformer/patch
 # k8s.io/client-go v2.0.0-alpha.0.0.20181015214059-cbd9965a0e71+incompatible
 k8s.io/client-go/plugin/pkg/client/auth/gcp
+k8s.io/client-go/plugin/pkg/client/auth/oidc
 k8s.io/client-go/tools/clientcmd
 k8s.io/client-go/rest
 k8s.io/client-go/discovery
@@ -286,6 +278,7 @@ k8s.io/client-go/util/jsonpath
 k8s.io/client-go/tools/auth
 k8s.io/client-go/tools/clientcmd/api/latest
 k8s.io/client-go/testing
+k8s.io/client-go/tools/cache
 k8s.io/client-go/pkg/version
 k8s.io/client-go/plugin/pkg/client/auth/exec
 k8s.io/client-go/rest/watch
@@ -296,16 +289,15 @@ k8s.io/client-go/util/flowcontrol
 k8s.io/client-go/kubernetes/scheme
 k8s.io/client-go/third_party/forked/golang/template
 k8s.io/client-go/tools/clientcmd/api/v1
-k8s.io/client-go/tools/cache
+k8s.io/client-go/dynamic
+k8s.io/client-go/tools/pager
+k8s.io/client-go/util/buffer
+k8s.io/client-go/util/retry
 k8s.io/client-go/pkg/apis/clientauthentication
 k8s.io/client-go/pkg/apis/clientauthentication/v1alpha1
 k8s.io/client-go/pkg/apis/clientauthentication/v1beta1
 k8s.io/client-go/util/connrotation
 k8s.io/client-go/util/integer
-k8s.io/client-go/dynamic
-k8s.io/client-go/tools/pager
-k8s.io/client-go/util/buffer
-k8s.io/client-go/util/retry
 # k8s.io/klog v0.1.0
 k8s.io/klog
 # k8s.io/kube-openapi v0.0.0-20181114233023-0317810137be

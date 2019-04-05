@@ -178,7 +178,7 @@ function wait_until_routable() {
   for i in {1..150}; do  # timeout after 5 minutes
     local val=$(curl -H "Host: $2" "http://$1" 2>/dev/null)
     if [[ -n "$val" ]]; then
-      echo "\nEndpoint is now routable"
+      echo -e "\nEndpoint is now routable"
       return 0
     fi
     echo -n "."
@@ -406,6 +406,27 @@ function is_int() {
 # Parameters: $1 - full GCR name, e.g. gcr.io/knative-foo-bar
 function is_protected_gcr() {
   [[ -n $1 && "$1" =~ "^gcr.io/knative-(releases|nightly)/?$" ]]
+}
+
+# Remove symlinks in a path that are broken or lead outside the repo.
+# Parameters: $1 - path name, e.g. vendor
+function remove_broken_symlinks() {
+  for link in $(find $1 -type l); do
+    # Remove broken symlinks
+    if [[ ! -e ${link} ]]; then
+      unlink ${link}
+      continue
+    fi
+    # Get canonical path to target, remove if outside the repo
+    local target="$(ls -l ${link})"
+    target="${target##* -> }"
+    [[ ${target} == /* ]] || target="./${target}"
+    target="$(cd `dirname ${link}` && cd ${target%/*} && echo $PWD/${target##*/})"
+    if [[ ${target} != *github.com/knative/* ]]; then
+      unlink ${link}
+      continue
+    fi
+  done
 }
 
 # Returns the canonical path of a filesystem object.
