@@ -16,9 +16,11 @@ package commands
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 	"testing"
 
+	printers "github.com/knative/client/pkg/util/printers"
 	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	serving "github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
 	"github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake"
@@ -72,6 +74,19 @@ var serviceType = metav1.TypeMeta{
 	APIVersion: "serving.knative.dev/v1alpha1",
 }
 
+// tabbedOutput takes a list of strings and returns the tabwriter formatted output
+func tabbedOutput(s []string) string {
+	buf := new(bytes.Buffer)
+	printer := printers.GetNewTabWriter(buf)
+
+	for _, line := range s {
+		line_items := strings.Split(line, ",")
+		fmt.Fprintf(printer, "%s\n", strings.Join(line_items, "\t"))
+	}
+	printer.Flush()
+	return buf.String()
+
+}
 func TestListDefaultOutput(t *testing.T) {
 	action, output, err := fakeList([]string{"service", "list"}, &v1alpha1.ServiceList{
 		Items: []v1alpha1.Service{
@@ -80,11 +95,21 @@ func TestListDefaultOutput(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "foo",
 				},
+				Status: v1alpha1.ServiceStatus{
+					Domain:                    "foo.default.example.com",
+					LatestCreatedRevisionName: "foo-abcde",
+					LatestReadyRevisionName:   "foo-abcde",
+				},
 			},
 			v1alpha1.Service{
 				TypeMeta: serviceType,
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "bar",
+				},
+				Status: v1alpha1.ServiceStatus{
+					Domain:                    "bar.default.example.com",
+					LatestCreatedRevisionName: "bar-abcde",
+					LatestReadyRevisionName:   "bar-abcde",
 				},
 			},
 		},
@@ -92,10 +117,15 @@ func TestListDefaultOutput(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expected := []string{"foo", "bar", ""}
+	// each line's tab/spaces are replaced by comma
+	expected := []string{"NAME,DOMAIN,LATESTCREATED,LATESTREADY,AGE",
+		"foo,foo.default.example.com,foo-abcde,foo-abcde,",
+		"bar,bar.default.example.com,bar-abcde,bar-abcde,"}
+	expected_lines := strings.Split(tabbedOutput(expected), "\n")
+
 	for i, s := range output {
-		if s != expected[i] {
-			t.Errorf("Bad output line %v expected %v", s, expected[i])
+		if s != expected_lines[i] {
+			t.Errorf("Bad output line %v expected %v", s, expected_lines[i])
 		}
 	}
 	if action == nil {
