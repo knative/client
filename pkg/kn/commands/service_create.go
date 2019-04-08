@@ -29,11 +29,14 @@ func NewServiceCreateCommand(p *KnParams) *cobra.Command {
 	var editFlags ConfigurationEditFlags
 
 	serviceCreateCommand := &cobra.Command{
-		Use:   "create NAME",
+		Use:   "create NAME --image IMAGE",
 		Short: "Create a service.",
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
 				return errors.New("requires the service name.")
+			}
+			if editFlags.Image == "" {
+				return errors.New("requires the image name to run.")
 			}
 
 			namespace := cmd.Flag("namespace").Value.String()
