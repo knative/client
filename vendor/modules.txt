@@ -91,7 +91,7 @@ github.com/knative/serving/pkg/client/clientset/versioned/scheme
 github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake
 github.com/knative/serving/pkg/apis/networking
 github.com/knative/serving/pkg/apis/autoscaling/v1alpha1
-# github.com/knative/test-infra v0.0.0-20190326053250-44d850784ecb
+# github.com/knative/test-infra v0.0.0-20190404172656-4ce16d390c55
 github.com/knative/test-infra/scripts
 # github.com/magiconair/properties v1.8.0
 github.com/magiconair/properties
