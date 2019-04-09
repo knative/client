@@ -23,38 +23,32 @@ import (
 
 // NewServiceDeleteCommand represent 'service delete' command
 func NewServiceDeleteCommand(p *KnParams) *cobra.Command {
-
 	serviceDeleteCommand := &cobra.Command{
-		Use:     "delete <SERVICE_NAME>",
-		Aliases: []string{"del", "d"},
-		Short:   "Delete a service",
+		Use:   "delete NAME",
+		Short: "Delete a service.",
 		Example: `
   # Delete a service 'svc1' in default namespace
   kn service delete svc1
 
   # Delete a service 'svc2' in 'ns1' namespace
   kn service delete svc2 -n ns1`,
-		// check for arg length == 1
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if len(args) != 1 {
-				return errors.New("requires one service name.")
-			}
-			return nil
-		},
+
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) != 1 {
+				return errors.New("requires the service name.")
+			}
 			client, err := p.ServingFactory()
-
 			if err != nil {
 				return err
 			}
-
 			namespace := cmd.Flag("namespace").Value.String()
-			err = client.Services(namespace).Delete(args[0], &v1.DeleteOptions{})
-
+			err = client.Services(namespace).Delete(
+				args[0],
+				&v1.DeleteOptions{},
+			)
 			if err != nil {
 				return err
 			}
-
 			fmt.Fprintf(cmd.OutOrStdout(), "Deleted %s in %s namespace.\n", args[0], namespace)
 			return nil
 		},
