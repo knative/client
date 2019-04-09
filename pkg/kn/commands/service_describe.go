@@ -38,7 +38,10 @@ func NewServiceDescribeCommand(p *KnParams) *cobra.Command {
 				return err
 			}
 
-			namespace := cmd.Flag("namespace").Value.String()
+			namespace, err := GetNamespace(cmd)
+			if err != nil {
+				return err
+			}
 			describeService, err := client.Services(namespace).Get(args[0], v1.GetOptions{})
 			if err != nil {
 				return err
@@ -59,6 +62,7 @@ func NewServiceDescribeCommand(p *KnParams) *cobra.Command {
 			return nil
 		},
 	}
+	AddNamespaceFlags(serviceDescribeCommand.Flags(), false)
 	serviceDescribePrintFlags.AddFlags(serviceDescribeCommand)
 	return serviceDescribeCommand
 }

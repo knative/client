@@ -46,7 +46,10 @@ func NewServiceCreateCommand(p *KnParams) *cobra.Command {
 				return errors.New("requires the image name to run.")
 			}
 
-			namespace := cmd.Flag("namespace").Value.String()
+			namespace, err := GetNamespace(cmd)
+			if err != nil {
+				return err
+			}
 
 			service := servingv1alpha1.Service{
 				ObjectMeta: metav1.ObjectMeta{
@@ -76,6 +79,7 @@ func NewServiceCreateCommand(p *KnParams) *cobra.Command {
 			return nil
 		},
 	}
+	AddNamespaceFlags(serviceCreateCommand.Flags(), false)
 	editFlags.AddFlags(serviceCreateCommand)
 	return serviceCreateCommand
 }

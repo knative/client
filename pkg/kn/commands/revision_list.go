@@ -35,7 +35,10 @@ func NewRevisionListCommand(p *KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			namespace := cmd.Flag("namespace").Value.String()
+			namespace, err := GetNamespace(cmd)
+			if err != nil {
+				return err
+			}
 			revision, err := client.Revisions(namespace).List(v1.ListOptions{})
 			if err != nil {
 				return err
@@ -56,6 +59,7 @@ func NewRevisionListCommand(p *KnParams) *cobra.Command {
 			return nil
 		},
 	}
+	AddNamespaceFlags(revisionListCmd.Flags(), true)
 	revisionListPrintFlags.AddFlags(revisionListCmd)
 	return revisionListCmd
 }

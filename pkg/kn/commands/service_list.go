@@ -25,7 +25,6 @@ var serviceListPrintFlags *genericclioptions.PrintFlags
 
 // listCmd represents the list command
 func NewServiceListCommand(p *KnParams) *cobra.Command {
-
 	serviceListPrintFlags := genericclioptions.NewPrintFlags("").WithDefaultOutput(
 		"jsonpath={range .items[*]}{.metadata.name}{\"\\n\"}{end}")
 	serviceListCommand := &cobra.Command{
@@ -36,7 +35,10 @@ func NewServiceListCommand(p *KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			namespace := cmd.Flag("namespace").Value.String()
+			namespace, err := GetNamespace(cmd)
+			if err != nil {
+				return err
+			}
 			service, err := client.Services(namespace).List(v1.ListOptions{})
 			if err != nil {
 				return err
@@ -57,6 +59,7 @@ func NewServiceListCommand(p *KnParams) *cobra.Command {
 			return nil
 		},
 	}
+	AddNamespaceFlags(serviceListCommand.Flags(), true)
 	serviceListPrintFlags.AddFlags(serviceListCommand)
 	return serviceListCommand
 }
