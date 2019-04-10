@@ -15,18 +15,19 @@
 package commands
 
 import (
+	"fmt"
+	"strings"
+	"text/tabwriter"
+
+	knserving "github.com/knative/client/pkg/serving"
+	printers "github.com/knative/client/pkg/util/printers"
+	v1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"github.com/spf13/cobra"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
-var revisionListPrintFlags *genericclioptions.PrintFlags
-
-// listCmd represents the list command
+// NewRevisionListCommand represent the 'revision list' command
 func NewRevisionListCommand(p *KnParams) *cobra.Command {
-	revisionListPrintFlags = genericclioptions.NewPrintFlags("").WithDefaultOutput(
-		"jsonpath={range .items[*]}{.metadata.name}{\"\\n\"}{end}")
 	revisionListCmd := &cobra.Command{
 		Use:   "list",
 		Short: "List available revisions.",
@@ -39,27 +40,66 @@ func NewRevisionListCommand(p *KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			revision, err := client.Revisions(namespace).List(v1.ListOptions{})
+			revisions, err := client.Revisions(namespace).List(v1.ListOptions{})
 			if err != nil {
 				return err
 			}
 
-			printer, err := revisionListPrintFlags.ToPrinter()
+			routes, err := client.Routes(namespace).List(v1.ListOptions{})
 			if err != nil {
 				return err
 			}
-			revision.GetObjectKind().SetGroupVersionKind(schema.GroupVersionKind{
-				Group:   "knative.dev",
-				Version: "v1alpha1",
-				Kind:    "Revision"})
-			err = printer.PrintObj(revision, cmd.OutOrStdout())
-			if err != nil {
+
+			printer := printers.GetNewTabWriter(cmd.OutOrStdout())
+			if err := printRevisionList(printer, *revisions, *routes); err != nil {
 				return err
 			}
+			printer.Flush()
 			return nil
 		},
 	}
 	AddNamespaceFlags(revisionListCmd.Flags(), true)
-	revisionListPrintFlags.AddFlags(revisionListCmd)
 	return revisionListCmd
+}
+
+// printRevisionList takes care of printing revisions
+func printRevisionList(
+	printer *tabwriter.Writer,
+	revisions v1alpha1.RevisionList,
+	routes v1alpha1.RouteList) error {
+	// case where no revisions are present
+	if len(revisions.Items) < 1 {
+		fmt.Fprintln(printer, "No resources found.")
+		return nil
+	}
+	columnNames := []string{"NAME", "SERVICE", "AGE", "TRAFFIC"}
+	if _, err := fmt.Fprintf(printer, "%s\n", strings.Join(columnNames, "\t")); err != nil {
+		return err
+	}
+	for _, rev := range revisions.Items {
+		row := []string{
+			rev.Name,
+			rev.Labels[knserving.ConfigurationLabelKey],
+			printers.CalculateAge(rev.CreationTimestamp.Time),
+			// RouteTrafficValue returns comma separated traffic string
+			RouteTrafficValue(rev, routes.Items),
+		}
+		if _, err := fmt.Fprintf(printer, "%s\n", strings.Join(row, "\t")); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// RouteTrafficValue returns a string with comma separated traffic for revision
+func RouteTrafficValue(rev v1alpha1.Revision, routes []v1alpha1.Route) string {
+	var traffic []string
+	for _, route := range routes {
+		for _, target := range route.Status.Traffic {
+			if target.RevisionName == rev.Name {
+				traffic = append(traffic, fmt.Sprintf("%d%% -> %s", target.Percent, route.Status.Domain))
+			}
+		}
+	}
+	return strings.Join(traffic, ", ")
 }
