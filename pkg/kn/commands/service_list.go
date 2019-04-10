@@ -60,7 +60,7 @@ func NewServiceListCommand(p *KnParams) *cobra.Command {
 			}
 			printer.Flush()
 
-			return err
+			return nil
 		},
 	}
 	AddNamespaceFlags(serviceListCommand.Flags(), true)
