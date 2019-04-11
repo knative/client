@@ -25,8 +25,8 @@ func GetConfiguration(service *servingv1alpha1.Service) (*servingv1alpha1.Config
 		return &service.Spec.RunLatest.Configuration, nil
 	} else if service.Spec.Release != nil {
 		return &service.Spec.Release.Configuration, nil
-	} else if service.Spec.Pinned != nil {
-		return &service.Spec.Pinned.Configuration, nil
+	} else if service.Spec.DeprecatedPinned != nil {
+		return &service.Spec.DeprecatedPinned.Configuration, nil
 	} else {
 		return nil, errors.New("Service does not specify a Configuration")
 	}

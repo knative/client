@@ -20,10 +20,9 @@ require (
 	github.com/imdario/mergo v0.3.6 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.5 // indirect
-	github.com/jstemmer/go-junit-report v0.0.0-20190106144839-af01ea7f8024 // indirect
-	github.com/knative/build v0.3.0 // indirect
-	github.com/knative/pkg v0.0.0-20190110005142-b6044a7d1795 // indirect
-	github.com/knative/serving v0.3.0
+	github.com/knative/build v0.5.0 // indirect
+	github.com/knative/pkg v0.0.0-20190330001454-aad7a9ad4639 // indirect
+	github.com/knative/serving v0.5.1
 	github.com/knative/test-infra v0.0.0-20190404172656-4ce16d390c55
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/mattbaird/jsonpatch v0.0.0-20171005235357-81af80346b1a // indirect
