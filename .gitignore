@@ -13,6 +13,7 @@
 
 # kn binary itself, if you want to `go build cmd/kn` in the top dir.
 /kn
+/kn-*`
 
 # emacs tempfiles
 \#*
