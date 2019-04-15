@@ -80,8 +80,8 @@ func tabbedOutput(s []string) string {
 	printer := printers.GetNewTabWriter(buf)
 
 	for _, line := range s {
-		line_items := strings.Split(line, ",")
-		fmt.Fprintf(printer, "%s\n", strings.Join(line_items, "\t"))
+		lineItems := strings.Split(line, ",")
+		fmt.Fprintf(printer, "%s\n", strings.Join(lineItems, "\t"))
 	}
 	printer.Flush()
 	return buf.String()
@@ -121,11 +121,11 @@ func TestListDefaultOutput(t *testing.T) {
 	expected := []string{"NAME,DOMAIN,LATESTCREATED,LATESTREADY,AGE",
 		"foo,foo.default.example.com,foo-abcde,foo-abcde,",
 		"bar,bar.default.example.com,bar-abcde,bar-abcde,"}
-	expected_lines := strings.Split(tabbedOutput(expected), "\n")
+	expectedLines := strings.Split(tabbedOutput(expected), "\n")
 
 	for i, s := range output {
-		if s != expected_lines[i] {
-			t.Errorf("Bad output line %v expected %v", s, expected_lines[i])
+		if s != expectedLines[i] {
+			t.Errorf("Bad output line %v expected %v", s, expectedLines[i])
 		}
 	}
 	if action == nil {
