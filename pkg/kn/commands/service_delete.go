@@ -41,7 +41,11 @@ func NewServiceDeleteCommand(p *KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			namespace := cmd.Flag("namespace").Value.String()
+			namespace, err := GetNamespace(cmd)
+			if err != nil {
+				return err
+			}
+
 			err = client.Services(namespace).Delete(
 				args[0],
 				&v1.DeleteOptions{},
@@ -53,5 +57,6 @@ func NewServiceDeleteCommand(p *KnParams) *cobra.Command {
 			return nil
 		},
 	}
+	AddNamespaceFlags(serviceDeleteCommand.Flags(), false)
 	return serviceDeleteCommand
 }
