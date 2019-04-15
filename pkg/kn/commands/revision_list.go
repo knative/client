@@ -20,6 +20,7 @@ import (
 	"text/tabwriter"
 
 	knserving "github.com/knative/client/pkg/serving"
+	util "github.com/knative/client/pkg/util"
 	printers "github.com/knative/client/pkg/util/printers"
 	v1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"github.com/spf13/cobra"
@@ -51,10 +52,12 @@ func NewRevisionListCommand(p *KnParams) *cobra.Command {
 			}
 
 			printer := printers.GetNewTabWriter(cmd.OutOrStdout())
+			// make sure the printer is flushed to stdout before returning
+			defer printer.Flush()
+
 			if err := printRevisionList(printer, *revisions, *routes); err != nil {
 				return err
 			}
-			printer.Flush()
 			return nil
 		},
 	}
@@ -80,7 +83,7 @@ func printRevisionList(
 		row := []string{
 			rev.Name,
 			rev.Labels[knserving.ConfigurationLabelKey],
-			printers.CalculateAge(rev.CreationTimestamp.Time),
+			util.CalculateAge(rev.CreationTimestamp.Time),
 			// RouteTrafficValue returns comma separated traffic string
 			RouteTrafficValue(rev, routes.Items),
 		}
