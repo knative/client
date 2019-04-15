@@ -33,7 +33,10 @@ func NewServiceUpdateCommand(p *KnParams) *cobra.Command {
 				return errors.New("requires the service name.")
 			}
 
-			namespace := cmd.Flag("namespace").Value.String()
+			namespace, err := GetNamespace(cmd)
+			if err != nil {
+				return err
+			}
 
 			client, err := p.ServingFactory()
 			if err != nil {
@@ -62,6 +65,7 @@ func NewServiceUpdateCommand(p *KnParams) *cobra.Command {
 			return nil
 		},
 	}
+	AddNamespaceFlags(serviceUpdateCommand.Flags(), false)
 	editFlags.AddFlags(serviceUpdateCommand)
 	return serviceUpdateCommand
 }
