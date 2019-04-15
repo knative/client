@@ -51,7 +51,7 @@ func NewRevisionListCommand(p *KnParams) *cobra.Command {
 				return err
 			}
 
-			printer := printers.GetNewTabWriter(cmd.OutOrStdout())
+			printer := printers.NewTabWriter(cmd.OutOrStdout())
 			// make sure the printer is flushed to stdout before returning
 			defer printer.Flush()
 
