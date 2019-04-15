@@ -77,7 +77,7 @@ var serviceType = metav1.TypeMeta{
 // tabbedOutput takes a list of strings and returns the tabwriter formatted output
 func tabbedOutput(s []string) string {
 	buf := new(bytes.Buffer)
-	printer := printers.GetNewTabWriter(buf)
+	printer := printers.NewTabWriter(buf)
 
 	for _, line := range s {
 		lineItems := strings.Split(line, ",")

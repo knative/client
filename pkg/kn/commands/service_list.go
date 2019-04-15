@@ -50,13 +50,12 @@ func NewServiceListCommand(p *KnParams) *cobra.Command {
 				Version: "v1alpha1",
 				Kind:    "Service"})
 
-			printer := printers.GetNewTabWriter(cmd.OutOrStdout())
+			printer := printers.NewTabWriter(cmd.OutOrStdout())
+			defer printer.Flush()
 
 			if err := printServiceList(printer, *service); err != nil {
 				return err
 			}
-			printer.Flush()
-
 			return nil
 		},
 	}
