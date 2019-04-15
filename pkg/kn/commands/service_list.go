@@ -19,6 +19,7 @@ import (
 	"strings"
 	"text/tabwriter"
 
+	util "github.com/knative/client/pkg/util"
 	printers "github.com/knative/client/pkg/util/printers"
 	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"github.com/spf13/cobra"
@@ -51,6 +52,7 @@ func NewServiceListCommand(p *KnParams) *cobra.Command {
 				Kind:    "Service"})
 
 			printer := printers.NewTabWriter(cmd.OutOrStdout())
+			// make sure the printer is flushed to stdout before returning
 			defer printer.Flush()
 
 			if err := printServiceList(printer, *service); err != nil {
@@ -76,7 +78,7 @@ func printServiceList(printer *tabwriter.Writer, services servingv1alpha1.Servic
 	for _, ksvc := range services.Items {
 		_, err := fmt.Fprintf(printer, "%s\n", strings.Join([]string{ksvc.Name, ksvc.Status.Domain,
 			ksvc.Status.LatestCreatedRevisionName, ksvc.Status.LatestReadyRevisionName,
-			printers.CalculateAge(ksvc.CreationTimestamp.Time)}, "\t"))
+			util.CalculateAge(ksvc.CreationTimestamp.Time)}, "\t"))
 		if err != nil {
 			return err
 		}
