@@ -16,17 +16,17 @@ package commands
 
 import (
 	"bytes"
-	"testing"
 	"encoding/json"
+	"testing"
 
-	"sigs.k8s.io/yaml"
-	"k8s.io/apimachinery/pkg/api/equality"
 	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	serving "github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
 	"github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake"
+	"k8s.io/apimachinery/pkg/api/equality"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	client_testing "k8s.io/client-go/testing"
+	"sigs.k8s.io/yaml"
 )
 
 func fakeServiceDescribe(args []string, response *v1alpha1.Service) (action client_testing.Action, output string, err error) {
