@@ -25,10 +25,14 @@ import (
 	"github.com/spf13/cobra"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
 // NewServiceListCommand represents the list command
 func NewServiceListCommand(p *KnParams) *cobra.Command {
+
+	serviceListPrintFlags := genericclioptions.NewPrintFlags("")
+
 	serviceListCommand := &cobra.Command{
 		Use:   "list",
 		Short: "List available services.",
@@ -45,12 +49,23 @@ func NewServiceListCommand(p *KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-
-			service.GetObjectKind().SetGroupVersionKind(schema.GroupVersionKind{
-				Group:   "knative.dev",
-				Version: "v1alpha1",
-				Kind:    "Service"})
-
+			// if output format flag is set, delegate the printing to cli-runtime
+			if cmd.Flag("output").Changed {
+				printer, err := serviceListPrintFlags.ToPrinter()
+				if err != nil {
+					return err
+				}
+				service.GetObjectKind().SetGroupVersionKind(schema.GroupVersionKind{
+					Group:   "knative.dev",
+					Version: "v1alpha1",
+					Kind:    "Service"})
+				err = printer.PrintObj(service, cmd.OutOrStdout())
+				if err != nil {
+					return err
+				}
+				return nil
+			}
+			// if no output format flag is set, lets print the human readable output
 			printer := printers.NewTabWriter(cmd.OutOrStdout())
 			// make sure the printer is flushed to stdout before returning
 			defer printer.Flush()
@@ -62,9 +77,12 @@ func NewServiceListCommand(p *KnParams) *cobra.Command {
 		},
 	}
 	AddNamespaceFlags(serviceListCommand.Flags(), true)
+	serviceListPrintFlags.AddFlags(serviceListCommand)
 	return serviceListCommand
 }
 
+// printServiceList prints human readable list of services installed,
+// if requested specific output format, its delegated to cli-runtime
 func printServiceList(printer *tabwriter.Writer, services servingv1alpha1.ServiceList) error {
 	// case where no services are present
 	if len(services.Items) < 1 {
