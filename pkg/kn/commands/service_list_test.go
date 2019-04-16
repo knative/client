@@ -134,3 +134,36 @@ func TestListDefaultOutput(t *testing.T) {
 		t.Errorf("Bad action %v", action)
 	}
 }
+
+func TestOutputWithJsonpath(t *testing.T) {
+	action, output, err := fakeList([]string{"service", "list", "-o", "jsonpath={range .items[*]}{.metadata.name} {end}"}, &v1alpha1.ServiceList{
+		Items: []v1alpha1.Service{
+			v1alpha1.Service{
+				TypeMeta: serviceType,
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "foo",
+				},
+			},
+			v1alpha1.Service{
+				TypeMeta: serviceType,
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "bar",
+				},
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	expectedLines := []string{"foo bar ", ""}
+	for i, s := range output {
+		if s != expectedLines[i] {
+			t.Errorf("Bad output line %v expected %v", s, expectedLines[i])
+		}
+	}
+	if action == nil {
+		t.Errorf("No action")
+	} else if !action.Matches("list", "services") {
+		t.Errorf("Bad action %v", action)
+	}
+}
