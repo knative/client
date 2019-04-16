@@ -27,5 +27,6 @@ func NewServiceCommand(p *KnParams) *cobra.Command {
 	serviceCmd.AddCommand(NewServiceDescribeCommand(p))
 	serviceCmd.AddCommand(NewServiceCreateCommand(p))
 	serviceCmd.AddCommand(NewServiceDeleteCommand(p))
+	serviceCmd.AddCommand(NewServiceUpdateCommand(p))
 	return serviceCmd
 }
