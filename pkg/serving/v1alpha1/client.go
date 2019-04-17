@@ -54,6 +54,9 @@ type KnClient interface {
 	// Wait for a service to become ready, but not longer than provided timeout
 	WaitForService(name string, timeout time.Duration) error
 
+	// Get a configuration by name
+	GetConfiguration(name string) (*v1alpha1.Configuration, error)
+
 	// Get a revision by name
 	GetRevision(name string) (*v1alpha1.Revision, error)
 
@@ -193,6 +196,19 @@ func (cl *knClient) DeleteService(serviceName string) error {
 func (cl *knClient) WaitForService(name string, timeout time.Duration) error {
 	waitForReady := newServiceWaitForReady(cl.client.Services(cl.namespace).Watch)
 	return waitForReady.Wait(name, timeout)
+}
+
+// Get the configuration for a service
+func (cl *knClient) GetConfiguration(name string) (*v1alpha1.Configuration, error) {
+	configuration, err := cl.client.Configurations(cl.namespace).Get(name, v1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	err = updateServingGvk(configuration)
+	if err != nil {
+		return nil, err
+	}
+	return configuration, nil
 }
 
 // Get a revision by name

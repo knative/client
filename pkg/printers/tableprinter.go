@@ -43,7 +43,7 @@ func NewTablePrinter(options PrintOptions) *HumanReadablePrinter {
 func (h *HumanReadablePrinter) PrintObj(obj runtime.Object, output io.Writer) error {
 	w, found := output.(*tabwriter.Writer)
 	if !found {
-		w = GetNewTabWriter(output)
+		w = NewTabWriter(output)
 		output = w
 		defer w.Flush()
 	}
