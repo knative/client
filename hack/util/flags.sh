@@ -14,16 +14,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -o pipefail
-set -eu
 
-dir=$(dirname "${BASH_SOURCE[0]}")
-base=$(cd "$dir/.." && pwd)
-source ${base}/hack/util/flags.sh
+build_flags() {
+   local dir=${1:-}
+   version=$(get_version ${dir})
+   now=$(date -u +%Y%m%d.%H%M%S)
+   rev=$(git rev-parse --short HEAD)
 
-echo "📋 go fmt"
-go fmt ${base}/cmd/... ${base}/pkg/...
-echo "🚧 go build"
-eval go build $(build_flags ${base}/hack) -o ${base}/kn ${base}/cmd/...
-echo "🏁 done"
-./kn version
+   pkg="github.com/knative/client/pkg/kn/commands"
+   echo "-ldflags \"-X ${pkg}.Buildtime=$now -X ${pkg}.Version=$version -X ${pkg}.GitRevision=$rev\""
+}
+
+# Get version from local file
+get_version() {
+   local dir=${1:-}
+
+   version=$(cat "$dir/NEXT_VERSION")
+   date=$(date -u +%Y%m%d)
+   echo "${version}-${date}"
+}
+
+

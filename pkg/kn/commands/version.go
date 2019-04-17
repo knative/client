@@ -20,13 +20,17 @@ import (
 )
 
 var Version string
+var Buildtime string
+var GitRevision string
 
 func NewVersionCommand(p *KnParams) *cobra.Command {
 	versionCmd := &cobra.Command{
 		Use:   "version",
 		Short: "Prints the client version",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Println(fmt.Sprintf("Client Version: %s\n", Version))
+			fmt.Printf("Client Version: %s\n", Version)
+			fmt.Printf("Buildtime:      %s\n", Buildtime)
+			fmt.Printf("Git Revision:   %s\n", GitRevision)
 			return nil
 		},
 	}

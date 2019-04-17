@@ -14,10 +14,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -e -x -u
+set -e -u
 
-GOOS=darwin GOARCH=amd64 go build -o kn-darwin-amd64 ./cmd/...
-GOOS=linux GOARCH=amd64 go build -o kn-linux-amd64 ./cmd/...
-GOOS=windows GOARCH=amd64 go build -o kn-windows-amd64.exe ./cmd/...
+dir=$(dirname "${BASH_SOURCE[0]}")
+base=$(cd "$dir/.." && pwd)
+source ${base}/hack/util/flags.sh
 
-shasum -a 256 ./kn-*-amd64*
+flags=$(build_flags ${base}/hack)
+echo "🚧 🐧 Building for Linux"
+GOOS=darwin GOARCH=amd64 eval go build ${flags} -o ${base}/kn-darwin-amd64 ${base}/cmd/...
+echo "🚧 🍏 Building for macOs"
+GOOS=linux GOARCH=amd64 eval go build ${flags} -o ${base}/kn-linux-amd64 ${base}/cmd/...
+echo "🚧 🎠 Building for Windows"
+GOOS=windows GOARCH=amd64 eval go build ${flags} -o ${base}/kn-windows-amd64.exe ${base}/cmd/...
+
+echo "🌞    Done"
+shasum -a 256 ${base}/kn-*-amd64*
