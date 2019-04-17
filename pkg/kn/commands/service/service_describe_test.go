@@ -15,23 +15,35 @@
 package service
 
 import (
+	"bytes"
+	"regexp"
+	"strings"
 	"encoding/json"
 	"testing"
 
+	duckv1alpha1 "github.com/knative/pkg/apis/duck/v1alpha1"
 	"github.com/knative/client/pkg/kn/commands"
 	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
+	serving "github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
+	"github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake"
 	"k8s.io/apimachinery/pkg/api/equality"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	client_testing "k8s.io/client-go/testing"
-	"sigs.k8s.io/yaml"
+	clienttesting "k8s.io/client-go/testing"
 )
 
+func fakeServiceDescribe(args []string, response *v1alpha1.Service) (action clienttesting.Action, output string, err error) {
+	buf := new(bytes.Buffer)
+	fakeServing := &fake.FakeServingV1alpha1{Fake: &clienttesting.Fake{}}
+	cmd := NewKnCommand(KnParams{
+		Output:         buf,
+		ServingFactory: func() (serving.ServingV1alpha1Interface, error) { return fakeServing, nil },
+	})
 func fakeServiceDescribe(args []string, response *v1alpha1.Service) (action client_testing.Action, output string, err error) {
 	knParams := &commands.KnParams{}
 	cmd, fakeServing, buf := commands.CreateTestKnCommand(NewServiceCommand(knParams), knParams)
 	fakeServing.AddReactor("*", "*",
-		func(a client_testing.Action) (bool, runtime.Object, error) {
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
 			action = a
 			return true, response, nil
 		})
@@ -46,9 +58,11 @@ func fakeServiceDescribe(args []string, response *v1alpha1.Service) (action clie
 
 func TestEmptyServiceDescribe(t *testing.T) {
 	_, _, err := fakeServiceDescribe([]string{"service", "describe"}, &v1alpha1.Service{})
-	expectedError := "requires the service name."
-	if err == nil || err.Error() != expectedError {
-		t.Fatal("expect to fail with missing service name")
+	if err == nil ||
+		!strings.Contains(err.Error(), "no") ||
+		!strings.Contains(err.Error(), "service") ||
+		!strings.Contains(err.Error(), "provided") {
+		t.Fatalf("expect to fail with missing service name (got: %v)", err)
 	}
 }
 
@@ -62,6 +76,12 @@ func TestServiceDescribeDefaultOutput(t *testing.T) {
 			Name:      "foo",
 			Namespace: "default",
 		},
+		Status: v1alpha1.ServiceStatus{
+			RouteStatusFields: v1alpha1.RouteStatusFields{
+				DeprecatedDomain: "foo.default.example.com",
+				Address:          &duckv1alpha1.Addressable{Hostname: "foo.default.svc.cluster.local"},
+			},
+		},
 	}
 	action, output, err := fakeServiceDescribe([]string{"service", "describe", "test-foo"}, &expectedService)
 	if err != nil {
@@ -73,17 +93,19 @@ func TestServiceDescribeDefaultOutput(t *testing.T) {
 		t.Fatalf("Bad action %v", action)
 	}
 
-	jsonData, err := yaml.YAMLToJSON([]byte(output))
-	if err != nil {
-		t.Fatal(err)
-	}
-	var returnedService v1alpha1.Service
-	err = json.Unmarshal(jsonData, &returnedService)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assertMatches(t, output, "Name:\\s+foo")
+	assertMatches(t, output, "Namespace:\\s+default")
+	assertMatches(t, output, "Address:\\s+foo.default.svc.cluster.local")
+	assertMatches(t, output, "URL:\\s+foo.default.example.com")
+	assertMatches(t, output, "Age:")
+}
 
-	if !equality.Semantic.DeepEqual(expectedService, returnedService) {
-		t.Fatal("mismatched objects")
+func assertMatches(t *testing.T, value, expr string) {
+	ok, err := regexp.MatchString(expr, value)
+	if err != nil {
+		t.Fatalf("invalid pattern %q. %v", expr, err)
+	}
+	if !ok {
+		t.Errorf("got %s which does not match %s\n", value, expr)
 	}
 }
