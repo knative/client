@@ -21,9 +21,9 @@ dir=$(dirname "${BASH_SOURCE[0]}")
 base=$(cd "$dir/.." && pwd)
 source ${base}/hack/util/flags.sh
 
-echo "📋 go fmt"
+echo "📋 Formatting"
 go fmt ${base}/cmd/... ${base}/pkg/...
-echo "🚧 go build"
-eval go build $(build_flags ${base}/hack) -o ${base}/kn ${base}/cmd/...
-echo "🏁 done"
+echo "🚧 Building"
+go build -ldflags "$(ld_flags ${base}/hack)" -o ${base}/kn ${base}/cmd/...
+echo "🌞 Success"
 ./kn version

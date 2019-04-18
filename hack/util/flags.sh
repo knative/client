@@ -15,14 +15,14 @@
 # limitations under the License.
 
 
-build_flags() {
+ld_flags() {
    local dir=${1:-}
    version=$(get_version ${dir})
-   now=$(date -u +%Y%m%d.%H%M%S)
+   now=$(date -u "+%Y-%m-%d %H:%M:%S")
    rev=$(git rev-parse --short HEAD)
 
    pkg="github.com/knative/client/pkg/kn/commands"
-   echo "-ldflags \"-X ${pkg}.Buildtime=$now -X ${pkg}.Version=$version -X ${pkg}.GitRevision=$rev\""
+   echo "-X '${pkg}.BuildTime=$now' -X ${pkg}.Version=$version -X ${pkg}.GitRevision=$rev"
 }
 
 # Get version from local file
