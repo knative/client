@@ -30,5 +30,12 @@ GOOS=linux GOARCH=amd64 go build -mod=vendor -ldflags "${ld_flags}" -o ${base}/k
 echo "🚧 🎠 Building for Windows"
 GOOS=windows GOARCH=amd64 go build -mod=vendor -ldflags "${ld_flags}" -o ${base}/kn-windows-amd64.exe ${base}/cmd/...
 
+if type sha256sum >/dev/null 2>&1; then
+  echo "🧮     Checksum:"
+  pushd ${base} >/dev/null
+  sha256sum kn-*-amd64*
+  popd >/dev/null
+fi
+
 echo "🌞    Success"
-shasum -a 256 ${base}/kn-*-amd64*
+
