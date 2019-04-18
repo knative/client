@@ -22,7 +22,7 @@ ld_flags() {
    rev=$(git rev-parse --short HEAD)
 
    pkg="github.com/knative/client/pkg/kn/commands"
-   echo "-X '${pkg}.BuildTime=$now' -X ${pkg}.Version=$version -X ${pkg}.GitRevision=$rev"
+   echo "-X '${pkg}.BuildDate=$now' -X ${pkg}.Version=$version -X ${pkg}.GitRevision=$rev"
 }
 
 # Get version from local file

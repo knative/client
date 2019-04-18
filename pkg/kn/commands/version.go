@@ -20,7 +20,7 @@ import (
 )
 
 var Version string
-var BuildTime string
+var BuildDate string
 var GitRevision string
 
 func NewVersionCommand(p *KnParams) *cobra.Command {
@@ -29,7 +29,7 @@ func NewVersionCommand(p *KnParams) *cobra.Command {
 		Short: "Prints the client version",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			fmt.Printf("Client Version: %s\n", Version)
-			fmt.Printf("Build Time:     %s\n", BuildTime)
+			fmt.Printf("Build Date:     %s\n", BuildDate)
 			fmt.Printf("Git Revision:   %s\n", GitRevision)
 			return nil
 		},
