@@ -21,9 +21,11 @@ dir=$(dirname "${BASH_SOURCE[0]}")
 base=$(cd "$dir/.." && pwd)
 source ${base}/hack/util/flags.sh
 
+export GO111MODULE=on
+
 echo "📋 Formatting"
 go fmt ${base}/cmd/... ${base}/pkg/...
 echo "🚧 Building"
-go build -ldflags "$(ld_flags ${base}/hack)" -o ${base}/kn ${base}/cmd/...
+go build -mod=vendor -ldflags "$(ld_flags ${base}/hack)" -o ${base}/kn ${base}/cmd/...
 echo "🌞 Success"
 ./kn version
