@@ -67,3 +67,11 @@ func UpdateImage(config *servingv1alpha1.ConfigurationSpec, image string) error 
 	config.RevisionTemplate.Spec.Container.Image = image
 	return nil
 }
+
+func UpdateResources(config *servingv1alpha1.ConfigurationSpec, requestsResourceList corev1.ResourceList, limitsResourceList corev1.ResourceList) error {
+	config.RevisionTemplate.Spec.Container.Resources = corev1.ResourceRequirements{
+		Requests: requestsResourceList,
+		Limits:   limitsResourceList,
+	}
+	return nil
+}

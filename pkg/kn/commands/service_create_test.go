@@ -110,5 +110,58 @@ func TestServiceCreateEnv(t *testing.T) {
 		expectedEnvVars) {
 		t.Fatalf("wrong env vars %v", conf.RevisionTemplate.Spec.Container.Env)
 	}
+}
 
+func TestServiceCreateRequests(t *testing.T) {
+	action, created, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--requests-cpu", "250m", "--requests-memory", "64Mi"})
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("create", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	expectedRequestsVars := map[string]string{
+		"cpu":    "250m",
+		"memory": "64Mi"}
+
+	conf, err := servinglib.GetConfiguration(created)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if conf.RevisionTemplate.Spec.Container.Image != "gcr.io/foo/bar:baz" {
+		t.Fatalf("wrong image set: %v", conf.RevisionTemplate.Spec.Container.Image)
+	} else if !reflect.DeepEqual(
+		conf.RevisionTemplate.Spec.Container.Resources.Requests,
+		expectedRequestsVars) {
+		t.Fatalf("wrong requests vars %v", conf.RevisionTemplate.Spec.Container.Resources.Requests)
+	}
+}
+
+func TestServiceCreateLimits(t *testing.T) {
+	action, created, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--limits-cpu", "1000m", "--limits-memory", "1024Mi"})
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("create", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	expectedLimitsVars := map[string]string{
+		"cpu":    "1000m",
+		"memory": "1024Mi"}
+
+	conf, err := servinglib.GetConfiguration(created)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if conf.RevisionTemplate.Spec.Container.Image != "gcr.io/foo/bar:baz" {
+		t.Fatalf("wrong image set: %v", conf.RevisionTemplate.Spec.Container.Image)
+	} else if !reflect.DeepEqual(
+		conf.RevisionTemplate.Spec.Container.Resources.Limits,
+		expectedLimitsVars) {
+		t.Fatalf("wrong limits vars %v", conf.RevisionTemplate.Spec.Container.Resources.Requests)
+	}
 }
