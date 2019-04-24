@@ -25,11 +25,16 @@ import (
 	v1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"github.com/spf13/cobra"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
 // NewRevisionGetCommand represent the 'revision get' command
 func NewRevisionGetCommand(p *KnParams) *cobra.Command {
-	revisionGetCmd := &cobra.Command{
+
+	revisionGetPrintFlags := genericclioptions.NewPrintFlags("")
+
+	RevisionGetCmd := &cobra.Command{
 		Use:   "get",
 		Short: "Get available revisions.",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -51,6 +56,23 @@ func NewRevisionGetCommand(p *KnParams) *cobra.Command {
 				return err
 			}
 
+			// if output format flag is set, delegate the printing to cli-runtime
+			if cmd.Flag("output").Changed {
+				printer, err := revisionGetPrintFlags.ToPrinter()
+				if err != nil {
+					return err
+				}
+				revisions.GetObjectKind().SetGroupVersionKind(schema.GroupVersionKind{
+					Group:   "knative.dev",
+					Version: "v1alpha1",
+					Kind:    "Revision"})
+				err = printer.PrintObj(revisions, cmd.OutOrStdout())
+				if err != nil {
+					return err
+				}
+				return nil
+			}
+			// if no output format flag is set, lets print the human readable outp
 			printer := printers.NewTabWriter(cmd.OutOrStdout())
 			// make sure the printer is flushed to stdout before returning
 			defer printer.Flush()
@@ -61,8 +83,9 @@ func NewRevisionGetCommand(p *KnParams) *cobra.Command {
 			return nil
 		},
 	}
-	AddNamespaceFlags(revisionGetCmd.Flags(), true)
-	return revisionGetCmd
+	AddNamespaceFlags(RevisionGetCmd.Flags(), true)
+	revisionGetPrintFlags.AddFlags(RevisionGetCmd)
+	return RevisionGetCmd
 }
 
 // printRevisionList takes care of printing revisions
