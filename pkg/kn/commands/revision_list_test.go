@@ -86,10 +86,10 @@ var routeType = metav1.TypeMeta{
 }
 
 func TestRevisionListDefaultOutput(t *testing.T) {
-	foo_label := make(map[string]string)
-	bar_label := make(map[string]string)
-	foo_label["serving.knative.dev/service"] = "f1"
-	bar_label["serving.knative.dev/service"] = "b1"
+	fooLabel := make(map[string]string)
+	barLabel := make(map[string]string)
+	fooLabel["serving.knative.dev/service"] = "f1"
+	barLabel["serving.knative.dev/service"] = "b1"
 
 	// sample RevisionList
 	rev_list := &v1alpha1.RevisionList{
@@ -98,14 +98,14 @@ func TestRevisionListDefaultOutput(t *testing.T) {
 				TypeMeta: revisionType,
 				ObjectMeta: metav1.ObjectMeta{
 					Name:   "foo",
-					Labels: foo_label,
+					Labels: fooLabel,
 				},
 			},
 			v1alpha1.Revision{
 				TypeMeta: revisionType,
 				ObjectMeta: metav1.ObjectMeta{
 					Name:   "bar",
-					Labels: bar_label,
+					Labels: barLabel,
 				},
 			},
 		},
