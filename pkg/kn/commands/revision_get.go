@@ -27,11 +27,11 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// NewRevisionListCommand represent the 'revision list' command
-func NewRevisionListCommand(p *KnParams) *cobra.Command {
-	revisionListCmd := &cobra.Command{
-		Use:   "list",
-		Short: "List available revisions.",
+// NewRevisionGetCommand represent the 'revision get' command
+func NewRevisionGetCommand(p *KnParams) *cobra.Command {
+	revisionGetCmd := &cobra.Command{
+		Use:   "get",
+		Short: "Get available revisions.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := p.ServingFactory()
 			if err != nil {
@@ -61,8 +61,8 @@ func NewRevisionListCommand(p *KnParams) *cobra.Command {
 			return nil
 		},
 	}
-	AddNamespaceFlags(revisionListCmd.Flags(), true)
-	return revisionListCmd
+	AddNamespaceFlags(revisionGetCmd.Flags(), true)
+	return revisionGetCmd
 }
 
 // printRevisionList takes care of printing revisions

@@ -27,7 +27,7 @@ import (
 	client_testing "k8s.io/client-go/testing"
 )
 
-func fakeRevisionList(args []string, revisions *v1alpha1.RevisionList, routes *v1alpha1.RouteList) (
+func fakeRevisionGet(args []string, revisions *v1alpha1.RevisionList, routes *v1alpha1.RouteList) (
 	action client_testing.Action, output []string, err error) {
 	buf := new(bytes.Buffer)
 	fakeServing := &fake.FakeServingV1alpha1{&client_testing.Fake{}}
@@ -54,8 +54,8 @@ func fakeRevisionList(args []string, revisions *v1alpha1.RevisionList, routes *v
 }
 
 func TestRevisionListEmpty(t *testing.T) {
-	action, output, err := fakeRevisionList(
-		[]string{"revision", "list"},
+	action, output, err := fakeRevisionGet(
+		[]string{"revision", "get"},
 		&v1alpha1.RevisionList{},
 		&v1alpha1.RouteList{})
 
@@ -85,7 +85,7 @@ var routeType = metav1.TypeMeta{
 	APIVersion: "serving.knative.dev/v1alpha1",
 }
 
-func TestRevisionListDefaultOutput(t *testing.T) {
+func TestRevisionGetDefaultOutput(t *testing.T) {
 	fooLabel := make(map[string]string)
 	barLabel := make(map[string]string)
 	fooLabel["serving.knative.dev/service"] = "f1"
@@ -140,8 +140,8 @@ func TestRevisionListDefaultOutput(t *testing.T) {
 		},
 	}
 
-	action, output, err := fakeRevisionList(
-		[]string{"revision", "list"},
+	action, output, err := fakeRevisionGet(
+		[]string{"revision", "get"},
 		rev_list,
 		route_list)
 	if err != nil {
