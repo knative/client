@@ -64,7 +64,7 @@ func TestListEmpty(t *testing.T) {
 	}
 	if action == nil {
 		t.Errorf("No action")
-	} else if !action.Matches("get", "services") {
+	} else if !action.Matches("list", "services") {
 		t.Errorf("Bad action %v", action)
 	}
 }
@@ -130,7 +130,7 @@ func TestGetDefaultOutput(t *testing.T) {
 	}
 	if action == nil {
 		t.Errorf("No action")
-	} else if !action.Matches("get", "services") {
+	} else if !action.Matches("list", "services") {
 		t.Errorf("Bad action %v", action)
 	}
 }
@@ -163,7 +163,7 @@ func TestOutputWithJsonpath(t *testing.T) {
 	}
 	if action == nil {
 		t.Errorf("No action")
-	} else if !action.Matches("get", "services") {
+	} else if !action.Matches("list", "services") {
 		t.Errorf("Bad action %v", action)
 	}
 }
