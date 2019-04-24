@@ -28,14 +28,14 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
-// NewServiceListCommand represents the list command
-func NewServiceListCommand(p *KnParams) *cobra.Command {
+// NewServiceGetCommand represents the get command
+func NewServiceGetCommand(p *KnParams) *cobra.Command {
 
-	serviceListPrintFlags := genericclioptions.NewPrintFlags("")
+	serviceGetPrintFlags := genericclioptions.NewPrintFlags("")
 
-	serviceListCommand := &cobra.Command{
-		Use:   "list",
-		Short: "List available services.",
+	ServiceGetCommand := &cobra.Command{
+		Use:   "get",
+		Short: "Get available services.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := p.ServingFactory()
 			if err != nil {
@@ -51,7 +51,7 @@ func NewServiceListCommand(p *KnParams) *cobra.Command {
 			}
 			// if output format flag is set, delegate the printing to cli-runtime
 			if cmd.Flag("output").Changed {
-				printer, err := serviceListPrintFlags.ToPrinter()
+				printer, err := serviceGetPrintFlags.ToPrinter()
 				if err != nil {
 					return err
 				}
@@ -76,9 +76,9 @@ func NewServiceListCommand(p *KnParams) *cobra.Command {
 			return nil
 		},
 	}
-	AddNamespaceFlags(serviceListCommand.Flags(), true)
-	serviceListPrintFlags.AddFlags(serviceListCommand)
-	return serviceListCommand
+	AddNamespaceFlags(ServiceGetCommand.Flags(), true)
+	serviceGetPrintFlags.AddFlags(ServiceGetCommand)
+	return ServiceGetCommand
 }
 
 // printServiceList prints human readable list of services installed,

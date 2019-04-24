@@ -29,7 +29,7 @@ import (
 	client_testing "k8s.io/client-go/testing"
 )
 
-func fakeList(args []string, response *v1alpha1.ServiceList) (action client_testing.Action, output []string, err error) {
+func fakeServiceGet(args []string, response *v1alpha1.ServiceList) (action client_testing.Action, output []string, err error) {
 	buf := new(bytes.Buffer)
 	fakeServing := &fake.FakeServingV1alpha1{&client_testing.Fake{}}
 	cmd := NewKnCommand(KnParams{
@@ -51,7 +51,7 @@ func fakeList(args []string, response *v1alpha1.ServiceList) (action client_test
 }
 
 func TestListEmpty(t *testing.T) {
-	action, output, err := fakeList([]string{"service", "list"}, &v1alpha1.ServiceList{})
+	action, output, err := fakeServiceGet([]string{"service", "get"}, &v1alpha1.ServiceList{})
 	if err != nil {
 		t.Error(err)
 		return
@@ -64,7 +64,7 @@ func TestListEmpty(t *testing.T) {
 	}
 	if action == nil {
 		t.Errorf("No action")
-	} else if !action.Matches("list", "services") {
+	} else if !action.Matches("get", "services") {
 		t.Errorf("Bad action %v", action)
 	}
 }
@@ -87,8 +87,8 @@ func tabbedOutput(s []string) string {
 	return buf.String()
 
 }
-func TestListDefaultOutput(t *testing.T) {
-	action, output, err := fakeList([]string{"service", "list"}, &v1alpha1.ServiceList{
+func TestGetDefaultOutput(t *testing.T) {
+	action, output, err := fakeServiceGet([]string{"service", "get"}, &v1alpha1.ServiceList{
 		Items: []v1alpha1.Service{
 			v1alpha1.Service{
 				TypeMeta: serviceType,
@@ -130,13 +130,13 @@ func TestListDefaultOutput(t *testing.T) {
 	}
 	if action == nil {
 		t.Errorf("No action")
-	} else if !action.Matches("list", "services") {
+	} else if !action.Matches("get", "services") {
 		t.Errorf("Bad action %v", action)
 	}
 }
 
 func TestOutputWithJsonpath(t *testing.T) {
-	action, output, err := fakeList([]string{"service", "list", "-o", "jsonpath={range .items[*]}{.metadata.name} {end}"}, &v1alpha1.ServiceList{
+	action, output, err := fakeServiceGet([]string{"service", "get", "-o", "jsonpath={range .items[*]}{.metadata.name} {end}"}, &v1alpha1.ServiceList{
 		Items: []v1alpha1.Service{
 			v1alpha1.Service{
 				TypeMeta: serviceType,
@@ -163,7 +163,7 @@ func TestOutputWithJsonpath(t *testing.T) {
 	}
 	if action == nil {
 		t.Errorf("No action")
-	} else if !action.Matches("list", "services") {
+	} else if !action.Matches("get", "services") {
 		t.Errorf("Bad action %v", action)
 	}
 }
