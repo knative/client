@@ -19,9 +19,9 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	knserving "github.com/knative/client/pkg/serving"
 	util "github.com/knative/client/pkg/util"
 	printers "github.com/knative/client/pkg/util/printers"
+	serving "github.com/knative/serving/pkg/apis/serving"
 	v1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"github.com/spf13/cobra"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -105,7 +105,7 @@ func printRevisionList(
 	for _, rev := range revisions.Items {
 		row := []string{
 			rev.Name,
-			rev.Labels[knserving.ConfigurationLabelKey],
+			rev.Labels[serving.ConfigurationLabelKey],
 			util.CalculateAge(rev.CreationTimestamp.Time),
 			// RouteTrafficValue returns comma separated traffic string
 			RouteTrafficValue(rev, routes.Items),
