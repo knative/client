@@ -86,10 +86,6 @@ var routeType = metav1.TypeMeta{
 }
 
 func TestRevisionGetDefaultOutput(t *testing.T) {
-	fooLabel := make(map[string]string)
-	barLabel := make(map[string]string)
-	fooLabel["serving.knative.dev/service"] = "f1"
-	barLabel["serving.knative.dev/service"] = "b1"
 
 	// sample RevisionList
 	rev_list := &v1alpha1.RevisionList{
@@ -97,15 +93,13 @@ func TestRevisionGetDefaultOutput(t *testing.T) {
 			v1alpha1.Revision{
 				TypeMeta: revisionType,
 				ObjectMeta: metav1.ObjectMeta{
-					Name:   "foo",
-					Labels: fooLabel,
+					Name: "foo",
 				},
 			},
 			v1alpha1.Revision{
 				TypeMeta: revisionType,
 				ObjectMeta: metav1.ObjectMeta{
-					Name:   "bar",
-					Labels: barLabel,
+					Name: "bar",
 				},
 			},
 		},
@@ -137,6 +131,18 @@ func TestRevisionGetDefaultOutput(t *testing.T) {
 					},
 				},
 			},
+			v1alpha1.Route{
+				TypeMeta: routeType,
+				Status: v1alpha1.RouteStatus{
+					Domain: "baz.default.example.com",
+					Traffic: []v1alpha1.TrafficTarget{
+						v1alpha1.TrafficTarget{
+							RevisionName: "bar",
+							Percent:      100,
+						},
+					},
+				},
+			},
 		},
 	}
 
@@ -149,8 +155,9 @@ func TestRevisionGetDefaultOutput(t *testing.T) {
 	}
 	// each line's tab/spaces are replaced by comma
 	expected := []string{"NAME,SERVICE,AGE,TRAFFIC",
-		"foo,f1,,100% -> foo.default.example.com",
-		"bar,b1,,100% -> bar.default.example.com"}
+		"foo,,,100% -> foo.default.example.com",
+		// test multiple routes to single revision
+		"bar,,,100% -> bar.default.example.com  100% -> baz.default.example.com"}
 	expected_lines := strings.Split(tabbedOutput(expected), "\n")
 
 	for i, s := range output {

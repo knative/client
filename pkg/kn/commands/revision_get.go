@@ -127,5 +127,5 @@ func RouteTrafficValue(rev v1alpha1.Revision, routes []v1alpha1.Route) string {
 			}
 		}
 	}
-	return strings.Join(traffic, ", ")
+	return strings.Join(traffic, "  ")
 }
