@@ -140,7 +140,7 @@ func (c *Container) addHandler(service *WebService, serveMux *http.ServeMux) boo
 func (c *Container) Remove(ws *WebService) error {
 	if c.ServeMux == http.DefaultServeMux {
 		errMsg := fmt.Sprintf("[restful] cannot remove a WebService from a Container using the DefaultServeMux: ['%v']", ws)
-		log.Print(errMsg)
+		log.Printf(errMsg)
 		return errors.New(errMsg)
 	}
 	c.webServicesLock.Lock()
@@ -259,12 +259,7 @@ func (c *Container) dispatch(httpWriter http.ResponseWriter, httpRequest *http.R
 		chain.ProcessFilter(NewRequest(httpRequest), NewResponse(writer))
 		return
 	}
-	pathProcessor, routerProcessesPath := c.router.(PathProcessor)
-	if !routerProcessesPath {
-		pathProcessor = defaultPathProcessor{}
-	}
-	pathParams := pathProcessor.ExtractParameters(route, webService, httpRequest.URL.Path)
-	wrappedRequest, wrappedResponse := route.wrapRequestResponse(writer, httpRequest, pathParams)
+	wrappedRequest, wrappedResponse := route.wrapRequestResponse(writer, httpRequest)
 	// pass through filters (if any)
 	if len(c.containerFilters)+len(webService.filters)+len(route.Filters) > 0 {
 		// compose filter chain
