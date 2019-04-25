@@ -18,27 +18,20 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/spf13/cobra"
-	"k8s.io/apimachinery/pkg/api/resource"
-
 	servinglib "github.com/knative/client/pkg/serving"
 	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
+	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 type ConfigurationEditFlags struct {
-	Image         string
-	Env           []string
-	RequestsFlags RequestsFlags
-	LimitsFlags   LimitsFlags
+	Image                      string
+	Env                        []string
+	RequestsFlags, LimitsFlags ResourceFlags
 }
 
-type RequestsFlags struct {
-	CPU    string
-	Memory string
-}
-
-type LimitsFlags struct {
+type ResourceFlags struct {
 	CPU    string
 	Memory string
 }
@@ -74,11 +67,11 @@ func (p *ConfigurationEditFlags) Apply(config *servingv1alpha1.ConfigurationSpec
 	if err != nil {
 		return err
 	}
-	limitsResources, err := p.computeLimitsResources(config)
+	limitsResources, err := p.computeResources(p.LimitsFlags)
 	if err != nil {
 		return err
 	}
-	requestsResources, err := p.computeRequestsResources(config)
+	requestsResources, err := p.computeResources(p.RequestsFlags)
 	if err != nil {
 		return err
 	}
@@ -89,49 +82,25 @@ func (p *ConfigurationEditFlags) Apply(config *servingv1alpha1.ConfigurationSpec
 	return nil
 }
 
-func (p *ConfigurationEditFlags) computeRequestsResources(config *servingv1alpha1.ConfigurationSpec) (corev1.ResourceList, error) {
+func (p *ConfigurationEditFlags) computeResources(resourceFlags ResourceFlags) (corev1.ResourceList, error) {
 	resourceList := corev1.ResourceList{}
 
-	if p.RequestsFlags.CPU != "" {
-		requestsCPU, err := resource.ParseQuantity(p.RequestsFlags.CPU)
+	if resourceFlags.CPU != "" {
+		cpuQuantity, err := resource.ParseQuantity(resourceFlags.CPU)
 		if err != nil {
 			return corev1.ResourceList{}, err
 		}
 
-		resourceList[corev1.ResourceCPU] = requestsCPU
+		resourceList[corev1.ResourceCPU] = cpuQuantity
 	}
 
-	if p.RequestsFlags.Memory != "" {
-		requestsMemory, err := resource.ParseQuantity(p.RequestsFlags.Memory)
+	if resourceFlags.Memory != "" {
+		memoryQuantity, err := resource.ParseQuantity(resourceFlags.Memory)
 		if err != nil {
 			return corev1.ResourceList{}, err
 		}
 
-		resourceList[corev1.ResourceMemory] = requestsMemory
-	}
-
-	return resourceList, nil
-}
-
-func (p *ConfigurationEditFlags) computeLimitsResources(config *servingv1alpha1.ConfigurationSpec) (corev1.ResourceList, error) {
-	resourceList := corev1.ResourceList{}
-
-	if p.LimitsFlags.CPU != "" {
-		limitsCPU, err := resource.ParseQuantity(p.LimitsFlags.CPU)
-		if err != nil {
-			return corev1.ResourceList{}, err
-		}
-
-		resourceList[corev1.ResourceCPU] = limitsCPU
-	}
-
-	if p.LimitsFlags.Memory != "" {
-		limitsMemory, err := resource.ParseQuantity(p.LimitsFlags.Memory)
-		if err != nil {
-			return corev1.ResourceList{}, err
-		}
-
-		resourceList[corev1.ResourceMemory] = limitsMemory
+		resourceList[corev1.ResourceMemory] = memoryQuantity
 	}
 
 	return resourceList, nil

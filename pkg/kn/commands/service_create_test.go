@@ -23,13 +23,12 @@ import (
 
 	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/api/resource"
-
+	"k8s.io/apimachinery/pkg/runtime"
 	servinglib "github.com/knative/client/pkg/serving"
 	serving "github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
-	client_testing "k8s.io/client-go/testing"
 	corev1 "k8s.io/api/core/v1"
+	client_testing "k8s.io/client-go/testing"
 )
 
 func fakeServiceCreate(args []string) (
@@ -177,11 +176,11 @@ func TestServiceCreateRequestsLimitsCPU(t *testing.T) {
 	}
 
 	expectedRequestsVars := corev1.ResourceList{
-		corev1.ResourceCPU:    parseQuantity(t, "250m"),
+		corev1.ResourceCPU: parseQuantity(t, "250m"),
 	}
 
 	expectedLimitsVars := corev1.ResourceList{
-		corev1.ResourceCPU:    parseQuantity(t, "1000m"),
+		corev1.ResourceCPU: parseQuantity(t, "1000m"),
 	}
 
 	conf, err := servinglib.GetConfiguration(created)
@@ -194,7 +193,7 @@ func TestServiceCreateRequestsLimitsCPU(t *testing.T) {
 			expectedRequestsVars) {
 			t.Fatalf("wrong requests vars %v", conf.RevisionTemplate.Spec.Container.Resources.Requests)
 		}
-		
+
 		if !reflect.DeepEqual(
 			conf.RevisionTemplate.Spec.Container.Resources.Limits,
 			expectedLimitsVars) {
@@ -214,11 +213,11 @@ func TestServiceCreateRequestsLimitsMemory(t *testing.T) {
 	}
 
 	expectedRequestsVars := corev1.ResourceList{
-		corev1.ResourceMemory:    parseQuantity(t, "64Mi"),
+		corev1.ResourceMemory: parseQuantity(t, "64Mi"),
 	}
 
 	expectedLimitsVars := corev1.ResourceList{
-		corev1.ResourceMemory:    parseQuantity(t, "1024Mi"),
+		corev1.ResourceMemory: parseQuantity(t, "1024Mi"),
 	}
 
 	conf, err := servinglib.GetConfiguration(created)
@@ -231,7 +230,7 @@ func TestServiceCreateRequestsLimitsMemory(t *testing.T) {
 			expectedRequestsVars) {
 			t.Fatalf("wrong requests vars %v", conf.RevisionTemplate.Spec.Container.Resources.Requests)
 		}
-		
+
 		if !reflect.DeepEqual(
 			conf.RevisionTemplate.Spec.Container.Resources.Limits,
 			expectedLimitsVars) {
@@ -242,7 +241,7 @@ func TestServiceCreateRequestsLimitsMemory(t *testing.T) {
 
 func TestServiceCreateRequestsLimitsCPUMemory(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", 
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
 		"--requests-cpu", "250m", "--limits-cpu", "1000m",
 		"--requests-memory", "64Mi", "--limits-memory", "1024Mi"})
 
@@ -254,12 +253,12 @@ func TestServiceCreateRequestsLimitsCPUMemory(t *testing.T) {
 
 	expectedRequestsVars := corev1.ResourceList{
 		corev1.ResourceCPU:    parseQuantity(t, "250m"),
-		corev1.ResourceMemory:    parseQuantity(t, "64Mi"),
+		corev1.ResourceMemory: parseQuantity(t, "64Mi"),
 	}
 
 	expectedLimitsVars := corev1.ResourceList{
 		corev1.ResourceCPU:    parseQuantity(t, "1000m"),
-		corev1.ResourceMemory:    parseQuantity(t, "1024Mi"),
+		corev1.ResourceMemory: parseQuantity(t, "1024Mi"),
 	}
 
 	conf, err := servinglib.GetConfiguration(created)
@@ -272,7 +271,7 @@ func TestServiceCreateRequestsLimitsCPUMemory(t *testing.T) {
 			expectedRequestsVars) {
 			t.Fatalf("wrong requests vars %v", conf.RevisionTemplate.Spec.Container.Resources.Requests)
 		}
-		
+
 		if !reflect.DeepEqual(
 			conf.RevisionTemplate.Spec.Container.Resources.Limits,
 			expectedLimitsVars) {

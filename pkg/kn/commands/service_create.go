@@ -17,12 +17,10 @@ package commands
 import (
 	"errors"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
-
 	serving_lib "github.com/knative/client/pkg/serving"
+	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"github.com/spf13/cobra"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func NewServiceCreateCommand(p *KnParams) *cobra.Command {
