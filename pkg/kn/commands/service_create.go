@@ -78,6 +78,6 @@ func NewServiceCreateCommand(p *KnParams) *cobra.Command {
 		},
 	}
 	AddNamespaceFlags(serviceCreateCommand.Flags(), false)
-	editFlags.AddFlags(serviceCreateCommand)
+	editFlags.AddCreateFlags(serviceCreateCommand)
 	return serviceCreateCommand
 }
