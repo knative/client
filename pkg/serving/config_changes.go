@@ -17,9 +17,8 @@ package serving
 import (
 	"fmt"
 
-	corev1 "k8s.io/api/core/v1"
-
 	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
+	corev1 "k8s.io/api/core/v1"
 )
 
 // Give the configuration all the env var values listed in the given map of
@@ -65,5 +64,25 @@ func EnvToMap(vars []corev1.EnvVar) (map[string]string, error) {
 
 func UpdateImage(config *servingv1alpha1.ConfigurationSpec, image string) error {
 	config.RevisionTemplate.Spec.Container.Image = image
+	return nil
+}
+
+func UpdateResources(config *servingv1alpha1.ConfigurationSpec, requestsResourceList corev1.ResourceList, limitsResourceList corev1.ResourceList) error {
+	if config.RevisionTemplate.Spec.Container.Resources.Requests == nil {
+		config.RevisionTemplate.Spec.Container.Resources.Requests = corev1.ResourceList{}
+	}
+
+	for k, v := range requestsResourceList {
+		config.RevisionTemplate.Spec.Container.Resources.Requests[k] = v
+	}
+
+	if config.RevisionTemplate.Spec.Container.Resources.Limits == nil {
+		config.RevisionTemplate.Spec.Container.Resources.Limits = corev1.ResourceList{}
+	}
+
+	for k, v := range limitsResourceList {
+		config.RevisionTemplate.Spec.Container.Resources.Limits[k] = v
+	}
+
 	return nil
 }
