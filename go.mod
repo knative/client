@@ -11,7 +11,7 @@ require (
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b // indirect
 	github.com/golang/groupcache v0.0.0-20190129154638-5b532d6fd5ef // indirect
 	github.com/google/btree v0.0.0-20180813153112-4030bb1f1f0c // indirect
-	github.com/google/go-cmp v0.2.0 // indirect
+	github.com/google/go-cmp v0.2.1-0.20190312010737-3177a94b4e99 // indirect
 	github.com/google/go-containerregistry v0.0.0-20190109170535-caf7c6e36671 // indirect
 	github.com/google/gofuzz v0.0.0-20170612174753-24818f796faf // indirect
 	github.com/googleapis/gnostic v0.2.0 // indirect
@@ -21,9 +21,9 @@ require (
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.5 // indirect
 	github.com/jstemmer/go-junit-report v0.0.0-20190106144839-af01ea7f8024 // indirect
-	github.com/knative/build v0.3.0 // indirect
-	github.com/knative/pkg v0.0.0-20190110005142-b6044a7d1795 // indirect
-	github.com/knative/serving v0.3.0
+	github.com/knative/build v0.5.0 // indirect
+	github.com/knative/pkg v0.0.0-20190425202529-52709ba13d9b // indirect
+	github.com/knative/serving v0.5.2
 	github.com/knative/test-infra v0.0.0-20190404172656-4ce16d390c55
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/mattbaird/jsonpatch v0.0.0-20171005235357-81af80346b1a // indirect

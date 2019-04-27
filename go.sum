@@ -39,6 +39,8 @@ github.com/google/btree v0.0.0-20180813153112-4030bb1f1f0c h1:964Od4U6p2jUkFxvCy
 github.com/google/btree v0.0.0-20180813153112-4030bb1f1f0c/go.mod h1:lNA+9X1NB3Zf8V7Ke586lFgjr2dZNuvo3lPJSGZ5JPQ=
 github.com/google/go-cmp v0.2.0 h1:+dTQ8DZQJz0Mb/HjFlkptS1FeQ4cWSnN941F8aEG4SQ=
 github.com/google/go-cmp v0.2.0/go.mod h1:oXzfMopK8JAjlY9xF4vHSVASa0yLyX7SntLO5aqRK0M=
+github.com/google/go-cmp v0.2.1-0.20190312010737-3177a94b4e99 h1:5FdmtPPJQGPfr763ke4ImSoPluSXhPPn9fGrisukx6Y=
+github.com/google/go-cmp v0.2.1-0.20190312010737-3177a94b4e99/go.mod h1:8QqcDgzrUqlUb/G2PQTWiueGozuR1884gddMywk6iLU=
 github.com/google/go-containerregistry v0.0.0-20190109170535-caf7c6e36671 h1:2iA7K9aCRoSeNgCy3d2BObbhm1qk8cZYb8SjtGUCBJo=
 github.com/google/go-containerregistry v0.0.0-20190109170535-caf7c6e36671/go.mod h1:yZAFP63pRshzrEYLXLGPmUt0Ay+2zdjmMN1loCnRLUk=
 github.com/google/gofuzz v0.0.0-20170612174753-24818f796faf h1:+RRA9JqSOZFfKrOeqr2z77+8R2RKyh8PG66dcu1V0ck=
@@ -62,10 +64,16 @@ github.com/jstemmer/go-junit-report v0.0.0-20190106144839-af01ea7f8024 h1:rBMNdl
 github.com/jstemmer/go-junit-report v0.0.0-20190106144839-af01ea7f8024/go.mod h1:6v2b51hI/fHJwM22ozAgKL4VKDeJcHhJFhtBdhmNjmU=
 github.com/knative/build v0.3.0 h1:WRWGzJZmFxBPjehIEcsa0pgsKE6j5BGuDqvFRJRQt8I=
 github.com/knative/build v0.3.0/go.mod h1:/sU74ZQkwlYA5FwYDJhYTy61i/Kn+5eWfln2jDbw3Qo=
+github.com/knative/build v0.5.0 h1:q2W4+BmT3jEOSOXZ44UXndJUAHLWUd20QtMQAFGWzsU=
+github.com/knative/build v0.5.0/go.mod h1:/sU74ZQkwlYA5FwYDJhYTy61i/Kn+5eWfln2jDbw3Qo=
 github.com/knative/pkg v0.0.0-20190110005142-b6044a7d1795 h1:mTaIClRJEjRuTFOc4Gsicdqe/OwEla0Ano9cllUNoU0=
 github.com/knative/pkg v0.0.0-20190110005142-b6044a7d1795/go.mod h1:7Ijfhw7rfB+H9VtosIsDYvZQ+qYTz7auK3fHW/5z4ww=
+github.com/knative/pkg v0.0.0-20190425202529-52709ba13d9b h1:5QdnKwyJ/h4eu24b0M7R3NLsVStnCDKYkel9haL+I0c=
+github.com/knative/pkg v0.0.0-20190425202529-52709ba13d9b/go.mod h1:7Ijfhw7rfB+H9VtosIsDYvZQ+qYTz7auK3fHW/5z4ww=
 github.com/knative/serving v0.3.0 h1:kALSwD+P5GLdRj2mtZ2W4ZRRD//Q7nKjLqCPSpihkTY=
 github.com/knative/serving v0.3.0/go.mod h1:ljvMfwQy2qanaM/8xnBSK4Mz3Vv2NawC2fo5kFRJS1A=
+github.com/knative/serving v0.5.2 h1:jsmeIN7B6oDHrK0jmtFRf7hWWr+KrjXVHuArK8jo5Nw=
+github.com/knative/serving v0.5.2/go.mod h1:ljvMfwQy2qanaM/8xnBSK4Mz3Vv2NawC2fo5kFRJS1A=
 github.com/knative/test-infra v0.0.0-20190326053250-44d850784ecb h1:4wAx6g3pRhmnnxvrX2pYB7z/2nhBtgLO/JJEZSjP1pY=
 github.com/knative/test-infra v0.0.0-20190326053250-44d850784ecb/go.mod h1:l77IWBscEV5T4sYb64/9iwRCVY4UXEIqMcAppsblHW4=
 github.com/knative/test-infra v0.0.0-20190404172656-4ce16d390c55 h1:2tpTEN6OydMWVmkKJC3iVNrYbA+iHNL9qjLXe7hocfE=

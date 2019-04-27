@@ -17,27 +17,40 @@ limitations under the License.
 package apis
 
 import (
+	"context"
+
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // Defaultable defines an interface for setting the defaults for the
 // uninitialized fields of this instance.
 type Defaultable interface {
-	SetDefaults()
+	SetDefaults(context.Context)
 }
 
 // Validatable indicates that a particular type may have its fields validated.
 type Validatable interface {
 	// Validate checks the validity of this types fields.
-	Validate() *FieldError
+	Validate(context.Context) *FieldError
+}
+
+// Convertible indicates that a particular type supports conversions to/from
+// "higher" versions of the same type.
+type Convertible interface {
+	// ConvertUp up-converts the receiver into `to`.
+	ConvertUp(ctx context.Context, to Convertible) error
+
+	// ConvertDown down-converts from `from` into the receiver.
+	ConvertDown(ctx context.Context, from Convertible) error
 }
 
 // Immutable indicates that a particular type has fields that should
 // not change after creation.
+// DEPRECATED: Use WithinUpdate / GetBaseline from within Validatable instead.
 type Immutable interface {
 	// CheckImmutableFields checks that the current instance's immutable
 	// fields haven't changed from the provided original.
-	CheckImmutableFields(original Immutable) *FieldError
+	CheckImmutableFields(ctx context.Context, original Immutable) *FieldError
 }
 
 // Listable indicates that a particular type can be returned via the returned
@@ -47,3 +60,9 @@ type Listable interface {
 
 	GetListType() runtime.Object
 }
+
+// Annotatable indicates that a particular type applies various annotations.
+// DEPRECATED: Use WithUserInfo / GetUserInfo from within SetDefaults instead.
+// The webhook functionality for this has been turned down, which is why this
+// interface is empty.
+type Annotatable interface{}
