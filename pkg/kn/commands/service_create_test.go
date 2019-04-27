@@ -21,13 +21,13 @@ import (
 	"reflect"
 	"testing"
 
+	servinglib "github.com/knative/client/pkg/serving"
 	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
+	serving "github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
 	"github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/runtime"
-	servinglib "github.com/knative/client/pkg/serving"
-	serving "github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
-	corev1 "k8s.io/api/core/v1"
 	client_testing "k8s.io/client-go/testing"
 )
 
