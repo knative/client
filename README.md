@@ -31,3 +31,11 @@ completion revision service
 $ kn revision <TAB>
 describe list
 ```
+
+# Developers
+
+If you'd like to contribute, please see
+[CONTRIBUTING](https://github.com/knative/docs/blob/master/contributing/CONTRIBUTING.md)
+for more information.
+
+To build `kn`, see our [Development](DEVELOPMENT.md) guide.
