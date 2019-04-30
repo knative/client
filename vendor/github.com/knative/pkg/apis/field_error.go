@@ -91,7 +91,7 @@ func (fe *FieldError) ViaFieldIndex(field string, index int) *FieldError {
 
 // ViaKey is used to attach a key to the next ViaField provided.
 // For example, if a type recursively validates a parameter that has a collection:
-//  for k, v := range spec.Bag. {
+//  for k, v := range spec.Bag {
 //    if err := doValidation(v); err != nil {
 //      return err.ViaKey(k).ViaField("bag")
 //    }
@@ -192,7 +192,7 @@ func asKey(key string) string {
 //   err([0]).ViaField(bar).ViaField(foo) -> foo.bar.[0] converts to foo.bar[0]
 //   err(bar).ViaIndex(0).ViaField(foo) -> foo.[0].bar converts to foo[0].bar
 //   err(bar).ViaField(foo).ViaIndex(0) -> [0].foo.bar converts to [0].foo.bar
-//   err(bar).ViaIndex(0).ViaIndex[1].ViaField(foo) -> foo.[1].[0].bar converts to foo[1][0].bar
+//   err(bar).ViaIndex(0).ViaIndex(1).ViaField(foo) -> foo.[1].[0].bar converts to foo[1][0].bar
 func flatten(path []string) string {
 	var newPath []string
 	for _, part := range path {
@@ -298,6 +298,12 @@ func ErrDisallowedFields(fieldPaths ...string) *FieldError {
 		Message: "must not set the field(s)",
 		Paths:   fieldPaths,
 	}
+}
+
+// ErrInvalidArrayValue consturcts a FieldError for a repetetive `field`
+// at `index` that has received an invalid string value.
+func ErrInvalidArrayValue(value, field string, index int) *FieldError {
+	return ErrInvalidValue(value, CurrentField).ViaFieldIndex(field, index)
 }
 
 // ErrInvalidValue constructs a FieldError for a field that has received an
