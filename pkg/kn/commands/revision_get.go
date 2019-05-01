@@ -21,6 +21,7 @@ import (
 
 	util "github.com/knative/client/pkg/util"
 	printers "github.com/knative/client/pkg/util/printers"
+	duckv1alpha1 "github.com/knative/pkg/apis/duck/v1alpha1"
 	serving "github.com/knative/serving/pkg/apis/serving"
 	v1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"github.com/spf13/cobra"
@@ -98,7 +99,7 @@ func printRevisionList(
 		fmt.Fprintln(printer, "No resources found.")
 		return nil
 	}
-	columnNames := []string{"NAME", "SERVICE", "AGE", "TRAFFIC"}
+	columnNames := []string{"NAME", "SERVICE", "AGE", "CONDITIONS", "READY", "TRAFFIC"}
 	if _, err := fmt.Fprintf(printer, "%s\n", strings.Join(columnNames, "\t")); err != nil {
 		return err
 	}
@@ -107,6 +108,8 @@ func printRevisionList(
 			rev.Name,
 			rev.Labels[serving.ConfigurationLabelKey],
 			util.CalculateAge(rev.CreationTimestamp.Time),
+			ConditionsValue(rev.Status.Conditions),
+			ReadyCondition(rev.Status.Conditions),
 			// RouteTrafficValue returns comma separated traffic string
 			RouteTrafficValue(rev, routes.Items),
 		}
@@ -128,4 +131,26 @@ func RouteTrafficValue(rev v1alpha1.Revision, routes []v1alpha1.Route) string {
 		}
 	}
 	return strings.Join(traffic, "  ")
+}
+
+// ConditionsValue returns the True conditions count among total conditions
+func ConditionsValue(conditions duckv1alpha1.Conditions) string {
+	var total, ok int
+	for _, condition := range conditions {
+		total++
+		if condition.Status == "True" {
+			ok++
+		}
+	}
+	return fmt.Sprintf("%d OK / %d", ok, total)
+}
+
+// ReadyCondition returns status of resource's Ready type condition
+func ReadyCondition(conditions duckv1alpha1.Conditions) string {
+	for _, condition := range conditions {
+		if condition.Type == duckv1alpha1.ConditionReady {
+			return string(condition.Status)
+		}
+	}
+	return "Unknown"
 }

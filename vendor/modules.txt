@@ -61,20 +61,20 @@ github.com/json-iterator/go
 github.com/knative/build/pkg/apis/build/v1alpha1
 github.com/knative/build/pkg/apis/build
 # github.com/knative/pkg v0.0.0-20190329155329-916205998db9
-github.com/knative/pkg/apis
 github.com/knative/pkg/apis/duck/v1alpha1
+github.com/knative/pkg/apis
+github.com/knative/pkg/apis/duck
 github.com/knative/pkg/kmeta
 github.com/knative/pkg/kmp
-github.com/knative/pkg/apis/duck
 github.com/knative/pkg/configmap
 # github.com/knative/serving v0.5.2
+github.com/knative/serving/pkg/apis/serving
 github.com/knative/serving/pkg/apis/serving/v1alpha1
 github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1
 github.com/knative/serving/pkg/apis/autoscaling
 github.com/knative/serving/pkg/apis/config
 github.com/knative/serving/pkg/apis/networking
 github.com/knative/serving/pkg/apis/networking/v1alpha1
-github.com/knative/serving/pkg/apis/serving
 github.com/knative/serving/pkg/client/clientset/versioned/scheme
 github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake
 github.com/knative/serving/pkg/apis/autoscaling/v1alpha1
@@ -192,10 +192,10 @@ k8s.io/apimachinery/pkg/api/resource
 k8s.io/apimachinery/pkg/apis/meta/v1
 k8s.io/apimachinery/pkg/runtime/schema
 k8s.io/apimachinery/pkg/util/duration
+k8s.io/apimachinery/pkg/runtime
 k8s.io/apimachinery/pkg/api/equality
 k8s.io/apimachinery/pkg/api/validation
 k8s.io/apimachinery/pkg/apis/meta/v1/unstructured
-k8s.io/apimachinery/pkg/runtime
 k8s.io/apimachinery/pkg/util/intstr
 k8s.io/apimachinery/pkg/util/sets
 k8s.io/apimachinery/pkg/util/validation
@@ -212,10 +212,10 @@ k8s.io/apimachinery/pkg/util/json
 k8s.io/apimachinery/pkg/util/net
 k8s.io/apimachinery/pkg/util/yaml
 k8s.io/apimachinery/pkg/util/errors
-k8s.io/apimachinery/pkg/apis/meta/v1/validation
-k8s.io/apimachinery/pkg/util/validation/field
 k8s.io/apimachinery/pkg/conversion/queryparams
 k8s.io/apimachinery/pkg/util/naming
+k8s.io/apimachinery/pkg/apis/meta/v1/validation
+k8s.io/apimachinery/pkg/util/validation/field
 k8s.io/apimachinery/pkg/runtime/serializer/json
 k8s.io/apimachinery/pkg/runtime/serializer/protobuf
 k8s.io/apimachinery/pkg/runtime/serializer/recognizer
@@ -252,6 +252,7 @@ k8s.io/client-go/util/jsonpath
 k8s.io/client-go/tools/auth
 k8s.io/client-go/tools/clientcmd/api/latest
 k8s.io/client-go/testing
+k8s.io/client-go/dynamic
 k8s.io/client-go/tools/cache
 k8s.io/client-go/pkg/version
 k8s.io/client-go/plugin/pkg/client/auth/exec
@@ -263,7 +264,6 @@ k8s.io/client-go/util/flowcontrol
 k8s.io/client-go/kubernetes/scheme
 k8s.io/client-go/third_party/forked/golang/template
 k8s.io/client-go/tools/clientcmd/api/v1
-k8s.io/client-go/dynamic
 k8s.io/client-go/tools/pager
 k8s.io/client-go/util/buffer
 k8s.io/client-go/util/retry

@@ -110,11 +110,13 @@ func TestRevisionGetDefaultOutput(t *testing.T) {
 			v1alpha1.Route{
 				TypeMeta: routeType,
 				Status: v1alpha1.RouteStatus{
-					Domain: "foo.default.example.com",
-					Traffic: []v1alpha1.TrafficTarget{
-						v1alpha1.TrafficTarget{
-							RevisionName: "foo",
-							Percent:      100,
+					RouteStatusFields: v1alpha1.RouteStatusFields{
+						Domain: "foo.default.example.com",
+						Traffic: []v1alpha1.TrafficTarget{
+							v1alpha1.TrafficTarget{
+								RevisionName: "foo",
+								Percent:      100,
+							},
 						},
 					},
 				},
@@ -122,11 +124,13 @@ func TestRevisionGetDefaultOutput(t *testing.T) {
 			v1alpha1.Route{
 				TypeMeta: routeType,
 				Status: v1alpha1.RouteStatus{
-					Domain: "bar.default.example.com",
-					Traffic: []v1alpha1.TrafficTarget{
-						v1alpha1.TrafficTarget{
-							RevisionName: "bar",
-							Percent:      100,
+					RouteStatusFields: v1alpha1.RouteStatusFields{
+						Domain: "bar.default.example.com",
+						Traffic: []v1alpha1.TrafficTarget{
+							v1alpha1.TrafficTarget{
+								RevisionName: "bar",
+								Percent:      100,
+							},
 						},
 					},
 				},
@@ -134,11 +138,13 @@ func TestRevisionGetDefaultOutput(t *testing.T) {
 			v1alpha1.Route{
 				TypeMeta: routeType,
 				Status: v1alpha1.RouteStatus{
-					Domain: "baz.default.example.com",
-					Traffic: []v1alpha1.TrafficTarget{
-						v1alpha1.TrafficTarget{
-							RevisionName: "bar",
-							Percent:      100,
+					RouteStatusFields: v1alpha1.RouteStatusFields{
+						Domain: "baz.default.example.com",
+						Traffic: []v1alpha1.TrafficTarget{
+							v1alpha1.TrafficTarget{
+								RevisionName: "bar",
+								Percent:      100,
+							},
 						},
 					},
 				},
@@ -154,10 +160,10 @@ func TestRevisionGetDefaultOutput(t *testing.T) {
 		t.Fatal(err)
 	}
 	// each line's tab/spaces are replaced by comma
-	expected := []string{"NAME,SERVICE,AGE,TRAFFIC",
-		"foo,,,100% -> foo.default.example.com",
+	expected := []string{"NAME,SERVICE,AGE,CONDITIONS,READY,TRAFFIC",
+		"foo,,,0 OK / 0,Unknown,100% -> foo.default.example.com",
 		// test multiple routes to single revision
-		"bar,,,100% -> bar.default.example.com  100% -> baz.default.example.com"}
+		"bar,,,0 OK / 0,Unknown,100% -> bar.default.example.com  100% -> baz.default.example.com"}
 	expected_lines := strings.Split(tabbedOutput(expected), "\n")
 
 	for i, s := range output {
