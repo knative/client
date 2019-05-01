@@ -96,9 +96,13 @@ func TestGetDefaultOutput(t *testing.T) {
 					Name: "foo",
 				},
 				Status: v1alpha1.ServiceStatus{
-					Domain:                    "foo.default.example.com",
-					LatestCreatedRevisionName: "foo-abcde",
-					LatestReadyRevisionName:   "foo-abcde",
+					RouteStatusFields: v1alpha1.RouteStatusFields{
+						Domain: "foo.default.example.com",
+					},
+					ConfigurationStatusFields: v1alpha1.ConfigurationStatusFields{
+						LatestCreatedRevisionName: "foo-abcde",
+						LatestReadyRevisionName:   "foo-abcde",
+					},
 				},
 			},
 			v1alpha1.Service{
@@ -107,9 +111,13 @@ func TestGetDefaultOutput(t *testing.T) {
 					Name: "bar",
 				},
 				Status: v1alpha1.ServiceStatus{
-					Domain:                    "bar.default.example.com",
-					LatestCreatedRevisionName: "bar-abcde",
-					LatestReadyRevisionName:   "bar-abcde",
+					RouteStatusFields: v1alpha1.RouteStatusFields{
+						Domain: "bar.default.example.com",
+					},
+					ConfigurationStatusFields: v1alpha1.ConfigurationStatusFields{
+						LatestCreatedRevisionName: "bar-abcde",
+						LatestReadyRevisionName:   "bar-abcde",
+					},
 				},
 			},
 		},
