@@ -36,7 +36,7 @@ type ResourceFlags struct {
 	Memory string
 }
 
-func (p *ConfigurationEditFlags) AddFlags(command *cobra.Command) {
+func (p *ConfigurationEditFlags) AddUpdateFlags(command *cobra.Command) {
 	command.Flags().StringVar(&p.Image, "image", "", "Image to run.")
 	command.Flags().StringArrayVarP(&p.Env, "env", "e", []string{},
 		"Environment variable to set. NAME=value; you may provide this flag "+
@@ -45,6 +45,10 @@ func (p *ConfigurationEditFlags) AddFlags(command *cobra.Command) {
 	command.Flags().StringVar(&p.RequestsFlags.Memory, "requests-memory", "", "The requested CPU (e.g., 64Mi).")
 	command.Flags().StringVar(&p.LimitsFlags.CPU, "limits-cpu", "", "The limits on the requested CPU (e.g., 1000m).")
 	command.Flags().StringVar(&p.LimitsFlags.Memory, "limits-memory", "", "The limits on the requested CPU (e.g., 1024Mi).")
+}
+
+func (p *ConfigurationEditFlags) AddCreateFlags(command *cobra.Command) {
+	p.AddUpdateFlags(command)
 	command.MarkFlagRequired("image")
 }
 

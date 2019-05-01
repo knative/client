@@ -28,6 +28,12 @@ func NewServiceUpdateCommand(p *KnParams) *cobra.Command {
 	serviceUpdateCommand := &cobra.Command{
 		Use:   "update NAME",
 		Short: "Update a service.",
+		Example: `
+  # Updates a service 'mysvc' with new environment variables
+  kn service update mysvc --env KEY1=VALUE1 --env KEY2=VALUE2
+
+  # Updates a service 'mysvc' with new requests and limits parameters
+  kn service update mysvc --requests-cpu 500m --limits-memory 1024Mi`,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
 				return errors.New("requires the service name.")
@@ -66,6 +72,6 @@ func NewServiceUpdateCommand(p *KnParams) *cobra.Command {
 		},
 	}
 	AddNamespaceFlags(serviceUpdateCommand.Flags(), false)
-	editFlags.AddFlags(serviceUpdateCommand)
+	editFlags.AddUpdateFlags(serviceUpdateCommand)
 	return serviceUpdateCommand
 }
