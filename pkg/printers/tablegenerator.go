@@ -42,15 +42,6 @@ func NewTableGenerator() *HumanReadablePrinter {
 	}
 }
 
-/*
-func (a *HumanReadablePrinter) With(fns ...func(PrintHandler)) *HumanReadablePrinter {
-	for _, fn := range fns {
-		fn(a)
-	}
-	return a
-}
-*/
-
 // GenerateTable returns a table for the provided object, using the printer registered for that type. It returns
 // a table that includes all of the information requested by options, but will not remove rows or columns. The
 // caller is responsible for applying rules related to filtering rows or columns.

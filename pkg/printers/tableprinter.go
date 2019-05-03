@@ -14,8 +14,6 @@ import (
 
 var _ ResourcePrinter = &HumanReadablePrinter{}
 
-var withNamespacePrefixColumns = []string{"NAMESPACE"}
-
 // NewTablePrinter creates a printer suitable for calling PrintObj().
 func NewTablePrinter(options PrintOptions) *HumanReadablePrinter {
 	printer := &HumanReadablePrinter{
@@ -84,27 +82,12 @@ func printHeader(columnNames []string, w io.Writer) error {
 // printRows writes the provided rows to output.
 func printRows(output io.Writer, rows []metav1beta1.TableRow, options PrintOptions) {
 	for _, row := range rows {
-		if options.WithNamespace {
-			if obj := row.Object.Object; obj != nil {
-				if m, err := meta.Accessor(obj); err == nil {
-					fmt.Fprint(output, m.GetNamespace())
-				}
-			}
-			fmt.Fprint(output, "\t")
-		}
-
 		for i, cell := range row.Cells {
 			if i != 0 {
 				fmt.Fprint(output, "\t")
-			} else {
-				if options.WithKind && !options.Kind.Empty() {
-					fmt.Fprintf(output, "%s/%s", strings.ToLower(options.Kind.String()), cell)
-					continue
-				}
 			}
 			fmt.Fprint(output, cell)
 		}
-
 		output.Write([]byte("\n"))
 	}
 }

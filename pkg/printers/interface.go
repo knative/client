@@ -21,12 +21,7 @@ func (fn ResourcePrinterFunc) PrintObj(obj runtime.Object, w io.Writer) error {
 	return fn(obj, w)
 }
 
+// PrintOptions for different table printing options
 type PrintOptions struct {
-	// supported Format types can be found in pkg/printers/printers.go
-	OutputFormatType     string
-	OutputFormatArgument string
-
-	WithNamespace bool
-	WithKind      bool
-	Kind          schema.GroupKind
+	//TODO: Add options for eg: with-kind, server-printing, wide etc
 }
