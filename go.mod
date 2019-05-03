@@ -2,6 +2,7 @@ module github.com/knative/client
 
 require (
 	contrib.go.opencensus.io/exporter/stackdriver v0.11.0 // indirect
+	github.com/cpuguy83/go-md2man v1.0.10 // indirect
 	github.com/evanphx/json-patch v4.1.0+incompatible // indirect
 	github.com/gogo/protobuf v1.2.1 // indirect
 	github.com/golang/groupcache v0.0.0-20190129154638-5b532d6fd5ef // indirect
