@@ -7,7 +7,12 @@ If you are interested in contributing, see the Knative community [contribution g
 
 # Docs
 
-[Generated documentation](docs/cmd/kn.md) for the `kn` CLI.
+Start with the [user's guide](docs/README.md) and from there you can can read about common use cases, get detail docs on each command, and even how to extend the `kn` CLI. Links below for easy access.
+
+* [User's guide](docs/README.md)
+* [Basic workflows](docs/workflows.md) (use cases)
+* [Generated documentation](docs/cmd/kn.md)
+* [Plugins](docs/plugins.md) motivation and guide
 
 **Bash auto completion:**
 
