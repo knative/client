@@ -19,10 +19,11 @@ import (
 	"testing"
 )
 
-func CommandGenerator(allNamespaceFlag bool) *cobra.Command {
+// testCommandGenerator generates a test cobra command
+func testCommandGenerator(allNamespaceFlag bool) *cobra.Command {
 	var testCmd = &cobra.Command{
-		Use:   "ns-test",
-		Short: "Namespace test command",
+		Use:   "kn",
+		Short: "Namespace test kn command",
 		Run:   func(cmd *cobra.Command, args []string) {},
 	}
 	AddNamespaceFlags(testCmd.Flags(), allNamespaceFlag)
@@ -31,7 +32,7 @@ func CommandGenerator(allNamespaceFlag bool) *cobra.Command {
 
 // test by setting some namespace
 func TestGetNamespaceSample(t *testing.T) {
-	testCmd := CommandGenerator(true)
+	testCmd := testCommandGenerator(true)
 	expectedNamespace := "test1"
 	testCmd.SetArgs([]string{"--namespace", expectedNamespace})
 	testCmd.Execute()
@@ -46,7 +47,7 @@ func TestGetNamespaceSample(t *testing.T) {
 
 // test without setting any namespace
 func TestGetNamespaceDefault(t *testing.T) {
-	testCmd := CommandGenerator(true)
+	testCmd := testCommandGenerator(true)
 	expectedNamespace := "default"
 	testCmd.Execute()
 	actualNamespace, err := GetNamespace(testCmd)
@@ -61,7 +62,7 @@ func TestGetNamespaceDefault(t *testing.T) {
 // test with all-namespaces flag set with sample namespace
 // all-namespaces flag takes the precendence
 func TestGetNamespaceAllNamespacesSet(t *testing.T) {
-	testCmd := CommandGenerator(true)
+	testCmd := testCommandGenerator(true)
 	expectedNamespace := ""
 	sampleNamespace := "test1"
 	testCmd.SetArgs([]string{"--namespace", sampleNamespace, "--all-namespaces"})
@@ -78,7 +79,7 @@ func TestGetNamespaceAllNamespacesSet(t *testing.T) {
 // test with all-namespace flag set without any namespace flag set
 // all-namespace flag takes precendence
 func TestGetNamespaceDefaultAllNamespacesUnset(t *testing.T) {
-	testCmd := CommandGenerator(true)
+	testCmd := testCommandGenerator(true)
 	expectedNamespace := ""
 	testCmd.SetArgs([]string{"--all-namespaces"})
 	testCmd.Execute()
@@ -93,7 +94,7 @@ func TestGetNamespaceDefaultAllNamespacesUnset(t *testing.T) {
 
 // test with all-namespaces flag not defined for command
 func TestGetNamespaceAllNamespacesNotDefined(t *testing.T) {
-	testCmd := CommandGenerator(false)
+	testCmd := testCommandGenerator(false)
 	expectedNamespace := "test1"
 	testCmd.SetArgs([]string{"--namespace", expectedNamespace})
 	testCmd.Execute()
@@ -108,7 +109,7 @@ func TestGetNamespaceAllNamespacesNotDefined(t *testing.T) {
 
 // test with all-namespace flag not defined and no namespace given
 func TestGetNamespaceDefaultAllNamespacesNotDefined(t *testing.T) {
-	testCmd := CommandGenerator(false)
+	testCmd := testCommandGenerator(false)
 	expectedNamespace := "default"
 	testCmd.Execute()
 	actualNamespace, err := GetNamespace(testCmd)
