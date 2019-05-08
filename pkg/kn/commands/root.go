@@ -68,6 +68,9 @@ Eventing: Manage event subscriptions and channels. Connect up event sources.`,
 
 		// Affects children as well
 		SilenceUsage: true,
+
+		// Prevents Cobra from dealing with errors as we deal with them in main.go
+		SilenceErrors: true,
 	}
 	if p.Output != nil {
 		rootCmd.SetOutput(p.Output)
