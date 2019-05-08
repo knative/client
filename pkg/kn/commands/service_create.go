@@ -16,7 +16,7 @@ package commands
 
 import (
 	"errors"
-
+	"fmt"
 	serving_lib "github.com/knative/client/pkg/serving"
 	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"github.com/spf13/cobra"
@@ -73,7 +73,7 @@ func NewServiceCreateCommand(p *KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-
+			fmt.Fprintf(cmd.OutOrStdout(), "Service '%s' successfully created in namespace '%s'.\n", args[0], namespace)
 			return nil
 		},
 	}

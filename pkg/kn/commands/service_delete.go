@@ -53,7 +53,7 @@ func NewServiceDeleteCommand(p *KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "Deleted %s in %s namespace.\n", args[0], namespace)
+			fmt.Fprintf(cmd.OutOrStdout(), "Service '%s' successfully deleted in namespace '%s'.\n", args[0], namespace)
 			return nil
 		},
 	}
