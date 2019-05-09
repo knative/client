@@ -290,3 +290,66 @@ func parseQuantity(t *testing.T, quantityString string) resource.Quantity {
 	}
 	return quantity
 }
+
+func TestServiceCreateImageForce(t *testing.T) {
+	_, _, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:v1"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	action, created, output, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--force", "--image", "gcr.io/foo/bar:v2"})
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("create", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+	conf, err := servinglib.GetConfiguration(created)
+	expectedOutput := "Service 'foo' is successfully created in namespace 'default'.\n"
+	if err != nil {
+		t.Fatal(err)
+	} else if conf.RevisionTemplate.Spec.Container.Image != "gcr.io/foo/bar:v2" {
+		t.Fatalf("wrong image set: %v", conf.RevisionTemplate.Spec.Container.Image)
+	} else if output != expectedOutput {
+		t.Fatalf("wrong output: %s, expected: %s", output, expectedOutput)
+	}
+}
+
+func TestServiceCreateEnvForce(t *testing.T) {
+	_, _, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:v1", "-e", "A=DOGS", "--env", "B=WOLVES"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	action, created, output, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--force", "--image", "gcr.io/foo/bar:v2", "-e", "A=CATS", "--env", "B=LIONS"})
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("create", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	expectedEnvVars := map[string]string{
+		"A": "CATS",
+		"B": "LIONS"}
+
+	conf, err := servinglib.GetConfiguration(created)
+	actualEnvVars, err := servinglib.EnvToMap(conf.RevisionTemplate.Spec.Container.Env)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expectedOutput := "Service 'foo' is successfully created in namespace 'default'.\n"
+	if err != nil {
+		t.Fatal(err)
+	} else if conf.RevisionTemplate.Spec.Container.Image != "gcr.io/foo/bar:v2" {
+		t.Fatalf("wrong image set: %v", conf.RevisionTemplate.Spec.Container.Image)
+	} else if !reflect.DeepEqual(
+		actualEnvVars,
+		expectedEnvVars) {
+		t.Fatalf("wrong env vars:%v", conf.RevisionTemplate.Spec.Container.Env)
+	} else if output != expectedOutput {
+		t.Fatalf("wrong output: %s, expected: %s", output, expectedOutput)
+	}
+}
