@@ -20,7 +20,6 @@ import (
 	"io"
 
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 // ResourcePrinter is an interface that knows how to print runtime objects.

@@ -22,7 +22,6 @@ import (
 	"reflect"
 	"strings"
 
-	"k8s.io/apimachinery/pkg/api/meta"
 	metav1beta1 "k8s.io/apimachinery/pkg/apis/meta/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"text/tabwriter"
