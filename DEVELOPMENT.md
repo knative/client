@@ -66,7 +66,7 @@ Once you've [setup your development environment](#prerequisites), let's build
 **Building:**
 
 ```sh
-$ go build ./cmd/...
+$ hack/build.sh
 ```
 
 It builds `kn` binary in your current directory. You can start playing with it.
