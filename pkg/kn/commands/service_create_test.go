@@ -305,13 +305,12 @@ func TestServiceCreateImageForce(t *testing.T) {
 		t.Fatalf("Bad action %v", action)
 	}
 	conf, err := servinglib.GetConfiguration(created)
-	expectedOutput := "Service 'foo' is successfully created in namespace 'default'.\n"
 	if err != nil {
 		t.Fatal(err)
 	} else if conf.RevisionTemplate.Spec.Container.Image != "gcr.io/foo/bar:v2" {
 		t.Fatalf("wrong image set: %v", conf.RevisionTemplate.Spec.Container.Image)
-	} else if output != expectedOutput {
-		t.Fatalf("wrong output: %s, expected: %s", output, expectedOutput)
+	} else if !strings.Contains(output, "foo") || !strings.Contains(output, "default") {
+		t.Fatalf("wrong output: %s", output)
 	}
 }
 
@@ -339,8 +338,6 @@ func TestServiceCreateEnvForce(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	expectedOutput := "Service 'foo' is successfully created in namespace 'default'.\n"
 	if err != nil {
 		t.Fatal(err)
 	} else if conf.RevisionTemplate.Spec.Container.Image != "gcr.io/foo/bar:v2" {
@@ -349,7 +346,7 @@ func TestServiceCreateEnvForce(t *testing.T) {
 		actualEnvVars,
 		expectedEnvVars) {
 		t.Fatalf("wrong env vars:%v", conf.RevisionTemplate.Spec.Container.Env)
-	} else if output != expectedOutput {
-		t.Fatalf("wrong output: %s, expected: %s", output, expectedOutput)
+	} else if !strings.Contains(output, "foo") || !strings.Contains(output, "default") {
+		t.Fatalf("wrong output: %s", output)
 	}
 }
