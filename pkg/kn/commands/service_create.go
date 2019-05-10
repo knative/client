@@ -38,13 +38,14 @@ func NewServiceCreateCommand(p *KnParams) *cobra.Command {
   # Create a service with multiple environment variables
   kn service create mysvc --env KEY1=VALUE1 --env KEY2=VALUE2 --image dev.local/ns/image:latest
 
-  # Replace a service 's1' with image dev.local/ns/image:v2 using --force flag
+  # Create or replace a service 's1' with image dev.local/ns/image:v2 using --force flag
+  # if service 's1' doesn't exist, it's just a normal create operation
   kn service create --force s1 --image dev.local/ns/image:v2
 
-  # Replace environment variables of service 's1' using --force flag
+  # Create or replace environment variables of service 's1' using --force flag
   kn service create --force s1 --env KEY1=NEW_VALUE1 --env NEW_KEY2=NEW_VALUE2 --image dev.local/ns/image:v1
 
-  # Reset resources to default ones of a service 's1' using --force flag
+  # Create or replace default resources of a service 's1' using --force flag
   # (earlier configured resource requests and limits will be replaced with default)
   # (earlier configured environment variables will be cleared too if any)
   kn service create --force s1 --image dev.local/ns/image:v1`,
@@ -82,17 +83,31 @@ func NewServiceCreateCommand(p *KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
+			var serviceExists bool = false
 			// check if --force flag is given
-			if force, err := cmd.Flags().GetBool("force"); err != nil {
-				return err
-			} else if force {
-				client.Services(namespace).Delete(args[0], &v1.DeleteOptions{})
+			if editFlags.ForceCreate {
+				// --force flag is given, lets check if the service exists
+				existingService, err := client.Services(namespace).Get(args[0], v1.GetOptions{})
+				if err == nil {
+					serviceExists = true
+					// copy over the resource version
+					service.ResourceVersion = existingService.ResourceVersion
+					// lets update the service
+					_, err = client.Services(namespace).Update(&service)
+					if err != nil {
+						return err
+					}
+					fmt.Fprintf(cmd.OutOrStdout(), "Service '%s' successfully replaced in namespace '%s'.\n", args[0], namespace)
+				}
 			}
-			_, err = client.Services(namespace).Create(&service)
-			if err != nil {
-				return err
+			// if service doesn't exist, perform a normal create operation
+			if !serviceExists {
+				_, err = client.Services(namespace).Create(&service)
+				if err != nil {
+					return err
+				}
+				fmt.Fprintf(cmd.OutOrStdout(), "Service '%s' successfully created in namespace '%s'.\n", args[0], namespace)
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "Service '%s' successfully created in namespace '%s'.\n", args[0], namespace)
 			return nil
 		},
 	}
