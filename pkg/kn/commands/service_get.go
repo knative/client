@@ -1,4 +1,4 @@
-// Copyright © 2018 The Knative Authors
+// Copyright © 2019 The Knative Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,21 +15,20 @@
 package commands
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
-var serviceListPrintFlags *genericclioptions.PrintFlags
+// NewServiceGetCommand represents 'kn service get' command
+func NewServiceGetCommand(p *KnParams) *cobra.Command {
+	serviceGetFlags := NewServiceGetFlags()
 
-// listCmd represents the list command
-func NewServiceListCommand(p *KnParams) *cobra.Command {
-	serviceListPrintFlags := genericclioptions.NewPrintFlags("").WithDefaultOutput(
-		"jsonpath={range .items[*]}{.metadata.name}{\"\\n\"}{end}")
-	serviceListCommand := &cobra.Command{
-		Use:   "list",
-		Short: "List available services.",
+	serviceGetCommand := &cobra.Command{
+		Use:   "get",
+		Short: "Get available services.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := p.ServingFactory()
 			if err != nil {
@@ -43,15 +42,20 @@ func NewServiceListCommand(p *KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-
-			printer, err := serviceListPrintFlags.ToPrinter()
-			if err != nil {
-				return err
+			if len(service.Items) == 0 {
+				fmt.Fprintf(cmd.OutOrStdout(), "No resources found.\n")
+				return nil
 			}
 			service.GetObjectKind().SetGroupVersionKind(schema.GroupVersionKind{
 				Group:   "knative.dev",
 				Version: "v1alpha1",
 				Kind:    "Service"})
+
+			printer, err := serviceGetFlags.ToPrinter()
+			if err != nil {
+				return err
+			}
+
 			err = printer.PrintObj(service, cmd.OutOrStdout())
 			if err != nil {
 				return err
@@ -59,7 +63,7 @@ func NewServiceListCommand(p *KnParams) *cobra.Command {
 			return nil
 		},
 	}
-	AddNamespaceFlags(serviceListCommand.Flags(), true)
-	serviceListPrintFlags.AddFlags(serviceListCommand)
-	return serviceListCommand
+	AddNamespaceFlags(serviceGetCommand.Flags(), true)
+	serviceGetFlags.AddFlags(serviceGetCommand)
+	return serviceGetCommand
 }

@@ -19,6 +19,8 @@ import (
 	"strings"
 	"testing"
 
+	//servinglib "github.com/knative/client/pkg/serving"
+	duckv1alpha1 "github.com/knative/pkg/apis/duck/v1alpha1"
 	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	serving "github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
 	"github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake"
@@ -27,7 +29,7 @@ import (
 	client_testing "k8s.io/client-go/testing"
 )
 
-func fakeList(args []string, response *v1alpha1.ServiceList) (action client_testing.Action, output []string, err error) {
+func fakeGet(args []string, response *v1alpha1.ServiceList) (action client_testing.Action, output []string, err error) {
 	buf := new(bytes.Buffer)
 	fakeServing := &fake.FakeServingV1alpha1{&client_testing.Fake{}}
 	cmd := NewKnCommand(KnParams{
@@ -48,58 +50,67 @@ func fakeList(args []string, response *v1alpha1.ServiceList) (action client_test
 	return
 }
 
-func TestListEmpty(t *testing.T) {
-	action, output, err := fakeList([]string{"service", "list"}, &v1alpha1.ServiceList{})
+func TestGetEmpty(t *testing.T) {
+	action, output, err := fakeGet([]string{"service", "get"}, &v1alpha1.ServiceList{})
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	for _, s := range output {
-		if s != "" {
-			t.Errorf("Bad output line %v", s)
-		}
-	}
 	if action == nil {
 		t.Errorf("No action")
 	} else if !action.Matches("list", "services") {
 		t.Errorf("Bad action %v", action)
+	} else if output[0] != "No resources found." {
+		t.Errorf("Bad output %s", output[0])
 	}
-}
-
-var serviceType = metav1.TypeMeta{
-	Kind:       "service",
-	APIVersion: "serving.knative.dev/v1alpha1",
 }
 
 func TestListDefaultOutput(t *testing.T) {
-	action, output, err := fakeList([]string{"service", "list"}, &v1alpha1.ServiceList{
-		Items: []v1alpha1.Service{
-			v1alpha1.Service{
-				TypeMeta: serviceType,
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "foo",
-				},
-			},
-			v1alpha1.Service{
-				TypeMeta: serviceType,
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "bar",
-				},
-			},
-		},
-	})
+	service1 := createMockServiceWithParams(t, "foo", "foo.default.example.com", 1)
+	service2 := createMockServiceWithParams(t, "bar", "bar.default.example.com", 2)
+	serviceList := &v1alpha1.ServiceList{Items: []v1alpha1.Service{*service1, *service2}}
+	action, output, err := fakeGet([]string{"service", "get"}, serviceList)
 	if err != nil {
 		t.Fatal(err)
-	}
-	expected := []string{"foo", "bar", ""}
-	for i, s := range output {
-		if s != expected[i] {
-			t.Errorf("Bad output line %v expected %v", s, expected[i])
-		}
 	}
 	if action == nil {
 		t.Errorf("No action")
 	} else if !action.Matches("list", "services") {
 		t.Errorf("Bad action %v", action)
 	}
+	testContains(t, output[0], []string{"NAME", "DOMAIN", "GENERATION", "AGE", "CONDITIONS", "READY", "REASON"}, "column header")
+	testContains(t, output[1], []string{"foo", "foo.default.example.com", "1"}, "value")
+	testContains(t, output[2], []string{"bar", "bar.default.example.com", "2"}, "value")
+}
+
+func testContains(t *testing.T, output string, sub []string, element string) {
+	for _, each := range sub {
+		if !strings.Contains(output, each) {
+			t.Errorf("Missing %s: %s", element, each)
+		}
+	}
+}
+
+func createMockServiceWithParams(t *testing.T, name, domain string, generation int64) *v1alpha1.Service {
+	service := &v1alpha1.Service{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Service",
+			APIVersion: "knative.dev/v1alpha1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: "default",
+		},
+		Spec: v1alpha1.ServiceSpec{
+			RunLatest: &v1alpha1.RunLatestType{},
+		},
+		Status: v1alpha1.ServiceStatus{
+			Status: duckv1alpha1.Status{
+				ObservedGeneration: generation},
+			RouteStatusFields: v1alpha1.RouteStatusFields{
+				Domain: domain,
+			},
+		},
+	}
+	return service
 }
