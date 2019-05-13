@@ -17,6 +17,7 @@ package commands
 import (
 	"errors"
 	"fmt"
+
 	serving_lib "github.com/knative/client/pkg/serving"
 	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"github.com/spf13/cobra"

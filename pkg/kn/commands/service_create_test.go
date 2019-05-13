@@ -79,8 +79,8 @@ func TestServiceCreateImage(t *testing.T) {
 		t.Fatal(err)
 	} else if conf.RevisionTemplate.Spec.Container.Image != "gcr.io/foo/bar:baz" {
 		t.Fatalf("wrong image set: %v", conf.RevisionTemplate.Spec.Container.Image)
-	} else if !strings.Contains(output, "foo") || !strings.Contains(output, "default") || !strings.
-		Contains(output, "created") {
+	} else if !strings.Contains(output, "foo") || !strings.Contains(output, "created") ||
+		!strings.Contains(output, "default") {
 		t.Fatalf("wrong stdout message: %v", output)
 	}
 }
