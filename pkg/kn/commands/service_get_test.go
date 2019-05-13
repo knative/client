@@ -19,22 +19,21 @@ import (
 	"strings"
 	"testing"
 
-	//servinglib "github.com/knative/client/pkg/serving"
 	duckv1alpha1 "github.com/knative/pkg/apis/duck/v1alpha1"
-	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
-	serving "github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
+	v1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
+	servingclient "github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
 	"github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	client_testing "k8s.io/client-go/testing"
 )
 
-func fakeGet(args []string, response *v1alpha1.ServiceList) (action client_testing.Action, output []string, err error) {
+func fakeServiceGet(args []string, response *v1alpha1.ServiceList) (action client_testing.Action, output []string, err error) {
 	buf := new(bytes.Buffer)
 	fakeServing := &fake.FakeServingV1alpha1{&client_testing.Fake{}}
 	cmd := NewKnCommand(KnParams{
 		Output:         buf,
-		ServingFactory: func() (serving.ServingV1alpha1Interface, error) { return fakeServing, nil },
+		ServingFactory: func() (servingclient.ServingV1alpha1Interface, error) { return fakeServing, nil },
 	})
 	fakeServing.AddReactor("*", "*",
 		func(a client_testing.Action) (bool, runtime.Object, error) {
@@ -51,7 +50,7 @@ func fakeGet(args []string, response *v1alpha1.ServiceList) (action client_testi
 }
 
 func TestGetEmpty(t *testing.T) {
-	action, output, err := fakeGet([]string{"service", "get"}, &v1alpha1.ServiceList{})
+	action, output, err := fakeServiceGet([]string{"service", "get"}, &v1alpha1.ServiceList{})
 	if err != nil {
 		t.Error(err)
 		return
@@ -65,11 +64,11 @@ func TestGetEmpty(t *testing.T) {
 	}
 }
 
-func TestListDefaultOutput(t *testing.T) {
-	service1 := createMockServiceWithParams(t, "foo", "foo.default.example.com", 1)
-	service2 := createMockServiceWithParams(t, "bar", "bar.default.example.com", 2)
+func TestServiceGetDefaultOutput(t *testing.T) {
+	service1 := createMockServiceWithParams("foo", "foo.default.example.com", 1)
+	service2 := createMockServiceWithParams("bar", "bar.default.example.com", 2)
 	serviceList := &v1alpha1.ServiceList{Items: []v1alpha1.Service{*service1, *service2}}
-	action, output, err := fakeGet([]string{"service", "get"}, serviceList)
+	action, output, err := fakeServiceGet([]string{"service", "get"}, serviceList)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -91,7 +90,7 @@ func testContains(t *testing.T, output string, sub []string, element string) {
 	}
 }
 
-func createMockServiceWithParams(t *testing.T, name, domain string, generation int64) *v1alpha1.Service {
+func createMockServiceWithParams(name, domain string, generation int64) *v1alpha1.Service {
 	service := &v1alpha1.Service{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Service",
