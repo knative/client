@@ -70,13 +70,13 @@ github.com/knative/pkg/kmeta
 github.com/knative/pkg/kmp
 github.com/knative/pkg/configmap
 # github.com/knative/serving v0.5.2
+github.com/knative/serving/pkg/apis/serving
 github.com/knative/serving/pkg/apis/serving/v1alpha1
 github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1
 github.com/knative/serving/pkg/apis/autoscaling
 github.com/knative/serving/pkg/apis/config
 github.com/knative/serving/pkg/apis/networking
 github.com/knative/serving/pkg/apis/networking/v1alpha1
-github.com/knative/serving/pkg/apis/serving
 github.com/knative/serving/pkg/client/clientset/versioned/scheme
 github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake
 github.com/knative/serving/pkg/apis/autoscaling/v1alpha1
