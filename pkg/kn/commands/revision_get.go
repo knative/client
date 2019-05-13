@@ -1,4 +1,4 @@
-// Copyright © 2018 The Knative Authors
+// Copyright © 2019 The Knative Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,21 +15,20 @@
 package commands
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
-var revisionListPrintFlags *genericclioptions.PrintFlags
+// NewRevisionGetCommand represents 'kn revision get' command
+func NewRevisionGetCommand(p *KnParams) *cobra.Command {
+	revisionGetFlags := NewRevisionGetFlags()
 
-// listCmd represents the list command
-func NewRevisionListCommand(p *KnParams) *cobra.Command {
-	revisionListPrintFlags = genericclioptions.NewPrintFlags("").WithDefaultOutput(
-		"jsonpath={range .items[*]}{.metadata.name}{\"\\n\"}{end}")
-	revisionListCmd := &cobra.Command{
-		Use:   "list",
-		Short: "List available revisions.",
+	revisionGetCommand := &cobra.Command{
+		Use:   "get",
+		Short: "Get available revisions.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := p.ServingFactory()
 			if err != nil {
@@ -43,15 +42,18 @@ func NewRevisionListCommand(p *KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-
-			printer, err := revisionListPrintFlags.ToPrinter()
-			if err != nil {
-				return err
+			if len(revision.Items) == 0 {
+				fmt.Fprintf(cmd.OutOrStdout(), "No resources found.\n")
+				return nil
 			}
 			revision.GetObjectKind().SetGroupVersionKind(schema.GroupVersionKind{
 				Group:   "knative.dev",
 				Version: "v1alpha1",
-				Kind:    "Revision"})
+				Kind:    "revision"})
+			printer, err := revisionGetFlags.ToPrinter()
+			if err != nil {
+				return err
+			}
 			err = printer.PrintObj(revision, cmd.OutOrStdout())
 			if err != nil {
 				return err
@@ -59,7 +61,7 @@ func NewRevisionListCommand(p *KnParams) *cobra.Command {
 			return nil
 		},
 	}
-	AddNamespaceFlags(revisionListCmd.Flags(), true)
-	revisionListPrintFlags.AddFlags(revisionListCmd)
-	return revisionListCmd
+	AddNamespaceFlags(revisionGetCommand.Flags(), true)
+	revisionGetFlags.AddFlags(revisionGetCommand)
+	return revisionGetCommand
 }

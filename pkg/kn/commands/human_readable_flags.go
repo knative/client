@@ -36,8 +36,10 @@ func (f *HumanPrintFlags) AllowedFormats() []string {
 // handling human-readable output.
 func (f *HumanPrintFlags) ToPrinter() (hprinters.ResourcePrinter, error) {
 	p := hprinters.NewTablePrinter(hprinters.PrintOptions{})
-	// Add the column definitions and respective functions
+	// Add the column definitions and respective printing functions for service get command
 	ServiceGetHandlers(p)
+	// Add the column definitions and respective printing functions for revision get command
+	RevisionGetHandlers(p)
 	return p, nil
 }
 
