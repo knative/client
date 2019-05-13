@@ -84,15 +84,11 @@ func NewServiceCreateCommand(p *KnParams) *cobra.Command {
 				return err
 			}
 			var serviceExists bool = false
-			// check if --force flag is given
 			if editFlags.ForceCreate {
-				// --force flag is given, lets check if the service exists
 				existingService, err := client.Services(namespace).Get(args[0], v1.GetOptions{})
 				if err == nil {
 					serviceExists = true
-					// copy over the resource version
 					service.ResourceVersion = existingService.ResourceVersion
-					// lets update the service
 					_, err = client.Services(namespace).Update(&service)
 					if err != nil {
 						return err
@@ -100,7 +96,6 @@ func NewServiceCreateCommand(p *KnParams) *cobra.Command {
 					fmt.Fprintf(cmd.OutOrStdout(), "Service '%s' successfully replaced in namespace '%s'.\n", args[0], namespace)
 				}
 			}
-			// if service doesn't exist, perform a normal create operation
 			if !serviceExists {
 				_, err = client.Services(namespace).Create(&service)
 				if err != nil {
