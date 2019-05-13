@@ -15,6 +15,8 @@
 package commands
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -40,7 +42,10 @@ func NewServiceGetCommand(p *KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-
+			if len(service.Items) == 0 {
+				fmt.Fprintf(cmd.OutOrStdout(), "No resources found.\n")
+				return nil
+			}
 			service.GetObjectKind().SetGroupVersionKind(schema.GroupVersionKind{
 				Group:   "knative.dev",
 				Version: "v1alpha1",
