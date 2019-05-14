@@ -31,8 +31,7 @@ You must install these tools:
 
 ### Create a cluster
 
-1. [Set up a Knative](https://www.knative.dev/docs/install/)
-   - You can also setup using limited install guides for eg: Minikube/Minishift.
+1. [Set up a Knative](https://www.knative.dev/docs/install/), You can also setup using limited install guides like [Minikube](https://knative.dev/docs/install/knative-with-minikube/) or [Minishift](https://knative.dev/docs/install/knative-with-minishift/).
 
 ### Checkout your fork
 
