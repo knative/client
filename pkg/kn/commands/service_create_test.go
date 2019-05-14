@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strings"
 	"testing"
 
 	servinglib "github.com/knative/client/pkg/serving"
@@ -66,9 +67,8 @@ func fakeServiceCreate(args []string) (
 }
 
 func TestServiceCreateImage(t *testing.T) {
-	action, created, _, err := fakeServiceCreate([]string{
+	action, created, output, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz"})
-
 	if err != nil {
 		t.Fatal(err)
 	} else if !action.Matches("create", "services") {
@@ -79,6 +79,9 @@ func TestServiceCreateImage(t *testing.T) {
 		t.Fatal(err)
 	} else if conf.RevisionTemplate.Spec.Container.Image != "gcr.io/foo/bar:baz" {
 		t.Fatalf("wrong image set: %v", conf.RevisionTemplate.Spec.Container.Image)
+	} else if !strings.Contains(output, "foo") || !strings.Contains(output, "created") ||
+		!strings.Contains(output, "default") {
+		t.Fatalf("wrong stdout message: %v", output)
 	}
 }
 
