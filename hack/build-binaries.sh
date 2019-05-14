@@ -22,7 +22,7 @@ source ${base}/hack/util/flags.sh
 
 ld_flags="$(ld_flags ${base}/hack)"
 export GO111MODULE=on
-
+export CGO_ENABLED=0
 echo "🚧 🐧 Building for Linux"
 GOOS=darwin GOARCH=amd64 go build -mod=vendor -ldflags "${ld_flags}" -o ${base}/kn-darwin-amd64 ${base}/cmd/...
 echo "🚧 🍏 Building for macOS"
