@@ -66,6 +66,9 @@ Serving: Manage your services and release new software to them.
 Build: Create builds and keep track of their results.
 Eventing: Manage event subscriptions and channels. Connect up event sources.`,
 
+		// Disable docs header
+		DisableAutoGenTag: true,
+
 		// Affects children as well
 		SilenceUsage: true,
 
