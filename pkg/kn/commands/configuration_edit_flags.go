@@ -29,6 +29,7 @@ type ConfigurationEditFlags struct {
 	Image                      string
 	Env                        []string
 	RequestsFlags, LimitsFlags ResourceFlags
+	ForceCreate                bool
 }
 
 type ResourceFlags struct {
@@ -49,6 +50,7 @@ func (p *ConfigurationEditFlags) AddUpdateFlags(command *cobra.Command) {
 
 func (p *ConfigurationEditFlags) AddCreateFlags(command *cobra.Command) {
 	p.AddUpdateFlags(command)
+	command.Flags().BoolVar(&p.ForceCreate, "force", false, "Create service forcefully, replaces existing service if any.")
 	command.MarkFlagRequired("image")
 }
 
