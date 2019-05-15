@@ -47,7 +47,7 @@ header "Running tests"
 
 # TODO: Real integration tests here instead of just verifying that we
 # can list Knative Services.
-./kn service list || fail_test
-echo "kn service list returned success"
+./kn service get || fail_test
+echo "kn service get returned success"
 
 success
