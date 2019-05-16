@@ -58,7 +58,7 @@ func NewServiceUpdateCommand(p *KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			err = editFlags.Apply(config)
+			err = editFlags.Apply(config, cmd)
 			if err != nil {
 				return err
 			}
