@@ -47,9 +47,9 @@ header "Running tests"
 ./kn service create hello --image gcr.io/knative-samples/helloworld-go -e TARGET=Knative || fail_test
 sleep 2
 ./kn service get || fail_test
-./kn service update hello --env TARGET=kn || fail_test
+#./kn service update hello --env TARGET=kn || fail_test
 ./kn revision get || fail_test
-./kn service get || fail_test
+#./kn service get || fail_test
 ./kn service create hello --force --image gcr.io/knative-samples/helloworld-go -e TARGET=Awesome || fail_test
 ./kn service create foo --force --image gcr.io/knative-samples/helloworld-go -e TARGET=foo || fail_test
 sleep 2
