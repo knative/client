@@ -36,6 +36,20 @@ readonly IS_PROW
 readonly REPO_ROOT_DIR="$(git rev-parse --show-toplevel)"
 readonly REPO_NAME="$(basename ${REPO_ROOT_DIR})"
 
+# Useful flags about the current OS
+IS_LINUX=0
+IS_OSX=0
+IS_WINDOWS=0
+case "${OSTYPE}" in
+  darwin*) IS_OSX=1 ;;
+  linux*) IS_LINUX=1 ;;
+  msys*) IS_WINDOWS=1 ;;
+  *) echo "** Internal error in library.sh, unknown OS '${OSTYPE}'" ; exit 1 ;;
+esac
+readonly IS_LINUX
+readonly IS_OSX
+readonly IS_WINDOWS
+
 # Set ARTIFACTS to an empty temp dir if unset
 if [[ -z "${ARTIFACTS:-}" ]]; then
   export ARTIFACTS="$(mktemp -d)"
