@@ -55,10 +55,10 @@ You are able to also specify the requests and limits of both CPU and memory when
 ```bash
 # List existing services in the 'default' namespace of your cluster
 
-kn service list
+kn service get
 ```
 
-You can also list services from all namespaces or specific namespace using flags: `--all-namespaces` and `--namespace mynamespace`. See [`service list` command](cmd/kn_service_list.md) reference for additional details.
+You can also list services from all namespaces or specific namespace using flags: `--all-namespaces` and `--namespace mynamespace`. See [`service get` command](cmd/kn_service_get.md) reference for additional details.
 
 ### Revision Management
 
