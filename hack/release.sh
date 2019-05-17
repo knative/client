@@ -15,13 +15,14 @@
 # limitations under the License.
 
 source $(dirname $0)/../vendor/github.com/knative/test-infra/scripts/release.sh
+source $(dirname $0)/build-flags.sh
 
 function build_release() {
+  local ld_flags="$(build_flags)"
   local pkg="github.com/knative/client/pkg/kn/commands"
   local version="${TAG}"
   # Use vYYYYMMDD-<hash>-local for the version string, if not passed.
   [[ -z "${version}" ]] && version="v${BUILD_TAG}-local"
-  local ld_flags="-X '${pkg}.BuildDate=${BUILD_TIMESTAMP}' -X ${pkg}.Version=${version} -X ${pkg}.GitRevision=${BUILD_COMMIT_HASH}"
 
   export GO111MODULE=on
   export CGO_ENABLED=0
