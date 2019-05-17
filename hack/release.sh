@@ -17,18 +17,11 @@
 source $(dirname $0)/../vendor/github.com/knative/test-infra/scripts/release.sh
 
 function build_release() {
-  local now="$(date -u '+%Y-%m-%d %H:%M:%S')"
-  local rev="$(git rev-parse --short HEAD)"
   local pkg="github.com/knative/client/pkg/kn/commands"
   local version="${TAG}"
-  # Use vYYYYMMDD-local-<hash> for the version string, if not passed.
-  if [[ -z "${version}" ]]; then
-    # Get the commit, excluding any tags but keeping the "dirty" flag
-    local commit="$(git describe --always --dirty --match '^$')"
-    [[ -n "${commit}" ]] || abort "error getting the current commit"
-    version="v$(date +%Y%m%d)-local-${commit}"
-  fi
-  local ld_flags="-X '${pkg}.BuildDate=${now}' -X ${pkg}.Version=${version} -X ${pkg}.GitRevision=${rev}"
+  # Use vYYYYMMDD-<hash>-local for the version string, if not passed.
+  [[ -z "${version}" ]] && version="v${BUILD_TAG}-local"
+  local ld_flags="-X '${pkg}.BuildDate=${BUILD_TIMESTAMP}' -X ${pkg}.Version=${version} -X ${pkg}.GitRevision=${BUILD_COMMIT_HASH}"
 
   export GO111MODULE=on
   export CGO_ENABLED=0
