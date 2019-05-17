@@ -3,7 +3,13 @@
 Knative developer experience best practices, reference Knative CLI
 implementation, and reference Knative client libraries.
 
-If you are interested in contributing, see the Knative community [contribution guide](https://www.knative.dev/contributing/) and [DEVELOPMENT.md](./DEVELOPMENT.md).
+Goals:
+
+1. Follow closely the Knative [serving](https://github.com/knative/serving) and [eventing](https://github.com/knative/eventing) APIs
+2. Be scriptable to allow users to create different Knative workflows
+3. Expose useful Golang packages to allow integration into other programs or CLIs or plugins
+4. Use consistent verbs, nouns, and flags for various commands
+5. Be easily extended via a plugin mechanism (similar to Kubectl) to allow for experimentations and customization
 
 # Docs
 
@@ -12,7 +18,6 @@ Start with the [user's guide](docs/README.md) and from there you can can read ab
 * [User's guide](docs/README.md)
 * [Basic workflows](docs/workflows.md) (use cases)
 * [Generated documentation](docs/cmd/kn.md)
-* [Plugins](docs/plugins.md) motivation and guide
 
 **Bash auto completion:**
 
@@ -26,10 +31,10 @@ Use TAB to list available sub-commands
 
 ```sh
 $ kn <TAB>
-completion revision service
+completion revision service version
 
 $ kn revision <TAB>
-describe list
+describe get
 ```
 
 # Developers

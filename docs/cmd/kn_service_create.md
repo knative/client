@@ -19,12 +19,25 @@ kn service create NAME --image IMAGE [flags]
 
   # Create a service with multiple environment variables
   kn service create mysvc --env KEY1=VALUE1 --env KEY2=VALUE2 --image dev.local/ns/image:latest
+
+  # Create or replace a service 's1' with image dev.local/ns/image:v2 using --force flag
+  # if service 's1' doesn't exist, it's just a normal create operation
+  kn service create --force s1 --image dev.local/ns/image:v2
+
+  # Create or replace environment variables of service 's1' using --force flag
+  kn service create --force s1 --env KEY1=NEW_VALUE1 --env NEW_KEY2=NEW_VALUE2 --image dev.local/ns/image:v1
+
+  # Create or replace default resources of a service 's1' using --force flag
+  # (earlier configured resource requests and limits will be replaced with default)
+  # (earlier configured environment variables will be cleared too if any)
+  kn service create --force s1 --image dev.local/ns/image:v1
 ```
 
 ### Options
 
 ```
   -e, --env stringArray          Environment variable to set. NAME=value; you may provide this flag any number of times to set multiple environment variables.
+      --force                    Create service forcefully, replaces existing service if any.
   -h, --help                     help for create
       --image string             Image to run.
       --limits-cpu string        The limits on the requested CPU (e.g., 1000m).

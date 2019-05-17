@@ -6,7 +6,7 @@ The purpose of this section of the Kn documentation is to list common workflows 
 
 In this basic worflow we show the CRUD (create, read, update, delete) operations on a service. We use a well known [simple Hello World service](https://github.com/knative/docs/tree/master/docs/serving/samples/hello-world/helloworld-go) that reads the environment variable `TARGET` and prints it as output.
 
-* **Create a service from image in `default` namespace**
+* **Create a service in the `default` namespace from an image**
 
 ```bash
 kn service create hello --image gcr.io/knative-samples/helloworld-go --env TARGET=Knative
