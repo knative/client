@@ -54,7 +54,7 @@ func (p *ConfigurationEditFlags) AddCreateFlags(command *cobra.Command) {
 	command.MarkFlagRequired("image")
 }
 
-func (p *ConfigurationEditFlags) Apply(config *servingv1alpha1.ConfigurationSpec) error {
+func (p *ConfigurationEditFlags) Apply(config *servingv1alpha1.ConfigurationSpec, cmd *cobra.Command) error {
 	envMap := map[string]string{}
 	for _, pairStr := range p.Env {
 		pairSlice := strings.SplitN(pairStr, "=", 2)
@@ -69,9 +69,11 @@ func (p *ConfigurationEditFlags) Apply(config *servingv1alpha1.ConfigurationSpec
 	if err != nil {
 		return err
 	}
-	err = servinglib.UpdateImage(config, p.Image)
-	if err != nil {
-		return err
+	if cmd.Flags().Changed("image") {
+		err = servinglib.UpdateImage(config, p.Image)
+		if err != nil {
+			return err
+		}
 	}
 	limitsResources, err := p.computeResources(p.LimitsFlags)
 	if err != nil {

@@ -108,6 +108,51 @@ func TestServiceUpdateImage(t *testing.T) {
 	}
 }
 
+func TestServiceUpdateEnv(t *testing.T) {
+	orig := &v1alpha1.Service{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Service",
+			APIVersion: "knative.dev/v1alpha1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "foo",
+			Namespace: "default",
+		},
+		Spec: v1alpha1.ServiceSpec{
+			RunLatest: &v1alpha1.RunLatestType{},
+		},
+	}
+
+	config, err := servinglib.GetConfiguration(orig)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	servinglib.UpdateImage(config, "gcr.io/foo/bar:baz")
+
+	action, updated, _, err := fakeServiceUpdate(orig, []string{
+		"service", "update", "foo", "-e", "TARGET=Awesome"})
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+	expectedEnvVar := corev1.EnvVar{
+		Name:  "TARGET",
+		Value: "Awesome",
+	}
+
+	conf, err := servinglib.GetConfiguration(updated)
+	if err != nil {
+		t.Fatal(err)
+	} else if conf.RevisionTemplate.Spec.Container.Image != "gcr.io/foo/bar:baz" {
+		t.Fatalf("wrong image set: %v", conf.RevisionTemplate.Spec.Container.Image)
+	} else if conf.RevisionTemplate.Spec.Container.Env[0] != expectedEnvVar {
+		t.Fatalf("wrong env set: %v", conf.RevisionTemplate.Spec.Container.Env)
+	}
+}
+
 func TestServiceUpdateRequestsLimitsCPU(t *testing.T) {
 	service := createMockServiceWithResources(t, "250", "64Mi", "1000m", "1024Mi")
 
