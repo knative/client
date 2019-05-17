@@ -16,7 +16,7 @@ Put it on your system path, and make sure it's executable.
 Alternately, check out the client repository, and type:
 
 ```bash
-# go install ./cmd/kn
+go install ./cmd/kn
 ```
 
 ### Connecting to your cluster
