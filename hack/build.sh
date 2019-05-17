@@ -14,21 +14,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+source $(dirname $0)/../vendor/github.com/knative/test-infra/scripts/library.sh
+cd ${REPO_ROOT_DIR}
+
 set -o pipefail
 set -eu
-
-dir=$(dirname "${BASH_SOURCE[0]}")
-base=$(cd "$dir/.." && pwd)
-source ${base}/hack/util/flags.sh
 
 export GO111MODULE=on
 
 echo "📋 Formatting"
-go fmt ${base}/cmd/... ${base}/pkg/...
+go fmt ./cmd/... ./pkg/...
 echo "🚧 Building"
-go build -mod=vendor -ldflags "$(ld_flags ${base}/hack)" -o ${base}/kn ${base}/cmd/...
+./hack/release.sh --nopublish --skip-tests
+# TODO(adrcunha): Use IS_* once knative/test-infra#793 is available here.
+case "${OSTYPE}" in
+  darwin*) ln -s kn-darwin-amd64 kn ;;
+  linux*) ln -s kn-linux-amd64 kn ;;
+  msys*) ln -s kn-windows-amd64.exe kn ;;
+  *) abort "Unknown OS" ;;
+esac
 echo "🌞 Success"
 
-${base}/hack/generate-docs.sh
-
-${base}/kn version
+./hack/generate-docs.sh
+./kn version
