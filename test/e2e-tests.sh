@@ -38,16 +38,25 @@ function knative_setup() {
   start_latest_knative_serving
 }
 
-
 # Script entry point.
 
 initialize $@
 
 header "Running tests"
 
-# TODO: Real integration tests here instead of just verifying that we
-# can list Knative Services.
+./kn service create hello --image gcr.io/knative-samples/helloworld-go -e TARGET=Knative || fail_test
+sleep 5
 ./kn service get || fail_test
-echo "kn service get returned success"
-
+./kn service update hello --env TARGET=kn || fail_test
+sleep 3
+./kn revision get || fail_test
+./kn service get || fail_test
+./kn service create hello --force --image gcr.io/knative-samples/helloworld-go -e TARGET=Awesome || fail_test
+./kn service create foo --force --image gcr.io/knative-samples/helloworld-go -e TARGET=foo || fail_test
+sleep 5
+./kn revision get || fail_test
+./kn service get || fail_test
+./kn service describe hello || fail_test
+./kn service delete hello || fail_test
+./kn service delete foo || fail_test
 success
