@@ -81,7 +81,15 @@ func TestServiceUpdateImage(t *testing.T) {
 			Namespace: "default",
 		},
 		Spec: v1alpha1.ServiceSpec{
-			DeprecatedRunLatest: &v1alpha1.RunLatestType{},
+			DeprecatedRunLatest: &v1alpha1.RunLatestType{
+				Configuration: v1alpha1.ConfigurationSpec{
+					DeprecatedRevisionTemplate: &v1alpha1.RevisionTemplateSpec{
+						Spec: v1alpha1.RevisionSpec{
+							DeprecatedContainer: &corev1.Container{},
+						},
+					},
+				},
+			},
 		},
 	}
 
@@ -119,7 +127,15 @@ func TestServiceUpdateEnv(t *testing.T) {
 			Namespace: "default",
 		},
 		Spec: v1alpha1.ServiceSpec{
-			DeprecatedRunLatest: &v1alpha1.RunLatestType{},
+			DeprecatedRunLatest: &v1alpha1.RunLatestType{
+				Configuration: v1alpha1.ConfigurationSpec{
+					DeprecatedRevisionTemplate: &v1alpha1.RevisionTemplateSpec{
+						Spec: v1alpha1.RevisionSpec{
+							DeprecatedContainer: &corev1.Container{},
+						},
+					},
+				},
+			},
 		},
 	}
 
@@ -280,7 +296,15 @@ func createMockServiceWithResources(t *testing.T, requestCPU, requestMemory, lim
 			Namespace: "default",
 		},
 		Spec: v1alpha1.ServiceSpec{
-			DeprecatedRunLatest: &v1alpha1.RunLatestType{},
+			DeprecatedRunLatest: &v1alpha1.RunLatestType{
+				Configuration: v1alpha1.ConfigurationSpec{
+					DeprecatedRevisionTemplate: &v1alpha1.RevisionTemplateSpec{
+						Spec: v1alpha1.RevisionSpec{
+							DeprecatedContainer: &corev1.Container{},
+						},
+					},
+				},
+			},
 		},
 	}
 
