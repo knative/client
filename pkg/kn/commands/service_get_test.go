@@ -19,7 +19,7 @@ import (
 	"strings"
 	"testing"
 
-	duckv1alpha1 "github.com/knative/pkg/apis/duck/v1alpha1"
+	duckv1beta1 "github.com/knative/pkg/apis/duck/v1beta1"
 	v1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	servingclient "github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
 	"github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake"
@@ -101,13 +101,13 @@ func createMockServiceWithParams(name, domain string, generation int64) *v1alpha
 			Namespace: "default",
 		},
 		Spec: v1alpha1.ServiceSpec{
-			RunLatest: &v1alpha1.RunLatestType{},
+			DeprecatedRunLatest: &v1alpha1.RunLatestType{},
 		},
 		Status: v1alpha1.ServiceStatus{
-			Status: duckv1alpha1.Status{
+			Status: duckv1beta1.Status{
 				ObservedGeneration: generation},
 			RouteStatusFields: v1alpha1.RouteStatusFields{
-				Domain: domain,
+				DeprecatedDomain: domain,
 			},
 		},
 	}

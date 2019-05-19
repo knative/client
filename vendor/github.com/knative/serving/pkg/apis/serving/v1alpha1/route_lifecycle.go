@@ -22,11 +22,12 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
-	duckv1alpha1 "github.com/knative/pkg/apis/duck/v1alpha1"
+	"github.com/knative/pkg/apis"
+	duckv1beta1 "github.com/knative/pkg/apis/duck/v1beta1"
 	"github.com/knative/serving/pkg/apis/networking/v1alpha1"
 )
 
-var routeCondSet = duckv1alpha1.NewLivingConditionSet(
+var routeCondSet = apis.NewLivingConditionSet(
 	RouteConditionAllTrafficAssigned,
 	RouteConditionIngressReady,
 )
@@ -39,13 +40,25 @@ func (rs *RouteStatus) IsReady() bool {
 	return routeCondSet.Manage(rs).IsHappy()
 }
 
-func (rs *RouteStatus) GetCondition(t duckv1alpha1.ConditionType) *duckv1alpha1.Condition {
+func (rs *RouteStatus) GetCondition(t apis.ConditionType) *apis.Condition {
 	return routeCondSet.Manage(rs).GetCondition(t)
 }
 
 func (rs *RouteStatus) InitializeConditions() {
 	routeCondSet.Manage(rs).InitializeConditions()
 }
+
+// // MarkResourceNotConvertible adds a Warning-severity condition to the resource noting that
+// // it cannot be converted to a higher version.
+// func (rs *RouteStatus) MarkResourceNotConvertible(err *CannotConvertError) {
+// 	routeCondSet.Manage(rs).SetCondition(apis.Condition{
+// 		Type:     ConditionTypeConvertible,
+// 		Status:   corev1.ConditionFalse,
+// 		Severity: apis.ConditionSeverityWarning,
+// 		Reason:   err.Field,
+// 		Message:  err.Message,
+// 	})
+// }
 
 // MarkServiceNotOwned changes the IngressReady status to be false with the reason being that
 // there is a pre-existing placeholder service with the name we wanted to use.
@@ -92,6 +105,46 @@ func (rs *RouteStatus) MarkMissingTrafficTarget(kind, name string) {
 		"%s %q referenced in traffic not found.", kind, name)
 }
 
+func (rs *RouteStatus) MarkCertificateProvisionFailed(name string) {
+	routeCondSet.Manage(rs).SetCondition(apis.Condition{
+		Type:     RouteConditionCertificateProvisioned,
+		Status:   corev1.ConditionFalse,
+		Severity: apis.ConditionSeverityWarning,
+		Reason:   "CertificateProvisionFailed",
+		Message:  fmt.Sprintf("Certificate %s fails to be provisioned.", name),
+	})
+}
+
+func (rs *RouteStatus) MarkCertificateReady(name string) {
+	routeCondSet.Manage(rs).SetCondition(apis.Condition{
+		Type:     RouteConditionCertificateProvisioned,
+		Status:   corev1.ConditionTrue,
+		Severity: apis.ConditionSeverityWarning,
+		Reason:   "CertificateReady",
+		Message:  fmt.Sprintf("Certificate %s is successfully provisioned", name),
+	})
+}
+
+func (rs *RouteStatus) MarkCertificateNotReady(name string) {
+	routeCondSet.Manage(rs).SetCondition(apis.Condition{
+		Type:     RouteConditionCertificateProvisioned,
+		Status:   corev1.ConditionUnknown,
+		Severity: apis.ConditionSeverityWarning,
+		Reason:   "CertificateNotReady",
+		Message:  fmt.Sprintf("Certificate %s is not ready.", name),
+	})
+}
+
+func (rs *RouteStatus) MarkCertificateNotOwned(name string) {
+	routeCondSet.Manage(rs).SetCondition(apis.Condition{
+		Type:     RouteConditionCertificateProvisioned,
+		Status:   corev1.ConditionFalse,
+		Severity: apis.ConditionSeverityWarning,
+		Reason:   "CertificateNotOwned",
+		Message:  fmt.Sprintf("There is an existing certificate %s that we don't own.", name),
+	})
+}
+
 // PropagateClusterIngressStatus update RouteConditionIngressReady condition
 // in RouteStatus according to IngressStatus.
 func (rs *RouteStatus) PropagateClusterIngressStatus(cs v1alpha1.IngressStatus) {
@@ -107,4 +160,8 @@ func (rs *RouteStatus) PropagateClusterIngressStatus(cs v1alpha1.IngressStatus) 
 	case cc.Status == corev1.ConditionFalse:
 		routeCondSet.Manage(rs).MarkFalse(RouteConditionIngressReady, cc.Reason, cc.Message)
 	}
+}
+
+func (rs *RouteStatus) duck() *duckv1beta1.Status {
+	return &rs.Status
 }

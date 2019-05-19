@@ -81,7 +81,7 @@ func TestServiceUpdateImage(t *testing.T) {
 			Namespace: "default",
 		},
 		Spec: v1alpha1.ServiceSpec{
-			RunLatest: &v1alpha1.RunLatestType{},
+			DeprecatedRunLatest: &v1alpha1.RunLatestType{},
 		},
 	}
 
@@ -103,8 +103,8 @@ func TestServiceUpdateImage(t *testing.T) {
 	conf, err := servinglib.GetConfiguration(updated)
 	if err != nil {
 		t.Fatal(err)
-	} else if conf.RevisionTemplate.Spec.Container.Image != "gcr.io/foo/quux:xyzzy" {
-		t.Fatalf("wrong image set: %v", conf.RevisionTemplate.Spec.Container.Image)
+	} else if conf.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Image != "gcr.io/foo/quux:xyzzy" {
+		t.Fatalf("wrong image set: %v", conf.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Image)
 	}
 }
 
@@ -119,7 +119,7 @@ func TestServiceUpdateEnv(t *testing.T) {
 			Namespace: "default",
 		},
 		Spec: v1alpha1.ServiceSpec{
-			RunLatest: &v1alpha1.RunLatestType{},
+			DeprecatedRunLatest: &v1alpha1.RunLatestType{},
 		},
 	}
 
@@ -146,10 +146,10 @@ func TestServiceUpdateEnv(t *testing.T) {
 	conf, err := servinglib.GetConfiguration(updated)
 	if err != nil {
 		t.Fatal(err)
-	} else if conf.RevisionTemplate.Spec.Container.Image != "gcr.io/foo/bar:baz" {
-		t.Fatalf("wrong image set: %v", conf.RevisionTemplate.Spec.Container.Image)
-	} else if conf.RevisionTemplate.Spec.Container.Env[0] != expectedEnvVar {
-		t.Fatalf("wrong env set: %v", conf.RevisionTemplate.Spec.Container.Env)
+	} else if conf.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Image != "gcr.io/foo/bar:baz" {
+		t.Fatalf("wrong image set: %v", conf.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Image)
+	} else if conf.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Env[0] != expectedEnvVar {
+		t.Fatalf("wrong env set: %v", conf.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Env)
 	}
 }
 
@@ -178,15 +178,15 @@ func TestServiceUpdateRequestsLimitsCPU(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		if !reflect.DeepEqual(
-			newConfig.RevisionTemplate.Spec.Container.Resources.Requests,
+			newConfig.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources.Requests,
 			expectedRequestsVars) {
-			t.Fatalf("wrong requests vars %v", newConfig.RevisionTemplate.Spec.Container.Resources.Requests)
+			t.Fatalf("wrong requests vars %v", newConfig.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources.Requests)
 		}
 
 		if !reflect.DeepEqual(
-			newConfig.RevisionTemplate.Spec.Container.Resources.Limits,
+			newConfig.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources.Limits,
 			expectedLimitsVars) {
-			t.Fatalf("wrong limits vars %v", newConfig.RevisionTemplate.Spec.Container.Resources.Limits)
+			t.Fatalf("wrong limits vars %v", newConfig.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources.Limits)
 		}
 	}
 }
@@ -216,15 +216,15 @@ func TestServiceUpdateRequestsLimitsMemory(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		if !reflect.DeepEqual(
-			newConfig.RevisionTemplate.Spec.Container.Resources.Requests,
+			newConfig.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources.Requests,
 			expectedRequestsVars) {
-			t.Fatalf("wrong requests vars %v", newConfig.RevisionTemplate.Spec.Container.Resources.Requests)
+			t.Fatalf("wrong requests vars %v", newConfig.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources.Requests)
 		}
 
 		if !reflect.DeepEqual(
-			newConfig.RevisionTemplate.Spec.Container.Resources.Limits,
+			newConfig.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources.Limits,
 			expectedLimitsVars) {
-			t.Fatalf("wrong limits vars %v", newConfig.RevisionTemplate.Spec.Container.Resources.Limits)
+			t.Fatalf("wrong limits vars %v", newConfig.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources.Limits)
 		}
 	}
 }
@@ -256,15 +256,15 @@ func TestServiceUpdateRequestsLimitsCPU_and_Memory(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		if !reflect.DeepEqual(
-			newConfig.RevisionTemplate.Spec.Container.Resources.Requests,
+			newConfig.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources.Requests,
 			expectedRequestsVars) {
-			t.Fatalf("wrong requests vars %v", newConfig.RevisionTemplate.Spec.Container.Resources.Requests)
+			t.Fatalf("wrong requests vars %v", newConfig.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources.Requests)
 		}
 
 		if !reflect.DeepEqual(
-			newConfig.RevisionTemplate.Spec.Container.Resources.Limits,
+			newConfig.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources.Limits,
 			expectedLimitsVars) {
-			t.Fatalf("wrong limits vars %v", newConfig.RevisionTemplate.Spec.Container.Resources.Limits)
+			t.Fatalf("wrong limits vars %v", newConfig.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources.Limits)
 		}
 	}
 }
@@ -280,7 +280,7 @@ func createMockServiceWithResources(t *testing.T, requestCPU, requestMemory, lim
 			Namespace: "default",
 		},
 		Spec: v1alpha1.ServiceSpec{
-			RunLatest: &v1alpha1.RunLatestType{},
+			DeprecatedRunLatest: &v1alpha1.RunLatestType{},
 		},
 	}
 
@@ -289,7 +289,7 @@ func createMockServiceWithResources(t *testing.T, requestCPU, requestMemory, lim
 		t.Fatal(err)
 	}
 
-	config.RevisionTemplate.Spec.Container.Resources = corev1.ResourceRequirements{
+	config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources = corev1.ResourceRequirements{
 		Requests: corev1.ResourceList{
 			corev1.ResourceCPU:    resource.MustParse(requestCPU),
 			corev1.ResourceMemory: resource.MustParse(requestMemory),

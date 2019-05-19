@@ -32,7 +32,7 @@ func TestUpdateEnvVarsNew(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	found, err := EnvToMap(config.RevisionTemplate.Spec.Container.Env)
+	found, err := EnvToMap(config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Env)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -43,7 +43,7 @@ func TestUpdateEnvVarsNew(t *testing.T) {
 
 func TestUpdateEnvVarsAppend(t *testing.T) {
 	config := servingv1alpha1.ConfigurationSpec{}
-	config.RevisionTemplate.Spec.Container.Env = []corev1.EnvVar{
+	config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Env = []corev1.EnvVar{
 		corev1.EnvVar{Name: "a", Value: "foo"}}
 	env := map[string]string{
 		"b": "bar",
@@ -58,7 +58,7 @@ func TestUpdateEnvVarsAppend(t *testing.T) {
 		"b": "bar",
 	}
 
-	found, err := EnvToMap(config.RevisionTemplate.Spec.Container.Env)
+	found, err := EnvToMap(config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Env)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -69,7 +69,7 @@ func TestUpdateEnvVarsAppend(t *testing.T) {
 
 func TestUpdateEnvVarsModify(t *testing.T) {
 	config := servingv1alpha1.ConfigurationSpec{}
-	config.RevisionTemplate.Spec.Container.Env = []corev1.EnvVar{
+	config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Env = []corev1.EnvVar{
 		corev1.EnvVar{Name: "a", Value: "foo"}}
 	env := map[string]string{
 		"a": "fancy",
@@ -83,7 +83,7 @@ func TestUpdateEnvVarsModify(t *testing.T) {
 		"a": "fancy",
 	}
 
-	found, err := EnvToMap(config.RevisionTemplate.Spec.Container.Env)
+	found, err := EnvToMap(config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Env)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -94,7 +94,7 @@ func TestUpdateEnvVarsModify(t *testing.T) {
 
 func TestUpdateEnvVarsBoth(t *testing.T) {
 	config := servingv1alpha1.ConfigurationSpec{}
-	config.RevisionTemplate.Spec.Container.Env = []corev1.EnvVar{
+	config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Env = []corev1.EnvVar{
 		corev1.EnvVar{Name: "a", Value: "foo"},
 		corev1.EnvVar{Name: "c", Value: "caroline"}}
 	env := map[string]string{
@@ -112,7 +112,7 @@ func TestUpdateEnvVarsBoth(t *testing.T) {
 		"c": "caroline",
 	}
 
-	found, err := EnvToMap(config.RevisionTemplate.Spec.Container.Env)
+	found, err := EnvToMap(config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Env)
 	if err != nil {
 		t.Fatal(err)
 	}

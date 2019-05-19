@@ -66,7 +66,7 @@ func TestDescribeRevisionYaml(t *testing.T) {
 			Namespace: "default",
 		},
 		Spec: v1alpha1.RevisionSpec{
-			Container: corev1.Container{
+			DeprecatedContainer: &corev1.Container{
 				Name:  "some-container",
 				Image: "knative/test:latest",
 			},

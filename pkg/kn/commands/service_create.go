@@ -69,7 +69,7 @@ func NewServiceCreateCommand(p *KnParams) *cobra.Command {
 					Namespace: namespace,
 				},
 			}
-			service.Spec.RunLatest = &servingv1alpha1.RunLatestType{}
+			service.Spec.DeprecatedRunLatest = &servingv1alpha1.RunLatestType{}
 
 			config, err := serving_lib.GetConfiguration(&service)
 			if err != nil {
