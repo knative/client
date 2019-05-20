@@ -20,7 +20,6 @@ import (
 
 	"github.com/knative/client/pkg/kn/commands"
 	"github.com/spf13/cobra"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // NewServiceDeleteCommand represent 'service delete' command
@@ -39,19 +38,16 @@ func NewServiceDeleteCommand(p *commands.KnParams) *cobra.Command {
 			if len(args) != 1 {
 				return errors.New("requires the service name.")
 			}
-			client, err := p.ServingFactory()
-			if err != nil {
-				return err
-			}
 			namespace, err := p.GetNamespace(cmd)
 			if err != nil {
 				return err
 			}
+			client, err := p.NewClient(namespace)
+			if err != nil {
+				return err
+			}
 
-			err = client.Services(namespace).Delete(
-				args[0],
-				&v1.DeleteOptions{},
-			)
+			err = client.DeleteService(args[0])
 			if err != nil {
 				return err
 			}

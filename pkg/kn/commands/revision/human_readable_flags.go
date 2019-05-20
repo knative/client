@@ -54,7 +54,7 @@ func printRevisionList(revisionList *servingv1alpha1.RevisionList, options hprin
 
 // printRevision populates the knative revision table rows
 func printRevision(revision *servingv1alpha1.Revision, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
-	service := revision.Labels[serving.ConfigurationLabelKey]
+	service := revision.Labels[serving.ServiceLabelKey]
 	name := revision.Name
 	age := commands.TranslateTimestampSince(revision.CreationTimestamp)
 	conditions := commands.ConditionsValue(revision.Status.Conditions)

@@ -19,8 +19,6 @@ import (
 
 	"github.com/knative/client/pkg/kn/commands"
 	"github.com/spf13/cobra"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
@@ -34,16 +32,16 @@ func NewRevisionDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return errors.New("requires the revision name.")
 			}
 
-			client, err := p.ServingFactory()
-			if err != nil {
-				return err
-			}
-
 			namespace, err := p.GetNamespace(cmd)
 			if err != nil {
 				return err
 			}
-			revision, err := client.Revisions(namespace).Get(args[0], v1.GetOptions{})
+			client, err := p.NewClient(namespace)
+			if err != nil {
+				return err
+			}
+
+			revision, err := client.GetRevision(args[0])
 			if err != nil {
 				return err
 			}
@@ -52,10 +50,7 @@ func NewRevisionDescribeCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			revision.GetObjectKind().SetGroupVersionKind(schema.GroupVersionKind{
-				Group:   "knative.dev",
-				Version: "v1alpha1",
-				Kind:    "Revision"})
+
 			err = printer.PrintObj(revision, cmd.OutOrStdout())
 			if err != nil {
 				return err

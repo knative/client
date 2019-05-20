@@ -20,7 +20,7 @@ import (
 
 	"github.com/knative/client/pkg/kn/commands"
 	duckv1beta1 "github.com/knative/pkg/apis/duck/v1beta1"
-	v1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
+	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	client_testing "k8s.io/client-go/testing"
