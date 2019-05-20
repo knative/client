@@ -15,7 +15,6 @@
 package v1alpha1
 
 import (
-	"bytes"
 	"fmt"
 	"testing"
 	"time"
@@ -357,8 +356,7 @@ func TestWaitForService(t *testing.T) {
 		})
 
 	t.Run("wait on a service to become ready with success", func(t *testing.T) {
-		buf := new(bytes.Buffer)
-		err := client.WaitForService(serviceName, 60*time.Second, buf)
+		err := client.WaitForService(serviceName, 60*time.Second, wait.NoopProgressHandler{})
 		assert.NilError(t, err)
 	})
 }

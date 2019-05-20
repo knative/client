@@ -104,7 +104,10 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			if !waitFlags.Async {
-				err := client.WaitForService(name, time.Duration(waitFlags.TimeoutInSeconds)*time.Second, cmd.OutOrStdout())
+				err := client.WaitForService(
+					name,
+					time.Duration(waitFlags.TimeoutInSeconds)*time.Second,
+					newServiceWaitProgressHandler(cmd.OutOrStdout(), name))
 				if err != nil {
 					return err
 				}

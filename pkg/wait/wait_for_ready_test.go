@@ -42,7 +42,6 @@ func TestAddWaitForReady(t *testing.T) {
 		outBuffer := new(bytes.Buffer)
 
 		waitForReady := NewWaitForReady(
-			"blub",
 			func(opts v1.ListOptions) (watch.Interface, error) {
 				return fakeWatchApi, nil
 			},
@@ -50,7 +49,7 @@ func TestAddWaitForReady(t *testing.T) {
 				return apis.Conditions(obj.(*v1alpha1.Service).Status.Conditions), nil
 			})
 		fakeWatchApi.Start()
-		err := waitForReady.Wait("foobar", tc.timeout, outBuffer)
+		err := waitForReady.Wait("foobar", tc.timeout, NewSimpleProgressHandler(outBuffer, "foobar", ".", "ERROR", "OK"))
 		close(fakeWatchApi.eventChan)
 
 		if !tc.errorExpected && err != nil {
@@ -81,7 +80,7 @@ func TestAddWaitForReady(t *testing.T) {
 // Test cases which consists of a series of events to send and the expected behaviour.
 func prepareTestCases(name string) []waitForReadyTestCase {
 	return []waitForReadyTestCase{
-		{peNormal(name), time.Second, false, []string{"OK", "foobar", "blub"}},
+		{peNormal(name), time.Second, false, []string{"OK", "foobar"}},
 		{peError(name), time.Second, true, []string{"FakeError"}},
 		{peTimeout(name), time.Second, true, []string{"timeout"}},
 		{peWrongGeneration(name), time.Second, true, []string{"timeout"}},

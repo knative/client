@@ -26,6 +26,7 @@ import (
 	client_testing "k8s.io/client-go/testing"
 
 	"github.com/knative/client/pkg/kn/commands"
+
 	"github.com/knative/client/pkg/util"
 )
 

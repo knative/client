@@ -6,8 +6,9 @@ Knative client
 
 Manage your Knative building blocks:
 
-* [Serving](https://github.com/knative/serving/tree/master): Manage your services and release new software to them.
-* [Eventing](https://github.com/knative/eventing/tree/master): Manage event subscriptions and channels. Connect event sources.
+Serving: Manage your services and release new software to them.
+Build: Create builds and keep track of their results.
+Eventing: Manage event subscriptions and channels. Connect up event sources.
 
 ### Options
 

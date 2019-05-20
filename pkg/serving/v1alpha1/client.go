@@ -16,7 +16,6 @@ package v1alpha1
 
 import (
 	"fmt"
-	"io"
 	"time"
 
 	"github.com/knative/pkg/apis"
@@ -52,8 +51,9 @@ type KnClient interface {
 	// Delete a service by name
 	DeleteService(name string) error
 
-	// Wait for a service to become ready, but not longer than provided timeout
-	WaitForService(name string, timeout time.Duration, out io.Writer) error
+	// Wait for a service to become ready, but not longer than provided timeout.
+	// Optionally a single progress handler can be given to print out progress
+	WaitForService(name string, timeout time.Duration, progressHandler ...wait.ProgressHandler) error
 
 	// Get a revision by name
 	GetRevision(name string) (*v1alpha1.Revision, error)
@@ -188,9 +188,9 @@ func (cl *knClient) DeleteService(serviceName string) error {
 }
 
 // Wait for a service to become ready, but not longer than provided timeout
-func (cl *knClient) WaitForService(name string, timeout time.Duration, out io.Writer) error {
+func (cl *knClient) WaitForService(name string, timeout time.Duration, progressHandlers ...wait.ProgressHandler) error {
 	waitForReady := newServiceWaitForReady(cl.client.Services(cl.namespace).Watch)
-	return waitForReady.Wait(name, timeout, out)
+	return waitForReady.Wait(name, timeout, progressHandlers...)
 }
 
 // Get a revision by name
@@ -281,7 +281,6 @@ func updateServingGvk(obj runtime.Object) error {
 // Can be used by `service_create` and `service_update`, hence this extra file
 func newServiceWaitForReady(watch wait.WatchFunc) wait.WaitForReady {
 	return wait.NewWaitForReady(
-		"service",
 		watch,
 		serviceConditionExtractor)
 }

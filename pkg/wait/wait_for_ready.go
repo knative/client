@@ -31,7 +31,6 @@ import (
 type waitForReadyConfig struct {
 	watchFunc           WatchFunc
 	conditionsExtractor ConditionsExtractor
-	kind                string
 }
 
 // Interface used for waiting of a resource of a given name to reach a definitive
@@ -39,8 +38,8 @@ type waitForReadyConfig struct {
 type WaitForReady interface {
 
 	// Wait on resource the resource with this name until a given timeout
-	// and write status out on writer
-	Wait(name string, timeout time.Duration, out io.Writer) error
+	// Use an optional progresshandler to indicate progress (only the first progress handler is used)
+	Wait(name string, timeout time.Duration, progressHandlers ...ProgressHandler) error
 }
 
 // Create watch which is used when waiting for Ready condition
@@ -50,9 +49,8 @@ type WatchFunc func(opts v1.ListOptions) (watch.Interface, error)
 type ConditionsExtractor func(obj runtime.Object) (apis.Conditions, error)
 
 // Constructor with resource type specific configuration
-func NewWaitForReady(kind string, watchFunc WatchFunc, extractor ConditionsExtractor) WaitForReady {
+func NewWaitForReady(watchFunc WatchFunc, extractor ConditionsExtractor) WaitForReady {
 	return &waitForReadyConfig{
-		kind:                kind,
 		watchFunc:           watchFunc,
 		conditionsExtractor: extractor,
 	}
@@ -62,26 +60,37 @@ func NewWaitForReady(kind string, watchFunc WatchFunc, extractor ConditionsExtra
 // `watchFunc` creates the actual watch, `kind` is the type what your are watching for
 // (e.g. "service"), `timeout` is a timeout after which the watch should be cancelled if no
 // target state has been entered yet and `out` is used for printing out status messages
-func (w *waitForReadyConfig) Wait(name string, timeout time.Duration, out io.Writer) error {
+func (w *waitForReadyConfig) Wait(name string, timeout time.Duration, progressHandlers ...ProgressHandler) error {
 	opts := v1.ListOptions{
 		FieldSelector: fields.OneTermEqualSelector("metadata.name", name).String(),
 	}
 	addWatchTimeout(&opts, timeout)
 
-	fmt.Fprintf(out, "Waiting for %s '%s' to become ready ... ", w.kind, name)
-	flush(out)
+	var ph ProgressHandler
+	switch len(progressHandlers) {
+	case 0:
+		ph = NoopProgressHandler{}
+	case 1:
+		ph = progressHandlers[0]
+	default:
+		return fmt.Errorf("only one progresshandler allowed, but found %d (internal error)", len(progressHandlers))
+	}
+
+	ph.Start()
 
 	floatingTimeout := timeout
 	for {
 		start := time.Now()
 		retry, timeoutReached, err := w.waitForReadyCondition(opts, name, floatingTimeout)
 		if err != nil {
-			fmt.Fprintln(out)
+			ph.Fail(err)
 			return err
 		}
 		floatingTimeout = floatingTimeout - time.Since(start)
 		if timeoutReached || floatingTimeout < 0 {
-			return fmt.Errorf("timeout: %s '%s' not ready after %d seconds", w.kind, name, int(timeout/time.Second))
+			err := fmt.Errorf("timeout: '%s' not ready after %d seconds", name, int(timeout/time.Second))
+			ph.Fail(err)
+			return err
 		}
 
 		if retry {
@@ -89,7 +98,7 @@ func (w *waitForReadyConfig) Wait(name string, timeout time.Duration, out io.Wri
 			continue
 		}
 
-		fmt.Fprintln(out, "OK")
+		ph.Success()
 		return nil
 	}
 }
