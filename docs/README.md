@@ -26,6 +26,7 @@ You'll need a `kubectl`-style config file to connect to your cluster.
    (or gives you an appropriate context in an existing config file)
  * Instructions for Google [GKE](https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-access-for-kubectl)
  * Instructions for Amazon [EKS](https://docs.aws.amazon.com/eks/latest/userguide/create-kubeconfig.html)
+ * Instructions for IBM [IKS](https://cloud.ibm.com/docs/containers?topic=containers-getting-started)
  * Or contact your cluster administrator.
 
 `kn` will pick up your `kubectl` config file in the default location of
