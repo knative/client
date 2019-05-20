@@ -57,11 +57,14 @@ const (
 	// metadata generation of the Configuration that created this revision
 	ConfigurationGenerationLabelKey = GroupName + "/configurationGeneration"
 
-	// DeprecatedConfigurationMetadataGenerationLabelKey is the label key attached to a Revision indicating the
-	// metadata generation of the Configuration that created this revision
-	DeprecatedConfigurationMetadataGenerationLabelKey = GroupName + "/configurationMetadataGeneration"
-
 	// BuildHashLabelKey is the label key attached to a Build indicating the
 	// hash of the spec from which they were created.
 	BuildHashLabelKey = GroupName + "/buildHash"
+
+	// CreatorAnnotation is the annotation key to describe the user that
+	// created the resource.
+	CreatorAnnotation = GroupName + "/creator"
+	// UpdaterAnnotation is the annotation key to describe the user that
+	// last updated the resource.
+	UpdaterAnnotation = GroupName + "/lastModifier"
 )

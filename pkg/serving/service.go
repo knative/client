@@ -21,10 +21,10 @@ import (
 )
 
 func GetConfiguration(service *servingv1alpha1.Service) (*servingv1alpha1.ConfigurationSpec, error) {
-	if service.Spec.RunLatest != nil {
-		return &service.Spec.RunLatest.Configuration, nil
-	} else if service.Spec.Release != nil {
-		return &service.Spec.Release.Configuration, nil
+	if service.Spec.DeprecatedRunLatest != nil {
+		return &service.Spec.DeprecatedRunLatest.Configuration, nil
+	} else if service.Spec.DeprecatedRelease != nil {
+		return &service.Spec.DeprecatedRelease.Configuration, nil
 	} else if service.Spec.DeprecatedPinned != nil {
 		return &service.Spec.DeprecatedPinned.Configuration, nil
 	} else {

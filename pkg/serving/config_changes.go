@@ -26,8 +26,8 @@ import (
 // new env vars and change the values of existing ones.
 func UpdateEnvVars(config *servingv1alpha1.ConfigurationSpec, vars map[string]string) error {
 	set := make(map[string]bool)
-	for i, _ := range config.RevisionTemplate.Spec.Container.Env {
-		envVar := &config.RevisionTemplate.Spec.Container.Env[i]
+	for i, _ := range config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Env {
+		envVar := &config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Env[i]
 		value, present := vars[envVar.Name]
 		if present {
 			envVar.Value = value
@@ -36,8 +36,8 @@ func UpdateEnvVars(config *servingv1alpha1.ConfigurationSpec, vars map[string]st
 	}
 	for name, value := range vars {
 		if !set[name] {
-			config.RevisionTemplate.Spec.Container.Env = append(
-				config.RevisionTemplate.Spec.Container.Env,
+			config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Env = append(
+				config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Env,
 				corev1.EnvVar{
 					Name:  name,
 					Value: value,
@@ -63,25 +63,25 @@ func EnvToMap(vars []corev1.EnvVar) (map[string]string, error) {
 }
 
 func UpdateImage(config *servingv1alpha1.ConfigurationSpec, image string) error {
-	config.RevisionTemplate.Spec.Container.Image = image
+	config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Image = image
 	return nil
 }
 
 func UpdateResources(config *servingv1alpha1.ConfigurationSpec, requestsResourceList corev1.ResourceList, limitsResourceList corev1.ResourceList) error {
-	if config.RevisionTemplate.Spec.Container.Resources.Requests == nil {
-		config.RevisionTemplate.Spec.Container.Resources.Requests = corev1.ResourceList{}
+	if config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources.Requests == nil {
+		config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources.Requests = corev1.ResourceList{}
 	}
 
 	for k, v := range requestsResourceList {
-		config.RevisionTemplate.Spec.Container.Resources.Requests[k] = v
+		config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources.Requests[k] = v
 	}
 
-	if config.RevisionTemplate.Spec.Container.Resources.Limits == nil {
-		config.RevisionTemplate.Spec.Container.Resources.Limits = corev1.ResourceList{}
+	if config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources.Limits == nil {
+		config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources.Limits = corev1.ResourceList{}
 	}
 
 	for k, v := range limitsResourceList {
-		config.RevisionTemplate.Spec.Container.Resources.Limits[k] = v
+		config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources.Limits[k] = v
 	}
 
 	return nil

@@ -17,7 +17,8 @@ package commands
 import (
 	"fmt"
 	hprinters "github.com/knative/client/pkg/printers"
-	duckv1alpha1 "github.com/knative/pkg/apis/duck/v1alpha1"
+	"github.com/knative/pkg/apis"
+	duckv1beta1 "github.com/knative/pkg/apis/duck/v1beta1"
 	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -95,7 +96,7 @@ func ServiceGetHandlers(h hprinters.PrintHandler) {
 }
 
 // conditionsValue returns the True conditions count among total conditions
-func conditionsValue(conditions duckv1alpha1.Conditions) string {
+func conditionsValue(conditions duckv1beta1.Conditions) string {
 	var ok int
 	for _, condition := range conditions {
 		if condition.Status == "True" {
@@ -106,18 +107,18 @@ func conditionsValue(conditions duckv1alpha1.Conditions) string {
 }
 
 // readyCondition returns status of resource's Ready type condition
-func readyCondition(conditions duckv1alpha1.Conditions) string {
+func readyCondition(conditions duckv1beta1.Conditions) string {
 	for _, condition := range conditions {
-		if condition.Type == duckv1alpha1.ConditionReady {
+		if condition.Type == apis.ConditionReady {
 			return string(condition.Status)
 		}
 	}
 	return "<unknown>"
 }
 
-func nonReadyConditionReason(conditions duckv1alpha1.Conditions) string {
+func nonReadyConditionReason(conditions duckv1beta1.Conditions) string {
 	for _, condition := range conditions {
-		if condition.Type == duckv1alpha1.ConditionReady {
+		if condition.Type == apis.ConditionReady {
 			if string(condition.Status) == "True" {
 				return ""
 			}
@@ -155,7 +156,7 @@ func printKServiceList(kServiceList *servingv1alpha1.ServiceList, options hprint
 // printKService populates the knative service table rows
 func printKService(kService *servingv1alpha1.Service, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	name := kService.Name
-	domain := kService.Status.Domain
+	domain := kService.Status.RouteStatusFields.DeprecatedDomain
 	//lastCreatedRevision := kService.Status.LatestCreatedRevisionName
 	//lastReadyRevision := kService.Status.LatestReadyRevisionName
 	generation := kService.Status.ObservedGeneration

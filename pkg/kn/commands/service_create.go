@@ -21,6 +21,7 @@ import (
 	serving_lib "github.com/knative/client/pkg/serving"
 	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"github.com/spf13/cobra"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -69,7 +70,16 @@ func NewServiceCreateCommand(p *KnParams) *cobra.Command {
 					Namespace: namespace,
 				},
 			}
-			service.Spec.RunLatest = &servingv1alpha1.RunLatestType{}
+
+			service.Spec.DeprecatedRunLatest = &servingv1alpha1.RunLatestType{
+				Configuration: servingv1alpha1.ConfigurationSpec{
+					DeprecatedRevisionTemplate: &servingv1alpha1.RevisionTemplateSpec{
+						Spec: servingv1alpha1.RevisionSpec{
+							DeprecatedContainer: &corev1.Container{},
+						},
+					},
+				},
+			}
 
 			config, err := serving_lib.GetConfiguration(&service)
 			if err != nil {

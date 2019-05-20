@@ -23,7 +23,7 @@ import (
 )
 
 func TestUpdateEnvVarsNew(t *testing.T) {
-	config := servingv1alpha1.ConfigurationSpec{}
+	config := getEmptyConfigurationSpec()
 	env := map[string]string{
 		"a": "foo",
 		"b": "bar",
@@ -32,7 +32,7 @@ func TestUpdateEnvVarsNew(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	found, err := EnvToMap(config.RevisionTemplate.Spec.Container.Env)
+	found, err := EnvToMap(config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Env)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -42,8 +42,8 @@ func TestUpdateEnvVarsNew(t *testing.T) {
 }
 
 func TestUpdateEnvVarsAppend(t *testing.T) {
-	config := servingv1alpha1.ConfigurationSpec{}
-	config.RevisionTemplate.Spec.Container.Env = []corev1.EnvVar{
+	config := getEmptyConfigurationSpec()
+	config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Env = []corev1.EnvVar{
 		corev1.EnvVar{Name: "a", Value: "foo"}}
 	env := map[string]string{
 		"b": "bar",
@@ -58,7 +58,7 @@ func TestUpdateEnvVarsAppend(t *testing.T) {
 		"b": "bar",
 	}
 
-	found, err := EnvToMap(config.RevisionTemplate.Spec.Container.Env)
+	found, err := EnvToMap(config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Env)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -68,8 +68,8 @@ func TestUpdateEnvVarsAppend(t *testing.T) {
 }
 
 func TestUpdateEnvVarsModify(t *testing.T) {
-	config := servingv1alpha1.ConfigurationSpec{}
-	config.RevisionTemplate.Spec.Container.Env = []corev1.EnvVar{
+	config := getEmptyConfigurationSpec()
+	config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Env = []corev1.EnvVar{
 		corev1.EnvVar{Name: "a", Value: "foo"}}
 	env := map[string]string{
 		"a": "fancy",
@@ -83,7 +83,7 @@ func TestUpdateEnvVarsModify(t *testing.T) {
 		"a": "fancy",
 	}
 
-	found, err := EnvToMap(config.RevisionTemplate.Spec.Container.Env)
+	found, err := EnvToMap(config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Env)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -93,8 +93,8 @@ func TestUpdateEnvVarsModify(t *testing.T) {
 }
 
 func TestUpdateEnvVarsBoth(t *testing.T) {
-	config := servingv1alpha1.ConfigurationSpec{}
-	config.RevisionTemplate.Spec.Container.Env = []corev1.EnvVar{
+	config := getEmptyConfigurationSpec()
+	config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Env = []corev1.EnvVar{
 		corev1.EnvVar{Name: "a", Value: "foo"},
 		corev1.EnvVar{Name: "c", Value: "caroline"}}
 	env := map[string]string{
@@ -112,11 +112,21 @@ func TestUpdateEnvVarsBoth(t *testing.T) {
 		"c": "caroline",
 	}
 
-	found, err := EnvToMap(config.RevisionTemplate.Spec.Container.Env)
+	found, err := EnvToMap(config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Env)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if !reflect.DeepEqual(expected, found) {
 		t.Fatalf("Env did not match expected %v found %v", env, found)
+	}
+}
+
+func getEmptyConfigurationSpec() servingv1alpha1.ConfigurationSpec {
+	return servingv1alpha1.ConfigurationSpec{
+		DeprecatedRevisionTemplate: &servingv1alpha1.RevisionTemplateSpec{
+			Spec: servingv1alpha1.RevisionSpec{
+				DeprecatedContainer: &corev1.Container{},
+			},
+		},
 	}
 }
