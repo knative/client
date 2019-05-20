@@ -4,7 +4,7 @@ cloud.google.com/go/compute/metadata
 github.com/cpuguy83/go-md2man/md2man
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
-# github.com/evanphx/json-patch v4.2.0+incompatible
+# github.com/evanphx/json-patch v4.5.0+incompatible
 github.com/evanphx/json-patch
 # github.com/fsnotify/fsnotify v1.4.7
 github.com/fsnotify/fsnotify
@@ -29,15 +29,15 @@ github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/flags
 github.com/google/go-cmp/cmp/internal/function
 github.com/google/go-cmp/cmp/internal/value
-# github.com/google/go-containerregistry v0.0.0-20190503220729-1c6c7f61e8a5
+# github.com/google/go-containerregistry v0.0.0-20190623150931-ca8b66cb1b79
 github.com/google/go-containerregistry/pkg/name
 # github.com/google/gofuzz v1.0.0
 github.com/google/gofuzz
-# github.com/googleapis/gnostic v0.2.0
+# github.com/googleapis/gnostic v0.3.0
 github.com/googleapis/gnostic/OpenAPIv2
 github.com/googleapis/gnostic/compiler
 github.com/googleapis/gnostic/extensions
-# github.com/gregjones/httpcache v0.0.0-20190212212710-3befbb6ad0cc
+# github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
 github.com/gregjones/httpcache
 github.com/gregjones/httpcache/diskcache
 # github.com/hashicorp/golang-lru v0.5.1
@@ -60,10 +60,10 @@ github.com/imdario/mergo
 github.com/inconshreveable/mousetrap
 # github.com/json-iterator/go v1.1.6
 github.com/json-iterator/go
-# github.com/knative/build v0.6.0
+# github.com/knative/build v0.7.0
 github.com/knative/build/pkg/apis/build/v1alpha1
 github.com/knative/build/pkg/apis/build
-# github.com/knative/pkg v0.0.0-20190518173526-34792a92cec2
+# github.com/knative/pkg v0.0.0-20190617142447-13b093adc272
 github.com/knative/pkg/apis
 github.com/knative/pkg/apis/duck/v1beta1
 github.com/knative/pkg/kmp
@@ -122,14 +122,14 @@ github.com/spf13/pflag
 github.com/spf13/viper
 # golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
 golang.org/x/crypto/ssh/terminal
-# golang.org/x/net v0.0.0-20190514140710-3ec191127204
+# golang.org/x/net v0.0.0-20190628185345-da137c7871d7
 golang.org/x/net/http2
 golang.org/x/net/http/httpguts
 golang.org/x/net/http2/hpack
 golang.org/x/net/idna
 golang.org/x/net/context/ctxhttp
 golang.org/x/net/context
-# golang.org/x/oauth2 v0.0.0-20190517181255-950ef44c6e07
+# golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 golang.org/x/oauth2
 golang.org/x/oauth2/google
 golang.org/x/oauth2/internal
@@ -208,7 +208,6 @@ k8s.io/api/storage/v1beta1
 k8s.io/apimachinery/pkg/apis/meta/v1
 k8s.io/apimachinery/pkg/util/duration
 k8s.io/apimachinery/pkg/apis/meta/v1beta1
-k8s.io/apimachinery/pkg/labels
 k8s.io/apimachinery/pkg/runtime
 k8s.io/apimachinery/pkg/runtime/schema
 k8s.io/apimachinery/pkg/fields
@@ -216,6 +215,9 @@ k8s.io/apimachinery/pkg/api/errors
 k8s.io/apimachinery/pkg/api/resource
 k8s.io/apimachinery/pkg/api/meta
 k8s.io/apimachinery/pkg/util/runtime
+k8s.io/apimachinery/pkg/runtime/schema
+k8s.io/apimachinery/pkg/labels
+k8s.io/apimachinery/pkg/fields
 k8s.io/apimachinery/pkg/watch
 k8s.io/apimachinery/pkg/api/equality
 k8s.io/apimachinery/pkg/api/validation
@@ -393,7 +395,7 @@ k8s.io/client-go/listers/settings/v1alpha1
 k8s.io/client-go/listers/storage/v1
 k8s.io/client-go/listers/storage/v1alpha1
 k8s.io/client-go/listers/storage/v1beta1
-# k8s.io/kube-openapi v0.0.0-20190510232812-a01b7d5d6c22
+# k8s.io/kube-openapi v0.0.0-20190603182131-db7b694dc208
 k8s.io/kube-openapi/pkg/util/proto
 # sigs.k8s.io/yaml v1.1.0
 sigs.k8s.io/yaml

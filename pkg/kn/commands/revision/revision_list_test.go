@@ -18,14 +18,15 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/knative/client/pkg/kn/commands"
-	"github.com/knative/client/pkg/util"
-	serving "github.com/knative/serving/pkg/apis/serving"
-	v1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
+	"github.com/knative/serving/pkg/apis/serving"
+	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"gotest.tools/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	client_testing "k8s.io/client-go/testing"
+
+	"github.com/knative/client/pkg/kn/commands"
+	"github.com/knative/client/pkg/util"
 )
 
 func fakeRevisionList(args []string, response *v1alpha1.RevisionList) (action client_testing.Action, output []string, err error) {
@@ -55,7 +56,7 @@ func TestRevisionListEmpty(t *testing.T) {
 		t.Errorf("No action")
 	} else if !action.Matches("list", "revisions") {
 		t.Errorf("Bad action %v", action)
-	} else if output[0] != "No resources found." {
+	} else if output[0] != "No revisions found." {
 		t.Errorf("Bad output %s", output[0])
 	}
 }
@@ -115,11 +116,11 @@ func TestRevisionListForService(t *testing.T) {
 	}
 	if action == nil {
 		t.Errorf("No action")
-	} else if !action.Matches("list", "revisions") {
-		t.Errorf("Bad action %v", action)
-	} else if !strings.Contains(output[0], "No resources found.") {
-		t.Errorf("Bad output %s", output[0])
 	}
+	if !action.Matches("list", "revisions") {
+		t.Errorf("Bad action %v", action)
+	}
+	testContains(t, output[0], []string{"No", "revisions", "svc3"}, "revision")
 }
 
 func createMockRevisionWithParams(name, svcName string) *v1alpha1.Revision {

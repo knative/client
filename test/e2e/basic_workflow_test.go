@@ -118,7 +118,7 @@ func testServiceDescribe(t *testing.T, k kn, serviceName string) {
 		t.Fatalf(fmt.Sprintf("Error executing 'kn service describe' command. Error: %s", err.Error()))
 	}
 
-	expectedOutputHeader := `apiVersion: knative.dev/v1alpha1
+	expectedOutputHeader := `apiVersion: serving.knative.dev/v1alpha1
 kind: Service
 metadata:`
 	if !strings.Contains(out, expectedOutputHeader) {

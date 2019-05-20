@@ -25,12 +25,15 @@ import (
 	"github.com/knative/client/pkg/kn/commands/revision"
 	"github.com/knative/client/pkg/kn/commands/route"
 	"github.com/knative/client/pkg/kn/commands/service"
-	homedir "github.com/mitchellh/go-homedir"
+	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
 )
+
+var cfgFile string
+var kubeCfgFile string
 
 // NewKnCommand creates new rootCmd represents the base command when called without any subcommands
 func NewKnCommand(params ...commands.KnParams) *cobra.Command {

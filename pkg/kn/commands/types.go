@@ -17,7 +17,9 @@ package commands
 import (
 	"io"
 
-	serving "github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
+	serving_kn_v1alpha1 "github.com/knative/client/pkg/serving/v1alpha1"
+
+	serving_v1alpha1_client "github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
@@ -26,51 +28,45 @@ var CfgFile string
 
 // Parameters for creating commands. Useful for inserting mocks for testing.
 type KnParams struct {
-	Output           io.Writer
-	ServingFactory   func() (serving.ServingV1alpha1Interface, error)
-	NamespaceFactory func() (string, error)
-
+	Output       io.Writer
 	KubeCfgPath  string
 	ClientConfig clientcmd.ClientConfig
+	NewClient    func(namespace string) (serving_kn_v1alpha1.KnClient, error)
+
+	// Set this if you want to nail down the namespace
+	fixedCurrentNamespace string
 }
 
-func (c *KnParams) Initialize() {
-	if c.ServingFactory == nil {
-		c.ServingFactory = c.GetConfig
-	}
-	if c.NamespaceFactory == nil {
-		c.NamespaceFactory = c.CurrentNamespace
+func (params *KnParams) Initialize() {
+	if params.NewClient == nil {
+		params.NewClient = params.newClient
 	}
 }
 
-func (c *KnParams) CurrentNamespace() (string, error) {
-	if c.ClientConfig == nil {
-		c.ClientConfig = c.GetClientConfig()
+func (params *KnParams) newClient(namespace string) (serving_kn_v1alpha1.KnClient, error) {
+	client, err := params.GetConfig()
+	if err != nil {
+		return nil, err
 	}
-	name, _, err := c.ClientConfig.Namespace()
-	return name, err
+	return serving_kn_v1alpha1.NewKnServingClient(client, namespace), nil
 }
 
-func (c *KnParams) GetConfig() (serving.ServingV1alpha1Interface, error) {
-	if c.ClientConfig == nil {
-		c.ClientConfig = c.GetClientConfig()
+func (params *KnParams) GetConfig() (serving_v1alpha1_client.ServingV1alpha1Interface, error) {
+	if params.ClientConfig == nil {
+		params.ClientConfig = params.GetClientConfig()
 	}
 	var err error
-	config, err := c.ClientConfig.ClientConfig()
+	config, err := params.ClientConfig.ClientConfig()
 	if err != nil {
 		return nil, err
 	}
-	client, err := serving.NewForConfig(config)
-	if err != nil {
-		return nil, err
-	}
-	return client, nil
+	return serving_v1alpha1_client.NewForConfig(config)
 }
 
-func (c *KnParams) GetClientConfig() clientcmd.ClientConfig {
+func (params *KnParams) GetClientConfig() clientcmd.ClientConfig {
 	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
-	if len(c.KubeCfgPath) > 0 {
-		loadingRules.ExplicitPath = c.KubeCfgPath
+	if len(params.KubeCfgPath) > 0 {
+		loadingRules.ExplicitPath = params.KubeCfgPath
 	}
 	return clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, &clientcmd.ConfigOverrides{})
 }
