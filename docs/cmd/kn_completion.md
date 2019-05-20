@@ -1,10 +1,10 @@
 ## kn completion
 
-Output bash completion code
+Output shell completion code (default Bash)
 
 ### Synopsis
 
-Output bash completion code
+Output shell completion code (default Bash)
 
 ```
 kn completion [flags]
@@ -14,6 +14,7 @@ kn completion [flags]
 
 ```
   -h, --help   help for completion
+      --zsh    Generates completion code for Zsh shell.
 ```
 
 ### Options inherited from parent commands

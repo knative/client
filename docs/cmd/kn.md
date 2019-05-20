@@ -20,7 +20,7 @@ Eventing: Manage event subscriptions and channels. Connect up event sources.
 
 ### SEE ALSO
 
-* [kn completion](kn_completion.md)	 - Output bash completion code
+* [kn completion](kn_completion.md)	 - Output shell completion code (default Bash)
 * [kn revision](kn_revision.md)	 - Revision command group
 * [kn service](kn_service.md)	 - Service command group
 * [kn version](kn_version.md)	 - Prints the client version

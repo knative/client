@@ -6,15 +6,25 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewCompletionCommand(p *KnParams) *cobra.Command {
-	completionCmd := &cobra.Command{
-		Use:   "completion",
-		Short: "Output bash completion code",
-		Run:   completionAction,
-	}
-	return completionCmd
+type CompletionFlags struct {
+	Zsh bool
 }
 
-func completionAction(cmd *cobra.Command, args []string) {
-	cmd.Root().GenBashCompletion(os.Stdout)
+func NewCompletionCommand(p *KnParams) *cobra.Command {
+	var completionFlags CompletionFlags
+
+	completionCmd := &cobra.Command{
+		Use:   "completion",
+		Short: "Output shell completion code (default Bash)",
+		Run: func(cmd *cobra.Command, args []string) {
+			if completionFlags.Zsh {
+				cmd.Root().GenZshCompletion(os.Stdout)
+			} else {
+				cmd.Root().GenBashCompletion(os.Stdout)
+			}
+		},
+	}
+
+	completionCmd.Flags().BoolVar(&completionFlags.Zsh, "zsh", false, "Generates completion code for Zsh shell.")
+	return completionCmd
 }
