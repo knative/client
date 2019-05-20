@@ -17,17 +17,45 @@
 set -o pipefail
 set -eu
 
-dir=$(dirname "${BASH_SOURCE[0]}")
-base=$(cd "$dir/.." && pwd)
-source ${base}/hack/build-flags.sh
+# Run build
+run() {
+  export GO111MODULE=on
 
-export GO111MODULE=on
+  go_fmt
+  go_build
+  generate_docs
 
-echo "📋 Formatting"
-go fmt ${base}/cmd/... ${base}/pkg/...
-echo "🚧 Building"
-go build -mod=vendor -ldflags "$(build_flags)" -o ${base}/kn ${base}/cmd/...
-echo "🌞 Success"
-${base}/hack/generate-docs.sh
+  echo "🌞 Success"
 
-${base}/kn version
+  $(basedir)/kn version
+}
+
+go_fmt() {
+  local base=$(basedir)
+  echo "📋 Formatting"
+  go fmt "${base}/cmd/..." "${base}/pkg/..."
+}
+
+go_build() {
+  local base=$(basedir)
+  echo "🚧 Building"
+  source "${base}/hack/build-flags.sh"
+  go build -mod=vendor -ldflags "$(build_flags ${base})" -o ${base}/kn ${base}/cmd/...
+}
+
+generate_docs() {
+  local base=$(basedir)
+  echo "📑 Generating docs"
+  rm -rf "${base}/docs/cmd"
+  mkdir -p "${base}/docs/cmd"
+
+  go run "${base}/hack/generate-docs.go" "${base}"
+}
+
+basedir() {
+  dir=$(dirname "${BASH_SOURCE[0]}")
+  base=$(cd "$dir/.." && pwd)
+  echo ${base}
+}
+
+run $*
