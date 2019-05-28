@@ -1,5 +1,6 @@
 function build_flags() {
- local now="$(date -u '+%Y-%m-%d %H:%M:%S')"
+  local base="${1}"
+  local now="$(date -u '+%Y-%m-%d %H:%M:%S')"
   local rev="$(git rev-parse --short HEAD)"
   local pkg="github.com/knative/client/pkg/kn/commands"
   local version="${TAG:-}"
@@ -10,5 +11,8 @@ function build_flags() {
     [[ -n "${commit}" ]] || abort "error getting the current commit"
     version="v$(date +%Y%m%d)-local-${commit}"
   fi
-  echo "-X '${pkg}.BuildDate=${now}' -X ${pkg}.Version=${version} -X ${pkg}.GitRevision=${rev}"
+
+  local serving_version=$(grep 'knative/serving' ${base}/go.mod | sed -e 's/.*serving \(.*\)/\1/')
+
+  echo "-X '${pkg}.BuildDate=${now}' -X ${pkg}.Version=${version} -X ${pkg}.GitRevision=${rev} -X ${pkg}.ServingVersion=${serving_version}"
 }

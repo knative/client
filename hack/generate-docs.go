@@ -18,14 +18,18 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/spf13/cobra/doc"
 	"github.com/knative/client/pkg/kn/commands"
+	"github.com/spf13/cobra/doc"
 )
 
 func main() {
 	rootCmd := commands.NewKnCommand()
 
-	err := doc.GenMarkdownTree(rootCmd, "./docs/cmd/")
+	dir := "."
+	if len(os.Args) > 1 {
+		dir = os.Args[1]
+	}
+	err := doc.GenMarkdownTree(rootCmd, dir + "/docs/cmd/")
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
