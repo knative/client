@@ -12,49 +12,49 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package commands
+package revision
 
 import (
-	"errors"
+	"fmt"
 
+	"github.com/knative/client/pkg/kn/commands"
 	"github.com/spf13/cobra"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
-func NewRevisionDescribeCommand(p *KnParams) *cobra.Command {
-	revisionDescribePrintFlags := genericclioptions.NewPrintFlags("").WithDefaultOutput("yaml")
-	revisionDescribeCmd := &cobra.Command{
-		Use:   "describe NAME",
-		Short: "Describe revisions.",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			if len(args) < 1 {
-				return errors.New("requires the revision name.")
-			}
+// NewRevisionGetCommand represents 'kn revision get' command
+func NewRevisionGetCommand(p *commands.KnParams) *cobra.Command {
+	revisionGetFlags := NewRevisionGetFlags()
 
+	revisionGetCommand := &cobra.Command{
+		Use:   "get",
+		Short: "Get available revisions.",
+		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := p.ServingFactory()
 			if err != nil {
 				return err
 			}
-
-			namespace, err := GetNamespace(cmd)
+			namespace, err := commands.GetNamespace(cmd)
 			if err != nil {
 				return err
 			}
-			revision, err := client.Revisions(namespace).Get(args[0], v1.GetOptions{})
+			revision, err := client.Revisions(namespace).List(v1.ListOptions{})
 			if err != nil {
 				return err
 			}
-
-			printer, err := revisionDescribePrintFlags.ToPrinter()
-			if err != nil {
-				return err
+			if len(revision.Items) == 0 {
+				fmt.Fprintf(cmd.OutOrStdout(), "No resources found.\n")
+				return nil
 			}
 			revision.GetObjectKind().SetGroupVersionKind(schema.GroupVersionKind{
 				Group:   "knative.dev",
 				Version: "v1alpha1",
-				Kind:    "Revision"})
+				Kind:    "revision"})
+			printer, err := revisionGetFlags.ToPrinter()
+			if err != nil {
+				return err
+			}
 			err = printer.PrintObj(revision, cmd.OutOrStdout())
 			if err != nil {
 				return err
@@ -62,7 +62,7 @@ func NewRevisionDescribeCommand(p *KnParams) *cobra.Command {
 			return nil
 		},
 	}
-	AddNamespaceFlags(revisionDescribeCmd.Flags(), false)
-	revisionDescribePrintFlags.AddFlags(revisionDescribeCmd)
-	return revisionDescribeCmd
+	commands.AddNamespaceFlags(revisionGetCommand.Flags(), true)
+	revisionGetFlags.AddFlags(revisionGetCommand)
+	return revisionGetCommand
 }

@@ -12,21 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package commands
+package revision
 
 import (
+	"github.com/knative/client/pkg/kn/commands"
 	"github.com/spf13/cobra"
 )
 
-func NewServiceCommand(p *KnParams) *cobra.Command {
-	serviceCmd := &cobra.Command{
-		Use:   "service",
-		Short: "Service command group",
+func NewRevisionCommand(p *commands.KnParams) *cobra.Command {
+	revisionCmd := &cobra.Command{
+		Use:   "revision",
+		Short: "Revision command group",
 	}
-	serviceCmd.AddCommand(NewServiceGetCommand(p))
-	serviceCmd.AddCommand(NewServiceDescribeCommand(p))
-	serviceCmd.AddCommand(NewServiceCreateCommand(p))
-	serviceCmd.AddCommand(NewServiceDeleteCommand(p))
-	serviceCmd.AddCommand(NewServiceUpdateCommand(p))
-	return serviceCmd
+	revisionCmd.AddCommand(NewRevisionGetCommand(p))
+	revisionCmd.AddCommand(NewRevisionDescribeCommand(p))
+	return revisionCmd
 }

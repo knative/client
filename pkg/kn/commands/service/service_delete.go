@@ -12,17 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package commands
+package service
 
 import (
 	"errors"
 	"fmt"
+
+	"github.com/knative/client/pkg/kn/commands"
 	"github.com/spf13/cobra"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // NewServiceDeleteCommand represent 'service delete' command
-func NewServiceDeleteCommand(p *KnParams) *cobra.Command {
+func NewServiceDeleteCommand(p *commands.KnParams) *cobra.Command {
 	serviceDeleteCommand := &cobra.Command{
 		Use:   "delete NAME",
 		Short: "Delete a service.",
@@ -41,7 +43,7 @@ func NewServiceDeleteCommand(p *KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			namespace, err := GetNamespace(cmd)
+			namespace, err := commands.GetNamespace(cmd)
 			if err != nil {
 				return err
 			}
@@ -57,6 +59,6 @@ func NewServiceDeleteCommand(p *KnParams) *cobra.Command {
 			return nil
 		},
 	}
-	AddNamespaceFlags(serviceDeleteCommand.Flags(), false)
+	commands.AddNamespaceFlags(serviceDeleteCommand.Flags(), false)
 	return serviceDeleteCommand
 }

@@ -15,8 +15,15 @@
 package commands
 
 import (
+	"fmt"
+	"time"
+
 	hprinters "github.com/knative/client/pkg/printers"
+	"github.com/knative/pkg/apis"
+	duckv1beta1 "github.com/knative/pkg/apis/duck/v1beta1"
 	"github.com/spf13/cobra"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/duration"
 )
 
 // HumanPrintFlags provides default flags necessary for printing.
@@ -34,12 +41,9 @@ func (f *HumanPrintFlags) AllowedFormats() []string {
 
 // ToPrinter receives returns a printer capable of
 // handling human-readable output.
-func (f *HumanPrintFlags) ToPrinter() (hprinters.ResourcePrinter, error) {
+func (f *HumanPrintFlags) ToPrinter(getHandlerFunc func(h hprinters.PrintHandler)) (hprinters.ResourcePrinter, error) {
 	p := hprinters.NewTablePrinter(hprinters.PrintOptions{})
-	// Add the column definitions and respective printing functions for service get command
-	ServiceGetHandlers(p)
-	// Add the column definitions and respective printing functions for revision get command
-	RevisionGetHandlers(p)
+	getHandlerFunc(p)
 	return p, nil
 }
 
@@ -53,4 +57,51 @@ func (f *HumanPrintFlags) AddFlags(c *cobra.Command) {
 // human-readable printing, with default values set.
 func NewHumanPrintFlags() *HumanPrintFlags {
 	return &HumanPrintFlags{}
+}
+
+// Private functions
+
+// conditionsValue returns the True conditions count among total conditions
+func ConditionsValue(conditions duckv1beta1.Conditions) string {
+	var ok int
+	for _, condition := range conditions {
+		if condition.Status == "True" {
+			ok++
+		}
+	}
+	return fmt.Sprintf("%d OK / %d", ok, len(conditions))
+}
+
+// readyCondition returns status of resource's Ready type condition
+func ReadyCondition(conditions duckv1beta1.Conditions) string {
+	for _, condition := range conditions {
+		if condition.Type == apis.ConditionReady {
+			return string(condition.Status)
+		}
+	}
+	return "<unknown>"
+}
+
+func NonReadyConditionReason(conditions duckv1beta1.Conditions) string {
+	for _, condition := range conditions {
+		if condition.Type == apis.ConditionReady {
+			if string(condition.Status) == "True" {
+				return ""
+			}
+			if condition.Message != "" {
+				return fmt.Sprintf("%s : %s", condition.Reason, condition.Message)
+			}
+			return string(condition.Reason)
+		}
+	}
+	return "<unknown>"
+}
+
+// translateTimestampSince returns the elapsed time since timestamp in
+// human-readable approximation.
+func TranslateTimestampSince(timestamp metav1.Time) string {
+	if timestamp.IsZero() {
+		return "<unknown>"
+	}
+	return duration.HumanDuration(time.Since(timestamp.Time))
 }

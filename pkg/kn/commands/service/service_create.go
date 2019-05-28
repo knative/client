@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package commands
+package service
 
 import (
 	"errors"
 	"fmt"
 
+	"github.com/knative/client/pkg/kn/commands"
 	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
@@ -25,7 +26,7 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func NewServiceCreateCommand(p *KnParams) *cobra.Command {
+func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 	var editFlags ConfigurationEditFlags
 
 	serviceCreateCommand := &cobra.Command{
@@ -58,7 +59,7 @@ func NewServiceCreateCommand(p *KnParams) *cobra.Command {
 				return errors.New("requires the image name to run.")
 			}
 
-			namespace, err := GetNamespace(cmd)
+			namespace, err := commands.GetNamespace(cmd)
 			if err != nil {
 				return err
 			}
@@ -111,7 +112,7 @@ func NewServiceCreateCommand(p *KnParams) *cobra.Command {
 			return nil
 		},
 	}
-	AddNamespaceFlags(serviceCreateCommand.Flags(), false)
+	commands.AddNamespaceFlags(serviceCreateCommand.Flags(), false)
 	editFlags.AddCreateFlags(serviceCreateCommand)
 	return serviceCreateCommand
 }

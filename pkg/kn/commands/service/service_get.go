@@ -12,56 +12,59 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package commands
+package service
 
 import (
 	"fmt"
 
+	"github.com/knative/client/pkg/kn/commands"
 	"github.com/spf13/cobra"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
-// NewRevisionGetCommand represents 'kn revision get' command
-func NewRevisionGetCommand(p *KnParams) *cobra.Command {
-	revisionGetFlags := NewRevisionGetFlags()
+// NewServiceGetCommand represents 'kn service get' command
+func NewServiceGetCommand(p *commands.KnParams) *cobra.Command {
+	serviceGetFlags := NewServiceGetFlags()
 
-	revisionGetCommand := &cobra.Command{
+	serviceGetCommand := &cobra.Command{
 		Use:   "get",
-		Short: "Get available revisions.",
+		Short: "Get available services.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := p.ServingFactory()
 			if err != nil {
 				return err
 			}
-			namespace, err := GetNamespace(cmd)
+			namespace, err := commands.GetNamespace(cmd)
 			if err != nil {
 				return err
 			}
-			revision, err := client.Revisions(namespace).List(v1.ListOptions{})
+			service, err := client.Services(namespace).List(v1.ListOptions{})
 			if err != nil {
 				return err
 			}
-			if len(revision.Items) == 0 {
+			if len(service.Items) == 0 {
 				fmt.Fprintf(cmd.OutOrStdout(), "No resources found.\n")
 				return nil
 			}
-			revision.GetObjectKind().SetGroupVersionKind(schema.GroupVersionKind{
+			service.GetObjectKind().SetGroupVersionKind(schema.GroupVersionKind{
 				Group:   "knative.dev",
 				Version: "v1alpha1",
-				Kind:    "revision"})
-			printer, err := revisionGetFlags.ToPrinter()
+				Kind:    "Service"})
+
+			printer, err := serviceGetFlags.ToPrinter()
 			if err != nil {
 				return err
 			}
-			err = printer.PrintObj(revision, cmd.OutOrStdout())
+
+			err = printer.PrintObj(service, cmd.OutOrStdout())
 			if err != nil {
 				return err
 			}
 			return nil
 		},
 	}
-	AddNamespaceFlags(revisionGetCommand.Flags(), true)
-	revisionGetFlags.AddFlags(revisionGetCommand)
-	return revisionGetCommand
+	commands.AddNamespaceFlags(serviceGetCommand.Flags(), true)
+	serviceGetFlags.AddFlags(serviceGetCommand)
+	return serviceGetCommand
 }

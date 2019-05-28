@@ -12,16 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package commands
+package service
 
 import (
 	"errors"
 
+	"github.com/knative/client/pkg/kn/commands"
 	"github.com/spf13/cobra"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func NewServiceUpdateCommand(p *KnParams) *cobra.Command {
+func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 	var editFlags ConfigurationEditFlags
 
 	serviceUpdateCommand := &cobra.Command{
@@ -38,7 +39,7 @@ func NewServiceUpdateCommand(p *KnParams) *cobra.Command {
 				return errors.New("requires the service name.")
 			}
 
-			namespace, err := GetNamespace(cmd)
+			namespace, err := commands.GetNamespace(cmd)
 			if err != nil {
 				return err
 			}
@@ -67,7 +68,7 @@ func NewServiceUpdateCommand(p *KnParams) *cobra.Command {
 			return nil
 		},
 	}
-	AddNamespaceFlags(serviceUpdateCommand.Flags(), false)
+	commands.AddNamespaceFlags(serviceUpdateCommand.Flags(), false)
 	editFlags.AddUpdateFlags(serviceUpdateCommand)
 	return serviceUpdateCommand
 }

@@ -18,15 +18,15 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/knative/client/pkg/kn/commands"
+	"github.com/knative/client/pkg/kn/core"
 )
 
 func init() {
-	commands.InitializeConfig()
+	core.InitializeConfig()
 }
 
 func main() {
-	err := commands.NewKnCommand().Execute()
+	err := core.NewKnCommand().Execute()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
