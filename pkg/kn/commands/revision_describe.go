@@ -16,10 +16,10 @@ package commands
 
 import (
 	"errors"
+	"github.com/knative/client/pkg/printers"
 
 	"github.com/spf13/cobra"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
@@ -51,10 +51,7 @@ func NewRevisionDescribeCommand(p *KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			revision.GetObjectKind().SetGroupVersionKind(schema.GroupVersionKind{
-				Group:   "knative.dev",
-				Version: "v1alpha1",
-				Kind:    "Revision"})
+			printer = printers.NewGvkUpdatePrinter(printer)
 			err = printer.PrintObj(revision, cmd.OutOrStdout())
 			if err != nil {
 				return err

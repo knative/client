@@ -62,7 +62,7 @@ func TestServiceDescribeDefaultOutput(t *testing.T) {
 	expectedService := v1alpha1.Service{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Service",
-			APIVersion: "knative.dev/v1alpha1",
+			APIVersion: "serving.knative.dev/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "foo",

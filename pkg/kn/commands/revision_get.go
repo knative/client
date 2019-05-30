@@ -16,10 +16,10 @@ package commands
 
 import (
 	"fmt"
+	"github.com/knative/client/pkg/printers"
 
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 // NewRevisionGetCommand represents 'kn revision get' command
@@ -46,14 +46,12 @@ func NewRevisionGetCommand(p *KnParams) *cobra.Command {
 				fmt.Fprintf(cmd.OutOrStdout(), "No resources found.\n")
 				return nil
 			}
-			revision.GetObjectKind().SetGroupVersionKind(schema.GroupVersionKind{
-				Group:   "knative.dev",
-				Version: "v1alpha1",
-				Kind:    "revision"})
+
 			printer, err := revisionGetFlags.ToPrinter()
 			if err != nil {
 				return err
 			}
+			printer = printers.NewGvkUpdatePrinter(printer)
 			err = printer.PrintObj(revision, cmd.OutOrStdout())
 			if err != nil {
 				return err

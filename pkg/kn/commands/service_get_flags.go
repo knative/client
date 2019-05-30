@@ -52,14 +52,14 @@ func (f *ServiceGetFlags) ToPrinter() (hprinters.ResourcePrinter, error) {
 		if err != nil {
 			return nil, err
 		}
-		return p, nil
+		return hprinters.NewGvkUpdatePrinter(p), nil
 	}
 	// if no flags specified, use the table printing
 	p, err := f.HumanReadableFlags.ToPrinter()
 	if err != nil {
 		return nil, err
 	}
-	return p, nil
+	return hprinters.NewGvkUpdatePrinter(p), nil
 }
 
 // AddFlags receives a *cobra.Command reference and binds

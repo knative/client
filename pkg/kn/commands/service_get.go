@@ -19,7 +19,6 @@ import (
 
 	"github.com/spf13/cobra"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 // NewServiceGetCommand represents 'kn service get' command
@@ -46,10 +45,6 @@ func NewServiceGetCommand(p *KnParams) *cobra.Command {
 				fmt.Fprintf(cmd.OutOrStdout(), "No resources found.\n")
 				return nil
 			}
-			service.GetObjectKind().SetGroupVersionKind(schema.GroupVersionKind{
-				Group:   "knative.dev",
-				Version: "v1alpha1",
-				Kind:    "Service"})
 
 			printer, err := serviceGetFlags.ToPrinter()
 			if err != nil {
