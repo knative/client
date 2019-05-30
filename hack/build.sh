@@ -27,19 +27,17 @@ set -eu
 
 # Run build
 run() {
+  # Switch on modules unconditionally
   export GO111MODULE=on
 
-  # Jump in/out project directory
+  # Jump into project directory
   pushd $(basedir) >/dev/null 2>&1
-  trap "popd >/dev/null 2>&1" EXIT
 
+  # Print help if requested
   if $(has_flag --help -h); then
     display_help
     exit 0
   fi
-
-  # Switch on modules unconditionally
-  export GO111MODULE=on
 
   if $(has_flag -u --update); then
     # Update dependencies
@@ -99,6 +97,7 @@ update_deps() {
   echo "🕸️  Update"
   go mod vendor
 }
+
 generate_docs() {
   echo "📖 Docs"
   rm -rf "./docs/cmd"
@@ -148,15 +147,15 @@ has_flag() {
 display_help() {
     local command="${1:-}"
     cat <<EOT
-Knative Client Build Script
+Knative client build script
 
 Usage: $(basename $BASH_SOURCE) [... options ...]
 
 with the following options:
 
--f  --fast                    Only build (without formatting, testing, code generation)
--t  --test                    Run tests even when used with --fast
--u  --update                  Update dependencies
+-f  --fast                    Only compile (without formatting, testing, code generation)
+-t  --test                    Run tests when used with --fast
+-u  --update                  Update dependencies before compiling
 -h  --help                    Display this help message
     --verbose                 Verbose script output (set -x)
 
