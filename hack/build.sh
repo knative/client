@@ -72,7 +72,7 @@ go_fmt() {
 go_build() {
   echo "🚧 Compile"
   source "./hack/build-flags.sh"
-  go build -mod=vendor -ldflags "$(build_flags .)" -o ./kn ./cmd/...
+  go build -mod=vendor -ldflags "$(build_flags .)" -o kn ./cmd/...
 }
 
 go_test() {
@@ -153,7 +153,7 @@ Usage: $(basename $BASH_SOURCE) [... options ...]
 
 with the following options:
 
--f  --fast                    Only compile (without formatting, testing, code generation)
+-f  --fast                    Only compile (without formatting, testing, doc generation)
 -t  --test                    Run tests when used with --fast
 -u  --update                  Update dependencies before compiling
 -h  --help                    Display this help message
