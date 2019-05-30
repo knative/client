@@ -71,10 +71,10 @@ $ hack/build.sh
 
 You can link that script into a directory within your search `$PATH`. This allows you to build `kn` from any working directory. There are several options to support various development flows:
 
-* `build.sh`  Compile, test, generate docs and format source code
-* `build.sh -f` - Only compile
+* `build.sh` - Compile, test, generate docs and format source code
+* `build.sh -f` - Compile only
 * `build.sh -f -t` - Compile & test
-* `build.sh -u` - Update dependencies
+* `build.sh -u` - Update dependencies before compiling
 
 See `build.sh --help` for a full list of options and usage examples.
 
