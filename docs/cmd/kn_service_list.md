@@ -7,7 +7,21 @@ List available services.
 List available services.
 
 ```
-kn service list [flags]
+kn service list [name] [flags]
+```
+
+### Examples
+
+```
+
+  # List all services
+  kn service list
+
+  # List all services in JSON output format
+  kn service list -o json
+
+  # List service 'web'
+  kn service list web
 ```
 
 ### Options
