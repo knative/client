@@ -16,8 +16,6 @@ package commands
 
 import (
 	"fmt"
-	"github.com/knative/client/pkg/printers"
-
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -51,7 +49,6 @@ func NewRevisionGetCommand(p *KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			printer = printers.NewGvkUpdatePrinter(printer)
 			err = printer.PrintObj(revision, cmd.OutOrStdout())
 			if err != nil {
 				return err

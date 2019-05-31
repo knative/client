@@ -16,7 +16,8 @@ package commands
 
 import (
 	hprinters "github.com/knative/client/pkg/printers"
-	serving "github.com/knative/serving/pkg/apis/serving"
+	"github.com/knative/serving/pkg/apis/serving"
+
 	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"github.com/spf13/cobra"
 	metav1beta1 "k8s.io/apimachinery/pkg/apis/meta/v1beta1"
@@ -47,14 +48,14 @@ func (f *RevisionGetFlags) ToPrinter() (hprinters.ResourcePrinter, error) {
 		if err != nil {
 			return nil, err
 		}
-		return p, nil
+		return hprinters.NewGvkUpdatePrinter(p), nil
 	}
 	// if no flags specified, use the table printing
 	p, err := f.HumanReadableFlags.ToPrinter()
 	if err != nil {
 		return nil, err
 	}
-	return p, nil
+	return hprinters.NewGvkUpdatePrinter(p), nil
 }
 
 // AddFlags receives a *cobra.Command reference and binds
