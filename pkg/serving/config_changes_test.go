@@ -15,6 +15,7 @@
 package serving
 
 import (
+	"github.com/knative/serving/pkg/apis/serving/v1beta1"
 	"reflect"
 	"testing"
 
@@ -23,7 +24,16 @@ import (
 )
 
 func TestUpdateEnvVarsNew(t *testing.T) {
-	config := getEmptyConfigurationSpec()
+	config, container := getV1alpha1ConfigWithOldFields()
+	testUpdateEnvVarsNew(t, config, container)
+	assertNoV1alpha1(t, config)
+
+	config, container = getV1alpha1Config()
+	testUpdateEnvVarsNew(t, config, container)
+	assertNoV1alpha1Old(t, config)
+}
+
+func testUpdateEnvVarsNew(t *testing.T, config servingv1alpha1.ConfigurationSpec, container *corev1.Container) {
 	env := map[string]string{
 		"a": "foo",
 		"b": "bar",
@@ -32,7 +42,7 @@ func TestUpdateEnvVarsNew(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	found, err := EnvToMap(config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Env)
+	found, err := EnvToMap(container.Env)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -41,10 +51,20 @@ func TestUpdateEnvVarsNew(t *testing.T) {
 	}
 }
 
-func TestUpdateEnvVarsAppend(t *testing.T) {
-	config := getEmptyConfigurationSpec()
-	config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Env = []corev1.EnvVar{
-		corev1.EnvVar{Name: "a", Value: "foo"}}
+func TestUpdateEnvVarsAppendOld(t *testing.T) {
+	config, container := getV1alpha1ConfigWithOldFields()
+	testUpdateEnvVarsAppendOld(t, config, container)
+	assertNoV1alpha1(t, config)
+
+	config, container = getV1alpha1Config()
+	testUpdateEnvVarsAppendOld(t, config, container)
+	assertNoV1alpha1Old(t, config)
+}
+
+func testUpdateEnvVarsAppendOld(t *testing.T, config servingv1alpha1.ConfigurationSpec, container *corev1.Container) {
+	container.Env = []corev1.EnvVar{
+		{Name: "a", Value: "foo"},
+	}
 	env := map[string]string{
 		"b": "bar",
 	}
@@ -58,7 +78,7 @@ func TestUpdateEnvVarsAppend(t *testing.T) {
 		"b": "bar",
 	}
 
-	found, err := EnvToMap(config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Env)
+	found, err := EnvToMap(container.Env)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -68,8 +88,17 @@ func TestUpdateEnvVarsAppend(t *testing.T) {
 }
 
 func TestUpdateEnvVarsModify(t *testing.T) {
-	config := getEmptyConfigurationSpec()
-	config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Env = []corev1.EnvVar{
+	config, container := getV1alpha1ConfigWithOldFields()
+	testUpdateEnvVarsModify(t, config, container)
+	assertNoV1alpha1(t, config)
+
+	config, container = getV1alpha1Config()
+	testUpdateEnvVarsModify(t, config, container)
+	assertNoV1alpha1Old(t, config)
+}
+
+func testUpdateEnvVarsModify(t *testing.T, config servingv1alpha1.ConfigurationSpec, container *corev1.Container) {
+	container.Env = []corev1.EnvVar{
 		corev1.EnvVar{Name: "a", Value: "foo"}}
 	env := map[string]string{
 		"a": "fancy",
@@ -83,7 +112,7 @@ func TestUpdateEnvVarsModify(t *testing.T) {
 		"a": "fancy",
 	}
 
-	found, err := EnvToMap(config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Env)
+	found, err := EnvToMap(container.Env)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -93,8 +122,17 @@ func TestUpdateEnvVarsModify(t *testing.T) {
 }
 
 func TestUpdateEnvVarsBoth(t *testing.T) {
-	config := getEmptyConfigurationSpec()
-	config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Env = []corev1.EnvVar{
+	config, container := getV1alpha1ConfigWithOldFields()
+	testUpdateEnvVarsBoth(t, config, container)
+	assertNoV1alpha1(t, config)
+
+	config, container = getV1alpha1Config()
+	testUpdateEnvVarsBoth(t, config, container)
+	assertNoV1alpha1Old(t, config)
+}
+
+func testUpdateEnvVarsBoth(t *testing.T, config servingv1alpha1.ConfigurationSpec, container *corev1.Container) {
+	container.Env = []corev1.EnvVar{
 		corev1.EnvVar{Name: "a", Value: "foo"},
 		corev1.EnvVar{Name: "c", Value: "caroline"}}
 	env := map[string]string{
@@ -112,7 +150,7 @@ func TestUpdateEnvVarsBoth(t *testing.T) {
 		"c": "caroline",
 	}
 
-	found, err := EnvToMap(config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Env)
+	found, err := EnvToMap(container.Env)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -121,12 +159,44 @@ func TestUpdateEnvVarsBoth(t *testing.T) {
 	}
 }
 
-func getEmptyConfigurationSpec() servingv1alpha1.ConfigurationSpec {
-	return servingv1alpha1.ConfigurationSpec{
+// =========================================================================================================
+
+func getV1alpha1ConfigWithOldFields() (servingv1alpha1.ConfigurationSpec, *corev1.Container) {
+	container := &corev1.Container{}
+	config := servingv1alpha1.ConfigurationSpec{
 		DeprecatedRevisionTemplate: &servingv1alpha1.RevisionTemplateSpec{
 			Spec: servingv1alpha1.RevisionSpec{
-				DeprecatedContainer: &corev1.Container{},
+				DeprecatedContainer: container,
 			},
 		},
+	}
+	return config, container
+}
+
+func getV1alpha1Config() (servingv1alpha1.ConfigurationSpec, *corev1.Container) {
+	containers := []corev1.Container{{}}
+	config := servingv1alpha1.ConfigurationSpec{
+		Template: &servingv1alpha1.RevisionTemplateSpec{
+			Spec: servingv1alpha1.RevisionSpec{
+				RevisionSpec: v1beta1.RevisionSpec{
+					PodSpec: v1beta1.PodSpec{
+						Containers: containers,
+					},
+				},
+			},
+		},
+	}
+	return config, &containers[0]
+}
+
+func assertNoV1alpha1Old(t *testing.T, spec servingv1alpha1.ConfigurationSpec) {
+	if spec.DeprecatedRevisionTemplate != nil {
+		t.Error("Assuming only new v1alphav1 fields but fond spec.revisionTemplate")
+	}
+}
+
+func assertNoV1alpha1(t *testing.T, config servingv1alpha1.ConfigurationSpec) {
+	if config.Template != nil {
+		t.Error("Assuming only old v1alphav1 fields but fond spec.template")
 	}
 }
