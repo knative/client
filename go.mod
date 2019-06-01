@@ -20,7 +20,7 @@ require (
 	github.com/knative/build v0.6.0 // indirect
 	github.com/knative/pkg v0.0.0-20190518173526-34792a92cec2
 	github.com/knative/serving v0.6.0
-	github.com/knative/test-infra v0.0.0-20190529123930-7d0c44fb03a9
+	github.com/knative/test-infra v0.0.0-20190531180034-a3c073a2fea1
 	github.com/mattbaird/jsonpatch v0.0.0-20171005235357-81af80346b1a // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/modern-go/reflect2 v1.0.1 // indirect
