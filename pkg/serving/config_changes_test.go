@@ -83,7 +83,7 @@ func testUpdateEnvVarsAppendOld(t *testing.T, config servingv1alpha1.Configurati
 		t.Fatal(err)
 	}
 	if !reflect.DeepEqual(expected, found) {
-		t.Fatalf("Env did not match expected %v found %v", env, found)
+		t.Fatalf("Env did not match expected %v, found %v", env, found)
 	}
 }
 
@@ -117,7 +117,7 @@ func testUpdateEnvVarsModify(t *testing.T, config servingv1alpha1.ConfigurationS
 		t.Fatal(err)
 	}
 	if !reflect.DeepEqual(expected, found) {
-		t.Fatalf("Env did not match expected %v found %v", env, found)
+		t.Fatalf("Env did not match expected %v, found %v", env, found)
 	}
 }
 
@@ -155,7 +155,7 @@ func testUpdateEnvVarsBoth(t *testing.T, config servingv1alpha1.ConfigurationSpe
 		t.Fatal(err)
 	}
 	if !reflect.DeepEqual(expected, found) {
-		t.Fatalf("Env did not match expected %v found %v", env, found)
+		t.Fatalf("Env did not match expected %v, found %v", env, found)
 	}
 }
 
@@ -191,12 +191,12 @@ func getV1alpha1Config() (servingv1alpha1.ConfigurationSpec, *corev1.Container) 
 
 func assertNoV1alpha1Old(t *testing.T, spec servingv1alpha1.ConfigurationSpec) {
 	if spec.DeprecatedRevisionTemplate != nil {
-		t.Error("Assuming only new v1alphav1 fields but fond spec.revisionTemplate")
+		t.Error("Assuming only new v1alphav1 fields but found spec.revisionTemplate")
 	}
 }
 
 func assertNoV1alpha1(t *testing.T, config servingv1alpha1.ConfigurationSpec) {
 	if config.Template != nil {
-		t.Error("Assuming only old v1alphav1 fields but fond spec.template")
+		t.Error("Assuming only old v1alphav1 fields but found spec.template")
 	}
 }
