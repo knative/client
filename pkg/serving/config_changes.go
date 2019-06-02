@@ -24,8 +24,8 @@ import (
 // Give the configuration all the env var values listed in the given map of
 // vars.  Does not touch any environment variables not mentioned, but it can add
 // new env vars and change the values of existing ones.
-func UpdateEnvVars(config *servingv1alpha1.ConfigurationSpec, vars map[string]string) error {
-	container, err := extractContainer(config)
+func UpdateEnvVars(template *servingv1alpha1.RevisionTemplateSpec, vars map[string]string) error {
+	container, err := extractContainer(template)
 	if err != nil {
 		return err
 	}
@@ -48,8 +48,8 @@ func EnvToMap(vars []corev1.EnvVar) (map[string]string, error) {
 }
 
 // Update a given image
-func UpdateImage(config *servingv1alpha1.ConfigurationSpec, image string) error {
-	container, err := extractContainer(config)
+func UpdateImage(template *servingv1alpha1.RevisionTemplateSpec, image string) error {
+	container, err := extractContainer(template)
 	if err != nil {
 		return err
 	}
@@ -57,8 +57,8 @@ func UpdateImage(config *servingv1alpha1.ConfigurationSpec, image string) error 
 	return nil
 }
 
-func UpdateResources(config *servingv1alpha1.ConfigurationSpec, requestsResourceList corev1.ResourceList, limitsResourceList corev1.ResourceList) error {
-	container, err := extractContainer(config)
+func UpdateResources(template *servingv1alpha1.RevisionTemplateSpec, requestsResourceList corev1.ResourceList, limitsResourceList corev1.ResourceList) error {
+	container, err := extractContainer(template)
 	if err != nil {
 		return err
 	}
@@ -83,19 +83,15 @@ func UpdateResources(config *servingv1alpha1.ConfigurationSpec, requestsResource
 
 // =======================================================================================
 
-func usesOldV1alpha1ContainerField(config *servingv1alpha1.ConfigurationSpec) bool {
-	return config.DeprecatedRevisionTemplate != nil &&
-		config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer != nil
+func usesOldV1alpha1ContainerField(revision *servingv1alpha1.RevisionTemplateSpec) bool {
+	return revision.Spec.DeprecatedContainer != nil
 }
 
-func extractContainer(config *servingv1alpha1.ConfigurationSpec) (*corev1.Container, error) {
-	if usesOldV1alpha1ContainerField(config) {
-		return config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer, nil
+func extractContainer(template *servingv1alpha1.RevisionTemplateSpec) (*corev1.Container, error) {
+	if usesOldV1alpha1ContainerField(template) {
+		return template.Spec.DeprecatedContainer, nil
 	}
-	if config.Template == nil {
-		return nil, fmt.Errorf("internal: no spec.template field given to extract a container from")
-	}
-	containers := config.Template.Spec.Containers
+	containers := template.Spec.Containers
 	if len(containers) == 0 {
 		return nil, fmt.Errorf("internal: no container set in spec.template.spec.containers")
 	}

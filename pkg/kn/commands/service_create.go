@@ -18,7 +18,6 @@ import (
 	"errors"
 	"fmt"
 
-	serving_lib "github.com/knative/client/pkg/serving"
 	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
@@ -81,11 +80,7 @@ func NewServiceCreateCommand(p *KnParams) *cobra.Command {
 				},
 			}
 
-			config, err := serving_lib.GetConfiguration(&service)
-			if err != nil {
-				return err
-			}
-			err = editFlags.Apply(config, cmd)
+			err = editFlags.Apply(&service, cmd)
 			if err != nil {
 				return err
 			}

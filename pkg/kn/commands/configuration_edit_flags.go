@@ -54,7 +54,13 @@ func (p *ConfigurationEditFlags) AddCreateFlags(command *cobra.Command) {
 	command.MarkFlagRequired("image")
 }
 
-func (p *ConfigurationEditFlags) Apply(config *servingv1alpha1.ConfigurationSpec, cmd *cobra.Command) error {
+func (p *ConfigurationEditFlags) Apply(service *servingv1alpha1.Service, cmd *cobra.Command) error {
+
+	template, err := servinglib.GetRevisionTemplate(service)
+	if err != nil {
+		return err
+	}
+
 	envMap := map[string]string{}
 	for _, pairStr := range p.Env {
 		pairSlice := strings.SplitN(pairStr, "=", 2)
@@ -65,12 +71,12 @@ func (p *ConfigurationEditFlags) Apply(config *servingv1alpha1.ConfigurationSpec
 		}
 		envMap[pairSlice[0]] = pairSlice[1]
 	}
-	err := servinglib.UpdateEnvVars(config, envMap)
-	if err != nil {
+	if err := servinglib.UpdateEnvVars(template, envMap); err != nil {
 		return err
 	}
+
 	if cmd.Flags().Changed("image") {
-		err = servinglib.UpdateImage(config, p.Image)
+		err = servinglib.UpdateImage(template, p.Image)
 		if err != nil {
 			return err
 		}
@@ -83,7 +89,7 @@ func (p *ConfigurationEditFlags) Apply(config *servingv1alpha1.ConfigurationSpec
 	if err != nil {
 		return err
 	}
-	err = servinglib.UpdateResources(config, requestsResources, limitsResources)
+	err = servinglib.UpdateResources(template, requestsResources, limitsResources)
 	if err != nil {
 		return err
 	}

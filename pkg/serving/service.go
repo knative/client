@@ -20,7 +20,25 @@ import (
 	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 )
 
-func GetConfiguration(service *servingv1alpha1.Service) (*servingv1alpha1.ConfigurationSpec, error) {
+// Get the revision template associated with a service.
+// Depending on the structure returned either the new v1beta1 fields or the
+// 'old' v1alpha1 fields are looked up.
+// The returned revision template can be updated in place.
+// An error is returned if no revision template could be extracted
+func GetRevisionTemplate(service *servingv1alpha1.Service) (*servingv1alpha1.RevisionTemplateSpec, error) {
+	// Try v1beta1 field first
+	if service.Spec.Template != nil {
+		return service.Spec.Template, nil
+	}
+
+	config, err := getConfiguration(service)
+	if err != nil {
+		return nil, err
+	}
+	return config.DeprecatedRevisionTemplate, nil
+}
+
+func getConfiguration(service *servingv1alpha1.Service) (*servingv1alpha1.ConfigurationSpec, error) {
 	if service.Spec.DeprecatedRunLatest != nil {
 		return &service.Spec.DeprecatedRunLatest.Configuration, nil
 	} else if service.Spec.DeprecatedRelease != nil {
@@ -28,6 +46,6 @@ func GetConfiguration(service *servingv1alpha1.Service) (*servingv1alpha1.Config
 	} else if service.Spec.DeprecatedPinned != nil {
 		return &service.Spec.DeprecatedPinned.Configuration, nil
 	} else {
-		return nil, errors.New("Service does not specify a Configuration")
+		return nil, errors.New("service does not specify a Configuration")
 	}
 }

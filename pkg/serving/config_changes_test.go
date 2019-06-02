@@ -24,21 +24,21 @@ import (
 )
 
 func TestUpdateEnvVarsNew(t *testing.T) {
-	config, container := getV1alpha1ConfigWithOldFields()
-	testUpdateEnvVarsNew(t, config, container)
-	assertNoV1alpha1(t, config)
+	template, container := getV1alpha1RevisionTemplateWithOldFields()
+	testUpdateEnvVarsNew(t, template, container)
+	assertNoV1alpha1(t, template)
 
-	config, container = getV1alpha1Config()
-	testUpdateEnvVarsNew(t, config, container)
-	assertNoV1alpha1Old(t, config)
+	template, container = getV1alpha1Config()
+	testUpdateEnvVarsNew(t, template, container)
+	assertNoV1alpha1Old(t, template)
 }
 
-func testUpdateEnvVarsNew(t *testing.T, config servingv1alpha1.ConfigurationSpec, container *corev1.Container) {
+func testUpdateEnvVarsNew(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, container *corev1.Container) {
 	env := map[string]string{
 		"a": "foo",
 		"b": "bar",
 	}
-	err := UpdateEnvVars(&config, env)
+	err := UpdateEnvVars(template, env)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -52,23 +52,23 @@ func testUpdateEnvVarsNew(t *testing.T, config servingv1alpha1.ConfigurationSpec
 }
 
 func TestUpdateEnvVarsAppendOld(t *testing.T) {
-	config, container := getV1alpha1ConfigWithOldFields()
-	testUpdateEnvVarsAppendOld(t, config, container)
-	assertNoV1alpha1(t, config)
+	template, container := getV1alpha1RevisionTemplateWithOldFields()
+	testUpdateEnvVarsAppendOld(t, template, container)
+	assertNoV1alpha1(t, template)
 
-	config, container = getV1alpha1Config()
-	testUpdateEnvVarsAppendOld(t, config, container)
-	assertNoV1alpha1Old(t, config)
+	template, container = getV1alpha1Config()
+	testUpdateEnvVarsAppendOld(t, template, container)
+	assertNoV1alpha1Old(t, template)
 }
 
-func testUpdateEnvVarsAppendOld(t *testing.T, config servingv1alpha1.ConfigurationSpec, container *corev1.Container) {
+func testUpdateEnvVarsAppendOld(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, container *corev1.Container) {
 	container.Env = []corev1.EnvVar{
 		{Name: "a", Value: "foo"},
 	}
 	env := map[string]string{
 		"b": "bar",
 	}
-	err := UpdateEnvVars(&config, env)
+	err := UpdateEnvVars(template, env)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -88,22 +88,22 @@ func testUpdateEnvVarsAppendOld(t *testing.T, config servingv1alpha1.Configurati
 }
 
 func TestUpdateEnvVarsModify(t *testing.T) {
-	config, container := getV1alpha1ConfigWithOldFields()
-	testUpdateEnvVarsModify(t, config, container)
-	assertNoV1alpha1(t, config)
+	template, container := getV1alpha1RevisionTemplateWithOldFields()
+	testUpdateEnvVarsModify(t, template, container)
+	assertNoV1alpha1(t, template)
 
-	config, container = getV1alpha1Config()
-	testUpdateEnvVarsModify(t, config, container)
-	assertNoV1alpha1Old(t, config)
+	template, container = getV1alpha1Config()
+	testUpdateEnvVarsModify(t, template, container)
+	assertNoV1alpha1Old(t, template)
 }
 
-func testUpdateEnvVarsModify(t *testing.T, config servingv1alpha1.ConfigurationSpec, container *corev1.Container) {
+func testUpdateEnvVarsModify(t *testing.T, revision *servingv1alpha1.RevisionTemplateSpec, container *corev1.Container) {
 	container.Env = []corev1.EnvVar{
 		corev1.EnvVar{Name: "a", Value: "foo"}}
 	env := map[string]string{
 		"a": "fancy",
 	}
-	err := UpdateEnvVars(&config, env)
+	err := UpdateEnvVars(revision, env)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -122,16 +122,16 @@ func testUpdateEnvVarsModify(t *testing.T, config servingv1alpha1.ConfigurationS
 }
 
 func TestUpdateEnvVarsBoth(t *testing.T) {
-	config, container := getV1alpha1ConfigWithOldFields()
-	testUpdateEnvVarsBoth(t, config, container)
-	assertNoV1alpha1(t, config)
+	template, container := getV1alpha1RevisionTemplateWithOldFields()
+	testUpdateEnvVarsBoth(t, template, container)
+	assertNoV1alpha1(t, template)
 
-	config, container = getV1alpha1Config()
-	testUpdateEnvVarsBoth(t, config, container)
-	assertNoV1alpha1Old(t, config)
+	template, container = getV1alpha1Config()
+	testUpdateEnvVarsBoth(t, template, container)
+	assertNoV1alpha1Old(t, template)
 }
 
-func testUpdateEnvVarsBoth(t *testing.T, config servingv1alpha1.ConfigurationSpec, container *corev1.Container) {
+func testUpdateEnvVarsBoth(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, container *corev1.Container) {
 	container.Env = []corev1.EnvVar{
 		corev1.EnvVar{Name: "a", Value: "foo"},
 		corev1.EnvVar{Name: "c", Value: "caroline"}}
@@ -139,7 +139,7 @@ func testUpdateEnvVarsBoth(t *testing.T, config servingv1alpha1.ConfigurationSpe
 		"a": "fancy",
 		"b": "boo",
 	}
-	err := UpdateEnvVars(&config, env)
+	err := UpdateEnvVars(template, env)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -161,42 +161,38 @@ func testUpdateEnvVarsBoth(t *testing.T, config servingv1alpha1.ConfigurationSpe
 
 // =========================================================================================================
 
-func getV1alpha1ConfigWithOldFields() (servingv1alpha1.ConfigurationSpec, *corev1.Container) {
+func getV1alpha1RevisionTemplateWithOldFields() (*servingv1alpha1.RevisionTemplateSpec, *corev1.Container) {
 	container := &corev1.Container{}
-	config := servingv1alpha1.ConfigurationSpec{
-		DeprecatedRevisionTemplate: &servingv1alpha1.RevisionTemplateSpec{
-			Spec: servingv1alpha1.RevisionSpec{
-				DeprecatedContainer: container,
-			},
+	template := &servingv1alpha1.RevisionTemplateSpec{
+		Spec: servingv1alpha1.RevisionSpec{
+			DeprecatedContainer: container,
 		},
 	}
-	return config, container
+	return template, container
 }
 
-func getV1alpha1Config() (servingv1alpha1.ConfigurationSpec, *corev1.Container) {
+func getV1alpha1Config() (*servingv1alpha1.RevisionTemplateSpec, *corev1.Container) {
 	containers := []corev1.Container{{}}
-	config := servingv1alpha1.ConfigurationSpec{
-		Template: &servingv1alpha1.RevisionTemplateSpec{
-			Spec: servingv1alpha1.RevisionSpec{
-				RevisionSpec: v1beta1.RevisionSpec{
-					PodSpec: v1beta1.PodSpec{
-						Containers: containers,
-					},
+	template := &servingv1alpha1.RevisionTemplateSpec{
+		Spec: servingv1alpha1.RevisionSpec{
+			RevisionSpec: v1beta1.RevisionSpec{
+				PodSpec: v1beta1.PodSpec{
+					Containers: containers,
 				},
 			},
 		},
 	}
-	return config, &containers[0]
+	return template, &containers[0]
 }
 
-func assertNoV1alpha1Old(t *testing.T, spec servingv1alpha1.ConfigurationSpec) {
-	if spec.DeprecatedRevisionTemplate != nil {
-		t.Error("Assuming only new v1alphav1 fields but found spec.revisionTemplate")
+func assertNoV1alpha1Old(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec) {
+	if template.Spec.DeprecatedContainer != nil {
+		t.Error("Assuming only new v1alpha1 fields but found spec.container")
 	}
 }
 
-func assertNoV1alpha1(t *testing.T, config servingv1alpha1.ConfigurationSpec) {
-	if config.Template != nil {
-		t.Error("Assuming only old v1alphav1 fields but found spec.template")
+func assertNoV1alpha1(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec) {
+	if template.Spec.Containers != nil {
+		t.Error("Assuming only old v1alpha1 fields but found spec.template")
 	}
 }

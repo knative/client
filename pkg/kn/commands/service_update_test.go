@@ -93,12 +93,12 @@ func TestServiceUpdateImage(t *testing.T) {
 		},
 	}
 
-	config, err := servinglib.GetConfiguration(orig)
+	template, err := servinglib.GetRevisionTemplate(orig)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	servinglib.UpdateImage(config, "gcr.io/foo/bar:baz")
+	servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
 
 	action, updated, _, err := fakeServiceUpdate(orig, []string{
 		"service", "update", "foo", "--image", "gcr.io/foo/quux:xyzzy"})
@@ -108,11 +108,12 @@ func TestServiceUpdateImage(t *testing.T) {
 	} else if !action.Matches("update", "services") {
 		t.Fatalf("Bad action %v", action)
 	}
-	conf, err := servinglib.GetConfiguration(updated)
+
+	template, err = servinglib.GetRevisionTemplate(updated)
 	if err != nil {
 		t.Fatal(err)
-	} else if conf.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Image != "gcr.io/foo/quux:xyzzy" {
-		t.Fatalf("wrong image set: %v", conf.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Image)
+	} else if template.Spec.DeprecatedContainer.Image != "gcr.io/foo/quux:xyzzy" {
+		t.Fatalf("wrong image set: %v", template.Spec.DeprecatedContainer.Image)
 	}
 }
 
@@ -139,12 +140,12 @@ func TestServiceUpdateEnv(t *testing.T) {
 		},
 	}
 
-	config, err := servinglib.GetConfiguration(orig)
+	template, err := servinglib.GetRevisionTemplate(orig)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	servinglib.UpdateImage(config, "gcr.io/foo/bar:baz")
+	servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
 
 	action, updated, _, err := fakeServiceUpdate(orig, []string{
 		"service", "update", "foo", "-e", "TARGET=Awesome"})
@@ -159,13 +160,13 @@ func TestServiceUpdateEnv(t *testing.T) {
 		Value: "Awesome",
 	}
 
-	conf, err := servinglib.GetConfiguration(updated)
+	template, err = servinglib.GetRevisionTemplate(updated)
 	if err != nil {
 		t.Fatal(err)
-	} else if conf.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Image != "gcr.io/foo/bar:baz" {
-		t.Fatalf("wrong image set: %v", conf.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Image)
-	} else if conf.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Env[0] != expectedEnvVar {
-		t.Fatalf("wrong env set: %v", conf.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Env)
+	} else if template.Spec.DeprecatedContainer.Image != "gcr.io/foo/bar:baz" {
+		t.Fatalf("wrong image set: %v", template.Spec.DeprecatedContainer.Image)
+	} else if template.Spec.DeprecatedContainer.Env[0] != expectedEnvVar {
+		t.Fatalf("wrong env set: %v", template.Spec.DeprecatedContainer.Env)
 	}
 }
 
@@ -189,20 +190,20 @@ func TestServiceUpdateRequestsLimitsCPU(t *testing.T) {
 		corev1.ResourceMemory: resource.MustParse("1024Mi"),
 	}
 
-	newConfig, err := servinglib.GetConfiguration(updated)
+	newTemplate, err := servinglib.GetRevisionTemplate(updated)
 	if err != nil {
 		t.Fatal(err)
 	} else {
 		if !reflect.DeepEqual(
-			newConfig.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources.Requests,
+			newTemplate.Spec.DeprecatedContainer.Resources.Requests,
 			expectedRequestsVars) {
-			t.Fatalf("wrong requests vars %v", newConfig.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources.Requests)
+			t.Fatalf("wrong requests vars %v", newTemplate.Spec.DeprecatedContainer.Resources.Requests)
 		}
 
 		if !reflect.DeepEqual(
-			newConfig.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources.Limits,
+			newTemplate.Spec.DeprecatedContainer.Resources.Limits,
 			expectedLimitsVars) {
-			t.Fatalf("wrong limits vars %v", newConfig.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources.Limits)
+			t.Fatalf("wrong limits vars %v", newTemplate.Spec.DeprecatedContainer.Resources.Limits)
 		}
 	}
 }
@@ -227,20 +228,20 @@ func TestServiceUpdateRequestsLimitsMemory(t *testing.T) {
 		corev1.ResourceMemory: resource.MustParse("2048Mi"),
 	}
 
-	newConfig, err := servinglib.GetConfiguration(updated)
+	newTemplate, err := servinglib.GetRevisionTemplate(updated)
 	if err != nil {
 		t.Fatal(err)
 	} else {
 		if !reflect.DeepEqual(
-			newConfig.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources.Requests,
+			newTemplate.Spec.DeprecatedContainer.Resources.Requests,
 			expectedRequestsVars) {
-			t.Fatalf("wrong requests vars %v", newConfig.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources.Requests)
+			t.Fatalf("wrong requests vars %v", newTemplate.Spec.DeprecatedContainer.Resources.Requests)
 		}
 
 		if !reflect.DeepEqual(
-			newConfig.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources.Limits,
+			newTemplate.Spec.DeprecatedContainer.Resources.Limits,
 			expectedLimitsVars) {
-			t.Fatalf("wrong limits vars %v", newConfig.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources.Limits)
+			t.Fatalf("wrong limits vars %v", newTemplate.Spec.DeprecatedContainer.Resources.Limits)
 		}
 	}
 }
@@ -267,20 +268,20 @@ func TestServiceUpdateRequestsLimitsCPU_and_Memory(t *testing.T) {
 		corev1.ResourceMemory: resource.MustParse("2048Mi"),
 	}
 
-	newConfig, err := servinglib.GetConfiguration(updated)
+	newTemplate, err := servinglib.GetRevisionTemplate(updated)
 	if err != nil {
 		t.Fatal(err)
 	} else {
 		if !reflect.DeepEqual(
-			newConfig.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources.Requests,
+			newTemplate.Spec.DeprecatedContainer.Resources.Requests,
 			expectedRequestsVars) {
-			t.Fatalf("wrong requests vars %v", newConfig.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources.Requests)
+			t.Fatalf("wrong requests vars %v", newTemplate.Spec.DeprecatedContainer.Resources.Requests)
 		}
 
 		if !reflect.DeepEqual(
-			newConfig.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources.Limits,
+			newTemplate.Spec.DeprecatedContainer.Resources.Limits,
 			expectedLimitsVars) {
-			t.Fatalf("wrong limits vars %v", newConfig.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources.Limits)
+			t.Fatalf("wrong limits vars %v", newTemplate.Spec.DeprecatedContainer.Resources.Limits)
 		}
 	}
 }
@@ -308,12 +309,12 @@ func createMockServiceWithResources(t *testing.T, requestCPU, requestMemory, lim
 		},
 	}
 
-	config, err := servinglib.GetConfiguration(service)
+	template, err := servinglib.GetRevisionTemplate(service)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources = corev1.ResourceRequirements{
+	template.Spec.DeprecatedContainer.Resources = corev1.ResourceRequirements{
 		Requests: corev1.ResourceList{
 			corev1.ResourceCPU:    resource.MustParse(requestCPU),
 			corev1.ResourceMemory: resource.MustParse(requestMemory),
