@@ -47,8 +47,10 @@ kn service create NAME --image IMAGE [flags]
       --max-scale int            Maximal number of replicas.
       --min-scale int            Minimal number of replicas.
   -n, --namespace string         List the requested object(s) in given namespace.
+      --no-wait                  Don't wait for service to become ready.
       --requests-cpu string      The requested CPU (e.g., 250m).
       --requests-memory string   The requested CPU (e.g., 64Mi).
+      --wait-timeout int         Seconds to wait before stop checking for service to become ready (default: 60). (default 60)
 ```
 
 ### Options inherited from parent commands
