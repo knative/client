@@ -11,6 +11,7 @@ require (
 	github.com/google/go-cmp v0.3.0 // indirect
 	github.com/google/go-containerregistry v0.0.0-20190503220729-1c6c7f61e8a5 // indirect
 	github.com/google/gofuzz v1.0.0 // indirect
+	github.com/google/licenseclassifier v0.0.0-20190501212618-47b603fe1b8c // indirect
 	github.com/googleapis/gnostic v0.2.0 // indirect
 	github.com/gregjones/httpcache v0.0.0-20190212212710-3befbb6ad0cc // indirect
 	github.com/hashicorp/golang-lru v0.5.1 // indirect
@@ -28,6 +29,7 @@ require (
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.3
 	github.com/spf13/viper v1.3.1
+	github.com/stretchr/objx v0.2.0 // indirect
 	golang.org/x/net v0.0.0-20190514140710-3ec191127204 // indirect
 	golang.org/x/oauth2 v0.0.0-20190517181255-950ef44c6e07 // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
