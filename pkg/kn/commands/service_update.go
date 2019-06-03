@@ -17,7 +17,6 @@ package commands
 import (
 	"errors"
 
-	serving_lib "github.com/knative/client/pkg/serving"
 	"github.com/spf13/cobra"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -53,12 +52,9 @@ func NewServiceUpdateCommand(p *KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
+			service = service.DeepCopy()
 
-			config, err := serving_lib.GetConfiguration(service)
-			if err != nil {
-				return err
-			}
-			err = editFlags.Apply(config, cmd)
+			err = editFlags.Apply(service, cmd)
 			if err != nil {
 				return err
 			}

@@ -24,28 +24,13 @@ import (
 // Give the configuration all the env var values listed in the given map of
 // vars.  Does not touch any environment variables not mentioned, but it can add
 // new env vars and change the values of existing ones.
-func UpdateEnvVars(config *servingv1alpha1.ConfigurationSpec, vars map[string]string) error {
-	set := make(map[string]bool)
-	for i, _ := range config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Env {
-		envVar := &config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Env[i]
-		value, present := vars[envVar.Name]
-		if present {
-			envVar.Value = value
-			set[envVar.Name] = true
-		}
+func UpdateEnvVars(template *servingv1alpha1.RevisionTemplateSpec, vars map[string]string) error {
+	container, err := extractContainer(template)
+	if err != nil {
+		return err
 	}
-	for name, value := range vars {
-		if !set[name] {
-			config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Env = append(
-				config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Env,
-				corev1.EnvVar{
-					Name:  name,
-					Value: value,
-				})
-		}
-	}
+	container.Env = updateEnvVarsFromMap(container.Env, vars)
 	return nil
-
 }
 
 // Utility function to translate between the API list form of env vars, and the
@@ -55,34 +40,88 @@ func EnvToMap(vars []corev1.EnvVar) (map[string]string, error) {
 	for _, envVar := range vars {
 		_, present := result[envVar.Name]
 		if present {
-			return nil, fmt.Errorf("Env var name present more than once: %v", envVar.Name)
+			return nil, fmt.Errorf("env var name present more than once: %v", envVar.Name)
 		}
 		result[envVar.Name] = envVar.Value
 	}
 	return result, nil
 }
 
-func UpdateImage(config *servingv1alpha1.ConfigurationSpec, image string) error {
-	config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Image = image
+// Update a given image
+func UpdateImage(template *servingv1alpha1.RevisionTemplateSpec, image string) error {
+	container, err := extractContainer(template)
+	if err != nil {
+		return err
+	}
+	container.Image = image
 	return nil
 }
 
-func UpdateResources(config *servingv1alpha1.ConfigurationSpec, requestsResourceList corev1.ResourceList, limitsResourceList corev1.ResourceList) error {
-	if config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources.Requests == nil {
-		config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources.Requests = corev1.ResourceList{}
+func UpdateResources(template *servingv1alpha1.RevisionTemplateSpec, requestsResourceList corev1.ResourceList, limitsResourceList corev1.ResourceList) error {
+	container, err := extractContainer(template)
+	if err != nil {
+		return err
+	}
+	if container.Resources.Requests == nil {
+		container.Resources.Requests = corev1.ResourceList{}
 	}
 
 	for k, v := range requestsResourceList {
-		config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources.Requests[k] = v
+		container.Resources.Requests[k] = v
 	}
 
-	if config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources.Limits == nil {
-		config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources.Limits = corev1.ResourceList{}
+	if container.Resources.Limits == nil {
+		container.Resources.Limits = corev1.ResourceList{}
 	}
 
 	for k, v := range limitsResourceList {
-		config.DeprecatedRevisionTemplate.Spec.DeprecatedContainer.Resources.Limits[k] = v
+		container.Resources.Limits[k] = v
 	}
 
 	return nil
+}
+
+// =======================================================================================
+
+func usesOldV1alpha1ContainerField(revision *servingv1alpha1.RevisionTemplateSpec) bool {
+	return revision.Spec.DeprecatedContainer != nil
+}
+
+func extractContainer(template *servingv1alpha1.RevisionTemplateSpec) (*corev1.Container, error) {
+	if usesOldV1alpha1ContainerField(template) {
+		return template.Spec.DeprecatedContainer, nil
+	}
+	containers := template.Spec.Containers
+	if len(containers) == 0 {
+		return nil, fmt.Errorf("internal: no container set in spec.template.spec.containers")
+	}
+	if len(containers) > 1 {
+		return nil, fmt.Errorf("internal: can't extract container for updating environment"+
+			" variables as the configuration contains "+
+			"more than one container (i.e. %d containers)", len(containers))
+	}
+	return &containers[0], nil
+}
+
+func updateEnvVarsFromMap(env []corev1.EnvVar, vars map[string]string) []corev1.EnvVar {
+	set := make(map[string]bool)
+	for i, _ := range env {
+		envVar := &env[i]
+		value, present := vars[envVar.Name]
+		if present {
+			envVar.Value = value
+			set[envVar.Name] = true
+		}
+	}
+	for name, value := range vars {
+		if !set[name] {
+			env = append(
+				env,
+				corev1.EnvVar{
+					Name:  name,
+					Value: value,
+				})
+		}
+	}
+	return env
 }
