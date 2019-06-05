@@ -18,12 +18,12 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/knative/client/pkg/kn/commands"
+	"github.com/knative/client/pkg/kn/core"
 	"github.com/spf13/cobra/doc"
 )
 
 func main() {
-	rootCmd := commands.NewKnCommand()
+	rootCmd := core.NewKnCommand()
 
 	dir := "."
 	if len(os.Args) > 1 {

@@ -12,19 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package commands
+package service
 
 import (
 	"errors"
 
+	"github.com/knative/client/pkg/kn/commands"
 	"github.com/spf13/cobra"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
-func NewServiceDescribeCommand(p *KnParams) *cobra.Command {
-
+func NewServiceDescribeCommand(p *commands.KnParams) *cobra.Command {
 	serviceDescribePrintFlags := genericclioptions.NewPrintFlags("").WithDefaultOutput("yaml")
 	serviceDescribeCommand := &cobra.Command{
 		Use:   "describe NAME",
@@ -38,7 +38,7 @@ func NewServiceDescribeCommand(p *KnParams) *cobra.Command {
 				return err
 			}
 
-			namespace, err := GetNamespace(cmd)
+			namespace, err := commands.GetNamespace(cmd)
 			if err != nil {
 				return err
 			}
@@ -62,7 +62,7 @@ func NewServiceDescribeCommand(p *KnParams) *cobra.Command {
 			return nil
 		},
 	}
-	AddNamespaceFlags(serviceDescribeCommand.Flags(), false)
+	commands.AddNamespaceFlags(serviceDescribeCommand.Flags(), false)
 	serviceDescribePrintFlags.AddFlags(serviceDescribeCommand)
 	return serviceDescribeCommand
 }

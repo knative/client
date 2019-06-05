@@ -12,16 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package commands
+package service
 
 import (
-	"bytes"
 	"encoding/json"
 	"testing"
 
+	"github.com/knative/client/pkg/kn/commands"
 	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
-	serving "github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
-	"github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake"
 	"k8s.io/apimachinery/pkg/api/equality"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -30,12 +28,8 @@ import (
 )
 
 func fakeServiceDescribe(args []string, response *v1alpha1.Service) (action client_testing.Action, output string, err error) {
-	buf := new(bytes.Buffer)
-	fakeServing := &fake.FakeServingV1alpha1{&client_testing.Fake{}}
-	cmd := NewKnCommand(KnParams{
-		Output:         buf,
-		ServingFactory: func() (serving.ServingV1alpha1Interface, error) { return fakeServing, nil },
-	})
+	knParams := &commands.KnParams{}
+	cmd, fakeServing, buf := commands.CreateTestKnCommand(NewServiceCommand(knParams), knParams)
 	fakeServing.AddReactor("*", "*",
 		func(a client_testing.Action) (bool, runtime.Object, error) {
 			action = a
