@@ -39,8 +39,8 @@ describe get
 
 # Developers
 
-If you'd like to contribute, please see
-[CONTRIBUTING](https://github.com/knative/docs/blob/master/contributing/CONTRIBUTING.md)
+If you'd like to contribute, please see our
+[contribution guidelines](https://knative.dev/contributing/)
 for more information.
 
 To build `kn`, see our [Development](DEVELOPMENT.md) guide.
