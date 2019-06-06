@@ -16,8 +16,10 @@ package serving
 
 import (
 	"fmt"
+	"strconv"
 
 	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
+	servingv1beta1 "github.com/knative/serving/pkg/apis/serving/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -31,6 +33,33 @@ func UpdateEnvVars(template *servingv1alpha1.RevisionTemplateSpec, vars map[stri
 	}
 	container.Env = updateEnvVarsFromMap(container.Env, vars)
 	return nil
+}
+
+// Update min and max scale annotation if larger than 0
+func UpdateConcurrencyConfiguration(template *servingv1alpha1.RevisionTemplateSpec, minScale int, maxScale int, target int, limit int) {
+	if minScale != 0 {
+		UpdateAnnotation(template, "autoscaling.knative.dev/minScale", strconv.Itoa(minScale))
+	}
+	if maxScale != 0 {
+		UpdateAnnotation(template, "autoscaling.knative.dev/maxScale", strconv.Itoa(maxScale))
+	}
+	if target != 0 {
+		UpdateAnnotation(template, "autoscaling.knative.dev/target", strconv.Itoa(target))
+	}
+
+	if limit != 0 {
+		template.Spec.ContainerConcurrency = servingv1beta1.RevisionContainerConcurrencyType(limit)
+	}
+}
+
+// Updater (or add) an annotation to the given service
+func UpdateAnnotation(template *servingv1alpha1.RevisionTemplateSpec, annotation string, value string) {
+	annoMap := template.Annotations
+	if annoMap == nil {
+		annoMap = make(map[string]string)
+		template.Annotations = annoMap
+	}
+	annoMap[annotation] = value
 }
 
 // Utility function to translate between the API list form of env vars, and the

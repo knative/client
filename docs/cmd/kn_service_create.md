@@ -36,12 +36,16 @@ kn service create NAME --image IMAGE [flags]
 ### Options
 
 ```
+      --concurrency-limit int    Hard Limit of concurrent requests to be processed by a single replica.
+      --concurrency-target int   Recommendation for when to scale up based on the concurrent number of incoming request. Defaults to --concurrency-limit when given.
   -e, --env stringArray          Environment variable to set. NAME=value; you may provide this flag any number of times to set multiple environment variables.
       --force                    Create service forcefully, replaces existing service if any.
   -h, --help                     help for create
       --image string             Image to run.
       --limits-cpu string        The limits on the requested CPU (e.g., 1000m).
       --limits-memory string     The limits on the requested CPU (e.g., 1024Mi).
+      --max-scale int            Maximal number of replicas.
+      --min-scale int            Minimal number of replicas.
   -n, --namespace string         List the requested object(s) in given namespace.
       --requests-cpu string      The requested CPU (e.g., 250m).
       --requests-memory string   The requested CPU (e.g., 64Mi).

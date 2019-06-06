@@ -235,6 +235,42 @@ func TestServiceCreateRequestsLimitsMemory(t *testing.T) {
 	}
 }
 
+func TestServiceCreateMaxMinScale(t *testing.T) {
+	action, created, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
+		"--min-scale", "1", "--max-scale", "5", "--concurrency-target", "10", "--concurrency-limit", "100"})
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("create", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template, err := servinglib.GetRevisionTemplate(created)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	actualAnnos := template.Annotations
+	expectedAnnos := []string{
+		"autoscaling.knative.dev/minScale", "1",
+		"autoscaling.knative.dev/maxScale", "5",
+		"autoscaling.knative.dev/target", "10",
+	}
+
+	for i := 0; i < len(expectedAnnos); i += 2 {
+		anno := expectedAnnos[i]
+		if actualAnnos[anno] != expectedAnnos[i+1] {
+			t.Fatalf("Unexpected annotation value for %s : %s (actual) != %s (expected)",
+				anno, actualAnnos[anno], expectedAnnos[i+1])
+		}
+	}
+
+	if template.Spec.ContainerConcurrency != 100 {
+		t.Fatalf("container concurrency not set to given value 1000")
+	}
+}
+
 func TestServiceCreateRequestsLimitsCPUMemory(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",

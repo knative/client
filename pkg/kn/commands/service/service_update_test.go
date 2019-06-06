@@ -64,27 +64,7 @@ func fakeServiceUpdate(original *v1alpha1.Service, args []string) (
 }
 
 func TestServiceUpdateImage(t *testing.T) {
-	orig := &v1alpha1.Service{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "Service",
-			APIVersion: "knative.dev/v1alpha1",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "foo",
-			Namespace: "default",
-		},
-		Spec: v1alpha1.ServiceSpec{
-			DeprecatedRunLatest: &v1alpha1.RunLatestType{
-				Configuration: v1alpha1.ConfigurationSpec{
-					DeprecatedRevisionTemplate: &v1alpha1.RevisionTemplateSpec{
-						Spec: v1alpha1.RevisionSpec{
-							DeprecatedContainer: &corev1.Container{},
-						},
-					},
-				},
-			},
-		},
-	}
+	orig := newEmptyService()
 
 	template, err := servinglib.GetRevisionTemplate(orig)
 	if err != nil {
@@ -108,6 +88,45 @@ func TestServiceUpdateImage(t *testing.T) {
 	} else if template.Spec.DeprecatedContainer.Image != "gcr.io/foo/quux:xyzzy" {
 		t.Fatalf("wrong image set: %v", template.Spec.DeprecatedContainer.Image)
 	}
+}
+
+func TestServiceUpdateMaxMinScale(t *testing.T) {
+	original := newEmptyService()
+
+	action, updated, _, err := fakeServiceUpdate(original, []string{
+		"service", "update", "foo",
+		"--min-scale", "1", "--max-scale", "5", "--concurrency-target", "10", "--concurrency-limit", "100"})
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template, err := servinglib.GetRevisionTemplate(updated)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	actualAnnos := template.Annotations
+	expectedAnnos := []string{
+		"autoscaling.knative.dev/minScale", "1",
+		"autoscaling.knative.dev/maxScale", "5",
+		"autoscaling.knative.dev/target", "10",
+	}
+
+	for i := 0; i < len(expectedAnnos); i += 2 {
+		anno := expectedAnnos[i]
+		if actualAnnos[anno] != expectedAnnos[i+1] {
+			t.Fatalf("Unexpected annotation value for %s : %s (actual) != %s (expected)",
+				anno, actualAnnos[anno], expectedAnnos[i+1])
+		}
+	}
+
+	if template.Spec.ContainerConcurrency != 100 {
+		t.Fatalf("container concurrency not set to given value 1000")
+	}
+
 }
 
 func TestServiceUpdateEnv(t *testing.T) {
@@ -276,6 +295,30 @@ func TestServiceUpdateRequestsLimitsCPU_and_Memory(t *testing.T) {
 			expectedLimitsVars) {
 			t.Fatalf("wrong limits vars %v", newTemplate.Spec.DeprecatedContainer.Resources.Limits)
 		}
+	}
+}
+
+func newEmptyService() *v1alpha1.Service {
+	return &v1alpha1.Service{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Service",
+			APIVersion: "knative.dev/v1alpha1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "foo",
+			Namespace: "default",
+		},
+		Spec: v1alpha1.ServiceSpec{
+			DeprecatedRunLatest: &v1alpha1.RunLatestType{
+				Configuration: v1alpha1.ConfigurationSpec{
+					DeprecatedRevisionTemplate: &v1alpha1.RevisionTemplateSpec{
+						Spec: v1alpha1.RevisionSpec{
+							DeprecatedContainer: &corev1.Container{},
+						},
+					},
+				},
+			},
+		},
 	}
 }
 
