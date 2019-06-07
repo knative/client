@@ -16,6 +16,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/knative/client/pkg/kn/commands"
 	"github.com/spf13/cobra"
@@ -55,19 +56,19 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 			}
 			service = service.DeepCopy()
 
-			err = editFlags.Apply(service, cmd)
-			if err != nil {
+			if err = editFlags.Apply(service, cmd); err != nil {
 				return err
 			}
 
-			_, err = client.Services(namespace).Update(service)
-			if err != nil {
+			if _, err = client.Services(namespace).Update(service); err != nil {
 				return err
 			}
 
+			fmt.Fprintf(cmd.OutOrStdout(), "Service '%s' updated in namespace '%s'.\n", args[0], namespace)
 			return nil
 		},
 	}
+
 	commands.AddNamespaceFlags(serviceUpdateCommand.Flags(), false)
 	editFlags.AddUpdateFlags(serviceUpdateCommand)
 	return serviceUpdateCommand
