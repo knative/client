@@ -75,6 +75,8 @@ You can link that script into a directory within your search `$PATH`. This allow
 * `build.sh -f` - Compile only
 * `build.sh -f -t` - Compile & test
 * `build.sh -u` - Update dependencies before compiling
+* `build.sh -w` - Enter watch mode for automatic recompilation
+* `build.sh -w -t` - Enter watch mode for automatic recompilation & running tests
 
 See `build.sh --help` for a full list of options and usage examples.
 
