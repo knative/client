@@ -23,6 +23,24 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
+func TestUpdateAutoscalingAnnotations(t *testing.T) {
+	template := &servingv1alpha1.RevisionTemplateSpec{}
+	UpdateConcurrencyConfiguration(template, 10, 100, 1000, 1000)
+	annos := template.Annotations
+	if annos["autoscaling.knative.dev/minScale"] != "10" {
+		t.Error("minScale failed")
+	}
+	if annos["autoscaling.knative.dev/maxScale"] != "100" {
+		t.Error("maxScale failed")
+	}
+	if annos["autoscaling.knative.dev/target"] != "1000" {
+		t.Error("target failed")
+	}
+	if template.Spec.ContainerConcurrency != 1000 {
+		t.Error("limit failed")
+	}
+}
+
 func TestUpdateEnvVarsNew(t *testing.T) {
 	template, container := getV1alpha1RevisionTemplateWithOldFields()
 	testUpdateEnvVarsNew(t, template, container)
