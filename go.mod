@@ -29,7 +29,7 @@ require (
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.3
-	github.com/spf13/viper v1.3.1
+	github.com/spf13/viper v1.3.1 // indirect
 	github.com/stretchr/objx v0.2.0 // indirect
 	golang.org/x/net v0.0.0-20190514140710-3ec191127204 // indirect
 	golang.org/x/oauth2 v0.0.0-20190517181255-950ef44c6e07 // indirect
