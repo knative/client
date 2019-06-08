@@ -112,27 +112,27 @@ generate_docs() {
 
 watch() {
     local command="./hack/build.sh --fast"
-    local notify_opts="--include cmd --include pkg --batch 500"
+    local fswatch_opts='-e "^\..*$" -o pkg cmd'
     if $(has_flag --test -t); then
       command="$command --test"
     fi
     if $(has_flag --verbose); then
-      notify_opts="$notify_opts --verbose"
+      fswatch_opts="$fswatch_opts -v"
     fi
     set +e
-    which xnotify >/dev/null 2>&1
+    which fswatch >/dev/null 2>&1
     if [ $? -ne 0 ]; then
       local green="[32m"
       local reset="[39m"
 
-      echo "🤷 Watch: Cannot find ${green}xnotify${reset}"
-      echo "🌏 Please download from ${green}https://github.com/AgentCosmic/xnotify/releases${reset} and install in \$PATH"
+      echo "🤷 Watch: Cannot find ${green}fswatch${reset}"
+      echo "🌏 Please see ${green}http://emcrisostomo.github.io/fswatch/${reset} for installation instructions"
       exit 1
     fi
     set -e
 
     echo "🔁 Watch"
-    xnotify $notify_opts -- $command
+    fswatch $fswatch_opts | xargs -n1 -I{} $command
 }
 
 # Dir where this script is located
