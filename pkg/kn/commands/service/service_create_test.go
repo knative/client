@@ -35,7 +35,7 @@ func fakeServiceCreate(args []string) (
 	created *v1alpha1.Service,
 	output string,
 	err error) {
-	knParams := &commands.KnParams{}
+	knParams := &commands.KnParams{CurrentNamespace: "default"}
 	cmd, fakeServing, buf := commands.CreateTestKnCommand(NewServiceCommand(knParams), knParams)
 	fakeServing.AddReactor("*", "*",
 		func(a client_testing.Action) (bool, runtime.Object, error) {

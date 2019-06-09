@@ -55,8 +55,8 @@ Eventing: Manage event subscriptions and channels. Connect up event sources.`,
 	if params.Output != nil {
 		rootCmd.SetOutput(params.Output)
 	}
-	rootCmd.PersistentFlags().StringVar(&CfgFile, "config", "", "config file (default is $HOME/.kn.yaml)")
-	rootCmd.PersistentFlags().StringVar(&KubeCfgFile, "kubeconfig", "", "kubectl config file (default is $HOME/.kube/config)")
+	rootCmd.PersistentFlags().StringVar(&params.CfgFile, "config", "", "config file (default is $HOME/.kn.yaml)")
+	rootCmd.PersistentFlags().StringVar(&params.KubeCfgPath, "kubeconfig", "", "kubectl config file (default is $HOME/.kube/config)")
 
 	rootCmd.AddCommand(subCommand)
 

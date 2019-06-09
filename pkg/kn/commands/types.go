@@ -24,23 +24,36 @@ import (
 // CfgFile is Kn's config file is the path for the Kubernetes config
 var CfgFile string
 
-// KubeCfgFile is the path for the Kubernetes config
-var KubeCfgFile string
-
 // Parameters for creating commands. Useful for inserting mocks for testing.
 type KnParams struct {
 	Output         io.Writer
 	ServingFactory func() (serving.ServingV1alpha1Interface, error)
+
+	// CfgFile is Kn's config file is the path for the Kubernetes config
+	CfgFile          string
+	KubeCfgPath      string
+	CurrentNamespace string
+	ClientConfig     clientcmd.ClientConfig
 }
 
 func (c *KnParams) Initialize() {
 	if c.ServingFactory == nil {
-		c.ServingFactory = GetConfig
+		c.ServingFactory = c.GetConfig
 	}
 }
 
-func GetConfig() (serving.ServingV1alpha1Interface, error) {
-	config, err := clientcmd.BuildConfigFromFlags("", KubeCfgFile)
+func (c *KnParams) GetConfig() (serving.ServingV1alpha1Interface, error) {
+	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
+	if len(c.KubeCfgPath) > 0 {
+		loadingRules.ExplicitPath = c.KubeCfgPath
+	}
+	c.ClientConfig = clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, &clientcmd.ConfigOverrides{})
+	var err error
+	c.CurrentNamespace, _, err = c.ClientConfig.Namespace()
+	if err != nil {
+		return nil, err
+	}
+	config, err := c.ClientConfig.ClientConfig()
 	if err != nil {
 		return nil, err
 	}

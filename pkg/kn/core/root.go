@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"path/filepath"
 
 	"github.com/knative/client/pkg/kn/commands"
 	"github.com/knative/client/pkg/kn/commands/revision"
@@ -64,8 +63,8 @@ Eventing: Manage event subscriptions and channels. Connect up event sources.`,
 	if p.Output != nil {
 		rootCmd.SetOutput(p.Output)
 	}
-	rootCmd.PersistentFlags().StringVar(&commands.CfgFile, "config", "", "config file (default is $HOME/.kn/config.yaml)")
-	rootCmd.PersistentFlags().StringVar(&commands.KubeCfgFile, "kubeconfig", "", "kubectl config file (default is $HOME/.kube/config)")
+	rootCmd.PersistentFlags().StringVar(&p.CfgFile, "config", "", "config file (default is $HOME/.kn/config.yaml)")
+	rootCmd.PersistentFlags().StringVar(&p.KubeCfgPath, "kubeconfig", "", "kubectl config file (default is $HOME/.kube/config)")
 
 	rootCmd.AddCommand(service.NewServiceCommand(p))
 	rootCmd.AddCommand(revision.NewRevisionCommand(p))
@@ -75,28 +74,6 @@ Eventing: Manage event subscriptions and channels. Connect up event sources.`,
 	// For glog parse error.
 	flag.CommandLine.Parse([]string{})
 	return rootCmd
-}
-
-func InitializeConfig() {
-	cobra.OnInitialize(initConfig)
-	cobra.OnInitialize(initKubeConfig)
-
-}
-
-func initKubeConfig() {
-	if commands.KubeCfgFile != "" {
-		return
-	}
-	if kubeEnvConf, ok := os.LookupEnv("KUBECONFIG"); ok {
-		commands.KubeCfgFile = kubeEnvConf
-	} else {
-		home, err := homedir.Dir()
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(1)
-		}
-		commands.KubeCfgFile = filepath.Join(home, ".kube", "config")
-	}
 }
 
 // initConfig reads in config file and ENV variables if set.
