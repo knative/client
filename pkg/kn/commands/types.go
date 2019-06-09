@@ -21,9 +21,6 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-// CfgFile is Kn's config file is the path for the Kubernetes config
-var CfgFile string
-
 // KubeCfgFile is the path for the Kubernetes config
 var KubeCfgFile string
 
