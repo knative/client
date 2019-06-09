@@ -145,13 +145,14 @@ func isGivenEqualsObservedGeneration(object runtime.Object) (bool, error) {
 	if !ok {
 		return false, fmt.Errorf("cannot extract status from %v", object)
 	}
+	observedGeneration, ok := status["observedGeneration"]
+	if !ok {
+		// Can be the case if not status has been attached yet
+		return false, nil
+	}
 	givenGeneration, ok := meta["generation"]
 	if !ok {
 		return false, fmt.Errorf("no field 'generation' in metadata of %v", object)
-	}
-	observedGeneration, ok := status["observedGeneration"]
-	if !ok {
-		return false, fmt.Errorf("no field 'observedGeneration' in status of %v", object)
 	}
 	return givenGeneration == observedGeneration, nil
 }
