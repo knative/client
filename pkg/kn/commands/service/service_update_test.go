@@ -95,7 +95,7 @@ func TestServiceUpdateImage(t *testing.T) {
 	servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
 
 	action, updated, output, err := fakeServiceUpdate(orig, []string{
-		"service", "update", "foo", "--image", "gcr.io/foo/quux:xyzzy"})
+		"service", "update", "foo", "--image", "gcr.io/foo/quux:xyzzy", "--namespace", "bar"})
 
 	if err != nil {
 		t.Fatal(err)
@@ -110,7 +110,11 @@ func TestServiceUpdateImage(t *testing.T) {
 		t.Fatalf("wrong image set: %v", template.Spec.DeprecatedContainer.Image)
 	}
 
-	if !strings.Contains(output, "update") {
+	if !strings.Contains(strings.ToLower(output), "update") ||
+		!strings.Contains(output, "foo") ||
+		!strings.Contains(strings.ToLower(output), "service") ||
+		!strings.Contains(strings.ToLower(output), "namespace") ||
+		!strings.Contains(output, "bar") {
 		t.Fatalf("wrong or no success message: %s", output)
 	}
 }

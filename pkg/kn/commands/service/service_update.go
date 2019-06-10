@@ -56,11 +56,13 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 			}
 			service = service.DeepCopy()
 
-			if err = editFlags.Apply(service, cmd); err != nil {
+			err = editFlags.Apply(service, cmd)
+			if err != nil {
 				return err
 			}
 
-			if _, err = client.Services(namespace).Update(service); err != nil {
+			_, err = client.Services(namespace).Update(service)
+			if err != nil {
 				return err
 			}
 
