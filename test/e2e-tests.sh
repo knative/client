@@ -31,7 +31,7 @@ source $(dirname $0)/../vendor/github.com/knative/test-infra/scripts/e2e-tests.s
 # Build kn before integration tests, so we fail fast in case of error.
 function cluster_setup() {
   header "Building client"
-  go build -v -mod=vendor ./cmd/... || return 1
+  ${REPO_ROOT_DIR}/hack/build.sh -u || return 1
 }
 
 function knative_setup() {
