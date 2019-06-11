@@ -15,7 +15,9 @@ Service command group
 ### Options inherited from parent commands
 
 ```
+      --config string       config file (default is $HOME/.kn/config.yaml)
       --kubeconfig string   kubectl config file (default is $HOME/.kube/config)
+      --plugin-dir string   kn plugin directory (default is value in kn config or $PATH)
 ```
 
 ### SEE ALSO
@@ -24,6 +26,6 @@ Service command group
 * [kn service create](kn_service_create.md)	 - Create a service.
 * [kn service delete](kn_service_delete.md)	 - Delete a service.
 * [kn service describe](kn_service_describe.md)	 - Describe available services.
-* [kn service get](kn_service_get.md)	 - Get available services.
+* [kn service list](kn_service_list.md)	 - List available services.
 * [kn service update](kn_service_update.md)	 - Update a service.
 

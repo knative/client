@@ -1,6 +1,6 @@
 # kn
 
-`kn` is the Knative command line interface (CLI). 
+`kn` is the Knative command line interface (CLI).
 
 ## Getting Started
 
@@ -8,7 +8,7 @@
 
 You can grab the latest nightly binary executable for:
  * [Max OS X](https://storage.cloud.google.com/knative-nightly/client/latest/kn-darwin-amd64)
- * [Linix AMD 64](https://storage.googleapis.com/knative-nightly/client/latest/kn-linux-amd64)
+ * [Linux AMD 64](https://storage.googleapis.com/knative-nightly/client/latest/kn-linux-amd64)
  * [Windows AMD 64](https://storage.googleapis.com/knative-nightly/client/latest/kn-windows-amd64.exe)
 
 Put it on your system path, and make sure it's executable.
@@ -41,7 +41,7 @@ See the [generated documentation.](cmd/kn.md)
 
 A Knative service is the embodiment of a serverless workload. Generally in the form of a collection of containers running in a group of pods in the underlying Kubernetes cluster. Each Knative service associates with a collection of revisions which represents the evolution of that service.
 
-With the Kn CLI a user can list/[`get`](cmd/kn_service_get.md), [`create`](cmd/kn_service_create.md), [`delete`](cmd/kn_service_delete.md), and [`update`](cmd/kn_service_update.md) Knative services. The [detail reference](cmd/kn_service.md) of each sub-command under the [`service` command](cmd/kn_service.md) shows the options and flags for this group of commands.
+With the Kn CLI a user can [`list`](cmd/kn_service_list.md), [`create`](cmd/kn_service_create.md), [`delete`](cmd/kn_service_delete.md), and [`update`](cmd/kn_service_update.md) Knative services. The [detail reference](cmd/kn_service.md) of each sub-command under the [`service` command](cmd/kn_service.md) shows the options and flags for this group of commands.
 
 Examples:
 
@@ -56,23 +56,23 @@ You are able to also specify the requests and limits of both CPU and memory when
 ```bash
 # List existing services in the 'default' namespace of your cluster
 
-kn service get
+kn service list
 ```
 
-You can also list services from all namespaces or specific namespace using flags: `--all-namespaces` and `--namespace mynamespace`. See [`service get` command](cmd/kn_service_get.md) reference for additional details.
+You can also list services from all namespaces or specific namespace using flags: `--all-namespaces` and `--namespace mynamespace`. See [`service list` command](cmd/kn_service_list.md) reference for additional details.
 
 ### Revision Management
 
-A Knative revision is a "snapshot" of the specification of a service. For instance, when a Knative service is created with environment variable `FOO=bar` a revision is added to the service. When later the environment variable is changed to `baz` or additional variables are added, a new revision is created. When the image the service is running is changed to a new digest, a new revision is created. 
+A Knative revision is a "snapshot" of the specification of a service. For instance, when a Knative service is created with environment variable `FOO=bar` a revision is added to the service. When later the environment variable is changed to `baz` or additional variables are added, a new revision is created. When the image the service is running is changed to a new digest, a new revision is created.
 
-With the [`revision` command group](cmd/kn_revision.md) you can list/[get](cmd/kn_revision_get.md) and [describe](cmd/kn_revision_describe.md) the current revisions on a service.
+With the [`revision` command group](cmd/kn_revision.md) you can [list](cmd/kn_revision_list.md) and [describe](cmd/kn_revision_describe.md) the current revisions on a service.
 
 Examples:
 
 ```bash
 # Listing a service's revision
 
-kn revision get --service srvc # CHECK this since current command does not have --service flag
+kn revision list --service srvc # CHECK this since current command does not have --service flag
 ```
 
 ### Utilities

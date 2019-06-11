@@ -13,7 +13,7 @@ Goals:
 
 # Docs
 
-Start with the [user's guide](docs/README.md) and from there you can can read about common use cases, get detail docs on each command, and even how to extend the `kn` CLI. Links below for easy access.
+Start with the [user's guide](docs/README.md) and from there you can read about common use cases, get detail docs on each command, and even how to extend the `kn` CLI. Links below for easy access.
 
 * [User's guide](docs/README.md)
 * [Basic workflows](docs/workflows.md) (use cases)

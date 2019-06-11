@@ -13,13 +13,16 @@ Eventing: Manage event subscriptions and channels. Connect up event sources.
 ### Options
 
 ```
+      --config string       config file (default is $HOME/.kn/config.yaml)
   -h, --help                help for kn
       --kubeconfig string   kubectl config file (default is $HOME/.kube/config)
+      --plugin-dir string   kn plugin directory (default is value in kn config or $PATH)
 ```
 
 ### SEE ALSO
 
 * [kn completion](kn_completion.md)	 - Output shell completion code (default Bash)
+* [kn plugin](kn_plugin.md)	 - Plugin command group
 * [kn revision](kn_revision.md)	 - Revision command group
 * [kn service](kn_service.md)	 - Service command group
 * [kn version](kn_version.md)	 - Prints the client version

@@ -41,7 +41,9 @@ kn service update NAME [flags]
 ### Options inherited from parent commands
 
 ```
+      --config string       config file (default is $HOME/.kn/config.yaml)
       --kubeconfig string   kubectl config file (default is $HOME/.kube/config)
+      --plugin-dir string   kn plugin directory (default is value in kn config or $PATH)
 ```
 
 ### SEE ALSO

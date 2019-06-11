@@ -15,12 +15,14 @@ Revision command group
 ### Options inherited from parent commands
 
 ```
+      --config string       config file (default is $HOME/.kn/config.yaml)
       --kubeconfig string   kubectl config file (default is $HOME/.kube/config)
+      --plugin-dir string   kn plugin directory (default is value in kn config or $PATH)
 ```
 
 ### SEE ALSO
 
 * [kn](kn.md)	 - Knative client
 * [kn revision describe](kn_revision_describe.md)	 - Describe revisions.
-* [kn revision get](kn_revision_get.md)	 - Get available revisions.
+* [kn revision list](kn_revision_list.md)	 - List available revisions.
 

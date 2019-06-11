@@ -19,6 +19,7 @@ import (
 	"os"
 
 	"github.com/knative/client/pkg/kn/core"
+	"github.com/spf13/viper"
 )
 
 func init() {
@@ -26,9 +27,14 @@ func init() {
 }
 
 func main() {
-	err := core.NewKnCommand().Execute()
+	defer cleanup()
+	err := core.NewDefaultKnCommand().Execute()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
+}
+
+func cleanup() {
+	viper.WriteConfig()
 }

@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/knative/client/pkg/kn/commands"
@@ -73,8 +74,8 @@ func TestServiceUpdateImage(t *testing.T) {
 
 	servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
 
-	action, updated, _, err := fakeServiceUpdate(orig, []string{
-		"service", "update", "foo", "--image", "gcr.io/foo/quux:xyzzy"})
+	action, updated, output, err := fakeServiceUpdate(orig, []string{
+		"service", "update", "foo", "--image", "gcr.io/foo/quux:xyzzy", "--namespace", "bar"})
 
 	if err != nil {
 		t.Fatal(err)
@@ -87,6 +88,14 @@ func TestServiceUpdateImage(t *testing.T) {
 		t.Fatal(err)
 	} else if template.Spec.DeprecatedContainer.Image != "gcr.io/foo/quux:xyzzy" {
 		t.Fatalf("wrong image set: %v", template.Spec.DeprecatedContainer.Image)
+	}
+
+	if !strings.Contains(strings.ToLower(output), "update") ||
+		!strings.Contains(output, "foo") ||
+		!strings.Contains(strings.ToLower(output), "service") ||
+		!strings.Contains(strings.ToLower(output), "namespace") ||
+		!strings.Contains(output, "bar") {
+		t.Fatalf("wrong or no success message: %s", output)
 	}
 }
 
