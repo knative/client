@@ -12,26 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package revision
 
 import (
-	"fmt"
-	"os"
-
-	"github.com/knative/client/pkg/kn/core"
-	"github.com/spf13/cobra/doc"
+	"github.com/knative/client/pkg/kn/commands"
+	"github.com/spf13/cobra"
 )
 
-func main() {
-	rootCmd := core.NewKnCommand()
-
-	dir := "."
-	if len(os.Args) > 1 {
-		dir = os.Args[1]
+func NewRevisionCommand(p *commands.KnParams) *cobra.Command {
+	revisionCmd := &cobra.Command{
+		Use:   "revision",
+		Short: "Revision command group",
 	}
-	err := doc.GenMarkdownTree(rootCmd, dir + "/docs/cmd/")
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
+	revisionCmd.AddCommand(NewRevisionGetCommand(p))
+	revisionCmd.AddCommand(NewRevisionDescribeCommand(p))
+	return revisionCmd
 }

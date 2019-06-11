@@ -24,7 +24,6 @@ kn service get [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string       config file (default is $HOME/.kn.yaml)
       --kubeconfig string   kubectl config file (default is $HOME/.kube/config)
 ```
 

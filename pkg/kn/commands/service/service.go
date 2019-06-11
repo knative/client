@@ -12,26 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package service
 
 import (
-	"fmt"
-	"os"
-
-	"github.com/knative/client/pkg/kn/core"
-	"github.com/spf13/cobra/doc"
+	"github.com/knative/client/pkg/kn/commands"
+	"github.com/spf13/cobra"
 )
 
-func main() {
-	rootCmd := core.NewKnCommand()
-
-	dir := "."
-	if len(os.Args) > 1 {
-		dir = os.Args[1]
+func NewServiceCommand(p *commands.KnParams) *cobra.Command {
+	serviceCmd := &cobra.Command{
+		Use:   "service",
+		Short: "Service command group",
 	}
-	err := doc.GenMarkdownTree(rootCmd, dir + "/docs/cmd/")
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
+	serviceCmd.AddCommand(NewServiceGetCommand(p))
+	serviceCmd.AddCommand(NewServiceDescribeCommand(p))
+	serviceCmd.AddCommand(NewServiceCreateCommand(p))
+	serviceCmd.AddCommand(NewServiceDeleteCommand(p))
+	serviceCmd.AddCommand(NewServiceUpdateCommand(p))
+	return serviceCmd
 }

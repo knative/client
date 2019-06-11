@@ -39,6 +39,11 @@ run() {
     exit 0
   fi
 
+  if $(has_flag --watch -w); then
+    watch
+    # No exit, needs to be stopped with CTRL-C anyways
+  fi
+
   if $(has_flag -u --update); then
     # Update dependencies
     update_deps
@@ -105,6 +110,31 @@ generate_docs() {
   go run "./hack/generate-docs.go" "."
 }
 
+watch() {
+    local command="./hack/build.sh --fast"
+    local fswatch_opts='-e "^\..*$" -o pkg cmd'
+    if $(has_flag --test -t); then
+      command="$command --test"
+    fi
+    if $(has_flag --verbose); then
+      fswatch_opts="$fswatch_opts -v"
+    fi
+    set +e
+    which fswatch >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
+      local green="[32m"
+      local reset="[39m"
+
+      echo "🤷 Watch: Cannot find ${green}fswatch${reset}"
+      echo "🌏 Please see ${green}http://emcrisostomo.github.io/fswatch/${reset} for installation instructions"
+      exit 1
+    fi
+    set -e
+
+    echo "🔁 Watch"
+    fswatch $fswatch_opts | xargs -n1 -I{} $command
+}
+
 # Dir where this script is located
 basedir() {
     # Default is current directory
@@ -154,10 +184,12 @@ Usage: $(basename $BASH_SOURCE) [... options ...]
 with the following options:
 
 -f  --fast                    Only compile (without formatting, testing, doc generation)
--t  --test                    Run tests when used with --fast
+-t  --test                    Run tests when used with --fast or --watch
 -u  --update                  Update dependencies before compiling
+-w  --watch                   Watch for source changes and recompile in fast mode
 -h  --help                    Display this help message
-    --verbose                 Verbose script output (set -x)
+    --verbose                 More output
+    --debug                   Debug information for this script (set -x)
 
 You can add a symbolic link to this build script into your PATH so that it can be
 called from everywhere. E.g.:
@@ -169,10 +201,11 @@ Examples:
 * Compile, format, tests, docs:  build.sh
 * Compile only:                  build.sh --fast
 * Compile with tests:            build.sh -f -t
+* Automatice recompilation:      build.sh --watch
 EOT
 }
 
-if $(has_flag --verbose); then
+if $(has_flag --debug); then
     export PS4='+($(basename ${BASH_SOURCE[0]}):${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
     set -x
 fi

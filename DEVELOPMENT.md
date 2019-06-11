@@ -31,8 +31,7 @@ You must install these tools:
 
 ### Create a cluster
 
-1. [Set up a Knative](https://www.knative.dev/docs/install/)
-   - You can also setup using limited install guides for eg: Minikube/Minishift.
+1. [Set up a Knative](https://www.knative.dev/docs/install/), You can also setup using limited install guides like [Minikube](https://knative.dev/docs/install/knative-with-minikube/) or [Minishift](https://knative.dev/docs/install/knative-with-minishift/).
 
 ### Checkout your fork
 
@@ -75,6 +74,8 @@ You can link that script into a directory within your search `$PATH`. This allow
 * `build.sh -f` - Compile only
 * `build.sh -f -t` - Compile & test
 * `build.sh -u` - Update dependencies before compiling
+* `build.sh -w` - Enter watch mode for automatic recompilation
+* `build.sh -w -t` - Enter watch mode for automatic recompilation & running tests
 
 See `build.sh --help` for a full list of options and usage examples.
 
