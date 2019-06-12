@@ -13,10 +13,10 @@ kn service create hello --image gcr.io/knative-samples/helloworld-go --env TARGE
 Service 'hello' successfully created in namespace 'default'.
 ```
 
-* **Get service**
+* **List service**
 
 ```bash
-kn service get hello
+kn service list hello
 NAME           DOMAIN                             GENERATION   AGE     CONDITIONS   READY   REASON
 hello          hello.default.example.com          1            3m5s    3 OK / 3     True
 ```
@@ -98,9 +98,9 @@ kn service delete hello
 Service 'hello' successfully deleted in namespace 'default'.
 ```
 
-You can then verify that the 'hello' service is deleted by trying to `get` it again.
+You can then verify that the 'hello' service is deleted by trying to `list` it again.
 
 ```bash
-kn service get hello
+kn service list hello
 No resources found.
 ```
