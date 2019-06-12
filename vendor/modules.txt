@@ -71,7 +71,7 @@ github.com/knative/serving/pkg/apis/networking
 github.com/knative/serving/pkg/apis/networking/v1alpha1
 github.com/knative/serving/pkg/apis/config
 github.com/knative/serving/pkg/apis/autoscaling/v1alpha1
-# github.com/knative/test-infra v0.0.0-20190531180034-a3c073a2fea1
+# github.com/knative/test-infra v0.0.0-20190617165445-9320a359edc4
 github.com/knative/test-infra/scripts
 # github.com/mattbaird/jsonpatch v0.0.0-20171005235357-81af80346b1a
 github.com/mattbaird/jsonpatch

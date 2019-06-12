@@ -28,7 +28,23 @@ export DISABLE_MD_LINTING=1
 
 export GO111MODULE=on
 source $(dirname $0)/../vendor/github.com/knative/test-infra/scripts/presubmit-tests.sh
+source $(dirname $0)/e2e-common.sh
 
-# We use the default build, unit and integration test runners.
+# We use the default build, and unit test runners.
+# We customize the integration test runner, since we plan to run the tests against previous Knative release.
+function integration_tests() {
+  echo "Getting into custome integration test ${e2e_test} for $KNATIVE_VERSION"
+  local options=""
+  local failed=0
+  (( EMIT_METRICS )) && options="--emit-metrics --knative-version $KNATIVE_VERSION"
+  for e2e_test in $(find test/ -name e2e-*tests.sh); do
+    echo "Running integration test ${e2e_test}"
+    if ! ${e2e_test} ${options}; then
+      failed=1
+    fi
+  done
+  return ${failed}
+}
 
+parse_flags $@
 main $@

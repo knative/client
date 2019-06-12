@@ -24,34 +24,16 @@
 # project $PROJECT_ID, start Knative serving, run the tests and delete
 # the cluster.
 
-source $(dirname $0)/../vendor/github.com/knative/test-infra/scripts/e2e-tests.sh
-source $(dirname $0)/e2e-common.sh
+KNATIVE_VERSION="latest"
 
-# Helper functions.
-
-# Build kn before integration tests, so we fail fast in case of error.
-function cluster_setup() {
-  header "Building client"
-  ${REPO_ROOT_DIR}/hack/build.sh -u || return 1
+# Parse the custom flags.
+function parse_flags() {
+  case "$1" in
+    --knative-version)
+      [[ $2 =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || abort "version format must be '[0-9].[0-9].[0-9]'"
+      readonly KNATIVE_VERSION=$2
+      return 2
+      ;;
+  esac
+  return 0
 }
-
-function knative_setup() {
-  header "Installing Knative serving version of $KNATIVE_VERSION"
-  start_knative_serving_env "$KNATIVE_VERSION"
-}
-
-function start_knative_serving_env() {
-  local VERSION=${1:-latest}
-  if [ "$VERSION" = "latest" ]; then
-    start_latest_knative_serving
-  else
-    start_release_knative_serving "${VERSION}"
-  fi;
-}
-
-# Add local dir to have access to built kn
-export PATH=$PATH:${REPO_ROOT_DIR}
-initialize $@
-header "Running tests for Knative serving version of $KNATIVE_VERSION"
-go_test_e2e ./test/e2e || fail_test
-success

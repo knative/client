@@ -327,15 +327,27 @@ function report_go_test() {
   return ${failed}
 }
 
-# Install the latest stable Knative/serving in the current cluster.
-function start_latest_knative_serving() {
+# Install Knative Serving in the current cluster.
+# Parameters: $1 - Knative Serving manifest.
+function start_knative_serving() {
   header "Starting Knative Serving"
   subheader "Installing Knative Serving"
-  echo "Installing Serving CRDs from ${KNATIVE_SERVING_RELEASE}"
-  kubectl apply --selector knative.dev/crd-install=true -f ${KNATIVE_SERVING_RELEASE}
-  echo "Installing the rest of serving components from ${KNATIVE_SERVING_RELEASE}"
-  kubectl apply -f ${KNATIVE_SERVING_RELEASE}
+  echo "Installing Serving CRDs from $1"
+  kubectl apply --selector knative.dev/crd-install=true -f "$1"
+  echo "Installing the rest of serving components from $1"
+  kubectl apply -f "$1"
   wait_until_pods_running knative-serving || return 1
+}
+
+# Install the stable release Knative/serving in the current cluster.
+# Parameters: $1 - Knative Serving version number, e.g. 0.6.0.
+function start_release_knative_serving() {
+  start_knative_serving "https://storage.googleapis.com/knative-releases/serving/previous/v$1/serving.yaml"
+}
+
+# Install the latest stable Knative Serving in the current cluster.
+function start_latest_knative_serving() {
+  start_knative_serving "${KNATIVE_SERVING_RELEASE}"
 }
 
 # Run a go tool, installing it first if necessary.
