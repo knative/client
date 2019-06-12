@@ -26,7 +26,7 @@ import (
 	client_testing "k8s.io/client-go/testing"
 )
 
-func fakeServiceGet(args []string, response *v1alpha1.ServiceList) (action client_testing.Action, output []string, err error) {
+func fakeServiceList(args []string, response *v1alpha1.ServiceList) (action client_testing.Action, output []string, err error) {
 	knParams := &commands.KnParams{}
 	cmd, fakeServing, buf := commands.CreateTestKnCommand(NewServiceCommand(knParams), knParams)
 	fakeServing.AddReactor("*", "*",
@@ -43,8 +43,8 @@ func fakeServiceGet(args []string, response *v1alpha1.ServiceList) (action clien
 	return
 }
 
-func TestGetEmpty(t *testing.T) {
-	action, output, err := fakeServiceGet([]string{"service", "get"}, &v1alpha1.ServiceList{})
+func TestListEmpty(t *testing.T) {
+	action, output, err := fakeServiceList([]string{"service", "list"}, &v1alpha1.ServiceList{})
 	if err != nil {
 		t.Error(err)
 		return
@@ -58,11 +58,11 @@ func TestGetEmpty(t *testing.T) {
 	}
 }
 
-func TestServiceGetDefaultOutput(t *testing.T) {
+func TestServiceListDefaultOutput(t *testing.T) {
 	service1 := createMockServiceWithParams("foo", "foo.default.example.com", 1)
 	service2 := createMockServiceWithParams("bar", "bar.default.example.com", 2)
 	serviceList := &v1alpha1.ServiceList{Items: []v1alpha1.Service{*service1, *service2}}
-	action, output, err := fakeServiceGet([]string{"service", "get"}, serviceList)
+	action, output, err := fakeServiceList([]string{"service", "list"}, serviceList)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -22,8 +22,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-// ServiceGetHandlers adds print handlers for service get command
-func ServiceGetHandlers(h hprinters.PrintHandler) {
+// ServiceListHandlers adds print handlers for service list command
+func ServiceListHandlers(h hprinters.PrintHandler) {
 	kServiceColumnDefinitions := []metav1beta1.TableColumnDefinition{
 		{Name: "Name", Type: "string", Description: "Name of the knative service."},
 		{Name: "Domain", Type: "string", Description: "Domain name of the knative service."},
