@@ -1,6 +1,6 @@
 # Development
 
-This doc explains how to setup a development environment so you can get started
+This doc explains how to set up a development environment so you can get started
 [contributing](https://www.knative.dev/contributing/) to `Knative Client`.
 Also take a look at:
 
@@ -16,7 +16,7 @@ Before submitting a PR, see also [contribution guide](https://www.knative.dev/co
 
 ### Sign up for GitHub
 
-Start by creating [a GitHub account](https://github.com/join), then setup
+Start by creating [a GitHub account](https://github.com/join), then set up
 [GitHub access via SSH](https://help.github.com/articles/connecting-to-github-with-ssh/).
 
 ### Install requirements
@@ -31,7 +31,7 @@ You must install these tools:
 
 ### Create a cluster
 
-1. [Set up a Knative](https://www.knative.dev/docs/install/), You can also setup using limited install guides like [Minikube](https://knative.dev/docs/install/knative-with-minikube/) or [Minishift](https://knative.dev/docs/install/knative-with-minishift/).
+1. [Set up a Knative](https://www.knative.dev/docs/install/), You can also set up using limited install guides like [Minikube](https://knative.dev/docs/install/knative-with-minikube/) or [Minishift](https://knative.dev/docs/install/knative-with-minishift/).
 
 ### Checkout your fork
 
@@ -55,7 +55,7 @@ described below.
 
 ## Building Knative Client
 
-Once you've [setup your development environment](#prerequisites), let's build
+Once you've [set up your development environment](#prerequisites), let's build
 `Knative Client`.
 
 **Dependencies:**
@@ -79,7 +79,7 @@ You can link that script into a directory within your search `$PATH`. This allow
 
 See `build.sh --help` for a full list of options and usage examples.
 
-At the end, the build results in `kn` binary in your current directory, which can be directly executed.
+In the end, the build results in `kn` binary in your current directory, which can be directly executed.
 
 **Notes:**
 
