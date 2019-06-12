@@ -24,29 +24,13 @@
 # project $PROJECT_ID, start Knative serving, run the tests and delete
 # the cluster.
 
-source $(dirname $0)/../vendor/github.com/knative/test-infra/scripts/e2e-tests.sh
+source $(dirname $0)/e2e-common.sh
+PREVIOUS_RELEASE=0.6.0
 
-# Helper functions.
+listOfRelease=(latest $PREVIOUS_RELEASE)
 
-# Build kn before integration tests, so we fail fast in case of error.
-function cluster_setup() {
-  header "Building client"
-  ${REPO_ROOT_DIR}/hack/build.sh -u || return 1
-}
-
-function knative_setup() {
-  start_latest_knative_serving
-}
-
-# Add local dir to have access to built kn
-export PATH=$PATH:${REPO_ROOT_DIR}
-
-# Script entry point.
-
-initialize $@
-
-header "Running tests"
-
-go_test_e2e ./test/e2e || fail_test
-
-success
+for version in "${listOfRelease[@]}"; do
+   export KNATIVE_SERVING_VERSION=$version
+   echo "===== Starting E2E tests for Knative serving of the release $KNATIVE_SERVING_VERSION"
+   run_tests $@
+done
