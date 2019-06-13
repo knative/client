@@ -8,7 +8,7 @@
 
 You can grab the latest nightly binary executable for:
  * [Max OS X](https://storage.cloud.google.com/knative-nightly/client/latest/kn-darwin-amd64)
- * [Linix AMD 64](https://storage.googleapis.com/knative-nightly/client/latest/kn-linux-amd64)
+ * [Linux AMD 64](https://storage.googleapis.com/knative-nightly/client/latest/kn-linux-amd64)
  * [Windows AMD 64](https://storage.googleapis.com/knative-nightly/client/latest/kn-windows-amd64.exe)
 
 Put it on your system path, and make sure it's executable.
