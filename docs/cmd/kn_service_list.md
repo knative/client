@@ -1,13 +1,13 @@
-## kn service get
+## kn service list
 
-Get available services.
+List available services.
 
 ### Synopsis
 
-Get available services.
+List available services.
 
 ```
-kn service get [flags]
+kn service list [flags]
 ```
 
 ### Options
@@ -15,7 +15,7 @@ kn service get [flags]
 ```
       --all-namespaces                If present, list the requested object(s) across all namespaces. Namespace in current context is ignored even if specified with --namespace.
       --allow-missing-template-keys   If true, ignore any errors in templates when a field or map key is missing in the template. Only applies to golang and jsonpath output formats. (default true)
-  -h, --help                          help for get
+  -h, --help                          help for list
   -n, --namespace string              List the requested object(s) in given namespace.
   -o, --output string                 Output format. One of: json|yaml|name|go-template|go-template-file|template|templatefile|jsonpath|jsonpath-file.
       --template string               Template string or path to template file to use when -o=go-template, -o=go-template-file. The template format is golang templates [http://golang.org/pkg/text/template/#pkg-overview].

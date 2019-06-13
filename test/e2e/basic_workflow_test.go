@@ -46,20 +46,20 @@ func TestBasicWorkflow(t *testing.T) {
 	teardown := Setup(t)
 	defer teardown(t)
 
-	testServiceGetEmpty(t, k)
+	testServiceListEmpty(t, k)
 	testServiceCreate(t, k, "hello")
-	testServiceGet(t, k, "hello")
+	testServiceList(t, k, "hello")
 	testServiceDescribe(t, k, "hello")
 	testServiceDelete(t, k, "hello")
-	testServiceGetEmpty(t, k)
+	testServiceListEmpty(t, k)
 }
 
 // Private test functions
 
-func testServiceGetEmpty(t *testing.T, k kn) {
-	out, err := k.RunWithOpts([]string{"service", "get"}, runOpts{NoNamespace: false})
+func testServiceListEmpty(t *testing.T, k kn) {
+	out, err := k.RunWithOpts([]string{"service", "list"}, runOpts{NoNamespace: false})
 	if err != nil {
-		t.Fatalf(fmt.Sprintf("Error executing 'kn service get' command. Error: %s", err.Error()))
+		t.Fatalf(fmt.Sprintf("Error executing 'kn service list' command. Error: %s", err.Error()))
 	}
 
 	if !strings.Contains(out, "No resources found.") {
@@ -80,10 +80,10 @@ func testServiceCreate(t *testing.T, k kn, serviceName string) {
 	}
 }
 
-func testServiceGet(t *testing.T, k kn, serviceName string) {
-	out, err := k.RunWithOpts([]string{"service", "get", serviceName}, runOpts{NoNamespace: false})
+func testServiceList(t *testing.T, k kn, serviceName string) {
+	out, err := k.RunWithOpts([]string{"service", "list", serviceName}, runOpts{NoNamespace: false})
 	if err != nil {
-		t.Fatalf(fmt.Sprintf("Error executing 'kn service get %s' command. Error: %s", serviceName, err.Error()))
+		t.Fatalf(fmt.Sprintf("Error executing 'kn service list %s' command. Error: %s", serviceName, err.Error()))
 	}
 
 	expectedOutput := fmt.Sprintf("%s", serviceName)

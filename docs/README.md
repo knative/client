@@ -41,7 +41,7 @@ See the [generated documentation.](cmd/kn.md)
 
 A Knative service is the embodiment of a serverless workload. Generally in the form of a collection of containers running in a group of pods in the underlying Kubernetes cluster. Each Knative service associates with a collection of revisions which represents the evolution of that service.
 
-With the Kn CLI a user can list/[`get`](cmd/kn_service_get.md), [`create`](cmd/kn_service_create.md), [`delete`](cmd/kn_service_delete.md), and [`update`](cmd/kn_service_update.md) Knative services. The [detail reference](cmd/kn_service.md) of each sub-command under the [`service` command](cmd/kn_service.md) shows the options and flags for this group of commands.
+With the Kn CLI a user can [`list`](cmd/kn_service_list.md), [`create`](cmd/kn_service_create.md), [`delete`](cmd/kn_service_delete.md), and [`update`](cmd/kn_service_update.md) Knative services. The [detail reference](cmd/kn_service.md) of each sub-command under the [`service` command](cmd/kn_service.md) shows the options and flags for this group of commands.
 
 Examples:
 
@@ -56,10 +56,10 @@ You are able to also specify the requests and limits of both CPU and memory when
 ```bash
 # List existing services in the 'default' namespace of your cluster
 
-kn service get
+kn service list
 ```
 
-You can also list services from all namespaces or specific namespace using flags: `--all-namespaces` and `--namespace mynamespace`. See [`service get` command](cmd/kn_service_get.md) reference for additional details.
+You can also list services from all namespaces or specific namespace using flags: `--all-namespaces` and `--namespace mynamespace`. See [`service list` command](cmd/kn_service_list.md) reference for additional details.
 
 ### Revision Management
 

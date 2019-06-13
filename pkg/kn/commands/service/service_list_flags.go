@@ -21,23 +21,23 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
-// ServiceGetFlags composes common printer flag structs
-// used in the Get command.
-type ServiceGetFlags struct {
+// ServiceListFlags composes common printer flag structs
+// used in the 'kn service list' command.
+type ServiceListFlags struct {
 	GenericPrintFlags  *genericclioptions.PrintFlags
 	HumanReadableFlags *commands.HumanPrintFlags
 }
 
 // AllowedFormats is the list of formats in which data can be displayed
-func (f *ServiceGetFlags) AllowedFormats() []string {
+func (f *ServiceListFlags) AllowedFormats() []string {
 	formats := f.GenericPrintFlags.AllowedFormats()
 	formats = append(formats, f.HumanReadableFlags.AllowedFormats()...)
 	return formats
 }
 
-// ToPrinter attempts to find a composed set of ServiceGetFlags suitable for
+// ToPrinter attempts to find a composed set of ServiceListFlags suitable for
 // returning a printer based on current flag values.
-func (f *ServiceGetFlags) ToPrinter() (hprinters.ResourcePrinter, error) {
+func (f *ServiceListFlags) ToPrinter() (hprinters.ResourcePrinter, error) {
 	// if there are flags specified for generic printing
 	if f.GenericPrintFlags.OutputFlagSpecified() {
 		p, err := f.GenericPrintFlags.ToPrinter()
@@ -47,7 +47,7 @@ func (f *ServiceGetFlags) ToPrinter() (hprinters.ResourcePrinter, error) {
 		return p, nil
 	}
 	// if no flags specified, use the table printing
-	p, err := f.HumanReadableFlags.ToPrinter(ServiceGetHandlers)
+	p, err := f.HumanReadableFlags.ToPrinter(ServiceListHandlers)
 	if err != nil {
 		return nil, err
 	}
@@ -56,15 +56,15 @@ func (f *ServiceGetFlags) ToPrinter() (hprinters.ResourcePrinter, error) {
 
 // AddFlags receives a *cobra.Command reference and binds
 // flags related to humanreadable and template printing.
-func (f *ServiceGetFlags) AddFlags(cmd *cobra.Command) {
+func (f *ServiceListFlags) AddFlags(cmd *cobra.Command) {
 	f.GenericPrintFlags.AddFlags(cmd)
 	f.HumanReadableFlags.AddFlags(cmd)
 }
 
-// NewGetPrintFlags returns flags associated with humanreadable,
+// NewServiceListFlags returns flags associated with humanreadable,
 // template, and "name" printing, with default values set.
-func NewServiceGetFlags() *ServiceGetFlags {
-	return &ServiceGetFlags{
+func NewServiceListFlags() *ServiceListFlags {
+	return &ServiceListFlags{
 		GenericPrintFlags:  genericclioptions.NewPrintFlags(""),
 		HumanReadableFlags: commands.NewHumanPrintFlags(),
 	}

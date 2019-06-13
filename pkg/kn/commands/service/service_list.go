@@ -23,13 +23,13 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
-// NewServiceGetCommand represents 'kn service get' command
-func NewServiceGetCommand(p *commands.KnParams) *cobra.Command {
-	serviceGetFlags := NewServiceGetFlags()
+// NewServiceListCommand represents 'kn service list' command
+func NewServiceListCommand(p *commands.KnParams) *cobra.Command {
+	serviceListFlags := NewServiceListFlags()
 
-	serviceGetCommand := &cobra.Command{
-		Use:   "get",
-		Short: "Get available services.",
+	serviceListCommand := &cobra.Command{
+		Use:   "list",
+		Short: "List available services.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := p.ServingFactory()
 			if err != nil {
@@ -52,7 +52,7 @@ func NewServiceGetCommand(p *commands.KnParams) *cobra.Command {
 				Version: "v1alpha1",
 				Kind:    "Service"})
 
-			printer, err := serviceGetFlags.ToPrinter()
+			printer, err := serviceListFlags.ToPrinter()
 			if err != nil {
 				return err
 			}
@@ -64,7 +64,7 @@ func NewServiceGetCommand(p *commands.KnParams) *cobra.Command {
 			return nil
 		},
 	}
-	commands.AddNamespaceFlags(serviceGetCommand.Flags(), true)
-	serviceGetFlags.AddFlags(serviceGetCommand)
-	return serviceGetCommand
+	commands.AddNamespaceFlags(serviceListCommand.Flags(), true)
+	serviceListFlags.AddFlags(serviceListCommand)
+	return serviceListCommand
 }
