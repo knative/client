@@ -1,6 +1,6 @@
 # kn
 
-`kn` is the Knative command line interface (CLI). 
+`kn` is the Knative command line interface (CLI).
 
 ## Getting Started
 
@@ -63,16 +63,16 @@ You can also list services from all namespaces or specific namespace using flags
 
 ### Revision Management
 
-A Knative revision is a "snapshot" of the specification of a service. For instance, when a Knative service is created with environment variable `FOO=bar` a revision is added to the service. When later the environment variable is changed to `baz` or additional variables are added, a new revision is created. When the image the service is running is changed to a new digest, a new revision is created. 
+A Knative revision is a "snapshot" of the specification of a service. For instance, when a Knative service is created with environment variable `FOO=bar` a revision is added to the service. When later the environment variable is changed to `baz` or additional variables are added, a new revision is created. When the image the service is running is changed to a new digest, a new revision is created.
 
-With the [`revision` command group](cmd/kn_revision.md) you can list/[get](cmd/kn_revision_get.md) and [describe](cmd/kn_revision_describe.md) the current revisions on a service.
+With the [`revision` command group](cmd/kn_revision.md) you can [list](cmd/kn_revision_list.md) and [describe](cmd/kn_revision_describe.md) the current revisions on a service.
 
 Examples:
 
 ```bash
 # Listing a service's revision
 
-kn revision get --service srvc # CHECK this since current command does not have --service flag
+kn revision list --service srvc # CHECK this since current command does not have --service flag
 ```
 
 ### Utilities

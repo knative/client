@@ -26,7 +26,7 @@ import (
 	client_testing "k8s.io/client-go/testing"
 )
 
-func fakeRevisionGet(args []string, response *v1alpha1.RevisionList) (action client_testing.Action, output []string, err error) {
+func fakeRevisionList(args []string, response *v1alpha1.RevisionList) (action client_testing.Action, output []string, err error) {
 	knParams := &commands.KnParams{}
 	cmd, fakeServing, buf := commands.CreateTestKnCommand(NewRevisionCommand(knParams), knParams)
 	fakeServing.AddReactor("*", "*",
@@ -43,8 +43,8 @@ func fakeRevisionGet(args []string, response *v1alpha1.RevisionList) (action cli
 	return
 }
 
-func TestRevisionGetEmpty(t *testing.T) {
-	action, output, err := fakeRevisionGet([]string{"revision", "get"}, &v1alpha1.RevisionList{})
+func TestRevisionListEmpty(t *testing.T) {
+	action, output, err := fakeRevisionList([]string{"revision", "list"}, &v1alpha1.RevisionList{})
 	if err != nil {
 		t.Error(err)
 		return
@@ -58,11 +58,11 @@ func TestRevisionGetEmpty(t *testing.T) {
 	}
 }
 
-func TestRevisionGetDefaultOutput(t *testing.T) {
+func TestRevisionListDefaultOutput(t *testing.T) {
 	revision1 := createMockRevisionWithParams("foo-abcd", "foo")
 	revision2 := createMockRevisionWithParams("bar-wxyz", "bar")
 	RevisionList := &v1alpha1.RevisionList{Items: []v1alpha1.Revision{*revision1, *revision2}}
-	action, output, err := fakeRevisionGet([]string{"revision", "get"}, RevisionList)
+	action, output, err := fakeRevisionList([]string{"revision", "list"}, RevisionList)
 	if err != nil {
 		t.Fatal(err)
 	}

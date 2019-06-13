@@ -23,13 +23,13 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
-// NewRevisionGetCommand represents 'kn revision get' command
-func NewRevisionGetCommand(p *commands.KnParams) *cobra.Command {
-	revisionGetFlags := NewRevisionGetFlags()
+// NewRevisionListCommand represents 'kn revision list' command
+func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
+	revisionListFlags := NewRevisionListFlags()
 
-	revisionGetCommand := &cobra.Command{
-		Use:   "get",
-		Short: "Get available revisions.",
+	revisionListCommand := &cobra.Command{
+		Use:   "list",
+		Short: "List available revisions.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := p.ServingFactory()
 			if err != nil {
@@ -51,7 +51,7 @@ func NewRevisionGetCommand(p *commands.KnParams) *cobra.Command {
 				Group:   "knative.dev",
 				Version: "v1alpha1",
 				Kind:    "revision"})
-			printer, err := revisionGetFlags.ToPrinter()
+			printer, err := revisionListFlags.ToPrinter()
 			if err != nil {
 				return err
 			}
@@ -62,7 +62,7 @@ func NewRevisionGetCommand(p *commands.KnParams) *cobra.Command {
 			return nil
 		},
 	}
-	commands.AddNamespaceFlags(revisionGetCommand.Flags(), true)
-	revisionGetFlags.AddFlags(revisionGetCommand)
-	return revisionGetCommand
+	commands.AddNamespaceFlags(revisionListCommand.Flags(), true)
+	revisionListFlags.AddFlags(revisionListCommand)
+	return revisionListCommand
 }

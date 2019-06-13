@@ -23,8 +23,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-// RevisionGetHandlers adds print handlers for revision get command
-func RevisionGetHandlers(h hprinters.PrintHandler) {
+// RevisionListHandlers adds print handlers for revision list command
+func RevisionListHandlers(h hprinters.PrintHandler) {
 	RevisionColumnDefinitions := []metav1beta1.TableColumnDefinition{
 		{Name: "Service", Type: "string", Description: "Name of the knative service."},
 		{Name: "Name", Type: "string", Description: "Name of the revision."},

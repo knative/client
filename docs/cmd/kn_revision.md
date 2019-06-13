@@ -22,5 +22,5 @@ Revision command group
 
 * [kn](kn.md)	 - Knative client
 * [kn revision describe](kn_revision_describe.md)	 - Describe revisions.
-* [kn revision get](kn_revision_get.md)	 - Get available revisions.
+* [kn revision list](kn_revision_list.md)	 - List available revisions.
 
