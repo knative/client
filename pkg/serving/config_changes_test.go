@@ -15,9 +15,10 @@
 package serving
 
 import (
-	"github.com/knative/serving/pkg/apis/serving/v1beta1"
 	"reflect"
 	"testing"
+
+	"github.com/knative/serving/pkg/apis/serving/v1beta1"
 
 	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	corev1 "k8s.io/api/core/v1"

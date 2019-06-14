@@ -66,6 +66,10 @@ run() {
     # Format source code
     go_fmt
 
+    # Cleanup imports
+    go_imports
+
+    # Generate docs
     # Check for license headers
     check_license
 
@@ -80,6 +84,20 @@ run() {
 go_fmt() {
   echo "🧹 ${S}Format"
   go fmt ./cmd/... ./pkg/...
+}
+
+go_imports() {
+  set +e
+  which goimports >/dev/null 2>&1
+  if [ $? -ne 0 ]; then
+     echo "✋ No 'goimports' found. Please use"
+     echo "✋   go get golang.org/x/tools/cmd/goimports"
+     echo "✋ to enable import cleanup. Import cleanup skipped."
+  else
+     echo "🧽  Imports"
+     goimports -w cmd pkg
+  fi
+  set -e
 }
 
 go_build() {
@@ -220,6 +238,7 @@ with the following options:
 
 -f  --fast                    Only compile (without formatting, testing, doc generation)
 -t  --test                    Run tests when used with --fast or --watch
+-i  --imports                 Organize and cleanup imports
 -u  --update                  Update dependencies before compiling
 -w  --watch                   Watch for source changes and recompile in fast mode
 -h  --help                    Display this help message
