@@ -24,6 +24,10 @@
 # project $PROJECT_ID, start Knative serving, run the tests and delete
 # the cluster.
 
+# If you call this script after configuring the environment variable
+# $KNATIVE_VERSION with a valid release, e.g. 0.6.0, Knative serving
+# of this specified version will be installed in the Kubernetes cluster, and
+# all the tests will run against Knative serving of this specific version.
 source $(dirname $0)/../vendor/github.com/knative/test-infra/scripts/e2e-tests.sh
 
 # Helper functions.
@@ -35,17 +39,25 @@ function cluster_setup() {
 }
 
 function knative_setup() {
-  start_latest_knative_serving
+  local version=${KNATIVE_VERSION:-latest}
+  header "Installing Knative serving (${version})"
+
+  if [ "${version}" = "latest" ]; then
+    start_latest_knative_serving
+  else
+    start_release_knative_serving "${version}"
+  fi
 }
 
 # Add local dir to have access to built kn
 export PATH=$PATH:${REPO_ROOT_DIR}
+export KNATIVE_VERSION=${KNATIVE_VERSION:-latest}
 
 # Script entry point.
 
 initialize $@
 
-header "Running tests"
+header "Running tests for Knative serving $KNATIVE_VERSION"
 
 go_test_e2e ./test/e2e || fail_test
 
