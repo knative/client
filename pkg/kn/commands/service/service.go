@@ -15,6 +15,9 @@
 package service
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/knative/client/pkg/kn/commands"
 	"github.com/spf13/cobra"
 )
@@ -23,6 +26,15 @@ func NewServiceCommand(p *commands.KnParams) *cobra.Command {
 	serviceCmd := &cobra.Command{
 		Use:   "service",
 		Short: "Service command group",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cmd.Help()
+			if len(args) == 0 {
+				return errors.New("please provide a valid sub-command for \"kn service\"")
+			} else {
+				return errors.New(fmt.Sprintf("unknown command \"%s\" for \"kn service\"", args[0]))
+			}
+			return nil
+		},
 	}
 	serviceCmd.AddCommand(NewServiceListCommand(p))
 	serviceCmd.AddCommand(NewServiceDescribeCommand(p))

@@ -28,7 +28,7 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-func fakeRevision(args []string, response *v1alpha1.Revision) (action client_testing.Action, output string, err error) {
+func fakeRevisionDescribe(args []string, response *v1alpha1.Revision) (action client_testing.Action, output string, err error) {
 	knParams := &commands.KnParams{}
 	cmd, fakeServing, buf := commands.CreateTestKnCommand(NewRevisionCommand(knParams), knParams)
 	fakeServing.AddReactor("*", "*",
@@ -46,7 +46,7 @@ func fakeRevision(args []string, response *v1alpha1.Revision) (action client_tes
 }
 
 func TestDescribeRevisionWithNoName(t *testing.T) {
-	_, _, err := fakeRevision([]string{"revision", "describe"}, &v1alpha1.Revision{})
+	_, _, err := fakeRevisionDescribe([]string{"revision", "describe"}, &v1alpha1.Revision{})
 	expectedError := "requires the revision name."
 	if err == nil || err.Error() != expectedError {
 		t.Fatal("expect to fail with missing revision name")
@@ -70,7 +70,7 @@ func TestDescribeRevisionYaml(t *testing.T) {
 		},
 	}
 
-	action, data, err := fakeRevision([]string{"revision", "describe", "test-rev"}, &expectedRevision)
+	action, data, err := fakeRevisionDescribe([]string{"revision", "describe", "test-rev"}, &expectedRevision)
 	if err != nil {
 		t.Fatal(err)
 	}

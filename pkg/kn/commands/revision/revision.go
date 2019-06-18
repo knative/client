@@ -15,6 +15,9 @@
 package revision
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/knative/client/pkg/kn/commands"
 	"github.com/spf13/cobra"
 )
@@ -23,6 +26,14 @@ func NewRevisionCommand(p *commands.KnParams) *cobra.Command {
 	revisionCmd := &cobra.Command{
 		Use:   "revision",
 		Short: "Revision command group",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cmd.Help()
+			if len(args) == 0 {
+				return errors.New("please provide a valid sub-command for \"kn revision\"")
+			} else {
+				return errors.New(fmt.Sprintf("unknown command \"%s\" for \"kn revision\"", args[0]))
+			}
+		},
 	}
 	revisionCmd.AddCommand(NewRevisionListCommand(p))
 	revisionCmd.AddCommand(NewRevisionDescribeCommand(p))
