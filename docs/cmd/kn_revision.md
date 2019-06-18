@@ -6,6 +6,10 @@ Revision command group
 
 Revision command group
 
+```
+kn revision [flags]
+```
+
 ### Options
 
 ```
