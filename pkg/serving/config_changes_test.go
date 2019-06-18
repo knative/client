@@ -139,6 +139,30 @@ func testUpdateEnvVarsModify(t *testing.T, revision *servingv1alpha1.RevisionTem
 	}
 }
 
+func TestUpdateContainerPort(t *testing.T) {
+	template, _ := getV1alpha1Config()
+	err := UpdateContainerPort(template, 8888)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Verify update is successful or not
+	checkPortUpdate(t, template, 8888)
+	// update template with container port info
+	template.Spec.Containers[0].Ports[0].ContainerPort = 9090
+	err = UpdateContainerPort(template, 80)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Verify that given port overrides the existing container port
+	checkPortUpdate(t, template, 80)
+}
+
+func checkPortUpdate(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, port int32) {
+	if len(template.Spec.Containers) != 1 || template.Spec.Containers[0].Ports[0].ContainerPort != port {
+		t.Error("Failed to update the container port")
+	}
+}
+
 func TestUpdateEnvVarsBoth(t *testing.T) {
 	template, container := getV1alpha1RevisionTemplateWithOldFields()
 	testUpdateEnvVarsBoth(t, template, container)

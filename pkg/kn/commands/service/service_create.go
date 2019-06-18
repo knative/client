@@ -46,6 +46,9 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
   # Create or replace environment variables of service 's1' using --force flag
   kn service create --force s1 --env KEY1=NEW_VALUE1 --env NEW_KEY2=NEW_VALUE2 --image dev.local/ns/image:v1
 
+  # Create service 'mysvc' with port 80
+  kn service create mysvc --port 80 --image dev.local/ns/image:latest
+
   # Create or replace default resources of a service 's1' using --force flag
   # (earlier configured resource requests and limits will be replaced with default)
   # (earlier configured environment variables will be cleared too if any)

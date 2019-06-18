@@ -27,6 +27,9 @@ kn service create NAME --image IMAGE [flags]
   # Create or replace environment variables of service 's1' using --force flag
   kn service create --force s1 --env KEY1=NEW_VALUE1 --env NEW_KEY2=NEW_VALUE2 --image dev.local/ns/image:v1
 
+  # Create service 'mysvc' with port 80
+  kn service create mysvc --port 80 --image dev.local/ns/image:latest
+
   # Create or replace default resources of a service 's1' using --force flag
   # (earlier configured resource requests and limits will be replaced with default)
   # (earlier configured environment variables will be cleared too if any)
@@ -47,6 +50,7 @@ kn service create NAME --image IMAGE [flags]
       --max-scale int            Maximal number of replicas.
       --min-scale int            Minimal number of replicas.
   -n, --namespace string         List the requested object(s) in given namespace.
+  -p, --port int32               The port where application listens on.
       --requests-cpu string      The requested CPU (e.g., 250m).
       --requests-memory string   The requested CPU (e.g., 64Mi).
 ```
