@@ -19,7 +19,7 @@ kn version [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string       config file (default is $HOME/.kn.yaml)
+      --config string       config file (default is $HOME/.kn/config.yaml)
       --kubeconfig string   kubectl config file (default is $HOME/.kube/config)
 ```
 

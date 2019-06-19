@@ -13,7 +13,7 @@ Eventing: Manage event subscriptions and channels. Connect up event sources.
 ### Options
 
 ```
-      --config string       config file (default is $HOME/.kn.yaml)
+      --config string       config file (default is $HOME/.kn/config.yaml)
   -h, --help                help for kn
       --kubeconfig string   kubectl config file (default is $HOME/.kube/config)
 ```

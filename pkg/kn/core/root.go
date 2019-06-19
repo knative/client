@@ -18,6 +18,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 
 	"github.com/knative/client/pkg/kn/commands"
@@ -63,7 +64,7 @@ Eventing: Manage event subscriptions and channels. Connect up event sources.`,
 	if p.Output != nil {
 		rootCmd.SetOutput(p.Output)
 	}
-	rootCmd.PersistentFlags().StringVar(&commands.CfgFile, "config", "", "config file (default is $HOME/.kn.yaml)")
+	rootCmd.PersistentFlags().StringVar(&commands.CfgFile, "config", "", "config file (default is $HOME/.kn/config.yaml)")
 	rootCmd.PersistentFlags().StringVar(&commands.KubeCfgFile, "kubeconfig", "", "kubectl config file (default is $HOME/.kube/config)")
 
 	rootCmd.AddCommand(service.NewServiceCommand(p))
@@ -112,8 +113,8 @@ func initConfig() {
 		}
 
 		// Search config in home directory with name ".kn" (without extension).
-		viper.AddConfigPath(home)
-		viper.SetConfigName(".kn")
+		viper.AddConfigPath(path.Join(home, ".kn"))
+		viper.SetConfigName("config")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match
