@@ -25,6 +25,7 @@ import (
 	"github.com/knative/client/pkg/kn/commands/service"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
 )
@@ -62,6 +63,7 @@ Eventing: Manage event subscriptions and channels. Connect up event sources.`,
 	if p.Output != nil {
 		rootCmd.SetOutput(p.Output)
 	}
+	rootCmd.PersistentFlags().StringVar(&commands.CfgFile, "config", "", "config file (default is $HOME/.kn.yaml)")
 	rootCmd.PersistentFlags().StringVar(&commands.KubeCfgFile, "kubeconfig", "", "kubectl config file (default is $HOME/.kube/config)")
 
 	rootCmd.AddCommand(service.NewServiceCommand(p))
@@ -75,7 +77,9 @@ Eventing: Manage event subscriptions and channels. Connect up event sources.`,
 }
 
 func InitializeConfig() {
+	cobra.OnInitialize(initConfig)
 	cobra.OnInitialize(initKubeConfig)
+
 }
 
 func initKubeConfig() {
@@ -91,5 +95,31 @@ func initKubeConfig() {
 			os.Exit(1)
 		}
 		commands.KubeCfgFile = filepath.Join(home, ".kube", "config")
+	}
+}
+
+// initConfig reads in config file and ENV variables if set.
+func initConfig() {
+	if commands.CfgFile != "" {
+		// Use config file from the flag.
+		viper.SetConfigFile(commands.CfgFile)
+	} else {
+		// Find home directory.
+		home, err := homedir.Dir()
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+
+		// Search config in home directory with name ".kn" (without extension).
+		viper.AddConfigPath(home)
+		viper.SetConfigName(".kn")
+	}
+
+	viper.AutomaticEnv() // read in environment variables that match
+
+	// If a config file is found, read it in.
+	if err := viper.ReadInConfig(); err == nil {
+		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
 	}
 }
