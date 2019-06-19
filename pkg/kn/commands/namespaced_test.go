@@ -51,7 +51,7 @@ func TestGetNamespaceDefault(t *testing.T) {
 	testCmd := testCommandGenerator(true)
 	expectedNamespace := "current"
 	testCmd.Execute()
-	kp := &KnParams{CurrentNamespace: "current"}
+	kp := &KnParams{NamespaceFactory: func() (string, error) { return FakeNamespace, nil }}
 	actualNamespace, err := kp.GetNamespace(testCmd)
 	if err != nil {
 		t.Fatal(err)

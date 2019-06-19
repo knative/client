@@ -26,20 +26,26 @@ var CfgFile string
 
 // Parameters for creating commands. Useful for inserting mocks for testing.
 type KnParams struct {
-	Output         io.Writer
-	ServingFactory func() (serving.ServingV1alpha1Interface, error)
+	Output           io.Writer
+	ServingFactory   func() (serving.ServingV1alpha1Interface, error)
+	NamespaceFactory func() (string, error)
 
-	// CfgFile is Kn's config file is the path for the Kubernetes config
-	CfgFile          string
-	KubeCfgPath      string
-	CurrentNamespace string
-	ClientConfig     clientcmd.ClientConfig
+	KubeCfgPath  string
+	ClientConfig clientcmd.ClientConfig
 }
 
 func (c *KnParams) Initialize() {
 	if c.ServingFactory == nil {
 		c.ServingFactory = c.GetConfig
 	}
+	if c.NamespaceFactory == nil {
+		c.NamespaceFactory = c.CurrentNamespace
+	}
+}
+
+func (c *KnParams) CurrentNamespace() (string, error) {
+	name, _, err := c.ClientConfig.Namespace()
+	return name, err
 }
 
 func (c *KnParams) GetConfig() (serving.ServingV1alpha1Interface, error) {
@@ -49,10 +55,6 @@ func (c *KnParams) GetConfig() (serving.ServingV1alpha1Interface, error) {
 	}
 	c.ClientConfig = clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, &clientcmd.ConfigOverrides{})
 	var err error
-	c.CurrentNamespace, _, err = c.ClientConfig.Namespace()
-	if err != nil {
-		return nil, err
-	}
 	config, err := c.ClientConfig.ClientConfig()
 	if err != nil {
 		return nil, err

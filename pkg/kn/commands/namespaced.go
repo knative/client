@@ -54,7 +54,11 @@ func (kn *KnParams) GetNamespace(cmd *cobra.Command) (string, error) {
 	}
 	// if all-namepaces=False or namespace not given, use default namespace
 	if namespace == "" {
-		namespace = kn.CurrentNamespace
+		var err error
+		namespace, err = kn.NamespaceFactory()
+		if err != nil {
+			return "", err
+		}
 	}
 	return namespace, nil
 }
