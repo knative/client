@@ -18,8 +18,10 @@ import (
 	"fmt"
 
 	"github.com/knative/client/pkg/kn/commands"
+	"github.com/knative/serving/pkg/apis/serving"
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
@@ -30,6 +32,13 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 	revisionListCommand := &cobra.Command{
 		Use:   "list",
 		Short: "List available revisions.",
+		Long:  "List revisions for a given service.",
+		Example: `
+  # List all revisions
+  kn revision list
+
+  # List revisions for a service 'svc1' in namespace 'myapp'
+  kn revision list -s svc1 -n myapp`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := p.ServingFactory()
 			if err != nil {
@@ -39,7 +48,18 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			revision, err := client.Revisions(namespace).List(v1.ListOptions{})
+			listOptions := v1.ListOptions{}
+			if cmd.Flags().Changed("service") {
+				service := cmd.Flag("service").Value.String()
+				// Ensure requested service exist
+				_, err := client.Services(namespace).Get(service, v1.GetOptions{})
+				if err != nil {
+					return err
+				}
+				listOptions.LabelSelector = labels.Set(
+					map[string]string{serving.ConfigurationLabelKey: service}).String()
+			}
+			revision, err := client.Revisions(namespace).List(listOptions)
 			if err != nil {
 				return err
 			}
