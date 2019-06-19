@@ -36,7 +36,7 @@ func TestGetNamespaceSample(t *testing.T) {
 	expectedNamespace := "test1"
 	testCmd.SetArgs([]string{"--namespace", expectedNamespace})
 	testCmd.Execute()
-	kp := &KnParams{}
+	kp := &KnParams{NamespaceFactory: func() (string, error) { return FakeNamespace, nil }}
 	actualNamespace, err := kp.GetNamespace(testCmd)
 	if err != nil {
 		t.Fatal(err)
@@ -69,7 +69,7 @@ func TestGetNamespaceAllNamespacesSet(t *testing.T) {
 	sampleNamespace := "test1"
 	testCmd.SetArgs([]string{"--namespace", sampleNamespace, "--all-namespaces"})
 	testCmd.Execute()
-	kp := &KnParams{}
+	kp := &KnParams{NamespaceFactory: func() (string, error) { return FakeNamespace, nil }}
 	actualNamespace, err := kp.GetNamespace(testCmd)
 	if err != nil {
 		t.Fatal(err)
@@ -86,7 +86,7 @@ func TestGetNamespaceDefaultAllNamespacesUnset(t *testing.T) {
 	expectedNamespace := ""
 	testCmd.SetArgs([]string{"--all-namespaces"})
 	testCmd.Execute()
-	kp := &KnParams{}
+	kp := &KnParams{NamespaceFactory: func() (string, error) { return FakeNamespace, nil }}
 	actualNamespace, err := kp.GetNamespace(testCmd)
 	if err != nil {
 		t.Fatal(err)
@@ -102,7 +102,7 @@ func TestGetNamespaceAllNamespacesNotDefined(t *testing.T) {
 	expectedNamespace := "test1"
 	testCmd.SetArgs([]string{"--namespace", expectedNamespace})
 	testCmd.Execute()
-	kp := &KnParams{}
+	kp := &KnParams{NamespaceFactory: func() (string, error) { return FakeNamespace, nil }}
 	actualNamespace, err := kp.GetNamespace(testCmd)
 	if err != nil {
 		t.Fatal(err)
