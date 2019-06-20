@@ -44,16 +44,17 @@ func (c *KnParams) Initialize() {
 }
 
 func (c *KnParams) CurrentNamespace() (string, error) {
+	if c.ClientConfig == nil {
+		c.ClientConfig = c.GetClientConfig()
+	}
 	name, _, err := c.ClientConfig.Namespace()
 	return name, err
 }
 
 func (c *KnParams) GetConfig() (serving.ServingV1alpha1Interface, error) {
-	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
-	if len(c.KubeCfgPath) > 0 {
-		loadingRules.ExplicitPath = c.KubeCfgPath
+	if c.ClientConfig == nil {
+		c.ClientConfig = c.GetClientConfig()
 	}
-	c.ClientConfig = clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, &clientcmd.ConfigOverrides{})
 	var err error
 	config, err := c.ClientConfig.ClientConfig()
 	if err != nil {
@@ -64,4 +65,12 @@ func (c *KnParams) GetConfig() (serving.ServingV1alpha1Interface, error) {
 		return nil, err
 	}
 	return client, nil
+}
+
+func (c *KnParams) GetClientConfig() clientcmd.ClientConfig {
+	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
+	if len(c.KubeCfgPath) > 0 {
+		loadingRules.ExplicitPath = c.KubeCfgPath
+	}
+	return clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, &clientcmd.ConfigOverrides{})
 }
