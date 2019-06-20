@@ -50,7 +50,12 @@ func TestBasicWorkflow(t *testing.T) {
 	testServiceCreate(t, k, "hello")
 	testServiceList(t, k, "hello")
 	testServiceDescribe(t, k, "hello")
+	testServiceUpdate(t, k, "hello", []string{"--env", "TARGET=kn"})
+	testServiceCreate(t, k, "svc2")
+	testRevisionListForService(t, k, "hello")
+	testRevisionListForService(t, k, "svc2")
 	testServiceDelete(t, k, "hello")
+	testServiceDelete(t, k, "svc2")
 	testServiceListEmpty(t, k)
 }
 
@@ -92,6 +97,19 @@ func testServiceList(t *testing.T, k kn, serviceName string) {
 	}
 }
 
+func testRevisionListForService(t *testing.T, k kn, serviceName string) {
+	out, err := k.RunWithOpts([]string{"revision", "list", "-s", serviceName}, runOpts{NoNamespace: false})
+	if err != nil {
+		t.Fatalf(fmt.Sprintf("Error executing 'kn revision list -s %s' command. Error: %s", serviceName, err.Error()))
+	}
+	outputLines := strings.Split(out, "\n")
+	for _, line := range outputLines[1:] {
+		if len(line) > 1 && !strings.HasPrefix(line, serviceName) {
+			t.Fatalf(fmt.Sprintf("Expected output incorrect, expecting line to start with service name: %s\nFound: %s", serviceName, line))
+		}
+	}
+}
+
 func testServiceDescribe(t *testing.T, k kn, serviceName string) {
 	out, err := k.RunWithOpts([]string{"service", "describe", serviceName}, runOpts{NoNamespace: false})
 	if err != nil {
@@ -111,6 +129,17 @@ metadata:`
 	expectedOutput = fmt.Sprintf(expectedOutput, serviceName, k.namespace)
 	if !strings.Contains(out, expectedOutput) {
 		t.Fatalf(fmt.Sprintf("Expected output incorrect, expecting to include:\n%s\n Instead found:\n%s\n", expectedOutput, out))
+	}
+}
+
+func testServiceUpdate(t *testing.T, k kn, serviceName string, args []string) {
+	out, err := k.RunWithOpts(append([]string{"service", "update", serviceName}, args...), runOpts{NoNamespace: false})
+	if err != nil {
+		t.Fatalf(fmt.Sprintf("Error executing 'kn service update' command. Error: %s", err.Error()))
+	}
+	expectedOutput := fmt.Sprintf("Service '%s' updated", serviceName)
+	if !strings.Contains(out, expectedOutput) {
+		t.Fatalf(fmt.Sprintf("Expected output incorrect, expecting to include:\n%s\nFound:\n%s\n", expectedOutput, out))
 	}
 }
 

@@ -29,7 +29,7 @@ import (
 func fakeRevisionList(args []string, response *v1alpha1.RevisionList) (action client_testing.Action, output []string, err error) {
 	knParams := &commands.KnParams{}
 	cmd, fakeServing, buf := commands.CreateTestKnCommand(NewRevisionCommand(knParams), knParams)
-	fakeServing.AddReactor("*", "*",
+	fakeServing.AddReactor("list", "*",
 		func(a client_testing.Action) (bool, runtime.Object, error) {
 			action = a
 			return true, response, nil
@@ -74,6 +74,50 @@ func TestRevisionListDefaultOutput(t *testing.T) {
 	testContains(t, output[0], []string{"SERVICE", "NAME", "AGE", "CONDITIONS", "READY", "REASON"}, "column header")
 	testContains(t, output[1], []string{"foo", "foo-abcd"}, "value")
 	testContains(t, output[2], []string{"bar", "bar-wxyz"}, "value")
+}
+
+func TestRevisionListForService(t *testing.T) {
+	revision1 := createMockRevisionWithParams("foo-abcd", "svc1")
+	revision2 := createMockRevisionWithParams("bar-wxyz", "svc1")
+	revision3 := createMockRevisionWithParams("foo-abcd", "svc2")
+	revision4 := createMockRevisionWithParams("bar-wxyz", "svc2")
+	RevisionList := &v1alpha1.RevisionList{Items: []v1alpha1.Revision{*revision1, *revision2, *revision3, *revision4}}
+	action, output, err := fakeRevisionList([]string{"revision", "list", "-s", "svc1"}, RevisionList)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if action == nil {
+		t.Errorf("No action")
+	} else if !action.Matches("list", "revisions") {
+		t.Errorf("Bad action %v", action)
+	}
+	testContains(t, output[0], []string{"SERVICE", "NAME", "AGE", "CONDITIONS", "READY", "REASON"}, "column header")
+	testContains(t, output[1], []string{"svc1", "foo-abcd"}, "value")
+	testContains(t, output[2], []string{"svc1", "bar-wxyz"}, "value")
+	action, output, err = fakeRevisionList([]string{"revision", "list", "-s", "svc2"}, RevisionList)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if action == nil {
+		t.Errorf("No action")
+	} else if !action.Matches("list", "revisions") {
+		t.Errorf("Bad action %v", action)
+	}
+	testContains(t, output[0], []string{"SERVICE", "NAME", "AGE", "CONDITIONS", "READY", "REASON"}, "column header")
+	testContains(t, output[1], []string{"svc2", "foo-abcd"}, "value")
+	testContains(t, output[2], []string{"svc2", "bar-wxyz"}, "value")
+	//test for non existent service
+	action, output, err = fakeRevisionList([]string{"revision", "list", "-s", "svc3"}, RevisionList)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if action == nil {
+		t.Errorf("No action")
+	} else if !action.Matches("list", "revisions") {
+		t.Errorf("Bad action %v", action)
+	} else if !strings.Contains(output[0], "No resources found.") {
+		t.Errorf("Bad output %s", output[0])
+	}
 }
 
 func testContains(t *testing.T, output string, sub []string, element string) {

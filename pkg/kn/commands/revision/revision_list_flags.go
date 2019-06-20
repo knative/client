@@ -26,6 +26,7 @@ import (
 type RevisionListFlags struct {
 	GenericPrintFlags  *genericclioptions.PrintFlags
 	HumanReadableFlags *commands.HumanPrintFlags
+	ServiceRefFlags    ServiceReferenceFlags
 }
 
 // AllowedFormats is the list of formats in which data can be displayed
@@ -55,10 +56,12 @@ func (f *RevisionListFlags) ToPrinter() (hprinters.ResourcePrinter, error) {
 }
 
 // AddFlags receives a *cobra.Command reference and binds
-// flags related to humanreadable and template printing.
+// flags related to humanreadable and template printing
+// as well as to reference a service
 func (f *RevisionListFlags) AddFlags(cmd *cobra.Command) {
 	f.GenericPrintFlags.AddFlags(cmd)
 	f.HumanReadableFlags.AddFlags(cmd)
+	f.ServiceRefFlags.SetOptional(cmd)
 }
 
 // NewRevisionListFlags returns flags associated with humanreadable,
@@ -68,4 +71,15 @@ func NewRevisionListFlags() *RevisionListFlags {
 		GenericPrintFlags:  genericclioptions.NewPrintFlags(""),
 		HumanReadableFlags: commands.NewHumanPrintFlags(),
 	}
+}
+
+// ServiceReferenceFlags compose a set of flag(s) to reference a service
+type ServiceReferenceFlags struct {
+	Name string
+}
+
+// SetOptional receives a *cobra.Command reference and
+// adds the ServiceReferenceFlags flags as optional flags
+func (s *ServiceReferenceFlags) SetOptional(cmd *cobra.Command) {
+	cmd.Flags().StringVarP(&s.Name, "service", "s", "", "Service name")
 }
