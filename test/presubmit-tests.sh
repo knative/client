@@ -29,6 +29,8 @@ export DISABLE_MD_LINTING=1
 export GO111MODULE=on
 source $(dirname $0)/../vendor/github.com/knative/test-infra/scripts/presubmit-tests.sh
 
+echo $GOPATH
+
 # We use the default build, unit and integration test runners.
 
 main $@
