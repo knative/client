@@ -368,7 +368,13 @@ function update_licenses() {
 function check_licenses() {
   # Fetch the google/licenseclassifier for its license db
   go get -u github.com/google/licenseclassifier
+  echo @@@@@
+  ls /home/prow/go/github.com/google/licenseclassifier
+  echo @@@@@
+  cat /home/prow/go/github.com/google/licenseclassifier/classifier.go
+  echo @@@@@
   # Check that we don't have any forbidden licenses in our images.
+  echo run_go_tool ./vendor/github.com/knative/test-infra/tools/dep-collector dep-collector -check $@
   run_go_tool ./vendor/github.com/knative/test-infra/tools/dep-collector dep-collector -check $@
 }
 
