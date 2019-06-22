@@ -47,9 +47,9 @@ func (p *ConfigurationEditFlags) AddUpdateFlags(command *cobra.Command) {
 		"Environment variable to set. NAME=value; you may provide this flag "+
 			"any number of times to set multiple environment variables.")
 	command.Flags().StringVar(&p.RequestsFlags.CPU, "requests-cpu", "", "The requested CPU (e.g., 250m).")
-	command.Flags().StringVar(&p.RequestsFlags.Memory, "requests-memory", "", "The requested CPU (e.g., 64Mi).")
+	command.Flags().StringVar(&p.RequestsFlags.Memory, "requests-memory", "", "The requested memory (e.g., 64Mi).")
 	command.Flags().StringVar(&p.LimitsFlags.CPU, "limits-cpu", "", "The limits on the requested CPU (e.g., 1000m).")
-	command.Flags().StringVar(&p.LimitsFlags.Memory, "limits-memory", "", "The limits on the requested CPU (e.g., 1024Mi).")
+	command.Flags().StringVar(&p.LimitsFlags.Memory, "limits-memory", "", "The limits on the requested memory (e.g., 1024Mi).")
 	command.Flags().IntVar(&p.MinScale, "min-scale", 0, "Minimal number of replicas.")
 	command.Flags().IntVar(&p.MaxScale, "max-scale", 0, "Maximal number of replicas.")
 	command.Flags().IntVar(&p.ConcurrencyTarget, "concurrency-target", 0, "Recommendation for when to scale up based on the concurrent number of incoming request. Defaults to --concurrency-limit when given.")
