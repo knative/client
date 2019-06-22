@@ -25,6 +25,11 @@ fi
 
 set -eu
 
+# Temporary fix for iTerm issue https://gitlab.com/gnachman/iterm2/issues/7901
+S=""
+if [ -n "$ITERM_PROFILE" ]; then
+  S=" "
+fi
 # Run build
 run() {
   # Switch on modules unconditionally
@@ -73,7 +78,7 @@ run() {
 }
 
 go_fmt() {
-  echo "🧹  Format"
+  echo "🧹 ${S}Format"
   go fmt ./cmd/... ./pkg/...
 }
 
@@ -88,7 +93,7 @@ go_test() {
   local red="[31m"
   local reset="[39m"
 
-  echo "🧪  Test"
+  echo "🧪 ${S}Test"
   set +e
   go test -v ./pkg/... >$test_output 2>&1
   local err=$?
@@ -102,7 +107,7 @@ go_test() {
 }
 
 check_license() {
-  echo "⚖️  License"
+  echo "⚖️ ${S}License"
   local required_keywords=("Authors" "Apache License" "LICENSE-2.0")
   local extensions_to_check=("sh" "go" "yaml" "yml" "json")
 
@@ -129,7 +134,7 @@ check_license() {
 
 
 update_deps() {
-  echo "🕸️  Update"
+  echo "🕸️ Update"
   go mod vendor
 }
 
