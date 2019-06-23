@@ -360,22 +360,17 @@ function update_licenses() {
   cd ${REPO_ROOT_DIR} || return 1
   local dst=$1
   shift
-  run_go_tool ./vendor/github.com/knative/test-infra/tools/dep-collector dep-collector $@ > ./${dst}
+  run_go_tool github.com/knative/test-infra/tools/dep-collector dep-collector $@ > ./${dst}
 }
 
 # Run dep-collector to check for forbidden liceses.
 # Parameters: $1...$n - directories and files to inspect.
 function check_licenses() {
   # Fetch the google/licenseclassifier for its license db
+  rm -fr ${GOPATH}/src/github.com/google/licenseclassifier
   go get -u github.com/google/licenseclassifier
-  echo @@@@@
-  ls /home/prow/go/github.com/google/licenseclassifier
-  echo @@@@@
-  cat /home/prow/go/github.com/google/licenseclassifier/classifier.go
-  echo @@@@@
   # Check that we don't have any forbidden licenses in our images.
-  echo run_go_tool ./vendor/github.com/knative/test-infra/tools/dep-collector dep-collector -check $@
-  run_go_tool ./vendor/github.com/knative/test-infra/tools/dep-collector dep-collector -check $@
+  run_go_tool github.com/knative/test-infra/tools/dep-collector dep-collector -check $@
 }
 
 # Run the given linter on the given files, checking it exists first.
