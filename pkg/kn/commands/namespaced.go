@@ -19,9 +19,6 @@ import (
 	"github.com/spf13/pflag"
 )
 
-// TODO: default namespace should be same scope for the request
-const defaultNamespace = "default"
-
 // AddNamespaceFlags adds the namespace-related flags:
 // * --namespace
 // * --all-namespaces
@@ -43,7 +40,7 @@ func AddNamespaceFlags(flags *pflag.FlagSet, allowAll bool) {
 }
 
 // GetNamespace returns namespace from command specified by flag
-func GetNamespace(cmd *cobra.Command) (string, error) {
+func (kn *KnParams) GetNamespace(cmd *cobra.Command) (string, error) {
 	namespace := cmd.Flag("namespace").Value.String()
 	// check value of all-namepace only if its defined
 	if cmd.Flags().Lookup("all-namespaces") != nil {
@@ -57,7 +54,11 @@ func GetNamespace(cmd *cobra.Command) (string, error) {
 	}
 	// if all-namepaces=False or namespace not given, use default namespace
 	if namespace == "" {
-		namespace = defaultNamespace
+		var err error
+		namespace, err = kn.NamespaceFactory()
+		if err != nil {
+			return "", err
+		}
 	}
 	return namespace, nil
 }

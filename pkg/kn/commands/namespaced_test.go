@@ -36,7 +36,8 @@ func TestGetNamespaceSample(t *testing.T) {
 	expectedNamespace := "test1"
 	testCmd.SetArgs([]string{"--namespace", expectedNamespace})
 	testCmd.Execute()
-	actualNamespace, err := GetNamespace(testCmd)
+	kp := &KnParams{NamespaceFactory: func() (string, error) { return FakeNamespace, nil }}
+	actualNamespace, err := kp.GetNamespace(testCmd)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -45,12 +46,13 @@ func TestGetNamespaceSample(t *testing.T) {
 	}
 }
 
-// test without setting any namespace
+// test current namespace without setting any namespace
 func TestGetNamespaceDefault(t *testing.T) {
 	testCmd := testCommandGenerator(true)
-	expectedNamespace := "default"
+	expectedNamespace := "current"
 	testCmd.Execute()
-	actualNamespace, err := GetNamespace(testCmd)
+	kp := &KnParams{NamespaceFactory: func() (string, error) { return FakeNamespace, nil }}
+	actualNamespace, err := kp.GetNamespace(testCmd)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -67,7 +69,8 @@ func TestGetNamespaceAllNamespacesSet(t *testing.T) {
 	sampleNamespace := "test1"
 	testCmd.SetArgs([]string{"--namespace", sampleNamespace, "--all-namespaces"})
 	testCmd.Execute()
-	actualNamespace, err := GetNamespace(testCmd)
+	kp := &KnParams{NamespaceFactory: func() (string, error) { return FakeNamespace, nil }}
+	actualNamespace, err := kp.GetNamespace(testCmd)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -83,7 +86,8 @@ func TestGetNamespaceDefaultAllNamespacesUnset(t *testing.T) {
 	expectedNamespace := ""
 	testCmd.SetArgs([]string{"--all-namespaces"})
 	testCmd.Execute()
-	actualNamespace, err := GetNamespace(testCmd)
+	kp := &KnParams{NamespaceFactory: func() (string, error) { return FakeNamespace, nil }}
+	actualNamespace, err := kp.GetNamespace(testCmd)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -98,21 +102,8 @@ func TestGetNamespaceAllNamespacesNotDefined(t *testing.T) {
 	expectedNamespace := "test1"
 	testCmd.SetArgs([]string{"--namespace", expectedNamespace})
 	testCmd.Execute()
-	actualNamespace, err := GetNamespace(testCmd)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if actualNamespace != expectedNamespace {
-		t.Fatalf("Incorrect namespace retrieved: %v, expected: %v", actualNamespace, expectedNamespace)
-	}
-}
-
-// test with all-namespace flag not defined and no namespace given
-func TestGetNamespaceDefaultAllNamespacesNotDefined(t *testing.T) {
-	testCmd := testCommandGenerator(false)
-	expectedNamespace := "default"
-	testCmd.Execute()
-	actualNamespace, err := GetNamespace(testCmd)
+	kp := &KnParams{NamespaceFactory: func() (string, error) { return FakeNamespace, nil }}
+	actualNamespace, err := kp.GetNamespace(testCmd)
 	if err != nil {
 		t.Fatal(err)
 	}

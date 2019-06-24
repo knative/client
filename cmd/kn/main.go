@@ -21,10 +21,6 @@ import (
 	"github.com/knative/client/pkg/kn/core"
 )
 
-func init() {
-	core.InitializeConfig()
-}
-
 func main() {
 	err := core.NewKnCommand().Execute()
 	if err != nil {
