@@ -24,11 +24,14 @@ import (
 	client_testing "k8s.io/client-go/testing"
 )
 
+const FakeNamespace = "current"
+
 func CreateTestKnCommand(cmd *cobra.Command, knParams *KnParams) (*cobra.Command, *fake.FakeServingV1alpha1, *bytes.Buffer) {
 	buf := new(bytes.Buffer)
 	fakeServing := &fake.FakeServingV1alpha1{&client_testing.Fake{}}
 	knParams.Output = buf
 	knParams.ServingFactory = func() (serving.ServingV1alpha1Interface, error) { return fakeServing, nil }
+	knParams.NamespaceFactory = func() (string, error) { return FakeNamespace, nil }
 	knCommand := newKnCommand(cmd, knParams)
 	return knCommand, fakeServing, buf
 }
@@ -56,7 +59,7 @@ Eventing: Manage event subscriptions and channels. Connect up event sources.`,
 		rootCmd.SetOutput(params.Output)
 	}
 	rootCmd.PersistentFlags().StringVar(&CfgFile, "config", "", "config file (default is $HOME/.kn.yaml)")
-	rootCmd.PersistentFlags().StringVar(&KubeCfgFile, "kubeconfig", "", "kubectl config file (default is $HOME/.kube/config)")
+	rootCmd.PersistentFlags().StringVar(&params.KubeCfgPath, "kubeconfig", "", "kubectl config file (default is $HOME/.kube/config)")
 
 	rootCmd.AddCommand(subCommand)
 

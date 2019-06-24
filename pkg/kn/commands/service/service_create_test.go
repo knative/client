@@ -73,7 +73,7 @@ func TestServiceCreateImage(t *testing.T) {
 	} else if template.Spec.DeprecatedContainer.Image != "gcr.io/foo/bar:baz" {
 		t.Fatalf("wrong image set: %v", template.Spec.DeprecatedContainer.Image)
 	} else if !strings.Contains(output, "foo") || !strings.Contains(output, "created") ||
-		!strings.Contains(output, "default") {
+		!strings.Contains(output, commands.FakeNamespace) {
 		t.Fatalf("wrong stdout message: %v", output)
 	}
 }
@@ -338,7 +338,7 @@ func TestServiceCreateImageForce(t *testing.T) {
 		t.Fatal(err)
 	} else if template.Spec.DeprecatedContainer.Image != "gcr.io/foo/bar:v2" {
 		t.Fatalf("wrong image set: %v", template.Spec.DeprecatedContainer.Image)
-	} else if !strings.Contains(output, "foo") || !strings.Contains(output, "default") {
+	} else if !strings.Contains(output, "foo") || !strings.Contains(output, commands.FakeNamespace) {
 		t.Fatalf("wrong output: %s", output)
 	}
 }
@@ -375,7 +375,7 @@ func TestServiceCreateEnvForce(t *testing.T) {
 		actualEnvVars,
 		expectedEnvVars) {
 		t.Fatalf("wrong env vars:%v", template.Spec.DeprecatedContainer.Env)
-	} else if !strings.Contains(output, "foo") || !strings.Contains(output, "default") {
+	} else if !strings.Contains(output, "foo") || !strings.Contains(output, commands.FakeNamespace) {
 		t.Fatalf("wrong output: %s", output)
 	}
 }

@@ -39,7 +39,7 @@ func NewRevisionDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			namespace, err := commands.GetNamespace(cmd)
+			namespace, err := p.GetNamespace(cmd)
 			if err != nil {
 				return err
 			}

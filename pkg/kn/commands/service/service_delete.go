@@ -43,7 +43,7 @@ func NewServiceDeleteCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			namespace, err := commands.GetNamespace(cmd)
+			namespace, err := p.GetNamespace(cmd)
 			if err != nil {
 				return err
 			}
