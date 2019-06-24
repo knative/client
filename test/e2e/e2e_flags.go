@@ -20,20 +20,12 @@ import (
 	"flag"
 )
 
-// ClientFlags saves the environment flags for client.
-var ClientFlags = initializeFlags()
+var _ = initializeFlags()
 
-type ClientEnvironmentFlags struct {
-	EmitMetrics bool // Emit metrics
-}
-
-func initializeFlags() *ClientEnvironmentFlags {
-	var f ClientEnvironmentFlags
-
-	// emitmetrics is a required flag for running periodic test jobs, add it here to avoid the error
-	flag.BoolVar(&f.EmitMetrics, "emitmetrics", false,
+func initializeFlags() bool {
+	// emitmetrics is a required flag for running periodic test jobs, add it here as a no-op to avoid the error
+	emitMetrics := flag.Bool("emitmetrics", false,
 		"Set this flag to true if you would like tests to emit metrics, e.g. latency of resources being realized in the system.")
 	flag.Parse()
-
-	return &f
+	return *emitMetrics
 }

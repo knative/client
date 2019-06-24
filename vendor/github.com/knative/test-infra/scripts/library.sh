@@ -36,7 +36,8 @@ fi
 # Useful environment variables
 [[ -n "${PROW_JOB_ID:-}" ]] && IS_PROW=1 || IS_PROW=0
 readonly IS_PROW
-readonly REPO_ROOT_DIR="$(git rev-parse --show-toplevel)"
+[[ -z "${REPO_ROOT_DIR:-}" ]] && REPO_ROOT_DIR="$(git rev-parse --show-toplevel)"
+readonly REPO_ROOT_DIR
 readonly REPO_NAME="$(basename ${REPO_ROOT_DIR})"
 
 # Useful flags about the current OS
@@ -75,6 +76,9 @@ function make_banner() {
     local msg="$1$1$1$1 $2 $1$1$1$1"
     local border="${msg//[-0-9A-Za-z _.,\/()\']/$1}"
     echo -e "${border}\n${msg}\n${border}"
+    # TODO(adrcunha): Remove once logs have timestamps on Prow
+    # For details, see https://github.com/kubernetes/test-infra/issues/10100
+    echo -e "$1$1$1$1 $(date)\n${border}"
 }
 
 # Simple header for logging purposes.
@@ -327,15 +331,27 @@ function report_go_test() {
   return ${failed}
 }
 
-# Install the latest stable Knative/serving in the current cluster.
-function start_latest_knative_serving() {
+# Install Knative Serving in the current cluster.
+# Parameters: $1 - Knative Serving manifest.
+function start_knative_serving() {
   header "Starting Knative Serving"
   subheader "Installing Knative Serving"
-  echo "Installing Serving CRDs from ${KNATIVE_SERVING_RELEASE}"
-  kubectl apply --selector knative.dev/crd-install=true -f ${KNATIVE_SERVING_RELEASE}
-  echo "Installing the rest of serving components from ${KNATIVE_SERVING_RELEASE}"
-  kubectl apply -f ${KNATIVE_SERVING_RELEASE}
+  echo "Installing Serving CRDs from $1"
+  kubectl apply --selector knative.dev/crd-install=true -f "$1"
+  echo "Installing the rest of serving components from $1"
+  kubectl apply -f "$1"
   wait_until_pods_running knative-serving || return 1
+}
+
+# Install the stable release Knative/serving in the current cluster.
+# Parameters: $1 - Knative Serving version number, e.g. 0.6.0.
+function start_release_knative_serving() {
+  start_knative_serving "https://storage.googleapis.com/knative-releases/serving/previous/v$1/serving.yaml"
+}
+
+# Install the latest stable Knative Serving in the current cluster.
+function start_latest_knative_serving() {
+  start_knative_serving "${KNATIVE_SERVING_RELEASE}"
 }
 
 # Run a go tool, installing it first if necessary.
@@ -360,16 +376,17 @@ function update_licenses() {
   cd ${REPO_ROOT_DIR} || return 1
   local dst=$1
   shift
-  run_go_tool ./vendor/github.com/knative/test-infra/tools/dep-collector dep-collector $@ > ./${dst}
+  run_go_tool github.com/knative/test-infra/tools/dep-collector dep-collector $@ > ./${dst}
 }
 
 # Run dep-collector to check for forbidden liceses.
 # Parameters: $1...$n - directories and files to inspect.
 function check_licenses() {
   # Fetch the google/licenseclassifier for its license db
+  rm -fr ${GOPATH}/src/github.com/google/licenseclassifier
   go get -u github.com/google/licenseclassifier
   # Check that we don't have any forbidden licenses in our images.
-  run_go_tool ./vendor/github.com/knative/test-infra/tools/dep-collector dep-collector -check $@
+  run_go_tool github.com/knative/test-infra/tools/dep-collector dep-collector -check $@
 }
 
 # Run the given linter on the given files, checking it exists first.
