@@ -27,7 +27,7 @@ set -eu
 
 # Temporary fix for iTerm issue https://gitlab.com/gnachman/iterm2/issues/7901
 S=""
-if [ -n "$ITERM_PROFILE" ]; then
+if [ -n "${ITERM_PROFILE:-}" ]; then
   S=" "
 fi
 # Run build
