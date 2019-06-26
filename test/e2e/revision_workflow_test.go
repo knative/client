@@ -18,7 +18,9 @@ package e2e
 
 import (
 	"fmt"
+	"strings"
 	"testing"
+	"time"
 )
 
 func TestRevisionWorkflow(t *testing.T) {
@@ -26,6 +28,8 @@ func TestRevisionWorkflow(t *testing.T) {
 	defer teardown(t)
 
 	testServiceCreate(t, k, "hello")
+	// TODO: remove this when https://github.com/knative/client/pull/156 is merged
+	time.Sleep(10 * time.Second)
 	testDeleteRevision(t, k, "hello")
 	testServiceDelete(t, k, "hello")
 }
@@ -34,6 +38,9 @@ func testDeleteRevision(t *testing.T, k kn, serviceName string) {
 	revName, err := k.RunWithOpts([]string{"revision", "list", "-o=jsonpath={.items[0].metadata.name}"}, runOpts{})
 	if err != nil {
 		t.Errorf("Error executing 'revision list -o' command. Error: %s", err.Error())
+	}
+	if strings.Contains(revName, "No resources found.") {
+		t.Errorf("Could not find revision name.")
 	}
 	out, err := k.RunWithOpts([]string{"revision", "delete", revName}, runOpts{})
 	if err != nil {
