@@ -20,7 +20,7 @@ import (
 
 	"github.com/knative/client/pkg/kn/commands"
 	"github.com/spf13/cobra"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // NewRevisionDeleteCommand represent 'revision delete' command
@@ -43,10 +43,9 @@ func NewRevisionDeleteCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-
 			err = client.Revisions(namespace).Delete(
 				args[0],
-				&v1.DeleteOptions{},
+				&metav1.DeleteOptions{},
 			)
 			if err != nil {
 				return err
