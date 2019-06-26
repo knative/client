@@ -1,5 +1,8 @@
 approvers:
 - sixolet
 - cppforlife
+- rhuss
+- maximilien
+# TOC members as a fallback
 - mattmoor
 - evankanderson
