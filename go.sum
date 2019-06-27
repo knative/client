@@ -157,6 +157,8 @@ github.com/knative/test-infra v0.0.0-20190529123930-7d0c44fb03a9 h1:2kupVzyk+zet
 github.com/knative/test-infra v0.0.0-20190529123930-7d0c44fb03a9/go.mod h1:l77IWBscEV5T4sYb64/9iwRCVY4UXEIqMcAppsblHW4=
 github.com/knative/test-infra v0.0.0-20190531180034-a3c073a2fea1 h1:Y2QunZIzGuyvBNfWNpwK9/AAgu2P+Aa+k/3ykATGw30=
 github.com/knative/test-infra v0.0.0-20190531180034-a3c073a2fea1/go.mod h1:l77IWBscEV5T4sYb64/9iwRCVY4UXEIqMcAppsblHW4=
+github.com/knative/test-infra v0.0.0-20190624052103-517330119155 h1:ceTQvUNU19Vc13TlSNo6u0F0pHak9wcGJQ+gv0X4KlE=
+github.com/knative/test-infra v0.0.0-20190624052103-517330119155/go.mod h1:l77IWBscEV5T4sYb64/9iwRCVY4UXEIqMcAppsblHW4=
 github.com/konsorten/go-windows-terminal-sequences v1.0.1/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=
 github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515/go.mod h1:+0opPa2QZZtGFBFZlji/RkVcI2GknAs/DXo4wKdlNEc=
 github.com/kr/pretty v0.1.0 h1:L/CwN0zerZDmRFUapSPitk6f+Q3+0za1rQkzVuMiMFI=
