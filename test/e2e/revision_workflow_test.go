@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"strings"
 	"testing"
-	"time"
 )
 
 func TestRevisionWorkflow(t *testing.T) {
@@ -28,8 +27,6 @@ func TestRevisionWorkflow(t *testing.T) {
 	defer teardown(t)
 
 	testServiceCreate(t, k, "hello")
-	// TODO: remove this when https://github.com/knative/client/pull/156 is merged
-	time.Sleep(10 * time.Second)
 	testDeleteRevision(t, k, "hello")
 	testServiceDelete(t, k, "hello")
 }
