@@ -29,7 +29,7 @@ func main() {
 	if len(os.Args) > 1 {
 		dir = os.Args[1]
 	}
-	err := doc.GenMarkdownTree(rootCmd, dir + "/docs/cmd/")
+	err := doc.GenMarkdownTree(rootCmd, dir+"/docs/cmd/")
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
