@@ -1,3 +1,17 @@
+// Copyright © 2019 The Knative Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package commands
 
 import (
@@ -8,30 +22,25 @@ import (
 
 type waitTestCase struct {
 	args                 []string
-	waitByDefault        bool
 	timeoutExpected      int
-	isWaitExpected       bool
+	isAsyncExpected      bool
 	isParseErrorExpected bool
 }
 
 func TestAddWaitForReadyFlags(t *testing.T) {
 
 	for i, tc := range []waitTestCase{
-		{[]string{"--no-wait"}, true, 60, false, false},
-		{[]string{"--wait"}, true, 60, false, true},
-		{[]string{"--no-wait"}, false, 60, false, true},
-		{[]string{"--wait"}, false, 60, true, false},
-		{[]string{}, true, 60, true, false},
-		{[]string{}, false, 60, false, false},
-		{[]string{"--wait-timeout=120"}, true, 120, true, false},
-		{[]string{"--wait", "--wait-timeout=240"}, false, 240, true, false},
+		{[]string{"--async"}, 60, true, false},
+		{[]string{}, 60, false, false},
+		{[]string{"--wait-timeout=120"}, 120, false, false},
 		// Can't be easily prevented, the timeout is just ignored in this case:
-		{[]string{"--no-wait", "--wait-timeout=120"}, true, 120, false, false},
+		{[]string{"--async", "--wait-timeout=120"}, 120, true, false},
+		{[]string{"--wait-timeout=bla"}, 0, true, true},
 	} {
 
 		flags := &WaitFlags{}
 		cmd := cobra.Command{}
-		flags.AddWaitFlags(&cmd, tc.waitByDefault, 60, "service")
+		flags.AddWaitFlags(&cmd, 60, "service")
 
 		err := cmd.ParseFlags(tc.args)
 		if err != nil && !tc.isParseErrorExpected {
@@ -43,11 +52,11 @@ func TestAddWaitForReadyFlags(t *testing.T) {
 		if tc.isParseErrorExpected {
 			continue
 		}
-		if flags.IsWait(tc.waitByDefault) != tc.isWaitExpected {
-			t.Errorf("%d: wrong wait mode detected: %t (expected) != %t (actual)", i, tc.isWaitExpected, flags.IsWait(tc.waitByDefault))
+		if flags.Async != tc.isAsyncExpected {
+			t.Errorf("%d: wrong async mode detected: %t (expected) != %t (actual)", i, tc.isAsyncExpected, flags.Async)
 		}
-		if flags.Timeout != tc.timeoutExpected {
-			t.Errorf("%d: Invalid timeout set. %d (expected) != %d (actual)", i, tc.timeoutExpected, flags.Timeout)
+		if flags.TimeoutInSeconds != tc.timeoutExpected {
+			t.Errorf("%d: Invalid timeout set. %d (expected) != %d (actual)", i, tc.timeoutExpected, flags.TimeoutInSeconds)
 		}
 	}
 }
@@ -56,32 +65,14 @@ func TestAddWaitUsageMessage(t *testing.T) {
 
 	flags := &WaitFlags{}
 	cmd := cobra.Command{}
-	flags.AddWaitFlags(&cmd, true, 60, "blub")
+	flags.AddWaitFlags(&cmd, 60, "blub")
 	if !strings.Contains(cmd.UsageString(), "blub") {
 		t.Error("no type returned in usage")
 	}
-	if !strings.Contains(cmd.UsageString(), "Don't wait") {
+	if !strings.Contains(cmd.UsageString(), "don't wait") {
 		t.Error("wrong usage message")
 	}
 	if !strings.Contains(cmd.UsageString(), "60") {
 		t.Error("default timeout not contained")
-	}
-	if strings.Contains(cmd.UsageString(), "--wait ") {
-		t.Error("--wait shouldn't be in usage message")
-		println(cmd.UsageString())
-	}
-	if !strings.Contains(cmd.UsageString(), "--no-wait ") {
-		t.Error("--no-wait should be in usage message")
-		println(cmd.UsageString())
-	}
-
-	cmd = cobra.Command{}
-	flags.AddWaitFlags(&cmd, false, 60, "foobar")
-	if strings.Contains(cmd.UsageString(), "--no-wait ") {
-		t.Error("--no-wait shouldn't be in usage message")
-	}
-	if !strings.Contains(cmd.UsageString(), "--wait ") {
-		t.Error("--wait should be in usage message")
-		println(cmd.UsageString())
 	}
 }

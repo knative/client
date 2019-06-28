@@ -22,6 +22,8 @@ import (
 	serving_v1alpha1_client "github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
 	"github.com/spf13/cobra"
 	"io"
+	"time"
+
 	corev1 "k8s.io/api/core/v1"
 	api_errors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -92,9 +94,10 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			if waitFlags.IsWait(true) {
+			if !waitFlags.Async {
 				waitForReady := newServiceWaitForReady(client, namespace)
-				if err := waitForReady.Wait(name, waitFlags.Timeout, cmd.OutOrStdout()); err != nil {
+				err := waitForReady.Wait(name, time.Duration(waitFlags.TimeoutInSeconds)*time.Second, cmd.OutOrStdout())
+				if err != nil {
 					return err
 				}
 				return showUrl(client, name, namespace, cmd.OutOrStdout())
@@ -105,7 +108,7 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 	}
 	commands.AddNamespaceFlags(serviceCreateCommand.Flags(), false)
 	editFlags.AddCreateFlags(serviceCreateCommand)
-	waitFlags.AddWaitFlags(serviceCreateCommand, true, 60, "service")
+	waitFlags.AddWaitFlags(serviceCreateCommand, 60, "service")
 	return serviceCreateCommand
 }
 

@@ -1,3 +1,17 @@
+// Copyright © 2019 The Knative Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package wait
 
 import (
@@ -25,7 +39,7 @@ type WaitForReady interface {
 
 	// Wait on resource the resource with this name until a given timeout
 	// and write status out on writer
-	Wait(name string, timeout int, out io.Writer) error
+	Wait(name string, timeout time.Duration, out io.Writer) error
 }
 
 // Create watch which is used when waiting for Ready condition
@@ -47,7 +61,7 @@ func NewWaitForReady(kind string, watchFunc WatchFunc, extractor ConditionsExtra
 // `watchFunc` creates the actual watch, `kind` is the type what your are watching for
 // (e.g. "service"), `timeout` is a timeout after which the watch should be cancelled if no
 // target state has been entered yet and `out` is used for printing out status messages
-func (w *waitForReadyConfig) Wait(name string, timeout int, out io.Writer) error {
+func (w *waitForReadyConfig) Wait(name string, timeout time.Duration, out io.Writer) error {
 	opts := v1.ListOptions{
 		FieldSelector: fields.OneTermEqualSelector("metadata.name", name).String(),
 	}
@@ -60,23 +74,38 @@ func (w *waitForReadyConfig) Wait(name string, timeout int, out io.Writer) error
 	fmt.Fprintf(out, "Waiting for %s '%s' to become ready ... ", w.kind, name)
 	flush(out)
 
-	if err := w.waitForReadyCondition(watcher, name, timeout); err != nil {
-		fmt.Fprintln(out)
-		return err
+	floatingTimeout := timeout
+	for {
+		start := time.Now()
+		retry, timeoutReached, err := w.waitForReadyCondition(watcher, name, floatingTimeout)
+		if err != nil {
+			fmt.Fprintln(out)
+			return err
+		}
+		floatingTimeout = floatingTimeout - time.Since(start)
+		if timeoutReached || floatingTimeout < 0 {
+			return fmt.Errorf("timeout: %s '%s' not ready after %d seconds", w.kind, name, timeout)
+		}
+
+		if retry {
+			// restart loop
+			continue
+		}
+
+		fmt.Fprintln(out, "OK")
+		return nil
 	}
-	fmt.Fprintln(out, "OK")
-	return nil
 }
 
-func addWatchTimeout(opts *v1.ListOptions, timeout int) {
+func addWatchTimeout(opts *v1.ListOptions, timeout time.Duration) {
 	if timeout == 0 {
 		return
 	}
 	// Wait for service to enter 'Ready' state, with a timeout of which is slightly larger than
 	// the provided timeout. We have our own timeout which fires after "timeout" seconds
 	// and stops the watch
-	timeOutWatch := int64(timeout + 30)
-	opts.TimeoutSeconds = &timeOutWatch
+	timeOutWatchSeconds := int64((timeout + 30*time.Second) / time.Second)
+	opts.TimeoutSeconds = &timeOutWatchSeconds
 }
 
 // Duck type for writers having a flush
@@ -90,21 +119,21 @@ func flush(out io.Writer) {
 	}
 }
 
-func (w *waitForReadyConfig) waitForReadyCondition(watcher watch.Interface, name string, timeout int) error {
+func (w *waitForReadyConfig) waitForReadyCondition(watcher watch.Interface, name string, timeout time.Duration) (bool, bool, error) {
 	defer watcher.Stop()
 	for {
 		select {
-		case <-time.After(time.Duration(timeout) * time.Second):
-			return fmt.Errorf("timeout: %s '%s' not ready after %d seconds", w.kind, name, timeout)
+		case <-time.After(timeout):
+			return false, true, nil
 		case event, ok := <-watcher.ResultChan():
 			if !ok || event.Object == nil {
-				return fmt.Errorf("timeout while waiting for %s '%s' to become ready", w.kind, name)
+				return true, false, nil
 			}
 
 			// Skip event if generations has not yet been consolidated
 			inSync, err := isGivenEqualsObservedGeneration(event.Object)
 			if err != nil {
-				return err
+				return false, false, err
 			}
 			if !inSync {
 				continue
@@ -112,16 +141,15 @@ func (w *waitForReadyConfig) waitForReadyCondition(watcher watch.Interface, name
 
 			conditions, err := w.conditionsExtractor(event.Object)
 			if err != nil {
-				return err
+				return false, false, err
 			}
 			for _, cond := range conditions {
-				fmt.Printf("%v\n", cond)
 				if cond.Type == apis.ConditionReady {
 					switch cond.Status {
 					case corev1.ConditionTrue:
-						return nil
+						return false, false, nil
 					case corev1.ConditionFalse:
-						return fmt.Errorf("%s: %s", cond.Reason, cond.Message)
+						return false, false, fmt.Errorf("%s: %s", cond.Reason, cond.Message)
 					}
 				}
 			}
