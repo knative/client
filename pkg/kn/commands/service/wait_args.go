@@ -16,6 +16,7 @@ package service
 
 import (
 	"fmt"
+
 	"github.com/knative/client/pkg/wait"
 	"github.com/knative/pkg/apis"
 	serving_v1alpha1_api "github.com/knative/serving/pkg/apis/serving/v1alpha1"

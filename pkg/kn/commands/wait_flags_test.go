@@ -15,9 +15,10 @@
 package commands
 
 import (
-	"github.com/spf13/cobra"
 	"strings"
 	"testing"
+
+	"github.com/spf13/cobra"
 )
 
 type waitTestCase struct {
