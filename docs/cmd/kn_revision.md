@@ -26,6 +26,7 @@ kn revision [flags]
 ### SEE ALSO
 
 * [kn](kn.md)	 - Knative client
+* [kn revision delete](kn_revision_delete.md)	 - Delete a revision.
 * [kn revision describe](kn_revision_describe.md)	 - Describe revisions.
 * [kn revision list](kn_revision_list.md)	 - List available revisions.
 

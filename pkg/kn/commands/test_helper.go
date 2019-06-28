@@ -17,6 +17,8 @@ package commands
 import (
 	"bytes"
 	"flag"
+	"strings"
+	"testing"
 
 	serving "github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
 	"github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake"
@@ -66,4 +68,14 @@ Eventing: Manage event subscriptions and channels. Connect up event sources.`,
 	// For glog parse error.
 	flag.CommandLine.Parse([]string{})
 	return rootCmd
+}
+
+// TestContains is a test helper function, checking if a substring is present in given
+// output string
+func TestContains(t *testing.T, output string, sub []string, element string) {
+	for _, each := range sub {
+		if !strings.Contains(output, each) {
+			t.Errorf("Missing %s: %s", element, each)
+		}
+	}
 }

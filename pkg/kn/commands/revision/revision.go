@@ -37,5 +37,6 @@ func NewRevisionCommand(p *commands.KnParams) *cobra.Command {
 	}
 	revisionCmd.AddCommand(NewRevisionListCommand(p))
 	revisionCmd.AddCommand(NewRevisionDescribeCommand(p))
+	revisionCmd.AddCommand(NewRevisionDeleteCommand(p))
 	return revisionCmd
 }

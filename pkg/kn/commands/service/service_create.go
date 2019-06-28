@@ -17,12 +17,13 @@ package service
 import (
 	"errors"
 	"fmt"
+	"io"
+	"time"
+
 	"github.com/knative/client/pkg/kn/commands"
 	serving_v1alpha1_api "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	serving_v1alpha1_client "github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
 	"github.com/spf13/cobra"
-	"io"
-	"time"
 
 	corev1 "k8s.io/api/core/v1"
 	api_errors "k8s.io/apimachinery/pkg/api/errors"
