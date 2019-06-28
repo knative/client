@@ -15,8 +15,9 @@
 package commands
 
 import (
-	"github.com/spf13/cobra"
 	"testing"
+
+	"github.com/spf13/cobra"
 )
 
 // testCommandGenerator generates a test cobra command

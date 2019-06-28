@@ -22,9 +22,10 @@ import (
 	"reflect"
 	"strings"
 
+	"text/tabwriter"
+
 	metav1beta1 "k8s.io/apimachinery/pkg/apis/meta/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"text/tabwriter"
 )
 
 var _ ResourcePrinter = &HumanReadablePrinter{}

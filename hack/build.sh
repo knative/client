@@ -54,23 +54,25 @@ run() {
     update_deps
   fi
 
+  if ! $(has_flag --fast -f); then
+
+    # Format source code and cleanup imports
+    source_format
+
+    # Generate docs
+    # Check for license headers
+    check_license
+
+    # Auto generate cli docs
+    generate_docs
+  fi
+
   # Run build
   go_build
 
   # Run tests
   if  $(has_flag --test -t) || ! $(has_flag --fast -f); then
     go_test
-  fi
-
-  if ! $(has_flag --fast -f); then
-    # Format source code
-    go_fmt
-
-    # Check for license headers
-    check_license
-
-    # Auto generate cli docs
-    generate_docs
   fi
 
   echo "────────────────────────────────────────────"
@@ -80,6 +82,23 @@ run() {
 go_fmt() {
   echo "🧹 ${S}Format"
   go fmt ./cmd/... ./pkg/...
+}
+
+source_format() {
+  set +e
+  which goimports >/dev/null 2>&1
+  if [ $? -ne 0 ]; then
+     echo "✋ No 'goimports' found. Please use"
+     echo "✋   go get golang.org/x/tools/cmd/goimports"
+     echo "✋ to enable import cleanup. Import cleanup skipped."
+
+     # Run go fmt insteat
+     go_fmt
+  else
+     echo "🧽 ${S}Format"
+     goimports -w cmd pkg
+  fi
+  set -e
 }
 
 go_build() {
@@ -134,7 +153,7 @@ check_license() {
 
 
 update_deps() {
-  echo "🕸️ Update"
+  echo "🕸️ ${S}Update"
   go mod vendor
 }
 
@@ -220,6 +239,7 @@ with the following options:
 
 -f  --fast                    Only compile (without formatting, testing, doc generation)
 -t  --test                    Run tests when used with --fast or --watch
+-i  --imports                 Organize and cleanup imports
 -u  --update                  Update dependencies before compiling
 -w  --watch                   Watch for source changes and recompile in fast mode
 -h  --help                    Display this help message
