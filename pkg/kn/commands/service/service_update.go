@@ -33,6 +33,9 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
   # Updates a service 'mysvc' with new environment variables
   kn service update mysvc --env KEY1=VALUE1 --env KEY2=VALUE2
 
+  # Update a service 'mysvc' with new port
+  kn service update mysvc --port 80
+
   # Updates a service 'mysvc' with new requests and limits parameters
   kn service update mysvc --requests-cpu 500m --limits-memory 1024Mi`,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
