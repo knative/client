@@ -34,6 +34,7 @@ type ConfigurationEditFlags struct {
 	MaxScale                   int
 	ConcurrencyTarget          int
 	ConcurrencyLimit           int
+	Port                       int32
 }
 
 type ResourceFlags struct {
@@ -54,6 +55,7 @@ func (p *ConfigurationEditFlags) AddUpdateFlags(command *cobra.Command) {
 	command.Flags().IntVar(&p.MaxScale, "max-scale", 0, "Maximal number of replicas.")
 	command.Flags().IntVar(&p.ConcurrencyTarget, "concurrency-target", 0, "Recommendation for when to scale up based on the concurrent number of incoming request. Defaults to --concurrency-limit when given.")
 	command.Flags().IntVar(&p.ConcurrencyLimit, "concurrency-limit", 0, "Hard Limit of concurrent requests to be processed by a single replica.")
+	command.Flags().Int32VarP(&p.Port, "port", "p", 0, "The port where application listens on.")
 }
 
 func (p *ConfigurationEditFlags) AddCreateFlags(command *cobra.Command) {
@@ -100,6 +102,13 @@ func (p *ConfigurationEditFlags) Apply(service *servingv1alpha1.Service, cmd *co
 	err = servinglib.UpdateResources(template, requestsResources, limitsResources)
 	if err != nil {
 		return err
+	}
+
+	if cmd.Flags().Changed("port") {
+		err = servinglib.UpdateContainerPort(template, p.Port)
+		if err != nil {
+			return err
+		}
 	}
 
 	servinglib.UpdateConcurrencyConfiguration(template, p.MinScale, p.MaxScale, p.ConcurrencyTarget, p.ConcurrencyLimit)

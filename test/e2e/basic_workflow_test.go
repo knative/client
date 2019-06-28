@@ -50,7 +50,7 @@ func TestBasicWorkflow(t *testing.T) {
 	testServiceCreate(t, k, "hello")
 	testServiceList(t, k, "hello")
 	testServiceDescribe(t, k, "hello")
-	testServiceUpdate(t, k, "hello", []string{"--env", "TARGET=kn"})
+	testServiceUpdate(t, k, "hello", []string{"--env", "TARGET=kn", "--port", "8888"})
 	testServiceCreate(t, k, "svc2")
 	testRevisionListForService(t, k, "hello")
 	testRevisionListForService(t, k, "svc2")
