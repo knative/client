@@ -33,13 +33,13 @@ kn service update NAME [flags]
   -h, --help                     help for update
       --image string             Image to run.
       --limits-cpu string        The limits on the requested CPU (e.g., 1000m).
-      --limits-memory string     The limits on the requested CPU (e.g., 1024Mi).
+      --limits-memory string     The limits on the requested memory (e.g., 1024Mi).
       --max-scale int            Maximal number of replicas.
       --min-scale int            Minimal number of replicas.
   -n, --namespace string         List the requested object(s) in given namespace.
   -p, --port int32               The port where application listens on.
       --requests-cpu string      The requested CPU (e.g., 250m).
-      --requests-memory string   The requested CPU (e.g., 64Mi).
+      --requests-memory string   The requested memory (e.g., 64Mi).
 ```
 
 ### Options inherited from parent commands
