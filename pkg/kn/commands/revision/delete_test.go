@@ -15,8 +15,6 @@
 package revision
 
 import (
-	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/knative/client/pkg/kn/commands"
@@ -24,16 +22,13 @@ import (
 	client_testing "k8s.io/client-go/testing"
 )
 
-func fakeRevisionDelete(args []string) (action client_testing.Action, name string, output []string, err error) {
+func fakeRevisionDelete(args []string) (action client_testing.Action, name string, output string, err error) {
 	knParams := &commands.KnParams{}
 	cmd, fakeServing, buf := commands.CreateTestKnCommand(NewRevisionCommand(knParams), knParams)
-	fakeServing.AddReactor("delete", "*",
+	fakeServing.AddReactor("delete", "revisions",
 		func(a client_testing.Action) (bool, runtime.Object, error) {
-			deleteAction, ok := a.(client_testing.DeleteAction)
+			deleteAction, _ := a.(client_testing.DeleteAction)
 			action = deleteAction
-			if !ok {
-				return true, nil, fmt.Errorf("wrong kind of action %v", action)
-			}
 			name = deleteAction.GetName()
 			return true, nil, nil
 		})
@@ -42,7 +37,7 @@ func fakeRevisionDelete(args []string) (action client_testing.Action, name strin
 	if err != nil {
 		return
 	}
-	output = strings.Split(buf.String(), "\n")
+	output = buf.String()
 	return
 }
 
@@ -53,14 +48,12 @@ func TestRevisionDelete(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	expectedOutput := fmt.Sprintf("Revision '%s' successfully deleted in namespace '%s'.", revName, commands.FakeNamespace)
 	if action == nil {
 		t.Errorf("No action")
 	} else if !action.Matches("delete", "revisions") {
 		t.Errorf("Bad action %v", action)
-	} else if output[0] != expectedOutput {
-		t.Errorf("Bad output %s\nExpected output %s", output[0], expectedOutput)
 	} else if name != revName {
 		t.Errorf("Bad revision name returned after delete.")
 	}
+	commands.TestContains(t, output, []string{"Revision", revName, "deleted", "namespace", commands.FakeNamespace}, "word in output")
 }

@@ -20,6 +20,8 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+
+	"github.com/knative/client/pkg/kn/commands"
 )
 
 func TestRevisionWorkflow(t *testing.T) {
@@ -43,8 +45,5 @@ func testDeleteRevision(t *testing.T, k kn, serviceName string) {
 	if err != nil {
 		t.Errorf("Error executing 'revision delete %s' command. Error: %s", revName, err.Error())
 	}
-	expectedOutput := fmt.Sprintf("Revision '%s' successfully deleted in namespace '%s'.\n", revName, defaultKnE2ENamespace)
-	if out != expectedOutput {
-		t.Errorf("Wrong output from 'revision delete %s' command. Actual output:\n%s\nExpected output:\n%s\n", revName, out, expectedOutput)
-	}
+	commands.TestContains(t, out, []string{"Revision", revName, "deleted", "namespace", k.namespace}, "word in output")
 }
