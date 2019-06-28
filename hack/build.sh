@@ -152,7 +152,7 @@ check_license() {
 
 
 update_deps() {
-  echo "🕸️ Update"
+  echo "🕸️ ${S}Update"
   go mod vendor
 }
 
