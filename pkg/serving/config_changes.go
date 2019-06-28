@@ -86,6 +86,18 @@ func UpdateImage(template *servingv1alpha1.RevisionTemplateSpec, image string) e
 	return nil
 }
 
+// UpdateContainerPort updates container with a give port
+func UpdateContainerPort(template *servingv1alpha1.RevisionTemplateSpec, port int32) error {
+	container, err := extractContainer(template)
+	if err != nil {
+		return err
+	}
+	container.Ports = []corev1.ContainerPort{{
+		ContainerPort: port,
+	}}
+	return nil
+}
+
 func UpdateResources(template *servingv1alpha1.RevisionTemplateSpec, requestsResourceList corev1.ResourceList, limitsResourceList corev1.ResourceList) error {
 	container, err := extractContainer(template)
 	if err != nil {

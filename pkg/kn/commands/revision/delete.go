@@ -1,4 +1,4 @@
-// Copyright © 2018 The Knative Authors
+// Copyright © 2019 The Knative Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package service
+package revision
 
 import (
 	"errors"
@@ -20,24 +20,20 @@ import (
 
 	"github.com/knative/client/pkg/kn/commands"
 	"github.com/spf13/cobra"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// NewServiceDeleteCommand represent 'service delete' command
-func NewServiceDeleteCommand(p *commands.KnParams) *cobra.Command {
-	serviceDeleteCommand := &cobra.Command{
+// NewRevisionDeleteCommand represent 'revision delete' command
+func NewRevisionDeleteCommand(p *commands.KnParams) *cobra.Command {
+	RevisionDeleteCommand := &cobra.Command{
 		Use:   "delete NAME",
-		Short: "Delete a service.",
+		Short: "Delete a revision.",
 		Example: `
-  # Delete a service 'svc1' in default namespace
-  kn service delete svc1
-
-  # Delete a service 'svc2' in 'ns1' namespace
-  kn service delete svc2 -n ns1`,
-
+  # Delete a revision 'svc1-abcde' in default namespace
+  kn revision delete svc1-abcde`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
-				return errors.New("requires the service name.")
+				return errors.New("'revision delete' requires the revision name given as single argument")
 			}
 			client, err := p.ServingFactory()
 			if err != nil {
@@ -47,18 +43,17 @@ func NewServiceDeleteCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-
-			err = client.Services(namespace).Delete(
+			err = client.Revisions(namespace).Delete(
 				args[0],
-				&v1.DeleteOptions{},
+				&metav1.DeleteOptions{},
 			)
 			if err != nil {
 				return err
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "Service '%s' successfully deleted in namespace '%s'.\n", args[0], namespace)
+			fmt.Fprintf(cmd.OutOrStdout(), "Revision '%s' successfully deleted in namespace '%s'.\n", args[0], namespace)
 			return nil
 		},
 	}
-	commands.AddNamespaceFlags(serviceDeleteCommand.Flags(), false)
-	return serviceDeleteCommand
+	commands.AddNamespaceFlags(RevisionDeleteCommand.Flags(), false)
+	return RevisionDeleteCommand
 }

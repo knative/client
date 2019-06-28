@@ -15,9 +15,10 @@
 package serving
 
 import (
-	"github.com/knative/serving/pkg/apis/serving/v1beta1"
 	"reflect"
 	"testing"
+
+	"github.com/knative/serving/pkg/apis/serving/v1beta1"
 
 	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
@@ -136,6 +137,30 @@ func testUpdateEnvVarsModify(t *testing.T, revision *servingv1alpha1.RevisionTem
 	}
 	if !reflect.DeepEqual(expected, found) {
 		t.Fatalf("Env did not match expected %v, found %v", env, found)
+	}
+}
+
+func TestUpdateContainerPort(t *testing.T) {
+	template, _ := getV1alpha1Config()
+	err := UpdateContainerPort(template, 8888)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Verify update is successful or not
+	checkPortUpdate(t, template, 8888)
+	// update template with container port info
+	template.Spec.Containers[0].Ports[0].ContainerPort = 9090
+	err = UpdateContainerPort(template, 80)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Verify that given port overrides the existing container port
+	checkPortUpdate(t, template, 80)
+}
+
+func checkPortUpdate(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, port int32) {
+	if len(template.Spec.Containers) != 1 || template.Spec.Containers[0].Ports[0].ContainerPort != port {
+		t.Error("Failed to update the container port")
 	}
 }
 

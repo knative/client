@@ -20,7 +20,7 @@ import (
 	"github.com/knative/client/pkg/kn/commands"
 	"github.com/knative/serving/pkg/apis/serving"
 	"github.com/spf13/cobra"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -44,7 +44,7 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			namespace, err := commands.GetNamespace(cmd)
+			namespace, err := p.GetNamespace(cmd)
 			if err != nil {
 				return err
 			}

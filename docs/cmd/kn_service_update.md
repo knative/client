@@ -17,6 +17,9 @@ kn service update NAME [flags]
   # Updates a service 'mysvc' with new environment variables
   kn service update mysvc --env KEY1=VALUE1 --env KEY2=VALUE2
 
+  # Update a service 'mysvc' with new port
+  kn service update mysvc --port 80
+
   # Updates a service 'mysvc' with new requests and limits parameters
   kn service update mysvc --requests-cpu 500m --limits-memory 1024Mi
 ```
@@ -34,6 +37,7 @@ kn service update NAME [flags]
       --max-scale int            Maximal number of replicas.
       --min-scale int            Minimal number of replicas.
   -n, --namespace string         List the requested object(s) in given namespace.
+  -p, --port int32               The port where application listens on.
       --requests-cpu string      The requested CPU (e.g., 250m).
       --requests-memory string   The requested memory (e.g., 64Mi).
 ```

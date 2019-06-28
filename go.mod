@@ -22,7 +22,7 @@ require (
 	github.com/knative/build v0.6.0 // indirect
 	github.com/knative/pkg v0.0.0-20190518173526-34792a92cec2
 	github.com/knative/serving v0.6.0
-	github.com/knative/test-infra v0.0.0-20190531180034-a3c073a2fea1
+	github.com/knative/test-infra v0.0.0-20190624052103-517330119155
 	github.com/mattbaird/jsonpatch v0.0.0-20171005235357-81af80346b1a // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/modern-go/reflect2 v1.0.1 // indirect
@@ -37,6 +37,7 @@ require (
 	golang.org/x/net v0.0.0-20190514140710-3ec191127204 // indirect
 	golang.org/x/oauth2 v0.0.0-20190517181255-950ef44c6e07 // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
+	golang.org/x/tools v0.0.0-20190628034336-212fb13d595e // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	k8s.io/api v0.0.0-20190226173710-145d52631d00
 	k8s.io/apimachinery v0.0.0-20190221084156-01f179d85dbc
