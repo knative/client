@@ -67,17 +67,13 @@ func (w *waitForReadyConfig) Wait(name string, timeout time.Duration, out io.Wri
 	}
 	addWatchTimeout(&opts, timeout)
 
-	watcher, err := w.watchFunc(opts)
-	if err != nil {
-		return err
-	}
 	fmt.Fprintf(out, "Waiting for %s '%s' to become ready ... ", w.kind, name)
 	flush(out)
 
 	floatingTimeout := timeout
 	for {
 		start := time.Now()
-		retry, timeoutReached, err := w.waitForReadyCondition(watcher, name, floatingTimeout)
+		retry, timeoutReached, err := w.waitForReadyCondition(opts, name, floatingTimeout)
 		if err != nil {
 			fmt.Fprintln(out)
 			return err
@@ -119,7 +115,13 @@ func flush(out io.Writer) {
 	}
 }
 
-func (w *waitForReadyConfig) waitForReadyCondition(watcher watch.Interface, name string, timeout time.Duration) (bool, bool, error) {
+func (w *waitForReadyConfig) waitForReadyCondition(opts v1.ListOptions, name string, timeout time.Duration) (bool, bool, error) {
+
+	watcher, err := w.watchFunc(opts)
+	if err != nil {
+		return false, false, err
+	}
+
 	defer watcher.Stop()
 	for {
 		select {

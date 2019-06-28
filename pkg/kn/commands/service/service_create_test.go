@@ -17,14 +17,18 @@ package service
 import (
 	"errors"
 	"fmt"
-	api_errors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"reflect"
 	"strings"
 	"testing"
 
+	api_errors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/watch"
+
 	"github.com/knative/client/pkg/kn/commands"
 	servinglib "github.com/knative/client/pkg/serving"
+	"github.com/knative/client/pkg/wait"
+
 	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -32,7 +36,7 @@ import (
 	client_testing "k8s.io/client-go/testing"
 )
 
-func fakeServiceCreate(args []string, withExistingService bool) (
+func fakeServiceCreate(args []string, withExistingService bool, sync bool) (
 	action client_testing.Action,
 	created *v1alpha1.Service,
 	output string,
@@ -59,6 +63,23 @@ func fakeServiceCreate(args []string, withExistingService bool) (
 			}
 			return true, created, nil
 		})
+	if sync {
+		fakeServing.AddWatchReactor("services",
+			func(a client_testing.Action) (bool, watch.Interface, error) {
+				watchAction := a.(client_testing.WatchAction)
+				_, found := watchAction.GetWatchRestrictions().Fields.RequiresExactMatch("metadata.name")
+				if !found {
+					return true, nil, errors.New("no field selector on metadata.name found")
+				}
+				w := wait.NewFakeWatch(getServiceEvents())
+				w.Start()
+				return true, w, nil
+			})
+		fakeServing.AddReactor("get", "services",
+			func(a client_testing.Action) (bool, runtime.Object, error) {
+				return true, &v1alpha1.Service{}, nil
+			})
+	}
 	cmd.SetArgs(args)
 	err = cmd.Execute()
 	if err != nil {
@@ -68,9 +89,17 @@ func fakeServiceCreate(args []string, withExistingService bool) (
 	return
 }
 
+func getServiceEvents() []watch.Event {
+	return []watch.Event{
+		{watch.Added, wait.CreateTestServiceWithConditions(corev1.ConditionUnknown, corev1.ConditionUnknown, "")},
+		{watch.Modified, wait.CreateTestServiceWithConditions(corev1.ConditionUnknown, corev1.ConditionTrue, "")},
+		{watch.Modified, wait.CreateTestServiceWithConditions(corev1.ConditionTrue, corev1.ConditionTrue, "")},
+	}
+}
+
 func TestServiceCreateImage(t *testing.T) {
 	action, created, output, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--async"}, false)
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--async"}, false, false)
 	if err != nil {
 		t.Fatal(err)
 	} else if !action.Matches("create", "services") {
@@ -87,9 +116,33 @@ func TestServiceCreateImage(t *testing.T) {
 	}
 }
 
+func TestServiceCreateImageSync(t *testing.T) {
+	action, created, output, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz"}, true, true)
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("create", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+	template, err := servinglib.GetRevisionTemplate(created)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if template.Spec.DeprecatedContainer.Image != "gcr.io/foo/bar:baz" {
+		t.Fatalf("wrong image set: %v", template.Spec.DeprecatedContainer.Image)
+	}
+	if !strings.Contains(output, "foo") || !strings.Contains(output, "created") ||
+		!strings.Contains(output, commands.FakeNamespace) {
+		t.Fatalf("wrong stdout message: %v", output)
+	}
+	if !strings.Contains(output, "OK") || !strings.Contains(output, "Waiting") {
+		t.Fatalf("not running in sync mode")
+	}
+}
+
 func TestServiceCreateEnv(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "-e", "A=DOGS", "--env", "B=WOLVES", "--async"}, false)
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "-e", "A=DOGS", "--env", "B=WOLVES", "--async"}, false, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -120,7 +173,7 @@ func TestServiceCreateEnv(t *testing.T) {
 
 func TestServiceCreateWithRequests(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--requests-cpu", "250m", "--requests-memory", "64Mi", "--async"}, false)
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--requests-cpu", "250m", "--requests-memory", "64Mi", "--async"}, false, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -146,7 +199,7 @@ func TestServiceCreateWithRequests(t *testing.T) {
 
 func TestServiceCreateWithLimits(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--limits-cpu", "1000m", "--limits-memory", "1024Mi", "--async"}, false)
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--limits-cpu", "1000m", "--limits-memory", "1024Mi", "--async"}, false, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -172,7 +225,7 @@ func TestServiceCreateWithLimits(t *testing.T) {
 
 func TestServiceCreateRequestsLimitsCPU(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--requests-cpu", "250m", "--limits-cpu", "1000m", "--async"}, false)
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--requests-cpu", "250m", "--limits-cpu", "1000m", "--async"}, false, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -209,7 +262,7 @@ func TestServiceCreateRequestsLimitsCPU(t *testing.T) {
 
 func TestServiceCreateRequestsLimitsMemory(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--requests-memory", "64Mi", "--limits-memory", "1024Mi", "--async"}, false)
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--requests-memory", "64Mi", "--limits-memory", "1024Mi", "--async"}, false, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -247,7 +300,7 @@ func TestServiceCreateRequestsLimitsMemory(t *testing.T) {
 func TestServiceCreateMaxMinScale(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
-		"--min-scale", "1", "--max-scale", "5", "--concurrency-target", "10", "--concurrency-limit", "100", "--async"}, false)
+		"--min-scale", "1", "--max-scale", "5", "--concurrency-target", "10", "--concurrency-limit", "100", "--async"}, false, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -284,7 +337,7 @@ func TestServiceCreateRequestsLimitsCPUMemory(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
 		"--requests-cpu", "250m", "--limits-cpu", "1000m",
-		"--requests-memory", "64Mi", "--limits-memory", "1024Mi", "--async"}, false)
+		"--requests-memory", "64Mi", "--limits-memory", "1024Mi", "--async"}, false, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -331,12 +384,12 @@ func parseQuantity(t *testing.T, quantityString string) resource.Quantity {
 
 func TestServiceCreateImageForce(t *testing.T) {
 	_, _, _, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--image", "gcr.io/foo/bar:v1", "--async"}, false)
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:v1", "--async"}, false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
 	action, created, output, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--force", "--image", "gcr.io/foo/bar:v2", "--async"}, false)
+		"service", "create", "foo", "--force", "--image", "gcr.io/foo/bar:v2", "--async"}, false, false)
 	if err != nil {
 		t.Fatal(err)
 	} else if !action.Matches("create", "services") {
@@ -354,12 +407,12 @@ func TestServiceCreateImageForce(t *testing.T) {
 
 func TestServiceCreateEnvForce(t *testing.T) {
 	_, _, _, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--image", "gcr.io/foo/bar:v1", "-e", "A=DOGS", "--env", "B=WOLVES", "--async"}, false)
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:v1", "-e", "A=DOGS", "--env", "B=WOLVES", "--async"}, false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
 	action, created, output, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--force", "--image", "gcr.io/foo/bar:v2", "-e", "A=CATS", "--env", "B=LIONS", "--async"}, false)
+		"service", "create", "foo", "--force", "--image", "gcr.io/foo/bar:v2", "-e", "A=CATS", "--env", "B=LIONS", "--async"}, false, false)
 
 	if err != nil {
 		t.Fatal(err)

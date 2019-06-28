@@ -108,7 +108,7 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 	}
 	commands.AddNamespaceFlags(serviceCreateCommand.Flags(), false)
 	editFlags.AddCreateFlags(serviceCreateCommand)
-	waitFlags.AddWaitFlags(serviceCreateCommand, 60, "service")
+	waitFlags.AddConditionWaitFlags(serviceCreateCommand, 60, "service")
 	return serviceCreateCommand
 }
 
@@ -178,7 +178,7 @@ func constructService(cmd *cobra.Command, editFlags ConfigurationEditFlags, name
 func showUrl(client serving_v1alpha1_client.ServingV1alpha1Interface, serviceName string, namespace string, out io.Writer) error {
 	service, err := client.Services(namespace).Get(serviceName, v1.GetOptions{})
 	if err != nil {
-		return fmt.Errorf("cannot fetch service %s in namespace %s for extracting the URL", serviceName, namespace)
+		return fmt.Errorf("cannot fetch service '%s' in namespace '%s' for extracting the URL: %v", serviceName, namespace, err)
 	}
 	url := service.Status.URL.String()
 	if url == "" {

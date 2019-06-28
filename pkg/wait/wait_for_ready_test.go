@@ -16,47 +16,17 @@ package wait
 
 import (
 	"bytes"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/knative/pkg/apis"
 	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
-	"strings"
-	"testing"
-	"time"
 )
-
-type fakeWatch struct {
-	eventChan  chan watch.Event
-	events     []watch.Event
-	stopCalled int
-}
-
-func newFakeWatch(events []watch.Event) *fakeWatch {
-	return &fakeWatch{
-		eventChan: make(chan watch.Event),
-		events:    events,
-	}
-}
-
-func (f *fakeWatch) Stop() {
-	f.stopCalled++
-}
-
-func (f *fakeWatch) start() {
-	go f.pumpEvents()
-}
-
-func (f *fakeWatch) ResultChan() <-chan watch.Event {
-	return f.eventChan
-}
-
-func (f *fakeWatch) pumpEvents() {
-	for _, ev := range f.events {
-		f.eventChan <- ev
-	}
-}
 
 type waitForReadyTestCase struct {
 	events         []watch.Event
@@ -68,7 +38,7 @@ type waitForReadyTestCase struct {
 func TestAddWaitForReady(t *testing.T) {
 
 	for i, tc := range prepareTestCases() {
-		fakeWatchApi := newFakeWatch(tc.events)
+		fakeWatchApi := NewFakeWatch(tc.events)
 		outBuffer := new(bytes.Buffer)
 
 		waitForReady := NewWaitForReady(
@@ -77,10 +47,9 @@ func TestAddWaitForReady(t *testing.T) {
 				return fakeWatchApi, nil
 			},
 			func(obj runtime.Object) (apis.Conditions, error) {
-				println("Extract called")
 				return apis.Conditions(obj.(*v1alpha1.Service).Status.Conditions), nil
 			})
-		fakeWatchApi.start()
+		fakeWatchApi.Start()
 		err := waitForReady.Wait("foobar", tc.timeout, outBuffer)
 		close(fakeWatchApi.eventChan)
 
@@ -102,8 +71,8 @@ func TestAddWaitForReady(t *testing.T) {
 			}
 		}
 
-		if fakeWatchApi.stopCalled != 1 {
-			t.Errorf("%d: Exactly one 'stop' should be called, but got %d", i, fakeWatchApi.stopCalled)
+		if fakeWatchApi.StopCalled != 1 {
+			t.Errorf("%d: Exactly one 'stop' should be called, but got %d", i, fakeWatchApi.StopCalled)
 		}
 
 	}
@@ -123,45 +92,28 @@ func prepareTestCases() []waitForReadyTestCase {
 
 func peNormal() []watch.Event {
 	return []watch.Event{
-		{watch.Added, createThinService(corev1.ConditionUnknown, corev1.ConditionUnknown, "")},
-		{watch.Modified, createThinService(corev1.ConditionUnknown, corev1.ConditionTrue, "")},
-		{watch.Modified, createThinService(corev1.ConditionTrue, corev1.ConditionTrue, "")},
+		{watch.Added, CreateTestServiceWithConditions(corev1.ConditionUnknown, corev1.ConditionUnknown, "")},
+		{watch.Modified, CreateTestServiceWithConditions(corev1.ConditionUnknown, corev1.ConditionTrue, "")},
+		{watch.Modified, CreateTestServiceWithConditions(corev1.ConditionTrue, corev1.ConditionTrue, "")},
 	}
 }
 
 func peError() []watch.Event {
 	return []watch.Event{
-		{watch.Added, createThinService(corev1.ConditionUnknown, corev1.ConditionUnknown, "")},
-		{watch.Modified, createThinService(corev1.ConditionFalse, corev1.ConditionTrue, "FakeError")},
+		{watch.Added, CreateTestServiceWithConditions(corev1.ConditionUnknown, corev1.ConditionUnknown, "")},
+		{watch.Modified, CreateTestServiceWithConditions(corev1.ConditionFalse, corev1.ConditionTrue, "FakeError")},
 	}
 }
 
 func peTimeout() []watch.Event {
 	return []watch.Event{
-		{watch.Added, createThinService(corev1.ConditionUnknown, corev1.ConditionUnknown, "")},
+		{watch.Added, CreateTestServiceWithConditions(corev1.ConditionUnknown, corev1.ConditionUnknown, "")},
 	}
 }
 
 func peWrongGeneration() []watch.Event {
 	return []watch.Event{
-		{watch.Added, createThinService(corev1.ConditionUnknown, corev1.ConditionUnknown, "")},
-		{watch.Modified, createThinService(corev1.ConditionTrue, corev1.ConditionTrue, "", 1, 2)},
+		{watch.Added, CreateTestServiceWithConditions(corev1.ConditionUnknown, corev1.ConditionUnknown, "")},
+		{watch.Modified, CreateTestServiceWithConditions(corev1.ConditionTrue, corev1.ConditionTrue, "", 1, 2)},
 	}
-}
-
-func createThinService(readyStatus corev1.ConditionStatus, otherReadyStatus corev1.ConditionStatus, reason string, generations ...int64) runtime.Object {
-	service := v1alpha1.Service{}
-	if len(generations) == 2 {
-		service.Generation = generations[0]
-		service.Status.ObservedGeneration = generations[1]
-	} else {
-		service.Generation = 1
-		service.Status.ObservedGeneration = 1
-	}
-	service.Status.Conditions = []apis.Condition{
-		{Type: "RoutesReady", Status: otherReadyStatus},
-		{Type: apis.ConditionReady, Status: readyStatus, Reason: reason},
-		{Type: "ConfigurationsReady", Status: otherReadyStatus},
-	}
-	return &service
 }
