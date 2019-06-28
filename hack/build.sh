@@ -54,20 +54,10 @@ run() {
     update_deps
   fi
 
-  # Run build
-  go_build
-
-  # Run tests
-  if  $(has_flag --test -t) || ! $(has_flag --fast -f); then
-    go_test
-  fi
-
   if ! $(has_flag --fast -f); then
-    # Format source code
-    go_fmt
 
-    # Cleanup imports
-    go_imports
+    # Format source code and cleanup imports
+    source_format
 
     # Generate docs
     # Check for license headers
@@ -75,6 +65,14 @@ run() {
 
     # Auto generate cli docs
     generate_docs
+  fi
+
+  # Run build
+  go_build
+
+  # Run tests
+  if  $(has_flag --test -t) || ! $(has_flag --fast -f); then
+    go_test
   fi
 
   echo "────────────────────────────────────────────"
@@ -86,15 +84,18 @@ go_fmt() {
   go fmt ./cmd/... ./pkg/...
 }
 
-go_imports() {
+source_format() {
   set +e
   which goimports >/dev/null 2>&1
   if [ $? -ne 0 ]; then
      echo "✋ No 'goimports' found. Please use"
      echo "✋   go get golang.org/x/tools/cmd/goimports"
      echo "✋ to enable import cleanup. Import cleanup skipped."
+
+     # Run go fmt insteat
+     go_fmt
   else
-     echo "🧽  Imports"
+     echo "🧽 ${S}Format"
      goimports -w cmd pkg
   fi
   set -e
