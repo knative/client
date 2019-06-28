@@ -24,9 +24,15 @@
 # Markdown linting failures don't show up properly in Gubernator resulting
 # in a net-negative contributor experience.
 # Tracked by https://github.com/knative/test-infra/issues/428
+
+# If you call this script after configuring the environment variable
+# $KNATIVE_VERSION with a valid release, e.g. 0.6.0, Knative serving
+# of this specified version will be installed in the Kubernetes cluster, and
+# all the tests will run against Knative serving of this specific version.
 export DISABLE_MD_LINTING=1
 
 export GO111MODULE=on
+export KNATIVE_VERSION=${KNATIVE_VERSION:-latest}
 source $(dirname $0)/../vendor/github.com/knative/test-infra/scripts/presubmit-tests.sh
 
 # We use the default build, unit and integration test runners.
