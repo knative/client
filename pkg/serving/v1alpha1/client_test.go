@@ -15,14 +15,19 @@
 package v1alpha1
 
 import (
+	"bytes"
 	"fmt"
 	"testing"
+	"time"
 
 	"gotest.tools/assert"
+	"gotest.tools/assert/cmp"
+	"k8s.io/apimachinery/pkg/watch"
 
 	serving_api "github.com/knative/serving/pkg/apis/serving"
 	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -31,6 +36,7 @@ import (
 	client_testing "k8s.io/client-go/testing"
 
 	"github.com/knative/client/pkg/serving"
+	"github.com/knative/client/pkg/wait"
 )
 
 var testNamespace = "test-ns"
@@ -260,9 +266,9 @@ func TestListRevisionForService(t *testing.T) {
 			lAction := a.(client_testing.ListAction)
 			assert.Equal(t, testNamespace, a.GetNamespace())
 			restrictions := lAction.GetListRestrictions()
-			assert.Assert(t, restrictions.Fields.Empty())
+			assert.Check(t, restrictions.Fields.Empty())
 			servicesLabels := labels.Set{serving_api.ServiceLabelKey: serviceName}
-			assert.Assert(t, restrictions.Labels.Matches(servicesLabels))
+			assert.Check(t, restrictions.Labels.Matches(servicesLabels))
 			return true, &v1alpha1.RevisionList{Items: revisions}, nil
 		})
 
@@ -271,12 +277,42 @@ func TestListRevisionForService(t *testing.T) {
 			revisions, err := client.ListRevisionsForService(serviceName)
 			assert.NilError(t, err)
 
-			assert.Equal(t, len(revisions.Items), 1)
+			assert.Assert(t, cmp.Len(revisions.Items, 1))
 			assert.Equal(t, revisions.Items[0].Name, "revision-1")
 			assert.Equal(t, revisions.Items[0].Labels[serving_api.ServiceLabelKey], "service")
 			validateGroupVersionKind(t, revisions)
 			validateGroupVersionKind(t, &revisions.Items[0])
 		})
+}
+
+func TestWaitForService(t *testing.T) {
+	serving, client := setup()
+
+	serviceName := "test-service"
+
+	serving.AddWatchReactor("services",
+		func(a client_testing.Action) (bool, watch.Interface, error) {
+			watchAction := a.(client_testing.WatchAction)
+			_, found := watchAction.GetWatchRestrictions().Fields.RequiresExactMatch("metadata.name")
+			if !found {
+				return true, nil, fmt.Errorf("no field selector on metadata.name found")
+			}
+			w := wait.NewFakeWatch(getServiceEvents(serviceName))
+			w.Start()
+			return true, w, nil
+		})
+	serving.AddReactor("get", "services",
+		func(a client_testing.Action) (bool, runtime.Object, error) {
+			getAction := a.(client_testing.GetAction)
+			assert.Equal(t, getAction.GetName(), serviceName)
+			return true, newService(serviceName), nil
+		})
+
+	t.Run("wait on a service to become ready with success", func(t *testing.T) {
+		buf := new(bytes.Buffer)
+		err := client.WaitForService(serviceName, 60*time.Second, buf)
+		assert.NilError(t, err)
+	})
 }
 
 func validateGroupVersionKind(t *testing.T, obj runtime.Object) {
@@ -300,4 +336,12 @@ func newRevision(name string, labels ...string) *v1alpha1.Revision {
 		rev.Labels = labelMap
 	}
 	return rev
+}
+
+func getServiceEvents(name string) []watch.Event {
+	return []watch.Event{
+		{watch.Added, wait.CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "")},
+		{watch.Modified, wait.CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionTrue, "")},
+		{watch.Modified, wait.CreateTestServiceWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "")},
+	}
 }
