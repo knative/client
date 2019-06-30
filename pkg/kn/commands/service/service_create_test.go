@@ -38,14 +38,16 @@ import (
 
 func fakeServiceCreate(args []string, withExistingService bool, sync bool) (
 	action client_testing.Action,
-	created *v1alpha1.Service,
+	service *v1alpha1.Service,
 	output string,
 	err error) {
 	knParams := &commands.KnParams{}
+	nrGetCalled := 0
 	cmd, fakeServing, buf := commands.CreateTestKnCommand(NewServiceCommand(knParams), knParams)
 	fakeServing.AddReactor("get", "services",
 		func(a client_testing.Action) (bool, runtime.Object, error) {
-			if withExistingService {
+			nrGetCalled++
+			if withExistingService || (sync && nrGetCalled > 1) {
 				return true, &v1alpha1.Service{}, nil
 			}
 			return true, nil, api_errors.NewNotFound(schema.GroupResource{}, "")
@@ -57,11 +59,24 @@ func fakeServiceCreate(args []string, withExistingService bool, sync bool) (
 			if !ok {
 				return true, nil, fmt.Errorf("wrong kind of action %v", a)
 			}
-			created, ok = createAction.GetObject().(*v1alpha1.Service)
+			service, ok = createAction.GetObject().(*v1alpha1.Service)
 			if !ok {
 				return true, nil, errors.New("was passed the wrong object")
 			}
-			return true, created, nil
+			return true, service, nil
+		})
+	fakeServing.AddReactor("update", "services",
+		func(a client_testing.Action) (bool, runtime.Object, error) {
+			updateAction, ok := a.(client_testing.UpdateAction)
+			action = updateAction
+			if !ok {
+				return true, nil, fmt.Errorf("wrong kind of action %v", a)
+			}
+			service, ok = updateAction.GetObject().(*v1alpha1.Service)
+			if !ok {
+				return true, nil, errors.New("was passed the wrong object")
+			}
+			return true, service, nil
 		})
 	if sync {
 		fakeServing.AddWatchReactor("services",
@@ -83,6 +98,7 @@ func fakeServiceCreate(args []string, withExistingService bool, sync bool) (
 	cmd.SetArgs(args)
 	err = cmd.Execute()
 	if err != nil {
+		output = err.Error()
 		return
 	}
 	output = buf.String()
@@ -118,7 +134,7 @@ func TestServiceCreateImage(t *testing.T) {
 
 func TestServiceCreateImageSync(t *testing.T) {
 	action, created, output, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz"}, true, true)
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz"}, false, true)
 	if err != nil {
 		t.Fatal(err)
 	} else if !action.Matches("create", "services") {
@@ -382,17 +398,27 @@ func parseQuantity(t *testing.T, quantityString string) resource.Quantity {
 	return quantity
 }
 
-func TestServiceCreateImageForce(t *testing.T) {
-	_, _, _, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--image", "gcr.io/foo/bar:v1", "--async"}, false, false)
-	if err != nil {
+func TestServiceCreateImageExistsAndNoForce(t *testing.T) {
+	_, _, output, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:v2", "--async"}, true, false)
+	if err == nil {
 		t.Fatal(err)
 	}
+	if !strings.Contains(output, "foo") ||
+		!strings.Contains(output, "current") ||
+		!strings.Contains(output, "create") ||
+		!strings.Contains(output, "--force") {
+		t.Errorf("Invalid error output: '%s'", output)
+	}
+
+}
+
+func TestServiceCreateImageForce(t *testing.T) {
 	action, created, output, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--force", "--image", "gcr.io/foo/bar:v2", "--async"}, false, false)
+		"service", "create", "foo", "--force", "--image", "gcr.io/foo/bar:v2", "--async"}, true, false)
 	if err != nil {
 		t.Fatal(err)
-	} else if !action.Matches("create", "services") {
+	} else if !action.Matches("update", "services") {
 		t.Fatalf("Bad action %v", action)
 	}
 	template, err := servinglib.GetRevisionTemplate(created)
