@@ -81,7 +81,7 @@ func (w *waitForReadyConfig) Wait(name string, timeout time.Duration, out io.Wri
 		}
 		floatingTimeout = floatingTimeout - time.Since(start)
 		if timeoutReached || floatingTimeout < 0 {
-			return fmt.Errorf("timeout: %s '%s' not ready after %d seconds", w.kind, name, timeout)
+			return fmt.Errorf("timeout: %s '%s' not ready after %d seconds", w.kind, name, int(timeout/time.Second))
 		}
 
 		if retry {
