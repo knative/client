@@ -26,10 +26,10 @@ import (
 // RevisionListHandlers adds print handlers for revision list command
 func RevisionListHandlers(h hprinters.PrintHandler) {
 	RevisionColumnDefinitions := []metav1beta1.TableColumnDefinition{
-		{Name: "Service", Type: "string", Description: "Name of the knative service."},
 		{Name: "Name", Type: "string", Description: "Name of the revision."},
+		{Name: "Service", Type: "string", Description: "Name of the Knative service."},
 		{Name: "Age", Type: "string", Description: "Age of the revision."},
-		{Name: "Conditions", Type: "string", Description: "Conditions describing statuses of revision."},
+		{Name: "Conditions", Type: "string", Description: "Conditions describing statuses of the revision."},
 		{Name: "Ready", Type: "string", Description: "Ready condition status of the revision."},
 		{Name: "Reason", Type: "string", Description: "Reason for non-ready condition of the revision."},
 	}
@@ -39,7 +39,7 @@ func RevisionListHandlers(h hprinters.PrintHandler) {
 
 // Private functions
 
-// printRevisionList populates the knative revision list table rows
+// printRevisionList populates the Knative revision list table rows
 func printRevisionList(revisionList *servingv1alpha1.RevisionList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	rows := make([]metav1beta1.TableRow, 0, len(revisionList.Items))
 	for _, rev := range revisionList.Items {
@@ -52,10 +52,10 @@ func printRevisionList(revisionList *servingv1alpha1.RevisionList, options hprin
 	return rows, nil
 }
 
-// printRevision populates the knative revision table rows
+// printRevision populates the Knative revision table rows
 func printRevision(revision *servingv1alpha1.Revision, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
-	service := revision.Labels[serving.ConfigurationLabelKey]
 	name := revision.Name
+	service := revision.Labels[serving.ConfigurationLabelKey]
 	age := commands.TranslateTimestampSince(revision.CreationTimestamp)
 	conditions := commands.ConditionsValue(revision.Status.Conditions)
 	ready := commands.ReadyCondition(revision.Status.Conditions)
@@ -64,8 +64,8 @@ func printRevision(revision *servingv1alpha1.Revision, options hprinters.PrintOp
 		Object: runtime.RawExtension{Object: revision},
 	}
 	row.Cells = append(row.Cells,
-		service,
 		name,
+		service,
 		age,
 		conditions,
 		ready,
