@@ -137,7 +137,7 @@ func createMockRevisionWithParams(name, svcName string) *v1alpha1.Revision {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: "default",
-			Labels:    map[string]string{serving.ConfigurationLabelKey: svcName},
+			Labels:    map[string]string{serving.ServiceLabelKey: svcName},
 		},
 	}
 	return revision

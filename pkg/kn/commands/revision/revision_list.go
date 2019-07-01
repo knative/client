@@ -57,7 +57,7 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 					return err
 				}
 				listOptions.LabelSelector = labels.Set(
-					map[string]string{serving.ConfigurationLabelKey: service}).String()
+					map[string]string{serving.ServiceLabelKey: service}).String()
 			}
 			revision, err := client.Revisions(namespace).List(listOptions)
 			if err != nil {

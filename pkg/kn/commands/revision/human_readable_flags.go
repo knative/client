@@ -55,7 +55,7 @@ func printRevisionList(revisionList *servingv1alpha1.RevisionList, options hprin
 // printRevision populates the Knative revision table rows
 func printRevision(revision *servingv1alpha1.Revision, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	name := revision.Name
-	service := revision.Labels[serving.ConfigurationLabelKey]
+	service := revision.Labels[serving.ServiceLabelKey]
 	age := commands.TranslateTimestampSince(revision.CreationTimestamp)
 	conditions := commands.ConditionsValue(revision.Status.Conditions)
 	ready := commands.ReadyCondition(revision.Status.Conditions)
