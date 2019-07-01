@@ -405,7 +405,7 @@ func TestServiceCreateImageExistsAndNoForce(t *testing.T) {
 		t.Fatal(err)
 	}
 	if !strings.Contains(output, "foo") ||
-		!strings.Contains(output, "current") ||
+		!strings.Contains(output, commands.FakeNamespace) ||
 		!strings.Contains(output, "create") ||
 		!strings.Contains(output, "--force") {
 		t.Errorf("Invalid error output: '%s'", output)
