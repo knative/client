@@ -84,12 +84,17 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			serviceExists, err := serviceExists(client, service.Name, namespace)
+			serviceExists, err := serviceExists(client, name, namespace)
 			if err != nil {
 				return err
 			}
 
-			if editFlags.ForceCreate && serviceExists {
+			if serviceExists {
+				if !editFlags.ForceCreate {
+					return fmt.Errorf(
+						"cannot create service '%s' in namespace '%s' "+
+							"because the service already exists and no --force option was given", name, namespace)
+				}
 				err = replaceService(client, service, namespace, cmd.OutOrStdout())
 			} else {
 				err = createService(client, service, namespace, cmd.OutOrStdout())
