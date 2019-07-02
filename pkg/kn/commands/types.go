@@ -15,7 +15,10 @@
 package commands
 
 import (
+	"errors"
+	"fmt"
 	"io"
+	"path/filepath"
 
 	serving_kn_v1alpha1 "github.com/knative/client/pkg/serving/v1alpha1"
 
@@ -51,11 +54,17 @@ func (params *KnParams) newClient(namespace string) (serving_kn_v1alpha1.KnClien
 	return serving_kn_v1alpha1.NewKnServingClient(client, namespace), nil
 }
 
+// GetConfig returns Serving Client
 func (params *KnParams) GetConfig() (serving_v1alpha1_client.ServingV1alpha1Interface, error) {
-	if params.ClientConfig == nil {
-		params.ClientConfig = params.GetClientConfig()
-	}
 	var err error
+
+	if params.ClientConfig == nil {
+		params.ClientConfig, err = params.GetClientConfig()
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	config, err := params.ClientConfig.ClientConfig()
 	if err != nil {
 		return nil, err
@@ -63,10 +72,16 @@ func (params *KnParams) GetConfig() (serving_v1alpha1_client.ServingV1alpha1Inte
 	return serving_v1alpha1_client.NewForConfig(config)
 }
 
-func (params *KnParams) GetClientConfig() clientcmd.ClientConfig {
+// GetClientConfig gets ClientConfig from KubeCfgPath
+func (params *KnParams) GetClientConfig() (clientcmd.ClientConfig, error) {
 	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
 	if len(params.KubeCfgPath) > 0 {
-		loadingRules.ExplicitPath = params.KubeCfgPath
+		paths := filepath.SplitList(params.KubeCfgPath)
+		if len(paths) == 1 {
+			loadingRules.ExplicitPath = paths[0]
+		} else {
+			return nil, errors.New(fmt.Sprintf("Config file '%s' could not be found. For configuration lookup path please use the env variable KUBECONFIG", params.KubeCfgPath))
+		}
 	}
-	return clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, &clientcmd.ConfigOverrides{})
+	return clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, &clientcmd.ConfigOverrides{}), nil
 }
