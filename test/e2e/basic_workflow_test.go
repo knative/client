@@ -54,6 +54,8 @@ func TestBasicWorkflow(t *testing.T) {
 	testServiceCreate(t, k, "svc2")
 	testRevisionListForService(t, k, "hello")
 	testRevisionListForService(t, k, "svc2")
+	testRouteList(t, k)
+	testRouteListWithArgument(t, k, "hello")
 	testServiceDelete(t, k, "hello")
 	testServiceDelete(t, k, "svc2")
 	testServiceListEmpty(t, k)
@@ -140,6 +142,34 @@ func testServiceUpdate(t *testing.T, k kn, serviceName string, args []string) {
 	expectedOutput := fmt.Sprintf("Service '%s' updated", serviceName)
 	if !strings.Contains(out, expectedOutput) {
 		t.Fatalf(fmt.Sprintf("Expected output incorrect, expecting to include:\n%s\nFound:\n%s\n", expectedOutput, out))
+	}
+}
+
+func testRouteList(t *testing.T, k kn) {
+	out, err := k.RunWithOpts([]string{"route", "list"}, runOpts{})
+	if err != nil {
+		t.Errorf(fmt.Sprintf("Error executing 'kn route list' command. Error: %s", err.Error()))
+	}
+	expectedHeaders := []string{"NAME", "URL", "AGE", "CONDITIONS", "TRAFFIC"}
+	for _, header := range expectedHeaders {
+		if !strings.Contains(out, header) {
+			t.Errorf("Expected to include header %s in 'kn route list' output. Actual output:\n%s\n", header, out)
+		}
+	}
+}
+
+func testRouteListWithArgument(t *testing.T, k kn, routeName string) {
+	out, err := k.RunWithOpts([]string{"route", "list", routeName}, runOpts{})
+	if err != nil {
+		t.Errorf("Error executing 'kn route list %s' command. Error: %s", routeName, err.Error())
+	}
+	expectedOutput := routeName
+	if !strings.Contains(out, expectedOutput) {
+		t.Errorf("Expected output incorrect, expecting to include:\n%s\n Instead found:\n%s\n", expectedOutput, out)
+	}
+	expectedOutput = fmt.Sprintf("100%% -> %s", routeName)
+	if !strings.Contains(out, expectedOutput) {
+		t.Errorf("Expected output incorrect, expecting to include:\n%s\n Instead found:\n%s\n", expectedOutput, out)
 	}
 }
 

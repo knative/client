@@ -22,6 +22,7 @@ import (
 
 	"github.com/knative/client/pkg/kn/commands"
 	"github.com/knative/client/pkg/kn/commands/revision"
+	"github.com/knative/client/pkg/kn/commands/route"
 	"github.com/knative/client/pkg/kn/commands/service"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
@@ -68,6 +69,7 @@ Eventing: Manage event subscriptions and channels. Connect up event sources.`,
 
 	rootCmd.AddCommand(service.NewServiceCommand(p))
 	rootCmd.AddCommand(revision.NewRevisionCommand(p))
+	rootCmd.AddCommand(route.NewRouteCommand(p))
 	rootCmd.AddCommand(commands.NewCompletionCommand(p))
 	rootCmd.AddCommand(commands.NewVersionCommand(p))
 
