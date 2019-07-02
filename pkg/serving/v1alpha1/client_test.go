@@ -22,6 +22,7 @@ import (
 
 	"gotest.tools/assert"
 	"gotest.tools/assert/cmp"
+	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/watch"
 
 	serving_api "github.com/knative/serving/pkg/apis/serving"
@@ -274,7 +275,7 @@ func TestListRevisionForService(t *testing.T) {
 
 	t.Run("list revisions for a service returns a list of revisions associated with this this service and no error",
 		func(t *testing.T) {
-			revisions, err := client.ListRevisionsForService(serviceName)
+			revisions, err := client.ListRevisions(WithService(serviceName))
 			assert.NilError(t, err)
 
 			assert.Assert(t, cmp.Len(revisions.Items, 1))
@@ -283,6 +284,53 @@ func TestListRevisionForService(t *testing.T) {
 			validateGroupVersionKind(t, revisions)
 			validateGroupVersionKind(t, &revisions.Items[0])
 		})
+}
+
+func TestListRoutes(t *testing.T) {
+	serving, client := setup()
+
+	singleRouteName := "route-2"
+	singleRoute := *newRoute(singleRouteName)
+	routes := []v1alpha1.Route{*newRoute("route-1"), singleRoute, *newRoute("route-3")}
+	serving.AddReactor("list", "routes",
+		func(a client_testing.Action) (bool, runtime.Object, error) {
+			assert.Equal(t, testNamespace, a.GetNamespace())
+			lAction := a.(client_testing.ListAction)
+			restrictions := lAction.GetListRestrictions()
+			assert.Assert(t, restrictions.Labels.Empty())
+			if !restrictions.Fields.Empty() {
+				nameField := fields.Set{"metadata.name": singleRouteName}
+				assert.Check(t, restrictions.Labels.Matches(nameField))
+				return true, &v1alpha1.RouteList{Items: []v1alpha1.Route{singleRoute}}, nil
+			}
+			return true, &v1alpha1.RouteList{Items: routes}, nil
+		})
+
+	t.Run("list routes returns a list of routes and no error", func(t *testing.T) {
+
+		routes, err := client.ListRoutes()
+		assert.NilError(t, err)
+
+		assert.Assert(t, len(routes.Items) == 3)
+		assert.Equal(t, routes.Items[0].Name, "route-1")
+		assert.Equal(t, routes.Items[1].Name, singleRouteName)
+		assert.Equal(t, routes.Items[2].Name, "route-3")
+		validateGroupVersionKind(t, routes)
+		for i := 0; i < len(routes.Items); i++ {
+			validateGroupVersionKind(t, &routes.Items[i])
+		}
+	})
+
+	t.Run("list routes with a name filter a list with one route and no error", func(t *testing.T) {
+
+		routes, err := client.ListRoutes(WithName(singleRouteName))
+		assert.NilError(t, err)
+
+		assert.Assert(t, len(routes.Items) == 1)
+		assert.Equal(t, routes.Items[0].Name, singleRouteName)
+		validateGroupVersionKind(t, routes)
+		validateGroupVersionKind(t, &routes.Items[0])
+	})
 }
 
 func TestWaitForService(t *testing.T) {
@@ -336,6 +384,10 @@ func newRevision(name string, labels ...string) *v1alpha1.Revision {
 		rev.Labels = labelMap
 	}
 	return rev
+}
+
+func newRoute(name string) *v1alpha1.Route {
+	return &v1alpha1.Route{ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: testNamespace}}
 }
 
 func getServiceEvents(name string) []watch.Event {

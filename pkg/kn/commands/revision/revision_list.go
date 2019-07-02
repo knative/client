@@ -21,6 +21,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/knative/client/pkg/kn/commands"
+	v1alpha12 "github.com/knative/client/pkg/serving/v1alpha1"
 )
 
 // NewRevisionListCommand represents 'kn revision list' command
@@ -55,7 +56,7 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 				if err != nil {
 					return err
 				}
-				revisionList, err = client.ListRevisionsForService(serviceName)
+				revisionList, err = client.ListRevisions(v1alpha12.WithService(serviceName))
 				if err != nil {
 					return err
 				}

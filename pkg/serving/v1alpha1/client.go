@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/knative/pkg/apis"
+	"k8s.io/apimachinery/pkg/fields"
 
 	"github.com/knative/client/pkg/serving"
 	"github.com/knative/client/pkg/wait"
@@ -39,8 +40,8 @@ type KnClient interface {
 	// Get a service by its unique name
 	GetService(name string) (*v1alpha1.Service, error)
 
-	// List all services
-	ListServices() (*v1alpha1.ServiceList, error)
+	// List services
+	ListServices(opts ...ListConfig) (*v1alpha1.ServiceList, error)
 
 	// Create a new service
 	CreateService(service *v1alpha1.Service) error
@@ -57,14 +58,57 @@ type KnClient interface {
 	// Get a revision by name
 	GetRevision(name string) (*v1alpha1.Revision, error)
 
-	// List all revisions
-	ListRevisions() (*v1alpha1.RevisionList, error)
-
-	// Get all revisions for a specific service
-	ListRevisionsForService(serviceName string) (*v1alpha1.RevisionList, error)
+	// List revisions
+	ListRevisions(opts ...ListConfig) (*v1alpha1.RevisionList, error)
 
 	// Delete a revision
 	DeleteRevision(name string) error
+
+	// List routes
+	ListRoutes(opts ...ListConfig) (*v1alpha1.RouteList, error)
+}
+
+type listConfig struct {
+	// Labels to filter on
+	Labels labels.Set
+
+	// Labels to filter on
+	Fields fields.Set
+}
+
+// Config function for builder pattern
+type ListConfig func(config *listConfig)
+
+type ListConfigs []ListConfig
+
+// add selectors to a list options
+func (opts ListConfigs) toListOptions() v1.ListOptions {
+	listConfig := listConfig{labels.Set{}, fields.Set{}}
+	for _, f := range opts {
+		f(&listConfig)
+	}
+	options := v1.ListOptions{}
+	if len(listConfig.Fields) > 0 {
+		options.FieldSelector = listConfig.Fields.String()
+	}
+	if len(listConfig.Labels) > 0 {
+		options.LabelSelector = listConfig.Labels.String()
+	}
+	return options
+}
+
+// Filter list on the provided name
+func WithName(name string) ListConfig {
+	return func(lo *listConfig) {
+		lo.Fields["metadata.name"] = name
+	}
+}
+
+// Filter on the service name
+func WithService(service string) ListConfig {
+	return func(lo *listConfig) {
+		lo.Labels[api_serving.ServiceLabelKey] = service
+	}
 }
 
 type knClient struct {
@@ -93,9 +137,9 @@ func (cl *knClient) GetService(name string) (*v1alpha1.Service, error) {
 	return service, nil
 }
 
-// List all services
-func (cl *knClient) ListServices() (*v1alpha1.ServiceList, error) {
-	serviceList, err := cl.client.Services(cl.namespace).List(v1.ListOptions{})
+// List services
+func (cl *knClient) ListServices(config ...ListConfig) (*v1alpha1.ServiceList, error) {
+	serviceList, err := cl.client.Services(cl.namespace).List(ListConfigs(config).toListOptions())
 	if err != nil {
 		return nil, err
 	}
@@ -167,25 +211,22 @@ func (cl *knClient) DeleteRevision(name string) error {
 	return cl.client.Revisions(cl.namespace).Delete(name, &v1.DeleteOptions{})
 }
 
-// List all revisions
-func (cl *knClient) ListRevisions() (*v1alpha1.RevisionList, error) {
-	revisionList, err := cl.client.Revisions(cl.namespace).List(v1.ListOptions{})
+// List revisions
+func (cl *knClient) ListRevisions(config ...ListConfig) (*v1alpha1.RevisionList, error) {
+	revisionList, err := cl.client.Revisions(cl.namespace).List(ListConfigs(config).toListOptions())
 	if err != nil {
 		return nil, err
 	}
 	return updateServingGvkForRevisionList(revisionList)
 }
 
-func (cl *knClient) ListRevisionsForService(serviceName string) (*v1alpha1.RevisionList, error) {
-	listOptions := v1.ListOptions{}
-	listOptions.LabelSelector = labels.Set(
-		map[string]string{api_serving.ServiceLabelKey: serviceName}).String()
-
-	revisionList, err := cl.client.Revisions(cl.namespace).List(listOptions)
+// List routes
+func (cl *knClient) ListRoutes(config ...ListConfig) (*v1alpha1.RouteList, error) {
+	routeList, err := cl.client.Routes(cl.namespace).List(ListConfigs(config).toListOptions())
 	if err != nil {
 		return nil, err
 	}
-	return updateServingGvkForRevisionList(revisionList)
+	return updateServingGvkForRouteList(routeList)
 }
 
 // update all the list + all items contained in the list with
@@ -207,6 +248,27 @@ func updateServingGvkForRevisionList(revisionList *v1alpha1.RevisionList) (*v1al
 		revisionListNew.Items[idx] = *revision
 	}
 	return revisionListNew, nil
+}
+
+// update all the list + all items contained in the list with
+// the proper GroupVersionKind specific to Knative serving
+func updateServingGvkForRouteList(routeList *v1alpha1.RouteList) (*v1alpha1.RouteList, error) {
+	routeListNew := routeList.DeepCopy()
+	err := updateServingGvk(routeListNew)
+	if err != nil {
+		return nil, err
+	}
+
+	routeListNew.Items = make([]v1alpha1.Route, len(routeList.Items))
+	for idx := range routeList.Items {
+		revision := routeList.Items[idx].DeepCopy()
+		err := updateServingGvk(revision)
+		if err != nil {
+			return nil, err
+		}
+		routeListNew.Items[idx] = *revision
+	}
+	return routeListNew, nil
 }
 
 // update with the v1alpha1 group + version
