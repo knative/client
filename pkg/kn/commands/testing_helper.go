@@ -17,17 +17,31 @@ package commands
 import (
 	"bytes"
 	"flag"
+	"io"
+	"os"
 	"strings"
 	"testing"
 
 	serving "github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
 	"github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake"
 	"github.com/spf13/cobra"
+	"gotest.tools/assert"
 	client_testing "k8s.io/client-go/testing"
 )
 
 const FakeNamespace = "current"
 
+var (
+	oldStdout *os.File
+	stdout    *os.File
+	output    string
+
+	readFile, writeFile *os.File
+
+	origArgs []string
+)
+
+// CreateTestKnCommand helper for creating test commands
 func CreateTestKnCommand(cmd *cobra.Command, knParams *KnParams) (*cobra.Command, *fake.FakeServingV1alpha1, *bytes.Buffer) {
 	buf := new(bytes.Buffer)
 	fakeServing := &fake.FakeServingV1alpha1{&client_testing.Fake{}}
@@ -38,6 +52,51 @@ func CreateTestKnCommand(cmd *cobra.Command, knParams *KnParams) (*cobra.Command
 	return knCommand, fakeServing, buf
 }
 
+// TestContains is a test helper function, checking if a substring is present in given
+// output string
+func TestContains(t *testing.T, output string, sub []string, element string) {
+	for _, each := range sub {
+		if !strings.Contains(output, each) {
+			t.Errorf("Missing %s: %s", element, each)
+		}
+	}
+}
+
+// CaptureStdout collects the current content of os.Stdout
+func CaptureStdout(t *testing.T) {
+	oldStdout = os.Stdout
+	var err error
+	readFile, writeFile, err = os.Pipe()
+	assert.Assert(t, err == nil)
+	stdout = writeFile
+	os.Stdout = writeFile
+}
+
+// ReleaseStdout releases the os.Stdout and restores to original
+func ReleaseStdout(t *testing.T) {
+	output = ReadStdout(t)
+	os.Stdout = oldStdout
+}
+
+// ReadStdout returns the collected os.Stdout content
+func ReadStdout(t *testing.T) string {
+	outC := make(chan string)
+	go func() {
+		var buf bytes.Buffer
+		io.Copy(&buf, readFile)
+		outC <- buf.String()
+	}()
+	writeFile.Close()
+	output = <-outC
+
+	CaptureStdout(t)
+
+	return output
+}
+
+// Private
+
+// newKnCommand needed since calling the one in core would cause a import cycle
 func newKnCommand(subCommand *cobra.Command, params *KnParams) *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:   "kn",
@@ -68,14 +127,4 @@ Eventing: Manage event subscriptions and channels. Connect up event sources.`,
 	// For glog parse error.
 	flag.CommandLine.Parse([]string{})
 	return rootCmd
-}
-
-// TestContains is a test helper function, checking if a substring is present in given
-// output string
-func TestContains(t *testing.T, output string, sub []string, element string) {
-	for _, each := range sub {
-		if !strings.Contains(output, each) {
-			t.Errorf("Missing %s: %s", element, each)
-		}
-	}
 }
