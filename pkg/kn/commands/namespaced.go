@@ -63,12 +63,17 @@ func (params *KnParams) GetNamespace(cmd *cobra.Command) (string, error) {
 	return namespace, nil
 }
 
+// CurrentNamespace returns the current namespace which is either provided as option or picked up from kubeconfig
 func (params *KnParams) CurrentNamespace() (string, error) {
+	var err error
 	if params.fixedCurrentNamespace != "" {
 		return params.fixedCurrentNamespace, nil
 	}
 	if params.ClientConfig == nil {
-		params.ClientConfig = params.GetClientConfig()
+		params.ClientConfig, err = params.GetClientConfig()
+		if err != nil {
+			return "", err
+		}
 	}
 	name, _, err := params.ClientConfig.Namespace()
 	return name, err

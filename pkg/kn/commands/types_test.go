@@ -15,39 +15,75 @@
 package commands
 
 import (
-	"errors"
 	"fmt"
 	"os"
-	"reflect"
+	"strings"
 	"testing"
 
+	"github.com/knative/client/pkg/util"
+	"gotest.tools/assert"
 	"k8s.io/client-go/tools/clientcmd"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
+
+type getConfigTestCase struct {
+	clientConfig      clientcmd.ClientConfig
+	expectedErrString string
+}
+
+func TestGetConfig(t *testing.T) {
+	for i, tc := range []getConfigTestCase{
+		{
+			clientcmd.NewDefaultClientConfig(clientcmdapi.Config{}, &clientcmd.ConfigOverrides{}),
+			"no configuration has been provided",
+		},
+	} {
+		p := &KnParams{
+			ClientConfig: tc.clientConfig}
+
+		_, err := p.GetConfig()
+
+		switch len(tc.expectedErrString) {
+		case 0:
+			if err != nil {
+				t.Errorf("%d: unexpected error: %s", i, err.Error())
+			}
+		default:
+			if err == nil {
+				t.Errorf("%d: wrong error detected: %s (expected) != %s (actual)", i, tc.expectedErrString, err)
+			}
+			if !strings.Contains(err.Error(), tc.expectedErrString) {
+				t.Errorf("%d: wrong error detected: %s (expected) != %s (actual)", i, tc.expectedErrString, err.Error())
+			}
+		}
+	}
+}
 
 type typeTestCase struct {
 	kubeCfgPath   string
 	explicitPath  string
-	expectedError error
+	expectedError string
 }
 
 func TestGetClientConfig(t *testing.T) {
 	multiConfigs := fmt.Sprintf("%s%s%s", "/testing/assets/kube-config-01.yml", string(os.PathListSeparator), "/testing/assets/kube-config-02.yml")
 
-	for i, tc := range []typeTestCase{
+	multiConfigs = multiConfigs
+	for _, tc := range []typeTestCase{
 		{
 			"",
 			clientcmd.NewDefaultClientConfigLoadingRules().ExplicitPath,
-			nil,
+			"",
 		},
 		{
 			"/testing/assets/kube-config-01.yml",
-			"/testing/assets/kube-config-01.yml",
-			nil,
+			"",
+			fmt.Sprintf("Config file '%s' can not be found", "/testing/assets/kube-config-01.yml"),
 		},
 		{
 			multiConfigs,
 			"",
-			errors.New(fmt.Sprintf("Config file '%s' could not be found. For configuration lookup path please use the env variable KUBECONFIG", multiConfigs)),
+			fmt.Sprintf("Can not find config file. '%s' looks like a path. Please use the env var KUBECONFIG if you want to check for multiple configuration files", multiConfigs),
 		},
 	} {
 		p := &KnParams{
@@ -55,17 +91,16 @@ func TestGetClientConfig(t *testing.T) {
 		}
 
 		clientConfig, err := p.GetClientConfig()
-
-		if !reflect.DeepEqual(err, tc.expectedError) {
-			t.Errorf("%d: wrong error detected: %s (expected) != %s (actual)", i, tc.expectedError.Error(), err.Error())
+		if tc.expectedError != "" {
+			assert.Assert(t, util.ContainsAll(err.Error(), tc.expectedError))
+		} else {
+			assert.Assert(t, err == nil, err)
 		}
 
 		if clientConfig != nil {
 			configAccess := clientConfig.ConfigAccess()
 
-			if configAccess.GetExplicitFile() != tc.explicitPath {
-				t.Errorf("%d: wrong explicit file detected: %s (expected) != %s (actual)", i, tc.explicitPath, configAccess.GetExplicitFile())
-			}
+			assert.Assert(t, configAccess.GetExplicitFile() == tc.explicitPath)
 		}
 	}
 }
