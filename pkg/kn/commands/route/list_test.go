@@ -21,6 +21,7 @@ import (
 	"github.com/knative/client/pkg/kn/commands"
 	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"github.com/knative/serving/pkg/apis/serving/v1beta1"
+	"gotest.tools/assert"
 	"k8s.io/apimachinery/pkg/runtime"
 	client_testing "k8s.io/client-go/testing"
 )
@@ -70,9 +71,9 @@ func TestRouteListDefaultOutput(t *testing.T) {
 	} else if !action.Matches("list", "routes") {
 		t.Errorf("Bad action %v", action)
 	}
-	commands.TestContains(t, output[0], []string{"NAME", "URL", "AGE", "CONDITIONS", "TRAFFIC"}, "column header")
-	commands.TestContains(t, output[1], []string{"foo", "100% -> foo-01234"}, "value")
-	commands.TestContains(t, output[2], []string{"bar", "100% -> bar-98765"}, "value")
+	assert.Check(t, commands.ContainsMultipleSubstrings(output[0], []string{"NAME", "URL", "AGE", "CONDITIONS", "TRAFFIC"}, "column header"))
+	assert.Check(t, commands.ContainsMultipleSubstrings(output[1], []string{"foo", "100% -> foo-01234"}, "value"))
+	assert.Check(t, commands.ContainsMultipleSubstrings(output[2], []string{"bar", "100% -> bar-98765"}, "value"))
 }
 
 func TestRouteListWithTwoTargetsOutput(t *testing.T) {
@@ -87,8 +88,8 @@ func TestRouteListWithTwoTargetsOutput(t *testing.T) {
 	} else if !action.Matches("list", "routes") {
 		t.Errorf("Bad action %v", action)
 	}
-	commands.TestContains(t, output[0], []string{"NAME", "URL", "AGE", "CONDITIONS", "TRAFFIC"}, "column header")
-	commands.TestContains(t, output[1], []string{"foo", "20% -> foo-01234, 80% -> foo-98765"}, "value")
+	assert.Check(t, commands.ContainsMultipleSubstrings(output[0], []string{"NAME", "URL", "AGE", "CONDITIONS", "TRAFFIC"}, "column header"))
+	assert.Check(t, commands.ContainsMultipleSubstrings(output[1], []string{"foo", "20% -> foo-01234, 80% -> foo-98765"}, "value"))
 }
 
 func createMockRouteMeta(name string) *v1alpha1.Route {

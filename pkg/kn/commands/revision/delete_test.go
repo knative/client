@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	"github.com/knative/client/pkg/kn/commands"
+	"gotest.tools/assert"
 	"k8s.io/apimachinery/pkg/runtime"
 	client_testing "k8s.io/client-go/testing"
 )
@@ -55,5 +56,5 @@ func TestRevisionDelete(t *testing.T) {
 	} else if name != revName {
 		t.Errorf("Bad revision name returned after delete.")
 	}
-	commands.TestContains(t, output, []string{"Revision", revName, "deleted", "namespace", commands.FakeNamespace}, "word in output")
+	assert.Check(t, commands.ContainsMultipleSubstrings(output, []string{"Revision", revName, "deleted", "namespace", commands.FakeNamespace}, "word in output"))
 }
