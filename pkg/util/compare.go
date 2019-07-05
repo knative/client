@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package commands
+package util
 
 import (
 	"fmt"
@@ -21,10 +21,10 @@ import (
 	"gotest.tools/assert/cmp"
 )
 
-// ContainsMultipleSubstring is a comparison utility, compares given substrings against
+// ContainsAll is a comparison utility, compares given substrings against
 // target string and returns the gotest.tools/assert/cmp.Comaprison function.
-// Provide message to form an error message of format 'Missing $message: $missing_elements'
-func ContainsMultipleSubstrings(target string, substrings []string, message string) cmp.Comparison {
+// Provide target string as first arg, followed by any number of substring as args
+func ContainsAll(target string, substrings ...string) cmp.Comparison {
 	return func() cmp.Result {
 		var missing []string
 		for _, sub := range substrings {
@@ -33,7 +33,7 @@ func ContainsMultipleSubstrings(target string, substrings []string, message stri
 			}
 		}
 		if len(missing) > 0 {
-			return cmp.ResultFailure(fmt.Sprintf("Missing %s: %s", message, strings.Join(missing[:], ", ")))
+			return cmp.ResultFailure(fmt.Sprintf("\nActual output: %s\nMissing strings: %s", target, strings.Join(missing[:], ", ")))
 		}
 		return cmp.ResultSuccess
 	}

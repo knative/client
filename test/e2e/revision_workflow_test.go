@@ -20,7 +20,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/knative/client/pkg/kn/commands"
+	"github.com/knative/client/pkg/util"
 	"gotest.tools/assert"
 )
 
@@ -45,5 +45,5 @@ func testDeleteRevision(t *testing.T, k kn, serviceName string) {
 	if err != nil {
 		t.Errorf("Error executing 'revision delete %s' command. Error: %s", revName, err.Error())
 	}
-	assert.Check(t, commands.ContainsMultipleSubstrings(out, []string{"Revision", revName, "deleted", "namespace", k.namespace}, "word in output"))
+	assert.Check(t, util.ContainsAll(out, "Revision", revName, "deleted", "namespace", k.namespace))
 }
