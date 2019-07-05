@@ -6,6 +6,10 @@ Route command group
 
 Route command group
 
+```
+kn route [flags]
+```
+
 ### Options
 
 ```

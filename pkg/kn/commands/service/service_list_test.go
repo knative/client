@@ -19,8 +19,10 @@ import (
 	"testing"
 
 	"github.com/knative/client/pkg/kn/commands"
+	"github.com/knative/client/pkg/util"
 	duckv1beta1 "github.com/knative/pkg/apis/duck/v1beta1"
 	v1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
+	"gotest.tools/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	client_testing "k8s.io/client-go/testing"
@@ -71,17 +73,9 @@ func TestServiceListDefaultOutput(t *testing.T) {
 	} else if !action.Matches("list", "services") {
 		t.Errorf("Bad action %v", action)
 	}
-	testContains(t, output[0], []string{"NAME", "DOMAIN", "GENERATION", "AGE", "CONDITIONS", "READY", "REASON"}, "column header")
-	testContains(t, output[1], []string{"foo", "foo.default.example.com", "1"}, "value")
-	testContains(t, output[2], []string{"bar", "bar.default.example.com", "2"}, "value")
-}
-
-func testContains(t *testing.T, output string, sub []string, element string) {
-	for _, each := range sub {
-		if !strings.Contains(output, each) {
-			t.Errorf("Missing %s: %s", element, each)
-		}
-	}
+	assert.Check(t, util.ContainsAll(output[0], "NAME", "DOMAIN", "GENERATION", "AGE", "CONDITIONS", "READY", "REASON"))
+	assert.Check(t, util.ContainsAll(output[1], "foo", "foo.default.example.com", "1"))
+	assert.Check(t, util.ContainsAll(output[2], "bar", "bar.default.example.com", "2"))
 }
 
 func createMockServiceWithParams(name, domain string, generation int64) *v1alpha1.Service {

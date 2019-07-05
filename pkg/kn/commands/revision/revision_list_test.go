@@ -19,8 +19,10 @@ import (
 	"testing"
 
 	"github.com/knative/client/pkg/kn/commands"
+	"github.com/knative/client/pkg/util"
 	serving "github.com/knative/serving/pkg/apis/serving"
 	v1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
+	"gotest.tools/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	client_testing "k8s.io/client-go/testing"
@@ -71,9 +73,9 @@ func TestRevisionListDefaultOutput(t *testing.T) {
 	} else if !action.Matches("list", "revisions") {
 		t.Errorf("Bad action %v", action)
 	}
-	testContains(t, output[0], []string{"NAME", "SERVICE", "AGE", "CONDITIONS", "READY", "REASON"}, "column header")
-	testContains(t, output[1], []string{"foo-abcd", "foo"}, "value")
-	testContains(t, output[2], []string{"bar-wxyz", "bar"}, "value")
+	assert.Check(t, util.ContainsAll(output[0], "NAME", "SERVICE", "AGE", "CONDITIONS", "READY", "REASON"))
+	assert.Check(t, util.ContainsAll(output[1], "foo-abcd", "foo"))
+	assert.Check(t, util.ContainsAll(output[2], "bar-wxyz", "bar"))
 }
 
 func TestRevisionListForService(t *testing.T) {
@@ -91,9 +93,9 @@ func TestRevisionListForService(t *testing.T) {
 	} else if !action.Matches("list", "revisions") {
 		t.Errorf("Bad action %v", action)
 	}
-	testContains(t, output[0], []string{"NAME", "SERVICE", "AGE", "CONDITIONS", "READY", "REASON"}, "column header")
-	testContains(t, output[1], []string{"foo-abcd", "svc1"}, "value")
-	testContains(t, output[2], []string{"bar-wxyz", "svc1"}, "value")
+	assert.Check(t, util.ContainsAll(output[0], "NAME", "SERVICE", "AGE", "CONDITIONS", "READY", "REASON"))
+	assert.Check(t, util.ContainsAll(output[1], "foo-abcd", "svc1"))
+	assert.Check(t, util.ContainsAll(output[2], "bar-wxyz", "svc1"))
 	action, output, err = fakeRevisionList([]string{"revision", "list", "-s", "svc2"}, RevisionList)
 	if err != nil {
 		t.Fatal(err)
@@ -103,9 +105,9 @@ func TestRevisionListForService(t *testing.T) {
 	} else if !action.Matches("list", "revisions") {
 		t.Errorf("Bad action %v", action)
 	}
-	testContains(t, output[0], []string{"NAME", "SERVICE", "AGE", "CONDITIONS", "READY", "REASON"}, "column header")
-	testContains(t, output[1], []string{"foo-abcd", "svc2"}, "value")
-	testContains(t, output[2], []string{"bar-wxyz", "svc2"}, "value")
+	assert.Check(t, util.ContainsAll(output[0], "NAME", "SERVICE", "AGE", "CONDITIONS", "READY", "REASON"))
+	assert.Check(t, util.ContainsAll(output[1], "foo-abcd", "svc2"))
+	assert.Check(t, util.ContainsAll(output[2], "bar-wxyz", "svc"))
 	//test for non existent service
 	action, output, err = fakeRevisionList([]string{"revision", "list", "-s", "svc3"}, RevisionList)
 	if err != nil {
@@ -117,14 +119,6 @@ func TestRevisionListForService(t *testing.T) {
 		t.Errorf("Bad action %v", action)
 	} else if !strings.Contains(output[0], "No resources found.") {
 		t.Errorf("Bad output %s", output[0])
-	}
-}
-
-func testContains(t *testing.T, output string, sub []string, element string) {
-	for _, each := range sub {
-		if !strings.Contains(output, each) {
-			t.Errorf("Missing %s: %s", element, each)
-		}
 	}
 }
 
