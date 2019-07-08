@@ -40,7 +40,7 @@ func AddNamespaceFlags(flags *pflag.FlagSet, allowAll bool) {
 }
 
 // GetNamespace returns namespace from command specified by flag
-func (kn *KnParams) GetNamespace(cmd *cobra.Command) (string, error) {
+func (params *KnParams) GetNamespace(cmd *cobra.Command) (string, error) {
 	namespace := cmd.Flag("namespace").Value.String()
 	// check value of all-namepace only if its defined
 	if cmd.Flags().Lookup("all-namespaces") != nil {
@@ -55,10 +55,21 @@ func (kn *KnParams) GetNamespace(cmd *cobra.Command) (string, error) {
 	// if all-namepaces=False or namespace not given, use default namespace
 	if namespace == "" {
 		var err error
-		namespace, err = kn.NamespaceFactory()
+		namespace, err = params.CurrentNamespace()
 		if err != nil {
 			return "", err
 		}
 	}
 	return namespace, nil
+}
+
+func (params *KnParams) CurrentNamespace() (string, error) {
+	if params.fixedCurrentNamespace != "" {
+		return params.fixedCurrentNamespace, nil
+	}
+	if params.ClientConfig == nil {
+		params.ClientConfig = params.GetClientConfig()
+	}
+	name, _, err := params.ClientConfig.Namespace()
+	return name, err
 }

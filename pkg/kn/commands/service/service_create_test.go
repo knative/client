@@ -86,7 +86,7 @@ func fakeServiceCreate(args []string, withExistingService bool, sync bool) (
 				if !found {
 					return true, nil, errors.New("no field selector on metadata.name found")
 				}
-				w := wait.NewFakeWatch(getServiceEvents())
+				w := wait.NewFakeWatch(getServiceEvents("test-service"))
 				w.Start()
 				return true, w, nil
 			})
@@ -105,11 +105,11 @@ func fakeServiceCreate(args []string, withExistingService bool, sync bool) (
 	return
 }
 
-func getServiceEvents() []watch.Event {
+func getServiceEvents(name string) []watch.Event {
 	return []watch.Event{
-		{watch.Added, wait.CreateTestServiceWithConditions(corev1.ConditionUnknown, corev1.ConditionUnknown, "")},
-		{watch.Modified, wait.CreateTestServiceWithConditions(corev1.ConditionUnknown, corev1.ConditionTrue, "")},
-		{watch.Modified, wait.CreateTestServiceWithConditions(corev1.ConditionTrue, corev1.ConditionTrue, "")},
+		{watch.Added, wait.CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "")},
+		{watch.Modified, wait.CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionTrue, "")},
+		{watch.Modified, wait.CreateTestServiceWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "")},
 	}
 }
 

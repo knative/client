@@ -18,10 +18,10 @@ import (
 	"fmt"
 
 	"github.com/knative/client/pkg/kn/commands"
+	v1alpha12 "github.com/knative/client/pkg/serving/v1alpha1"
+
+	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"github.com/spf13/cobra"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/fields"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 // NewrouteListCommand represents 'kn route list' command
@@ -40,41 +40,37 @@ func NewRouteListCommand(p *commands.KnParams) *cobra.Command {
   # List all routes in yaml format
   kn route list -o yaml`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			client, err := p.ServingFactory()
-			if err != nil {
-				return err
-			}
+
 			namespace, err := p.GetNamespace(cmd)
 			if err != nil {
 				return err
 			}
-			var listOptions v1.ListOptions
-			switch len(args) {
-			case 0:
-				listOptions = v1.ListOptions{}
-			case 1:
-				listOptions.FieldSelector = fields.Set(map[string]string{"metadata.name": args[0]}).String()
-			default:
-				return fmt.Errorf("'kn route list' accepts maximum 1 argument.")
-			}
-			route, err := client.Routes(namespace).List(listOptions)
+			client, err := p.NewClient(namespace)
 			if err != nil {
 				return err
 			}
-			if len(route.Items) == 0 {
+
+			var routeList *v1alpha1.RouteList
+			switch len(args) {
+			case 0:
+				routeList, err = client.ListRoutes()
+			case 1:
+				routeList, err = client.ListRoutes(v1alpha12.WithName(args[0]))
+			default:
+				return fmt.Errorf("'kn route list' accepts maximum 1 argument.")
+			}
+			if err != nil {
+				return err
+			}
+			if len(routeList.Items) == 0 {
 				fmt.Fprintf(cmd.OutOrStdout(), "No resources found.\n")
 				return nil
 			}
-			route.GetObjectKind().SetGroupVersionKind(schema.GroupVersionKind{
-				Group:   "knative.dev",
-				Version: "v1alpha1",
-				Kind:    "route",
-			})
 			printer, err := routeListFlags.ToPrinter()
 			if err != nil {
 				return err
 			}
-			err = printer.PrintObj(route, cmd.OutOrStdout())
+			err = printer.PrintObj(routeList, cmd.OutOrStdout())
 			if err != nil {
 				return err
 			}

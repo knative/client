@@ -21,14 +21,14 @@ import (
 	"time"
 
 	"github.com/knative/client/pkg/kn/commands"
+	"github.com/knative/client/pkg/serving/v1alpha1"
+
 	serving_v1alpha1_api "github.com/knative/serving/pkg/apis/serving/v1alpha1"
-	serving_v1alpha1_client "github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
 	"github.com/spf13/cobra"
 
 	corev1 "k8s.io/api/core/v1"
 	api_errors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
@@ -79,7 +79,7 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			client, err := p.ServingFactory()
+			client, err := p.NewClient(namespace)
 			if err != nil {
 				return err
 			}
@@ -104,8 +104,7 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			if !waitFlags.Async {
-				waitForReady := newServiceWaitForReady(client, namespace)
-				err := waitForReady.Wait(name, time.Duration(waitFlags.TimeoutInSeconds)*time.Second, cmd.OutOrStdout())
+				err := client.WaitForService(name, time.Duration(waitFlags.TimeoutInSeconds)*time.Second, cmd.OutOrStdout())
 				if err != nil {
 					return err
 				}
@@ -121,8 +120,8 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 	return serviceCreateCommand
 }
 
-func createService(client serving_v1alpha1_client.ServingV1alpha1Interface, service *serving_v1alpha1_api.Service, namespace string, out io.Writer) error {
-	_, err := client.Services(namespace).Create(service)
+func createService(client v1alpha1.KnClient, service *serving_v1alpha1_api.Service, namespace string, out io.Writer) error {
+	err := client.CreateService(service)
 	if err != nil {
 		return err
 	}
@@ -130,13 +129,13 @@ func createService(client serving_v1alpha1_client.ServingV1alpha1Interface, serv
 	return nil
 }
 
-func replaceService(client serving_v1alpha1_client.ServingV1alpha1Interface, service *serving_v1alpha1_api.Service, namespace string, out io.Writer) error {
-	existingService, err := client.Services(namespace).Get(service.Name, v1.GetOptions{})
+func replaceService(client v1alpha1.KnClient, service *serving_v1alpha1_api.Service, namespace string, out io.Writer) error {
+	existingService, err := client.GetService(service.Name)
 	if err != nil {
 		return err
 	}
 	service.ResourceVersion = existingService.ResourceVersion
-	_, err = client.Services(namespace).Update(service)
+	err = client.UpdateService(service)
 	if err != nil {
 		return err
 	}
@@ -144,8 +143,8 @@ func replaceService(client serving_v1alpha1_client.ServingV1alpha1Interface, ser
 	return nil
 }
 
-func serviceExists(client serving_v1alpha1_client.ServingV1alpha1Interface, name string, namespace string) (bool, error) {
-	_, err := client.Services(namespace).Get(name, v1.GetOptions{})
+func serviceExists(client v1alpha1.KnClient, name string, namespace string) (bool, error) {
+	_, err := client.GetService(name)
 	if api_errors.IsNotFound(err) {
 		return false, nil
 	}
@@ -184,8 +183,8 @@ func constructService(cmd *cobra.Command, editFlags ConfigurationEditFlags, name
 	return &service, nil
 }
 
-func showUrl(client serving_v1alpha1_client.ServingV1alpha1Interface, serviceName string, namespace string, out io.Writer) error {
-	service, err := client.Services(namespace).Get(serviceName, v1.GetOptions{})
+func showUrl(client v1alpha1.KnClient, serviceName string, namespace string, out io.Writer) error {
+	service, err := client.GetService(serviceName)
 	if err != nil {
 		return fmt.Errorf("cannot fetch service '%s' in namespace '%s' for extracting the URL: %v", serviceName, namespace, err)
 	}
