@@ -16,7 +16,6 @@ package v1alpha1
 
 import (
 	"fmt"
-	"io"
 	"time"
 
 	"github.com/knative/pkg/apis"
@@ -53,7 +52,7 @@ type KnClient interface {
 	DeleteService(name string) error
 
 	// Wait for a service to become ready, but not longer than provided timeout
-	WaitForService(name string, timeout time.Duration, out io.Writer) error
+	WaitForService(name string, timeout time.Duration) error
 
 	// Get a revision by name
 	GetRevision(name string) (*v1alpha1.Revision, error)
@@ -188,9 +187,9 @@ func (cl *knClient) DeleteService(serviceName string) error {
 }
 
 // Wait for a service to become ready, but not longer than provided timeout
-func (cl *knClient) WaitForService(name string, timeout time.Duration, out io.Writer) error {
+func (cl *knClient) WaitForService(name string, timeout time.Duration) error {
 	waitForReady := newServiceWaitForReady(cl.client.Services(cl.namespace).Watch)
-	return waitForReady.Wait(name, timeout, out)
+	return waitForReady.Wait(name, timeout)
 }
 
 // Get a revision by name

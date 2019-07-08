@@ -15,8 +15,6 @@
 package wait
 
 import (
-	"bytes"
-	"strings"
 	"testing"
 	"time"
 
@@ -29,17 +27,15 @@ import (
 )
 
 type waitForReadyTestCase struct {
-	events         []watch.Event
-	timeout        time.Duration
-	errorExpected  bool
-	messageContent []string
+	events        []watch.Event
+	timeout       time.Duration
+	errorExpected bool
 }
 
 func TestAddWaitForReady(t *testing.T) {
 
 	for i, tc := range prepareTestCases("test-service") {
 		fakeWatchApi := NewFakeWatch(tc.events)
-		outBuffer := new(bytes.Buffer)
 
 		waitForReady := NewWaitForReady(
 			"blub",
@@ -50,7 +46,7 @@ func TestAddWaitForReady(t *testing.T) {
 				return apis.Conditions(obj.(*v1alpha1.Service).Status.Conditions), nil
 			})
 		fakeWatchApi.Start()
-		err := waitForReady.Wait("foobar", tc.timeout, outBuffer)
+		err := waitForReady.Wait("foobar", tc.timeout)
 		close(fakeWatchApi.eventChan)
 
 		if !tc.errorExpected && err != nil {
@@ -59,16 +55,6 @@ func TestAddWaitForReady(t *testing.T) {
 		}
 		if tc.errorExpected && err == nil {
 			t.Errorf("%d: No error but expected one", i)
-		}
-		txtToCheck := outBuffer.String()
-		if err != nil {
-			txtToCheck = err.Error()
-		}
-
-		for _, msg := range tc.messageContent {
-			if !strings.Contains(txtToCheck, msg) {
-				t.Errorf("%d: '%s' does not contain expected part %s", i, txtToCheck, msg)
-			}
 		}
 
 		if fakeWatchApi.StopCalled != 1 {
@@ -81,10 +67,10 @@ func TestAddWaitForReady(t *testing.T) {
 // Test cases which consists of a series of events to send and the expected behaviour.
 func prepareTestCases(name string) []waitForReadyTestCase {
 	return []waitForReadyTestCase{
-		{peNormal(name), time.Second, false, []string{"OK", "foobar", "blub"}},
-		{peError(name), time.Second, true, []string{"FakeError"}},
-		{peTimeout(name), time.Second, true, []string{"timeout"}},
-		{peWrongGeneration(name), time.Second, true, []string{"timeout"}},
+		{peNormal(name), time.Second, false},
+		{peError(name), time.Second, true},
+		{peTimeout(name), time.Second, true},
+		{peWrongGeneration(name), time.Second, true},
 	}
 }
 

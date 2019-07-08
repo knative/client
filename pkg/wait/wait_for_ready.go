@@ -16,7 +16,6 @@ package wait
 
 import (
 	"fmt"
-	"io"
 	"time"
 
 	"github.com/knative/pkg/apis"
@@ -40,7 +39,7 @@ type WaitForReady interface {
 
 	// Wait on resource the resource with this name until a given timeout
 	// and write status out on writer
-	Wait(name string, timeout time.Duration, out io.Writer) error
+	Wait(name string, timeout time.Duration) error
 }
 
 // Create watch which is used when waiting for Ready condition
@@ -62,21 +61,17 @@ func NewWaitForReady(kind string, watchFunc WatchFunc, extractor ConditionsExtra
 // `watchFunc` creates the actual watch, `kind` is the type what your are watching for
 // (e.g. "service"), `timeout` is a timeout after which the watch should be cancelled if no
 // target state has been entered yet and `out` is used for printing out status messages
-func (w *waitForReadyConfig) Wait(name string, timeout time.Duration, out io.Writer) error {
+func (w *waitForReadyConfig) Wait(name string, timeout time.Duration) error {
 	opts := v1.ListOptions{
 		FieldSelector: fields.OneTermEqualSelector("metadata.name", name).String(),
 	}
 	addWatchTimeout(&opts, timeout)
-
-	fmt.Fprintf(out, "Waiting for %s '%s' to become ready ... ", w.kind, name)
-	flush(out)
 
 	floatingTimeout := timeout
 	for {
 		start := time.Now()
 		retry, timeoutReached, err := w.waitForReadyCondition(opts, name, floatingTimeout)
 		if err != nil {
-			fmt.Fprintln(out)
 			return err
 		}
 		floatingTimeout = floatingTimeout - time.Since(start)
@@ -88,8 +83,6 @@ func (w *waitForReadyConfig) Wait(name string, timeout time.Duration, out io.Wri
 			// restart loop
 			continue
 		}
-
-		fmt.Fprintln(out, "OK")
 		return nil
 	}
 }
@@ -103,17 +96,6 @@ func addWatchTimeout(opts *v1.ListOptions, timeout time.Duration) {
 	// and stops the watch
 	timeOutWatchSeconds := int64((timeout + 30*time.Second) / time.Second)
 	opts.TimeoutSeconds = &timeOutWatchSeconds
-}
-
-// Duck type for writers having a flush
-type flusher interface {
-	Flush() error
-}
-
-func flush(out io.Writer) {
-	if flusher, ok := out.(flusher); ok {
-		flusher.Flush()
-	}
 }
 
 func (w *waitForReadyConfig) waitForReadyCondition(opts v1.ListOptions, name string, timeout time.Duration) (bool, bool, error) {

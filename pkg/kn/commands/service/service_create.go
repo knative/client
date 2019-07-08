@@ -104,10 +104,16 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			if !waitFlags.Async {
-				err := client.WaitForService(name, time.Duration(waitFlags.TimeoutInSeconds)*time.Second, cmd.OutOrStdout())
+				out := cmd.OutOrStdout()
+				fmt.Fprintf(out, "Waiting for service '%s' to become ready ... ", name)
+				flush(out)
+
+				err := client.WaitForService(name, time.Duration(waitFlags.TimeoutInSeconds)*time.Second)
 				if err != nil {
+					fmt.Fprintln(out)
 					return err
 				}
+				fmt.Fprintln(out, "OK")
 				return showUrl(client, name, namespace, cmd.OutOrStdout())
 			}
 
@@ -118,6 +124,17 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 	editFlags.AddCreateFlags(serviceCreateCommand)
 	waitFlags.AddConditionWaitFlags(serviceCreateCommand, 60, "service")
 	return serviceCreateCommand
+}
+
+// Duck type for writers having a flush
+type flusher interface {
+	Flush() error
+}
+
+func flush(out io.Writer) {
+	if flusher, ok := out.(flusher); ok {
+		flusher.Flush()
+	}
 }
 
 func createService(client v1alpha1.KnClient, service *serving_v1alpha1_api.Service, namespace string, out io.Writer) error {
