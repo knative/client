@@ -26,7 +26,8 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/knative/client/pkg/printers"
-	"github.com/knative/client/pkg/serving"
+	serving_kn_v1alpha1 "github.com/knative/client/pkg/serving/v1alpha1"
+
 	"github.com/knative/pkg/apis"
 	"github.com/knative/pkg/apis/duck/v1beta1"
 	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
@@ -95,7 +96,7 @@ func NewServiceDescribeCommand(p *commands.KnParams) *cobra.Command {
 			}
 			serviceName := args[0]
 
-			namespace, err := GetNamespace(cmd)
+			namespace, err := p.GetNamespace(cmd)
 			if err != nil {
 				return err
 			}
@@ -116,12 +117,12 @@ func NewServiceDescribeCommand(p *commands.KnParams) *cobra.Command {
 			// Set color option globally
 			color.NoColor = !useColor
 
-			service, err := client.Service(serviceName)
+			service, err := client.GetService(serviceName)
 			if err != nil {
 				return err
 			}
 			// Additional revision related information
-			revisionDescs, err := getRevisionDescriptions(sClient, service, printAll)
+			revisionDescs, err := getRevisionDescriptions(client, service, printAll)
 
 			hipsterMode, err := cmd.Flags().GetBool("hipster")
 			if err != nil {
@@ -136,7 +137,7 @@ func NewServiceDescribeCommand(p *commands.KnParams) *cobra.Command {
 		},
 	}
 	flags := command.Flags()
-	AddNamespaceFlags(flags, false)
+	commands.AddNamespaceFlags(flags, false)
 	flags.BoolP("all", "a", false, "don't truncate long information")
 	flags.BoolP("color", "c", false, "use colorful output")
 	flags.Bool("hipster", false, "🤓")
@@ -378,7 +379,7 @@ func age(t time.Time) string {
 
 // Call the backend to query revisions for the given service and build up
 // the view objects used for output
-func getRevisionDescriptions(client *serving.NamespacedClient, service *v1alpha1.Service, all bool) ([]*revisionDesc, error) {
+func getRevisionDescriptions(client serving_kn_v1alpha1.KnClient, service *v1alpha1.Service, all bool) ([]*revisionDesc, error) {
 	revisionDescs := make(map[string]*revisionDesc)
 
 	trafficTargets := service.Status.Traffic
@@ -415,14 +416,14 @@ func orderByConfigurationGeneration(descs map[string]*revisionDesc) []*revisionD
 	return descsList
 }
 
-func completeWithUntargetedRevisions(client *serving.NamespacedClient, service *v1alpha1.Service, descs map[string]*revisionDesc) error {
-	revisions, err := client.RevisionsForService(service)
+func completeWithUntargetedRevisions(client serving_kn_v1alpha1.KnClient, service *v1alpha1.Service, descs map[string]*revisionDesc) error {
+	revisions, err := client.ListRevisions(serving_kn_v1alpha1.WithService(service.Name))
 	if err != nil {
 		return err
 	}
-	for _, revision := range revisions {
+	for _, revision := range revisions.Items {
 		if _, ok := descs[revision.Name]; !ok {
-			descs[revision.Name], err = newRevisionDesc(revision, nil)
+			descs[revision.Name], err = newRevisionDesc(&revision, nil)
 			if err != nil {
 				return err
 			}
@@ -498,20 +499,20 @@ func extractContainer(revision *v1alpha1.Revision) *v1.Container {
 	return revision.Spec.DeprecatedContainer
 }
 
-func extractRevisionFromTarget(client *serving.NamespacedClient, target v1alpha1.TrafficTarget) (*v1alpha1.Revision, error) {
+func extractRevisionFromTarget(client serving_kn_v1alpha1.KnClient, target v1alpha1.TrafficTarget) (*v1alpha1.Revision, error) {
 	var revisionName = target.RevisionName
 	if revisionName == "" {
 		configurationName := target.ConfigurationName
 		if configurationName == "" {
 			return nil, fmt.Errorf("neither RevisionName nor ConfigurationName set")
 		}
-		configuration, err := client.Configuration(configurationName)
+		configuration, err := client.GetConfiguration(configurationName)
 		if err != nil {
 			return nil, err
 		}
 		revisionName = configuration.Status.LatestCreatedRevisionName
 	}
-	return client.Revision(revisionName)
+	return client.GetRevision(revisionName)
 }
 
 func extractURL(service *v1alpha1.Service) string {

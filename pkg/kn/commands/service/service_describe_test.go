@@ -15,31 +15,20 @@
 package service
 
 import (
-	"bytes"
 	"regexp"
 	"strings"
-	"encoding/json"
 	"testing"
 
 	duckv1alpha1 "github.com/knative/pkg/apis/duck/v1alpha1"
-	"github.com/knative/client/pkg/kn/commands"
 	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
-	serving "github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
-	"github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake"
-	"k8s.io/apimachinery/pkg/api/equality"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	clienttesting "k8s.io/client-go/testing"
+
+	"github.com/knative/client/pkg/kn/commands"
 )
 
 func fakeServiceDescribe(args []string, response *v1alpha1.Service) (action clienttesting.Action, output string, err error) {
-	buf := new(bytes.Buffer)
-	fakeServing := &fake.FakeServingV1alpha1{Fake: &clienttesting.Fake{}}
-	cmd := NewKnCommand(KnParams{
-		Output:         buf,
-		ServingFactory: func() (serving.ServingV1alpha1Interface, error) { return fakeServing, nil },
-	})
-func fakeServiceDescribe(args []string, response *v1alpha1.Service) (action client_testing.Action, output string, err error) {
 	knParams := &commands.KnParams{}
 	cmd, fakeServing, buf := commands.CreateTestKnCommand(NewServiceCommand(knParams), knParams)
 	fakeServing.AddReactor("*", "*",
