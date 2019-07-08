@@ -20,23 +20,14 @@ Classifications:
 
 ## What version of Knative Client?
 
-<!-- Delete all but your choice -->
+> Paste output of 'kn version'
 
-> nightly
-> 0.1.x
-> 0.2.x
-> Output of git describe --dirty
+## What version of Knative Serving running on your cluster?
 
-## What version of Knative Serving?
-
-<!-- Delete all but your choice -->
-
-> nightly
 > 0.5.x
 > 0.6.x
 > 0.7.x
 > 0.8.x
-> Output of git describe --dirty
 
 ## Expected Behavior
 
