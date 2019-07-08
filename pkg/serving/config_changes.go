@@ -146,7 +146,7 @@ func extractContainer(template *servingv1alpha1.RevisionTemplateSpec) (*corev1.C
 
 func updateEnvVarsFromMap(env []corev1.EnvVar, vars map[string]string) []corev1.EnvVar {
 	set := make(map[string]bool)
-	for i, _ := range env {
+	for i := range env {
 		envVar := &env[i]
 		value, present := vars[envVar.Name]
 		if present {
