@@ -118,7 +118,7 @@ func TestUpdateEnvVarsModify(t *testing.T) {
 
 func testUpdateEnvVarsModify(t *testing.T, revision *servingv1alpha1.RevisionTemplateSpec, container *corev1.Container) {
 	container.Env = []corev1.EnvVar{
-		corev1.EnvVar{Name: "a", Value: "foo"}}
+		{Name: "a", Value: "foo"}}
 	env := map[string]string{
 		"a": "fancy",
 	}
@@ -176,8 +176,8 @@ func TestUpdateEnvVarsBoth(t *testing.T) {
 
 func testUpdateEnvVarsBoth(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, container *corev1.Container) {
 	container.Env = []corev1.EnvVar{
-		corev1.EnvVar{Name: "a", Value: "foo"},
-		corev1.EnvVar{Name: "c", Value: "caroline"}}
+		{Name: "a", Value: "foo"},
+		{Name: "c", Value: "caroline"}}
 	env := map[string]string{
 		"a": "fancy",
 		"b": "boo",

@@ -16,6 +16,8 @@
 
 set -o pipefail
 
+source_dirs="cmd pkg test"
+
 # Store for later
 if [ -z "$1" ]; then
     ARGS=("")
@@ -81,7 +83,7 @@ run() {
 
 go_fmt() {
   echo "🧹 ${S}Format"
-  go fmt ./cmd/... ./pkg/...
+  find $(echo $source_dirs) -name "*.go" -print0 | xargs -0 gofmt -s -w
 }
 
 source_format() {
@@ -92,11 +94,12 @@ source_format() {
      echo "✋   go get golang.org/x/tools/cmd/goimports"
      echo "✋ to enable import cleanup. Import cleanup skipped."
 
-     # Run go fmt insteat
+     # Run go fmt instead
      go_fmt
   else
      echo "🧽 ${S}Format"
-     goimports -w cmd pkg
+     goimports -w $(echo $source_dirs)
+     find $(echo $source_dirs) -name "*.go" -print0 | xargs -0 gofmt -s -w
   fi
   set -e
 }
