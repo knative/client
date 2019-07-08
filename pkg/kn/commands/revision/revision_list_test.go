@@ -120,7 +120,7 @@ func TestRevisionListForService(t *testing.T) {
 	if !action.Matches("list", "revisions") {
 		t.Errorf("Bad action %v", action)
 	}
-	testContains(t, output[0], []string{"No", "revisions", "svc3"}, "revision")
+	assert.Assert(t, util.ContainsAll(output[0], "No", "revisions", "svc3"), "no revisions")
 }
 
 func createMockRevisionWithParams(name, svcName string) *v1alpha1.Revision {
