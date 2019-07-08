@@ -44,7 +44,8 @@ func TestCompletion(t *testing.T) {
 
 	t.Run("returns completion code for BASH", func(t *testing.T) {
 		setup()
-		CaptureStdout(t); defer ReleaseStdout(t)
+		CaptureStdout(t)
+		defer ReleaseStdout(t)
 
 		completionCmd.Run(fakeRootCmd, []string{})
 		assert.Assert(t, ReadStdout(t) != "")
@@ -52,7 +53,8 @@ func TestCompletion(t *testing.T) {
 
 	t.Run("returns completion code for ZSH", func(t *testing.T) {
 		setup()
-		CaptureStdout(t); defer ReleaseStdout(t)
+		CaptureStdout(t)
+		defer ReleaseStdout(t)
 
 		completionCmd.Run(fakeRootCmd, []string{"--zsh"})
 		assert.Assert(t, ReadStdout(t) != "")

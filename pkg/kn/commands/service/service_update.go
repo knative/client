@@ -20,7 +20,6 @@ import (
 
 	"github.com/knative/client/pkg/kn/commands"
 	"github.com/spf13/cobra"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
@@ -48,12 +47,12 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			client, err := p.ServingFactory()
+			client, err := p.NewClient(namespace)
 			if err != nil {
 				return err
 			}
 
-			service, err := client.Services(namespace).Get(args[0], v1.GetOptions{})
+			service, err := client.GetService(args[0])
 			if err != nil {
 				return err
 			}
@@ -64,7 +63,7 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			_, err = client.Services(namespace).Update(service)
+			err = client.UpdateService(service)
 			if err != nil {
 				return err
 			}

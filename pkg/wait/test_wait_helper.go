@@ -18,6 +18,7 @@ import (
 	"github.com/knative/pkg/apis"
 	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 )
@@ -61,9 +62,9 @@ func (f *FakeWatch) fireEvents() {
 	}
 }
 
-// Create a service skeletion with a given ConditionReady status and all other statuses set to otherReadyStatus. Optionally a single generation can be added.
-func CreateTestServiceWithConditions(readyStatus corev1.ConditionStatus, otherReadyStatus corev1.ConditionStatus, reason string, generations ...int64) runtime.Object {
-	service := v1alpha1.Service{}
+// Create a service skeleton with a given ConditionReady status and all other statuses set to otherReadyStatus. Optionally a single generation can be added.
+func CreateTestServiceWithConditions(name string, readyStatus corev1.ConditionStatus, otherReadyStatus corev1.ConditionStatus, reason string, generations ...int64) runtime.Object {
+	service := v1alpha1.Service{ObjectMeta: metav1.ObjectMeta{Name: name}}
 	if len(generations) == 2 {
 		service.Generation = generations[0]
 		service.Status.ObservedGeneration = generations[1]

@@ -17,12 +17,11 @@ package revision
 import (
 	"fmt"
 
-	"github.com/knative/client/pkg/kn/commands"
-	"github.com/knative/serving/pkg/apis/serving"
+	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"github.com/spf13/cobra"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/runtime/schema"
+
+	"github.com/knative/client/pkg/kn/commands"
+	v1alpha12 "github.com/knative/client/pkg/serving/v1alpha1"
 )
 
 // NewRevisionListCommand represents 'kn revision list' command
@@ -40,42 +39,47 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
   # List revisions for a service 'svc1' in namespace 'myapp'
   kn revision list -s svc1 -n myapp`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			client, err := p.ServingFactory()
-			if err != nil {
-				return err
-			}
 			namespace, err := p.GetNamespace(cmd)
 			if err != nil {
 				return err
 			}
-			listOptions := v1.ListOptions{}
-			if cmd.Flags().Changed("service") {
-				service := cmd.Flag("service").Value.String()
-				// Ensure requested service exist
-				_, err := client.Services(namespace).Get(service, v1.GetOptions{})
-				if err != nil {
-					return err
-				}
-				listOptions.LabelSelector = labels.Set(
-					map[string]string{serving.ConfigurationLabelKey: service}).String()
-			}
-			revision, err := client.Revisions(namespace).List(listOptions)
+			client, err := p.NewClient(namespace)
 			if err != nil {
 				return err
 			}
-			if len(revision.Items) == 0 {
-				fmt.Fprintf(cmd.OutOrStdout(), "No resources found.\n")
-				return nil
+			var revisionList *v1alpha1.RevisionList
+			if cmd.Flags().Changed("service") {
+				serviceName := cmd.Flag("service").Value.String()
+
+				// Verify that service exists
+				_, err := client.GetService(serviceName)
+				if err != nil {
+					return err
+				}
+				revisionList, err = client.ListRevisions(v1alpha12.WithService(serviceName))
+				if err != nil {
+					return err
+				}
+				if len(revisionList.Items) == 0 {
+					fmt.Fprintf(cmd.OutOrStdout(), "No revisions found for service '%s'.\n", serviceName)
+					return nil
+				}
+			} else {
+				revisionList, err = client.ListRevisions()
+				if err != nil {
+					return err
+				}
+				if len(revisionList.Items) == 0 {
+					fmt.Fprintf(cmd.OutOrStdout(), "No revisions found.\n")
+					return nil
+				}
 			}
-			revision.GetObjectKind().SetGroupVersionKind(schema.GroupVersionKind{
-				Group:   "knative.dev",
-				Version: "v1alpha1",
-				Kind:    "revision"})
+
 			printer, err := revisionListFlags.ToPrinter()
 			if err != nil {
 				return err
 			}
-			err = printer.PrintObj(revision, cmd.OutOrStdout())
+			err = printer.PrintObj(revisionList, cmd.OutOrStdout())
 			if err != nil {
 				return err
 			}

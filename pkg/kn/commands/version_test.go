@@ -70,7 +70,8 @@ func TestVersion(t *testing.T) {
 
 	t.Run("creates a VersionCommand", func(t *testing.T) {
 		setup()
-		CaptureStdout(t); defer ReleaseStdout(t)
+		CaptureStdout(t)
+		defer ReleaseStdout(t)
 
 		assert.Equal(t, versionCmd.Use, "version")
 		assert.Equal(t, versionCmd.Short, "Prints the client version")
@@ -79,7 +80,8 @@ func TestVersion(t *testing.T) {
 
 	t.Run("prints version, build date, git revision, and serving version string", func(t *testing.T) {
 		setup()
-		CaptureStdout(t); defer ReleaseStdout(t)
+		CaptureStdout(t)
+		defer ReleaseStdout(t)
 
 		err := versionCmd.RunE(nil, []string{})
 		assert.Assert(t, err == nil)

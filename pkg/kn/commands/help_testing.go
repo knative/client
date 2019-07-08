@@ -19,10 +19,9 @@ import (
 	"flag"
 	"io"
 	"os"
-	"strings"
 	"testing"
 
-	serving "github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
+	"github.com/knative/client/pkg/serving/v1alpha1"
 	"github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake"
 	"github.com/spf13/cobra"
 	"gotest.tools/assert"
@@ -46,20 +45,12 @@ func CreateTestKnCommand(cmd *cobra.Command, knParams *KnParams) (*cobra.Command
 	buf := new(bytes.Buffer)
 	fakeServing := &fake.FakeServingV1alpha1{&client_testing.Fake{}}
 	knParams.Output = buf
-	knParams.ServingFactory = func() (serving.ServingV1alpha1Interface, error) { return fakeServing, nil }
-	knParams.NamespaceFactory = func() (string, error) { return FakeNamespace, nil }
+	knParams.NewClient = func(namespace string) (v1alpha1.KnClient, error) {
+		return v1alpha1.NewKnServingClient(fakeServing, namespace), nil
+	}
+	knParams.fixedCurrentNamespace = FakeNamespace
 	knCommand := newKnCommand(cmd, knParams)
 	return knCommand, fakeServing, buf
-}
-
-// TestContains is a test helper function, checking if a substring is present in given
-// output string
-func TestContains(t *testing.T, output string, sub []string, element string) {
-	for _, each := range sub {
-		if !strings.Contains(output, each) {
-			t.Errorf("Missing %s: %s", element, each)
-		}
-	}
 }
 
 // CaptureStdout collects the current content of os.Stdout

@@ -18,12 +18,15 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/knative/client/pkg/kn/commands"
-	serving "github.com/knative/serving/pkg/apis/serving"
-	v1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
+	"github.com/knative/serving/pkg/apis/serving"
+	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
+	"gotest.tools/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	client_testing "k8s.io/client-go/testing"
+
+	"github.com/knative/client/pkg/kn/commands"
+	"github.com/knative/client/pkg/util"
 )
 
 func fakeRevisionList(args []string, response *v1alpha1.RevisionList) (action client_testing.Action, output []string, err error) {
@@ -53,7 +56,7 @@ func TestRevisionListEmpty(t *testing.T) {
 		t.Errorf("No action")
 	} else if !action.Matches("list", "revisions") {
 		t.Errorf("Bad action %v", action)
-	} else if output[0] != "No resources found." {
+	} else if output[0] != "No revisions found." {
 		t.Errorf("Bad output %s", output[0])
 	}
 }
@@ -71,9 +74,9 @@ func TestRevisionListDefaultOutput(t *testing.T) {
 	} else if !action.Matches("list", "revisions") {
 		t.Errorf("Bad action %v", action)
 	}
-	testContains(t, output[0], []string{"SERVICE", "NAME", "AGE", "CONDITIONS", "READY", "REASON"}, "column header")
-	testContains(t, output[1], []string{"foo", "foo-abcd"}, "value")
-	testContains(t, output[2], []string{"bar", "bar-wxyz"}, "value")
+	assert.Check(t, util.ContainsAll(output[0], "NAME", "SERVICE", "AGE", "CONDITIONS", "READY", "REASON"))
+	assert.Check(t, util.ContainsAll(output[1], "foo-abcd", "foo"))
+	assert.Check(t, util.ContainsAll(output[2], "bar-wxyz", "bar"))
 }
 
 func TestRevisionListForService(t *testing.T) {
@@ -91,9 +94,9 @@ func TestRevisionListForService(t *testing.T) {
 	} else if !action.Matches("list", "revisions") {
 		t.Errorf("Bad action %v", action)
 	}
-	testContains(t, output[0], []string{"SERVICE", "NAME", "AGE", "CONDITIONS", "READY", "REASON"}, "column header")
-	testContains(t, output[1], []string{"svc1", "foo-abcd"}, "value")
-	testContains(t, output[2], []string{"svc1", "bar-wxyz"}, "value")
+	assert.Check(t, util.ContainsAll(output[0], "NAME", "SERVICE", "AGE", "CONDITIONS", "READY", "REASON"))
+	assert.Check(t, util.ContainsAll(output[1], "foo-abcd", "svc1"))
+	assert.Check(t, util.ContainsAll(output[2], "bar-wxyz", "svc1"))
 	action, output, err = fakeRevisionList([]string{"revision", "list", "-s", "svc2"}, RevisionList)
 	if err != nil {
 		t.Fatal(err)
@@ -103,9 +106,9 @@ func TestRevisionListForService(t *testing.T) {
 	} else if !action.Matches("list", "revisions") {
 		t.Errorf("Bad action %v", action)
 	}
-	testContains(t, output[0], []string{"SERVICE", "NAME", "AGE", "CONDITIONS", "READY", "REASON"}, "column header")
-	testContains(t, output[1], []string{"svc2", "foo-abcd"}, "value")
-	testContains(t, output[2], []string{"svc2", "bar-wxyz"}, "value")
+	assert.Check(t, util.ContainsAll(output[0], "NAME", "SERVICE", "AGE", "CONDITIONS", "READY", "REASON"))
+	assert.Check(t, util.ContainsAll(output[1], "foo-abcd", "svc2"))
+	assert.Check(t, util.ContainsAll(output[2], "bar-wxyz", "svc"))
 	//test for non existent service
 	action, output, err = fakeRevisionList([]string{"revision", "list", "-s", "svc3"}, RevisionList)
 	if err != nil {
@@ -113,19 +116,11 @@ func TestRevisionListForService(t *testing.T) {
 	}
 	if action == nil {
 		t.Errorf("No action")
-	} else if !action.Matches("list", "revisions") {
+	}
+	if !action.Matches("list", "revisions") {
 		t.Errorf("Bad action %v", action)
-	} else if !strings.Contains(output[0], "No resources found.") {
-		t.Errorf("Bad output %s", output[0])
 	}
-}
-
-func testContains(t *testing.T, output string, sub []string, element string) {
-	for _, each := range sub {
-		if !strings.Contains(output, each) {
-			t.Errorf("Missing %s: %s", element, each)
-		}
-	}
+	assert.Assert(t, util.ContainsAll(output[0], "No", "revisions", "svc3"), "no revisions")
 }
 
 func createMockRevisionWithParams(name, svcName string) *v1alpha1.Revision {
@@ -137,7 +132,7 @@ func createMockRevisionWithParams(name, svcName string) *v1alpha1.Revision {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: "default",
-			Labels:    map[string]string{serving.ConfigurationLabelKey: svcName},
+			Labels:    map[string]string{serving.ServiceLabelKey: svcName},
 		},
 	}
 	return revision

@@ -6,6 +6,10 @@ Service command group
 
 Service command group
 
+```
+kn service [flags]
+```
+
 ### Options
 
 ```

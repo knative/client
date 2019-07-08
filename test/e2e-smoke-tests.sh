@@ -46,22 +46,23 @@ header "Running smoke tests"
 
 kubectl create ns $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
 
+./kn service create svc1 --async --image gcr.io/knative-samples/helloworld-go -e TARGET=Knative -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
 ./kn service create hello --image gcr.io/knative-samples/helloworld-go -e TARGET=Knative -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
-sleep 5
 ./kn service list hello -n $KN_E2E_SMOKE_TESTS_NAMESPACE -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
 ./kn service update hello --env TARGET=kn -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
-sleep 3
 ./kn revision list hello -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
 ./kn service list -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
 ./kn service create hello --force --image gcr.io/knative-samples/helloworld-go -e TARGET=Awesome -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
 ./kn service create foo --force --image gcr.io/knative-samples/helloworld-go -e TARGET=foo -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
-sleep 5
 ./kn revision list -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
 ./kn service list -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
 ./kn service describe hello -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
+./kn service describe svc1 -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
+./kn route list -n $KN_E2E_SMOKE_TESTS_NAMESPACE  || fail_test
 ./kn service delete hello -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
 ./kn service delete foo -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
-
+./kn service list -n $KN_E2E_SMOKE_TESTS_NAMESPACE | grep -q svc1 || fail_test
+./kn service delete svc1 -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
 kubectl delete ns $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
 
 success

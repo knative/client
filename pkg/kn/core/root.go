@@ -15,6 +15,7 @@
 package core
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -22,15 +23,19 @@ import (
 
 	"github.com/knative/client/pkg/kn/commands"
 	"github.com/knative/client/pkg/kn/commands/revision"
+	"github.com/knative/client/pkg/kn/commands/route"
 	"github.com/knative/client/pkg/kn/commands/service"
-	homedir "github.com/mitchellh/go-homedir"
+	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
 )
 
-// rootCmd represents the base command when called without any subcommands
+var cfgFile string
+var kubeCfgFile string
+
+// NewKnCommand creates new rootCmd represents the base command when called without any subcommands
 func NewKnCommand(params ...commands.KnParams) *cobra.Command {
 	var p *commands.KnParams
 	if len(params) == 0 {
@@ -68,12 +73,38 @@ Eventing: Manage event subscriptions and channels. Connect up event sources.`,
 
 	rootCmd.AddCommand(service.NewServiceCommand(p))
 	rootCmd.AddCommand(revision.NewRevisionCommand(p))
+	rootCmd.AddCommand(route.NewRouteCommand(p))
 	rootCmd.AddCommand(commands.NewCompletionCommand(p))
 	rootCmd.AddCommand(commands.NewVersionCommand(p))
+
+	// Deal with empty and unknown sub command groups
+	EmptyAndUnknownSubCommands(rootCmd)
 
 	// For glog parse error.
 	flag.CommandLine.Parse([]string{})
 	return rootCmd
+}
+
+// EmptyAndUnknownSubCommands adds a RunE to all commands that are groups to
+// deal with errors when called with empty or unknown sub command
+func EmptyAndUnknownSubCommands(cmd *cobra.Command) {
+	for _, childCmd := range cmd.Commands() {
+		if childCmd.HasSubCommands() && childCmd.RunE == nil {
+			childCmd.RunE = func(aCmd *cobra.Command, args []string) error {
+				aCmd.Help()
+				fmt.Println()
+
+				if len(args) == 0 {
+					return errors.New(fmt.Sprintf("please provide a valid sub-command for \"kn %s\"", aCmd.Name()))
+				} else {
+					return errors.New(fmt.Sprintf("unknown sub-command \"%s\" for \"kn %s\"", args[0], aCmd.Name()))
+				}
+			}
+		}
+
+		// recurse to deal with child commands that are themselves command groups
+		EmptyAndUnknownSubCommands(childCmd)
+	}
 }
 
 // initConfig reads in config file and ENV variables if set.

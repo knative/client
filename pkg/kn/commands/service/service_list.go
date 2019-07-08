@@ -19,8 +19,6 @@ import (
 
 	"github.com/knative/client/pkg/kn/commands"
 	"github.com/spf13/cobra"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 // NewServiceListCommand represents 'kn service list' command
@@ -31,33 +29,28 @@ func NewServiceListCommand(p *commands.KnParams) *cobra.Command {
 		Use:   "list",
 		Short: "List available services.",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			client, err := p.ServingFactory()
-			if err != nil {
-				return err
-			}
 			namespace, err := p.GetNamespace(cmd)
 			if err != nil {
 				return err
 			}
-			service, err := client.Services(namespace).List(v1.ListOptions{})
+			client, err := p.NewClient(namespace)
 			if err != nil {
 				return err
 			}
-			if len(service.Items) == 0 {
+			serviceList, err := client.ListServices()
+			if err != nil {
+				return err
+			}
+			if len(serviceList.Items) == 0 {
 				fmt.Fprintf(cmd.OutOrStdout(), "No resources found.\n")
 				return nil
 			}
-			service.GetObjectKind().SetGroupVersionKind(schema.GroupVersionKind{
-				Group:   "knative.dev",
-				Version: "v1alpha1",
-				Kind:    "Service"})
-
 			printer, err := serviceListFlags.ToPrinter()
 			if err != nil {
 				return err
 			}
 
-			err = printer.PrintObj(service, cmd.OutOrStdout())
+			err = printer.PrintObj(serviceList, cmd.OutOrStdout())
 			if err != nil {
 				return err
 			}
