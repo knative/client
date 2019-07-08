@@ -21,7 +21,7 @@ Start with the [user's guide](docs/README.md) to learn more. You can read about 
 
 **Bash auto completion:**
 
-Run the following command to enable Bash auto-completion:
+Run the following command to enable BASH auto-completion:
 
 ```sh
 $ source <(kn completion)
