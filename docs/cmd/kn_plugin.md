@@ -4,9 +4,9 @@ Plugin command group
 
 ### Synopsis
 
-Provides utilities for interacting with kn plugins.
+Provides utilities for interacting and managing with kn plugins.
 
-Plugins provide extended functionality that is not part of the major kn command-line distribution.
+Plugins provide extended functionality that is not part of the core kn command-line distribution.
 Please refer to the documentation and examples for more information about how write your own plugins.
 
 ```
@@ -16,15 +16,16 @@ kn plugin [flags]
 ### Options
 
 ```
-  -h, --help   help for plugin
+  -h, --help                     help for plugin
+      --lookup-plugins-in-path   look for kn plugins in $PATH
+      --plugins-dir string       kn plugins directory (default "~/.kn/plugins")
 ```
 
 ### Options inherited from parent commands
 
 ```
-      --config string       config file (default is $HOME/.kn/config.yaml)
+      --config string       kn config file (default is $HOME/.kn/config.yaml)
       --kubeconfig string   kubectl config file (default is $HOME/.kube/config)
-      --plugin-dir string   kn plugin directory (default is value in kn config or $PATH) (default "$PATH")
 ```
 
 ### SEE ALSO

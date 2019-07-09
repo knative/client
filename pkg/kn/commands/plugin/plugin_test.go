@@ -23,9 +23,9 @@ import (
 	"gotest.tools/assert"
 )
 
-const PluginCommandUsage = `Provides utilities for interacting with kn plugins.
+const PluginCommandUsage = `Provides utilities for interacting and managing with kn plugins.
 
-Plugins provide extended functionality that is not part of the major kn command-line distribution.
+Plugins provide extended functionality that is not part of the core kn command-line distribution.
 Please refer to the documentation and examples for more information about how write your own plugins.
 
 Usage:
@@ -36,12 +36,13 @@ Available Commands:
   list        List all visible plugin executables
 
 Flags:
-  -h, --help   help for plugin
+  -h, --help                     help for plugin
+      --lookup-plugins-in-path   look for kn plugins in $PATH
+      --plugins-dir string       kn plugins directory (default "~/.kn/plugins")
 
 Global Flags:
-      --config string       config file (default is $HOME/.kn/config.yaml)
+      --config string       kn config file (default is $HOME/.kn/config.yaml)
       --kubeconfig string   kubectl config file (default is $HOME/.kube/config)
-      --plugin-dir string   kn plugin directory (default is value in kn config or $PATH)
 
 Use "kn plugin [command] --help" for more information about a command.`
 
@@ -65,45 +66,9 @@ func TestNewPluginCommand(t *testing.T) {
 		assert.Assert(t, pluginCmd != nil)
 		assert.Assert(t, pluginCmd.Use == "plugin")
 		assert.Assert(t, pluginCmd.Short == "Plugin command group")
-		assert.Assert(t, strings.Contains(pluginCmd.Long, "Provides utilities for interacting with kn plugins."))
+		assert.Assert(t, strings.Contains(pluginCmd.Long, "Provides utilities for interacting and managing with kn plugins."))
+		assert.Assert(t, pluginCmd.Flags().Lookup("plugins-dir") != nil)
+		assert.Assert(t, pluginCmd.Flags().Lookup("lookup-plugins-in-path") != nil)
 		assert.Assert(t, pluginCmd.Args == nil)
-	})
-
-	t.Run("when called with known subcommand", func(t *testing.T) {
-		var fakeExecuted bool
-
-		beforeEach := func(t *testing.T) {
-			pluginCmd.AddCommand(&cobra.Command{
-				Use:   "fake",
-				Short: "fake subcommand",
-				RunE: func(cmd *cobra.Command, args []string) error {
-					fakeExecuted = true
-					return nil
-				},
-			})
-		}
-
-		t.Run("executes the subcommand RunE func", func(t *testing.T) {
-			setup(t)
-			beforeEach(t)
-
-			rootCmd.SetArgs([]string{"plugin", "fake"})
-			err := rootCmd.Execute()
-			assert.Assert(t, err == nil)
-			assert.Assert(t, fakeExecuted == true)
-		})
-
-		t.Run("reads flag --plugin-dir", func(t *testing.T) {
-			setup(t)
-			beforeEach(t)
-
-			rootCmd.SetArgs([]string{"plugin", "fake", "--plugin-dir", "$PATH"})
-			err := pluginCmd.Execute()
-			assert.Assert(t, err == nil)
-
-			pluginDir, err := rootCmd.PersistentFlags().GetString("plugin-dir")
-			assert.Assert(t, err == nil)
-			assert.Assert(t, pluginDir == "$PATH")
-		})
 	})
 }

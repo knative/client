@@ -25,8 +25,14 @@ import (
 // CfgFile is Kn's config file is the path for the Kubernetes config
 var CfgFile string
 
-// PluginDir is Kn's config string for plugin directory
-var PluginDir string
+// Cfg is Kn's configuration values
+var Cfg Config
+
+// Cfg contains the variables for the Kn config
+type Config struct {
+	PluginsDir          string
+	LookupPluginsInPath bool
+}
 
 // Parameters for creating commands. Useful for inserting mocks for testing.
 type KnParams struct {

@@ -19,7 +19,6 @@ import (
 	"flag"
 	"io"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/knative/client/pkg/serving/v1alpha1"
@@ -53,16 +52,6 @@ func CreateTestKnCommand(cmd *cobra.Command, knParams *KnParams) (*cobra.Command
 	knParams.fixedCurrentNamespace = FakeNamespace
 	knCommand := newKnCommand(cmd, knParams)
 	return knCommand, fakeServing, buf
-}
-
-// TestContains is a test helper function, checking if a substring is present in given
-// output string
-func TestContains(t *testing.T, output string, sub []string, element string) {
-	for _, each := range sub {
-		if !strings.Contains(output, each) {
-			t.Errorf("Missing %s: %s", element, each)
-		}
-	}
 }
 
 // CaptureStdout collects the current content of os.Stdout
@@ -123,11 +112,16 @@ Eventing: Manage event subscriptions and channels. Connect up event sources.`,
 		rootCmd.SetOutput(params.Output)
 	}
 	rootCmd.PersistentFlags().StringVar(&CfgFile, "config", "", "config file (default is $HOME/.kn.yaml)")
-	rootCmd.PersistentFlags().StringVar(&PluginDir, "plugin-dir", "$PATH", "kn plugin directory (default is value in kn config or $PATH)")
 	rootCmd.PersistentFlags().StringVar(&params.KubeCfgPath, "kubeconfig", "", "kubectl config file (default is $HOME/.kube/config)")
 
-	viper.BindPFlag("pluginDir", rootCmd.PersistentFlags().Lookup("plugin-dir"))
-	viper.SetDefault("pluginDir", "$PATH")
+	rootCmd.Flags().StringVar(&Cfg.PluginsDir, "plugins-dir", "~/.kn/plugins", "kn plugins directory")
+	rootCmd.Flags().BoolVar(&Cfg.LookupPluginsInPath, "lookup-plugins-in-path", false, "look for kn plugins in $PATH")
+
+	viper.BindPFlag("pluginsDir", rootCmd.Flags().Lookup("plugins-dir"))
+	viper.BindPFlag("lookupPluginsInPath", rootCmd.Flags().Lookup("lookup-plugins-in-path"))
+
+	viper.SetDefault("pluginsDir", "~/.kn/plugins")
+	viper.SetDefault("lookupPluginsInPath", false)
 
 	rootCmd.AddCommand(subCommand)
 

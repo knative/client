@@ -15,6 +15,7 @@
 package plugin
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -69,7 +70,7 @@ func (h *DefaultPluginHandler) Execute(executablePath string, cmdArgs, environme
 }
 
 // HandlePluginCommand receives a pluginHandler and command-line arguments and attempts to find
-// a plugin executable on the PATH that satisfies the given arguments.
+// a plugin executable that satisfies the given arguments.
 func HandlePluginCommand(pluginHandler PluginHandler, cmdArgs []string) error {
 	remainingArgs := []string{} // all "non-flag" arguments
 
@@ -95,13 +96,14 @@ func HandlePluginCommand(pluginHandler PluginHandler, cmdArgs []string) error {
 	}
 
 	if len(foundBinaryPath) == 0 {
-		return nil
+		return errors.New("Could not find plugin to execute")
 	}
 
 	// invoke cmd binary relaying the current environment and args given
 	// remainingArgs will always have at least one element.
 	// execve will make remainingArgs[0] the "binary name".
-	if err := pluginHandler.Execute(foundBinaryPath, append([]string{foundBinaryPath}, cmdArgs[len(remainingArgs):]...), os.Environ()); err != nil {
+	err := pluginHandler.Execute(foundBinaryPath, append([]string{foundBinaryPath}, cmdArgs[len(remainingArgs):]...), os.Environ())
+	if err != nil {
 		return err
 	}
 

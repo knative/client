@@ -25,6 +25,8 @@ import (
 	"github.com/knative/client/pkg/kn/commands"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+
+	homedir "github.com/mitchellh/go-homedir"
 )
 
 // ValidPluginFilenamePrefixes controls the prefix for all kn plugins
@@ -45,12 +47,11 @@ func NewPluginListCommand(p *commands.KnParams) *cobra.Command {
 		Short: "List all visible plugin executables",
 		Long: `List all visible plugin executables.
 
-		Available plugin files are those that are:
-		- executable
-		- begin with "kn-
-		- anywhere on the path specfied in Kn's config pluginDir variable, which:
-		  * defaults to $PATH if not specified
-		  * can be overridden with the --plugin-dir flag`,
+Available plugin files are those that are:
+- executable
+- begin with "kn-
+- anywhere on the path specified in Kn's config pluginDir variable, which:
+  * can be overridden with the --plugin-dir flag`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			err := pluginFlags.complete(cmd)
 			if err != nil {
@@ -66,6 +67,9 @@ func NewPluginListCommand(p *commands.KnParams) *cobra.Command {
 		},
 	}
 
+	AddPluginFlags(pluginListCommand)
+	BindPluginsFlagToViper(pluginListCommand)
+
 	pluginFlags.AddPluginFlags(pluginListCommand)
 
 	return pluginListCommand
@@ -79,9 +83,18 @@ func (o *PluginFlags) complete(cmd *cobra.Command) error {
 		SeenPlugins: make(map[string]string, 0),
 	}
 
-	pluginPath := commands.PluginDir
-	if pluginPath == "$PATH" {
-		pluginPath = os.Getenv("PATH")
+	pluginPath := commands.Cfg.PluginsDir
+
+	if strings.Contains(pluginPath, "~") {
+		var err error
+		pluginPath, err = expandHomeDir(pluginPath)
+		if err != nil {
+			return err
+		}
+	}
+
+	if commands.Cfg.LookupPluginsInPath {
+		pluginPath = pluginPath + string(os.PathListSeparator) + os.Getenv("PATH")
 	}
 
 	o.PluginPaths = filepath.SplitList(pluginPath)
@@ -99,14 +112,15 @@ func (o *PluginFlags) run() error {
 		if dir == "" {
 			continue
 		}
+
 		files, err := ioutil.ReadDir(dir)
 		if err != nil {
 			if _, ok := err.(*os.PathError); ok {
-				fmt.Fprintf(o.ErrOut, "Unable read directory %q from your pluginDir: %v. Skipping...", dir, err)
+				fmt.Fprintf(o.ErrOut, "Unable read directory '%s' from your plugins path: %v. Skipping...", dir, err)
 				continue
 			}
 
-			pluginErrors = append(pluginErrors, fmt.Errorf("error: unable to read directory %q in your pluginDir: %v", dir, err))
+			pluginErrors = append(pluginErrors, fmt.Errorf("error: unable to read directory '%s' from your plugin path: %v", dir, err))
 			continue
 		}
 
@@ -119,7 +133,9 @@ func (o *PluginFlags) run() error {
 			}
 
 			if isFirstFile {
-				fmt.Fprintf(o.ErrOut, "The following compatible plugins are available:\n\n")
+				fmt.Fprintf(o.ErrOut, "The following compatible plugins are available, using options:\n")
+				fmt.Fprintf(o.ErrOut, "  - plugins dir: '%s'\n", commands.Cfg.PluginsDir)
+				fmt.Fprintf(o.ErrOut, "  - lookup plugins in path: '%t'\n\n", commands.Cfg.LookupPluginsInPath)
 				pluginsFound = true
 				isFirstFile = false
 			}
@@ -140,7 +156,7 @@ func (o *PluginFlags) run() error {
 	}
 
 	if !pluginsFound {
-		pluginErrors = append(pluginErrors, fmt.Errorf("warning: unable to find any kn plugins in your pluginDir"))
+		pluginErrors = append(pluginErrors, fmt.Errorf("warning: unable to find any kn plugins in your plugin path: '%s'", o.PluginPaths))
 	}
 
 	if pluginWarnings > 0 {
@@ -163,6 +179,17 @@ func (o *PluginFlags) run() error {
 }
 
 // Private
+
+// expandHomeDir replaces the ~ with the home directory value
+func expandHomeDir(path string) (string, error) {
+	home, err := homedir.Dir()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return "", err
+	}
+
+	return strings.Replace(path, "~", home, -1), nil
+}
 
 // uniquePathsList deduplicates a given slice of strings without
 // sorting or otherwise altering its order in any way.

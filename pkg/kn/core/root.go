@@ -80,9 +80,8 @@ func NewKnCommand(params ...commands.KnParams) *cobra.Command {
 		Short: "Knative client",
 		Long: `Manage your Knative building blocks:
 
-Serving: Manage your services and release new software to them.
-Build: Create builds and keep track of their results.
-Eventing: Manage event subscriptions and channels. Connect up event sources.`,
+* Serving: Manage your services and release new software to them.
+* Eventing: Manage event subscriptions and channels. Connect up event sources.`,
 
 		// Disable docs header
 		DisableAutoGenTag: true,
@@ -98,13 +97,11 @@ Eventing: Manage event subscriptions and channels. Connect up event sources.`,
 	}
 
 	// Persistent flags
-	rootCmd.PersistentFlags().StringVar(&commands.CfgFile, "config", "", "config file (default is $HOME/.kn/config.yaml)")
-	rootCmd.PersistentFlags().StringVar(&commands.PluginDir, "plugin-dir", "$PATH", "kn plugin directory (default is value in kn config or $PATH)")
+	rootCmd.PersistentFlags().StringVar(&commands.CfgFile, "config", "", "kn config file (default is $HOME/.kn/config.yaml)")
 	rootCmd.PersistentFlags().StringVar(&p.KubeCfgPath, "kubeconfig", "", "kubectl config file (default is $HOME/.kube/config)")
 
-	// bind and set default with viper
-	viper.BindPFlag("pluginDir", rootCmd.PersistentFlags().Lookup("plugin-dir"))
-	viper.SetDefault("pluginDir", "$PATH")
+	plugin.AddPluginFlags(rootCmd)
+	plugin.BindPluginsFlagToViper(rootCmd)
 
 	// root child commands
 	rootCmd.AddCommand(service.NewServiceCommand(p))
@@ -119,6 +116,7 @@ Eventing: Manage event subscriptions and channels. Connect up event sources.`,
 
 	// For glog parse error.
 	flag.CommandLine.Parse([]string{})
+
 	return rootCmd
 }
 
@@ -162,7 +160,7 @@ func initConfig() {
 			os.Exit(1)
 		}
 
-		// Search config in home directory with name ".kn" (without extension).
+		// Search config in home directory with name ".kn" (without extension)
 		viper.AddConfigPath(path.Join(home, ".kn"))
 		viper.SetConfigName("config")
 	}
@@ -170,7 +168,8 @@ func initConfig() {
 	viper.AutomaticEnv() // read in environment variables that match
 
 	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+	err := viper.ReadInConfig()
+	if err == nil {
+		fmt.Fprintln(os.Stderr, "Using kn config file:", viper.ConfigFileUsed())
 	}
 }

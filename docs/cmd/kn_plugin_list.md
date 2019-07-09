@@ -6,12 +6,11 @@ List all visible plugin executables
 
 List all visible plugin executables.
 
-		Available plugin files are those that are:
-		- executable
-		- begin with "kn-
-		- anywhere on the path specfied in Kn's config pluginDir variable, which:
-		  * defaults to $PATH if not specified
-		  * can be overridden with the --plugin-dir flag
+Available plugin files are those that are:
+- executable
+- begin with "kn-
+- anywhere on the path specified in Kn's config pluginDir variable, which:
+  * can be overridden with the --plugin-dir flag
 
 ```
 kn plugin list [flags]
@@ -20,16 +19,17 @@ kn plugin list [flags]
 ### Options
 
 ```
-  -h, --help        help for list
-      --name-only   If true, display only the binary name of each plugin, rather than its full path
+  -h, --help                     help for list
+      --lookup-plugins-in-path   look for kn plugins in $PATH
+      --name-only                If true, display only the binary name of each plugin, rather than its full path
+      --plugins-dir string       kn plugins directory (default "~/.kn/plugins")
 ```
 
 ### Options inherited from parent commands
 
 ```
-      --config string       config file (default is $HOME/.kn/config.yaml)
+      --config string       kn config file (default is $HOME/.kn/config.yaml)
       --kubeconfig string   kubectl config file (default is $HOME/.kube/config)
-      --plugin-dir string   kn plugin directory (default is value in kn config or $PATH) (default "$PATH")
 ```
 
 ### SEE ALSO

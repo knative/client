@@ -26,9 +26,11 @@ func init() {
 	core.InitializeConfig()
 }
 
+var err error
+
 func main() {
 	defer cleanup()
-	err := core.NewDefaultKnCommand().Execute()
+	err = core.NewDefaultKnCommand().Execute()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
@@ -36,5 +38,7 @@ func main() {
 }
 
 func cleanup() {
-	viper.WriteConfig()
+	if err == nil {
+		viper.WriteConfig()
+	}
 }

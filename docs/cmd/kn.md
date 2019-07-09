@@ -6,17 +6,17 @@ Knative client
 
 Manage your Knative building blocks:
 
-Serving: Manage your services and release new software to them.
-Build: Create builds and keep track of their results.
-Eventing: Manage event subscriptions and channels. Connect up event sources.
+* Serving: Manage your services and release new software to them.
+* Eventing: Manage event subscriptions and channels. Connect up event sources.
 
 ### Options
 
 ```
-      --config string       config file (default is $HOME/.kn/config.yaml)
-  -h, --help                help for kn
-      --kubeconfig string   kubectl config file (default is $HOME/.kube/config)
-      --plugin-dir string   kn plugin directory (default is value in kn config or $PATH) (default "$PATH")
+      --config string            kn config file (default is $HOME/.kn/config.yaml)
+  -h, --help                     help for kn
+      --kubeconfig string        kubectl config file (default is $HOME/.kube/config)
+      --lookup-plugins-in-path   look for kn plugins in $PATH
+      --plugins-dir string       kn plugins directory (default "~/.kn/plugins")
 ```
 
 ### SEE ALSO

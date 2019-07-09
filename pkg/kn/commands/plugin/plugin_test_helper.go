@@ -29,9 +29,10 @@ const (
 	KnTestPluginScript = `#!/bin/bash
 
 echo "I am a test Kn plugin"
+exit 0
 `
 	FileModeReadable   = 0644
-	FileModeExecutable = 777
+	FileModeExecutable = 0777
 )
 
 // FindSubCommand return the sub-command by name

@@ -60,10 +60,11 @@ func TestPluginList(t *testing.T) {
 		assert.Assert(t, pluginListCmd.Use == "list")
 		assert.Assert(t, pluginListCmd.Short == "List all visible plugin executables")
 		assert.Assert(t, strings.Contains(pluginListCmd.Long, "List all visible plugin executables"))
+		assert.Assert(t, pluginListCmd.Flags().Lookup("plugins-dir") != nil)
 		assert.Assert(t, pluginListCmd.RunE != nil)
 	})
 
-	t.Run("when using $PATH as plugin location", func(t *testing.T) {
+	t.Run("when using $PATH as plugin location and --lookup-plugins-in-path as true", func(t *testing.T) {
 		var pluginPath string
 
 		beforeEach := func(t *testing.T) {
@@ -77,10 +78,11 @@ func TestPluginList(t *testing.T) {
 			beforeEach(t)
 
 			t.Run("warns user that no plugins found", func(t *testing.T) {
-				rootCmd.SetArgs([]string{"plugin", "list"})
+				rootCmd.SetArgs([]string{"plugin", "list", "--lookup-plugins-in-path", "true"})
 				err = rootCmd.Execute()
-				assert.Assert(t, err != nil)
-				assert.Assert(t, strings.Contains(err.Error(), "warning: unable to find any kn plugins in your pluginDir"))
+				assert.Assert(t, err == nil)
+				//TODO check output
+				//assert.Assert(t, strings.Contains(err.Error(), "warning: unable to find any kn plugins in your plugins path"))
 			})
 		})
 
@@ -99,7 +101,7 @@ func TestPluginList(t *testing.T) {
 					defer cleanup(t)
 					beforeEach(t)
 
-					rootCmd.SetArgs([]string{"plugin", "list"})
+					rootCmd.SetArgs([]string{"plugin", "list", "--lookup-plugins-in-path", "true"})
 					err = rootCmd.Execute()
 					assert.Assert(t, err == nil)
 
@@ -118,10 +120,11 @@ func TestPluginList(t *testing.T) {
 					defer cleanup(t)
 					beforeEach(t)
 
-					rootCmd.SetArgs([]string{"plugin", "list"})
+					rootCmd.SetArgs([]string{"plugin", "list", "--lookup-plugins-in-path", "true"})
 					err = rootCmd.Execute()
-					assert.Assert(t, err != nil)
-					assert.Assert(t, strings.Contains(err.Error(), "warning: unable to find any kn plugins in your pluginDir"))
+					assert.Assert(t, err == nil)
+					//TODO check output
+					//assert.Assert(t, strings.Contains(err.Error(), "warning: unable to find any kn plugins in your plugins path"))
 				})
 			})
 
@@ -132,10 +135,10 @@ func TestPluginList(t *testing.T) {
 					pluginPath = CreateTestPluginInPath(t, KnTestPluginName, KnTestPluginScript, FileModeExecutable, tmpPathDir)
 					assert.Assert(t, pluginPath != "")
 
-					tmpPathDir2, err = ioutil.TempDir("", "plugin_list")
+					tmpPathDir2, err = ioutil.TempDir("", "plugins_list")
 					assert.Assert(t, err == nil)
 
-					err = os.Setenv("PATH", tmpPathDir+":"+tmpPathDir2)
+					err = os.Setenv("PATH", tmpPathDir+string(os.PathListSeparator)+tmpPathDir2)
 					assert.Assert(t, err == nil)
 
 					pluginPath = CreateTestPluginInPath(t, KnTestPluginName, KnTestPluginScript, FileModeExecutable, tmpPathDir2)
@@ -156,7 +159,7 @@ func TestPluginList(t *testing.T) {
 					beforeEach(t)
 					defer afterEach(t)
 
-					rootCmd.SetArgs([]string{"plugin", "list"})
+					rootCmd.SetArgs([]string{"plugin", "list", "--lookup-plugins-in-path", "true"})
 					err = rootCmd.Execute()
 					assert.Assert(t, err != nil)
 					assert.Assert(t, strings.Contains(err.Error(), "error: one plugin warning was found"))
@@ -189,7 +192,7 @@ func TestPluginList(t *testing.T) {
 					beforeEach(t)
 					defer afterEach(t)
 
-					rootCmd.SetArgs([]string{"plugin", "list"})
+					rootCmd.SetArgs([]string{"plugin", "list", "--lookup-plugins-in-path", "true"})
 					err = rootCmd.Execute()
 					assert.Assert(t, err != nil)
 					assert.Assert(t, strings.Contains(err.Error(), "error: one plugin warning was found"))
@@ -198,7 +201,9 @@ func TestPluginList(t *testing.T) {
 		})
 	})
 
-	t.Run("when using pluginDir config variable", func(t *testing.T) {
+	t.Run("when using pluginsDir config variable", func(t *testing.T) {
+		var pluginPath string
+
 		beforeEach := func(t *testing.T) {
 			pluginPath = CreateTestPluginInPath(t, KnTestPluginName, KnTestPluginScript, FileModeExecutable, tmpPathDir)
 			assert.Assert(t, pluginPath != "")
@@ -207,12 +212,12 @@ func TestPluginList(t *testing.T) {
 			assert.Assert(t, err == nil)
 		}
 
-		t.Run("list plugins in --plugin-dir", func(t *testing.T) {
+		t.Run("list plugins in --plugins-dir", func(t *testing.T) {
 			setup(t)
 			defer cleanup(t)
 			beforeEach(t)
 
-			rootCmd.SetArgs([]string{"plugin", "list", "--plugin-dir", tmpPathDir})
+			rootCmd.SetArgs([]string{"plugin", "list", "--plugins-dir", tmpPathDir})
 			err = rootCmd.Execute()
 			assert.Assert(t, err == nil)
 
@@ -223,7 +228,7 @@ func TestPluginList(t *testing.T) {
 			setup(t)
 			defer cleanup(t)
 
-			rootCmd.SetArgs([]string{"plugin", "list", "--plugin-dir", tmpPathDir})
+			rootCmd.SetArgs([]string{"plugin", "list", "--plugins-dir", tmpPathDir})
 			err = rootCmd.Execute()
 			assert.Assert(t, err != nil)
 
