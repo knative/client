@@ -36,6 +36,6 @@ func (p *WaitFlags) AddConditionWaitFlags(command *cobra.Command, waitTimeoutDef
 	waitUsage := fmt.Sprintf("Create %s and don't wait for it to become ready.", what)
 	command.Flags().BoolVar(&p.Async, "async", false, waitUsage)
 
-	timeoutUsage := fmt.Sprintf("Seconds to wait before giving up on waiting for %s to be ready (default: %d).", what, waitTimeoutDefault)
+	timeoutUsage := fmt.Sprintf("Seconds to wait before giving up on waiting for %s to be ready.", what)
 	command.Flags().IntVar(&p.TimeoutInSeconds, "wait-timeout", waitTimeoutDefault, timeoutUsage)
 }

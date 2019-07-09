@@ -54,7 +54,7 @@ kn service create NAME --image IMAGE [flags]
   -p, --port int32               The port where application listens on.
       --requests-cpu string      The requested CPU (e.g., 250m).
       --requests-memory string   The requested memory (e.g., 64Mi).
-      --wait-timeout int         Seconds to wait before giving up on waiting for service to be ready (default: 60). (default 60)
+      --wait-timeout int         Seconds to wait before giving up on waiting for service to be ready. (default 60)
 ```
 
 ### Options inherited from parent commands
