@@ -12,29 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package plugin
 
 import (
-	"fmt"
-	"os"
-
-	"github.com/knative/client/pkg/kn/core"
-	"github.com/spf13/viper"
+	"github.com/spf13/cobra"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
-func init() {
-	core.InitializeConfig()
+// PluginFlags contains all PLugin commands flags
+type PluginFlags struct {
+	NameOnly bool
+
+	Verifier    PathVerifier
+	PluginPaths []string
+
+	genericclioptions.IOStreams
 }
 
-func main() {
-	defer cleanup()
-	err := core.NewDefaultKnCommand().Execute()
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-}
-
-func cleanup() {
-	viper.WriteConfig()
+// AddPluginFlags adds the various flags to plugin command
+func (p *PluginFlags) AddPluginFlags(command *cobra.Command) {
+	command.Flags().BoolVar(&p.NameOnly, "name-only", false, "If true, display only the binary name of each plugin, rather than its full path")
 }

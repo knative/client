@@ -18,24 +18,52 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"path"
 
 	"github.com/knative/client/pkg/kn/commands"
+	"github.com/knative/client/pkg/kn/commands/plugin"
 	"github.com/knative/client/pkg/kn/commands/revision"
 	"github.com/knative/client/pkg/kn/commands/route"
 	"github.com/knative/client/pkg/kn/commands/service"
-	"github.com/mitchellh/go-homedir"
+	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
 )
 
-var cfgFile string
-var kubeCfgFile string
+// NewDefaultKnCommand creates the default `kn` command with a default plugin handler
+func NewDefaultKnCommand() *cobra.Command {
+	return NewDefaultKnCommandWithArgs(plugin.NewDefaultPluginHandler(plugin.ValidPluginFilenamePrefixes), os.Args, os.Stdin, os.Stdout, os.Stderr)
+}
 
-// NewKnCommand creates new rootCmd represents the base command when called without any subcommands
+// NewDefaultKnCommandWithArgs creates the `kn` command with arguments
+func NewDefaultKnCommandWithArgs(pluginHandler plugin.PluginHandler, args []string, in io.Reader, out, errout io.Writer) *cobra.Command {
+	cmd := NewKnCommand()
+
+	if pluginHandler == nil {
+		return cmd
+	}
+
+	if len(args) > 1 {
+		cmdPathPieces := args[1:]
+
+		// only look for suitable extension executables if
+		// the specified command does not already exist
+		if _, _, err := cmd.Find(cmdPathPieces); err != nil {
+			if err := plugin.HandlePluginCommand(pluginHandler, cmdPathPieces); err != nil {
+				fmt.Fprintf(errout, "%v\n", err)
+				os.Exit(1)
+			}
+		}
+	}
+
+	return cmd
+}
+
+// NewKnCommand creates the rootCmd which is the base command when called without any subcommands
 func NewKnCommand(params ...commands.KnParams) *cobra.Command {
 	var p *commands.KnParams
 	if len(params) == 0 {
@@ -68,11 +96,20 @@ Eventing: Manage event subscriptions and channels. Connect up event sources.`,
 	if p.Output != nil {
 		rootCmd.SetOutput(p.Output)
 	}
+
+	// Persistent flags
 	rootCmd.PersistentFlags().StringVar(&commands.CfgFile, "config", "", "config file (default is $HOME/.kn/config.yaml)")
+	rootCmd.PersistentFlags().StringVar(&commands.PluginDir, "plugin-dir", "$PATH", "kn plugin directory (default is value in kn config or $PATH)")
 	rootCmd.PersistentFlags().StringVar(&p.KubeCfgPath, "kubeconfig", "", "kubectl config file (default is $HOME/.kube/config)")
 
+	// bind and set default with viper
+	viper.BindPFlag("pluginDir", rootCmd.PersistentFlags().Lookup("plugin-dir"))
+	viper.SetDefault("pluginDir", "$PATH")
+
+	// root child commands
 	rootCmd.AddCommand(service.NewServiceCommand(p))
 	rootCmd.AddCommand(revision.NewRevisionCommand(p))
+	rootCmd.AddCommand(plugin.NewPluginCommand(p))
 	rootCmd.AddCommand(route.NewRouteCommand(p))
 	rootCmd.AddCommand(commands.NewCompletionCommand(p))
 	rootCmd.AddCommand(commands.NewVersionCommand(p))
@@ -83,6 +120,11 @@ Eventing: Manage event subscriptions and channels. Connect up event sources.`,
 	// For glog parse error.
 	flag.CommandLine.Parse([]string{})
 	return rootCmd
+}
+
+// InitializeConfig initializes the kubeconfig used by all commands
+func InitializeConfig() {
+	cobra.OnInitialize(initConfig)
 }
 
 // EmptyAndUnknownSubCommands adds a RunE to all commands that are groups to

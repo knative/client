@@ -18,13 +18,15 @@ import (
 	"io"
 
 	serving_kn_v1alpha1 "github.com/knative/client/pkg/serving/v1alpha1"
-
 	serving_v1alpha1_client "github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
 // CfgFile is Kn's config file is the path for the Kubernetes config
 var CfgFile string
+
+// PluginDir is Kn's config string for plugin directory
+var PluginDir string
 
 // Parameters for creating commands. Useful for inserting mocks for testing.
 type KnParams struct {

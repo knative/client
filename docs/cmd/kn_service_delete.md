@@ -33,6 +33,7 @@ kn service delete NAME [flags]
 ```
       --config string       config file (default is $HOME/.kn/config.yaml)
       --kubeconfig string   kubectl config file (default is $HOME/.kube/config)
+      --plugin-dir string   kn plugin directory (default is value in kn config or $PATH) (default "$PATH")
 ```
 
 ### SEE ALSO

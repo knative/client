@@ -12,29 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package plugin
 
 import (
-	"fmt"
-	"os"
-
-	"github.com/knative/client/pkg/kn/core"
-	"github.com/spf13/viper"
+	"github.com/knative/client/pkg/kn/commands"
+	"github.com/spf13/cobra"
 )
 
-func init() {
-	core.InitializeConfig()
-}
+func NewPluginCommand(p *commands.KnParams) *cobra.Command {
+	pluginCmd := &cobra.Command{
+		Use:   "plugin",
+		Short: "Plugin command group",
+		Long: `Provides utilities for interacting with kn plugins.
 
-func main() {
-	defer cleanup()
-	err := core.NewDefaultKnCommand().Execute()
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+Plugins provide extended functionality that is not part of the major kn command-line distribution.
+Please refer to the documentation and examples for more information about how write your own plugins.`,
 	}
-}
-
-func cleanup() {
-	viper.WriteConfig()
+	pluginCmd.AddCommand(NewPluginListCommand(p))
+	return pluginCmd
 }
