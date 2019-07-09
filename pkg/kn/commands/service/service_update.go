@@ -20,7 +20,6 @@ import (
 
 	"github.com/spf13/cobra"
 	api_errors "k8s.io/apimachinery/pkg/api/errors"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/knative/client/pkg/kn/commands"
 )
@@ -56,7 +55,7 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			var retries = 0
-			for true {
+			for {
 				service, err := client.GetService(args[0])
 				if err != nil {
 					return err
@@ -80,8 +79,6 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 				fmt.Fprintf(cmd.OutOrStdout(), "Service '%s' updated in namespace '%s'.\n", args[0], namespace)
 				return nil
 			}
-			// This line will be never reached, but go insists on having it
-			return fmt.Errorf("can not update service '%s' in namespace '%s'", args[0], namespace)
 		},
 	}
 

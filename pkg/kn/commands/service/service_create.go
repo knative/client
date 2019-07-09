@@ -148,7 +148,7 @@ func createService(client v1alpha1.KnClient, service *serving_v1alpha1_api.Servi
 
 func replaceService(client v1alpha1.KnClient, service *serving_v1alpha1_api.Service, namespace string, out io.Writer) error {
 	var retries = 0
-	for true {
+	for {
 		existingService, err := client.GetService(service.Name)
 		if err != nil {
 			return err
@@ -166,8 +166,6 @@ func replaceService(client v1alpha1.KnClient, service *serving_v1alpha1_api.Serv
 		fmt.Fprintf(out, "Service '%s' successfully replaced in namespace '%s'.\n", service.Name, namespace)
 		return nil
 	}
-	// This line will be never reached, but go insists on having it
-	return fmt.Errorf("can not update service '%s' in namespace '%s'", service.Name, namespace)
 }
 
 func serviceExists(client v1alpha1.KnClient, name string, namespace string) (bool, error) {
