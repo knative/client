@@ -26,7 +26,7 @@ import (
 func ServiceListHandlers(h hprinters.PrintHandler) {
 	kServiceColumnDefinitions := []metav1beta1.TableColumnDefinition{
 		{Name: "Name", Type: "string", Description: "Name of the Knative service."},
-		{Name: "Address", Type: "string", Description: "Address of the Knative service."},
+		{Name: "Url", Type: "string", Description: "URL of the Knative service."},
 		//{Name: "LastCreatedRevision", Type: "string", Description: "Name of last revision created."},
 		//{Name: "LastReadyRevision", Type: "string", Description: "Name of last ready revision."},
 		{Name: "Generation", Type: "integer", Description: "Sequence number of 'Generation' of the service that was last processed by the controller."},
@@ -57,7 +57,7 @@ func printKServiceList(kServiceList *servingv1alpha1.ServiceList, options hprint
 // printKService populates the knative service table rows
 func printKService(kService *servingv1alpha1.Service, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	name := kService.Name
-	url := kService.Status.RouteStatusFields.Address.URL
+	url := kService.Status.URL
 	//lastCreatedRevision := kService.Status.LatestCreatedRevisionName
 	//lastReadyRevision := kService.Status.LatestReadyRevisionName
 	generation := kService.Status.ObservedGeneration
