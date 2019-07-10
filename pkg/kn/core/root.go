@@ -52,9 +52,8 @@ func NewKnCommand(params ...commands.KnParams) *cobra.Command {
 		Short: "Knative client",
 		Long: `Manage your Knative building blocks:
 
-Serving: Manage your services and release new software to them.
-Build: Create builds and keep track of their results.
-Eventing: Manage event subscriptions and channels. Connect up event sources.`,
+* Serving: Manage your services and release new software to them.
+* Eventing: Manage event subscriptions and channels. Connect up event sources.`,
 
 		// Disable docs header
 		DisableAutoGenTag: true,
