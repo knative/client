@@ -47,7 +47,7 @@ header "Running smoke tests"
 kubectl create ns $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
 
 ./kn service create svc1 --async --image gcr.io/knative-samples/helloworld-go -e TARGET=Knative -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
-./kn service create hello --image gcr.io/knative-samples/helloworld-go -e TARGET=Knative -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
+./kn service create hello --image gcr.io/knative-samples/helloworld-go -e TARGET=Knative -n $KN_E2E_SMOKE_TESTS_NAMESPACE --wait-timeout 240 || fail_test
 ./kn service list hello -n $KN_E2E_SMOKE_TESTS_NAMESPACE -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
 ./kn service update hello --env TARGET=kn -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
 ./kn revision list hello -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
