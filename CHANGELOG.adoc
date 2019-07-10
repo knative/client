@@ -11,11 +11,15 @@
 |===
 ////
 
-## v0.2.0 (2019-07-09)
+## v0.2.0 (2019-07-10)
 
 [cols="1,10,3", options="header", width="100%"]
 |===
 | | Description | PR
+
+| 🐛
+| Show URL instead of address when listing services
+| https://github.com/knative/client/pull/247[#247]
 
 | 🎁
 | Add `kn service list <svc-name>` and `kn revision list <rev-name>`
