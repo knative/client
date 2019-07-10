@@ -18,8 +18,10 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/knative/client/pkg/kn/commands"
 	"github.com/spf13/cobra"
+	api_errors "k8s.io/apimachinery/pkg/api/errors"
+
+	"github.com/knative/client/pkg/kn/commands"
 )
 
 func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
@@ -52,24 +54,31 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			service, err := client.GetService(args[0])
-			if err != nil {
-				return err
-			}
-			service = service.DeepCopy()
+			var retries = 0
+			for {
+				service, err := client.GetService(args[0])
+				if err != nil {
+					return err
+				}
+				service = service.DeepCopy()
 
-			err = editFlags.Apply(service, cmd)
-			if err != nil {
-				return err
-			}
+				err = editFlags.Apply(service, cmd)
+				if err != nil {
+					return err
+				}
 
-			err = client.UpdateService(service)
-			if err != nil {
-				return err
+				err = client.UpdateService(service)
+				if err != nil {
+					// Retry to update when a resource version conflict exists
+					if api_errors.IsConflict(err) && retries < MaxUpdateRetries {
+						retries++
+						continue
+					}
+					return err
+				}
+				fmt.Fprintf(cmd.OutOrStdout(), "Service '%s' updated in namespace '%s'.\n", args[0], namespace)
+				return nil
 			}
-
-			fmt.Fprintf(cmd.OutOrStdout(), "Service '%s' updated in namespace '%s'.\n", args[0], namespace)
-			return nil
 		},
 	}
 

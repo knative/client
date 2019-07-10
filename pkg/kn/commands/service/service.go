@@ -19,6 +19,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const (
+	// How often to retry in case of an optimistic lock error when replacing a service (--force)
+	MaxUpdateRetries = 3
+)
+
 func NewServiceCommand(p *commands.KnParams) *cobra.Command {
 	serviceCmd := &cobra.Command{
 		Use:   "service",

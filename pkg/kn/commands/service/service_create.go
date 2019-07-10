@@ -147,17 +147,25 @@ func createService(client v1alpha1.KnClient, service *serving_v1alpha1_api.Servi
 }
 
 func replaceService(client v1alpha1.KnClient, service *serving_v1alpha1_api.Service, namespace string, out io.Writer) error {
-	existingService, err := client.GetService(service.Name)
-	if err != nil {
-		return err
+	var retries = 0
+	for {
+		existingService, err := client.GetService(service.Name)
+		if err != nil {
+			return err
+		}
+		service.ResourceVersion = existingService.ResourceVersion
+		err = client.UpdateService(service)
+		if err != nil {
+			// Retry to update when a resource version conflict exists
+			if api_errors.IsConflict(err) && retries < MaxUpdateRetries {
+				retries++
+				continue
+			}
+			return err
+		}
+		fmt.Fprintf(out, "Service '%s' successfully replaced in namespace '%s'.\n", service.Name, namespace)
+		return nil
 	}
-	service.ResourceVersion = existingService.ResourceVersion
-	err = client.UpdateService(service)
-	if err != nil {
-		return err
-	}
-	fmt.Fprintf(out, "Service '%s' successfully replaced in namespace '%s'.\n", service.Name, namespace)
-	return nil
 }
 
 func serviceExists(client v1alpha1.KnClient, name string, namespace string) (bool, error) {
