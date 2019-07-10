@@ -105,7 +105,7 @@ func TestServiceGetOneOutput(t *testing.T) {
 	} else if !action.Matches("list", "services") {
 		t.Errorf("Bad action %v", action)
 	}
-	assert.Check(t, util.ContainsAll(output[0], "NAME", "DOMAIN", "GENERATION", "AGE", "CONDITIONS", "READY", "REASON"))
+	assert.Check(t, util.ContainsAll(output[0], "NAME", "URL", "GENERATION", "AGE", "CONDITIONS", "READY", "REASON"))
 	assert.Check(t, util.ContainsAll(output[1], "foo", "foo.default.example.com", "1"))
 }
 
