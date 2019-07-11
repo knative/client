@@ -58,6 +58,12 @@ func TestBasicWorkflow(t *testing.T) {
 	testRouteListWithArgument(t, k, "hello")
 	testServiceDelete(t, k, "hello")
 	testServiceDelete(t, k, "svc2")
+	testServiceCreateWithOptions(t, k, "svc3", []string{"--concurrency-limit", "250", "--concurrency-target", "300"})
+	testServiceDescribeConcurrencyLimit(t, k, "svc3", "250")
+	testServiceDescribeConcurrencyTarget(t, k, "svc3", "300")
+	testServiceUpdate(t, k, "svc3", []string{"--concurrency-limit", "300"})
+	testServiceDescribeConcurrencyLimit(t, k, "svc3", "300")
+	testServiceDelete(t, k, "svc3")
 	testServiceListEmpty(t, k)
 }
 
@@ -78,6 +84,19 @@ func testServiceCreate(t *testing.T, k kn, serviceName string) {
 	out, err := k.RunWithOpts([]string{"service", "create",
 		fmt.Sprintf("%s", serviceName),
 		"--image", KnDefaultTestImage}, runOpts{NoNamespace: false})
+	if err != nil {
+		t.Fatalf(fmt.Sprintf("Error executing 'kn service create' command. Error: %s", err.Error()))
+	}
+
+	if !strings.Contains(out, fmt.Sprintf("Service '%s' successfully created in namespace '%s'.", serviceName, k.namespace)) {
+		t.Fatalf(fmt.Sprintf("Expected to find: Service '%s' successfully created in namespace '%s'. Instead found:\n%s\n", serviceName, k.namespace, out))
+	}
+}
+
+func testServiceCreateWithOptions(t *testing.T, k kn, serviceName string, args []string) {
+	command := []string{"service", "create", fmt.Sprintf("%s", serviceName), "--image", KnDefaultTestImage}
+	command = append(command, args...)
+	out, err := k.RunWithOpts(command, runOpts{NoNamespace: false})
 	if err != nil {
 		t.Fatalf(fmt.Sprintf("Error executing 'kn service create' command. Error: %s", err.Error()))
 	}
@@ -129,6 +148,30 @@ metadata:`
   name: %s
   namespace: %s`
 	expectedOutput = fmt.Sprintf(expectedOutput, serviceName, k.namespace)
+	if !strings.Contains(out, expectedOutput) {
+		t.Fatalf(fmt.Sprintf("Expected output incorrect, expecting to include:\n%s\n Instead found:\n%s\n", expectedOutput, out))
+	}
+}
+
+func testServiceDescribeConcurrencyLimit(t *testing.T, k kn, serviceName, concurrencyLimit string) {
+	out, err := k.RunWithOpts([]string{"service", "describe", serviceName}, runOpts{NoNamespace: false})
+	if err != nil {
+		t.Fatalf(fmt.Sprintf("Error executing 'kn service describe' command. Error: %s", err.Error()))
+	}
+
+	expectedOutput := fmt.Sprintf("containerConcurrency: %s", concurrencyLimit)
+	if !strings.Contains(out, expectedOutput) {
+		t.Fatalf(fmt.Sprintf("Expected output incorrect, expecting to include:\n%s\n Instead found:\n%s\n", expectedOutput, out))
+	}
+}
+
+func testServiceDescribeConcurrencyTarget(t *testing.T, k kn, serviceName, concurrencyTarget string) {
+	out, err := k.RunWithOpts([]string{"service", "describe", serviceName}, runOpts{NoNamespace: false})
+	if err != nil {
+		t.Fatalf(fmt.Sprintf("Error executing 'kn service describe' command. Error: %s", err.Error()))
+	}
+
+	expectedOutput := fmt.Sprintf("autoscaling.knative.dev/target: \"%s\"", concurrencyTarget)
 	if !strings.Contains(out, expectedOutput) {
 		t.Fatalf(fmt.Sprintf("Expected output incorrect, expecting to include:\n%s\n Instead found:\n%s\n", expectedOutput, out))
 	}
