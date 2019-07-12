@@ -31,18 +31,20 @@ import (
 // how to handle printing based on these values.
 type HumanPrintFlags struct {
 	WithNamespace bool
+	NoHeaders     bool
+	//TODO: Add more flags as required
 }
 
 // AllowedFormats returns more customized formating options
 func (f *HumanPrintFlags) AllowedFormats() []string {
 	// TODO: Add more formats eg: wide
-	return []string{""}
+	return []string{"no-headers"}
 }
 
 // ToPrinter receives returns a printer capable of
 // handling human-readable output.
 func (f *HumanPrintFlags) ToPrinter(getHandlerFunc func(h hprinters.PrintHandler)) (hprinters.ResourcePrinter, error) {
-	p := hprinters.NewTablePrinter(hprinters.PrintOptions{f.WithNamespace})
+	p := hprinters.NewTablePrinter(hprinters.PrintOptions{AllNamespaces: f.WithNamespace, NoHeaders: f.NoHeaders})
 	getHandlerFunc(p)
 	return p, nil
 }
@@ -50,7 +52,8 @@ func (f *HumanPrintFlags) ToPrinter(getHandlerFunc func(h hprinters.PrintHandler
 // AddFlags receives a *cobra.Command reference and binds
 // flags related to human-readable printing to it
 func (f *HumanPrintFlags) AddFlags(c *cobra.Command) {
-	// TODO: Add more flags as required
+	c.Flags().BoolVar(&f.NoHeaders, "no-headers", false, "When using the default output format, don't print headers (default: print headers).")
+	//TODO: Add more flags as required
 }
 
 // NewHumanPrintFlags returns flags associated with

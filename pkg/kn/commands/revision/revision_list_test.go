@@ -50,10 +50,7 @@ func fakeRevisionList(args []string, response *v1alpha1.RevisionList) (action cl
 
 func TestRevisionListEmpty(t *testing.T) {
 	action, output, err := fakeRevisionList([]string{"revision", "list"}, &v1alpha1.RevisionList{})
-	if err != nil {
-		t.Error(err)
-		return
-	}
+	assert.NilError(t, err)
 	if action == nil {
 		t.Errorf("No action")
 	} else if !action.Matches("list", "revisions") {
@@ -65,10 +62,7 @@ func TestRevisionListEmpty(t *testing.T) {
 
 func TestRevisionListEmptyByName(t *testing.T) {
 	action, _, err := fakeRevisionList([]string{"revision", "list", "name"}, &v1alpha1.RevisionList{})
-	if err != nil {
-		t.Error(err)
-		return
-	}
+	assert.NilError(t, err)
 	if action == nil {
 		t.Errorf("No action")
 	} else if !action.Matches("list", "revisions") {
@@ -88,9 +82,7 @@ func TestRevisionListDefaultOutput(t *testing.T) {
 	RevisionList := &v1alpha1.RevisionList{Items: []v1alpha1.Revision{
 		*revision1, *revision2, *revision3, *revision4, *revision5, *revision6}}
 	action, output, err := fakeRevisionList([]string{"revision", "list"}, RevisionList)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err)
 	if action == nil {
 		t.Errorf("No action")
 	} else if !action.Matches("list", "revisions") {
@@ -105,6 +97,24 @@ func TestRevisionListDefaultOutput(t *testing.T) {
 	assert.Check(t, util.ContainsAll(output[6], "foo-abcd", "foo", "1"))
 }
 
+func TestRevisionListDefaultOutputNoHeaders(t *testing.T) {
+	revision1 := createMockRevisionWithParams("foo-abcd", "foo", "2")
+	revision2 := createMockRevisionWithParams("bar-wxyz", "bar", "1")
+	RevisionList := &v1alpha1.RevisionList{Items: []v1alpha1.Revision{*revision1, *revision2}}
+	action, output, err := fakeRevisionList([]string{"revision", "list", "--no-headers"}, RevisionList)
+	assert.NilError(t, err)
+	if action == nil {
+		t.Errorf("No action")
+	} else if !action.Matches("list", "revisions") {
+		t.Errorf("Bad action %v", action)
+	}
+
+	assert.Check(t, util.ContainsNone(output[0], "NAME", "URL", "GENERATION", "AGE", "CONDITIONS", "READY", "REASON"))
+	assert.Check(t, util.ContainsAll(output[0], "foo-abcd", "foo", "2"))
+	assert.Check(t, util.ContainsAll(output[1], "bar-wxyz", "bar", "1"))
+
+}
+
 func TestRevisionListForService(t *testing.T) {
 	revision1 := createMockRevisionWithParams("foo-abcd", "svc1", "1")
 	revision2 := createMockRevisionWithParams("bar-wxyz", "svc1", "2")
@@ -112,9 +122,7 @@ func TestRevisionListForService(t *testing.T) {
 	revision4 := createMockRevisionWithParams("bar-wxyz", "svc2", "2")
 	RevisionList := &v1alpha1.RevisionList{Items: []v1alpha1.Revision{*revision1, *revision2, *revision3, *revision4}}
 	action, output, err := fakeRevisionList([]string{"revision", "list", "-s", "svc1"}, RevisionList)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err)
 	if action == nil {
 		t.Errorf("No action")
 	} else if !action.Matches("list", "revisions") {
@@ -137,9 +145,7 @@ func TestRevisionListForService(t *testing.T) {
 	assert.Check(t, util.ContainsAll(output[2], "foo-abcd", "svc2"))
 	//test for non existent service
 	action, output, err = fakeRevisionList([]string{"revision", "list", "-s", "svc3"}, RevisionList)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err)
 	if action == nil {
 		t.Errorf("No action")
 	}
@@ -153,9 +159,7 @@ func TestRevisionListOneOutput(t *testing.T) {
 	revision := createMockRevisionWithParams("foo-abcd", "foo", "1")
 	RevisionList := &v1alpha1.RevisionList{Items: []v1alpha1.Revision{*revision}}
 	action, output, err := fakeRevisionList([]string{"revision", "list", "foo-abcd"}, RevisionList)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err)
 	if action == nil {
 		t.Errorf("No action")
 	} else if !action.Matches("list", "revisions") {

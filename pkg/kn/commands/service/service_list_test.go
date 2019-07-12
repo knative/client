@@ -49,10 +49,7 @@ func fakeServiceList(args []string, response *v1alpha1.ServiceList) (action clie
 
 func TestListEmpty(t *testing.T) {
 	action, output, err := fakeServiceList([]string{"service", "list"}, &v1alpha1.ServiceList{})
-	if err != nil {
-		t.Error(err)
-		return
-	}
+	assert.NilError(t, err)
 	if action == nil {
 		t.Errorf("No action")
 	} else if !action.Matches("list", "services") {
@@ -64,10 +61,7 @@ func TestListEmpty(t *testing.T) {
 
 func TestGetEmpty(t *testing.T) {
 	action, _, err := fakeServiceList([]string{"service", "list", "name"}, &v1alpha1.ServiceList{})
-	if err != nil {
-		t.Error(err)
-		return
-	}
+	assert.NilError(t, err)
 	if action == nil {
 		t.Errorf("No action")
 	} else if !action.Matches("list", "services") {
@@ -81,9 +75,7 @@ func TestServiceListDefaultOutput(t *testing.T) {
 	service2 := createMockServiceWithParams("bar", "default", "http://bar.default.example.com", 1)
 	serviceList := &v1alpha1.ServiceList{Items: []v1alpha1.Service{*service1, *service2, *service3}}
 	action, output, err := fakeServiceList([]string{"service", "list"}, serviceList)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err)
 	if action == nil {
 		t.Errorf("No action")
 	} else if !action.Matches("list", "services") {
@@ -117,13 +109,29 @@ func TestServiceListAllNamespacesOutput(t *testing.T) {
 	assert.Check(t, util.ContainsAll(output[3], "foo", "bar", "bar.foo.example.com", "2"))
 }
 
+func TestServiceListDefaultOutputNoHeaders(t *testing.T) {
+	service1 := createMockServiceWithParams("foo", "default", "http://foo.default.example.com", 1)
+	service2 := createMockServiceWithParams("bar", "default", "http://bar.default.example.com", 2)
+	serviceList := &v1alpha1.ServiceList{Items: []v1alpha1.Service{*service1, *service2}}
+	action, output, err := fakeServiceList([]string{"service", "list", "--no-headers"}, serviceList)
+	assert.NilError(t, err)
+	if action == nil {
+		t.Errorf("No action")
+	} else if !action.Matches("list", "services") {
+		t.Errorf("Bad action %v", action)
+	}
+
+	assert.Check(t, util.ContainsNone(output[0], "NAME", "URL", "GENERATION", "AGE", "CONDITIONS", "READY", "REASON"))
+	assert.Check(t, util.ContainsAll(output[0], "bar", "bar.default.example.com", "2"))
+	assert.Check(t, util.ContainsAll(output[1], "foo", "foo.default.example.com", "1"))
+
+}
+
 func TestServiceGetOneOutput(t *testing.T) {
 	service := createMockServiceWithParams("foo", "default", "foo.default.example.com", 1)
 	serviceList := &v1alpha1.ServiceList{Items: []v1alpha1.Service{*service}}
 	action, output, err := fakeServiceList([]string{"service", "list", "foo"}, serviceList)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err)
 	if action == nil {
 		t.Errorf("No action")
 	} else if !action.Matches("list", "services") {

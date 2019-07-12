@@ -38,3 +38,21 @@ func ContainsAll(target string, substrings ...string) cmp.Comparison {
 		return cmp.ResultSuccess
 	}
 }
+
+// ContainsNone is a comparison utility, compares given substrings against
+// target string and returns the gotest.tools/assert/cmp.Comaprison function.
+// Provide target string as first arg, followed by any number of substring as args
+func ContainsNone(target string, substrings ...string) cmp.Comparison {
+	return func() cmp.Result {
+		var contains []string
+		for _, sub := range substrings {
+			if strings.Contains(target, sub) {
+				contains = append(contains, sub)
+			}
+		}
+		if len(contains) > 0 {
+			return cmp.ResultFailure(fmt.Sprintf("\nActual output: %s\nContains strings: %s", target, strings.Join(contains[:], ", ")))
+		}
+		return cmp.ResultSuccess
+	}
+}

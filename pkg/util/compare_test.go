@@ -30,6 +30,13 @@ type containsAllTestCase struct {
 	missing    []string
 }
 
+type containsNoneTestCase struct {
+	target     string
+	substrings []string
+	success    bool
+	contains   []string
+}
+
 func TestContainsAll(t *testing.T) {
 	for i, tc := range []containsAllTestCase{
 		{
@@ -62,6 +69,45 @@ func TestContainsAll(t *testing.T) {
 		}
 		if !tc.success {
 			message := fmt.Sprintf("\nActual output: %s\nMissing strings: %s", tc.target, strings.Join(tc.missing[:], ", "))
+			if !reflect.DeepEqual(result, cmp.ResultFailure(message)) {
+				t.Errorf("%d: Incorrect error message returned\nExpecting: %s", i, message)
+			}
+		}
+	}
+}
+
+func TestContainsNone(t *testing.T) {
+	for i, tc := range []containsNoneTestCase{
+		{
+			target:     "NAME SERVICE AGE CONDITIONS",
+			substrings: []string{"REASON", "READY", "foo", "bar"},
+			success:    true,
+		},
+		{
+			"NAME SERVICE AGE CONDITIONS READY REASON",
+			[]string{"foo", "bar", "NAME", "AGE"},
+			false,
+			[]string{"NAME", "AGE"},
+		},
+		{
+			"No resources found",
+			[]string{"NAME", "URL", "DOMAIN", "READY", "resources"},
+			false,
+			[]string{"resources"},
+		},
+		{
+			target:     "Sword!",
+			substrings: []string{},
+			success:    true,
+		},
+	} {
+		comparison := ContainsNone(tc.target, tc.substrings...)
+		result := comparison()
+		if result.Success() != tc.success {
+			t.Errorf("%d: Expecting %s to contain %s", i, tc.target, tc.substrings)
+		}
+		if !tc.success {
+			message := fmt.Sprintf("\nActual output: %s\nContains strings: %s", tc.target, strings.Join(tc.contains[:], ", "))
 			if !reflect.DeepEqual(result, cmp.ResultFailure(message)) {
 				t.Errorf("%d: Incorrect error message returned\nExpecting: %s", i, message)
 			}
