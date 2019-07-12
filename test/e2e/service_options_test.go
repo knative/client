@@ -24,7 +24,7 @@ import (
 	"gotest.tools/assert"
 )
 
-func TestServiceAdvance(t *testing.T) {
+func TestServiceOptions(t *testing.T) {
 	teardown := Setup(t)
 	defer teardown(t)
 
