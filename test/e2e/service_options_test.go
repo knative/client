@@ -40,18 +40,14 @@ func testServiceCreateWithOptions(t *testing.T, k kn, serviceName string, option
 	command := []string{"service", "create", serviceName, "--image", KnDefaultTestImage}
 	command = append(command, options...)
 	out, err := k.RunWithOpts(command, runOpts{NoNamespace: false})
-	if err != nil {
-		t.Fatalf(fmt.Sprintf("Error executing 'kn service create' command. Error: %s", err.Error()))
-	}
+	assert.NilError(t, err)
 
 	assert.Check(t, util.ContainsAll(out, "Service", serviceName, "successfully created in namespace", k.namespace, "OK"))
 }
 
 func testServiceDescribeConcurrencyLimit(t *testing.T, k kn, serviceName, concurrencyLimit string) {
 	out, err := k.RunWithOpts([]string{"service", "describe", serviceName}, runOpts{NoNamespace: false})
-	if err != nil {
-		t.Fatalf(fmt.Sprintf("Error executing 'kn service describe' command. Error: %s", err.Error()))
-	}
+	assert.NilError(t, err)
 
 	expectedOutput := fmt.Sprintf("containerConcurrency: %s", concurrencyLimit)
 	assert.Check(t, util.ContainsAll(out, expectedOutput))
@@ -59,9 +55,7 @@ func testServiceDescribeConcurrencyLimit(t *testing.T, k kn, serviceName, concur
 
 func testServiceDescribeConcurrencyTarget(t *testing.T, k kn, serviceName, concurrencyTarget string) {
 	out, err := k.RunWithOpts([]string{"service", "describe", serviceName}, runOpts{NoNamespace: false})
-	if err != nil {
-		t.Fatalf(fmt.Sprintf("Error executing 'kn service describe' command. Error: %s", err.Error()))
-	}
+	assert.NilError(t, err)
 
 	expectedOutput := fmt.Sprintf("autoscaling.knative.dev/target: \"%s\"", concurrencyTarget)
 	assert.Check(t, util.ContainsAll(out, expectedOutput))
