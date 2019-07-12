@@ -63,6 +63,9 @@ type KnClient interface {
 	// Delete a revision
 	DeleteRevision(name string) error
 
+	// Get a route by its unique name
+	GetRoute(name string) (*v1alpha1.Route, error)
+
 	// List routes
 	ListRoutes(opts ...ListConfig) (*v1alpha1.RouteList, error)
 }
@@ -217,6 +220,19 @@ func (cl *knClient) ListRevisions(config ...ListConfig) (*v1alpha1.RevisionList,
 		return nil, err
 	}
 	return updateServingGvkForRevisionList(revisionList)
+}
+
+// Get a route by its unique name
+func (cl *knClient) GetRoute(name string) (*v1alpha1.Route, error) {
+	route, err := cl.client.Routes(cl.namespace).Get(name, v1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	err = serving.UpdateGroupVersionKind(route, v1alpha1.SchemeGroupVersion)
+	if err != nil {
+		return nil, err
+	}
+	return route, nil
 }
 
 // List routes

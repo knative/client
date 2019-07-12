@@ -285,6 +285,39 @@ func TestListRevisionForService(t *testing.T) {
 		})
 }
 
+func TestGetRoute(t *testing.T) {
+	serving, client := setup()
+	routeName := "test-route"
+
+	serving.AddReactor("get", "routes",
+		func(a client_testing.Action) (bool, runtime.Object, error) {
+			route := newRoute(routeName)
+			name := a.(client_testing.GetAction).GetName()
+			// Sanity check
+			assert.Assert(t, name != "")
+			assert.Equal(t, testNamespace, a.GetNamespace())
+			if name == routeName {
+				return true, route, nil
+			}
+			return true, nil, errors.NewNotFound(v1alpha1.Resource("route"), name)
+		})
+
+	t.Run("get known route by name returns route", func(t *testing.T) {
+		route, err := client.GetRoute(routeName)
+		assert.NilError(t, err)
+		assert.Equal(t, routeName, route.Name, "route name should be equal")
+		validateGroupVersionKind(t, route)
+	})
+
+	t.Run("get unknown route name returns error", func(t *testing.T) {
+		nonExistingRouteName := "r@ute-that-d$es-n#t-exist"
+		route, err := client.GetRoute(nonExistingRouteName)
+		assert.Assert(t, route == nil, "no route should be returned")
+		assert.ErrorContains(t, err, "not found")
+		assert.ErrorContains(t, err, nonExistingRouteName)
+	})
+}
+
 func TestListRoutes(t *testing.T) {
 	serving, client := setup()
 
