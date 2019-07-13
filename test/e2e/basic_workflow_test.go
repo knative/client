@@ -18,6 +18,7 @@ package e2e
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/knative/client/pkg/util"
@@ -93,7 +94,13 @@ func testRevisionListForService(t *testing.T, k kn, serviceName string) {
 	out, err := k.RunWithOpts([]string{"revision", "list", "-s", serviceName}, runOpts{NoNamespace: false})
 	assert.NilError(t, err)
 
-	assert.Check(t, util.ContainsAll(out, serviceName, "True"))
+	outputLines := strings.Split(out, "\n")
+	// Ignore the last line because it is an empty string caused by splitting a line break
+	// at the end of the output string
+	for _, line := range outputLines[1 : len(outputLines)-1] {
+		// The last item is the revision status, which should be ready
+		assert.Check(t, util.ContainsAll(line, " "+serviceName+" ", "True"))
+	}
 }
 
 func testServiceDescribe(t *testing.T, k kn, serviceName string) {
