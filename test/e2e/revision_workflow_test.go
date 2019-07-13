@@ -35,15 +35,13 @@ func TestRevisionWorkflow(t *testing.T) {
 
 func testDeleteRevision(t *testing.T, k kn, serviceName string) {
 	revName, err := k.RunWithOpts([]string{"revision", "list", "-o=jsonpath={.items[0].metadata.name}"}, runOpts{})
-	if err != nil {
-		t.Errorf("Error executing 'revision list -o' command. Error: %s", err.Error())
-	}
+	assert.NilError(t, err)
 	if strings.Contains(revName, "No resources found.") {
 		t.Errorf("Could not find revision name.")
 	}
+
 	out, err := k.RunWithOpts([]string{"revision", "delete", revName}, runOpts{})
-	if err != nil {
-		t.Errorf("Error executing 'revision delete %s' command. Error: %s", revName, err.Error())
-	}
+	assert.NilError(t, err)
+
 	assert.Check(t, util.ContainsAll(out, "Revision", revName, "deleted", "namespace", k.namespace))
 }

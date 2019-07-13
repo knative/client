@@ -17,8 +17,10 @@
 package e2e
 
 import (
-	"strings"
 	"testing"
+
+	"github.com/knative/client/pkg/util"
+	"gotest.tools/assert"
 )
 
 func TestVersion(t *testing.T) {
@@ -27,7 +29,5 @@ func TestVersion(t *testing.T) {
 
 	out, _ := kn.RunWithOpts([]string{"version"}, runOpts{NoNamespace: true})
 
-	if !strings.Contains(out, "Version") {
-		t.Fatalf("Expected to find client version")
-	}
+	assert.Check(t, util.ContainsAll(out, "Version"))
 }
