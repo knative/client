@@ -20,33 +20,17 @@ set -o pipefail
 
 source $(dirname $0)/../vendor/github.com/knative/test-infra/scripts/library.sh
 
-readonly TMP_DIFFROOT="$(mktemp -d ${REPO_ROOT_DIR}/tmpdiffroot.XXXXXX)"
+# Needed later
+go install golang.org/x/tools/cmd/goimports
 
-cleanup() {
-  rm -rf "${TMP_DIFFROOT}"
-}
-
-trap "cleanup" EXIT SIGINT
-
-cleanup
-
-# Save working tree state
-mkdir -p "${TMP_DIFFROOT}/vendor"
-cp -aR "${REPO_ROOT_DIR}/go.sum" "${REPO_ROOT_DIR}/vendor" "${TMP_DIFFROOT}"
-
-"${REPO_ROOT_DIR}/hack/update-deps.sh"
-echo "Diffing ${REPO_ROOT_DIR} against freshly update dependencies"
-ret=0
-diff -Naupr --no-dereference "${REPO_ROOT_DIR}/vendor" "${TMP_DIFFROOT}/vendor" || ret=1
-
-# Restore working tree state
-rm -fr "${REPO_ROOT_DIR}/go.sum" "${REPO_ROOT_DIR}/vendor"
-cp -aR "${TMP_DIFFROOT}"/* "${REPO_ROOT_DIR}"
-
-if [[ $ret -eq 0 ]]
-then
-  echo "${REPO_ROOT_DIR} up to date."
+"${REPO_ROOT_DIR}"/hack/build.sh --codegen
+if output="$(git status --porcelain)" && [ -z "$output" ]; then
+  echo "${REPO_ROOT_DIR} is up to date."
 else
-  echo "ERROR: ${REPO_ROOT_DIR} is out of date. Please run ./hack/update-deps.sh"
+  echo "ERROR: Modified files found:"
+  git status --porcelain
+  echo "ERROR: Diff"
+  git diff
+  echo "ERROR: ${REPO_ROOT_DIR} is out of date. Please run ./hack/build.sh -u and commit."
   exit 1
 fi

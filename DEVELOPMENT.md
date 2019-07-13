@@ -73,7 +73,7 @@ You can link that script into a directory within your search `$PATH`. This allow
 * `build.sh` - Compile, test, generate docs and format source code
 * `build.sh -f` - Compile only
 * `build.sh -f -t` - Compile & test
-* `build.sh -u` - Update dependencies before compiling
+* `build.sh -c` - Update dependencies, regenerate documentation and format source files
 * `build.sh -w` - Enter watch mode for automatic recompilation
 * `build.sh -w -t` - Enter watch mode for automatic recompilation & running tests
 
