@@ -49,19 +49,45 @@ func TestBasicWorkflow(t *testing.T) {
 	teardown := Setup(t)
 	defer teardown(t)
 
-	testServiceListEmpty(t, k)
-	testServiceCreate(t, k, "hello")
-	testServiceList(t, k, "hello")
-	testServiceDescribe(t, k, "hello")
-	testServiceUpdate(t, k, "hello", []string{"--env", "TARGET=kn", "--port", "8888"})
-	testServiceCreate(t, k, "svc2")
-	testRevisionListForService(t, k, "hello")
-	testRevisionListForService(t, k, "svc2")
-	testRouteList(t, k)
-	testRouteListWithArgument(t, k, "hello")
-	testServiceDelete(t, k, "hello")
-	testServiceDelete(t, k, "svc2")
-	testServiceListEmpty(t, k)
+	t.Run("returns no service before running tests", func(t *testing.T) {
+		testServiceListEmpty(t, k)
+	})
+
+	t.Run("create hello service and returns no error", func(t *testing.T) {
+		testServiceCreate(t, k, "hello")
+	})
+
+	t.Run("returns valid info about hello service", func(t *testing.T) {
+		testServiceList(t, k, "hello")
+		testServiceDescribe(t, k, "hello")
+	})
+
+	t.Run("update hello service's configuration and returns no error", func(t *testing.T) {
+		testServiceUpdate(t, k, "hello", []string{"--env", "TARGET=kn", "--port", "8888"})
+	})
+
+	t.Run("create another service and returns no error", func(t *testing.T) {
+		testServiceCreate(t, k, "svc2")
+	})
+
+	t.Run("returns a list of revisions associated with hello and svc2 services", func(t *testing.T) {
+		testRevisionListForService(t, k, "hello")
+		testRevisionListForService(t, k, "svc2")
+	})
+
+	t.Run("returns a list of routes associated with hello and svc2 services", func(t *testing.T) {
+		testRouteList(t, k)
+		testRouteListWithArgument(t, k, "hello")
+	})
+
+	t.Run("delete hello and svc2 services and returns no error", func(t *testing.T) {
+		testServiceDelete(t, k, "hello")
+		testServiceDelete(t, k, "svc2")
+	})
+
+	t.Run("returns no service after completing tests", func(t *testing.T) {
+		testServiceListEmpty(t, k)
+	})
 }
 
 // Private test functions

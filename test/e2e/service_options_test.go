@@ -28,12 +28,26 @@ func TestServiceOptions(t *testing.T) {
 	teardown := Setup(t)
 	defer teardown(t)
 
-	testServiceCreateWithOptions(t, k, "hello", []string{"--concurrency-limit", "250", "--concurrency-target", "300"})
-	testServiceDescribeConcurrencyLimit(t, k, "hello", "250")
-	testServiceDescribeConcurrencyTarget(t, k, "hello", "300")
-	testServiceUpdate(t, k, "hello", []string{"--concurrency-limit", "300"})
-	testServiceDescribeConcurrencyLimit(t, k, "hello", "300")
-	testServiceDelete(t, k, "hello")
+	t.Run("create hello service with concurrency options and returns no error", func(t *testing.T) {
+		testServiceCreateWithOptions(t, k, "hello", []string{"--concurrency-limit", "250", "--concurrency-target", "300"})
+	})
+
+	t.Run("returns valid concurrency options for hello service", func(t *testing.T) {
+		testServiceDescribeConcurrencyLimit(t, k, "hello", "250")
+		testServiceDescribeConcurrencyTarget(t, k, "hello", "300")
+	})
+
+	t.Run("update concurrency limit for hello service and returns no error", func(t *testing.T) {
+		testServiceUpdate(t, k, "hello", []string{"--concurrency-limit", "300"})
+	})
+
+	t.Run("returns correct concurrency limit for hello service", func(t *testing.T) {
+		testServiceDescribeConcurrencyLimit(t, k, "hello", "300")
+	})
+
+	t.Run("delete hello service and returns no error", func(t *testing.T) {
+		testServiceDelete(t, k, "hello")
+	})
 }
 
 func testServiceCreateWithOptions(t *testing.T, k kn, serviceName string, options []string) {

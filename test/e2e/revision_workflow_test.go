@@ -28,9 +28,17 @@ func TestRevisionWorkflow(t *testing.T) {
 	teardown := Setup(t)
 	defer teardown(t)
 
-	testServiceCreate(t, k, "hello")
-	testDeleteRevision(t, k, "hello")
-	testServiceDelete(t, k, "hello")
+	t.Run("create hello service and returns no error", func(t *testing.T) {
+		testServiceCreate(t, k, "hello")
+	})
+
+	t.Run("delete latest revision from hello service and returns no error", func(t *testing.T) {
+		testDeleteRevision(t, k, "hello")
+	})
+
+	t.Run("delete hello service and returns no error", func(t *testing.T) {
+		testServiceDelete(t, k, "hello")
+	})
 }
 
 func testDeleteRevision(t *testing.T, k kn, serviceName string) {
