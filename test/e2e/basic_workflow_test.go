@@ -20,6 +20,9 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+
+	"github.com/knative/client/pkg/util"
+	"gotest.tools/assert"
 )
 
 var (
@@ -46,140 +49,127 @@ func TestBasicWorkflow(t *testing.T) {
 	teardown := Setup(t)
 	defer teardown(t)
 
-	testServiceListEmpty(t, k)
-	testServiceCreate(t, k, "hello")
-	testServiceList(t, k, "hello")
-	testServiceDescribe(t, k, "hello")
-	testServiceUpdate(t, k, "hello", []string{"--env", "TARGET=kn", "--port", "8888"})
-	testServiceCreate(t, k, "svc2")
-	testRevisionListForService(t, k, "hello")
-	testRevisionListForService(t, k, "svc2")
-	testRouteList(t, k)
-	testRouteListWithArgument(t, k, "hello")
-	testServiceDelete(t, k, "hello")
-	testServiceDelete(t, k, "svc2")
-	testServiceListEmpty(t, k)
+	t.Run("returns no service before running tests", func(t *testing.T) {
+		testServiceListEmpty(t, k)
+	})
+
+	t.Run("create hello service and returns no error", func(t *testing.T) {
+		testServiceCreate(t, k, "hello")
+	})
+
+	t.Run("returns valid info about hello service", func(t *testing.T) {
+		testServiceList(t, k, "hello")
+		testServiceDescribe(t, k, "hello")
+	})
+
+	t.Run("update hello service's configuration and returns no error", func(t *testing.T) {
+		testServiceUpdate(t, k, "hello", []string{"--env", "TARGET=kn", "--port", "8888"})
+	})
+
+	t.Run("create another service and returns no error", func(t *testing.T) {
+		testServiceCreate(t, k, "svc2")
+	})
+
+	t.Run("returns a list of revisions associated with hello and svc2 services", func(t *testing.T) {
+		testRevisionListForService(t, k, "hello")
+		testRevisionListForService(t, k, "svc2")
+	})
+
+	t.Run("returns a list of routes associated with hello and svc2 services", func(t *testing.T) {
+		testRouteList(t, k)
+		testRouteListWithArgument(t, k, "hello")
+	})
+
+	t.Run("delete hello and svc2 services and returns no error", func(t *testing.T) {
+		testServiceDelete(t, k, "hello")
+		testServiceDelete(t, k, "svc2")
+	})
+
+	t.Run("returns no service after completing tests", func(t *testing.T) {
+		testServiceListEmpty(t, k)
+	})
 }
 
 // Private test functions
 
 func testServiceListEmpty(t *testing.T, k kn) {
 	out, err := k.RunWithOpts([]string{"service", "list"}, runOpts{NoNamespace: false})
-	if err != nil {
-		t.Fatalf(fmt.Sprintf("Error executing 'kn service list' command. Error: %s", err.Error()))
-	}
+	assert.NilError(t, err)
 
-	if !strings.Contains(out, "No resources found.") {
-		t.Fatalf("Expected output 'No resources found.' Instead found:\n%s\n", out)
-	}
+	assert.Check(t, util.ContainsAll(out, "No resources found."))
 }
 
 func testServiceCreate(t *testing.T, k kn, serviceName string) {
 	out, err := k.RunWithOpts([]string{"service", "create",
 		fmt.Sprintf("%s", serviceName),
 		"--image", KnDefaultTestImage}, runOpts{NoNamespace: false})
-	if err != nil {
-		t.Fatalf(fmt.Sprintf("Error executing 'kn service create' command. Error: %s", err.Error()))
-	}
+	assert.NilError(t, err)
 
-	if !strings.Contains(out, fmt.Sprintf("Service '%s' successfully created in namespace '%s'.", serviceName, k.namespace)) {
-		t.Fatalf(fmt.Sprintf("Expected to find: Service '%s' successfully created in namespace '%s'. Instead found:\n%s\n", serviceName, k.namespace, out))
-	}
+	assert.Check(t, util.ContainsAll(out, "Service", serviceName, "successfully created in namespace", k.namespace, "OK"))
 }
 
 func testServiceList(t *testing.T, k kn, serviceName string) {
 	out, err := k.RunWithOpts([]string{"service", "list", serviceName}, runOpts{NoNamespace: false})
-	if err != nil {
-		t.Fatalf(fmt.Sprintf("Error executing 'kn service list %s' command. Error: %s", serviceName, err.Error()))
-	}
+	assert.NilError(t, err)
 
 	expectedOutput := fmt.Sprintf("%s", serviceName)
-	if !strings.Contains(out, expectedOutput) {
-		t.Fatalf("Expected output incorrect, expecting to include:\n%s\n Instead found:\n%s\n", expectedOutput, out)
-	}
+	assert.Check(t, util.ContainsAll(out, expectedOutput))
 }
 
 func testRevisionListForService(t *testing.T, k kn, serviceName string) {
 	out, err := k.RunWithOpts([]string{"revision", "list", "-s", serviceName}, runOpts{NoNamespace: false})
-	if err != nil {
-		t.Fatalf(fmt.Sprintf("Error executing 'kn revision list -s %s' command. Error: %s", serviceName, err.Error()))
-	}
+	assert.NilError(t, err)
+
 	outputLines := strings.Split(out, "\n")
-	for _, line := range outputLines[1:] {
-		if len(line) > 1 && !strings.HasPrefix(line, serviceName) {
-			t.Fatalf(fmt.Sprintf("Expected output incorrect, expecting line to start with service name: %s\nFound: %s", serviceName, line))
-		}
+	// Ignore the last line because it is an empty string caused by splitting a line break
+	// at the end of the output string
+	for _, line := range outputLines[1 : len(outputLines)-1] {
+		// The last item is the revision status, which should be ready
+		assert.Check(t, util.ContainsAll(line, " "+serviceName+" ", "True"))
 	}
 }
 
 func testServiceDescribe(t *testing.T, k kn, serviceName string) {
 	out, err := k.RunWithOpts([]string{"service", "describe", serviceName}, runOpts{NoNamespace: false})
-	if err != nil {
-		t.Fatalf(fmt.Sprintf("Error executing 'kn service describe' command. Error: %s", err.Error()))
-	}
+	assert.NilError(t, err)
 
 	expectedOutputHeader := `apiVersion: serving.knative.dev/v1alpha1
 kind: Service
 metadata:`
-	if !strings.Contains(out, expectedOutputHeader) {
-		t.Fatalf(fmt.Sprintf("Expected output incorrect, expecting to include:\n%s\n Instead found:\n%s\n", expectedOutputHeader, out))
-	}
-
 	expectedOutput := `generation: 1
   name: %s
   namespace: %s`
 	expectedOutput = fmt.Sprintf(expectedOutput, serviceName, k.namespace)
-	if !strings.Contains(out, expectedOutput) {
-		t.Fatalf(fmt.Sprintf("Expected output incorrect, expecting to include:\n%s\n Instead found:\n%s\n", expectedOutput, out))
-	}
+	assert.Check(t, util.ContainsAll(out, expectedOutputHeader, expectedOutput))
 }
 
 func testServiceUpdate(t *testing.T, k kn, serviceName string, args []string) {
 	out, err := k.RunWithOpts(append([]string{"service", "update", serviceName}, args...), runOpts{NoNamespace: false})
-	if err != nil {
-		t.Fatalf(fmt.Sprintf("Error executing 'kn service update' command. Error: %s", err.Error()))
-	}
+	assert.NilError(t, err)
+
 	expectedOutput := fmt.Sprintf("Service '%s' updated", serviceName)
-	if !strings.Contains(out, expectedOutput) {
-		t.Fatalf(fmt.Sprintf("Expected output incorrect, expecting to include:\n%s\nFound:\n%s\n", expectedOutput, out))
-	}
+	assert.Check(t, util.ContainsAll(out, expectedOutput))
 }
 
 func testRouteList(t *testing.T, k kn) {
 	out, err := k.RunWithOpts([]string{"route", "list"}, runOpts{})
-	if err != nil {
-		t.Errorf(fmt.Sprintf("Error executing 'kn route list' command. Error: %s", err.Error()))
-	}
+	assert.NilError(t, err)
+
 	expectedHeaders := []string{"NAME", "URL", "AGE", "CONDITIONS", "TRAFFIC"}
-	for _, header := range expectedHeaders {
-		if !strings.Contains(out, header) {
-			t.Errorf("Expected to include header %s in 'kn route list' output. Actual output:\n%s\n", header, out)
-		}
-	}
+	assert.Check(t, util.ContainsAll(out, expectedHeaders...))
 }
 
 func testRouteListWithArgument(t *testing.T, k kn, routeName string) {
 	out, err := k.RunWithOpts([]string{"route", "list", routeName}, runOpts{})
-	if err != nil {
-		t.Errorf("Error executing 'kn route list %s' command. Error: %s", routeName, err.Error())
-	}
-	expectedOutput := routeName
-	if !strings.Contains(out, expectedOutput) {
-		t.Errorf("Expected output incorrect, expecting to include:\n%s\n Instead found:\n%s\n", expectedOutput, out)
-	}
-	expectedOutput = fmt.Sprintf("100%% -> %s", routeName)
-	if !strings.Contains(out, expectedOutput) {
-		t.Errorf("Expected output incorrect, expecting to include:\n%s\n Instead found:\n%s\n", expectedOutput, out)
-	}
+	assert.NilError(t, err)
+
+	expectedOutput := fmt.Sprintf("100%% -> %s", routeName)
+	assert.Check(t, util.ContainsAll(out, routeName, expectedOutput))
 }
 
 func testServiceDelete(t *testing.T, k kn, serviceName string) {
 	out, err := k.RunWithOpts([]string{"service", "delete", serviceName}, runOpts{NoNamespace: false})
-	if err != nil {
-		t.Fatalf(fmt.Sprintf("Error executing 'kn service delete' command. Error: %s", err.Error()))
-	}
+	assert.NilError(t, err)
 
-	if !strings.Contains(out, fmt.Sprintf("Service '%s' successfully deleted in namespace '%s'.", serviceName, k.namespace)) {
-		t.Fatalf(fmt.Sprintf("Expected to find: Service '%s' successfully deleted in namespace '%s'. Instead found:\n%s\n", serviceName, k.namespace, out))
-	}
+	assert.Check(t, util.ContainsAll(out, "Service", serviceName, "successfully deleted in namespace", k.namespace))
 }
