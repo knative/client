@@ -163,7 +163,7 @@ func createMockRevisionWithParams(name, svcName string) *v1alpha1.Revision {
 	revision := &v1alpha1.Revision{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Revision",
-			APIVersion: "serving.knative.dev/v1alpha1",
+			APIVersion: "knative.dev/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
