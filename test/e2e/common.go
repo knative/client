@@ -23,6 +23,7 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 )
 
 type runOpts struct {
@@ -35,15 +36,64 @@ type runOpts struct {
 	Redact       bool
 }
 
+var (
+	e env
+	k kn
+)
+
+const (
+	KnDefaultTestImage string = "gcr.io/knative-samples/helloworld-go"
+	MaxRetries         int    = 10
+)
+
+// Setup set up an enviroment for kn integration test returns the Teardown cleanup function
+func Setup(t *testing.T) func(t *testing.T) {
+	e = buildEnv(t)
+	e.Namespace = fmt.Sprintf("%s%d", e.Namespace, namespaceCount)
+	namespaceCount++
+	k = kn{t, e.Namespace, Logger{}}
+	CreateTestNamespace(t, e.Namespace)
+	return Teardown
+}
+
+// Teaddown clean up
+func Teardown(t *testing.T) {
+	DeleteTestNamespace(t, e.Namespace)
+}
+
 // CreateTestNamespace creates and tests a namesspace creation invoking kubectl
 func CreateTestNamespace(t *testing.T, namespace string) {
-	kubectl := kubectl{t, Logger{}}
-	out, err := kubectl.RunWithOpts([]string{"create", "namespace", namespace}, runOpts{})
-	if err != nil {
-		t.Fatalf(fmt.Sprintf("Error executing 'kubectl create namespace' command. Error: %s", err.Error()))
+	logger := Logger{}
+	kubectlCreateNamespace := func() (string, error) {
+		kubectl := kubectl{t, logger}
+		return kubectl.RunWithOpts([]string{"create", "namespace", namespace}, runOpts{AllowError: true})
 	}
 
 	expectedOutputRegexp := fmt.Sprintf("namespace?.+%s.+created", namespace)
+	var (
+		created bool
+		retries int
+		out     string
+		err     error
+	)
+
+	for !created && retries < MaxRetries {
+		out, err = kubectlCreateNamespace()
+		if err != nil && retries >= MaxRetries {
+			t.Fatalf("Failed creating test namespace:%s\n after %d retries", namespace, retries)
+		} else {
+			if err == nil {
+				created = true
+				break
+			}
+
+			retries++
+			logger.Debugf("Could not create namespace, waiting 30s, and tring again: %d of %d\n", retries, MaxRetries)
+			time.Sleep(30 * time.Second)
+		}
+	}
+
+	// check that last output indeed show created namespace
 	if !matchRegexp(t, expectedOutputRegexp, out) {
 		t.Fatalf("Expected output incorrect, expecting to include:\n%s\n Instead found:\n%s\n", expectedOutputRegexp, out)
 	}
@@ -60,6 +110,41 @@ func DeleteTestNamespace(t *testing.T, namespace string) {
 	expectedOutputRegexp := fmt.Sprintf("namespace?.+%s.+deleted", namespace)
 	if !matchRegexp(t, expectedOutputRegexp, out) {
 		t.Fatalf("Expected output incorrect, expecting to include:\n%s\n Instead found:\n%s\n", expectedOutputRegexp, out)
+	}
+}
+
+// WaitForNamespaceDeleted wait until namespace is deleted
+func WaitForNamespaceDeleted(t *testing.T, namespace string) {
+	logger := Logger{}
+	kubectlGetNamespace := func() string {
+		kubectl := kubectl{t, logger}
+		out, err := kubectl.RunWithOpts([]string{"get", "namespace"}, runOpts{})
+		if err != nil {
+			t.Fatalf(fmt.Sprintf("Error executing 'kubectl get namespace' command. Error: %s", err.Error()))
+			return ""
+		}
+
+		return out
+	}
+
+	logger.Debugf("Waiting for namespace: %s to be deleted", namespace)
+	deleted := false
+	retries := 0
+	for !deleted && retries < MaxRetries {
+		output := kubectlGetNamespace()
+		if !strings.Contains(output, namespace) {
+			deleted = true
+			break
+		}
+
+		time.Sleep(5000 * time.Millisecond)
+		retries++
+	}
+
+	if !deleted && retries >= MaxRetries {
+		t.Fatalf(fmt.Sprintf("Error deleting namespace %s, timed out", namespace))
+	} else {
+		logger.Debugf("Namespace: %s is deleted!\n", namespace)
 	}
 }
 
