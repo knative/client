@@ -95,6 +95,6 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 
 	commands.AddNamespaceFlags(serviceUpdateCommand.Flags(), false)
 	editFlags.AddUpdateFlags(serviceUpdateCommand)
-	waitFlags.AddConditionWaitFlags(serviceUpdateCommand, 60, "service")
+	waitFlags.AddConditionWaitFlags(serviceUpdateCommand, 60, "Update", "service")
 	return serviceUpdateCommand
 }

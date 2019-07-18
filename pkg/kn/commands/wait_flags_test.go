@@ -41,7 +41,7 @@ func TestAddWaitForReadyFlags(t *testing.T) {
 
 		flags := &WaitFlags{}
 		cmd := cobra.Command{}
-		flags.AddConditionWaitFlags(&cmd, 60, "service")
+		flags.AddConditionWaitFlags(&cmd, 60, "Create", "service")
 
 		err := cmd.ParseFlags(tc.args)
 		if err != nil && !tc.isParseErrorExpected {
@@ -66,7 +66,7 @@ func TestAddWaitUsageMessage(t *testing.T) {
 
 	flags := &WaitFlags{}
 	cmd := cobra.Command{}
-	flags.AddConditionWaitFlags(&cmd, 60, "blub")
+	flags.AddConditionWaitFlags(&cmd, 60, "bla", "blub")
 	if !strings.Contains(cmd.UsageString(), "blub") {
 		t.Error("no type returned in usage")
 	}
