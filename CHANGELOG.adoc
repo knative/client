@@ -20,7 +20,7 @@
 
 | 🎁
 | Wait for service to become ready with `kn service update` (same behaviour as for `kn service create`)
-| https://github.com/knative/client/pull/[#]
+| https://github.com/knative/client/pull/271[#271]
 
 | 🐛
 | Better error handling when providing wrong kubeconfig option
@@ -52,7 +52,7 @@
 
 | 🐛
 | Retry update operation on an optimistic lock failure
-| https://github.com/knative/client/pull/[#240]
+| https://github.com/knative/client/pull/240[#240]
 
 | 🎁
 | Add `kn route list`
