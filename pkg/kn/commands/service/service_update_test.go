@@ -21,17 +21,23 @@ import (
 	"strings"
 	"testing"
 
+	"gotest.tools/assert"
+
 	"github.com/knative/client/pkg/kn/commands"
 	servinglib "github.com/knative/client/pkg/serving"
+	"github.com/knative/client/pkg/util"
+	"github.com/knative/client/pkg/wait"
+
 	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/watch"
 	client_testing "k8s.io/client-go/testing"
 )
 
-func fakeServiceUpdate(original *v1alpha1.Service, args []string) (
+func fakeServiceUpdate(original *v1alpha1.Service, args []string, sync bool) (
 	action client_testing.Action,
 	updated *v1alpha1.Service,
 	output string,
@@ -55,6 +61,24 @@ func fakeServiceUpdate(original *v1alpha1.Service, args []string) (
 		func(a client_testing.Action) (bool, runtime.Object, error) {
 			return true, original, nil
 		})
+	if sync {
+		fakeServing.AddWatchReactor("services",
+			func(a client_testing.Action) (bool, watch.Interface, error) {
+				watchAction := a.(client_testing.WatchAction)
+				_, found := watchAction.GetWatchRestrictions().Fields.RequiresExactMatch("metadata.name")
+				if !found {
+					return true, nil, errors.New("no field selector on metadata.name found")
+				}
+				w := wait.NewFakeWatch(getServiceEvents("test-service"))
+				w.Start()
+				return true, w, nil
+			})
+		fakeServing.AddReactor("get", "services",
+			func(a client_testing.Action) (bool, runtime.Object, error) {
+				return true, &v1alpha1.Service{}, nil
+			})
+	}
+
 	cmd.SetArgs(args)
 	err = cmd.Execute()
 	if err != nil {
@@ -62,6 +86,29 @@ func fakeServiceUpdate(original *v1alpha1.Service, args []string) (
 	}
 	output = buf.String()
 	return
+}
+
+func TestServiceUpdateImageSync(t *testing.T) {
+	orig := newEmptyService()
+
+	template, err := servinglib.GetRevisionTemplate(orig)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
+
+	action, updated, output, err := fakeServiceUpdate(orig, []string{
+		"service", "update", "foo", "--image", "gcr.io/foo/quux:xyzzy", "--namespace", "bar"}, true)
+
+	assert.NilError(t, err)
+	assert.Assert(t, action.Matches("update", "services"))
+
+	template, err = servinglib.GetRevisionTemplate(updated)
+	assert.NilError(t, err)
+
+	assert.Equal(t, template.Spec.DeprecatedContainer.Image, "gcr.io/foo/quux:xyzzy")
+	assert.Assert(t, util.ContainsAll(strings.ToLower(output), "update", "foo", "service", "namespace", "bar", "ok", "waiting"))
 }
 
 func TestServiceUpdateImage(t *testing.T) {
@@ -75,7 +122,7 @@ func TestServiceUpdateImage(t *testing.T) {
 	servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
 
 	action, updated, output, err := fakeServiceUpdate(orig, []string{
-		"service", "update", "foo", "--image", "gcr.io/foo/quux:xyzzy", "--namespace", "bar"})
+		"service", "update", "foo", "--image", "gcr.io/foo/quux:xyzzy", "--namespace", "bar", "--async"}, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -104,7 +151,7 @@ func TestServiceUpdateMaxMinScale(t *testing.T) {
 
 	action, updated, _, err := fakeServiceUpdate(original, []string{
 		"service", "update", "foo",
-		"--min-scale", "1", "--max-scale", "5", "--concurrency-target", "10", "--concurrency-limit", "100"})
+		"--min-scale", "1", "--max-scale", "5", "--concurrency-target", "10", "--concurrency-limit", "100", "--async"}, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -169,7 +216,7 @@ func TestServiceUpdateEnv(t *testing.T) {
 	servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
 
 	action, updated, _, err := fakeServiceUpdate(orig, []string{
-		"service", "update", "foo", "-e", "TARGET=Awesome"})
+		"service", "update", "foo", "-e", "TARGET=Awesome", "--async"}, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -195,7 +242,7 @@ func TestServiceUpdateRequestsLimitsCPU(t *testing.T) {
 	service := createMockServiceWithResources(t, "250", "64Mi", "1000m", "1024Mi")
 
 	action, updated, _, err := fakeServiceUpdate(service, []string{
-		"service", "update", "foo", "--requests-cpu", "500m", "--limits-cpu", "1000m"})
+		"service", "update", "foo", "--requests-cpu", "500m", "--limits-cpu", "1000m", "--async"}, false)
 	if err != nil {
 		t.Fatal(err)
 	} else if !action.Matches("update", "services") {
@@ -233,7 +280,7 @@ func TestServiceUpdateRequestsLimitsMemory(t *testing.T) {
 	service := createMockServiceWithResources(t, "100m", "64Mi", "1000m", "1024Mi")
 
 	action, updated, _, err := fakeServiceUpdate(service, []string{
-		"service", "update", "foo", "--requests-memory", "128Mi", "--limits-memory", "2048Mi"})
+		"service", "update", "foo", "--requests-memory", "128Mi", "--limits-memory", "2048Mi", "--async"}, false)
 	if err != nil {
 		t.Fatal(err)
 	} else if !action.Matches("update", "services") {
@@ -273,7 +320,7 @@ func TestServiceUpdateRequestsLimitsCPU_and_Memory(t *testing.T) {
 	action, updated, _, err := fakeServiceUpdate(service, []string{
 		"service", "update", "foo",
 		"--requests-cpu", "500m", "--limits-cpu", "2000m",
-		"--requests-memory", "128Mi", "--limits-memory", "2048Mi"})
+		"--requests-memory", "128Mi", "--limits-memory", "2048Mi", "--async"}, false)
 	if err != nil {
 		t.Fatal(err)
 	} else if !action.Matches("update", "services") {

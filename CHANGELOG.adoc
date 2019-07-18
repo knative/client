@@ -5,11 +5,28 @@
 [cols="1,10,3", options="header", width="100%"]
 |===
 | | Description | PR
+
 | 🎁🐛🧽🗑️
 |
 | https://github.com/knative/client/pull/[#]
 |===
 ////
+
+## v0.8.0 (unreleased)
+
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🎁
+| Wait for service to become ready with `kn service update` (same behaviour as for `kn service create`)
+| https://github.com/knative/client/pull/[#]
+
+| 🐛
+| Better error handling when providing wrong kubeconfig option
+| https://github.com/knative/client/pull/222[#222]
+
+|===
 
 ## v0.2.0 (2019-07-10)
 
