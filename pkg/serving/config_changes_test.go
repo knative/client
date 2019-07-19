@@ -15,6 +15,7 @@
 package serving
 
 import (
+	"gotest.tools/assert"
 	"reflect"
 	"testing"
 
@@ -79,13 +80,9 @@ func testUpdateEnvVarsNew(t *testing.T, template *servingv1alpha1.RevisionTempla
 		"b": "bar",
 	}
 	err := UpdateEnvVars(template, env)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err)
 	found, err := EnvToMap(container.Env)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err)
 	if !reflect.DeepEqual(env, found) {
 		t.Fatalf("Env did not match expected %v found %v", env, found)
 	}
@@ -109,9 +106,7 @@ func testUpdateEnvVarsAppendOld(t *testing.T, template *servingv1alpha1.Revision
 		"b": "bar",
 	}
 	err := UpdateEnvVars(template, env)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err)
 
 	expected := map[string]string{
 		"a": "foo",
@@ -119,9 +114,7 @@ func testUpdateEnvVarsAppendOld(t *testing.T, template *servingv1alpha1.Revision
 	}
 
 	found, err := EnvToMap(container.Env)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err)
 	if !reflect.DeepEqual(expected, found) {
 		t.Fatalf("Env did not match expected %v, found %v", env, found)
 	}
@@ -144,18 +137,14 @@ func testUpdateEnvVarsModify(t *testing.T, revision *servingv1alpha1.RevisionTem
 		"a": "fancy",
 	}
 	err := UpdateEnvVars(revision, env)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err)
 
 	expected := map[string]string{
 		"a": "fancy",
 	}
 
 	found, err := EnvToMap(container.Env)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err)
 	if !reflect.DeepEqual(expected, found) {
 		t.Fatalf("Env did not match expected %v, found %v", env, found)
 	}
@@ -164,17 +153,13 @@ func testUpdateEnvVarsModify(t *testing.T, revision *servingv1alpha1.RevisionTem
 func TestUpdateContainerImage(t *testing.T) {
 	template, _ := getV1alpha1RevisionTemplateWithOldFields()
 	err := UpdateImage(template, "gcr.io/foo/bar:baz")
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err)
 	// Verify update is successful or not
 	checkContainerImage(t, template, "gcr.io/foo/bar:baz")
 	// Update template with container image info
 	template.Spec.GetContainer().Image = "docker.io/foo/bar:baz"
 	err = UpdateImage(template, "query.io/foo/bar:baz")
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err)
 	// Verify that given image overrides the existing container image
 	checkContainerImage(t, template, "query.io/foo/bar:baz")
 }
@@ -188,17 +173,13 @@ func checkContainerImage(t *testing.T, template *servingv1alpha1.RevisionTemplat
 func TestUpdateContainerPort(t *testing.T) {
 	template, _ := getV1alpha1Config()
 	err := UpdateContainerPort(template, 8888)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err)
 	// Verify update is successful or not
 	checkPortUpdate(t, template, 8888)
 	// update template with container port info
 	template.Spec.Containers[0].Ports[0].ContainerPort = 9090
 	err = UpdateContainerPort(template, 80)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err)
 	// Verify that given port overrides the existing container port
 	checkPortUpdate(t, template, 80)
 }
@@ -228,9 +209,7 @@ func testUpdateEnvVarsBoth(t *testing.T, template *servingv1alpha1.RevisionTempl
 		"b": "boo",
 	}
 	err := UpdateEnvVars(template, env)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err)
 
 	expected := map[string]string{
 		"a": "fancy",
@@ -239,9 +218,7 @@ func testUpdateEnvVarsBoth(t *testing.T, template *servingv1alpha1.RevisionTempl
 	}
 
 	found, err := EnvToMap(container.Env)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err)
 	if !reflect.DeepEqual(expected, found) {
 		t.Fatalf("Env did not match expected %v, found %v", env, found)
 	}
