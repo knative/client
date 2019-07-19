@@ -128,6 +128,21 @@ func UpdateImage(template *servingv1alpha1.RevisionTemplateSpec, image string) e
 	return nil
 }
 
+func FreezeImageToDigest(template *servingv1alpha1.RevisionTemplateSpec, baseRevision *servingv1alpha1.Revision) error {
+	currentContainer, err := ContainerOfRevisionTemplate(template)
+	baseContainer, err := ContainerOfRevisionSpec(&baseRevision.Spec)
+	if err != nil {
+		return err
+	}
+	if currentContainer.Image != baseContainer.Image {
+		return fmt.Errorf("Could not freeze image to digest since current revision contains unexpected image.")
+	}
+	if baseRevision.Status.ImageDigest != "" {
+		return UpdateImage(template, baseRevision.Status.ImageDigest)
+	}
+	return nil
+}
+
 // UpdateContainerPort updates container with a give port
 func UpdateContainerPort(template *servingv1alpha1.RevisionTemplateSpec, port int32) error {
 	container, err := ContainerOfRevisionTemplate(template)

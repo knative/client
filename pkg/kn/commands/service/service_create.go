@@ -211,7 +211,7 @@ func constructService(cmd *cobra.Command, editFlags ConfigurationEditFlags, name
 	}
 	service.Spec.Template.Spec.Containers = []corev1.Container{{}}
 
-	err := editFlags.Apply(&service, cmd)
+	err := editFlags.Apply(&service, nil, cmd)
 	if err != nil {
 		return nil, err
 	}

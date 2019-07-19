@@ -15,6 +15,7 @@
 package v1alpha1
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -61,6 +62,10 @@ type KnClient interface {
 	// Get a revision by name
 	GetRevision(name string) (*v1alpha1.Revision, error)
 
+	// Get the "base" revision for a Service; the one that corresponds to the
+	// current template.
+	GetBaseRevision(service *v1alpha1.Service) (*v1alpha1.Revision, error)
+
 	// List revisions
 	ListRevisions(opts ...ListConfig) (*v1alpha1.RevisionList, error)
 
@@ -72,6 +77,8 @@ type KnClient interface {
 
 	// List routes
 	ListRoutes(opts ...ListConfig) (*v1alpha1.RouteList, error)
+
+	Errors() map[string]error
 }
 
 type listConfigCollector struct {
@@ -127,6 +134,12 @@ func NewKnServingClient(client client_v1alpha1.ServingV1alpha1Interface, namespa
 	return &knClient{
 		client:    client,
 		namespace: namespace,
+	}
+}
+
+func (cl *knClient) Errors() map[string]error {
+	return map[string]error{
+		"no-base-revision": noBaseRevisionError,
 	}
 }
 
@@ -228,6 +241,50 @@ func (cl *knClient) GetRevision(name string) (*v1alpha1.Revision, error) {
 		return nil, err
 	}
 	return revision, nil
+}
+
+var noBaseRevisionError = errors.New("Base revision not found.")
+
+// Get a "base" revision. This is the revision corresponding to the template of
+// a Service. It may not be findable with our heuristics, in which case this
+// method returns Errors()["no-base-revision"]. If it simply doesn't exist (like
+// it wasn't yet created or was deleted), return the usual not found error.
+func (cl *knClient) GetBaseRevision(service *v1alpha1.Service) (*v1alpha1.Revision, error) {
+	template, err := serving.RevisionTemplateOfService(service)
+	if err != nil {
+		return nil, err
+	}
+	// First, try to get it by name. If the template has a particular name, the
+	// base revision is the one created with that name.
+	if template.Name != "" {
+		return cl.GetRevision(template.Name)
+	}
+	// Next, let's try the LatestCreatedRevision, and see if that matches the
+	// template, at least in terms of the image (which is what we care about here).
+	if service.Status.LatestCreatedRevisionName != "" {
+		latestCreated, err := cl.GetRevision(service.Status.LatestCreatedRevisionName)
+		if err != nil {
+			return nil, err
+		}
+		latestContainer, err := serving.ContainerOfRevisionSpec(&latestCreated.Spec)
+		if err != nil {
+			return nil, err
+		}
+		container, err := serving.ContainerOfRevisionTemplate(template)
+		if err != nil {
+			return nil, err
+		}
+		if latestContainer.Image != container.Image {
+			// At this point we know the latestCreatedRevision is out of date.
+			return nil, noBaseRevisionError
+		}
+		// There is still some chance the latestCreatedRevision is out of date,
+		// but we can't check the whole thing for equality because of
+		// server-side defaulting. Since what we probably want it for is to
+		// check the image digest anyway, keep it as good enough.
+		return latestCreated, nil
+	}
+	return nil, noBaseRevisionError
 }
 
 // Delete a revision by name

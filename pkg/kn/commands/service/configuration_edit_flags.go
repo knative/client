@@ -41,7 +41,9 @@ type ConfigurationEditFlags struct {
 	RevisionName               string
 
 	// Preferences about how to do the action.
-	ForceCreate bool
+	LockToDigest         bool
+	GenerateRevisionName bool
+	ForceCreate          bool
 
 	// Bookkeeping
 	flags []string
@@ -105,6 +107,13 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 // AddUpdateFlags adds the flags specific to update.
 func (p *ConfigurationEditFlags) AddUpdateFlags(command *cobra.Command) {
 	p.addSharedFlags(command)
+	command.Flags().BoolVar(&p.LockToDigest, "lock-to-digest", true,
+		"When not updating the image field, make sure the image we're running doesn't "+
+			"change by locking it to the currently-running image digest.")
+	// Don't add it to p.flags, it doesn't affect anything on its own.
+	command.Flags().BoolVar(&p.GenerateRevisionName, "generate-revision-name", true,
+		"Automatically generate a revision name client-side. If false, the revision name is cleared.")
+	p.markFlagMakesRevision"generate-revision-name")
 }
 
 // AddCreateFlags adds the flags specific to create
@@ -118,6 +127,7 @@ func (p *ConfigurationEditFlags) AddCreateFlags(command *cobra.Command) {
 // Apply mutates the given service according to the flags in the command.
 func (p *ConfigurationEditFlags) Apply(
 	service *servingv1alpha1.Service,
+	baseRevision *servingv1alpha1.Revision,
 	cmd *cobra.Command) error {
 
 	template, err := servinglib.RevisionTemplateOfService(service)
@@ -162,7 +172,10 @@ func (p *ConfigurationEditFlags) Apply(
 		if err != nil {
 			return err
 		}
+	} else if p.LockToDigest && baseRevision != nil && p.AnyMutation(cmd) {
+		servinglib.FreezeImageToDigest(template, baseRevision)
 	}
+
 	limitsResources, err := p.computeResources(p.LimitsFlags)
 	if err != nil {
 		return err

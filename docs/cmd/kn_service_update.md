@@ -47,6 +47,7 @@ kn service update NAME [flags]
   -l, --label stringArray        Service label to set. name=value; you may provide this flag any number of times to set multiple labels. To unset, specify the label name followed by a "-" (e.g., name-).
       --limits-cpu string        The limits on the requested CPU (e.g., 1000m).
       --limits-memory string     The limits on the requested memory (e.g., 1024Mi).
+      --lock-to-digest           When not updating the image field, make sure the image we're running doesn't change by locking it to the currently-running image digest. (default true)
       --max-scale int            Maximal number of replicas.
       --min-scale int            Minimal number of replicas.
   -n, --namespace string         List the requested object(s) in given namespace.
