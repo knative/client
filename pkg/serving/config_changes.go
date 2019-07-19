@@ -27,7 +27,7 @@ import (
 // vars.  Does not touch any environment variables not mentioned, but it can add
 // new env vars and change the values of existing ones.
 func UpdateEnvVars(template *servingv1alpha1.RevisionTemplateSpec, vars map[string]string) error {
-	container, err := extractContainer(template)
+	container, err := ContainerOfRevisionTemplate(template)
 	if err != nil {
 		return err
 	}
@@ -78,7 +78,7 @@ func EnvToMap(vars []corev1.EnvVar) (map[string]string, error) {
 
 // Update a given image
 func UpdateImage(template *servingv1alpha1.RevisionTemplateSpec, image string) error {
-	container, err := extractContainer(template)
+	container, err := ContainerOfRevisionTemplate(template)
 	if err != nil {
 		return err
 	}
@@ -88,7 +88,7 @@ func UpdateImage(template *servingv1alpha1.RevisionTemplateSpec, image string) e
 
 // UpdateContainerPort updates container with a give port
 func UpdateContainerPort(template *servingv1alpha1.RevisionTemplateSpec, port int32) error {
-	container, err := extractContainer(template)
+	container, err := ContainerOfRevisionTemplate(template)
 	if err != nil {
 		return err
 	}
@@ -99,7 +99,7 @@ func UpdateContainerPort(template *servingv1alpha1.RevisionTemplateSpec, port in
 }
 
 func UpdateResources(template *servingv1alpha1.RevisionTemplateSpec, requestsResourceList corev1.ResourceList, limitsResourceList corev1.ResourceList) error {
-	container, err := extractContainer(template)
+	container, err := ContainerOfRevisionTemplate(template)
 	if err != nil {
 		return err
 	}
@@ -123,26 +123,6 @@ func UpdateResources(template *servingv1alpha1.RevisionTemplateSpec, requestsRes
 }
 
 // =======================================================================================
-
-func usesOldV1alpha1ContainerField(revision *servingv1alpha1.RevisionTemplateSpec) bool {
-	return revision.Spec.DeprecatedContainer != nil
-}
-
-func extractContainer(template *servingv1alpha1.RevisionTemplateSpec) (*corev1.Container, error) {
-	if usesOldV1alpha1ContainerField(template) {
-		return template.Spec.DeprecatedContainer, nil
-	}
-	containers := template.Spec.Containers
-	if len(containers) == 0 {
-		return nil, fmt.Errorf("internal: no container set in spec.template.spec.containers")
-	}
-	if len(containers) > 1 {
-		return nil, fmt.Errorf("internal: can't extract container for updating environment"+
-			" variables as the configuration contains "+
-			"more than one container (i.e. %d containers)", len(containers))
-	}
-	return &containers[0], nil
-}
 
 func updateEnvVarsFromMap(env []corev1.EnvVar, vars map[string]string) []corev1.EnvVar {
 	set := make(map[string]bool)
