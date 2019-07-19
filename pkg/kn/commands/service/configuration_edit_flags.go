@@ -38,6 +38,7 @@ type ConfigurationEditFlags struct {
 	Port                       int32
 	Labels                     []string
 	NamePrefix                 string
+	RevisionName               string
 
 	// Preferences about how to do the action.
 	GenerateRevisionName bool
@@ -87,9 +88,9 @@ func (p *ConfigurationEditFlags) AddSharedFlags(command *cobra.Command) {
 			"To unset, specify the label name followed by a \"-\" (e.g., name-).")
 	p.flags = append(p.flags, "label")
 	p.flags = append(p.flags, "port")
-	command.Flags().StringVar(&p.NamePrefix, "name", "",
-		"The revision name prefix to set. Implies --generate-revision-name=false")
-	p.flags = append(p.flags, "name")
+	command.Flags().StringVar(&p.RevisionName, "revision-name", "",
+		"The revision name to set. If you don't add the service name as a prefix, it'll be added for you.")
+	p.flags = append(p.flags, "revision-name")
 }
 func (p *ConfigurationEditFlags) AddUpdateFlags(command *cobra.Command) {
 	p.AddSharedFlags(command)
@@ -132,7 +133,23 @@ func (p *ConfigurationEditFlags) Apply(
 			return err
 		}
 	}
+	anyMutation := p.AnyMutation(cmd)
 
+	name := ""
+	if cmd.Flags().Changed("revision-name") {
+		name = p.RevisionName
+		if !strings.HasPrefix(name, service.Name+"-") {
+			name = service.Name + "-" + name
+		}
+	} else if p.GenerateRevisionName {
+		name = servinglib.GenerateRevisionName(service)
+	}
+	if anyMutation {
+		err = servinglib.UpdateName(template, name)
+		if err != nil {
+			return err
+		}
+	}
 	if cmd.Flags().Changed("image") {
 		err = servinglib.UpdateImage(template, p.Image)
 		if err != nil {

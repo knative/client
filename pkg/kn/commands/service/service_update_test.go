@@ -166,6 +166,110 @@ func TestServiceUpdateImage(t *testing.T) {
 	}
 }
 
+func TestServiceUpdateRevisionNameExplicit(t *testing.T) {
+	orig := newEmptyService()
+
+	template, err := servinglib.RevisionTemplateOfService(orig)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	template.Name = "foo-asdf"
+
+	// Test prefix added by command
+	action, updated, _, err := fakeServiceUpdate(orig, []string{
+		"service", "update", "foo", "--revision-name", "xyzzy", "--namespace", "bar", "--async"}, false)
+	assert.NilError(t, err)
+	if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template, err = servinglib.RevisionTemplateOfService(updated)
+	assert.NilError(t, err)
+	assert.Equal(t, "foo-xyzzy", template.Name)
+
+	// Test user provides prefix
+	action, updated, _, err = fakeServiceUpdate(orig, []string{
+		"service", "update", "foo", "--revision-name", "foo-dogs", "--namespace", "bar", "--async"}, false)
+	assert.NilError(t, err)
+	if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+	template, err = servinglib.RevisionTemplateOfService(updated)
+	assert.NilError(t, err)
+	assert.Equal(t, "foo-dogs", template.Name)
+
+}
+
+func TestServiceUpdateRevisionNameGenerated(t *testing.T) {
+	orig := newEmptyService()
+
+	template, err := servinglib.RevisionTemplateOfService(orig)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	template.Name = "foo-asdf"
+
+	// Test prefix added by command
+	action, updated, _, err := fakeServiceUpdate(orig, []string{
+		"service", "update", "foo", "--image", "gcr.io/foo/quux:xyzzy", "--namespace", "bar", "--async"}, false)
+	assert.NilError(t, err)
+	if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template, err = servinglib.RevisionTemplateOfService(updated)
+	assert.NilError(t, err)
+	assert.Assert(t, strings.HasPrefix(template.Name, "foo-"))
+	assert.Assert(t, !(template.Name == "foo-asdf"))
+}
+
+func TestServiceUpdateRevisionNameCleared(t *testing.T) {
+	orig := newEmptyService()
+
+	template, err := servinglib.RevisionTemplateOfService(orig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	template.Name = "foo-asdf"
+
+	action, updated, _, err := fakeServiceUpdate(orig, []string{
+		"service", "update", "foo", "--image", "gcr.io/foo/quux:xyzzy", "--namespace", "bar", "--generate-revision-name=false", "--async"}, false)
+
+	assert.NilError(t, err)
+	if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template, err = servinglib.RevisionTemplateOfService(updated)
+	assert.NilError(t, err)
+	assert.Assert(t, template.Name == "")
+}
+
+func TestServiceUpdateRevisionNameNoMutationNoChange(t *testing.T) {
+	orig := newEmptyService()
+
+	template, err := servinglib.RevisionTemplateOfService(orig)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	template.Name = "foo-asdf"
+
+	// Test prefix added by command
+	action, updated, _, err := fakeServiceUpdate(orig, []string{
+		"service", "update", "foo", "--namespace", "bar", "--async"}, false)
+	assert.NilError(t, err)
+	if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template, err = servinglib.RevisionTemplateOfService(updated)
+	assert.NilError(t, err)
+	assert.Equal(t, template.Name, "foo-asdf")
+}
+
 func TestServiceUpdateMaxMinScale(t *testing.T) {
 	original := newEmptyService()
 

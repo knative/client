@@ -16,7 +16,9 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
+	"time"
 
 	"github.com/knative/client/pkg/kn/core"
 	"github.com/spf13/viper"
@@ -30,6 +32,7 @@ var err error
 
 func main() {
 	defer cleanup()
+	rand.Seed(time.Now().UnixNano())
 	err = core.NewDefaultKnCommand().Execute()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)

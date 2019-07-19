@@ -92,6 +92,12 @@ func UpdateAnnotation(template *servingv1alpha1.RevisionTemplateSpec, annotation
 	return nil
 }
 
+// Update the name
+func UpdateName(template *servingv1alpha1.RevisionTemplateSpec, name string) error {
+	template.Name = name
+	return nil
+}
+
 // EnvToMap is an utility function to translate between the API list form of env vars, and the
 // more convenient map form.
 func EnvToMap(vars []corev1.EnvVar) (map[string]string, error) {

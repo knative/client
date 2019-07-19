@@ -253,6 +253,13 @@ func TestUpdateContainerPort(t *testing.T) {
 	checkPortUpdate(t, template, 80)
 }
 
+func TestUpdateName(t *testing.T) {
+	template, _ := getV1alpha1Config()
+	err := UpdateName(template, "foo-asdf")
+	assert.NilError(t, err)
+	assert.Equal(t, "foo-asdf", template.Name)
+}
+
 func checkPortUpdate(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, port int32) {
 	if template.Spec.GetContainer().Ports[0].ContainerPort != port {
 		t.Error("Failed to update the container port")

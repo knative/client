@@ -16,6 +16,9 @@ package serving
 
 import (
 	"errors"
+	"fmt"
+	"math/rand"
+	"strings"
 
 	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 )
@@ -36,6 +39,21 @@ func RevisionTemplateOfService(service *servingv1alpha1.Service) (*servingv1alph
 		return nil, err
 	}
 	return config.DeprecatedRevisionTemplate, nil
+}
+
+var charChoices = []string{
+	"b", "c", "d", "f", "g", "h", "j", "k", "l", "m", "n", "p", "q", "r", "s", "t", "v", "w", "x",
+	"y", "z",
+}
+
+func GenerateRevisionName(service *servingv1alpha1.Service) string {
+	prefix := service.Name
+	generation := service.Generation + 1
+	chars := []string{}
+	for i := 0; i < 5; i++ {
+		chars = append(chars, charChoices[rand.Int()%len(charChoices)])
+	}
+	return fmt.Sprintf("%s-%s-%d", prefix, strings.Join(chars, ""), generation)
 }
 
 func getConfiguration(service *servingv1alpha1.Service) (*servingv1alpha1.ConfigurationSpec, error) {
