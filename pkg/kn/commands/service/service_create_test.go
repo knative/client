@@ -121,7 +121,7 @@ func TestServiceCreateImage(t *testing.T) {
 	} else if !action.Matches("create", "services") {
 		t.Fatalf("Bad action %v", action)
 	}
-	template, err := servinglib.GetRevisionTemplate(created)
+	template, err := servinglib.RevisionTemplateOfService(created)
 	if err != nil {
 		t.Fatal(err)
 	} else if template.Spec.DeprecatedContainer.Image != "gcr.io/foo/bar:baz" {
@@ -140,7 +140,7 @@ func TestServiceCreateImageSync(t *testing.T) {
 	} else if !action.Matches("create", "services") {
 		t.Fatalf("Bad action %v", action)
 	}
-	template, err := servinglib.GetRevisionTemplate(created)
+	template, err := servinglib.RevisionTemplateOfService(created)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -170,7 +170,7 @@ func TestServiceCreateEnv(t *testing.T) {
 		"A": "DOGS",
 		"B": "WOLVES"}
 
-	template, err := servinglib.GetRevisionTemplate(created)
+	template, err := servinglib.RevisionTemplateOfService(created)
 	actualEnvVars, err := servinglib.EnvToMap(template.Spec.DeprecatedContainer.Env)
 	if err != nil {
 		t.Fatal(err)
@@ -202,7 +202,7 @@ func TestServiceCreateWithRequests(t *testing.T) {
 		corev1.ResourceMemory: parseQuantity(t, "64Mi"),
 	}
 
-	template, err := servinglib.GetRevisionTemplate(created)
+	template, err := servinglib.RevisionTemplateOfService(created)
 
 	if err != nil {
 		t.Fatal(err)
@@ -228,7 +228,7 @@ func TestServiceCreateWithLimits(t *testing.T) {
 		corev1.ResourceMemory: parseQuantity(t, "1024Mi"),
 	}
 
-	template, err := servinglib.GetRevisionTemplate(created)
+	template, err := servinglib.RevisionTemplateOfService(created)
 
 	if err != nil {
 		t.Fatal(err)
@@ -257,7 +257,7 @@ func TestServiceCreateRequestsLimitsCPU(t *testing.T) {
 		corev1.ResourceCPU: parseQuantity(t, "1000m"),
 	}
 
-	template, err := servinglib.GetRevisionTemplate(created)
+	template, err := servinglib.RevisionTemplateOfService(created)
 
 	if err != nil {
 		t.Fatal(err)
@@ -294,7 +294,7 @@ func TestServiceCreateRequestsLimitsMemory(t *testing.T) {
 		corev1.ResourceMemory: parseQuantity(t, "1024Mi"),
 	}
 
-	template, err := servinglib.GetRevisionTemplate(created)
+	template, err := servinglib.RevisionTemplateOfService(created)
 
 	if err != nil {
 		t.Fatal(err)
@@ -324,7 +324,7 @@ func TestServiceCreateMaxMinScale(t *testing.T) {
 		t.Fatalf("Bad action %v", action)
 	}
 
-	template, err := servinglib.GetRevisionTemplate(created)
+	template, err := servinglib.RevisionTemplateOfService(created)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -371,7 +371,7 @@ func TestServiceCreateRequestsLimitsCPUMemory(t *testing.T) {
 		corev1.ResourceMemory: parseQuantity(t, "1024Mi"),
 	}
 
-	template, err := servinglib.GetRevisionTemplate(created)
+	template, err := servinglib.RevisionTemplateOfService(created)
 
 	if err != nil {
 		t.Fatal(err)
@@ -421,7 +421,7 @@ func TestServiceCreateImageForce(t *testing.T) {
 	} else if !action.Matches("update", "services") {
 		t.Fatalf("Bad action %v", action)
 	}
-	template, err := servinglib.GetRevisionTemplate(created)
+	template, err := servinglib.RevisionTemplateOfService(created)
 	if err != nil {
 		t.Fatal(err)
 	} else if template.Spec.DeprecatedContainer.Image != "gcr.io/foo/bar:v2" {
@@ -450,7 +450,7 @@ func TestServiceCreateEnvForce(t *testing.T) {
 		"A": "CATS",
 		"B": "LIONS"}
 
-	template, err := servinglib.GetRevisionTemplate(created)
+	template, err := servinglib.RevisionTemplateOfService(created)
 	actualEnvVars, err := servinglib.EnvToMap(template.Spec.DeprecatedContainer.Env)
 	if err != nil {
 		t.Fatal(err)

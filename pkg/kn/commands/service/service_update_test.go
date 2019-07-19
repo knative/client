@@ -67,7 +67,7 @@ func fakeServiceUpdate(original *v1alpha1.Service, args []string) (
 func TestServiceUpdateImage(t *testing.T) {
 	orig := newEmptyService()
 
-	template, err := servinglib.GetRevisionTemplate(orig)
+	template, err := servinglib.RevisionTemplateOfService(orig)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -83,7 +83,7 @@ func TestServiceUpdateImage(t *testing.T) {
 		t.Fatalf("Bad action %v", action)
 	}
 
-	template, err = servinglib.GetRevisionTemplate(updated)
+	template, err = servinglib.RevisionTemplateOfService(updated)
 	if err != nil {
 		t.Fatal(err)
 	} else if template.Spec.DeprecatedContainer.Image != "gcr.io/foo/quux:xyzzy" {
@@ -112,7 +112,7 @@ func TestServiceUpdateMaxMinScale(t *testing.T) {
 		t.Fatalf("Bad action %v", action)
 	}
 
-	template, err := servinglib.GetRevisionTemplate(updated)
+	template, err := servinglib.RevisionTemplateOfService(updated)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -161,7 +161,7 @@ func TestServiceUpdateEnv(t *testing.T) {
 		},
 	}
 
-	template, err := servinglib.GetRevisionTemplate(orig)
+	template, err := servinglib.RevisionTemplateOfService(orig)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -181,7 +181,7 @@ func TestServiceUpdateEnv(t *testing.T) {
 		Value: "Awesome",
 	}
 
-	template, err = servinglib.GetRevisionTemplate(updated)
+	template, err = servinglib.RevisionTemplateOfService(updated)
 	if err != nil {
 		t.Fatal(err)
 	} else if template.Spec.DeprecatedContainer.Image != "gcr.io/foo/bar:baz" {
@@ -211,7 +211,7 @@ func TestServiceUpdateRequestsLimitsCPU(t *testing.T) {
 		corev1.ResourceMemory: resource.MustParse("1024Mi"),
 	}
 
-	newTemplate, err := servinglib.GetRevisionTemplate(updated)
+	newTemplate, err := servinglib.RevisionTemplateOfService(updated)
 	if err != nil {
 		t.Fatal(err)
 	} else {
@@ -249,7 +249,7 @@ func TestServiceUpdateRequestsLimitsMemory(t *testing.T) {
 		corev1.ResourceMemory: resource.MustParse("2048Mi"),
 	}
 
-	newTemplate, err := servinglib.GetRevisionTemplate(updated)
+	newTemplate, err := servinglib.RevisionTemplateOfService(updated)
 	if err != nil {
 		t.Fatal(err)
 	} else {
@@ -289,7 +289,7 @@ func TestServiceUpdateRequestsLimitsCPU_and_Memory(t *testing.T) {
 		corev1.ResourceMemory: resource.MustParse("2048Mi"),
 	}
 
-	newTemplate, err := servinglib.GetRevisionTemplate(updated)
+	newTemplate, err := servinglib.RevisionTemplateOfService(updated)
 	if err != nil {
 		t.Fatal(err)
 	} else {
@@ -354,7 +354,7 @@ func createMockServiceWithResources(t *testing.T, requestCPU, requestMemory, lim
 		},
 	}
 
-	template, err := servinglib.GetRevisionTemplate(service)
+	template, err := servinglib.RevisionTemplateOfService(service)
 	if err != nil {
 		t.Fatal(err)
 	}
