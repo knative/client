@@ -92,7 +92,7 @@ func UpdateAnnotation(template *servingv1alpha1.RevisionTemplateSpec, annotation
 	return nil
 }
 
-// Update the name
+// UpdateName updates the revision name.
 func UpdateName(template *servingv1alpha1.RevisionTemplateSpec, name string) error {
 	template.Name = name
 	return nil

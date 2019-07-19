@@ -46,6 +46,8 @@ var charChoices = []string{
 	"y", "z",
 }
 
+// GenerateRevisionName returns an automatically-generated name suitable for the
+// next revision of the given service.
 func GenerateRevisionName(service *servingv1alpha1.Service) string {
 	prefix := service.Name
 	generation := service.Generation + 1

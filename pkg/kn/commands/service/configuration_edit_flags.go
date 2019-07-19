@@ -53,7 +53,7 @@ type ResourceFlags struct {
 	Memory string
 }
 
-func (p *ConfigurationEditFlags) AddSharedFlags(command *cobra.Command) {
+func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	command.Flags().StringVar(&p.Image, "image", "", "Image to run.")
 	p.flags = append(p.flags, "image")
 	command.Flags().StringArrayVarP(&p.Env, "env", "e", []string{},
@@ -92,21 +92,25 @@ func (p *ConfigurationEditFlags) AddSharedFlags(command *cobra.Command) {
 		"The revision name to set. If you don't add the service name as a prefix, it'll be added for you.")
 	p.flags = append(p.flags, "revision-name")
 }
+
+// AddUpdateFlags adds the flags specific to update.
 func (p *ConfigurationEditFlags) AddUpdateFlags(command *cobra.Command) {
-	p.AddSharedFlags(command)
+	p.addSharedFlags(command)
 
 	command.Flags().BoolVar(&p.GenerateRevisionName, "generate-revision-name", true,
 		"Automatically generate a revision name client-side. If false, the revision name is cleared.")
 	p.flags = append(p.flags, "generate-revision-name")
 }
 
+// AddCreateFlags adds the flags specific to create
 func (p *ConfigurationEditFlags) AddCreateFlags(command *cobra.Command) {
-	p.AddSharedFlags(command)
+	p.addSharedFlags(command)
 	command.Flags().BoolVar(&p.ForceCreate, "force", false,
 		"Create service forcefully, replaces existing service if any.")
 	command.MarkFlagRequired("image")
 }
 
+// Apply mutates the given service according to the flags in the command.
 func (p *ConfigurationEditFlags) Apply(
 	service *servingv1alpha1.Service,
 	cmd *cobra.Command) error {
@@ -249,6 +253,8 @@ func (p *ConfigurationEditFlags) computeResources(resourceFlags ResourceFlags) (
 	return resourceList, nil
 }
 
+// AnyMutation returns tue if there are any revision template mutations in the
+// command.
 func (p *ConfigurationEditFlags) AnyMutation(cmd *cobra.Command) bool {
 	for _, flag := range p.flags {
 		if cmd.Flags().Changed(flag) {
