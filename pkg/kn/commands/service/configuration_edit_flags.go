@@ -27,16 +27,24 @@ import (
 )
 
 type ConfigurationEditFlags struct {
+	// Direct field manipulation
 	Image                      string
 	Env                        []string
 	RequestsFlags, LimitsFlags ResourceFlags
-	ForceCreate                bool
 	MinScale                   int
 	MaxScale                   int
 	ConcurrencyTarget          int
 	ConcurrencyLimit           int
 	Port                       int32
 	Labels                     []string
+	NamePrefix                 string
+
+	// Preferences about how to do the action.
+	GenerateRevisionName bool
+	ForceCreate          bool
+
+	// Bookkeeping
+	flags []string
 }
 
 type ResourceFlags struct {
@@ -44,34 +52,63 @@ type ResourceFlags struct {
 	Memory string
 }
 
-func (p *ConfigurationEditFlags) AddUpdateFlags(command *cobra.Command) {
+func (p *ConfigurationEditFlags) AddSharedFlags(command *cobra.Command) {
 	command.Flags().StringVar(&p.Image, "image", "", "Image to run.")
+	p.flags = append(p.flags, "image")
 	command.Flags().StringArrayVarP(&p.Env, "env", "e", []string{},
 		"Environment variable to set. NAME=value; you may provide this flag "+
 			"any number of times to set multiple environment variables. "+
 			"To unset, specify the environment variable name followed by a \"-\" (e.g., NAME-).")
+	p.flags = append(p.flags, "env")
 	command.Flags().StringVar(&p.RequestsFlags.CPU, "requests-cpu", "", "The requested CPU (e.g., 250m).")
+	p.flags = append(p.flags, "requests-cpu")
 	command.Flags().StringVar(&p.RequestsFlags.Memory, "requests-memory", "", "The requested memory (e.g., 64Mi).")
+	p.flags = append(p.flags, "requests-memory")
 	command.Flags().StringVar(&p.LimitsFlags.CPU, "limits-cpu", "", "The limits on the requested CPU (e.g., 1000m).")
-	command.Flags().StringVar(&p.LimitsFlags.Memory, "limits-memory", "", "The limits on the requested memory (e.g., 1024Mi).")
+	p.flags = append(p.flags, "limits-cpu")
+	command.Flags().StringVar(&p.LimitsFlags.Memory, "limits-memory", "",
+		"The limits on the requested memory (e.g., 1024Mi).")
+	p.flags = append(p.flags, "limits-memory")
 	command.Flags().IntVar(&p.MinScale, "min-scale", 0, "Minimal number of replicas.")
+	p.flags = append(p.flags, "min-scale")
 	command.Flags().IntVar(&p.MaxScale, "max-scale", 0, "Maximal number of replicas.")
-	command.Flags().IntVar(&p.ConcurrencyTarget, "concurrency-target", 0, "Recommendation for when to scale up based on the concurrent number of incoming request. Defaults to --concurrency-limit when given.")
-	command.Flags().IntVar(&p.ConcurrencyLimit, "concurrency-limit", 0, "Hard Limit of concurrent requests to be processed by a single replica.")
+	p.flags = append(p.flags, "max-scale")
+	command.Flags().IntVar(&p.ConcurrencyTarget, "concurrency-target", 0,
+		"Recommendation for when to scale up based on the concurrent number of incoming request. "+
+			"Defaults to --concurrency-limit when given.")
+	p.flags = append(p.flags, "concurrency-target")
+	command.Flags().IntVar(&p.ConcurrencyLimit, "concurrency-limit", 0,
+		"Hard Limit of concurrent requests to be processed by a single replica.")
+	p.flags = append(p.flags, "concurrency-limit")
 	command.Flags().Int32VarP(&p.Port, "port", "p", 0, "The port where application listens on.")
 	command.Flags().StringArrayVarP(&p.Labels, "label", "l", []string{},
 		"Service label to set. name=value; you may provide this flag "+
 			"any number of times to set multiple labels. "+
 			"To unset, specify the label name followed by a \"-\" (e.g., name-).")
+	p.flags = append(p.flags, "label")
+	p.flags = append(p.flags, "port")
+	command.Flags().StringVar(&p.NamePrefix, "name", "",
+		"The revision name prefix to set. Implies --generate-revision-name=false")
+	p.flags = append(p.flags, "name")
+}
+func (p *ConfigurationEditFlags) AddUpdateFlags(command *cobra.Command) {
+	p.AddSharedFlags(command)
+
+	command.Flags().BoolVar(&p.GenerateRevisionName, "generate-revision-name", true,
+		"Automatically generate a revision name client-side. If false, the revision name is cleared.")
+	p.flags = append(p.flags, "generate-revision-name")
 }
 
 func (p *ConfigurationEditFlags) AddCreateFlags(command *cobra.Command) {
-	p.AddUpdateFlags(command)
-	command.Flags().BoolVar(&p.ForceCreate, "force", false, "Create service forcefully, replaces existing service if any.")
+	p.AddSharedFlags(command)
+	command.Flags().BoolVar(&p.ForceCreate, "force", false,
+		"Create service forcefully, replaces existing service if any.")
 	command.MarkFlagRequired("image")
 }
 
-func (p *ConfigurationEditFlags) Apply(service *servingv1alpha1.Service, cmd *cobra.Command) error {
+func (p *ConfigurationEditFlags) Apply(
+	service *servingv1alpha1.Service,
+	cmd *cobra.Command) error {
 
 	template, err := servinglib.RevisionTemplateOfService(service)
 	if err != nil {
@@ -193,4 +230,13 @@ func (p *ConfigurationEditFlags) computeResources(resourceFlags ResourceFlags) (
 	}
 
 	return resourceList, nil
+}
+
+func (p *ConfigurationEditFlags) AnyMutation(cmd *cobra.Command) bool {
+	for _, flag := range p.flags {
+		if cmd.Flags().Changed(flag) {
+			return true
+		}
+	}
+	return false
 }

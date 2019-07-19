@@ -51,6 +51,7 @@ kn service create NAME --image IMAGE [flags]
       --limits-memory string     The limits on the requested memory (e.g., 1024Mi).
       --max-scale int            Maximal number of replicas.
       --min-scale int            Minimal number of replicas.
+      --name string              The revision name prefix to set. Implies --generate-revision-name=false
   -n, --namespace string         List the requested object(s) in given namespace.
   -p, --port int32               The port where application listens on.
       --requests-cpu string      The requested CPU (e.g., 250m).

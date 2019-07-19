@@ -31,6 +31,7 @@ kn service update NAME [flags]
       --concurrency-limit int    Hard Limit of concurrent requests to be processed by a single replica.
       --concurrency-target int   Recommendation for when to scale up based on the concurrent number of incoming request. Defaults to --concurrency-limit when given.
   -e, --env stringArray          Environment variable to set. NAME=value; you may provide this flag any number of times to set multiple environment variables. To unset, specify the environment variable name followed by a "-" (e.g., NAME-).
+      --generate-revision-name   Automatically generate a revision name client-side. If false, the revision name is cleared. (default true)
   -h, --help                     help for update
       --image string             Image to run.
   -l, --label stringArray        Service label to set. name=value; you may provide this flag any number of times to set multiple labels. To unset, specify the label name followed by a "-" (e.g., name-).
@@ -38,6 +39,7 @@ kn service update NAME [flags]
       --limits-memory string     The limits on the requested memory (e.g., 1024Mi).
       --max-scale int            Maximal number of replicas.
       --min-scale int            Minimal number of replicas.
+      --name string              The revision name prefix to set. Implies --generate-revision-name=false
   -n, --namespace string         List the requested object(s) in given namespace.
   -p, --port int32               The port where application listens on.
       --requests-cpu string      The requested CPU (e.g., 250m).
