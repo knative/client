@@ -18,12 +18,13 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/knative/serving/pkg/apis/autoscaling"
 	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	servingv1beta1 "github.com/knative/serving/pkg/apis/serving/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 )
 
-// Give the configuration all the env var values listed in the given map of
+// UpdateEnvVars gives the configuration all the env var values listed in the given map of
 // vars.  Does not touch any environment variables not mentioned, but it can add
 // new env vars and change the values of existing ones.
 func UpdateEnvVars(template *servingv1alpha1.RevisionTemplateSpec, vars map[string]string) error {
@@ -35,34 +36,43 @@ func UpdateEnvVars(template *servingv1alpha1.RevisionTemplateSpec, vars map[stri
 	return nil
 }
 
-// Update min and max scale annotation if larger than 0
+// UpdateConcurrencyConfiguration updates min and max scale annotation as well as container concurrency limit annotation
+// if larger than or equal to 0 and updates container concurrency target  annotation if larger than 0
 func UpdateConcurrencyConfiguration(template *servingv1alpha1.RevisionTemplateSpec, minScale int, maxScale int, target int, limit int) {
-	if minScale != 0 {
-		UpdateAnnotation(template, "autoscaling.knative.dev/minScale", strconv.Itoa(minScale))
+	if minScale >= 0 {
+		UpdateAnnotation(template, autoscaling.MinScaleAnnotationKey, strconv.Itoa(minScale))
 	}
-	if maxScale != 0 {
-		UpdateAnnotation(template, "autoscaling.knative.dev/maxScale", strconv.Itoa(maxScale))
+	if maxScale >= 0 {
+		UpdateAnnotation(template, autoscaling.MaxScaleAnnotationKey, strconv.Itoa(maxScale))
 	}
-	if target != 0 {
-		UpdateAnnotation(template, "autoscaling.knative.dev/target", strconv.Itoa(target))
+	// Minimal percentage value of container-concurrency-target-percentage must be greater than 1.0
+	if target > 0 {
+		UpdateAnnotation(template, autoscaling.TargetAnnotationKey, strconv.Itoa(target))
 	}
 
-	if limit != 0 {
+	if limit >= 0 {
 		template.Spec.ContainerConcurrency = servingv1beta1.RevisionContainerConcurrencyType(limit)
 	}
 }
 
-// Updater (or add) an annotation to the given service
+// UpdateAnnotation updates (or adds) an annotation to the given service
 func UpdateAnnotation(template *servingv1alpha1.RevisionTemplateSpec, annotation string, value string) {
 	annoMap := template.Annotations
 	if annoMap == nil {
 		annoMap = make(map[string]string)
 		template.Annotations = annoMap
 	}
+	// Validate input autoscaling annotations and returns the same value as before if input value is invalid
+	in := make(map[string]string)
+	in[annotation] = value
+	if err := autoscaling.ValidateAnnotations(in); err != nil {
+		return
+	}
+
 	annoMap[annotation] = value
 }
 
-// Utility function to translate between the API list form of env vars, and the
+// EnvToMap is an utility function to translate between the API list form of env vars, and the
 // more convenient map form.
 func EnvToMap(vars []corev1.EnvVar) (map[string]string, error) {
 	result := map[string]string{}
@@ -76,7 +86,7 @@ func EnvToMap(vars []corev1.EnvVar) (map[string]string, error) {
 	return result, nil
 }
 
-// Update a given image
+// UpdateImage a given image
 func UpdateImage(template *servingv1alpha1.RevisionTemplateSpec, image string) error {
 	container, err := ContainerOfRevisionTemplate(template)
 	if err != nil {
@@ -98,6 +108,7 @@ func UpdateContainerPort(template *servingv1alpha1.RevisionTemplateSpec, port in
 	return nil
 }
 
+// UpdateResources updates resources as requested
 func UpdateResources(template *servingv1alpha1.RevisionTemplateSpec, requestsResourceList corev1.ResourceList, limitsResourceList corev1.ResourceList) error {
 	container, err := ContainerOfRevisionTemplate(template)
 	if err != nil {

@@ -18,6 +18,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/knative/serving/pkg/apis/autoscaling"
 	"github.com/knative/serving/pkg/apis/serving/v1beta1"
 
 	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
@@ -28,13 +29,33 @@ func TestUpdateAutoscalingAnnotations(t *testing.T) {
 	template := &servingv1alpha1.RevisionTemplateSpec{}
 	UpdateConcurrencyConfiguration(template, 10, 100, 1000, 1000)
 	annos := template.Annotations
-	if annos["autoscaling.knative.dev/minScale"] != "10" {
+	if annos[autoscaling.MinScaleAnnotationKey] != "10" {
 		t.Error("minScale failed")
 	}
-	if annos["autoscaling.knative.dev/maxScale"] != "100" {
+	if annos[autoscaling.MaxScaleAnnotationKey] != "100" {
 		t.Error("maxScale failed")
 	}
-	if annos["autoscaling.knative.dev/target"] != "1000" {
+	if annos[autoscaling.TargetAnnotationKey] != "1000" {
+		t.Error("target failed")
+	}
+	if template.Spec.ContainerConcurrency != 1000 {
+		t.Error("limit failed")
+	}
+}
+
+func TestUpdateInvalidAutoscalingAnnotations(t *testing.T) {
+	template := &servingv1alpha1.RevisionTemplateSpec{}
+	UpdateConcurrencyConfiguration(template, 10, 100, 1000, 1000)
+	// Update with invalid concurrency options
+	UpdateConcurrencyConfiguration(template, -1, -1, 0, -1)
+	annos := template.Annotations
+	if annos[autoscaling.MinScaleAnnotationKey] != "10" {
+		t.Error("minScale failed")
+	}
+	if annos[autoscaling.MaxScaleAnnotationKey] != "100" {
+		t.Error("maxScale failed")
+	}
+	if annos[autoscaling.TargetAnnotationKey] != "1000" {
 		t.Error("target failed")
 	}
 	if template.Spec.ContainerConcurrency != 1000 {
@@ -137,6 +158,30 @@ func testUpdateEnvVarsModify(t *testing.T, revision *servingv1alpha1.RevisionTem
 	}
 	if !reflect.DeepEqual(expected, found) {
 		t.Fatalf("Env did not match expected %v, found %v", env, found)
+	}
+}
+
+func TestUpdateContainerImage(t *testing.T) {
+	template, _ := getV1alpha1RevisionTemplateWithOldFields()
+	err := UpdateImage(template, "gcr.io/foo/bar:baz")
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Verify update is successful or not
+	checkContainerImage(t, template, "gcr.io/foo/bar:baz")
+	// Update template with container image info
+	template.Spec.GetContainer().Image = "docker.io/foo/bar:baz"
+	err = UpdateImage(template, "query.io/foo/bar:baz")
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Verify that given image overrides the existing container image
+	checkContainerImage(t, template, "query.io/foo/bar:baz")
+}
+
+func checkContainerImage(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, image string) {
+	if got, want := template.Spec.GetContainer().Image, image; got != want {
+		t.Errorf("Failed to update the container image: got=%s, want=%s", got, want)
 	}
 }
 

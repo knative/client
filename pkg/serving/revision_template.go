@@ -29,16 +29,11 @@ func ContainerOfRevisionSpec(revisionSpec *servingv1alpha1.RevisionSpec) (*corev
 	if usesOldV1alpha1ContainerField(revisionSpec) {
 		return revisionSpec.DeprecatedContainer, nil
 	}
-	containers := revisionSpec.Containers
-	if len(containers) == 0 {
+	container := revisionSpec.GetContainer()
+	if container == nil {
 		return nil, fmt.Errorf("internal: no container set in spec.template.spec.containers")
 	}
-	if len(containers) > 1 {
-		return nil, fmt.Errorf("internal: can't extract container for updating environment"+
-			" variables as the configuration contains "+
-			"more than one container (i.e. %d containers)", len(containers))
-	}
-	return &containers[0], nil
+	return container, nil
 }
 
 // =======================================================================================
