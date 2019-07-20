@@ -167,7 +167,7 @@ func TestServiceUpdateImage(t *testing.T) {
 }
 
 func TestServiceUpdateRevisionNameExplicit(t *testing.T) {
-	orig := newEmptyService()
+	orig := newEmptyServiceBeta()
 
 	template, err := servinglib.RevisionTemplateOfService(orig)
 	if err != nil {
@@ -202,7 +202,7 @@ func TestServiceUpdateRevisionNameExplicit(t *testing.T) {
 }
 
 func TestServiceUpdateRevisionNameGenerated(t *testing.T) {
-	orig := newEmptyService()
+	orig := newEmptyServiceBeta()
 
 	template, err := servinglib.RevisionTemplateOfService(orig)
 	if err != nil {
@@ -226,7 +226,7 @@ func TestServiceUpdateRevisionNameGenerated(t *testing.T) {
 }
 
 func TestServiceUpdateRevisionNameCleared(t *testing.T) {
-	orig := newEmptyService()
+	orig := newEmptyServiceBeta()
 
 	template, err := servinglib.RevisionTemplateOfService(orig)
 	if err != nil {
@@ -248,7 +248,7 @@ func TestServiceUpdateRevisionNameCleared(t *testing.T) {
 }
 
 func TestServiceUpdateRevisionNameNoMutationNoChange(t *testing.T) {
-	orig := newEmptyService()
+	orig := newEmptyServiceBeta()
 
 	template, err := servinglib.RevisionTemplateOfService(orig)
 	if err != nil {
@@ -558,6 +558,23 @@ func newEmptyService() *v1alpha1.Service {
 			},
 		},
 	}
+}
+
+func newEmptyServiceBeta() *v1alpha1.Service {
+	ret := &v1alpha1.Service{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Service",
+			APIVersion: "knative.dev/v1alpha1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "foo",
+			Namespace: "default",
+		},
+		Spec: v1alpha1.ServiceSpec{},
+	}
+	ret.Spec.Template = &v1alpha1.RevisionTemplateSpec{}
+	ret.Spec.Template.Spec.Containers = []corev1.Container{{}}
+	return ret
 }
 
 func createMockServiceWithResources(t *testing.T, requestCPU, requestMemory, limitsCPU, limitsMemory string) *v1alpha1.Service {
