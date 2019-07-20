@@ -150,7 +150,9 @@ func (p *ConfigurationEditFlags) Apply(
 	}
 	if anyMutation {
 		err = servinglib.UpdateName(template, name)
-		if err != nil {
+		if err == servinglib.ApiTooOldError && !cmd.Flags().Changed("revision-name") {
+			// pass
+		} else if err != nil {
 			return err
 		}
 	}
