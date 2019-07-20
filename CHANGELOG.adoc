@@ -38,6 +38,10 @@
 | `kn service list` lists services sorted by alphabetical order
 | https://github.com/knative/client/pull/330[#330]
 
+| 🎁
+| Add --revision-name flag
+| https://github.com/knative/client/pull/282[#282]
+
 |===
 
 ## v0.2.0 (2019-07-10)
