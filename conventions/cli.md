@@ -64,6 +64,10 @@ In this case `foo` is positional, and refers to the service to create.
   example, `--image=img.repo/asdf` in Knative Serving sets
   `spec.template.containers[0].image`
 
+* Flags that specify boolean behavior (eg. generate a name or not) take an
+  explicit boolean value (eg. --generate-name=false). They can have a default of
+  either true or false.
+
 #### Output
 
 Commands that output information should support `--output` with a shorthand of
