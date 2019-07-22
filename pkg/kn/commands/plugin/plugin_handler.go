@@ -19,8 +19,11 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"syscall"
+
+	"github.com/knative/client/pkg/kn/commands"
 )
 
 // PluginHandler is capable of parsing command line arguments
@@ -53,14 +56,29 @@ func NewDefaultPluginHandler(validPrefixes []string) *DefaultPluginHandler {
 
 // Lookup implements PluginHandler
 func (h *DefaultPluginHandler) Lookup(filename string) (string, bool) {
+	var pluginPath string
+	var err error
 	for _, prefix := range h.ValidPrefixes {
-		path, err := exec.LookPath(fmt.Sprintf("%s-%s", prefix, filename))
-		if err != nil || len(path) == 0 {
-			continue
-		}
-		return path, true
-	}
+		pluginPath = fmt.Sprintf("%s-%s", prefix, filename)
+		if commands.Cfg.LookupPluginsInPath {
+			pluginPath, err = exec.LookPath(pluginPath)
+			if err != nil || len(pluginPath) == 0 {
+				continue
+			}
+		} else {
+			pluginDir, err := ExpandPath(commands.Cfg.PluginsDir)
+			if err != nil {
+				return "", false
+			}
 
+			pluginPath = filepath.Join(pluginDir, pluginPath)
+			_, err = os.Stat(pluginPath)
+			if os.IsNotExist(err) {
+				continue
+			}
+		}
+		return pluginPath, true
+	}
 	return "", false
 }
 

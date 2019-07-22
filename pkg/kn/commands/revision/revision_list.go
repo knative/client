@@ -29,7 +29,7 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 	revisionListFlags := NewRevisionListFlags()
 
 	revisionListCommand := &cobra.Command{
-		Use:   "list",
+		Use:   "list [name]",
 		Short: "List available revisions.",
 		Long:  "List revisions for a given service.",
 		Example: `
@@ -37,7 +37,13 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
   kn revision list
 
   # List revisions for a service 'svc1' in namespace 'myapp'
-  kn revision list -s svc1 -n myapp`,
+  kn revision list -s svc1 -n myapp
+
+  # List all revisions in JSON output format
+  kn revision list -o json
+  
+  # List revision 'web'
+  kn revision list web`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			namespace, err := p.GetNamespace(cmd)
 			if err != nil {
@@ -65,7 +71,7 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 					return nil
 				}
 			} else {
-				revisionList, err = client.ListRevisions()
+				revisionList, err = getRevisionInfo(args, client)
 				if err != nil {
 					return err
 				}
@@ -74,7 +80,6 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 					return nil
 				}
 			}
-
 			printer, err := revisionListFlags.ToPrinter()
 			if err != nil {
 				return err
@@ -89,4 +94,20 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 	commands.AddNamespaceFlags(revisionListCommand.Flags(), true)
 	revisionListFlags.AddFlags(revisionListCommand)
 	return revisionListCommand
+}
+
+func getRevisionInfo(args []string, client v1alpha12.KnClient) (*v1alpha1.RevisionList, error) {
+	var (
+		revisionList *v1alpha1.RevisionList
+		err          error
+	)
+	switch len(args) {
+	case 0:
+		revisionList, err = client.ListRevisions()
+	case 1:
+		revisionList, err = client.ListRevisions(v1alpha12.WithName(args[0]))
+	default:
+		return nil, fmt.Errorf("'kn revision list' accepts maximum 1 argument")
+	}
+	return revisionList, err
 }

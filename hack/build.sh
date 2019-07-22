@@ -47,38 +47,58 @@ run() {
   fi
 
   if $(has_flag --watch -w); then
-    watch
-    # No exit, needs to be stopped with CTRL-C anyways
-  fi
-
-  if $(has_flag -u --update); then
-    # Update dependencies
-    update_deps
-  fi
-
-  if ! $(has_flag --fast -f); then
-
-    # Format source code and cleanup imports
-    source_format
-
-    # Generate docs
-    # Check for license headers
-    check_license
-
-    # Auto generate cli docs
-    generate_docs
-  fi
-
-  # Run build
-  go_build
-
-  # Run tests
-  if  $(has_flag --test -t) || ! $(has_flag --fast -f); then
+    # Build and test first
+    go_build
     go_test
+
+    # Go in endless loop, to be stopped with CTRL-C
+    watch
   fi
+
+  # Fast mode: Only compile and maybe run test
+  if $(has_flag --fast -f); then
+    go_build
+
+    if $(has_flag --test -t); then
+       go_test
+    fi
+    exit 0
+  fi
+
+  # Run only tests
+  if $(has_flag --test -t); then
+    go_test
+    exit 0
+  fi
+
+  # Run only codegen
+  if $(has_flag --codegen -c); then
+    codegen
+    exit 0
+  fi
+
+  # Default flow
+  codegen
+  go_build
+  go_test
 
   echo "────────────────────────────────────────────"
   ./kn version
+}
+
+
+codegen() {
+  # Update dependencies
+  update_deps
+
+  # Format source code and cleanup imports
+  source_format
+
+  # Check for license headers
+  check_license
+
+  # Auto generate cli docs
+  generate_docs
 }
 
 go_fmt() {
@@ -91,7 +111,7 @@ source_format() {
   which goimports >/dev/null 2>&1
   if [ $? -ne 0 ]; then
      echo "✋ No 'goimports' found. Please use"
-     echo "✋   go get golang.org/x/tools/cmd/goimports"
+     echo "✋   go install golang.org/x/tools/cmd/goimports"
      echo "✋ to enable import cleanup. Import cleanup skipped."
 
      # Run go fmt instead
@@ -112,8 +132,14 @@ go_build() {
 
 go_test() {
   local test_output=$(mktemp /tmp/kn-client-test-output.XXXXXX)
-  local red="[31m"
-  local reset="[39m"
+
+  local red=""
+  local reset=""
+  # Use color only when a terminal is set
+  if [ -t 1 ]; then
+    red="[31m"
+    reset="[39m"
+  fi
 
   echo "🧪 ${S}Test"
   set +e
@@ -240,10 +266,9 @@ Usage: $(basename $BASH_SOURCE) [... options ...]
 
 with the following options:
 
--f  --fast                    Only compile (without formatting, testing, doc generation)
+-f  --fast                    Only compile (without dep update, formatting, testing, doc gen)
 -t  --test                    Run tests when used with --fast or --watch
--i  --imports                 Organize and cleanup imports
--u  --update                  Update dependencies before compiling
+-c  --codegen                 Runs formatting, doc gen and update without compiling/testing
 -w  --watch                   Watch for source changes and recompile in fast mode
 -h  --help                    Display this help message
     --verbose                 More output
@@ -256,10 +281,12 @@ ln -s $(basedir)/hack/build.sh /usr/local/bin/kn_build.sh
 
 Examples:
 
-* Compile, format, tests, docs:  build.sh
-* Compile only:                  build.sh --fast
-* Compile with tests:            build.sh -f -t
-* Automatice recompilation:      build.sh --watch
+* Update deps, format, license check,
+  gen docs, compile, test: ........... build.sh
+* Compile only: ...................... build.sh --fast
+* Run only tests: .................... build.sh --test
+* Compile with tests: ................ build.sh -f -t
+* Automatic recompilation: ........... build.sh --watch
 EOT
 }
 

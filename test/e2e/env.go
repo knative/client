@@ -26,8 +26,6 @@ type env struct {
 
 const defaultKnE2ENamespace = "kne2etests"
 
-var namespaceCount = 0
-
 func buildEnv(t *testing.T) env {
 	env := env{
 		Namespace: os.Getenv("KN_E2E_NAMESPACE"),

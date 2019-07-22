@@ -21,6 +21,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/knative/client/pkg/kn/commands"
 	"gotest.tools/assert"
 )
 
@@ -51,8 +52,7 @@ func TestPluginHandler(t *testing.T) {
 		pluginPath = CreateTestPluginInPath(t, "kn-"+pluginName, KnTestPluginScript, FileModeExecutable, tmpPathDir)
 		assert.Assert(t, pluginPath != "")
 
-		err = os.Setenv("PATH", tmpPathDir)
-		assert.Assert(t, err == nil)
+		commands.Cfg.PluginsDir = pluginPath
 	}
 
 	t.Run("#NewDefaultPluginHandler", func(t *testing.T) {
@@ -64,28 +64,38 @@ func TestPluginHandler(t *testing.T) {
 	})
 
 	t.Run("#Lookup", func(t *testing.T) {
-		t.Run("returns the first filepath matching prefix", func(t *testing.T) {
-			setup(t)
-			defer cleanup(t)
-			beforeEach(t)
+		t.Run("when plugin in pluginsDir", func(t *testing.T) {
+			t.Run("returns the first filepath matching prefix", func(t *testing.T) {
+				setup(t)
+				defer cleanup(t)
+				beforeEach(t)
 
-			path, exists := pluginHandler.Lookup(pluginName)
-			assert.Assert(t, path != "", fmt.Sprintf("no path when Lookup(%s)", pluginName))
-			assert.Assert(t, exists == true, fmt.Sprintf("could not Lookup(%s)", pluginName))
+				path, exists := pluginHandler.Lookup(pluginName)
+				assert.Assert(t, path != "", fmt.Sprintf("no path when Lookup(%s)", pluginName))
+				assert.Assert(t, exists == true, fmt.Sprintf("could not Lookup(%s)", pluginName))
+			})
+
+			t.Run("returns empty filepath when no matching prefix found", func(t *testing.T) {
+				setup(t)
+				defer cleanup(t)
+
+				path, exists := pluginHandler.Lookup("bogus-plugin-name")
+				assert.Assert(t, path == "", fmt.Sprintf("unexpected plugin: kn-bogus-plugin-name"))
+				assert.Assert(t, exists == false, fmt.Sprintf("unexpected plugin: kn-bogus-plugin-name"))
+			})
 		})
 
-		t.Run("returns empty filepath when no matching prefix found", func(t *testing.T) {
-			setup(t)
-			defer cleanup(t)
+		t.Run("when plugin in $PATH and lookupPluginsInPath true", func(t *testing.T) {
+			//TODO
+		})
 
-			path, exists := pluginHandler.Lookup("bogus-plugin-name")
-			assert.Assert(t, path == "", fmt.Sprintf("unexpected plugin: kn-bogus-plugin-name"))
-			assert.Assert(t, exists == false, fmt.Sprintf("unexpected plugin: kn-bogus-plugin-name"))
+		t.Run("when plugin in $PATH and lookupPluginsInPath false", func(t *testing.T) {
+			//TODO
 		})
 	})
 
 	t.Run("#Execute", func(t *testing.T) {
-		t.Run("fails while executing the executable with args and environment", func(t *testing.T) {
+		t.Run("fails executing bogus plugin name", func(t *testing.T) {
 			setup(t)
 			defer cleanup(t)
 			beforeEach(t)

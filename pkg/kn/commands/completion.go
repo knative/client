@@ -28,8 +28,9 @@ func NewCompletionCommand(p *KnParams) *cobra.Command {
 	var completionFlags CompletionFlags
 
 	completionCmd := &cobra.Command{
-		Use:   "completion",
-		Short: "Output shell completion code (default Bash)",
+		Use:    "completion",
+		Short:  "Output shell completion code (default Bash)",
+		Hidden: true, // Don't show this in help listing.
 		Run: func(cmd *cobra.Command, args []string) {
 			if completionFlags.Zsh {
 				cmd.Root().GenZshCompletion(os.Stdout)

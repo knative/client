@@ -7,7 +7,7 @@ List available revisions.
 List revisions for a given service.
 
 ```
-kn revision list [flags]
+kn revision list [name] [flags]
 ```
 
 ### Examples
@@ -19,6 +19,12 @@ kn revision list [flags]
 
   # List revisions for a service 'svc1' in namespace 'myapp'
   kn revision list -s svc1 -n myapp
+
+  # List all revisions in JSON output format
+  kn revision list -o json
+  
+  # List revision 'web'
+  kn revision list web
 ```
 
 ### Options

@@ -80,9 +80,8 @@ func TestPluginList(t *testing.T) {
 			t.Run("warns user that no plugins found", func(t *testing.T) {
 				rootCmd.SetArgs([]string{"plugin", "list", "--lookup-plugins-in-path", "true"})
 				err = rootCmd.Execute()
-				assert.Assert(t, err == nil)
-				//TODO check output
-				//assert.Assert(t, strings.Contains(err.Error(), "warning: unable to find any kn plugins in your plugins path"))
+				assert.Assert(t, err != nil)
+				assert.Assert(t, strings.Contains(err.Error(), "warning: unable to find any kn plugins in your plugins path"))
 			})
 		})
 
@@ -122,9 +121,8 @@ func TestPluginList(t *testing.T) {
 
 					rootCmd.SetArgs([]string{"plugin", "list", "--lookup-plugins-in-path", "true"})
 					err = rootCmd.Execute()
-					assert.Assert(t, err == nil)
-					//TODO check output
-					//assert.Assert(t, strings.Contains(err.Error(), "warning: unable to find any kn plugins in your plugins path"))
+					assert.Assert(t, err != nil)
+					assert.Assert(t, strings.Contains(err.Error(), "warning: unable to find any kn plugins in your plugins path"))
 				})
 			})
 

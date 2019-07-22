@@ -15,7 +15,11 @@
 package commands
 
 import (
+	"errors"
+	"fmt"
 	"io"
+	"os"
+	"path/filepath"
 
 	serving_kn_v1alpha1 "github.com/knative/client/pkg/serving/v1alpha1"
 	serving_v1alpha1_client "github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
@@ -28,7 +32,7 @@ var CfgFile string
 // Cfg is Kn's configuration values
 var Cfg Config
 
-// Cfg contains the variables for the Kn config
+// Config contains the variables for the Kn config
 type Config struct {
 	PluginsDir          string
 	LookupPluginsInPath bool
@@ -59,11 +63,17 @@ func (params *KnParams) newClient(namespace string) (serving_kn_v1alpha1.KnClien
 	return serving_kn_v1alpha1.NewKnServingClient(client, namespace), nil
 }
 
+// GetConfig returns Serving Client
 func (params *KnParams) GetConfig() (serving_v1alpha1_client.ServingV1alpha1Interface, error) {
-	if params.ClientConfig == nil {
-		params.ClientConfig = params.GetClientConfig()
-	}
 	var err error
+
+	if params.ClientConfig == nil {
+		params.ClientConfig, err = params.GetClientConfig()
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	config, err := params.ClientConfig.ClientConfig()
 	if err != nil {
 		return nil, err
@@ -71,10 +81,28 @@ func (params *KnParams) GetConfig() (serving_v1alpha1_client.ServingV1alpha1Inte
 	return serving_v1alpha1_client.NewForConfig(config)
 }
 
-func (params *KnParams) GetClientConfig() clientcmd.ClientConfig {
+// GetClientConfig gets ClientConfig from KubeCfgPath
+func (params *KnParams) GetClientConfig() (clientcmd.ClientConfig, error) {
 	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
-	if len(params.KubeCfgPath) > 0 {
-		loadingRules.ExplicitPath = params.KubeCfgPath
+	if len(params.KubeCfgPath) == 0 {
+		return clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, &clientcmd.ConfigOverrides{}), nil
 	}
-	return clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, &clientcmd.ConfigOverrides{})
+
+	_, err := os.Stat(params.KubeCfgPath)
+	if err == nil {
+		loadingRules.ExplicitPath = params.KubeCfgPath
+		return clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, &clientcmd.ConfigOverrides{}), nil
+	}
+
+	if !os.IsNotExist(err) {
+		return nil, err
+	}
+
+	paths := filepath.SplitList(params.KubeCfgPath)
+	if len(paths) > 1 {
+		return nil, errors.New(fmt.Sprintf("Can not find config file. '%s' looks like a path. "+
+			"Please use the env var KUBECONFIG if you want to check for multiple configuration files", params.KubeCfgPath))
+	} else {
+		return nil, errors.New(fmt.Sprintf("Config file '%s' can not be found", params.KubeCfgPath))
+	}
 }

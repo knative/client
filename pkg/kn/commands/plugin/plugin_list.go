@@ -75,6 +75,17 @@ Available plugin files are those that are:
 	return pluginListCommand
 }
 
+func ExpandPath(path string) (string, error) {
+	if strings.Contains(path, "~") {
+		var err error
+		path, err = expandHomeDir(path)
+		if err != nil {
+			return "", err
+		}
+	}
+	return path, nil
+}
+
 // Private
 
 func (o *PluginFlags) complete(cmd *cobra.Command) error {
@@ -83,14 +94,9 @@ func (o *PluginFlags) complete(cmd *cobra.Command) error {
 		SeenPlugins: make(map[string]string, 0),
 	}
 
-	pluginPath := commands.Cfg.PluginsDir
-
-	if strings.Contains(pluginPath, "~") {
-		var err error
-		pluginPath, err = expandHomeDir(pluginPath)
-		if err != nil {
-			return err
-		}
+	pluginPath, err := ExpandPath(commands.Cfg.PluginsDir)
+	if err != nil {
+		return err
 	}
 
 	if commands.Cfg.LookupPluginsInPath {

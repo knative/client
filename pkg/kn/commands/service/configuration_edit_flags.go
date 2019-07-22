@@ -66,7 +66,7 @@ func (p *ConfigurationEditFlags) AddCreateFlags(command *cobra.Command) {
 
 func (p *ConfigurationEditFlags) Apply(service *servingv1alpha1.Service, cmd *cobra.Command) error {
 
-	template, err := servinglib.GetRevisionTemplate(service)
+	template, err := servinglib.RevisionTemplateOfService(service)
 	if err != nil {
 		return err
 	}

@@ -25,5 +25,6 @@ func NewRouteCommand(p *commands.KnParams) *cobra.Command {
 		Short: "Route command group",
 	}
 	routeCmd.AddCommand(NewRouteListCommand(p))
+	routeCmd.AddCommand(NewRouteDescribeCommand(p))
 	return routeCmd
 }

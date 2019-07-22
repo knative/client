@@ -21,7 +21,6 @@ Manage your Knative building blocks:
 
 ### SEE ALSO
 
-* [kn completion](kn_completion.md)	 - Output shell completion code (default Bash)
 * [kn plugin](kn_plugin.md)	 - Plugin command group
 * [kn revision](kn_revision.md)	 - Revision command group
 * [kn route](kn_route.md)	 - Route command group

@@ -25,7 +25,7 @@ import (
 // 'old' v1alpha1 fields are looked up.
 // The returned revision template can be updated in place.
 // An error is returned if no revision template could be extracted
-func GetRevisionTemplate(service *servingv1alpha1.Service) (*servingv1alpha1.RevisionTemplateSpec, error) {
+func RevisionTemplateOfService(service *servingv1alpha1.Service) (*servingv1alpha1.RevisionTemplateSpec, error) {
 	// Try v1beta1 field first
 	if service.Spec.Template != nil {
 		return service.Spec.Template, nil

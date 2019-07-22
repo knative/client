@@ -25,34 +25,31 @@ import (
 )
 
 func TestRevisionWorkflow(t *testing.T) {
-	test := NewE2eTest(t)
-	test.Setup(t)
-	defer test.Teardown(t)
+	teardown := Setup(t)
+	defer teardown(t)
 
 	t.Run("create hello service and returns no error", func(t *testing.T) {
-		test.testServiceCreate(t, "hello")
+		testServiceCreate(t, k, "hello")
 	})
 
 	t.Run("delete latest revision from hello service and returns no error", func(t *testing.T) {
-		test.testDeleteRevision(t, "hello")
+		testDeleteRevision(t, k, "hello")
 	})
 
 	t.Run("delete hello service and returns no error", func(t *testing.T) {
-		test.testServiceDelete(t, "hello")
+		testServiceDelete(t, k, "hello")
 	})
 }
 
-// Private
-
-func (test *e2eTest) testDeleteRevision(t *testing.T, serviceName string) {
-	revName, err := test.kn.RunWithOpts([]string{"revision", "list", "-o=jsonpath={.items[0].metadata.name}"}, runOpts{})
+func testDeleteRevision(t *testing.T, k kn, serviceName string) {
+	revName, err := k.RunWithOpts([]string{"revision", "list", "-o=jsonpath={.items[0].metadata.name}"}, runOpts{})
 	assert.NilError(t, err)
 	if strings.Contains(revName, "No resources found.") {
 		t.Errorf("Could not find revision name.")
 	}
 
-	out, err := test.kn.RunWithOpts([]string{"revision", "delete", revName}, runOpts{})
+	out, err := k.RunWithOpts([]string{"revision", "delete", revName}, runOpts{})
 	assert.NilError(t, err)
 
-	assert.Check(t, util.ContainsAll(out, "Revision", revName, "deleted", "namespace", test.kn.namespace))
+	assert.Check(t, util.ContainsAll(out, "Revision", revName, "deleted", "namespace", k.namespace))
 }

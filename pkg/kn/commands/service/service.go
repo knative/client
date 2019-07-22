@@ -15,8 +15,20 @@
 package service
 
 import (
+	"io"
+	"time"
+
 	"github.com/knative/client/pkg/kn/commands"
+	serving_kn_v1alpha1 "github.com/knative/client/pkg/serving/v1alpha1"
+
+	"fmt"
+
 	"github.com/spf13/cobra"
+)
+
+const (
+	// How often to retry in case of an optimistic lock error when replacing a service (--force)
+	MaxUpdateRetries = 3
 )
 
 func NewServiceCommand(p *commands.KnParams) *cobra.Command {
@@ -30,4 +42,17 @@ func NewServiceCommand(p *commands.KnParams) *cobra.Command {
 	serviceCmd.AddCommand(NewServiceDeleteCommand(p))
 	serviceCmd.AddCommand(NewServiceUpdateCommand(p))
 	return serviceCmd
+}
+
+func waitForService(client serving_kn_v1alpha1.KnClient, serviceName string, out io.Writer, timeout int) error {
+	fmt.Fprintf(out, "Waiting for service '%s' to become ready ... ", serviceName)
+	flush(out)
+
+	err := client.WaitForService(serviceName, time.Duration(timeout)*time.Second)
+	if err != nil {
+		fmt.Fprintln(out)
+		return err
+	}
+	fmt.Fprintln(out, "OK")
+	return nil
 }

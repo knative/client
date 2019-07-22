@@ -23,7 +23,6 @@ import (
 	"regexp"
 	"strings"
 	"testing"
-	"time"
 )
 
 type runOpts struct {
@@ -36,53 +35,22 @@ type runOpts struct {
 	Redact       bool
 }
 
-const (
-	KnDefaultTestImage string        = "gcr.io/knative-samples/helloworld-go"
-	MaxRetries         int           = 10
-	RetrySleepDuration time.Duration = 30 * time.Second
-)
-
-type e2eTest struct {
-	env env
-	kn  kn
-}
-
-func NewE2eTest(t *testing.T) *e2eTest {
-	return &e2eTest{
-		env: buildEnv(t),
-	}
-}
-
-// Setup set up an enviroment for kn integration test returns the Teardown cleanup function
-func (test *e2eTest) Setup(t *testing.T) {
-	test.env.Namespace = fmt.Sprintf("%s%d", test.env.Namespace, namespaceCount)
-	namespaceCount++
-	test.kn = kn{t, test.env.Namespace, Logger{}}
-	test.CreateTestNamespace(t, test.env.Namespace)
-}
-
-// Teardown clean up
-func (test *e2eTest) Teardown(t *testing.T) {
-	test.DeleteTestNamespace(t, test.env.Namespace)
-}
-
 // CreateTestNamespace creates and tests a namesspace creation invoking kubectl
-func (test *e2eTest) CreateTestNamespace(t *testing.T, namespace string) {
-	logger := Logger{}
-	expectedOutputRegexp := fmt.Sprintf("namespace?.+%s.+created", namespace)
-	out, err := createNamespace(t, namespace, MaxRetries, logger)
+func CreateTestNamespace(t *testing.T, namespace string) {
+	kubectl := kubectl{t, Logger{}}
+	out, err := kubectl.RunWithOpts([]string{"create", "namespace", namespace}, runOpts{})
 	if err != nil {
-		logger.Fatalf("Could not create namespace, giving up")
+		t.Fatalf(fmt.Sprintf("Error executing 'kubectl create namespace' command. Error: %s", err.Error()))
 	}
 
-	// check that last output indeed show created namespace
+	expectedOutputRegexp := fmt.Sprintf("namespace?.+%s.+created", namespace)
 	if !matchRegexp(t, expectedOutputRegexp, out) {
 		t.Fatalf("Expected output incorrect, expecting to include:\n%s\n Instead found:\n%s\n", expectedOutputRegexp, out)
 	}
 }
 
 // CreateTestNamespace deletes and tests a namesspace deletion invoking kubectl
-func (test *e2eTest) DeleteTestNamespace(t *testing.T, namespace string) {
+func DeleteTestNamespace(t *testing.T, namespace string) {
 	kubectl := kubectl{t, Logger{}}
 	out, err := kubectl.RunWithOpts([]string{"delete", "namespace", namespace}, runOpts{})
 	if err != nil {
@@ -95,61 +63,7 @@ func (test *e2eTest) DeleteTestNamespace(t *testing.T, namespace string) {
 	}
 }
 
-// WaitForNamespaceDeleted wait until namespace is deleted
-func (test *e2eTest) WaitForNamespaceDeleted(t *testing.T, namespace string) {
-	logger := Logger{}
-	deleted := checkNamespaceDeleted(t, namespace, MaxRetries, logger)
-	if !deleted {
-		t.Fatalf(fmt.Sprintf("Error deleting namespace %s, timed out", namespace))
-	}
-}
-
 // Private functions
-func checkNamespaceDeleted(t *testing.T, namespace string, maxRetries int, logger Logger) bool {
-	kubectlGetNamespace := func() (string, error) {
-		kubectl := kubectl{t, logger}
-		return kubectl.RunWithOpts([]string{"get", "namespace"}, runOpts{})
-	}
-
-	retries := 0
-	for retries < MaxRetries {
-		output, _ := kubectlGetNamespace()
-		if !strings.Contains(output, namespace) {
-			return true
-		}
-
-		retries++
-		logger.Debugf("Namespace is terminating, waiting %ds, and trying again: %d of %d\n", int(RetrySleepDuration.Seconds()), retries, maxRetries)
-		time.Sleep(RetrySleepDuration)
-	}
-
-	return true
-}
-
-func createNamespace(t *testing.T, namespace string, maxRetries int, logger Logger) (string, error) {
-	kubectlCreateNamespace := func() (string, error) {
-		kubectl := kubectl{t, logger}
-		return kubectl.RunWithOpts([]string{"create", "namespace", namespace}, runOpts{AllowError: true})
-	}
-
-	var (
-		retries int
-		err     error
-		out     string
-	)
-
-	for retries < maxRetries {
-		out, err := kubectlCreateNamespace()
-		if err == nil {
-			return out, nil
-		}
-		retries++
-		logger.Debugf("Could not create namespace, waiting %ds, and trying again: %d of %d\n", int(RetrySleepDuration.Seconds()), retries, maxRetries)
-		time.Sleep(RetrySleepDuration)
-	}
-
-	return out, err
-}
 
 func runCLIWithOpts(cli string, args []string, opts runOpts, logger Logger) (string, error) {
 	logger.Debugf("Running '%s'...\n", cmdCLIDesc(cli, args))
