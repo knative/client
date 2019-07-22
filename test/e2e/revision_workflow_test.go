@@ -17,6 +17,7 @@
 package e2e
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -33,8 +34,13 @@ func TestRevisionWorkflow(t *testing.T) {
 		test.serviceCreate(t, "hello")
 	})
 
+	t.Run("describe revision from hello service", func(t *testing.T) {
+		test.revisionDescribe(t, "hello")
+		test.revisionDescribeWithPrintFlags(t, "hello")
+	})
+
 	t.Run("delete latest revision from hello service and returns no error", func(t *testing.T) {
-		test.deleteRevision(t, "hello")
+		test.revisionDelete(t, "hello")
 	})
 
 	t.Run("delete hello service and returns no error", func(t *testing.T) {
@@ -42,17 +48,43 @@ func TestRevisionWorkflow(t *testing.T) {
 	})
 }
 
-// Private
-
-func (test *e2eTest) deleteRevision(t *testing.T, serviceName string) {
-	revName, err := test.kn.RunWithOpts([]string{"revision", "list", "-o=jsonpath={.items[0].metadata.name}"}, runOpts{})
-	assert.NilError(t, err)
-	if strings.Contains(revName, "No resources found.") {
-		t.Errorf("Could not find revision name.")
-	}
+func (test *e2eTest) revisionDelete(t *testing.T, serviceName string) {
+	revName := test.findRevision(t, serviceName)
 
 	out, err := test.kn.RunWithOpts([]string{"revision", "delete", revName}, runOpts{})
 	assert.NilError(t, err)
 
 	assert.Check(t, util.ContainsAll(out, "Revision", revName, "deleted", "namespace", test.kn.namespace))
+}
+
+func (test *e2eTest) revisionDescribe(t *testing.T, serviceName string) {
+	revName := test.findRevision(t, serviceName)
+
+	out, err := test.kn.RunWithOpts([]string{"revision", "describe", revName}, runOpts{})
+	assert.NilError(t, err)
+
+	expectedGVK := `apiVersion: serving.knative.dev/v1alpha1
+kind: Revision`
+	expectedNamespace := fmt.Sprintf("namespace: %s", test.kn.namespace)
+	expectedServiceLabel := fmt.Sprintf("serving.knative.dev/service: %s", serviceName)
+	assert.Check(t, util.ContainsAll(out, expectedGVK, expectedNamespace, expectedServiceLabel))
+}
+
+func (test *e2eTest) revisionDescribeWithPrintFlags(t *testing.T, serviceName string) {
+	revName := test.findRevision(t, serviceName)
+
+	out, err := test.kn.RunWithOpts([]string{"revision", "describe", revName, "-o=name"}, runOpts{})
+	assert.NilError(t, err)
+
+	expectedName := fmt.Sprintf("revision.serving.knative.dev/%s", revName)
+	assert.Check(t, strings.Contains(out, expectedName))
+}
+
+func (test *e2eTest) findRevision(t *testing.T, serviceName string) string {
+	revName, err := test.kn.RunWithOpts([]string{"revision", "list", "-o=jsonpath={.items[0].metadata.name}"}, runOpts{})
+	assert.NilError(t, err)
+	if strings.Contains(revName, "No resources found.") {
+		t.Errorf("Could not find revision name.")
+	}
+	return revName
 }
