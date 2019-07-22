@@ -55,36 +55,50 @@ run() {
     watch
   fi
 
-  if ! $(has_flag --fast -f) || $(has_flag --codegen -c); then
-    # Update dependencies
-    update_deps
+  # Fast mode: Only compile and maybe run test
+  if $(has_flag --fast -f); then
+    go_build
 
-    # Format source code and cleanup imports
-    source_format
-
-    # Generate docs
-    # Check for license headers
-    check_license
-
-    # Auto generate cli docs
-    generate_docs
-  fi
-
-  # Stop when only codegen is requested
-  if $(has_flag --codegen -c); then
+    if $(has_flag --test -t); then
+       go_test
+    fi
     exit 0
   fi
 
-  # Run build
-  go_build
-
-  # Run tests
-  if  $(has_flag --test -t) || ! $(has_flag --fast -f); then
+  # Run only tests
+  if $(has_flag --test -t); then
     go_test
+    exit 0
   fi
+
+  # Run only codegen
+  if $(has_flag --codegen -c); then
+    codegen
+    exit 0
+  fi
+
+  # Default flow
+  codegen
+  go_build
+  go_test
 
   echo "────────────────────────────────────────────"
   ./kn version
+}
+
+
+codegen() {
+  # Update dependencies
+  update_deps
+
+  # Format source code and cleanup imports
+  source_format
+
+  # Check for license headers
+  check_license
+
+  # Auto generate cli docs
+  generate_docs
 }
 
 go_fmt() {
@@ -267,10 +281,12 @@ ln -s $(basedir)/hack/build.sh /usr/local/bin/kn_build.sh
 
 Examples:
 
-* Compile, format, tests, docs:  build.sh
-* Compile only:                  build.sh --fast
-* Compile with tests:            build.sh -f -t
-* Automatice recompilation:      build.sh --watch
+* Update deps, format, license check,
+  gen docs, compile, test: ........... build.sh
+* Compile only: ...................... build.sh --fast
+* Run only tests: .................... build.sh --test
+* Compile with tests: ................ build.sh -f -t
+* Automatic recompilation: ........... build.sh --watch
 EOT
 }
 
