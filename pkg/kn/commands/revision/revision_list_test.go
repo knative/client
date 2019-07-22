@@ -154,7 +154,6 @@ func TestRevisionListOneOutput(t *testing.T) {
 }
 
 func TestRevisionListOutputWithTwoRevName(t *testing.T) {
-	t.Log("verify by passing two revision name to get command")
 	RevisionList := &v1alpha1.RevisionList{Items: []v1alpha1.Revision{}}
 	_, _, err := fakeRevisionList([]string{"revision", "list", "foo-abcd", "bar-abcd"}, RevisionList)
 	assert.ErrorContains(t, err, "'kn revision list' accepts maximum 1 argument")
