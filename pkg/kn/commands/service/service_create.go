@@ -18,7 +18,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"time"
 
 	"github.com/knative/client/pkg/kn/commands"
 	"github.com/knative/client/pkg/serving/v1alpha1"
@@ -105,16 +104,11 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 
 			if !waitFlags.Async {
 				out := cmd.OutOrStdout()
-				fmt.Fprintf(out, "Waiting for service '%s' to become ready ... ", name)
-				flush(out)
-
-				err := client.WaitForService(name, time.Duration(waitFlags.TimeoutInSeconds)*time.Second)
+				err := waitForService(client, name, out, waitFlags.TimeoutInSeconds)
 				if err != nil {
-					fmt.Fprintln(out)
 					return err
 				}
-				fmt.Fprintln(out, "OK")
-				return showUrl(client, name, namespace, cmd.OutOrStdout())
+				return showUrl(client, name, namespace, out)
 			}
 
 			return nil
@@ -122,7 +116,7 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 	}
 	commands.AddNamespaceFlags(serviceCreateCommand.Flags(), false)
 	editFlags.AddCreateFlags(serviceCreateCommand)
-	waitFlags.AddConditionWaitFlags(serviceCreateCommand, 60, "service")
+	waitFlags.AddConditionWaitFlags(serviceCreateCommand, 60, "Create", "service")
 	return serviceCreateCommand
 }
 
