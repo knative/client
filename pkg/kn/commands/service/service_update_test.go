@@ -91,7 +91,7 @@ func fakeServiceUpdate(original *v1alpha1.Service, args []string, sync bool) (
 func TestServiceUpdateImageSync(t *testing.T) {
 	orig := newEmptyService()
 
-	template, err := servinglib.GetRevisionTemplate(orig)
+	template, err := servinglib.RevisionTemplateOfService(orig)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -104,7 +104,7 @@ func TestServiceUpdateImageSync(t *testing.T) {
 	assert.NilError(t, err)
 	assert.Assert(t, action.Matches("update", "services"))
 
-	template, err = servinglib.GetRevisionTemplate(updated)
+	template, err = servinglib.RevisionTemplateOfService(updated)
 	assert.NilError(t, err)
 
 	assert.Equal(t, template.Spec.DeprecatedContainer.Image, "gcr.io/foo/quux:xyzzy")
