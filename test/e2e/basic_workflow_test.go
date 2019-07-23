@@ -31,56 +31,56 @@ func TestBasicWorkflow(t *testing.T) {
 	defer test.Teardown(t)
 
 	t.Run("returns no service before running tests", func(t *testing.T) {
-		test.testServiceListEmpty(t)
+		test.serviceListEmpty(t)
 	})
 
 	t.Run("create hello service and returns no error", func(t *testing.T) {
-		test.testServiceCreate(t, "hello")
+		test.serviceCreate(t, "hello")
 	})
 
 	t.Run("returns valid info about hello service", func(t *testing.T) {
-		test.testServiceList(t, "hello")
-		test.testServiceDescribe(t, "hello")
+		test.serviceList(t, "hello")
+		test.serviceDescribe(t, "hello")
 	})
 
 	t.Run("update hello service's configuration and returns no error", func(t *testing.T) {
-		test.testServiceUpdate(t, "hello", []string{"--env", "TARGET=kn", "--port", "8888"})
+		test.serviceUpdate(t, "hello", []string{"--env", "TARGET=kn", "--port", "8888"})
 	})
 
 	t.Run("create another service and returns no error", func(t *testing.T) {
-		test.testServiceCreate(t, "svc2")
+		test.serviceCreate(t, "svc2")
 	})
 
 	t.Run("returns a list of revisions associated with hello and svc2 services", func(t *testing.T) {
-		test.testRevisionListForService(t, "hello")
-		test.testRevisionListForService(t, "svc2")
+		test.revisionListForService(t, "hello")
+		test.revisionListForService(t, "svc2")
 	})
 
 	t.Run("returns a list of routes associated with hello and svc2 services", func(t *testing.T) {
-		test.testRouteList(t)
-		test.testRouteListWithArgument(t, "hello")
+		test.routeList(t)
+		test.routeListWithArgument(t, "hello")
 	})
 
 	t.Run("delete hello and svc2 services and returns no error", func(t *testing.T) {
-		test.testServiceDelete(t, "hello")
-		test.testServiceDelete(t, "svc2")
+		test.serviceDelete(t, "hello")
+		test.serviceDelete(t, "svc2")
 	})
 
 	t.Run("returns no service after completing tests", func(t *testing.T) {
-		test.testServiceListEmpty(t)
+		test.serviceListEmpty(t)
 	})
 }
 
 // Private test functions
 
-func (test *e2eTest) testServiceListEmpty(t *testing.T) {
+func (test *e2eTest) serviceListEmpty(t *testing.T) {
 	out, err := test.kn.RunWithOpts([]string{"service", "list"}, runOpts{NoNamespace: false})
 	assert.NilError(t, err)
 
 	assert.Check(t, util.ContainsAll(out, "No resources found."))
 }
 
-func (test *e2eTest) testServiceCreate(t *testing.T, serviceName string) {
+func (test *e2eTest) serviceCreate(t *testing.T, serviceName string) {
 	out, err := test.kn.RunWithOpts([]string{"service", "create",
 		fmt.Sprintf("%s", serviceName),
 		"--image", KnDefaultTestImage}, runOpts{NoNamespace: false})
@@ -89,7 +89,7 @@ func (test *e2eTest) testServiceCreate(t *testing.T, serviceName string) {
 	assert.Check(t, util.ContainsAll(out, "Service", serviceName, "successfully created in namespace", test.kn.namespace, "OK"))
 }
 
-func (test *e2eTest) testServiceList(t *testing.T, serviceName string) {
+func (test *e2eTest) serviceList(t *testing.T, serviceName string) {
 	out, err := test.kn.RunWithOpts([]string{"service", "list", serviceName}, runOpts{NoNamespace: false})
 	assert.NilError(t, err)
 
@@ -97,7 +97,7 @@ func (test *e2eTest) testServiceList(t *testing.T, serviceName string) {
 	assert.Check(t, util.ContainsAll(out, expectedOutput))
 }
 
-func (test *e2eTest) testRevisionListForService(t *testing.T, serviceName string) {
+func (test *e2eTest) revisionListForService(t *testing.T, serviceName string) {
 	out, err := test.kn.RunWithOpts([]string{"revision", "list", "-s", serviceName}, runOpts{NoNamespace: false})
 	assert.NilError(t, err)
 
@@ -110,7 +110,7 @@ func (test *e2eTest) testRevisionListForService(t *testing.T, serviceName string
 	}
 }
 
-func (test *e2eTest) testServiceDescribe(t *testing.T, serviceName string) {
+func (test *e2eTest) serviceDescribe(t *testing.T, serviceName string) {
 	out, err := test.kn.RunWithOpts([]string{"service", "describe", serviceName}, runOpts{NoNamespace: false})
 	assert.NilError(t, err)
 
@@ -124,7 +124,7 @@ metadata:`
 	assert.Check(t, util.ContainsAll(out, expectedOutputHeader, expectedOutput))
 }
 
-func (test *e2eTest) testServiceUpdate(t *testing.T, serviceName string, args []string) {
+func (test *e2eTest) serviceUpdate(t *testing.T, serviceName string, args []string) {
 	out, err := test.kn.RunWithOpts(append([]string{"service", "update", serviceName}, args...), runOpts{NoNamespace: false})
 	assert.NilError(t, err)
 
@@ -132,7 +132,7 @@ func (test *e2eTest) testServiceUpdate(t *testing.T, serviceName string, args []
 	assert.Check(t, util.ContainsAll(out, expectedOutput))
 }
 
-func (test *e2eTest) testRouteList(t *testing.T) {
+func (test *e2eTest) routeList(t *testing.T) {
 	out, err := test.kn.RunWithOpts([]string{"route", "list"}, runOpts{})
 	assert.NilError(t, err)
 
@@ -140,7 +140,7 @@ func (test *e2eTest) testRouteList(t *testing.T) {
 	assert.Check(t, util.ContainsAll(out, expectedHeaders...))
 }
 
-func (test *e2eTest) testRouteListWithArgument(t *testing.T, routeName string) {
+func (test *e2eTest) routeListWithArgument(t *testing.T, routeName string) {
 	out, err := test.kn.RunWithOpts([]string{"route", "list", routeName}, runOpts{})
 	assert.NilError(t, err)
 
@@ -148,7 +148,7 @@ func (test *e2eTest) testRouteListWithArgument(t *testing.T, routeName string) {
 	assert.Check(t, util.ContainsAll(out, routeName, expectedOutput))
 }
 
-func (test *e2eTest) testServiceDelete(t *testing.T, serviceName string) {
+func (test *e2eTest) serviceDelete(t *testing.T, serviceName string) {
 	out, err := test.kn.RunWithOpts([]string{"service", "delete", serviceName}, runOpts{NoNamespace: false})
 	assert.NilError(t, err)
 

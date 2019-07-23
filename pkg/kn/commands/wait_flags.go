@@ -32,8 +32,8 @@ type WaitFlags struct {
 // Add flags which influence the sync/async behaviour when creating or updating
 // resources. Set `waitDefault` argument if the default behaviour is synchronous.
 // Use `what` for describing what is waited for.
-func (p *WaitFlags) AddConditionWaitFlags(command *cobra.Command, waitTimeoutDefault int, what string) {
-	waitUsage := fmt.Sprintf("Create %s and don't wait for it to become ready.", what)
+func (p *WaitFlags) AddConditionWaitFlags(command *cobra.Command, waitTimeoutDefault int, action string, what string) {
+	waitUsage := fmt.Sprintf("%s %s and don't wait for it to become ready.", action, what)
 	command.Flags().BoolVar(&p.Async, "async", false, waitUsage)
 
 	timeoutUsage := fmt.Sprintf("Seconds to wait before giving up on waiting for %s to be ready.", what)

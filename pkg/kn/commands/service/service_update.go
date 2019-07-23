@@ -26,6 +26,7 @@ import (
 
 func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 	var editFlags ConfigurationEditFlags
+	var waitFlags commands.WaitFlags
 
 	serviceUpdateCommand := &cobra.Command{
 		Use:   "update NAME",
@@ -56,7 +57,8 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 
 			var retries = 0
 			for {
-				service, err := client.GetService(args[0])
+				name := args[0]
+				service, err := client.GetService(name)
 				if err != nil {
 					return err
 				}
@@ -76,6 +78,15 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 					}
 					return err
 				}
+
+				if !waitFlags.Async {
+					out := cmd.OutOrStdout()
+					err := waitForService(client, name, out, waitFlags.TimeoutInSeconds)
+					if err != nil {
+						return err
+					}
+				}
+
 				fmt.Fprintf(cmd.OutOrStdout(), "Service '%s' updated in namespace '%s'.\n", args[0], namespace)
 				return nil
 			}
@@ -84,5 +95,6 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 
 	commands.AddNamespaceFlags(serviceUpdateCommand.Flags(), false)
 	editFlags.AddUpdateFlags(serviceUpdateCommand)
+	waitFlags.AddConditionWaitFlags(serviceUpdateCommand, 60, "Update", "service")
 	return serviceUpdateCommand
 }

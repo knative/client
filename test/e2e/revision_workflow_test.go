@@ -30,21 +30,21 @@ func TestRevisionWorkflow(t *testing.T) {
 	defer test.Teardown(t)
 
 	t.Run("create hello service and returns no error", func(t *testing.T) {
-		test.testServiceCreate(t, "hello")
+		test.serviceCreate(t, "hello")
 	})
 
 	t.Run("delete latest revision from hello service and returns no error", func(t *testing.T) {
-		test.testDeleteRevision(t, "hello")
+		test.deleteRevision(t, "hello")
 	})
 
 	t.Run("delete hello service and returns no error", func(t *testing.T) {
-		test.testServiceDelete(t, "hello")
+		test.serviceDelete(t, "hello")
 	})
 }
 
 // Private
 
-func (test *e2eTest) testDeleteRevision(t *testing.T, serviceName string) {
+func (test *e2eTest) deleteRevision(t *testing.T, serviceName string) {
 	revName, err := test.kn.RunWithOpts([]string{"revision", "list", "-o=jsonpath={.items[0].metadata.name}"}, runOpts{})
 	assert.NilError(t, err)
 	if strings.Contains(revName, "No resources found.") {
