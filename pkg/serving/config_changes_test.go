@@ -28,7 +28,7 @@ import (
 
 func TestUpdateAutoscalingAnnotations(t *testing.T) {
 	template := &servingv1alpha1.RevisionTemplateSpec{}
-	UpdateConcurrencyConfiguration(template, 10, 100, 1000, 1000)
+	updateConcurrencyConfiguration(template, 10, 100, 1000, 1000)
 	annos := template.Annotations
 	if annos[autoscaling.MinScaleAnnotationKey] != "10" {
 		t.Error("minScale failed")
@@ -46,9 +46,9 @@ func TestUpdateAutoscalingAnnotations(t *testing.T) {
 
 func TestUpdateInvalidAutoscalingAnnotations(t *testing.T) {
 	template := &servingv1alpha1.RevisionTemplateSpec{}
-	UpdateConcurrencyConfiguration(template, 10, 100, 1000, 1000)
+	updateConcurrencyConfiguration(template, 10, 100, 1000, 1000)
 	// Update with invalid concurrency options
-	UpdateConcurrencyConfiguration(template, -1, -1, 0, -1)
+	updateConcurrencyConfiguration(template, -1, -1, 0, -1)
 	annos := template.Annotations
 	if annos[autoscaling.MinScaleAnnotationKey] != "10" {
 		t.Error("minScale failed")
@@ -260,4 +260,11 @@ func assertNoV1alpha1(t *testing.T, template *servingv1alpha1.RevisionTemplateSp
 	if template.Spec.Containers != nil {
 		t.Error("Assuming only old v1alpha1 fields but found spec.template")
 	}
+}
+
+func updateConcurrencyConfiguration(template *servingv1alpha1.RevisionTemplateSpec, minScale int, maxScale int, target int, limit int) {
+	UpdateMinScale(template, minScale)
+	UpdateMaxScale(template, maxScale)
+	UpdateConcurrencyTarget(template, target)
+	UpdateConcurrencyLimit(template, limit)
 }

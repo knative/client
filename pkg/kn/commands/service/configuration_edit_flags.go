@@ -51,10 +51,10 @@ func (p *ConfigurationEditFlags) AddUpdateFlags(command *cobra.Command) {
 	command.Flags().StringVar(&p.RequestsFlags.Memory, "requests-memory", "", "The requested memory (e.g., 64Mi).")
 	command.Flags().StringVar(&p.LimitsFlags.CPU, "limits-cpu", "", "The limits on the requested CPU (e.g., 1000m).")
 	command.Flags().StringVar(&p.LimitsFlags.Memory, "limits-memory", "", "The limits on the requested memory (e.g., 1024Mi).")
-	command.Flags().IntVar(&p.MinScale, "min-scale", -1, "Minimal number of replicas.")
-	command.Flags().IntVar(&p.MaxScale, "max-scale", -1, "Maximal number of replicas.")
+	command.Flags().IntVar(&p.MinScale, "min-scale", 0, "Minimal number of replicas.")
+	command.Flags().IntVar(&p.MaxScale, "max-scale", 0, "Maximal number of replicas.")
 	command.Flags().IntVar(&p.ConcurrencyTarget, "concurrency-target", 0, "Recommendation for when to scale up based on the concurrent number of incoming request. Defaults to --concurrency-limit when given.")
-	command.Flags().IntVar(&p.ConcurrencyLimit, "concurrency-limit", -1, "Hard Limit of concurrent requests to be processed by a single replica.")
+	command.Flags().IntVar(&p.ConcurrencyLimit, "concurrency-limit", 0, "Hard Limit of concurrent requests to be processed by a single replica.")
 	command.Flags().Int32VarP(&p.Port, "port", "p", 0, "The port where application listens on.")
 }
 
@@ -111,7 +111,21 @@ func (p *ConfigurationEditFlags) Apply(service *servingv1alpha1.Service, cmd *co
 		}
 	}
 
-	servinglib.UpdateConcurrencyConfiguration(template, p.MinScale, p.MaxScale, p.ConcurrencyTarget, p.ConcurrencyLimit)
+	if cmd.Flags().Changed("min-scale") {
+		servinglib.UpdateMinScale(template, p.MinScale)
+	}
+
+	if cmd.Flags().Changed("max-scale") {
+		servinglib.UpdateMaxScale(template, p.MaxScale)
+	}
+
+	if cmd.Flags().Changed("concurrency-target") {
+		servinglib.UpdateConcurrencyTarget(template, p.ConcurrencyTarget)
+	}
+
+	if cmd.Flags().Changed("concurrency-limit") {
+		servinglib.UpdateConcurrencyLimit(template, p.ConcurrencyLimit)
+	}
 
 	return nil
 }
