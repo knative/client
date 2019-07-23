@@ -22,8 +22,6 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
-
-	"github.com/knative/client/pkg/kn/commands"
 )
 
 // PluginHandler is capable of parsing command line arguments
@@ -34,7 +32,7 @@ type PluginHandler interface {
 	// Lookup will iterate over a list of given prefixes
 	// in order to recognize valid plugin filenames.
 	// The first filepath to match a prefix is returned.
-	Lookup(filename string) (string, bool)
+	Lookup(name string) (string, bool)
 	// Execute receives an executable's filepath, a slice
 	// of arguments, and a slice of environment variables
 	// to relay to the executable.
@@ -43,30 +41,34 @@ type PluginHandler interface {
 
 // DefaultPluginHandler implements PluginHandler
 type DefaultPluginHandler struct {
-	ValidPrefixes []string
+	ValidPrefixes       []string
+	PluginsDir          string
+	LookupPluginsInPath bool
 }
 
 // NewDefaultPluginHandler instantiates the DefaultPluginHandler with a list of
 // given filename prefixes used to identify valid plugin filenames.
-func NewDefaultPluginHandler(validPrefixes []string) *DefaultPluginHandler {
+func NewDefaultPluginHandler(validPrefixes []string, pluginsDir string, lookupInPath bool) *DefaultPluginHandler {
 	return &DefaultPluginHandler{
-		ValidPrefixes: validPrefixes,
+		ValidPrefixes:       validPrefixes,
+		PluginsDir:          pluginsDir,
+		LookupPluginsInPath: lookupInPath,
 	}
 }
 
 // Lookup implements PluginHandler
-func (h *DefaultPluginHandler) Lookup(filename string) (string, bool) {
+func (h *DefaultPluginHandler) Lookup(name string) (string, bool) {
 	var pluginPath string
 	var err error
 	for _, prefix := range h.ValidPrefixes {
-		pluginPath = fmt.Sprintf("%s-%s", prefix, filename)
-		if commands.Cfg.LookupPluginsInPath {
+		pluginPath = fmt.Sprintf("%s-%s", prefix, name)
+		if h.LookupPluginsInPath {
 			pluginPath, err = exec.LookPath(pluginPath)
 			if err != nil || len(pluginPath) == 0 {
 				continue
 			}
 		} else {
-			pluginDir, err := ExpandPath(commands.Cfg.PluginsDir)
+			pluginDir, err := ExpandPath(h.PluginsDir)
 			if err != nil {
 				return "", false
 			}

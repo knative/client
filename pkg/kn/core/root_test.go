@@ -48,7 +48,7 @@ func TestNewDefaultKnCommandWithArgs(t *testing.T) {
 	)
 
 	setup := func(t *testing.T) {
-		rootCmd = NewDefaultKnCommandWithArgs(pluginHandler, args, os.Stdin, os.Stdout, os.Stderr)
+		rootCmd = NewDefaultKnCommandWithArgs(NewKnCommand(), pluginHandler, args, os.Stdin, os.Stdout, os.Stderr)
 	}
 
 	t.Run("when pluginHandler is nil", func(t *testing.T) {

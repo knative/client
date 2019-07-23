@@ -21,25 +21,21 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/knative/client/pkg/kn/commands"
 	"gotest.tools/assert"
 )
 
 func TestPluginHandler(t *testing.T) {
 	var (
-		pluginHandler                      PluginHandler
-		pluginPath, pluginName, tmpPathDir string
-		err                                error
+		pluginHandler, tPluginHandler                  PluginHandler
+		pluginPath, pluginName, tmpPathDir, pluginsDir string
+		lookupPluginsInPath                            bool
+		err                                            error
 	)
 
 	setup := func(t *testing.T) {
-		pluginHandler = &DefaultPluginHandler{
-			ValidPrefixes: []string{"kn"},
-		}
-		assert.Assert(t, pluginHandler != nil)
-
 		tmpPathDir, err = ioutil.TempDir("", "plugin_list")
 		assert.Assert(t, err == nil)
+		pluginsDir = tmpPathDir
 	}
 
 	cleanup := func(t *testing.T) {
@@ -52,14 +48,22 @@ func TestPluginHandler(t *testing.T) {
 		pluginPath = CreateTestPluginInPath(t, "kn-"+pluginName, KnTestPluginScript, FileModeExecutable, tmpPathDir)
 		assert.Assert(t, pluginPath != "")
 
-		commands.Cfg.PluginsDir = pluginPath
+		pluginHandler = &DefaultPluginHandler{
+			ValidPrefixes:       []string{"kn"},
+			PluginsDir:          pluginsDir,
+			LookupPluginsInPath: lookupPluginsInPath,
+		}
+		assert.Assert(t, pluginHandler != nil)
+
+		tPluginHandler = NewTestPluginHandler(pluginHandler)
+		assert.Assert(t, tPluginHandler != nil)
 	}
 
 	t.Run("#NewDefaultPluginHandler", func(t *testing.T) {
 		setup(t)
 		defer cleanup(t)
 
-		pHandler := NewDefaultPluginHandler([]string{"kn"})
+		pHandler := NewDefaultPluginHandler([]string{"kn"}, pluginPath, false)
 		assert.Assert(t, pHandler != nil)
 	})
 
@@ -85,12 +89,38 @@ func TestPluginHandler(t *testing.T) {
 			})
 		})
 
-		t.Run("when plugin in $PATH and lookupPluginsInPath true", func(t *testing.T) {
-			//TODO
-		})
+		t.Run("when plugin is in $PATH", func(t *testing.T) {
+			t.Run("--lookup-plugins-in-path=true", func(t *testing.T) {
+				setup(t)
+				defer cleanup(t)
 
-		t.Run("when plugin in $PATH and lookupPluginsInPath false", func(t *testing.T) {
-			//TODO
+				pluginsDir = filepath.Join(tmpPathDir, "bogus")
+				err = os.Setenv("PATH", tmpPathDir)
+				assert.Assert(t, err == nil)
+				lookupPluginsInPath = true
+
+				beforeEach(t)
+
+				path, exists := pluginHandler.Lookup(pluginName)
+				assert.Assert(t, path != "", fmt.Sprintf("no path when Lookup(%s)", pluginName))
+				assert.Assert(t, exists == true, fmt.Sprintf("could not Lookup(%s)", pluginName))
+			})
+
+			t.Run("--lookup-plugins-in-path=false", func(t *testing.T) {
+				setup(t)
+				defer cleanup(t)
+
+				pluginsDir = filepath.Join(tmpPathDir, "bogus")
+				err = os.Setenv("PATH", tmpPathDir)
+				assert.Assert(t, err == nil)
+				lookupPluginsInPath = false
+
+				beforeEach(t)
+
+				path, exists := pluginHandler.Lookup(pluginName)
+				assert.Assert(t, path == "")
+				assert.Assert(t, exists == false)
+			})
 		})
 	})
 
@@ -107,14 +137,12 @@ func TestPluginHandler(t *testing.T) {
 	})
 
 	t.Run("HandlePluginCommand", func(t *testing.T) {
-		testPluginHandler := NewTestPluginHandler(pluginHandler)
-
 		t.Run("sucess handling", func(t *testing.T) {
 			setup(t)
 			defer cleanup(t)
 			beforeEach(t)
 
-			err = HandlePluginCommand(testPluginHandler, []string{pluginName})
+			err = HandlePluginCommand(tPluginHandler, []string{pluginName})
 			assert.Assert(t, err == nil, fmt.Sprintf("test plugin %s failed executing", fmt.Sprintf("kn-%s", pluginName)))
 		})
 
@@ -122,7 +150,7 @@ func TestPluginHandler(t *testing.T) {
 			setup(t)
 			defer cleanup(t)
 
-			err = HandlePluginCommand(testPluginHandler, []string{"bogus"})
+			err = HandlePluginCommand(tPluginHandler, []string{"bogus"})
 			assert.Assert(t, err != nil, fmt.Sprintf("test plugin %s expected to fail executing", "bogus"))
 		})
 	})
@@ -140,8 +168,8 @@ func NewTestPluginHandler(pluginHandler PluginHandler) PluginHandler {
 	}
 }
 
-func (tHandler *testPluginHandler) Lookup(filename string) (string, bool) {
-	return tHandler.pluginHandler.Lookup(filename)
+func (tHandler *testPluginHandler) Lookup(name string) (string, bool) {
+	return tHandler.pluginHandler.Lookup(name)
 }
 
 func (tHandler *testPluginHandler) Execute(executablePath string, cmdArgs, environment []string) error {

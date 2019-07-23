@@ -75,6 +75,7 @@ Available plugin files are those that are:
 	return pluginListCommand
 }
 
+// ExpandPath to a canonical path (need to see if Golang has a better option)
 func ExpandPath(path string) (string, error) {
 	if strings.Contains(path, "~") {
 		var err error

@@ -21,6 +21,8 @@ import (
 	"io"
 	"os"
 	"path"
+	"strconv"
+	"strings"
 
 	"github.com/knative/client/pkg/kn/commands"
 	"github.com/knative/client/pkg/kn/commands/plugin"
@@ -36,31 +38,50 @@ import (
 
 // NewDefaultKnCommand creates the default `kn` command with a default plugin handler
 func NewDefaultKnCommand() *cobra.Command {
-	return NewDefaultKnCommandWithArgs(plugin.NewDefaultPluginHandler(plugin.ValidPluginFilenamePrefixes), os.Args, os.Stdin, os.Stdout, os.Stderr)
+	rootCmd := NewKnCommand()
+
+	// Needed since otherwise --plugins-dir and --lookup-plugins-in-path
+	// will not be accounted for since the plugin is not a Cobra command
+	// and will not be parsed
+	pluginsDir, lookupPluginsInPath, err := extractKnPluginFlags(os.Args)
+	if err != nil {
+		panic("Invalid plugin flag value")
+	}
+
+	pluginHandler := plugin.NewDefaultPluginHandler(plugin.ValidPluginFilenamePrefixes,
+		pluginsDir, lookupPluginsInPath)
+
+	return NewDefaultKnCommandWithArgs(rootCmd, pluginHandler,
+		os.Args, os.Stdin,
+		os.Stdout, os.Stderr)
 }
 
 // NewDefaultKnCommandWithArgs creates the `kn` command with arguments
-func NewDefaultKnCommandWithArgs(pluginHandler plugin.PluginHandler, args []string, in io.Reader, out, errout io.Writer) *cobra.Command {
-	cmd := NewKnCommand()
-
+func NewDefaultKnCommandWithArgs(rootCmd *cobra.Command,
+	pluginHandler plugin.PluginHandler,
+	args []string,
+	in io.Reader,
+	out,
+	errOut io.Writer) *cobra.Command {
 	if pluginHandler == nil {
-		return cmd
+		return rootCmd
 	}
 
 	if len(args) > 1 {
 		cmdPathPieces := args[1:]
+		cmdPathPieces = removeKnPluginFlags(cmdPathPieces) // Plugin does not need these flags
 
 		// only look for suitable extension executables if
 		// the specified command does not already exist
-		if _, _, err := cmd.Find(cmdPathPieces); err != nil {
+		if _, _, err := rootCmd.Find(cmdPathPieces); err != nil {
 			if err := plugin.HandlePluginCommand(pluginHandler, cmdPathPieces); err != nil {
-				fmt.Fprintf(errout, "%v\n", err)
+				fmt.Fprintf(errOut, "%v\n", err)
 				os.Exit(1)
 			}
 		}
 	}
 
-	return cmd
+	return rootCmd
 }
 
 // NewKnCommand creates the rootCmd which is the base command when called without any subcommands
@@ -147,6 +168,8 @@ func EmptyAndUnknownSubCommands(cmd *cobra.Command) {
 	}
 }
 
+// Private
+
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
 	if commands.CfgFile != "" {
@@ -172,4 +195,47 @@ func initConfig() {
 	if err == nil {
 		fmt.Fprintln(os.Stderr, "Using kn config file:", viper.ConfigFileUsed())
 	}
+}
+
+func extractKnPluginFlags(args []string) (string, bool, error) {
+	pluginsDir := "~/.kn/plugins"
+	lookupPluginsInPath := false
+	for _, arg := range args {
+		if strings.Contains(arg, "--plugins-dir") {
+			values := strings.Split(arg, "=")
+			if len(values) < 1 {
+				return "", false, errors.New("Invalid --plugins-dir flag value")
+			}
+			pluginsDir = values[1]
+		}
+
+		if strings.Contains(arg, "--lookup-plugins-in-path") {
+			values := strings.Split(arg, "=")
+			if len(values) < 1 {
+				return "", false, errors.New("Invalid --lookup-plugins-in-path flag value")
+			}
+
+			boolValue, err := strconv.ParseBool(values[1])
+			if err != nil {
+				return "", false, err
+			}
+
+			lookupPluginsInPath = boolValue
+		}
+	}
+	return pluginsDir, lookupPluginsInPath, nil
+}
+
+func removeKnPluginFlags(args []string) []string {
+	var remainingArgs []string
+	for _, arg := range args {
+		if strings.Contains(arg, "--plugins-dir") ||
+			strings.Contains(arg, "--lookup-plugins-in-path") {
+			continue
+		} else {
+			remainingArgs = append(remainingArgs, arg)
+		}
+	}
+
+	return remainingArgs
 }

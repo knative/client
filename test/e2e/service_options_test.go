@@ -25,50 +25,53 @@ import (
 )
 
 func TestServiceOptions(t *testing.T) {
-	teardown := Setup(t)
-	defer teardown(t)
+	test := NewE2eTest(t)
+	test.Setup(t)
+	defer test.Teardown(t)
 
 	t.Run("create hello service with concurrency options and returns no error", func(t *testing.T) {
-		testServiceCreateWithOptions(t, k, "hello", []string{"--concurrency-limit", "250", "--concurrency-target", "300"})
+		test.serviceCreateWithOptions(t, "hello", []string{"--concurrency-limit", "250", "--concurrency-target", "300"})
 	})
 
 	t.Run("returns valid concurrency options for hello service", func(t *testing.T) {
-		testServiceDescribeConcurrencyLimit(t, k, "hello", "250")
-		testServiceDescribeConcurrencyTarget(t, k, "hello", "300")
+		test.serviceDescribeConcurrencyLimit(t, "hello", "250")
+		test.serviceDescribeConcurrencyTarget(t, "hello", "300")
 	})
 
 	t.Run("update concurrency limit for hello service and returns no error", func(t *testing.T) {
-		testServiceUpdate(t, k, "hello", []string{"--concurrency-limit", "300"})
+		test.serviceUpdate(t, "hello", []string{"--concurrency-limit", "300"})
 	})
 
 	t.Run("returns correct concurrency limit for hello service", func(t *testing.T) {
-		testServiceDescribeConcurrencyLimit(t, k, "hello", "300")
+		test.serviceDescribeConcurrencyLimit(t, "hello", "300")
 	})
 
 	t.Run("delete hello service and returns no error", func(t *testing.T) {
-		testServiceDelete(t, k, "hello")
+		test.serviceDelete(t, "hello")
 	})
 }
 
-func testServiceCreateWithOptions(t *testing.T, k kn, serviceName string, options []string) {
+// Private
+
+func (test *e2eTest) serviceCreateWithOptions(t *testing.T, serviceName string, options []string) {
 	command := []string{"service", "create", serviceName, "--image", KnDefaultTestImage}
 	command = append(command, options...)
-	out, err := k.RunWithOpts(command, runOpts{NoNamespace: false})
+	out, err := test.kn.RunWithOpts(command, runOpts{NoNamespace: false})
 	assert.NilError(t, err)
 
-	assert.Check(t, util.ContainsAll(out, "Service", serviceName, "successfully created in namespace", k.namespace, "OK"))
+	assert.Check(t, util.ContainsAll(out, "Service", serviceName, "successfully created in namespace", test.kn.namespace, "OK"))
 }
 
-func testServiceDescribeConcurrencyLimit(t *testing.T, k kn, serviceName, concurrencyLimit string) {
-	out, err := k.RunWithOpts([]string{"service", "describe", serviceName}, runOpts{NoNamespace: false})
+func (test *e2eTest) serviceDescribeConcurrencyLimit(t *testing.T, serviceName, concurrencyLimit string) {
+	out, err := test.kn.RunWithOpts([]string{"service", "describe", serviceName}, runOpts{NoNamespace: false})
 	assert.NilError(t, err)
 
 	expectedOutput := fmt.Sprintf("containerConcurrency: %s", concurrencyLimit)
 	assert.Check(t, util.ContainsAll(out, expectedOutput))
 }
 
-func testServiceDescribeConcurrencyTarget(t *testing.T, k kn, serviceName, concurrencyTarget string) {
-	out, err := k.RunWithOpts([]string{"service", "describe", serviceName}, runOpts{NoNamespace: false})
+func (test *e2eTest) serviceDescribeConcurrencyTarget(t *testing.T, serviceName, concurrencyTarget string) {
+	out, err := test.kn.RunWithOpts([]string{"service", "describe", serviceName}, runOpts{NoNamespace: false})
 	assert.NilError(t, err)
 
 	expectedOutput := fmt.Sprintf("autoscaling.knative.dev/target: \"%s\"", concurrencyTarget)
