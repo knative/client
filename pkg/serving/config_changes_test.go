@@ -15,9 +15,10 @@
 package serving
 
 import (
-	"gotest.tools/assert"
 	"reflect"
 	"testing"
+
+	"gotest.tools/assert"
 
 	"github.com/knative/serving/pkg/apis/autoscaling"
 	"github.com/knative/serving/pkg/apis/serving/v1beta1"
