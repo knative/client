@@ -47,12 +47,12 @@ func TestServiceOptions(t *testing.T) {
 	})
 
 	t.Run("update concurrency options with invalid value for hello service and returns no change", func(t *testing.T) {
-		testServiceUpdate(t, k, "hello", []string{"--concurrency-limit", "-1", "--concurrency-target", "0"})
+		test.serviceUpdate(t, "hello", []string{"--concurrency-limit", "-1", "--concurrency-target", "0"})
 	})
 
 	t.Run("returns steady concurrency options for hello service", func(t *testing.T) {
-		testServiceDescribeConcurrencyLimit(t, k, "hello", "300")
-		testServiceDescribeConcurrencyTarget(t, k, "hello", "300")
+		test.serviceDescribeConcurrencyLimit(t, "hello", "300")
+		test.serviceDescribeConcurrencyTarget(t, "hello", "300")
 	})
 
 	t.Run("delete hello service and returns no error", func(t *testing.T) {
