@@ -88,8 +88,6 @@ func (test *e2eTest) serviceDescribeConcurrencyTarget(t *testing.T, serviceName,
 }
 
 func (test *e2eTest) serviceUpdateWithInvalidValue(t *testing.T, serviceName string, args []string) {
-	out, err := test.kn.RunWithOpts(append([]string{"service", "update", serviceName}, args...), runOpts{NoNamespace: false})
-	assert.NilError(t, err)
-
-	assert.Check(t, util.ContainsAll(out, "Invalid"))
+	_, err := test.kn.RunWithOpts(append([]string{"service", "update", serviceName}, args...), runOpts{NoNamespace: false, AllowError: true})
+	assert.ErrorContains(t, err, "Invalid")
 }
