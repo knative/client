@@ -56,8 +56,8 @@ kubectl create ns $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
 ./kn service create foo --force --image gcr.io/knative-samples/helloworld-go -e TARGET=foo -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
 ./kn revision list -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
 ./kn service list -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
-./kn service show hello -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
-./kn service show svc1 -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
+./kn service describe hello -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
+./kn service describe svc1 -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
 ./kn route list -n $KN_E2E_SMOKE_TESTS_NAMESPACE  || fail_test
 ./kn service delete hello -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
 ./kn service delete foo -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test

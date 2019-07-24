@@ -94,7 +94,7 @@ func (test *e2eTest) serviceList(t *testing.T, serviceName string) {
 }
 
 func (test *e2eTest) serviceDescribe(t *testing.T, serviceName string) {
-	out, err := test.kn.RunWithOpts([]string{"service", "show", serviceName}, runOpts{NoNamespace: false})
+	out, err := test.kn.RunWithOpts([]string{"service", "describe", serviceName}, runOpts{NoNamespace: false})
 	assert.NilError(t, err)
 
 	assert.Assert(t, util.ContainsAll(out, serviceName, test.kn.namespace, KnDefaultTestImage))
