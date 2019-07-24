@@ -16,6 +16,7 @@ package serving
 
 import (
 	"reflect"
+	"strconv"
 	"testing"
 
 	"gotest.tools/assert"
@@ -151,6 +152,50 @@ func testUpdateEnvVarsModify(t *testing.T, revision *servingv1alpha1.RevisionTem
 	}
 }
 
+func TestUpdateMinScale(t *testing.T) {
+	template, _ := getV1alpha1RevisionTemplateWithOldFields()
+	err := UpdateMinScale(template, 10)
+	assert.NilError(t, err)
+	// Verify update is successful or not
+	checkAnnotationValue(t, template, autoscaling.MinScaleAnnotationKey, 10)
+	// Update with invalid value
+	err = UpdateMinScale(template, -1)
+	assert.ErrorContains(t, err, "Invalid")
+}
+
+func TestUpdateMaxScale(t *testing.T) {
+	template, _ := getV1alpha1RevisionTemplateWithOldFields()
+	err := UpdateMaxScale(template, 10)
+	assert.NilError(t, err)
+	// Verify update is successful or not
+	checkAnnotationValue(t, template, autoscaling.MaxScaleAnnotationKey, 10)
+	// Update with invalid value
+	err = UpdateMaxScale(template, -1)
+	assert.ErrorContains(t, err, "Invalid")
+}
+
+func TestUpdateConcurrencyTarget(t *testing.T) {
+	template, _ := getV1alpha1RevisionTemplateWithOldFields()
+	err := UpdateConcurrencyTarget(template, 10)
+	assert.NilError(t, err)
+	// Verify update is successful or not
+	checkAnnotationValue(t, template, autoscaling.TargetAnnotationKey, 10)
+	// Update with invalid value
+	err = UpdateConcurrencyTarget(template, -1)
+	assert.ErrorContains(t, err, "Invalid")
+}
+
+func TestUpdateConcurrencyLimit(t *testing.T) {
+	template, _ := getV1alpha1RevisionTemplateWithOldFields()
+	err := UpdateConcurrencyLimit(template, 10)
+	assert.NilError(t, err)
+	// Verify update is successful or not
+	checkContainerConcurrency(t, template, 10)
+	// Update with invalid value
+	err = UpdateConcurrencyLimit(template, -1)
+	assert.ErrorContains(t, err, "Invalid")
+}
+
 func TestUpdateContainerImage(t *testing.T) {
 	template, _ := getV1alpha1RevisionTemplateWithOldFields()
 	err := UpdateImage(template, "gcr.io/foo/bar:baz")
@@ -186,7 +231,7 @@ func TestUpdateContainerPort(t *testing.T) {
 }
 
 func checkPortUpdate(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, port int32) {
-	if len(template.Spec.Containers) != 1 || template.Spec.Containers[0].Ports[0].ContainerPort != port {
+	if template.Spec.GetContainer().Ports[0].ContainerPort != port {
 		t.Error("Failed to update the container port")
 	}
 }
@@ -260,6 +305,19 @@ func assertNoV1alpha1Old(t *testing.T, template *servingv1alpha1.RevisionTemplat
 func assertNoV1alpha1(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec) {
 	if template.Spec.Containers != nil {
 		t.Error("Assuming only old v1alpha1 fields but found spec.template")
+	}
+}
+
+func checkAnnotationValue(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, key string, value int) {
+	anno := template.GetAnnotations()
+	if v, ok := anno[key]; !ok && v != strconv.Itoa(value) {
+		t.Errorf("Failed to update %s annotation key: got=%s, want=%d", key, v, value)
+	}
+}
+
+func checkContainerConcurrency(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, value int) {
+	if got, want := template.Spec.ContainerConcurrency, value; got != v1beta1.RevisionContainerConcurrencyType(want) {
+		t.Errorf("Failed to update containerConcurrency value: got=%d, want=%d", got, want)
 	}
 }
 
