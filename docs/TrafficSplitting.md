@@ -67,6 +67,36 @@ A user can
  - Wildcard character `*` can be specified to allocate portion remaining after, summing specified portions and substracting it from 100
  - Specified traffic allocations replace existing traffic block of deployed service
 
+#### Referencing `latestRevision:true` (`$`) target
+ - Serving allows having `latestRevision:true` field in traffic block as traffic target
+ - This field indicates that the latest ready Revision of the Configuration should be used for this traffic target
+ - We can refer this as placeholder to point to the latest Revision which will be generated for the Service
+ - To reference this special target in traffic block, we can use character `$`, which can not be a Revision name to avoid conflicts
+ - Referencing `$` to tag a target or set traffic percent will update target in traffic block with Revision reference to `latestRevision: true`
+
+```
+kn service tag-target $:current
+```
+will form the traffic block as below before updating service
+```
+  targets:
+  - latestRevision: true
+    tag: current
+    percent: xx
+```
+
+and,
+```
+kn service set-traffic svc1 $:100   #OR 'kn service set-traffic svc1 current:100'
+```
+will form the traffic block
+```
+  targets:
+  - latestRevision: true
+    tag: current
+    percent: 100
+```
+
 
 ## Examples:
 
@@ -117,4 +147,9 @@ kn service untag-target echo-v3:current
 ```
 kn service tag-target echo-v1:stable echo-v1:current
 kn service set-traffic svc1 stable=50 current=50
+```
+
+10. Revert all the traffic to latest revision of service
+```
+kn service set-traffic svc1 $=100
 ```
