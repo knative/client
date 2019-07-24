@@ -15,6 +15,7 @@
 package serving
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 
@@ -37,47 +38,55 @@ func UpdateEnvVars(template *servingv1alpha1.RevisionTemplateSpec, vars map[stri
 }
 
 // UpdateMinScale updates min scale annotation
-func UpdateMinScale(template *servingv1alpha1.RevisionTemplateSpec, min int) {
-	UpdateAnnotation(template, autoscaling.MinScaleAnnotationKey, strconv.Itoa(min))
+func UpdateMinScale(template *servingv1alpha1.RevisionTemplateSpec, min int) error {
+	return UpdateAnnotation(template, autoscaling.MinScaleAnnotationKey, strconv.Itoa(min))
 }
 
 // UpdatMaxScale updates max scale annotation
-func UpdateMaxScale(template *servingv1alpha1.RevisionTemplateSpec, max int) {
-	UpdateAnnotation(template, autoscaling.MaxScaleAnnotationKey, strconv.Itoa(max))
+func UpdateMaxScale(template *servingv1alpha1.RevisionTemplateSpec, max int) error {
+	return UpdateAnnotation(template, autoscaling.MaxScaleAnnotationKey, strconv.Itoa(max))
 }
 
 // UpdateConcurrencyTarget updates container concurrency annotation
-func UpdateConcurrencyTarget(template *servingv1alpha1.RevisionTemplateSpec, target int) {
+func UpdateConcurrencyTarget(template *servingv1alpha1.RevisionTemplateSpec, target int) error {
 	// TODO(toVersus): Remove the following validation once serving library is updated to v0.8.0
 	// and just rely on ValidateAnnotations method.
 	if target < autoscaling.TargetMin {
-		return
+		return fmt.Errorf("Invalid %s annotation value: must be an intger greater than 0", autoscaling.TargetAnnotationKey)
 	}
-	UpdateAnnotation(template, autoscaling.TargetAnnotationKey, strconv.Itoa(target))
+
+	return UpdateAnnotation(template, autoscaling.TargetAnnotationKey, strconv.Itoa(target))
 }
 
 // UpdateConcurrencyLimit updates container concurrency limit
-func UpdateConcurrencyLimit(template *servingv1alpha1.RevisionTemplateSpec, limit int) {
-	if limit >= 0 {
-		template.Spec.ContainerConcurrency = servingv1beta1.RevisionContainerConcurrencyType(limit)
+func UpdateConcurrencyLimit(template *servingv1alpha1.RevisionTemplateSpec, limit int) error {
+	cc := servingv1beta1.RevisionContainerConcurrencyType(limit)
+	// Validate input limit
+	ctx := context.Background()
+	if err := cc.Validate(ctx).ViaField("spec.containerConcurrency"); err != nil {
+		return fmt.Errorf("Invalid containerConcurrency revision spec: %s", err)
 	}
+	template.Spec.ContainerConcurrency = cc
+	return nil
 }
 
 // UpdateAnnotation updates (or adds) an annotation to the given service
-func UpdateAnnotation(template *servingv1alpha1.RevisionTemplateSpec, annotation string, value string) {
+func UpdateAnnotation(template *servingv1alpha1.RevisionTemplateSpec, annotation string, value string) error {
 	annoMap := template.Annotations
 	if annoMap == nil {
 		annoMap = make(map[string]string)
 		template.Annotations = annoMap
 	}
+
 	// Validate autoscaling annotations and returns the same value as before if input value is invalid
 	in := make(map[string]string)
 	in[annotation] = value
 	if err := autoscaling.ValidateAnnotations(in); err != nil {
-		return
+		return err
 	}
 
 	annoMap[annotation] = value
+	return nil
 }
 
 // EnvToMap is an utility function to translate between the API list form of env vars, and the
