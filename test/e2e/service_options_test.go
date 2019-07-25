@@ -46,6 +46,15 @@ func TestServiceOptions(t *testing.T) {
 		test.serviceDescribeConcurrencyLimit(t, "hello", "300")
 	})
 
+	t.Run("update concurrency options with invalid value for hello service and returns error", func(t *testing.T) {
+		test.serviceUpdateWithInvalidValue(t, "hello", []string{"--concurrency-limit", "-1", "--concurrency-target", "0"})
+	})
+
+	t.Run("returns steady concurrency options for hello service", func(t *testing.T) {
+		test.serviceDescribeConcurrencyLimit(t, "hello", "300")
+		test.serviceDescribeConcurrencyTarget(t, "hello", "300")
+	})
+
 	t.Run("delete hello service and returns no error", func(t *testing.T) {
 		test.serviceDelete(t, "hello")
 	})
@@ -76,4 +85,9 @@ func (test *e2eTest) serviceDescribeConcurrencyTarget(t *testing.T, serviceName,
 
 	expectedOutput := fmt.Sprintf("autoscaling.knative.dev/target: \"%s\"", concurrencyTarget)
 	assert.Check(t, util.ContainsAll(out, expectedOutput))
+}
+
+func (test *e2eTest) serviceUpdateWithInvalidValue(t *testing.T, serviceName string, args []string) {
+	_, err := test.kn.RunWithOpts(append([]string{"service", "update", serviceName}, args...), runOpts{NoNamespace: false, AllowError: true})
+	assert.ErrorContains(t, err, "Invalid")
 }
