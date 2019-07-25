@@ -77,7 +77,7 @@ func (test *e2eTest) revisionDescribeWithPrintFlags(t *testing.T, serviceName st
 	assert.NilError(t, err)
 
 	expectedName := fmt.Sprintf("revision.serving.knative.dev/%s", revName)
-	assert.Check(t, strings.Contains(out, expectedName))
+	assert.Equal(t, strings.TrimSpace(out), expectedName)
 }
 
 func (test *e2eTest) findRevision(t *testing.T, serviceName string) string {

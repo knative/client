@@ -77,6 +77,10 @@ func TestBasicWorkflow(t *testing.T) {
 		test.serviceDelete(t, "svc2")
 	})
 
+	t.Run("delete hello service again and get an error", func(t *testing.T) {
+		test.serviceDeleteNonexistent(t, "hello")
+	})
+
 	t.Run("returns no service after completing tests", func(t *testing.T) {
 		test.serviceListEmpty(t)
 	})
@@ -92,8 +96,7 @@ func (test *e2eTest) serviceListEmpty(t *testing.T) {
 }
 
 func (test *e2eTest) serviceCreate(t *testing.T, serviceName string) {
-	out, err := test.kn.RunWithOpts([]string{"service", "create",
-		fmt.Sprintf("%s", serviceName),
+	out, err := test.kn.RunWithOpts([]string{"service", "create", serviceName,
 		"--image", KnDefaultTestImage}, runOpts{NoNamespace: false})
 	assert.NilError(t, err)
 
@@ -111,8 +114,7 @@ func (test *e2eTest) serviceCreateDuplicate(t *testing.T, serviceName string) {
 	out, err := test.kn.RunWithOpts([]string{"service", "list", serviceName}, runOpts{NoNamespace: false})
 	assert.Check(t, strings.Contains(out, serviceName), "The service does not exist yet")
 
-	_, err = test.kn.RunWithOpts([]string{"service", "create",
-		fmt.Sprintf("%s", serviceName),
+	_, err = test.kn.RunWithOpts([]string{"service", "create", serviceName,
 		"--image", KnDefaultTestImage}, runOpts{NoNamespace: false, AllowError: true})
 
 	assert.ErrorContains(t, err, "the service already exists")
@@ -158,7 +160,7 @@ func (test *e2eTest) serviceDescribeWithPrintFlags(t *testing.T, serviceName str
 	assert.NilError(t, err)
 
 	expectedName := fmt.Sprintf("service.serving.knative.dev/%s", serviceName)
-	assert.Check(t, strings.Contains(out, expectedName))
+	assert.Equal(t, strings.TrimSpace(out), expectedName)
 }
 
 func (test *e2eTest) routeList(t *testing.T) {
@@ -184,6 +186,16 @@ func (test *e2eTest) serviceDelete(t *testing.T, serviceName string) {
 	assert.Check(t, util.ContainsAll(out, "Service", serviceName, "successfully deleted in namespace", test.kn.namespace))
 }
 
+func (test *e2eTest) serviceDeleteNonexistent(t *testing.T, serviceName string) {
+	out, err := test.kn.RunWithOpts([]string{"service", "list", serviceName}, runOpts{NoNamespace: false})
+	assert.Check(t, !strings.Contains(out, serviceName), "The service exists")
+
+	_, err = test.kn.RunWithOpts([]string{"service", "delete", serviceName}, runOpts{NoNamespace: false, AllowError: true})
+
+	expectedErr := fmt.Sprintf(`services.serving.knative.dev "%s" not found`, serviceName)
+	assert.ErrorContains(t, err, expectedErr)
+}
+
 func (test *e2eTest) routeDescribe(t *testing.T, routeName string) {
 	out, err := test.kn.RunWithOpts([]string{"route", "describe", routeName}, runOpts{})
 	assert.NilError(t, err)
@@ -200,7 +212,7 @@ func (test *e2eTest) routeDescribeWithPrintFlags(t *testing.T, routeName string)
 	assert.NilError(t, err)
 
 	expectedName := fmt.Sprintf("route.serving.knative.dev/%s", routeName)
-	assert.Check(t, strings.Contains(out, expectedName))
+	assert.Equal(t, strings.TrimSpace(out), expectedName)
 }
 
 func (test *e2eTest) routeListWithPrintFlags(t *testing.T, names ...string) {
