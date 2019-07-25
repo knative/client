@@ -52,7 +52,7 @@ func UpdateConcurrencyTarget(template *servingv1alpha1.RevisionTemplateSpec, tar
 	// TODO(toVersus): Remove the following validation once serving library is updated to v0.8.0
 	// and just rely on ValidateAnnotations method.
 	if target < autoscaling.TargetMin {
-		return fmt.Errorf("Invalid 'concurrency-target' value: must be an intger greater than 0: %s",
+		return fmt.Errorf("Invalid 'concurrency-target' value: must be an integer greater than 0: %s",
 			autoscaling.TargetAnnotationKey)
 	}
 
