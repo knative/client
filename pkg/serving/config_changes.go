@@ -52,7 +52,8 @@ func UpdateConcurrencyTarget(template *servingv1alpha1.RevisionTemplateSpec, tar
 	// TODO(toVersus): Remove the following validation once serving library is updated to v0.8.0
 	// and just rely on ValidateAnnotations method.
 	if target < autoscaling.TargetMin {
-		return fmt.Errorf("Invalid %s annotation value: must be an intger greater than 0", autoscaling.TargetAnnotationKey)
+		return fmt.Errorf("Invalid 'concurrency-target' value: must be an intger greater than 0: %s",
+			autoscaling.TargetAnnotationKey)
 	}
 
 	return UpdateAnnotation(template, autoscaling.TargetAnnotationKey, strconv.Itoa(target))
@@ -64,7 +65,7 @@ func UpdateConcurrencyLimit(template *servingv1alpha1.RevisionTemplateSpec, limi
 	// Validate input limit
 	ctx := context.Background()
 	if err := cc.Validate(ctx).ViaField("spec.containerConcurrency"); err != nil {
-		return fmt.Errorf("Invalid containerConcurrency revision spec: %s", err)
+		return fmt.Errorf("Invalid 'concurrency-limit' value: %s", err)
 	}
 	template.Spec.ContainerConcurrency = cc
 	return nil
