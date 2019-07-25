@@ -26,6 +26,7 @@ import (
 
 	"github.com/knative/serving/pkg/apis/autoscaling"
 	"github.com/knative/serving/pkg/apis/serving"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
 
 	"github.com/knative/client/pkg/printers"
 	serving_kn_v1alpha1 "github.com/knative/client/pkg/serving/v1alpha1"
@@ -53,7 +54,8 @@ var printDetails bool
 var truncateAt = 100
 
 // View object for collecting revision related information in the context
-// of a Service
+// of a Service. These are plain data types which can be directly used
+// for printing out
 type revisionDesc struct {
 	name                    string
 	configuration           string
@@ -76,6 +78,12 @@ type revisionDesc struct {
 	minScale          *int
 	concurrencyTarget *int
 	concurrencyLimit  *int64
+
+	// resource options
+	requestsMemory string
+	requestsCpu    string
+	limitsMemory   string
+	limitsCpu      string
 }
 
 // [REMOVE COMMENT WHEN MOVING TO 0.7.0]
@@ -88,6 +96,10 @@ type revisionDesc struct {
 
 // Return a new command for describing a service.
 func NewServiceDescribeCommand(p *commands.KnParams) *cobra.Command {
+
+	// For machine readable output
+	machineReadablePrintFlags := genericclioptions.NewPrintFlags("")
+
 	command := &cobra.Command{
 		Use:   "describe NAME",
 		Short: "Show details for a given service",
@@ -110,15 +122,25 @@ func NewServiceDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
+			service, err := client.GetService(serviceName)
+			if err != nil {
+				return err
+			}
+
+			// Print out machine readable output if requested
+			if machineReadablePrintFlags.OutputFlagSpecified() {
+				printer, err := machineReadablePrintFlags.ToPrinter()
+				if err != nil {
+					return err
+				}
+				return printer.PrintObj(service, cmd.OutOrStdout())
+			}
+
 			printDetails, err = cmd.Flags().GetBool("details")
 			if err != nil {
 				return err
 			}
 
-			service, err := client.GetService(serviceName)
-			if err != nil {
-				return err
-			}
 			revisionDescs, err := getRevisionDescriptions(client, service, printDetails)
 
 			return describe(cmd.OutOrStdout(), service, revisionDescs)
@@ -127,6 +149,7 @@ func NewServiceDescribeCommand(p *commands.KnParams) *cobra.Command {
 	flags := command.Flags()
 	commands.AddNamespaceFlags(flags, false)
 	flags.BoolP("details", "d", false, "Show all details.")
+	machineReadablePrintFlags.AddFlags(command)
 	return command
 }
 
@@ -191,32 +214,13 @@ func writeRevisions(dw printers.PrefixWriter, revisions []*revisionDesc) {
 
 		// Concurrency specs if given
 		if revisionDesc.concurrencyLimit != nil || revisionDesc.concurrencyTarget != nil {
-			dw.WriteColsLn(printers.LEVEL_1, "", l("Concurrency"))
-			if revisionDesc.concurrencyLimit != nil {
-				dw.WriteColsLn(printers.LEVEL_2, "", "", l("Limit"), strconv.FormatInt(*revisionDesc.concurrencyLimit, 10))
-			}
-			if revisionDesc.concurrencyTarget != nil {
-				dw.WriteColsLn(printers.LEVEL_2, "", "", l("Target"), strconv.Itoa(*revisionDesc.concurrencyTarget))
-			}
+			writeConcurrencyOptions(dw, revisionDesc)
 		}
+
+		// Resources if given
+		writeResources(dw, "Memory", revisionDesc.requestsMemory, revisionDesc.limitsMemory)
+		writeResources(dw, "CPU", revisionDesc.requestsCpu, revisionDesc.limitsCpu)
 	}
-}
-
-func formatScale(minScale *int, maxScale *int) string {
-	ret := "0"
-	if minScale != nil {
-		ret = strconv.Itoa(*minScale)
-	}
-
-	ret += " ... "
-
-	if maxScale != nil {
-		ret += strconv.Itoa(*maxScale)
-	} else {
-		ret += "∞"
-	}
-
-	return ret
 }
 
 // Print out a table with conditions. Use green for 'ok', and red for 'nok' if color is enabled
@@ -236,15 +240,40 @@ func writeConditions(dw printers.PrefixWriter, service *v1alpha1.Service) {
 	}
 }
 
+func writeConcurrencyOptions(dw printers.PrefixWriter, desc *revisionDesc) {
+	dw.WriteColsLn(printers.LEVEL_1, "", l("Concurrency"))
+	if desc.concurrencyLimit != nil {
+		dw.WriteColsLn(printers.LEVEL_2, "", "", l("Limit"), strconv.FormatInt(*desc.concurrencyLimit, 10))
+	}
+	if desc.concurrencyTarget != nil {
+		dw.WriteColsLn(printers.LEVEL_2, "", "", l("Target"), strconv.Itoa(*desc.concurrencyTarget))
+	}
+}
+
 // ======================================================================================
 // Helper functions
 
-// Format label depending whether color mode is on or not
+// Format label (extracted so that color could be added more easily to all labels)
 func l(label string) string {
 	return label + ":"
 }
 
-// ======================================================================================
+// Format scale in the format "min ... max" with max = ∞ if not set
+func formatScale(minScale *int, maxScale *int) string {
+	ret := "0"
+	if minScale != nil {
+		ret = strconv.Itoa(*minScale)
+	}
+
+	ret += " ... "
+
+	if maxScale != nil {
+		ret += strconv.Itoa(*maxScale)
+	} else {
+		ret += "∞"
+	}
+	return ret
+}
 
 // Format the revision name along with its generation. Use colors if enabled.
 func getRevisionNameWithGenerationAndAge(desc *revisionDesc) string {
@@ -348,6 +377,24 @@ func writeSliceDesc(dw printers.PrefixWriter, indent int, s []string, label stri
 	dw.WriteColsLn(indent, labelPrefix+label, joined)
 }
 
+// Write request ... limits or only one of them
+func writeResources(dw printers.PrefixWriter, label string, request string, limit string) {
+	value := ""
+	if request != "" && limit != "" {
+		value = request + " ... " + limit
+	} else if request != "" {
+		value = request
+	} else if limit != "" {
+		value = limit
+	}
+
+	if value == "" {
+		return
+	}
+
+	dw.WriteColsLn(printers.LEVEL_1, "", l(label), value)
+}
+
 // Join to key=value pair, comma separated, and truncate if longer than a limit
 func joinAndTruncate(m map[string]string) string {
 	ret := ""
@@ -370,7 +417,7 @@ func formatPercentage(percentage int) string {
 	if percentage == 0 {
 		return "   -"
 	}
-	return fmt.Sprintf("%-3d%%", percentage)
+	return fmt.Sprintf("%3d%%", percentage)
 }
 
 func age(t time.Time) string {
@@ -454,6 +501,7 @@ func newRevisionDesc(revision *v1alpha1.Revision, target *v1alpha1.TrafficTarget
 
 	addTargetInfo(&revisionDesc, target)
 	addContainerInfo(&revisionDesc, container)
+	addResourcesInfo(&revisionDesc, container)
 	err = addConcurrencyAndScaleInfo(&revisionDesc, revision)
 	if err != nil {
 		return nil, err
@@ -472,6 +520,24 @@ func addContainerInfo(desc *revisionDesc, container *v1.Container) {
 	addImage(desc, container)
 	addEnv(desc, container)
 	addPort(desc, container)
+}
+
+func addResourcesInfo(desc *revisionDesc, container *v1.Container) {
+	requests := container.Resources.Requests
+	if !requests.Memory().IsZero() {
+		desc.requestsMemory = requests.Memory().String()
+	}
+	if !requests.Cpu().IsZero() {
+		desc.requestsCpu = requests.Cpu().String()
+	}
+
+	limits := container.Resources.Limits
+	if !limits.Memory().IsZero() {
+		desc.limitsMemory = limits.Memory().String()
+	}
+	if !limits.Cpu().IsZero() {
+		desc.limitsCpu = limits.Cpu().String()
+	}
 }
 
 func addConcurrencyAndScaleInfo(desc *revisionDesc, revision *v1alpha1.Revision) error {
