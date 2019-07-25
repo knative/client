@@ -58,6 +58,21 @@ func TestServiceOptions(t *testing.T) {
 	t.Run("delete hello service and returns no error", func(t *testing.T) {
 		test.serviceDelete(t, "hello")
 	})
+
+	t.Run("create and validate service with min/max scale options ", func(t *testing.T) {
+		test.serviceCreateWithOptions(t, "svc2", []string{"--min-scale", "1", "--max-scale", "3"})
+		test.validateServiceMinScale(t, "svc2", "1")
+		test.validateServiceMaxScale(t, "svc2", "3")
+	})
+
+	t.Run("update and validate service with max scale option", func(t *testing.T) {
+		test.serviceUpdate(t, "svc2", []string{"--max-scale", "2"})
+		test.validateServiceMaxScale(t, "svc2", "2")
+	})
+
+	t.Run("delete service", func(t *testing.T) {
+		test.serviceDelete(t, "svc2")
+	})
 }
 
 // Private
@@ -90,4 +105,18 @@ func (test *e2eTest) serviceDescribeConcurrencyTarget(t *testing.T, serviceName,
 func (test *e2eTest) serviceUpdateWithInvalidValue(t *testing.T, serviceName string, args []string) {
 	_, err := test.kn.RunWithOpts(append([]string{"service", "update", serviceName}, args...), runOpts{NoNamespace: false, AllowError: true})
 	assert.ErrorContains(t, err, "Invalid")
+}
+
+func (test *e2eTest) validateServiceMinScale(t *testing.T, serviceName, minScale string) {
+	jsonpath := "jsonpath={.items[0].spec.template.metadata.annotations.autoscaling\\.knative\\.dev/minScale}"
+	out, err := test.kn.RunWithOpts([]string{"service", "list", serviceName, "-o", jsonpath}, runOpts{})
+	assert.NilError(t, err)
+	assert.Equal(t, minScale, out)
+}
+
+func (test *e2eTest) validateServiceMaxScale(t *testing.T, serviceName, maxScale string) {
+	jsonpath := "jsonpath={.items[0].spec.template.metadata.annotations.autoscaling\\.knative\\.dev/maxScale}"
+	out, err := test.kn.RunWithOpts([]string{"service", "list", serviceName, "-o", jsonpath}, runOpts{})
+	assert.NilError(t, err)
+	assert.Equal(t, maxScale, out)
 }
