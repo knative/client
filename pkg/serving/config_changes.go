@@ -79,7 +79,8 @@ func UpdateAnnotation(template *servingv1alpha1.RevisionTemplateSpec, annotation
 		template.Annotations = annoMap
 	}
 
-	// Validate autoscaling annotations and returns the same value as before if input value is invalid
+	// Validate autoscaling annotations and returns error if invalid input provided
+	// without changing the existing spec
 	in := make(map[string]string)
 	in[annotation] = value
 	if err := autoscaling.ValidateAnnotations(in); err != nil {
