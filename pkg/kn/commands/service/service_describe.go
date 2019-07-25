@@ -53,6 +53,9 @@ var printDetails bool
 // Max length When to truncate long strings (when not "all" mode switched on)
 var truncateAt = 100
 
+// Matching image digest
+var imageDigestRegexp = regexp.MustCompile(`(?i)sha256:([0-9a-f]{64})`)
+
 // View object for collecting revision related information in the context
 // of a Service. These are plain data types which can be directly used
 // for printing out
@@ -316,8 +319,7 @@ func formatStatus(status corev1.ConditionStatus) string {
 func getImageDesc(desc *revisionDesc) string {
 	image := desc.image
 	if printDetails && desc.imageDigest != "" {
-		digest := "(" + shortenDigest(desc.imageDigest) + ")"
-		return fmt.Sprintf("%s %s", image, digest)
+		return fmt.Sprintf("%s (%s)", image, shortenDigest(desc.imageDigest))
 	}
 	return image
 }
@@ -326,8 +328,7 @@ func getImageDesc(desc *revisionDesc) string {
 // as the digest should to be user consumable. Use the resource via `kn service get`
 // to get to the full sha
 func shortenDigest(digest string) string {
-	digestRegexp := regexp.MustCompile(`(?i)sha256:([0-9a-f]+)`)
-	match := digestRegexp.FindStringSubmatch(digest)
+	match := imageDigestRegexp.FindStringSubmatch(digest)
 	if len(match) > 1 {
 		return string(match[1][:12])
 	}
