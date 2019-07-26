@@ -139,9 +139,9 @@ golang.org/x/oauth2/jwt
 golang.org/x/sys/unix
 golang.org/x/sys/windows
 # golang.org/x/text v0.3.0
-golang.org/x/text/encoding/unicode
 golang.org/x/text/transform
 golang.org/x/text/unicode/norm
+golang.org/x/text/encoding/unicode
 golang.org/x/text/encoding
 golang.org/x/text/encoding/internal
 golang.org/x/text/encoding/internal/identifier
