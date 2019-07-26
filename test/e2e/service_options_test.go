@@ -53,6 +53,21 @@ func TestServiceOptions(t *testing.T) {
 	t.Run("delete service", func(t *testing.T) {
 		test.serviceDelete(t, "svc1")
 	})
+
+	t.Run("create and validate service with min/max scale options ", func(t *testing.T) {
+		test.serviceCreateWithOptions(t, "svc2", []string{"--min-scale", "1", "--max-scale", "3"})
+		test.validateServiceMinScale(t, "svc2", "1")
+		test.validateServiceMaxScale(t, "svc2", "3")
+	})
+
+	t.Run("update and validate service with max scale option", func(t *testing.T) {
+		test.serviceUpdate(t, "svc2", []string{"--max-scale", "2"})
+		test.validateServiceMaxScale(t, "svc2", "2")
+	})
+
+	t.Run("delete service", func(t *testing.T) {
+		test.serviceDelete(t, "svc2")
+	})
 }
 
 func (test *e2eTest) serviceCreateWithOptions(t *testing.T, serviceName string, options []string) {
@@ -92,5 +107,37 @@ func (test *e2eTest) validateServiceConcurrencyTarget(t *testing.T, serviceName,
 		out, err := test.kn.RunWithOpts([]string{"service", "list", serviceName, "-o", jsonpath}, runOpts{})
 		assert.NilError(t, err)
 		assert.Equal(t, out, concurrencyTarget)
+	}
+}
+
+func (test *e2eTest) validateServiceMinScale(t *testing.T, serviceName, minScale string) {
+	jsonpath := "jsonpath={.items[0].spec.template.metadata.annotations.autoscaling\\.knative\\.dev/minScale}"
+	out, err := test.kn.RunWithOpts([]string{"service", "list", serviceName, "-o", jsonpath}, runOpts{})
+	assert.NilError(t, err)
+	if out != "" {
+		assert.Equal(t, minScale, out)
+	} else {
+		// case where server could return either old or new fields
+		// #TODO: remove this when old fields are deprecated, v1beta1
+		jsonpath = "jsonpath={.items[0].spec.runLatest.configuration.revisionTemplate.metadata.annotations.autoscaling\\.knative\\.dev/minScale}"
+		out, err := test.kn.RunWithOpts([]string{"service", "list", serviceName, "-o", jsonpath}, runOpts{})
+		assert.NilError(t, err)
+		assert.Equal(t, minScale, out)
+	}
+}
+
+func (test *e2eTest) validateServiceMaxScale(t *testing.T, serviceName, maxScale string) {
+	jsonpath := "jsonpath={.items[0].spec.template.metadata.annotations.autoscaling\\.knative\\.dev/maxScale}"
+	out, err := test.kn.RunWithOpts([]string{"service", "list", serviceName, "-o", jsonpath}, runOpts{})
+	assert.NilError(t, err)
+	if out != "" {
+		assert.Equal(t, maxScale, out)
+	} else {
+		// case where server could return either old or new fields
+		// #TODO: remove this when old fields are deprecated, v1beta1
+		jsonpath = "jsonpath={.items[0].spec.runLatest.configuration.revisionTemplate.metadata.annotations.autoscaling\\.knative\\.dev/maxScale}"
+		out, err := test.kn.RunWithOpts([]string{"service", "list", serviceName, "-o", jsonpath}, runOpts{})
+		assert.NilError(t, err)
+		assert.Equal(t, maxScale, out)
 	}
 }
