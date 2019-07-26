@@ -126,7 +126,7 @@ func (c *MockKnClient) GetService(name string) (*v1alpha1.Service, error) {
 }
 
 // List services
-func (r *Recorder) ListServices(opts []interface{}, serviceList *v1alpha1.Service, err error) *Recorder {
+func (r *Recorder) ListServices(opts interface{}, serviceList *v1alpha1.ServiceList, err error) *Recorder {
 	r.add("ListServices", apiMethodCall{[]interface{}{opts}, []interface{}{serviceList, err}})
 	return r
 }
@@ -147,7 +147,6 @@ func (c *MockKnClient) CreateService(service *v1alpha1.Service) error {
 	call := c.getCall("CreateService")
 	c.verifyArgs(call, service)
 	return errorOrNil(call.result[0])
-
 }
 
 // Update the given service
@@ -189,8 +188,8 @@ func (c *MockKnClient) WaitForService(name string, timeout time.Duration) error 
 }
 
 // Get a revision by name
-func (r *Recorder) GetRevision(name interface{}, err error) *Recorder {
-	r.add("GetRevision", apiMethodCall{[]interface{}{name}, []interface{}{err}})
+func (r *Recorder) GetRevision(name interface{}, revision *v1alpha1.Revision, err error) *Recorder {
+	r.add("GetRevision", apiMethodCall{[]interface{}{name}, []interface{}{revision, err}})
 	return r
 }
 
@@ -202,8 +201,8 @@ func (c *MockKnClient) GetRevision(name string) (*v1alpha1.Revision, error) {
 }
 
 // List revisions
-func (r *Recorder) ListRevisions(opts []interface{}, err error) *Recorder {
-	r.add("ListRevisions", apiMethodCall{[]interface{}{opts}, []interface{}{err}})
+func (r *Recorder) ListRevisions(opts interface{}, revisionList *v1alpha1.RevisionList, err error) *Recorder {
+	r.add("ListRevisions", apiMethodCall{[]interface{}{opts}, []interface{}{revisionList, err}})
 	return r
 }
 
@@ -228,8 +227,8 @@ func (c *MockKnClient) DeleteRevision(name string) error {
 }
 
 // Get a route by its unique name
-func (r *Recorder) GetRoute(name interface{}, err error) *Recorder {
-	r.add("GetRoute", apiMethodCall{[]interface{}{name}, []interface{}{err}})
+func (r *Recorder) GetRoute(name interface{}, route *v1alpha1.Route, err error) *Recorder {
+	r.add("GetRoute", apiMethodCall{[]interface{}{name}, []interface{}{route, err}})
 	return r
 }
 
@@ -241,8 +240,8 @@ func (c *MockKnClient) GetRoute(name string) (*v1alpha1.Route, error) {
 }
 
 // List routes
-func (r *Recorder) ListRoutes(opts []interface{}, err error) *Recorder {
-	r.add("ListRoutes", apiMethodCall{[]interface{}{opts}, []interface{}{err}})
+func (r *Recorder) ListRoutes(opts interface{}, routeList *v1alpha1.RouteList, err error) *Recorder {
+	r.add("ListRoutes", apiMethodCall{[]interface{}{opts}, []interface{}{routeList, err}})
 	return r
 }
 
