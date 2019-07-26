@@ -15,52 +15,123 @@
 package core
 
 import (
+	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 
 	"github.com/knative/client/pkg/kn/commands"
+	"github.com/knative/client/pkg/kn/commands/plugin"
 	"github.com/spf13/cobra"
 	"gotest.tools/assert"
 )
 
+func TestNewDefaultKnCommand(t *testing.T) {
+	var rootCmd *cobra.Command
+
+	setup := func(t *testing.T) {
+		rootCmd = NewDefaultKnCommand()
+	}
+
+	t.Run("returns a valid root command", func(t *testing.T) {
+		setup(t)
+
+		checkRootCmd(t, rootCmd)
+	})
+}
+
+func TestNewDefaultKnCommandWithArgs(t *testing.T) {
+	var (
+		rootCmd       *cobra.Command
+		pluginHandler plugin.PluginHandler
+		args          []string
+	)
+
+	setup := func(t *testing.T) {
+		rootCmd = NewDefaultKnCommandWithArgs(NewKnCommand(), pluginHandler, args, os.Stdin, os.Stdout, os.Stderr)
+	}
+
+	t.Run("when pluginHandler is nil", func(t *testing.T) {
+		args = []string{}
+		setup(t)
+
+		t.Run("returns a valid root command", func(t *testing.T) {
+			checkRootCmd(t, rootCmd)
+		})
+	})
+
+	t.Run("when pluginHandler is not nil", func(t *testing.T) {
+		t.Run("when args empty", func(t *testing.T) {
+			args = []string{}
+			setup(t)
+
+			t.Run("returns a valid root command", func(t *testing.T) {
+				checkRootCmd(t, rootCmd)
+			})
+		})
+
+		t.Run("when args not empty", func(t *testing.T) {
+			var (
+				pluginName, pluginPath, tmpPathDir string
+				err                                error
+			)
+
+			beforeEach := func(t *testing.T) {
+				tmpPathDir, err = ioutil.TempDir("", "plugin_list")
+				assert.Assert(t, err == nil)
+
+				pluginName = "fake-plugin-name"
+				pluginPath = plugin.CreateTestPluginInPath(t, "kn-"+pluginName, plugin.KnTestPluginScript, plugin.FileModeExecutable, tmpPathDir)
+			}
+
+			afterEach := func(t *testing.T) {
+				err = os.RemoveAll(tmpPathDir)
+				assert.Assert(t, err == nil)
+			}
+
+			beforeEach(t)
+			args = []string{pluginPath, pluginName}
+			setup(t)
+			defer afterEach(t)
+
+			t.Run("tries to handle args[1:] as plugin and return valid root command", func(t *testing.T) {
+				checkRootCmd(t, rootCmd)
+			})
+		})
+	})
+}
+
 func TestNewKnCommand(t *testing.T) {
 	var rootCmd *cobra.Command
 
-	setup := func() {
+	setup := func(t *testing.T) {
 		rootCmd = NewKnCommand(commands.KnParams{})
 	}
 
-	setup()
-
 	t.Run("returns a valid root command", func(t *testing.T) {
-		assert.Assert(t, rootCmd != nil)
-
-		assert.Equal(t, rootCmd.Name(), "kn")
-		assert.Equal(t, rootCmd.Short, "Knative client")
-		assert.Assert(t, strings.Contains(rootCmd.Long, "Manage your Knative building blocks:"))
-
-		assert.Assert(t, rootCmd.DisableAutoGenTag)
-		assert.Assert(t, rootCmd.SilenceUsage)
-		assert.Assert(t, rootCmd.SilenceErrors)
-
-		assert.Assert(t, rootCmd.RunE == nil)
+		setup(t)
+		checkRootCmd(t, rootCmd)
 	})
 
 	t.Run("sets the output params", func(t *testing.T) {
+		setup(t)
 		assert.Assert(t, rootCmd.OutOrStdout() != nil)
 	})
 
 	t.Run("sets the config and kubeconfig global flags", func(t *testing.T) {
+		setup(t)
 		assert.Assert(t, rootCmd.PersistentFlags().Lookup("config") != nil)
 		assert.Assert(t, rootCmd.PersistentFlags().Lookup("kubeconfig") != nil)
 	})
 
 	t.Run("adds the top level commands: version and completion", func(t *testing.T) {
+		setup(t)
 		checkCommand(t, "version", rootCmd)
 		checkCommand(t, "completion", rootCmd)
 	})
 
 	t.Run("adds the top level group commands", func(t *testing.T) {
+		setup(t)
 		checkCommandGroup(t, "service", rootCmd)
 		checkCommandGroup(t, "revision", rootCmd)
 	})
@@ -69,7 +140,7 @@ func TestNewKnCommand(t *testing.T) {
 func TestEmptyAndUnknownSubCommands(t *testing.T) {
 	var rootCmd, fakeCmd, fakeSubCmd *cobra.Command
 
-	setup := func() {
+	setup := func(t *testing.T) {
 		rootCmd = NewKnCommand(commands.KnParams{})
 		fakeCmd = &cobra.Command{
 			Use: "fake-cmd-name",
@@ -84,9 +155,8 @@ func TestEmptyAndUnknownSubCommands(t *testing.T) {
 		assert.Assert(t, fakeSubCmd.RunE == nil)
 	}
 
-	setup()
-
 	t.Run("deals with empty and unknown sub-commands for all group commands", func(t *testing.T) {
+		setup(t)
 		EmptyAndUnknownSubCommands(rootCmd)
 		checkCommand(t, "fake-sub-cmd-name", fakeCmd)
 		checkCommandGroup(t, "fake-cmd-name", rootCmd)
@@ -94,6 +164,23 @@ func TestEmptyAndUnknownSubCommands(t *testing.T) {
 }
 
 // Private
+
+func checkRootCmd(t *testing.T, rootCmd *cobra.Command) {
+	assert.Assert(t, rootCmd != nil)
+
+	assert.Equal(t, rootCmd.Name(), "kn")
+	assert.Equal(t, rootCmd.Short, "Knative client")
+	assert.Assert(t, strings.Contains(rootCmd.Long, "Manage your Knative building blocks:"))
+
+	assert.Assert(t, rootCmd.DisableAutoGenTag)
+	assert.Assert(t, rootCmd.SilenceUsage)
+	assert.Assert(t, rootCmd.SilenceErrors)
+
+	assert.Assert(t, rootCmd.Flags().Lookup("plugins-dir") != nil)
+	assert.Assert(t, rootCmd.Flags().Lookup("lookup-plugins-in-path") != nil)
+
+	assert.Assert(t, rootCmd.RunE == nil)
+}
 
 func checkCommand(t *testing.T, name string, rootCmd *cobra.Command) {
 	cmd, _, err := rootCmd.Find([]string{"version"})

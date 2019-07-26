@@ -24,6 +24,7 @@ import (
 	"github.com/knative/client/pkg/serving/v1alpha1"
 	"github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"gotest.tools/assert"
 	client_testing "k8s.io/client-go/testing"
 )
@@ -112,6 +113,15 @@ Eventing: Manage event subscriptions and channels. Connect up event sources.`,
 	}
 	rootCmd.PersistentFlags().StringVar(&CfgFile, "config", "", "config file (default is $HOME/.kn.yaml)")
 	rootCmd.PersistentFlags().StringVar(&params.KubeCfgPath, "kubeconfig", "", "kubectl config file (default is $HOME/.kube/config)")
+
+	rootCmd.Flags().StringVar(&Cfg.PluginsDir, "plugins-dir", "~/.kn/plugins", "kn plugins directory")
+	rootCmd.Flags().BoolVar(&Cfg.LookupPluginsInPath, "lookup-plugins-in-path", false, "look for kn plugins in $PATH")
+
+	viper.BindPFlag("pluginsDir", rootCmd.Flags().Lookup("plugins-dir"))
+	viper.BindPFlag("lookupPluginsInPath", rootCmd.Flags().Lookup("lookup-plugins-in-path"))
+
+	viper.SetDefault("pluginsDir", "~/.kn/plugins")
+	viper.SetDefault("lookupPluginsInPath", false)
 
 	rootCmd.AddCommand(subCommand)
 

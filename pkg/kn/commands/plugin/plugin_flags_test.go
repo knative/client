@@ -12,33 +12,36 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package plugin
 
 import (
-	"fmt"
-	"os"
+	"testing"
 
-	"github.com/knative/client/pkg/kn/core"
-	"github.com/spf13/viper"
+	"github.com/spf13/cobra"
+	"gotest.tools/assert"
 )
 
-func init() {
-	core.InitializeConfig()
-}
+func TestAddPluginFlags(t *testing.T) {
+	var (
+		pluginFlags *PluginFlags
+		cmd         *cobra.Command
+	)
 
-var err error
+	setup := func() {
+		pluginFlags = &PluginFlags{}
 
-func main() {
-	defer cleanup()
-	err = core.NewDefaultKnCommand().Execute()
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		cmd = &cobra.Command{}
 	}
-}
 
-func cleanup() {
-	if err == nil {
-		viper.WriteConfig()
-	}
+	t.Run("adds plugin flag", func(t *testing.T) {
+		setup()
+		pluginFlags.AddPluginFlags(cmd)
+
+		assert.Assert(t, pluginFlags != nil)
+		assert.Assert(t, cmd.Flags() != nil)
+
+		nameOnly, err := cmd.Flags().GetBool("name-only")
+		assert.Assert(t, err == nil)
+		assert.Assert(t, nameOnly == false)
+	})
 }
