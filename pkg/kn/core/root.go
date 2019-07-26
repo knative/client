@@ -76,8 +76,10 @@ func NewDefaultKnCommandWithArgs(rootCmd *cobra.Command,
 		if _, _, err := rootCmd.Find(cmdPathPieces); err != nil {
 			err := plugin.HandlePluginCommand(pluginHandler, cmdPathPieces)
 			if err != nil {
+				rootCmd.Help()
+				fmt.Println()
 				fmt.Fprintf(errOut, "%v\n", err)
-				os.Exit(1)
+				return rootCmd
 			}
 		}
 	}
