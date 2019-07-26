@@ -58,6 +58,143 @@ func (c *MockKnClient) Recorder() *Recorder {
 	return &c.recorder
 }
 
+// any() can be used in recording to not check for the argument
+func Any() func(t *testing.T, a, b interface{}) {
+	return func(t *testing.T, a, b interface{}) {}
+}
+
+// Get Service
+func (r *Recorder) GetService(name interface{}, service *v1alpha1.Service, err error) {
+	r.add("GetService", apiMethodCall{[]interface{}{name}, []interface{}{service, err}})
+}
+
+func (c *MockKnClient) GetService(name string) (*v1alpha1.Service, error) {
+	call := c.getCall("GetService")
+	c.verifyArgs(call, name)
+	return call.result[0].(*v1alpha1.Service), errorOrNil(call.result[1])
+}
+
+// List services
+func (r *Recorder) ListServices(opts interface{}, serviceList *v1alpha1.ServiceList, err error) {
+	r.add("ListServices", apiMethodCall{[]interface{}{opts}, []interface{}{serviceList, err}})
+}
+
+func (c *MockKnClient) ListServices(opts ...ListConfig) (*v1alpha1.ServiceList, error) {
+	call := c.getCall("ListServices")
+	c.verifyArgs(call, opts)
+	return call.result[0].(*v1alpha1.ServiceList), errorOrNil(call.result[1])
+}
+
+// Create a new service
+func (r *Recorder) CreateService(service interface{}, err error) {
+	r.add("CreateService", apiMethodCall{[]interface{}{service}, []interface{}{err}})
+}
+
+func (c *MockKnClient) CreateService(service *v1alpha1.Service) error {
+	call := c.getCall("CreateService")
+	c.verifyArgs(call, service)
+	return errorOrNil(call.result[0])
+}
+
+// Update the given service
+func (r *Recorder) UpdateService(service interface{}, err error) {
+	r.add("UpdateService", apiMethodCall{[]interface{}{service}, []interface{}{err}})
+}
+
+func (c *MockKnClient) UpdateService(service *v1alpha1.Service) error {
+	call := c.getCall("UpdateService")
+	c.verifyArgs(call, service)
+	return errorOrNil(call.result[0])
+}
+
+// Delete a service by name
+func (r *Recorder) DeleteService(name interface{}, err error) {
+	r.add("DeleteService", apiMethodCall{[]interface{}{name}, []interface{}{err}})
+}
+
+func (c *MockKnClient) DeleteService(name string) error {
+	call := c.getCall("DeleteService")
+	c.verifyArgs(call, name)
+	return errorOrNil(call.result[0])
+}
+
+// Wait for a service to become ready, but not longer than provided timeout
+func (r *Recorder) WaitForService(name interface{}, timeout interface{}, err error) {
+	r.add("WaitForService", apiMethodCall{[]interface{}{name}, []interface{}{err}})
+}
+
+func (c *MockKnClient) WaitForService(name string, timeout time.Duration) error {
+	call := c.getCall("WaitForService")
+	c.verifyArgs(call, name)
+	return errorOrNil(call.result[0])
+}
+
+// Get a revision by name
+func (r *Recorder) GetRevision(name interface{}, revision *v1alpha1.Revision, err error) {
+	r.add("GetRevision", apiMethodCall{[]interface{}{name}, []interface{}{revision, err}})
+}
+
+func (c *MockKnClient) GetRevision(name string) (*v1alpha1.Revision, error) {
+	call := c.getCall("GetRevision")
+	c.verifyArgs(call, name)
+	return call.result[0].(*v1alpha1.Revision), errorOrNil(call.result[1])
+}
+
+// List revisions
+func (r *Recorder) ListRevisions(opts interface{}, revisionList *v1alpha1.RevisionList, err error) {
+	r.add("ListRevisions", apiMethodCall{[]interface{}{opts}, []interface{}{revisionList, err}})
+}
+
+func (c *MockKnClient) ListRevisions(opts ...ListConfig) (*v1alpha1.RevisionList, error) {
+	call := c.getCall("ListRevisions")
+	c.verifyArgs(call, opts)
+	return call.result[0].(*v1alpha1.RevisionList), errorOrNil(call.result[1])
+}
+
+// Delete a revision
+func (r *Recorder) DeleteRevision(name interface{}, err error) {
+	r.add("DeleteRevision", apiMethodCall{[]interface{}{name}, []interface{}{err}})
+}
+
+func (c *MockKnClient) DeleteRevision(name string) error {
+	call := c.getCall("DeleteRevision")
+	c.verifyArgs(call, name)
+	return errorOrNil(call.result[0])
+
+}
+
+// Get a route by its unique name
+func (r *Recorder) GetRoute(name interface{}, route *v1alpha1.Route, err error) {
+	r.add("GetRoute", apiMethodCall{[]interface{}{name}, []interface{}{route, err}})
+}
+
+func (c *MockKnClient) GetRoute(name string) (*v1alpha1.Route, error) {
+	call := c.getCall("GetRoute")
+	c.verifyArgs(call, name)
+	return call.result[0].(*v1alpha1.Route), errorOrNil(call.result[1])
+
+}
+
+// List routes
+func (r *Recorder) ListRoutes(opts interface{}, routeList *v1alpha1.RouteList, err error) {
+	r.add("ListRoutes", apiMethodCall{[]interface{}{opts}, []interface{}{routeList, err}})
+}
+
+func (c *MockKnClient) ListRoutes(opts ...ListConfig) (*v1alpha1.RouteList, error) {
+	call := c.getCall("ListRoutes")
+	c.verifyArgs(call, opts)
+	return call.result[0].(*v1alpha1.RouteList), errorOrNil(call.result[1])
+}
+
+// Check that every recorded method has been called
+func (r *Recorder) Validate() {
+	for k, v := range r.recordedCalls {
+		if len(v) > 0 {
+			r.t.Errorf("Recorded method \"%s\" not been called", k)
+		}
+	}
+}
+
 // Add a recorded api call the list of calls
 func (r *Recorder) add(name string, call apiMethodCall) {
 	calls, ok := r.recordedCalls[name]
@@ -106,156 +243,4 @@ func errorOrNil(err interface{}) error {
 		return nil
 	}
 	return err.(error)
-}
-
-// any() can be used in recording to not check for the argument
-func Any() func(t *testing.T, a, b interface{}) {
-	return func(t *testing.T, a, b interface{}) {}
-}
-
-// Get Service
-func (r *Recorder) GetService(name interface{}, service *v1alpha1.Service, err error) *Recorder {
-	r.add("GetService", apiMethodCall{[]interface{}{name}, []interface{}{service, err}})
-	return r
-}
-
-func (c *MockKnClient) GetService(name string) (*v1alpha1.Service, error) {
-	call := c.getCall("GetService")
-	c.verifyArgs(call, name)
-	return call.result[0].(*v1alpha1.Service), errorOrNil(call.result[1])
-}
-
-// List services
-func (r *Recorder) ListServices(opts interface{}, serviceList *v1alpha1.ServiceList, err error) *Recorder {
-	r.add("ListServices", apiMethodCall{[]interface{}{opts}, []interface{}{serviceList, err}})
-	return r
-}
-
-func (c *MockKnClient) ListServices(opts ...ListConfig) (*v1alpha1.ServiceList, error) {
-	call := c.getCall("ListServices")
-	c.verifyArgs(call, opts)
-	return call.result[0].(*v1alpha1.ServiceList), errorOrNil(call.result[1])
-}
-
-// Create a new service
-func (r *Recorder) CreateService(service interface{}, err error) *Recorder {
-	r.add("CreateService", apiMethodCall{[]interface{}{service}, []interface{}{err}})
-	return r
-}
-
-func (c *MockKnClient) CreateService(service *v1alpha1.Service) error {
-	call := c.getCall("CreateService")
-	c.verifyArgs(call, service)
-	return errorOrNil(call.result[0])
-}
-
-// Update the given service
-func (r *Recorder) UpdateService(service interface{}, err error) *Recorder {
-	r.add("UpdateService", apiMethodCall{[]interface{}{service}, []interface{}{err}})
-	return r
-}
-
-func (c *MockKnClient) UpdateService(service *v1alpha1.Service) error {
-	call := c.getCall("UpdateService")
-	c.verifyArgs(call, service)
-	return errorOrNil(call.result[0])
-
-}
-
-// Delete a service by name
-func (r *Recorder) DeleteService(name interface{}, err error) *Recorder {
-	r.add("DeleteService", apiMethodCall{[]interface{}{name}, []interface{}{err}})
-	return r
-}
-
-func (c *MockKnClient) DeleteService(name string) error {
-	call := c.getCall("DeleteService")
-	c.verifyArgs(call, name)
-	return errorOrNil(call.result[0])
-}
-
-// Wait for a service to become ready, but not longer than provided timeout
-func (r *Recorder) WaitForService(name interface{}, timeout interface{}, err error) *Recorder {
-	r.add("WaitForService", apiMethodCall{[]interface{}{name}, []interface{}{err}})
-	return r
-}
-
-func (c *MockKnClient) WaitForService(name string, timeout time.Duration) error {
-	call := c.getCall("WaitForService")
-	c.verifyArgs(call, name)
-	return errorOrNil(call.result[0])
-
-}
-
-// Get a revision by name
-func (r *Recorder) GetRevision(name interface{}, revision *v1alpha1.Revision, err error) *Recorder {
-	r.add("GetRevision", apiMethodCall{[]interface{}{name}, []interface{}{revision, err}})
-	return r
-}
-
-func (c *MockKnClient) GetRevision(name string) (*v1alpha1.Revision, error) {
-	call := c.getCall("GetRevision")
-	c.verifyArgs(call, name)
-	return call.result[0].(*v1alpha1.Revision), errorOrNil(call.result[1])
-
-}
-
-// List revisions
-func (r *Recorder) ListRevisions(opts interface{}, revisionList *v1alpha1.RevisionList, err error) *Recorder {
-	r.add("ListRevisions", apiMethodCall{[]interface{}{opts}, []interface{}{revisionList, err}})
-	return r
-}
-
-func (c *MockKnClient) ListRevisions(opts ...ListConfig) (*v1alpha1.RevisionList, error) {
-	call := c.getCall("ListRevisions")
-	c.verifyArgs(call, opts)
-	return call.result[0].(*v1alpha1.RevisionList), errorOrNil(call.result[1])
-
-}
-
-// Delete a revision
-func (r *Recorder) DeleteRevision(name interface{}, err error) *Recorder {
-	r.add("DeleteRevision", apiMethodCall{[]interface{}{name}, []interface{}{err}})
-	return r
-}
-
-func (c *MockKnClient) DeleteRevision(name string) error {
-	call := c.getCall("DeleteRevision")
-	c.verifyArgs(call, name)
-	return errorOrNil(call.result[0])
-
-}
-
-// Get a route by its unique name
-func (r *Recorder) GetRoute(name interface{}, route *v1alpha1.Route, err error) *Recorder {
-	r.add("GetRoute", apiMethodCall{[]interface{}{name}, []interface{}{route, err}})
-	return r
-}
-
-func (c *MockKnClient) GetRoute(name string) (*v1alpha1.Route, error) {
-	call := c.getCall("GetRoute")
-	c.verifyArgs(call, name)
-	return call.result[0].(*v1alpha1.Route), errorOrNil(call.result[1])
-
-}
-
-// List routes
-func (r *Recorder) ListRoutes(opts interface{}, routeList *v1alpha1.RouteList, err error) *Recorder {
-	r.add("ListRoutes", apiMethodCall{[]interface{}{opts}, []interface{}{routeList, err}})
-	return r
-}
-
-func (c *MockKnClient) ListRoutes(opts ...ListConfig) (*v1alpha1.RouteList, error) {
-	call := c.getCall("ListRoutes")
-	c.verifyArgs(call, opts)
-	return call.result[0].(*v1alpha1.RouteList), errorOrNil(call.result[1])
-}
-
-// Check that every recorded method has been called
-func (r *Recorder) Validate() {
-	for k, v := range r.recordedCalls {
-		if len(v) > 0 {
-			r.t.Errorf("Recorded method \"%s\" not been called", k)
-		}
-	}
 }

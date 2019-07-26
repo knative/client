@@ -28,7 +28,7 @@ type FakeWatch struct {
 	eventChan chan watch.Event
 	events    []watch.Event
 
-	// Recorder how often stop was called
+	// Record how often stop was called
 	StopCalled int
 }
 
