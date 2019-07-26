@@ -50,7 +50,7 @@ func CreateTestKnCommand(cmd *cobra.Command, knParams *KnParams) (*cobra.Command
 		return v1alpha1.NewKnServingClient(fakeServing, namespace), nil
 	}
 	knParams.fixedCurrentNamespace = FakeNamespace
-	knCommand := newKnCommand(cmd, knParams)
+	knCommand := NewKnTestCommand(cmd, knParams)
 	return knCommand, fakeServing, buf
 }
 
@@ -88,8 +88,8 @@ func ReadStdout(t *testing.T) string {
 
 // Private
 
-// newKnCommand needed since calling the one in core would cause a import cycle
-func newKnCommand(subCommand *cobra.Command, params *KnParams) *cobra.Command {
+// NewKnTestCommand needed since calling the one in core would cause a import cycle
+func NewKnTestCommand(subCommand *cobra.Command, params *KnParams) *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:   "kn",
 		Short: "Knative client",
@@ -111,7 +111,7 @@ Eventing: Manage event subscriptions and channels. Connect up event sources.`,
 	if params.Output != nil {
 		rootCmd.SetOutput(params.Output)
 	}
-	rootCmd.PersistentFlags().StringVar(&CfgFile, "config", "", "config file (default is $HOME/.kn.yaml)")
+	rootCmd.PersistentFlags().StringVar(&CfgFile, "config", "", "config file (default is $HOME/.kn/config.yaml)")
 	rootCmd.PersistentFlags().StringVar(&params.KubeCfgPath, "kubeconfig", "", "kubectl config file (default is $HOME/.kube/config)")
 
 	rootCmd.Flags().StringVar(&Cfg.PluginsDir, "plugins-dir", "~/.kn/plugins", "kn plugins directory")
