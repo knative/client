@@ -17,6 +17,7 @@ package commands
 import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 // AddNamespaceFlags adds the namespace-related flags:
@@ -57,7 +58,11 @@ func (params *KnParams) GetNamespace(cmd *cobra.Command) (string, error) {
 		var err error
 		namespace, err = params.CurrentNamespace()
 		if err != nil {
-			return "", err
+			if !clientcmd.IsEmptyConfig(err) {
+				return "", err
+			}
+			// If no current namespace is set use "default"
+			namespace = "default"
 		}
 	}
 	return namespace, nil
