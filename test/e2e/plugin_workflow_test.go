@@ -111,19 +111,19 @@ func TestPluginWorkflow(t *testing.T) {
 // Private
 
 func (test *e2eTest) createConfig(t *testing.T, configName, configCode, configPath string) (string, error) {
-	//TODO
+	//TODO 1
 	return "", nil
 }
 
 func (test *e2eTest) createPlugin(t *testing.T, pluginName, pluginCode, pluginPath string) (string, error) {
-	//TODO
+	//TODO 2
 	return "", nil
 }
 
 func (test *e2eTest) listPlugin(t *testing.T, expectedPlugins []string) {
-	//TODO
+	//TODO 3
 }
 
 func (test *e2eTest) runPlugin(t *testing.T, pluginName string, args []string, expectedOutput string) {
-	//TODO
+	//TODO 4
 }
