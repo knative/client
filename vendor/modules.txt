@@ -77,9 +77,9 @@ github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1
 github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake
 github.com/knative/serving/pkg/apis/serving
 github.com/knative/serving/pkg/apis/serving/v1alpha1
+github.com/knative/serving/pkg/apis/autoscaling
 github.com/knative/serving/pkg/apis/serving/v1beta1
 github.com/knative/serving/pkg/client/clientset/versioned/scheme
-github.com/knative/serving/pkg/apis/autoscaling
 github.com/knative/serving/pkg/apis/networking
 github.com/knative/serving/pkg/apis/networking/v1alpha1
 github.com/knative/serving/pkg/apis/config

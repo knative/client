@@ -48,39 +48,44 @@ type DefaultPluginHandler struct {
 
 // NewDefaultPluginHandler instantiates the DefaultPluginHandler with a list of
 // given filename prefixes used to identify valid plugin filenames.
-func NewDefaultPluginHandler(validPrefixes []string, pluginsDir string, lookupInPath bool) *DefaultPluginHandler {
+func NewDefaultPluginHandler(validPrefixes []string, pluginsDir string, lookupPluginsInPath bool) *DefaultPluginHandler {
 	return &DefaultPluginHandler{
 		ValidPrefixes:       validPrefixes,
 		PluginsDir:          pluginsDir,
-		LookupPluginsInPath: lookupInPath,
+		LookupPluginsInPath: lookupPluginsInPath,
 	}
 }
 
 // Lookup implements PluginHandler
 func (h *DefaultPluginHandler) Lookup(name string) (string, bool) {
-	var pluginPath string
-	var err error
 	for _, prefix := range h.ValidPrefixes {
-		pluginPath = fmt.Sprintf("%s-%s", prefix, name)
+		pluginPath := fmt.Sprintf("%s-%s", prefix, name)
+
+		// Try to find plugin in pluginsDir
+		pluginDir, err := ExpandPath(h.PluginsDir)
+		if err != nil {
+			return "", false
+		}
+
+		pluginDirPluginPath := filepath.Join(pluginDir, pluginPath)
+		_, err = os.Stat(pluginDirPluginPath)
+		if !os.IsNotExist(err) {
+			return pluginDirPluginPath, true
+		}
+
+		// No plugins found in pluginsDir, try in PATH of that's an option
 		if h.LookupPluginsInPath {
 			pluginPath, err = exec.LookPath(pluginPath)
-			if err != nil || len(pluginPath) == 0 {
-				continue
-			}
-		} else {
-			pluginDir, err := ExpandPath(h.PluginsDir)
 			if err != nil {
-				return "", false
+				continue
 			}
 
-			pluginPath = filepath.Join(pluginDir, pluginPath)
-			_, err = os.Stat(pluginPath)
-			if os.IsNotExist(err) {
-				continue
+			if pluginPath != "" {
+				return pluginPath, true
 			}
 		}
-		return pluginPath, true
 	}
+
 	return "", false
 }
 
@@ -92,11 +97,11 @@ func (h *DefaultPluginHandler) Execute(executablePath string, cmdArgs, environme
 // HandlePluginCommand receives a pluginHandler and command-line arguments and attempts to find
 // a plugin executable that satisfies the given arguments.
 func HandlePluginCommand(pluginHandler PluginHandler, cmdArgs []string) error {
-	remainingArgs := []string{} // all "non-flag" arguments
+	remainingArgs := []string{}
 
 	for idx := range cmdArgs {
 		if strings.HasPrefix(cmdArgs[idx], "-") {
-			break
+			continue
 		}
 		remainingArgs = append(remainingArgs, strings.Replace(cmdArgs[idx], "-", "_", -1))
 	}

@@ -45,7 +45,7 @@ func (v *CommandOverrideVerifier) Verify(path string) []error {
 	}
 
 	// extract the plugin binary name
-	segs := strings.Split(path, "/")
+	segs := strings.Split(path, string(os.PathSeparator))
 	binName := segs[len(segs)-1]
 
 	cmdPath := strings.Split(binName, "-")

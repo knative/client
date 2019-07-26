@@ -111,7 +111,33 @@ func (p *ConfigurationEditFlags) Apply(service *servingv1alpha1.Service, cmd *co
 		}
 	}
 
-	servinglib.UpdateConcurrencyConfiguration(template, p.MinScale, p.MaxScale, p.ConcurrencyTarget, p.ConcurrencyLimit)
+	if cmd.Flags().Changed("min-scale") {
+		err = servinglib.UpdateMinScale(template, p.MinScale)
+		if err != nil {
+			return err
+		}
+	}
+
+	if cmd.Flags().Changed("max-scale") {
+		err = servinglib.UpdateMaxScale(template, p.MaxScale)
+		if err != nil {
+			return err
+		}
+	}
+
+	if cmd.Flags().Changed("concurrency-target") {
+		err = servinglib.UpdateConcurrencyTarget(template, p.ConcurrencyTarget)
+		if err != nil {
+			return err
+		}
+	}
+
+	if cmd.Flags().Changed("concurrency-limit") {
+		err = servinglib.UpdateConcurrencyLimit(template, p.ConcurrencyLimit)
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }

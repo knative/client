@@ -74,7 +74,8 @@ func NewDefaultKnCommandWithArgs(rootCmd *cobra.Command,
 		// only look for suitable extension executables if
 		// the specified command does not already exist
 		if _, _, err := rootCmd.Find(cmdPathPieces); err != nil {
-			if err := plugin.HandlePluginCommand(pluginHandler, cmdPathPieces); err != nil {
+			err := plugin.HandlePluginCommand(pluginHandler, cmdPathPieces)
+			if err != nil {
 				fmt.Fprintf(errOut, "%v\n", err)
 				os.Exit(1)
 			}

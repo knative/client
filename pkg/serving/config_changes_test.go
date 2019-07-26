@@ -16,8 +16,12 @@ package serving
 
 import (
 	"reflect"
+	"strconv"
 	"testing"
 
+	"gotest.tools/assert"
+
+	"github.com/knative/serving/pkg/apis/autoscaling"
 	"github.com/knative/serving/pkg/apis/serving/v1beta1"
 
 	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
@@ -26,15 +30,35 @@ import (
 
 func TestUpdateAutoscalingAnnotations(t *testing.T) {
 	template := &servingv1alpha1.RevisionTemplateSpec{}
-	UpdateConcurrencyConfiguration(template, 10, 100, 1000, 1000)
+	updateConcurrencyConfiguration(template, 10, 100, 1000, 1000)
 	annos := template.Annotations
-	if annos["autoscaling.knative.dev/minScale"] != "10" {
+	if annos[autoscaling.MinScaleAnnotationKey] != "10" {
 		t.Error("minScale failed")
 	}
-	if annos["autoscaling.knative.dev/maxScale"] != "100" {
+	if annos[autoscaling.MaxScaleAnnotationKey] != "100" {
 		t.Error("maxScale failed")
 	}
-	if annos["autoscaling.knative.dev/target"] != "1000" {
+	if annos[autoscaling.TargetAnnotationKey] != "1000" {
+		t.Error("target failed")
+	}
+	if template.Spec.ContainerConcurrency != 1000 {
+		t.Error("limit failed")
+	}
+}
+
+func TestUpdateInvalidAutoscalingAnnotations(t *testing.T) {
+	template := &servingv1alpha1.RevisionTemplateSpec{}
+	updateConcurrencyConfiguration(template, 10, 100, 1000, 1000)
+	// Update with invalid concurrency options
+	updateConcurrencyConfiguration(template, -1, -1, 0, -1)
+	annos := template.Annotations
+	if annos[autoscaling.MinScaleAnnotationKey] != "10" {
+		t.Error("minScale failed")
+	}
+	if annos[autoscaling.MaxScaleAnnotationKey] != "100" {
+		t.Error("maxScale failed")
+	}
+	if annos[autoscaling.TargetAnnotationKey] != "1000" {
 		t.Error("target failed")
 	}
 	if template.Spec.ContainerConcurrency != 1000 {
@@ -58,13 +82,9 @@ func testUpdateEnvVarsNew(t *testing.T, template *servingv1alpha1.RevisionTempla
 		"b": "bar",
 	}
 	err := UpdateEnvVars(template, env)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err)
 	found, err := EnvToMap(container.Env)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err)
 	if !reflect.DeepEqual(env, found) {
 		t.Fatalf("Env did not match expected %v found %v", env, found)
 	}
@@ -88,9 +108,7 @@ func testUpdateEnvVarsAppendOld(t *testing.T, template *servingv1alpha1.Revision
 		"b": "bar",
 	}
 	err := UpdateEnvVars(template, env)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err)
 
 	expected := map[string]string{
 		"a": "foo",
@@ -98,9 +116,7 @@ func testUpdateEnvVarsAppendOld(t *testing.T, template *servingv1alpha1.Revision
 	}
 
 	found, err := EnvToMap(container.Env)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err)
 	if !reflect.DeepEqual(expected, found) {
 		t.Fatalf("Env did not match expected %v, found %v", env, found)
 	}
@@ -123,43 +139,99 @@ func testUpdateEnvVarsModify(t *testing.T, revision *servingv1alpha1.RevisionTem
 		"a": "fancy",
 	}
 	err := UpdateEnvVars(revision, env)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err)
 
 	expected := map[string]string{
 		"a": "fancy",
 	}
 
 	found, err := EnvToMap(container.Env)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err)
 	if !reflect.DeepEqual(expected, found) {
 		t.Fatalf("Env did not match expected %v, found %v", env, found)
+	}
+}
+
+func TestUpdateMinScale(t *testing.T) {
+	template, _ := getV1alpha1RevisionTemplateWithOldFields()
+	err := UpdateMinScale(template, 10)
+	assert.NilError(t, err)
+	// Verify update is successful or not
+	checkAnnotationValue(t, template, autoscaling.MinScaleAnnotationKey, 10)
+	// Update with invalid value
+	err = UpdateMinScale(template, -1)
+	assert.ErrorContains(t, err, "Invalid")
+}
+
+func TestUpdateMaxScale(t *testing.T) {
+	template, _ := getV1alpha1RevisionTemplateWithOldFields()
+	err := UpdateMaxScale(template, 10)
+	assert.NilError(t, err)
+	// Verify update is successful or not
+	checkAnnotationValue(t, template, autoscaling.MaxScaleAnnotationKey, 10)
+	// Update with invalid value
+	err = UpdateMaxScale(template, -1)
+	assert.ErrorContains(t, err, "Invalid")
+}
+
+func TestUpdateConcurrencyTarget(t *testing.T) {
+	template, _ := getV1alpha1RevisionTemplateWithOldFields()
+	err := UpdateConcurrencyTarget(template, 10)
+	assert.NilError(t, err)
+	// Verify update is successful or not
+	checkAnnotationValue(t, template, autoscaling.TargetAnnotationKey, 10)
+	// Update with invalid value
+	err = UpdateConcurrencyTarget(template, -1)
+	assert.ErrorContains(t, err, "Invalid")
+}
+
+func TestUpdateConcurrencyLimit(t *testing.T) {
+	template, _ := getV1alpha1RevisionTemplateWithOldFields()
+	err := UpdateConcurrencyLimit(template, 10)
+	assert.NilError(t, err)
+	// Verify update is successful or not
+	checkContainerConcurrency(t, template, 10)
+	// Update with invalid value
+	err = UpdateConcurrencyLimit(template, -1)
+	assert.ErrorContains(t, err, "Invalid")
+}
+
+func TestUpdateContainerImage(t *testing.T) {
+	template, _ := getV1alpha1RevisionTemplateWithOldFields()
+	err := UpdateImage(template, "gcr.io/foo/bar:baz")
+	assert.NilError(t, err)
+	// Verify update is successful or not
+	checkContainerImage(t, template, "gcr.io/foo/bar:baz")
+	// Update template with container image info
+	template.Spec.GetContainer().Image = "docker.io/foo/bar:baz"
+	err = UpdateImage(template, "query.io/foo/bar:baz")
+	assert.NilError(t, err)
+	// Verify that given image overrides the existing container image
+	checkContainerImage(t, template, "query.io/foo/bar:baz")
+}
+
+func checkContainerImage(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, image string) {
+	if got, want := template.Spec.GetContainer().Image, image; got != want {
+		t.Errorf("Failed to update the container image: got=%s, want=%s", got, want)
 	}
 }
 
 func TestUpdateContainerPort(t *testing.T) {
 	template, _ := getV1alpha1Config()
 	err := UpdateContainerPort(template, 8888)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err)
 	// Verify update is successful or not
 	checkPortUpdate(t, template, 8888)
 	// update template with container port info
 	template.Spec.Containers[0].Ports[0].ContainerPort = 9090
 	err = UpdateContainerPort(template, 80)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err)
 	// Verify that given port overrides the existing container port
 	checkPortUpdate(t, template, 80)
 }
 
 func checkPortUpdate(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, port int32) {
-	if len(template.Spec.Containers) != 1 || template.Spec.Containers[0].Ports[0].ContainerPort != port {
+	if template.Spec.GetContainer().Ports[0].ContainerPort != port {
 		t.Error("Failed to update the container port")
 	}
 }
@@ -183,9 +255,7 @@ func testUpdateEnvVarsBoth(t *testing.T, template *servingv1alpha1.RevisionTempl
 		"b": "boo",
 	}
 	err := UpdateEnvVars(template, env)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err)
 
 	expected := map[string]string{
 		"a": "fancy",
@@ -194,9 +264,7 @@ func testUpdateEnvVarsBoth(t *testing.T, template *servingv1alpha1.RevisionTempl
 	}
 
 	found, err := EnvToMap(container.Env)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err)
 	if !reflect.DeepEqual(expected, found) {
 		t.Fatalf("Env did not match expected %v, found %v", env, found)
 	}
@@ -238,4 +306,24 @@ func assertNoV1alpha1(t *testing.T, template *servingv1alpha1.RevisionTemplateSp
 	if template.Spec.Containers != nil {
 		t.Error("Assuming only old v1alpha1 fields but found spec.template")
 	}
+}
+
+func checkAnnotationValue(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, key string, value int) {
+	anno := template.GetAnnotations()
+	if v, ok := anno[key]; !ok && v != strconv.Itoa(value) {
+		t.Errorf("Failed to update %s annotation key: got=%s, want=%d", key, v, value)
+	}
+}
+
+func checkContainerConcurrency(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, value int) {
+	if got, want := template.Spec.ContainerConcurrency, value; got != v1beta1.RevisionContainerConcurrencyType(want) {
+		t.Errorf("Failed to update containerConcurrency value: got=%d, want=%d", got, want)
+	}
+}
+
+func updateConcurrencyConfiguration(template *servingv1alpha1.RevisionTemplateSpec, minScale int, maxScale int, target int, limit int) {
+	UpdateMinScale(template, minScale)
+	UpdateMaxScale(template, maxScale)
+	UpdateConcurrencyTarget(template, target)
+	UpdateConcurrencyLimit(template, limit)
 }
