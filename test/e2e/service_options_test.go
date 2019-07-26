@@ -17,7 +17,6 @@
 package e2e
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/knative/client/pkg/util"
@@ -29,65 +28,69 @@ func TestServiceOptions(t *testing.T) {
 	test.Setup(t)
 	defer test.Teardown(t)
 
-	t.Run("create hello service with concurrency options and returns no error", func(t *testing.T) {
-		test.serviceCreateWithOptions(t, "hello", []string{"--concurrency-limit", "250", "--concurrency-target", "300"})
+	t.Run("create and validate service with concurrency options", func(t *testing.T) {
+		test.serviceCreateWithOptions(t, "svc1", []string{"--concurrency-limit", "250", "--concurrency-target", "300"})
+		test.validateServiceConcurrencyTarget(t, "svc1", "300")
+		test.validateServiceConcurrencyLimit(t, "svc1", "250")
 	})
 
-	t.Run("returns valid concurrency options for hello service", func(t *testing.T) {
-		test.serviceDescribeConcurrencyLimit(t, "hello", "250")
-		test.serviceDescribeConcurrencyTarget(t, "hello", "300")
+	t.Run("update and validate service with concurrency limit", func(t *testing.T) {
+		test.serviceUpdate(t, "svc1", []string{"--concurrency-limit", "300"})
+		test.validateServiceConcurrencyLimit(t, "svc1", "300")
 	})
 
-	t.Run("update concurrency limit for hello service and returns no error", func(t *testing.T) {
-		test.serviceUpdate(t, "hello", []string{"--concurrency-limit", "300"})
+	t.Run("update concurrency options with invalid values for service", func(t *testing.T) {
+		command := []string{"service", "update", "svc1", "--concurrency-limit", "-1", "--concurrency-target", "0"}
+		_, err := test.kn.RunWithOpts(command, runOpts{NoNamespace: false, AllowError: true})
+		assert.ErrorContains(t, err, "Invalid")
 	})
 
-	t.Run("returns correct concurrency limit for hello service", func(t *testing.T) {
-		test.serviceDescribeConcurrencyLimit(t, "hello", "300")
+	t.Run("returns steady concurrency options for service", func(t *testing.T) {
+		test.validateServiceConcurrencyLimit(t, "svc1", "300")
+		test.validateServiceConcurrencyTarget(t, "svc1", "300")
 	})
 
-	t.Run("update concurrency options with invalid value for hello service and returns error", func(t *testing.T) {
-		test.serviceUpdateWithInvalidValue(t, "hello", []string{"--concurrency-limit", "-1", "--concurrency-target", "0"})
-	})
-
-	t.Run("returns steady concurrency options for hello service", func(t *testing.T) {
-		test.serviceDescribeConcurrencyLimit(t, "hello", "300")
-		test.serviceDescribeConcurrencyTarget(t, "hello", "300")
-	})
-
-	t.Run("delete hello service and returns no error", func(t *testing.T) {
-		test.serviceDelete(t, "hello")
+	t.Run("delete service", func(t *testing.T) {
+		test.serviceDelete(t, "svc1")
 	})
 }
-
-// Private
 
 func (test *e2eTest) serviceCreateWithOptions(t *testing.T, serviceName string, options []string) {
 	command := []string{"service", "create", serviceName, "--image", KnDefaultTestImage}
 	command = append(command, options...)
 	out, err := test.kn.RunWithOpts(command, runOpts{NoNamespace: false})
 	assert.NilError(t, err)
-
 	assert.Check(t, util.ContainsAll(out, "Service", serviceName, "successfully created in namespace", test.kn.namespace, "OK"))
 }
 
-func (test *e2eTest) serviceDescribeConcurrencyLimit(t *testing.T, serviceName, concurrencyLimit string) {
-	out, err := test.kn.RunWithOpts([]string{"service", "describe", serviceName}, runOpts{NoNamespace: false})
+func (test *e2eTest) validateServiceConcurrencyLimit(t *testing.T, serviceName, concurrencyLimit string) {
+	jsonpath := "jsonpath={.items[0].spec.template.spec.containerConcurrency}"
+	out, err := test.kn.RunWithOpts([]string{"service", "list", serviceName, "-o", jsonpath}, runOpts{})
 	assert.NilError(t, err)
-
-	expectedOutput := fmt.Sprintf("containerConcurrency: %s", concurrencyLimit)
-	assert.Check(t, util.ContainsAll(out, expectedOutput))
+	if out != "" {
+		assert.Equal(t, out, concurrencyLimit)
+	} else {
+		// case where server returns fields like spec.runLatest.configuration.revisionTemplate.spec.containerConcurrency
+		// TODO: Remove this case when `runLatest` field is deprecated altogether / v1beta1
+		jsonpath = "jsonpath={.items[0].spec.runLatest.configuration.revisionTemplate.spec.containerConcurrency}"
+		out, err := test.kn.RunWithOpts([]string{"service", "list", serviceName, "-o", jsonpath}, runOpts{})
+		assert.NilError(t, err)
+		assert.Equal(t, out, concurrencyLimit)
+	}
 }
 
-func (test *e2eTest) serviceDescribeConcurrencyTarget(t *testing.T, serviceName, concurrencyTarget string) {
-	out, err := test.kn.RunWithOpts([]string{"service", "describe", serviceName}, runOpts{NoNamespace: false})
+func (test *e2eTest) validateServiceConcurrencyTarget(t *testing.T, serviceName, concurrencyTarget string) {
+	jsonpath := "jsonpath={.items[0].spec.template.metadata.annotations.autoscaling\\.knative\\.dev/target}"
+	out, err := test.kn.RunWithOpts([]string{"service", "list", serviceName, "-o", jsonpath}, runOpts{})
 	assert.NilError(t, err)
-
-	expectedOutput := fmt.Sprintf("autoscaling.knative.dev/target: \"%s\"", concurrencyTarget)
-	assert.Check(t, util.ContainsAll(out, expectedOutput))
-}
-
-func (test *e2eTest) serviceUpdateWithInvalidValue(t *testing.T, serviceName string, args []string) {
-	_, err := test.kn.RunWithOpts(append([]string{"service", "update", serviceName}, args...), runOpts{NoNamespace: false, AllowError: true})
-	assert.ErrorContains(t, err, "Invalid")
+	if out != "" {
+		assert.Equal(t, out, concurrencyTarget)
+	} else {
+		// case where server returns fields like  spec.runLatest.configuration.revisionTemplate.spec.containerConcurrency
+		// TODO: Remove this case when `runLatest` field is deprecated altogether / v1beta1
+		jsonpath = "jsonpath={.items[0].spec.runLatest.configuration.revisionTemplate.metadata.annotations.autoscaling\\.knative\\.dev/target}"
+		out, err := test.kn.RunWithOpts([]string{"service", "list", serviceName, "-o", jsonpath}, runOpts{})
+		assert.NilError(t, err)
+		assert.Equal(t, out, concurrencyTarget)
+	}
 }
