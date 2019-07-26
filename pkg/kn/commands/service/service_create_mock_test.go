@@ -26,7 +26,6 @@ import (
 
 	"github.com/knative/client/pkg/kn/commands"
 	knclient "github.com/knative/client/pkg/serving/v1alpha1"
-	mock "github.com/knative/client/pkg/serving/v1alpha1_test"
 
 	"github.com/knative/client/pkg/util"
 )
