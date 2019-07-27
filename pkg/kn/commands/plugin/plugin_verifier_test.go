@@ -15,29 +15,26 @@
 package plugin
 
 import (
-	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/knative/client/pkg/kn/commands"
+	"github.com/knative/client/pkg/util"
+
 	"github.com/spf13/cobra"
 	"gotest.tools/assert"
 )
 
-func TestCommandOverrideVerifier(t *testing.T) {
+func TestPluginVerifier(t *testing.T) {
 	var (
 		pluginPath string
 		rootCmd    *cobra.Command
-		verifier   *CommandOverrideVerifier
+		verifier   *pluginVerifier
 	)
 
 	setup := func(t *testing.T) {
 		knParams := &commands.KnParams{}
 		rootCmd, _, _ = commands.CreateTestKnCommand(NewPluginCommand(knParams), knParams)
-		verifier = &CommandOverrideVerifier{
-			Root:        rootCmd,
-			SeenPlugins: make(map[string]string),
-		}
+		verifier = newPluginVerifier(rootCmd)
 	}
 
 	cleanup := func(t *testing.T) {
@@ -50,12 +47,12 @@ func TestCommandOverrideVerifier(t *testing.T) {
 		t.Run("returns error verifying path", func(t *testing.T) {
 			setup(t)
 			defer cleanup(t)
-			verifier.Root = nil
-
-			errs := verifier.Verify(pluginPath)
-			assert.Assert(t, len(errs) == 1)
-			assert.Assert(t, errs[0] != nil)
-			assert.Assert(t, strings.Contains(errs[0].Error(), "unable to verify path with nil root"))
+			verifier.root = nil
+			eaw := errorsAndWarnings{}
+			eaw = verifier.verify(eaw, pluginPath)
+			assert.Assert(t, len(eaw.errors) == 1)
+			assert.Assert(t, len(eaw.warnings) == 0)
+			assert.Assert(t, util.ContainsAll(eaw.errors[0], "nil root"))
 		})
 	})
 
@@ -66,11 +63,11 @@ func TestCommandOverrideVerifier(t *testing.T) {
 			pluginPath = CreateTestPlugin(t, KnTestPluginName, KnTestPluginScript, FileModeReadable)
 
 			t.Run("fails with not executable error", func(t *testing.T) {
-				errs := verifier.Verify(pluginPath)
-				assert.Assert(t, len(errs) == 1)
-				assert.Assert(t, errs[0] != nil)
-				errorMsg := fmt.Sprintf("warning: %s identified as a kn plugin, but it is not executable", pluginPath)
-				assert.Assert(t, strings.Contains(errs[0].Error(), errorMsg))
+				eaw := errorsAndWarnings{}
+				eaw = verifier.verify(eaw, pluginPath)
+				assert.Assert(t, len(eaw.warnings) == 1)
+				assert.Assert(t, len(eaw.errors) == 0)
+				assert.Assert(t, util.ContainsAll(eaw.warnings[0], pluginPath, "not executable"))
 			})
 		})
 
@@ -81,15 +78,15 @@ func TestCommandOverrideVerifier(t *testing.T) {
 
 			t.Run("when kn plugin in path shadows another", func(t *testing.T) {
 				var shadowPluginPath = CreateTestPlugin(t, KnTestPluginName, KnTestPluginScript, FileModeExecutable)
-				verifier.SeenPlugins[KnTestPluginName] = pluginPath
+				verifier.seenPlugins[KnTestPluginName] = pluginPath
 				defer DeleteTestPlugin(t, shadowPluginPath)
 
 				t.Run("fails with overshadowed error", func(t *testing.T) {
-					errs := verifier.Verify(shadowPluginPath)
-					assert.Assert(t, len(errs) == 1)
-					assert.Assert(t, errs[0] != nil)
-					errorMsg := fmt.Sprintf("warning: %s is overshadowed by a similarly named plugin: %s", shadowPluginPath, pluginPath)
-					assert.Assert(t, strings.Contains(errs[0].Error(), errorMsg))
+					eaw := errorsAndWarnings{}
+					eaw = verifier.verify(eaw, shadowPluginPath)
+					assert.Assert(t, len(eaw.errors) == 0)
+					assert.Assert(t, len(eaw.warnings) == 1)
+					assert.Assert(t, util.ContainsAll(eaw.warnings[0], "shadowed", "ignored"))
 				})
 			})
 		})
@@ -101,11 +98,11 @@ func TestCommandOverrideVerifier(t *testing.T) {
 			defer DeleteTestPlugin(t, overwritingPluginPath)
 
 			t.Run("fails with overwrites error", func(t *testing.T) {
-				errs := verifier.Verify(overwritingPluginPath)
-				assert.Assert(t, len(errs) == 1)
-				assert.Assert(t, errs[0] != nil)
-				errorMsg := fmt.Sprintf("warning: %s overwrites existing command: %q", "kn-plugin", "kn plugin")
-				assert.Assert(t, strings.Contains(errs[0].Error(), errorMsg))
+				eaw := errorsAndWarnings{}
+				eaw = verifier.verify(eaw, overwritingPluginPath)
+				assert.Assert(t, len(eaw.errors) == 1)
+				assert.Assert(t, len(eaw.warnings) == 0)
+				assert.Assert(t, util.ContainsAll(eaw.errors[0], "overwrite", "kn-plugin"))
 			})
 		})
 	})

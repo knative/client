@@ -1,16 +1,16 @@
 ## kn plugin list
 
-List all visible plugin executables
+List plugins
 
 ### Synopsis
 
-List all visible plugin executables.
+List all installed plugins.
 
-Available plugin files are those that are:
+Available plugins are those that are:
 - executable
-- begin with "kn-
-- anywhere on the path specified in Kn's config pluginDir variable, which:
-  * can be overridden with the --plugin-dir flag
+- begin with "kn-"
+- Kn's plugin directory ~/.kn/plugins
+- Anywhere in the execution $PATH (if lookupInPath config variable is enabled)
 
 ```
 kn plugin list [flags]
@@ -23,6 +23,7 @@ kn plugin list [flags]
       --lookup-plugins-in-path   look for kn plugins in $PATH
       --name-only                If true, display only the binary name of each plugin, rather than its full path
       --plugins-dir string       kn plugins directory (default "~/.kn/plugins")
+      --verbose                  verbose output
 ```
 
 ### Options inherited from parent commands

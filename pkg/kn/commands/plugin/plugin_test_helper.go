@@ -57,7 +57,7 @@ func CreateTestPlugin(t *testing.T, name, script string, fileMode os.FileMode) s
 // CreateTestPluginInPath with name, path, script, and fileMode and return the tmp random path
 func CreateTestPluginInPath(t *testing.T, name, script string, fileMode os.FileMode, path string) string {
 	err := ioutil.WriteFile(filepath.Join(path, name), []byte(script), fileMode)
-	assert.Assert(t, err == nil)
+	assert.NilError(t, err)
 
 	return filepath.Join(path, name)
 }

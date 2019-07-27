@@ -62,7 +62,7 @@ func (h *DefaultPluginHandler) Lookup(name string) (string, bool) {
 		pluginPath := fmt.Sprintf("%s-%s", prefix, name)
 
 		// Try to find plugin in pluginsDir
-		pluginDir, err := ExpandPath(h.PluginsDir)
+		pluginDir, err := expandPath(h.PluginsDir)
 		if err != nil {
 			return "", false
 		}

@@ -21,27 +21,27 @@ import (
 	"gotest.tools/assert"
 )
 
-func TestAddPluginFlags(t *testing.T) {
+func TestAddPluginListFlags(t *testing.T) {
 	var (
-		pluginFlags *PluginFlags
-		cmd         *cobra.Command
+		pFlags *pluginListFlags
+		cmd    *cobra.Command
 	)
 
-	setup := func() {
-		pluginFlags = &PluginFlags{}
+	t.Run("adds plugin flag", func(t *testing.T) {
+		pFlags = &pluginListFlags{}
 
 		cmd = &cobra.Command{}
-	}
+		pFlags.AddPluginListFlags(cmd)
 
-	t.Run("adds plugin flag", func(t *testing.T) {
-		setup()
-		pluginFlags.AddPluginFlags(cmd)
-
-		assert.Assert(t, pluginFlags != nil)
+		assert.Assert(t, pFlags != nil)
 		assert.Assert(t, cmd.Flags() != nil)
 
 		nameOnly, err := cmd.Flags().GetBool("name-only")
-		assert.Assert(t, err == nil)
+		assert.NilError(t, err)
 		assert.Assert(t, nameOnly == false)
+
+		verbose, err := cmd.Flags().GetBool("verbose")
+		assert.NilError(t, err)
+		assert.Assert(t, verbose == false)
 	})
 }
