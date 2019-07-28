@@ -336,7 +336,7 @@ func shortenDigest(digest string) string {
 }
 
 // Write a map either compact in a single line (possibly truncated) or, if printDetails is set,
-// over multiple line, one line per key-value pair
+// over multiple line, one line per key-value pair. The output is sorted by keys.
 func writeMapDesc(dw printers.PrefixWriter, indent int, m map[string]string, label string, labelPrefix string) {
 	if len(m) == 0 {
 		return
@@ -344,8 +344,15 @@ func writeMapDesc(dw printers.PrefixWriter, indent int, m map[string]string, lab
 
 	if printDetails {
 		l := labelPrefix + label
-		for key, value := range m {
-			dw.WriteColsLn(indent, l, key+"="+value)
+
+		var keys []string
+		for k := range m {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+
+		for _, key := range keys {
+			dw.WriteColsLn(indent, l, key+"="+m[key])
 			l = labelPrefix
 		}
 		return
