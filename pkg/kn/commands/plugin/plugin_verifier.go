@@ -51,7 +51,7 @@ func newPluginVerifier(root *cobra.Command) *pluginVerifier {
 const (
 	UserExecute  = 1 << 6
 	GroupExecute = 1 << 3
-	OtherExecute = 1 << 1
+	OtherExecute = 1 << 0
 )
 
 // Verify implements pathVerifier and determines if a given path
@@ -138,11 +138,6 @@ func (v *pluginVerifier) addWarningIfNotExecutable(eaw errorsAndWarnings, path s
 	}
 	perms := uint32(mode.Perm())
 
-	// All can execute
-	if perms&OtherExecute != 0 {
-		return eaw
-	}
-
 	var sys *syscall.Stat_t
 	var ok bool
 	if sys, ok = fileInfo.Sys().(*syscall.Stat_t); !ok {
@@ -150,26 +145,50 @@ func (v *pluginVerifier) addWarningIfNotExecutable(eaw errorsAndWarnings, path s
 		return eaw.addWarning("cannot check owner/group of file %s", path)
 	}
 
-	// User can execute
-	if perms&UserExecute != 0 && int(sys.Uid) == os.Getuid() {
+	isOwner := checkIfUserIsFileOwner(sys.Uid)
+	isInGroup, err := checkIfUserInGroup(sys.Gid)
+	if err != nil {
+		return eaw.addError("cannot get group ids for checking executable status of file %s", path)
+	}
+
+	// User is owner and owner can execute
+	if perms&UserExecute != 0 && isOwner {
 		return eaw
 	}
 
-	// User is in group which can execute
-	if perms&GroupExecute != 0 {
-		groups, err := os.Getgroups()
-		if err != nil {
-			return eaw.addError("cannot get group ids for checking executable status of file %s", path)
-		}
-		for _, gid := range groups {
-			if int(sys.Gid) == gid {
-				return eaw
-			}
-		}
+	// User is in group which can execute, but user is not file owner
+	if perms&GroupExecute != 0 && !isOwner && isInGroup {
+		return eaw
+	}
+
+	// All can execute, and the user is not file owner and not in the file's perm group
+	if perms&OtherExecute != 0 && !isOwner && !isInGroup {
+		return eaw
 	}
 
 	return eaw.addWarning("%s is not executable by current user", path)
 }
+
+func checkIfUserInGroup(gid uint32) (bool, error) {
+	groups, err := os.Getgroups()
+	if err != nil {
+		return false, err
+	}
+	for _, g := range groups {
+		if int(gid) == g {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+func checkIfUserIsFileOwner(uid uint32) bool {
+	if int(uid) == os.Getuid() {
+		return true
+	}
+	return false
+}
+
 
 func (eaw *errorsAndWarnings) addError(format string, args ...interface{}) errorsAndWarnings {
 	eaw.errors = append(eaw.errors, fmt.Sprintf(format, args...))
