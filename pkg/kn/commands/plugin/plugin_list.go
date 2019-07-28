@@ -60,7 +60,7 @@ Available plugins are those that are:
 // List plugins by looking up in plugin directory and path
 func listPlugins(cmd *cobra.Command, flags pluginListFlags) error {
 
-	pluginPath, err := expandPath(commands.Cfg.PluginsDir)
+	pluginPath, err := homedir.Expand(commands.Cfg.PluginsDir)
 	if err != nil {
 		return err
 	}
@@ -126,30 +126,6 @@ func lookupPlugins(pluginPath string) ([]string, errorsAndWarnings) {
 		}
 	}
 	return pluginsFound, eaw
-}
-
-// Private
-// expandPath to a canonical path (need to see if Golang has a better option)
-func expandPath(path string) (string, error) {
-	if strings.Contains(path, "~") {
-		var err error
-		path, err = expandHomeDir(path)
-		if err != nil {
-			return "", err
-		}
-	}
-	return path, nil
-}
-
-// expandHomeDir replaces the ~ with the home directory value
-func expandHomeDir(path string) (string, error) {
-	home, err := homedir.Dir()
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		return "", err
-	}
-
-	return strings.Replace(path, "~", home, -1), nil
 }
 
 func hasValidPrefix(filepath string, validPrefixes []string) bool {
