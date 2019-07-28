@@ -16,9 +16,9 @@ package plugin
 
 import (
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"os/user"
 	"path/filepath"
 	"runtime"
@@ -74,29 +74,39 @@ func TestPluginVerifier(t *testing.T) {
 
 			setup(t)
 			defer cleanup(t)
+
 			pluginDir, err := ioutil.TempDir("", "plugin")
 			assert.NilError(t, err)
 			defer os.RemoveAll(pluginDir)
-			pluginPath := filepath.Join(pluginDir,"kn-execution-test")
-			err = ioutil.WriteFile(pluginPath, []byte{}, 0644)
-			assert.NilError(t, err)
+			pluginPath := filepath.Join(pluginDir, "kn-execution-test")
+			err = ioutil.WriteFile(pluginPath, []byte("#!/bin/sh\ntrue"), 0644)
+			assert.NilError(t, err, "can't create test plugin")
 
-			t.Run("fails with not executable error", func(t *testing.T) {
-				for _, data := range getExecutionCheckTestParams() {
-					eaw := errorsAndWarnings{}
-					assert.NilError(t,prepareFile(pluginPath, data.userId, data.groupId, data.mode))
-					eaw = newPluginVerifier(rootCmd).verify(eaw, pluginPath)
+			for _, uid := range getExecTestUids() {
+				for _, gid := range getExecTestGids() {
+					for _, userPerm := range []int{0, UserExecute} {
+						for _, groupPerm := range []int{0, GroupExecute} {
+							for _, otherPerm := range []int{0, OtherExecute} {
+								perm := os.FileMode(userPerm | groupPerm | otherPerm + 0444)
+								assert.NilError(t, prepareFile(pluginPath, uid, gid, perm), "prepare plugin file, uid: %d, gid: %d, perm: %03o", uid, gid, perm)
 
-					if data.isExecutable {
-						assert.Assert(t, len(eaw.warnings) == 0, "executable: %s | %v", data.string(), eaw.warnings)
-						assert.Assert(t, len(eaw.errors) == 0)
-					} else {
-						assert.Assert(t, len(eaw.warnings) == 1,  "not executable: %s | %v", data.string(), eaw.warnings)
-						assert.Assert(t, len(eaw.errors) == 0)
-						assert.Assert(t, util.ContainsAll(eaw.warnings[0], pluginPath))
+								eaw := errorsAndWarnings{}
+								eaw = newPluginVerifier(rootCmd).verify(eaw, pluginPath)
+
+								if isExecutable(pluginPath) {
+									assert.Assert(t, len(eaw.warnings) == 0, "executable: perm %03o | uid %d | gid %d | %v", perm, uid, gid, eaw.warnings)
+									assert.Assert(t, len(eaw.errors) == 0)
+								} else {
+									assert.Assert(t, len(eaw.warnings) == 1, "not executable: perm %03o | uid %d | gid %d | %v", perm, uid, gid, eaw.warnings)
+									assert.Assert(t, len(eaw.errors) == 0)
+									assert.Assert(t, util.ContainsAll(eaw.warnings[0], pluginPath))
+								}
+
+							}
+						}
 					}
 				}
-			})
+			}
 		})
 
 		t.Run("when kn plugin in path is executable", func(t *testing.T) {
@@ -136,78 +146,38 @@ func TestPluginVerifier(t *testing.T) {
 	})
 }
 
-type executionCheckTestParams struct {
-	mode         os.FileMode
-	isExecutable bool
-	userId       int
-	groupId      int
+func isExecutable(plugin string) bool {
+	_, err := exec.Command(plugin).Output()
+	return err == nil
 }
 
-func (d executionCheckTestParams) string() string {
-	return fmt.Sprintf("mode: %03o, isExecutable: %t, uid: %d, gid: %d", d.mode, d.isExecutable, d.userId, d.groupId)
-}
-
-func getExecutionCheckTestParams() []executionCheckTestParams {
+func getExecTestUids() []int {
 	currentUser := os.Getuid()
-	currentGroup := os.Getgid()
-
-	ret := []executionCheckTestParams {
-		{0000, false, currentUser, currentGroup},
-		{0100, true, currentUser, currentGroup},
-		{0010, false, currentUser, currentGroup},
-		{0001, false, currentUser, currentGroup},
-		{0110, true, currentUser, currentGroup},
-		{0011, false, currentUser, currentGroup},
-		{0101, true, currentUser, currentGroup},
-		{0111, true, currentUser, currentGroup},
-	}
-
-	// The following parameters only work when running under root
-	// because otherwise you can't change file permissions to other users
-	// or groups you are not belonging to
-	if currentUser != 0 {
-		return ret
-	}
-
-	foreignGroup, err := lookupForeignGroup()
-	if err == nil {
-		for _, param := range []executionCheckTestParams{
-			{0000, false, currentUser, foreignGroup},
-			{0100, true, currentUser, foreignGroup},
-			{0010, false, currentUser, foreignGroup},
-			{0001, false, currentUser, foreignGroup},
-			{0110, true, currentUser, foreignGroup},
-			{0011, false, currentUser, foreignGroup},
-			{0101, true, currentUser, foreignGroup},
-			{0111, true, currentUser, foreignGroup},
-		} {
-			ret = append(ret, param)
+	// Only root can switch ownership of a file
+	if currentUser == 0 {
+		foreignUser, err := lookupForeignUser()
+		if err == nil {
+			return []int{currentUser, foreignUser}
 		}
 	}
+	return []int{currentUser}
+}
 
-	foreignUser, err := lookupForeignUser()
-	if err != nil {
-		return ret
+func getExecTestGids() []int {
+	currentUser := os.Getuid()
+	currentGroup := os.Getgid()
+	// Only root can switch group of a file
+	if currentUser == 0 {
+		foreignGroup, err := lookupForeignGroup()
+		if err == nil {
+			return []int{currentGroup, foreignGroup}
+		}
 	}
-
-	for _, param := range []executionCheckTestParams{
-		{0000, false, foreignUser, foreignGroup},
-		{0100, false, foreignUser, foreignGroup},
-		{0010, false, foreignUser, foreignGroup},
-		{0001, true, foreignUser, foreignGroup},
-		{0110, false, foreignUser, foreignGroup},
-		{0011, true, foreignUser, foreignGroup},
-		{0101, true, foreignUser, foreignGroup},
-		{0111, true, foreignUser, foreignGroup},
-	} {
-		ret = append(ret, param)
-	}
-
-	return ret
+	return []int{currentGroup}
 }
 
 func lookupForeignUser() (int, error) {
-	for _, probe := range []string { "daemon", "nobody", "_unknown" } {
+	for _, probe := range []string{"daemon", "nobody", "_unknown"} {
 		u, err := user.Lookup(probe)
 		if err != nil {
 			continue
@@ -224,12 +194,12 @@ func lookupForeignUser() (int, error) {
 }
 
 func lookupForeignGroup() (int, error) {
-	gids, err :=  os.Getgroups()
+	gids, err := os.Getgroups()
 	if err != nil {
 		return 0, err
 	}
-	OUTER:
-	for _, probe := range []string { "daemon", "wheel", "nobody", "nogroup", "admin" } {
+OUTER:
+	for _, probe := range []string{"daemon", "wheel", "nobody", "nogroup", "admin"} {
 		group, err := user.LookupGroup(probe)
 		if err != nil {
 			continue
@@ -250,10 +220,9 @@ func lookupForeignGroup() (int, error) {
 }
 
 func prepareFile(file string, uid int, gid int, perm os.FileMode) error {
-	err := os.Chmod(file, perm)
+	err := os.Chown(file, uid, gid)
 	if err != nil {
 		return err
 	}
-	return os.Chown(file, uid, gid)
+	return os.Chmod(file, perm)
 }
-

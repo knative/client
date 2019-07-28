@@ -152,18 +152,33 @@ func (v *pluginVerifier) addWarningIfNotExecutable(eaw errorsAndWarnings, path s
 	}
 
 	// User is owner and owner can execute
-	if perms&UserExecute != 0 && isOwner {
-		return eaw
+	if perms&UserExecute != 0 {
+		if os.Getuid() == 0 {
+			return eaw
+		}
+		if isOwner {
+			return eaw
+		}
 	}
 
 	// User is in group which can execute, but user is not file owner
-	if perms&GroupExecute != 0 && !isOwner && isInGroup {
-		return eaw
+	if perms&GroupExecute != 0 {
+		if os.Getuid() == 0 {
+			return eaw
+		}
+		if !isOwner && isInGroup {
+			return eaw
+		}
 	}
 
 	// All can execute, and the user is not file owner and not in the file's perm group
-	if perms&OtherExecute != 0 && !isOwner && !isInGroup {
-		return eaw
+	if perms&OtherExecute != 0 {
+		if os.Getuid() == 0 {
+			return eaw
+		}
+		if !isOwner && !isInGroup {
+			return eaw
+		}
 	}
 
 	return eaw.addWarning("%s is not executable by current user", path)
@@ -188,7 +203,6 @@ func checkIfUserIsFileOwner(uid uint32) bool {
 	}
 	return false
 }
-
 
 func (eaw *errorsAndWarnings) addError(format string, args ...interface{}) errorsAndWarnings {
 	eaw.errors = append(eaw.errors, fmt.Sprintf(format, args...))
