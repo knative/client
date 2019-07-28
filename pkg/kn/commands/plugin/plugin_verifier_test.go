@@ -15,6 +15,14 @@
 package plugin
 
 import (
+	"errors"
+	"fmt"
+	"io/ioutil"
+	"os"
+	"os/user"
+	"path/filepath"
+	"runtime"
+	"strconv"
 	"testing"
 
 	"github.com/knative/client/pkg/kn/commands"
@@ -25,6 +33,7 @@ import (
 )
 
 func TestPluginVerifier(t *testing.T) {
+
 	var (
 		pluginPath string
 		rootCmd    *cobra.Command
@@ -57,17 +66,36 @@ func TestPluginVerifier(t *testing.T) {
 	})
 
 	t.Run("with root command", func(t *testing.T) {
-		t.Run("when plugin in path not executable", func(t *testing.T) {
+		t.Run("whether plugin in path is executable (unix only)", func(t *testing.T) {
+			if runtime.GOOS == "windows" {
+				t.Skip("Skip test for windows as the permission check are for Unix only")
+				return
+			}
+
 			setup(t)
 			defer cleanup(t)
-			pluginPath = CreateTestPlugin(t, KnTestPluginName, KnTestPluginScript, FileModeReadable)
+			pluginDir, err := ioutil.TempDir("", "plugin")
+			assert.NilError(t, err)
+			defer os.RemoveAll(pluginDir)
+			pluginPath := filepath.Join(pluginDir,"kn-execution-test")
+			err = ioutil.WriteFile(pluginPath, []byte{}, 0644)
+			assert.NilError(t, err)
 
 			t.Run("fails with not executable error", func(t *testing.T) {
-				eaw := errorsAndWarnings{}
-				eaw = verifier.verify(eaw, pluginPath)
-				assert.Assert(t, len(eaw.warnings) == 1)
-				assert.Assert(t, len(eaw.errors) == 0)
-				assert.Assert(t, util.ContainsAll(eaw.warnings[0], pluginPath, "not executable"))
+				for _, data := range getExecutionCheckTestParams() {
+					eaw := errorsAndWarnings{}
+					assert.NilError(t,prepareFile(pluginPath, data.userId, data.groupId, data.mode))
+					eaw = newPluginVerifier(rootCmd).verify(eaw, pluginPath)
+
+					if data.isExecutable {
+						assert.Assert(t, len(eaw.warnings) == 0, "executable: %s | %v", data.string(), eaw.warnings)
+						assert.Assert(t, len(eaw.errors) == 0)
+					} else {
+						assert.Assert(t, len(eaw.warnings) == 1,  "not executable: %s | %v", data.string(), eaw.warnings)
+						assert.Assert(t, len(eaw.errors) == 0)
+						assert.Assert(t, util.ContainsAll(eaw.warnings[0], pluginPath))
+					}
+				}
 			})
 		})
 
@@ -107,3 +135,125 @@ func TestPluginVerifier(t *testing.T) {
 		})
 	})
 }
+
+type executionCheckTestParams struct {
+	mode         os.FileMode
+	isExecutable bool
+	userId       int
+	groupId      int
+}
+
+func (d executionCheckTestParams) string() string {
+	return fmt.Sprintf("mode: %03o, isExecutable: %t, uid: %d, gid: %d", d.mode, d.isExecutable, d.userId, d.groupId)
+}
+
+func getExecutionCheckTestParams() []executionCheckTestParams {
+	currentUser := os.Getuid()
+	currentGroup := os.Getgid()
+
+	ret := []executionCheckTestParams {
+		{0000, false, currentUser, currentGroup},
+		{0100, true, currentUser, currentGroup},
+		{0010, false, currentUser, currentGroup},
+		{0001, false, currentUser, currentGroup},
+		{0110, true, currentUser, currentGroup},
+		{0011, false, currentUser, currentGroup},
+		{0101, true, currentUser, currentGroup},
+		{0111, true, currentUser, currentGroup},
+	}
+
+	// The following parameters only work when running under root
+	// because otherwise you can't change file permissions to other users
+	// or groups you are not belonging to
+	if currentUser != 0 {
+		return ret
+	}
+
+	foreignGroup, err := lookupForeignGroup()
+	if err == nil {
+		for _, param := range []executionCheckTestParams{
+			{0000, false, currentUser, foreignGroup},
+			{0100, true, currentUser, foreignGroup},
+			{0010, false, currentUser, foreignGroup},
+			{0001, false, currentUser, foreignGroup},
+			{0110, true, currentUser, foreignGroup},
+			{0011, false, currentUser, foreignGroup},
+			{0101, true, currentUser, foreignGroup},
+			{0111, true, currentUser, foreignGroup},
+		} {
+			ret = append(ret, param)
+		}
+	}
+
+	foreignUser, err := lookupForeignUser()
+	if err != nil {
+		return ret
+	}
+
+	for _, param := range []executionCheckTestParams{
+		{0000, false, foreignUser, foreignGroup},
+		{0100, false, foreignUser, foreignGroup},
+		{0010, false, foreignUser, foreignGroup},
+		{0001, true, foreignUser, foreignGroup},
+		{0110, false, foreignUser, foreignGroup},
+		{0011, true, foreignUser, foreignGroup},
+		{0101, true, foreignUser, foreignGroup},
+		{0111, true, foreignUser, foreignGroup},
+	} {
+		ret = append(ret, param)
+	}
+
+	return ret
+}
+
+func lookupForeignUser() (int, error) {
+	for _, probe := range []string { "daemon", "nobody", "_unknown" } {
+		u, err := user.Lookup(probe)
+		if err != nil {
+			continue
+		}
+		uid, err := strconv.Atoi(u.Uid)
+		if err != nil {
+			continue
+		}
+		if uid != os.Getuid() {
+			return uid, nil
+		}
+	}
+	return 0, errors.New("could not find foreign user")
+}
+
+func lookupForeignGroup() (int, error) {
+	gids, err :=  os.Getgroups()
+	if err != nil {
+		return 0, err
+	}
+	OUTER:
+	for _, probe := range []string { "daemon", "wheel", "nobody", "nogroup", "admin" } {
+		group, err := user.LookupGroup(probe)
+		if err != nil {
+			continue
+		}
+		gid, err := strconv.Atoi(group.Gid)
+		if err != nil {
+			continue
+		}
+
+		for _, g := range gids {
+			if gid == g {
+				continue OUTER
+			}
+		}
+		return gid, nil
+	}
+	return 0, errors.New("could not find a foreign group")
+}
+
+func prepareFile(file string, uid int, gid int, perm os.FileMode) error {
+	err := os.Chmod(file, perm)
+	if err != nil {
+		return err
+	}
+	return os.Chown(file, uid, gid)
+}
+

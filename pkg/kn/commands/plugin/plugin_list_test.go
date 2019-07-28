@@ -20,6 +20,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -62,6 +63,9 @@ func (ctx *testContext) createTestPlugin(pluginName string, fileMode os.FileMode
 }
 
 func (ctx *testContext) createTestPluginWithPath(pluginName string, fileMode os.FileMode, path string) error {
+	if runtime.GOOS == "windows" {
+		pluginName += ".bat"
+	}
 	fullPath := filepath.Join(path, pluginName)
 	return ioutil.WriteFile(fullPath, []byte(KnTestPluginScript), fileMode)
 }
