@@ -25,6 +25,9 @@ You must install these tools:
 
 1. [`go`](https://golang.org/doc/install): The language `Knative Client` is
    built in (1.11.4 or later)
+1. [`goimports`](https://godoc.org/golang.org/x/tools/cmd/goimports)
+1. `gcc` compiler: Used during testing. Not needed if golang is installed
+   via the installer
 1. [`git`](https://help.github.com/articles/set-up-git/): For source control
 1. [`kubectl`](https://kubernetes.io/docs/tasks/tools/install-kubectl/): For
    managing development environments
