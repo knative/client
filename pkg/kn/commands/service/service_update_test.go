@@ -88,6 +88,26 @@ func fakeServiceUpdate(original *v1alpha1.Service, args []string, sync bool) (
 	return
 }
 
+func TestServcieUpdateNoFlags(t *testing.T) {
+	orig := newEmptyService()
+
+	action, _, _, err := fakeServiceUpdate(orig, []string{
+		"service", "update", "foo"}, false)
+
+	if action != nil {
+		t.Errorf("Unexpected action if no flag(s) set")
+	}
+
+	if err == nil {
+		t.Fatal(err)
+	}
+
+	expectedErrMsg := "flag(s) not set"
+	if !strings.Contains(err.Error(), expectedErrMsg) {
+		t.Fatalf("Missing %s in %s", expectedErrMsg, err.Error())
+	}
+}
+
 func TestServiceUpdateImageSync(t *testing.T) {
 	orig := newEmptyService()
 

@@ -29,7 +29,7 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 	var waitFlags commands.WaitFlags
 
 	serviceUpdateCommand := &cobra.Command{
-		Use:   "update NAME",
+		Use:   "update NAME [flags]",
 		Short: "Update a service.",
 		Example: `
   # Updates a service 'mysvc' with new environment variables
@@ -91,10 +91,21 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return nil
 			}
 		},
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			return preCheck(cmd, args)
+		},
 	}
 
 	commands.AddNamespaceFlags(serviceUpdateCommand.Flags(), false)
 	editFlags.AddUpdateFlags(serviceUpdateCommand)
 	waitFlags.AddConditionWaitFlags(serviceUpdateCommand, 60, "Update", "service")
 	return serviceUpdateCommand
+}
+
+func preCheck(cmd *cobra.Command, args []string) error {
+	if cmd.Flags().NFlag() == 0 {
+		return errors.New(fmt.Sprintf("flag(s) not set\nUsage: %s", cmd.Use))
+	}
+
+	return nil
 }
