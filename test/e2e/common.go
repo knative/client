@@ -22,6 +22,7 @@ import (
 	"os/exec"
 	"regexp"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 )
@@ -42,6 +43,8 @@ const (
 	RetrySleepDuration time.Duration = 30 * time.Second
 )
 
+var m sync.Mutex
+
 type e2eTest struct {
 	env env
 	kn  kn
@@ -55,10 +58,17 @@ func NewE2eTest(t *testing.T) *e2eTest {
 
 // Setup set up an enviroment for kn integration test returns the Teardown cleanup function
 func (test *e2eTest) Setup(t *testing.T) {
-	test.env.Namespace = fmt.Sprintf("%s%d", test.env.Namespace, namespaceCount)
-	namespaceCount++
+	test.env.Namespace = fmt.Sprintf("%s%d", test.env.Namespace, getNamespaceCountAndIncrement())
 	test.kn = kn{t, test.env.Namespace, Logger{}}
 	test.CreateTestNamespace(t, test.env.Namespace)
+}
+
+func getNamespaceCountAndIncrement() int {
+	m.Lock()
+	defer m.Unlock()
+	current := namespaceCount
+	namespaceCount++
+	return current
 }
 
 // Teardown clean up
