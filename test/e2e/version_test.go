@@ -24,6 +24,7 @@ import (
 )
 
 func TestVersion(t *testing.T) {
+	t.Parallel()
 	env := buildEnv(t)
 	kn := kn{t, env.Namespace, Logger{}}
 

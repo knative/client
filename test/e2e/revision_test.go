@@ -25,25 +25,25 @@ import (
 	"gotest.tools/assert"
 )
 
-func TestRevisionWorkflow(t *testing.T) {
+func TestRevision(t *testing.T) {
+	t.Parallel()
 	test := NewE2eTest(t)
 	test.Setup(t)
 	defer test.Teardown(t)
 
-	t.Run("create hello service and returns no error", func(t *testing.T) {
+	t.Run("create hello service and return no error", func(t *testing.T) {
 		test.serviceCreate(t, "hello")
 	})
 
-	t.Run("describe revision from hello service", func(t *testing.T) {
-		test.revisionDescribe(t, "hello")
+	t.Run("describe revision from hello service with print flags", func(t *testing.T) {
 		test.revisionDescribeWithPrintFlags(t, "hello")
 	})
 
-	t.Run("delete latest revision from hello service and returns no error", func(t *testing.T) {
+	t.Run("delete latest revision from hello service and return no error", func(t *testing.T) {
 		test.revisionDelete(t, "hello")
 	})
 
-	t.Run("delete hello service and returns no error", func(t *testing.T) {
+	t.Run("delete hello service and return no error", func(t *testing.T) {
 		test.serviceDelete(t, "hello")
 	})
 }
@@ -55,19 +55,6 @@ func (test *e2eTest) revisionDelete(t *testing.T, serviceName string) {
 	assert.NilError(t, err)
 
 	assert.Check(t, util.ContainsAll(out, "Revision", revName, "deleted", "namespace", test.kn.namespace))
-}
-
-func (test *e2eTest) revisionDescribe(t *testing.T, serviceName string) {
-	revName := test.findRevision(t, serviceName)
-
-	out, err := test.kn.RunWithOpts([]string{"revision", "describe", revName}, runOpts{})
-	assert.NilError(t, err)
-
-	expectedGVK := `apiVersion: serving.knative.dev/v1alpha1
-kind: Revision`
-	expectedNamespace := fmt.Sprintf("namespace: %s", test.kn.namespace)
-	expectedServiceLabel := fmt.Sprintf("serving.knative.dev/service: %s", serviceName)
-	assert.Check(t, util.ContainsAll(out, expectedGVK, expectedNamespace, expectedServiceLabel))
 }
 
 func (test *e2eTest) revisionDescribeWithPrintFlags(t *testing.T, serviceName string) {
