@@ -26,6 +26,7 @@ import (
 )
 
 func TestRevision(t *testing.T) {
+	t.Parallel()
 	test := NewE2eTest(t)
 	test.Setup(t)
 	defer test.Teardown(t)
