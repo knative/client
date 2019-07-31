@@ -33,7 +33,7 @@ export DISABLE_MD_LINTING=1
 
 export GO111MODULE=on
 export KNATIVE_VERSION=${KNATIVE_VERSION:-latest}
-source $(dirname $0)/../vendor/github.com/knative/test-infra/scripts/presubmit-tests.sh
+source $(dirname $0)/../vendor/knative.dev/test-infra/scripts/presubmit-tests.sh
 
 # We use the default build, unit and integration test runners.
 
