@@ -84,8 +84,6 @@ github.com/knative/serving/pkg/apis/networking
 github.com/knative/serving/pkg/apis/networking/v1alpha1
 github.com/knative/serving/pkg/apis/config
 github.com/knative/serving/pkg/apis/autoscaling/v1alpha1
-# github.com/knative/test-infra v0.0.0-20190702025031-91d37e4abc30
-github.com/knative/test-infra/scripts
 # github.com/magiconair/properties v1.8.0
 github.com/magiconair/properties
 # github.com/mattbaird/jsonpatch v0.0.0-20171005235357-81af80346b1a
@@ -395,5 +393,7 @@ k8s.io/client-go/listers/storage/v1alpha1
 k8s.io/client-go/listers/storage/v1beta1
 # k8s.io/kube-openapi v0.0.0-20190603182131-db7b694dc208
 k8s.io/kube-openapi/pkg/util/proto
+# knative.dev/test-infra v0.0.0-20190730202142-17f2331e80ad
+knative.dev/test-infra/scripts
 # sigs.k8s.io/yaml v1.1.0
 sigs.k8s.io/yaml
