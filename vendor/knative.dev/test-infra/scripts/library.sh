@@ -257,7 +257,7 @@ function dump_app_logs() {
   for pod in $(get_app_pods "$1" "$2")
   do
     echo ">>> Pod: $pod"
-    kubectl -n "$2" logs "$pod" -c "$1"
+    kubectl -n "$2" logs "$pod" --all-containers
   done
 }
 
@@ -299,28 +299,72 @@ function acquire_cluster_admin_role() {
       $2 ${geoflag} --project $(gcloud config get-value project)
 }
 
+# Run a command through tee and capture its output.
+# Parameters: $1 - file where the output will be stored.
+#             $2... - command to run.
+function capture_output() {
+  local report="$1"
+  shift
+  "$@" 2>&1 | tee "${report}"
+  local failed=( ${PIPESTATUS[@]} )
+  [[ ${failed[0]} -eq 0 ]] && failed=${failed[1]} || failed=${failed[0]}
+  return ${failed}
+}
+
+# Create a JUnit XML for a test.
+# Parameters: $1 - check class name as an identifier (e.g. BuildTests)
+#             $2 - check name as an identifier (e.g., GoBuild)
+#             $3 - failure message (can contain newlines), optional (means success)
+function create_junit_xml() {
+  local xml="$(mktemp ${ARTIFACTS}/junit_XXXXXXXX.xml)"
+  local failure=""
+  if [[ "$3" != "" ]]; then
+    # Transform newlines into HTML code.
+    # Also escape `<` and `>` as here: https://github.com/golang/go/blob/50bd1c4d4eb4fac8ddeb5f063c099daccfb71b26/src/encoding/json/encode.go#L48, 
+    # this is temporary solution for fixing https://github.com/knative/test-infra/issues/1204,
+    # which should be obsolete once Test-infra 2.0 is in place
+    local msg="$(echo -n "$3" | sed 's/$/\&#xA;/g' | sed 's/</\\u003c/' | sed 's/>/\\u003e/' | tr -d '\n')"
+    failure="<failure message=\"Failed\" type=\"\">${msg}</failure>"
+  fi
+  cat << EOF > "${xml}"
+<testsuites>
+	<testsuite tests="1" failures="1" time="0.000" name="$1">
+		<testcase classname="" name="$2" time="0.0">
+			${failure}
+		</testcase>
+	</testsuite>
+</testsuites>
+EOF
+}
+
 # Runs a go test and generate a junit summary.
 # Parameters: $1... - parameters to go test
 function report_go_test() {
   # Run tests in verbose mode to capture details.
   # go doesn't like repeating -v, so remove if passed.
   local args=" $@ "
-  local go_test="go test -race -v ${args/ -v / }"
+  local go_test="go test -v ${args/ -v / }"
   # Just run regular go tests if not on Prow.
   echo "Running tests with '${go_test}'"
-  local report=$(mktemp)
-  ${go_test} | tee ${report}
-  local failed=( ${PIPESTATUS[@]} )
-  [[ ${failed[0]} -eq 0 ]] && failed=${failed[1]} || failed=${failed[0]}
+  local report="$(mktemp)"
+  capture_output "${report}" ${go_test}
+  local failed=$?
   echo "Finished run, return code is ${failed}"
   # Install go-junit-report if necessary.
   run_go_tool github.com/jstemmer/go-junit-report go-junit-report --help > /dev/null 2>&1
   local xml=$(mktemp ${ARTIFACTS}/junit_XXXXXXXX.xml)
   cat ${report} \
       | go-junit-report \
-      | sed -e "s#\"github.com/knative/${REPO_NAME}/#\"#g" \
+      | sed -e "s#\"\(github\.com/knative\|knative\.dev\)/${REPO_NAME}/#\"#g" \
       > ${xml}
   echo "XML report written to ${xml}"
+  if [[ -n "$(grep '<testsuites></testsuites>' ${xml})" ]]; then
+    # XML report is empty, something's wrong; use the output as failure reason
+    create_junit_xml _go_tests "GoTests" "$(cat ${report})"
+  fi
+  # Capture and report any race condition errors
+  local race_errors="$(sed -n '/^WARNING: DATA RACE$/,/^==================$/p' ${report})"
+  create_junit_xml _go_tests "DataRaceAnalysis" "${race_errors}"
   if (( ! IS_PROW )); then
     # Keep the suffix, so files are related.
     local logfile=${xml/junit_/go_test_}
@@ -376,7 +420,7 @@ function update_licenses() {
   cd ${REPO_ROOT_DIR} || return 1
   local dst=$1
   shift
-  run_go_tool github.com/knative/test-infra/tools/dep-collector dep-collector $@ > ./${dst}
+  run_go_tool knative.dev/test-infra/tools/dep-collector dep-collector $@ > ./${dst}
 }
 
 # Run dep-collector to check for forbidden liceses.
@@ -386,7 +430,7 @@ function check_licenses() {
   rm -fr ${GOPATH}/src/github.com/google/licenseclassifier
   go get -u github.com/google/licenseclassifier
   # Check that we don't have any forbidden licenses in our images.
-  run_go_tool github.com/knative/test-infra/tools/dep-collector dep-collector -check $@
+  run_go_tool knative.dev/test-infra/tools/dep-collector dep-collector -check $@
 }
 
 # Run the given linter on the given files, checking it exists first.
@@ -467,7 +511,7 @@ function remove_broken_symlinks() {
     target="${target##* -> }"
     [[ ${target} == /* ]] || target="./${target}"
     target="$(cd `dirname ${link}` && cd ${target%/*} && echo $PWD/${target##*/})"
-    if [[ ${target} != *github.com/knative/* ]]; then
+    if [[ ${target} != *github.com/knative/* && ${target} != *knative.dev/* ]]; then
       unlink ${link}
       continue
     fi
@@ -517,7 +561,7 @@ function get_latest_knative_yaml_source() {
 # These MUST come last.
 
 readonly _TEST_INFRA_SCRIPTS_DIR="$(dirname $(get_canonical_path ${BASH_SOURCE[0]}))"
-readonly REPO_NAME_FORMATTED="Knative $(capitalize ${REPO_NAME//-/})"
+readonly REPO_NAME_FORMATTED="Knative $(capitalize ${REPO_NAME//-/ })"
 
 # Public latest nightly or release yaml files.
 readonly KNATIVE_SERVING_RELEASE="$(get_latest_knative_yaml_source "serving" "serving")"

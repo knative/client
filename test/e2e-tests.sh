@@ -28,7 +28,7 @@
 # $KNATIVE_VERSION with a valid release, e.g. 0.6.0, Knative serving
 # of this specified version will be installed in the Kubernetes cluster, and
 # all the tests will run against Knative serving of this specific version.
-source $(dirname $0)/../vendor/github.com/knative/test-infra/scripts/e2e-tests.sh
+source $(dirname $0)/../vendor/knative.dev/test-infra/scripts/e2e-tests.sh
 
 # Helper functions.
 
