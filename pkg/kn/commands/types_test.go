@@ -63,6 +63,7 @@ type typeTestCase struct {
 	kubeCfgPath   string
 	explicitPath  string
 	expectedError string
+	logHttp       bool
 }
 
 func TestGetClientConfig(t *testing.T) {
@@ -74,20 +75,30 @@ func TestGetClientConfig(t *testing.T) {
 			"",
 			clientcmd.NewDefaultClientConfigLoadingRules().ExplicitPath,
 			"",
+			false,
+		},
+		{
+			"",
+			clientcmd.NewDefaultClientConfigLoadingRules().ExplicitPath,
+			"",
+			true,
 		},
 		{
 			"/testing/assets/kube-config-01.yml",
 			"",
 			fmt.Sprintf("Config file '%s' can not be found", "/testing/assets/kube-config-01.yml"),
+			false,
 		},
 		{
 			multiConfigs,
 			"",
 			fmt.Sprintf("Can not find config file. '%s' looks like a path. Please use the env var KUBECONFIG if you want to check for multiple configuration files", multiConfigs),
+			false,
 		},
 	} {
 		p := &KnParams{
 			KubeCfgPath: tc.kubeCfgPath,
+			LogHttp:     tc.logHttp,
 		}
 
 		clientConfig, err := p.GetClientConfig()
