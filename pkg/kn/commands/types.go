@@ -24,7 +24,6 @@ import (
 	serving_kn_v1alpha1 "github.com/knative/client/pkg/serving/v1alpha1"
 	"github.com/knative/client/pkg/util"
 	serving_v1alpha1_client "github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
-	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
@@ -83,22 +82,13 @@ func (params *KnParams) GetConfig() (serving_v1alpha1_client.ServingV1alpha1Inte
 	if err != nil {
 		return nil, err
 	}
-
-	ret, err := serving_v1alpha1_client.NewForConfig(config)
-	if err != nil {
-		return nil, err
-	}
-
 	if params.LogHttp {
-		// Reach in and wrap the RESTClient's HTTP transport in one that logs.
-		restClient, ok := (ret.RESTClient()).(*rest.RESTClient)
-		if !ok {
-			return nil, errors.New("Unexpected type of REST client in configured client")
-		}
-		restClient.Client.Transport = util.NewLoggingTransport(restClient.Client.Transport)
+		// TODO: When we update to the newer version of client-go, replace with
+		// config.Wrap() for future compat.
+		config.WrapTransport = util.NewLoggingTransport
 	}
-	return ret, nil
 
+	return serving_v1alpha1_client.NewForConfig(config)
 }
 
 // GetClientConfig gets ClientConfig from KubeCfgPath
