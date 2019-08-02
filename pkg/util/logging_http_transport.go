@@ -35,12 +35,29 @@ func NewLoggingTransportWithStream(transport http.RoundTripper, s io.Writer) htt
 	return &LoggingHttpTransport{transport, s}
 }
 
+var SENSITIVE_HEADERS = map[string]bool{
+	"Authorization":       true,
+	"WWW-Authenticate":    true,
+	"Cookie":              true,
+	"Proxy-Authorization": true,
+}
+
 func (t *LoggingHttpTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	stream := t.stream
 	if stream == nil {
 		stream = os.Stderr
 	}
-	reqBytes, _ := httputil.DumpRequestOut(r, true)
+	reqCopy := *r
+	reqCopy.Header = make(http.Header, len(r.Header))
+	for k, v := range r.Header {
+		sensitive := SENSITIVE_HEADERS[k]
+		if sensitive {
+			reqCopy.Header.Set(k, "ELIDED")
+		} else {
+			reqCopy.Header[k] = v
+		}
+	}
+	reqBytes, _ := httputil.DumpRequestOut(&reqCopy, true)
 	fmt.Fprintln(stream, "===== REQUEST =====")
 	fmt.Fprintln(stream, string(reqBytes))
 	resp, err := t.transport.RoundTrip(r)
