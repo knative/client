@@ -52,6 +52,22 @@ func TestWritesRequestResponse(t *testing.T) {
 	assert.Assert(t, strings.Contains(s, "REQUEST"))
 	assert.Assert(t, strings.Contains(s, "RESPONSE"))
 }
+
+func TestElideAuthorizationHeader(t *testing.T) {
+	out := &bytes.Buffer{}
+	transport := NewLoggingTransportWithStream(&dummyTransport{}, out)
+	req, _ := http.NewRequest("GET", "http://example.com", nil)
+	req.Header.Set("X-Normal-Header", "la la normal text")
+	req.Header.Set("Authorization", "Bearer: SECRET")
+	_, e := transport.RoundTrip(req)
+	assert.NilError(t, e)
+	s := out.String()
+	assert.Assert(t, strings.Contains(s, "REQUEST"))
+	assert.Assert(t, strings.Contains(s, "la la normal text"))
+	assert.Assert(t, !strings.Contains(s, "SECRET"))
+	assert.Assert(t, strings.Contains(s, "RESPONSE"))
+}
+
 func TestWritesRequestError(t *testing.T) {
 	out := &bytes.Buffer{}
 	transport := NewLoggingTransportWithStream(&errorTransport{}, out)
