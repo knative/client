@@ -134,9 +134,6 @@ func flush(out io.Writer) {
 func createService(client v1alpha1.KnClient, service *serving_v1alpha1_api.Service, namespace string, out io.Writer) error {
 	err := client.CreateService(service)
 	if err != nil {
-		if api_errors.IsNotFound(err) {
-			return errors.New("knative serving is not installed on the connected backend. Please verify your Knative installation")
-		}
 		return err
 	}
 	fmt.Fprintf(out, "Service '%s' successfully created in namespace '%s'.\n", service.Name, namespace)

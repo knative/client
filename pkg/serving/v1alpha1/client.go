@@ -24,10 +24,11 @@ import (
 	"github.com/knative/client/pkg/serving"
 	"github.com/knative/client/pkg/wait"
 
+	kn_errors "github.com/knative/client/pkg/errors"
 	api_serving "github.com/knative/serving/pkg/apis/serving"
 	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	client_v1alpha1 "github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -130,7 +131,7 @@ func NewKnServingClient(client client_v1alpha1.ServingV1alpha1Interface, namespa
 func (cl *knClient) GetService(name string) (*v1alpha1.Service, error) {
 	service, err := cl.client.Services(cl.namespace).Get(name, v1.GetOptions{})
 	if err != nil {
-		return nil, err
+		return nil, kn_errors.Build(err)
 	}
 	err = serving.UpdateGroupVersionKind(service, v1alpha1.SchemeGroupVersion)
 	if err != nil {
@@ -143,7 +144,7 @@ func (cl *knClient) GetService(name string) (*v1alpha1.Service, error) {
 func (cl *knClient) ListServices(config ...ListConfig) (*v1alpha1.ServiceList, error) {
 	serviceList, err := cl.client.Services(cl.namespace).List(ListConfigs(config).toListOptions())
 	if err != nil {
-		return nil, err
+		return nil, kn_errors.Build(err)
 	}
 	serviceListNew := serviceList.DeepCopy()
 	err = updateServingGvk(serviceListNew)
@@ -167,7 +168,7 @@ func (cl *knClient) ListServices(config ...ListConfig) (*v1alpha1.ServiceList, e
 func (cl *knClient) CreateService(service *v1alpha1.Service) error {
 	_, err := cl.client.Services(cl.namespace).Create(service)
 	if err != nil {
-		return err
+		return kn_errors.Build(err)
 	}
 	return updateServingGvk(service)
 }
@@ -183,10 +184,15 @@ func (cl *knClient) UpdateService(service *v1alpha1.Service) error {
 
 // Delete a service by name
 func (cl *knClient) DeleteService(serviceName string) error {
-	return cl.client.Services(cl.namespace).Delete(
+	err := cl.client.Services(cl.namespace).Delete(
 		serviceName,
 		&v1.DeleteOptions{},
 	)
+	if err != nil {
+		return kn_errors.Build(err)
+	}
+
+	return nil
 }
 
 // Wait for a service to become ready, but not longer than provided timeout
@@ -308,3 +314,4 @@ func serviceConditionExtractor(obj runtime.Object) (apis.Conditions, error) {
 	}
 	return apis.Conditions(service.Status.Conditions), nil
 }
+
