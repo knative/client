@@ -28,7 +28,7 @@ import (
 	api_serving "github.com/knative/serving/pkg/apis/serving"
 	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	client_v1alpha1 "github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -319,4 +319,3 @@ func serviceConditionExtractor(obj runtime.Object) (apis.Conditions, error) {
 	}
 	return apis.Conditions(service.Status.Conditions), nil
 }
-

@@ -15,14 +15,15 @@
 package errors
 
 import (
-	api_errors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"strings"
+
+	api_errors "k8s.io/apimachinery/pkg/api/errors"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func isCRDError(status api_errors.APIStatus) bool {
 	for _, cause := range status.Status().Details.Causes {
-		if strings.HasPrefix(cause.Message, "404")  && cause.Type == v1.CauseTypeUnexpectedServerResponse {
+		if strings.HasPrefix(cause.Message, "404") && cause.Type == v1.CauseTypeUnexpectedServerResponse {
 			return true
 		}
 	}

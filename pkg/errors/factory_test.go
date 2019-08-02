@@ -15,12 +15,13 @@
 package errors
 
 import (
+	"testing"
+
 	"github.com/pkg/errors"
 	"gotest.tools/assert"
 	api_errors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"testing"
 )
 
 func TestBuild(t *testing.T) {
@@ -30,7 +31,7 @@ func TestBuild(t *testing.T) {
 	assert.Error(t, err, "my-custom-error")
 
 	gv := schema.GroupResource{
-		Group: "serving.knative.dev",
+		Group:    "serving.knative.dev",
 		Resource: "service",
 	}
 
@@ -38,7 +39,7 @@ func TestBuild(t *testing.T) {
 	apiError := api_errors.NewNotFound(gv, "serv")
 	apiError.Status().Details.Causes = []v1.StatusCause{
 		{
-			Type: "UnexpectedServerResponse",
+			Type:    "UnexpectedServerResponse",
 			Message: "404 page not found",
 		},
 	}

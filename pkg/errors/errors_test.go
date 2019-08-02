@@ -15,8 +15,9 @@
 package errors
 
 import (
-	"gotest.tools/assert"
 	"testing"
+
+	"gotest.tools/assert"
 )
 
 func TestNewInvalidCRD(t *testing.T) {
