@@ -16,6 +16,7 @@ package util
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httputil"
 	"os"
@@ -23,20 +24,34 @@ import (
 
 type LoggingHttpTransport struct {
 	transport http.RoundTripper
+	stream    io.Writer
 }
 
 func NewLoggingTransport(transport http.RoundTripper) http.RoundTripper {
-	return &LoggingHttpTransport{transport}
+	return &LoggingHttpTransport{transport, nil}
+}
+
+func NewLoggingTransportWithStream(transport http.RoundTripper, s io.Writer) http.RoundTripper {
+	return &LoggingHttpTransport{transport, s}
 }
 
 func (t *LoggingHttpTransport) RoundTrip(r *http.Request) (*http.Response, error) {
+	stream := t.stream
+	if stream == nil {
+		stream = os.Stderr
+	}
 	reqBytes, _ := httputil.DumpRequestOut(r, true)
-	fmt.Fprintln(os.Stderr, "===== REQUEST =====")
-	fmt.Fprintln(os.Stderr, string(reqBytes))
+	fmt.Fprintln(stream, "===== REQUEST =====")
+	fmt.Fprintln(stream, string(reqBytes))
 	resp, err := t.transport.RoundTrip(r)
-	respBytes, _ := httputil.DumpResponse(resp, true)
-	fmt.Fprintln(os.Stderr, "===== RESPONSE =====")
-	fmt.Fprintln(os.Stderr, string(respBytes))
-	fmt.Fprintln(os.Stderr, " * * * * * *")
+	if err != nil {
+		fmt.Fprintln(stream, "===== ERROR =====")
+		fmt.Fprintln(stream, err)
+	} else {
+		respBytes, _ := httputil.DumpResponse(resp, true)
+		fmt.Fprintln(stream, "===== RESPONSE =====")
+		fmt.Fprintln(stream, string(respBytes))
+		fmt.Fprintln(stream, " * * * * * *")
+	}
 	return resp, err
 }
