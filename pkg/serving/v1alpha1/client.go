@@ -205,7 +205,7 @@ func (cl *knClient) WaitForService(name string, timeout time.Duration) error {
 func (cl *knClient) GetRevision(name string) (*v1alpha1.Revision, error) {
 	revision, err := cl.client.Revisions(cl.namespace).Get(name, v1.GetOptions{})
 	if err != nil {
-		return nil, err
+		return nil, kn_errors.Build(err)
 	}
 	err = updateServingGvk(revision)
 	if err != nil {
@@ -216,14 +216,19 @@ func (cl *knClient) GetRevision(name string) (*v1alpha1.Revision, error) {
 
 // Delete a revision by name
 func (cl *knClient) DeleteRevision(name string) error {
-	return cl.client.Revisions(cl.namespace).Delete(name, &v1.DeleteOptions{})
+	err := cl.client.Revisions(cl.namespace).Delete(name, &v1.DeleteOptions{})
+	if err != nil {
+		return kn_errors.Build(err)
+	}
+
+	return nil
 }
 
 // List revisions
 func (cl *knClient) ListRevisions(config ...ListConfig) (*v1alpha1.RevisionList, error) {
 	revisionList, err := cl.client.Revisions(cl.namespace).List(ListConfigs(config).toListOptions())
 	if err != nil {
-		return nil, err
+		return nil, kn_errors.Build(err)
 	}
 	return updateServingGvkForRevisionList(revisionList)
 }
