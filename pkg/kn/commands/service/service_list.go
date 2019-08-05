@@ -16,6 +16,7 @@ package service
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/knative/client/pkg/kn/commands"
 	v1alpha12 "github.com/knative/client/pkg/serving/v1alpha1"
@@ -60,6 +61,11 @@ func NewServiceListCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
+
+			// Sort serviceList by name
+			sort.SliceStable(serviceList.Items, func(i, j int) bool {
+				return serviceList.Items[i].ObjectMeta.Name < serviceList.Items[j].ObjectMeta.Name
+			})
 
 			err = printer.PrintObj(serviceList, cmd.OutOrStdout())
 			if err != nil {
