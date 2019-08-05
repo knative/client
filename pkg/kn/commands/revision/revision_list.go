@@ -16,6 +16,9 @@ package revision
 
 import (
 	"fmt"
+	"sort"
+
+	"github.com/knative/serving/pkg/apis/serving"
 
 	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"github.com/spf13/cobra"
@@ -80,6 +83,15 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 					return nil
 				}
 			}
+
+			// sort revisionList by configuration generation key
+			sort.SliceStable(revisionList.Items, func(i, j int) bool {
+				if revisionList.Items[i].Labels[serving.ConfigurationGenerationLabelKey] != revisionList.Items[j].Labels[serving.ConfigurationGenerationLabelKey] {
+					return revisionList.Items[i].Labels[serving.ConfigurationGenerationLabelKey] > revisionList.Items[j].Labels[serving.ConfigurationGenerationLabelKey]
+				}
+				return revisionList.Items[i].Name < revisionList.Items[j].Name
+			})
+
 			printer, err := revisionListFlags.ToPrinter()
 			if err != nil {
 				return err
