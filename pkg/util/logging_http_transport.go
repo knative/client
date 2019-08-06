@@ -1,4 +1,4 @@
-// Copyright © 2018 The Knative Authors
+// Copyright © 2019 The Knative Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"os"
+	"strings"
 )
 
 type LoggingHttpTransport struct {
@@ -52,7 +53,11 @@ func (t *LoggingHttpTransport) RoundTrip(r *http.Request) (*http.Response, error
 	for k, v := range r.Header {
 		sensitive := SENSITIVE_HEADERS[k]
 		if sensitive {
-			reqCopy.Header.Set(k, "ELIDED")
+			l := 0
+			for _, h := range v {
+				l += len(h)
+			}
+			reqCopy.Header.Set(k, strings.Repeat("*", l))
 		} else {
 			reqCopy.Header[k] = v
 		}

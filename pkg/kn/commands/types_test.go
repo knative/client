@@ -115,11 +115,6 @@ func TestGetClientConfig(t *testing.T) {
 			"",
 		},
 		{
-			"",
-			clientcmd.NewDefaultClientConfigLoadingRules().ExplicitPath,
-			"",
-		},
-		{
 			"/testing/assets/kube-config-01.yml",
 			"",
 			fmt.Sprintf("Config file '%s' can not be found", "/testing/assets/kube-config-01.yml"),
