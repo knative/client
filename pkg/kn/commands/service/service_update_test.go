@@ -374,6 +374,51 @@ func TestServiceUpdateRequestsLimitsCPU_and_Memory(t *testing.T) {
 	}
 }
 
+func TestServiceUpdateLabelWhenEmpty(t *testing.T) {
+	original := newEmptyService()
+
+	action, updated, _, err := fakeServiceUpdate(original, []string{
+		"service", "update", "foo", "-l", "a=mouse", "--label", "b=cookie", "--async"}, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	expectedLabels := map[string]string{
+		"a": "mouse",
+		"b": "cookie"}
+	actualLabels := updated.ObjectMeta.Labels
+
+	if !reflect.DeepEqual(actualLabels, expectedLabels) {
+		t.Fatalf("wrong labels %v", actualLabels)
+	}
+}
+
+func TestServiceUpdateLabelExisting(t *testing.T) {
+	original := newEmptyService()
+	original.ObjectMeta.Labels = map[string]string{"already": "here"}
+
+	action, updated, _, err := fakeServiceUpdate(original, []string{
+		"service", "update", "foo", "-l", "already=gone", "--label", "b=cookie", "--async"}, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	expectedLabels := map[string]string{
+		"already": "gone",
+		"b":       "cookie"}
+	actualLabels := updated.ObjectMeta.Labels
+
+	if !reflect.DeepEqual(actualLabels, expectedLabels) {
+		t.Fatalf("wrong labels %v", actualLabels)
+	}
+}
+
 func newEmptyService() *v1alpha1.Service {
 	return &v1alpha1.Service{
 		TypeMeta: metav1.TypeMeta{

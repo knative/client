@@ -467,3 +467,30 @@ func TestServiceCreateEnvForce(t *testing.T) {
 		t.Fatalf("wrong output: %s", output)
 	}
 }
+
+func TestServiceCreateLabel(t *testing.T) {
+	action, created, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "-l", "a=mouse", "--label", "b=cookie", "--async"}, false, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("create", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	expectedLabels := map[string]string{
+		"a": "mouse",
+		"b": "cookie"}
+	actualLabels := created.ObjectMeta.Labels
+
+	template, err := servinglib.RevisionTemplateOfService(created)
+	if err != nil {
+		t.Fatal(err)
+	} else if template.Spec.DeprecatedContainer.Image != "gcr.io/foo/bar:baz" {
+		t.Fatalf("wrong image set: %v", template.Spec.DeprecatedContainer.Image)
+	} else if !reflect.DeepEqual(
+		actualLabels,
+		expectedLabels) {
+		t.Fatalf("wrong labels %v", created.ObjectMeta.Labels)
+	}
+}

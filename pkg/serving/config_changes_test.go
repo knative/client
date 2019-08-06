@@ -26,6 +26,7 @@ import (
 
 	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestUpdateAutoscalingAnnotations(t *testing.T) {
@@ -270,6 +271,35 @@ func testUpdateEnvVarsBoth(t *testing.T, template *servingv1alpha1.RevisionTempl
 	}
 }
 
+func TestUpdateLabelsNew(t *testing.T) {
+	service := getV1alpha1Service()
+	labels := map[string]string{
+		"a": "foo",
+		"b": "bar",
+	}
+	err := UpdateServiceLabels(service, labels)
+	assert.NilError(t, err)
+	actual := service.ObjectMeta.Labels
+	if !reflect.DeepEqual(labels, actual) {
+		t.Fatalf("Labels did not match expected %v found %v", labels, actual)
+	}
+}
+
+func TestUpdateLabelsExisting(t *testing.T) {
+	service := getV1alpha1Service()
+	service.ObjectMeta.Labels = map[string]string{"a": "foo"}
+	labels := map[string]string{
+		"a": "notfood",
+		"b": "bar",
+	}
+	err := UpdateServiceLabels(service, labels)
+	assert.NilError(t, err)
+	actual := service.ObjectMeta.Labels
+	if !reflect.DeepEqual(labels, actual) {
+		t.Fatalf("Labels did not match expected %v found %v", labels, actual)
+	}
+}
+
 // =========================================================================================================
 
 func getV1alpha1RevisionTemplateWithOldFields() (*servingv1alpha1.RevisionTemplateSpec, *corev1.Container) {
@@ -294,6 +324,28 @@ func getV1alpha1Config() (*servingv1alpha1.RevisionTemplateSpec, *corev1.Contain
 		},
 	}
 	return template, &containers[0]
+}
+
+func getV1alpha1Service() *servingv1alpha1.Service {
+	template, _ := getV1alpha1RevisionTemplateWithOldFields()
+	service := &servingv1alpha1.Service{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Service",
+			APIVersion: "knative.dev/v1alph1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "foo",
+			Namespace: "default",
+		},
+		Spec: servingv1alpha1.ServiceSpec{
+			DeprecatedRunLatest: &servingv1alpha1.RunLatestType{
+				Configuration: servingv1alpha1.ConfigurationSpec{
+					DeprecatedRevisionTemplate: template,
+				},
+			},
+		},
+	}
+	return service
 }
 
 func assertNoV1alpha1Old(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec) {
