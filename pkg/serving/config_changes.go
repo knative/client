@@ -152,6 +152,17 @@ func UpdateResources(template *servingv1alpha1.RevisionTemplateSpec, requestsRes
 	return nil
 }
 
+// UpdateServiceLables updates the labels on a service
+func UpdateServiceLabels(service *servingv1alpha1.Service, vars map[string]string) error {
+	if service.ObjectMeta.Labels == nil {
+		service.ObjectMeta.Labels = make(map[string]string)
+	}
+	for key, value := range vars {
+		service.ObjectMeta.Labels[key] = value
+	}
+	return nil
+}
+
 // =======================================================================================
 
 func updateEnvVarsFromMap(env []corev1.EnvVar, vars map[string]string) []corev1.EnvVar {
