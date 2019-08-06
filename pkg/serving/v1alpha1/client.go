@@ -73,7 +73,7 @@ type KnClient interface {
 	ListRoutes(opts ...ListConfig) (*v1alpha1.RouteList, error)
 }
 
-type listConfig struct {
+type ListConfigCollector struct {
 	// Labels to filter on
 	Labels labels.Set
 
@@ -82,13 +82,13 @@ type listConfig struct {
 }
 
 // Config function for builder pattern
-type ListConfig func(config *listConfig)
+type ListConfig func(config *ListConfigCollector)
 
 type ListConfigs []ListConfig
 
 // add selectors to a list options
 func (opts ListConfigs) toListOptions() v1.ListOptions {
-	listConfig := listConfig{labels.Set{}, fields.Set{}}
+	listConfig := ListConfigCollector{labels.Set{}, fields.Set{}}
 	for _, f := range opts {
 		f(&listConfig)
 	}
@@ -104,14 +104,14 @@ func (opts ListConfigs) toListOptions() v1.ListOptions {
 
 // Filter list on the provided name
 func WithName(name string) ListConfig {
-	return func(lo *listConfig) {
+	return func(lo *ListConfigCollector) {
 		lo.Fields["metadata.name"] = name
 	}
 }
 
 // Filter on the service name
 func WithService(service string) ListConfig {
-	return func(lo *listConfig) {
+	return func(lo *ListConfigCollector) {
 		lo.Labels[api_serving.ServiceLabelKey] = service
 	}
 }

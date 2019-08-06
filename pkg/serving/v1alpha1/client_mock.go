@@ -59,8 +59,8 @@ func (c *MockKnClient) Recorder() *Recorder {
 }
 
 // any() can be used in recording to not check for the argument
-func Any() func(t *testing.T, a, b interface{}) {
-	return func(t *testing.T, a, b interface{}) {}
+func Any() func(t *testing.T, a interface{}) {
+	return func(t *testing.T, a interface{}) {}
 }
 
 // Get Service
@@ -242,10 +242,10 @@ func (c *MockKnClient) verifyArgs(call *apiMethodCall, args ...interface{}) {
 		assert.Assert(c.t, len(callArgs) > i, "Internal: Invalid recording: Expected %d args, got %d", len(callArgs), len(args))
 		fn := reflect.ValueOf(call.args[i])
 		fnType := fn.Type()
-		if fnType.Kind() == reflect.Func {
-			fn.Call([]reflect.Value{reflect.ValueOf(c.t), reflect.ValueOf(call.args[0]), reflect.ValueOf(arg)})
+		if fnType.Kind() == reflect.Func && fnType.NumIn() == 2 {
+			fn.Call([]reflect.Value{reflect.ValueOf(c.t), reflect.ValueOf(arg)})
 		} else {
-			assert.DeepEqual(c.t, call.args[0], arg)
+			assert.DeepEqual(c.t, call.args[i], arg)
 		}
 	}
 }

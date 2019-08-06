@@ -15,86 +15,115 @@
 package service
 
 import (
-	"regexp"
-	"strings"
 	"testing"
 
 	duckv1alpha1 "github.com/knative/pkg/apis/duck/v1alpha1"
 	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
+	"gotest.tools/assert"
+	"gotest.tools/assert/cmp"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	clienttesting "k8s.io/client-go/testing"
+	"k8s.io/apimachinery/pkg/fields"
+	"k8s.io/apimachinery/pkg/labels"
 
-	"github.com/knative/client/pkg/kn/commands"
+	api_serving "github.com/knative/serving/pkg/apis/serving"
+
+	knclient "github.com/knative/client/pkg/serving/v1alpha1"
 )
 
-func fakeServiceDescribe(args []string, response *v1alpha1.Service) (action clienttesting.Action, output string, err error) {
-	knParams := &commands.KnParams{}
-	cmd, fakeServing, buf := commands.CreateTestKnCommand(NewServiceCommand(knParams), knParams)
-	fakeServing.AddReactor("*", "*",
-		func(a clienttesting.Action) (bool, runtime.Object, error) {
-			action = a
-			return true, response, nil
-		})
-	cmd.SetArgs(args)
-	err = cmd.Execute()
-	if err != nil {
-		return
-	}
-	output = buf.String()
-	return
+func TestServiceDescribeBasic(t *testing.T) {
+
+	// New mock client
+	client := knclient.NewMockKnClient(t)
+
+	// Recording:
+	r := client.Recorder()
+	// Check for existing service --> no
+	expectedService := createnTestService("foo")
+
+	// Get service
+	r.GetService("foo", &expectedService, nil)
+
+	// Testing:
+	output, err := executeServiceCommand(client, "describe", "foo")
+	assert.NilError(t, err)
+
+	validateServiceOutput(t, "foo", output)
+
+	// Validate that all recorded API methods have been called
+	r.Validate()
+}
+
+func TestServiceDescribeWithDetails(t *testing.T) {
+
+	// New mock client
+	client := knclient.NewMockKnClient(t)
+
+	// Recording:
+	r := client.Recorder()
+	// Check for existing service --> no
+	expectedService := createnTestService("foo")
+	r.GetService("foo", &expectedService, nil)
+
+	revList := v1alpha1.RevisionList{}
+
+	// Return the list of all revisions
+	r.ListRevisions(HasServiceLabelSelector("foo"), &revList, nil)
+
+	// Fetch the revision
+	// r.GetRevision()
+
+	// Testing:
+	output, err := executeServiceCommand(client, "describe", "foo", "--details")
+	assert.NilError(t, err)
+
+	validateServiceOutput(t, "foo", output)
+
+	// Validate that all recorded API methods have been called
+	r.Validate()
 }
 
 func TestEmptyServiceDescribe(t *testing.T) {
-	_, _, err := fakeServiceDescribe([]string{"service", "describe"}, &v1alpha1.Service{})
-	if err == nil ||
-		!strings.Contains(err.Error(), "no") ||
-		!strings.Contains(err.Error(), "service") ||
-		!strings.Contains(err.Error(), "provided") {
-		t.Fatalf("expect to fail with missing service name (got: %v)", err)
+	client := knclient.NewMockKnClient(t)
+	_, err := executeServiceCommand(client, "service", "describe")
+	assert.ErrorContains(t, err, "no", "service", "provided")
+}
+
+func validateServiceOutput(t *testing.T, service string, output string) {
+	assert.Assert(t, cmp.Regexp("Name:\\s+"+service, output))
+	assert.Assert(t, cmp.Regexp("Namespace:\\s+default", output))
+	assert.Assert(t, cmp.Regexp("Address:\\s+http://"+service+".default.svc.cluster.local", output))
+	assert.Assert(t, cmp.Regexp("URL:\\s+"+service+".default.example.com", output))
+	assert.Assert(t, cmp.Regexp("Age:", output))
+}
+
+func HasServiceLabelSelector(service string) func(t *testing.T, a interface{}) {
+	return func(t *testing.T, a interface{}) {
+		lc := a.([]knclient.ListConfig)
+		listConfigCollector := knclient.ListConfigCollector{
+			Labels: make(labels.Set),
+			Fields: make(fields.Set),
+		}
+		lc[0](&listConfigCollector)
+		assert.Equal(t, listConfigCollector.Labels[api_serving.ServiceLabelKey], service)
 	}
 }
 
-func TestServiceDescribeDefaultOutput(t *testing.T) {
+func createnTestService(service string) v1alpha1.Service {
 	expectedService := v1alpha1.Service{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Service",
 			APIVersion: "knative.dev/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "foo",
+			Name:      service,
 			Namespace: "default",
 		},
 		Status: v1alpha1.ServiceStatus{
 			RouteStatusFields: v1alpha1.RouteStatusFields{
-				DeprecatedDomain: "foo.default.example.com",
-				Address:          &duckv1alpha1.Addressable{Hostname: "foo.default.svc.cluster.local"},
+				DeprecatedDomain: service + ".default.example.com",
+				Address:          &duckv1alpha1.Addressable{Hostname: service + ".default.svc.cluster.local"},
 			},
 		},
 	}
-	action, output, err := fakeServiceDescribe([]string{"service", "describe", "test-foo"}, &expectedService)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if action == nil {
-		t.Fatal("No action")
-	} else if !action.Matches("get", "services") {
-		t.Fatalf("Bad action %v", action)
-	}
-
-	assertMatches(t, output, "Name:\\s+foo")
-	assertMatches(t, output, "Namespace:\\s+default")
-	assertMatches(t, output, "Address:\\s+http://foo.default.svc.cluster.local")
-	assertMatches(t, output, "URL:\\s+foo.default.example.com")
-	assertMatches(t, output, "Age:")
-}
-
-func assertMatches(t *testing.T, value, expr string) {
-	ok, err := regexp.MatchString(expr, value)
-	if err != nil {
-		t.Fatalf("invalid pattern %q. %v", expr, err)
-	}
-	if !ok {
-		t.Errorf("got %s which does not match %s\n", value, expr)
-	}
+	return expectedService
 }
