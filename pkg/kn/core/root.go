@@ -123,6 +123,13 @@ func NewKnCommand(params ...commands.KnParams) *cobra.Command {
 	// Persistent flags
 	rootCmd.PersistentFlags().StringVar(&commands.CfgFile, "config", "", "kn config file (default is $HOME/.kn/config.yaml)")
 	rootCmd.PersistentFlags().StringVar(&p.KubeCfgPath, "kubeconfig", "", "kubectl config file (default is $HOME/.kube/config)")
+	rootCmd.PersistentFlags().StringVar(&p.JwtKeyPath, "jwt-key", "", "jwt key to override tokens in kubeconfig")
+	rootCmd.PersistentFlags().MarkHidden("jwt-key")
+	rootCmd.PersistentFlags().StringArrayVar(&p.JwtScopes, "jwt-scope", []string{}, "jwt scope to use")
+	rootCmd.PersistentFlags().MarkHidden("jwt-scope")
+	rootCmd.PersistentFlags().StringVar(&p.JwtTokenURL, "jwt-url", "", "url for doing a jwt oauth flow")
+	rootCmd.PersistentFlags().MarkHidden("jwt-url")
+
 	rootCmd.PersistentFlags().BoolVar(&p.LogHttp, "log-http", false, "log http traffic")
 
 	plugin.AddPluginFlags(rootCmd)

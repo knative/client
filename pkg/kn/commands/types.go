@@ -21,6 +21,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/knative/client/pkg/connection"
 	serving_kn_v1alpha1 "github.com/knative/client/pkg/serving/v1alpha1"
 	"github.com/knative/client/pkg/util"
 	serving_v1alpha1_client "github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
@@ -47,7 +48,10 @@ type KnParams struct {
 	NewClient    func(namespace string) (serving_kn_v1alpha1.KnClient, error)
 
 	// General global options
-	LogHttp bool
+	LogHttp     bool
+	JwtKeyPath  string
+	JwtScopes   []string
+	JwtTokenURL string
 
 	// Set this if you want to nail down the namespace
 	fixedCurrentNamespace string
@@ -93,15 +97,27 @@ func (params *KnParams) GetConfig() (serving_v1alpha1_client.ServingV1alpha1Inte
 
 // GetClientConfig gets ClientConfig from KubeCfgPath
 func (params *KnParams) GetClientConfig() (clientcmd.ClientConfig, error) {
+	var ret clientcmd.ClientConfig
 	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
 	if len(params.KubeCfgPath) == 0 {
-		return clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, &clientcmd.ConfigOverrides{}), nil
+		ret = clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, &clientcmd.ConfigOverrides{})
 	}
 
 	_, err := os.Stat(params.KubeCfgPath)
 	if err == nil {
 		loadingRules.ExplicitPath = params.KubeCfgPath
-		return clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, &clientcmd.ConfigOverrides{}), nil
+		ret = clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, &clientcmd.ConfigOverrides{})
+	}
+	if ret != nil {
+		if params.JwtKeyPath != "" {
+			ret, err = connection.WrapConfigWithJWT(
+				ret, params.JwtKeyPath, params.JwtScopes, params.JwtTokenURL)
+			if err != nil {
+				return nil, err
+			}
+		}
+		return ret, nil
+
 	}
 
 	if !os.IsNotExist(err) {
