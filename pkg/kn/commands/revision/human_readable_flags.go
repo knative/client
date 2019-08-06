@@ -28,6 +28,7 @@ func RevisionListHandlers(h hprinters.PrintHandler) {
 	RevisionColumnDefinitions := []metav1beta1.TableColumnDefinition{
 		{Name: "Name", Type: "string", Description: "Name of the revision."},
 		{Name: "Service", Type: "string", Description: "Name of the Knative service."},
+		{Name: "Generation", Type: "string", Description: "Generation of the revision"},
 		{Name: "Age", Type: "string", Description: "Age of the revision."},
 		{Name: "Conditions", Type: "string", Description: "Conditions describing statuses of the revision."},
 		{Name: "Ready", Type: "string", Description: "Ready condition status of the revision."},
@@ -56,6 +57,7 @@ func printRevisionList(revisionList *servingv1alpha1.RevisionList, options hprin
 func printRevision(revision *servingv1alpha1.Revision, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	name := revision.Name
 	service := revision.Labels[serving.ServiceLabelKey]
+	generation := revision.Labels[serving.ConfigurationGenerationLabelKey]
 	age := commands.TranslateTimestampSince(revision.CreationTimestamp)
 	conditions := commands.ConditionsValue(revision.Status.Conditions)
 	ready := commands.ReadyCondition(revision.Status.Conditions)
@@ -66,6 +68,7 @@ func printRevision(revision *servingv1alpha1.Revision, options hprinters.PrintOp
 	row.Cells = append(row.Cells,
 		name,
 		service,
+		generation,
 		age,
 		conditions,
 		ready,
