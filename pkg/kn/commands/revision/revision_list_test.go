@@ -81,7 +81,12 @@ func TestRevisionListDefaultOutput(t *testing.T) {
 	revision2 := createMockRevisionWithParams("bar-abcd", "bar", "1")
 	revision3 := createMockRevisionWithParams("foo-wxyz", "foo", "2")
 	revision4 := createMockRevisionWithParams("bar-wxyz", "bar", "2")
-	RevisionList := &v1alpha1.RevisionList{Items: []v1alpha1.Revision{*revision1, *revision2, *revision3, *revision4}}
+	// Validate edge case for catching the sorting issue caused by string comparison
+	revision5 := createMockRevisionWithParams("foo-wxyz", "foo", "10")
+	revision6 := createMockRevisionWithParams("bar-wxyz", "bar", "10")
+
+	RevisionList := &v1alpha1.RevisionList{Items: []v1alpha1.Revision{
+		*revision1, *revision2, *revision3, *revision4, *revision5, *revision6}}
 	action, output, err := fakeRevisionList([]string{"revision", "list"}, RevisionList)
 	if err != nil {
 		t.Fatal(err)
@@ -92,10 +97,12 @@ func TestRevisionListDefaultOutput(t *testing.T) {
 		t.Errorf("Bad action %v", action)
 	}
 	assert.Check(t, util.ContainsAll(output[0], revisionListHeader...))
-	assert.Check(t, util.ContainsAll(output[1], "bar-wxyz", "bar", "2"))
-	assert.Check(t, util.ContainsAll(output[2], "foo-wxyz", "foo", "2"))
-	assert.Check(t, util.ContainsAll(output[3], "bar-abcd", "bar", "1"))
-	assert.Check(t, util.ContainsAll(output[4], "foo-abcd", "foo", "1"))
+	assert.Check(t, util.ContainsAll(output[1], "bar-wxyz", "bar", "10"))
+	assert.Check(t, util.ContainsAll(output[2], "foo-wxyz", "foo", "10"))
+	assert.Check(t, util.ContainsAll(output[3], "bar-wxyz", "bar", "2"))
+	assert.Check(t, util.ContainsAll(output[4], "foo-wxyz", "foo", "2"))
+	assert.Check(t, util.ContainsAll(output[5], "bar-abcd", "bar", "1"))
+	assert.Check(t, util.ContainsAll(output[6], "foo-abcd", "foo", "1"))
 }
 
 func TestRevisionListForService(t *testing.T) {

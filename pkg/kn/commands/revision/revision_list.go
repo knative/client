@@ -17,6 +17,7 @@ package revision
 import (
 	"fmt"
 	"sort"
+	"strconv"
 
 	"github.com/knative/serving/pkg/apis/serving"
 
@@ -86,10 +87,23 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 
 			// sort revisionList by configuration generation key
 			sort.SliceStable(revisionList.Items, func(i, j int) bool {
-				if revisionList.Items[i].Labels[serving.ConfigurationGenerationLabelKey] != revisionList.Items[j].Labels[serving.ConfigurationGenerationLabelKey] {
-					return revisionList.Items[i].Labels[serving.ConfigurationGenerationLabelKey] > revisionList.Items[j].Labels[serving.ConfigurationGenerationLabelKey]
+				a := revisionList.Items[i]
+				b := revisionList.Items[j]
+
+				// Convert configuration generation key from string to int for avoiding string comparison.
+				agen, err := strconv.Atoi(a.Labels[serving.ConfigurationGenerationLabelKey])
+				if err != nil {
+					fmt.Fprintf(cmd.OutOrStdout(), "Invalid type of configuration generation key: %s\n", err)
 				}
-				return revisionList.Items[i].Name < revisionList.Items[j].Name
+				bgen, err := strconv.Atoi(b.Labels[serving.ConfigurationGenerationLabelKey])
+				if err != nil {
+					fmt.Fprintf(cmd.OutOrStdout(), "Invalid type of configuration generation key: %s\n", err)
+				}
+
+				if agen != bgen {
+					return agen > bgen
+				}
+				return a.Name < b.Name
 			})
 
 			printer, err := revisionListFlags.ToPrinter()
