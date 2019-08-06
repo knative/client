@@ -26,6 +26,10 @@
 | Better error handling when providing wrong kubeconfig option
 | https://github.com/knative/client/pull/222[#222]
 
+| 🎁
+| List revisions sorted by configuration generation
+| https://github.com/knative/client/pull/332[#332]
+
 |===
 
 ## v0.2.0 (2019-07-10)
