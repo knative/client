@@ -29,7 +29,7 @@ import (
 	"github.com/knative/client/pkg/util"
 )
 
-var revisionListHeader = []string{"NAME", "SERVICE", "ORDER", "AGE", "CONDITIONS", "READY", "REASON"}
+var revisionListHeader = []string{"NAME", "SERVICE", "GENERATION", "AGE", "CONDITIONS", "READY", "REASON"}
 
 func fakeRevisionList(args []string, response *v1alpha1.RevisionList) (action client_testing.Action, output []string, err error) {
 	knParams := &commands.KnParams{}
