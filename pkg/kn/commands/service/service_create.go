@@ -21,6 +21,7 @@ import (
 
 	"github.com/knative/client/pkg/kn/commands"
 	"github.com/knative/client/pkg/serving/v1alpha1"
+	"github.com/knative/serving/pkg/apis/serving"
 
 	serving_v1alpha1_api "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"github.com/spf13/cobra"
@@ -147,6 +148,27 @@ func replaceService(client v1alpha1.KnClient, service *serving_v1alpha1_api.Serv
 		if err != nil {
 			return err
 		}
+
+		// Copy over some annotations that we want to keep around. Erase others
+		copyList := []string{
+			serving.CreatorAnnotation,
+			serving.UpdaterAnnotation,
+		}
+
+		// If the target Annotation doesn't exist, create it even if
+		// we don't end up copying anything over so that we erase all
+		// existing annotations
+		if service.Annotations == nil {
+			service.Annotations = map[string]string{}
+		}
+
+		// Do the actual copy now, but only if it's in the source annotation
+		for _, k := range copyList {
+			if v, ok := existingService.Annotations[k]; ok {
+				service.Annotations[k] = v
+			}
+		}
+
 		service.ResourceVersion = existingService.ResourceVersion
 		err = client.UpdateService(service)
 		if err != nil {
