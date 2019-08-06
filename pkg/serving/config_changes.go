@@ -152,7 +152,7 @@ func UpdateResources(template *servingv1alpha1.RevisionTemplateSpec, requestsRes
 	return nil
 }
 
-// UpdateServiceLables updates the labels on a service
+// UpdateServiceLabels updates the labels on a service
 func UpdateServiceLabels(service *servingv1alpha1.Service, vars map[string]string) error {
 	if service.ObjectMeta.Labels == nil {
 		service.ObjectMeta.Labels = make(map[string]string)
