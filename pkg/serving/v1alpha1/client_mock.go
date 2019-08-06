@@ -186,6 +186,18 @@ func (c *MockKnClient) ListRoutes(opts ...ListConfig) (*v1alpha1.RouteList, erro
 	return call.result[0].(*v1alpha1.RouteList), errorOrNil(call.result[1])
 }
 
+// Get a configuration by name
+func (r *Recorder) GetConfiguration(name string, config *v1alpha1.Configuration, err error) {
+	r.add("GetConfiguration", apiMethodCall{[]interface{}{name}, []interface{}{config, err}})
+
+}
+
+func (c *MockKnClient) GetConfiguration(name string) (*v1alpha1.Configuration, error) {
+	call := c.getCall("GetConfiguration")
+	c.verifyArgs(call, name)
+	return call.result[0].(*v1alpha1.Configuration), errorOrNil(call.result[1])
+}
+
 // Check that every recorded method has been called
 func (r *Recorder) Validate() {
 	for k, v := range r.recordedCalls {
