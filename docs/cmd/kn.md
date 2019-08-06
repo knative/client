@@ -15,6 +15,7 @@ Manage your Knative building blocks:
       --config string            kn config file (default is $HOME/.kn/config.yaml)
   -h, --help                     help for kn
       --kubeconfig string        kubectl config file (default is $HOME/.kube/config)
+      --log-http                 log http traffic
       --lookup-plugins-in-path   look for kn plugins in $PATH
       --plugins-dir string       kn plugins directory (default "~/.kn/plugins")
 ```

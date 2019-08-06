@@ -22,6 +22,7 @@ import (
 	"path/filepath"
 
 	serving_kn_v1alpha1 "github.com/knative/client/pkg/serving/v1alpha1"
+	"github.com/knative/client/pkg/util"
 	serving_v1alpha1_client "github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
 	"k8s.io/client-go/tools/clientcmd"
 )
@@ -44,6 +45,9 @@ type KnParams struct {
 	KubeCfgPath  string
 	ClientConfig clientcmd.ClientConfig
 	NewClient    func(namespace string) (serving_kn_v1alpha1.KnClient, error)
+
+	// General global options
+	LogHttp bool
 
 	// Set this if you want to nail down the namespace
 	fixedCurrentNamespace string
@@ -78,6 +82,12 @@ func (params *KnParams) GetConfig() (serving_v1alpha1_client.ServingV1alpha1Inte
 	if err != nil {
 		return nil, err
 	}
+	if params.LogHttp {
+		// TODO: When we update to the newer version of client-go, replace with
+		// config.Wrap() for future compat.
+		config.WrapTransport = util.NewLoggingTransport
+	}
+
 	return serving_v1alpha1_client.NewForConfig(config)
 }
 

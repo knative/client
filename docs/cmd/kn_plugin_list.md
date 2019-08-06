@@ -30,6 +30,7 @@ kn plugin list [flags]
 ```
       --config string       kn config file (default is $HOME/.kn/config.yaml)
       --kubeconfig string   kubectl config file (default is $HOME/.kube/config)
+      --log-http            log http traffic
 ```
 
 ### SEE ALSO
