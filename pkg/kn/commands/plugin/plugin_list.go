@@ -110,7 +110,6 @@ func (o *PluginFlags) complete(cmd *cobra.Command) error {
 }
 
 func (o *PluginFlags) run() error {
-	pluginsFound := false
 	isFirstFile := true
 	pluginErrors := []error{}
 	pluginWarnings := 0
@@ -120,7 +119,15 @@ func (o *PluginFlags) run() error {
 			continue
 		}
 
+		// Treat a missing dir as just something we skip - meaning
+		// it's ok to include a path that might not exist yet or you
+		// don't have access to - so just skip it
+		if _, err := os.Stat(dir); os.IsNotExist(err) {
+			continue
+		}
+
 		files, err := ioutil.ReadDir(dir)
+		// However, error reading a dir that does exist is an issue
 		if err != nil {
 			if _, ok := err.(*os.PathError); ok {
 				fmt.Fprintf(o.ErrOut, "Unable read directory '%s' from your plugins path: %v. Skipping...", dir, err)
@@ -143,7 +150,6 @@ func (o *PluginFlags) run() error {
 				fmt.Fprintf(o.ErrOut, "The following compatible plugins are available, using options:\n")
 				fmt.Fprintf(o.ErrOut, "  - plugins dir: '%s'\n", commands.Cfg.PluginsDir)
 				fmt.Fprintf(o.ErrOut, "  - lookup plugins in path: '%t'\n\n", commands.Cfg.LookupPluginsInPath)
-				pluginsFound = true
 				isFirstFile = false
 			}
 
@@ -160,10 +166,6 @@ func (o *PluginFlags) run() error {
 				}
 			}
 		}
-	}
-
-	if !pluginsFound {
-		pluginErrors = append(pluginErrors, fmt.Errorf("warning: unable to find any kn plugins in your plugin path: '%s'", o.PluginPaths))
 	}
 
 	if pluginWarnings > 0 {

@@ -73,24 +73,6 @@ func TestPluginList(t *testing.T) {
 		t.Run("when --lookup-plugins-in-path is true", func(t *testing.T) {
 			var pluginPath string
 
-			beforeEach := func(t *testing.T) {
-				err = os.Setenv("PATH", tmpPathDir)
-				assert.Assert(t, err == nil)
-			}
-
-			t.Run("no plugins installed", func(t *testing.T) {
-				setup(t)
-				defer cleanup(t)
-				beforeEach(t)
-
-				t.Run("warns user that no plugins found", func(t *testing.T) {
-					rootCmd.SetArgs([]string{"plugin", "list", "--lookup-plugins-in-path=true", pluginsDirFlag})
-					err = rootCmd.Execute()
-					assert.Assert(t, err != nil)
-					assert.Assert(t, strings.Contains(err.Error(), "warning: unable to find any kn plugins in your plugin path:"))
-				})
-			})
-
 			t.Run("plugins installed", func(t *testing.T) {
 				t.Run("with valid plugin in $PATH", func(t *testing.T) {
 					beforeEach := func(t *testing.T) {
@@ -113,21 +95,19 @@ func TestPluginList(t *testing.T) {
 					})
 				})
 
-				t.Run("with non-executable plugin", func(t *testing.T) {
+				t.Run("with missing plugin path", func(t *testing.T) {
 					beforeEach := func(t *testing.T) {
-						pluginPath = CreateTestPluginInPath(t, KnTestPluginName, KnTestPluginScript, FileModeReadable, tmpPathDir)
-						assert.Assert(t, pluginPath != "")
+						pluginPath = "/tmp/does-not-exist"
 					}
 
-					t.Run("warns user plugin invalid", func(t *testing.T) {
+					t.Run("don't warns user of missing path", func(t *testing.T) {
 						setup(t)
 						defer cleanup(t)
 						beforeEach(t)
 
 						rootCmd.SetArgs([]string{"plugin", "list", "--lookup-plugins-in-path=true", pluginsDirFlag})
 						err = rootCmd.Execute()
-						assert.Assert(t, err != nil)
-						assert.Assert(t, strings.Contains(err.Error(), "warning: unable to find any kn plugins in your plugin path:"))
+						assert.Assert(t, err == nil)
 					})
 				})
 
@@ -228,13 +208,5 @@ func TestPluginList(t *testing.T) {
 			assert.Assert(t, err == nil)
 		})
 
-		t.Run("no plugins installed", func(t *testing.T) {
-			setup(t)
-			defer cleanup(t)
-
-			rootCmd.SetArgs([]string{"plugin", "list", pluginsDirFlag})
-			err = rootCmd.Execute()
-			assert.Assert(t, err != nil)
-		})
 	})
 }
