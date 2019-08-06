@@ -93,11 +93,11 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 				// Convert configuration generation key from string to int for avoiding string comparison.
 				agen, err := strconv.Atoi(a.Labels[serving.ConfigurationGenerationLabelKey])
 				if err != nil {
-					fmt.Fprintf(cmd.OutOrStdout(), "Invalid type of configuration generation key: %s\n", err)
+					return a.Name < b.Name
 				}
 				bgen, err := strconv.Atoi(b.Labels[serving.ConfigurationGenerationLabelKey])
 				if err != nil {
-					fmt.Fprintf(cmd.OutOrStdout(), "Invalid type of configuration generation key: %s\n", err)
+					return a.Name < b.Name
 				}
 
 				if agen != bgen {
