@@ -22,6 +22,8 @@ import (
 
 	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"gotest.tools/assert"
+	"k8s.io/apimachinery/pkg/fields"
+	"k8s.io/apimachinery/pkg/labels"
 )
 
 type Recorder struct {
@@ -207,6 +209,47 @@ func (r *Recorder) Validate() {
 	}
 }
 
+// Return a comparable which can be used for asserting that list methods are called
+// with the appropriate label selector
+func HasLabelSelector(keyAndValues ...string) func(t *testing.T, a interface{}) {
+	return func(t *testing.T, a interface{}) {
+		lc := a.([]ListConfig)
+		listConfigCollector := listConfigCollector{
+			Labels: make(labels.Set),
+			Fields: make(fields.Set),
+		}
+		lc[0](&listConfigCollector)
+		for i := 0; i < len(keyAndValues); i += 2 {
+			assert.Equal(t, listConfigCollector.Labels[keyAndValues[i]], keyAndValues[i+1])
+		}
+	}
+}
+
+// Return a comparable which can be used for asserting that list methods are called
+// with the appropriate field selectors
+func HasFieldSelector(keyAndValues ...string) func(t *testing.T, a interface{}) {
+	return func(t *testing.T, a interface{}) {
+		lc := a.([]ListConfig)
+		listConfigCollector := listConfigCollector{
+			Labels: make(labels.Set),
+			Fields: make(fields.Set),
+		}
+		lc[0](&listConfigCollector)
+		for i := 0; i < len(keyAndValues); i += 2 {
+			assert.Equal(t, listConfigCollector.Fields[keyAndValues[i]], keyAndValues[i+1])
+		}
+	}
+}
+
+// Return a comparable which can be used for asserting that list methods are called
+// with the appropriate label and field selectors
+func HasSelector(labelKeysAndValues []string, fieldKeysAndValue []string) func(t *testing.T, a interface{}) {
+	return func(t *testing.T, a interface{}) {
+		HasLabelSelector(labelKeysAndValues...)(t, a)
+		HasFieldSelector(fieldKeysAndValue...)(t, a)
+	}
+}
+
 // Add a recorded api call the list of calls
 func (r *Recorder) add(name string, call apiMethodCall) {
 	calls, ok := r.recordedCalls[name]
@@ -235,7 +278,7 @@ func (c *MockKnClient) getCall(name string) *apiMethodCall {
 	return call
 }
 
-// Verify given arguments agains recorded arguments
+// Verify given arguments against recorded arguments
 func (c *MockKnClient) verifyArgs(call *apiMethodCall, args ...interface{}) {
 	callArgs := call.args
 	for i, arg := range args {

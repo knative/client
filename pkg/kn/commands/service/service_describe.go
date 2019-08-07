@@ -139,7 +139,7 @@ func NewServiceDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return printer.PrintObj(service, cmd.OutOrStdout())
 			}
 
-			printDetails, err = cmd.Flags().GetBool("details")
+			printDetails, err = cmd.Flags().GetBool("verbose")
 			if err != nil {
 				return err
 			}
@@ -151,7 +151,7 @@ func NewServiceDescribeCommand(p *commands.KnParams) *cobra.Command {
 	}
 	flags := command.Flags()
 	commands.AddNamespaceFlags(flags, false)
-	flags.BoolP("details", "d", false, "Show all details.")
+	flags.BoolP("verbose", "v", false, "More output.")
 	machineReadablePrintFlags.AddFlags(command)
 	return command
 }
