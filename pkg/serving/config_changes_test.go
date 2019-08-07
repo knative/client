@@ -307,14 +307,14 @@ func TestUpdateLabelsRemoveExisting(t *testing.T) {
 		"a": "foo",
 		"b": "",
 	}
-	error := UpdateServiceLabels(service, labels)
+	err := UpdateServiceLabels(service, labels)
 	assert.NilError(t, err)
 	expected := map[string]string{
 		"a": "foo",
 	}
 	actual := service.ObjectMeta.Labels
-	if !reflect.DeepEqual(labels, actual) {
-		t.Fatalf("Labels did not match expected %v found %v", labels, actual)
+	if !reflect.DeepEqual(expected, actual) {
+		t.Fatalf("Labels did not match expected %v found %v", expected, actual)
 	}
 }
 
