@@ -46,6 +46,7 @@ kn service create NAME --image IMAGE [flags]
       --force                    Create service forcefully, replaces existing service if any.
   -h, --help                     help for create
       --image string             Image to run.
+  -l, --label stringArray        Service label to set. NAME=value; provide an empty string for the value to remove a label. You may provide this flag any number of times to set multiple labels.
       --limits-cpu string        The limits on the requested CPU (e.g., 1000m).
       --limits-memory string     The limits on the requested memory (e.g., 1024Mi).
       --max-scale int            Maximal number of replicas.
