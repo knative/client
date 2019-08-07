@@ -44,14 +44,14 @@ import (
 )
 
 // Command for printing out a description of a service, meant to be consumed by humans
-// It will show information about the serivce itself, but also a summary
+// It will show information about the service itself, but also a summary
 // about the associated revisions.
 
 // Whether to print extended information
 var printDetails bool
 
 // Max length When to truncate long strings (when not "all" mode switched on)
-var truncateAt = 100
+const truncateAt = 100
 
 // Matching image digest
 var imageDigestRegexp = regexp.MustCompile(`(?i)sha256:([0-9a-f]{64})`)
@@ -342,14 +342,14 @@ func writeMapDesc(dw printers.PrefixWriter, indent int, m map[string]string, lab
 		return
 	}
 
+	var keys []string
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
 	if printDetails {
 		l := labelPrefix + label
-
-		var keys []string
-		for k := range m {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
 
 		for _, key := range keys {
 			dw.WriteColsLn(indent, l, key+"="+m[key])
@@ -358,7 +358,7 @@ func writeMapDesc(dw printers.PrefixWriter, indent int, m map[string]string, lab
 		return
 	}
 
-	dw.WriteColsLn(indent, label, joinAndTruncate(m))
+	dw.WriteColsLn(indent, label, joinAndTruncate(keys, m))
 }
 
 // Writer a slice compact (printDetails == false) in one line, or over multiple line
@@ -404,10 +404,10 @@ func writeResources(dw printers.PrefixWriter, label string, request string, limi
 }
 
 // Join to key=value pair, comma separated, and truncate if longer than a limit
-func joinAndTruncate(m map[string]string) string {
+func joinAndTruncate(sortedKeys []string, m map[string]string) string {
 	ret := ""
-	for key, value := range m {
-		ret += fmt.Sprintf("%s=%s, ", key, value)
+	for _, key := range sortedKeys {
+		ret += fmt.Sprintf("%s=%s, ", key, m[key])
 		if len(ret) > truncateAt {
 			break
 		}

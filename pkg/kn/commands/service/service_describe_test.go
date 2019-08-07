@@ -16,21 +16,30 @@ package service
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/knative/pkg/apis"
 	duckv1alpha1 "github.com/knative/pkg/apis/duck/v1alpha1"
 	duckv1beta1 "github.com/knative/pkg/apis/duck/v1beta1"
+	"github.com/knative/serving/pkg/apis/autoscaling"
 	api_serving "github.com/knative/serving/pkg/apis/serving"
 	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"github.com/knative/serving/pkg/apis/serving/v1beta1"
 	"gotest.tools/assert"
 	"gotest.tools/assert/cmp"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	knclient "github.com/knative/client/pkg/serving/v1alpha1"
 	"github.com/knative/client/pkg/util"
+)
+
+const (
+	imageDigest = "sha256:1234567890123456789012345678901234567890123456789012345678901234"
 )
 
 func TestServiceDescribeBasic(t *testing.T) {
@@ -40,33 +49,151 @@ func TestServiceDescribeBasic(t *testing.T) {
 
 	// Recording:
 	r := client.Recorder()
-	// Check for existing service --> no
-	expectedService := createTestService("foo", nil, goodConditions())
+	// Prepare service
+	expectedService := createTestService("foo", []string{"rev1"}, goodConditions())
 
-	// Get service
+	// Get service & revision
 	r.GetService("foo", &expectedService, nil)
+	rev1 := createTestRevision("rev1", 1)
+	r.GetRevision("rev1", &rev1, nil)
 
 	// Testing:
 	output, err := executeServiceCommand(client, "describe", "foo")
 	assert.NilError(t, err)
 
 	validateServiceOutput(t, "foo", output)
+	assert.Assert(t, util.ContainsAll(output, "Env:", "label1=lval1, label2=lval2\n"))
+	assert.Assert(t, util.ContainsAll(output, "Annotations:", "anno1=aval1, anno2=aval2, anno3="))
+	assert.Assert(t, cmp.Regexp(`(?m)\s*Annotations:.*\.\.\.$`, output))
+	assert.Assert(t, util.ContainsAll(output, "Labels:", "label1=lval1, label2=lval2\n"))
+	assert.Assert(t, util.ContainsAll(output, "[1]"))
+	// no digest added (added only for details)
+	assert.Assert(t, !strings.Contains(output, "(123456789012)"))
 
 	// Validate that all recorded API methods have been called
 	r.Validate()
 }
 
-func goodConditions() duckv1beta1.Conditions {
-	ret := make(duckv1beta1.Conditions, 0)
-	ret = append(ret, apis.Condition{
-		Type:   apis.ConditionReady,
-		Status: v1.ConditionTrue,
-	})
-	ret = append(ret, apis.Condition{
-		Type:   apis.ConditionSucceeded,
-		Status: v1.ConditionTrue,
-	})
-	return ret
+func TestServiceDescribeScaling(t *testing.T) {
+
+	for _, data := range []struct {
+		minScale, maxScale, limit, target string
+		scaleOut                          string
+	}{
+		{"", "", "", "", ""},
+		{"", "10", "", "", "0 ... 10"},
+		{"10", "", "", "", "10 ... ∞"},
+		{"5", "20", "10", "", "5 ... 20"},
+		{"", "", "20", "30", ""},
+	} {
+		// New mock client
+		client := knclient.NewMockKnClient(t)
+
+		// Recording:
+		r := client.Recorder()
+
+		// Prepare service
+		expectedService := createTestService("foo", []string{"rev1"}, goodConditions())
+
+		// Get service & revision
+		r.GetService("foo", &expectedService, nil)
+		rev1 := createTestRevision("rev1", 1)
+		addScaling(&rev1, data.minScale, data.maxScale, data.target, data.limit)
+		r.GetRevision("rev1", &rev1, nil)
+
+		revList := v1alpha1.RevisionList{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "RevisionList",
+				APIVersion: "knative.dev/v1alpha1",
+			},
+			Items: []v1alpha1.Revision{
+				rev1,
+			},
+		}
+
+		// Return the list of all revisions
+		r.ListRevisions(knclient.HasLabelSelector(api_serving.ServiceLabelKey, "foo"), &revList, nil)
+
+		// Testing:
+		output, err := executeServiceCommand(client, "describe", "foo", "--verbose")
+		assert.NilError(t, err)
+
+		validateServiceOutput(t, "foo", output)
+
+		if data.limit != "" || data.target != "" {
+			assert.Assert(t, util.ContainsAll(output, "Concurrency:"))
+		} else {
+			assert.Assert(t, !strings.Contains(output, "Concurrency:"))
+		}
+
+		validateOutputLine(t, output, "Scale", data.scaleOut)
+		validateOutputLine(t, output, "Limit", data.limit)
+		validateOutputLine(t, output, "Target", data.target)
+
+		// Validate that all recorded API methods have been called
+		r.Validate()
+	}
+}
+
+func validateOutputLine(t *testing.T, output string, label string, value string) {
+	if value != "" {
+		assert.Assert(t, cmp.Regexp(fmt.Sprintf("%s:\\s*%s", label, value), output))
+	} else {
+		assert.Assert(t, !strings.Contains(output, label+":"))
+	}
+}
+
+func TestServiceDescribeResources(t *testing.T) {
+
+	for _, data := range []struct {
+		reqMem, limitMem, reqCpu, limitCpu string
+		memoryOut, cpuOut                  string
+	}{
+		{"", "", "", "", "", ""},
+		{"10Mi", "100Mi", "100m", "1", "10Mi ... 100Mi", "100m ... 1"},
+		{"", "100Mi", "", "1", "100Mi", "1"},
+		{"10Mi", "", "100m", "", "10Mi", "100m"},
+	} {
+		// New mock client
+		client := knclient.NewMockKnClient(t)
+
+		// Recording:
+		r := client.Recorder()
+
+		// Prepare service
+		expectedService := createTestService("foo", []string{"rev1"}, goodConditions())
+
+		// Get service & revision
+		r.GetService("foo", &expectedService, nil)
+		rev1 := createTestRevision("rev1", 1)
+		addResourceLimits(&rev1.Spec.Containers[0].Resources, data.reqMem, data.limitMem, data.reqCpu, data.limitCpu)
+		r.GetRevision("rev1", &rev1, nil)
+
+		revList := v1alpha1.RevisionList{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "RevisionList",
+				APIVersion: "knative.dev/v1alpha1",
+			},
+			Items: []v1alpha1.Revision{
+				rev1,
+			},
+		}
+
+		// Return the list of all revisions
+		r.ListRevisions(knclient.HasLabelSelector(api_serving.ServiceLabelKey, "foo"), &revList, nil)
+
+		// Testing:
+		output, err := executeServiceCommand(client, "describe", "foo", "--verbose")
+		assert.NilError(t, err)
+
+		validateServiceOutput(t, "foo", output)
+
+		validateOutputLine(t, output, "Memory", data.memoryOut)
+		validateOutputLine(t, output, "CPU", data.cpuOut)
+
+		// Validate that all recorded API methods have been called
+		r.Validate()
+	}
 }
 
 func TestServiceDescribeVerbose(t *testing.T) {
@@ -76,7 +203,8 @@ func TestServiceDescribeVerbose(t *testing.T) {
 
 	// Recording:
 	r := client.Recorder()
-	// Check for existing service --> no
+
+	// Prepare service
 	expectedService := createTestService("foo", []string{"rev1", "rev2"}, goodConditions())
 	r.GetService("foo", &expectedService, nil)
 
@@ -105,7 +233,13 @@ func TestServiceDescribeVerbose(t *testing.T) {
 	assert.NilError(t, err)
 
 	validateServiceOutput(t, "foo", output)
+
+	assert.Assert(t, util.ContainsAll(output, "Image", "Name", "(123456789012)", "50%", "gcr.io/test/image", "(0s)"))
+	assert.Assert(t, util.ContainsAll(output, "Env:", "label1=lval1\n", "label2=lval2\n"))
+	assert.Assert(t, util.ContainsAll(output, "Annotations:", "anno1=aval1\n", "anno2=aval2\n"))
+	assert.Assert(t, util.ContainsAll(output, "Labels:", "label1=lval1\n", "label2=lval2\n"))
 	assert.Assert(t, util.ContainsAll(output, "[1]", "[2]"))
+
 	// Validate that all recorded API methods have been called
 	r.Validate()
 }
@@ -124,7 +258,8 @@ func TestServiceDescribeMachineReadable(t *testing.T) {
 
 	// Recording:
 	r := client.Recorder()
-	// Check for existing service --> no
+
+	// Prepare service
 	expectedService := createTestService("foo", []string{"rev1", "rev2"}, goodConditions())
 	r.GetService("foo", &expectedService, nil)
 
@@ -140,7 +275,9 @@ func validateServiceOutput(t *testing.T, service string, output string) {
 	assert.Assert(t, cmp.Regexp("Namespace:\\s+default", output))
 	assert.Assert(t, cmp.Regexp("Address:\\s+http://"+service+".default.svc.cluster.local", output))
 	assert.Assert(t, cmp.Regexp("URL:\\s+"+service+".default.example.com", output))
-	assert.Assert(t, cmp.Regexp("Age:", output))
+
+	assert.Assert(t, util.ContainsAll(output, "Age:", "Revisions:", "Conditions:", "Labels:", "Annotations:"))
+	assert.Assert(t, util.ContainsAll(output, "Ready", "RoutesReady", "OK", "TYPE", "AGE", "REASON"))
 }
 
 func createTestService(name string, revisionNames []string, conditions duckv1beta1.Conditions) v1alpha1.Service {
@@ -151,6 +288,7 @@ func createTestService(name string, revisionNames []string, conditions duckv1bet
 	annoMap := make(map[string]string)
 	annoMap["anno1"] = "aval1"
 	annoMap["anno2"] = "aval2"
+	annoMap["anno3"] = "very_long_value_which_should_be_truncated_in_normal_output_if_we_make_it_even_longer"
 
 	service := v1alpha1.Service{
 		TypeMeta: metav1.TypeMeta{
@@ -158,10 +296,11 @@ func createTestService(name string, revisionNames []string, conditions duckv1bet
 			APIVersion: "knative.dev/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        name,
-			Namespace:   "default",
-			Labels:      labelMap,
-			Annotations: annoMap,
+			Name:              name,
+			Namespace:         "default",
+			Labels:            labelMap,
+			Annotations:       annoMap,
+			CreationTimestamp: metav1.Time{Time: time.Now().Add(-30 * time.Second)},
 		},
 		Status: v1alpha1.ServiceStatus{
 			RouteStatusFields: v1alpha1.RouteStatusFields{
@@ -192,19 +331,57 @@ func createTestService(name string, revisionNames []string, conditions duckv1bet
 	return service
 }
 
+func addScaling(revision *v1alpha1.Revision, minScale, maxScale, concurrencyTarget, concurrenyLimit string) {
+	annos := make(map[string]string)
+	if minScale != "" {
+		annos[autoscaling.MinScaleAnnotationKey] = minScale
+	}
+	if maxScale != "" {
+		annos[autoscaling.MaxScaleAnnotationKey] = maxScale
+	}
+	if concurrencyTarget != "" {
+		annos[autoscaling.TargetAnnotationKey] = concurrencyTarget
+	}
+	revision.Annotations = annos
+	if concurrenyLimit != "" {
+		l, _ := strconv.Atoi(concurrenyLimit)
+		revision.Spec.ContainerConcurrency = v1beta1.RevisionContainerConcurrencyType(l)
+	}
+}
+
+func addResourceLimits(resources *v1.ResourceRequirements, reqMem, limitMem, reqCpu, limitCpu string) {
+	(*resources).Requests = getResourceListQuantity(reqMem, reqCpu)
+	(*resources).Limits = getResourceListQuantity(limitMem, limitCpu)
+}
+
+func getResourceListQuantity(mem string, cpu string) v1.ResourceList {
+	list := v1.ResourceList{}
+	if mem != "" {
+		q, _ := resource.ParseQuantity(mem)
+		list[v1.ResourceMemory] = q
+	}
+	if cpu != "" {
+		q, _ := resource.ParseQuantity(cpu)
+		list[v1.ResourceCPU] = q
+	}
+	return list
+}
+
 func createTestRevision(revision string, gen int64) v1alpha1.Revision {
 	labels := make(map[string]string)
 	labels[api_serving.ConfigurationGenerationLabelKey] = fmt.Sprintf("%d", gen)
+
 	return v1alpha1.Revision{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Revision",
 			APIVersion: "knative.dev/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:       revision,
-			Namespace:  "default",
-			Generation: 1,
-			Labels:     labels,
+			Name:              revision,
+			Namespace:         "default",
+			Generation:        1,
+			Labels:            labels,
+			CreationTimestamp: metav1.Time{Time: time.Now()},
 		},
 		Spec: v1alpha1.RevisionSpec{
 			RevisionSpec: v1beta1.RevisionSpec{
@@ -212,10 +389,36 @@ func createTestRevision(revision string, gen int64) v1alpha1.Revision {
 					Containers: []v1.Container{
 						{
 							Image: "gcr.io/test/image",
+							Env: []v1.EnvVar{
+								{Name: "env1", Value: "eval1"},
+								{Name: "env2", Value: "eval2"},
+							},
 						},
 					},
 				},
 			},
 		},
+		Status: v1alpha1.RevisionStatus{
+			ImageDigest: imageDigest,
+		},
 	}
+}
+
+func goodConditions() duckv1beta1.Conditions {
+	ret := make(duckv1beta1.Conditions, 0)
+	ret = append(ret, apis.Condition{
+		Type:   apis.ConditionReady,
+		Status: v1.ConditionTrue,
+		LastTransitionTime: apis.VolatileTime{
+			Inner: metav1.Time{Time: time.Now()},
+		},
+	})
+	ret = append(ret, apis.Condition{
+		Type:   v1alpha1.ServiceConditionRoutesReady,
+		Status: v1.ConditionTrue,
+		LastTransitionTime: apis.VolatileTime{
+			Inner: metav1.Time{Time: time.Now()},
+		},
+	})
+	return ret
 }
