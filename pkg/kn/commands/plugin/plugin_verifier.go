@@ -57,6 +57,7 @@ const (
 // Verify implements pathVerifier and determines if a given path
 // is valid depending on whether or not it overwrites an existing
 // kn command path, or a previously seen plugin.
+// This method is not idempotent and must be called for each path only once.
 func (v *pluginVerifier) verify(eaw errorsAndWarnings, path string) errorsAndWarnings {
 	if v.root == nil {
 		return eaw.addError("unable to verify path with nil root")
@@ -76,6 +77,9 @@ func (v *pluginVerifier) verify(eaw errorsAndWarnings, path string) errorsAndWar
 	eaw = v.addWarningIfAlreadySeen(eaw, path)
 	eaw = v.addErrorIfOverwritingExistingCommand(eaw, path)
 
+	// Remember each verified plugin for duplicate check
+	v.seenPlugins[filepath.Base(path)] = path
+
 	return eaw
 }
 
@@ -84,7 +88,6 @@ func (v *pluginVerifier) addWarningIfAlreadySeen(eaw errorsAndWarnings, path str
 	if existingPath, ok := v.seenPlugins[fileName]; ok {
 		return eaw.addWarning("%s is ignored because it is shadowed by a equally named plugin: %s.", path, existingPath)
 	}
-	v.seenPlugins[fileName] = path
 	return eaw
 }
 
@@ -133,8 +136,8 @@ func (v *pluginVerifier) addWarningIfNotExecutable(eaw errorsAndWarnings, path s
 	}
 
 	mode := fileInfo.Mode()
-	if !mode.IsRegular() {
-		return eaw.addWarning("%s is not a regular file", path)
+	if !mode.IsRegular() && !isSymlink(mode) {
+		return eaw.addWarning("%s is not a file", path)
 	}
 	perms := uint32(mode.Perm())
 
@@ -182,6 +185,10 @@ func (v *pluginVerifier) addWarningIfNotExecutable(eaw errorsAndWarnings, path s
 	}
 
 	return eaw.addWarning("%s is not executable by current user", path)
+}
+
+func isSymlink(mode os.FileMode) bool {
+	return mode&os.ModeSymlink != 0
 }
 
 func checkIfUserInGroup(gid uint32) (bool, error) {
