@@ -66,11 +66,11 @@ github.com/knative/build/pkg/apis/build
 # github.com/knative/pkg v0.0.0-20190617142447-13b093adc272
 github.com/knative/pkg/apis
 github.com/knative/pkg/apis/duck/v1beta1
+github.com/knative/pkg/ptr
 github.com/knative/pkg/kmp
 github.com/knative/pkg/apis/duck
 github.com/knative/pkg/apis/duck/v1alpha1
 github.com/knative/pkg/kmeta
-github.com/knative/pkg/ptr
 github.com/knative/pkg/configmap
 # github.com/knative/serving v0.6.0
 github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1

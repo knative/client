@@ -18,6 +18,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/knative/client/pkg/kn/commands/flags"
+	"github.com/knative/client/pkg/kn/traffic"
 	"github.com/spf13/cobra"
 	api_errors "k8s.io/apimachinery/pkg/api/errors"
 
@@ -27,19 +29,30 @@ import (
 func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 	var editFlags ConfigurationEditFlags
 	var waitFlags commands.WaitFlags
-
+	var trafficFlags flags.Traffic
 	serviceUpdateCommand := &cobra.Command{
 		Use:   "update NAME [flags]",
 		Short: "Update a service.",
 		Example: `
-  # Updates a service 'mysvc' with new environment variables
-  kn service update mysvc --env KEY1=VALUE1 --env KEY2=VALUE2
+  # Updates a service 'svc' with new environment variables
+  kn service update svc --env KEY1=VALUE1 --env KEY2=VALUE2
 
-  # Update a service 'mysvc' with new port
-  kn service update mysvc --port 80
+  # Update a service 'svc' with new port
+  kn service update svc --port 80
 
-  # Updates a service 'mysvc' with new requests and limits parameters
-  kn service update mysvc --requests-cpu 500m --limits-memory 1024Mi`,
+  # Updates a service 'svc' with new requests and limits parameters
+  kn service update svc --requests-cpu 500m --limits-memory 1024Mi
+
+  # Assign tag 'latest' and 'stable' to revisions 'echo-v2' and 'echo-v1' respectively
+  kn service update svc --tag echo-v2=latest --tag echo-v1=stable
+  OR
+  kn service update svc --tag echo-v2=latest,echo-v1=stable
+
+  # Update tag from 'testing' to 'staging' for latest ready revision of service
+  kn service update svc --untag testing --tag @latest=staging
+
+  # Add tag 'test' to echo-v3 revision with 10% traffic and rest to latest ready revision of service
+  kn service update svc --tag echo-v3=test --traffic test=10,@latest=90`,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
 				return errors.New("requires the service name.")
@@ -67,6 +80,15 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 				err = editFlags.Apply(service, cmd)
 				if err != nil {
 					return err
+				}
+
+				if trafficFlags.Changed(cmd) {
+					traffic, err := traffic.Compute(cmd, service.Spec.Traffic, &trafficFlags)
+					if err != nil {
+						return err
+					}
+
+					service.Spec.Traffic = traffic
 				}
 
 				err = client.UpdateService(service)
@@ -99,6 +121,7 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 	commands.AddNamespaceFlags(serviceUpdateCommand.Flags(), false)
 	editFlags.AddUpdateFlags(serviceUpdateCommand)
 	waitFlags.AddConditionWaitFlags(serviceUpdateCommand, 60, "Update", "service")
+	trafficFlags.Add(serviceUpdateCommand)
 	return serviceUpdateCommand
 }
 
