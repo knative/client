@@ -55,7 +55,7 @@ func (p *ConfigurationEditFlags) AddUpdateFlags(command *cobra.Command) {
 	command.Flags().IntVar(&p.ConcurrencyTarget, "concurrency-target", 0, "Recommendation for when to scale up based on the concurrent number of incoming request. Defaults to --concurrency-limit when given.")
 	command.Flags().IntVar(&p.ConcurrencyLimit, "concurrency-limit", 0, "Hard Limit of concurrent requests to be processed by a single replica.")
 	command.Flags().Int32VarP(&p.Port, "port", "p", 0, "The port where application listens on.")
-	command.Flags().StringArrayVarP(&p.Labels, "label", "l", []string{}, "Service label to set. NAME=value; you may provide this flag any number of times to set multiple labels.")
+	command.Flags().StringArrayVarP(&p.Labels, "label", "l", []string{}, "Service label to set. NAME=value; provide an empty string for the value to remove a label. You may provide this flag any number of times to set multiple labels.")
 }
 
 func (p *ConfigurationEditFlags) AddCreateFlags(command *cobra.Command) {

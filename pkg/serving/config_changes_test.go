@@ -300,6 +300,24 @@ func TestUpdateLabelsExisting(t *testing.T) {
 	}
 }
 
+func TestUpdateLabelsRemoveExisting(t *testing.T) {
+	service := getV1alpha1Service()
+	service.ObjectMeta.Labels = map[string]string{"a": "foo", "b": "bar"}
+	labels := map[string]string{
+		"a": "foo",
+		"b": "",
+	}
+	error := UpdateServiceLabels(service, labels)
+	assert.NilError(t, err)
+	expected := map[string]string{
+		"a": "foo",
+	}
+	actual := service.ObjectMeta.Labels
+	if !reflect.DeepEqual(labels, actual) {
+		t.Fatalf("Labels did not match expected %v found %v", labels, actual)
+	}
+}
+
 // =========================================================================================================
 
 func getV1alpha1RevisionTemplateWithOldFields() (*servingv1alpha1.RevisionTemplateSpec, *corev1.Container) {

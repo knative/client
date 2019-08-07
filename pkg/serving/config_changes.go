@@ -158,7 +158,12 @@ func UpdateServiceLabels(service *servingv1alpha1.Service, vars map[string]strin
 		service.ObjectMeta.Labels = make(map[string]string)
 	}
 	for key, value := range vars {
-		service.ObjectMeta.Labels[key] = value
+		// Delete the label if passed an empty string, otherwise set or update it
+		if value == "" {
+			delete(service.ObjectMeta.Labels, key)
+		} else {
+			service.ObjectMeta.Labels[key] = value
+		}
 	}
 	return nil
 }
