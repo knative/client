@@ -398,10 +398,10 @@ func TestServiceUpdateLabelWhenEmpty(t *testing.T) {
 
 func TestServiceUpdateLabelExisting(t *testing.T) {
 	original := newEmptyService()
-	original.ObjectMeta.Labels = map[string]string{"already": "here"}
+	original.ObjectMeta.Labels = map[string]string{"already": "here", "tobe": "removed"}
 
 	action, updated, _, err := fakeServiceUpdate(original, []string{
-		"service", "update", "foo", "-l", "already=gone", "--label", "b=cookie", "--async"}, false)
+		"service", "update", "foo", "-l", "already=gone", "--label=tobe=", "--label", "b=cookie", "--async"}, false)
 
 	if err != nil {
 		t.Fatal(err)
