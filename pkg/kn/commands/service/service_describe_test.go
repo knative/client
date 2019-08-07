@@ -276,7 +276,7 @@ func validateServiceOutput(t *testing.T, service string, output string) {
 	assert.Assert(t, cmp.Regexp("Address:\\s+http://"+service+".default.svc.cluster.local", output))
 	assert.Assert(t, cmp.Regexp("URL:\\s+"+service+".default.example.com", output))
 
-	assert.Assert(t, util.ContainsAll(output, "Age:", "Revisions:", "Conditions:", "Labels:", "Annotations:"))
+	assert.Assert(t, util.ContainsAll(output, "Age:", "Revisions:", "Conditions:", "Labels:", "Annotations:", "Port:", "8080"))
 	assert.Assert(t, util.ContainsAll(output, "Ready", "RoutesReady", "OK", "TYPE", "AGE", "REASON"))
 }
 
@@ -392,6 +392,9 @@ func createTestRevision(revision string, gen int64) v1alpha1.Revision {
 							Env: []v1.EnvVar{
 								{Name: "env1", Value: "eval1"},
 								{Name: "env2", Value: "eval2"},
+							},
+							Ports: []v1.ContainerPort{
+								{ContainerPort: 8080},
 							},
 						},
 					},

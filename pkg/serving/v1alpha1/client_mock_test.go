@@ -40,6 +40,7 @@ func TestMockKnClient(t *testing.T) {
 	recorder.DeleteRevision("hello", nil)
 	recorder.GetRoute("hello", nil, nil)
 	recorder.ListRoutes(Any(), nil, nil)
+	recorder.GetConfiguration("hello", nil, nil)
 
 	// Call all services
 	client.GetService("hello")
@@ -53,6 +54,7 @@ func TestMockKnClient(t *testing.T) {
 	client.DeleteRevision("hello")
 	client.GetRoute("hello")
 	client.ListRoutes(WithName("blub"))
+	client.GetConfiguration("hello")
 
 	// Validate
 	recorder.Validate()
