@@ -15,9 +15,7 @@
 package service
 
 import (
-	"fmt"
-	"strings"
-
+	commands "github.com/knative/client/pkg/kn/commands"
 	servinglib "github.com/knative/client/pkg/serving"
 	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"github.com/spf13/cobra"
@@ -35,7 +33,7 @@ type ConfigurationEditFlags struct {
 	ConcurrencyTarget          int
 	ConcurrencyLimit           int
 	Port                       int32
-	Label                      []string
+	Labels                     []string
 }
 
 type ResourceFlags struct {
@@ -57,7 +55,7 @@ func (p *ConfigurationEditFlags) AddUpdateFlags(command *cobra.Command) {
 	command.Flags().IntVar(&p.ConcurrencyTarget, "concurrency-target", 0, "Recommendation for when to scale up based on the concurrent number of incoming request. Defaults to --concurrency-limit when given.")
 	command.Flags().IntVar(&p.ConcurrencyLimit, "concurrency-limit", 0, "Hard Limit of concurrent requests to be processed by a single replica.")
 	command.Flags().Int32VarP(&p.Port, "port", "p", 0, "The port where application listens on.")
-	command.Flags().StringArrayVarP(&p.Label, "label", "l", []string{}, "Service label to set. NAME=value; you may provide this flag any number of times to set multiple labels.")
+	command.Flags().StringArrayVarP(&p.Labels, "label", "l", []string{}, "Service label to set. NAME=value; you may provide this flag any number of times to set multiple labels.")
 }
 
 func (p *ConfigurationEditFlags) AddCreateFlags(command *cobra.Command) {
@@ -74,7 +72,7 @@ func (p *ConfigurationEditFlags) Apply(service *servingv1alpha1.Service, cmd *co
 	}
 
 	if cmd.Flags().Changed("env") {
-		envMap, err := p.mapFromArray(p.Env, "=", "--env")
+		envMap, err := commands.MapFromArray(p.Env, "=", "--env")
 		if err != nil {
 			return err
 		}
@@ -139,7 +137,7 @@ func (p *ConfigurationEditFlags) Apply(service *servingv1alpha1.Service, cmd *co
 	}
 
 	if cmd.Flags().Changed("label") {
-		labelMap, err := p.mapFromArray(p.Label, "=", "--label")
+		labelMap, err := commands.MapFromArray(p.Labels, "=", "--label")
 		if err != nil {
 			return err
 		}
@@ -174,16 +172,4 @@ func (p *ConfigurationEditFlags) computeResources(resourceFlags ResourceFlags) (
 	}
 
 	return resourceList, nil
-}
-
-func (p *ConfigurationEditFlags) mapFromArray(arr []string, delimiter string, flag string) (map[string]string, error) {
-	returnMap := map[string]string{}
-	for _, pairStr := range arr {
-		pairSlice := strings.SplitN(pairStr, delimiter, 2)
-		if len(pairSlice) <= 1 {
-			return nil, fmt.Errorf("%s argument requires a value that contains the '=' character; got %s", flag, pairStr)
-		}
-		returnMap[pairSlice[0]] = pairSlice[1]
-	}
-	return returnMap, nil
 }
