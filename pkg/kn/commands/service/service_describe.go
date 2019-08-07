@@ -504,7 +504,7 @@ func newRevisionDesc(revision *v1alpha1.Revision, target *v1alpha1.TrafficTarget
 		creationTimestamp: revision.CreationTimestamp.Time,
 
 		configurationGeneration: int(generation),
-		configuration:           revision.Labels["serving.knative.dev/configuration"],
+		configuration:           revision.Labels[serving.ConfigurationLabelKey],
 	}
 
 	addTargetInfo(&revisionDesc, target)
