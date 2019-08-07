@@ -18,6 +18,7 @@ import (
 	commands "github.com/knative/client/pkg/kn/commands"
 	servinglib "github.com/knative/client/pkg/serving"
 	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
+	errors "github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -72,9 +73,9 @@ func (p *ConfigurationEditFlags) Apply(service *servingv1alpha1.Service, cmd *co
 	}
 
 	if cmd.Flags().Changed("env") {
-		envMap, err := commands.MapFromArray(p.Env, "=", "--env")
+		envMap, err := commands.MapFromArray(p.Env, "=")
 		if err != nil {
-			return err
+			return errors.Wrap(err, "Invalid --env")
 		}
 		err = servinglib.UpdateEnvVars(template, envMap)
 		if err != nil {
@@ -137,9 +138,9 @@ func (p *ConfigurationEditFlags) Apply(service *servingv1alpha1.Service, cmd *co
 	}
 
 	if cmd.Flags().Changed("label") {
-		labelMap, err := commands.MapFromArray(p.Labels, "=", "--label")
+		labelMap, err := commands.MapFromArray(p.Labels, "=")
 		if err != nil {
-			return err
+			return errors.Wrap(err, "Invalid --label")
 		}
 		err = servinglib.UpdateServiceLabels(service, labelMap)
 		if err != nil {

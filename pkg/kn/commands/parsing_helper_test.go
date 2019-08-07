@@ -29,7 +29,7 @@ func TestMapFromArray(t *testing.T) {
 }
 
 func testMapFromArray(t *testing.T, input []string, delimiter string, expected map[string]string) {
-	actual, err := MapFromArray(input, delimiter, "--flag")
+	actual, err := MapFromArray(input, delimiter)
 	assert.NilError(t, err)
 	if !reflect.DeepEqual(expected, actual) {
 		t.Fatalf("Map did not match expected: %s\nFound: %s", expected, actual)
@@ -38,12 +38,12 @@ func testMapFromArray(t *testing.T, input []string, delimiter string, expected m
 
 func TestMapFromArrayNoDelimiter(t *testing.T) {
 	input := []string{"good=value", "badvalue"}
-	_, err := MapFromArray(input, "=", "--flag")
-	assert.ErrorContains(t, err, "argument requires")
+	_, err := MapFromArray(input, "=")
+	assert.ErrorContains(t, err, "Argument requires")
 }
 
 func TestMapFromArrayEmptyValue(t *testing.T) {
 	input := []string{""}
-	_, err := MapFromArray(input, "=", "--flag")
-	assert.ErrorContains(t, err, "argument requires")
+	_, err := MapFromArray(input, "=")
+	assert.ErrorContains(t, err, "Argument requires")
 }

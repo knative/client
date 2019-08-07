@@ -21,12 +21,12 @@ import (
 
 // MapFromArray takes an array of strings where each item is a (key, value) pair
 // separated by a delimiter and returns a map where keys are mapped to their respsective values.
-func MapFromArray(arr []string, delimiter string, flag string) (map[string]string, error) {
+func MapFromArray(arr []string, delimiter string) (map[string]string, error) {
 	returnMap := map[string]string{}
 	for _, pairStr := range arr {
 		pairSlice := strings.SplitN(pairStr, delimiter, 2)
 		if len(pairSlice) <= 1 {
-			return nil, fmt.Errorf("%s argument requires a value that contains the %q character; got %q", flag, delimiter, pairStr)
+			return nil, fmt.Errorf("Argument requires a value that contains the %q character; got %q", delimiter, pairStr)
 		}
 		returnMap[pairSlice[0]] = pairSlice[1]
 	}
