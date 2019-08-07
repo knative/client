@@ -49,7 +49,10 @@ run() {
   if $(has_flag --watch -w); then
     # Build and test first
     go_build
-    go_test
+
+    if $(has_flag --test -t); then
+       go_test
+    fi
 
     # Go in endless loop, to be stopped with CTRL-C
     watch
