@@ -18,6 +18,7 @@ import (
 	"testing"
 	"time"
 
+	api_serving "github.com/knative/serving/pkg/apis/serving"
 	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 )
 
@@ -55,4 +56,33 @@ func TestMockKnClient(t *testing.T) {
 
 	// Validate
 	recorder.Validate()
+}
+
+func TestHasLabelSelector(t *testing.T) {
+	assertFunction := HasLabelSelector(api_serving.ServiceLabelKey, "myservice")
+	listConfig := []ListConfig{
+		WithService("myservice"),
+	}
+	assertFunction(t, listConfig)
+}
+
+func TestHasFieldSelector(t *testing.T) {
+	assertFunction := HasFieldSelector("metadata.name", "myname")
+	listConfig := []ListConfig{
+		WithName("myname"),
+	}
+	assertFunction(t, listConfig)
+}
+
+func TestHasSelector(t *testing.T) {
+	assertFunction := HasSelector(
+		[]string{api_serving.ServiceLabelKey, "myservice"},
+		[]string{"metadata.name", "myname"})
+	listConfig := []ListConfig{
+		func(lo *listConfigCollector) {
+			lo.Labels[api_serving.ServiceLabelKey] = "myservice"
+			lo.Fields["metadata.name"] = "myname"
+		},
+	}
+	assertFunction(t, listConfig)
 }
