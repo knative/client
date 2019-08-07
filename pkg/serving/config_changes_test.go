@@ -272,49 +272,72 @@ func testUpdateEnvVarsBoth(t *testing.T, template *servingv1alpha1.RevisionTempl
 }
 
 func TestUpdateLabelsNew(t *testing.T) {
-	service := getV1alpha1Service()
+	service, template, _ := getV1alpha1Service()
+
 	labels := map[string]string{
 		"a": "foo",
 		"b": "bar",
 	}
-	err := UpdateServiceLabels(service, labels)
+	err := UpdateLabels(service, template, labels)
 	assert.NilError(t, err)
+
 	actual := service.ObjectMeta.Labels
 	if !reflect.DeepEqual(labels, actual) {
-		t.Fatalf("Labels did not match expected %v found %v", labels, actual)
+		t.Fatalf("Service labels did not match expected %v found %v", labels, actual)
+	}
+
+	actual = template.ObjectMeta.Labels
+	if !reflect.DeepEqual(labels, actual) {
+		t.Fatalf("Template labels did not match expected %v found %v", labels, actual)
 	}
 }
 
 func TestUpdateLabelsExisting(t *testing.T) {
-	service := getV1alpha1Service()
+	service, template, _ := getV1alpha1Service()
 	service.ObjectMeta.Labels = map[string]string{"a": "foo"}
+	template.ObjectMeta.Labels = map[string]string{"a": "foo"}
+
 	labels := map[string]string{
 		"a": "notfood",
 		"b": "bar",
 	}
-	err := UpdateServiceLabels(service, labels)
+	err := UpdateLabels(service, template, labels)
 	assert.NilError(t, err)
+
 	actual := service.ObjectMeta.Labels
 	if !reflect.DeepEqual(labels, actual) {
 		t.Fatalf("Labels did not match expected %v found %v", labels, actual)
 	}
+
+	actual = template.ObjectMeta.Labels
+	if !reflect.DeepEqual(labels, actual) {
+		t.Fatalf("Template labels did not match expected %v found %v", labels, actual)
+	}
 }
 
 func TestUpdateLabelsRemoveExisting(t *testing.T) {
-	service := getV1alpha1Service()
+	service, template, _ := getV1alpha1Service()
 	service.ObjectMeta.Labels = map[string]string{"a": "foo", "b": "bar"}
+	template.ObjectMeta.Labels = map[string]string{"a": "foo", "b": "bar"}
+
 	labels := map[string]string{
 		"a": "foo",
 		"b": "",
 	}
-	err := UpdateServiceLabels(service, labels)
+	err := UpdateLabels(service, template, labels)
 	assert.NilError(t, err)
 	expected := map[string]string{
 		"a": "foo",
 	}
+
 	actual := service.ObjectMeta.Labels
 	if !reflect.DeepEqual(expected, actual) {
 		t.Fatalf("Labels did not match expected %v found %v", expected, actual)
+	}
+
+	actual = template.ObjectMeta.Labels
+	if !reflect.DeepEqual(expected, actual) {
+		t.Fatalf("Template labels did not match expected %v found %v", expected, actual)
 	}
 }
 
@@ -323,6 +346,10 @@ func TestUpdateLabelsRemoveExisting(t *testing.T) {
 func getV1alpha1RevisionTemplateWithOldFields() (*servingv1alpha1.RevisionTemplateSpec, *corev1.Container) {
 	container := &corev1.Container{}
 	template := &servingv1alpha1.RevisionTemplateSpec{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "template-foo",
+			Namespace: "default",
+		},
 		Spec: servingv1alpha1.RevisionSpec{
 			DeprecatedContainer: container,
 		},
@@ -333,6 +360,10 @@ func getV1alpha1RevisionTemplateWithOldFields() (*servingv1alpha1.RevisionTempla
 func getV1alpha1Config() (*servingv1alpha1.RevisionTemplateSpec, *corev1.Container) {
 	containers := []corev1.Container{{}}
 	template := &servingv1alpha1.RevisionTemplateSpec{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "template-foo",
+			Namespace: "default",
+		},
 		Spec: servingv1alpha1.RevisionSpec{
 			RevisionSpec: v1beta1.RevisionSpec{
 				PodSpec: v1beta1.PodSpec{
@@ -344,8 +375,8 @@ func getV1alpha1Config() (*servingv1alpha1.RevisionTemplateSpec, *corev1.Contain
 	return template, &containers[0]
 }
 
-func getV1alpha1Service() *servingv1alpha1.Service {
-	template, _ := getV1alpha1RevisionTemplateWithOldFields()
+func getV1alpha1Service() (*servingv1alpha1.Service, *servingv1alpha1.RevisionTemplateSpec, *corev1.Container) {
+	template, container := getV1alpha1RevisionTemplateWithOldFields()
 	service := &servingv1alpha1.Service{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Service",
@@ -363,7 +394,7 @@ func getV1alpha1Service() *servingv1alpha1.Service {
 			},
 		},
 	}
-	return service
+	return service, template, container
 }
 
 func assertNoV1alpha1Old(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec) {

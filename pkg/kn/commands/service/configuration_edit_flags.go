@@ -142,7 +142,7 @@ func (p *ConfigurationEditFlags) Apply(service *servingv1alpha1.Service, cmd *co
 		if err != nil {
 			return errors.Wrap(err, "Invalid --label")
 		}
-		err = servinglib.UpdateServiceLabels(service, labelMap)
+		err = servinglib.UpdateLabels(service, template, labelMap)
 		if err != nil {
 			return err
 		}

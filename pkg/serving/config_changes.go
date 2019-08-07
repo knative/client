@@ -152,17 +152,23 @@ func UpdateResources(template *servingv1alpha1.RevisionTemplateSpec, requestsRes
 	return nil
 }
 
-// UpdateServiceLabels updates the labels on a service
-func UpdateServiceLabels(service *servingv1alpha1.Service, vars map[string]string) error {
+// UpdateLabels updates the labels identically on a service and template.
+// Does not overwrite the entire Labels field, only makes the requested updates
+func UpdateLabels(service *servingv1alpha1.Service, template *servingv1alpha1.RevisionTemplateSpec, vars map[string]string) error {
 	if service.ObjectMeta.Labels == nil {
 		service.ObjectMeta.Labels = make(map[string]string)
+	}
+	if template.ObjectMeta.Labels == nil {
+		template.ObjectMeta.Labels = make(map[string]string)
 	}
 	for key, value := range vars {
 		// Delete the label if passed an empty string, otherwise set or update it
 		if value == "" {
 			delete(service.ObjectMeta.Labels, key)
+			delete(template.ObjectMeta.Labels, key)
 		} else {
 			service.ObjectMeta.Labels[key] = value
+			template.ObjectMeta.Labels[key] = value
 		}
 	}
 	return nil
