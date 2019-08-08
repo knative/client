@@ -41,8 +41,7 @@ type ConfigurationEditFlags struct {
 	RevisionName               string
 
 	// Preferences about how to do the action.
-	GenerateRevisionName bool
-	ForceCreate          bool
+	ForceCreate bool
 
 	// Bookkeeping
 	flags []string
@@ -53,53 +52,56 @@ type ResourceFlags struct {
 	Memory string
 }
 
+// markFlagMakesRevision indicates that a flag will create a new revision if you
+// set it.
+func (p *ConfigurationEditFlags) markFlagMakesRevision(f string) {
+	p.flags = append(p.flags, f)
+}
+
 func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	command.Flags().StringVar(&p.Image, "image", "", "Image to run.")
-	p.flags = append(p.flags, "image")
+	p.markFlagMakesRevision("image")
 	command.Flags().StringArrayVarP(&p.Env, "env", "e", []string{},
 		"Environment variable to set. NAME=value; you may provide this flag "+
 			"any number of times to set multiple environment variables. "+
 			"To unset, specify the environment variable name followed by a \"-\" (e.g., NAME-).")
-	p.flags = append(p.flags, "env")
+	p.markFlagMakesRevision("env")
 	command.Flags().StringVar(&p.RequestsFlags.CPU, "requests-cpu", "", "The requested CPU (e.g., 250m).")
-	p.flags = append(p.flags, "requests-cpu")
+	p.markFlagMakesRevision("requests-cpu")
 	command.Flags().StringVar(&p.RequestsFlags.Memory, "requests-memory", "", "The requested memory (e.g., 64Mi).")
-	p.flags = append(p.flags, "requests-memory")
+	p.markFlagMakesRevision("requests-memory")
 	command.Flags().StringVar(&p.LimitsFlags.CPU, "limits-cpu", "", "The limits on the requested CPU (e.g., 1000m).")
-	p.flags = append(p.flags, "limits-cpu")
+	p.markFlagMakesRevision("limits-cpu")
 	command.Flags().StringVar(&p.LimitsFlags.Memory, "limits-memory", "",
 		"The limits on the requested memory (e.g., 1024Mi).")
-	p.flags = append(p.flags, "limits-memory")
+	p.markFlagMakesRevision("limits-memory")
 	command.Flags().IntVar(&p.MinScale, "min-scale", 0, "Minimal number of replicas.")
-	p.flags = append(p.flags, "min-scale")
+	p.markFlagMakesRevision("min-scale")
 	command.Flags().IntVar(&p.MaxScale, "max-scale", 0, "Maximal number of replicas.")
-	p.flags = append(p.flags, "max-scale")
+	p.markFlagMakesRevision("max-scale")
 	command.Flags().IntVar(&p.ConcurrencyTarget, "concurrency-target", 0,
 		"Recommendation for when to scale up based on the concurrent number of incoming request. "+
 			"Defaults to --concurrency-limit when given.")
-	p.flags = append(p.flags, "concurrency-target")
+	p.markFlagMakesRevision("concurrency-target")
 	command.Flags().IntVar(&p.ConcurrencyLimit, "concurrency-limit", 0,
 		"Hard Limit of concurrent requests to be processed by a single replica.")
-	p.flags = append(p.flags, "concurrency-limit")
+	p.markFlagMakesRevision("concurrency-limit")
 	command.Flags().Int32VarP(&p.Port, "port", "p", 0, "The port where application listens on.")
+	p.markFlagMakesRevision("port")
 	command.Flags().StringArrayVarP(&p.Labels, "label", "l", []string{},
 		"Service label to set. name=value; you may provide this flag "+
 			"any number of times to set multiple labels. "+
 			"To unset, specify the label name followed by a \"-\" (e.g., name-).")
-	p.flags = append(p.flags, "label")
-	p.flags = append(p.flags, "port")
-	command.Flags().StringVar(&p.RevisionName, "revision-name", "",
+	p.markFlagMakesRevision("label")
+	command.Flags().StringVar(&p.RevisionName, "revision-name", "{{.Service}}-{{.Random 5}}-{{.Generation}}",
+
 		"The revision name to set. If you don't add the service name as a prefix, it'll be added for you.")
-	p.flags = append(p.flags, "revision-name")
+	p.markFlagMakesRevision("revision-name")
 }
 
 // AddUpdateFlags adds the flags specific to update.
 func (p *ConfigurationEditFlags) AddUpdateFlags(command *cobra.Command) {
 	p.addSharedFlags(command)
-
-	command.Flags().BoolVar(&p.GenerateRevisionName, "generate-revision-name", true,
-		"Automatically generate a revision name client-side. If false, the revision name is cleared.")
-	p.flags = append(p.flags, "generate-revision-name")
 }
 
 // AddCreateFlags adds the flags specific to create
@@ -139,19 +141,16 @@ func (p *ConfigurationEditFlags) Apply(
 	}
 	anyMutation := p.AnyMutation(cmd)
 
-	name := ""
-	if cmd.Flags().Changed("revision-name") {
-		name = p.RevisionName
-		if !strings.HasPrefix(name, service.Name+"-") {
-			name = service.Name + "-" + name
-		}
-	} else if p.GenerateRevisionName {
-		name = servinglib.GenerateRevisionName(service)
+	name, err := servinglib.GenerateRevisionName(p.RevisionName, service)
+	if err != nil {
+		return err
 	}
-	if anyMutation {
+
+	if p.AnyMutation(cmd) {
 		err = servinglib.UpdateName(template, name)
 		if err == servinglib.ApiTooOldError && !cmd.Flags().Changed("revision-name") {
-			// pass
+			// Ignore the error if we don't support revision names and nobody
+			// explicitly asked for one.
 		} else if err != nil {
 			return err
 		}

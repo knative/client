@@ -15,10 +15,11 @@
 package serving
 
 import (
+	"bytes"
 	"errors"
-	"fmt"
 	"math/rand"
 	"strings"
+	"text/template"
 
 	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 )
@@ -46,16 +47,33 @@ var charChoices = []string{
 	"y", "z",
 }
 
-// GenerateRevisionName returns an automatically-generated name suitable for the
-// next revision of the given service.
-func GenerateRevisionName(service *servingv1alpha1.Service) string {
-	prefix := service.Name
-	generation := service.Generation + 1
-	chars := []string{}
-	for i := 0; i < 5; i++ {
+type revisionTemplContext struct {
+	Service    string
+	Generation int64
+}
+
+func (c *revisionTemplContext) Random(l int) string {
+	chars := make([]string, 0, l)
+	for i := 0; i < l; i++ {
 		chars = append(chars, charChoices[rand.Int()%len(charChoices)])
 	}
-	return fmt.Sprintf("%s-%s-%d", prefix, strings.Join(chars, ""), generation)
+	return strings.Join(chars, "")
+}
+
+// GenerateRevisionName returns an automatically-generated name suitable for the
+// next revision of the given service.
+func GenerateRevisionName(nameTempl string, service *servingv1alpha1.Service) (string, error) {
+	templ, err := template.New("revisionName").Parse(nameTempl)
+	if err != nil {
+		return "", err
+	}
+	context := &revisionTemplContext{
+		Service:    service.Name,
+		Generation: service.Generation + 1,
+	}
+	buf := new(bytes.Buffer)
+	err = templ.Execute(buf, context)
+	return buf.String(), err
 }
 
 func getConfiguration(service *servingv1alpha1.Service) (*servingv1alpha1.ConfigurationSpec, error) {
