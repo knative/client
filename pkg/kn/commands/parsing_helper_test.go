@@ -25,7 +25,8 @@ func TestMapFromArray(t *testing.T) {
 	testMapFromArray(t, []string{"good=value"}, "=", map[string]string{"good": "value"})
 	testMapFromArray(t, []string{"multi=value", "other=value"}, "=", map[string]string{"multi": "value", "other": "value"})
 	testMapFromArray(t, []string{"over|write", "over|written"}, "|", map[string]string{"over": "written"})
-	testMapFromArray(t, []string{"only,split,once"}, ",", map[string]string{"only": "split,once"})
+	testMapFromArray(t, []string{"only,split,once", "just,once,"}, ",", map[string]string{"only": "split,once", "just": "once,"})
+	testMapFromArray(t, []string{"empty=", "="}, "=", map[string]string{"empty": "", "": ""})
 }
 
 func testMapFromArray(t *testing.T, input []string, delimiter string, expected map[string]string) {
@@ -37,7 +38,7 @@ func testMapFromArray(t *testing.T, input []string, delimiter string, expected m
 }
 
 func TestMapFromArrayNoDelimiter(t *testing.T) {
-	input := []string{"good=value", "badvalue"}
+	input := []string{"badvalue"}
 	_, err := MapFromArray(input, "=")
 	assert.ErrorContains(t, err, "Argument requires")
 }
