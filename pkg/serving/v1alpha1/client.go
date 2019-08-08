@@ -131,7 +131,7 @@ func NewKnServingClient(client client_v1alpha1.ServingV1alpha1Interface, namespa
 func (cl *knClient) GetService(name string) (*v1alpha1.Service, error) {
 	service, err := cl.client.Services(cl.namespace).Get(name, v1.GetOptions{})
 	if err != nil {
-		return nil, kn_errors.Build(err)
+		return nil, kn_errors.GetError(err)
 	}
 	err = serving.UpdateGroupVersionKind(service, v1alpha1.SchemeGroupVersion)
 	if err != nil {
@@ -144,7 +144,7 @@ func (cl *knClient) GetService(name string) (*v1alpha1.Service, error) {
 func (cl *knClient) ListServices(config ...ListConfig) (*v1alpha1.ServiceList, error) {
 	serviceList, err := cl.client.Services(cl.namespace).List(ListConfigs(config).toListOptions())
 	if err != nil {
-		return nil, kn_errors.Build(err)
+		return nil, kn_errors.GetError(err)
 	}
 	serviceListNew := serviceList.DeepCopy()
 	err = updateServingGvk(serviceListNew)
@@ -168,7 +168,7 @@ func (cl *knClient) ListServices(config ...ListConfig) (*v1alpha1.ServiceList, e
 func (cl *knClient) CreateService(service *v1alpha1.Service) error {
 	_, err := cl.client.Services(cl.namespace).Create(service)
 	if err != nil {
-		return kn_errors.Build(err)
+		return kn_errors.GetError(err)
 	}
 	return updateServingGvk(service)
 }
@@ -189,7 +189,7 @@ func (cl *knClient) DeleteService(serviceName string) error {
 		&v1.DeleteOptions{},
 	)
 	if err != nil {
-		return kn_errors.Build(err)
+		return kn_errors.GetError(err)
 	}
 
 	return nil
@@ -205,7 +205,7 @@ func (cl *knClient) WaitForService(name string, timeout time.Duration) error {
 func (cl *knClient) GetRevision(name string) (*v1alpha1.Revision, error) {
 	revision, err := cl.client.Revisions(cl.namespace).Get(name, v1.GetOptions{})
 	if err != nil {
-		return nil, kn_errors.Build(err)
+		return nil, kn_errors.GetError(err)
 	}
 	err = updateServingGvk(revision)
 	if err != nil {
@@ -218,7 +218,7 @@ func (cl *knClient) GetRevision(name string) (*v1alpha1.Revision, error) {
 func (cl *knClient) DeleteRevision(name string) error {
 	err := cl.client.Revisions(cl.namespace).Delete(name, &v1.DeleteOptions{})
 	if err != nil {
-		return kn_errors.Build(err)
+		return kn_errors.GetError(err)
 	}
 
 	return nil
@@ -228,7 +228,7 @@ func (cl *knClient) DeleteRevision(name string) error {
 func (cl *knClient) ListRevisions(config ...ListConfig) (*v1alpha1.RevisionList, error) {
 	revisionList, err := cl.client.Revisions(cl.namespace).List(ListConfigs(config).toListOptions())
 	if err != nil {
-		return nil, kn_errors.Build(err)
+		return nil, kn_errors.GetError(err)
 	}
 	return updateServingGvkForRevisionList(revisionList)
 }
