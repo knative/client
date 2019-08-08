@@ -32,3 +32,18 @@ func MapFromArray(arr []string, delimiter string) (map[string]string, error) {
 	}
 	return returnMap, nil
 }
+
+// SplitArrayBySuffix splits an array into items with a given suffix and those without.
+// It removes the suffix from each item before returning.
+func SplitArrayBySuffix(arr []string, suffix string) ([]string, []string) {
+	withoutSuffix := []string{}
+	withSuffix := []string{}
+	for _, elem := range arr {
+		if strings.HasSuffix(elem, suffix) {
+			withSuffix = append(withSuffix, elem[:len(elem)-len(suffix)])
+		} else {
+			withoutSuffix = append(withoutSuffix, elem)
+		}
+	}
+	return withoutSuffix, withSuffix
+}

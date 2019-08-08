@@ -232,11 +232,14 @@ func TestServiceUpdateEnv(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	template.Spec.DeprecatedContainer.Env = []corev1.EnvVar{
+		{Name: "EXISTING", Value: "thing"},
+	}
 
 	servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
 
 	action, updated, _, err := fakeServiceUpdate(orig, []string{
-		"service", "update", "foo", "-e", "TARGET=Awesome", "--async"}, false)
+		"service", "update", "foo", "-e", "TARGET=Awesome", "--env", "EXISTING-", "--async"}, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -401,7 +404,7 @@ func TestServiceUpdateLabelExisting(t *testing.T) {
 	original.ObjectMeta.Labels = map[string]string{"already": "here", "tobe": "removed"}
 
 	action, updated, _, err := fakeServiceUpdate(original, []string{
-		"service", "update", "foo", "-l", "already=gone", "--label=tobe=", "--label", "b=cookie", "--async"}, false)
+		"service", "update", "foo", "-l", "already=gone", "--label=tobe-", "--label", "b=", "--async"}, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -411,7 +414,7 @@ func TestServiceUpdateLabelExisting(t *testing.T) {
 
 	expectedLabels := map[string]string{
 		"already": "gone",
-		"b":       "cookie"}
+		"b":       ""}
 	actualLabels := updated.ObjectMeta.Labels
 
 	if !reflect.DeepEqual(actualLabels, expectedLabels) {

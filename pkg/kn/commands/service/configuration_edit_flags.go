@@ -73,11 +73,12 @@ func (p *ConfigurationEditFlags) Apply(service *servingv1alpha1.Service, cmd *co
 	}
 
 	if cmd.Flags().Changed("env") {
-		envMap, err := commands.MapFromArray(p.Env, "=")
+		envToUpdateOrSet, envToRemove := commands.SplitArrayBySuffix(p.Env, "-")
+		envMap, err := commands.MapFromArray(envToUpdateOrSet, "=")
 		if err != nil {
 			return errors.Wrap(err, "Invalid --env")
 		}
-		err = servinglib.UpdateEnvVars(template, envMap)
+		err = servinglib.UpdateEnvVars(template, envMap, envToRemove)
 		if err != nil {
 			return err
 		}
@@ -138,11 +139,12 @@ func (p *ConfigurationEditFlags) Apply(service *servingv1alpha1.Service, cmd *co
 	}
 
 	if cmd.Flags().Changed("label") {
-		labelMap, err := commands.MapFromArray(p.Labels, "=")
+		labelsToUpdate, labelsToRemove := commands.SplitArrayBySuffix(p.Labels, "-")
+		labelsMap, err := commands.MapFromArray(labelsToUpdate, "=")
 		if err != nil {
 			return errors.Wrap(err, "Invalid --label")
 		}
-		err = servinglib.UpdateLabels(service, template, labelMap)
+		err = servinglib.UpdateLabels(service, template, labelsMap, labelsToRemove)
 		if err != nil {
 			return err
 		}

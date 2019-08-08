@@ -48,3 +48,20 @@ func TestMapFromArrayEmptyValue(t *testing.T) {
 	_, err := MapFromArray(input, "=")
 	assert.ErrorContains(t, err, "Argument requires")
 }
+
+func TestSplitArrayBySuffix(t *testing.T) {
+	testSplitArrayBySuffix(t, []string{"without", "with-"}, "-", []string{"without"}, []string{"with"})
+	testSplitArrayBySuffix(t, []string{"no", "suffix"}, "-", []string{"no", "suffix"}, []string{})
+	testSplitArrayBySuffix(t, []string{"only()", "suffix()"}, "()", []string{}, []string{"only", "suffix"})
+	testSplitArrayBySuffix(t, []string{"only. ", ".one..", "end..."}, ".", []string{"only. "}, []string{".one.", "end.."})
+}
+
+func testSplitArrayBySuffix(t *testing.T, input []string, suffix string, expectedWithoutSuffix []string, expectedWithSuffix []string) {
+	withoutSuffix, withSuffix := SplitArrayBySuffix(input, suffix)
+	if !reflect.DeepEqual(expectedWithoutSuffix, withoutSuffix) {
+		t.Fatalf("Without suffix did not match expected: %s\nFound: %s", expectedWithoutSuffix, withoutSuffix)
+	}
+	if !reflect.DeepEqual(expectedWithSuffix, withSuffix) {
+		t.Fatalf("With suffix did not match expected: %s\nFound: %s", expectedWithSuffix, withSuffix)
+	}
+}

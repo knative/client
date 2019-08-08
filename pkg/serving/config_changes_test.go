@@ -82,7 +82,7 @@ func testUpdateEnvVarsNew(t *testing.T, template *servingv1alpha1.RevisionTempla
 		"a": "foo",
 		"b": "bar",
 	}
-	err := UpdateEnvVars(template, env)
+	err := UpdateEnvVars(template, env, []string{})
 	assert.NilError(t, err)
 	found, err := EnvToMap(container.Env)
 	assert.NilError(t, err)
@@ -108,7 +108,7 @@ func testUpdateEnvVarsAppendOld(t *testing.T, template *servingv1alpha1.Revision
 	env := map[string]string{
 		"b": "bar",
 	}
-	err := UpdateEnvVars(template, env)
+	err := UpdateEnvVars(template, env, []string{})
 	assert.NilError(t, err)
 
 	expected := map[string]string{
@@ -139,7 +139,7 @@ func testUpdateEnvVarsModify(t *testing.T, revision *servingv1alpha1.RevisionTem
 	env := map[string]string{
 		"a": "fancy",
 	}
-	err := UpdateEnvVars(revision, env)
+	err := UpdateEnvVars(revision, env, []string{})
 	assert.NilError(t, err)
 
 	expected := map[string]string{
@@ -150,6 +150,36 @@ func testUpdateEnvVarsModify(t *testing.T, revision *servingv1alpha1.RevisionTem
 	assert.NilError(t, err)
 	if !reflect.DeepEqual(expected, found) {
 		t.Fatalf("Env did not match expected %v, found %v", env, found)
+	}
+}
+
+func TestUpdateEnvVarsRemove(t *testing.T) {
+	template, container := getV1alpha1RevisionTemplateWithOldFields()
+	testUpdateEnvVarsRemove(t, template, container)
+	assertNoV1alpha1(t, template)
+
+	template, container = getV1alpha1Config()
+	testUpdateEnvVarsRemove(t, template, container)
+	assertNoV1alpha1Old(t, template)
+}
+
+func testUpdateEnvVarsRemove(t *testing.T, revision *servingv1alpha1.RevisionTemplateSpec, container *corev1.Container) {
+	container.Env = []corev1.EnvVar{
+		{Name: "a", Value: "foo"},
+		{Name: "b", Value: "bar"},
+	}
+	remove := []string{"b"}
+	err := UpdateEnvVars(revision, map[string]string{}, remove)
+	assert.NilError(t, err)
+
+	expected := map[string]string{
+		"a": "foo",
+	}
+
+	found, err := EnvToMap(container.Env)
+	assert.NilError(t, err)
+	if !reflect.DeepEqual(expected, found) {
+		t.Fatalf("Env did not match expected %v, found %v", expected, found)
 	}
 }
 
@@ -239,23 +269,26 @@ func checkPortUpdate(t *testing.T, template *servingv1alpha1.RevisionTemplateSpe
 
 func TestUpdateEnvVarsBoth(t *testing.T) {
 	template, container := getV1alpha1RevisionTemplateWithOldFields()
-	testUpdateEnvVarsBoth(t, template, container)
+	testUpdateEnvVarsAll(t, template, container)
 	assertNoV1alpha1(t, template)
 
 	template, container = getV1alpha1Config()
-	testUpdateEnvVarsBoth(t, template, container)
+	testUpdateEnvVarsAll(t, template, container)
 	assertNoV1alpha1Old(t, template)
 }
 
-func testUpdateEnvVarsBoth(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, container *corev1.Container) {
+func testUpdateEnvVarsAll(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, container *corev1.Container) {
 	container.Env = []corev1.EnvVar{
 		{Name: "a", Value: "foo"},
-		{Name: "c", Value: "caroline"}}
+		{Name: "c", Value: "caroline"},
+		{Name: "d", Value: "byebye"},
+	}
 	env := map[string]string{
 		"a": "fancy",
 		"b": "boo",
 	}
-	err := UpdateEnvVars(template, env)
+	remove := []string{"d"}
+	err := UpdateEnvVars(template, env, remove)
 	assert.NilError(t, err)
 
 	expected := map[string]string{
@@ -278,7 +311,7 @@ func TestUpdateLabelsNew(t *testing.T) {
 		"a": "foo",
 		"b": "bar",
 	}
-	err := UpdateLabels(service, template, labels)
+	err := UpdateLabels(service, template, labels, []string{})
 	assert.NilError(t, err)
 
 	actual := service.ObjectMeta.Labels
@@ -294,24 +327,31 @@ func TestUpdateLabelsNew(t *testing.T) {
 
 func TestUpdateLabelsExisting(t *testing.T) {
 	service, template, _ := getV1alpha1Service()
-	service.ObjectMeta.Labels = map[string]string{"a": "foo"}
-	template.ObjectMeta.Labels = map[string]string{"a": "foo"}
+	service.ObjectMeta.Labels = map[string]string{"a": "foo", "b": "bar"}
+	template.ObjectMeta.Labels = map[string]string{"a": "foo", "b": "bar"}
 
 	labels := map[string]string{
-		"a": "notfood",
-		"b": "bar",
+		"a": "notfoo",
+		"c": "bat",
+		"d": "",
 	}
-	err := UpdateLabels(service, template, labels)
+	err := UpdateLabels(service, template, labels, []string{})
 	assert.NilError(t, err)
+	expected := map[string]string{
+		"a": "notfoo",
+		"b": "bar",
+		"c": "bat",
+		"d": "",
+	}
 
 	actual := service.ObjectMeta.Labels
-	if !reflect.DeepEqual(labels, actual) {
-		t.Fatalf("Labels did not match expected %v found %v", labels, actual)
+	if !reflect.DeepEqual(expected, actual) {
+		t.Fatalf("Labels did not match expected %v found %v", expected, actual)
 	}
 
 	actual = template.ObjectMeta.Labels
-	if !reflect.DeepEqual(labels, actual) {
-		t.Fatalf("Template labels did not match expected %v found %v", labels, actual)
+	if !reflect.DeepEqual(expected, actual) {
+		t.Fatalf("Template labels did not match expected %v found %v", expected, actual)
 	}
 }
 
@@ -320,11 +360,8 @@ func TestUpdateLabelsRemoveExisting(t *testing.T) {
 	service.ObjectMeta.Labels = map[string]string{"a": "foo", "b": "bar"}
 	template.ObjectMeta.Labels = map[string]string{"a": "foo", "b": "bar"}
 
-	labels := map[string]string{
-		"a": "foo",
-		"b": "",
-	}
-	err := UpdateLabels(service, template, labels)
+	remove := []string{"b"}
+	err := UpdateLabels(service, template, map[string]string{}, remove)
 	assert.NilError(t, err)
 	expected := map[string]string{
 		"a": "foo",
