@@ -42,11 +42,11 @@ kn service create NAME --image IMAGE [flags]
       --async                    Create service and don't wait for it to become ready.
       --concurrency-limit int    Hard Limit of concurrent requests to be processed by a single replica.
       --concurrency-target int   Recommendation for when to scale up based on the concurrent number of incoming request. Defaults to --concurrency-limit when given.
-  -e, --env stringArray          Environment variable to set. NAME=value; you may provide this flag any number of times to set multiple environment variables.
+  -e, --env stringArray          Environment variable to set. NAME=value; you may provide this flag any number of times to set multiple environment variables. To unset, specify the environment variable name followed by a "-" (e.g., NAME-).
       --force                    Create service forcefully, replaces existing service if any.
   -h, --help                     help for create
       --image string             Image to run.
-  -l, --label stringArray        Service label to set. NAME=value; provide an empty string for the value to remove a label. You may provide this flag any number of times to set multiple labels.
+  -l, --label stringArray        Service label to set. name=value; you may provide this flag any number of times to set multiple labels. To unset, specify the label name followed by a "-" (e.g., name-).
       --limits-cpu string        The limits on the requested CPU (e.g., 1000m).
       --limits-memory string     The limits on the requested memory (e.g., 1024Mi).
       --max-scale int            Maximal number of replicas.
