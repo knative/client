@@ -58,6 +58,7 @@ func (p *ConfigurationEditFlags) markFlagMakesRevision(f string) {
 	p.flags = append(p.flags, f)
 }
 
+// addSharedFlags adds the flags common between create & update.
 func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	command.Flags().StringVar(&p.Image, "image", "", "Image to run.")
 	p.markFlagMakesRevision("image")
@@ -94,8 +95,9 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 			"To unset, specify the label name followed by a \"-\" (e.g., name-).")
 	p.markFlagMakesRevision("label")
 	command.Flags().StringVar(&p.RevisionName, "revision-name", "{{.Service}}-{{.Random 5}}-{{.Generation}}",
-
-		"The revision name to set. If you don't add the service name as a prefix, it'll be added for you.")
+		"The revision name to set. Must start with the service name and a dash as a prefix. "+
+			"Accepts golang templates, allowing {{.Service}} for the service name, "+
+			"{{.Generation}} for the generation, and {{.Random [n]}} for n random consonants.")
 	p.markFlagMakesRevision("revision-name")
 }
 
@@ -139,7 +141,6 @@ func (p *ConfigurationEditFlags) Apply(
 			return err
 		}
 	}
-	anyMutation := p.AnyMutation(cmd)
 
 	name, err := servinglib.GenerateRevisionName(p.RevisionName, service)
 	if err != nil {
