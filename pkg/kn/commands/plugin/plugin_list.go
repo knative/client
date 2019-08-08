@@ -72,15 +72,17 @@ func listPlugins(cmd *cobra.Command, flags pluginListFlags) error {
 
 	out := cmd.OutOrStdout()
 
-	if len(pluginsFound) == 0 {
-		fmt.Fprintf(out, "No plugins found in path %s\n", pluginPath)
-		return nil
-	}
-
 	if flags.verbose {
 		fmt.Fprintf(out, "The following plugins are available, using options:\n")
-		fmt.Fprintf(out, "  - plugins dir: '%s'\n", commands.Cfg.PluginsDir)
+		fmt.Fprintf(out, "  - plugins dir: '%s'%s\n", commands.Cfg.PluginsDir, extraLabelIfPathNotExists(pluginPath))
 		fmt.Fprintf(out, "  - lookup plugins in path: '%t'\n", commands.Cfg.LookupPluginsInPath)
+	}
+
+	if len(pluginsFound) == 0 {
+		if flags.verbose {
+			fmt.Fprintf(out, "No plugins found in path %s\n", pluginPath)
+		}
+		return nil
 	}
 
 	verifier := newPluginVerifier(cmd.Root())
@@ -151,4 +153,16 @@ func uniquePathsList(paths []string) []string {
 		newPaths = append(newPaths, p)
 	}
 	return newPaths
+}
+
+// create an info label which can be appended to an verbose output
+func extraLabelIfPathNotExists(path string) string {
+	_, err := os.Stat(path)
+	if err == nil {
+		return ""
+	}
+	if os.IsNotExist(err) {
+		return " (does not exist)"
+	}
+	return ""
 }

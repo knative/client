@@ -110,13 +110,21 @@ func TestPluginList(t *testing.T) {
 	t.Run("when pluginsDir does not include any plugins", func(t *testing.T) {
 		t.Run("when --lookup-plugins-in-path is true", func(t *testing.T) {
 			t.Run("no plugins installed", func(t *testing.T) {
-				ctx := setup(t)
-				defer ctx.cleanup()
 
-				t.Run("warns user that no plugins found", func(t *testing.T) {
-					err := ctx.execute("plugin", "list", "--lookup-plugins-in-path=true")
+				t.Run("warns user that no plugins found in verbose mode", func(t *testing.T) {
+					ctx := setup(t)
+					defer ctx.cleanup()
+					err := ctx.execute("plugin", "list", "--lookup-plugins-in-path=true", "--verbose")
 					assert.NilError(t, err)
 					assert.Assert(t, util.ContainsAll(ctx.output(), "No plugins found"))
+				})
+
+				t.Run("no output when no plugins found", func(t *testing.T) {
+					ctx := setup(t)
+					defer ctx.cleanup()
+					err := ctx.execute("plugin", "list", "--lookup-plugins-in-path=true")
+					assert.NilError(t, err)
+					assert.Equal(t, ctx.output(), "")
 				})
 			})
 
@@ -216,7 +224,7 @@ func TestPluginList(t *testing.T) {
 
 			err := ctx.execute("plugin", "list")
 			assert.NilError(t, err)
-			assert.Assert(t, util.ContainsAll(ctx.output(), "No plugins"))
+			assert.Equal(t, ctx.output(), "")
 		})
 	})
 }
