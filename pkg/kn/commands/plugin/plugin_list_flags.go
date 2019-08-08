@@ -16,20 +16,16 @@ package plugin
 
 import (
 	"github.com/spf13/cobra"
-	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
-// PluginFlags contains all PLugin commands flags
-type PluginFlags struct {
-	NameOnly bool
-
-	Verifier    PathVerifier
-	PluginPaths []string
-
-	genericclioptions.IOStreams
+// pluginListFlags contains all plugin commands flags
+type pluginListFlags struct {
+	nameOnly bool
+	verbose  bool
 }
 
 // AddPluginFlags adds the various flags to plugin command
-func (p *PluginFlags) AddPluginFlags(command *cobra.Command) {
-	command.Flags().BoolVar(&p.NameOnly, "name-only", false, "If true, display only the binary name of each plugin, rather than its full path")
+func (p *pluginListFlags) AddPluginListFlags(command *cobra.Command) {
+	command.Flags().BoolVar(&p.nameOnly, "name-only", false, "If true, display only the binary name of each plugin, rather than its full path")
+	command.Flags().BoolVar(&p.verbose, "verbose", false, "verbose output")
 }

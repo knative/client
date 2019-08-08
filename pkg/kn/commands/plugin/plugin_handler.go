@@ -22,6 +22,8 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
+
+	"github.com/mitchellh/go-homedir"
 )
 
 // PluginHandler is capable of parsing command line arguments
@@ -62,7 +64,7 @@ func (h *DefaultPluginHandler) Lookup(name string) (string, bool) {
 		pluginPath := fmt.Sprintf("%s-%s", prefix, name)
 
 		// Try to find plugin in pluginsDir
-		pluginDir, err := ExpandPath(h.PluginsDir)
+		pluginDir, err := homedir.Expand(h.PluginsDir)
 		if err != nil {
 			return "", false
 		}
