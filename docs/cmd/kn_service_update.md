@@ -30,7 +30,7 @@ kn service update NAME [flags]
       --async                    Update service and don't wait for it to become ready.
       --concurrency-limit int    Hard Limit of concurrent requests to be processed by a single replica.
       --concurrency-target int   Recommendation for when to scale up based on the concurrent number of incoming request. Defaults to --concurrency-limit when given.
-  -e, --env strings              Environment variable to set. NAME=value; you may provide this flag any number of times to set multiple environment variables.
+  -e, --env strings              Environment variable to set. Format: NAME=value; you may repeat this flag any number of times to set multiple environment variables. Supports comma separated values for a flag as well (e.g.: --env K1=V1,K2=v2).
   -h, --help                     help for update
       --image string             Image to run.
       --limits-cpu string        The limits on the requested CPU (e.g., 1000m).

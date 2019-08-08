@@ -30,6 +30,10 @@
 | List revisions sorted by configuration generation
 | https://github.com/knative/client/pull/332[#332]
 
+| 🎁
+| Support providing multiple comma separated values for --env flag
+|https://github.com/knative/client/pull/347[#347]
+
 |===
 
 ## v0.2.0 (2019-07-10)
