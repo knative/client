@@ -15,6 +15,8 @@
 package service
 
 import (
+	"strings"
+
 	commands "github.com/knative/client/pkg/kn/commands"
 	servinglib "github.com/knative/client/pkg/serving"
 	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
@@ -77,10 +79,16 @@ func (p *ConfigurationEditFlags) Apply(service *servingv1alpha1.Service, cmd *co
 	}
 
 	if cmd.Flags().Changed("env") {
-		envToUpdateOrSet, envToRemove := commands.SplitArrayBySuffix(p.Env, "-")
-		envMap, err := commands.MapFromArray(envToUpdateOrSet, "=")
+		envMap, err := commands.MapFromArrayAllowingSingles(p.Env, "=")
 		if err != nil {
 			return errors.Wrap(err, "Invalid --env")
+		}
+		envToRemove := []string{}
+		for name := range envMap {
+			if strings.HasSuffix(name, "-") {
+				envToRemove = append(envToRemove, name[:len(name)-1])
+				delete(envMap, name)
+			}
 		}
 		err = servinglib.UpdateEnvVars(template, envMap, envToRemove)
 		if err != nil {
@@ -143,10 +151,16 @@ func (p *ConfigurationEditFlags) Apply(service *servingv1alpha1.Service, cmd *co
 	}
 
 	if cmd.Flags().Changed("label") {
-		labelsToUpdate, labelsToRemove := commands.SplitArrayBySuffix(p.Labels, "-")
-		labelsMap, err := commands.MapFromArray(labelsToUpdate, "=")
+		labelsMap, err := commands.MapFromArrayAllowingSingles(p.Labels, "=")
 		if err != nil {
 			return errors.Wrap(err, "Invalid --label")
+		}
+		labelsToRemove := []string{}
+		for key := range labelsMap {
+			if strings.HasSuffix(key, "-") {
+				labelsToRemove = append(labelsToRemove, key[:len(key)-1])
+				delete(labelsMap, key)
+			}
 		}
 		err = servinglib.UpdateLabels(service, template, labelsMap, labelsToRemove)
 		if err != nil {

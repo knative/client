@@ -158,7 +158,7 @@ func TestServiceCreateImageSync(t *testing.T) {
 
 func TestServiceCreateEnv(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "-e", "A=DOGS", "--env", "B=WOLVES", "--async"}, false, false)
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "-e", "A=DOGS", "--env", "B=WOLVES", "--env=EMPTY", "--async"}, false, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -167,8 +167,10 @@ func TestServiceCreateEnv(t *testing.T) {
 	}
 
 	expectedEnvVars := map[string]string{
-		"A": "DOGS",
-		"B": "WOLVES"}
+		"A":     "DOGS",
+		"B":     "WOLVES",
+		"EMPTY": "",
+	}
 
 	template, err := servinglib.RevisionTemplateOfService(created)
 	actualEnvVars, err := servinglib.EnvToMap(template.Spec.DeprecatedContainer.Env)
@@ -470,7 +472,7 @@ func TestServiceCreateEnvForce(t *testing.T) {
 
 func TestServiceCreateLabel(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "-l", "a=mouse", "--label", "b=cookie", "--async"}, false, false)
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "-l", "a=mouse", "--label", "b=cookie", "--label=empty", "--async"}, false, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -479,8 +481,10 @@ func TestServiceCreateLabel(t *testing.T) {
 	}
 
 	expectedLabels := map[string]string{
-		"a": "mouse",
-		"b": "cookie"}
+		"a":     "mouse",
+		"b":     "cookie",
+		"empty": "",
+	}
 	actualLabels := created.ObjectMeta.Labels
 
 	template, err := servinglib.RevisionTemplateOfService(created)

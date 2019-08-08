@@ -19,31 +19,30 @@ import (
 	"strings"
 )
 
-// MapFromArray takes an array of strings where each item is a (key, value) pair
-// separated by a delimiter and returns a map where keys are mapped to their respsective values.
+func MapFromArrayAllowingSingles(arr []string, delimiter string) (map[string]string, error) {
+	return mapFromArray(arr, delimiter, true)
+}
+
 func MapFromArray(arr []string, delimiter string) (map[string]string, error) {
+	return mapFromArray(arr, delimiter, false)
+}
+
+// mapFromArray takes an array of strings where each item is a (key, value) pair
+// separated by a delimiter and returns a map where keys are mapped to their respsective values.
+// If allowSingles is true, values without a delimiter will be added as keys pointing to empty strings
+func mapFromArray(arr []string, delimiter string, allowSingles bool) (map[string]string, error) {
 	returnMap := map[string]string{}
 	for _, pairStr := range arr {
 		pairSlice := strings.SplitN(pairStr, delimiter, 2)
 		if len(pairSlice) <= 1 {
-			return nil, fmt.Errorf("Argument requires a value that contains the %q character; got %q", delimiter, pairStr)
+			if len(pairSlice) == 0 || !allowSingles {
+				return nil, fmt.Errorf("Argument requires a value that contains the %q character; got %q", delimiter, pairStr)
+			} else {
+				returnMap[pairSlice[0]] = ""
+			}
+		} else {
+			returnMap[pairSlice[0]] = pairSlice[1]
 		}
-		returnMap[pairSlice[0]] = pairSlice[1]
 	}
 	return returnMap, nil
-}
-
-// SplitArrayBySuffix splits an array into items with a given suffix and those without.
-// It removes the suffix from each item before returning.
-func SplitArrayBySuffix(arr []string, suffix string) ([]string, []string) {
-	withoutSuffix := []string{}
-	withSuffix := []string{}
-	for _, elem := range arr {
-		if strings.HasSuffix(elem, suffix) {
-			withSuffix = append(withSuffix, elem[:len(elem)-len(suffix)])
-		} else {
-			withoutSuffix = append(withoutSuffix, elem)
-		}
-	}
-	return withoutSuffix, withSuffix
 }

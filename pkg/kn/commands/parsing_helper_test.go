@@ -15,7 +15,6 @@
 package commands
 
 import (
-	"reflect"
 	"testing"
 
 	"gotest.tools/assert"
@@ -32,36 +31,32 @@ func TestMapFromArray(t *testing.T) {
 func testMapFromArray(t *testing.T, input []string, delimiter string, expected map[string]string) {
 	actual, err := MapFromArray(input, delimiter)
 	assert.NilError(t, err)
-	if !reflect.DeepEqual(expected, actual) {
-		t.Fatalf("Map did not match expected: %s\nFound: %s", expected, actual)
-	}
+	assert.DeepEqual(t, expected, actual)
 }
 
 func TestMapFromArrayNoDelimiter(t *testing.T) {
 	input := []string{"badvalue"}
-	_, err := MapFromArray(input, "=")
+	_, err := MapFromArray(input, "+")
 	assert.ErrorContains(t, err, "Argument requires")
+	assert.ErrorContains(t, err, "+")
 }
 
-func TestMapFromArrayEmptyValue(t *testing.T) {
+func TestMapFromArrayNoDelimiterAllowingSingles(t *testing.T) {
+	input := []string{"okvalue"}
+	actual, err := MapFromArrayAllowingSingles(input, "+")
+	expected := map[string]string{"okvalue": ""}
+	assert.NilError(t, err)
+	assert.DeepEqual(t, expected, actual)
+}
+
+func TestMapFromArrayEmptyValueEmptyDelimiter(t *testing.T) {
 	input := []string{""}
-	_, err := MapFromArray(input, "=")
+	_, err := MapFromArray(input, "")
 	assert.ErrorContains(t, err, "Argument requires")
 }
 
-func TestSplitArrayBySuffix(t *testing.T) {
-	testSplitArrayBySuffix(t, []string{"without", "with-"}, "-", []string{"without"}, []string{"with"})
-	testSplitArrayBySuffix(t, []string{"no", "suffix"}, "-", []string{"no", "suffix"}, []string{})
-	testSplitArrayBySuffix(t, []string{"only()", "suffix()"}, "()", []string{}, []string{"only", "suffix"})
-	testSplitArrayBySuffix(t, []string{"only. ", ".one..", "end..."}, ".", []string{"only. "}, []string{".one.", "end.."})
-}
-
-func testSplitArrayBySuffix(t *testing.T, input []string, suffix string, expectedWithoutSuffix []string, expectedWithSuffix []string) {
-	withoutSuffix, withSuffix := SplitArrayBySuffix(input, suffix)
-	if !reflect.DeepEqual(expectedWithoutSuffix, withoutSuffix) {
-		t.Fatalf("Without suffix did not match expected: %s\nFound: %s", expectedWithoutSuffix, withoutSuffix)
-	}
-	if !reflect.DeepEqual(expectedWithSuffix, withSuffix) {
-		t.Fatalf("With suffix did not match expected: %s\nFound: %s", expectedWithSuffix, withSuffix)
-	}
+func TestMapFromArrayEmptyValueEmptyDelimiterAllowingSingles(t *testing.T) {
+	input := []string{""}
+	_, err := MapFromArrayAllowingSingles(input, "")
+	assert.ErrorContains(t, err, "Argument requires")
 }
