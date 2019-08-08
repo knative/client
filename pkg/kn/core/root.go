@@ -32,6 +32,7 @@ import (
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"golang.org/x/crypto/ssh/terminal"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
 )
@@ -139,6 +140,14 @@ func NewKnCommand(params ...commands.KnParams) *cobra.Command {
 	// Deal with empty and unknown sub command groups
 	EmptyAndUnknownSubCommands(rootCmd)
 
+	// Wrap usage.
+	w, err := width()
+	if err == nil {
+		newUsage := strings.ReplaceAll(rootCmd.UsageTemplate(), "FlagUsages ",
+			fmt.Sprintf("FlagUsagesWrapped %d ", w))
+		rootCmd.SetUsageTemplate(newUsage)
+	}
+
 	// For glog parse error.
 	flag.CommandLine.Parse([]string{})
 
@@ -242,4 +251,9 @@ func removeKnPluginFlags(args []string) []string {
 	}
 
 	return remainingArgs
+}
+
+func width() (int, error) {
+	width, _, err := terminal.GetSize(int(os.Stdout.Fd()))
+	return width, err
 }
