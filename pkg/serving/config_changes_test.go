@@ -86,9 +86,7 @@ func testUpdateEnvVarsNew(t *testing.T, template *servingv1alpha1.RevisionTempla
 	assert.NilError(t, err)
 	found, err := EnvToMap(container.Env)
 	assert.NilError(t, err)
-	if !reflect.DeepEqual(env, found) {
-		t.Fatalf("Env did not match expected %v found %v", env, found)
-	}
+	assert.DeepEqual(t, env, found)
 }
 
 func TestUpdateEnvVarsAppendOld(t *testing.T) {
@@ -118,9 +116,7 @@ func testUpdateEnvVarsAppendOld(t *testing.T, template *servingv1alpha1.Revision
 
 	found, err := EnvToMap(container.Env)
 	assert.NilError(t, err)
-	if !reflect.DeepEqual(expected, found) {
-		t.Fatalf("Env did not match expected %v, found %v", env, found)
-	}
+	assert.DeepEqual(t, expected, found)
 }
 
 func TestUpdateEnvVarsModify(t *testing.T) {
@@ -148,9 +144,7 @@ func testUpdateEnvVarsModify(t *testing.T, revision *servingv1alpha1.RevisionTem
 
 	found, err := EnvToMap(container.Env)
 	assert.NilError(t, err)
-	if !reflect.DeepEqual(expected, found) {
-		t.Fatalf("Env did not match expected %v, found %v", env, found)
-	}
+	assert.DeepEqual(t, expected, found)
 }
 
 func TestUpdateEnvVarsRemove(t *testing.T) {
@@ -178,9 +172,7 @@ func testUpdateEnvVarsRemove(t *testing.T, revision *servingv1alpha1.RevisionTem
 
 	found, err := EnvToMap(container.Env)
 	assert.NilError(t, err)
-	if !reflect.DeepEqual(expected, found) {
-		t.Fatalf("Env did not match expected %v, found %v", expected, found)
-	}
+	assert.DeepEqual(t, expected, found)
 }
 
 func TestUpdateMinScale(t *testing.T) {
@@ -345,14 +337,10 @@ func TestUpdateLabelsExisting(t *testing.T) {
 	}
 
 	actual := service.ObjectMeta.Labels
-	if !reflect.DeepEqual(expected, actual) {
-		t.Fatalf("Labels did not match expected %v found %v", expected, actual)
-	}
+	assert.DeepEqual(t, expected, actual)
 
 	actual = template.ObjectMeta.Labels
-	if !reflect.DeepEqual(expected, actual) {
-		t.Fatalf("Template labels did not match expected %v found %v", expected, actual)
-	}
+	assert.DeepEqual(t, expected, actual)
 }
 
 func TestUpdateLabelsRemoveExisting(t *testing.T) {
@@ -368,14 +356,10 @@ func TestUpdateLabelsRemoveExisting(t *testing.T) {
 	}
 
 	actual := service.ObjectMeta.Labels
-	if !reflect.DeepEqual(expected, actual) {
-		t.Fatalf("Labels did not match expected %v found %v", expected, actual)
-	}
+	assert.DeepEqual(t, expected, actual)
 
 	actual = template.ObjectMeta.Labels
-	if !reflect.DeepEqual(expected, actual) {
-		t.Fatalf("Template labels did not match expected %v found %v", expected, actual)
-	}
+	assert.DeepEqual(t, expected, actual)
 }
 
 // =========================================================================================================
