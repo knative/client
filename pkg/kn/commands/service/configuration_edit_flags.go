@@ -44,7 +44,7 @@ type ResourceFlags struct {
 
 func (p *ConfigurationEditFlags) AddUpdateFlags(command *cobra.Command) {
 	command.Flags().StringVar(&p.Image, "image", "", "Image to run.")
-	command.Flags().StringArrayVarP(&p.Env, "env", "e", []string{},
+	command.Flags().StringSliceVarP(&p.Env, "env", "e", []string{},
 		"Environment variable to set. NAME=value; you may provide this flag "+
 			"any number of times to set multiple environment variables.")
 	command.Flags().StringVar(&p.RequestsFlags.CPU, "requests-cpu", "", "The requested CPU (e.g., 250m).")

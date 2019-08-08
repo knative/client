@@ -258,6 +258,65 @@ func TestServiceUpdateEnv(t *testing.T) {
 	}
 }
 
+func TestServiceUpdateMultipleEnvs(t *testing.T) {
+	orig := &v1alpha1.Service{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Service",
+			APIVersion: "knative.dev/v1alpha1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "foo",
+			Namespace: "default",
+		},
+		Spec: v1alpha1.ServiceSpec{
+			DeprecatedRunLatest: &v1alpha1.RunLatestType{
+				Configuration: v1alpha1.ConfigurationSpec{
+					DeprecatedRevisionTemplate: &v1alpha1.RevisionTemplateSpec{
+						Spec: v1alpha1.RevisionSpec{
+							DeprecatedContainer: &corev1.Container{},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	template, err := servinglib.RevisionTemplateOfService(orig)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
+
+	action, updated, _, err := fakeServiceUpdate(orig, []string{
+		"service", "update", "foo", "-e", "TARGET=Awesome,FOR=EnvTest", "--async"}, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+	expectedEnvVar1 := corev1.EnvVar{
+		Name:  "TARGET",
+		Value: "Awesome",
+	}
+	expectedEnvVar2 := corev1.EnvVar{
+		Name:  "FOR",
+		Value: "EnvTest",
+	}
+
+	template, err = servinglib.RevisionTemplateOfService(updated)
+	if err != nil {
+		t.Fatal(err)
+	} else if template.Spec.DeprecatedContainer.Image != "gcr.io/foo/bar:baz" {
+		t.Fatalf("wrong image set: %v", template.Spec.DeprecatedContainer.Image)
+	} else if template.Spec.DeprecatedContainer.Env[0] != expectedEnvVar1 {
+		t.Fatalf("wrong env set: %v", template.Spec.DeprecatedContainer.Env)
+	} else if template.Spec.DeprecatedContainer.Env[1] != expectedEnvVar2 {
+		t.Fatalf("wrong env set: %v", template.Spec.DeprecatedContainer.Env)
+	}
+}
+
 func TestServiceUpdateRequestsLimitsCPU(t *testing.T) {
 	service := createMockServiceWithResources(t, "250", "64Mi", "1000m", "1024Mi")
 
