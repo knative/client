@@ -146,7 +146,7 @@ func validateOutputLine(t *testing.T, output string, label string, value string)
 func TestServiceDescribeResources(t *testing.T) {
 
 	for _, data := range []struct {
-		reqMem, limitMem, reqCpu, limitCpu string
+		reqMem, limitMem, reqCPU, limitCPU string
 		memoryOut, cpuOut                  string
 	}{
 		{"", "", "", "", "", ""},
@@ -166,7 +166,7 @@ func TestServiceDescribeResources(t *testing.T) {
 		// Get service & revision
 		r.GetService("foo", &expectedService, nil)
 		rev1 := createTestRevision("rev1", 1)
-		addResourceLimits(&rev1.Spec.Containers[0].Resources, data.reqMem, data.limitMem, data.reqCpu, data.limitCpu)
+		addResourceLimits(&rev1.Spec.Containers[0].Resources, data.reqMem, data.limitMem, data.reqCPU, data.limitCPU)
 		r.GetRevision("rev1", &rev1, nil)
 
 		revList := v1alpha1.RevisionList{
@@ -349,9 +349,9 @@ func addScaling(revision *v1alpha1.Revision, minScale, maxScale, concurrencyTarg
 	}
 }
 
-func addResourceLimits(resources *v1.ResourceRequirements, reqMem, limitMem, reqCpu, limitCpu string) {
-	(*resources).Requests = getResourceListQuantity(reqMem, reqCpu)
-	(*resources).Limits = getResourceListQuantity(limitMem, limitCpu)
+func addResourceLimits(resources *v1.ResourceRequirements, reqMem, limitMem, reqCPU, limitCPU string) {
+	(*resources).Requests = getResourceListQuantity(reqMem, reqCPU)
+	(*resources).Limits = getResourceListQuantity(limitMem, limitCPU)
 }
 
 func getResourceListQuantity(mem string, cpu string) v1.ResourceList {

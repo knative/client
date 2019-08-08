@@ -54,10 +54,10 @@ var _ PrefixWriter = &prefixWriter{}
 
 // Each level has 2 spaces for PrefixWriter
 const (
-	LEVEL_0 = iota
-	LEVEL_1
-	LEVEL_2
-	LEVEL_3
+	Level0 = iota
+	Level1
+	Level2
+	Level3
 )
 
 func (pw *prefixWriter) Write(level int, format string, a ...interface{}) {

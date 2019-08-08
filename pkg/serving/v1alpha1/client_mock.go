@@ -188,12 +188,13 @@ func (c *MockKnClient) ListRoutes(opts ...ListConfig) (*v1alpha1.RouteList, erro
 	return call.result[0].(*v1alpha1.RouteList), errorOrNil(call.result[1])
 }
 
-// Get a configuration by name
+// GetConfiguration records a call to GetConfiguration with possible return values
 func (r *Recorder) GetConfiguration(name string, config *v1alpha1.Configuration, err error) {
 	r.add("GetConfiguration", apiMethodCall{[]interface{}{name}, []interface{}{config, err}})
 
 }
 
+// GetConfiguration returns a configuration looked up by name
 func (c *MockKnClient) GetConfiguration(name string) (*v1alpha1.Configuration, error) {
 	call := c.getCall("GetConfiguration")
 	c.verifyArgs(call, name)
@@ -209,7 +210,7 @@ func (r *Recorder) Validate() {
 	}
 }
 
-// Return a comparable which can be used for asserting that list methods are called
+// HasLabelSelector returns a comparable which can be used for asserting that list methods are called
 // with the appropriate label selector
 func HasLabelSelector(keyAndValues ...string) func(t *testing.T, a interface{}) {
 	return func(t *testing.T, a interface{}) {
@@ -225,7 +226,7 @@ func HasLabelSelector(keyAndValues ...string) func(t *testing.T, a interface{}) 
 	}
 }
 
-// Return a comparable which can be used for asserting that list methods are called
+// HasFieldSelector returns a comparable which can be used for asserting that list methods are called
 // with the appropriate field selectors
 func HasFieldSelector(keyAndValues ...string) func(t *testing.T, a interface{}) {
 	return func(t *testing.T, a interface{}) {
@@ -241,7 +242,7 @@ func HasFieldSelector(keyAndValues ...string) func(t *testing.T, a interface{}) 
 	}
 }
 
-// Return a comparable which can be used for asserting that list methods are called
+// HasSelector returns a comparable which can be used for asserting that list methods are called
 // with the appropriate label and field selectors
 func HasSelector(labelKeysAndValues []string, fieldKeysAndValue []string) func(t *testing.T, a interface{}) {
 	return func(t *testing.T, a interface{}) {

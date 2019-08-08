@@ -68,7 +68,7 @@ type revisionDesc struct {
 	percent int
 	latest  *bool
 
-	logUrl         string
+	logURL         string
 	timeoutSeconds *int64
 
 	image       string
@@ -84,9 +84,9 @@ type revisionDesc struct {
 
 	// resource options
 	requestsMemory string
-	requestsCpu    string
+	requestsCPU    string
 	limitsMemory   string
-	limitsCpu      string
+	limitsCPU      string
 }
 
 // [REMOVE COMMENT WHEN MOVING TO 0.7.0]
@@ -97,7 +97,7 @@ type revisionDesc struct {
 // As this command does not do any writes/updates, it's just a matter of fallbacks.
 // [/REMOVE COMMENT WHEN MOVING TO 0.7.0]
 
-// Return a new command for describing a service.
+// NewServiceDescribeCommand returns a new command for describing a service.
 func NewServiceDescribeCommand(p *commands.KnParams) *cobra.Command {
 
 	// For machine readable output
@@ -185,34 +185,34 @@ func describe(w io.Writer, service *v1alpha1.Service, revisions []*revisionDesc)
 
 // Write out main service information. Use colors for major items.
 func writeService(dw printers.PrefixWriter, service *v1alpha1.Service) {
-	dw.WriteColsLn(printers.LEVEL_0, l("Name"), service.Name)
-	dw.WriteColsLn(printers.LEVEL_0, l("Namespace"), service.Namespace)
-	dw.WriteColsLn(printers.LEVEL_0, l("URL"), extractURL(service))
+	dw.WriteColsLn(printers.Level0, l("Name"), service.Name)
+	dw.WriteColsLn(printers.Level0, l("Namespace"), service.Namespace)
+	dw.WriteColsLn(printers.Level0, l("URL"), extractURL(service))
 	if service.Status.Address != nil {
 		url := service.Status.Address.GetURL()
-		dw.WriteColsLn(printers.LEVEL_0, l("Address"), url.String())
+		dw.WriteColsLn(printers.Level0, l("Address"), url.String())
 	}
-	writeMapDesc(dw, printers.LEVEL_0, service.Labels, l("Labels"), "")
-	writeMapDesc(dw, printers.LEVEL_0, service.Annotations, l("Annotations"), "")
-	dw.WriteColsLn(printers.LEVEL_0, l("Age"), age(service.CreationTimestamp.Time))
+	writeMapDesc(dw, printers.Level0, service.Labels, l("Labels"), "")
+	writeMapDesc(dw, printers.Level0, service.Annotations, l("Annotations"), "")
+	dw.WriteColsLn(printers.Level0, l("Age"), age(service.CreationTimestamp.Time))
 }
 
 // Write out revisions associated with this service. By default only active
 // target revisions are printed, but with --all also inactive revisions
 // created by this services are shown
 func writeRevisions(dw printers.PrefixWriter, revisions []*revisionDesc) {
-	dw.WriteColsLn(printers.LEVEL_0, l("Revisions"))
+	dw.WriteColsLn(printers.Level0, l("Revisions"))
 	for _, revisionDesc := range revisions {
-		dw.WriteColsLn(printers.LEVEL_1, formatPercentage(revisionDesc.percent), l("Name"), getRevisionNameWithGenerationAndAge(revisionDesc))
-		dw.WriteColsLn(printers.LEVEL_1, "", l("Image"), getImageDesc(revisionDesc))
+		dw.WriteColsLn(printers.Level1, formatPercentage(revisionDesc.percent), l("Name"), getRevisionNameWithGenerationAndAge(revisionDesc))
+		dw.WriteColsLn(printers.Level1, "", l("Image"), getImageDesc(revisionDesc))
 		if revisionDesc.port != nil {
-			dw.WriteColsLn(printers.LEVEL_1, "", l("Port"), strconv.FormatInt(int64(*revisionDesc.port), 10))
+			dw.WriteColsLn(printers.Level1, "", l("Port"), strconv.FormatInt(int64(*revisionDesc.port), 10))
 		}
-		writeSliceDesc(dw, printers.LEVEL_1, revisionDesc.env, l("Env"), "\t")
+		writeSliceDesc(dw, printers.Level1, revisionDesc.env, l("Env"), "\t")
 
 		// Scale spec if given
 		if revisionDesc.maxScale != nil || revisionDesc.minScale != nil {
-			dw.WriteColsLn(printers.LEVEL_1, "", l("Scale"), formatScale(revisionDesc.minScale, revisionDesc.maxScale))
+			dw.WriteColsLn(printers.Level1, "", l("Scale"), formatScale(revisionDesc.minScale, revisionDesc.maxScale))
 		}
 
 		// Concurrency specs if given
@@ -222,34 +222,34 @@ func writeRevisions(dw printers.PrefixWriter, revisions []*revisionDesc) {
 
 		// Resources if given
 		writeResources(dw, "Memory", revisionDesc.requestsMemory, revisionDesc.limitsMemory)
-		writeResources(dw, "CPU", revisionDesc.requestsCpu, revisionDesc.limitsCpu)
+		writeResources(dw, "CPU", revisionDesc.requestsCPU, revisionDesc.limitsCPU)
 	}
 }
 
 // Print out a table with conditions. Use green for 'ok', and red for 'nok' if color is enabled
 func writeConditions(dw printers.PrefixWriter, service *v1alpha1.Service) {
-	dw.WriteColsLn(printers.LEVEL_0, l("Conditions"))
+	dw.WriteColsLn(printers.Level0, l("Conditions"))
 	maxLen := getMaxTypeLen(service.Status.Conditions)
 	formatHeader := "%-2s %-" + strconv.Itoa(maxLen) + "s %6s %-s\n"
 	formatRow := "%-2s %-" + strconv.Itoa(maxLen) + "s %6s %-s\n"
-	dw.Write(printers.LEVEL_1, formatHeader, "OK", "TYPE", "AGE", "REASON")
+	dw.Write(printers.Level1, formatHeader, "OK", "TYPE", "AGE", "REASON")
 	for _, condition := range service.Status.Conditions {
 		ok := formatStatus(condition.Status)
 		reason := condition.Reason
 		if printDetails && reason != "" {
 			reason = fmt.Sprintf("%s (%s)", reason, condition.Message)
 		}
-		dw.Write(printers.LEVEL_1, formatRow, ok, formatConditionType(condition), age(condition.LastTransitionTime.Inner.Time), reason)
+		dw.Write(printers.Level1, formatRow, ok, formatConditionType(condition), age(condition.LastTransitionTime.Inner.Time), reason)
 	}
 }
 
 func writeConcurrencyOptions(dw printers.PrefixWriter, desc *revisionDesc) {
-	dw.WriteColsLn(printers.LEVEL_1, "", l("Concurrency"))
+	dw.WriteColsLn(printers.Level1, "", l("Concurrency"))
 	if desc.concurrencyLimit != nil {
-		dw.WriteColsLn(printers.LEVEL_2, "", "", l("Limit"), strconv.FormatInt(*desc.concurrencyLimit, 10))
+		dw.WriteColsLn(printers.Level2, "", "", l("Limit"), strconv.FormatInt(*desc.concurrencyLimit, 10))
 	}
 	if desc.concurrencyTarget != nil {
-		dw.WriteColsLn(printers.LEVEL_2, "", "", l("Target"), strconv.Itoa(*desc.concurrencyTarget))
+		dw.WriteColsLn(printers.Level2, "", "", l("Target"), strconv.Itoa(*desc.concurrencyTarget))
 	}
 }
 
@@ -400,7 +400,7 @@ func writeResources(dw printers.PrefixWriter, label string, request string, limi
 		return
 	}
 
-	dw.WriteColsLn(printers.LEVEL_1, "", l(label), value)
+	dw.WriteColsLn(printers.Level1, "", l(label), value)
 }
 
 // Join to key=value pair, comma separated, and truncate if longer than a limit
@@ -498,7 +498,7 @@ func newRevisionDesc(revision *v1alpha1.Revision, target *v1alpha1.TrafficTarget
 	}
 	revisionDesc := revisionDesc{
 		name:              revision.Name,
-		logUrl:            revision.Status.LogURL,
+		logURL:            revision.Status.LogURL,
 		timeoutSeconds:    revision.Spec.TimeoutSeconds,
 		imageDigest:       revision.Status.ImageDigest,
 		creationTimestamp: revision.CreationTimestamp.Time,
@@ -536,7 +536,7 @@ func addResourcesInfo(desc *revisionDesc, container *v1.Container) {
 		desc.requestsMemory = requests.Memory().String()
 	}
 	if !requests.Cpu().IsZero() {
-		desc.requestsCpu = requests.Cpu().String()
+		desc.requestsCPU = requests.Cpu().String()
 	}
 
 	limits := container.Resources.Limits
@@ -544,7 +544,7 @@ func addResourcesInfo(desc *revisionDesc, container *v1.Container) {
 		desc.limitsMemory = limits.Memory().String()
 	}
 	if !limits.Cpu().IsZero() {
-		desc.limitsCpu = limits.Cpu().String()
+		desc.limitsCPU = limits.Cpu().String()
 	}
 }
 
