@@ -15,7 +15,6 @@
 package service
 
 import (
-	"bytes"
 	"testing"
 
 	"github.com/knative/pkg/apis"
@@ -24,7 +23,6 @@ import (
 
 	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 
-	"github.com/knative/client/pkg/kn/commands"
 	knclient "github.com/knative/client/pkg/serving/v1alpha1"
 
 	"github.com/knative/client/pkg/util"
@@ -47,7 +45,7 @@ func TestServiceCreateImageMock(t *testing.T) {
 	r.GetService("foo", getServiceWithUrl("foo", "http://foo.example.com"), nil)
 
 	// Testing:
-	output, err := executeCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz")
+	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", "foo", "http://foo.example.com", "Waiting"))
 
@@ -61,19 +59,4 @@ func getServiceWithUrl(name string, urlName string) *v1alpha1.Service {
 	service.Status.URL = url
 	service.Name = name
 	return &service
-}
-
-func executeCommand(client knclient.KnClient, args ...string) (string, error) {
-	knParams := &commands.KnParams{}
-
-	output := new(bytes.Buffer)
-	knParams.Output = output
-	knParams.NewClient = func(namespace string) (knclient.KnClient, error) {
-		return client, nil
-	}
-	cmd := NewServiceCommand(knParams)
-	cmd.SetArgs(args)
-	cmd.SetOutput(output)
-	err := cmd.Execute()
-	return output.String(), err
 }
