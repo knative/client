@@ -120,6 +120,7 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 	commands.AddNamespaceFlags(serviceCreateCommand.Flags(), false)
 	editFlags.AddCreateFlags(serviceCreateCommand)
 	waitFlags.AddConditionWaitFlags(serviceCreateCommand, 60, "Create", "service")
+
 	return serviceCreateCommand
 }
 
