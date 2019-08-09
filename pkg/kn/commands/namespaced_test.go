@@ -78,6 +78,18 @@ func TestGetNamespaceAllNamespacesSet(t *testing.T) {
 	if actualNamespace != expectedNamespace {
 		t.Fatalf("Incorrect namespace retrieved: %v, expected: %v", actualNamespace, expectedNamespace)
 	}
+
+	// Now do it again using -A instead
+	testCmd.SetArgs([]string{"--namespace", sampleNamespace, "-A"})
+	testCmd.Execute()
+	kp = &KnParams{fixedCurrentNamespace: FakeNamespace}
+	actualNamespace, err = kp.GetNamespace(testCmd)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if actualNamespace != expectedNamespace {
+		t.Fatalf("Incorrect namespace retrieved: %v, expected: %v", actualNamespace, expectedNamespace)
+	}
 }
 
 // test with all-namespace flag set without any namespace flag set
@@ -89,6 +101,18 @@ func TestGetNamespaceDefaultAllNamespacesUnset(t *testing.T) {
 	testCmd.Execute()
 	kp := &KnParams{fixedCurrentNamespace: FakeNamespace}
 	actualNamespace, err := kp.GetNamespace(testCmd)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if actualNamespace != expectedNamespace {
+		t.Fatalf("Incorrect namespace retrieved: %v, expected: %v", actualNamespace, expectedNamespace)
+	}
+
+	// Now do it again using -A instead
+	testCmd.SetArgs([]string{"-A"})
+	testCmd.Execute()
+	kp = &KnParams{fixedCurrentNamespace: FakeNamespace}
+	actualNamespace, err = kp.GetNamespace(testCmd)
 	if err != nil {
 		t.Fatal(err)
 	}
