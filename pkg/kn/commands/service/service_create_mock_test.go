@@ -75,7 +75,7 @@ func TestServiceCreateLabel(t *testing.T) {
 	template.Spec.DeprecatedContainer.Image = "gcr.io/foo/bar:baz"
 	r.CreateService(service, nil)
 
-	output, err := executeCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "-l", "a=mouse", "--label", "b=cookie", "--label=empty", "--async")
+	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "-l", "a=mouse", "--label", "b=cookie", "--label=empty", "--async")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
 
