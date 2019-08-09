@@ -51,3 +51,30 @@ func TestGenerateName(t *testing.T) {
 		}
 	}
 }
+
+func TestRevisionTemplateOfServiceNewStyle(t *testing.T) {
+	service := &servingv1alpha1.Service{}
+	service.Name = "foo"
+	template := &servingv1alpha1.RevisionTemplateSpec{}
+	service.Spec.Template = template
+	got, err := RevisionTemplateOfService(service)
+	assert.NilError(t, err)
+	assert.Equal(t, got, template)
+}
+
+func TestRevisionTemplateOfServiceOldStyle(t *testing.T) {
+	service := &servingv1alpha1.Service{}
+	service.Name = "foo"
+	template := &servingv1alpha1.RevisionTemplateSpec{}
+	service.Spec.DeprecatedRunLatest = &servingv1alpha1.RunLatestType{}
+	service.Spec.DeprecatedRunLatest.Configuration.DeprecatedRevisionTemplate = template
+	got, err := RevisionTemplateOfService(service)
+	assert.NilError(t, err)
+	assert.Equal(t, got, template)
+}
+
+func TestRevisionTemplateOfServiceError(t *testing.T) {
+	service := &servingv1alpha1.Service{}
+	_, err := RevisionTemplateOfService(service)
+	assert.ErrorContains(t, err, "does not specify")
+}
