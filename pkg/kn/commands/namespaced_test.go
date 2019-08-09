@@ -68,28 +68,21 @@ func TestGetNamespaceAllNamespacesSet(t *testing.T) {
 	testCmd := testCommandGenerator(true)
 	expectedNamespace := ""
 	sampleNamespace := "test1"
-	testCmd.SetArgs([]string{"--namespace", sampleNamespace, "--all-namespaces"})
-	testCmd.Execute()
-	kp := &KnParams{fixedCurrentNamespace: FakeNamespace}
-	actualNamespace, err := kp.GetNamespace(testCmd)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if actualNamespace != expectedNamespace {
-		t.Fatalf("Incorrect namespace retrieved: %v, expected: %v", actualNamespace, expectedNamespace)
+
+	// Test both variants of the "all namespaces" flag
+	for _, arg := range []string{"--all-namespaces", "-A"} {
+		testCmd.SetArgs([]string{"--namespace", sampleNamespace, arg})
+		testCmd.Execute()
+		kp := &KnParams{fixedCurrentNamespace: FakeNamespace}
+		actualNamespace, err := kp.GetNamespace(testCmd)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if actualNamespace != expectedNamespace {
+			t.Fatalf("Incorrect namespace retrieved: %v, expected: %v", actualNamespace, expectedNamespace)
+		}
 	}
 
-	// Now do it again using -A instead
-	testCmd.SetArgs([]string{"--namespace", sampleNamespace, "-A"})
-	testCmd.Execute()
-	kp = &KnParams{fixedCurrentNamespace: FakeNamespace}
-	actualNamespace, err = kp.GetNamespace(testCmd)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if actualNamespace != expectedNamespace {
-		t.Fatalf("Incorrect namespace retrieved: %v, expected: %v", actualNamespace, expectedNamespace)
-	}
 }
 
 // test with all-namespace flag set without any namespace flag set
@@ -97,28 +90,21 @@ func TestGetNamespaceAllNamespacesSet(t *testing.T) {
 func TestGetNamespaceDefaultAllNamespacesUnset(t *testing.T) {
 	testCmd := testCommandGenerator(true)
 	expectedNamespace := ""
-	testCmd.SetArgs([]string{"--all-namespaces"})
-	testCmd.Execute()
-	kp := &KnParams{fixedCurrentNamespace: FakeNamespace}
-	actualNamespace, err := kp.GetNamespace(testCmd)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if actualNamespace != expectedNamespace {
-		t.Fatalf("Incorrect namespace retrieved: %v, expected: %v", actualNamespace, expectedNamespace)
+
+	// Test both variants of the "all namespaces" flag
+	for _, arg := range []string{"--all-namespaces", "-A"} {
+		testCmd.SetArgs([]string{arg})
+		testCmd.Execute()
+		kp := &KnParams{fixedCurrentNamespace: FakeNamespace}
+		actualNamespace, err := kp.GetNamespace(testCmd)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if actualNamespace != expectedNamespace {
+			t.Fatalf("Incorrect namespace retrieved: %v, expected: %v", actualNamespace, expectedNamespace)
+		}
 	}
 
-	// Now do it again using -A instead
-	testCmd.SetArgs([]string{"-A"})
-	testCmd.Execute()
-	kp = &KnParams{fixedCurrentNamespace: FakeNamespace}
-	actualNamespace, err = kp.GetNamespace(testCmd)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if actualNamespace != expectedNamespace {
-		t.Fatalf("Incorrect namespace retrieved: %v, expected: %v", actualNamespace, expectedNamespace)
-	}
 }
 
 // test with all-namespaces flag not defined for command
