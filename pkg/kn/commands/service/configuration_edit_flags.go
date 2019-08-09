@@ -256,7 +256,7 @@ func (p *ConfigurationEditFlags) computeResources(resourceFlags ResourceFlags) (
 	return resourceList, nil
 }
 
-// AnyMutation returns tue if there are any revision template mutations in the
+// AnyMutation returns true if there are any revision template mutations in the
 // command.
 func (p *ConfigurationEditFlags) AnyMutation(cmd *cobra.Command) bool {
 	for _, flag := range p.flags {
