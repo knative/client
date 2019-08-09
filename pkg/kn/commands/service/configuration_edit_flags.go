@@ -96,6 +96,7 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	p.markFlagMakesRevision("label")
 	command.Flags().StringVar(&p.RevisionName, "revision-name", "{{.Service}}-{{.Random 5}}-{{.Generation}}",
 		"The revision name to set. Must start with the service name and a dash as a prefix. "+
+			"Empty revision name will result in the server generating a name for the revision. "+
 			"Accepts golang templates, allowing {{.Service}} for the service name, "+
 			"{{.Generation}} for the generation, and {{.Random [n]}} for n random consonants.")
 	p.markFlagMakesRevision("revision-name")
