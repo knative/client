@@ -390,21 +390,25 @@ func TestServiceUpdateLabelWhenEmpty(t *testing.T) {
 		t.Fatalf("Bad action %v", action)
 	}
 
-	expectedLabels := map[string]string{
+	expected := map[string]string{
 		"a":      "mouse",
 		"b":      "cookie",
 		"single": "",
 	}
-	actualLabels := updated.ObjectMeta.Labels
+	actual := updated.ObjectMeta.Labels
+	assert.DeepEqual(t, expected, actual)
 
-	if !reflect.DeepEqual(actualLabels, expectedLabels) {
-		t.Fatalf("wrong labels %v", actualLabels)
-	}
+	template, err := servinglib.RevisionTemplateOfService(updated)
+	assert.NilError(t, err)
+	actual = template.ObjectMeta.Labels
+	assert.DeepEqual(t, expected, actual)
 }
 
 func TestServiceUpdateLabelExisting(t *testing.T) {
 	original := newEmptyService()
 	original.ObjectMeta.Labels = map[string]string{"already": "here", "tobe": "removed"}
+	originalTemplate, _ := servinglib.RevisionTemplateOfService(original)
+	originalTemplate.ObjectMeta.Labels = map[string]string{"already": "here", "tobe": "removed"}
 
 	action, updated, _, err := fakeServiceUpdate(original, []string{
 		"service", "update", "foo", "-l", "already=gone", "--label=tobe-", "--label", "b=", "--async"}, false)
@@ -415,14 +419,17 @@ func TestServiceUpdateLabelExisting(t *testing.T) {
 		t.Fatalf("Bad action %v", action)
 	}
 
-	expectedLabels := map[string]string{
+	expected := map[string]string{
 		"already": "gone",
-		"b":       ""}
-	actualLabels := updated.ObjectMeta.Labels
-
-	if !reflect.DeepEqual(actualLabels, expectedLabels) {
-		t.Fatalf("wrong labels %v", actualLabels)
+		"b":       "",
 	}
+	actual := updated.ObjectMeta.Labels
+	assert.DeepEqual(t, expected, actual)
+
+	template, err := servinglib.RevisionTemplateOfService(updated)
+	assert.NilError(t, err)
+	actual = template.ObjectMeta.Labels
+	assert.DeepEqual(t, expected, actual)
 }
 
 func newEmptyService() *v1alpha1.Service {
