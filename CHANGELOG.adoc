@@ -34,6 +34,10 @@
 | `kn service describe`
 | https://github.com/knative/client/pull/252[#252]
 
+| 🐛
+| `kn service list` lists services sorted by alphabetical order
+| https://github.com/knative/client/pull/330[#330]
+
 |===
 
 ## v0.2.0 (2019-07-10)

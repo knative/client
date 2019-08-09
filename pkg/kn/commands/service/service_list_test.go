@@ -76,9 +76,10 @@ func TestGetEmpty(t *testing.T) {
 }
 
 func TestServiceListDefaultOutput(t *testing.T) {
-	service1 := createMockServiceWithParams("foo", "http://foo.default.example.com", 1)
-	service2 := createMockServiceWithParams("bar", "http://bar.default.example.com", 2)
-	serviceList := &v1alpha1.ServiceList{Items: []v1alpha1.Service{*service1, *service2}}
+	service1 := createMockServiceWithParams("foo", "http://foo.default.example.com", 2)
+	service3 := createMockServiceWithParams("sss", "http://sss.default.example.com", 3)
+	service2 := createMockServiceWithParams("bar", "http://bar.default.example.com", 1)
+	serviceList := &v1alpha1.ServiceList{Items: []v1alpha1.Service{*service1, *service2, *service3}}
 	action, output, err := fakeServiceList([]string{"service", "list"}, serviceList)
 	if err != nil {
 		t.Fatal(err)
@@ -88,9 +89,11 @@ func TestServiceListDefaultOutput(t *testing.T) {
 	} else if !action.Matches("list", "services") {
 		t.Errorf("Bad action %v", action)
 	}
+	// Outputs in alphabetical order
 	assert.Check(t, util.ContainsAll(output[0], "NAME", "URL", "GENERATION", "AGE", "CONDITIONS", "READY", "REASON"))
-	assert.Check(t, util.ContainsAll(output[1], "foo", "foo.default.example.com", "1"))
-	assert.Check(t, util.ContainsAll(output[2], "bar", "bar.default.example.com", "2"))
+	assert.Check(t, util.ContainsAll(output[1], "bar", "bar.default.example.com", "1"))
+	assert.Check(t, util.ContainsAll(output[2], "foo", "foo.default.example.com", "2"))
+	assert.Check(t, util.ContainsAll(output[3], "sss", "sss.default.example.com", "3"))
 }
 
 func TestServiceGetOneOutput(t *testing.T) {
