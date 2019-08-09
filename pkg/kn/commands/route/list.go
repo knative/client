@@ -15,6 +15,7 @@
 package route
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/knative/client/pkg/kn/commands"
@@ -57,13 +58,13 @@ func NewRouteListCommand(p *commands.KnParams) *cobra.Command {
 			case 1:
 				routeList, err = client.ListRoutes(v1alpha12.WithName(args[0]))
 			default:
-				return fmt.Errorf("'kn route list' accepts maximum 1 argument.")
+				return errors.New("'kn route list' accepts only one additional argument")
 			}
 			if err != nil {
 				return err
 			}
 			if len(routeList.Items) == 0 {
-				fmt.Fprintf(cmd.OutOrStdout(), "No resources found.\n")
+				fmt.Fprintf(cmd.OutOrStdout(), "No routes found.\n")
 				return nil
 			}
 			printer, err := routeListFlags.ToPrinter()
