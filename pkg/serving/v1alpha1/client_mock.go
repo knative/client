@@ -22,6 +22,8 @@ import (
 
 	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"gotest.tools/assert"
+	"k8s.io/apimachinery/pkg/fields"
+	"k8s.io/apimachinery/pkg/labels"
 )
 
 type Recorder struct {
@@ -59,8 +61,8 @@ func (c *MockKnClient) Recorder() *Recorder {
 }
 
 // any() can be used in recording to not check for the argument
-func Any() func(t *testing.T, a, b interface{}) {
-	return func(t *testing.T, a, b interface{}) {}
+func Any() func(t *testing.T, a interface{}) {
+	return func(t *testing.T, a interface{}) {}
 }
 
 // Get Service
@@ -186,12 +188,66 @@ func (c *MockKnClient) ListRoutes(opts ...ListConfig) (*v1alpha1.RouteList, erro
 	return call.result[0].(*v1alpha1.RouteList), errorOrNil(call.result[1])
 }
 
+// GetConfiguration records a call to GetConfiguration with possible return values
+func (r *Recorder) GetConfiguration(name string, config *v1alpha1.Configuration, err error) {
+	r.add("GetConfiguration", apiMethodCall{[]interface{}{name}, []interface{}{config, err}})
+
+}
+
+// GetConfiguration returns a configuration looked up by name
+func (c *MockKnClient) GetConfiguration(name string) (*v1alpha1.Configuration, error) {
+	call := c.getCall("GetConfiguration")
+	c.verifyArgs(call, name)
+	return call.result[0].(*v1alpha1.Configuration), errorOrNil(call.result[1])
+}
+
 // Check that every recorded method has been called
 func (r *Recorder) Validate() {
 	for k, v := range r.recordedCalls {
 		if len(v) > 0 {
 			r.t.Errorf("Recorded method \"%s\" not been called", k)
 		}
+	}
+}
+
+// HasLabelSelector returns a comparable which can be used for asserting that list methods are called
+// with the appropriate label selector
+func HasLabelSelector(keyAndValues ...string) func(t *testing.T, a interface{}) {
+	return func(t *testing.T, a interface{}) {
+		lc := a.([]ListConfig)
+		listConfigCollector := listConfigCollector{
+			Labels: make(labels.Set),
+			Fields: make(fields.Set),
+		}
+		lc[0](&listConfigCollector)
+		for i := 0; i < len(keyAndValues); i += 2 {
+			assert.Equal(t, listConfigCollector.Labels[keyAndValues[i]], keyAndValues[i+1])
+		}
+	}
+}
+
+// HasFieldSelector returns a comparable which can be used for asserting that list methods are called
+// with the appropriate field selectors
+func HasFieldSelector(keyAndValues ...string) func(t *testing.T, a interface{}) {
+	return func(t *testing.T, a interface{}) {
+		lc := a.([]ListConfig)
+		listConfigCollector := listConfigCollector{
+			Labels: make(labels.Set),
+			Fields: make(fields.Set),
+		}
+		lc[0](&listConfigCollector)
+		for i := 0; i < len(keyAndValues); i += 2 {
+			assert.Equal(t, listConfigCollector.Fields[keyAndValues[i]], keyAndValues[i+1])
+		}
+	}
+}
+
+// HasSelector returns a comparable which can be used for asserting that list methods are called
+// with the appropriate label and field selectors
+func HasSelector(labelKeysAndValues []string, fieldKeysAndValue []string) func(t *testing.T, a interface{}) {
+	return func(t *testing.T, a interface{}) {
+		HasLabelSelector(labelKeysAndValues...)(t, a)
+		HasFieldSelector(fieldKeysAndValue...)(t, a)
 	}
 }
 
@@ -223,17 +279,17 @@ func (c *MockKnClient) getCall(name string) *apiMethodCall {
 	return call
 }
 
-// Verify given arguments agains recorded arguments
+// Verify given arguments against recorded arguments
 func (c *MockKnClient) verifyArgs(call *apiMethodCall, args ...interface{}) {
 	callArgs := call.args
 	for i, arg := range args {
 		assert.Assert(c.t, len(callArgs) > i, "Internal: Invalid recording: Expected %d args, got %d", len(callArgs), len(args))
 		fn := reflect.ValueOf(call.args[i])
 		fnType := fn.Type()
-		if fnType.Kind() == reflect.Func {
-			fn.Call([]reflect.Value{reflect.ValueOf(c.t), reflect.ValueOf(call.args[0]), reflect.ValueOf(arg)})
+		if fnType.Kind() == reflect.Func && fnType.NumIn() == 2 {
+			fn.Call([]reflect.Value{reflect.ValueOf(c.t), reflect.ValueOf(arg)})
 		} else {
-			assert.DeepEqual(c.t, call.args[0], arg)
+			assert.DeepEqual(c.t, call.args[i], arg)
 		}
 	}
 }

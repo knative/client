@@ -16,6 +16,10 @@ package revision
 
 import (
 	"fmt"
+	"sort"
+	"strconv"
+
+	"github.com/knative/serving/pkg/apis/serving"
 
 	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"github.com/spf13/cobra"
@@ -80,6 +84,28 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 					return nil
 				}
 			}
+
+			// sort revisionList by configuration generation key
+			sort.SliceStable(revisionList.Items, func(i, j int) bool {
+				a := revisionList.Items[i]
+				b := revisionList.Items[j]
+
+				// Convert configuration generation key from string to int for avoiding string comparison.
+				agen, err := strconv.Atoi(a.Labels[serving.ConfigurationGenerationLabelKey])
+				if err != nil {
+					return a.Name < b.Name
+				}
+				bgen, err := strconv.Atoi(b.Labels[serving.ConfigurationGenerationLabelKey])
+				if err != nil {
+					return a.Name < b.Name
+				}
+
+				if agen != bgen {
+					return agen > bgen
+				}
+				return a.Name < b.Name
+			})
+
 			printer, err := revisionListFlags.ToPrinter()
 			if err != nil {
 				return err

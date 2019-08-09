@@ -26,10 +26,11 @@ kn plugin [flags]
 ```
       --config string       kn config file (default is $HOME/.kn/config.yaml)
       --kubeconfig string   kubectl config file (default is $HOME/.kube/config)
+      --log-http            log http traffic
 ```
 
 ### SEE ALSO
 
 * [kn](kn.md)	 - Knative client
-* [kn plugin list](kn_plugin_list.md)	 - List all visible plugin executables
+* [kn plugin list](kn_plugin_list.md)	 - List plugins
 

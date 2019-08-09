@@ -394,6 +394,42 @@ func TestWaitForService(t *testing.T) {
 	})
 }
 
+func TestGetConfiguration(t *testing.T) {
+	serving, client := setup()
+
+	const (
+		configName                   = "test-config"
+		notExistingConfigurationName = "no-revision"
+	)
+
+	serving.AddReactor("get", "configurations",
+		func(a client_testing.Action) (bool, runtime.Object, error) {
+			configuration := &v1alpha1.Configuration{ObjectMeta: metav1.ObjectMeta{Name: configName, Namespace: testNamespace}}
+			name := a.(client_testing.GetAction).GetName()
+			// Sanity check
+			assert.Assert(t, name != "")
+			assert.Equal(t, testNamespace, a.GetNamespace())
+			if name == configName {
+				return true, configuration, nil
+			}
+			return true, nil, errors.NewNotFound(v1alpha1.Resource("configuration"), name)
+		})
+
+	t.Run("getting existing configuration returns configuration and no error", func(t *testing.T) {
+		configuration, err := client.GetConfiguration(configName)
+		assert.NilError(t, err)
+		assert.Equal(t, configName, configuration.Name)
+		validateGroupVersionKind(t, configuration)
+	})
+
+	t.Run("trying to get a configuration with a name that does not exist returns an error", func(t *testing.T) {
+		configuration, err := client.GetConfiguration(notExistingConfigurationName)
+		assert.Assert(t, configuration == nil)
+		assert.ErrorContains(t, err, notExistingConfigurationName)
+		assert.ErrorContains(t, err, "not found")
+	})
+}
+
 func validateGroupVersionKind(t *testing.T, obj runtime.Object) {
 	gvkExpected, err := serving.GetGroupVersionKind(obj, v1alpha1.SchemeGroupVersion)
 	assert.NilError(t, err)

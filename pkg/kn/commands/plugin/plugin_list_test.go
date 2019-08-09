@@ -15,190 +15,191 @@
 package plugin
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
 	"github.com/knative/client/pkg/kn/commands"
+	"github.com/knative/client/pkg/util"
+
 	"github.com/spf13/cobra"
 	"gotest.tools/assert"
 )
 
-func TestPluginList(t *testing.T) {
-	var (
-		rootCmd, pluginCmd, pluginListCmd      *cobra.Command
-		tmpPathDir, pluginsDir, pluginsDirFlag string
-		err                                    error
-	)
+type testContext struct {
+	pluginsDir string
+	pathDir    string
+	rootCmd    *cobra.Command
+	out        *bytes.Buffer
+	origPath   string
+}
 
-	setup := func(t *testing.T) {
-		knParams := &commands.KnParams{}
-		pluginCmd = NewPluginCommand(knParams)
-		assert.Assert(t, pluginCmd != nil)
+func (ctx *testContext) execute(args ...string) error {
+	ctx.rootCmd.SetArgs(append(args, fmt.Sprintf("--plugins-dir=%s", ctx.pluginsDir)))
+	return ctx.rootCmd.Execute()
+}
 
-		rootCmd, _, _ = commands.CreateTestKnCommand(pluginCmd, knParams)
-		assert.Assert(t, rootCmd != nil)
+func (ctx *testContext) output() string {
+	return ctx.out.String()
+}
 
-		pluginListCmd = FindSubCommand(t, pluginCmd, "list")
-		assert.Assert(t, pluginListCmd != nil)
+func (ctx *testContext) cleanup() {
+	os.RemoveAll(ctx.pluginsDir)
+	os.RemoveAll(ctx.pathDir)
+	os.Setenv("PATH", ctx.origPath)
+}
 
-		tmpPathDir, err = ioutil.TempDir("", "plugin_list")
-		assert.Assert(t, err == nil)
-
-		pluginsDir = filepath.Join(tmpPathDir, "plugins")
-		pluginsDirFlag = fmt.Sprintf("--plugins-dir=%s", pluginsDir)
+func (ctx *testContext) createTestPlugin(pluginName string, fileMode os.FileMode, inPath bool) error {
+	path := ctx.pluginsDir
+	if inPath {
+		path = ctx.pathDir
 	}
+	return ctx.createTestPluginWithPath(pluginName, fileMode, path)
+}
 
-	cleanup := func(t *testing.T) {
-		err = os.RemoveAll(tmpPathDir)
-		assert.Assert(t, err == nil)
+func (ctx *testContext) createTestPluginWithPath(pluginName string, fileMode os.FileMode, path string) error {
+	if runtime.GOOS == "windows" {
+		pluginName += ".bat"
+	}
+	fullPath := filepath.Join(path, pluginName)
+	return ioutil.WriteFile(fullPath, []byte(KnTestPluginScript), fileMode)
+}
+
+func TestPluginList(t *testing.T) {
+
+	setup := func(t *testing.T) *testContext {
+		knParams := &commands.KnParams{}
+		pluginCmd := NewPluginCommand(knParams)
+
+		rootCmd, _, out := commands.CreateTestKnCommand(pluginCmd, knParams)
+		pluginsDir, err := ioutil.TempDir("", "plugin-list-plugindir")
+		assert.NilError(t, err)
+		pathDir, err := ioutil.TempDir("", "plugin-list-pathdir")
+		assert.NilError(t, err)
+
+		origPath := os.Getenv("PATH")
+		assert.NilError(t, os.Setenv("PATH", pathDir))
+
+		return &testContext{
+			rootCmd:    rootCmd,
+			out:        out,
+			pluginsDir: pluginsDir,
+			pathDir:    pathDir,
+			origPath:   origPath,
+		}
 	}
 
 	t.Run("creates a new cobra.Command", func(t *testing.T) {
-		setup(t)
-		defer cleanup(t)
+		pluginCmd := NewPluginCommand(&commands.KnParams{})
+		pluginListCmd := FindSubCommand(t, pluginCmd, "list")
+		assert.Assert(t, pluginListCmd != nil)
 
 		assert.Assert(t, pluginListCmd != nil)
 		assert.Assert(t, pluginListCmd.Use == "list")
-		assert.Assert(t, pluginListCmd.Short == "List all visible plugin executables")
-		assert.Assert(t, strings.Contains(pluginListCmd.Long, "List all visible plugin executables"))
+		assert.Assert(t, pluginListCmd.Short == "List plugins")
+		assert.Assert(t, strings.Contains(pluginListCmd.Long, "List all installed plugins"))
 		assert.Assert(t, pluginListCmd.Flags().Lookup("plugins-dir") != nil)
 		assert.Assert(t, pluginListCmd.RunE != nil)
 	})
 
 	t.Run("when pluginsDir does not include any plugins", func(t *testing.T) {
 		t.Run("when --lookup-plugins-in-path is true", func(t *testing.T) {
-			var pluginPath string
-
-			beforeEach := func(t *testing.T) {
-				err = os.Setenv("PATH", tmpPathDir)
-				assert.Assert(t, err == nil)
-			}
-
 			t.Run("no plugins installed", func(t *testing.T) {
-				setup(t)
-				defer cleanup(t)
-				beforeEach(t)
 
-				t.Run("warns user that no plugins found", func(t *testing.T) {
-					rootCmd.SetArgs([]string{"plugin", "list", "--lookup-plugins-in-path=true", pluginsDirFlag})
-					err = rootCmd.Execute()
-					assert.Assert(t, err != nil)
-					assert.Assert(t, strings.Contains(err.Error(), "warning: unable to find any kn plugins in your plugin path:"))
+				t.Run("warns user that no plugins found in verbose mode", func(t *testing.T) {
+					ctx := setup(t)
+					defer ctx.cleanup()
+					err := ctx.execute("plugin", "list", "--lookup-plugins-in-path=true", "--verbose")
+					assert.NilError(t, err)
+					assert.Assert(t, util.ContainsAll(ctx.output(), "No plugins found"))
+				})
+
+				t.Run("no output when no plugins found", func(t *testing.T) {
+					ctx := setup(t)
+					defer ctx.cleanup()
+					err := ctx.execute("plugin", "list", "--lookup-plugins-in-path=true")
+					assert.NilError(t, err)
+					assert.Equal(t, ctx.output(), "")
 				})
 			})
 
 			t.Run("plugins installed", func(t *testing.T) {
 				t.Run("with valid plugin in $PATH", func(t *testing.T) {
-					beforeEach := func(t *testing.T) {
-						pluginPath = CreateTestPluginInPath(t, KnTestPluginName, KnTestPluginScript, FileModeExecutable, tmpPathDir)
-						assert.Assert(t, pluginPath != "")
-
-						err = os.Setenv("PATH", tmpPathDir)
-						assert.Assert(t, err == nil)
-					}
 
 					t.Run("list plugins in $PATH", func(t *testing.T) {
-						setup(t)
-						defer cleanup(t)
-						beforeEach(t)
+						ctx := setup(t)
+						defer ctx.cleanup()
 
-						commands.CaptureStdout(t)
-						rootCmd.SetArgs([]string{"plugin", "list", "--lookup-plugins-in-path=true", pluginsDirFlag})
-						err = rootCmd.Execute()
-						assert.Assert(t, err == nil)
+						err := ctx.createTestPlugin(KnTestPluginName, FileModeExecutable, true)
+						assert.NilError(t, err)
+
+						err = ctx.execute("plugin", "list", "--lookup-plugins-in-path=true")
+						assert.NilError(t, err)
+						assert.Assert(t, util.ContainsAll(ctx.output(), KnTestPluginName))
 					})
 				})
 
 				t.Run("with non-executable plugin", func(t *testing.T) {
-					beforeEach := func(t *testing.T) {
-						pluginPath = CreateTestPluginInPath(t, KnTestPluginName, KnTestPluginScript, FileModeReadable, tmpPathDir)
-						assert.Assert(t, pluginPath != "")
-					}
-
 					t.Run("warns user plugin invalid", func(t *testing.T) {
-						setup(t)
-						defer cleanup(t)
-						beforeEach(t)
+						ctx := setup(t)
+						defer ctx.cleanup()
 
-						rootCmd.SetArgs([]string{"plugin", "list", "--lookup-plugins-in-path=true", pluginsDirFlag})
-						err = rootCmd.Execute()
-						assert.Assert(t, err != nil)
-						assert.Assert(t, strings.Contains(err.Error(), "warning: unable to find any kn plugins in your plugin path:"))
+						err := ctx.createTestPlugin(KnTestPluginName, FileModeReadable, false)
+						assert.NilError(t, err)
+
+						err = ctx.execute("plugin", "list", "--lookup-plugins-in-path=false")
+						assert.NilError(t, err)
+						assert.Assert(t, util.ContainsAll(ctx.output(), "WARNING", "not executable", "current user"))
 					})
 				})
 
 				t.Run("with plugins with same name", func(t *testing.T) {
-					var tmpPathDir2 string
-
-					beforeEach := func(t *testing.T) {
-						pluginPath = CreateTestPluginInPath(t, KnTestPluginName, KnTestPluginScript, FileModeExecutable, tmpPathDir)
-						assert.Assert(t, pluginPath != "")
-
-						tmpPathDir2, err = ioutil.TempDir("", "plugins_list")
-						assert.Assert(t, err == nil)
-
-						err = os.Setenv("PATH", tmpPathDir+string(os.PathListSeparator)+tmpPathDir2)
-						assert.Assert(t, err == nil)
-
-						pluginPath = CreateTestPluginInPath(t, KnTestPluginName, KnTestPluginScript, FileModeExecutable, tmpPathDir2)
-						assert.Assert(t, pluginPath != "")
-					}
-
-					afterEach := func(t *testing.T) {
-						err = os.RemoveAll(tmpPathDir)
-						assert.Assert(t, err == nil)
-
-						err = os.RemoveAll(tmpPathDir2)
-						assert.Assert(t, err == nil)
-					}
 
 					t.Run("warns user about second (in $PATH) plugin shadowing first", func(t *testing.T) {
-						setup(t)
-						defer cleanup(t)
-						beforeEach(t)
-						defer afterEach(t)
+						ctx := setup(t)
+						defer ctx.cleanup()
 
-						rootCmd.SetArgs([]string{"plugin", "list", "--lookup-plugins-in-path=true", pluginsDirFlag})
-						err = rootCmd.Execute()
-						assert.Assert(t, err != nil)
-						assert.Assert(t, strings.Contains(err.Error(), "error: one plugin warning was found"))
+						err := ctx.createTestPlugin(KnTestPluginName, FileModeExecutable, true)
+						assert.NilError(t, err)
+
+						tmpPathDir2, err := ioutil.TempDir("", "plugins_list")
+						assert.NilError(t, err)
+						defer os.RemoveAll(tmpPathDir2)
+
+						err = os.Setenv("PATH", ctx.pathDir+string(os.PathListSeparator)+tmpPathDir2)
+						assert.NilError(t, err)
+
+						err = ctx.createTestPluginWithPath(KnTestPluginName, FileModeExecutable, tmpPathDir2)
+						assert.NilError(t, err)
+
+						err = ctx.execute("plugin", "list", "--lookup-plugins-in-path=true")
+						assert.NilError(t, err)
+						assert.Assert(t, util.ContainsAll(ctx.output(), "WARNING", "shadowed", "ignored"))
 					})
 				})
 
 				t.Run("with plugins with name of existing command", func(t *testing.T) {
-					var fakeCmd *cobra.Command
+					t.Run("warns user about overwriting existing command", func(t *testing.T) {
+						ctx := setup(t)
+						defer ctx.cleanup()
 
-					beforeEach := func(t *testing.T) {
-						fakeCmd = &cobra.Command{
+						fakeCmd := &cobra.Command{
 							Use: "fake",
 						}
-						rootCmd.AddCommand(fakeCmd)
+						ctx.rootCmd.AddCommand(fakeCmd)
+						defer ctx.rootCmd.RemoveCommand(fakeCmd)
 
-						pluginPath = CreateTestPluginInPath(t, "kn-fake", KnTestPluginScript, FileModeExecutable, tmpPathDir)
-						assert.Assert(t, pluginPath != "")
+						err := ctx.createTestPlugin("kn-fake", FileModeExecutable, true)
+						assert.NilError(t, err)
 
-						err = os.Setenv("PATH", tmpPathDir)
-						assert.Assert(t, err == nil)
-					}
-
-					afterEach := func(t *testing.T) {
-						rootCmd.RemoveCommand(fakeCmd)
-					}
-
-					t.Run("warns user about overwritting exising command", func(t *testing.T) {
-						setup(t)
-						defer cleanup(t)
-						beforeEach(t)
-						defer afterEach(t)
-
-						rootCmd.SetArgs([]string{"plugin", "list", "--lookup-plugins-in-path=true", pluginsDirFlag})
-						err = rootCmd.Execute()
-						assert.Assert(t, err != nil)
-						assert.Assert(t, strings.Contains(err.Error(), "error: one plugin warning was found"))
+						err = ctx.execute("plugin", "list", "--lookup-plugins-in-path=true")
+						assert.ErrorContains(t, err, "overwrite", "built-in")
+						assert.Assert(t, util.ContainsAll(ctx.output(), "ERROR", "overwrite", "built-in"))
 					})
 				})
 			})
@@ -206,35 +207,24 @@ func TestPluginList(t *testing.T) {
 	})
 
 	t.Run("when pluginsDir has plugins", func(t *testing.T) {
-		var pluginPath string
-
-		beforeEach := func(t *testing.T) {
-			pluginPath = CreateTestPluginInPath(t, KnTestPluginName, KnTestPluginScript, FileModeExecutable, tmpPathDir)
-			assert.Assert(t, pluginPath != "")
-
-			err = os.Setenv("PATH", "")
-			assert.Assert(t, err == nil)
-
-			pluginsDirFlag = fmt.Sprintf("--plugins-dir=%s", tmpPathDir)
-		}
-
 		t.Run("list plugins in --plugins-dir", func(t *testing.T) {
-			setup(t)
-			defer cleanup(t)
-			beforeEach(t)
+			ctx := setup(t)
+			defer ctx.cleanup()
 
-			rootCmd.SetArgs([]string{"plugin", "list", pluginsDirFlag})
-			err = rootCmd.Execute()
-			assert.Assert(t, err == nil)
+			err := ctx.createTestPlugin(KnTestPluginName, FileModeExecutable, false)
+
+			err = ctx.execute("plugin", "list")
+			assert.NilError(t, err)
+			assert.Assert(t, util.ContainsAll(ctx.output(), KnTestPluginName))
 		})
 
 		t.Run("no plugins installed", func(t *testing.T) {
-			setup(t)
-			defer cleanup(t)
+			ctx := setup(t)
+			defer ctx.cleanup()
 
-			rootCmd.SetArgs([]string{"plugin", "list", pluginsDirFlag})
-			err = rootCmd.Execute()
-			assert.Assert(t, err != nil)
+			err := ctx.execute("plugin", "list")
+			assert.NilError(t, err)
+			assert.Equal(t, ctx.output(), "")
 		})
 	})
 }

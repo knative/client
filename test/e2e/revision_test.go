@@ -18,6 +18,7 @@ package e2e
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -39,6 +40,14 @@ func TestRevision(t *testing.T) {
 		test.revisionDescribeWithPrintFlags(t, "hello")
 	})
 
+	t.Run("update hello service and increase the count of configuration generation", func(t *testing.T) {
+		test.serviceUpdate(t, "hello", []string{"--env", "TARGET=kn", "--port", "8888"})
+	})
+
+	t.Run("show a list of revisions sorted by the count of configuration generation", func(t *testing.T) {
+		test.revisionListWithService(t, "hello")
+	})
+
 	t.Run("delete latest revision from hello service and return no error", func(t *testing.T) {
 		test.revisionDelete(t, "hello")
 	})
@@ -46,6 +55,24 @@ func TestRevision(t *testing.T) {
 	t.Run("delete hello service and return no error", func(t *testing.T) {
 		test.serviceDelete(t, "hello")
 	})
+}
+
+func (test *e2eTest) revisionListWithService(t *testing.T, serviceNames ...string) {
+	for _, svcName := range serviceNames {
+		confGen := test.findConfigurationGeneration(t, svcName)
+
+		out, err := test.kn.RunWithOpts([]string{"revision", "list", "-s", svcName}, runOpts{})
+		assert.NilError(t, err)
+
+		outputLines := strings.Split(out, "\n")
+		// Ignore the last line because it is an empty string caused by splitting a line break
+		// at the end of the output string
+		for _, line := range outputLines[1 : len(outputLines)-1] {
+			revName := test.findRevisionByGeneration(t, svcName, confGen)
+			assert.Check(t, util.ContainsAll(line, revName, svcName, strconv.Itoa(confGen)))
+			confGen--
+		}
+	}
 }
 
 func (test *e2eTest) revisionDelete(t *testing.T, serviceName string) {
@@ -68,10 +95,35 @@ func (test *e2eTest) revisionDescribeWithPrintFlags(t *testing.T, serviceName st
 }
 
 func (test *e2eTest) findRevision(t *testing.T, serviceName string) string {
-	revName, err := test.kn.RunWithOpts([]string{"revision", "list", "-o=jsonpath={.items[0].metadata.name}"}, runOpts{})
+	revName, err := test.kn.RunWithOpts([]string{"revision", "list", "-s", serviceName, "-o=jsonpath={.items[0].metadata.name}"}, runOpts{})
 	assert.NilError(t, err)
 	if strings.Contains(revName, "No resources found.") {
 		t.Errorf("Could not find revision name.")
 	}
 	return revName
+}
+
+func (test *e2eTest) findRevisionByGeneration(t *testing.T, serviceName string, generation int) string {
+	maxGen := test.findConfigurationGeneration(t, serviceName)
+	revName, err := test.kn.RunWithOpts([]string{"revision", "list", "-s", serviceName,
+		fmt.Sprintf("-o=jsonpath={.items[%d].metadata.name}", maxGen-generation)}, runOpts{})
+	assert.NilError(t, err)
+	if strings.Contains(revName, "No resources found.") {
+		t.Errorf("Could not find revision name.")
+	}
+	return revName
+}
+
+func (test *e2eTest) findConfigurationGeneration(t *testing.T, serviceName string) int {
+	confGenStr, err := test.kn.RunWithOpts([]string{"revision", "list", "-s", serviceName, "-o=jsonpath={.items[0].metadata.labels.serving\\.knative\\.dev/configurationGeneration}"}, runOpts{})
+	assert.NilError(t, err)
+	if confGenStr == "" {
+		t.Errorf("Could not find configuration generation.")
+	}
+	confGen, err := strconv.Atoi(confGenStr)
+	if err != nil {
+		t.Errorf("Invalid type of configuration generation: %s", err)
+	}
+
+	return confGen
 }

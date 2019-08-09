@@ -97,14 +97,9 @@ func (test *e2eTest) serviceDescribe(t *testing.T, serviceName string) {
 	out, err := test.kn.RunWithOpts([]string{"service", "describe", serviceName}, runOpts{NoNamespace: false})
 	assert.NilError(t, err)
 
-	expectedOutputHeader := `apiVersion: serving.knative.dev/v1alpha1
-kind: Service
-metadata:`
-	expectedOutput := `generation: 1
-  name: %s
-  namespace: %s`
-	expectedOutput = fmt.Sprintf(expectedOutput, serviceName, test.kn.namespace)
-	assert.Check(t, util.ContainsAll(out, expectedOutputHeader, expectedOutput))
+	assert.Assert(t, util.ContainsAll(out, serviceName, test.kn.namespace, KnDefaultTestImage))
+	assert.Assert(t, util.ContainsAll(out, "Conditions", "ConfigurationsReady", "Ready", "RoutesReady"))
+	assert.Assert(t, util.ContainsAll(out, "Name", "Namespace", "URL", "Address", "Annotations", "Age", "Revisions"))
 }
 
 func (test *e2eTest) serviceUpdate(t *testing.T, serviceName string, args []string) {

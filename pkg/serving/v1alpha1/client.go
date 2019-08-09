@@ -54,6 +54,9 @@ type KnClient interface {
 	// Wait for a service to become ready, but not longer than provided timeout
 	WaitForService(name string, timeout time.Duration) error
 
+	// Get a configuration by name
+	GetConfiguration(name string) (*v1alpha1.Configuration, error)
+
 	// Get a revision by name
 	GetRevision(name string) (*v1alpha1.Revision, error)
 
@@ -70,7 +73,7 @@ type KnClient interface {
 	ListRoutes(opts ...ListConfig) (*v1alpha1.RouteList, error)
 }
 
-type listConfig struct {
+type listConfigCollector struct {
 	// Labels to filter on
 	Labels labels.Set
 
@@ -79,13 +82,13 @@ type listConfig struct {
 }
 
 // Config function for builder pattern
-type ListConfig func(config *listConfig)
+type ListConfig func(config *listConfigCollector)
 
 type ListConfigs []ListConfig
 
 // add selectors to a list options
 func (opts ListConfigs) toListOptions() v1.ListOptions {
-	listConfig := listConfig{labels.Set{}, fields.Set{}}
+	listConfig := listConfigCollector{labels.Set{}, fields.Set{}}
 	for _, f := range opts {
 		f(&listConfig)
 	}
@@ -101,14 +104,14 @@ func (opts ListConfigs) toListOptions() v1.ListOptions {
 
 // Filter list on the provided name
 func WithName(name string) ListConfig {
-	return func(lo *listConfig) {
+	return func(lo *listConfigCollector) {
 		lo.Fields["metadata.name"] = name
 	}
 }
 
 // Filter on the service name
 func WithService(service string) ListConfig {
-	return func(lo *listConfig) {
+	return func(lo *listConfigCollector) {
 		lo.Labels[api_serving.ServiceLabelKey] = service
 	}
 }
@@ -193,6 +196,19 @@ func (cl *knClient) DeleteService(serviceName string) error {
 func (cl *knClient) WaitForService(name string, timeout time.Duration) error {
 	waitForReady := newServiceWaitForReady(cl.client.Services(cl.namespace).Watch)
 	return waitForReady.Wait(name, timeout)
+}
+
+// Get the configuration for a service
+func (cl *knClient) GetConfiguration(name string) (*v1alpha1.Configuration, error) {
+	configuration, err := cl.client.Configurations(cl.namespace).Get(name, v1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	err = updateServingGvk(configuration)
+	if err != nil {
+		return nil, err
+	}
+	return configuration, nil
 }
 
 // Get a revision by name

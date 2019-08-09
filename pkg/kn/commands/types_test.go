@@ -29,17 +29,56 @@ import (
 type getConfigTestCase struct {
 	clientConfig      clientcmd.ClientConfig
 	expectedErrString string
+	logHttp           bool
 }
 
+var BASIC_KUBECONFIG = `apiVersion: v1
+kind: Config
+preferences: {}
+users:
+- name: a
+  user:
+    client-certificate-data: ""
+    client-key-data: ""
+clusters:
+- name: a
+  cluster:
+    insecure-skip-tls-verify: true
+    server: https://127.0.0.1:8080
+contexts:
+- name: a
+  context:
+    cluster: a
+    user: a
+current-context: a
+`
+
 func TestGetConfig(t *testing.T) {
+	basic, err := clientcmd.NewClientConfigFromBytes([]byte(BASIC_KUBECONFIG))
+	if err != nil {
+		t.Error(err)
+	}
 	for i, tc := range []getConfigTestCase{
 		{
 			clientcmd.NewDefaultClientConfig(clientcmdapi.Config{}, &clientcmd.ConfigOverrides{}),
 			"no configuration has been provided",
+			false,
+		},
+		{
+			basic,
+			"",
+			false,
+		},
+		{ // Test that the cast to wrap the http client in a logger works
+			basic,
+			"",
+			true,
 		},
 	} {
 		p := &KnParams{
-			ClientConfig: tc.clientConfig}
+			ClientConfig: tc.clientConfig,
+			LogHttp:      tc.logHttp,
+		}
 
 		_, err := p.GetConfig()
 
