@@ -48,10 +48,11 @@ func AddBothBoolFlags(f *pflag.FlagSet, p *bool, name, short string, value bool,
 }
 
 // ReconcileBoolFlags sets the value of the all the "--foo" flags based on
-// "--no-foo" if provided, and returns an error if both were provided.
+// "--no-foo" if provided, and returns an error if both were provided or an
+// explicit value of false was provided to either (as that's confusing).
 func ReconcileBoolFlags(f *pflag.FlagSet) error {
 	var err error
-	f.Visit(func(flag *pflag.Flag) {
+	f.VisitAll(func(flag *pflag.Flag) {
 		// Return early from our comprehension
 		if err != nil {
 			return
@@ -62,17 +63,41 @@ func ReconcileBoolFlags(f *pflag.FlagSet) error {
 		if strings.HasPrefix(flag.Name, "no-") {
 			positiveName := flag.Name[len(negPrefix):len(flag.Name)]
 			positive := f.Lookup(positiveName)
-			if positive.Changed {
-				err = fmt.Errorf("only one of --%s and --%s may be specified",
-					flag.Name, positiveName)
-				return
+			if flag.Changed {
+				if positive.Changed {
+					err = fmt.Errorf("only one of --%s and --%s may be specified",
+						flag.Name, positiveName)
+					return
+				}
+				var noValue bool
+				noValue, err = strconv.ParseBool(flag.Value.String())
+				if err != nil {
+					return
+				}
+				if !noValue {
+					err = fmt.Errorf("use --%s instead of providing false to --%s",
+						positiveName, flag.Name)
+					if err != nil {
+						return
+					}
+				}
+				err = positive.Value.Set(strconv.FormatBool(!noValue))
+			} else if positive.Changed {
+				// For the positive version, just check it wasn't set to the
+				// confusing "false" value.
+				var yesValue bool
+				yesValue, err = strconv.ParseBool(positive.Value.String())
+				if err != nil {
+					return
+				}
+				if !yesValue {
+					err = fmt.Errorf("use --%s instead of providing false to --%s",
+						flag.Name, positiveName)
+					if err != nil {
+						return
+					}
+				}
 			}
-			var noValue bool
-			noValue, err = strconv.ParseBool(flag.Value.String())
-			if err != nil {
-				return
-			}
-			err = positive.Value.Set(strconv.FormatBool(!noValue))
 		}
 	})
 	return err
