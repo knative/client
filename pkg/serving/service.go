@@ -73,7 +73,19 @@ func GenerateRevisionName(nameTempl string, service *servingv1alpha1.Service) (s
 	}
 	buf := new(bytes.Buffer)
 	err = templ.Execute(buf, context)
-	return buf.String(), err
+	if err != nil {
+		return "", err
+	}
+	res := buf.String()
+	// Empty is ok.
+	if res == "" {
+		return res, nil
+	}
+	prefix := service.Name + "-"
+	if !strings.HasPrefix(res, prefix) {
+		res = prefix + res
+	}
+	return res, nil
 }
 
 func getConfiguration(service *servingv1alpha1.Service) (*servingv1alpha1.ConfigurationSpec, error) {

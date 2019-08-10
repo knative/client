@@ -40,6 +40,9 @@ func TestGenerateName(t *testing.T) {
 		{"foo-asdf", "foo-asdf", ""},
 		{"{{.Bad}}", "", "can't evaluate field Bad"},
 		{"{{.Service}}-{{.Random 5}}", "foo-" + someRandomChars[0:5], ""},
+		{"", "", ""},
+		{"andrew", "foo-andrew", ""},
+		{"{{.Random 5}}", "foo-" + someRandomChars[0:5], ""},
 	}
 	for _, c := range cases {
 		rand.Seed(1)
