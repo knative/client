@@ -19,7 +19,6 @@ import (
 
 	"github.com/spf13/pflag"
 	"gotest.tools/assert"
-	"gotest.tools/assert/cmp"
 )
 
 type boolPairTestCase struct {
