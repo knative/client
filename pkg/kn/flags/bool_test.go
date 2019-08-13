@@ -66,7 +66,7 @@ func TestBooleanPair(t *testing.T) {
 		if c.expectedErrText != "" {
 			assert.ErrorContains(t, err, c.expectedErrText)
 		} else {
-			assert.Assert(t, cmp.Equal(result, c.expectedResult))
+			assert.Equal(t, result, c.expectedResult)
 		}
 	}
 }

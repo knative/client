@@ -61,7 +61,7 @@ func ReconcileBoolFlags(f *pflag.FlagSet) error {
 		// both, and set the positive value to the opposite of the "no-"
 		// value if it exists.
 		if strings.HasPrefix(flag.Name, "no-") {
-			positiveName := flag.Name[len(negPrefix):len(flag.Name)]
+			positiveName := flag.Name[len(negPrefix):]
 			positive := f.Lookup(positiveName)
 			if flag.Changed {
 				if positive.Changed {
