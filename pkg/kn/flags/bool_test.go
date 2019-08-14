@@ -40,8 +40,8 @@ func TestBooleanPair(t *testing.T) {
 		{"foo", true, []string{"--foo", "--no-foo"}, false, "only one of"},
 		{"foo", true, []string{"--no-foo", "--foo"}, false, "only one of"},
 		// Disallow confusing "false" value.
-		{"foo", true, []string{"--foo=false"}, false, "use --no-foo instead of providing false to --foo"},
-		{"foo", true, []string{"--no-foo=false"}, false, "use --foo instead of providing false to --no-foo"},
+		{"foo", true, []string{"--foo=false"}, false, "use --no-foo instead of providing \"false\" to --foo"},
+		{"foo", true, []string{"--no-foo=false"}, false, "use --foo instead of providing \"false\" to --no-foo"},
 
 		// Ensure tests still pass if positive sorts after no- alphabetically.
 		{"zoo", true, []string{}, true, ""},
@@ -53,8 +53,8 @@ func TestBooleanPair(t *testing.T) {
 		{"zoo", true, []string{"--zoo", "--no-zoo"}, false, "only one of"},
 		{"zoo", true, []string{"--no-zoo", "--zoo"}, false, "only one of"},
 		// Disallow confusing "false" value.
-		{"zoo", true, []string{"--zoo=false"}, false, "use --no-zoo instead of providing false to --zoo"},
-		{"zoo", true, []string{"--no-zoo=false"}, false, "use --zoo instead of providing false to --no-zoo"},
+		{"zoo", true, []string{"--zoo=false"}, false, "use --no-zoo instead of providing \"false\" to --zoo"},
+		{"zoo", true, []string{"--no-zoo=false"}, false, "use --zoo instead of providing \"false\" to --no-zoo"},
 	}
 	for _, c := range cases {
 		f := &pflag.FlagSet{}
