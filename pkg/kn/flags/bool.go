@@ -60,45 +60,44 @@ func ReconcileBoolFlags(f *pflag.FlagSet) error {
 		// Walk the "no-" versions of the flags. Make sure we didn't set
 		// both, and set the positive value to the opposite of the "no-"
 		// value if it exists.
-		if strings.HasPrefix(flag.Name, "no-") {
+		if strings.HasPrefix(flag.Name, negPrefix) {
 			positiveName := flag.Name[len(negPrefix):]
 			positive := f.Lookup(positiveName)
+			// Non-paired flag, or wrong types
+			if positive == nil || positive.Value.Type() != "bool" || flag.Value.Type() != "bool" {
+				return
+			}
 			if flag.Changed {
 				if positive.Changed {
 					err = fmt.Errorf("only one of --%s and --%s may be specified",
 						flag.Name, positiveName)
 					return
 				}
-				var noValue bool
-				noValue, err = strconv.ParseBool(flag.Value.String())
+				err = checkExplicitFalse(flag, positiveName)
 				if err != nil {
 					return
 				}
-				if !noValue {
-					err = fmt.Errorf("use --%s instead of providing false to --%s",
-						positiveName, flag.Name)
-					if err != nil {
-						return
-					}
-				}
-				err = positive.Value.Set(strconv.FormatBool(!noValue))
-			} else if positive.Changed {
-				// For the positive version, just check it wasn't set to the
-				// confusing "false" value.
-				var yesValue bool
-				yesValue, err = strconv.ParseBool(positive.Value.String())
-				if err != nil {
-					return
-				}
-				if !yesValue {
-					err = fmt.Errorf("use --%s instead of providing false to --%s",
-						flag.Name, positiveName)
-					if err != nil {
-						return
-					}
-				}
+				err = positive.Value.Set("false")
+			} else {
+				err = checkExplicitFalse(positive, flag.Name)
 			}
 		}
 	})
 	return err
+}
+
+// checkExplicitFalse returns an error if the flag was explicitly set to false.
+func checkExplicitFalse(f *pflag.Flag, betterFlag string) error {
+	if !f.Changed {
+		return nil
+	}
+	val, err := strconv.ParseBool(f.Value.String())
+	if err != nil {
+		return err
+	}
+	if !val {
+		return fmt.Errorf("use --%s instead of providing \"%s\" to --%s",
+			betterFlag, f.Value.String(), f.Name)
+	}
+	return nil
 }
