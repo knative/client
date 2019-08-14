@@ -16,6 +16,7 @@ package serving
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -89,6 +90,17 @@ func UpdateAnnotation(template *servingv1alpha1.RevisionTemplateSpec, annotation
 	}
 
 	annoMap[annotation] = value
+	return nil
+}
+
+var ApiTooOldError = errors.New("the service is using too old of an API format for the operation")
+
+// UpdateName updates the revision name.
+func UpdateName(template *servingv1alpha1.RevisionTemplateSpec, name string) error {
+	if template.Spec.DeprecatedContainer != nil {
+		return ApiTooOldError
+	}
+	template.Name = name
 	return nil
 }
 
