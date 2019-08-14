@@ -19,10 +19,13 @@ import (
 
 	"github.com/knative/pkg/apis"
 	"gotest.tools/assert"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 
+	servinglib "github.com/knative/client/pkg/serving"
 	knclient "github.com/knative/client/pkg/serving/v1alpha1"
 
 	"github.com/knative/client/pkg/util"
@@ -51,6 +54,58 @@ func TestServiceCreateImageMock(t *testing.T) {
 
 	// Validate that all recorded API methods have been called
 	r.Validate()
+}
+
+func TestServiceCreateLabel(t *testing.T) {
+	client := knclient.NewMockKnClient(t)
+
+	r := client.Recorder()
+	r.GetService("foo", nil, errors.NewNotFound(v1alpha1.Resource("service"), "foo"))
+
+	service := getService("foo")
+	expected := map[string]string{
+		"a":     "mouse",
+		"b":     "cookie",
+		"empty": "",
+	}
+	service.ObjectMeta.Labels = expected
+	template, err := servinglib.RevisionTemplateOfService(service)
+	assert.NilError(t, err)
+	template.ObjectMeta.Labels = expected
+	template.Spec.DeprecatedContainer.Image = "gcr.io/foo/bar:baz"
+	r.CreateService(service, nil)
+
+	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "-l", "a=mouse", "--label", "b=cookie", "--label=empty", "--async")
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
+
+	r.Validate()
+}
+
+func getService(name string) *v1alpha1.Service {
+	service := &v1alpha1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: "default",
+		},
+		Spec: v1alpha1.ServiceSpec{
+			DeprecatedRunLatest: &v1alpha1.RunLatestType{
+				Configuration: v1alpha1.ConfigurationSpec{
+					DeprecatedRevisionTemplate: &v1alpha1.RevisionTemplateSpec{
+						Spec: v1alpha1.RevisionSpec{
+							DeprecatedContainer: &corev1.Container{
+								Resources: corev1.ResourceRequirements{
+									Limits:   corev1.ResourceList{},
+									Requests: corev1.ResourceList{},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	return service
 }
 
 func getServiceWithUrl(name string, urlName string) *v1alpha1.Service {

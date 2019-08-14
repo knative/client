@@ -232,11 +232,15 @@ func TestServiceUpdateEnv(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	template.Spec.DeprecatedContainer.Env = []corev1.EnvVar{
+		{Name: "EXISTING", Value: "thing"},
+		{Name: "OTHEREXISTING"},
+	}
 
 	servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
 
 	action, updated, _, err := fakeServiceUpdate(orig, []string{
-		"service", "update", "foo", "-e", "TARGET=Awesome", "--async"}, false)
+		"service", "update", "foo", "-e", "TARGET=Awesome", "--env", "EXISTING-", "--env=OTHEREXISTING-=whatever", "--async"}, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -372,6 +376,60 @@ func TestServiceUpdateRequestsLimitsCPU_and_Memory(t *testing.T) {
 			t.Fatalf("wrong limits vars %v", newTemplate.Spec.DeprecatedContainer.Resources.Limits)
 		}
 	}
+}
+
+func TestServiceUpdateLabelWhenEmpty(t *testing.T) {
+	original := newEmptyService()
+
+	action, updated, _, err := fakeServiceUpdate(original, []string{
+		"service", "update", "foo", "-l", "a=mouse", "--label", "b=cookie", "-l=single", "--async"}, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	expected := map[string]string{
+		"a":      "mouse",
+		"b":      "cookie",
+		"single": "",
+	}
+	actual := updated.ObjectMeta.Labels
+	assert.DeepEqual(t, expected, actual)
+
+	template, err := servinglib.RevisionTemplateOfService(updated)
+	assert.NilError(t, err)
+	actual = template.ObjectMeta.Labels
+	assert.DeepEqual(t, expected, actual)
+}
+
+func TestServiceUpdateLabelExisting(t *testing.T) {
+	original := newEmptyService()
+	original.ObjectMeta.Labels = map[string]string{"already": "here", "tobe": "removed"}
+	originalTemplate, _ := servinglib.RevisionTemplateOfService(original)
+	originalTemplate.ObjectMeta.Labels = map[string]string{"already": "here", "tobe": "removed"}
+
+	action, updated, _, err := fakeServiceUpdate(original, []string{
+		"service", "update", "foo", "-l", "already=gone", "--label=tobe-", "--label", "b=", "--async"}, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	expected := map[string]string{
+		"already": "gone",
+		"b":       "",
+	}
+	actual := updated.ObjectMeta.Labels
+	assert.DeepEqual(t, expected, actual)
+
+	template, err := servinglib.RevisionTemplateOfService(updated)
+	assert.NilError(t, err)
+	actual = template.ObjectMeta.Labels
+	assert.DeepEqual(t, expected, actual)
 }
 
 func newEmptyService() *v1alpha1.Service {

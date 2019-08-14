@@ -15,11 +15,12 @@
 package service
 
 import (
-	"fmt"
 	"strings"
 
 	servinglib "github.com/knative/client/pkg/serving"
+	util "github.com/knative/client/pkg/util"
 	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
+	errors "github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -35,6 +36,7 @@ type ConfigurationEditFlags struct {
 	ConcurrencyTarget          int
 	ConcurrencyLimit           int
 	Port                       int32
+	Labels                     []string
 }
 
 type ResourceFlags struct {
@@ -46,7 +48,8 @@ func (p *ConfigurationEditFlags) AddUpdateFlags(command *cobra.Command) {
 	command.Flags().StringVar(&p.Image, "image", "", "Image to run.")
 	command.Flags().StringArrayVarP(&p.Env, "env", "e", []string{},
 		"Environment variable to set. NAME=value; you may provide this flag "+
-			"any number of times to set multiple environment variables.")
+			"any number of times to set multiple environment variables. "+
+			"To unset, specify the environment variable name followed by a \"-\" (e.g., NAME-).")
 	command.Flags().StringVar(&p.RequestsFlags.CPU, "requests-cpu", "", "The requested CPU (e.g., 250m).")
 	command.Flags().StringVar(&p.RequestsFlags.Memory, "requests-memory", "", "The requested memory (e.g., 64Mi).")
 	command.Flags().StringVar(&p.LimitsFlags.CPU, "limits-cpu", "", "The limits on the requested CPU (e.g., 1000m).")
@@ -56,6 +59,10 @@ func (p *ConfigurationEditFlags) AddUpdateFlags(command *cobra.Command) {
 	command.Flags().IntVar(&p.ConcurrencyTarget, "concurrency-target", 0, "Recommendation for when to scale up based on the concurrent number of incoming request. Defaults to --concurrency-limit when given.")
 	command.Flags().IntVar(&p.ConcurrencyLimit, "concurrency-limit", 0, "Hard Limit of concurrent requests to be processed by a single replica.")
 	command.Flags().Int32VarP(&p.Port, "port", "p", 0, "The port where application listens on.")
+	command.Flags().StringArrayVarP(&p.Labels, "label", "l", []string{},
+		"Service label to set. name=value; you may provide this flag "+
+			"any number of times to set multiple labels. "+
+			"To unset, specify the label name followed by a \"-\" (e.g., name-).")
 }
 
 func (p *ConfigurationEditFlags) AddCreateFlags(command *cobra.Command) {
@@ -71,18 +78,22 @@ func (p *ConfigurationEditFlags) Apply(service *servingv1alpha1.Service, cmd *co
 		return err
 	}
 
-	envMap := map[string]string{}
-	for _, pairStr := range p.Env {
-		pairSlice := strings.SplitN(pairStr, "=", 2)
-		if len(pairSlice) <= 1 {
-			return fmt.Errorf(
-				"--env argument requires a value that contains the '=' character; got %s",
-				pairStr)
+	if cmd.Flags().Changed("env") {
+		envMap, err := util.MapFromArrayAllowingSingles(p.Env, "=")
+		if err != nil {
+			return errors.Wrap(err, "Invalid --env")
 		}
-		envMap[pairSlice[0]] = pairSlice[1]
-	}
-	if err := servinglib.UpdateEnvVars(template, envMap); err != nil {
-		return err
+		envToRemove := []string{}
+		for name := range envMap {
+			if strings.HasSuffix(name, "-") {
+				envToRemove = append(envToRemove, name[:len(name)-1])
+				delete(envMap, name)
+			}
+		}
+		err = servinglib.UpdateEnvVars(template, envMap, envToRemove)
+		if err != nil {
+			return err
+		}
 	}
 
 	if cmd.Flags().Changed("image") {
@@ -134,6 +145,24 @@ func (p *ConfigurationEditFlags) Apply(service *servingv1alpha1.Service, cmd *co
 
 	if cmd.Flags().Changed("concurrency-limit") {
 		err = servinglib.UpdateConcurrencyLimit(template, p.ConcurrencyLimit)
+		if err != nil {
+			return err
+		}
+	}
+
+	if cmd.Flags().Changed("label") {
+		labelsMap, err := util.MapFromArrayAllowingSingles(p.Labels, "=")
+		if err != nil {
+			return errors.Wrap(err, "Invalid --label")
+		}
+		labelsToRemove := []string{}
+		for key := range labelsMap {
+			if strings.HasSuffix(key, "-") {
+				labelsToRemove = append(labelsToRemove, key[:len(key)-1])
+				delete(labelsMap, key)
+			}
+		}
+		err = servinglib.UpdateLabels(service, template, labelsMap, labelsToRemove)
 		if err != nil {
 			return err
 		}

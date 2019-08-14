@@ -26,6 +26,7 @@ import (
 
 	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestUpdateAutoscalingAnnotations(t *testing.T) {
@@ -81,13 +82,11 @@ func testUpdateEnvVarsNew(t *testing.T, template *servingv1alpha1.RevisionTempla
 		"a": "foo",
 		"b": "bar",
 	}
-	err := UpdateEnvVars(template, env)
+	err := UpdateEnvVars(template, env, []string{})
 	assert.NilError(t, err)
 	found, err := EnvToMap(container.Env)
 	assert.NilError(t, err)
-	if !reflect.DeepEqual(env, found) {
-		t.Fatalf("Env did not match expected %v found %v", env, found)
-	}
+	assert.DeepEqual(t, env, found)
 }
 
 func TestUpdateEnvVarsAppendOld(t *testing.T) {
@@ -107,7 +106,7 @@ func testUpdateEnvVarsAppendOld(t *testing.T, template *servingv1alpha1.Revision
 	env := map[string]string{
 		"b": "bar",
 	}
-	err := UpdateEnvVars(template, env)
+	err := UpdateEnvVars(template, env, []string{})
 	assert.NilError(t, err)
 
 	expected := map[string]string{
@@ -117,9 +116,7 @@ func testUpdateEnvVarsAppendOld(t *testing.T, template *servingv1alpha1.Revision
 
 	found, err := EnvToMap(container.Env)
 	assert.NilError(t, err)
-	if !reflect.DeepEqual(expected, found) {
-		t.Fatalf("Env did not match expected %v, found %v", env, found)
-	}
+	assert.DeepEqual(t, expected, found)
 }
 
 func TestUpdateEnvVarsModify(t *testing.T) {
@@ -138,7 +135,7 @@ func testUpdateEnvVarsModify(t *testing.T, revision *servingv1alpha1.RevisionTem
 	env := map[string]string{
 		"a": "fancy",
 	}
-	err := UpdateEnvVars(revision, env)
+	err := UpdateEnvVars(revision, env, []string{})
 	assert.NilError(t, err)
 
 	expected := map[string]string{
@@ -147,9 +144,35 @@ func testUpdateEnvVarsModify(t *testing.T, revision *servingv1alpha1.RevisionTem
 
 	found, err := EnvToMap(container.Env)
 	assert.NilError(t, err)
-	if !reflect.DeepEqual(expected, found) {
-		t.Fatalf("Env did not match expected %v, found %v", env, found)
+	assert.DeepEqual(t, expected, found)
+}
+
+func TestUpdateEnvVarsRemove(t *testing.T) {
+	template, container := getV1alpha1RevisionTemplateWithOldFields()
+	testUpdateEnvVarsRemove(t, template, container)
+	assertNoV1alpha1(t, template)
+
+	template, container = getV1alpha1Config()
+	testUpdateEnvVarsRemove(t, template, container)
+	assertNoV1alpha1Old(t, template)
+}
+
+func testUpdateEnvVarsRemove(t *testing.T, revision *servingv1alpha1.RevisionTemplateSpec, container *corev1.Container) {
+	container.Env = []corev1.EnvVar{
+		{Name: "a", Value: "foo"},
+		{Name: "b", Value: "bar"},
 	}
+	remove := []string{"b"}
+	err := UpdateEnvVars(revision, map[string]string{}, remove)
+	assert.NilError(t, err)
+
+	expected := map[string]string{
+		"a": "foo",
+	}
+
+	found, err := EnvToMap(container.Env)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, expected, found)
 }
 
 func TestUpdateMinScale(t *testing.T) {
@@ -238,23 +261,26 @@ func checkPortUpdate(t *testing.T, template *servingv1alpha1.RevisionTemplateSpe
 
 func TestUpdateEnvVarsBoth(t *testing.T) {
 	template, container := getV1alpha1RevisionTemplateWithOldFields()
-	testUpdateEnvVarsBoth(t, template, container)
+	testUpdateEnvVarsAll(t, template, container)
 	assertNoV1alpha1(t, template)
 
 	template, container = getV1alpha1Config()
-	testUpdateEnvVarsBoth(t, template, container)
+	testUpdateEnvVarsAll(t, template, container)
 	assertNoV1alpha1Old(t, template)
 }
 
-func testUpdateEnvVarsBoth(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, container *corev1.Container) {
+func testUpdateEnvVarsAll(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, container *corev1.Container) {
 	container.Env = []corev1.EnvVar{
 		{Name: "a", Value: "foo"},
-		{Name: "c", Value: "caroline"}}
+		{Name: "c", Value: "caroline"},
+		{Name: "d", Value: "byebye"},
+	}
 	env := map[string]string{
 		"a": "fancy",
 		"b": "boo",
 	}
-	err := UpdateEnvVars(template, env)
+	remove := []string{"d"}
+	err := UpdateEnvVars(template, env, remove)
 	assert.NilError(t, err)
 
 	expected := map[string]string{
@@ -270,11 +296,81 @@ func testUpdateEnvVarsBoth(t *testing.T, template *servingv1alpha1.RevisionTempl
 	}
 }
 
+func TestUpdateLabelsNew(t *testing.T) {
+	service, template, _ := getV1alpha1Service()
+
+	labels := map[string]string{
+		"a": "foo",
+		"b": "bar",
+	}
+	err := UpdateLabels(service, template, labels, []string{})
+	assert.NilError(t, err)
+
+	actual := service.ObjectMeta.Labels
+	if !reflect.DeepEqual(labels, actual) {
+		t.Fatalf("Service labels did not match expected %v found %v", labels, actual)
+	}
+
+	actual = template.ObjectMeta.Labels
+	if !reflect.DeepEqual(labels, actual) {
+		t.Fatalf("Template labels did not match expected %v found %v", labels, actual)
+	}
+}
+
+func TestUpdateLabelsExisting(t *testing.T) {
+	service, template, _ := getV1alpha1Service()
+	service.ObjectMeta.Labels = map[string]string{"a": "foo", "b": "bar"}
+	template.ObjectMeta.Labels = map[string]string{"a": "foo", "b": "bar"}
+
+	labels := map[string]string{
+		"a": "notfoo",
+		"c": "bat",
+		"d": "",
+	}
+	err := UpdateLabels(service, template, labels, []string{})
+	assert.NilError(t, err)
+	expected := map[string]string{
+		"a": "notfoo",
+		"b": "bar",
+		"c": "bat",
+		"d": "",
+	}
+
+	actual := service.ObjectMeta.Labels
+	assert.DeepEqual(t, expected, actual)
+
+	actual = template.ObjectMeta.Labels
+	assert.DeepEqual(t, expected, actual)
+}
+
+func TestUpdateLabelsRemoveExisting(t *testing.T) {
+	service, template, _ := getV1alpha1Service()
+	service.ObjectMeta.Labels = map[string]string{"a": "foo", "b": "bar"}
+	template.ObjectMeta.Labels = map[string]string{"a": "foo", "b": "bar"}
+
+	remove := []string{"b"}
+	err := UpdateLabels(service, template, map[string]string{}, remove)
+	assert.NilError(t, err)
+	expected := map[string]string{
+		"a": "foo",
+	}
+
+	actual := service.ObjectMeta.Labels
+	assert.DeepEqual(t, expected, actual)
+
+	actual = template.ObjectMeta.Labels
+	assert.DeepEqual(t, expected, actual)
+}
+
 // =========================================================================================================
 
 func getV1alpha1RevisionTemplateWithOldFields() (*servingv1alpha1.RevisionTemplateSpec, *corev1.Container) {
 	container := &corev1.Container{}
 	template := &servingv1alpha1.RevisionTemplateSpec{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "template-foo",
+			Namespace: "default",
+		},
 		Spec: servingv1alpha1.RevisionSpec{
 			DeprecatedContainer: container,
 		},
@@ -285,6 +381,10 @@ func getV1alpha1RevisionTemplateWithOldFields() (*servingv1alpha1.RevisionTempla
 func getV1alpha1Config() (*servingv1alpha1.RevisionTemplateSpec, *corev1.Container) {
 	containers := []corev1.Container{{}}
 	template := &servingv1alpha1.RevisionTemplateSpec{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "template-foo",
+			Namespace: "default",
+		},
 		Spec: servingv1alpha1.RevisionSpec{
 			RevisionSpec: v1beta1.RevisionSpec{
 				PodSpec: v1beta1.PodSpec{
@@ -294,6 +394,28 @@ func getV1alpha1Config() (*servingv1alpha1.RevisionTemplateSpec, *corev1.Contain
 		},
 	}
 	return template, &containers[0]
+}
+
+func getV1alpha1Service() (*servingv1alpha1.Service, *servingv1alpha1.RevisionTemplateSpec, *corev1.Container) {
+	template, container := getV1alpha1RevisionTemplateWithOldFields()
+	service := &servingv1alpha1.Service{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Service",
+			APIVersion: "knative.dev/v1alph1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "foo",
+			Namespace: "default",
+		},
+		Spec: servingv1alpha1.ServiceSpec{
+			DeprecatedRunLatest: &servingv1alpha1.RunLatestType{
+				Configuration: servingv1alpha1.ConfigurationSpec{
+					DeprecatedRevisionTemplate: template,
+				},
+			},
+		},
+	}
+	return service, template, container
 }
 
 func assertNoV1alpha1Old(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec) {

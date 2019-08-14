@@ -158,7 +158,7 @@ func TestServiceCreateImageSync(t *testing.T) {
 
 func TestServiceCreateEnv(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "-e", "A=DOGS", "--env", "B=WOLVES", "--async"}, false, false)
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "-e", "A=DOGS", "--env", "B=WOLVES", "--env=EMPTY", "--async"}, false, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -167,8 +167,10 @@ func TestServiceCreateEnv(t *testing.T) {
 	}
 
 	expectedEnvVars := map[string]string{
-		"A": "DOGS",
-		"B": "WOLVES"}
+		"A":     "DOGS",
+		"B":     "WOLVES",
+		"EMPTY": "",
+	}
 
 	template, err := servinglib.RevisionTemplateOfService(created)
 	actualEnvVars, err := servinglib.EnvToMap(template.Spec.DeprecatedContainer.Env)
