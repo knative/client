@@ -29,6 +29,7 @@ import (
 	"github.com/knative/client/pkg/kn/commands/revision"
 	"github.com/knative/client/pkg/kn/commands/route"
 	"github.com/knative/client/pkg/kn/commands/service"
+	"github.com/knative/client/pkg/kn/flags"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -117,6 +118,10 @@ func NewKnCommand(params ...commands.KnParams) *cobra.Command {
 
 		// Prevents Cobra from dealing with errors as we deal with them in main.go
 		SilenceErrors: true,
+
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			return flags.ReconcileBoolFlags(cmd.Flags())
+		},
 	}
 	if p.Output != nil {
 		rootCmd.SetOutput(p.Output)
@@ -125,7 +130,7 @@ func NewKnCommand(params ...commands.KnParams) *cobra.Command {
 	// Persistent flags
 	rootCmd.PersistentFlags().StringVar(&commands.CfgFile, "config", "", "kn config file (default is $HOME/.kn/config.yaml)")
 	rootCmd.PersistentFlags().StringVar(&p.KubeCfgPath, "kubeconfig", "", "kubectl config file (default is $HOME/.kube/config)")
-	rootCmd.PersistentFlags().BoolVar(&p.LogHttp, "log-http", false, "log http traffic")
+	flags.AddBothBoolFlags(rootCmd.PersistentFlags(), &p.LogHttp, "log-http", "", false, "log http traffic")
 
 	plugin.AddPluginFlags(rootCmd)
 	plugin.BindPluginsFlagToViper(rootCmd)
