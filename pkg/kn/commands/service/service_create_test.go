@@ -124,8 +124,8 @@ func TestServiceCreateImage(t *testing.T) {
 	template, err := servinglib.RevisionTemplateOfService(created)
 	if err != nil {
 		t.Fatal(err)
-	} else if template.Spec.DeprecatedContainer.Image != "gcr.io/foo/bar:baz" {
-		t.Fatalf("wrong image set: %v", template.Spec.DeprecatedContainer.Image)
+	} else if template.Spec.Containers[0].Image != "gcr.io/foo/bar:baz" {
+		t.Fatalf("wrong image set: %v", template.Spec.Containers[0].Image)
 	} else if !strings.Contains(output, "foo") || !strings.Contains(output, "created") ||
 		!strings.Contains(output, commands.FakeNamespace) {
 		t.Fatalf("wrong stdout message: %v", output)
@@ -144,8 +144,8 @@ func TestServiceCreateImageSync(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if template.Spec.DeprecatedContainer.Image != "gcr.io/foo/bar:baz" {
-		t.Fatalf("wrong image set: %v", template.Spec.DeprecatedContainer.Image)
+	if template.Spec.Containers[0].Image != "gcr.io/foo/bar:baz" {
+		t.Fatalf("wrong image set: %v", template.Spec.Containers[0].Image)
 	}
 	if !strings.Contains(output, "foo") || !strings.Contains(output, "created") ||
 		!strings.Contains(output, commands.FakeNamespace) {
@@ -173,19 +173,19 @@ func TestServiceCreateEnv(t *testing.T) {
 	}
 
 	template, err := servinglib.RevisionTemplateOfService(created)
-	actualEnvVars, err := servinglib.EnvToMap(template.Spec.DeprecatedContainer.Env)
+	actualEnvVars, err := servinglib.EnvToMap(template.Spec.Containers[0].Env)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	if err != nil {
 		t.Fatal(err)
-	} else if template.Spec.DeprecatedContainer.Image != "gcr.io/foo/bar:baz" {
-		t.Fatalf("wrong image set: %v", template.Spec.DeprecatedContainer.Image)
+	} else if template.Spec.Containers[0].Image != "gcr.io/foo/bar:baz" {
+		t.Fatalf("wrong image set: %v", template.Spec.Containers[0].Image)
 	} else if !reflect.DeepEqual(
 		actualEnvVars,
 		expectedEnvVars) {
-		t.Fatalf("wrong env vars %v", template.Spec.DeprecatedContainer.Env)
+		t.Fatalf("wrong env vars %v", template.Spec.Containers[0].Env)
 	}
 }
 
@@ -209,9 +209,9 @@ func TestServiceCreateWithRequests(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	} else if !reflect.DeepEqual(
-		template.Spec.DeprecatedContainer.Resources.Requests,
+		template.Spec.Containers[0].Resources.Requests,
 		expectedRequestsVars) {
-		t.Fatalf("wrong requests vars %v", template.Spec.DeprecatedContainer.Resources.Requests)
+		t.Fatalf("wrong requests vars %v", template.Spec.Containers[0].Resources.Requests)
 	}
 }
 
@@ -235,9 +235,9 @@ func TestServiceCreateWithLimits(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	} else if !reflect.DeepEqual(
-		template.Spec.DeprecatedContainer.Resources.Limits,
+		template.Spec.Containers[0].Resources.Limits,
 		expectedLimitsVars) {
-		t.Fatalf("wrong limits vars %v", template.Spec.DeprecatedContainer.Resources.Limits)
+		t.Fatalf("wrong limits vars %v", template.Spec.Containers[0].Resources.Limits)
 	}
 }
 
@@ -265,15 +265,15 @@ func TestServiceCreateRequestsLimitsCPU(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		if !reflect.DeepEqual(
-			template.Spec.DeprecatedContainer.Resources.Requests,
+			template.Spec.Containers[0].Resources.Requests,
 			expectedRequestsVars) {
-			t.Fatalf("wrong requests vars %v", template.Spec.DeprecatedContainer.Resources.Requests)
+			t.Fatalf("wrong requests vars %v", template.Spec.Containers[0].Resources.Requests)
 		}
 
 		if !reflect.DeepEqual(
-			template.Spec.DeprecatedContainer.Resources.Limits,
+			template.Spec.Containers[0].Resources.Limits,
 			expectedLimitsVars) {
-			t.Fatalf("wrong limits vars %v", template.Spec.DeprecatedContainer.Resources.Limits)
+			t.Fatalf("wrong limits vars %v", template.Spec.Containers[0].Resources.Limits)
 		}
 	}
 }
@@ -302,15 +302,15 @@ func TestServiceCreateRequestsLimitsMemory(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		if !reflect.DeepEqual(
-			template.Spec.DeprecatedContainer.Resources.Requests,
+			template.Spec.Containers[0].Resources.Requests,
 			expectedRequestsVars) {
-			t.Fatalf("wrong requests vars %v", template.Spec.DeprecatedContainer.Resources.Requests)
+			t.Fatalf("wrong requests vars %v", template.Spec.Containers[0].Resources.Requests)
 		}
 
 		if !reflect.DeepEqual(
-			template.Spec.DeprecatedContainer.Resources.Limits,
+			template.Spec.Containers[0].Resources.Limits,
 			expectedLimitsVars) {
-			t.Fatalf("wrong limits vars %v", template.Spec.DeprecatedContainer.Resources.Limits)
+			t.Fatalf("wrong limits vars %v", template.Spec.Containers[0].Resources.Limits)
 		}
 	}
 }
@@ -379,15 +379,15 @@ func TestServiceCreateRequestsLimitsCPUMemory(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		if !reflect.DeepEqual(
-			template.Spec.DeprecatedContainer.Resources.Requests,
+			template.Spec.Containers[0].Resources.Requests,
 			expectedRequestsVars) {
-			t.Fatalf("wrong requests vars %v", template.Spec.DeprecatedContainer.Resources.Requests)
+			t.Fatalf("wrong requests vars %v", template.Spec.Containers[0].Resources.Requests)
 		}
 
 		if !reflect.DeepEqual(
-			template.Spec.DeprecatedContainer.Resources.Limits,
+			template.Spec.Containers[0].Resources.Limits,
 			expectedLimitsVars) {
-			t.Fatalf("wrong limits vars %v", template.Spec.DeprecatedContainer.Resources.Limits)
+			t.Fatalf("wrong limits vars %v", template.Spec.Containers[0].Resources.Limits)
 		}
 	}
 }
@@ -426,8 +426,8 @@ func TestServiceCreateImageForce(t *testing.T) {
 	template, err := servinglib.RevisionTemplateOfService(created)
 	if err != nil {
 		t.Fatal(err)
-	} else if template.Spec.DeprecatedContainer.Image != "gcr.io/foo/bar:v2" {
-		t.Fatalf("wrong image set: %v", template.Spec.DeprecatedContainer.Image)
+	} else if template.Spec.Containers[0].Image != "gcr.io/foo/bar:v2" {
+		t.Fatalf("wrong image set: %v", template.Spec.Containers[0].Image)
 	} else if !strings.Contains(output, "foo") || !strings.Contains(output, commands.FakeNamespace) {
 		t.Fatalf("wrong output: %s", output)
 	}
@@ -453,18 +453,18 @@ func TestServiceCreateEnvForce(t *testing.T) {
 		"B": "LIONS"}
 
 	template, err := servinglib.RevisionTemplateOfService(created)
-	actualEnvVars, err := servinglib.EnvToMap(template.Spec.DeprecatedContainer.Env)
+	actualEnvVars, err := servinglib.EnvToMap(template.Spec.Containers[0].Env)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if err != nil {
 		t.Fatal(err)
-	} else if template.Spec.DeprecatedContainer.Image != "gcr.io/foo/bar:v2" {
-		t.Fatalf("wrong image set: %v", template.Spec.DeprecatedContainer.Image)
+	} else if template.Spec.Containers[0].Image != "gcr.io/foo/bar:v2" {
+		t.Fatalf("wrong image set: %v", template.Spec.Containers[0].Image)
 	} else if !reflect.DeepEqual(
 		actualEnvVars,
 		expectedEnvVars) {
-		t.Fatalf("wrong env vars:%v", template.Spec.DeprecatedContainer.Env)
+		t.Fatalf("wrong env vars:%v", template.Spec.Containers[0].Env)
 	} else if !strings.Contains(output, "foo") || !strings.Contains(output, commands.FakeNamespace) {
 		t.Fatalf("wrong output: %s", output)
 	}

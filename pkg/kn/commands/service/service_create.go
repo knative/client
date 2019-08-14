@@ -206,16 +206,10 @@ func constructService(cmd *cobra.Command, editFlags ConfigurationEditFlags, name
 		},
 	}
 
-	// TODO: Should it always be `runLatest` ?
-	service.Spec.DeprecatedRunLatest = &serving_v1alpha1_api.RunLatestType{
-		Configuration: serving_v1alpha1_api.ConfigurationSpec{
-			DeprecatedRevisionTemplate: &serving_v1alpha1_api.RevisionTemplateSpec{
-				Spec: serving_v1alpha1_api.RevisionSpec{
-					DeprecatedContainer: &corev1.Container{},
-				},
-			},
-		},
+	service.Spec.Template = &serving_v1alpha1_api.RevisionTemplateSpec{
+		Spec: serving_v1alpha1_api.RevisionSpec{},
 	}
+	service.Spec.Template.Spec.Containers = []corev1.Container{{}}
 
 	err := editFlags.Apply(&service, cmd)
 	if err != nil {
