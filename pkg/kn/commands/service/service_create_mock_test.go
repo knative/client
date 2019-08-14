@@ -72,7 +72,7 @@ func TestServiceCreateLabel(t *testing.T) {
 	template, err := servinglib.RevisionTemplateOfService(service)
 	assert.NilError(t, err)
 	template.ObjectMeta.Labels = expected
-	template.Spec.DeprecatedContainer.Image = "gcr.io/foo/bar:baz"
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
 	r.CreateService(service, nil)
 
 	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "-l", "a=mouse", "--label", "b=cookie", "--label=empty", "--async")
@@ -88,23 +88,19 @@ func getService(name string) *v1alpha1.Service {
 			Name:      name,
 			Namespace: "default",
 		},
-		Spec: v1alpha1.ServiceSpec{
-			DeprecatedRunLatest: &v1alpha1.RunLatestType{
-				Configuration: v1alpha1.ConfigurationSpec{
-					DeprecatedRevisionTemplate: &v1alpha1.RevisionTemplateSpec{
-						Spec: v1alpha1.RevisionSpec{
-							DeprecatedContainer: &corev1.Container{
-								Resources: corev1.ResourceRequirements{
-									Limits:   corev1.ResourceList{},
-									Requests: corev1.ResourceList{},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
+		Spec: v1alpha1.ServiceSpec{},
 	}
+
+	service.Spec.Template = &v1alpha1.RevisionTemplateSpec{
+		Spec: v1alpha1.RevisionSpec{},
+	}
+
+	service.Spec.Template.Spec.Containers = []corev1.Container{{
+		Resources: corev1.ResourceRequirements{
+			Limits:   corev1.ResourceList{},
+			Requests: corev1.ResourceList{},
+		},
+	}}
 	return service
 }
 

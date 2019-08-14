@@ -19,12 +19,37 @@ import (
 
 	"github.com/knative/client/pkg/kn/commands"
 	knclient "github.com/knative/client/pkg/serving/v1alpha1"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 // Helper methods
+var blankConfig clientcmd.ClientConfig
+
+func init() {
+	var err error
+	blankConfig, err = clientcmd.NewClientConfigFromBytes([]byte(`kind: Config
+version: v1
+users:
+- name: u
+clusters:
+- name: c
+  cluster:
+    server: example.com
+contexts:
+- name: x
+  context:
+    user: u
+    cluster: c
+current-context: x
+`))
+	if err != nil {
+		panic(err)
+	}
+}
 
 func executeServiceCommand(client knclient.KnClient, args ...string) (string, error) {
 	knParams := &commands.KnParams{}
+	knParams.ClientConfig = blankConfig
 
 	output := new(bytes.Buffer)
 	knParams.Output = output
