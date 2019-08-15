@@ -30,7 +30,7 @@ import (
 // Given the following flag values, a printer can be requested that knows
 // how to handle printing based on these values.
 type HumanPrintFlags struct {
-	//TODO: Add more flags as required
+	AllNamespaces bool
 }
 
 // AllowedFormats returns more customized formating options
@@ -42,7 +42,7 @@ func (f *HumanPrintFlags) AllowedFormats() []string {
 // ToPrinter receives returns a printer capable of
 // handling human-readable output.
 func (f *HumanPrintFlags) ToPrinter(getHandlerFunc func(h hprinters.PrintHandler)) (hprinters.ResourcePrinter, error) {
-	p := hprinters.NewTablePrinter(hprinters.PrintOptions{})
+	p := hprinters.NewTablePrinter(hprinters.PrintOptions{f.AllNamespaces})
 	getHandlerFunc(p)
 	return p, nil
 }
@@ -50,7 +50,12 @@ func (f *HumanPrintFlags) ToPrinter(getHandlerFunc func(h hprinters.PrintHandler
 // AddFlags receives a *cobra.Command reference and binds
 // flags related to human-readable printing to it
 func (f *HumanPrintFlags) AddFlags(c *cobra.Command) {
-	//TODO: Add more flags as required
+	// Bind AllNamespaces flag
+	all, err := c.Flags().GetBool("all-namespaces")
+	if err != nil {
+		fmt.Fprintln(c.OutOrStdout(), err)
+	}
+	f.AllNamespaces = all
 }
 
 // NewHumanPrintFlags returns flags associated with

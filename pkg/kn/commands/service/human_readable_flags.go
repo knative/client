@@ -22,19 +22,30 @@ import (
 	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
+var baseKServiceColumnDefinitions = []metav1beta1.TableColumnDefinition{
+	{Name: "Name", Type: "string", Description: "Name of the Knative service."},
+	{Name: "Url", Type: "string", Description: "URL of the Knative service."},
+	//{Name: "LastCreatedRevision", Type: "string", Description: "Name of last revision created."},
+	//{Name: "LastReadyRevision", Type: "string", Description: "Name of last ready revision."},
+	{Name: "Generation", Type: "integer", Description: "Sequence number of 'Generation' of the service that was last processed by the controller."},
+	{Name: "Age", Type: "string", Description: "Age of the service."},
+	{Name: "Conditions", Type: "string", Description: "Conditions describing statuses of service components."},
+	{Name: "Ready", Type: "string", Description: "Ready condition status of the service."},
+	{Name: "Reason", Type: "string", Description: "Reason for non-ready condition of the service."},
+}
+
 // ServiceListHandlers adds print handlers for service list command
 func ServiceListHandlers(h hprinters.PrintHandler) {
+	kServiceColumnDefinitions := baseKServiceColumnDefinitions
+	h.TableHandler(kServiceColumnDefinitions, printKService)
+	h.TableHandler(kServiceColumnDefinitions, printKServiceList)
+}
+
+func ServiceListAllNamespaceHandlers(h hprinters.PrintHandler) {
 	kServiceColumnDefinitions := []metav1beta1.TableColumnDefinition{
-		{Name: "Name", Type: "string", Description: "Name of the Knative service."},
-		{Name: "Url", Type: "string", Description: "URL of the Knative service."},
-		//{Name: "LastCreatedRevision", Type: "string", Description: "Name of last revision created."},
-		//{Name: "LastReadyRevision", Type: "string", Description: "Name of last ready revision."},
-		{Name: "Generation", Type: "integer", Description: "Sequence number of 'Generation' of the service that was last processed by the controller."},
-		{Name: "Age", Type: "string", Description: "Age of the service."},
-		{Name: "Conditions", Type: "string", Description: "Conditions describing statuses of service components."},
-		{Name: "Ready", Type: "string", Description: "Ready condition status of the service."},
-		{Name: "Reason", Type: "string", Description: "Reason for non-ready condition of the service."},
+		{Name: "Namespace", Type: "string", Description: "Namespace of the Knative service"},
 	}
+	kServiceColumnDefinitions = append(kServiceColumnDefinitions, baseKServiceColumnDefinitions...)
 	h.TableHandler(kServiceColumnDefinitions, printKService)
 	h.TableHandler(kServiceColumnDefinitions, printKServiceList)
 }
@@ -69,6 +80,11 @@ func printKService(kService *servingv1alpha1.Service, options hprinters.PrintOpt
 	row := metav1beta1.TableRow{
 		Object: runtime.RawExtension{Object: kService},
 	}
+
+	if options.AllNamespaces {
+		row.Cells = append(row.Cells, kService.Namespace)
+	}
+
 	row.Cells = append(row.Cells,
 		name,
 		url,
