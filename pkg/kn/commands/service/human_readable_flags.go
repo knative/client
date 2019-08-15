@@ -15,6 +15,11 @@
 package service
 
 import (
+	"sort"
+
+	"github.com/knative/client/pkg/kn/commands"
+	hprinters "github.com/knative/client/pkg/printers"
+	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	metav1beta1 "k8s.io/apimachinery/pkg/apis/meta/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"knative.dev/client/pkg/kn/commands"
@@ -41,6 +46,7 @@ func ServiceListHandlers(h hprinters.PrintHandler) {
 	h.TableHandler(kServiceColumnDefinitions, printKServiceList)
 }
 
+// ServiceListAllNamespaceHandlers adds print handlers for service list command with all namespaces option
 func ServiceListAllNamespaceHandlers(h hprinters.PrintHandler) {
 	kServiceColumnDefinitions := []metav1beta1.TableColumnDefinition{
 		{Name: "Namespace", Type: "string", Description: "Namespace of the Knative service"},
@@ -55,6 +61,11 @@ func ServiceListAllNamespaceHandlers(h hprinters.PrintHandler) {
 // printKServiceList populates the knative service list table rows
 func printKServiceList(kServiceList *servingv1alpha1.ServiceList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	rows := make([]metav1beta1.TableRow, 0, len(kServiceList.Items))
+
+	if options.AllNamespaces {
+		return printKServiceWithNaemspace(kServiceList, options)
+	}
+
 	for _, ksvc := range kServiceList.Items {
 		r, err := printKService(&ksvc, options)
 		if err != nil {
@@ -63,6 +74,39 @@ func printKServiceList(kServiceList *servingv1alpha1.ServiceList, options hprint
 		rows = append(rows, r...)
 	}
 	return rows, nil
+}
+
+// printKServiceWithNaemspace populates the knative service table rows with namespace column
+func printKServiceWithNaemspace(kServiceList *servingv1alpha1.ServiceList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+	rows := make([]metav1beta1.TableRow, 0, len(kServiceList.Items))
+
+	// temporary slice for sorting services in non-default namespace
+	others := []metav1beta1.TableRow{}
+
+	for _, ksvc := range kServiceList.Items {
+		// Fill in with services in `default` namespace at first
+		if ksvc.Namespace == "default" {
+			r, err := printKService(&ksvc, options)
+			if err != nil {
+				return nil, err
+			}
+			rows = append(rows, r...)
+			continue
+		}
+		// put other services in temporary slice
+		r, err := printKService(&ksvc, options)
+		if err != nil {
+			return nil, err
+		}
+		others = append(others, r...)
+	}
+
+	// sort other services list alphabetically by namespace name
+	sort.SliceStable(others, func(i, j int) bool {
+		return others[i].Cells[0].(string) < others[j].Cells[0].(string)
+	})
+
+	return append(rows, others...), nil
 }
 
 // printKService populates the knative service table rows

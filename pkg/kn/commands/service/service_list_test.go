@@ -97,9 +97,9 @@ func TestServiceListDefaultOutput(t *testing.T) {
 }
 
 func TestServiceListAllNamespacesOutput(t *testing.T) {
-	service1 := createMockServiceWithParams("foo", "ns1", "http://foo.ns1.example.com", 1)
-	service2 := createMockServiceWithParams("bar", "ns2", "http://bar.ns2.example.com", 2)
-	service3 := createMockServiceWithParams("sss", "ns3", "http://sss.ns3.example.com", 3)
+	service1 := createMockServiceWithParams("foo", "default", "http://foo.default.example.com", 1)
+	service2 := createMockServiceWithParams("bar", "foo", "http://bar.foo.example.com", 2)
+	service3 := createMockServiceWithParams("sss", "bar", "http://sss.bar.example.com", 3)
 	serviceList := &v1alpha1.ServiceList{Items: []v1alpha1.Service{*service1, *service2, *service3}}
 	action, output, err := fakeServiceList([]string{"service", "list", "--all-namespaces"}, serviceList)
 	if err != nil {
@@ -112,9 +112,9 @@ func TestServiceListAllNamespacesOutput(t *testing.T) {
 	}
 	// Outputs in alphabetical order
 	assert.Check(t, util.ContainsAll(output[0], "NAMESPACE", "NAME", "URL", "GENERATION", "AGE", "CONDITIONS", "READY", "REASON"))
-	assert.Check(t, util.ContainsAll(output[1], "ns2", "bar", "bar.ns2.example.com", "2"))
-	assert.Check(t, util.ContainsAll(output[2], "ns1", "foo", "foo.ns1.example.com", "1"))
-	assert.Check(t, util.ContainsAll(output[3], "ns3", "sss", "sss.ns3.example.com", "3"))
+	assert.Check(t, util.ContainsAll(output[1], "default", "foo", "foo.default.example.com", "1"))
+	assert.Check(t, util.ContainsAll(output[2], "bar", "sss", "sss.bar.example.com", "3"))
+	assert.Check(t, util.ContainsAll(output[3], "foo", "bar", "bar.foo.example.com", "2"))
 }
 
 func TestServiceGetOneOutput(t *testing.T) {
