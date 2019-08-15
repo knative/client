@@ -24,10 +24,10 @@ import (
 	"gotest.tools/assert"
 	"gotest.tools/assert/cmp"
 
-	"github.com/knative/client/pkg/kn/commands"
-	servinglib "github.com/knative/client/pkg/serving"
-	"github.com/knative/client/pkg/util"
-	"github.com/knative/client/pkg/wait"
+	"knative.dev/client/pkg/kn/commands"
+	servinglib "knative.dev/client/pkg/serving"
+	"knative.dev/client/pkg/util"
+	"knative.dev/client/pkg/wait"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"

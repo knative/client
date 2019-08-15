@@ -19,8 +19,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/knative/client/pkg/kn/commands/flags"
 	"github.com/spf13/cobra"
+	"knative.dev/client/pkg/kn/commands/flags"
 	"knative.dev/pkg/ptr"
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 )

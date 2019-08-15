@@ -15,8 +15,8 @@
 package route
 
 import (
-	"github.com/knative/client/pkg/kn/commands"
 	"github.com/spf13/cobra"
+	"knative.dev/client/pkg/kn/commands"
 )
 
 func NewRouteCommand(p *commands.KnParams) *cobra.Command {

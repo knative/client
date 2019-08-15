@@ -17,10 +17,10 @@ package route
 import (
 	"fmt"
 
-	"github.com/knative/client/pkg/kn/commands"
-	hprinters "github.com/knative/client/pkg/printers"
 	metav1beta1 "k8s.io/apimachinery/pkg/apis/meta/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"knative.dev/client/pkg/kn/commands"
+	hprinters "knative.dev/client/pkg/printers"
 	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 

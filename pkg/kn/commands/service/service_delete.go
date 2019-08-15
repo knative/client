@@ -18,8 +18,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/knative/client/pkg/kn/commands"
 	"github.com/spf13/cobra"
+	"knative.dev/client/pkg/kn/commands"
 )
 
 // NewServiceDeleteCommand represent 'service delete' command

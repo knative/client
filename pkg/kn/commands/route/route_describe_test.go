@@ -19,12 +19,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/knative/client/pkg/kn/commands"
 	"gotest.tools/assert"
 	"k8s.io/apimachinery/pkg/api/equality"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	client_testing "k8s.io/client-go/testing"
+	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 	"sigs.k8s.io/yaml"
 )

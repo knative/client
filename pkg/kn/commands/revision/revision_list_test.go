@@ -25,8 +25,8 @@ import (
 	"knative.dev/serving/pkg/apis/serving"
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 
-	"github.com/knative/client/pkg/kn/commands"
-	"github.com/knative/client/pkg/util"
+	"knative.dev/client/pkg/kn/commands"
+	"knative.dev/client/pkg/util"
 )
 
 var revisionListHeader = []string{"NAME", "SERVICE", "GENERATION", "AGE", "CONDITIONS", "READY", "REASON"}

@@ -16,7 +16,7 @@ function build_flags() {
   local base="${1}"
   local now="$(date -u '+%Y-%m-%d %H:%M:%S')"
   local rev="$(git rev-parse --short HEAD)"
-  local pkg="github.com/knative/client/pkg/kn/commands"
+  local pkg="knative.dev/client/pkg/kn/commands"
   local version="${TAG:-}"
   # Use vYYYYMMDD-local-<hash> for the version string, if not passed.
   if [[ -z "${version}" ]]; then

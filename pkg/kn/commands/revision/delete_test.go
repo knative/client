@@ -17,11 +17,11 @@ package revision
 import (
 	"testing"
 
-	"github.com/knative/client/pkg/kn/commands"
-	"github.com/knative/client/pkg/util"
 	"gotest.tools/assert"
 	"k8s.io/apimachinery/pkg/runtime"
 	client_testing "k8s.io/client-go/testing"
+	"knative.dev/client/pkg/kn/commands"
+	"knative.dev/client/pkg/util"
 )
 
 func fakeRevisionDelete(args []string) (action client_testing.Action, name string, output string, err error) {

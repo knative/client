@@ -18,10 +18,10 @@ import (
 	"fmt"
 	"time"
 
-	hprinters "github.com/knative/client/pkg/printers"
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/duration"
+	hprinters "knative.dev/client/pkg/printers"
 	"knative.dev/pkg/apis"
 	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
 )

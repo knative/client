@@ -25,9 +25,9 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/watch"
 
-	"github.com/knative/client/pkg/kn/commands"
-	servinglib "github.com/knative/client/pkg/serving"
-	"github.com/knative/client/pkg/wait"
+	"knative.dev/client/pkg/kn/commands"
+	servinglib "knative.dev/client/pkg/serving"
+	"knative.dev/client/pkg/wait"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"

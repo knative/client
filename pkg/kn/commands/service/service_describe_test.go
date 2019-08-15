@@ -34,8 +34,8 @@ import (
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 	"knative.dev/serving/pkg/apis/serving/v1beta1"
 
-	knclient "github.com/knative/client/pkg/serving/v1alpha1"
-	"github.com/knative/client/pkg/util"
+	knclient "knative.dev/client/pkg/serving/v1alpha1"
+	"knative.dev/client/pkg/util"
 )
 
 const (

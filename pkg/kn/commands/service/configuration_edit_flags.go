@@ -17,12 +17,12 @@ package service
 import (
 	"strings"
 
-	servinglib "github.com/knative/client/pkg/serving"
-	util "github.com/knative/client/pkg/util"
 	errors "github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	servinglib "knative.dev/client/pkg/serving"
+	util "knative.dev/client/pkg/util"
 	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 

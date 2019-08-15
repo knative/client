@@ -15,9 +15,9 @@
 package plugin
 
 import (
-	"github.com/knative/client/pkg/kn/commands"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"knative.dev/client/pkg/kn/commands"
 )
 
 func NewPluginCommand(p *commands.KnParams) *cobra.Command {

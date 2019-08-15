@@ -35,8 +35,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	client_testing "k8s.io/client-go/testing"
 
-	"github.com/knative/client/pkg/serving"
-	"github.com/knative/client/pkg/wait"
+	"knative.dev/client/pkg/serving"
+	"knative.dev/client/pkg/wait"
 )
 
 var testNamespace = "test-ns"

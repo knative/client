@@ -25,10 +25,10 @@ import (
 
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 
-	servinglib "github.com/knative/client/pkg/serving"
-	knclient "github.com/knative/client/pkg/serving/v1alpha1"
+	servinglib "knative.dev/client/pkg/serving"
+	knclient "knative.dev/client/pkg/serving/v1alpha1"
 
-	"github.com/knative/client/pkg/util"
+	"knative.dev/client/pkg/util"
 )
 
 func TestServiceCreateImageMock(t *testing.T) {

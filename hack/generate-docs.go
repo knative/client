@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/knative/client/pkg/kn/core"
 	"github.com/spf13/cobra/doc"
+	"knative.dev/client/pkg/kn/core"
 )
 
 func main() {

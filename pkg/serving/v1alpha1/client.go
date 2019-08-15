@@ -21,13 +21,13 @@ import (
 	"k8s.io/apimachinery/pkg/fields"
 	"knative.dev/pkg/apis"
 
-	"github.com/knative/client/pkg/serving"
-	"github.com/knative/client/pkg/wait"
+	"knative.dev/client/pkg/serving"
+	"knative.dev/client/pkg/wait"
 
-	kn_errors "github.com/knative/client/pkg/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
+	kn_errors "knative.dev/client/pkg/errors"
 	api_serving "knative.dev/serving/pkg/apis/serving"
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 	client_v1alpha1 "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"

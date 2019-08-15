@@ -20,8 +20,8 @@ import (
 
 	"testing"
 
-	"github.com/knative/client/pkg/kn/commands/flags"
 	"github.com/spf13/cobra"
+	"knative.dev/client/pkg/kn/commands/flags"
 )
 
 type trafficTestCase struct {

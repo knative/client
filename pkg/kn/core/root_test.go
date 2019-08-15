@@ -20,10 +20,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/knative/client/pkg/kn/commands"
-	"github.com/knative/client/pkg/kn/commands/plugin"
 	"github.com/spf13/cobra"
 	"gotest.tools/assert"
+	"knative.dev/client/pkg/kn/commands"
+	"knative.dev/client/pkg/kn/commands/plugin"
 )
 
 func TestNewDefaultKnCommand(t *testing.T) {

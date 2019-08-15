@@ -21,9 +21,9 @@ import (
 	"os"
 	"path/filepath"
 
-	serving_kn_v1alpha1 "github.com/knative/client/pkg/serving/v1alpha1"
-	"github.com/knative/client/pkg/util"
 	"k8s.io/client-go/tools/clientcmd"
+	serving_kn_v1alpha1 "knative.dev/client/pkg/serving/v1alpha1"
+	"knative.dev/client/pkg/util"
 	serving_v1alpha1_client "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
 )
 

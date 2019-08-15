@@ -19,8 +19,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/knative/client/pkg/kn/commands"
-	"github.com/knative/client/pkg/serving/v1alpha1"
+	"knative.dev/client/pkg/kn/commands"
+	"knative.dev/client/pkg/serving/v1alpha1"
 	"knative.dev/serving/pkg/apis/serving"
 
 	"github.com/spf13/cobra"

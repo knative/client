@@ -18,8 +18,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/knative/client/pkg/kn/commands"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"knative.dev/client/pkg/kn/commands"
 )
 
 func TestRoutListFlags(t *testing.T) {

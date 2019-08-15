@@ -18,9 +18,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/knative/client/pkg/kn/commands"
 	"github.com/spf13/cobra"
 	"gotest.tools/assert"
+	"knative.dev/client/pkg/kn/commands"
 )
 
 const PluginCommandUsage = `Provides utilities for interacting and managing with kn plugins.
