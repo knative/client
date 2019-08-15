@@ -17,13 +17,13 @@ package service
 import (
 	"testing"
 
-	"github.com/knative/pkg/apis"
 	"gotest.tools/assert"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"knative.dev/pkg/apis"
 
-	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
+	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 
 	servinglib "github.com/knative/client/pkg/serving"
 	knclient "github.com/knative/client/pkg/serving/v1alpha1"

@@ -20,9 +20,9 @@ import (
 	"strings"
 
 	"github.com/knative/client/pkg/kn/commands/flags"
-	"github.com/knative/pkg/ptr"
-	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"github.com/spf13/cobra"
+	"knative.dev/pkg/ptr"
+	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
 var latestRevisionRef = "@latest"

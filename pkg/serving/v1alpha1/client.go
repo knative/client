@@ -18,19 +18,19 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/knative/pkg/apis"
 	"k8s.io/apimachinery/pkg/fields"
+	"knative.dev/pkg/apis"
 
 	"github.com/knative/client/pkg/serving"
 	"github.com/knative/client/pkg/wait"
 
 	kn_errors "github.com/knative/client/pkg/errors"
-	api_serving "github.com/knative/serving/pkg/apis/serving"
-	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
-	client_v1alpha1 "github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
+	api_serving "knative.dev/serving/pkg/apis/serving"
+	"knative.dev/serving/pkg/apis/serving/v1alpha1"
+	client_v1alpha1 "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
 )
 
 // Kn interface to serving. All methods are relative to the

@@ -162,6 +162,10 @@ k8s.io/kube-openapi v0.0.0-20190603182131-db7b694dc208 h1:5sW+fEHvlJI3Ngolx30Cmu
 k8s.io/kube-openapi v0.0.0-20190603182131-db7b694dc208/go.mod h1:nfDlWeOsu3pUf4yWGL+ERqohP4YsZcBJXWMK+gkzOA4=
 k8s.io/kube-openapi v0.0.0-20190722073852-5e22f3d471e6 h1:s9IxTKe9GwDH0S/WaX62nFYr0or32DsTWex9AileL7U=
 k8s.io/kube-openapi v0.0.0-20190722073852-5e22f3d471e6/go.mod h1:RZvgC8MSN6DjiMV6oIfEE9pDL9CYXokkfaCKZeHm3nc=
+knative.dev/pkg v0.0.0-20190815170108-426561fd098d h1:lU2PpEszinc2Xazu456C/hlRALzzGK8uT92HxO4FGzQ=
+knative.dev/pkg v0.0.0-20190815170108-426561fd098d/go.mod h1:pgODObA1dTyhNoFxPZTTjNWfx6F0aKsKzn+vaT9XO/Q=
+knative.dev/serving v0.8.0 h1:4SHZgkUnABOnEfvU86TCgVNi/twvekTUNr76ObC4ovA=
+knative.dev/serving v0.8.0/go.mod h1:x2n255JS2XBI39tmjZ8CwTxIf9EKNMCrkVuiOttLRm0=
 knative.dev/test-infra v0.0.0-20190404172656-4ce16d390c55 h1:2tpTEN6OydMWVmkKJC3iVNrYbA+iHNL9qjLXe7hocfE=
 knative.dev/test-infra v0.0.0-20190404172656-4ce16d390c55/go.mod h1:l77IWBscEV5T4sYb64/9iwRCVY4UXEIqMcAppsblHW4=
 knative.dev/test-infra v0.0.0-20190509163238-a721698dbe49 h1:TEv7xkUjVofC2lqiSNeYjOYhC3XosGAfr0HG8x/lpC0=

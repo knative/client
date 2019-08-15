@@ -17,8 +17,8 @@ package serving
 import (
 	"fmt"
 
-	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
+	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
 func ContainerOfRevisionTemplate(template *servingv1alpha1.RevisionTemplateSpec) (*corev1.Container, error) {

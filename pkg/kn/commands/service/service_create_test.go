@@ -29,11 +29,11 @@ import (
 	servinglib "github.com/knative/client/pkg/serving"
 	"github.com/knative/client/pkg/wait"
 
-	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/runtime"
 	client_testing "k8s.io/client-go/testing"
+	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
 func fakeServiceCreate(args []string, withExistingService bool, sync bool) (

@@ -29,13 +29,13 @@ import (
 	"github.com/knative/client/pkg/util"
 	"github.com/knative/client/pkg/wait"
 
-	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	client_testing "k8s.io/client-go/testing"
+	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
 func fakeServiceUpdate(original *v1alpha1.Service, args []string, sync bool) (

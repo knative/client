@@ -20,11 +20,11 @@ import (
 
 	"github.com/knative/client/pkg/kn/commands"
 	"github.com/knative/client/pkg/util"
-	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
-	"github.com/knative/serving/pkg/apis/serving/v1beta1"
 	"gotest.tools/assert"
 	"k8s.io/apimachinery/pkg/runtime"
 	client_testing "k8s.io/client-go/testing"
+	"knative.dev/serving/pkg/apis/serving/v1alpha1"
+	"knative.dev/serving/pkg/apis/serving/v1beta1"
 )
 
 func fakeRouteList(args []string, response *v1alpha1.RouteList) (action client_testing.Action, output []string, err error) {

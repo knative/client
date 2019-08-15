@@ -20,10 +20,10 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/knative/serving/pkg/apis/autoscaling"
-	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
-	servingv1beta1 "github.com/knative/serving/pkg/apis/serving/v1beta1"
 	corev1 "k8s.io/api/core/v1"
+	"knative.dev/serving/pkg/apis/autoscaling"
+	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
+	servingv1beta1 "knative.dev/serving/pkg/apis/serving/v1beta1"
 )
 
 // UpdateEnvVars gives the configuration all the env var values listed in the given map of

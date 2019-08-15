@@ -19,11 +19,11 @@ import (
 
 	servinglib "github.com/knative/client/pkg/serving"
 	util "github.com/knative/client/pkg/util"
-	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	errors "github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
 type ConfigurationEditFlags struct {

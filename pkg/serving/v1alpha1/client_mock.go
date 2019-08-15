@@ -20,10 +20,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"gotest.tools/assert"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
+	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
 type Recorder struct {

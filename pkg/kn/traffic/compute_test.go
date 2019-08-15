@@ -15,8 +15,8 @@
 package traffic
 
 import (
-	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"gotest.tools/assert"
+	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 
 	"testing"
 

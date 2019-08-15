@@ -18,12 +18,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/knative/pkg/apis"
-	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
+	"knative.dev/pkg/apis"
+	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
 type waitForReadyTestCase struct {

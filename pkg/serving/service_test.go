@@ -20,7 +20,7 @@ import (
 
 	"gotest.tools/assert"
 
-	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
+	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
 type generateNameTest struct {
