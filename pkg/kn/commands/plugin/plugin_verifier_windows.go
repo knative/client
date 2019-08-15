@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build !windows
+// +build windows
 
 package plugin
 
@@ -23,7 +23,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
-	"syscall"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -130,42 +129,7 @@ func (v *pluginVerifier) addWarningIfNotExecutable(eaw errorsAndWarnings, path s
 	if runtime.GOOS == "windows" {
 		return checkForWindowsExecutable(eaw, fileInfo, path)
 	}
-
-	mode := fileInfo.Mode()
-	if !mode.IsRegular() && !isSymlink(mode) {
-		return eaw.addWarning("%s is not a file", path)
-	}
-	perms := uint32(mode.Perm())
-
-	var sys *syscall.Stat_t
-	var ok bool
-	if sys, ok = fileInfo.Sys().(*syscall.Stat_t); !ok {
-		// We can check the files' owner/group
-		return eaw.addWarning("cannot check owner/group of file %s", path)
-	}
-
-	isOwner := checkIfUserIsFileOwner(sys.Uid)
-	isInGroup, err := checkIfUserInGroup(sys.Gid)
-	if err != nil {
-		return eaw.addError("cannot get group ids for checking executable status of file %s", path)
-	}
-
-	// User is owner and owner can execute
-	if canOwnerExecute(perms, isOwner) {
-		return eaw
-	}
-
-	// User is in group which can execute, but user is not file owner
-	if canGroupExecute(perms, isOwner, isInGroup) {
-		return eaw
-	}
-
-	// All can execute, and the user is not file owner and not in the file's perm group
-	if canOtherExecute(perms, isOwner, isInGroup) {
-		return eaw
-	}
-
-	return eaw.addWarning("%s is not executable by current user", path)
+	return eaw
 }
 
 func checkForWindowsExecutable(eaw errorsAndWarnings, fileInfo os.FileInfo, path string) errorsAndWarnings {
@@ -176,65 +140,6 @@ func checkForWindowsExecutable(eaw errorsAndWarnings, fileInfo os.FileInfo, path
 		return eaw
 	}
 	return eaw.addWarning("%s is not executable as it does not have the proper extension", path)
-}
-
-func checkIfUserInGroup(gid uint32) (bool, error) {
-	groups, err := os.Getgroups()
-	if err != nil {
-		return false, err
-	}
-	for _, g := range groups {
-		if int(gid) == g {
-			return true, nil
-		}
-	}
-	return false, nil
-}
-
-func checkIfUserIsFileOwner(uid uint32) bool {
-	if int(uid) == os.Getuid() {
-		return true
-	}
-	return false
-}
-
-// Check if all can execute, and the user is not file owner and not in the file's perm group
-func canOtherExecute(perms uint32, isOwner bool, isInGroup bool) bool {
-	if perms&OtherExecute != 0 {
-		if os.Getuid() == 0 {
-			return true
-		}
-		if !isOwner && !isInGroup {
-			return true
-		}
-	}
-	return false
-}
-
-// Check if user is owner and owner can execute
-func canOwnerExecute(perms uint32, isOwner bool) bool {
-	if perms&UserExecute != 0 {
-		if os.Getuid() == 0 {
-			return true
-		}
-		if isOwner {
-			return true
-		}
-	}
-	return false
-}
-
-// Check if user is in group which can execute, but user is not file owner
-func canGroupExecute(perms uint32, isOwner bool, isInGroup bool) bool {
-	if perms&GroupExecute != 0 {
-		if os.Getuid() == 0 {
-			return true
-		}
-		if !isOwner && isInGroup {
-			return true
-		}
-	}
-	return false
 }
 
 func (eaw *errorsAndWarnings) addError(format string, args ...interface{}) errorsAndWarnings {
@@ -282,8 +187,4 @@ func convertUnderscoresToDashes(cmds []string) []string {
 		ret[i] = strings.ReplaceAll(cmds[i], "_", "-")
 	}
 	return ret
-}
-
-func isSymlink(mode os.FileMode) bool {
-	return mode&os.ModeSymlink != 0
 }
