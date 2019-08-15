@@ -75,7 +75,7 @@ func TestServiceCreateLabel(t *testing.T) {
 	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
 	r.CreateService(service, nil)
 
-	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "-l", "a=mouse", "--label", "b=cookie", "--label=empty", "--async")
+	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "-l", "a=mouse", "--label", "b=cookie", "--label=empty", "--async", "--revision-name=")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
 
