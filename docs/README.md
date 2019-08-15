@@ -80,7 +80,7 @@ kn revision list --service srvc # CHECK this since current command does not have
 
 Kn supports plugins, which allow you to extend the functionality of your Kn installation with custom commands as well as shared commands that are not part of the core distribution of Kn. 
 
-Plugins follow a similar architecture to [kubectl plugins](https://kubernetes.io/docs/tasks/extend-kubectl/kubectl-plugins/) with some small differences. One key difference is that Kn plugins can either live in your `PATH` or in a chosen and specified directory. [Kn plugins](docs/plugins.md) shows how to install and create new plugins as well as giving some examples and best practices.
+Plugins follow a similar architecture to [kubectl plugins](https://kubernetes.io/docs/tasks/extend-kubectl/kubectl-plugins/) with some small differences. One key difference is that Kn plugins can either live in your `PATH` or in a chosen and specified directory. [Kn plugins](plugins.md) shows how to install and create new plugins as well as giving some examples and best practices.
 
 To see what plugins are installed on your machine, you can use the [`plugin`](cmd/kn_plugin.md) command group's [`list`](cmd/kn_plugin_list.md) command.
 
@@ -90,7 +90,7 @@ These are commands that provide some useful information to the user.
 
 * The `kn help` command displays a list of the commands with helpful information.
 * The [`kn version`](cmd/kn_version.md) command will display the current version of the `kn` build including date and Git commit revision.
-* The [`kn completion`](cmd/kn_completion.md) command will output a BASH completion script for `kn` to allow command completions with tabs.
+* The `kn completion` command will output a BASH completion script for `kn` to allow command completions with tabs.
 
 ### Common Flags
 
