@@ -14,6 +14,10 @@
 
 // +build !windows
 
+// This file doesn't compile for Windows platform, it defines respective build tag (build tag),
+// the respective functionality is present in plugin_verifier_windows.go file in same dir,
+// which only compiles for Windows platform.
+
 package plugin
 
 import (

@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build windows
+// This file is replacement of plugin_verifier.go file in same dir, and
+// compiles only for Windows platform (its suffix defines that).
 
 package plugin
 
