@@ -60,36 +60,6 @@ github.com/imdario/mergo
 github.com/inconshreveable/mousetrap
 # github.com/json-iterator/go v1.1.7
 github.com/json-iterator/go
-# github.com/knative/build v0.7.0
-github.com/knative/build/pkg/apis/build/v1alpha1
-github.com/knative/build/pkg/apis/build
-# github.com/knative/client v0.2.0
-github.com/knative/client/pkg/kn/commands
-github.com/knative/client/pkg/printers
-github.com/knative/client/pkg/serving/v1alpha1
-github.com/knative/client/pkg/serving
-github.com/knative/client/pkg/wait
-# github.com/knative/pkg v0.0.0-20190617142447-13b093adc272
-github.com/knative/pkg/apis
-github.com/knative/pkg/apis/duck/v1beta1
-github.com/knative/pkg/kmp
-github.com/knative/pkg/apis/duck
-github.com/knative/pkg/apis/duck/v1alpha1
-github.com/knative/pkg/kmeta
-github.com/knative/pkg/ptr
-github.com/knative/pkg/configmap
-# github.com/knative/serving v0.6.0
-github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1
-github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake
-github.com/knative/serving/pkg/apis/serving
-github.com/knative/serving/pkg/apis/serving/v1alpha1
-github.com/knative/serving/pkg/client/clientset/versioned/scheme
-github.com/knative/serving/pkg/apis/serving/v1beta1
-github.com/knative/serving/pkg/apis/autoscaling
-github.com/knative/serving/pkg/apis/networking
-github.com/knative/serving/pkg/apis/networking/v1alpha1
-github.com/knative/serving/pkg/apis/autoscaling/v1alpha1
-github.com/knative/serving/pkg/apis/config
 # github.com/magiconair/properties v1.8.0
 github.com/magiconair/properties
 # github.com/mattbaird/jsonpatch v0.0.0-20171005235357-81af80346b1a
