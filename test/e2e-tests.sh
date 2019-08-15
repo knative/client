@@ -59,6 +59,5 @@ initialize $@
 
 header "Running tests for Knative serving $KNATIVE_VERSION"
 
-go_test_e2e ./test/e2e || fail_test
-
+go_test_e2e -timeout=30m ./test/e2e || fail_test
 success

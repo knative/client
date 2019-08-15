@@ -21,6 +21,7 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -70,6 +71,14 @@ func getNamespaceCountAndIncrement() int {
 	current := namespaceCount
 	namespaceCount++
 	return current
+}
+
+func getServiceNameAndIncrement(base string) string {
+	m.Lock()
+	defer m.Unlock()
+	current := serviceCount
+	serviceCount++
+	return base + strconv.Itoa(current)
 }
 
 // Teardown clean up

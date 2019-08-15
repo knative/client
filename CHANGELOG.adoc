@@ -42,6 +42,11 @@
 | Add --revision-name flag
 | https://github.com/knative/client/pull/282[#282]
 
+| 🎁
+| Support traffic splitting and tagging targets
+| https://github.com/knative/client/pull/345[#345]
+
+
 |===
 
 ## v0.2.0 (2019-07-10)
