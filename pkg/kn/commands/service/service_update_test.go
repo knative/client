@@ -58,9 +58,17 @@ func fakeServiceUpdate(original *v1alpha1.Service, args []string, sync bool) (
 			}
 			return true, updated, nil
 		})
-	fakeServing.AddReactor("get", "*",
+	fakeServing.AddReactor("get", "services",
 		func(a client_testing.Action) (bool, runtime.Object, error) {
 			return true, original, nil
+		})
+	fakeServing.AddReactor("get", "revisions",
+		func(a client_testing.Action) (bool, runtime.Object, error) {
+			rev := &v1alpha1.Revision{}
+			rev.Spec = original.Spec.Template.Spec
+			rev.ObjectMeta = original.Spec.Template.ObjectMeta
+			rev.Status.ImageDigest = "gcr.io/foo/bar@sha256:deadbeefdeadbeef"
+			return true, rev, nil
 		})
 	if sync {
 		fakeServing.AddWatchReactor("services",

@@ -194,6 +194,10 @@ func (r *Recorder) GetConfiguration(name string, config *v1alpha1.Configuration,
 
 }
 
+func (cl *MockKnClient) GetBaseRevision(service *v1alpha1.Service) (*v1alpha1.Revision, error) {
+	return getBaseRevision(cl, service)
+}
+
 // GetConfiguration returns a configuration looked up by name
 func (c *MockKnClient) GetConfiguration(name string) (*v1alpha1.Configuration, error) {
 	call := c.getCall("GetConfiguration")

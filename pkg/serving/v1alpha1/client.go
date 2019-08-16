@@ -15,7 +15,6 @@
 package v1alpha1
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -77,8 +76,6 @@ type KnClient interface {
 
 	// List routes
 	ListRoutes(opts ...ListConfig) (*v1alpha1.RouteList, error)
-
-	Errors() map[string]error
 }
 
 type listConfigCollector struct {
@@ -243,13 +240,25 @@ func (cl *knClient) GetRevision(name string) (*v1alpha1.Revision, error) {
 	return revision, nil
 }
 
-var noBaseRevisionError = errors.New("Base revision not found.")
+type NoBaseRevisionError struct {
+	msg string
+}
+
+func (e NoBaseRevisionError) Error() string {
+	return e.msg
+}
+
+var noBaseRevisionError = &NoBaseRevisionError{"base revision not found"}
 
 // Get a "base" revision. This is the revision corresponding to the template of
 // a Service. It may not be findable with our heuristics, in which case this
 // method returns Errors()["no-base-revision"]. If it simply doesn't exist (like
 // it wasn't yet created or was deleted), return the usual not found error.
 func (cl *knClient) GetBaseRevision(service *v1alpha1.Service) (*v1alpha1.Revision, error) {
+	return getBaseRevision(cl, service)
+}
+
+func getBaseRevision(cl KnClient, service *v1alpha1.Service) (*v1alpha1.Revision, error) {
 	template, err := serving.RevisionTemplateOfService(service)
 	if err != nil {
 		return nil, err

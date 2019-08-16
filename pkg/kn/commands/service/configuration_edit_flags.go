@@ -111,9 +111,7 @@ func (p *ConfigurationEditFlags) AddUpdateFlags(command *cobra.Command) {
 		"When not updating the image field, make sure the image we're running doesn't "+
 			"change by locking it to the currently-running image digest.")
 	// Don't add it to p.flags, it doesn't affect anything on its own.
-	command.Flags().BoolVar(&p.GenerateRevisionName, "generate-revision-name", true,
-		"Automatically generate a revision name client-side. If false, the revision name is cleared.")
-	p.markFlagMakesRevision"generate-revision-name")
+
 }
 
 // AddCreateFlags adds the flags specific to create
