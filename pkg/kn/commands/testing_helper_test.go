@@ -19,9 +19,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake"
 	"github.com/spf13/cobra"
 	"gotest.tools/assert"
+	"knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake"
 )
 
 func TestCreateTestKnCommand(t *testing.T) {

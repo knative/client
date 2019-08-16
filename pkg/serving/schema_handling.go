@@ -18,9 +18,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/knative/serving/pkg/client/clientset/versioned/scheme"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"knative.dev/serving/pkg/client/clientset/versioned/scheme"
 )
 
 // Update the GVK on the given object, based on the GVK registered in into the serving scheme

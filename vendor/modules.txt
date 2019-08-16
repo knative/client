@@ -23,7 +23,7 @@ github.com/golang/protobuf/ptypes/duration
 github.com/golang/protobuf/ptypes/timestamp
 # github.com/google/btree v1.0.0
 github.com/google/btree
-# github.com/google/go-cmp v0.3.0
+# github.com/google/go-cmp v0.3.1
 github.com/google/go-cmp/cmp
 github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/flags
@@ -40,7 +40,7 @@ github.com/googleapis/gnostic/extensions
 # github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
 github.com/gregjones/httpcache
 github.com/gregjones/httpcache/diskcache
-# github.com/hashicorp/golang-lru v0.5.1
+# github.com/hashicorp/golang-lru v0.5.3
 github.com/hashicorp/golang-lru
 github.com/hashicorp/golang-lru/simplelru
 # github.com/hashicorp/hcl v1.0.0
@@ -60,30 +60,6 @@ github.com/imdario/mergo
 github.com/inconshreveable/mousetrap
 # github.com/json-iterator/go v1.1.7
 github.com/json-iterator/go
-# github.com/knative/build v0.7.0
-github.com/knative/build/pkg/apis/build/v1alpha1
-github.com/knative/build/pkg/apis/build
-# github.com/knative/pkg v0.0.0-20190617142447-13b093adc272
-github.com/knative/pkg/apis
-github.com/knative/pkg/apis/duck/v1beta1
-github.com/knative/pkg/ptr
-github.com/knative/pkg/kmp
-github.com/knative/pkg/apis/duck
-github.com/knative/pkg/apis/duck/v1alpha1
-github.com/knative/pkg/kmeta
-github.com/knative/pkg/configmap
-# github.com/knative/serving v0.6.0
-github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1
-github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake
-github.com/knative/serving/pkg/apis/serving
-github.com/knative/serving/pkg/apis/serving/v1alpha1
-github.com/knative/serving/pkg/apis/autoscaling
-github.com/knative/serving/pkg/apis/serving/v1beta1
-github.com/knative/serving/pkg/client/clientset/versioned/scheme
-github.com/knative/serving/pkg/apis/networking
-github.com/knative/serving/pkg/apis/networking/v1alpha1
-github.com/knative/serving/pkg/apis/config
-github.com/knative/serving/pkg/apis/autoscaling/v1alpha1
 # github.com/magiconair/properties v1.8.0
 github.com/magiconair/properties
 # github.com/mattbaird/jsonpatch v0.0.0-20171005235357-81af80346b1a
@@ -127,6 +103,7 @@ golang.org/x/net/http2/hpack
 golang.org/x/net/idna
 golang.org/x/net/context/ctxhttp
 golang.org/x/net/context
+golang.org/x/net/http2/h2c
 # golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 golang.org/x/oauth2
 golang.org/x/oauth2/google
@@ -220,35 +197,35 @@ k8s.io/apimachinery/pkg/conversion
 k8s.io/apimachinery/pkg/selection
 k8s.io/apimachinery/pkg/types
 k8s.io/apimachinery/pkg/util/intstr
-k8s.io/apimachinery/pkg/api/equality
-k8s.io/apimachinery/pkg/api/validation
-k8s.io/apimachinery/pkg/runtime/serializer
 k8s.io/apimachinery/pkg/util/json
 k8s.io/apimachinery/pkg/util/strategicpatch
 k8s.io/apimachinery/pkg/util/errors
 k8s.io/apimachinery/pkg/util/validation
-k8s.io/apimachinery/pkg/util/sets
-k8s.io/apimachinery/pkg/apis/meta/v1/unstructured
+k8s.io/apimachinery/pkg/api/equality
+k8s.io/apimachinery/pkg/api/validation
+k8s.io/apimachinery/pkg/runtime/serializer
 k8s.io/apimachinery/pkg/conversion/queryparams
 k8s.io/apimachinery/pkg/util/naming
+k8s.io/apimachinery/pkg/util/sets
 k8s.io/apimachinery/pkg/util/net
 k8s.io/apimachinery/pkg/util/yaml
 k8s.io/apimachinery/third_party/forked/golang/reflect
-k8s.io/apimachinery/pkg/apis/meta/v1/validation
-k8s.io/apimachinery/pkg/runtime/serializer/json
-k8s.io/apimachinery/pkg/runtime/serializer/protobuf
-k8s.io/apimachinery/pkg/runtime/serializer/recognizer
-k8s.io/apimachinery/pkg/runtime/serializer/versioning
-k8s.io/apimachinery/pkg/runtime/serializer/streaming
+k8s.io/apimachinery/pkg/apis/meta/v1/unstructured
 k8s.io/apimachinery/pkg/util/mergepatch
 k8s.io/apimachinery/third_party/forked/golang/json
+k8s.io/apimachinery/pkg/runtime/serializer/streaming
+k8s.io/apimachinery/pkg/runtime/serializer/json
+k8s.io/apimachinery/pkg/runtime/serializer/versioning
+k8s.io/apimachinery/pkg/apis/meta/v1/validation
+k8s.io/apimachinery/pkg/runtime/serializer/protobuf
+k8s.io/apimachinery/pkg/runtime/serializer/recognizer
 k8s.io/apimachinery/pkg/apis/meta/v1/unstructured/unstructuredscheme
 k8s.io/apimachinery/pkg/version
-k8s.io/apimachinery/pkg/util/cache
 k8s.io/apimachinery/pkg/util/clock
+k8s.io/apimachinery/pkg/util/framer
+k8s.io/apimachinery/pkg/util/cache
 k8s.io/apimachinery/pkg/util/diff
 k8s.io/apimachinery/pkg/util/wait
-k8s.io/apimachinery/pkg/util/framer
 k8s.io/apimachinery/pkg/apis/meta/internalversion
 # k8s.io/cli-runtime v0.0.0-20190325194458-f2b4781c3ae1
 k8s.io/cli-runtime/pkg/genericclioptions
@@ -267,8 +244,6 @@ k8s.io/client-go/util/homedir
 k8s.io/client-go/discovery
 k8s.io/client-go/restmapper
 k8s.io/client-go/util/jsonpath
-k8s.io/client-go/dynamic
-k8s.io/client-go/tools/cache
 k8s.io/client-go/pkg/version
 k8s.io/client-go/plugin/pkg/client/auth/exec
 k8s.io/client-go/rest/watch
@@ -277,16 +252,18 @@ k8s.io/client-go/transport
 k8s.io/client-go/util/cert
 k8s.io/client-go/util/flowcontrol
 k8s.io/client-go/tools/clientcmd/api/v1
+k8s.io/client-go/dynamic
+k8s.io/client-go/tools/cache
 k8s.io/client-go/kubernetes/scheme
 k8s.io/client-go/third_party/forked/golang/template
-k8s.io/client-go/tools/pager
-k8s.io/client-go/util/buffer
-k8s.io/client-go/util/retry
 k8s.io/client-go/pkg/apis/clientauthentication
 k8s.io/client-go/pkg/apis/clientauthentication/v1alpha1
 k8s.io/client-go/pkg/apis/clientauthentication/v1beta1
 k8s.io/client-go/util/connrotation
 k8s.io/client-go/util/integer
+k8s.io/client-go/tools/pager
+k8s.io/client-go/util/buffer
+k8s.io/client-go/util/retry
 k8s.io/client-go/informers
 k8s.io/client-go/informers/core/v1
 k8s.io/client-go/kubernetes
@@ -393,6 +370,31 @@ k8s.io/client-go/listers/storage/v1alpha1
 k8s.io/client-go/listers/storage/v1beta1
 # k8s.io/kube-openapi v0.0.0-20190722073852-5e22f3d471e6
 k8s.io/kube-openapi/pkg/util/proto
+# knative.dev/pkg v0.0.0-20190815170108-426561fd098d
+knative.dev/pkg/apis
+knative.dev/pkg/apis/duck/v1beta1
+knative.dev/pkg/ptr
+knative.dev/pkg/kmp
+knative.dev/pkg/apis/duck
+knative.dev/pkg/apis/v1alpha1
+knative.dev/pkg/apis/duck/v1alpha1
+knative.dev/pkg/kmeta
+knative.dev/pkg/configmap
+# knative.dev/serving v0.8.0
+knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1
+knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake
+knative.dev/serving/pkg/apis/serving
+knative.dev/serving/pkg/apis/serving/v1alpha1
+knative.dev/serving/pkg/apis/autoscaling
+knative.dev/serving/pkg/apis/serving/v1beta1
+knative.dev/serving/pkg/client/clientset/versioned/scheme
+knative.dev/serving/pkg/apis/config
+knative.dev/serving/pkg/apis/networking
+knative.dev/serving/pkg/apis/networking/v1alpha1
+knative.dev/serving/pkg/reconciler/route/config
+knative.dev/serving/pkg/apis/autoscaling/v1alpha1
+knative.dev/serving/pkg/gc
+knative.dev/serving/pkg/network
 # knative.dev/test-infra v0.0.0-20190730202142-17f2331e80ad
 knative.dev/test-infra/scripts
 # sigs.k8s.io/yaml v1.1.0

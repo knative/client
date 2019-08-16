@@ -15,12 +15,13 @@
 package wait
 
 import (
-	"github.com/knative/pkg/apis"
-	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
+	"knative.dev/pkg/apis"
+	duck "knative.dev/pkg/apis/duck/v1beta1"
+	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
 // Helper for testing watch functionality
@@ -72,10 +73,10 @@ func CreateTestServiceWithConditions(name string, readyStatus corev1.ConditionSt
 		service.Generation = 1
 		service.Status.ObservedGeneration = 1
 	}
-	service.Status.Conditions = []apis.Condition{
+	service.Status.Conditions = duck.Conditions([]apis.Condition{
 		{Type: "RoutesReady", Status: otherReadyStatus},
 		{Type: apis.ConditionReady, Status: readyStatus, Reason: reason},
 		{Type: "ConfigurationsReady", Status: otherReadyStatus},
-	}
+	})
 	return &service
 }

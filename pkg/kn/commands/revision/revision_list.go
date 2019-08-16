@@ -19,13 +19,13 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/knative/serving/pkg/apis/serving"
+	"knative.dev/serving/pkg/apis/serving"
 
-	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"github.com/spf13/cobra"
+	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 
-	"github.com/knative/client/pkg/kn/commands"
-	v1alpha12 "github.com/knative/client/pkg/serving/v1alpha1"
+	"knative.dev/client/pkg/kn/commands"
+	v1alpha12 "knative.dev/client/pkg/serving/v1alpha1"
 )
 
 // NewRevisionListCommand represents 'kn revision list' command

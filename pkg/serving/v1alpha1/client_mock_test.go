@@ -18,8 +18,8 @@ import (
 	"testing"
 	"time"
 
-	api_serving "github.com/knative/serving/pkg/apis/serving"
-	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
+	api_serving "knative.dev/serving/pkg/apis/serving"
+	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
 func TestMockKnClient(t *testing.T) {

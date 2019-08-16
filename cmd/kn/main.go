@@ -20,8 +20,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/knative/client/pkg/kn/core"
 	"github.com/spf13/viper"
+	"knative.dev/client/pkg/kn/core"
 )
 
 func init() {

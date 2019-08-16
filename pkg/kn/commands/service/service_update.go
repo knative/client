@@ -18,12 +18,12 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/knative/client/pkg/kn/commands/flags"
-	"github.com/knative/client/pkg/kn/traffic"
 	"github.com/spf13/cobra"
 	api_errors "k8s.io/apimachinery/pkg/api/errors"
+	"knative.dev/client/pkg/kn/commands/flags"
+	"knative.dev/client/pkg/kn/traffic"
 
-	"github.com/knative/client/pkg/kn/commands"
+	"knative.dev/client/pkg/kn/commands"
 )
 
 func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {

@@ -21,12 +21,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/knative/client/pkg/serving/v1alpha1"
-	"github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"gotest.tools/assert"
 	client_testing "k8s.io/client-go/testing"
+	"knative.dev/client/pkg/serving/v1alpha1"
+	"knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake"
 )
 
 const FakeNamespace = "current"

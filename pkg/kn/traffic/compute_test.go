@@ -15,13 +15,13 @@
 package traffic
 
 import (
-	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"gotest.tools/assert"
+	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 
 	"testing"
 
-	"github.com/knative/client/pkg/kn/commands/flags"
 	"github.com/spf13/cobra"
+	"knative.dev/client/pkg/kn/commands/flags"
 )
 
 type trafficTestCase struct {

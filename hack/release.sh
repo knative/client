@@ -22,7 +22,7 @@ source $(dirname $0)/build-flags.sh
 
 function build_release() {
   local ld_flags="$(build_flags $(dirname $0)/..)"
-  local pkg="github.com/knative/client/pkg/kn/commands"
+  local pkg="knative.dev/client/pkg/kn/commands"
   local version="${TAG}"
   # Use vYYYYMMDD-<hash>-local for the version string, if not passed.
   [[ -z "${version}" ]] && version="v${BUILD_TAG}-local"

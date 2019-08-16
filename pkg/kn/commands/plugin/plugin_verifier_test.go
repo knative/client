@@ -25,8 +25,8 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/knative/client/pkg/kn/commands"
-	"github.com/knative/client/pkg/util"
+	"knative.dev/client/pkg/kn/commands"
+	"knative.dev/client/pkg/util"
 
 	"github.com/spf13/cobra"
 	"gotest.tools/assert"

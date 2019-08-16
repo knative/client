@@ -24,18 +24,18 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/knative/client/pkg/kn/commands"
-	"github.com/knative/client/pkg/kn/commands/plugin"
-	"github.com/knative/client/pkg/kn/commands/revision"
-	"github.com/knative/client/pkg/kn/commands/route"
-	"github.com/knative/client/pkg/kn/commands/service"
-	"github.com/knative/client/pkg/kn/flags"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/ssh/terminal"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
+	"knative.dev/client/pkg/kn/commands"
+	"knative.dev/client/pkg/kn/commands/plugin"
+	"knative.dev/client/pkg/kn/commands/revision"
+	"knative.dev/client/pkg/kn/commands/route"
+	"knative.dev/client/pkg/kn/commands/service"
+	"knative.dev/client/pkg/kn/flags"
 )
 
 // NewDefaultKnCommand creates the default `kn` command with a default plugin handler

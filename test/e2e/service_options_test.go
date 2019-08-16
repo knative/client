@@ -19,8 +19,8 @@ package e2e
 import (
 	"testing"
 
-	"github.com/knative/client/pkg/util"
 	"gotest.tools/assert"
+	"knative.dev/client/pkg/util"
 )
 
 func TestServiceOptions(t *testing.T) {

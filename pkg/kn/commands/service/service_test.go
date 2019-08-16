@@ -17,9 +17,9 @@ package service
 import (
 	"bytes"
 
-	"github.com/knative/client/pkg/kn/commands"
-	knclient "github.com/knative/client/pkg/serving/v1alpha1"
 	"k8s.io/client-go/tools/clientcmd"
+	"knative.dev/client/pkg/kn/commands"
+	knclient "knative.dev/client/pkg/serving/v1alpha1"
 )
 
 // Helper methods

@@ -19,12 +19,12 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/knative/client/pkg/kn/commands"
-	"github.com/knative/client/pkg/serving/v1alpha1"
-	"github.com/knative/serving/pkg/apis/serving"
+	"knative.dev/client/pkg/kn/commands"
+	"knative.dev/client/pkg/serving/v1alpha1"
+	"knative.dev/serving/pkg/apis/serving"
 
-	serving_v1alpha1_api "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"github.com/spf13/cobra"
+	serving_v1alpha1_api "knative.dev/serving/pkg/apis/serving/v1alpha1"
 
 	corev1 "k8s.io/api/core/v1"
 	api_errors "k8s.io/apimachinery/pkg/api/errors"

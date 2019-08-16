@@ -15,10 +15,10 @@
 package revision
 
 import (
-	"github.com/knative/client/pkg/kn/commands"
-	hprinters "github.com/knative/client/pkg/printers"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"knative.dev/client/pkg/kn/commands"
+	hprinters "knative.dev/client/pkg/printers"
 )
 
 // RevisionListFlags composes common printer flag structs

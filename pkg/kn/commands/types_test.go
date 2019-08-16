@@ -20,10 +20,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/knative/client/pkg/util"
 	"gotest.tools/assert"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	"knative.dev/client/pkg/util"
 )
 
 type getConfigTestCase struct {

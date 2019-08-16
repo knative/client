@@ -24,18 +24,18 @@ import (
 	"gotest.tools/assert"
 	"gotest.tools/assert/cmp"
 
-	"github.com/knative/client/pkg/kn/commands"
-	servinglib "github.com/knative/client/pkg/serving"
-	"github.com/knative/client/pkg/util"
-	"github.com/knative/client/pkg/wait"
+	"knative.dev/client/pkg/kn/commands"
+	servinglib "knative.dev/client/pkg/serving"
+	"knative.dev/client/pkg/util"
+	"knative.dev/client/pkg/wait"
 
-	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	client_testing "k8s.io/client-go/testing"
+	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
 func fakeServiceUpdate(original *v1alpha1.Service, args []string, sync bool) (

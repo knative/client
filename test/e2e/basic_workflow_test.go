@@ -21,8 +21,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/knative/client/pkg/util"
 	"gotest.tools/assert"
+	"knative.dev/client/pkg/util"
 )
 
 func TestBasicWorkflow(t *testing.T) {

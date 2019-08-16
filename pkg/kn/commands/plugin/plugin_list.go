@@ -23,7 +23,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/knative/client/pkg/kn/commands"
+	"knative.dev/client/pkg/kn/commands"
 
 	"github.com/mitchellh/go-homedir"
 )

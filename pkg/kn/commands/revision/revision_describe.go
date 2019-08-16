@@ -17,9 +17,9 @@ package revision
 import (
 	"errors"
 
-	"github.com/knative/client/pkg/kn/commands"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"knative.dev/client/pkg/kn/commands"
 )
 
 func NewRevisionDescribeCommand(p *commands.KnParams) *cobra.Command {

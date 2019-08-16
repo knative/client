@@ -17,8 +17,8 @@ package serving
 import (
 	"testing"
 
-	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
 func TestGVKUpdate(t *testing.T) {

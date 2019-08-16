@@ -24,23 +24,23 @@ import (
 	"strings"
 	"time"
 
-	"github.com/knative/serving/pkg/apis/autoscaling"
-	"github.com/knative/serving/pkg/apis/serving"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"knative.dev/serving/pkg/apis/autoscaling"
+	"knative.dev/serving/pkg/apis/serving"
 
-	"github.com/knative/client/pkg/printers"
-	serving_kn_v1alpha1 "github.com/knative/client/pkg/serving/v1alpha1"
+	"knative.dev/client/pkg/printers"
+	serving_kn_v1alpha1 "knative.dev/client/pkg/serving/v1alpha1"
 
-	"github.com/knative/pkg/apis"
-	"github.com/knative/pkg/apis/duck/v1beta1"
-	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
+	"knative.dev/pkg/apis"
+	"knative.dev/pkg/apis/duck/v1beta1"
+	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/duration"
 
-	"github.com/knative/client/pkg/kn/commands"
+	"knative.dev/client/pkg/kn/commands"
 )
 
 // Command for printing out a description of a service, meant to be consumed by humans

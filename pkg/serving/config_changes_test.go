@@ -21,12 +21,12 @@ import (
 
 	"gotest.tools/assert"
 
-	"github.com/knative/serving/pkg/apis/autoscaling"
-	"github.com/knative/serving/pkg/apis/serving/v1beta1"
+	"knative.dev/serving/pkg/apis/autoscaling"
+	"knative.dev/serving/pkg/apis/serving/v1beta1"
 
-	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
 func TestUpdateAutoscalingAnnotations(t *testing.T) {
@@ -183,7 +183,7 @@ func TestUpdateMinScale(t *testing.T) {
 	checkAnnotationValue(t, template, autoscaling.MinScaleAnnotationKey, 10)
 	// Update with invalid value
 	err = UpdateMinScale(template, -1)
-	assert.ErrorContains(t, err, "Invalid")
+	assert.ErrorContains(t, err, "minScale")
 }
 
 func TestUpdateMaxScale(t *testing.T) {
@@ -194,7 +194,7 @@ func TestUpdateMaxScale(t *testing.T) {
 	checkAnnotationValue(t, template, autoscaling.MaxScaleAnnotationKey, 10)
 	// Update with invalid value
 	err = UpdateMaxScale(template, -1)
-	assert.ErrorContains(t, err, "Invalid")
+	assert.ErrorContains(t, err, "maxScale")
 }
 
 func TestUpdateConcurrencyTarget(t *testing.T) {
@@ -394,7 +394,7 @@ func getV1alpha1Config() (*servingv1alpha1.RevisionTemplateSpec, *corev1.Contain
 		},
 		Spec: servingv1alpha1.RevisionSpec{
 			RevisionSpec: v1beta1.RevisionSpec{
-				PodSpec: v1beta1.PodSpec{
+				PodSpec: corev1.PodSpec{
 					Containers: containers,
 				},
 			},

@@ -18,8 +18,8 @@ import (
 	"io"
 	"time"
 
-	"github.com/knative/client/pkg/kn/commands"
-	serving_kn_v1alpha1 "github.com/knative/client/pkg/serving/v1alpha1"
+	"knative.dev/client/pkg/kn/commands"
+	serving_kn_v1alpha1 "knative.dev/client/pkg/serving/v1alpha1"
 
 	"fmt"
 
