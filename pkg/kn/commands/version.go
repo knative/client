@@ -16,6 +16,7 @@ package commands
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -25,6 +26,18 @@ var BuildDate string
 var GitRevision string
 var ServingVersion string
 
+// VersionsAPIs hold the list of supported versions and APIs for component kn can work with
+type VersionsAPIs struct {
+	Versions, APIs []string
+}
+
+// update this var as we increase the serving version in go.mod
+var knServingDep = "v0.8.0"
+var supportMatrix = map[string]*VersionsAPIs{
+	knServingDep: {[]string{"v0.8.0", "v0.7.1"}, []string{"v1alpha1"}},
+}
+
+// NewVersionCommand implements 'kn version' command
 func NewVersionCommand(p *KnParams) *cobra.Command {
 	versionCmd := &cobra.Command{
 		Use:   "version",
@@ -33,8 +46,15 @@ func NewVersionCommand(p *KnParams) *cobra.Command {
 			fmt.Printf("Version:      %s\n", Version)
 			fmt.Printf("Build Date:   %s\n", BuildDate)
 			fmt.Printf("Git Revision: %s\n", GitRevision)
-			fmt.Printf("Dependencies:\n")
-			fmt.Printf("- serving:    %s\n", ServingVersion)
+			fmt.Printf("Support:\n")
+			if m, ok := supportMatrix[ServingVersion]; ok {
+				fmt.Printf("- Serving: %s\n", strings.Join(m.Versions, "  "))
+				fmt.Printf("- API(s):  %s\n", strings.Join(m.APIs, " "))
+			} else {
+				// ensure the go build works when we update,
+				// but version command tests fails to prevent shipping
+				fmt.Printf("- Serving: %s\n", ServingVersion)
+			}
 			return nil
 		},
 	}
