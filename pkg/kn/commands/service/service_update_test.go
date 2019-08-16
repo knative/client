@@ -38,9 +38,9 @@ import (
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
-var exampleImageByDigest string = "gcr.io/foo/bar@sha256:deadbeefdeadbeef"
-var exampleRevisionName string = "foo-asdf"
-var exampleRevisionName2 string = "foo-xyzzy"
+var exampleImageByDigest = "gcr.io/foo/bar@sha256:deadbeefdeadbeef"
+var exampleRevisionName = "foo-asdf"
+var exampleRevisionName2 = "foo-xyzzy"
 
 func fakeServiceUpdate(original *v1alpha1.Service, args []string, sync bool) (
 	action client_testing.Action,
@@ -357,6 +357,7 @@ func TestServiceUpdateEnv(t *testing.T) {
 
 	template, err = servinglib.RevisionTemplateOfService(updated)
 	assert.NilError(t, err)
+	// Test that we pinned to digest
 	assert.Equal(t, template.Spec.Containers[0].Image, exampleImageByDigest)
 	assert.Equal(t, template.Spec.Containers[0].Env[0], expectedEnvVar)
 }

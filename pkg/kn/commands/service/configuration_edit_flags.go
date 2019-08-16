@@ -21,6 +21,7 @@ import (
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	"knative.dev/client/pkg/kn/flags"
 	servinglib "knative.dev/client/pkg/serving"
 	util "knative.dev/client/pkg/util"
 	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
@@ -107,11 +108,9 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 // AddUpdateFlags adds the flags specific to update.
 func (p *ConfigurationEditFlags) AddUpdateFlags(command *cobra.Command) {
 	p.addSharedFlags(command)
-	command.Flags().BoolVar(&p.LockToDigest, "lock-to-digest", true,
-		"When not updating the image field, make sure the image we're running doesn't "+
-			"change by locking it to the currently-running image digest.")
-	// Don't add it to p.flags, it doesn't affect anything on its own.
-
+	flags.AddBothBoolFlags(command.Flags(), &p.LockToDigest, "lock-to-digest", "", true,
+		"set the image to the latest revision's image digest. If you specify --image, the image will always be set to the provided value, regardless.")
+	// Don't mark as changing the revision.
 }
 
 // AddCreateFlags adds the flags specific to create
