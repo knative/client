@@ -38,11 +38,16 @@ import (
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
+var exampleImageByDigest string = "gcr.io/foo/bar@sha256:deadbeefdeadbeef"
+var exampleRevisionName string = "foo-asdf"
+var exampleRevisionName2 string = "foo-xyzzy"
+
 func fakeServiceUpdate(original *v1alpha1.Service, args []string, sync bool) (
 	action client_testing.Action,
 	updated *v1alpha1.Service,
 	output string,
 	err error) {
+	var reconciled v1alpha1.Service
 	knParams := &commands.KnParams{}
 	cmd, fakeServing, buf := commands.CreateTestKnCommand(NewServiceCommand(knParams), knParams)
 	fakeServing.AddReactor("update", "*",
@@ -60,14 +65,27 @@ func fakeServiceUpdate(original *v1alpha1.Service, args []string, sync bool) (
 		})
 	fakeServing.AddReactor("get", "services",
 		func(a client_testing.Action) (bool, runtime.Object, error) {
-			return true, original, nil
+			if updated == nil {
+				original.Status.LatestCreatedRevisionName = exampleRevisionName
+				return true, original, nil
+			} else {
+				reconciled = *updated
+				if updated.Spec.Template.Name == "" {
+					reconciled.Status.LatestCreatedRevisionName = exampleRevisionName2
+				} else {
+					reconciled.Status.LatestCreatedRevisionName = updated.Spec.Template.Name
+				}
+
+				return true, &reconciled, nil
+			}
 		})
 	fakeServing.AddReactor("get", "revisions",
 		func(a client_testing.Action) (bool, runtime.Object, error) {
 			rev := &v1alpha1.Revision{}
 			rev.Spec = original.Spec.Template.Spec
 			rev.ObjectMeta = original.Spec.Template.ObjectMeta
-			rev.Status.ImageDigest = "gcr.io/foo/bar@sha256:deadbeefdeadbeef"
+			rev.Name = original.Status.LatestCreatedRevisionName
+			rev.Status.ImageDigest = exampleImageByDigest
 			return true, rev, nil
 		})
 	if sync {
@@ -136,42 +154,46 @@ func TestServiceUpdateImageSync(t *testing.T) {
 	template, err = servinglib.RevisionTemplateOfService(updated)
 	assert.NilError(t, err)
 
-	assert.Equal(t, template.Spec.DeprecatedContainer.Image, "gcr.io/foo/quux:xyzzy")
+	assert.Equal(t, template.Spec.Containers[0].Image, "gcr.io/foo/quux:xyzzy")
 	assert.Assert(t, util.ContainsAll(strings.ToLower(output), "update", "foo", "service", "namespace", "bar", "ok", "waiting"))
 }
 
 func TestServiceUpdateImage(t *testing.T) {
-	orig := newEmptyService()
+	for _, orig := range []*v1alpha1.Service{newEmptyServiceBetaAPIStyle(), newEmptyServiceAlphaAPIStyle()} {
 
-	template, err := servinglib.RevisionTemplateOfService(orig)
-	if err != nil {
-		t.Fatal(err)
-	}
+		template, err := servinglib.RevisionTemplateOfService(orig)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
+		servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
 
-	action, updated, output, err := fakeServiceUpdate(orig, []string{
-		"service", "update", "foo", "--image", "gcr.io/foo/quux:xyzzy", "--namespace", "bar", "--async"}, false)
+		action, updated, output, err := fakeServiceUpdate(orig, []string{
+			"service", "update", "foo", "--image", "gcr.io/foo/quux:xyzzy", "--namespace", "bar", "--async"}, false)
 
-	if err != nil {
-		t.Fatal(err)
-	} else if !action.Matches("update", "services") {
-		t.Fatalf("Bad action %v", action)
-	}
+		if err != nil {
+			t.Fatal(err)
+		} else if !action.Matches("update", "services") {
+			t.Fatalf("Bad action %v", action)
+		}
 
-	template, err = servinglib.RevisionTemplateOfService(updated)
-	if err != nil {
-		t.Fatal(err)
-	} else if template.Spec.DeprecatedContainer.Image != "gcr.io/foo/quux:xyzzy" {
-		t.Fatalf("wrong image set: %v", template.Spec.DeprecatedContainer.Image)
-	}
+		template, err = servinglib.RevisionTemplateOfService(updated)
+		if err != nil {
+			t.Fatal(err)
+		}
+		container, err := servinglib.ContainerOfRevisionTemplate(template)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, container.Image, "gcr.io/foo/quux:xyzzy")
 
-	if !strings.Contains(strings.ToLower(output), "update") ||
-		!strings.Contains(output, "foo") ||
-		!strings.Contains(strings.ToLower(output), "service") ||
-		!strings.Contains(strings.ToLower(output), "namespace") ||
-		!strings.Contains(output, "bar") {
-		t.Fatalf("wrong or no success message: %s", output)
+		if !strings.Contains(strings.ToLower(output), "update") ||
+			!strings.Contains(output, "foo") ||
+			!strings.Contains(strings.ToLower(output), "service") ||
+			!strings.Contains(strings.ToLower(output), "namespace") ||
+			!strings.Contains(output, "bar") {
+			t.Fatalf("wrong or no success message: %s", output)
+		}
 	}
 }
 
@@ -307,33 +329,13 @@ func TestServiceUpdateMaxMinScale(t *testing.T) {
 }
 
 func TestServiceUpdateEnv(t *testing.T) {
-	orig := &v1alpha1.Service{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "Service",
-			APIVersion: "knative.dev/v1alpha1",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "foo",
-			Namespace: "default",
-		},
-		Spec: v1alpha1.ServiceSpec{
-			DeprecatedRunLatest: &v1alpha1.RunLatestType{
-				Configuration: v1alpha1.ConfigurationSpec{
-					DeprecatedRevisionTemplate: &v1alpha1.RevisionTemplateSpec{
-						Spec: v1alpha1.RevisionSpec{
-							DeprecatedContainer: &corev1.Container{},
-						},
-					},
-				},
-			},
-		},
-	}
+	orig := newEmptyService()
 
 	template, err := servinglib.RevisionTemplateOfService(orig)
 	if err != nil {
 		t.Fatal(err)
 	}
-	template.Spec.DeprecatedContainer.Env = []corev1.EnvVar{
+	template.Spec.Containers[0].Env = []corev1.EnvVar{
 		{Name: "EXISTING", Value: "thing"},
 		{Name: "OTHEREXISTING"},
 	}
@@ -354,13 +356,9 @@ func TestServiceUpdateEnv(t *testing.T) {
 	}
 
 	template, err = servinglib.RevisionTemplateOfService(updated)
-	if err != nil {
-		t.Fatal(err)
-	} else if template.Spec.DeprecatedContainer.Image != "gcr.io/foo/bar:baz" {
-		t.Fatalf("wrong image set: %v", template.Spec.DeprecatedContainer.Image)
-	} else if template.Spec.DeprecatedContainer.Env[0] != expectedEnvVar {
-		t.Fatalf("wrong env set: %v", template.Spec.DeprecatedContainer.Env)
-	}
+	assert.NilError(t, err)
+	assert.Equal(t, template.Spec.Containers[0].Image, exampleImageByDigest)
+	assert.Equal(t, template.Spec.Containers[0].Env[0], expectedEnvVar)
 }
 
 func TestServiceUpdateRequestsLimitsCPU(t *testing.T) {
@@ -388,15 +386,15 @@ func TestServiceUpdateRequestsLimitsCPU(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		if !reflect.DeepEqual(
-			newTemplate.Spec.DeprecatedContainer.Resources.Requests,
+			newTemplate.Spec.Containers[0].Resources.Requests,
 			expectedRequestsVars) {
-			t.Fatalf("wrong requests vars %v", newTemplate.Spec.DeprecatedContainer.Resources.Requests)
+			t.Fatalf("wrong requests vars %v", newTemplate.Spec.Containers[0].Resources.Requests)
 		}
 
 		if !reflect.DeepEqual(
-			newTemplate.Spec.DeprecatedContainer.Resources.Limits,
+			newTemplate.Spec.Containers[0].Resources.Limits,
 			expectedLimitsVars) {
-			t.Fatalf("wrong limits vars %v", newTemplate.Spec.DeprecatedContainer.Resources.Limits)
+			t.Fatalf("wrong limits vars %v", newTemplate.Spec.Containers[0].Resources.Limits)
 		}
 	}
 }
@@ -426,15 +424,15 @@ func TestServiceUpdateRequestsLimitsMemory(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		if !reflect.DeepEqual(
-			newTemplate.Spec.DeprecatedContainer.Resources.Requests,
+			newTemplate.Spec.Containers[0].Resources.Requests,
 			expectedRequestsVars) {
-			t.Fatalf("wrong requests vars %v", newTemplate.Spec.DeprecatedContainer.Resources.Requests)
+			t.Fatalf("wrong requests vars %v", newTemplate.Spec.Containers[0].Resources.Requests)
 		}
 
 		if !reflect.DeepEqual(
-			newTemplate.Spec.DeprecatedContainer.Resources.Limits,
+			newTemplate.Spec.Containers[0].Resources.Limits,
 			expectedLimitsVars) {
-			t.Fatalf("wrong limits vars %v", newTemplate.Spec.DeprecatedContainer.Resources.Limits)
+			t.Fatalf("wrong limits vars %v", newTemplate.Spec.Containers[0].Resources.Limits)
 		}
 	}
 }
@@ -466,21 +464,30 @@ func TestServiceUpdateRequestsLimitsCPU_and_Memory(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		if !reflect.DeepEqual(
-			newTemplate.Spec.DeprecatedContainer.Resources.Requests,
+			newTemplate.Spec.Containers[0].Resources.Requests,
 			expectedRequestsVars) {
-			t.Fatalf("wrong requests vars %v", newTemplate.Spec.DeprecatedContainer.Resources.Requests)
+			t.Fatalf("wrong requests vars %v", newTemplate.Spec.Containers[0].Resources.Requests)
 		}
 
 		if !reflect.DeepEqual(
-			newTemplate.Spec.DeprecatedContainer.Resources.Limits,
+			newTemplate.Spec.Containers[0].Resources.Limits,
 			expectedLimitsVars) {
-			t.Fatalf("wrong limits vars %v", newTemplate.Spec.DeprecatedContainer.Resources.Limits)
+			t.Fatalf("wrong limits vars %v", newTemplate.Spec.Containers[0].Resources.Limits)
 		}
 	}
 }
 
 func TestServiceUpdateLabelWhenEmpty(t *testing.T) {
 	original := newEmptyService()
+	origTemplate, err := servinglib.RevisionTemplateOfService(original)
+	if err != nil {
+		t.Fatal(err)
+	}
+	origContainer, err := servinglib.ContainerOfRevisionTemplate(origTemplate)
+	if err != nil {
+		t.Fatal(err)
+	}
+	origContainer.Image = "gcr.io/foo/bar:latest"
 
 	action, updated, _, err := fakeServiceUpdate(original, []string{
 		"service", "update", "foo", "-l", "a=mouse", "--label", "b=cookie", "-l=single", "--async"}, false)
@@ -503,6 +510,11 @@ func TestServiceUpdateLabelWhenEmpty(t *testing.T) {
 	assert.NilError(t, err)
 	actual = template.ObjectMeta.Labels
 	assert.DeepEqual(t, expected, actual)
+	container, err := servinglib.ContainerOfRevisionTemplate(template)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, container.Image, exampleImageByDigest)
 }
 
 func TestServiceUpdateLabelExisting(t *testing.T) {
@@ -534,6 +546,49 @@ func TestServiceUpdateLabelExisting(t *testing.T) {
 }
 
 func newEmptyService() *v1alpha1.Service {
+	return newEmptyServiceBetaAPIStyle()
+}
+
+func newEmptyServiceBetaAPIStyle() *v1alpha1.Service {
+	ret := &v1alpha1.Service{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Service",
+			APIVersion: "knative.dev/v1alpha1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "foo",
+			Namespace: "default",
+		},
+		Spec: v1alpha1.ServiceSpec{},
+	}
+	ret.Spec.Template = &v1alpha1.RevisionTemplateSpec{}
+	ret.Spec.Template.Spec.Containers = []corev1.Container{{}}
+	return ret
+}
+
+func createMockServiceWithResources(t *testing.T, requestCPU, requestMemory, limitsCPU, limitsMemory string) *v1alpha1.Service {
+	service := newEmptyService()
+
+	template, err := servinglib.RevisionTemplateOfService(service)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	template.Spec.Containers[0].Resources = corev1.ResourceRequirements{
+		Requests: corev1.ResourceList{
+			corev1.ResourceCPU:    resource.MustParse(requestCPU),
+			corev1.ResourceMemory: resource.MustParse(requestMemory),
+		},
+		Limits: corev1.ResourceList{
+			corev1.ResourceCPU:    resource.MustParse(limitsCPU),
+			corev1.ResourceMemory: resource.MustParse(limitsMemory),
+		},
+	}
+
+	return service
+}
+
+func newEmptyServiceAlphaAPIStyle() *v1alpha1.Service {
 	return &v1alpha1.Service{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Service",
@@ -555,63 +610,4 @@ func newEmptyService() *v1alpha1.Service {
 			},
 		},
 	}
-}
-
-func newEmptyServiceBetaAPIStyle() *v1alpha1.Service {
-	ret := &v1alpha1.Service{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "Service",
-			APIVersion: "knative.dev/v1alpha1",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "foo",
-			Namespace: "default",
-		},
-		Spec: v1alpha1.ServiceSpec{},
-	}
-	ret.Spec.Template = &v1alpha1.RevisionTemplateSpec{}
-	ret.Spec.Template.Spec.Containers = []corev1.Container{{}}
-	return ret
-}
-
-func createMockServiceWithResources(t *testing.T, requestCPU, requestMemory, limitsCPU, limitsMemory string) *v1alpha1.Service {
-	service := &v1alpha1.Service{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "Service",
-			APIVersion: "knative.dev/v1alpha1",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "foo",
-			Namespace: "default",
-		},
-		Spec: v1alpha1.ServiceSpec{
-			DeprecatedRunLatest: &v1alpha1.RunLatestType{
-				Configuration: v1alpha1.ConfigurationSpec{
-					DeprecatedRevisionTemplate: &v1alpha1.RevisionTemplateSpec{
-						Spec: v1alpha1.RevisionSpec{
-							DeprecatedContainer: &corev1.Container{},
-						},
-					},
-				},
-			},
-		},
-	}
-
-	template, err := servinglib.RevisionTemplateOfService(service)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	template.Spec.DeprecatedContainer.Resources = corev1.ResourceRequirements{
-		Requests: corev1.ResourceList{
-			corev1.ResourceCPU:    resource.MustParse(requestCPU),
-			corev1.ResourceMemory: resource.MustParse(requestMemory),
-		},
-		Limits: corev1.ResourceList{
-			corev1.ResourceCPU:    resource.MustParse(limitsCPU),
-			corev1.ResourceMemory: resource.MustParse(limitsMemory),
-		},
-	}
-
-	return service
 }
