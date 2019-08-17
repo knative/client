@@ -57,7 +57,7 @@ func UpdateConcurrencyTarget(template *servingv1alpha1.RevisionTemplateSpec, tar
 	// TODO(toVersus): Remove the following validation once serving library is updated to v0.8.0
 	// and just rely on ValidateAnnotations method.
 	if target < autoscaling.TargetMin {
-		return fmt.Errorf("Invalid 'concurrency-target' value: must be an integer greater than 0: %s",
+		return fmt.Errorf("invalid 'concurrency-target' value: must be an integer greater than 0: %s",
 			autoscaling.TargetAnnotationKey)
 	}
 
@@ -70,7 +70,7 @@ func UpdateConcurrencyLimit(template *servingv1alpha1.RevisionTemplateSpec, limi
 	// Validate input limit
 	ctx := context.Background()
 	if err := cc.Validate(ctx).ViaField("spec.containerConcurrency"); err != nil {
-		return fmt.Errorf("Invalid 'concurrency-limit' value: %s", err)
+		return fmt.Errorf("invalid 'concurrency-limit' value: %s", err)
 	}
 	template.Spec.ContainerConcurrency = cc
 	return nil
@@ -138,6 +138,7 @@ func UpdateImage(template *servingv1alpha1.RevisionTemplateSpec, image string) e
 	return nil
 }
 
+// FreezeImageToDigest sets the image on the template to the image digest of the base revision.
 func FreezeImageToDigest(template *servingv1alpha1.RevisionTemplateSpec, baseRevision *servingv1alpha1.Revision) error {
 	currentContainer, err := ContainerOfRevisionTemplate(template)
 	baseContainer, err := ContainerOfRevisionSpec(&baseRevision.Spec)
@@ -145,7 +146,7 @@ func FreezeImageToDigest(template *servingv1alpha1.RevisionTemplateSpec, baseRev
 		return err
 	}
 	if currentContainer.Image != baseContainer.Image {
-		return fmt.Errorf("Could not freeze image to digest since current revision contains unexpected image.")
+		return fmt.Errorf("could not freeze image to digest since current revision contains unexpected image.")
 	}
 	// If the current image isn't by-digest, set the user-image annotation to it
 	// so we remember what it was.

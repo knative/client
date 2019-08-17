@@ -205,7 +205,7 @@ func TestUpdateConcurrencyTarget(t *testing.T) {
 	checkAnnotationValue(t, template, autoscaling.TargetAnnotationKey, 10)
 	// Update with invalid value
 	err = UpdateConcurrencyTarget(template, -1)
-	assert.ErrorContains(t, err, "Invalid")
+	assert.ErrorContains(t, err, "invalid")
 }
 
 func TestUpdateConcurrencyLimit(t *testing.T) {
@@ -216,7 +216,7 @@ func TestUpdateConcurrencyLimit(t *testing.T) {
 	checkContainerConcurrency(t, template, 10)
 	// Update with invalid value
 	err = UpdateConcurrencyLimit(template, -1)
-	assert.ErrorContains(t, err, "Invalid")
+	assert.ErrorContains(t, err, "invalid")
 }
 
 func TestUpdateContainerImage(t *testing.T) {
