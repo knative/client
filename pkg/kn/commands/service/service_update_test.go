@@ -68,18 +68,18 @@ func fakeServiceUpdate(original *v1alpha1.Service, args []string, sync bool) (
 			if updated == nil {
 				original.Status.LatestCreatedRevisionName = exampleRevisionName
 				return true, original, nil
-			} else {
-				reconciled = *updated
-				if updated.Spec.Template.Name == "" {
-					reconciled.Status.LatestCreatedRevisionName = exampleRevisionName2
-				} else {
-					reconciled.Status.LatestCreatedRevisionName = updated.Spec.Template.Name
-				}
-
-				return true, &reconciled, nil
 			}
+			reconciled = *updated
+			if updated.Spec.Template.Name == "" {
+				reconciled.Status.LatestCreatedRevisionName = exampleRevisionName2
+			} else {
+				reconciled.Status.LatestCreatedRevisionName = updated.Spec.Template.Name
+			}
+
+			return true, &reconciled, nil
 		})
 	fakeServing.AddReactor("get", "revisions",
+		// This is important for the way we set images to their image digest
 		func(a client_testing.Action) (bool, runtime.Object, error) {
 			rev := &v1alpha1.Revision{}
 			rev.Spec = original.Spec.Template.Spec

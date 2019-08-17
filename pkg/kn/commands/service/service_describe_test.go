@@ -34,6 +34,7 @@ import (
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 	"knative.dev/serving/pkg/apis/serving/v1beta1"
 
+	client_serving "knative.dev/client/pkg/serving"
 	knclient "knative.dev/client/pkg/serving/v1alpha1"
 	"knative.dev/client/pkg/util"
 )
@@ -63,6 +64,7 @@ func TestServiceDescribeBasic(t *testing.T) {
 
 	validateServiceOutput(t, "foo", output)
 	assert.Assert(t, util.ContainsAll(output, "Env:", "label1=lval1, label2=lval2\n"))
+	assert.Assert(t, util.ContainsAll(output, "1234567"))
 	assert.Assert(t, util.ContainsAll(output, "Annotations:", "anno1=aval1, anno2=aval2, anno3="))
 	assert.Assert(t, cmp.Regexp(`(?m)\s*Annotations:.*\.\.\.$`, output))
 	assert.Assert(t, util.ContainsAll(output, "Labels:", "label1=lval1, label2=lval2\n"))
@@ -196,6 +198,55 @@ func TestServiceDescribeResources(t *testing.T) {
 	}
 }
 
+func TestServiceDescribeUserImageVsImage(t *testing.T) {
+	// New mock client
+	client := knclient.NewMockKnClient(t)
+
+	// Recording:
+	r := client.Recorder()
+
+	// Prepare service
+	expectedService := createTestService("foo", []string{"rev1", "rev2", "rev3", "rev4"}, goodConditions())
+	r.GetService("foo", &expectedService, nil)
+
+	rev1 := createTestRevision("rev1", 1)
+	rev2 := createTestRevision("rev2", 2)
+	rev3 := createTestRevision("rev3", 3)
+	rev4 := createTestRevision("rev4", 4)
+
+	// Different combinations of image annotations and not.
+	rev1.Spec.Containers[0].Image = "gcr.io/test/image:latest"
+	rev1.Annotations[client_serving.UserImageAnnotationKey] = "gcr.io/test/image:latest"
+	rev2.Spec.Containers[0].Image = "gcr.io/test/image@" + imageDigest
+	rev2.Annotations[client_serving.UserImageAnnotationKey] = "gcr.io/test/image:latest"
+	// rev3 is as if we changed the image but didn't change the annotation
+	rev3.Annotations[client_serving.UserImageAnnotationKey] = "gcr.io/test/image:latest"
+	rev3.Spec.Containers[0].Image = "gcr.io/a/b"
+	// rev4 is without the annotation at all and no hash
+	rev4.Status.ImageDigest = ""
+	rev4.Spec.Containers[0].Image = "gcr.io/x/y"
+
+	// Fetch the revisions
+	r.GetRevision("rev1", &rev1, nil)
+	r.GetRevision("rev2", &rev2, nil)
+	r.GetRevision("rev3", &rev3, nil)
+	r.GetRevision("rev4", &rev4, nil)
+
+	// Testing:
+	output, err := executeServiceCommand(client, "describe", "foo")
+	assert.NilError(t, err)
+
+	validateServiceOutput(t, "foo", output)
+
+	assert.Assert(t, util.ContainsAll(output, "Image", "Name", "gcr.io/test/image:latest (at 123456789012)",
+		"gcr.io/test/image:latest (pinned to 123456789012)", "gcr.io/a/b (at 123456789012)", "gcr.io/x/y"))
+	assert.Assert(t, util.ContainsAll(output, "[1]", "[2]"))
+
+	// Validate that all recorded API methods have been called
+	r.Validate()
+
+}
+
 func TestServiceDescribeVerbose(t *testing.T) {
 
 	// New mock client
@@ -234,7 +285,7 @@ func TestServiceDescribeVerbose(t *testing.T) {
 
 	validateServiceOutput(t, "foo", output)
 
-	assert.Assert(t, util.ContainsAll(output, "Image", "Name", "(123456789012)", "50%", "gcr.io/test/image", "(0s)"))
+	assert.Assert(t, util.ContainsAll(output, "Image", "Name", "gcr.io/test/image (at 123456789012)", "50%", "(0s)"))
 	assert.Assert(t, util.ContainsAll(output, "Env:", "label1=lval1\n", "label2=lval2\n"))
 	assert.Assert(t, util.ContainsAll(output, "Annotations:", "anno1=aval1\n", "anno2=aval2\n"))
 	assert.Assert(t, util.ContainsAll(output, "Labels:", "label1=lval1\n", "label2=lval2\n"))
@@ -381,6 +432,7 @@ func createTestRevision(revision string, gen int64) v1alpha1.Revision {
 			Namespace:         "default",
 			Generation:        1,
 			Labels:            labels,
+			Annotations:       make(map[string]string),
 			CreationTimestamp: metav1.Time{Time: time.Now()},
 		},
 		Spec: v1alpha1.RevisionSpec{
@@ -402,7 +454,7 @@ func createTestRevision(revision string, gen int64) v1alpha1.Revision {
 			},
 		},
 		Status: v1alpha1.RevisionStatus{
-			ImageDigest: imageDigest,
+			ImageDigest: "gcr.io/test/image@" + imageDigest,
 		},
 	}
 }
