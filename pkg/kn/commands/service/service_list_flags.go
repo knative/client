@@ -46,14 +46,7 @@ func (f *ServiceListFlags) ToPrinter() (hprinters.ResourcePrinter, error) {
 		}
 		return p, nil
 	}
-	// if no flags specified, use the table printing
-	if f.HumanReadableFlags.AllNamespaces {
-		p, err := f.HumanReadableFlags.ToPrinter(ServiceListAllNamespaceHandlers)
-		if err != nil {
-			return nil, err
-		}
-		return p, nil
-	}
+
 	p, err := f.HumanReadableFlags.ToPrinter(ServiceListHandlers)
 	if err != nil {
 		return nil, err
@@ -74,4 +67,11 @@ func NewServiceListFlags() *ServiceListFlags {
 		GenericPrintFlags:  genericclioptions.NewPrintFlags(""),
 		HumanReadableFlags: commands.NewHumanPrintFlags(),
 	}
+}
+
+// EnsureWithNamespace ensures that humanreadable flags return
+// a printer capable of printing with a "namespace" column.
+func (f *ServiceListFlags) EnsureWithNamespace() {
+	f.HumanReadableFlags.EnsureWithNamespace()
+	return
 }

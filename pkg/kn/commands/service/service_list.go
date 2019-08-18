@@ -60,6 +60,12 @@ func NewServiceListCommand(p *commands.KnParams) *cobra.Command {
 				fmt.Fprintf(cmd.OutOrStdout(), "No resources found.\n")
 				return nil
 			}
+
+			// empty namespace indicates all-namespaces flag is specified
+			if namespace == "" {
+				serviceListFlags.EnsureWithNamespace()
+			}
+
 			printer, err := serviceListFlags.ToPrinter()
 			if err != nil {
 				return err
