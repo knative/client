@@ -26,13 +26,13 @@ import (
 // RevisionListHandlers adds print handlers for revision list command
 func RevisionListHandlers(h hprinters.PrintHandler) {
 	RevisionColumnDefinitions := []metav1beta1.TableColumnDefinition{
-		{Name: "Name", Type: "string", Description: "Name of the revision."},
-		{Name: "Service", Type: "string", Description: "Name of the Knative service."},
-		{Name: "Generation", Type: "string", Description: "Generation of the revision"},
-		{Name: "Age", Type: "string", Description: "Age of the revision."},
-		{Name: "Conditions", Type: "string", Description: "Conditions describing statuses of the revision."},
-		{Name: "Ready", Type: "string", Description: "Ready condition status of the revision."},
-		{Name: "Reason", Type: "string", Description: "Reason for non-ready condition of the revision."},
+		{Name: "Name", Type: "string", Description: "Name of the revision.", Priority: 1},
+		{Name: "Service", Type: "string", Description: "Name of the Knative service.", Priority: 1},
+		{Name: "Generation", Type: "string", Description: "Generation of the revision", Priority: 1},
+		{Name: "Age", Type: "string", Description: "Age of the revision.", Priority: 1},
+		{Name: "Conditions", Type: "string", Description: "Conditions describing statuses of the revision.", Priority: 1},
+		{Name: "Ready", Type: "string", Description: "Ready condition status of the revision.", Priority: 1},
+		{Name: "Reason", Type: "string", Description: "Reason for non-ready condition of the revision.", Priority: 1},
 	}
 	h.TableHandler(RevisionColumnDefinitions, printRevision)
 	h.TableHandler(RevisionColumnDefinitions, printRevisionList)

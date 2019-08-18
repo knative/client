@@ -27,11 +27,11 @@ import (
 // RouteListHandlers adds print handlers for route list command
 func RouteListHandlers(h hprinters.PrintHandler) {
 	kRouteColumnDefinitions := []metav1beta1.TableColumnDefinition{
-		{Name: "Name", Type: "string", Description: "Name of the Knative route."},
-		{Name: "URL", Type: "string", Description: "URL of the Knative route."},
-		{Name: "Age", Type: "string", Description: "Age of the Knative route."},
-		{Name: "Conditions", Type: "string", Description: "Conditions describing statuses of route components."},
-		{Name: "Traffic", Type: "integer", Description: "Traffic configured for route."},
+		{Name: "Name", Type: "string", Description: "Name of the Knative route.", Priority: 1},
+		{Name: "URL", Type: "string", Description: "URL of the Knative route.", Priority: 1},
+		{Name: "Age", Type: "string", Description: "Age of the Knative route.", Priority: 1},
+		{Name: "Conditions", Type: "string", Description: "Conditions describing statuses of route components.", Priority: 1},
+		{Name: "Traffic", Type: "integer", Description: "Traffic configured for route.", Priority: 1},
 	}
 	h.TableHandler(kRouteColumnDefinitions, printRoute)
 	h.TableHandler(kRouteColumnDefinitions, printKRouteList)
