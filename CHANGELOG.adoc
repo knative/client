@@ -47,6 +47,10 @@
 | https://github.com/knative/client/pull/345[#345]
 
 
+| 🎁
+| Print NAMESPACE column as the first column when --all-namespaces is specified
+| https://github.com/knative/client/pull/366[#366]
+
 |===
 
 ## v0.2.0 (2019-07-10)
