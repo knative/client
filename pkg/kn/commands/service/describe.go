@@ -66,9 +66,12 @@ type revisionDesc struct {
 	configurationGeneration int
 	creationTimestamp       time.Time
 
+	// traffic stuff
 	percent int
+	tag     string
 	latest  *bool
 
+	// basic revision stuff
 	logURL         string
 	timeoutSeconds *int64
 
@@ -90,6 +93,7 @@ type revisionDesc struct {
 	limitsMemory   string
 	limitsCPU      string
 
+	// status info
 	ready  corev1.ConditionStatus
 	reason string
 }
@@ -211,16 +215,16 @@ func writeService(dw printers.PrefixWriter, service *v1alpha1.Service) {
 func writeRevisions(dw printers.PrefixWriter, revisions []*revisionDesc) {
 	dw.WriteColsLn(printers.Level0, l("Revisions"))
 	for _, revisionDesc := range revisions {
-		dw.WriteColsLn(printers.Level1, formatBullet(revisionDesc.percent, revisionDesc.ready), l("Name"), getRevisionNameWithGenerationAndAge(revisionDesc))
-		dw.WriteColsLn(printers.Level1, "", l("Image"), getImageDesc(revisionDesc))
+		dw.WriteColsLn(printers.Level1, formatBullet(revisionDesc.percent, revisionDesc.ready), revisionHeader(revisionDesc))
+		dw.WriteColsLn(printers.Level2, "", l("Image"), getImageDesc(revisionDesc))
 		if revisionDesc.port != nil {
-			dw.WriteColsLn(printers.Level1, "", l("Port"), strconv.FormatInt(int64(*revisionDesc.port), 10))
+			dw.WriteColsLn(printers.Level2, "", l("Port"), strconv.FormatInt(int64(*revisionDesc.port), 10))
 		}
-		writeSliceDesc(dw, printers.Level1, revisionDesc.env, l("Env"), "\t")
+		writeSliceDesc(dw, printers.Level2, revisionDesc.env, l("Env"), "\t")
 
 		// Scale spec if given
 		if revisionDesc.maxScale != nil || revisionDesc.minScale != nil {
-			dw.WriteColsLn(printers.Level1, "", l("Scale"), formatScale(revisionDesc.minScale, revisionDesc.maxScale))
+			dw.WriteColsLn(printers.Level2, "", l("Scale"), formatScale(revisionDesc.minScale, revisionDesc.maxScale))
 		}
 
 		// Concurrency specs if given
@@ -252,12 +256,12 @@ func writeConditions(dw printers.PrefixWriter, service *v1alpha1.Service) {
 }
 
 func writeConcurrencyOptions(dw printers.PrefixWriter, desc *revisionDesc) {
-	dw.WriteColsLn(printers.Level1, "", l("Concurrency"))
+	dw.WriteColsLn(printers.Level2, "", l("Concurrency"))
 	if desc.concurrencyLimit != nil {
-		dw.WriteColsLn(printers.Level2, "", "", l("Limit"), strconv.FormatInt(*desc.concurrencyLimit, 10))
+		dw.WriteColsLn(printers.Level3, "", "", l("Limit"), strconv.FormatInt(*desc.concurrencyLimit, 10))
 	}
 	if desc.concurrencyTarget != nil {
-		dw.WriteColsLn(printers.Level2, "", "", l("Target"), strconv.Itoa(*desc.concurrencyTarget))
+		dw.WriteColsLn(printers.Level3, "", "", l("Target"), strconv.Itoa(*desc.concurrencyTarget))
 	}
 }
 
@@ -266,7 +270,7 @@ func writeConcurrencyOptions(dw printers.PrefixWriter, desc *revisionDesc) {
 
 // Format label (extracted so that color could be added more easily to all labels)
 func l(label string) string {
-	return label + ":"
+	return "  " + label + ":"
 }
 
 // Format scale in the format "min ... max" with max = ∞ if not set
@@ -287,8 +291,15 @@ func formatScale(minScale *int, maxScale *int) string {
 }
 
 // Format the revision name along with its generation. Use colors if enabled.
-func getRevisionNameWithGenerationAndAge(desc *revisionDesc) string {
-	return desc.name + " " +
+func revisionHeader(desc *revisionDesc) string {
+	header := desc.name
+	if desc.latest != nil && *desc.latest {
+		header = fmt.Sprintf("@latest at %s", desc.name)
+	}
+	if desc.tag != "" {
+		header = fmt.Sprintf("%s #%s", header, desc.tag)
+	}
+	return header + " " +
 		"[" + strconv.Itoa(desc.configurationGeneration) + "]" +
 		" " +
 		"(" + age(desc.creationTimestamp) + ")"
@@ -353,6 +364,12 @@ func shortenDigest(digest string) string {
 	return digest
 }
 
+var boringDomains = map[string]bool{
+	"serving.knative.dev":   true,
+	"client.knative.dev":    true,
+	"kubectl.kubernetes.io": true,
+}
+
 // Write a map either compact in a single line (possibly truncated) or, if printDetails is set,
 // over multiple line, one line per key-value pair. The output is sorted by keys.
 func writeMapDesc(dw printers.PrefixWriter, indent int, m map[string]string, label string, labelPrefix string) {
@@ -362,7 +379,13 @@ func writeMapDesc(dw printers.PrefixWriter, indent int, m map[string]string, lab
 
 	var keys []string
 	for k := range m {
-		keys = append(keys, k)
+		parts := strings.Split(k, "/")
+		if printDetails || len(parts) <= 1 || !boringDomains[parts[0]] {
+			keys = append(keys, k)
+		}
+	}
+	if len(keys) == 0 {
+		return
 	}
 	sort.Strings(keys)
 
@@ -418,7 +441,7 @@ func writeResources(dw printers.PrefixWriter, label string, request string, limi
 		return
 	}
 
-	dw.WriteColsLn(printers.Level1, "", l(label), value)
+	dw.WriteColsLn(printers.Level2, "", l(label), value)
 }
 
 // Join to key=value pair, comma separated, and truncate if longer than a limit
@@ -476,7 +499,11 @@ func getRevisionDescriptions(client serving_kn_v1alpha1.KnServingClient, service
 		if err != nil {
 			return nil, fmt.Errorf("cannot extract revision from service %s: %v", service.Name, err)
 		}
-		revisionDescs[revision.Name], err = newRevisionDesc(revision, &target)
+		key := revision.Name
+		if *target.LatestRevision {
+			key = "@latest"
+		}
+		revisionDescs[key], err = newRevisionDesc(revision, &target)
 		if err != nil {
 			return nil, err
 		}
@@ -577,6 +604,7 @@ func addTargetInfo(desc *revisionDesc, target *v1alpha1.TrafficTarget) {
 	if target != nil {
 		desc.percent = target.Percent
 		desc.latest = target.LatestRevision
+		desc.tag = target.Tag
 	}
 }
 
