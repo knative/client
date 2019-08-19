@@ -89,6 +89,9 @@ type revisionDesc struct {
 	requestsCPU    string
 	limitsMemory   string
 	limitsCPU      string
+
+	ready  corev1.ConditionStatus
+	reason string
 }
 
 // [REMOVE COMMENT WHEN MOVING TO 0.7.0]
@@ -208,7 +211,7 @@ func writeService(dw printers.PrefixWriter, service *v1alpha1.Service) {
 func writeRevisions(dw printers.PrefixWriter, revisions []*revisionDesc) {
 	dw.WriteColsLn(printers.Level0, l("Revisions"))
 	for _, revisionDesc := range revisions {
-		dw.WriteColsLn(printers.Level1, formatPercentage(revisionDesc.percent), l("Name"), getRevisionNameWithGenerationAndAge(revisionDesc))
+		dw.WriteColsLn(printers.Level1, formatBullet(revisionDesc.percent, revisionDesc.ready), l("Name"), getRevisionNameWithGenerationAndAge(revisionDesc))
 		dw.WriteColsLn(printers.Level1, "", l("Image"), getImageDesc(revisionDesc))
 		if revisionDesc.port != nil {
 			dw.WriteColsLn(printers.Level1, "", l("Port"), strconv.FormatInt(int64(*revisionDesc.port), 10))
@@ -314,9 +317,9 @@ func formatStatus(status corev1.ConditionStatus) string {
 	case v1.ConditionTrue:
 		return "++"
 	case v1.ConditionFalse:
-		return "--"
+		return "!!"
 	default:
-		return ""
+		return "??"
 	}
 }
 
@@ -436,11 +439,22 @@ func joinAndTruncate(sortedKeys []string, m map[string]string) string {
 }
 
 // Format target percentage that it fits in the revision table
-func formatPercentage(percentage int) string {
-	if percentage == 0 {
-		return "   -"
+func formatBullet(percentage int, status corev1.ConditionStatus) string {
+	symbol := "+"
+	switch status {
+	case v1.ConditionTrue:
+		if percentage > 0 {
+			symbol = "%"
+		}
+	case v1.ConditionFalse:
+		symbol = "!"
+	default:
+		symbol = "?"
 	}
-	return fmt.Sprintf("%3d%%", percentage)
+	if percentage == 0 {
+		return fmt.Sprintf("   %s", symbol)
+	}
+	return fmt.Sprintf("%3d%s", percentage, symbol)
 }
 
 func age(t time.Time) string {
@@ -467,6 +481,9 @@ func getRevisionDescriptions(client serving_kn_v1alpha1.KnServingClient, service
 			return nil, err
 		}
 	}
+	if err := completeWithLatestRevisions(client, service, revisionDescs); err != nil {
+		return nil, err
+	}
 	if withDetails {
 		if err := completeWithUntargetedRevisions(client, service, revisionDescs); err != nil {
 			return nil, err
@@ -487,6 +504,19 @@ func orderByConfigurationGeneration(descs map[string]*revisionDesc) []*revisionD
 		return descsList[i].configurationGeneration > descsList[j].configurationGeneration
 	})
 	return descsList
+}
+
+func completeWithLatestRevisions(client serving_kn_v1alpha1.KnServingClient, service *v1alpha1.Service, descs map[string]*revisionDesc) error {
+	for _, revisionName := range []string{service.Status.LatestCreatedRevisionName, service.Status.LatestReadyRevisionName} {
+		if _, ok := descs[revisionName]; !ok {
+			rev, err := client.GetRevision(revisionName)
+			if err != nil {
+				return err
+			}
+			descs[revisionName], err = newRevisionDesc(rev, nil)
+		}
+	}
+	return nil
 }
 
 func completeWithUntargetedRevisions(client serving_kn_v1alpha1.KnServingClient, service *v1alpha1.Service, descs map[string]*revisionDesc) error {
@@ -523,6 +553,7 @@ func newRevisionDesc(revision *v1alpha1.Revision, target *v1alpha1.TrafficTarget
 		configuration:           revision.Labels[serving.ConfigurationLabelKey],
 	}
 
+	addStatusInfo(&revisionDesc, revision)
 	addTargetInfo(&revisionDesc, target)
 	addContainerInfo(&revisionDesc, container)
 	addResourcesInfo(&revisionDesc, container)
@@ -531,6 +562,15 @@ func newRevisionDesc(revision *v1alpha1.Revision, target *v1alpha1.TrafficTarget
 		return nil, err
 	}
 	return &revisionDesc, nil
+}
+
+func addStatusInfo(desc *revisionDesc, revision *v1alpha1.Revision) {
+	for _, condition := range revision.Status.Conditions {
+		if condition.Type == "Ready" {
+			desc.reason = condition.Reason
+			desc.ready = condition.Status
+		}
+	}
 }
 
 func addTargetInfo(desc *revisionDesc, target *v1alpha1.TrafficTarget) {
