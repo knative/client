@@ -24,24 +24,24 @@ import (
 )
 
 type versionOutput struct {
-	Version        string
-	BuildDate      string
-	GitRevision    string
-	ServingVersion string
+	Version      string
+	BuildDate    string
+	GitRevision  string
+	VersionsAPIs *VersionsAPIs
 }
 
 var versionOutputTemplate = `Version:      {{.Version}}
 Build Date:   {{.BuildDate}}
 Git Revision: {{.GitRevision}}
-Dependencies:
-- serving:    {{.ServingVersion}}
+Support:
+- Serving: {{index .VersionsAPIs.Versions 0}}  {{index .VersionsAPIs.Versions 1}}
+- API(s):  {{index .VersionsAPIs.APIs 0}}
 `
 
 const (
-	fakeVersion        = "fake-version"
-	fakeBuildDate      = "fake-build-date"
-	fakeGitRevision    = "fake-git-revision"
-	fakeServingVersion = "fake-serving-version"
+	fakeVersion     = "fake-version"
+	fakeBuildDate   = "fake-build-date"
+	fakeGitRevision = "fake-git-revision"
 )
 
 func TestVersion(t *testing.T) {
@@ -55,14 +55,14 @@ func TestVersion(t *testing.T) {
 		Version = fakeVersion
 		BuildDate = fakeBuildDate
 		GitRevision = fakeGitRevision
-		ServingVersion = fakeServingVersion
+		ServingVersion = knServingDep
 
 		expectedVersionOutput = genVersionOuput(t, versionOutputTemplate,
 			versionOutput{
-				Version:        fakeVersion,
-				BuildDate:      fakeBuildDate,
-				GitRevision:    fakeGitRevision,
-				ServingVersion: fakeServingVersion})
+				fakeVersion,
+				fakeBuildDate,
+				fakeGitRevision,
+				supportMatrix[ServingVersion]})
 
 		knParams = &KnParams{}
 		versionCmd = NewVersionCommand(knParams)
@@ -78,26 +78,27 @@ func TestVersion(t *testing.T) {
 		assert.Assert(t, versionCmd.RunE != nil)
 	})
 
-	t.Run("prints version, build date, git revision, and serving version string", func(t *testing.T) {
+	t.Run("prints version, build date, git revision, supported serving version and APIs", func(t *testing.T) {
 		setup()
 		CaptureStdout(t)
 		defer ReleaseStdout(t)
 
 		err := versionCmd.RunE(nil, []string{})
-		assert.Assert(t, err == nil)
+		assert.NilError(t, err)
 		assert.Equal(t, ReadStdout(t), expectedVersionOutput)
 	})
+
 }
 
 // Private
 
 func genVersionOuput(t *testing.T, templ string, vOutput versionOutput) string {
 	tmpl, err := template.New("versionOutput").Parse(versionOutputTemplate)
-	assert.Assert(t, err == nil)
+	assert.NilError(t, err)
 
 	buf := bytes.Buffer{}
 	err = tmpl.Execute(&buf, vOutput)
-	assert.Assert(t, err == nil)
+	assert.NilError(t, err)
 
 	return buf.String()
 }

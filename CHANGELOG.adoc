@@ -46,6 +46,9 @@
 | Support traffic splitting and tagging targets
 | https://github.com/knative/client/pull/345[#345]
 
+| 🎁
+| kn version command shows supported Serving and API versions
+| https://github.com/knative/client/pull/370[#370]
 
 |===
 
