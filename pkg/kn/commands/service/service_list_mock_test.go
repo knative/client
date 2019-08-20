@@ -18,11 +18,11 @@ import (
 	"strings"
 	"testing"
 
-	knclient "github.com/knative/client/pkg/serving/v1alpha1"
-	"github.com/knative/client/pkg/util"
-	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"gotest.tools/assert"
 	"k8s.io/apimachinery/pkg/api/errors"
+	knclient "knative.dev/client/pkg/serving/v1alpha1"
+	"knative.dev/client/pkg/util"
+	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
 func TestServiceListAllNamespaceMock(t *testing.T) {
