@@ -39,6 +39,10 @@ func GetError(err error) error {
 		return err
 	}
 
+	if apiStatus.Status().Details == nil {
+		return err
+	}
+
 	var knerr *KNError
 
 	if isCRDError(apiStatus) {
