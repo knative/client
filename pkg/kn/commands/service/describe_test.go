@@ -363,6 +363,9 @@ func createTestService(name string, revisionNames []string, conditions duckv1bet
 			},
 		},
 	}
+	service.Status.LatestCreatedRevisionName = revisionNames[len(revisionNames)-1]
+	service.Status.LatestReadyRevisionName = revisionNames[len(revisionNames)-1]
+
 	if len(revisionNames) > 0 {
 		trafficTargets := make([]v1alpha1.TrafficTarget, 0)
 		for _, rname := range revisionNames {
@@ -455,6 +458,9 @@ func createTestRevision(revision string, gen int64) v1alpha1.Revision {
 		},
 		Status: v1alpha1.RevisionStatus{
 			ImageDigest: "gcr.io/test/image@" + imageDigest,
+			Status: duckv1beta1.Status{
+				Conditions: goodConditions(),
+			},
 		},
 	}
 }

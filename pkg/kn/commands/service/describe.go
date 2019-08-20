@@ -500,7 +500,7 @@ func getRevisionDescriptions(client serving_kn_v1alpha1.KnServingClient, service
 			return nil, fmt.Errorf("cannot extract revision from service %s: %v", service.Name, err)
 		}
 		key := revision.Name
-		if *target.LatestRevision {
+		if target.LatestRevision != nil && *target.LatestRevision {
 			key = "@latest"
 		}
 		revisionDescs[key], err = newRevisionDesc(revision, &target)
