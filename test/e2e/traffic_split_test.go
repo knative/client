@@ -35,7 +35,7 @@ var targetFieldsLength = 4
 var targetsJsonPath = "jsonpath={range .status.traffic[*]}{.tag}{','}{.revisionName}{','}{.percent}{','}{.latestRevision}{'|'}{end}"
 
 // returns deployed service latest revision name
-var latestRevisionJsonPath = "jsonpath={.status.traffic[?(@.latestRevision==true)].revisionName}"
+var latestRevisionJsonPath = "jsonpath={.status.latestCreatedRevisionName}"
 
 // TargetFileds are used in e2e to store expected fields per traffic target
 // and actual traffic targets fields of deployed service are converted into struct before comparing
