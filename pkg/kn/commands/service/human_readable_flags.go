@@ -33,8 +33,6 @@ func ServiceListHandlers(h hprinters.PrintHandler) {
 		{Name: "Namespace", Type: "string", Description: "Namespace of the Knative service", Priority: 0},
 		{Name: "Name", Type: "string", Description: "Name of the Knative service.", Priority: 1},
 		{Name: "Url", Type: "string", Description: "URL of the Knative service.", Priority: 1},
-		//{Name: "LastCreatedRevision", Type: "string", Description: "Name of last revision created.", Priority: 1},
-		//{Name: "LastReadyRevision", Type: "string", Description: "Name of last ready revision.", Priority: 1},
 		{Name: "Generation", Type: "integer", Description: "Sequence number of 'Generation' of the service that was last processed by the controller.", Priority: 1},
 		{Name: "Age", Type: "string", Description: "Age of the service.", Priority: 1},
 		{Name: "Conditions", Type: "string", Description: "Conditions describing statuses of service components.", Priority: 1},
