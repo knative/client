@@ -536,11 +536,14 @@ func orderByConfigurationGeneration(descs map[string]*revisionDesc) []*revisionD
 func completeWithLatestRevisions(client serving_kn_v1alpha1.KnServingClient, service *v1alpha1.Service, descs map[string]*revisionDesc) error {
 	for _, revisionName := range []string{service.Status.LatestCreatedRevisionName, service.Status.LatestReadyRevisionName} {
 		if _, ok := descs[revisionName]; !ok {
-			rev, err := client.GetRevision(revisionName)
-			if err != nil {
-				return err
+			// if we don't already got it filed under "@latest"...
+			if latest, ok := descs["@latest"]; !ok || latest.name != revisionName {
+				rev, err := client.GetRevision(revisionName)
+				if err != nil {
+					return err
+				}
+				descs[revisionName], err = newRevisionDesc(rev, nil)
 			}
-			descs[revisionName], err = newRevisionDesc(rev, nil)
 		}
 	}
 	return nil
