@@ -62,7 +62,6 @@ func NewHumanPrintFlags() *HumanPrintFlags {
 // EnsureWithNamespace sets the "WithNamespace" humanreadable option to true.
 func (f *HumanPrintFlags) EnsureWithNamespace() {
 	f.WithNamespace = true
-	return
 }
 
 // Private functions

@@ -40,9 +40,6 @@ func NewServiceListCommand(p *commands.KnParams) *cobra.Command {
 
   # List service 'web'
   kn service list web`,
-		PreRun: func(cmd *cobra.Command, args []string) {
-			serviceListFlags.HumanReadableFlags.AddFlags(cmd)
-		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			namespace, err := p.GetNamespace(cmd)
 			if err != nil {

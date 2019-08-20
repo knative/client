@@ -86,7 +86,7 @@ func printKServiceWithNaemspace(kServiceList *servingv1alpha1.ServiceList, optio
 		others = append(others, r...)
 	}
 
-	// sort other services list alphabetically by namespace name
+	// sort other services list alphabetically by namespace
 	sort.SliceStable(others, func(i, j int) bool {
 		return others[i].Cells[0].(string) < others[j].Cells[0].(string)
 	})
