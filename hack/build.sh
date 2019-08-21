@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+source $(dirname $0)/build-flags.sh
+
 set -o pipefail
 
 source_dirs="cmd pkg test"
@@ -43,6 +45,11 @@ run() {
   # Print help if requested
   if $(has_flag --help -h); then
     display_help
+    exit 0
+  fi
+
+  if $(has_flag --build-cross -x); then
+    build_cross
     exit 0
   fi
 
@@ -259,6 +266,19 @@ has_flag() {
     echo 'false'
 }
 
+build_cross() {
+  local ld_flags="$(build_flags $(dirname $0)/..)"
+  local pkg="github.com/knative/client/pkg/kn/commands"
+
+  export CGO_ENABLED=0
+  echo "🚧 🐧 Building for Linux"
+  GOOS=linux GOARCH=amd64 go build -mod=vendor -ldflags "${ld_flags}" -o ./kn-linux-amd64 ./cmd/... || exit 1
+  echo "🚧 🍏 Building for macOS"
+  GOOS=darwin GOARCH=amd64 go build -mod=vendor -ldflags "${ld_flags}" -o ./kn-darwin-amd64 ./cmd/... || exit 1
+  echo "🚧 🎠 Building for Windows"
+  GOOS=windows GOARCH=amd64 go build -mod=vendor -ldflags "${ld_flags}" -o ./kn-windows-amd64.exe ./cmd/... || exit
+}
+
 # Display a help message.
 display_help() {
     local command="${1:-}"
@@ -273,6 +293,7 @@ with the following options:
 -t  --test                    Run tests when used with --fast or --watch
 -c  --codegen                 Runs formatting, doc gen and update without compiling/testing
 -w  --watch                   Watch for source changes and recompile in fast mode
+-x  --build-cross             Build cross platform binaries
 -h  --help                    Display this help message
     --verbose                 More output
     --debug                   Debug information for this script (set -x)
@@ -290,6 +311,7 @@ Examples:
 * Run only tests: .................... build.sh --test
 * Compile with tests: ................ build.sh -f -t
 * Automatic recompilation: ........... build.sh --watch
+* Build cross platform binaries: ..... build.sh --build-cross
 EOT
 }
 
