@@ -73,5 +73,4 @@ func NewServiceListFlags() *ServiceListFlags {
 // a printer capable of printing with a "namespace" column.
 func (f *ServiceListFlags) EnsureWithNamespace() {
 	f.HumanReadableFlags.EnsureWithNamespace()
-	return
 }
