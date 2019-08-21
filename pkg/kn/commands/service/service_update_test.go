@@ -362,6 +362,111 @@ func TestServiceUpdateEnv(t *testing.T) {
 	assert.Equal(t, template.Spec.Containers[0].Env[0], expectedEnvVar)
 }
 
+func TestServiceUpdatePinsToDigestWhenAsked(t *testing.T) {
+	orig := newEmptyService()
+
+	template, err := servinglib.RevisionTemplateOfService(orig)
+	delete(template.Annotations, servinglib.UserImageAnnotationKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
+
+	action, updated, _, err := fakeServiceUpdate(orig, []string{
+		"service", "update", "foo", "-e", "TARGET=Awesome", "--lock-to-digest", "--async"}, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template, err = servinglib.RevisionTemplateOfService(updated)
+	assert.NilError(t, err)
+	// Test that we pinned to digest
+	assert.Equal(t, template.Spec.Containers[0].Image, exampleImageByDigest)
+}
+
+func TestServiceUpdatePinsToDigestWhenPreviouslyDidSo(t *testing.T) {
+	orig := newEmptyService()
+
+	template, err := servinglib.RevisionTemplateOfService(orig)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
+
+	action, updated, _, err := fakeServiceUpdate(orig, []string{
+		"service", "update", "foo", "-e", "TARGET=Awesome", "--async"}, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template, err = servinglib.RevisionTemplateOfService(updated)
+	assert.NilError(t, err)
+	// Test that we pinned to digest
+	assert.Equal(t, template.Spec.Containers[0].Image, exampleImageByDigest)
+}
+
+func TestServiceUpdateDoesntPinToDigestWhenUnAsked(t *testing.T) {
+	orig := newEmptyService()
+
+	template, err := servinglib.RevisionTemplateOfService(orig)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
+
+	action, updated, _, err := fakeServiceUpdate(orig, []string{
+		"service", "update", "foo", "-e", "TARGET=Awesome", "--no-lock-to-digest", "--async"}, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template, err = servinglib.RevisionTemplateOfService(updated)
+	assert.NilError(t, err)
+	// Test that we pinned to digest
+	assert.Equal(t, template.Spec.Containers[0].Image, "gcr.io/foo/bar:baz")
+	_, present := template.Annotations[servinglib.UserImageAnnotationKey]
+	assert.Assert(t, !present)
+}
+func TestServiceUpdateDoesntPinToDigestWhenPreviouslyDidnt(t *testing.T) {
+	orig := newEmptyService()
+
+	template, err := servinglib.RevisionTemplateOfService(orig)
+	delete(template.Annotations, servinglib.UserImageAnnotationKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
+
+	action, updated, _, err := fakeServiceUpdate(orig, []string{
+		"service", "update", "foo", "-e", "TARGET=Awesome", "--async"}, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template, err = servinglib.RevisionTemplateOfService(updated)
+	assert.NilError(t, err)
+	// Test that we pinned to digest
+	assert.Equal(t, template.Spec.Containers[0].Image, "gcr.io/foo/bar:baz")
+	_, present := template.Annotations[servinglib.UserImageAnnotationKey]
+	assert.Assert(t, !present)
+}
+
 func TestServiceUpdateRequestsLimitsCPU(t *testing.T) {
 	service := createMockServiceWithResources(t, "250", "64Mi", "1000m", "1024Mi")
 
@@ -563,6 +668,9 @@ func newEmptyServiceBetaAPIStyle() *v1alpha1.Service {
 		Spec: v1alpha1.ServiceSpec{},
 	}
 	ret.Spec.Template = &v1alpha1.RevisionTemplateSpec{}
+	ret.Spec.Template.Annotations = map[string]string{
+		servinglib.UserImageAnnotationKey: "",
+	}
 	ret.Spec.Template.Spec.Containers = []corev1.Container{{}}
 	return ret
 }

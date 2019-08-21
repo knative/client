@@ -124,12 +124,6 @@ func EnvToMap(vars []corev1.EnvVar) (map[string]string, error) {
 // UpdateImage a given image
 func UpdateImage(template *servingv1alpha1.RevisionTemplateSpec, image string) error {
 	// When not setting the image to a digest, add the user image annotation.
-	if !strings.Contains(image, "@") {
-		if template.Annotations == nil {
-			template.Annotations = make(map[string]string)
-		}
-		template.Annotations[UserImageAnnotationKey] = image
-	}
 	container, err := ContainerOfRevisionTemplate(template)
 	if err != nil {
 		return err
@@ -138,23 +132,42 @@ func UpdateImage(template *servingv1alpha1.RevisionTemplateSpec, image string) e
 	return nil
 }
 
+// UnsetUserImageAnnot removes the user image annotation
+func UnsetUserImageAnnot(template *servingv1alpha1.RevisionTemplateSpec) {
+	delete(template.Annotations, UserImageAnnotationKey)
+}
+
+// SetUserImageAnnot sets the user image annotation if the image isn't by-digest already.
+func SetUserImageAnnot(template *servingv1alpha1.RevisionTemplateSpec) {
+	// If the current image isn't by-digest, set the user-image annotation to it
+	// so we remember what it was.
+	currentContainer, _ := ContainerOfRevisionTemplate(template)
+	ui := currentContainer.Image
+	if strings.Contains(ui, "@") {
+		prev, ok := template.Annotations[UserImageAnnotationKey]
+		if ok {
+			ui = prev
+		}
+	}
+	if template.Annotations == nil {
+		template.Annotations = make(map[string]string)
+	}
+	template.Annotations[UserImageAnnotationKey] = ui
+}
+
 // FreezeImageToDigest sets the image on the template to the image digest of the base revision.
 func FreezeImageToDigest(template *servingv1alpha1.RevisionTemplateSpec, baseRevision *servingv1alpha1.Revision) error {
 	currentContainer, err := ContainerOfRevisionTemplate(template)
+
+	if baseRevision == nil {
+		return nil
+	}
 	baseContainer, err := ContainerOfRevisionSpec(&baseRevision.Spec)
 	if err != nil {
 		return err
 	}
 	if currentContainer.Image != baseContainer.Image {
 		return fmt.Errorf("could not freeze image to digest since current revision contains unexpected image.")
-	}
-	// If the current image isn't by-digest, set the user-image annotation to it
-	// so we remember what it was.
-	if !strings.Contains(currentContainer.Image, "@") {
-		if template.Annotations == nil {
-			template.Annotations = make(map[string]string)
-		}
-		template.Annotations[UserImageAnnotationKey] = currentContainer.Image
 	}
 
 	if baseRevision.Status.ImageDigest != "" {

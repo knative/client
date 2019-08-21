@@ -15,6 +15,7 @@
 package service
 
 import (
+	"fmt"
 	"strings"
 
 	errors "github.com/pkg/errors"
@@ -103,14 +104,15 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 			"Accepts golang templates, allowing {{.Service}} for the service name, "+
 			"{{.Generation}} for the generation, and {{.Random [n]}} for n random consonants.")
 	p.markFlagMakesRevision("revision-name")
+	flags.AddBothBoolFlags(command.Flags(), &p.LockToDigest, "lock-to-digest", "", true,
+		"set the image to the latest revision's image digest. If you specify --image, the image will always be set to the provided value, regardless.")
+	// Don't mark as changing the revision.
+
 }
 
 // AddUpdateFlags adds the flags specific to update.
 func (p *ConfigurationEditFlags) AddUpdateFlags(command *cobra.Command) {
 	p.addSharedFlags(command)
-	flags.AddBothBoolFlags(command.Flags(), &p.LockToDigest, "lock-to-digest", "", true,
-		"set the image to the latest revision's image digest. If you specify --image, the image will always be set to the provided value, regardless.")
-	// Don't mark as changing the revision.
 }
 
 // AddCreateFlags adds the flags specific to create
@@ -164,13 +166,27 @@ func (p *ConfigurationEditFlags) Apply(
 			return err
 		}
 	}
+	imageSet := false
 	if cmd.Flags().Changed("image") {
 		err = servinglib.UpdateImage(template, p.Image)
 		if err != nil {
 			return err
 		}
-	} else if p.LockToDigest && baseRevision != nil && p.AnyMutation(cmd) {
-		servinglib.FreezeImageToDigest(template, baseRevision)
+		imageSet = true
+	}
+	_, userImagePresent := template.Annotations[servinglib.UserImageAnnotationKey]
+	fmt.Printf("lock to digest %v\n", p.LockToDigest)
+	freezeMode := userImagePresent || cmd.Flags().Changed("lock-to-digest")
+	if p.LockToDigest && p.AnyMutation(cmd) && freezeMode {
+		servinglib.SetUserImageAnnot(template)
+		if !imageSet {
+			err = servinglib.FreezeImageToDigest(template, baseRevision)
+			if err != nil {
+				return err
+			}
+		}
+	} else if !p.LockToDigest {
+		servinglib.UnsetUserImageAnnot(template)
 	}
 
 	limitsResources, err := p.computeResources(p.LimitsFlags)

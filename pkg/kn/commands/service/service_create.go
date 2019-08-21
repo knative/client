@@ -20,7 +20,9 @@ import (
 	"io"
 
 	"knative.dev/client/pkg/kn/commands"
+	servinglib "knative.dev/client/pkg/serving"
 	"knative.dev/client/pkg/serving/v1alpha1"
+
 	"knative.dev/serving/pkg/apis/serving"
 
 	"github.com/spf13/cobra"
@@ -208,6 +210,11 @@ func constructService(cmd *cobra.Command, editFlags ConfigurationEditFlags, name
 
 	service.Spec.Template = &serving_v1alpha1_api.RevisionTemplateSpec{
 		Spec: serving_v1alpha1_api.RevisionSpec{},
+		ObjectMeta: metav1.ObjectMeta{
+			Annotations: map[string]string{
+				servinglib.UserImageAnnotationKey: "", // Placeholder. Will be replaced or deleted as we apply mutations.
+			},
+		},
 	}
 	service.Spec.Template.Spec.Containers = []corev1.Container{{}}
 
