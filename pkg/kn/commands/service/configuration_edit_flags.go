@@ -104,8 +104,9 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 			"Accepts golang templates, allowing {{.Service}} for the service name, "+
 			"{{.Generation}} for the generation, and {{.Random [n]}} for n random consonants.")
 	p.markFlagMakesRevision("revision-name")
-	flags.AddBothBoolFlags(command.Flags(), &p.LockToDigest, "lock-to-digest", "", true,
-		"set the image to the latest revision's image digest. If you specify --image, the image will always be set to the provided value, regardless.")
+	flags.AddBothBoolFlagsUnhidden(command.Flags(), &p.LockToDigest, "lock-to-digest", "", true,
+		"keep the running image for the service constant when changing when not explicitly specifying "+
+			"the image. (--no-lock-to-digest pulls the image tag afresh with each new revision)")
 	// Don't mark as changing the revision.
 
 }
