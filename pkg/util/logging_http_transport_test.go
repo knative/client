@@ -55,15 +55,26 @@ func TestWritesRequestResponse(t *testing.T) {
 	out := &bytes.Buffer{}
 	dt := &dummyTransport{}
 	transport := NewLoggingTransportWithStream(dt, out)
+
 	body := "{this: is, the: body, of: [the, request]}"
 	req, _ := http.NewRequest("POST", "http://example.com", strings.NewReader(body))
+	nonRedacted := "this string will be logged"
+	redacted := "this string will be redacted"
+	req.Header.Add("non-redacted", nonRedacted)
+	req.Header.Add(sensitiveRequestHeaders.List()[0], redacted)
+
 	_, e := transport.RoundTrip(req)
 	assert.NilError(t, e)
 	s := out.String()
 	assert.Assert(t, strings.Contains(s, "REQUEST"))
 	assert.Assert(t, strings.Contains(s, "RESPONSE"))
 	assert.Assert(t, strings.Contains(s, body))
+	assert.Assert(t, strings.Contains(s, nonRedacted))
+	assert.Assert(t, !strings.Contains(s, redacted))
+
 	assert.Assert(t, strings.Contains(dt.requestDump, body))
+	assert.Assert(t, strings.Contains(dt.requestDump, nonRedacted))
+	assert.Assert(t, strings.Contains(dt.requestDump, redacted))
 }
 
 func TestElideAuthorizationHeader(t *testing.T) {
