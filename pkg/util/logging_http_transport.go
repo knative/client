@@ -21,6 +21,17 @@ import (
 	"net/http/httputil"
 	"os"
 	"strings"
+
+	"k8s.io/apimachinery/pkg/util/sets"
+)
+
+var (
+	// sensitiveRequestHeaders are headers that will be redacted when logging requests.
+	sensitiveRequestHeaders = sets.NewString(
+		"Authorization",
+		"WWW-Authenticate",
+		"Cookie",
+		"Proxy-Authorization")
 )
 
 type LoggingHttpTransport struct {
@@ -36,35 +47,34 @@ func NewLoggingTransportWithStream(transport http.RoundTripper, s io.Writer) htt
 	return &LoggingHttpTransport{transport, s}
 }
 
-var SENSITIVE_HEADERS = map[string]bool{
-	"Authorization":       true,
-	"WWW-Authenticate":    true,
-	"Cookie":              true,
-	"Proxy-Authorization": true,
-}
-
 func (t *LoggingHttpTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	stream := t.stream
 	if stream == nil {
 		stream = os.Stderr
 	}
-	reqCopy := *r
-	reqCopy.Header = make(http.Header, len(r.Header))
+	redacted := http.Header{}
 	for k, v := range r.Header {
-		sensitive := SENSITIVE_HEADERS[k]
-		if sensitive {
+		if sensitiveRequestHeaders.Has(k) {
+			redacted[k] = v
 			l := 0
 			for _, h := range v {
 				l += len(h)
 			}
-			reqCopy.Header.Set(k, strings.Repeat("*", l))
-		} else {
-			reqCopy.Header[k] = v
+			r.Header.Set(k, strings.Repeat("*", l))
 		}
 	}
-	reqBytes, _ := httputil.DumpRequestOut(&reqCopy, true)
+	reqBytes, err := httputil.DumpRequestOut(r, true)
+	if err != nil {
+		fmt.Fprintln(stream, "error dumping request:", err)
+		return nil, fmt.Errorf("dumping request: %v", err)
+	}
 	fmt.Fprintln(stream, "===== REQUEST =====")
 	fmt.Fprintln(stream, string(reqBytes))
+
+	for k, v := range redacted {
+		r.Header[k] = v
+	}
+
 	resp, err := t.transport.RoundTrip(r)
 	if err != nil {
 		fmt.Fprintln(stream, "===== ERROR =====")

@@ -17,17 +17,26 @@ package util
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/http/httputil"
 	"strings"
 	"testing"
 
 	"gotest.tools/assert"
 )
 
-type dummyTransport struct{}
+type dummyTransport struct {
+	requestDump string
+}
 
 func (d *dummyTransport) RoundTrip(r *http.Request) (*http.Response, error) {
+	dump, err := httputil.DumpRequest(r, true)
+	if err != nil {
+		return nil, fmt.Errorf("dumping request: %v", err)
+	}
+	d.requestDump = string(dump)
 	return &http.Response{
 		Status:     "200 OK",
 		StatusCode: 200,
@@ -44,13 +53,28 @@ func (d *errorTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 
 func TestWritesRequestResponse(t *testing.T) {
 	out := &bytes.Buffer{}
-	transport := NewLoggingTransportWithStream(&dummyTransport{}, out)
-	req, _ := http.NewRequest("GET", "http://example.com", nil)
+	dt := &dummyTransport{}
+	transport := NewLoggingTransportWithStream(dt, out)
+
+	body := "{this: is, the: body, of: [the, request]}"
+	req, _ := http.NewRequest("POST", "http://example.com", strings.NewReader(body))
+	nonRedacted := "this string will be logged"
+	redacted := "this string will be redacted"
+	req.Header.Add("non-redacted", nonRedacted)
+	req.Header.Add(sensitiveRequestHeaders.List()[0], redacted)
+
 	_, e := transport.RoundTrip(req)
 	assert.NilError(t, e)
 	s := out.String()
 	assert.Assert(t, strings.Contains(s, "REQUEST"))
 	assert.Assert(t, strings.Contains(s, "RESPONSE"))
+	assert.Assert(t, strings.Contains(s, body))
+	assert.Assert(t, strings.Contains(s, nonRedacted))
+	assert.Assert(t, !strings.Contains(s, redacted))
+
+	assert.Assert(t, strings.Contains(dt.requestDump, body))
+	assert.Assert(t, strings.Contains(dt.requestDump, nonRedacted))
+	assert.Assert(t, strings.Contains(dt.requestDump, redacted))
 }
 
 func TestElideAuthorizationHeader(t *testing.T) {
