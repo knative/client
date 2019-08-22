@@ -43,7 +43,7 @@ func TestServiceOptions(t *testing.T) {
 	t.Run("update concurrency options with invalid values for service", func(t *testing.T) {
 		command := []string{"service", "update", "svc1", "--concurrency-limit", "-1", "--concurrency-target", "0"}
 		_, err := test.kn.RunWithOpts(command, runOpts{NoNamespace: false, AllowError: true})
-		assert.ErrorContains(t, err, "Invalid")
+		assert.ErrorContains(t, err, "invalid")
 	})
 
 	t.Run("returns steady concurrency options for service", func(t *testing.T) {

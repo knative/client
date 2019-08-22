@@ -15,7 +15,6 @@
 package service
 
 import (
-	"fmt"
 	"strings"
 
 	errors "github.com/pkg/errors"
@@ -176,7 +175,6 @@ func (p *ConfigurationEditFlags) Apply(
 		imageSet = true
 	}
 	_, userImagePresent := template.Annotations[servinglib.UserImageAnnotationKey]
-	fmt.Printf("lock to digest %v\n", p.LockToDigest)
 	freezeMode := userImagePresent || cmd.Flags().Changed("lock-to-digest")
 	if p.LockToDigest && p.AnyMutation(cmd) && freezeMode {
 		servinglib.SetUserImageAnnot(template)
