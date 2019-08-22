@@ -438,6 +438,7 @@ func TestGetBaseRevision(t *testing.T) {
 		if err == nil {
 			assert.Equal(t, r.Spec.Containers[0].Image, c.foundRevisionImage)
 		} else {
+			assert.Assert(t, c.errText != "")
 			assert.ErrorContains(t, err, c.errText)
 		}
 	}
