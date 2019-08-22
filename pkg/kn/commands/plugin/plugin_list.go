@@ -80,7 +80,9 @@ func listPlugins(cmd *cobra.Command, flags pluginListFlags) error {
 
 	if len(pluginsFound) == 0 {
 		if flags.verbose {
-			fmt.Fprintf(out, "No plugins found in path %s\n", pluginPath)
+			fmt.Fprintf(out, "No plugins found in path %s.\n", pluginPath)
+		} else {
+			fmt.Fprintln(out, "No plugins found.")
 		}
 		return nil
 	}

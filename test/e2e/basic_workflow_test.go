@@ -75,7 +75,7 @@ func (test *e2eTest) serviceListEmpty(t *testing.T) {
 	out, err := test.kn.RunWithOpts([]string{"service", "list"}, runOpts{NoNamespace: false})
 	assert.NilError(t, err)
 
-	assert.Check(t, util.ContainsAll(out, "No resources found."))
+	assert.Check(t, util.ContainsAll(out, "No services found."))
 }
 
 func (test *e2eTest) serviceCreate(t *testing.T, serviceName string) {

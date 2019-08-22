@@ -54,7 +54,7 @@ func TestListEmpty(t *testing.T) {
 		t.Errorf("No action")
 	} else if !action.Matches("list", "routes") {
 		t.Errorf("Bad action %v", action)
-	} else if output[0] != "No resources found." {
+	} else if output[0] != "No routes found." {
 		t.Errorf("Bad output %s", output[0])
 	}
 }

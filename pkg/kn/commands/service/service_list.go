@@ -54,7 +54,7 @@ func NewServiceListCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 			if len(serviceList.Items) == 0 {
-				fmt.Fprintf(cmd.OutOrStdout(), "No resources found.\n")
+				fmt.Fprintf(cmd.OutOrStdout(), "No services found.\n")
 				return nil
 			}
 

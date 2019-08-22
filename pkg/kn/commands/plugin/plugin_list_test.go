@@ -124,7 +124,7 @@ func TestPluginList(t *testing.T) {
 					defer ctx.cleanup()
 					err := ctx.execute("plugin", "list", "--lookup-plugins-in-path=true")
 					assert.NilError(t, err)
-					assert.Equal(t, ctx.output(), "")
+					assert.Equal(t, ctx.output(), "No plugins found.\n")
 				})
 			})
 
@@ -224,7 +224,7 @@ func TestPluginList(t *testing.T) {
 
 			err := ctx.execute("plugin", "list")
 			assert.NilError(t, err)
-			assert.Equal(t, ctx.output(), "")
+			assert.Equal(t, ctx.output(), "No plugins found.\n")
 		})
 	})
 }
