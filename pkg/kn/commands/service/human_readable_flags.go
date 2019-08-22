@@ -15,6 +15,8 @@
 package service
 
 import (
+	"sort"
+
 	metav1beta1 "k8s.io/apimachinery/pkg/apis/meta/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"knative.dev/client/pkg/kn/commands"
@@ -25,16 +27,16 @@ import (
 // ServiceListHandlers adds print handlers for service list command
 func ServiceListHandlers(h hprinters.PrintHandler) {
 	kServiceColumnDefinitions := []metav1beta1.TableColumnDefinition{
-		{Name: "Name", Type: "string", Description: "Name of the Knative service."},
-		{Name: "Url", Type: "string", Description: "URL of the Knative service."},
-		//{Name: "LastCreatedRevision", Type: "string", Description: "Name of last revision created."},
-		//{Name: "LastReadyRevision", Type: "string", Description: "Name of last ready revision."},
-		{Name: "Generation", Type: "integer", Description: "Sequence number of 'Generation' of the service that was last processed by the controller."},
-		{Name: "Age", Type: "string", Description: "Age of the service."},
-		{Name: "Conditions", Type: "string", Description: "Conditions describing statuses of service components."},
-		{Name: "Ready", Type: "string", Description: "Ready condition status of the service."},
-		{Name: "Reason", Type: "string", Description: "Reason for non-ready condition of the service."},
+		{Name: "Namespace", Type: "string", Description: "Namespace of the Knative service", Priority: 0},
+		{Name: "Name", Type: "string", Description: "Name of the Knative service.", Priority: 1},
+		{Name: "Url", Type: "string", Description: "URL of the Knative service.", Priority: 1},
+		{Name: "Generation", Type: "integer", Description: "Sequence number of 'Generation' of the service that was last processed by the controller.", Priority: 1},
+		{Name: "Age", Type: "string", Description: "Age of the service.", Priority: 1},
+		{Name: "Conditions", Type: "string", Description: "Conditions describing statuses of service components.", Priority: 1},
+		{Name: "Ready", Type: "string", Description: "Ready condition status of the service.", Priority: 1},
+		{Name: "Reason", Type: "string", Description: "Reason for non-ready condition of the service.", Priority: 1},
 	}
+
 	h.TableHandler(kServiceColumnDefinitions, printKService)
 	h.TableHandler(kServiceColumnDefinitions, printKServiceList)
 }
@@ -44,6 +46,11 @@ func ServiceListHandlers(h hprinters.PrintHandler) {
 // printKServiceList populates the knative service list table rows
 func printKServiceList(kServiceList *servingv1alpha1.ServiceList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	rows := make([]metav1beta1.TableRow, 0, len(kServiceList.Items))
+
+	if options.AllNamespaces {
+		return printKServiceWithNaemspace(kServiceList, options)
+	}
+
 	for _, ksvc := range kServiceList.Items {
 		r, err := printKService(&ksvc, options)
 		if err != nil {
@@ -52,6 +59,39 @@ func printKServiceList(kServiceList *servingv1alpha1.ServiceList, options hprint
 		rows = append(rows, r...)
 	}
 	return rows, nil
+}
+
+// printKServiceWithNaemspace populates the knative service table rows with namespace column
+func printKServiceWithNaemspace(kServiceList *servingv1alpha1.ServiceList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+	rows := make([]metav1beta1.TableRow, 0, len(kServiceList.Items))
+
+	// temporary slice for sorting services in non-default namespace
+	others := []metav1beta1.TableRow{}
+
+	for _, ksvc := range kServiceList.Items {
+		// Fill in with services in `default` namespace at first
+		if ksvc.Namespace == "default" {
+			r, err := printKService(&ksvc, options)
+			if err != nil {
+				return nil, err
+			}
+			rows = append(rows, r...)
+			continue
+		}
+		// put other services in temporary slice
+		r, err := printKService(&ksvc, options)
+		if err != nil {
+			return nil, err
+		}
+		others = append(others, r...)
+	}
+
+	// sort other services list alphabetically by namespace
+	sort.SliceStable(others, func(i, j int) bool {
+		return others[i].Cells[0].(string) < others[j].Cells[0].(string)
+	})
+
+	return append(rows, others...), nil
 }
 
 // printKService populates the knative service table rows
@@ -69,6 +109,11 @@ func printKService(kService *servingv1alpha1.Service, options hprinters.PrintOpt
 	row := metav1beta1.TableRow{
 		Object: runtime.RawExtension{Object: kService},
 	}
+
+	if options.AllNamespaces {
+		row.Cells = append(row.Cells, kService.Namespace)
+	}
+
 	row.Cells = append(row.Cells,
 		name,
 		url,

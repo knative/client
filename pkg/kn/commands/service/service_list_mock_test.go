@@ -1,0 +1,85 @@
+// Copyright © 2019 The Knative Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package service
+
+import (
+	"strings"
+	"testing"
+
+	"gotest.tools/assert"
+	"k8s.io/apimachinery/pkg/api/errors"
+	knclient "knative.dev/client/pkg/serving/v1alpha1"
+	"knative.dev/client/pkg/util"
+	"knative.dev/serving/pkg/apis/serving/v1alpha1"
+)
+
+func TestServiceListAllNamespaceMock(t *testing.T) {
+	client := knclient.NewMockKnClient(t)
+
+	r := client.Recorder()
+
+	r.GetService("svc1", nil, errors.NewNotFound(v1alpha1.Resource("service"), "svc1"))
+	r.CreateService(knclient.Any(), nil)
+	r.WaitForService("svc1", knclient.Any(), nil)
+	r.GetService("svc1", getServiceWithNamespace("svc1", "default"), nil)
+
+	r.GetService("svc2", nil, errors.NewNotFound(v1alpha1.Resource("service"), "foo"))
+	r.CreateService(knclient.Any(), nil)
+	r.WaitForService("svc2", knclient.Any(), nil)
+	r.GetService("svc2", getServiceWithNamespace("svc2", "foo"), nil)
+
+	r.GetService("svc3", nil, errors.NewNotFound(v1alpha1.Resource("service"), "svc3"))
+	r.CreateService(knclient.Any(), nil)
+	r.WaitForService("svc3", knclient.Any(), nil)
+	r.GetService("svc3", getServiceWithNamespace("svc3", "bar"), nil)
+
+	r.ListServices(knclient.Any(), &v1alpha1.ServiceList{
+		Items: []v1alpha1.Service{
+			*getServiceWithNamespace("svc1", "default"),
+			*getServiceWithNamespace("svc2", "foo"),
+			*getServiceWithNamespace("svc3", "bar"),
+		},
+	}, nil)
+
+	output, err := executeServiceCommand(client, "create", "svc1", "--image", "gcr.io/foo/bar:baz", "--namespace", "default")
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(output, "created", "svc1", "default", "Waiting"))
+
+	output, err = executeServiceCommand(client, "create", "svc2", "--image", "gcr.io/foo/bar:baz", "--namespace", "foo")
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(output, "created", "svc2", "foo", "Waiting"))
+
+	output, err = executeServiceCommand(client, "create", "svc3", "--image", "gcr.io/foo/bar:baz", "--namespace", "bar")
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(output, "created", "svc3", "bar", "Waiting"))
+
+	output, err = executeServiceCommand(client, "list", "--all-namespaces")
+	assert.NilError(t, err)
+
+	outputLines := strings.Split(output, "\n")
+	assert.Assert(t, util.ContainsAll(outputLines[0], "NAMESPACE", "NAME", "URL", "GENERATION", "AGE", "CONDITIONS", "READY", "REASON"))
+	assert.Assert(t, util.ContainsAll(outputLines[1], "default", "svc1"))
+	assert.Assert(t, util.ContainsAll(outputLines[2], "bar", "svc3"))
+	assert.Assert(t, util.ContainsAll(outputLines[3], "foo", "svc2"))
+
+	r.Validate()
+}
+
+func getServiceWithNamespace(name, namespace string) *v1alpha1.Service {
+	service := v1alpha1.Service{}
+	service.Name = name
+	service.Namespace = namespace
+	return &service
+}

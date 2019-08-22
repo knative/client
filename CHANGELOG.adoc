@@ -50,6 +50,10 @@
 | kn version command shows supported Serving and API versions
 | https://github.com/knative/client/pull/370[#370]
 
+| 🎁
+| Print NAMESPACE column as the first column when --all-namespaces is specified
+| https://github.com/knative/client/pull/366[#366]
+
 |===
 
 ## v0.2.0 (2019-07-10)

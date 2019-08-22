@@ -76,6 +76,9 @@ func printRowsForHandlerEntry(output io.Writer, handler *handlerEntry, obj runti
 
 	var headers []string
 	for _, column := range handler.columnDefinitions {
+		if !options.AllNamespaces && column.Priority == 0 {
+			continue
+		}
 		headers = append(headers, strings.ToUpper(column.Name))
 	}
 	printHeader(headers, output)

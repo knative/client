@@ -46,7 +46,7 @@ func (f *ServiceListFlags) ToPrinter() (hprinters.ResourcePrinter, error) {
 		}
 		return p, nil
 	}
-	// if no flags specified, use the table printing
+
 	p, err := f.HumanReadableFlags.ToPrinter(ServiceListHandlers)
 	if err != nil {
 		return nil, err
@@ -58,7 +58,6 @@ func (f *ServiceListFlags) ToPrinter() (hprinters.ResourcePrinter, error) {
 // flags related to humanreadable and template printing.
 func (f *ServiceListFlags) AddFlags(cmd *cobra.Command) {
 	f.GenericPrintFlags.AddFlags(cmd)
-	f.HumanReadableFlags.AddFlags(cmd)
 }
 
 // NewServiceListFlags returns flags associated with humanreadable,
@@ -68,4 +67,10 @@ func NewServiceListFlags() *ServiceListFlags {
 		GenericPrintFlags:  genericclioptions.NewPrintFlags(""),
 		HumanReadableFlags: commands.NewHumanPrintFlags(),
 	}
+}
+
+// EnsureWithNamespace ensures that humanreadable flags return
+// a printer capable of printing with a "namespace" column.
+func (f *ServiceListFlags) EnsureWithNamespace() {
+	f.HumanReadableFlags.EnsureWithNamespace()
 }
