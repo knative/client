@@ -99,6 +99,52 @@ func TestUpdateEnvVarsAppendOld(t *testing.T) {
 	assertNoV1alpha1Old(t, template)
 }
 
+type userImageAnnotCase struct {
+	image  string
+	annot  string
+	result string
+	set    bool
+}
+
+func TestSetUserImageAnnot(t *testing.T) {
+	cases := []userImageAnnotCase{
+		{"foo/bar", "", "foo/bar", true},
+		{"foo/bar@sha256:asdfsf", "", "foo/bar@sha256:asdfsf", true},
+		{"foo/bar@sha256:asdf", "foo/bar", "foo/bar", true},
+		{"foo/bar", "baz/quux", "foo/bar", true},
+		{"foo/bar", "", "", false},
+		{"foo/bar", "baz/quux", "", false},
+	}
+	for _, c := range cases {
+		template, container := getV1alpha1Config()
+		if c.annot == "" {
+			template.Annotations = nil
+		} else {
+			template.Annotations = map[string]string{
+				UserImageAnnotationKey: c.annot,
+			}
+		}
+		container.Image = c.image
+		if c.set {
+			SetUserImageAnnot(template)
+		} else {
+			UnsetUserImageAnnot(template)
+		}
+		assert.Equal(t, template.Annotations[UserImageAnnotationKey], c.result)
+	}
+}
+
+func TestFreezeImageToDigest(t *testing.T) {
+	template, container := getV1alpha1Config()
+	revision := &servingv1alpha1.Revision{}
+	revision.Spec = template.Spec
+	revision.ObjectMeta = template.ObjectMeta
+	revision.Status.ImageDigest = "gcr.io/foo/bar@sha256:deadbeef"
+	container.Image = "gcr.io/foo/bar:latest"
+	FreezeImageToDigest(template, revision)
+	assert.Equal(t, container.Image, "gcr.io/foo/bar@sha256:deadbeef")
+}
+
 func testUpdateEnvVarsAppendOld(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, container *corev1.Container) {
 	container.Env = []corev1.EnvVar{
 		{Name: "a", Value: "foo"},
