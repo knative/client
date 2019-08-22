@@ -35,6 +35,17 @@ export GO111MODULE=on
 export KNATIVE_VERSION=${KNATIVE_VERSION:-latest}
 source $(dirname $0)/../vendor/knative.dev/test-infra/scripts/presubmit-tests.sh
 
-# We use the default build, unit and integration test runners.
+# Run cross platform build to ensure kn compiles for Linux, macOS and Windows
+function post_build_tests() {
+  local failed=0
+  header "Ensuring kn cross platform build"
+  ./hack/build.sh -x || failed=1
+  if (( failed )); then
+    results_banner "Cross platform build" ${failed}
+    exit ${failed}
+  fi
+}
 
+
+# We use the default build, unit and integration test runners.
 main $@
