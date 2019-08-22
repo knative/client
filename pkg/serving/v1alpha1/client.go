@@ -134,12 +134,6 @@ func NewKnServingClient(client client_v1alpha1.ServingV1alpha1Interface, namespa
 	}
 }
 
-func (cl *knClient) Errors() map[string]error {
-	return map[string]error{
-		"no-base-revision": noBaseRevisionError,
-	}
-}
-
 // Get a service by its unique name
 func (cl *knClient) GetService(name string) (*v1alpha1.Service, error) {
 	service, err := cl.client.Services(cl.namespace).Get(name, v1.GetOptions{})
