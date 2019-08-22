@@ -429,6 +429,8 @@ func TestGetBaseRevision(t *testing.T) {
 	for _, c = range cases {
 		service := v1alpha1.Service{}
 		service.Spec.Template = &v1alpha1.RevisionTemplateSpec{}
+		service.Spec.Template.Name = c.templateName
+		service.Status.LatestCreatedRevisionName = c.latestCreated
 		service.Spec.Template.Spec.Containers = []corev1.Container{{}}
 		service.Spec.Template.Spec.Containers[0].Image = c.templateImage
 
