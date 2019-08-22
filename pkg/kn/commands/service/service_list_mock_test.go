@@ -70,9 +70,9 @@ func TestServiceListAllNamespaceMock(t *testing.T) {
 
 	outputLines := strings.Split(output, "\n")
 	assert.Assert(t, util.ContainsAll(outputLines[0], "NAMESPACE", "NAME", "URL", "GENERATION", "AGE", "CONDITIONS", "READY", "REASON"))
-	assert.Assert(t, util.ContainsAll(outputLines[1], "svc1", "default"))
-	assert.Assert(t, util.ContainsAll(outputLines[2], "svc3", "bar"))
-	assert.Assert(t, util.ContainsAll(outputLines[3], "svc2", "foo"))
+	assert.Assert(t, util.ContainsAll(outputLines[1], "default", "svc1"))
+	assert.Assert(t, util.ContainsAll(outputLines[2], "bar", "svc3"))
+	assert.Assert(t, util.ContainsAll(outputLines[3], "foo", "svc2"))
 
 	r.Validate()
 }
