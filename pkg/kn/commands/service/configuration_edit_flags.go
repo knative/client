@@ -104,7 +104,7 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 			"{{.Generation}} for the generation, and {{.Random [n]}} for n random consonants.")
 	p.markFlagMakesRevision("revision-name")
 	flags.AddBothBoolFlagsUnhidden(command.Flags(), &p.LockToDigest, "lock-to-digest", "", true,
-		"keep the running image for the service constant when changing when not explicitly specifying "+
+		"keep the running image for the service constant when not explicitly specifying "+
 			"the image. (--no-lock-to-digest pulls the image tag afresh with each new revision)")
 	// Don't mark as changing the revision.
 
