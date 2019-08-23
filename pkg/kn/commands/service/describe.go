@@ -24,6 +24,7 @@ import (
 	"strings"
 	"time"
 
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"knative.dev/serving/pkg/apis/autoscaling"
 	"knative.dev/serving/pkg/apis/serving"
@@ -216,6 +217,9 @@ func writeRevisions(dw printers.PrefixWriter, revisions []*revisionDesc) {
 	dw.WriteColsLn(printers.Level0, l("Revisions"))
 	for _, revisionDesc := range revisions {
 		dw.WriteColsLn(printers.Level1, formatBullet(revisionDesc.percent, revisionDesc.ready), revisionHeader(revisionDesc))
+		if revisionDesc.ready == v1.ConditionFalse {
+			dw.WriteColsLn(printers.Level2, "", l("Error"), revisionDesc.reason)
+		}
 		dw.WriteColsLn(printers.Level2, "", l("Image"), getImageDesc(revisionDesc))
 		if revisionDesc.port != nil {
 			dw.WriteColsLn(printers.Level2, "", l("Port"), strconv.FormatInt(int64(*revisionDesc.port), 10))
@@ -294,7 +298,7 @@ func formatScale(minScale *int, maxScale *int) string {
 func revisionHeader(desc *revisionDesc) string {
 	header := desc.name
 	if desc.latest != nil && *desc.latest {
-		header = fmt.Sprintf("@latest at %s", desc.name)
+		header = fmt.Sprintf("@latest (%s)", desc.name)
 	}
 	if desc.tag != "" {
 		header = fmt.Sprintf("%s #%s", header, desc.tag)
@@ -490,29 +494,28 @@ func age(t time.Time) string {
 // Call the backend to query revisions for the given service and build up
 // the view objects used for output
 func getRevisionDescriptions(client serving_kn_v1alpha1.KnServingClient, service *v1alpha1.Service, withDetails bool) ([]*revisionDesc, error) {
-	revisionDescs := make(map[string]*revisionDesc)
+	revisionsSeen := sets.NewString()
+	revisionDescs := []*revisionDesc{}
 
 	trafficTargets := service.Status.Traffic
-
+	var err error
 	for _, target := range trafficTargets {
 		revision, err := extractRevisionFromTarget(client, target)
 		if err != nil {
 			return nil, fmt.Errorf("cannot extract revision from service %s: %v", service.Name, err)
 		}
-		key := revision.Name
-		if target.LatestRevision != nil && *target.LatestRevision {
-			key = "@latest"
-		}
-		revisionDescs[key], err = newRevisionDesc(revision, &target)
+		revisionsSeen.Insert(revision.Name)
+		desc, err := newRevisionDesc(revision, &target)
 		if err != nil {
 			return nil, err
 		}
+		revisionDescs = append(revisionDescs, desc)
 	}
-	if err := completeWithLatestRevisions(client, service, revisionDescs); err != nil {
+	if revisionDescs, err = completeWithLatestRevisions(client, service, revisionsSeen, revisionDescs); err != nil {
 		return nil, err
 	}
 	if withDetails {
-		if err := completeWithUntargetedRevisions(client, service, revisionDescs); err != nil {
+		if revisionDescs, err = completeWithUntargetedRevisions(client, service, revisionsSeen, revisionDescs); err != nil {
 			return nil, err
 		}
 	}
@@ -520,49 +523,46 @@ func getRevisionDescriptions(client serving_kn_v1alpha1.KnServingClient, service
 }
 
 // Order the list of revisions so that the newest revisions are at the top
-func orderByConfigurationGeneration(descs map[string]*revisionDesc) []*revisionDesc {
-	descsList := make([]*revisionDesc, len(descs))
-	idx := 0
-	for _, desc := range descs {
-		descsList[idx] = desc
-		idx++
-	}
-	sort.SliceStable(descsList, func(i, j int) bool {
-		return descsList[i].configurationGeneration > descsList[j].configurationGeneration
+func orderByConfigurationGeneration(descs []*revisionDesc) []*revisionDesc {
+	sort.SliceStable(descs, func(i, j int) bool {
+		return descs[i].configurationGeneration > descs[j].configurationGeneration
 	})
-	return descsList
+	return descs
 }
 
-func completeWithLatestRevisions(client serving_kn_v1alpha1.KnServingClient, service *v1alpha1.Service, descs map[string]*revisionDesc) error {
+func completeWithLatestRevisions(client serving_kn_v1alpha1.KnServingClient, service *v1alpha1.Service, revisionsSeen sets.String, descs []*revisionDesc) ([]*revisionDesc, error) {
 	for _, revisionName := range []string{service.Status.LatestCreatedRevisionName, service.Status.LatestReadyRevisionName} {
-		if _, ok := descs[revisionName]; !ok {
-			// if we don't already got it filed under "@latest"...
-			if latest, ok := descs["@latest"]; !ok || latest.name != revisionName {
-				rev, err := client.GetRevision(revisionName)
-				if err != nil {
-					return err
-				}
-				descs[revisionName], err = newRevisionDesc(rev, nil)
+		if !revisionsSeen.Has(revisionName) {
+			rev, err := client.GetRevision(revisionName)
+			if err != nil {
+				return nil, err
 			}
+			newDesc, err := newRevisionDesc(rev, nil)
+			if err != nil {
+				return nil, err
+			}
+
+			descs = append(descs, newDesc)
 		}
 	}
-	return nil
+	return descs, nil
 }
 
-func completeWithUntargetedRevisions(client serving_kn_v1alpha1.KnServingClient, service *v1alpha1.Service, descs map[string]*revisionDesc) error {
+func completeWithUntargetedRevisions(client serving_kn_v1alpha1.KnServingClient, service *v1alpha1.Service, revisionsSeen sets.String, descs []*revisionDesc) ([]*revisionDesc, error) {
 	revisions, err := client.ListRevisions(serving_kn_v1alpha1.WithService(service.Name))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	for _, revision := range revisions.Items {
-		if _, ok := descs[revision.Name]; !ok {
-			descs[revision.Name], err = newRevisionDesc(&revision, nil)
+		if !revisionsSeen.Has(revision.Name) {
+			newDesc, err := newRevisionDesc(&revision, nil)
 			if err != nil {
-				return err
+				return nil, err
 			}
+			descs = append(descs, newDesc)
 		}
 	}
-	return nil
+	return descs, nil
 }
 
 func newRevisionDesc(revision *v1alpha1.Revision, target *v1alpha1.TrafficTarget) (*revisionDesc, error) {
