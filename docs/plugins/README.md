@@ -1,6 +1,6 @@
 # `kn` Plugins
 
-Plugins follow a similar architecture to [kubectl plugins](https://kubernetes.io/docs/tasks/extend-kubectl/kubectl-plugins/) with some small differences. One key difference is that Kn plugins can either live in your `PATH` or in a chosen and specified directory. [Kn plugins](plugins.md) shows how to install and create new plugins as well as giving some examples and best practices.
+Plugins follow a similar architecture to [kubectl plugins](https://kubernetes.io/docs/tasks/extend-kubectl/kubectl-plugins/) with some small differences. One key difference is that `kn` plugins can either live in your `PATH` or in a chosen and specified directory. [Kn plugins](cmd/kn_plugin.md) shows how to install and create new plugins as well as giving some examples and best practices.
 
 To see what plugins are installed on your machine, you can use the [`plugin`](cmd/kn_plugin.md) command group's [`list`](cmd/kn_plugin_list.md) command.
 
