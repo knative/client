@@ -137,7 +137,7 @@ func TestPluginHandler(t *testing.T) {
 	})
 
 	t.Run("HandlePluginCommand", func(t *testing.T) {
-		t.Run("sucess handling", func(t *testing.T) {
+		t.Run("success handling", func(t *testing.T) {
 			setup(t)
 			defer cleanup(t)
 			beforeEach(t)
