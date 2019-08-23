@@ -46,7 +46,7 @@ type KnParams struct {
 	NewClient    func(namespace string) (serving_kn_v1alpha1.KnClient, error)
 
 	// General global options
-	LogHttp bool
+	LogHTTP bool
 
 	// Set this if you want to nail down the namespace
 	fixedCurrentNamespace string
@@ -81,7 +81,7 @@ func (params *KnParams) GetConfig() (serving_v1alpha1_client.ServingV1alpha1Inte
 	if err != nil {
 		return nil, err
 	}
-	if params.LogHttp {
+	if params.LogHTTP {
 		// TODO: When we update to the newer version of client-go, replace with
 		// config.Wrap() for future compat.
 		config.WrapTransport = util.NewLoggingTransport
