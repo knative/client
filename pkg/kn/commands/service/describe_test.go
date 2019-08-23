@@ -149,9 +149,7 @@ func TestServiceDescribeLatestNotInTraffic(t *testing.T) {
 	assert.NilError(t, err)
 
 	validateServiceOutput(t, "foo", output)
-	assert.Assert(t, util.ContainsAll(output, "rev1", "rev2"))
-	assert.Equal(t, strings.Count(output, "rev2"), 1)
-	assert.Equal(t, strings.Count(output, "rev1"), 1)
+	assert.Assert(t, util.ContainsAll(output, "@latest (rev1)"))
 
 	// Validate that all recorded API methods have been called
 	r.Validate()
