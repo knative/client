@@ -42,7 +42,7 @@ You'll need a `kubectl`-style config file to connect to your cluster.
 
 ## Plugins
 
-Kn supports plugins, which allow you to extend the functionality of your `kn` installation with custom commands as well as shared commands that are not part of the core distribution of `kn`. See the [plugins documentation]((plugins/README.md)) for more information.
+Kn supports plugins, which allow you to extend the functionality of your `kn` installation with custom commands as well as shared commands that are not part of the core distribution of `kn`. See the [plugins documentation](plugins/README.md) for more information.
 
 
 ## More information on `kn`:
