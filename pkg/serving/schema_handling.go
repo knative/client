@@ -15,7 +15,6 @@
 package serving
 
 import (
-	"errors"
 	"fmt"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -44,5 +43,5 @@ func GetGroupVersionKind(obj runtime.Object, gv schema.GroupVersion) (*schema.Gr
 			return &gvk, nil
 		}
 	}
-	return nil, errors.New(fmt.Sprintf("no group version %s registered in %s", gv, scheme.Scheme.Name()))
+	return nil, fmt.Errorf("no group version %s registered in %s", gv, scheme.Scheme.Name())
 }

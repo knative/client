@@ -15,7 +15,6 @@
 package commands
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -110,8 +109,8 @@ func (params *KnParams) GetClientConfig() (clientcmd.ClientConfig, error) {
 
 	paths := filepath.SplitList(params.KubeCfgPath)
 	if len(paths) > 1 {
-		return nil, errors.New(fmt.Sprintf("Can not find config file. '%s' looks like a path. "+
-			"Please use the env var KUBECONFIG if you want to check for multiple configuration files", params.KubeCfgPath))
+		return nil, fmt.Errorf("Can not find config file. '%s' looks like a path. "+
+			"Please use the env var KUBECONFIG if you want to check for multiple configuration files", params.KubeCfgPath)
 	}
-	return nil, errors.New(fmt.Sprintf("Config file '%s' can not be found", params.KubeCfgPath))
+	return nil, fmt.Errorf("Config file '%s' can not be found", params.KubeCfgPath)
 }

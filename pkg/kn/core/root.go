@@ -15,7 +15,6 @@
 package core
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -175,9 +174,9 @@ func EmptyAndUnknownSubCommands(cmd *cobra.Command) {
 				fmt.Println()
 
 				if len(args) == 0 {
-					return errors.New(fmt.Sprintf("please provide a valid sub-command for \"kn %s\"", aCmd.Name()))
+					return fmt.Errorf("please provide a valid sub-command for \"kn %s\"", aCmd.Name())
 				}
-				return errors.New(fmt.Sprintf("unknown sub-command \"%s\" for \"kn %s\"", args[0], aCmd.Name()))
+				return fmt.Errorf("unknown sub-command \"%s\" for \"kn %s\"", args[0], aCmd.Name())
 			}
 		}
 
