@@ -84,7 +84,7 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			serviceExists, err := serviceExists(client, name, namespace)
+			serviceExists, err := serviceExists(client, name)
 			if err != nil {
 				return err
 			}
@@ -184,7 +184,7 @@ func replaceService(client v1alpha1.KnClient, service *serving_v1alpha1_api.Serv
 	}
 }
 
-func serviceExists(client v1alpha1.KnClient, name string, namespace string) (bool, error) {
+func serviceExists(client v1alpha1.KnClient, name string) (bool, error) {
 	_, err := client.GetService(name)
 	if api_errors.IsNotFound(err) {
 		return false, nil
