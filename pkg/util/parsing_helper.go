@@ -37,9 +37,8 @@ func mapFromArray(arr []string, delimiter string, allowSingles bool) (map[string
 		if len(pairSlice) <= 1 {
 			if len(pairSlice) == 0 || !allowSingles {
 				return nil, fmt.Errorf("Argument requires a value that contains the %q character; got %q", delimiter, pairStr)
-			} else {
-				returnMap[pairSlice[0]] = ""
 			}
+			returnMap[pairSlice[0]] = ""
 		} else {
 			returnMap[pairSlice[0]] = pairSlice[1]
 		}

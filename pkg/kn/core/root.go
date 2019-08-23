@@ -176,9 +176,8 @@ func EmptyAndUnknownSubCommands(cmd *cobra.Command) {
 
 				if len(args) == 0 {
 					return errors.New(fmt.Sprintf("please provide a valid sub-command for \"kn %s\"", aCmd.Name()))
-				} else {
-					return errors.New(fmt.Sprintf("unknown sub-command \"%s\" for \"kn %s\"", args[0], aCmd.Name()))
 				}
+				return errors.New(fmt.Sprintf("unknown sub-command \"%s\" for \"kn %s\"", args[0], aCmd.Name()))
 			}
 		}
 
