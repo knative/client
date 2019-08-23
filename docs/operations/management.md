@@ -1,4 +1,6 @@
-### Service Management
+# Management Commands
+
+## Service Management
 
 A Knative service is the embodiment of a serverless workload. It is generally in the form of a collection of containers running in a group of pods, in the underlying Kubernetes cluster. Each Knative service associates with a collection of revisions, which represent the evolution of that service.
 
@@ -22,7 +24,8 @@ kn service list
 
 You can also list services from all namespaces or a specific namespace using flags: `--all-namespaces` and `--namespace mynamespace`. See [`service list`](cmd/kn_service_list.md) command reference for additional details.
 
-### Revision Management
+
+## Revision Management
 
 A Knative revision is a "snapshot" of the specification of a service. For instance, when a Knative service is created with the environment variable `FOO=bar` a revision is added to the service. Afterwards, when the environment variable is changed to `baz` or additional variables are added, a new revision is created. When the image that the service is running is changed to a new digest, a new revision is created.
 
@@ -36,7 +39,7 @@ Examples:
 kn revision list --service srvc # CHECK this since current command does not have --service flag
 ```
 
-### Utilities
+## Utilities
 
 These are commands that provide some useful information to the user.
 
@@ -44,7 +47,8 @@ These are commands that provide some useful information to the user.
 * The [`kn version`](cmd/kn_version.md) command will display the current version of the `kn` build including date and Git commit revision.
 * The `kn completion` command will output a BASH completion script for `kn` to allow command completions with tabs.
 
-### Common Flags
+
+## Common Flags
 
 For every Kn command you can use these optional common additional flags:
 
