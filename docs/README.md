@@ -2,8 +2,6 @@
 
 `kn` is the Knative command line interface (CLI).
 
--------------------------------------------
-
 ## Getting Started
 
 ### Installing `kn`
