@@ -1,10 +1,6 @@
-# Workflows
+# Basic Workflow
 
-The purpose of this section of the Kn documentation is to list common workflows or use-cases for the Knative CLI. This is a live document, meant to be updated as we learn more about good ways to use `kn`.
-
-## Basic
-
-In this basic worflow we show the CRUD (create, read, update, delete) operations on a service. We use a well known [simple Hello World service](https://github.com/knative/docs/tree/master/docs/serving/samples/hello-world/helloworld-go) that reads the environment variable `TARGET` and prints it as output.
+In this basic worflow we show the CRUD (create, read, update, delete) operations on a service. We use a [simple Hello World service](https://github.com/knative/docs/tree/master/docs/serving/samples/hello-world/helloworld-go) that reads the environment variable `TARGET` and prints it as an output.
 
 * **Create a service in the `default` namespace from an image**
 
@@ -35,7 +31,6 @@ Where `http://xxx.xx.xxx.xx` is your Knative installation ingress.
 ```bash
 kn service update hello --env TARGET=Kn
 ```
-
 The service's environment variable `TARGET` is now set to `Kn`.
 
 * **Describe service**

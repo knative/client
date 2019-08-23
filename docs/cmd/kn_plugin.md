@@ -4,9 +4,10 @@ Plugin command group
 
 ### Synopsis
 
-Provides utilities for interacting and managing with kn plugins.
+Provides utilities for interacting and managing with `kn` plugins.
 
-Plugins provide extended functionality that is not part of the core kn command-line distribution.
+Plugins provide extended functionality that is not part of the core `kn` command-line distribution.
+
 Please refer to the documentation and examples for more information about how write your own plugins.
 
 ```
