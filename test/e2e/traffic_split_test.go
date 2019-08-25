@@ -223,7 +223,7 @@ func TestTrafficSplit(t *testing.T) {
 		},
 	)
 	// test reducing number of targets from traffic blockdd
-	t.Run("remove a revision with tag old from traffic block entierly",
+	t.Run("remove a revision with tag old from traffic block entirely",
 		func(t *testing.T) {
 			serviceName := getServiceNameAndIncrement(serviceBase)
 			test.serviceCreate(t, serviceName)

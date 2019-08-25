@@ -15,7 +15,6 @@
 package core
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -130,7 +129,7 @@ func NewKnCommand(params ...commands.KnParams) *cobra.Command {
 	// Persistent flags
 	rootCmd.PersistentFlags().StringVar(&commands.CfgFile, "config", "", "kn config file (default is $HOME/.kn/config.yaml)")
 	rootCmd.PersistentFlags().StringVar(&p.KubeCfgPath, "kubeconfig", "", "kubectl config file (default is $HOME/.kube/config)")
-	flags.AddBothBoolFlags(rootCmd.PersistentFlags(), &p.LogHttp, "log-http", "", false, "log http traffic")
+	flags.AddBothBoolFlags(rootCmd.PersistentFlags(), &p.LogHTTP, "log-http", "", false, "log http traffic")
 
 	plugin.AddPluginFlags(rootCmd)
 	plugin.BindPluginsFlagToViper(rootCmd)
@@ -175,10 +174,9 @@ func EmptyAndUnknownSubCommands(cmd *cobra.Command) {
 				fmt.Println()
 
 				if len(args) == 0 {
-					return errors.New(fmt.Sprintf("please provide a valid sub-command for \"kn %s\"", aCmd.Name()))
-				} else {
-					return errors.New(fmt.Sprintf("unknown sub-command \"%s\" for \"kn %s\"", args[0], aCmd.Name()))
+					return fmt.Errorf("please provide a valid sub-command for \"kn %s\"", aCmd.Name())
 				}
+				return fmt.Errorf("unknown sub-command \"%s\" for \"kn %s\"", args[0], aCmd.Name())
 			}
 		}
 

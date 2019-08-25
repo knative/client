@@ -145,6 +145,9 @@ func NewServiceDescribeCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			revisionDescs, err := getRevisionDescriptions(client, service, printDetails)
+			if err != nil {
+				return err
+			}
 
 			return describe(cmd.OutOrStdout(), service, revisionDescs)
 		},

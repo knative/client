@@ -240,9 +240,8 @@ func verifyInputSanity(trafficFlags *flags.Traffic) error {
 		// To check if there are duplicate revision names in traffic flags
 		if _, exist := revisionRefMap[revisionRef]; exist {
 			return errorRepeatingRevision("--traffic", revisionRef)
-		} else {
-			revisionRefMap[revisionRef] = i
 		}
+		revisionRefMap[revisionRef] = i
 
 		percentInt, err := strconv.Atoi(percent)
 		if err != nil {

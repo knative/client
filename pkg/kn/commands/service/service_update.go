@@ -127,7 +127,7 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 
 func preCheck(cmd *cobra.Command, args []string) error {
 	if cmd.Flags().NFlag() == 0 {
-		return errors.New(fmt.Sprintf("flag(s) not set\nUsage: %s", cmd.Use))
+		return fmt.Errorf("flag(s) not set\nUsage: %s", cmd.Use)
 	}
 
 	return nil

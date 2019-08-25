@@ -15,7 +15,6 @@
 package commands
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -47,7 +46,7 @@ type KnParams struct {
 	NewClient    func(namespace string) (serving_kn_v1alpha1.KnClient, error)
 
 	// General global options
-	LogHttp bool
+	LogHTTP bool
 
 	// Set this if you want to nail down the namespace
 	fixedCurrentNamespace string
@@ -82,7 +81,7 @@ func (params *KnParams) GetConfig() (serving_v1alpha1_client.ServingV1alpha1Inte
 	if err != nil {
 		return nil, err
 	}
-	if params.LogHttp {
+	if params.LogHTTP {
 		// TODO: When we update to the newer version of client-go, replace with
 		// config.Wrap() for future compat.
 		config.WrapTransport = util.NewLoggingTransport
@@ -110,9 +109,8 @@ func (params *KnParams) GetClientConfig() (clientcmd.ClientConfig, error) {
 
 	paths := filepath.SplitList(params.KubeCfgPath)
 	if len(paths) > 1 {
-		return nil, errors.New(fmt.Sprintf("Can not find config file. '%s' looks like a path. "+
-			"Please use the env var KUBECONFIG if you want to check for multiple configuration files", params.KubeCfgPath))
-	} else {
-		return nil, errors.New(fmt.Sprintf("Config file '%s' can not be found", params.KubeCfgPath))
+		return nil, fmt.Errorf("Can not find config file. '%s' looks like a path. "+
+			"Please use the env var KUBECONFIG if you want to check for multiple configuration files", params.KubeCfgPath)
 	}
+	return nil, fmt.Errorf("Config file '%s' can not be found", params.KubeCfgPath)
 }

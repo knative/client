@@ -29,7 +29,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// pluginVerifier verifies that existing kn commands are not overriden
+// pluginVerifier verifies that existing kn commands are not overridden
 type pluginVerifier struct {
 	root        *cobra.Command
 	seenPlugins map[string]string

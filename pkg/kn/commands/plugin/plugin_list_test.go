@@ -212,6 +212,7 @@ func TestPluginList(t *testing.T) {
 			defer ctx.cleanup()
 
 			err := ctx.createTestPlugin(KnTestPluginName, FileModeExecutable, false)
+			assert.NilError(t, err)
 
 			err = ctx.execute("plugin", "list")
 			assert.NilError(t, err)
