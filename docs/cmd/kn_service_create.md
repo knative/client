@@ -49,9 +49,11 @@ kn service create NAME --image IMAGE [flags]
   -l, --label stringArray        Service label to set. name=value; you may provide this flag any number of times to set multiple labels. To unset, specify the label name followed by a "-" (e.g., name-).
       --limits-cpu string        The limits on the requested CPU (e.g., 1000m).
       --limits-memory string     The limits on the requested memory (e.g., 1024Mi).
+      --lock-to-digest           keep the running image for the service constant when not explicitly specifying the image. (--no-lock-to-digest pulls the image tag afresh with each new revision) (default true)
       --max-scale int            Maximal number of replicas.
       --min-scale int            Minimal number of replicas.
   -n, --namespace string         List the requested object(s) in given namespace.
+      --no-lock-to-digest        do not keep the running image for the service constant when not explicitly specifying the image. (--no-lock-to-digest pulls the image tag afresh with each new revision)
   -p, --port int32               The port where application listens on.
       --requests-cpu string      The requested CPU (e.g., 250m).
       --requests-memory string   The requested memory (e.g., 64Mi).

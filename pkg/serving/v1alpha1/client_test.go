@@ -394,6 +394,56 @@ func TestWaitForService(t *testing.T) {
 	})
 }
 
+type baseRevisionCase struct {
+	templateName          string
+	templateImage         string
+	latestCreated         string
+	requestedRevisionName string
+
+	foundRevisionImage string
+	errText            string
+}
+
+func TestGetBaseRevision(t *testing.T) {
+	serving, client := setup()
+	cases := []baseRevisionCase{
+		{"foo-asdf", "gcr.io/foo/bar", "foo-asdf", "foo-asdf", "gcr.io/foo/bar", ""},
+		{"", "gcr.io/foo/bar", "foo-asdf", "foo-asdf", "gcr.io/foo/bar", ""},
+		{"foo-qwer", "gcr.io/foo/bar", "foo-asdf", "foo-qwer", "gcr.io/foo/bar", ""},
+		{"", "gcr.io/foo/bar", "foo-asdf", "foo-asdf", "gcr.io/foo/baz", "base revision not found"},
+	}
+	var c baseRevisionCase
+	serving.AddReactor("get", "revisions", func(a client_testing.Action) (bool, runtime.Object, error) {
+		revision := &v1alpha1.Revision{ObjectMeta: metav1.ObjectMeta{Name: c.requestedRevisionName, Namespace: testNamespace}}
+		revision.Spec.Containers = []corev1.Container{{}}
+		name := a.(client_testing.GetAction).GetName()
+		assert.Equal(t, name, c.requestedRevisionName)
+
+		if c.foundRevisionImage != "" {
+			revision.Spec.Containers[0].Image = c.foundRevisionImage
+			return true, revision, nil
+		} else {
+			return true, nil, errors.NewNotFound(v1alpha1.Resource("revision"), name)
+		}
+	})
+	for _, c = range cases {
+		service := v1alpha1.Service{}
+		service.Spec.Template = &v1alpha1.RevisionTemplateSpec{}
+		service.Spec.Template.Name = c.templateName
+		service.Status.LatestCreatedRevisionName = c.latestCreated
+		service.Spec.Template.Spec.Containers = []corev1.Container{{}}
+		service.Spec.Template.Spec.Containers[0].Image = c.templateImage
+
+		r, err := client.GetBaseRevision(&service)
+		if err == nil {
+			assert.Equal(t, r.Spec.Containers[0].Image, c.foundRevisionImage)
+		} else {
+			assert.Assert(t, c.errText != "")
+			assert.ErrorContains(t, err, c.errText)
+		}
+	}
+}
+
 func TestGetConfiguration(t *testing.T) {
 	serving, client := setup()
 

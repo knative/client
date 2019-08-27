@@ -19,12 +19,15 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 
 	corev1 "k8s.io/api/core/v1"
 	"knative.dev/serving/pkg/apis/autoscaling"
 	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
 	servingv1beta1 "knative.dev/serving/pkg/apis/serving/v1beta1"
 )
+
+var UserImageAnnotationKey = "client.knative.dev/user-image"
 
 // UpdateEnvVars gives the configuration all the env var values listed in the given map of
 // vars.  Does not touch any environment variables not mentioned, but it can add
@@ -54,7 +57,7 @@ func UpdateConcurrencyTarget(template *servingv1alpha1.RevisionTemplateSpec, tar
 	// TODO(toVersus): Remove the following validation once serving library is updated to v0.8.0
 	// and just rely on ValidateAnnotations method.
 	if target < autoscaling.TargetMin {
-		return fmt.Errorf("Invalid 'concurrency-target' value: must be an integer greater than 0: %s",
+		return fmt.Errorf("invalid 'concurrency-target' value: must be an integer greater than 0: %s",
 			autoscaling.TargetAnnotationKey)
 	}
 
@@ -67,7 +70,7 @@ func UpdateConcurrencyLimit(template *servingv1alpha1.RevisionTemplateSpec, limi
 	// Validate input limit
 	ctx := context.Background()
 	if err := cc.Validate(ctx).ViaField("spec.containerConcurrency"); err != nil {
-		return fmt.Errorf("Invalid 'concurrency-limit' value: %s", err)
+		return fmt.Errorf("invalid 'concurrency-limit' value: %s", err)
 	}
 	template.Spec.ContainerConcurrency = cc
 	return nil
@@ -120,11 +123,56 @@ func EnvToMap(vars []corev1.EnvVar) (map[string]string, error) {
 
 // UpdateImage a given image
 func UpdateImage(template *servingv1alpha1.RevisionTemplateSpec, image string) error {
+	// When not setting the image to a digest, add the user image annotation.
 	container, err := ContainerOfRevisionTemplate(template)
 	if err != nil {
 		return err
 	}
 	container.Image = image
+	return nil
+}
+
+// UnsetUserImageAnnot removes the user image annotation
+func UnsetUserImageAnnot(template *servingv1alpha1.RevisionTemplateSpec) {
+	delete(template.Annotations, UserImageAnnotationKey)
+}
+
+// SetUserImageAnnot sets the user image annotation if the image isn't by-digest already.
+func SetUserImageAnnot(template *servingv1alpha1.RevisionTemplateSpec) {
+	// If the current image isn't by-digest, set the user-image annotation to it
+	// so we remember what it was.
+	currentContainer, _ := ContainerOfRevisionTemplate(template)
+	ui := currentContainer.Image
+	if strings.Contains(ui, "@") {
+		prev, ok := template.Annotations[UserImageAnnotationKey]
+		if ok {
+			ui = prev
+		}
+	}
+	if template.Annotations == nil {
+		template.Annotations = make(map[string]string)
+	}
+	template.Annotations[UserImageAnnotationKey] = ui
+}
+
+// FreezeImageToDigest sets the image on the template to the image digest of the base revision.
+func FreezeImageToDigest(template *servingv1alpha1.RevisionTemplateSpec, baseRevision *servingv1alpha1.Revision) error {
+	currentContainer, err := ContainerOfRevisionTemplate(template)
+
+	if baseRevision == nil {
+		return nil
+	}
+	baseContainer, err := ContainerOfRevisionSpec(&baseRevision.Spec)
+	if err != nil {
+		return err
+	}
+	if currentContainer.Image != baseContainer.Image {
+		return fmt.Errorf("could not freeze image to digest since current revision contains unexpected image.")
+	}
+
+	if baseRevision.Status.ImageDigest != "" {
+		return UpdateImage(template, baseRevision.Status.ImageDigest)
+	}
 	return nil
 }
 
