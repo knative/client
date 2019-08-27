@@ -42,6 +42,8 @@ type ConfigurationEditFlags struct {
 	Labels                     []string
 	NamePrefix                 string
 	RevisionName               string
+	ServiceAccountName         string
+	ImagePullPolicy            string
 
 	// Preferences about how to do the action.
 	ForceCreate bool
@@ -116,6 +118,10 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 			"Accepts golang templates, allowing {{.Service}} for the service name, "+
 			"{{.Generation}} for the generation, and {{.Random [n]}} for n random consonants.")
 	p.markFlagMakesRevision("revision-name")
+	command.Flags().StringVar(&p.ServiceAccountName, "service-account-name", "-", "Service account name. To unset, specify \"-\".")
+	p.markFlagMakesRevision("service-account-name")
+	command.Flags().StringVar(&p.ImagePullPolicy, "image-pull-policy", "-", "Image pull policy (e.g., always, if-not-present, or never). To unset, specify \"-\".")
+	p.markFlagMakesRevision("image-pull-policy")
 }
 
 // AddUpdateFlags adds the flags specific to update.
@@ -258,6 +264,20 @@ func (p *ConfigurationEditFlags) Apply(
 			}
 		}
 		err = servinglib.UpdateLabels(service, template, labelsMap, labelsToRemove)
+		if err != nil {
+			return err
+		}
+	}
+
+	if cmd.Flags().Changed("service-account-name") {
+		err = servinglib.UpdateServiceAccountName(template, p.ServiceAccountName)
+		if err != nil {
+			return err
+		}
+	}
+
+	if cmd.Flags().Changed("image-pull-policy") {
+		err = servinglib.UpdateImagePullPolicy(template, p.ImagePullPolicy)
 		if err != nil {
 			return err
 		}

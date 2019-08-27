@@ -224,6 +224,40 @@ func UpdateLabels(service *servingv1alpha1.Service, template *servingv1alpha1.Re
 	return nil
 }
 
+func UpdateServiceAccountName(template *servingv1alpha1.RevisionTemplateSpec, serviceAccountName string) error {
+	serviceAccountName = strings.TrimSpace(serviceAccountName)
+	if serviceAccountName == "-" {
+		template.Spec.ServiceAccountName = ""
+	} else {
+		template.Spec.ServiceAccountName = serviceAccountName
+	}
+	return nil
+}
+
+func UpdateImagePullPolicy(template *servingv1alpha1.RevisionTemplateSpec, imagePullPolicy string) error {
+	container, err := ContainerOfRevisionTemplate(template)
+	if err != nil {
+		return err
+	}
+
+	imagePullPolicy = strings.TrimSpace(imagePullPolicy)
+
+	switch imagePullPolicy {
+	case "always":
+		container.ImagePullPolicy = corev1.PullAlways
+	case "if-not-present":
+		container.ImagePullPolicy = corev1.PullIfNotPresent
+	case "never":
+		container.ImagePullPolicy = corev1.PullNever
+	case "-":
+		container.ImagePullPolicy = ""
+	default:
+		return fmt.Errorf("Invalid image pull policy; got %q", imagePullPolicy)
+	}
+
+	return nil
+}
+
 // =======================================================================================
 
 func updateEnvVarsFromMap(env []corev1.EnvVar, vars map[string]string) []corev1.EnvVar {
