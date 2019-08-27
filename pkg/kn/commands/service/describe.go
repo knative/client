@@ -532,18 +532,19 @@ func orderByConfigurationGeneration(descs []*revisionDesc) []*revisionDesc {
 
 func completeWithLatestRevisions(client serving_kn_v1alpha1.KnServingClient, service *v1alpha1.Service, revisionsSeen sets.String, descs []*revisionDesc) ([]*revisionDesc, error) {
 	for _, revisionName := range []string{service.Status.LatestCreatedRevisionName, service.Status.LatestReadyRevisionName} {
-		if !revisionsSeen.Has(revisionName) {
-			rev, err := client.GetRevision(revisionName)
-			if err != nil {
-				return nil, err
-			}
-			newDesc, err := newRevisionDesc(rev, nil)
-			if err != nil {
-				return nil, err
-			}
-
-			descs = append(descs, newDesc)
+		if revisionsSeen.Has(revisionName) {
+			continue
 		}
+		rev, err := client.GetRevision(revisionName)
+		if err != nil {
+			return nil, err
+		}
+		newDesc, err := newRevisionDesc(rev, nil)
+		if err != nil {
+			return nil, err
+		}
+
+		descs = append(descs, newDesc)
 	}
 	return descs, nil
 }
