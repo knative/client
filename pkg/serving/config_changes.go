@@ -19,11 +19,21 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 
 	corev1 "k8s.io/api/core/v1"
 	"knative.dev/serving/pkg/apis/autoscaling"
 	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
 	servingv1beta1 "knative.dev/serving/pkg/apis/serving/v1beta1"
+)
+
+// VolumeSourceType is a type standing for enumeration of ConfigMap and Secret
+type VolumeSourceType int
+
+// Enumeration list of Kay-Value sources: ConfigMap or Secret
+const (
+	ConfigMapVolumeSourceType VolumeSourceType = iota
+	SecretVolumeSourceType
 )
 
 // UpdateEnvVars gives the configuration all the env var values listed in the given map of
@@ -36,6 +46,35 @@ func UpdateEnvVars(template *servingv1alpha1.RevisionTemplateSpec, toUpdate map[
 	}
 	envVars := updateEnvVarsFromMap(container.Env, toUpdate)
 	container.Env = removeEnvVars(envVars, toRemove)
+	return nil
+}
+
+func UpdateEnvFrom(template *servingv1alpha1.RevisionTemplateSpec, toUpdateOrRemove []string) error {
+	container, err := ContainerOfRevisionTemplate(template)
+	if err != nil {
+		return err
+	}
+	envFrom, err := updateEnvFrom(container.EnvFrom, toUpdateOrRemove)
+	if err != nil {
+		return err
+	}
+	container.EnvFrom = envFrom
+	return nil
+}
+
+// UpdateVolumeMount updates the configuration for mounting with config maps or secrets.
+func UpdateVolumeMounts(template *servingv1alpha1.RevisionTemplateSpec, toUpdate map[string]string, toRemove []string) error {
+	container, err := ContainerOfRevisionTemplate(template)
+	if err != nil {
+		return err
+	}
+
+	volumes, volumeMounts, err := updateVolumeMountsFromMap(template.Spec.Volumes, container.VolumeMounts, toUpdate)
+	if err != nil {
+		return err
+	}
+
+	template.Spec.Volumes, container.VolumeMounts = removeVolumeMounts(volumes, volumeMounts, toRemove)
 	return nil
 }
 
@@ -220,4 +259,197 @@ func removeEnvVars(env []corev1.EnvVar, toRemove []string) []corev1.EnvVar {
 		}
 	}
 	return env
+}
+
+func parseVolumeSource(s string) (VolumeSourceType, string, error) {
+	slices := strings.SplitN(s, ":", 2)
+	if len(slices) != 2 {
+		return -1, "", fmt.Errorf("Argument requires a value that contains the : character; got %q", s)
+	}
+
+	if strings.TrimSpace(slices[0]) == "config-map" {
+		return ConfigMapVolumeSourceType, strings.TrimSpace(slices[1]), nil
+	} else if strings.TrimSpace(slices[0]) == "secret" {
+		return SecretVolumeSourceType, strings.TrimSpace(slices[1]), nil
+	}
+
+	return -1, "", fmt.Errorf("Not allowed key-value source is used. Currently config-map and secret can be used; got %q", s)
+}
+
+func updateEnvFrom(envFromSources []corev1.EnvFromSource, toUpdateOrRemove []string) ([]corev1.EnvFromSource, error) {
+	insertConfigMapSet := make(map[string]bool)
+	removeConfigMapSet := make(map[string]bool)
+	insertSecretSet := make(map[string]bool)
+	removeSecretSet := make(map[string]bool)
+
+	for _, s := range toUpdateOrRemove {
+		volumeSourceType, volumeSourceName, err := parseVolumeSource(s)
+		if err != nil {
+			return nil, err
+		}
+		switch volumeSourceType {
+		case ConfigMapVolumeSourceType:
+			if strings.HasSuffix(volumeSourceName, "-") {
+				removeConfigMapSet[s[0:len(s)-1]] = false
+			} else {
+				insertConfigMapSet[s] = false
+			}
+		case SecretVolumeSourceType:
+			if strings.HasSuffix(volumeSourceName, "-") {
+				removeSecretSet[s[0:len(s)-1]] = false
+			} else {
+				insertSecretSet[s] = false
+			}
+		}
+	}
+
+	for _, source := range envFromSources {
+		if source.ConfigMapRef != nil {
+			if _, ok := removeConfigMapSet[source.ConfigMapRef.Name]; !ok {
+				source.ConfigMapRef = nil
+			} else if _, ok := insertConfigMapSet[source.ConfigMapRef.Name]; ok {
+				insertConfigMapSet[source.ConfigMapRef.Name] = true
+			}
+		}
+
+		if source.SecretRef != nil {
+			if _, ok := removeSecretSet[source.SecretRef.Name]; !ok {
+				source.SecretRef = nil
+			} else if _, ok := insertSecretSet[source.SecretRef.Name]; ok {
+				insertSecretSet[source.SecretRef.Name] = true
+			}
+		}
+	}
+
+	for k, v := range insertConfigMapSet {
+		if !v {
+			envFromSources = append(envFromSources, corev1.EnvFromSource{
+				ConfigMapRef: &corev1.ConfigMapEnvSource{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: k,
+					}}})
+		}
+	}
+
+	for k, v := range insertSecretSet {
+		if !v {
+			envFromSources = append(envFromSources, corev1.EnvFromSource{
+				SecretRef: &corev1.SecretEnvSource{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: k,
+					}}})
+		}
+	}
+
+	return envFromSources, nil
+}
+
+type volumeMountInfo struct {
+	volumeSourceType VolumeSourceType
+	volumeSourceName string
+	mountPath        string
+}
+
+func parseVolumeMountsString(s string) (*volumeMountInfo, error) {
+	slices := strings.SplitN(s, "@", 2)
+	if len(slices) != 2 {
+		return nil, fmt.Errorf("Argument requires a value that contains the @ character; got %q", s)
+	}
+
+	volumeSourceType, volumeSourceName, err := parseVolumeSource(slices[0])
+	if err != nil {
+		return nil, err
+	}
+	mountPath := slices[1]
+	return &volumeMountInfo{
+		volumeSourceType: volumeSourceType,
+		volumeSourceName: volumeSourceName,
+		mountPath:        mountPath,
+	}, nil
+}
+
+func updateVolume(volume *corev1.Volume, info *volumeMountInfo) error {
+	switch info.volumeSourceType {
+	case ConfigMapVolumeSourceType:
+		volume.Secret = nil
+		volume.ConfigMap = &corev1.ConfigMapVolumeSource{LocalObjectReference: corev1.LocalObjectReference{Name: info.volumeSourceName}}
+	case SecretVolumeSourceType:
+		volume.ConfigMap = nil
+		volume.Secret = &corev1.SecretVolumeSource{SecretName: info.volumeSourceName}
+	default:
+		return fmt.Errorf("Invalid VolumeSourceType")
+	}
+	return nil
+}
+
+func updateVolumeMountsFromMap(volumes []corev1.Volume, volumeMounts []corev1.VolumeMount, mounts map[string]string) ([]corev1.Volume, []corev1.VolumeMount, error) {
+	updatedInVolumes := make(map[string]bool)
+	updatedInVolumeMounts := make(map[string]bool)
+	parsedMap := make(map[string]*volumeMountInfo)
+
+	for name, value := range mounts {
+		info, err := parseVolumeMountsString(value)
+		if err != nil {
+			return nil, nil, err
+		}
+		parsedMap[name] = info
+	}
+
+	for i := range volumes {
+		volume := &volumes[i]
+		info, present := parsedMap[volume.Name]
+		if present {
+			err := updateVolume(volume, info)
+			if err != nil {
+				return nil, nil, err
+			}
+			updatedInVolumes[volume.Name] = true
+		}
+	}
+
+	for i := range volumeMounts {
+		volumeMount := &volumeMounts[i]
+		info, present := parsedMap[volumeMount.Name]
+		if present {
+			volumeMount.ReadOnly = true
+			volumeMount.MountPath = info.mountPath
+			updatedInVolumeMounts[volumeMount.Name] = true
+		}
+	}
+
+	for name, info := range parsedMap {
+		if !updatedInVolumes[name] {
+			volumes = append(volumes, corev1.Volume{Name: name})
+			updateVolume(&volumes[len(volumes)-1], info)
+		}
+
+		if !updatedInVolumeMounts[name] {
+			volumeMounts = append(volumeMounts, corev1.VolumeMount{
+				Name:      name,
+				ReadOnly:  true,
+				MountPath: info.mountPath,
+			})
+		}
+	}
+
+	return volumes, volumeMounts, nil
+}
+
+func removeVolumeMounts(volumes []corev1.Volume, volumeMounts []corev1.VolumeMount, toRemove []string) ([]corev1.Volume, []corev1.VolumeMount) {
+	for _, name := range toRemove {
+		for i, volume := range volumes {
+			if volume.Name == name {
+				volumes = append(volumes[:i], volumes[i+1:]...)
+				break
+			}
+		}
+
+		for i, volumeMount := range volumeMounts {
+			if volumeMount.Name == name {
+				volumeMounts = append(volumeMounts[:i], volumeMounts[i+1:]...)
+				break
+			}
+		}
+	}
+	return volumes, volumeMounts
 }

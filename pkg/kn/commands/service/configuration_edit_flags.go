@@ -28,8 +28,11 @@ import (
 
 type ConfigurationEditFlags struct {
 	// Direct field manipulation
-	Image                      string
-	Env                        []string
+	Image       string
+	Env         []string
+	EnvFrom     []string
+	VolumeMount []string
+
 	RequestsFlags, LimitsFlags ResourceFlags
 	MinScale                   int
 	MaxScale                   int
@@ -67,6 +70,19 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 			"any number of times to set multiple environment variables. "+
 			"To unset, specify the environment variable name followed by a \"-\" (e.g., NAME-).")
 	p.markFlagMakesRevision("env")
+
+	command.Flags().StringArrayVarP(&p.EnvFrom, "env-from", "", []string{},
+		"Config a envfrom with a config map or secret. (config-map | secret):CONFIG_MAP_OR_SECRET_NAME "+
+			"you may provide this flag any number of times. "+
+			"To unset, specify the config map name followed by a \"-\" (e.g., config-map:CONFIG_MAP_NAME- or secret:SECRET_NAME-).")
+	p.markFlagMakesRevision("env-from")
+
+	command.Flags().StringArrayVarP(&p.VolumeMount, "volume-mount", "", []string{},
+		"Config a volume mount with a config map or secret. VOLUME_NAME=(config-map | secret):CONFIG_MAP_OR_SECRET_NAME@/mount/path ; "+
+			"you may provide this flag any number of times to mount multiple config maps. "+
+			"To unset, specify the config map name followed by a \"-\" (e.g., VOLUME_NAME-).")
+	p.markFlagMakesRevision("volume-mount")
+
 	command.Flags().StringVar(&p.RequestsFlags.CPU, "requests-cpu", "", "The requested CPU (e.g., 250m).")
 	p.markFlagMakesRevision("requests-cpu")
 	command.Flags().StringVar(&p.RequestsFlags.Memory, "requests-memory", "", "The requested memory (e.g., 64Mi).")
@@ -138,6 +154,24 @@ func (p *ConfigurationEditFlags) Apply(
 			}
 		}
 		err = servinglib.UpdateEnvVars(template, envMap, envToRemove)
+		if err != nil {
+			return err
+		}
+	}
+
+	if cmd.Flags().Changed("env-from") {
+		err = servinglib.UpdateEnvFrom(template, p.EnvFrom)
+		if err != nil {
+			return err
+		}
+	}
+
+	if cmd.Flags().Changed("volume-mount") {
+		volumeMountMap, volumeMountsToRemove, err := util.MapAndRemovalListFromArray(p.VolumeMount, "=")
+		if err != nil {
+			return errors.Wrap(err, "Invalid --volume-mount")
+		}
+		err = servinglib.UpdateVolumeMounts(template, volumeMountMap, volumeMountsToRemove)
 		if err != nil {
 			return err
 		}

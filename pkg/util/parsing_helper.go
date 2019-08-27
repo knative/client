@@ -19,6 +19,23 @@ import (
 	"strings"
 )
 
+func MapAndRemovalListFromArray(arr []string, delimiter string) (map[string]string, []string, error) {
+	updateMap, err := mapFromArray(arr, delimiter, true)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	removalList := []string{}
+	for name := range updateMap {
+		if strings.HasSuffix(name, "-") {
+			removalList = append(removalList, name[:len(name)-1])
+			delete(updateMap, name)
+		}
+	}
+
+	return updateMap, removalList, nil
+}
+
 func MapFromArrayAllowingSingles(arr []string, delimiter string) (map[string]string, error) {
 	return mapFromArray(arr, delimiter, true)
 }
