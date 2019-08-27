@@ -324,15 +324,15 @@ func updateEnvFrom(envFromSources []corev1.EnvFromSource, toUpdateOrRemove []str
 		switch volumeSourceType {
 		case ConfigMapVolumeSourceType:
 			if strings.HasSuffix(volumeSourceName, "-") {
-				removeConfigMapSet[s[0:len(s)-1]] = false
+				removeConfigMapSet[volumeSourceName[0:len(volumeSourceName)-1]] = false
 			} else {
-				insertConfigMapSet[s] = false
+				insertConfigMapSet[volumeSourceName] = false
 			}
 		case SecretVolumeSourceType:
 			if strings.HasSuffix(volumeSourceName, "-") {
-				removeSecretSet[s[0:len(s)-1]] = false
+				removeSecretSet[volumeSourceName[0:len(volumeSourceName)-1]] = false
 			} else {
-				insertSecretSet[s] = false
+				insertSecretSet[volumeSourceName] = false
 			}
 		}
 	}
