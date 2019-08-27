@@ -554,13 +554,15 @@ func completeWithUntargetedRevisions(client serving_kn_v1alpha1.KnServingClient,
 		return nil, err
 	}
 	for _, revision := range revisions.Items {
-		if !revisionsSeen.Has(revision.Name) {
-			newDesc, err := newRevisionDesc(&revision, nil)
-			if err != nil {
-				return nil, err
-			}
-			descs = append(descs, newDesc)
+		if revisionsSeen.Has(revision.Name) {
+			continue
 		}
+		newDesc, err := newRevisionDesc(&revision, nil)
+		if err != nil {
+			return nil, err
+		}
+		descs = append(descs, newDesc)
+
 	}
 	return descs, nil
 }

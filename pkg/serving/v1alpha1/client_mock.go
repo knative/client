@@ -137,7 +137,6 @@ func (r *Recorder) GetRevision(name interface{}, revision *v1alpha1.Revision, er
 }
 
 func (c *MockKnClient) GetRevision(name string) (*v1alpha1.Revision, error) {
-	c.t.Log("GetRevision " + name)
 	call := c.getCall("GetRevision")
 	c.verifyArgs(call, name)
 	return call.result[0].(*v1alpha1.Revision), errorOrNil(call.result[1])
