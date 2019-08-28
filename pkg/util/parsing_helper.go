@@ -19,6 +19,7 @@ import (
 	"strings"
 )
 
+// MapAndRemovalListFromArray creates a map using MapFromArrayAllowingSingles, and a list of removal entries
 func MapAndRemovalListFromArray(arr []string, delimiter string) (map[string]string, []string, error) {
 	updateMap, err := mapFromArray(arr, delimiter, true)
 	if err != nil {

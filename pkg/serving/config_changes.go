@@ -59,6 +59,7 @@ func UpdateEnvVars(template *servingv1alpha1.RevisionTemplateSpec, toUpdate map[
 	return nil
 }
 
+// UpdateEnvFrom updates envFrom
 func UpdateEnvFrom(template *servingv1alpha1.RevisionTemplateSpec, toUpdate []string, toRemove []string) error {
 	container, err := ContainerOfRevisionTemplate(template)
 	if err != nil {
@@ -72,7 +73,7 @@ func UpdateEnvFrom(template *servingv1alpha1.RevisionTemplateSpec, toUpdate []st
 	return err
 }
 
-// UpdateVolumeMount updates the configuration for mounting with config maps or secrets.
+// UpdateVolumeMounts updates the configuration for mounting with config maps or secrets.
 func UpdateVolumeMounts(template *servingv1alpha1.RevisionTemplateSpec, toUpdate map[string]string, toRemove []string) error {
 	container, err := ContainerOfRevisionTemplate(template)
 	if err != nil {
