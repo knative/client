@@ -166,7 +166,17 @@ func (p *ConfigurationEditFlags) Apply(
 	}
 
 	if cmd.Flags().Changed("env-from") {
-		err = servinglib.UpdateEnvFrom(template, p.EnvFrom)
+		envFromSourceToUpdate := []string{}
+		envFromSourceToRemove := []string{}
+		for _, name := range p.EnvFrom {
+			if strings.HasSuffix(name, "-") {
+				envFromSourceToRemove = append(envFromSourceToRemove, name[:len(name)-1])
+			} else {
+				envFromSourceToUpdate = append(envFromSourceToUpdate, name)
+			}
+		}
+
+		err = servinglib.UpdateEnvFrom(template, envFromSourceToUpdate, envFromSourceToRemove)
 		if err != nil {
 			return err
 		}

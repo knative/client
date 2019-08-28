@@ -49,17 +49,17 @@ func UpdateEnvVars(template *servingv1alpha1.RevisionTemplateSpec, toUpdate map[
 	return nil
 }
 
-func UpdateEnvFrom(template *servingv1alpha1.RevisionTemplateSpec, toUpdateOrRemove []string) error {
+func UpdateEnvFrom(template *servingv1alpha1.RevisionTemplateSpec, toUpdate []string, toRemove []string) error {
 	container, err := ContainerOfRevisionTemplate(template)
 	if err != nil {
 		return err
 	}
-	envFrom, err := updateEnvFrom(container.EnvFrom, toUpdateOrRemove)
+	envFrom, err := updateEnvFrom(container.EnvFrom, toUpdate)
 	if err != nil {
 		return err
 	}
-	container.EnvFrom = envFrom
-	return nil
+	container.EnvFrom, err = removeEnvFrom(envFrom, toRemove)
+	return err
 }
 
 // UpdateVolumeMount updates the configuration for mounting with config maps or secrets.
@@ -310,47 +310,34 @@ func parseVolumeSource(s string) (VolumeSourceType, string, error) {
 	return -1, "", fmt.Errorf("Not allowed key-value source is used. Currently config-map and secret can be used; got %q", s)
 }
 
-func updateEnvFrom(envFromSources []corev1.EnvFromSource, toUpdateOrRemove []string) ([]corev1.EnvFromSource, error) {
+func updateEnvFrom(envFromSources []corev1.EnvFromSource, toUpdate []string) ([]corev1.EnvFromSource, error) {
 	insertConfigMapSet := make(map[string]bool)
-	removeConfigMapSet := make(map[string]bool)
 	insertSecretSet := make(map[string]bool)
-	removeSecretSet := make(map[string]bool)
 
-	for _, s := range toUpdateOrRemove {
+	for _, s := range toUpdate {
 		volumeSourceType, volumeSourceName, err := parseVolumeSource(s)
 		if err != nil {
 			return nil, err
 		}
 		switch volumeSourceType {
 		case ConfigMapVolumeSourceType:
-			if strings.HasSuffix(volumeSourceName, "-") {
-				removeConfigMapSet[volumeSourceName[0:len(volumeSourceName)-1]] = false
-			} else {
-				insertConfigMapSet[volumeSourceName] = false
-			}
+			insertConfigMapSet[volumeSourceName] = false
 		case SecretVolumeSourceType:
-			if strings.HasSuffix(volumeSourceName, "-") {
-				removeSecretSet[volumeSourceName[0:len(volumeSourceName)-1]] = false
-			} else {
-				insertSecretSet[volumeSourceName] = false
-			}
+			insertSecretSet[volumeSourceName] = false
 		}
 	}
 
-	for _, source := range envFromSources {
-		if source.ConfigMapRef != nil {
-			if _, ok := removeConfigMapSet[source.ConfigMapRef.Name]; !ok {
-				source.ConfigMapRef = nil
-			} else if _, ok := insertConfigMapSet[source.ConfigMapRef.Name]; ok {
-				insertConfigMapSet[source.ConfigMapRef.Name] = true
+	for i := range envFromSources {
+		envSrc := &envFromSources[i]
+		if envSrc.ConfigMapRef != nil {
+			if _, ok := insertConfigMapSet[envSrc.ConfigMapRef.Name]; ok {
+				insertConfigMapSet[envSrc.ConfigMapRef.Name] = true
 			}
 		}
 
-		if source.SecretRef != nil {
-			if _, ok := removeSecretSet[source.SecretRef.Name]; !ok {
-				source.SecretRef = nil
-			} else if _, ok := insertSecretSet[source.SecretRef.Name]; ok {
-				insertSecretSet[source.SecretRef.Name] = true
+		if envSrc.SecretRef != nil {
+			if _, ok := insertSecretSet[envSrc.SecretRef.Name]; ok {
+				insertSecretSet[envSrc.SecretRef.Name] = true
 			}
 		}
 	}
@@ -375,6 +362,23 @@ func updateEnvFrom(envFromSources []corev1.EnvFromSource, toUpdateOrRemove []str
 		}
 	}
 
+	return envFromSources, nil
+}
+
+func removeEnvFrom(envFromSources []corev1.EnvFromSource, toRemove []string) ([]corev1.EnvFromSource, error) {
+	for _, name := range toRemove {
+		volumeSourceType, volumeSourceName, err := parseVolumeSource(name)
+		if err != nil {
+			return nil, err
+		}
+		for i, envSrc := range envFromSources {
+			if (volumeSourceType == ConfigMapVolumeSourceType && envSrc.ConfigMapRef != nil && volumeSourceName == envSrc.ConfigMapRef.Name) ||
+				(volumeSourceType == SecretVolumeSourceType && envSrc.SecretRef != nil && volumeSourceName == envSrc.SecretRef.Name) {
+				envFromSources = append(envFromSources[:i], envFromSources[i+1:]...)
+				break
+			}
+		}
+	}
 	return envFromSources, nil
 }
 
