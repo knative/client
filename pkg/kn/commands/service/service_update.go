@@ -24,6 +24,8 @@ import (
 	"knative.dev/client/pkg/kn/traffic"
 
 	"knative.dev/client/pkg/kn/commands"
+	serving "knative.dev/client/pkg/serving/v1alpha1"
+	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
 func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
@@ -77,7 +79,14 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 				}
 				service = service.DeepCopy()
 
-				err = editFlags.Apply(service, cmd)
+				var baseRevision *v1alpha1.Revision
+				if !cmd.Flags().Changed("image") && editFlags.LockToDigest {
+					baseRevision, err = client.GetBaseRevision(service)
+					if _, ok := err.(*serving.NoBaseRevisionError); ok {
+						fmt.Fprintf(cmd.OutOrStdout(), "Warning: No reivision found to update image digest")
+					}
+				}
+				err = editFlags.Apply(service, baseRevision, cmd)
 				if err != nil {
 					return err
 				}
@@ -127,7 +136,7 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 
 func preCheck(cmd *cobra.Command, args []string) error {
 	if cmd.Flags().NFlag() == 0 {
-		return errors.New(fmt.Sprintf("flag(s) not set\nUsage: %s", cmd.Use))
+		return fmt.Errorf("flag(s) not set\nUsage: %s", cmd.Use)
 	}
 
 	return nil

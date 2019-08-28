@@ -57,7 +57,7 @@ func NewE2eTest(t *testing.T) *e2eTest {
 	}
 }
 
-// Setup set up an enviroment for kn integration test returns the Teardown cleanup function
+// Setup set up an environment for kn integration test returns the Teardown cleanup function
 func (test *e2eTest) Setup(t *testing.T) {
 	test.env.Namespace = fmt.Sprintf("%s%d", test.env.Namespace, getNamespaceCountAndIncrement())
 	test.kn = kn{t, test.env.Namespace, Logger{}}

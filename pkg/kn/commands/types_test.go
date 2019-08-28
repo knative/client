@@ -77,7 +77,7 @@ func TestGetConfig(t *testing.T) {
 	} {
 		p := &KnParams{
 			ClientConfig: tc.clientConfig,
-			LogHttp:      tc.logHttp,
+			LogHTTP:      tc.logHttp,
 		}
 
 		_, err := p.GetConfig()

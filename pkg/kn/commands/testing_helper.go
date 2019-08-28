@@ -25,6 +25,8 @@ import (
 	"github.com/spf13/viper"
 	"gotest.tools/assert"
 	client_testing "k8s.io/client-go/testing"
+	"knative.dev/client/pkg/kn/flags"
+
 	"knative.dev/client/pkg/serving/v1alpha1"
 	"knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake"
 )
@@ -107,6 +109,10 @@ Eventing: Manage event subscriptions and channels. Connect up event sources.`,
 
 		// Prevents Cobra from dealing with errors as we deal with them in main.go
 		SilenceErrors: true,
+
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			return flags.ReconcileBoolFlags(cmd.Flags())
+		},
 	}
 	if params.Output != nil {
 		rootCmd.SetOutput(params.Output)

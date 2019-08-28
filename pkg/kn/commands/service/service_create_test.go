@@ -173,6 +173,9 @@ func TestServiceCreateEnv(t *testing.T) {
 	}
 
 	template, err := servinglib.RevisionTemplateOfService(created)
+	if err != nil {
+		t.Fatal(err)
+	}
 	actualEnvVars, err := servinglib.EnvToMap(template.Spec.Containers[0].Env)
 	if err != nil {
 		t.Fatal(err)
@@ -453,10 +456,10 @@ func TestServiceCreateEnvForce(t *testing.T) {
 		"B": "LIONS"}
 
 	template, err := servinglib.RevisionTemplateOfService(created)
-	actualEnvVars, err := servinglib.EnvToMap(template.Spec.Containers[0].Env)
 	if err != nil {
 		t.Fatal(err)
 	}
+	actualEnvVars, err := servinglib.EnvToMap(template.Spec.Containers[0].Env)
 	if err != nil {
 		t.Fatal(err)
 	} else if template.Spec.Containers[0].Image != "gcr.io/foo/bar:v2" {

@@ -68,7 +68,10 @@ func TestServiceCreateLabel(t *testing.T) {
 		"b":     "cookie",
 		"empty": "",
 	}
-	service.ObjectMeta.Labels = expected
+	service.Labels = expected
+	service.Spec.Template.Annotations = map[string]string{
+		servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz",
+	}
 	template, err := servinglib.RevisionTemplateOfService(service)
 	assert.NilError(t, err)
 	template.ObjectMeta.Labels = expected

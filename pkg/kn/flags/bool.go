@@ -24,16 +24,23 @@ import (
 
 var negPrefix = "no-"
 
-// AddBothBoolFlags adds the given flag in both `--foo` and `--no-foo` variants.
-// If you do this, make sure you call ReconcileBoolFlags later to catch errors and
-// set the relationship between the flag values.
-func AddBothBoolFlags(f *pflag.FlagSet, p *bool, name, short string, value bool, usage string) {
+// AddBothBoolFlagsUnhidden is just like AddBothBoolFlags but shows both flags.
+func AddBothBoolFlagsUnhidden(f *pflag.FlagSet, p *bool, name, short string, value bool, usage string) {
 
 	negativeName := negPrefix + name
 
 	f.BoolVarP(p, name, short, value, usage)
 	f.Bool(negativeName, !value, "do not "+usage)
 
+}
+
+// AddBothBoolFlags adds the given flag in both `--foo` and `--no-foo` variants.
+// If you do this, make sure you call ReconcileBoolFlags later to catch errors
+// and set the relationship between the flag values. Only the flag that does the
+// non-default behavior is visible; the other is hidden.
+func AddBothBoolFlags(f *pflag.FlagSet, p *bool, name, short string, value bool, usage string) {
+	AddBothBoolFlagsUnhidden(f, p, name, short, value, usage)
+	negativeName := negPrefix + name
 	if value {
 		err := f.MarkHidden(name)
 		if err != nil {

@@ -29,6 +29,7 @@ import (
 	"knative.dev/serving/pkg/apis/serving"
 
 	"knative.dev/client/pkg/printers"
+	client_serving "knative.dev/client/pkg/serving"
 	serving_kn_v1alpha1 "knative.dev/client/pkg/serving/v1alpha1"
 
 	"knative.dev/pkg/apis"
@@ -72,6 +73,7 @@ type revisionDesc struct {
 	timeoutSeconds *int64
 
 	image       string
+	userImage   string
 	imageDigest string
 	env         []string
 	port        *int32
@@ -145,6 +147,9 @@ func NewServiceDescribeCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			revisionDescs, err := getRevisionDescriptions(client, service, printDetails)
+			if err != nil {
+				return err
+			}
 
 			return describe(cmd.OutOrStdout(), service, revisionDescs)
 		},
@@ -318,8 +323,18 @@ func formatStatus(status corev1.ConditionStatus) string {
 // Return either image name with tag or together with its resolved digest
 func getImageDesc(desc *revisionDesc) string {
 	image := desc.image
-	if printDetails && desc.imageDigest != "" {
-		return fmt.Sprintf("%s (%s)", image, shortenDigest(desc.imageDigest))
+	// Check if the user image is likely a more user-friendly description
+	pinnedDesc := "at"
+	if desc.userImage != "" && strings.Contains(image, "@") && desc.imageDigest != "" {
+		parts := strings.Split(image, "@")
+		// Check if the user image refers to the same thing.
+		if strings.HasPrefix(desc.userImage, parts[0]) {
+			pinnedDesc = "pinned to"
+			image = desc.userImage
+		}
+	}
+	if desc.imageDigest != "" {
+		return fmt.Sprintf("%s (%s %s)", image, pinnedDesc, shortenDigest(desc.imageDigest))
 	}
 	return image
 }
@@ -500,6 +515,7 @@ func newRevisionDesc(revision *v1alpha1.Revision, target *v1alpha1.TrafficTarget
 		name:              revision.Name,
 		logURL:            revision.Status.LogURL,
 		timeoutSeconds:    revision.Spec.TimeoutSeconds,
+		userImage:         revision.Annotations[client_serving.UserImageAnnotationKey],
 		imageDigest:       revision.Status.ImageDigest,
 		creationTimestamp: revision.CreationTimestamp.Time,
 

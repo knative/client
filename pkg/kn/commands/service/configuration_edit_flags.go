@@ -21,6 +21,7 @@ import (
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	"knative.dev/client/pkg/kn/flags"
 	servinglib "knative.dev/client/pkg/serving"
 	util "knative.dev/client/pkg/util"
 	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
@@ -46,7 +47,9 @@ type ConfigurationEditFlags struct {
 	ImagePullPolicy            string
 
 	// Preferences about how to do the action.
-	ForceCreate bool
+	LockToDigest         bool
+	GenerateRevisionName bool
+	ForceCreate          bool
 
 	// Bookkeeping
 	flags []string
@@ -122,6 +125,11 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	p.markFlagMakesRevision("service-account-name")
 	command.Flags().StringVar(&p.ImagePullPolicy, "image-pull-policy", "-", "Image pull policy (e.g., always, if-not-present, or never). To unset, specify \"-\".")
 	p.markFlagMakesRevision("image-pull-policy")
+
+	flags.AddBothBoolFlagsUnhidden(command.Flags(), &p.LockToDigest, "lock-to-digest", "", true,
+		"keep the running image for the service constant when not explicitly specifying "+
+			"the image. (--no-lock-to-digest pulls the image tag afresh with each new revision)")
+	// Don't mark as changing the revision.
 }
 
 // AddUpdateFlags adds the flags specific to update.
@@ -140,6 +148,7 @@ func (p *ConfigurationEditFlags) AddCreateFlags(command *cobra.Command) {
 // Apply mutates the given service according to the flags in the command.
 func (p *ConfigurationEditFlags) Apply(
 	service *servingv1alpha1.Service,
+	baseRevision *servingv1alpha1.Revision,
 	cmd *cobra.Command) error {
 
 	template, err := servinglib.RevisionTemplateOfService(service)
@@ -207,12 +216,28 @@ func (p *ConfigurationEditFlags) Apply(
 			return err
 		}
 	}
+	imageSet := false
 	if cmd.Flags().Changed("image") {
 		err = servinglib.UpdateImage(template, p.Image)
 		if err != nil {
 			return err
 		}
+		imageSet = true
 	}
+	_, userImagePresent := template.Annotations[servinglib.UserImageAnnotationKey]
+	freezeMode := userImagePresent || cmd.Flags().Changed("lock-to-digest")
+	if p.LockToDigest && p.AnyMutation(cmd) && freezeMode {
+		servinglib.SetUserImageAnnot(template)
+		if !imageSet {
+			err = servinglib.FreezeImageToDigest(template, baseRevision)
+			if err != nil {
+				return err
+			}
+		}
+	} else if !p.LockToDigest {
+		servinglib.UnsetUserImageAnnot(template)
+	}
+
 	limitsResources, err := p.computeResources(p.LimitsFlags)
 	if err != nil {
 		return err

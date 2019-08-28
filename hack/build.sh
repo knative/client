@@ -49,8 +49,13 @@ run() {
   fi
 
   if $(has_flag --build-cross -x); then
-    build_cross
-    exit 0
+    local failed=0
+    echo "🚧 Running kn cross platform build"
+    build_cross || failed=1
+    if (( failed )); then
+      echo "✋ Cross platform build failed"
+    fi
+    exit ${failed}
   fi
 
   if $(has_flag --watch -w); then
@@ -269,14 +274,17 @@ has_flag() {
 build_cross() {
   local ld_flags="$(build_flags $(dirname $0)/..)"
   local pkg="github.com/knative/client/pkg/kn/commands"
+  local failed=0
 
   export CGO_ENABLED=0
   echo "🚧 🐧 Building for Linux"
-  GOOS=linux GOARCH=amd64 go build -mod=vendor -ldflags "${ld_flags}" -o ./kn-linux-amd64 ./cmd/... || exit 1
+  GOOS=linux GOARCH=amd64 go build -mod=vendor -ldflags "${ld_flags}" -o ./kn-linux-amd64 ./cmd/... || failed=1
   echo "🚧 🍏 Building for macOS"
-  GOOS=darwin GOARCH=amd64 go build -mod=vendor -ldflags "${ld_flags}" -o ./kn-darwin-amd64 ./cmd/... || exit 1
+  GOOS=darwin GOARCH=amd64 go build -mod=vendor -ldflags "${ld_flags}" -o ./kn-darwin-amd64 ./cmd/... || failed=1
   echo "🚧 🎠 Building for Windows"
-  GOOS=windows GOARCH=amd64 go build -mod=vendor -ldflags "${ld_flags}" -o ./kn-windows-amd64.exe ./cmd/... || exit
+  GOOS=windows GOARCH=amd64 go build -mod=vendor -ldflags "${ld_flags}" -o ./kn-windows-amd64.exe ./cmd/... || failed=1
+
+  return ${failed}
 }
 
 # Display a help message.

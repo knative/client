@@ -63,7 +63,7 @@ func TestGetNamespaceDefault(t *testing.T) {
 }
 
 // test with all-namespaces flag set with sample namespace
-// all-namespaces flag takes the precendence
+// all-namespaces flag takes the precedence
 func TestGetNamespaceAllNamespacesSet(t *testing.T) {
 	testCmd := testCommandGenerator(true)
 	expectedNamespace := ""
@@ -86,7 +86,7 @@ func TestGetNamespaceAllNamespacesSet(t *testing.T) {
 }
 
 // test with all-namespace flag set without any namespace flag set
-// all-namespace flag takes precendence
+// all-namespace flag takes precedence
 func TestGetNamespaceDefaultAllNamespacesUnset(t *testing.T) {
 	testCmd := testCommandGenerator(true)
 	expectedNamespace := ""
