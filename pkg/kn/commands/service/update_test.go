@@ -669,6 +669,65 @@ func TestServiceUpdateLabelExisting(t *testing.T) {
 	assert.DeepEqual(t, expected, actual)
 }
 
+func TestServiceUpdateEnvFromAddingWithConfigMap(t *testing.T) {
+	original := newEmptyService()
+	originalTemplate, _ := servinglib.RevisionTemplateOfService(original)
+	originalTemplate.Spec.Containers[0].EnvFrom = append(originalTemplate.Spec.Containers[0].EnvFrom, corev1.EnvFromSource{
+		ConfigMapRef: &corev1.ConfigMapEnvSource{
+			LocalObjectReference: corev1.LocalObjectReference{
+				Name: "existing-name",
+			}}})
+
+	action, updated, _, err := fakeServiceUpdate(original, []string{
+		"service", "update", "foo",
+		"--env-from", "config-map:new-name", "--async"}, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template, err := servinglib.RevisionTemplateOfService(updated)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if envFrom := template.Spec.Containers[0].EnvFrom; len(envFrom) != 2 ||
+		envFrom[0].ConfigMapRef == nil ||
+		envFrom[0].ConfigMapRef.Name != "existing-name" ||
+		envFrom[1].ConfigMapRef == nil ||
+		envFrom[1].ConfigMapRef.Name != "new-name" {
+		t.Fatalf("wrong envFrom: %v", envFrom)
+	}
+}
+func TestServiceUpdateEnvFromRemovalWithConfigMap(t *testing.T) {
+	original := newEmptyService()
+	originalTemplate, _ := servinglib.RevisionTemplateOfService(original)
+	originalTemplate.Spec.Containers[0].EnvFrom = append(originalTemplate.Spec.Containers[0].EnvFrom, corev1.EnvFromSource{
+		ConfigMapRef: &corev1.ConfigMapEnvSource{
+			LocalObjectReference: corev1.LocalObjectReference{
+				Name: "existing-name",
+			}}})
+
+	action, updated, _, err := fakeServiceUpdate(original, []string{
+		"service", "update", "foo",
+		"--env-from", "config-map:existing-name-", "--async"}, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template, err := servinglib.RevisionTemplateOfService(updated)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if envFrom := template.Spec.Containers[0].EnvFrom; len(envFrom) != 0 {
+		t.Fatalf("wrong envFrom: %v", envFrom)
+	}
+}
+
 func TestServiceUpdateEnvFromExistingWithConfigMap(t *testing.T) {
 	original := newEmptyService()
 	originalTemplate, _ := servinglib.RevisionTemplateOfService(original)
@@ -699,46 +758,18 @@ func TestServiceUpdateEnvFromExistingWithConfigMap(t *testing.T) {
 	}
 }
 
-func TestServiceUpdateEnvFromRemovalWithConfigMap(t *testing.T) {
+func TestServiceUpdateEnvFromAddingWithSecret(t *testing.T) {
 	original := newEmptyService()
 	originalTemplate, _ := servinglib.RevisionTemplateOfService(original)
 	originalTemplate.Spec.Containers[0].EnvFrom = append(originalTemplate.Spec.Containers[0].EnvFrom, corev1.EnvFromSource{
-		ConfigMapRef: &corev1.ConfigMapEnvSource{
+		SecretRef: &corev1.SecretEnvSource{
 			LocalObjectReference: corev1.LocalObjectReference{
 				Name: "existing-name",
 			}}})
 
 	action, updated, _, err := fakeServiceUpdate(original, []string{
 		"service", "update", "foo",
-		"--env-from", "config-map:existing-name-", "--async"}, false)
-
-	if err != nil {
-		t.Fatal(err)
-	} else if !action.Matches("update", "services") {
-		t.Fatalf("Bad action %v", action)
-	}
-
-	template, err := servinglib.RevisionTemplateOfService(updated)
-
-	if err != nil {
-		t.Fatal(err)
-	} else if envFrom := template.Spec.Containers[0].EnvFrom; len(envFrom) != 0 {
-		t.Fatalf("wrong envFrom: %v", envFrom)
-	}
-}
-
-func TestServiceUpdateEnvFromAddingWithConfigMap(t *testing.T) {
-	original := newEmptyService()
-	originalTemplate, _ := servinglib.RevisionTemplateOfService(original)
-	originalTemplate.Spec.Containers[0].EnvFrom = append(originalTemplate.Spec.Containers[0].EnvFrom, corev1.EnvFromSource{
-		ConfigMapRef: &corev1.ConfigMapEnvSource{
-			LocalObjectReference: corev1.LocalObjectReference{
-				Name: "existing-name",
-			}}})
-
-	action, updated, _, err := fakeServiceUpdate(original, []string{
-		"service", "update", "foo",
-		"--env-from", "config-map:new-name", "--async"}, false)
+		"--env-from", "secret:new-name", "--async"}, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -751,10 +782,37 @@ func TestServiceUpdateEnvFromAddingWithConfigMap(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	} else if envFrom := template.Spec.Containers[0].EnvFrom; len(envFrom) != 2 ||
-		envFrom[0].ConfigMapRef == nil ||
-		envFrom[0].ConfigMapRef.Name != "existing-name" ||
-		envFrom[1].ConfigMapRef == nil ||
-		envFrom[1].ConfigMapRef.Name != "new-name" {
+		envFrom[0].SecretRef == nil ||
+		envFrom[0].SecretRef.Name != "existing-name" ||
+		envFrom[1].SecretRef == nil ||
+		envFrom[1].SecretRef.Name != "new-name" {
+		t.Fatalf("wrong envFrom: %v", envFrom)
+	}
+}
+func TestServiceUpdateEnvFromRemovalWithSecret(t *testing.T) {
+	original := newEmptyService()
+	originalTemplate, _ := servinglib.RevisionTemplateOfService(original)
+	originalTemplate.Spec.Containers[0].EnvFrom = append(originalTemplate.Spec.Containers[0].EnvFrom, corev1.EnvFromSource{
+		SecretRef: &corev1.SecretEnvSource{
+			LocalObjectReference: corev1.LocalObjectReference{
+				Name: "existing-name",
+			}}})
+
+	action, updated, _, err := fakeServiceUpdate(original, []string{
+		"service", "update", "foo",
+		"--env-from", "secret:existing-name-", "--async"}, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template, err := servinglib.RevisionTemplateOfService(updated)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if envFrom := template.Spec.Containers[0].EnvFrom; len(envFrom) != 0 {
 		t.Fatalf("wrong envFrom: %v", envFrom)
 	}
 }
@@ -789,18 +847,28 @@ func TestServiceUpdateEnvFromExistingWithSecret(t *testing.T) {
 	}
 }
 
-func TestServiceUpdateEnvFromRemovalWithSecret(t *testing.T) {
+func TestServiceUpdateVolumeMountAddingWithConfigMap(t *testing.T) {
 	original := newEmptyService()
 	originalTemplate, _ := servinglib.RevisionTemplateOfService(original)
-	originalTemplate.Spec.Containers[0].EnvFrom = append(originalTemplate.Spec.Containers[0].EnvFrom, corev1.EnvFromSource{
-		SecretRef: &corev1.SecretEnvSource{
-			LocalObjectReference: corev1.LocalObjectReference{
-				Name: "existing-name",
-			}}})
+	originalTemplate.Spec.Volumes = append(originalTemplate.Spec.Volumes, corev1.Volume{
+		Name: "existing-volume-name",
+		VolumeSource: corev1.VolumeSource{
+			ConfigMap: &corev1.ConfigMapVolumeSource{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "existing-config-map",
+				}},
+		},
+	})
+
+	originalTemplate.Spec.Containers[0].VolumeMounts = append(originalTemplate.Spec.Containers[0].VolumeMounts, corev1.VolumeMount{
+		Name:      "existing-volume-name",
+		ReadOnly:  true,
+		MountPath: "/existing/mount/path",
+	})
 
 	action, updated, _, err := fakeServiceUpdate(original, []string{
 		"service", "update", "foo",
-		"--env-from", "secret:existing-name-", "--async"}, false)
+		"--volume-mount", "new-volume-name=config-map:new-config-map@/new/mount/path", "--async"}, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -812,23 +880,47 @@ func TestServiceUpdateEnvFromRemovalWithSecret(t *testing.T) {
 
 	if err != nil {
 		t.Fatal(err)
-	} else if envFrom := template.Spec.Containers[0].EnvFrom; len(envFrom) != 0 {
-		t.Fatalf("wrong envFrom: %v", envFrom)
+	} else if volumes := template.Spec.Volumes; len(volumes) != 2 ||
+		volumes[0].Name != "existing-volume-name" ||
+		volumes[0].ConfigMap == nil ||
+		volumes[0].Secret != nil ||
+		volumes[0].ConfigMap.LocalObjectReference.Name != "existing-config-map" ||
+		volumes[1].Name != "new-volume-name" ||
+		volumes[1].ConfigMap == nil ||
+		volumes[1].Secret != nil ||
+		volumes[1].ConfigMap.LocalObjectReference.Name != "new-config-map" {
+		t.Fatalf("wrong volumes: %v", volumes)
+	} else if volumeMounts := template.Spec.Containers[0].VolumeMounts; len(volumeMounts) != 2 ||
+		volumeMounts[0].Name != "existing-volume-name" ||
+		volumeMounts[0].MountPath != "/existing/mount/path" ||
+		volumeMounts[1].Name != "new-volume-name" ||
+		volumeMounts[1].MountPath != "/new/mount/path" {
+		t.Fatalf("wrong volumes: %v", volumeMounts)
 	}
 }
 
-func TestServiceUpdateEnvFromAddingWithSecret(t *testing.T) {
+func TestServiceUpdateVolumeMountUpdatingWithConfigMap(t *testing.T) {
 	original := newEmptyService()
 	originalTemplate, _ := servinglib.RevisionTemplateOfService(original)
-	originalTemplate.Spec.Containers[0].EnvFrom = append(originalTemplate.Spec.Containers[0].EnvFrom, corev1.EnvFromSource{
-		SecretRef: &corev1.SecretEnvSource{
-			LocalObjectReference: corev1.LocalObjectReference{
-				Name: "existing-name",
-			}}})
+	originalTemplate.Spec.Volumes = append(originalTemplate.Spec.Volumes, corev1.Volume{
+		Name: "existing-volume-name",
+		VolumeSource: corev1.VolumeSource{
+			ConfigMap: &corev1.ConfigMapVolumeSource{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "existing-config-map",
+				}},
+		},
+	})
+
+	originalTemplate.Spec.Containers[0].VolumeMounts = append(originalTemplate.Spec.Containers[0].VolumeMounts, corev1.VolumeMount{
+		Name:      "existing-volume-name",
+		ReadOnly:  true,
+		MountPath: "/existing/mount/path",
+	})
 
 	action, updated, _, err := fakeServiceUpdate(original, []string{
 		"service", "update", "foo",
-		"--env-from", "secret:new-name", "--async"}, false)
+		"--volume-mount", "existing-volume-name=config-map:updated-config-map@/updated/mount/path", "--async"}, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -840,12 +932,191 @@ func TestServiceUpdateEnvFromAddingWithSecret(t *testing.T) {
 
 	if err != nil {
 		t.Fatal(err)
-	} else if envFrom := template.Spec.Containers[0].EnvFrom; len(envFrom) != 2 ||
-		envFrom[0].SecretRef == nil ||
-		envFrom[0].SecretRef.Name != "existing-name" ||
-		envFrom[1].SecretRef == nil ||
-		envFrom[1].SecretRef.Name != "new-name" {
-		t.Fatalf("wrong envFrom: %v", envFrom)
+	} else if volumes := template.Spec.Volumes; len(volumes) != 1 ||
+		volumes[0].Name != "existing-volume-name" ||
+		volumes[0].ConfigMap == nil ||
+		volumes[0].Secret != nil ||
+		volumes[0].ConfigMap.LocalObjectReference.Name != "updated-config-map" {
+		t.Fatalf("wrong volumes: %v", volumes)
+	} else if volumeMounts := template.Spec.Containers[0].VolumeMounts; len(volumeMounts) != 1 ||
+		volumeMounts[0].Name != "existing-volume-name" ||
+		volumeMounts[0].MountPath != "/updated/mount/path" {
+		t.Fatalf("wrong volumes: %v", volumeMounts)
+	}
+}
+
+func TestServiceUpdateVolumeMountRemovingWithConfigMap(t *testing.T) {
+	original := newEmptyService()
+	originalTemplate, _ := servinglib.RevisionTemplateOfService(original)
+	originalTemplate.Spec.Volumes = append(originalTemplate.Spec.Volumes, corev1.Volume{
+		Name: "existing-volume-name",
+		VolumeSource: corev1.VolumeSource{
+			ConfigMap: &corev1.ConfigMapVolumeSource{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "existing-config-map",
+				}},
+		},
+	})
+
+	originalTemplate.Spec.Containers[0].VolumeMounts = append(originalTemplate.Spec.Containers[0].VolumeMounts, corev1.VolumeMount{
+		Name:      "existing-volume-name",
+		ReadOnly:  true,
+		MountPath: "/existing/mount/path",
+	})
+
+	action, updated, _, err := fakeServiceUpdate(original, []string{
+		"service", "update", "foo",
+		"--volume-mount", "existing-volume-name-", "--async"}, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template, err := servinglib.RevisionTemplateOfService(updated)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if volumes := template.Spec.Volumes; len(volumes) != 0 {
+		t.Fatalf("wrong volumes: %v", volumes)
+	} else if volumeMounts := template.Spec.Containers[0].VolumeMounts; len(volumeMounts) != 0 {
+		t.Fatalf("wrong volumes: %v", volumeMounts)
+	}
+}
+
+func TestServiceUpdateVolumeMountAddingWithSecret(t *testing.T) {
+	original := newEmptyService()
+	originalTemplate, _ := servinglib.RevisionTemplateOfService(original)
+	originalTemplate.Spec.Volumes = append(originalTemplate.Spec.Volumes, corev1.Volume{
+		Name: "existing-volume-name",
+		VolumeSource: corev1.VolumeSource{
+			Secret: &corev1.SecretVolumeSource{
+				SecretName: "existing-secret",
+			},
+		},
+	})
+
+	originalTemplate.Spec.Containers[0].VolumeMounts = append(originalTemplate.Spec.Containers[0].VolumeMounts, corev1.VolumeMount{
+		Name:      "existing-volume-name",
+		ReadOnly:  true,
+		MountPath: "/existing/mount/path",
+	})
+
+	action, updated, _, err := fakeServiceUpdate(original, []string{
+		"service", "update", "foo",
+		"--volume-mount", "new-volume-name=secret:new-secret@/new/mount/path", "--async"}, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template, err := servinglib.RevisionTemplateOfService(updated)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if volumes := template.Spec.Volumes; len(volumes) != 2 ||
+		volumes[0].Name != "existing-volume-name" ||
+		volumes[0].Secret == nil ||
+		volumes[0].ConfigMap != nil ||
+		volumes[0].Secret.SecretName != "existing-secret" ||
+		volumes[1].Name != "new-volume-name" ||
+		volumes[1].Secret == nil ||
+		volumes[1].ConfigMap != nil ||
+		volumes[1].Secret.SecretName != "new-secret" {
+		t.Fatalf("wrong volumes: %v", volumes)
+	} else if volumeMounts := template.Spec.Containers[0].VolumeMounts; len(volumeMounts) != 2 ||
+		volumeMounts[0].Name != "existing-volume-name" ||
+		volumeMounts[0].MountPath != "/existing/mount/path" ||
+		volumeMounts[1].Name != "new-volume-name" ||
+		volumeMounts[1].MountPath != "/new/mount/path" {
+		t.Fatalf("wrong volumes: %v", volumeMounts)
+	}
+}
+
+func TestServiceUpdateVolumeMountUpdatingWithSecret(t *testing.T) {
+	original := newEmptyService()
+	originalTemplate, _ := servinglib.RevisionTemplateOfService(original)
+	originalTemplate.Spec.Volumes = append(originalTemplate.Spec.Volumes, corev1.Volume{
+		Name: "existing-volume-name",
+		VolumeSource: corev1.VolumeSource{
+			Secret: &corev1.SecretVolumeSource{
+				SecretName: "existing-secret",
+			},
+		},
+	})
+
+	originalTemplate.Spec.Containers[0].VolumeMounts = append(originalTemplate.Spec.Containers[0].VolumeMounts, corev1.VolumeMount{
+		Name:      "existing-volume-name",
+		ReadOnly:  true,
+		MountPath: "/existing/mount/path",
+	})
+
+	action, updated, _, err := fakeServiceUpdate(original, []string{
+		"service", "update", "foo",
+		"--volume-mount", "existing-volume-name=secret:updated-secret@/updated/mount/path", "--async"}, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template, err := servinglib.RevisionTemplateOfService(updated)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if volumes := template.Spec.Volumes; len(volumes) != 1 ||
+		volumes[0].Name != "existing-volume-name" ||
+		volumes[0].Secret == nil ||
+		volumes[0].ConfigMap != nil ||
+		volumes[0].Secret.SecretName != "updated-secret" {
+		t.Fatalf("wrong volumes: %v", volumes)
+	} else if volumeMounts := template.Spec.Containers[0].VolumeMounts; len(volumeMounts) != 1 ||
+		volumeMounts[0].Name != "existing-volume-name" ||
+		volumeMounts[0].MountPath != "/updated/mount/path" {
+		t.Fatalf("wrong volumes: %v", volumeMounts)
+	}
+}
+
+func TestServiceUpdateVolumeMountRemovingWithSecret(t *testing.T) {
+	original := newEmptyService()
+	originalTemplate, _ := servinglib.RevisionTemplateOfService(original)
+	originalTemplate.Spec.Volumes = append(originalTemplate.Spec.Volumes, corev1.Volume{
+		Name: "existing-volume-name",
+		VolumeSource: corev1.VolumeSource{
+			Secret: &corev1.SecretVolumeSource{
+				SecretName: "existing-secret",
+			},
+		},
+	})
+
+	originalTemplate.Spec.Containers[0].VolumeMounts = append(originalTemplate.Spec.Containers[0].VolumeMounts, corev1.VolumeMount{
+		Name:      "existing-volume-name",
+		ReadOnly:  true,
+		MountPath: "/existing/mount/path",
+	})
+
+	action, updated, _, err := fakeServiceUpdate(original, []string{
+		"service", "update", "foo",
+		"--volume-mount", "existing-volume-name-", "--async"}, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template, err := servinglib.RevisionTemplateOfService(updated)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if volumes := template.Spec.Volumes; len(volumes) != 0 {
+		t.Fatalf("wrong volumes: %v", volumes)
+	} else if volumeMounts := template.Spec.Containers[0].VolumeMounts; len(volumeMounts) != 0 {
+		t.Fatalf("wrong volumes: %v", volumeMounts)
 	}
 }
 
