@@ -539,3 +539,63 @@ func TestServiceCreateWithEnvFromSecret(t *testing.T) {
 		t.Fatalf("wrong envFrom: %v", envFrom)
 	}
 }
+
+func TestServiceCreateWithVolumeMountOfConfigMap(t *testing.T) {
+	action, created, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
+		"--volume-mount", "volume-name=config-map:config-map-name@/mount/path",
+		"--async"}, false, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("create", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template, err := servinglib.RevisionTemplateOfService(created)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if volumes := template.Spec.Volumes; len(volumes) != 1 ||
+		volumes[0].Name != "volume-name" ||
+		volumes[0].ConfigMap == nil ||
+		volumes[0].Secret != nil ||
+		volumes[0].ConfigMap.LocalObjectReference.Name != "config-map-name" {
+		t.Fatalf("wrong volumes: %v", volumes)
+	} else if volumeMounts := template.Spec.Containers[0].VolumeMounts; len(volumeMounts) != 1 ||
+		volumeMounts[0].Name != "volume-name" ||
+		volumeMounts[0].MountPath != "/mount/path" ||
+		!volumeMounts[0].ReadOnly {
+		t.Fatalf("wrong volumes: %v", volumeMounts)
+	}
+}
+
+func TestServiceCreateWithVolumeMountOfSecret(t *testing.T) {
+	action, created, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
+		"--volume-mount", "volume-name=secret:secret-name@/mount/path",
+		"--async"}, false, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("create", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template, err := servinglib.RevisionTemplateOfService(created)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if volumes := template.Spec.Volumes; len(volumes) != 1 ||
+		volumes[0].Name != "volume-name" ||
+		volumes[0].Secret == nil ||
+		volumes[0].ConfigMap != nil ||
+		volumes[0].Secret.SecretName != "secret-name" {
+		t.Fatalf("wrong volumes: %v", volumes)
+	} else if volumeMounts := template.Spec.Containers[0].VolumeMounts; len(volumeMounts) != 1 ||
+		volumeMounts[0].Name != "volume-name" ||
+		volumeMounts[0].MountPath != "/mount/path" ||
+		!volumeMounts[0].ReadOnly {
+		t.Fatalf("wrong volumes: %v", volumeMounts)
+	}
+}
