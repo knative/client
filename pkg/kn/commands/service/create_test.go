@@ -493,3 +493,49 @@ func TestServiceCreateWithServiceAccountName(t *testing.T) {
 		t.Fatalf("wrong service account name:%v", template.Spec.ServiceAccountName)
 	}
 }
+
+func TestServiceCreateWithEnvFromConfigMap(t *testing.T) {
+	action, created, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
+		"--env-from", "config-map:config-map-name",
+		"--async"}, false, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("create", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template, err := servinglib.RevisionTemplateOfService(created)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if envFrom := template.Spec.Containers[0].EnvFrom; len(envFrom) != 1 ||
+		envFrom[0].ConfigMapRef == nil ||
+		envFrom[0].ConfigMapRef.Name != "config-map-name" {
+		t.Fatalf("wrong envFrom: %v", envFrom)
+	}
+}
+
+func TestServiceCreateWithEnvFromSecret(t *testing.T) {
+	action, created, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
+		"--env-from", "secret:secret-name",
+		"--async"}, false, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("create", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template, err := servinglib.RevisionTemplateOfService(created)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if envFrom := template.Spec.Containers[0].EnvFrom; len(envFrom) != 1 ||
+		envFrom[0].SecretRef == nil ||
+		envFrom[0].SecretRef.Name != "secret-name" {
+		t.Fatalf("wrong envFrom: %v", envFrom)
+	}
+}
