@@ -669,6 +669,186 @@ func TestServiceUpdateLabelExisting(t *testing.T) {
 	assert.DeepEqual(t, expected, actual)
 }
 
+func TestServiceUpdateEnvFromExistingWithConfigMap(t *testing.T) {
+	original := newEmptyService()
+	originalTemplate, _ := servinglib.RevisionTemplateOfService(original)
+	originalTemplate.Spec.Containers[0].EnvFrom = append(originalTemplate.Spec.Containers[0].EnvFrom, corev1.EnvFromSource{
+		ConfigMapRef: &corev1.ConfigMapEnvSource{
+			LocalObjectReference: corev1.LocalObjectReference{
+				Name: "existing-name",
+			}}})
+
+	action, updated, _, err := fakeServiceUpdate(original, []string{
+		"service", "update", "foo",
+		"--env-from", "config-map:existing-name", "--async"}, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template, err := servinglib.RevisionTemplateOfService(updated)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if envFrom := template.Spec.Containers[0].EnvFrom; len(envFrom) != 1 ||
+		envFrom[0].ConfigMapRef == nil ||
+		envFrom[0].ConfigMapRef.Name != "existing-name" {
+		t.Fatalf("wrong envFrom: %v", envFrom)
+	}
+}
+
+func TestServiceUpdateEnvFromRemovalWithConfigMap(t *testing.T) {
+	original := newEmptyService()
+	originalTemplate, _ := servinglib.RevisionTemplateOfService(original)
+	originalTemplate.Spec.Containers[0].EnvFrom = append(originalTemplate.Spec.Containers[0].EnvFrom, corev1.EnvFromSource{
+		ConfigMapRef: &corev1.ConfigMapEnvSource{
+			LocalObjectReference: corev1.LocalObjectReference{
+				Name: "existing-name",
+			}}})
+
+	action, updated, _, err := fakeServiceUpdate(original, []string{
+		"service", "update", "foo",
+		"--env-from", "config-map:existing-name-", "--async"}, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template, err := servinglib.RevisionTemplateOfService(updated)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if envFrom := template.Spec.Containers[0].EnvFrom; len(envFrom) != 0 {
+		t.Fatalf("wrong envFrom: %v", envFrom)
+	}
+}
+
+func TestServiceUpdateEnvFromAddingWithConfigMap(t *testing.T) {
+	original := newEmptyService()
+	originalTemplate, _ := servinglib.RevisionTemplateOfService(original)
+	originalTemplate.Spec.Containers[0].EnvFrom = append(originalTemplate.Spec.Containers[0].EnvFrom, corev1.EnvFromSource{
+		ConfigMapRef: &corev1.ConfigMapEnvSource{
+			LocalObjectReference: corev1.LocalObjectReference{
+				Name: "existing-name",
+			}}})
+
+	action, updated, _, err := fakeServiceUpdate(original, []string{
+		"service", "update", "foo",
+		"--env-from", "config-map:new-name", "--async"}, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template, err := servinglib.RevisionTemplateOfService(updated)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if envFrom := template.Spec.Containers[0].EnvFrom; len(envFrom) != 2 ||
+		envFrom[0].ConfigMapRef == nil ||
+		envFrom[0].ConfigMapRef.Name != "existing-name" ||
+		envFrom[1].ConfigMapRef == nil ||
+		envFrom[1].ConfigMapRef.Name != "new-name" {
+		t.Fatalf("wrong envFrom: %v", envFrom)
+	}
+}
+
+func TestServiceUpdateEnvFromExistingWithSecret(t *testing.T) {
+	original := newEmptyService()
+	originalTemplate, _ := servinglib.RevisionTemplateOfService(original)
+	originalTemplate.Spec.Containers[0].EnvFrom = append(originalTemplate.Spec.Containers[0].EnvFrom, corev1.EnvFromSource{
+		SecretRef: &corev1.SecretEnvSource{
+			LocalObjectReference: corev1.LocalObjectReference{
+				Name: "existing-name",
+			}}})
+
+	action, updated, _, err := fakeServiceUpdate(original, []string{
+		"service", "update", "foo",
+		"--env-from", "secret:existing-name", "--async"}, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template, err := servinglib.RevisionTemplateOfService(updated)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if envFrom := template.Spec.Containers[0].EnvFrom; len(envFrom) != 1 ||
+		envFrom[0].SecretRef == nil ||
+		envFrom[0].SecretRef.Name != "existing-name" {
+		t.Fatalf("wrong envFrom: %v", envFrom)
+	}
+}
+
+func TestServiceUpdateEnvFromRemovalWithSecret(t *testing.T) {
+	original := newEmptyService()
+	originalTemplate, _ := servinglib.RevisionTemplateOfService(original)
+	originalTemplate.Spec.Containers[0].EnvFrom = append(originalTemplate.Spec.Containers[0].EnvFrom, corev1.EnvFromSource{
+		SecretRef: &corev1.SecretEnvSource{
+			LocalObjectReference: corev1.LocalObjectReference{
+				Name: "existing-name",
+			}}})
+
+	action, updated, _, err := fakeServiceUpdate(original, []string{
+		"service", "update", "foo",
+		"--env-from", "secret:existing-name-", "--async"}, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template, err := servinglib.RevisionTemplateOfService(updated)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if envFrom := template.Spec.Containers[0].EnvFrom; len(envFrom) != 0 {
+		t.Fatalf("wrong envFrom: %v", envFrom)
+	}
+}
+
+func TestServiceUpdateEnvFromAddingWithSecret(t *testing.T) {
+	original := newEmptyService()
+	originalTemplate, _ := servinglib.RevisionTemplateOfService(original)
+	originalTemplate.Spec.Containers[0].EnvFrom = append(originalTemplate.Spec.Containers[0].EnvFrom, corev1.EnvFromSource{
+		SecretRef: &corev1.SecretEnvSource{
+			LocalObjectReference: corev1.LocalObjectReference{
+				Name: "existing-name",
+			}}})
+
+	action, updated, _, err := fakeServiceUpdate(original, []string{
+		"service", "update", "foo",
+		"--env-from", "secret:new-name", "--async"}, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template, err := servinglib.RevisionTemplateOfService(updated)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if envFrom := template.Spec.Containers[0].EnvFrom; len(envFrom) != 2 ||
+		envFrom[0].SecretRef == nil ||
+		envFrom[0].SecretRef.Name != "existing-name" ||
+		envFrom[1].SecretRef == nil ||
+		envFrom[1].SecretRef.Name != "new-name" {
+		t.Fatalf("wrong envFrom: %v", envFrom)
+	}
+}
+
 func newEmptyService() *v1alpha1.Service {
 	return newEmptyServiceBetaAPIStyle()
 }
