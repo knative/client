@@ -485,10 +485,16 @@ func TestUpdateVolumeMount(t *testing.T) {
 	)
 
 	UpdateVolumeMounts(template, map[string]string{
-		"new-config-map-volume-name":        "config-map:new-config-map@/new-config-map/mount/path",
+		"new-config-map-volume-name": "config-map:new-config-map@/new-config-map/mount/path",
+	}, []string{})
+	UpdateVolumeMounts(template, map[string]string{
 		"existing-config-map-volume-name-2": "config-map:updated-config-map@/updated-config-map/mount/path",
-		"new-secret-volume-name":            "secret:new-secret@/new-secret/mount/path",
-		"existing-secret-volume-name-2":     "secret:updated-secret@/updated-secret/mount/path",
+	}, []string{})
+	UpdateVolumeMounts(template, map[string]string{
+		"new-secret-volume-name": "secret:new-secret@/new-secret/mount/path",
+	}, []string{})
+	UpdateVolumeMounts(template, map[string]string{
+		"existing-secret-volume-name-2": "secret:updated-secret@/updated-secret/mount/path",
 	}, []string{
 		"existing-config-map-volume-name-1",
 		"existing-secret-volume-name-1"})
