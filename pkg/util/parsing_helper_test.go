@@ -34,6 +34,18 @@ func testMapFromArray(t *testing.T, input []string, delimiter string, expected m
 	assert.DeepEqual(t, expected, actual)
 }
 
+func TestMapAndRemovalListFromArray(t *testing.T) {
+	testMapAndRemovalListFromArray(t, []string{"add=value"}, "=", map[string]string{"add": "value"}, []string{})
+	testMapAndRemovalListFromArray(t, []string{"add=value", "remove-"}, "=", map[string]string{"add": "value"}, []string{"remove"})
+}
+
+func testMapAndRemovalListFromArray(t *testing.T, input []string, delimiter string, expectedMap map[string]string, expectedList []string) {
+	actualMap, actualList, err := MapAndRemovalListFromArray(input, delimiter)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, expectedMap, actualMap)
+	assert.DeepEqual(t, expectedList, actualList)
+}
+
 func TestMapFromArrayNoDelimiter(t *testing.T) {
 	input := []string{"badvalue"}
 	_, err := MapFromArray(input, "+")

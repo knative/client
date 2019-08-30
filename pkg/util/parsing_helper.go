@@ -21,11 +21,7 @@ import (
 
 // MapAndRemovalListFromArray creates a map using MapFromArrayAllowingSingles, and a list of removal entries
 func MapAndRemovalListFromArray(arr []string, delimiter string) (map[string]string, []string, error) {
-	updateMap, err := mapFromArray(arr, delimiter, true)
-	if err != nil {
-		return nil, nil, err
-	}
-
+	updateMap, _ := mapFromArray(arr, delimiter, true)
 	removalList := []string{}
 	for name := range updateMap {
 		if strings.HasSuffix(name, "-") {
