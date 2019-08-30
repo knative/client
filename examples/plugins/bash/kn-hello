@@ -1,0 +1,5 @@
+#!/bin/bash
+
+echo "Hello Knative, I'm a Kn plugin"
+echo "  My plugin file is $0"
+echo "  I recieved argument: $1"
