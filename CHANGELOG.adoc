@@ -54,6 +54,10 @@
 | Print NAMESPACE column as the first column when --all-namespaces is specified
 | https://github.com/knative/client/pull/366[#366]
 
+| 🎁
+| Add documentation for traffic splitting and tagging targets
+| https://github.com/knative/client/pull/331[#331]
+
 |===
 
 ## v0.2.0 (2019-07-10)
