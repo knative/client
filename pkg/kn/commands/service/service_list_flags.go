@@ -58,6 +58,7 @@ func (f *ServiceListFlags) ToPrinter() (hprinters.ResourcePrinter, error) {
 // flags related to humanreadable and template printing.
 func (f *ServiceListFlags) AddFlags(cmd *cobra.Command) {
 	f.GenericPrintFlags.AddFlags(cmd)
+	f.HumanReadableFlags.AddFlags(cmd)
 }
 
 // NewServiceListFlags returns flags associated with humanreadable,
