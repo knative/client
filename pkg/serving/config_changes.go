@@ -101,7 +101,6 @@ func UpdateVolumeMountsAndVolumes(template *servingv1alpha1.RevisionTemplateSpec
 	}
 
 	container.VolumeMounts = removeVolumeMounts(volumeMounts, mountsToRemove)
-
 	template.Spec.Volumes, err = removeVolumes(volumes, volumesToRemove, container.VolumeMounts)
 
 	return err
@@ -495,7 +494,7 @@ func existsVolumeNameInVolumeMounts(volumeName string, volumeMounts []corev1.Vol
 
 // updateVolumeMountsFromMap updates or adds volume mounts. If a given name of a volume is not existing, it returns an error
 func updateVolumeMountsFromMap(volumeMounts []corev1.VolumeMount, toUpdate map[string]string, volumes []corev1.Volume) ([]corev1.VolumeMount, error) {
-	updatedInVolumeMounts := make(map[string]bool)
+	set := make(map[string]bool)
 
 	for i := range volumeMounts {
 		volumeMount := &volumeMounts[i]
@@ -508,12 +507,12 @@ func updateVolumeMountsFromMap(volumeMounts []corev1.VolumeMount, toUpdate map[s
 
 			volumeMount.ReadOnly = true
 			volumeMount.Name = name
-			updatedInVolumeMounts[volumeMount.MountPath] = true
+			set[volumeMount.MountPath] = true
 		}
 	}
 
 	for mountPath, name := range toUpdate {
-		if !updatedInVolumeMounts[mountPath] {
+		if !set[mountPath] {
 			volumeMounts = append(volumeMounts, corev1.VolumeMount{
 				Name:      name,
 				ReadOnly:  true,
