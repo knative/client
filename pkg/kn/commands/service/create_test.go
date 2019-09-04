@@ -543,7 +543,8 @@ func TestServiceCreateWithEnvFromSecret(t *testing.T) {
 func TestServiceCreateWithVolumeMountOfConfigMap(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
-		"--volume-mount", "volume-name=config-map:config-map-name@/mount/path",
+		"--volume-mount", "/mount/path=volume-name",
+		"--volume", "volume-name=config-map:config-map-name",
 		"--async"}, false, false)
 
 	if err != nil {
@@ -573,7 +574,8 @@ func TestServiceCreateWithVolumeMountOfConfigMap(t *testing.T) {
 func TestServiceCreateWithVolumeMountOfSecret(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
-		"--volume-mount", "volume-name=secret:secret-name@/mount/path",
+		"--volume-mount", "/mount/path=volume-name",
+		"--volume", "volume-name=secret:secret-name",
 		"--async"}, false, false)
 
 	if err != nil {

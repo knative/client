@@ -431,7 +431,7 @@ func TestUpdateEnvFrom(t *testing.T) {
 	assert.Equal(t, container.EnvFrom[1].SecretRef.Name, "secret-new-name-1")
 }
 
-func TestUpdateVolumeMount(t *testing.T) {
+func TestUpdateVolumeMountsAndVolumes(t *testing.T) {
 	template, container := getV1alpha1RevisionTemplateWithOldFields()
 	template.Spec.Volumes = append(template.Spec.Volumes,
 		corev1.Volume{
@@ -484,23 +484,38 @@ func TestUpdateVolumeMount(t *testing.T) {
 		},
 	)
 
-	UpdateVolumeMounts(template, map[string]string{
-		"new-config-map-volume-name": "config-map:new-config-map@/new-config-map/mount/path",
-	}, []string{})
-	UpdateVolumeMounts(template, map[string]string{
-		"existing-config-map-volume-name-2": "config-map:updated-config-map@/updated-config-map/mount/path",
-	}, []string{})
-	UpdateVolumeMounts(template, map[string]string{
-		"new-secret-volume-name": "secret:new-secret@/new-secret/mount/path",
-	}, []string{})
-	UpdateVolumeMounts(template, map[string]string{
-		"existing-secret-volume-name-2": "secret:updated-secret@/updated-secret/mount/path",
-	}, []string{
-		"existing-config-map-volume-name-1",
-		"existing-secret-volume-name-1"})
+	err := UpdateVolumeMountsAndVolumes(template,
+		map[string]string{"/new-config-map/mount/path": "new-config-map-volume-name"},
+		[]string{},
+		map[string]string{"new-config-map-volume-name": "config-map:new-config-map"},
+		[]string{})
+	assert.NilError(t, err)
+
+	err = UpdateVolumeMountsAndVolumes(template,
+		map[string]string{"/updated-config-map/mount/path": "existing-config-map-volume-name-2"},
+		[]string{},
+		map[string]string{"existing-config-map-volume-name-2": "config-map:updated-config-map"},
+		[]string{})
+	assert.NilError(t, err)
+
+	err = UpdateVolumeMountsAndVolumes(template,
+		map[string]string{"/new-secret/mount/path": "new-secret-volume-name"},
+		[]string{},
+		map[string]string{"new-secret-volume-name": "secret:new-secret"},
+		[]string{})
+	assert.NilError(t, err)
+
+	err = UpdateVolumeMountsAndVolumes(template,
+		map[string]string{"/updated-secret/mount/path": "existing-secret-volume-name-2"},
+		[]string{"/existing-config-map-1/mount/path",
+			"/existing-secret-1/mount/path"},
+		map[string]string{"existing-secret-volume-name-2": "secret:updated-secret"},
+		[]string{"existing-config-map-volume-name-1",
+			"existing-secret-volume-name-1"})
+	assert.NilError(t, err)
 
 	assert.Equal(t, len(template.Spec.Volumes), 4)
-	assert.Equal(t, len(container.VolumeMounts), 4)
+	assert.Equal(t, len(container.VolumeMounts), 6)
 	assert.Equal(t, template.Spec.Volumes[0].Name, "existing-config-map-volume-name-2")
 	assert.Equal(t, template.Spec.Volumes[0].ConfigMap.Name, "updated-config-map")
 	assert.Equal(t, template.Spec.Volumes[1].Name, "existing-secret-volume-name-2")
@@ -511,13 +526,17 @@ func TestUpdateVolumeMount(t *testing.T) {
 	assert.Equal(t, template.Spec.Volumes[3].Secret.SecretName, "new-secret")
 
 	assert.Equal(t, container.VolumeMounts[0].Name, "existing-config-map-volume-name-2")
-	assert.Equal(t, container.VolumeMounts[0].MountPath, "/updated-config-map/mount/path")
+	assert.Equal(t, container.VolumeMounts[0].MountPath, "/existing-config-map-2/mount/path")
 	assert.Equal(t, container.VolumeMounts[1].Name, "existing-secret-volume-name-2")
-	assert.Equal(t, container.VolumeMounts[1].MountPath, "/updated-secret/mount/path")
+	assert.Equal(t, container.VolumeMounts[1].MountPath, "/existing-secret-2/mount/path")
 	assert.Equal(t, container.VolumeMounts[2].Name, "new-config-map-volume-name")
 	assert.Equal(t, container.VolumeMounts[2].MountPath, "/new-config-map/mount/path")
-	assert.Equal(t, container.VolumeMounts[3].Name, "new-secret-volume-name")
-	assert.Equal(t, container.VolumeMounts[3].MountPath, "/new-secret/mount/path")
+	assert.Equal(t, container.VolumeMounts[3].Name, "existing-config-map-volume-name-2")
+	assert.Equal(t, container.VolumeMounts[3].MountPath, "/updated-config-map/mount/path")
+	assert.Equal(t, container.VolumeMounts[4].Name, "new-secret-volume-name")
+	assert.Equal(t, container.VolumeMounts[4].MountPath, "/new-secret/mount/path")
+	assert.Equal(t, container.VolumeMounts[5].Name, "existing-secret-volume-name-2")
+	assert.Equal(t, container.VolumeMounts[5].MountPath, "/updated-secret/mount/path")
 }
 
 func TestUpdateServiceAccountName(t *testing.T) {

@@ -33,6 +33,7 @@ type ConfigurationEditFlags struct {
 	Env         []string
 	EnvFrom     []string
 	VolumeMount []string
+	Volume      []string
 
 	RequestsFlags, LimitsFlags ResourceFlags
 	MinScale                   int
@@ -83,10 +84,16 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	p.markFlagMakesRevision("env-from")
 
 	command.Flags().StringArrayVarP(&p.VolumeMount, "volume-mount", "", []string{},
-		"Config a volume mount with a config map or secret. VOLUME_NAME=(config-map | secret):CONFIG_MAP_OR_SECRET_NAME@/mount/path ; "+
-			"you may provide this flag any number of times to mount multiple config maps. "+
-			"To unset, specify the config map name followed by a \"-\" (e.g., VOLUME_NAME-).")
+		"Config a volume mount. /mount/path=VOLUME_MOUNT ; "+
+			"you may provide this flag any number of times to mount multiple volumes. "+
+			"To unset, specify the mount path followed by a \"-\" (e.g., /mount/path-).")
 	p.markFlagMakesRevision("volume-mount")
+
+	command.Flags().StringArrayVarP(&p.Volume, "volume", "", []string{},
+		"Config a volume with a config map or secret. VOLUME_NAME=(config-map|secret):CONFIG_MAP_OR_SECRET_NAME ; "+
+			"you may provide this flag any number of times to define multiple volumes. "+
+			"To unset, specify the volume name followed by a \"-\" (e.g., /mount/path-).")
+	p.markFlagMakesRevision("volume")
 
 	command.Flags().StringVar(&p.RequestsFlags.CPU, "requests-cpu", "", "The requested CPU (e.g., 250m).")
 	p.markFlagMakesRevision("requests-cpu")
@@ -194,12 +201,18 @@ func (p *ConfigurationEditFlags) Apply(
 		}
 	}
 
-	if cmd.Flags().Changed("volume-mount") {
+	if cmd.Flags().Changed("volume-mount") || cmd.Flags().Changed("volume") {
 		volumeMountMap, volumeMountsToRemove, err := util.MapAndRemovalListFromArray(p.VolumeMount, "=")
 		if err != nil {
 			return errors.Wrap(err, "Invalid --volume-mount")
 		}
-		err = servinglib.UpdateVolumeMounts(template, volumeMountMap, volumeMountsToRemove)
+
+		volumeMap, volumesToRemove, err := util.MapAndRemovalListFromArray(p.Volume, "=")
+		if err != nil {
+			return errors.Wrap(err, "Invalid --volume")
+		}
+
+		err = servinglib.UpdateVolumeMountsAndVolumes(template, volumeMountMap, volumeMountsToRemove, volumeMap, volumesToRemove)
 		if err != nil {
 			return err
 		}

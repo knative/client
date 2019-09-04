@@ -868,7 +868,9 @@ func TestServiceUpdateVolumeMountAddingWithConfigMap(t *testing.T) {
 
 	action, updated, _, err := fakeServiceUpdate(original, []string{
 		"service", "update", "foo",
-		"--volume-mount", "new-volume-name=config-map:new-config-map@/new/mount/path", "--async"}, false)
+		"--volume-mount", "/new/mount/path=new-volume-name",
+		"--volume", "new-volume-name=config-map:new-config-map",
+		"--async"}, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -920,7 +922,10 @@ func TestServiceUpdateVolumeMountUpdatingWithConfigMap(t *testing.T) {
 
 	action, updated, _, err := fakeServiceUpdate(original, []string{
 		"service", "update", "foo",
-		"--volume-mount", "existing-volume-name=config-map:updated-config-map@/updated/mount/path", "--async"}, false)
+		"--volume-mount", "/updated/mount/path=existing-volume-name",
+		"--volume-mount", "/existing/mount/path-",
+		"--volume", "existing-volume-name=config-map:updated-config-map",
+		"--async"}, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -966,7 +971,9 @@ func TestServiceUpdateVolumeMountRemovingWithConfigMap(t *testing.T) {
 
 	action, updated, _, err := fakeServiceUpdate(original, []string{
 		"service", "update", "foo",
-		"--volume-mount", "existing-volume-name-", "--async"}, false)
+		"--volume-mount", "/existing/mount/path-",
+		"--volume", "existing-volume-name-",
+		"--async"}, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -1005,7 +1012,9 @@ func TestServiceUpdateVolumeMountAddingWithSecret(t *testing.T) {
 
 	action, updated, _, err := fakeServiceUpdate(original, []string{
 		"service", "update", "foo",
-		"--volume-mount", "new-volume-name=secret:new-secret@/new/mount/path", "--async"}, false)
+		"--volume-mount", "/new/mount/path=new-volume-name",
+		"--volume", "new-volume-name=secret:new-secret",
+		"--async"}, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -1056,7 +1065,10 @@ func TestServiceUpdateVolumeMountUpdatingWithSecret(t *testing.T) {
 
 	action, updated, _, err := fakeServiceUpdate(original, []string{
 		"service", "update", "foo",
-		"--volume-mount", "existing-volume-name=secret:updated-secret@/updated/mount/path", "--async"}, false)
+		"--volume-mount", "/updated/mount/path=existing-volume-name",
+		"--volume-mount", "/existing/mount/path-",
+		"--volume", "existing-volume-name=secret:updated-secret",
+		"--async"}, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -1101,7 +1113,9 @@ func TestServiceUpdateVolumeMountRemovingWithSecret(t *testing.T) {
 
 	action, updated, _, err := fakeServiceUpdate(original, []string{
 		"service", "update", "foo",
-		"--volume-mount", "existing-volume-name-", "--async"}, false)
+		"--volume-mount", "/existing/mount/path-",
+		"--volume", "existing-volume-name-",
+		"--async"}, false)
 
 	if err != nil {
 		t.Fatal(err)

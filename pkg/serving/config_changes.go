@@ -73,20 +73,38 @@ func UpdateEnvFrom(template *servingv1alpha1.RevisionTemplateSpec, toUpdate []st
 	return err
 }
 
-// UpdateVolumeMounts updates the configuration for mounting with config maps or secrets.
-func UpdateVolumeMounts(template *servingv1alpha1.RevisionTemplateSpec, toUpdate map[string]string, toRemove []string) error {
+// UpdateVolumeMountsAndVolumes updates the configuration for volume mounts and volumes.
+func UpdateVolumeMountsAndVolumes(template *servingv1alpha1.RevisionTemplateSpec,
+	mountsToUpdate map[string]string, mountsToRemove []string, volumesToUpdate map[string]string, volumesToRemove []string) error {
 	container, err := ContainerOfRevisionTemplate(template)
 	if err != nil {
 		return err
 	}
 
-	volumes, volumeMounts, err := updateVolumeMountsFromMap(template.Spec.Volumes, container.VolumeMounts, toUpdate)
+	volumeSourceInfoByName := make(map[string]*volumeSourceInfo)
+	for name, value := range volumesToUpdate {
+		info, err := parseVolumeSourceString(value)
+		if err != nil {
+			return err
+		}
+		volumeSourceInfoByName[name] = info
+	}
+
+	volumes, err := updateVolumesFromMap(template.Spec.Volumes, volumeSourceInfoByName)
 	if err != nil {
 		return err
 	}
 
-	template.Spec.Volumes, container.VolumeMounts = removeVolumeMounts(volumes, volumeMounts, toRemove)
-	return nil
+	volumeMounts, err := updateVolumeMountsFromMap(container.VolumeMounts, mountsToUpdate, volumes)
+	if err != nil {
+		return err
+	}
+
+	container.VolumeMounts = removeVolumeMounts(volumeMounts, mountsToRemove)
+
+	template.Spec.Volumes, err = removeVolumes(volumes, volumesToRemove, container.VolumeMounts)
+
+	return err
 }
 
 // UpdateMinScale updates min scale annotation
@@ -344,19 +362,31 @@ func removeEnvVars(env []corev1.EnvVar, toRemove []string) []corev1.EnvVar {
 	return env
 }
 
-func parseVolumeSource(s string) (VolumeSourceType, string, error) {
+type volumeSourceInfo struct {
+	volumeSourceType VolumeSourceType
+	volumeSourceName string
+}
+
+func parseVolumeSourceString(s string) (*volumeSourceInfo, error) {
 	slices := strings.SplitN(s, ":", 2)
 	if len(slices) != 2 {
-		return -1, "", fmt.Errorf("Argument requires a value that contains the : character; got %q", s)
+		return nil, fmt.Errorf("Argument requires a value that contains the : character; got %q", s)
 	}
 
+	var volumeSourceType VolumeSourceType
+	volumeSourceName := strings.TrimSpace(slices[1])
 	if strings.TrimSpace(slices[0]) == "config-map" {
-		return ConfigMapVolumeSourceType, strings.TrimSpace(slices[1]), nil
+		volumeSourceType = ConfigMapVolumeSourceType
 	} else if strings.TrimSpace(slices[0]) == "secret" {
-		return SecretVolumeSourceType, strings.TrimSpace(slices[1]), nil
+		volumeSourceType = SecretVolumeSourceType
+	} else {
+		return nil, fmt.Errorf("Unsupported volume source type \"%q\"; supported volume source types are \"config-map\" and \"secret\"", slices[0])
 	}
 
-	return -1, "", fmt.Errorf("Not allowed key-value source is used. Currently config-map and secret can be used; got %q", s)
+	return &volumeSourceInfo{
+		volumeSourceType: volumeSourceType,
+		volumeSourceName: volumeSourceName,
+	}, nil
 }
 
 func updateEnvFrom(envFromSources []corev1.EnvFromSource, toUpdate []string) ([]corev1.EnvFromSource, error) {
@@ -364,15 +394,15 @@ func updateEnvFrom(envFromSources []corev1.EnvFromSource, toUpdate []string) ([]
 	insertSecretSet := make(map[string]bool)
 
 	for _, s := range toUpdate {
-		volumeSourceType, volumeSourceName, err := parseVolumeSource(s)
+		info, err := parseVolumeSourceString(s)
 		if err != nil {
 			return nil, err
 		}
-		switch volumeSourceType {
+		switch info.volumeSourceType {
 		case ConfigMapVolumeSourceType:
-			insertConfigMapSet[volumeSourceName] = false
+			insertConfigMapSet[info.volumeSourceName] = false
 		case SecretVolumeSourceType:
-			insertSecretSet[volumeSourceName] = false
+			insertSecretSet[info.volumeSourceName] = false
 		}
 	}
 
@@ -416,13 +446,13 @@ func updateEnvFrom(envFromSources []corev1.EnvFromSource, toUpdate []string) ([]
 
 func removeEnvFrom(envFromSources []corev1.EnvFromSource, toRemove []string) ([]corev1.EnvFromSource, error) {
 	for _, name := range toRemove {
-		volumeSourceType, volumeSourceName, err := parseVolumeSource(name)
+		info, err := parseVolumeSourceString(name)
 		if err != nil {
 			return nil, err
 		}
 		for i, envSrc := range envFromSources {
-			if (volumeSourceType == ConfigMapVolumeSourceType && envSrc.ConfigMapRef != nil && volumeSourceName == envSrc.ConfigMapRef.Name) ||
-				(volumeSourceType == SecretVolumeSourceType && envSrc.SecretRef != nil && volumeSourceName == envSrc.SecretRef.Name) {
+			if (info.volumeSourceType == ConfigMapVolumeSourceType && envSrc.ConfigMapRef != nil && info.volumeSourceName == envSrc.ConfigMapRef.Name) ||
+				(info.volumeSourceType == SecretVolumeSourceType && envSrc.SecretRef != nil && info.volumeSourceName == envSrc.SecretRef.Name) {
 				envFromSources = append(envFromSources[:i], envFromSources[i+1:]...)
 				break
 			}
@@ -431,31 +461,7 @@ func removeEnvFrom(envFromSources []corev1.EnvFromSource, toRemove []string) ([]
 	return envFromSources, nil
 }
 
-type volumeMountInfo struct {
-	volumeSourceType VolumeSourceType
-	volumeSourceName string
-	mountPath        string
-}
-
-func parseVolumeMountsString(s string) (*volumeMountInfo, error) {
-	slices := strings.SplitN(s, "@", 2)
-	if len(slices) != 2 {
-		return nil, fmt.Errorf("Argument requires a value that contains the @ character; got %q", s)
-	}
-
-	volumeSourceType, volumeSourceName, err := parseVolumeSource(slices[0])
-	if err != nil {
-		return nil, err
-	}
-	mountPath := slices[1]
-	return &volumeMountInfo{
-		volumeSourceType: volumeSourceType,
-		volumeSourceName: volumeSourceName,
-		mountPath:        mountPath,
-	}, nil
-}
-
-func updateVolume(volume *corev1.Volume, info *volumeMountInfo) error {
+func updateVolume(volume *corev1.Volume, info *volumeSourceInfo) error {
 	switch info.volumeSourceType {
 	case ConfigMapVolumeSourceType:
 		volume.Secret = nil
@@ -469,74 +475,106 @@ func updateVolume(volume *corev1.Volume, info *volumeMountInfo) error {
 	return nil
 }
 
-func updateVolumeMountsFromMap(volumes []corev1.Volume, volumeMounts []corev1.VolumeMount, mounts map[string]string) ([]corev1.Volume, []corev1.VolumeMount, error) {
-	updatedInVolumes := make(map[string]bool)
+func existsVolumeNameInVolumes(volumeName string, volumes []corev1.Volume) bool {
+	for _, volume := range volumes {
+		if volume.Name == volumeName {
+			return true
+		}
+	}
+	return false
+}
+
+func existsVolumeNameInVolumeMounts(volumeName string, volumeMounts []corev1.VolumeMount) bool {
+	for _, volumeMount := range volumeMounts {
+		if volumeMount.Name == volumeName {
+			return true
+		}
+	}
+	return false
+}
+
+// updateVolumeMountsFromMap updates or adds volume mounts. If a given name of a volume is not existing, it returns an error
+func updateVolumeMountsFromMap(volumeMounts []corev1.VolumeMount, toUpdate map[string]string, volumes []corev1.Volume) ([]corev1.VolumeMount, error) {
 	updatedInVolumeMounts := make(map[string]bool)
-	parsedMap := make(map[string]*volumeMountInfo)
-
-	for name, value := range mounts {
-		info, err := parseVolumeMountsString(value)
-		if err != nil {
-			return nil, nil, err
-		}
-		parsedMap[name] = info
-	}
-
-	for i := range volumes {
-		volume := &volumes[i]
-		info, present := parsedMap[volume.Name]
-		if present {
-			err := updateVolume(volume, info)
-			if err != nil {
-				return nil, nil, err
-			}
-			updatedInVolumes[volume.Name] = true
-		}
-	}
 
 	for i := range volumeMounts {
 		volumeMount := &volumeMounts[i]
-		info, present := parsedMap[volumeMount.Name]
+		name, present := toUpdate[volumeMount.MountPath]
+
 		if present {
+			if !existsVolumeNameInVolumes(name, volumes) {
+				return nil, fmt.Errorf("There is no volume matched with %q", name)
+			}
+
 			volumeMount.ReadOnly = true
-			volumeMount.MountPath = info.mountPath
-			updatedInVolumeMounts[volumeMount.Name] = true
+			volumeMount.Name = name
+			updatedInVolumeMounts[volumeMount.MountPath] = true
 		}
 	}
 
-	for name, info := range parsedMap {
-		if !updatedInVolumes[name] {
-			volumes = append(volumes, corev1.Volume{Name: name})
-			updateVolume(&volumes[len(volumes)-1], info)
-		}
-
-		if !updatedInVolumeMounts[name] {
+	for mountPath, name := range toUpdate {
+		if !updatedInVolumeMounts[mountPath] {
 			volumeMounts = append(volumeMounts, corev1.VolumeMount{
 				Name:      name,
 				ReadOnly:  true,
-				MountPath: info.mountPath,
+				MountPath: mountPath,
 			})
 		}
 	}
 
-	return volumes, volumeMounts, nil
+	return volumeMounts, nil
 }
 
-func removeVolumeMounts(volumes []corev1.Volume, volumeMounts []corev1.VolumeMount, toRemove []string) ([]corev1.Volume, []corev1.VolumeMount) {
-	for _, name := range toRemove {
-		for i, volume := range volumes {
-			if volume.Name == name {
-				volumes = append(volumes[:i], volumes[i+1:]...)
-				break
-			}
-		}
-
+func removeVolumeMounts(volumeMounts []corev1.VolumeMount, toRemove []string) []corev1.VolumeMount {
+	for _, mountPath := range toRemove {
 		for i, volumeMount := range volumeMounts {
-			if volumeMount.Name == name {
+			if volumeMount.MountPath == mountPath {
 				volumeMounts = append(volumeMounts[:i], volumeMounts[i+1:]...)
 				break
 			}
 		}
 	}
-	return volumes, volumeMounts
+	return volumeMounts
+}
+
+// updateVolumesFromMap updates or adds volumes regardless whether the volume is used or not
+func updateVolumesFromMap(volumes []corev1.Volume, toUpdate map[string]*volumeSourceInfo) ([]corev1.Volume, error) {
+	set := make(map[string]bool)
+
+	for i := range volumes {
+		volume := &volumes[i]
+		info, present := toUpdate[volume.Name]
+		if present {
+			err := updateVolume(volume, info)
+			if err != nil {
+				return nil, err
+			}
+			set[volume.Name] = true
+		}
+	}
+
+	for name, info := range toUpdate {
+		if !set[name] {
+			volumes = append(volumes, corev1.Volume{Name: name})
+			updateVolume(&volumes[len(volumes)-1], info)
+		}
+	}
+
+	return volumes, nil
+}
+
+// removeVolumes removes volumes. If there is a volume mount referencing the volume, it causes an error
+func removeVolumes(volumes []corev1.Volume, toRemove []string, volumeMounts []corev1.VolumeMount) ([]corev1.Volume, error) {
+	for _, name := range toRemove {
+		for i, volume := range volumes {
+			if volume.Name == name {
+				if existsVolumeNameInVolumeMounts(name, volumeMounts) {
+					return nil, fmt.Errorf("The volume %q cannot be removed because it is mounted", name)
+				}
+				volumes = append(volumes[:i], volumes[i+1:]...)
+				break
+			}
+		}
+	}
+	return volumes, nil
 }

@@ -27,6 +27,8 @@ func MapAndRemovalListFromArray(arr []string, delimiter string) (map[string]stri
 		if strings.HasSuffix(name, "-") {
 			removalList = append(removalList, name[:len(name)-1])
 			delete(updateMap, name)
+		} else if updateMap[name] == "" {
+			return nil, nil, fmt.Errorf("Argument requires a value that contains the %q character; got %q", delimiter, name)
 		}
 	}
 
