@@ -620,34 +620,3 @@ func TestServiceCreateWithServiceAccountName(t *testing.T) {
 		t.Fatalf("wrong service account name:%v", template.Spec.ServiceAccountName)
 	}
 }
-
-func TestServiceCreateWithImagePullPolicy(t *testing.T) {
-	const PullNone corev1.PullPolicy = ""
-	policyStringMap := map[string]corev1.PullPolicy{
-		"always":         corev1.PullAlways,
-		"if-not-present": corev1.PullIfNotPresent,
-		"never":          corev1.PullNever,
-		"-":              PullNone,
-	}
-
-	for k, v := range policyStringMap {
-		action, created, _, err := fakeServiceCreate([]string{
-			"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
-			"--image-pull-policy", k,
-			"--async"}, false, false)
-
-		if err != nil {
-			t.Fatal(err)
-		} else if !action.Matches("create", "services") {
-			t.Fatalf("Bad action %v", action)
-		}
-
-		template, err := servinglib.RevisionTemplateOfService(created)
-
-		if err != nil {
-			t.Fatal(err)
-		} else if template.Spec.Containers[0].ImagePullPolicy != v {
-			t.Fatalf("wrong image pull policy:%v (expected %v)", template.Spec.Containers[0].ImagePullPolicy, v)
-		}
-	}
-}

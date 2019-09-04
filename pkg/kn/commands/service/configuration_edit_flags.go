@@ -123,8 +123,6 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	p.markFlagMakesRevision("revision-name")
 	command.Flags().StringVar(&p.ServiceAccountName, "service-account-name", "-", "Service account name. To unset, specify \"-\".")
 	p.markFlagMakesRevision("service-account-name")
-	command.Flags().StringVar(&p.ImagePullPolicy, "image-pull-policy", "-", "Image pull policy (e.g., always, if-not-present, or never). To unset, specify \"-\".")
-	p.markFlagMakesRevision("image-pull-policy")
 
 	flags.AddBothBoolFlagsUnhidden(command.Flags(), &p.LockToDigest, "lock-to-digest", "", true,
 		"keep the running image for the service constant when not explicitly specifying "+
