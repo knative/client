@@ -121,8 +121,6 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 			"Accepts golang templates, allowing {{.Service}} for the service name, "+
 			"{{.Generation}} for the generation, and {{.Random [n]}} for n random consonants.")
 	p.markFlagMakesRevision("revision-name")
-	command.Flags().StringVar(&p.ServiceAccountName, "service-account-name", "-", "Service account name. To unset, specify \"-\".")
-	p.markFlagMakesRevision("service-account-name")
 
 	flags.AddBothBoolFlagsUnhidden(command.Flags(), &p.LockToDigest, "lock-to-digest", "", true,
 		"keep the running image for the service constant when not explicitly specifying "+

@@ -599,24 +599,3 @@ func TestServiceCreateWithVolumeMountOfSecret(t *testing.T) {
 		t.Fatalf("wrong volumes: %v", volumeMounts)
 	}
 }
-
-func TestServiceCreateWithServiceAccountName(t *testing.T) {
-	action, created, _, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
-		"--service-account-name", "foo-bar-account",
-		"--async"}, false, false)
-
-	if err != nil {
-		t.Fatal(err)
-	} else if !action.Matches("create", "services") {
-		t.Fatalf("Bad action %v", action)
-	}
-
-	template, err := servinglib.RevisionTemplateOfService(created)
-
-	if err != nil {
-		t.Fatal(err)
-	} else if template.Spec.ServiceAccountName != "foo-bar-account" {
-		t.Fatalf("wrong service account name:%v", template.Spec.ServiceAccountName)
-	}
-}
