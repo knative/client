@@ -233,6 +233,17 @@ func UpdateLabels(service *servingv1alpha1.Service, template *servingv1alpha1.Re
 	return nil
 }
 
+// UpdateServiceAccountName updates the service account name used for the corresponding knative service
+func UpdateServiceAccountName(template *servingv1alpha1.RevisionTemplateSpec, serviceAccountName string) error {
+	serviceAccountName = strings.TrimSpace(serviceAccountName)
+	if serviceAccountName == "-" {
+		template.Spec.ServiceAccountName = ""
+	} else {
+		template.Spec.ServiceAccountName = serviceAccountName
+	}
+	return nil
+}
+
 // =======================================================================================
 
 func updateEnvVarsFromMap(env []corev1.EnvVar, vars map[string]string) []corev1.EnvVar {

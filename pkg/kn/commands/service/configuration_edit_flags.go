@@ -40,6 +40,7 @@ type ConfigurationEditFlags struct {
 	Labels                     []string
 	NamePrefix                 string
 	RevisionName               string
+	ServiceAccountName         string
 
 	// Preferences about how to do the action.
 	LockToDigest         bool
@@ -107,7 +108,8 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 		"keep the running image for the service constant when not explicitly specifying "+
 			"the image. (--no-lock-to-digest pulls the image tag afresh with each new revision)")
 	// Don't mark as changing the revision.
-
+	command.Flags().StringVar(&p.ServiceAccountName, "service-account-name", "-", "Service account name. To unset, specify \"-\".")
+	p.markFlagMakesRevision("service-account-name")
 }
 
 // AddUpdateFlags adds the flags specific to update.
@@ -249,6 +251,13 @@ func (p *ConfigurationEditFlags) Apply(
 			}
 		}
 		err = servinglib.UpdateLabels(service, template, labelsMap, labelsToRemove)
+		if err != nil {
+			return err
+		}
+	}
+
+	if cmd.Flags().Changed("service-account-name") {
+		err = servinglib.UpdateServiceAccountName(template, p.ServiceAccountName)
 		if err != nil {
 			return err
 		}
