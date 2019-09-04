@@ -32,7 +32,7 @@ import (
 // VolumeSourceType is a type standing for enumeration of ConfigMap and Secret
 type VolumeSourceType int
 
-// Enumeration list of Kay-Value sources: ConfigMap or Secret
+// Enumeration of volume source types: ConfigMap or Secret
 const (
 	ConfigMapVolumeSourceType VolumeSourceType = iota
 	SecretVolumeSourceType
