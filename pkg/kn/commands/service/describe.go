@@ -535,6 +535,7 @@ func completeWithLatestRevisions(client serving_kn_v1alpha1.KnServingClient, ser
 		if revisionsSeen.Has(revisionName) {
 			continue
 		}
+		revisionsSeen.Insert(revisionName)
 		rev, err := client.GetRevision(revisionName)
 		if err != nil {
 			return nil, err
@@ -543,7 +544,6 @@ func completeWithLatestRevisions(client serving_kn_v1alpha1.KnServingClient, ser
 		if err != nil {
 			return nil, err
 		}
-
 		descs = append(descs, newDesc)
 	}
 	return descs, nil
@@ -558,6 +558,7 @@ func completeWithUntargetedRevisions(client serving_kn_v1alpha1.KnServingClient,
 		if revisionsSeen.Has(revision.Name) {
 			continue
 		}
+		revisionsSeen.Insert(revision.Name)
 		newDesc, err := newRevisionDesc(&revision, nil)
 		if err != nil {
 			return nil, err

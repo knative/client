@@ -168,6 +168,39 @@ func TestServiceDescribeLatestNotInTraffic(t *testing.T) {
 	r.Validate()
 }
 
+func TestServiceDescribeLatestNotInTraffic(t *testing.T) {
+
+	// New mock client
+	client := knclient.NewMockKnClient(t)
+
+	// Recording:
+	r := client.Recorder()
+	// Prepare service
+	expectedService := createTestService("foo", []string{"rev1", "rev2"}, goodConditions())
+	expectedService.Status.Traffic = expectedService.Status.Traffic[:1]
+	expectedService.Status.Traffic[0].LatestRevision = ptr.Bool(false)
+	expectedService.Status.Traffic[0].Percent = 100
+
+	// Get service & revision
+	r.GetService("foo", &expectedService, nil)
+	rev1 := createTestRevision("rev1", 1)
+	rev2 := createTestRevision("rev2", 2)
+	r.GetRevision("rev1", &rev1, nil)
+	r.GetRevision("rev2", &rev2, nil)
+
+	// Testing:
+	output, err := executeServiceCommand(client, "describe", "foo")
+	assert.NilError(t, err)
+
+	validateServiceOutput(t, "foo", output)
+	assert.Assert(t, util.ContainsAll(output, "rev1", "rev2"))
+	assert.Equal(t, strings.Count(output, "rev2"), 1)
+	assert.Equal(t, strings.Count(output, "rev1"), 1)
+
+	// Validate that all recorded API methods have been called
+	r.Validate()
+}
+
 func TestServiceDescribeLatestAndCurrentBothHaveTrafficEntries(t *testing.T) {
 	// New mock client
 	client := knclient.NewMockKnClient(t)
