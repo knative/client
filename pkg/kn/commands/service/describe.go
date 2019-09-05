@@ -68,9 +68,9 @@ type revisionDesc struct {
 	creationTimestamp       time.Time
 
 	// traffic stuff
-	percent int
-	tag     string
-	latest  *bool
+	percent       int
+	tag           string
+	latestTraffic *bool
 
 	// basic revision stuff
 	logURL         string
@@ -95,8 +95,10 @@ type revisionDesc struct {
 	limitsCPU      string
 
 	// status info
-	ready  corev1.ConditionStatus
-	reason string
+	ready         corev1.ConditionStatus
+	reason        string
+	latestCreated bool
+	latestReady   bool
 }
 
 // [REMOVE COMMENT WHEN MOVING TO 0.7.0]
@@ -297,8 +299,12 @@ func formatScale(minScale *int, maxScale *int) string {
 // Format the revision name along with its generation. Use colors if enabled.
 func revisionHeader(desc *revisionDesc) string {
 	header := desc.name
-	if desc.latest != nil && *desc.latest {
+	if desc.latestTraffic != nil && *desc.latestTraffic {
 		header = fmt.Sprintf("@latest (%s)", desc.name)
+	} else if desc.latestReady {
+		header = desc.name + " (current @latest)"
+	} else if desc.latestCreated {
+		header = desc.name + " (latest created)"
 	}
 	if desc.tag != "" {
 		header = fmt.Sprintf("%s #%s", header, desc.tag)
@@ -505,7 +511,7 @@ func getRevisionDescriptions(client serving_kn_v1alpha1.KnServingClient, service
 			return nil, fmt.Errorf("cannot extract revision from service %s: %v", service.Name, err)
 		}
 		revisionsSeen.Insert(revision.Name)
-		desc, err := newRevisionDesc(revision, &target)
+		desc, err := newRevisionDesc(revision, &target, service)
 		if err != nil {
 			return nil, err
 		}
@@ -540,7 +546,7 @@ func completeWithLatestRevisions(client serving_kn_v1alpha1.KnServingClient, ser
 		if err != nil {
 			return nil, err
 		}
-		newDesc, err := newRevisionDesc(rev, nil)
+		newDesc, err := newRevisionDesc(rev, nil, service)
 		if err != nil {
 			return nil, err
 		}
@@ -559,7 +565,7 @@ func completeWithUntargetedRevisions(client serving_kn_v1alpha1.KnServingClient,
 			continue
 		}
 		revisionsSeen.Insert(revision.Name)
-		newDesc, err := newRevisionDesc(&revision, nil)
+		newDesc, err := newRevisionDesc(&revision, nil, service)
 		if err != nil {
 			return nil, err
 		}
@@ -569,7 +575,7 @@ func completeWithUntargetedRevisions(client serving_kn_v1alpha1.KnServingClient,
 	return descs, nil
 }
 
-func newRevisionDesc(revision *v1alpha1.Revision, target *v1alpha1.TrafficTarget) (*revisionDesc, error) {
+func newRevisionDesc(revision *v1alpha1.Revision, target *v1alpha1.TrafficTarget, service *v1alpha1.Service) (*revisionDesc, error) {
 	container := extractContainer(revision)
 	generation, err := strconv.ParseInt(revision.Labels[serving.ConfigurationGenerationLabelKey], 0, 0)
 	if err != nil {
@@ -585,6 +591,9 @@ func newRevisionDesc(revision *v1alpha1.Revision, target *v1alpha1.TrafficTarget
 
 		configurationGeneration: int(generation),
 		configuration:           revision.Labels[serving.ConfigurationLabelKey],
+
+		latestCreated: revision.Name == service.Status.LatestCreatedRevisionName,
+		latestReady:   revision.Name == service.Status.LatestReadyRevisionName,
 	}
 
 	addStatusInfo(&revisionDesc, revision)
@@ -610,7 +619,7 @@ func addStatusInfo(desc *revisionDesc, revision *v1alpha1.Revision) {
 func addTargetInfo(desc *revisionDesc, target *v1alpha1.TrafficTarget) {
 	if target != nil {
 		desc.percent = target.Percent
-		desc.latest = target.LatestRevision
+		desc.latestTraffic = target.LatestRevision
 		desc.tag = target.Tag
 	}
 }
