@@ -40,8 +40,8 @@ func TestRoutListFlags(t *testing.T) {
 		t.Fatalf("Failed to print the object.")
 	}
 	actualFormats := routeListFlags.AllowedFormats()
-	expectedFormats := []string{"json", "yaml", "name", "go-template", "go-template-file", "template", "templatefile", "jsonpath", "jsonpath-file"}
-	if reflect.DeepEqual(actualFormats, expectedFormats) {
+	expectedFormats := []string{"json", "yaml", "name", "go-template", "go-template-file", "template", "templatefile", "jsonpath", "jsonpath-file", "no-headers"}
+	if !reflect.DeepEqual(actualFormats, expectedFormats) {
 		t.Fatalf("Expecting allowed formats:\n%s\nFound:\n%s\n", expectedFormats, actualFormats)
 	}
 }
