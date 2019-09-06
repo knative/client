@@ -25,7 +25,7 @@ import (
 func TestServiceListFlags(t *testing.T) {
 	var cmd *cobra.Command
 
-	t.Run("adds service list flag", func(t *testing.T) {
+	t.Run("verify service list flags", func(t *testing.T) {
 		serviceListFlags := NewServiceListFlags()
 
 		cmd = &cobra.Command{}
