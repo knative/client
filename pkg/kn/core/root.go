@@ -30,6 +30,7 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
 	"knative.dev/client/pkg/kn/commands"
+	migration "knative.dev/client/pkg/kn/commands/contrib/plugins/kn-migration"
 	"knative.dev/client/pkg/kn/commands/plugin"
 	"knative.dev/client/pkg/kn/commands/revision"
 	"knative.dev/client/pkg/kn/commands/route"
@@ -141,6 +142,7 @@ func NewKnCommand(params ...commands.KnParams) *cobra.Command {
 	rootCmd.AddCommand(route.NewRouteCommand(p))
 	rootCmd.AddCommand(commands.NewCompletionCommand(p))
 	rootCmd.AddCommand(commands.NewVersionCommand(p))
+	rootCmd.AddCommand(migration.NewMigrateCommand(p))
 
 	// Deal with empty and unknown sub command groups
 	EmptyAndUnknownSubCommands(rootCmd)

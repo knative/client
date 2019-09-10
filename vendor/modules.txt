@@ -6,6 +6,8 @@ github.com/cpuguy83/go-md2man/md2man
 github.com/davecgh/go-spew/spew
 # github.com/evanphx/json-patch v4.5.0+incompatible
 github.com/evanphx/json-patch
+# github.com/fatih/color v1.7.0
+github.com/fatih/color
 # github.com/fsnotify/fsnotify v1.4.7
 github.com/fsnotify/fsnotify
 # github.com/ghodss/yaml v1.0.0
@@ -64,6 +66,10 @@ github.com/json-iterator/go
 github.com/magiconair/properties
 # github.com/mattbaird/jsonpatch v0.0.0-20171005235357-81af80346b1a
 github.com/mattbaird/jsonpatch
+# github.com/mattn/go-colorable v0.1.2
+github.com/mattn/go-colorable
+# github.com/mattn/go-isatty v0.0.9
+github.com/mattn/go-isatty
 # github.com/mitchellh/go-homedir v1.1.0
 github.com/mitchellh/go-homedir
 # github.com/mitchellh/mapstructure v1.1.2
@@ -110,7 +116,7 @@ golang.org/x/oauth2/google
 golang.org/x/oauth2/internal
 golang.org/x/oauth2/jws
 golang.org/x/oauth2/jwt
-# golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a
+# golang.org/x/sys v0.0.0-20190813064441-fde4db37ae7a
 golang.org/x/sys/unix
 golang.org/x/sys/windows
 # golang.org/x/text v0.3.0
@@ -166,10 +172,10 @@ k8s.io/api/batch/v1beta1
 k8s.io/api/batch/v2alpha1
 k8s.io/api/certificates/v1beta1
 k8s.io/api/coordination/v1beta1
-k8s.io/api/events/v1beta1
 k8s.io/api/extensions/v1beta1
-k8s.io/api/networking/v1
 k8s.io/api/policy/v1beta1
+k8s.io/api/events/v1beta1
+k8s.io/api/networking/v1
 k8s.io/api/rbac/v1
 k8s.io/api/rbac/v1alpha1
 k8s.io/api/rbac/v1beta1
@@ -205,9 +211,9 @@ k8s.io/apimachinery/pkg/util/validation
 k8s.io/apimachinery/pkg/api/equality
 k8s.io/apimachinery/pkg/api/validation
 k8s.io/apimachinery/pkg/runtime/serializer
+k8s.io/apimachinery/pkg/util/net
 k8s.io/apimachinery/pkg/conversion/queryparams
 k8s.io/apimachinery/pkg/util/naming
-k8s.io/apimachinery/pkg/util/net
 k8s.io/apimachinery/pkg/util/yaml
 k8s.io/apimachinery/third_party/forked/golang/reflect
 k8s.io/apimachinery/pkg/apis/meta/v1/unstructured
@@ -219,9 +225,9 @@ k8s.io/apimachinery/pkg/runtime/serializer/versioning
 k8s.io/apimachinery/pkg/apis/meta/v1/validation
 k8s.io/apimachinery/pkg/runtime/serializer/protobuf
 k8s.io/apimachinery/pkg/runtime/serializer/recognizer
-k8s.io/apimachinery/pkg/apis/meta/v1/unstructured/unstructuredscheme
 k8s.io/apimachinery/pkg/version
 k8s.io/apimachinery/pkg/util/clock
+k8s.io/apimachinery/pkg/apis/meta/v1/unstructured/unstructuredscheme
 k8s.io/apimachinery/pkg/util/framer
 k8s.io/apimachinery/pkg/util/cache
 k8s.io/apimachinery/pkg/util/diff
@@ -234,56 +240,15 @@ k8s.io/cli-runtime/pkg/genericclioptions/resource
 # k8s.io/client-go v0.0.0-20190226174127-78295b709ec6
 k8s.io/client-go/testing
 k8s.io/client-go/tools/clientcmd
-k8s.io/client-go/plugin/pkg/client/auth/gcp
+k8s.io/client-go/kubernetes
 k8s.io/client-go/plugin/pkg/client/auth/oidc
+k8s.io/client-go/plugin/pkg/client/auth/gcp
 k8s.io/client-go/rest
 k8s.io/client-go/tools/auth
 k8s.io/client-go/tools/clientcmd/api
 k8s.io/client-go/tools/clientcmd/api/latest
 k8s.io/client-go/util/homedir
 k8s.io/client-go/discovery
-k8s.io/client-go/restmapper
-k8s.io/client-go/util/jsonpath
-k8s.io/client-go/pkg/version
-k8s.io/client-go/plugin/pkg/client/auth/exec
-k8s.io/client-go/rest/watch
-k8s.io/client-go/tools/metrics
-k8s.io/client-go/transport
-k8s.io/client-go/util/cert
-k8s.io/client-go/util/flowcontrol
-k8s.io/client-go/tools/clientcmd/api/v1
-k8s.io/client-go/dynamic
-k8s.io/client-go/tools/cache
-k8s.io/client-go/kubernetes/scheme
-k8s.io/client-go/third_party/forked/golang/template
-k8s.io/client-go/pkg/apis/clientauthentication
-k8s.io/client-go/pkg/apis/clientauthentication/v1alpha1
-k8s.io/client-go/pkg/apis/clientauthentication/v1beta1
-k8s.io/client-go/util/connrotation
-k8s.io/client-go/util/integer
-k8s.io/client-go/tools/pager
-k8s.io/client-go/util/buffer
-k8s.io/client-go/util/retry
-k8s.io/client-go/informers
-k8s.io/client-go/informers/core/v1
-k8s.io/client-go/kubernetes
-k8s.io/client-go/informers/admissionregistration
-k8s.io/client-go/informers/apps
-k8s.io/client-go/informers/autoscaling
-k8s.io/client-go/informers/batch
-k8s.io/client-go/informers/certificates
-k8s.io/client-go/informers/coordination
-k8s.io/client-go/informers/core
-k8s.io/client-go/informers/events
-k8s.io/client-go/informers/extensions
-k8s.io/client-go/informers/internalinterfaces
-k8s.io/client-go/informers/networking
-k8s.io/client-go/informers/policy
-k8s.io/client-go/informers/rbac
-k8s.io/client-go/informers/scheduling
-k8s.io/client-go/informers/settings
-k8s.io/client-go/informers/storage
-k8s.io/client-go/listers/core/v1
 k8s.io/client-go/kubernetes/typed/admissionregistration/v1alpha1
 k8s.io/client-go/kubernetes/typed/admissionregistration/v1beta1
 k8s.io/client-go/kubernetes/typed/apps/v1
@@ -315,6 +280,48 @@ k8s.io/client-go/kubernetes/typed/settings/v1alpha1
 k8s.io/client-go/kubernetes/typed/storage/v1
 k8s.io/client-go/kubernetes/typed/storage/v1alpha1
 k8s.io/client-go/kubernetes/typed/storage/v1beta1
+k8s.io/client-go/util/flowcontrol
+k8s.io/client-go/restmapper
+k8s.io/client-go/util/jsonpath
+k8s.io/client-go/pkg/version
+k8s.io/client-go/plugin/pkg/client/auth/exec
+k8s.io/client-go/rest/watch
+k8s.io/client-go/tools/metrics
+k8s.io/client-go/transport
+k8s.io/client-go/util/cert
+k8s.io/client-go/tools/clientcmd/api/v1
+k8s.io/client-go/dynamic
+k8s.io/client-go/tools/cache
+k8s.io/client-go/kubernetes/scheme
+k8s.io/client-go/tools/reference
+k8s.io/client-go/util/integer
+k8s.io/client-go/third_party/forked/golang/template
+k8s.io/client-go/pkg/apis/clientauthentication
+k8s.io/client-go/pkg/apis/clientauthentication/v1alpha1
+k8s.io/client-go/pkg/apis/clientauthentication/v1beta1
+k8s.io/client-go/util/connrotation
+k8s.io/client-go/tools/pager
+k8s.io/client-go/util/buffer
+k8s.io/client-go/util/retry
+k8s.io/client-go/informers
+k8s.io/client-go/informers/core/v1
+k8s.io/client-go/informers/admissionregistration
+k8s.io/client-go/informers/apps
+k8s.io/client-go/informers/autoscaling
+k8s.io/client-go/informers/batch
+k8s.io/client-go/informers/certificates
+k8s.io/client-go/informers/coordination
+k8s.io/client-go/informers/core
+k8s.io/client-go/informers/events
+k8s.io/client-go/informers/extensions
+k8s.io/client-go/informers/internalinterfaces
+k8s.io/client-go/informers/networking
+k8s.io/client-go/informers/policy
+k8s.io/client-go/informers/rbac
+k8s.io/client-go/informers/scheduling
+k8s.io/client-go/informers/settings
+k8s.io/client-go/informers/storage
+k8s.io/client-go/listers/core/v1
 k8s.io/client-go/informers/admissionregistration/v1alpha1
 k8s.io/client-go/informers/admissionregistration/v1beta1
 k8s.io/client-go/informers/apps/v1
@@ -341,7 +348,6 @@ k8s.io/client-go/informers/settings/v1alpha1
 k8s.io/client-go/informers/storage/v1
 k8s.io/client-go/informers/storage/v1alpha1
 k8s.io/client-go/informers/storage/v1beta1
-k8s.io/client-go/tools/reference
 k8s.io/client-go/listers/admissionregistration/v1alpha1
 k8s.io/client-go/listers/admissionregistration/v1beta1
 k8s.io/client-go/listers/apps/v1

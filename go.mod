@@ -1,6 +1,7 @@
 module knative.dev/client
 
 require (
+	github.com/fatih/color v1.7.0
 	github.com/golang/protobuf v1.3.2 // indirect
 	github.com/google/go-cmp v0.3.1 // indirect
 	github.com/google/go-containerregistry v0.0.0-20190723205234-74f764b9c575 // indirect
@@ -8,6 +9,8 @@ require (
 	github.com/hashicorp/golang-lru v0.5.3 // indirect
 	github.com/json-iterator/go v1.1.7 // indirect
 	github.com/knative/client v0.2.0 // indirect
+	github.com/mattn/go-colorable v0.1.2 // indirect
+	github.com/mattn/go-isatty v0.0.9 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pkg/errors v0.8.1
 	github.com/spf13/cobra v0.0.3
