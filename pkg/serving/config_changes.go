@@ -236,11 +236,7 @@ func UpdateLabels(service *servingv1alpha1.Service, template *servingv1alpha1.Re
 // UpdateServiceAccountName updates the service account name used for the corresponding knative service
 func UpdateServiceAccountName(template *servingv1alpha1.RevisionTemplateSpec, serviceAccountName string) error {
 	serviceAccountName = strings.TrimSpace(serviceAccountName)
-	if serviceAccountName == "-" {
-		template.Spec.ServiceAccountName = ""
-	} else {
-		template.Spec.ServiceAccountName = serviceAccountName
-	}
+	template.Spec.ServiceAccountName = serviceAccountName
 	return nil
 }
 

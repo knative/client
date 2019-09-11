@@ -476,7 +476,7 @@ func TestServiceCreateEnvForce(t *testing.T) {
 func TestServiceCreateWithServiceAccountName(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
-		"--service-account-name", "foo-bar-account",
+		"--service-account", "foo-bar-account",
 		"--async"}, false, false)
 
 	if err != nil {

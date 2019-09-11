@@ -108,8 +108,8 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 		"keep the running image for the service constant when not explicitly specifying "+
 			"the image. (--no-lock-to-digest pulls the image tag afresh with each new revision)")
 	// Don't mark as changing the revision.
-	command.Flags().StringVar(&p.ServiceAccountName, "service-account-name", "-", "Service account name. To unset, specify \"-\".")
-	p.markFlagMakesRevision("service-account-name")
+	command.Flags().StringVar(&p.ServiceAccountName, "service-account", "", "Service account name to set. Empty service account name will result to clear the service account.")
+	p.markFlagMakesRevision("service-account")
 }
 
 // AddUpdateFlags adds the flags specific to update.
@@ -256,7 +256,7 @@ func (p *ConfigurationEditFlags) Apply(
 		}
 	}
 
-	if cmd.Flags().Changed("service-account-name") {
+	if cmd.Flags().Changed("service-account") {
 		err = servinglib.UpdateServiceAccountName(template, p.ServiceAccountName)
 		if err != nil {
 			return err

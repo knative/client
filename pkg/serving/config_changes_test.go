@@ -422,7 +422,7 @@ func TestUpdateServiceAccountName(t *testing.T) {
 	UpdateServiceAccountName(template, "foo-bar")
 	assert.Equal(t, template.Spec.ServiceAccountName, "foo-bar")
 
-	UpdateServiceAccountName(template, "-")
+	UpdateServiceAccountName(template, "")
 	assert.Equal(t, template.Spec.ServiceAccountName, "")
 }
 
