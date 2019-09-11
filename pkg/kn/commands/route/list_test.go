@@ -46,10 +46,7 @@ func fakeRouteList(args []string, response *v1alpha1.RouteList) (action client_t
 
 func TestListEmpty(t *testing.T) {
 	action, output, err := fakeRouteList([]string{"route", "list"}, &v1alpha1.RouteList{})
-	if err != nil {
-		t.Error(err)
-		return
-	}
+	assert.NilError(t, err)
 	if action == nil {
 		t.Errorf("No action")
 	} else if !action.Matches("list", "routes") {
@@ -64,9 +61,7 @@ func TestRouteListDefaultOutput(t *testing.T) {
 	route2 := createMockRouteSingleTarget("bar", "bar-98765", 100)
 	routeList := &v1alpha1.RouteList{Items: []v1alpha1.Route{*route1, *route2}}
 	action, output, err := fakeRouteList([]string{"route", "list"}, routeList)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err)
 	if action == nil {
 		t.Errorf("No action")
 	} else if !action.Matches("list", "routes") {
@@ -77,13 +72,29 @@ func TestRouteListDefaultOutput(t *testing.T) {
 	assert.Check(t, util.ContainsAll(output[2], "bar", "100% -> bar-98765"))
 }
 
+func TestRouteListDefaultOutputNoHeaders(t *testing.T) {
+	route1 := createMockRouteSingleTarget("foo", "foo-01234", 100)
+	route2 := createMockRouteSingleTarget("bar", "bar-98765", 100)
+	routeList := &v1alpha1.RouteList{Items: []v1alpha1.Route{*route1, *route2}}
+	action, output, err := fakeRouteList([]string{"route", "list", "--no-headers"}, routeList)
+	assert.NilError(t, err)
+	if action == nil {
+		t.Errorf("No action")
+	} else if !action.Matches("list", "routes") {
+		t.Errorf("Bad action %v", action)
+	}
+
+	assert.Check(t, util.ContainsNone(output[0], "NAME", "URL", "GENERATION", "AGE", "CONDITIONS", "READY", "REASON"))
+	assert.Check(t, util.ContainsAll(output[0], "foo", "100% -> foo-01234"))
+	assert.Check(t, util.ContainsAll(output[1], "bar", "100% -> bar-98765"))
+
+}
+
 func TestRouteListWithTwoTargetsOutput(t *testing.T) {
 	route := createMockRouteTwoTarget("foo", "foo-01234", "foo-98765", 20, 80)
 	routeList := &v1alpha1.RouteList{Items: []v1alpha1.Route{*route}}
 	action, output, err := fakeRouteList([]string{"route", "list"}, routeList)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err)
 	if action == nil {
 		t.Errorf("No action")
 	} else if !action.Matches("list", "routes") {

@@ -38,6 +38,7 @@ func (fn ResourcePrinterFunc) PrintObj(obj runtime.Object, w io.Writer) error {
 
 // PrintOptions for different table printing options
 type PrintOptions struct {
+	NoHeaders bool
 	//TODO: Add options for eg: with-kind, server-printing, wide etc
 	AllNamespaces bool
 }

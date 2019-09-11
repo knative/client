@@ -74,14 +74,16 @@ func printRowsForHandlerEntry(output io.Writer, handler *handlerEntry, obj runti
 		return results[1].Interface().(error)
 	}
 
-	var headers []string
-	for _, column := range handler.columnDefinitions {
-		if !options.AllNamespaces && column.Priority == 0 {
-			continue
+	if !options.NoHeaders {
+		var headers []string
+		for _, column := range handler.columnDefinitions {
+			if !options.AllNamespaces && column.Priority == 0 {
+				continue
+			}
+			headers = append(headers, strings.ToUpper(column.Name))
 		}
-		headers = append(headers, strings.ToUpper(column.Name))
+		printHeader(headers, output)
 	}
-	printHeader(headers, output)
 
 	if results[1].IsNil() {
 		rows := results[0].Interface().([]metav1beta1.TableRow)
