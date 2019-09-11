@@ -22,7 +22,7 @@ Manage your Knative building blocks:
 
 ### SEE ALSO
 
-* [kn migrate](kn_migrate.md)	 - Migrate knative services from source cluster to destination cluster
+* [kn migrate](kn_migrate.md)	 - Migrate Knative services from source cluster to destination cluster
 * [kn plugin](kn_plugin.md)	 - Plugin command group
 * [kn revision](kn_revision.md)	 - Revision command group
 * [kn route](kn_route.md)	 - Route command group
