@@ -28,7 +28,7 @@ func MapFromArray(arr []string, delimiter string) (map[string]string, error) {
 }
 
 // mapFromArray takes an array of strings where each item is a (key, value) pair
-// separated by a delimiter and returns a map where keys are mapped to their respsective values.
+// separated by a delimiter and returns a map where keys are mapped to their respective values.
 // If allowSingles is true, values without a delimiter will be added as keys pointing to empty strings
 func mapFromArray(arr []string, delimiter string, allowSingles bool) (map[string]string, error) {
 	returnMap := map[string]string{}

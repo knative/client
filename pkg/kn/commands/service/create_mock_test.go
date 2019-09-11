@@ -56,6 +56,32 @@ func TestServiceCreateImageMock(t *testing.T) {
 	r.Validate()
 }
 
+func TestServiceCreateEnvMock(t *testing.T) {
+	client := knclient.NewMockKnClient(t)
+
+	r := client.Recorder()
+	r.GetService("foo", nil, errors.NewNotFound(v1alpha1.Resource("service"), "foo"))
+
+	service := getService("foo")
+	envVars := []corev1.EnvVar{
+		{Name: "a", Value: "mouse"},
+		{Name: "b", Value: "cookie"},
+		{Name: "empty", Value: ""},
+	}
+	template, err := servinglib.RevisionTemplateOfService(service)
+	assert.NilError(t, err)
+	template.Spec.GetContainer().Env = envVars
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
+	r.CreateService(service, nil)
+
+	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "-e", "a=mouse", "--env", "b=cookie", "--env=empty", "--async", "--revision-name=")
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
+
+	r.Validate()
+}
+
 func TestServiceCreateLabel(t *testing.T) {
 	client := knclient.NewMockKnClient(t)
 
