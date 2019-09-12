@@ -18,6 +18,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -31,14 +32,20 @@ var UserImageAnnotationKey = "client.knative.dev/user-image"
 
 // UpdateEnvVars gives the configuration all the env var values listed in the given map of
 // vars.  Does not touch any environment variables not mentioned, but it can add
-// new env vars and change the values of existing ones.
+// new env vars and change the values of existing ones, then sort by env key name.
 func UpdateEnvVars(template *servingv1alpha1.RevisionTemplateSpec, toUpdate map[string]string, toRemove []string) error {
 	container, err := ContainerOfRevisionTemplate(template)
 	if err != nil {
 		return err
 	}
-	envVars := updateEnvVarsFromMap(container.Env, toUpdate)
-	container.Env = removeEnvVars(envVars, toRemove)
+	updated := updateEnvVarsFromMap(container.Env, toUpdate)
+	updated = removeEnvVars(updated, toRemove)
+	// Sort by env key name
+	sort.SliceStable(updated, func(i, j int) bool {
+		return updated[i].Name < updated[j].Name
+	})
+	container.Env = updated
+
 	return nil
 }
 
@@ -235,17 +242,17 @@ func UpdateLabels(service *servingv1alpha1.Service, template *servingv1alpha1.Re
 
 // =======================================================================================
 
-func updateEnvVarsFromMap(env []corev1.EnvVar, vars map[string]string) []corev1.EnvVar {
+func updateEnvVarsFromMap(env []corev1.EnvVar, toUpdate map[string]string) []corev1.EnvVar {
 	set := make(map[string]bool)
 	for i := range env {
 		envVar := &env[i]
-		value, present := vars[envVar.Name]
+		value, present := toUpdate[envVar.Name]
 		if present {
 			envVar.Value = value
 			set[envVar.Name] = true
 		}
 	}
-	for name, value := range vars {
+	for name, value := range toUpdate {
 		if !set[name] {
 			env = append(
 				env,

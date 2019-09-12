@@ -78,15 +78,15 @@ func TestUpdateEnvVarsNew(t *testing.T) {
 }
 
 func testUpdateEnvVarsNew(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, container *corev1.Container) {
-	env := map[string]string{
-		"a": "foo",
-		"b": "bar",
+	env := []corev1.EnvVar{
+		{Name: "a", Value: "foo"},
+		{Name: "b", Value: "bar"},
 	}
-	err := UpdateEnvVars(template, env, []string{})
+	found, err := EnvToMap(env)
 	assert.NilError(t, err)
-	found, err := EnvToMap(container.Env)
+	err = UpdateEnvVars(template, found, []string{})
 	assert.NilError(t, err)
-	assert.DeepEqual(t, env, found)
+	assert.DeepEqual(t, env, container.Env)
 }
 
 func TestUpdateEnvVarsAppendOld(t *testing.T) {
@@ -149,20 +149,19 @@ func testUpdateEnvVarsAppendOld(t *testing.T, template *servingv1alpha1.Revision
 	container.Env = []corev1.EnvVar{
 		{Name: "a", Value: "foo"},
 	}
+
 	env := map[string]string{
 		"b": "bar",
 	}
 	err := UpdateEnvVars(template, env, []string{})
 	assert.NilError(t, err)
 
-	expected := map[string]string{
-		"a": "foo",
-		"b": "bar",
+	expected := []corev1.EnvVar{
+		{Name: "a", Value: "foo"},
+		{Name: "b", Value: "bar"},
 	}
 
-	found, err := EnvToMap(container.Env)
-	assert.NilError(t, err)
-	assert.DeepEqual(t, expected, found)
+	assert.DeepEqual(t, expected, container.Env)
 }
 
 func TestUpdateEnvVarsModify(t *testing.T) {
@@ -212,13 +211,11 @@ func testUpdateEnvVarsRemove(t *testing.T, revision *servingv1alpha1.RevisionTem
 	err := UpdateEnvVars(revision, map[string]string{}, remove)
 	assert.NilError(t, err)
 
-	expected := map[string]string{
-		"a": "foo",
+	expected := []corev1.EnvVar{
+		{"a", "foo", nil},
 	}
 
-	found, err := EnvToMap(container.Env)
-	assert.NilError(t, err)
-	assert.DeepEqual(t, expected, found)
+	assert.DeepEqual(t, expected, container.Env)
 }
 
 func TestUpdateMinScale(t *testing.T) {
@@ -336,17 +333,13 @@ func testUpdateEnvVarsAll(t *testing.T, template *servingv1alpha1.RevisionTempla
 	err := UpdateEnvVars(template, env, remove)
 	assert.NilError(t, err)
 
-	expected := map[string]string{
-		"a": "fancy",
-		"b": "boo",
-		"c": "caroline",
+	expected := []corev1.EnvVar{
+		{Name: "a", Value: "fancy"},
+		{Name: "b", Value: "boo"},
+		{Name: "c", Value: "caroline"},
 	}
 
-	found, err := EnvToMap(container.Env)
-	assert.NilError(t, err)
-	if !reflect.DeepEqual(expected, found) {
-		t.Fatalf("Env did not match expected %v, found %v", env, found)
-	}
+	assert.DeepEqual(t, expected, container.Env)
 }
 
 func TestUpdateLabelsNew(t *testing.T) {
