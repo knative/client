@@ -14,8 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-source $(dirname $0)/build-flags.sh
-
 set -o pipefail
 
 source_dirs="cmd pkg test"
@@ -46,16 +44,6 @@ run() {
   if $(has_flag --help -h); then
     display_help
     exit 0
-  fi
-
-  if $(has_flag --build-cross -x); then
-    local failed=0
-    echo "🚧 Running kn cross platform build"
-    build_cross || failed=1
-    if (( failed )); then
-      echo "✋ Cross platform build failed"
-    fi
-    exit ${failed}
   fi
 
   if $(has_flag --watch -w); then
@@ -96,6 +84,11 @@ run() {
   codegen
   go_build
   go_test
+
+  # Cross compile in addition if requested
+  if $(has_flag --all -x); then
+    cross_build || (echo "✋ Cross platform build failed" && exit 1)
+  fi
 
   echo "────────────────────────────────────────────"
   ./kn version
@@ -141,8 +134,7 @@ source_format() {
 
 go_build() {
   echo "🚧 Compile"
-  source "./hack/build-flags.sh"
-  go build -mod=vendor -ldflags "$(build_flags .)" -o kn ./cmd/...
+  go build -mod=vendor -ldflags "$(build_flags $(basedir))" -o kn ./cmd/...
 }
 
 go_test() {
@@ -271,17 +263,20 @@ has_flag() {
     echo 'false'
 }
 
-build_cross() {
-  local ld_flags="$(build_flags $(dirname $0)/..)"
+cross_build() {
+  local basedir=$(basedir)
+  local ld_flags="$(build_flags $basedir)"
   local pkg="github.com/knative/client/pkg/kn/commands"
   local failed=0
 
+  echo "⚔️ ${S}Compile"
+
   export CGO_ENABLED=0
-  echo "🚧 🐧 Building for Linux"
+  echo "   🐧 kn-linux-amd64"
   GOOS=linux GOARCH=amd64 go build -mod=vendor -ldflags "${ld_flags}" -o ./kn-linux-amd64 ./cmd/... || failed=1
-  echo "🚧 🍏 Building for macOS"
+  echo "   🍏 kn-darwin-amd64"
   GOOS=darwin GOARCH=amd64 go build -mod=vendor -ldflags "${ld_flags}" -o ./kn-darwin-amd64 ./cmd/... || failed=1
-  echo "🚧 🎠 Building for Windows"
+  echo "   🎠 kn-windows-amd64.exe"
   GOOS=windows GOARCH=amd64 go build -mod=vendor -ldflags "${ld_flags}" -o ./kn-windows-amd64.exe ./cmd/... || failed=1
 
   return ${failed}
@@ -301,7 +296,7 @@ with the following options:
 -t  --test                    Run tests when used with --fast or --watch
 -c  --codegen                 Runs formatting, doc gen and update without compiling/testing
 -w  --watch                   Watch for source changes and recompile in fast mode
--x  --build-cross             Build cross platform binaries
+-x  --all                     Build binaries for all platforms
 -h  --help                    Display this help message
     --verbose                 More output
     --debug                   Debug information for this script (set -x)
@@ -319,7 +314,7 @@ Examples:
 * Run only tests: .................... build.sh --test
 * Compile with tests: ................ build.sh -f -t
 * Automatic recompilation: ........... build.sh --watch
-* Build cross platform binaries: ..... build.sh --build-cross
+* Build cross platform binaries: ..... build.sh --all
 EOT
 }
 
@@ -327,5 +322,8 @@ if $(has_flag --debug); then
     export PS4='+($(basename ${BASH_SOURCE[0]}):${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
     set -x
 fi
+
+# Shared funcs with CI
+source $(basedir)/hack/build-flags.sh
 
 run $*
