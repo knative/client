@@ -1,4 +1,4 @@
-## kn migrate
+## kn service migrate
 
 Migrate Knative services from source cluster to destination cluster
 
@@ -7,7 +7,7 @@ Migrate Knative services from source cluster to destination cluster
 Migrate Knative services from source cluster to destination cluster
 
 ```
-kn migrate [flags]
+kn service migrate [flags]
 ```
 
 ### Examples
@@ -18,7 +18,7 @@ kn migrate [flags]
   kn migrate --source-namespace default --destination-namespace default
 
   # Migrate Knative services from source cluster to destination cluster by set kubeconfig as parameters
-  kn migrate --source-namespace default --destination-namespace default --source-kubeconfig /Users/jordan/.kube/config/source-cluster-config.yml --destination-kubeconfig /Users/jordan/.kube/config/destination-cluster-config.yml
+  kn migrate --source-namespace default --destination-namespace default --source-kubeconfig $HOME/.kube/config/source-cluster-config.yml --destination-kubeconfig $HOME/.kube/config/destination-cluster-config.yml
 
   # Migrate Knative services from source cluster to destination cluster and force replace the service if exists in destination cluster
   kn migrate --source-namespace default --destination-namespace default --force
@@ -49,5 +49,5 @@ kn migrate [flags]
 
 ### SEE ALSO
 
-* [kn](kn.md)	 - Knative client
+* [kn service](kn_service.md)	 - Service command group
 

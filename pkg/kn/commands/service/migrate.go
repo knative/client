@@ -12,12 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kn_migration
+package service
 
 import (
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -32,10 +31,9 @@ import (
 	"knative.dev/client/pkg/serving/v1alpha1"
 	v1alpha12 "knative.dev/client/pkg/serving/v1alpha1"
 	serving_v1alpha1_api "knative.dev/serving/pkg/apis/serving/v1alpha1"
-	//serving_v1alpha1_client "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
 )
 
-func NewMigrateCommand(p *commands.KnParams) *cobra.Command {
+func NewServiceMigrateCommand(p *commands.KnParams) *cobra.Command {
 	var migrateFlags MigrateFlags
 
 	serviceMigrateCommand := &cobra.Command{
@@ -46,7 +44,7 @@ func NewMigrateCommand(p *commands.KnParams) *cobra.Command {
   kn migrate --source-namespace default --destination-namespace default
 
   # Migrate Knative services from source cluster to destination cluster by set kubeconfig as parameters
-  kn migrate --source-namespace default --destination-namespace default --source-kubeconfig /Users/jordan/.kube/config/source-cluster-config.yml --destination-kubeconfig /Users/jordan/.kube/config/destination-cluster-config.yml
+  kn migrate --source-namespace default --destination-namespace default --source-kubeconfig $HOME/.kube/config/source-cluster-config.yml --destination-kubeconfig $HOME/.kube/config/destination-cluster-config.yml
 
   # Migrate Knative services from source cluster to destination cluster and force replace the service if exists in destination cluster
   kn migrate --source-namespace default --destination-namespace default --force
@@ -75,7 +73,7 @@ func NewMigrateCommand(p *commands.KnParams) *cobra.Command {
 				kubeconfigS = os.Getenv("KUBECONFIG")
 			}
 			if kubeconfigS == "" {
-				return fmt.Errorf("cannot get source cluster kube config, please use --destination-kubeconfig or export env KUBECONFIG2 to set")
+				return fmt.Errorf("cannot get source cluster kube config, please use --source-kubeconfig or export env KUBECONFIG2 to set")
 			}
 
 			kubeconfigD := migrateFlags.DestinationKubeconfig
@@ -131,6 +129,9 @@ func NewMigrateCommand(p *commands.KnParams) *cobra.Command {
 				fmt.Println("Create namespace", color.BlueString(namespaceD), "in destination cluster")
 				nsSpec := &apiv1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespaceD}}
 				_, err = clientset.CoreV1().Namespaces().Create(nsSpec)
+				if err != nil {
+					return err
+				}
 			} else {
 				fmt.Println("Namespace", color.BlueString(namespaceD), "already exists in destination cluster")
 			}
@@ -156,13 +157,13 @@ func NewMigrateCommand(p *commands.KnParams) *cobra.Command {
 						os.Exit(1)
 					}
 					fmt.Println("Deleting service", color.CyanString(service_s.Name), "from the destination cluster and recreate as replacement")
-					client_d.DeleteService(service_s.Name)
+					err = client_d.DeleteService(service_s.Name)
 					if err != nil {
 						return err
 					}
 				}
 
-				err = client_d.CreateService(constructService(service_s, namespaceD))
+				err = client_d.CreateService(constructMigratedService(service_s, namespaceD))
 				if err != nil {
 					return err
 				}
@@ -196,19 +197,28 @@ func NewMigrateCommand(p *commands.KnParams) *cobra.Command {
 						}
 						fmt.Println("Migrate revision", color.CyanString(revision.Name), "successfully")
 					} else {
-						time.Sleep(3 * time.Second)
-						revision, err := client_d.GetRevision(revision_s.Name)
-						if err != nil {
-							return err
-						}
+						retries := 0
+						for {
+							revision, err := client_d.GetRevision(revision_s.Name)
+							if err != nil {
+								return err
+							}
 
-						source_revision_generation := revision_s.ObjectMeta.Labels["serving.knative.dev/configurationGeneration"]
-						revision.ObjectMeta.Labels["serving.knative.dev/configurationGeneration"] = source_revision_generation
-						_, err = servingclient_d.Revisions(namespaceD).Update(revision)
-						if err != nil {
-							return err
+							source_revision_generation := revision_s.ObjectMeta.Labels["serving.knative.dev/configurationGeneration"]
+							revision.ObjectMeta.Labels["serving.knative.dev/configurationGeneration"] = source_revision_generation
+							_, err = servingclient_d.Revisions(namespaceD).Update(revision)
+							if err != nil {
+								// Retry to update when a resource version conflict exists
+								if api_errors.IsConflict(err) && retries < MaxUpdateRetries {
+									fmt.Println("IsConflict")
+									retries++
+									continue
+								}
+								return err
+							}
+							fmt.Println("Replace revision", color.CyanString(revision_s.Name), "to generation", source_revision_generation, "successfully")
+							break
 						}
-						fmt.Println("Replace revision", color.CyanString(revision_s.Name), "to generation", source_revision_generation, "successfully")
 					}
 				}
 				fmt.Println("")
@@ -281,31 +291,16 @@ func printServiceWithRevisions(client v1alpha1.KnClient, namespace, clustername 
 	return nil
 }
 
-// Check if service exists
-func serviceExists(client v1alpha1.KnClient, name string) (bool, error) {
-	_, err := client.GetService(name)
-	if api_errors.IsNotFound(err) {
-		return false, nil
-	}
-	if err != nil {
-		return false, err
-	}
-	return true, nil
-}
-
 // Create service struct from provided options
-func constructService(originalservice serving_v1alpha1_api.Service, namespace string) *serving_v1alpha1_api.Service {
-
+func constructMigratedService(originalservice serving_v1alpha1_api.Service, namespace string) *serving_v1alpha1_api.Service {
 	service := serving_v1alpha1_api.Service{
 		ObjectMeta: originalservice.ObjectMeta,
 	}
 
 	service.ObjectMeta.Namespace = namespace
-
 	service.Spec = originalservice.Spec
 	service.Spec.Template.ObjectMeta.Name = originalservice.Status.LatestCreatedRevisionName
 	service.ObjectMeta.ResourceVersion = ""
-
 	return &service
 }
 

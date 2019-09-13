@@ -12,7 +12,7 @@
 //// See the License for the specific language governing permissions and
 //// limitations under the License.
 //
-package kn_migration
+package service
 
 import (
 	"errors"
@@ -23,13 +23,11 @@ import (
 	api_errors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/watch"
+	servinglib "knative.dev/client/pkg/serving"
 
 	"knative.dev/client/pkg/kn/commands"
-	service_command "knative.dev/client/pkg/kn/commands/service"
-	servinglib "knative.dev/client/pkg/serving"
 	"knative.dev/client/pkg/wait"
 
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	client_testing "k8s.io/client-go/testing"
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
@@ -42,7 +40,7 @@ func fakeMigrate(args []string, withExistingService bool, sync bool) (
 	err error) {
 	knParams := &commands.KnParams{}
 	nrGetCalled := 0
-	cmd, fakeServing, buf := commands.CreateTestKnCommand(service_command.NewServiceCommand(knParams), knParams)
+	cmd, fakeServing, buf := commands.CreateTestKnCommand(NewServiceCommand(knParams), knParams)
 	fakeServing.AddReactor("get", "services",
 		func(a client_testing.Action) (bool, runtime.Object, error) {
 			nrGetCalled++
@@ -104,16 +102,8 @@ func fakeMigrate(args []string, withExistingService bool, sync bool) (
 	return
 }
 
-func getServiceEvents(name string) []watch.Event {
-	return []watch.Event{
-		{watch.Added, wait.CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "")},
-		{watch.Modified, wait.CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionTrue, "")},
-		{watch.Modified, wait.CreateTestServiceWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "")},
-	}
-}
-
-func TestMigrateWithOneParameter(t *testing.T) {
-	action, created, output, err := fakeMigrate([]string{
+func TestMigrateWithoutNamespaceParameter(t *testing.T) {
+	action, created, output, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--async"}, false, false)
 	if err != nil {
 		t.Fatal(err)
@@ -130,15 +120,17 @@ func TestMigrateWithOneParameter(t *testing.T) {
 		t.Fatalf("wrong stdout message: %v", output)
 	}
 
-	_, _, _, err = fakeMigrate([]string{
-		"migrate", "--source-namespace", "default", "--destination-namespace", "default"}, false, false)
+	_, _, output, err = fakeMigrate([]string{
+		"service", "migrate"}, false, false)
 	if err != nil {
-		//t.Fatal(err)
+		if !strings.Contains(output, "--source-namespace") {
+			t.Fatalf("wrong stdout message: %v", output)
+		}
 	}
 }
 
-func TestMigrateWithAllParameters(t *testing.T) {
-	action, created, output, err := fakeMigrate([]string{
+func TestMigrateWithoutKubeconfigParameter(t *testing.T) {
+	action, created, output, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz"}, false, true)
 	if err != nil {
 		t.Fatal(err)
@@ -159,10 +151,11 @@ func TestMigrateWithAllParameters(t *testing.T) {
 	if !strings.Contains(output, "OK") || !strings.Contains(output, "Waiting") {
 		t.Fatalf("not running in sync mode")
 	}
-
-	_, _, _, err = fakeMigrate([]string{
-		"migrate", "--source-namespace", "default", "--destination-namespace", "default", "--force", "--delete"}, false, false)
+	_, _, output, err = fakeMigrate([]string{
+		"service", "migrate", "--source-namespace", "default", "--destination-namespace", "default"}, false, false)
 	if err != nil {
-		//t.Fatal(err)
+		if !strings.Contains(output, "--source-kubeconfig") {
+			t.Fatalf("wrong stdout message: %v", output)
+		}
 	}
 }

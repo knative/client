@@ -31,5 +31,6 @@ kn service [flags]
 * [kn service delete](kn_service_delete.md)	 - Delete a service.
 * [kn service describe](kn_service_describe.md)	 - Show details for a given service
 * [kn service list](kn_service_list.md)	 - List available services.
+* [kn service migrate](kn_service_migrate.md)	 - Migrate Knative services from source cluster to destination cluster
 * [kn service update](kn_service_update.md)	 - Update a service.
 
