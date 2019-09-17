@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"knative.dev/serving/pkg/apis/autoscaling"
 	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
 	servingv1beta1 "knative.dev/serving/pkg/apis/serving/v1beta1"
@@ -243,23 +244,17 @@ func UpdateLabels(service *servingv1alpha1.Service, template *servingv1alpha1.Re
 // =======================================================================================
 
 func updateEnvVarsFromMap(env []corev1.EnvVar, toUpdate map[string]string) []corev1.EnvVar {
-	set := make(map[string]bool)
+	set := sets.NewString()
 	for i := range env {
 		envVar := &env[i]
-		value, present := toUpdate[envVar.Name]
-		if present {
-			envVar.Value = value
-			set[envVar.Name] = true
+		if val, ok := toUpdate[envVar.Name]; ok {
+			envVar.Value = val
+			set.Insert(envVar.Name)
 		}
 	}
-	for name, value := range toUpdate {
-		if !set[name] {
-			env = append(
-				env,
-				corev1.EnvVar{
-					Name:  name,
-					Value: value,
-				})
+	for name, val := range toUpdate {
+		if !set.Has(name) {
+			env = append(env, corev1.EnvVar{Name: name, Value: val})
 		}
 	}
 	return env
