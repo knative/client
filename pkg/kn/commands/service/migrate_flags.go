@@ -20,8 +20,8 @@ import (
 
 type MigrateFlags struct {
 	// Migration information
-	SourceKubeconfig, DestinationKubeconfig string
-	SourceNamespace, DestinationNamespace   string
+	DestinationKubeconfig                 string
+	SourceNamespace, DestinationNamespace string
 
 	// Preferences about how to do the action.
 	ForceReplace   bool
@@ -30,10 +30,9 @@ type MigrateFlags struct {
 
 // addFlags adds the flags to kn-migration.
 func (p *MigrateFlags) addFlags(command *cobra.Command) {
-	command.Flags().StringVar(&p.SourceKubeconfig, "source-kubeconfig", "", "The kubeconfig of the source Knative resources (default is KUBECONFIG2 from ENV property)")
-	command.Flags().StringVar(&p.SourceNamespace, "source-namespace", "", "The namespace of the source Knative resources")
+	command.Flags().StringVarP(&p.SourceNamespace, "namespace", "n", "default", "The namespace of the source Knative resources")
 
-	command.Flags().StringVar(&p.DestinationKubeconfig, "destination-kubeconfig", "", "The kubeconfig of the destination Knative resources (default is KUBECONFIG2 from ENV property)")
+	command.Flags().StringVar(&p.DestinationKubeconfig, "destination-kubeconfig", "", "The kubeconfig of the destination Knative resources (default is KUBECONFIG_DESTINATION from environment variable)")
 	command.Flags().StringVar(&p.DestinationNamespace, "destination-namespace", "", "The namespace of the destination Knative resources")
 
 	command.Flags().BoolVar(&p.ForceReplace, "force", false, "Migrate service forcefully, replaces existing service if any.")

@@ -14,29 +14,28 @@ kn service migrate [flags]
 
 ```
 
-  # Migrate Knative services from source cluster to destination cluster by export KUBECONFIG as environment variables
-  kn migrate --source-namespace default --destination-namespace default
+  # Migrate Knative services from source cluster to destination cluster by export KUBECONFIG and KUBECONFIG_DESTINATION as environment variables
+  kn migrate --namespace default --destination-namespace default
 
   # Migrate Knative services from source cluster to destination cluster by set kubeconfig as parameters
-  kn migrate --source-namespace default --destination-namespace default --source-kubeconfig $HOME/.kube/config/source-cluster-config.yml --destination-kubeconfig $HOME/.kube/config/destination-cluster-config.yml
+  kn migrate --namespace default --destination-namespace default --kubeconfig $HOME/.kube/config/source-cluster-config.yml --destination-kubeconfig $HOME/.kube/config/destination-cluster-config.yml
 
   # Migrate Knative services from source cluster to destination cluster and force replace the service if exists in destination cluster
-  kn migrate --source-namespace default --destination-namespace default --force
+  kn migrate --namespace default --destination-namespace default --force
 
   # Migrate Knative services from source cluster to destination cluster and delete the service in source cluster
-  kn migrate --source-namespace default --destination-namespace default --force --delete
+  kn migrate --namespace default --destination-namespace default --force --delete
 ```
 
 ### Options
 
 ```
       --delete                          Delete all Knative resources after kn-migration from source cluster
-      --destination-kubeconfig string   The kubeconfig of the destination Knative resources (default is KUBECONFIG2 from ENV property)
+      --destination-kubeconfig string   The kubeconfig of the destination Knative resources (default is KUBECONFIG_DESTINATION from environment variable)
       --destination-namespace string    The namespace of the destination Knative resources
       --force                           Migrate service forcefully, replaces existing service if any.
   -h, --help                            help for migrate
-      --source-kubeconfig string        The kubeconfig of the source Knative resources (default is KUBECONFIG2 from ENV property)
-      --source-namespace string         The namespace of the source Knative resources
+  -n, --namespace string                The namespace of the source Knative resources (default "default")
 ```
 
 ### Options inherited from parent commands

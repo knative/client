@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	apiv1 "k8s.io/api/core/v1"
 	api_errors "k8s.io/apimachinery/pkg/api/errors"
@@ -40,27 +39,28 @@ func NewServiceMigrateCommand(p *commands.KnParams) *cobra.Command {
 		Use:   "migrate",
 		Short: "Migrate Knative services from source cluster to destination cluster",
 		Example: `
-  # Migrate Knative services from source cluster to destination cluster by export KUBECONFIG as environment variables
-  kn migrate --source-namespace default --destination-namespace default
+  # Migrate Knative services from source cluster to destination cluster by export KUBECONFIG and KUBECONFIG_DESTINATION as environment variables
+  kn migrate --namespace default --destination-namespace default
 
   # Migrate Knative services from source cluster to destination cluster by set kubeconfig as parameters
-  kn migrate --source-namespace default --destination-namespace default --source-kubeconfig $HOME/.kube/config/source-cluster-config.yml --destination-kubeconfig $HOME/.kube/config/destination-cluster-config.yml
+  kn migrate --namespace default --destination-namespace default --kubeconfig $HOME/.kube/config/source-cluster-config.yml --destination-kubeconfig $HOME/.kube/config/destination-cluster-config.yml
 
   # Migrate Knative services from source cluster to destination cluster and force replace the service if exists in destination cluster
-  kn migrate --source-namespace default --destination-namespace default --force
+  kn migrate --namespace default --destination-namespace default --force
 
   # Migrate Knative services from source cluster to destination cluster and delete the service in source cluster
-  kn migrate --source-namespace default --destination-namespace default --force --delete`,
+  kn migrate --namespace default --destination-namespace default --force --delete`,
 
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 
 			namespaceS := ""
 			namespaceD := ""
 			if migrateFlags.SourceNamespace == "" {
-				return fmt.Errorf("cannot get source cluster namespace, please use --source-namespace to set")
+				return fmt.Errorf("cannot get source cluster namespace, please use --namespace to set")
 			} else {
 				namespaceS = migrateFlags.SourceNamespace
 			}
+			p.GetClientConfig()
 
 			if migrateFlags.DestinationNamespace == "" {
 				return fmt.Errorf("cannot get destination cluster namespace, please use --destination-namespace to set")
@@ -68,20 +68,20 @@ func NewServiceMigrateCommand(p *commands.KnParams) *cobra.Command {
 				namespaceD = migrateFlags.DestinationNamespace
 			}
 
-			kubeconfigS := migrateFlags.SourceKubeconfig
+			kubeconfigS := p.KubeCfgPath
 			if kubeconfigS == "" {
 				kubeconfigS = os.Getenv("KUBECONFIG")
 			}
 			if kubeconfigS == "" {
-				return fmt.Errorf("cannot get source cluster kube config, please use --source-kubeconfig or export env KUBECONFIG2 to set")
+				return fmt.Errorf("cannot get source cluster kube config, please use --kubeconfig or export environment variable KUBECONFIG to set")
 			}
 
 			kubeconfigD := migrateFlags.DestinationKubeconfig
 			if kubeconfigD == "" {
-				kubeconfigD = os.Getenv("KUBECONFIG2")
+				kubeconfigD = os.Getenv("KUBECONFIG_DESTINATION")
 			}
 			if kubeconfigD == "" {
-				return fmt.Errorf("cannot get destination cluster kube config, please use --destination-kubeconfig or export env KUBECONFIG2 to set")
+				return fmt.Errorf("cannot get destination cluster kube config, please use --destination-kubeconfig or export environment variable KUBECONFIG_DESTINATION to set")
 			}
 
 			// For source
@@ -106,14 +106,14 @@ func NewServiceMigrateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			fmt.Println(color.GreenString("[Before migration in destination cluster]"))
+			fmt.Println("[Before migration in destination cluster]")
 			err = printServiceWithRevisions(client_d, namespaceD, "destination")
 			if err != nil {
 				return err
 			}
 
-			fmt.Println("\nNow migrate all Knative resources: \nFrom the source namespace ", color.BlueString(namespaceS), "of cluster", color.CyanString(p.KubeCfgPath))
-			fmt.Println("To the destination namespace", color.BlueString(namespaceD), "of cluster", color.CyanString(kubeconfigD))
+			fmt.Println("\nNow migrate all Knative resources: \nFrom the source namespace ", namespaceS, "of cluster", p.KubeCfgPath)
+			fmt.Println("To the destination namespace", namespaceD, "of cluster", kubeconfigD)
 
 			cfg_d, err := clientcmd.BuildConfigFromFlags("", dp.KubeCfgPath)
 			clientset, err := clientset.NewForConfig(cfg_d)
@@ -126,14 +126,14 @@ func NewServiceMigrateCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			if !namespaceExists {
-				fmt.Println("Create namespace", color.BlueString(namespaceD), "in destination cluster")
+				fmt.Println("Create namespace", namespaceD, "in destination cluster")
 				nsSpec := &apiv1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespaceD}}
 				_, err = clientset.CoreV1().Namespaces().Create(nsSpec)
 				if err != nil {
 					return err
 				}
 			} else {
-				fmt.Println("Namespace", color.BlueString(namespaceD), "already exists in destination cluster")
+				fmt.Println("Namespace", namespaceD, "already exists in destination cluster")
 			}
 			if err != nil {
 				return err
@@ -152,11 +152,11 @@ func NewServiceMigrateCommand(p *commands.KnParams) *cobra.Command {
 
 				if serviceExists {
 					if !migrateFlags.ForceReplace {
-						fmt.Println("\n[Error] Cannot kn-migration service", color.CyanString(service_s.Name), "in namespace", color.BlueString(namespaceS),
+						fmt.Println("\n[Error] Cannot kn-migration service", service_s.Name, "in namespace", namespaceS,
 							"because the service already exists and no --force option was given")
 						os.Exit(1)
 					}
-					fmt.Println("Deleting service", color.CyanString(service_s.Name), "from the destination cluster and recreate as replacement")
+					fmt.Println("Deleting service", service_s.Name, "from the destination cluster and recreate as replacement")
 					err = client_d.DeleteService(service_s.Name)
 					if err != nil {
 						return err
@@ -167,7 +167,7 @@ func NewServiceMigrateCommand(p *commands.KnParams) *cobra.Command {
 				if err != nil {
 					return err
 				}
-				fmt.Println("Migrate service", color.CyanString(service_s.Name), "Successfully")
+				fmt.Println("Migrate service", service_s.Name, "Successfully")
 
 				service_d, err := client_d.GetService(service_s.Name)
 				if err != nil {
@@ -195,7 +195,7 @@ func NewServiceMigrateCommand(p *commands.KnParams) *cobra.Command {
 						if err != nil {
 							return err
 						}
-						fmt.Println("Migrate revision", color.CyanString(revision.Name), "successfully")
+						fmt.Println("Migrate revision", revision.Name, "successfully")
 					} else {
 						retries := 0
 						for {
@@ -210,13 +210,12 @@ func NewServiceMigrateCommand(p *commands.KnParams) *cobra.Command {
 							if err != nil {
 								// Retry to update when a resource version conflict exists
 								if api_errors.IsConflict(err) && retries < MaxUpdateRetries {
-									fmt.Println("IsConflict")
 									retries++
 									continue
 								}
 								return err
 							}
-							fmt.Println("Replace revision", color.CyanString(revision_s.Name), "to generation", source_revision_generation, "successfully")
+							fmt.Println("Replace revision", revision_s.Name, "to generation", source_revision_generation, "successfully")
 							break
 						}
 					}
@@ -224,7 +223,7 @@ func NewServiceMigrateCommand(p *commands.KnParams) *cobra.Command {
 				fmt.Println("")
 			}
 
-			fmt.Println(color.GreenString("[After migration in destination cluster]"))
+			fmt.Println("[After migration in destination cluster]")
 			err = printServiceWithRevisions(client_d, namespaceD, "destination")
 			if err != nil {
 				return err
@@ -244,7 +243,7 @@ func NewServiceMigrateCommand(p *commands.KnParams) *cobra.Command {
 					if err != nil {
 						return err
 					}
-					fmt.Println("Deleted service", color.CyanString(service_s.Name), "in source cluster", namespaceS, "namespace")
+					fmt.Println("Deleted service", service_s.Name, "in source cluster", namespaceS, "namespace")
 				}
 			}
 			return nil
@@ -272,10 +271,10 @@ func printServiceWithRevisions(client v1alpha1.KnClient, namespace, clustername 
 		return err
 	}
 
-	fmt.Println("There are", color.CyanString("%v", len(services.Items)), "service(s) in", clustername, "cluster", color.BlueString(namespace), "namespace:")
+	fmt.Println("There are", len(services.Items), "service(s) in", clustername, "cluster", namespace, "namespace:")
 	for i := 0; i < len(services.Items); i++ {
 		service := services.Items[i]
-		color.Cyan("%-25s%-30s%-20s\n", "Name", "Current Revision", "Ready")
+		fmt.Printf("%-25s%-30s%-20s\n", "Name", "Current Revision", "Ready")
 		fmt.Printf("%-25s%-30s%-20s\n", service.Name, service.Status.LatestReadyRevisionName, fmt.Sprint(service.Status.IsReady()))
 
 		revisions_s, err := client.ListRevisions(v1alpha12.WithService(service.Name))
