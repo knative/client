@@ -152,7 +152,7 @@ func NewServiceMigrateCommand(p *commands.KnParams) *cobra.Command {
 
 				if serviceExists {
 					if !migrateFlags.ForceReplace {
-						fmt.Println("\n[Error] Cannot kn-migration service", service_s.Name, "in namespace", namespaceS,
+						fmt.Println("\n[Error] Cannot migrate service", service_s.Name, "in namespace", namespaceS,
 							"because the service already exists and no --force option was given")
 						os.Exit(1)
 					}
@@ -167,7 +167,7 @@ func NewServiceMigrateCommand(p *commands.KnParams) *cobra.Command {
 				if err != nil {
 					return err
 				}
-				fmt.Println("Migrate service", service_s.Name, "Successfully")
+				fmt.Println("Migrated service", service_s.Name, "Successfully")
 
 				service_d, err := client_d.GetService(service_s.Name)
 				if err != nil {
@@ -195,7 +195,7 @@ func NewServiceMigrateCommand(p *commands.KnParams) *cobra.Command {
 						if err != nil {
 							return err
 						}
-						fmt.Println("Migrate revision", revision.Name, "successfully")
+						fmt.Println("Migrated revision", revision.Name, "successfully")
 					} else {
 						retries := 0
 						for {
