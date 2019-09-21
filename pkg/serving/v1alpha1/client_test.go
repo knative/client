@@ -422,9 +422,8 @@ func TestGetBaseRevision(t *testing.T) {
 		if c.foundRevisionImage != "" {
 			revision.Spec.Containers[0].Image = c.foundRevisionImage
 			return true, revision, nil
-		} else {
-			return true, nil, errors.NewNotFound(v1alpha1.Resource("revision"), name)
 		}
+		return true, nil, errors.NewNotFound(v1alpha1.Resource("revision"), name)
 	})
 	for _, c = range cases {
 		service := v1alpha1.Service{}
