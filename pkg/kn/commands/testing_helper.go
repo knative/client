@@ -39,8 +39,6 @@ var (
 	output    string
 
 	readFile, writeFile *os.File
-
-	origArgs []string
 )
 
 // CreateTestKnCommand helper for creating test commands

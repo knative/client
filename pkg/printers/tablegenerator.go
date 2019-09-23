@@ -38,7 +38,6 @@ type PrintHandler interface {
 type handlerEntry struct {
 	columnDefinitions []metav1beta1.TableColumnDefinition
 	printFunc         reflect.Value
-	args              []reflect.Value
 }
 
 // HumanReadablePrinter is an implementation of ResourcePrinter which attempts to provide

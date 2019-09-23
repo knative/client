@@ -143,7 +143,10 @@ func TestServiceUpdateImageSync(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
+	err = servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	action, updated, output, err := fakeServiceUpdate(orig, []string{
 		"service", "update", "foo", "--image", "gcr.io/foo/quux:xyzzy", "--namespace", "bar"}, true)
@@ -166,7 +169,10 @@ func TestServiceUpdateImage(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
+		err = servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
+		if err != nil {
+			t.Fatal(err)
+		}
 
 		action, updated, output, err := fakeServiceUpdate(orig, []string{
 			"service", "update", "foo", "--image", "gcr.io/foo/quux:xyzzy", "--namespace", "bar", "--async"}, false)
@@ -371,7 +377,10 @@ func TestServiceUpdatePinsToDigestWhenAsked(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
+	err = servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	action, updated, _, err := fakeServiceUpdate(orig, []string{
 		"service", "update", "foo", "-e", "TARGET=Awesome", "--lock-to-digest", "--async"}, false)
@@ -396,7 +405,10 @@ func TestServiceUpdatePinsToDigestWhenPreviouslyDidSo(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
+	err = servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	action, updated, _, err := fakeServiceUpdate(orig, []string{
 		"service", "update", "foo", "-e", "TARGET=Awesome", "--async"}, false)
@@ -421,7 +433,10 @@ func TestServiceUpdateDoesntPinToDigestWhenUnAsked(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
+	err = servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	action, updated, _, err := fakeServiceUpdate(orig, []string{
 		"service", "update", "foo", "-e", "TARGET=Awesome", "--no-lock-to-digest", "--async"}, false)
@@ -443,12 +458,15 @@ func TestServiceUpdateDoesntPinToDigestWhenPreviouslyDidnt(t *testing.T) {
 	orig := newEmptyService()
 
 	template, err := servinglib.RevisionTemplateOfService(orig)
-	delete(template.Annotations, servinglib.UserImageAnnotationKey)
 	if err != nil {
 		t.Fatal(err)
 	}
+	delete(template.Annotations, servinglib.UserImageAnnotationKey)
 
-	servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
+	err = servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	action, updated, _, err := fakeServiceUpdate(orig, []string{
 		"service", "update", "foo", "-e", "TARGET=Awesome", "--async"}, false)
