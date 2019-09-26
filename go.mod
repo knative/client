@@ -33,3 +33,5 @@ require (
 	knative.dev/test-infra v0.0.0-20190730202142-17f2331e80ad
 	sigs.k8s.io/yaml v1.1.0
 )
+
+go 1.13
