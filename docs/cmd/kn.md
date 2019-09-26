@@ -22,10 +22,10 @@ Manage your Knative building blocks:
 
 ### SEE ALSO
 
-* [kn importer](kn_importer.md)	 - Importer command group
 * [kn plugin](kn_plugin.md)	 - Plugin command group
 * [kn revision](kn_revision.md)	 - Revision command group
 * [kn route](kn_route.md)	 - Route command group
 * [kn service](kn_service.md)	 - Service command group
+* [kn source](kn_source.md)	 - Source command group
 * [kn version](kn_version.md)	 - Prints the client version
 

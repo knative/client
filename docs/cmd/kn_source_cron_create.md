@@ -1,4 +1,4 @@
-## kn importer cron create
+## kn source cron create
 
 Create an Crontab scheduler as importer
 
@@ -7,7 +7,7 @@ Create an Crontab scheduler as importer
 Create an Crontab scheduler as importer
 
 ```
-kn importer cron create NAME --crontab SCHEDULE --sink SERVICE --data DATA [flags]
+kn source cron create NAME --crontab SCHEDULE --sink SERVICE --data DATA [flags]
 ```
 
 ### Examples
@@ -38,5 +38,5 @@ kn importer cron create NAME --crontab SCHEDULE --sink SERVICE --data DATA [flag
 
 ### SEE ALSO
 
-* [kn importer cron](kn_importer_cron.md)	 - Cron source command group
+* [kn source cron](kn_source_cron.md)	 - Cron source command group
 

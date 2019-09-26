@@ -23,8 +23,8 @@ import (
 
 func NewImporterCommand(p *commands.KnParams) *cobra.Command {
 	importerCmd := &cobra.Command{
-		Use:   "importer",
-		Short: "Importer command group",
+		Use:   "source",
+		Short: "Source command group",
 	}
 	importerCmd.AddCommand(cron.NewCronCommand(p))
 	return importerCmd

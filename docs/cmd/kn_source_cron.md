@@ -1,19 +1,19 @@
-## kn importer
+## kn source cron
 
-Importer command group
+Cron source command group
 
 ### Synopsis
 
-Importer command group
+Cron source command group
 
 ```
-kn importer [flags]
+kn source cron [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for importer
+  -h, --help   help for cron
 ```
 
 ### Options inherited from parent commands
@@ -26,6 +26,6 @@ kn importer [flags]
 
 ### SEE ALSO
 
-* [kn](kn.md)	 - Knative client
-* [kn importer cron](kn_importer_cron.md)	 - Cron source command group
+* [kn source](kn_source.md)	 - Source command group
+* [kn source cron create](kn_source_cron_create.md)	 - Create an Crontab scheduler as importer
 
