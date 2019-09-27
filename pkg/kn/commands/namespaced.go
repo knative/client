@@ -28,7 +28,7 @@ func AddNamespaceFlags(flags *pflag.FlagSet, allowAll bool) {
 		"namespace",
 		"n",
 		"",
-		"List the requested object(s) in given namespace.",
+		"Specify the namespace to operate in.",
 	)
 
 	if allowAll {
