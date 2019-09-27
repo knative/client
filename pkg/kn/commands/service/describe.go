@@ -452,7 +452,7 @@ func age(t time.Time) string {
 
 // Call the backend to query revisions for the given service and build up
 // the view objects used for output
-func getRevisionDescriptions(client serving_kn_v1alpha1.KnClient, service *v1alpha1.Service, withDetails bool) ([]*revisionDesc, error) {
+func getRevisionDescriptions(client serving_kn_v1alpha1.KnServingClient, service *v1alpha1.Service, withDetails bool) ([]*revisionDesc, error) {
 	revisionDescs := make(map[string]*revisionDesc)
 
 	trafficTargets := service.Status.Traffic
@@ -489,7 +489,7 @@ func orderByConfigurationGeneration(descs map[string]*revisionDesc) []*revisionD
 	return descsList
 }
 
-func completeWithUntargetedRevisions(client serving_kn_v1alpha1.KnClient, service *v1alpha1.Service, descs map[string]*revisionDesc) error {
+func completeWithUntargetedRevisions(client serving_kn_v1alpha1.KnServingClient, service *v1alpha1.Service, descs map[string]*revisionDesc) error {
 	revisions, err := client.ListRevisions(serving_kn_v1alpha1.WithService(service.Name))
 	if err != nil {
 		return err
@@ -635,7 +635,7 @@ func extractContainer(revision *v1alpha1.Revision) *v1.Container {
 	return revision.Spec.DeprecatedContainer
 }
 
-func extractRevisionFromTarget(client serving_kn_v1alpha1.KnClient, target v1alpha1.TrafficTarget) (*v1alpha1.Revision, error) {
+func extractRevisionFromTarget(client serving_kn_v1alpha1.KnServingClient, target v1alpha1.TrafficTarget) (*v1alpha1.Revision, error) {
 	var revisionName = target.RevisionName
 	if revisionName == "" {
 		configurationName := target.ConfigurationName

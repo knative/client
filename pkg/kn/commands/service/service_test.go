@@ -47,13 +47,13 @@ current-context: x
 	}
 }
 
-func executeServiceCommand(client knclient.KnClient, args ...string) (string, error) {
+func executeServiceCommand(client knclient.KnServingClient, args ...string) (string, error) {
 	knParams := &commands.KnParams{}
 	knParams.ClientConfig = blankConfig
 
 	output := new(bytes.Buffer)
 	knParams.Output = output
-	knParams.NewClient = func(namespace string) (knclient.KnClient, error) {
+	knParams.NewClient = func(namespace string) (knclient.KnServingClient, error) {
 		return client, nil
 	}
 	cmd := NewServiceCommand(knParams)

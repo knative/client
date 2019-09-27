@@ -134,7 +134,7 @@ func flush(out io.Writer) {
 	}
 }
 
-func createService(client v1alpha1.KnClient, service *serving_v1alpha1_api.Service, namespace string, out io.Writer) error {
+func createService(client v1alpha1.KnServingClient, service *serving_v1alpha1_api.Service, namespace string, out io.Writer) error {
 	err := client.CreateService(service)
 	if err != nil {
 		return err
@@ -143,7 +143,7 @@ func createService(client v1alpha1.KnClient, service *serving_v1alpha1_api.Servi
 	return nil
 }
 
-func replaceService(client v1alpha1.KnClient, service *serving_v1alpha1_api.Service, namespace string, out io.Writer) error {
+func replaceService(client v1alpha1.KnServingClient, service *serving_v1alpha1_api.Service, namespace string, out io.Writer) error {
 	var retries = 0
 	for {
 		existingService, err := client.GetService(service.Name)
@@ -186,7 +186,7 @@ func replaceService(client v1alpha1.KnClient, service *serving_v1alpha1_api.Serv
 	}
 }
 
-func serviceExists(client v1alpha1.KnClient, name string) (bool, error) {
+func serviceExists(client v1alpha1.KnServingClient, name string) (bool, error) {
 	_, err := client.GetService(name)
 	if api_errors.IsNotFound(err) {
 		return false, nil
@@ -225,7 +225,7 @@ func constructService(cmd *cobra.Command, editFlags ConfigurationEditFlags, name
 	return &service, nil
 }
 
-func showUrl(client v1alpha1.KnClient, serviceName string, namespace string, out io.Writer) error {
+func showUrl(client v1alpha1.KnServingClient, serviceName string, namespace string, out io.Writer) error {
 	service, err := client.GetService(serviceName)
 	if err != nil {
 		return fmt.Errorf("cannot fetch service '%s' in namespace '%s' for extracting the URL: %v", serviceName, namespace, err)
