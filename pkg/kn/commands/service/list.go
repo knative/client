@@ -85,7 +85,7 @@ func NewServiceListCommand(p *commands.KnParams) *cobra.Command {
 	return serviceListCommand
 }
 
-func getServiceInfo(args []string, client v1alpha12.KnClient) (*v1alpha1.ServiceList, error) {
+func getServiceInfo(args []string, client v1alpha12.KnServingClient) (*v1alpha1.ServiceList, error) {
 	var (
 		serviceList *v1alpha1.ServiceList
 		err         error

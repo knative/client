@@ -23,7 +23,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/mitchellh/go-homedir"
+	homedir "github.com/mitchellh/go-homedir"
 )
 
 // PluginHandler is capable of parsing command line arguments

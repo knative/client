@@ -44,7 +44,7 @@ func NewServiceCommand(p *commands.KnParams) *cobra.Command {
 	return serviceCmd
 }
 
-func waitForService(client serving_kn_v1alpha1.KnClient, serviceName string, out io.Writer, timeout int) error {
+func waitForService(client serving_kn_v1alpha1.KnServingClient, serviceName string, out io.Writer, timeout int) error {
 	fmt.Fprintf(out, "Waiting for service '%s' to become ready ... ", serviceName)
 	flush(out)
 

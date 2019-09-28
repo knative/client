@@ -46,7 +46,7 @@ func CreateTestKnCommand(cmd *cobra.Command, knParams *KnParams) (*cobra.Command
 	buf := new(bytes.Buffer)
 	fakeServing := &fake.FakeServingV1alpha1{&client_testing.Fake{}}
 	knParams.Output = buf
-	knParams.NewClient = func(namespace string) (v1alpha1.KnClient, error) {
+	knParams.NewClient = func(namespace string) (v1alpha1.KnServingClient, error) {
 		return v1alpha1.NewKnServingClient(fakeServing, namespace), nil
 	}
 	knParams.fixedCurrentNamespace = FakeNamespace
