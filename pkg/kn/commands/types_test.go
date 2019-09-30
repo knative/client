@@ -106,8 +106,6 @@ type typeTestCase struct {
 
 func TestGetClientConfig(t *testing.T) {
 	multiConfigs := fmt.Sprintf("%s%s%s", "/testing/assets/kube-config-01.yml", string(os.PathListSeparator), "/testing/assets/kube-config-02.yml")
-
-	multiConfigs = multiConfigs
 	for _, tc := range []typeTestCase{
 		{
 			"",

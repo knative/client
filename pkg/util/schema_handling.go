@@ -12,20 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package serving
+package util
 
 import (
 	"fmt"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"knative.dev/serving/pkg/client/clientset/versioned/scheme"
 )
 
-// Update the GVK on the given object, based on the GVK registered in into the serving scheme
-// for the given GroupVersion
-func UpdateGroupVersionKind(obj runtime.Object, gv schema.GroupVersion) error {
-	gvk, err := GetGroupVersionKind(obj, gv)
+func UpdateGroupVersionKindWithScheme(obj runtime.Object, gv schema.GroupVersion, scheme *runtime.Scheme) error {
+	gvk, err := GetGroupVersionKind(obj, gv, scheme)
 	if err != nil {
 		return err
 	}
@@ -33,8 +30,8 @@ func UpdateGroupVersionKind(obj runtime.Object, gv schema.GroupVersion) error {
 	return nil
 }
 
-func GetGroupVersionKind(obj runtime.Object, gv schema.GroupVersion) (*schema.GroupVersionKind, error) {
-	gvks, _, err := scheme.Scheme.ObjectKinds(obj)
+func GetGroupVersionKind(obj runtime.Object, gv schema.GroupVersion, scheme *runtime.Scheme) (*schema.GroupVersionKind, error) {
+	gvks, _, err := scheme.ObjectKinds(obj)
 	if err != nil {
 		return nil, err
 	}
@@ -43,5 +40,5 @@ func GetGroupVersionKind(obj runtime.Object, gv schema.GroupVersion) (*schema.Gr
 			return &gvk, nil
 		}
 	}
-	return nil, fmt.Errorf("no group version %s registered in %s", gv, scheme.Scheme.Name())
+	return nil, fmt.Errorf("no group version %s registered in %s", gv, scheme.Name())
 }

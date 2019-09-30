@@ -408,6 +408,17 @@ func TestUpdateLabelsRemoveExisting(t *testing.T) {
 	assert.DeepEqual(t, expected, actual)
 }
 
+func TestUpdateServiceAccountName(t *testing.T) {
+	template, _ := getV1alpha1RevisionTemplateWithOldFields()
+	template.Spec.ServiceAccountName = ""
+
+	UpdateServiceAccountName(template, "foo-bar")
+	assert.Equal(t, template.Spec.ServiceAccountName, "foo-bar")
+
+	UpdateServiceAccountName(template, "")
+	assert.Equal(t, template.Spec.ServiceAccountName, "")
+}
+
 // =========================================================================================================
 
 func getV1alpha1RevisionTemplateWithOldFields() (*servingv1alpha1.RevisionTemplateSpec, *corev1.Container) {

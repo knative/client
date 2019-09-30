@@ -12,18 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package serving
+package util
 
 import (
 	"testing"
 
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
+	"knative.dev/serving/pkg/client/clientset/versioned/scheme"
 )
 
 func TestGVKUpdate(t *testing.T) {
 	service := v1alpha1.Service{}
-	err := UpdateGroupVersionKind(&service, v1alpha1.SchemeGroupVersion)
+	err := UpdateGroupVersionKindWithScheme(&service, v1alpha1.SchemeGroupVersion, scheme.Scheme)
 	if err != nil {
 		t.Fatalf("cannot update GVK to a service %v", err)
 	}
@@ -37,7 +38,7 @@ func TestGVKUpdate(t *testing.T) {
 
 func TestGVKUpdateNegative(t *testing.T) {
 	service := v1alpha1.Service{}
-	err := UpdateGroupVersionKind(&service, schema.GroupVersion{Group: "bla", Version: "blub"})
+	err := UpdateGroupVersionKindWithScheme(&service, schema.GroupVersion{Group: "bla", Version: "blub"}, scheme.Scheme)
 	if err == nil {
 		t.Fatal("expect an error for an unregistered group version")
 	}

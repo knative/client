@@ -58,6 +58,10 @@
 | Add documentation for traffic splitting and tagging targets
 | https://github.com/knative/client/pull/331[#331]
 
+| 🎁
+| Add --service-account flag
+| https://github.com/knative/client/pull/401[#401]
+
 |===
 
 ## v0.2.0 (2019-07-10)

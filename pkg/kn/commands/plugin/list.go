@@ -21,11 +21,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 
 	"knative.dev/client/pkg/kn/commands"
-
-	"github.com/mitchellh/go-homedir"
 )
 
 // ValidPluginFilenamePrefixes controls the prefix for all kn plugins

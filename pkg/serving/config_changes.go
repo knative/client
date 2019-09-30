@@ -165,11 +165,15 @@ func SetUserImageAnnot(template *servingv1alpha1.RevisionTemplateSpec) {
 
 // FreezeImageToDigest sets the image on the template to the image digest of the base revision.
 func FreezeImageToDigest(template *servingv1alpha1.RevisionTemplateSpec, baseRevision *servingv1alpha1.Revision) error {
-	currentContainer, err := ContainerOfRevisionTemplate(template)
-
 	if baseRevision == nil {
 		return nil
 	}
+
+	currentContainer, err := ContainerOfRevisionTemplate(template)
+	if err != nil {
+		return err
+	}
+
 	baseContainer, err := ContainerOfRevisionSpec(&baseRevision.Spec)
 	if err != nil {
 		return err
@@ -238,6 +242,13 @@ func UpdateLabels(service *servingv1alpha1.Service, template *servingv1alpha1.Re
 		delete(service.ObjectMeta.Labels, key)
 		delete(template.ObjectMeta.Labels, key)
 	}
+	return nil
+}
+
+// UpdateServiceAccountName updates the service account name used for the corresponding knative service
+func UpdateServiceAccountName(template *servingv1alpha1.RevisionTemplateSpec, serviceAccountName string) error {
+	serviceAccountName = strings.TrimSpace(serviceAccountName)
+	template.Spec.ServiceAccountName = serviceAccountName
 	return nil
 }
 
