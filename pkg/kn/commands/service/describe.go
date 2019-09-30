@@ -161,7 +161,7 @@ func NewServiceDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			return describe(cmd.OutOrStdout(), service, revisionDescs)
+			return describe(cmd.OutOrStdout(), service, revisionDescs, printDetails)
 		},
 	}
 	flags := command.Flags()
@@ -172,7 +172,7 @@ func NewServiceDescribeCommand(p *commands.KnParams) *cobra.Command {
 }
 
 // Main action describing the service
-func describe(w io.Writer, service *v1alpha1.Service, revisions []*revisionDesc) error {
+func describe(w io.Writer, service *v1alpha1.Service, revisions []*revisionDesc, printDetails bool) error {
 	dw := printers.NewPrefixWriter(w)
 
 	// Service info
@@ -183,7 +183,7 @@ func describe(w io.Writer, service *v1alpha1.Service, revisions []*revisionDesc)
 	}
 
 	// Revisions summary info
-	writeRevisions(dw, revisions)
+	writeRevisions(dw, revisions, printDetails)
 	dw.WriteLine()
 	if err := dw.Flush(); err != nil {
 		return err
@@ -215,32 +215,34 @@ func writeService(dw printers.PrefixWriter, service *v1alpha1.Service) {
 // Write out revisions associated with this service. By default only active
 // target revisions are printed, but with --all also inactive revisions
 // created by this services are shown
-func writeRevisions(dw printers.PrefixWriter, revisions []*revisionDesc) {
+func writeRevisions(dw printers.PrefixWriter, revisions []*revisionDesc, printDetails bool) {
 	dw.WriteColsLn(printers.Level0, l("Revisions"))
 	for _, revisionDesc := range revisions {
 		dw.WriteColsLn(printers.Level1, formatBullet(revisionDesc.percent, revisionDesc.ready), revisionHeader(revisionDesc))
 		if revisionDesc.ready == v1.ConditionFalse {
-			dw.WriteColsLn(printers.Level2, "", l("Error"), revisionDesc.reason)
+			dw.WriteColsLn(printers.Level1, "", l("Error"), revisionDesc.reason)
 		}
-		dw.WriteColsLn(printers.Level2, "", l("Image"), getImageDesc(revisionDesc))
-		if revisionDesc.port != nil {
-			dw.WriteColsLn(printers.Level2, "", l("Port"), strconv.FormatInt(int64(*revisionDesc.port), 10))
-		}
-		writeSliceDesc(dw, printers.Level2, revisionDesc.env, l("Env"), "\t")
+		dw.WriteColsLn(printers.Level1, "", l("Image"), getImageDesc(revisionDesc))
+		if printDetails {
+			if revisionDesc.port != nil {
+				dw.WriteColsLn(printers.Level1, "", l("Port"), strconv.FormatInt(int64(*revisionDesc.port), 10))
+			}
+			writeSliceDesc(dw, printers.Level1, revisionDesc.env, l("Env"), "\t")
 
-		// Scale spec if given
-		if revisionDesc.maxScale != nil || revisionDesc.minScale != nil {
-			dw.WriteColsLn(printers.Level2, "", l("Scale"), formatScale(revisionDesc.minScale, revisionDesc.maxScale))
-		}
+			// Scale spec if given
+			if revisionDesc.maxScale != nil || revisionDesc.minScale != nil {
+				dw.WriteColsLn(printers.Level1, "", l("Scale"), formatScale(revisionDesc.minScale, revisionDesc.maxScale))
+			}
 
-		// Concurrency specs if given
-		if revisionDesc.concurrencyLimit != nil || revisionDesc.concurrencyTarget != nil {
-			writeConcurrencyOptions(dw, revisionDesc)
-		}
+			// Concurrency specs if given
+			if revisionDesc.concurrencyLimit != nil || revisionDesc.concurrencyTarget != nil {
+				writeConcurrencyOptions(dw, revisionDesc)
+			}
 
-		// Resources if given
-		writeResources(dw, "Memory", revisionDesc.requestsMemory, revisionDesc.limitsMemory)
-		writeResources(dw, "CPU", revisionDesc.requestsCPU, revisionDesc.limitsCPU)
+			// Resources if given
+			writeResources(dw, "Memory", revisionDesc.requestsMemory, revisionDesc.limitsMemory)
+			writeResources(dw, "CPU", revisionDesc.requestsCPU, revisionDesc.limitsCPU)
+		}
 	}
 }
 
@@ -276,7 +278,7 @@ func writeConcurrencyOptions(dw printers.PrefixWriter, desc *revisionDesc) {
 
 // Format label (extracted so that color could be added more easily to all labels)
 func l(label string) string {
-	return "  " + label + ":"
+	return label + ":"
 }
 
 // Format scale in the format "min ... max" with max = ∞ if not set
@@ -349,7 +351,7 @@ func getImageDesc(desc *revisionDesc) string {
 	image := desc.image
 	// Check if the user image is likely a more user-friendly description
 	pinnedDesc := "at"
-	if desc.userImage != "" && strings.Contains(image, "@") && desc.imageDigest != "" {
+	if desc.userImage != "" && desc.imageDigest != "" {
 		parts := strings.Split(image, "@")
 		// Check if the user image refers to the same thing.
 		if strings.HasPrefix(desc.userImage, parts[0]) {
@@ -369,7 +371,7 @@ func getImageDesc(desc *revisionDesc) string {
 func shortenDigest(digest string) string {
 	match := imageDigestRegexp.FindStringSubmatch(digest)
 	if len(match) > 1 {
-		return string(match[1][:12])
+		return string(match[1][:6])
 	}
 	return digest
 }
