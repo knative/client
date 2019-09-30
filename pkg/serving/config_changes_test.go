@@ -419,6 +419,73 @@ func TestUpdateServiceAccountName(t *testing.T) {
 	assert.Equal(t, template.Spec.ServiceAccountName, "")
 }
 
+func TestUpdateAnnotationsNew(t *testing.T) {
+	service, template, _ := getV1alpha1Service()
+
+	annotations := map[string]string{
+		"a": "foo",
+		"b": "bar",
+	}
+	err := UpdateAnnotations(service, template, annotations, []string{})
+	assert.NilError(t, err)
+
+	actual := service.ObjectMeta.Annotations
+	if !reflect.DeepEqual(annotations, actual) {
+		t.Fatalf("Service annotations did not match expected %v found %v", annotations, actual)
+	}
+
+	actual = template.ObjectMeta.Annotations
+	if !reflect.DeepEqual(annotations, actual) {
+		t.Fatalf("Template annotations did not match expected %v found %v", annotations, actual)
+	}
+}
+
+func TestUpdateAnnotationsExisting(t *testing.T) {
+	service, template, _ := getV1alpha1Service()
+	service.ObjectMeta.Annotations = map[string]string{"a": "foo", "b": "bar"}
+	template.ObjectMeta.Annotations = map[string]string{"a": "foo", "b": "bar"}
+
+	annotations := map[string]string{
+		"a": "notfoo",
+		"c": "bat",
+		"d": "",
+	}
+	err := UpdateAnnotations(service, template, annotations, []string{})
+	assert.NilError(t, err)
+	expected := map[string]string{
+		"a": "notfoo",
+		"b": "bar",
+		"c": "bat",
+		"d": "",
+	}
+
+	actual := service.ObjectMeta.Annotations
+	assert.DeepEqual(t, expected, actual)
+
+	actual = template.ObjectMeta.Annotations
+	assert.DeepEqual(t, expected, actual)
+}
+
+func TestUpdateAnnotationsRemoveExisting(t *testing.T) {
+	service, template, _ := getV1alpha1Service()
+	service.ObjectMeta.Annotations = map[string]string{"a": "foo", "b": "bar"}
+	template.ObjectMeta.Annotations = map[string]string{"a": "foo", "b": "bar"}
+
+	remove := []string{"b"}
+	err := UpdateAnnotations(service, template, map[string]string{}, remove)
+	assert.NilError(t, err)
+	expected := map[string]string{
+		"a": "foo",
+	}
+
+	actual := service.ObjectMeta.Annotations
+	assert.DeepEqual(t, expected, actual)
+
+	actual = template.ObjectMeta.Annotations
+	assert.DeepEqual(t, expected, actual)
+}
+
+//
 // =========================================================================================================
 
 func getV1alpha1RevisionTemplateWithOldFields() (*servingv1alpha1.RevisionTemplateSpec, *corev1.Container) {
