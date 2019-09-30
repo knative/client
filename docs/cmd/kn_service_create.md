@@ -52,7 +52,7 @@ kn service create NAME --image IMAGE [flags]
       --lock-to-digest           keep the running image for the service constant when not explicitly specifying the image. (--no-lock-to-digest pulls the image tag afresh with each new revision) (default true)
       --max-scale int            Maximal number of replicas.
       --min-scale int            Minimal number of replicas.
-  -n, --namespace string         List the requested object(s) in given namespace.
+  -n, --namespace string         Specify the namespace to operate in.
       --no-lock-to-digest        do not keep the running image for the service constant when not explicitly specifying the image. (--no-lock-to-digest pulls the image tag afresh with each new revision)
   -p, --port int32               The port where application listens on.
       --requests-cpu string      The requested CPU (e.g., 250m).
