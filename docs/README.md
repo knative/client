@@ -32,6 +32,29 @@ You'll need a `kubectl`-style config file to connect to your cluster.
 
 `kn` will pick up your `kubectl` config file in the default location of `$HOME/.kube/config`. You can specify an alternate kubeconfig connection file with `--kubeconfig`, or the env var `$KUBECONFIG`, for any command.
 
+## Kn Config
+
+To better customize kn there is a set of configuration parameters you are able to setup and customize. In particular you can specify where your kn plugins are located and how they are found. The kn configuration file is meant to capture these configuration options. Let's explore this file's location, and the options you are able to change with it.
+
+### Location
+
+The default location kn looks for config is under the home directory of user at `$HOME/.kn/config.yaml`. It is not created for you part of Kn installation. You can create this file elsewhere and use `--config` flag to specify its path.
+
+### Options
+
+There are two options you can specify in the kn config file and they are related to how kn locates plugins.
+
+1. `pluginsDir` which is the same as the persistent flag `--plugins-dir` and specifies the kn plugins directory. It defaults to: `~/.kn/plugins`. By using the persistent flag (when you issue a command) or by specifying the value in the kn config, a user can select which directory to find kn plugins. It can be any directory that is visible to the user.
+
+2. `lookupPluginsInPath` which is the same as the persistent flag `--lookup-plugins-in-path` and specficies if kn should look for plugins anywhere in the specified `PATH` environment variable.This is a boolean configuration option and the default value is `false`.
+
+For example, the following kn config will look for kn plugins in the user's `PATH` and also execute plugin in `~/.kn/plugins`.
+
+```bash
+cat ~/.kn/config.yaml
+lookupPluginsInPath: true
+pluginsdir: ~/.kn/plugins
+```
 ----------------------------------------------------------
 
 ## Commands
