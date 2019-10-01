@@ -19,11 +19,11 @@ kn plugin list [flags]
 ### Options
 
 ```
-  -h, --help                     help for list
-      --lookup-plugins-in-path   look for kn plugins in $PATH
-      --name-only                If true, display only the binary name of each plugin, rather than its full path
-      --plugins-dir string       kn plugins directory (default "~/.kn/plugins")
-      --verbose                  verbose output
+  -h, --help                 help for list
+      --lookup-plugins       look for kn plugins in $PATH
+      --name-only            If true, display only the binary name of each plugin, rather than its full path
+      --plugins-dir string   kn plugins directory (default "~/.kn/plugins")
+      --verbose              verbose output
 ```
 
 ### Options inherited from parent commands

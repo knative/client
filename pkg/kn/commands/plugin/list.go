@@ -63,7 +63,7 @@ func listPlugins(cmd *cobra.Command, flags pluginListFlags) error {
 	if err != nil {
 		return err
 	}
-	if commands.Cfg.LookupPluginsInPath {
+	if commands.Cfg.LookupPlugins {
 		pluginPath = pluginPath + string(os.PathListSeparator) + os.Getenv("PATH")
 	}
 
@@ -74,7 +74,7 @@ func listPlugins(cmd *cobra.Command, flags pluginListFlags) error {
 	if flags.verbose {
 		fmt.Fprintf(out, "The following plugins are available, using options:\n")
 		fmt.Fprintf(out, "  - plugins dir: '%s'%s\n", commands.Cfg.PluginsDir, extraLabelIfPathNotExists(pluginPath))
-		fmt.Fprintf(out, "  - lookup plugins in path: '%t'\n", commands.Cfg.LookupPluginsInPath)
+		fmt.Fprintf(out, "  - lookup plugins in $PATH: '%t'\n", commands.Cfg.LookupPlugins)
 	}
 
 	if len(pluginsFound) == 0 {
