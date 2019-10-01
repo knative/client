@@ -64,14 +64,11 @@ func TestServiceDescribeBasic(t *testing.T) {
 	assert.NilError(t, err)
 
 	validateServiceOutput(t, "foo", output)
-	assert.Assert(t, util.ContainsAll(output, "Env:", "label1=lval1, label2=lval2\n"))
-	assert.Assert(t, util.ContainsAll(output, "1234567"))
+	assert.Assert(t, util.ContainsAll(output, "123456"))
 	assert.Assert(t, util.ContainsAll(output, "Annotations:", "anno1=aval1, anno2=aval2, anno3="))
 	assert.Assert(t, cmp.Regexp(`(?m)\s*Annotations:.*\.\.\.$`, output))
 	assert.Assert(t, util.ContainsAll(output, "Labels:", "label1=lval1, label2=lval2\n"))
 	assert.Assert(t, util.ContainsAll(output, "[1]"))
-	// no digest added (added only for details)
-	assert.Assert(t, !strings.Contains(output, "(123456789012)"))
 
 	assert.Equal(t, strings.Count(output, "rev1"), 1)
 
@@ -405,8 +402,8 @@ func TestServiceDescribeUserImageVsImage(t *testing.T) {
 
 	validateServiceOutput(t, "foo", output)
 
-	assert.Assert(t, util.ContainsAll(output, "Image", "Name", "gcr.io/test/image:latest (at 123456789012)",
-		"gcr.io/test/image:latest (pinned to 123456789012)", "gcr.io/a/b (at 123456789012)", "gcr.io/x/y"))
+	assert.Assert(t, util.ContainsAll(output, "Image", "Name",
+		"gcr.io/test/image:latest (pinned to 123456)", "gcr.io/a/b (at 123456)", "gcr.io/x/y"))
 	assert.Assert(t, util.ContainsAll(output, "[1]", "[2]"))
 
 	// Validate that all recorded API methods have been called
@@ -452,7 +449,7 @@ func TestServiceDescribeVerbose(t *testing.T) {
 
 	validateServiceOutput(t, "foo", output)
 
-	assert.Assert(t, util.ContainsAll(output, "Image", "Name", "gcr.io/test/image (at 123456789012)", "50%", "(0s)"))
+	assert.Assert(t, util.ContainsAll(output, "Image", "Name", "gcr.io/test/image (at 123456)", "50%", "(0s)"))
 	assert.Assert(t, util.ContainsAll(output, "Env:", "label1=lval1\n", "label2=lval2\n"))
 	assert.Assert(t, util.ContainsAll(output, "Annotations:", "anno1=aval1\n", "anno2=aval2\n"))
 	assert.Assert(t, util.ContainsAll(output, "Labels:", "label1=lval1\n", "label2=lval2\n"))
@@ -494,7 +491,7 @@ func validateServiceOutput(t *testing.T, service string, output string) {
 	assert.Assert(t, cmp.Regexp("Address:\\s+http://"+service+".default.svc.cluster.local", output))
 	assert.Assert(t, cmp.Regexp("URL:\\s+"+service+".default.example.com", output))
 
-	assert.Assert(t, util.ContainsAll(output, "Age:", "Revisions:", "Conditions:", "Labels:", "Annotations:", "Port:", "8080"))
+	assert.Assert(t, util.ContainsAll(output, "Age:", "Revisions:", "Conditions:", "Labels:", "Annotations:"))
 	assert.Assert(t, util.ContainsAll(output, "Ready", "RoutesReady", "OK", "TYPE", "AGE", "REASON"))
 }
 
