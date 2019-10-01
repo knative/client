@@ -69,3 +69,64 @@ func TestServiceUpdateEnvMock(t *testing.T) {
 
 	r.Validate()
 }
+
+func TestServiceUpdateAnnotationsMock(t *testing.T) {
+	client := knclient.NewMockKnClient(t)
+	svcName := "svc1"
+	newService := getService(svcName)
+	template, err := servinglib.RevisionTemplateOfService(newService)
+	assert.NilError(t, err)
+	template.Spec.GetContainer().Image = "gcr.io/foo/bar:baz"
+	newService.ObjectMeta.Annotations = map[string]string{
+		"an1": "staysConstant",
+		"an2": "getsUpdated",
+		"an3": "getsRemoved",
+	}
+	template.ObjectMeta.Annotations = map[string]string{
+		"an1":                             "staysConstant",
+		"an2":                             "getsUpdated",
+		"an3":                             "getsRemoved",
+		servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz",
+	}
+
+	updatedService := getService(svcName)
+	template, err = servinglib.RevisionTemplateOfService(updatedService)
+	assert.NilError(t, err)
+	template.Spec.GetContainer().Image = "gcr.io/foo/bar:baz"
+	updatedService.ObjectMeta.Annotations = map[string]string{
+		"an1": "staysConstant",
+		"an2": "isUpdated",
+	}
+	template.ObjectMeta.Annotations = map[string]string{
+		"an1":                             "staysConstant",
+		"an2":                             "isUpdated",
+		servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz",
+	}
+
+	r := client.Recorder()
+	r.GetService(svcName, nil, errors.NewNotFound(v1alpha1.Resource("service"), svcName))
+	r.CreateService(newService, nil)
+	r.GetService(svcName, newService, nil)
+	r.UpdateService(updatedService, nil)
+
+	output, err := executeServiceCommand(client,
+		"create", svcName, "--image", "gcr.io/foo/bar:baz",
+		"-a", "an1=staysConstant",
+		"-a", "an2=getsUpdated",
+		"-a", "an3=getsRemoved",
+		"--async", "--revision-name=",
+	)
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(output, "created", svcName, "default"))
+
+	output, err = executeServiceCommand(client,
+		"update", svcName,
+		"-a", "an2=isUpdated",
+		"-a", "an3-",
+		"--async", "--revision-name=",
+	)
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
+
+	r.Validate()
+}
