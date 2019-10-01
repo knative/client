@@ -33,14 +33,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
-	var editFlags ConfigurationEditFlags
-	var waitFlags commands.WaitFlags
-
-	serviceCreateCommand := &cobra.Command{
-		Use:   "create NAME --image IMAGE",
-		Short: "Create a service.",
-		Example: `
+var create_example = `
   # Create a service 'mysvc' using image at dev.local/ns/image:latest
   kn service create mysvc --image dev.local/ns/image:latest
 
@@ -60,8 +53,19 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
   # Create or replace default resources of a service 's1' using --force flag
   # (earlier configured resource requests and limits will be replaced with default)
   # (earlier configured environment variables will be cleared too if any)
-  kn service create --force s1 --image dev.local/ns/image:v1`,
+  kn service create --force s1 --image dev.local/ns/image:v1
 
+  # Create a service with annotation
+  kn service create s1 --image dev.local/ns/image:v3 --annotation sidecar.istio.io/inject=false`
+
+func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
+	var editFlags ConfigurationEditFlags
+	var waitFlags commands.WaitFlags
+
+	serviceCreateCommand := &cobra.Command{
+		Use:     "create NAME --image IMAGE",
+		Short:   "Create a service.",
+		Example: create_example,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
 				return errors.New("'service create' requires the service name given as single argument")

@@ -267,7 +267,6 @@ func (p *ConfigurationEditFlags) Apply(
 		if err != nil {
 			return errors.Wrap(err, "Invalid --annotation")
 		}
-
 		annotationsToRemove := []string{}
 		for key := range annotationsMap {
 			if strings.HasSuffix(key, "-") {
@@ -275,12 +274,10 @@ func (p *ConfigurationEditFlags) Apply(
 				delete(annotationsMap, key)
 			}
 		}
-
 		err = servinglib.UpdateAnnotations(service, template, annotationsMap, annotationsToRemove)
 		if err != nil {
 			return err
 		}
-
 	}
 
 	if cmd.Flags().Changed("service-account") {

@@ -28,14 +28,7 @@ import (
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
-func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
-	var editFlags ConfigurationEditFlags
-	var waitFlags commands.WaitFlags
-	var trafficFlags flags.Traffic
-	serviceUpdateCommand := &cobra.Command{
-		Use:   "update NAME [flags]",
-		Short: "Update a service.",
-		Example: `
+var update_example = `
   # Updates a service 'svc' with new environment variables
   kn service update svc --env KEY1=VALUE1 --env KEY2=VALUE2
 
@@ -54,7 +47,16 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
   kn service update svc --untag testing --tag @latest=staging
 
   # Add tag 'test' to echo-v3 revision with 10% traffic and rest to latest ready revision of service
-  kn service update svc --tag echo-v3=test --traffic test=10,@latest=90`,
+  kn service update svc --tag echo-v3=test --traffic test=10,@latest=90`
+
+func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
+	var editFlags ConfigurationEditFlags
+	var waitFlags commands.WaitFlags
+	var trafficFlags flags.Traffic
+	serviceUpdateCommand := &cobra.Command{
+		Use:     "update NAME [flags]",
+		Short:   "Update a service.",
+		Example: update_example,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
 				return errors.New("requires the service name.")

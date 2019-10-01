@@ -34,6 +34,9 @@ kn service create NAME --image IMAGE [flags]
   # (earlier configured resource requests and limits will be replaced with default)
   # (earlier configured environment variables will be cleared too if any)
   kn service create --force s1 --image dev.local/ns/image:v1
+
+  # Create a service with annotation
+  kn service create s1 --image dev.local/ns/image:v3 --annotation sidecar.istio.io/inject=false
 ```
 
 ### Options
