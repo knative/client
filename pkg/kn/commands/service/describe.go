@@ -24,6 +24,7 @@ import (
 	"strings"
 	"time"
 
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"knative.dev/serving/pkg/apis/autoscaling"
 	"knative.dev/serving/pkg/apis/serving"
@@ -66,9 +67,12 @@ type revisionDesc struct {
 	configurationGeneration int
 	creationTimestamp       time.Time
 
-	percent int
-	latest  *bool
+	// traffic stuff
+	percent       int
+	tag           string
+	latestTraffic *bool
 
+	// basic revision stuff
 	logURL         string
 	timeoutSeconds *int64
 
@@ -89,6 +93,12 @@ type revisionDesc struct {
 	requestsCPU    string
 	limitsMemory   string
 	limitsCPU      string
+
+	// status info
+	ready         corev1.ConditionStatus
+	reason        string
+	latestCreated bool
+	latestReady   bool
 }
 
 // [REMOVE COMMENT WHEN MOVING TO 0.7.0]
@@ -151,7 +161,7 @@ func NewServiceDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			return describe(cmd.OutOrStdout(), service, revisionDescs)
+			return describe(cmd.OutOrStdout(), service, revisionDescs, printDetails)
 		},
 	}
 	flags := command.Flags()
@@ -162,7 +172,7 @@ func NewServiceDescribeCommand(p *commands.KnParams) *cobra.Command {
 }
 
 // Main action describing the service
-func describe(w io.Writer, service *v1alpha1.Service, revisions []*revisionDesc) error {
+func describe(w io.Writer, service *v1alpha1.Service, revisions []*revisionDesc, printDetails bool) error {
 	dw := printers.NewPrefixWriter(w)
 
 	// Service info
@@ -173,7 +183,7 @@ func describe(w io.Writer, service *v1alpha1.Service, revisions []*revisionDesc)
 	}
 
 	// Revisions summary info
-	writeRevisions(dw, revisions)
+	writeRevisions(dw, revisions, printDetails)
 	dw.WriteLine()
 	if err := dw.Flush(); err != nil {
 		return err
@@ -205,29 +215,34 @@ func writeService(dw printers.PrefixWriter, service *v1alpha1.Service) {
 // Write out revisions associated with this service. By default only active
 // target revisions are printed, but with --all also inactive revisions
 // created by this services are shown
-func writeRevisions(dw printers.PrefixWriter, revisions []*revisionDesc) {
+func writeRevisions(dw printers.PrefixWriter, revisions []*revisionDesc, printDetails bool) {
 	dw.WriteColsLn(printers.Level0, l("Revisions"))
 	for _, revisionDesc := range revisions {
-		dw.WriteColsLn(printers.Level1, formatPercentage(revisionDesc.percent), l("Name"), getRevisionNameWithGenerationAndAge(revisionDesc))
+		dw.WriteColsLn(printers.Level1, formatBullet(revisionDesc.percent, revisionDesc.ready), revisionHeader(revisionDesc))
+		if revisionDesc.ready == v1.ConditionFalse {
+			dw.WriteColsLn(printers.Level1, "", l("Error"), revisionDesc.reason)
+		}
 		dw.WriteColsLn(printers.Level1, "", l("Image"), getImageDesc(revisionDesc))
-		if revisionDesc.port != nil {
-			dw.WriteColsLn(printers.Level1, "", l("Port"), strconv.FormatInt(int64(*revisionDesc.port), 10))
-		}
-		writeSliceDesc(dw, printers.Level1, revisionDesc.env, l("Env"), "\t")
+		if printDetails {
+			if revisionDesc.port != nil {
+				dw.WriteColsLn(printers.Level1, "", l("Port"), strconv.FormatInt(int64(*revisionDesc.port), 10))
+			}
+			writeSliceDesc(dw, printers.Level1, revisionDesc.env, l("Env"), "\t")
 
-		// Scale spec if given
-		if revisionDesc.maxScale != nil || revisionDesc.minScale != nil {
-			dw.WriteColsLn(printers.Level1, "", l("Scale"), formatScale(revisionDesc.minScale, revisionDesc.maxScale))
-		}
+			// Scale spec if given
+			if revisionDesc.maxScale != nil || revisionDesc.minScale != nil {
+				dw.WriteColsLn(printers.Level1, "", l("Scale"), formatScale(revisionDesc.minScale, revisionDesc.maxScale))
+			}
 
-		// Concurrency specs if given
-		if revisionDesc.concurrencyLimit != nil || revisionDesc.concurrencyTarget != nil {
-			writeConcurrencyOptions(dw, revisionDesc)
-		}
+			// Concurrency specs if given
+			if revisionDesc.concurrencyLimit != nil || revisionDesc.concurrencyTarget != nil {
+				writeConcurrencyOptions(dw, revisionDesc)
+			}
 
-		// Resources if given
-		writeResources(dw, "Memory", revisionDesc.requestsMemory, revisionDesc.limitsMemory)
-		writeResources(dw, "CPU", revisionDesc.requestsCPU, revisionDesc.limitsCPU)
+			// Resources if given
+			writeResources(dw, "Memory", revisionDesc.requestsMemory, revisionDesc.limitsMemory)
+			writeResources(dw, "CPU", revisionDesc.requestsCPU, revisionDesc.limitsCPU)
+		}
 	}
 }
 
@@ -249,12 +264,12 @@ func writeConditions(dw printers.PrefixWriter, service *v1alpha1.Service) {
 }
 
 func writeConcurrencyOptions(dw printers.PrefixWriter, desc *revisionDesc) {
-	dw.WriteColsLn(printers.Level1, "", l("Concurrency"))
+	dw.WriteColsLn(printers.Level2, "", l("Concurrency"))
 	if desc.concurrencyLimit != nil {
-		dw.WriteColsLn(printers.Level2, "", "", l("Limit"), strconv.FormatInt(*desc.concurrencyLimit, 10))
+		dw.WriteColsLn(printers.Level3, "", "", l("Limit"), strconv.FormatInt(*desc.concurrencyLimit, 10))
 	}
 	if desc.concurrencyTarget != nil {
-		dw.WriteColsLn(printers.Level2, "", "", l("Target"), strconv.Itoa(*desc.concurrencyTarget))
+		dw.WriteColsLn(printers.Level3, "", "", l("Target"), strconv.Itoa(*desc.concurrencyTarget))
 	}
 }
 
@@ -284,8 +299,19 @@ func formatScale(minScale *int, maxScale *int) string {
 }
 
 // Format the revision name along with its generation. Use colors if enabled.
-func getRevisionNameWithGenerationAndAge(desc *revisionDesc) string {
-	return desc.name + " " +
+func revisionHeader(desc *revisionDesc) string {
+	header := desc.name
+	if desc.latestTraffic != nil && *desc.latestTraffic {
+		header = fmt.Sprintf("@latest (%s)", desc.name)
+	} else if desc.latestReady {
+		header = desc.name + " (current @latest)"
+	} else if desc.latestCreated {
+		header = desc.name + " (latest created)"
+	}
+	if desc.tag != "" {
+		header = fmt.Sprintf("%s #%s", header, desc.tag)
+	}
+	return header + " " +
 		"[" + strconv.Itoa(desc.configurationGeneration) + "]" +
 		" " +
 		"(" + age(desc.creationTimestamp) + ")"
@@ -314,9 +340,9 @@ func formatStatus(status corev1.ConditionStatus) string {
 	case v1.ConditionTrue:
 		return "++"
 	case v1.ConditionFalse:
-		return "--"
+		return "!!"
 	default:
-		return ""
+		return "??"
 	}
 }
 
@@ -325,7 +351,7 @@ func getImageDesc(desc *revisionDesc) string {
 	image := desc.image
 	// Check if the user image is likely a more user-friendly description
 	pinnedDesc := "at"
-	if desc.userImage != "" && strings.Contains(image, "@") && desc.imageDigest != "" {
+	if desc.userImage != "" && desc.imageDigest != "" {
 		parts := strings.Split(image, "@")
 		// Check if the user image refers to the same thing.
 		if strings.HasPrefix(desc.userImage, parts[0]) {
@@ -345,9 +371,15 @@ func getImageDesc(desc *revisionDesc) string {
 func shortenDigest(digest string) string {
 	match := imageDigestRegexp.FindStringSubmatch(digest)
 	if len(match) > 1 {
-		return string(match[1][:12])
+		return string(match[1][:6])
 	}
 	return digest
+}
+
+var boringDomains = map[string]bool{
+	"serving.knative.dev":   true,
+	"client.knative.dev":    true,
+	"kubectl.kubernetes.io": true,
 }
 
 // Write a map either compact in a single line (possibly truncated) or, if printDetails is set,
@@ -359,7 +391,13 @@ func writeMapDesc(dw printers.PrefixWriter, indent int, m map[string]string, lab
 
 	var keys []string
 	for k := range m {
-		keys = append(keys, k)
+		parts := strings.Split(k, "/")
+		if printDetails || len(parts) <= 1 || !boringDomains[parts[0]] {
+			keys = append(keys, k)
+		}
+	}
+	if len(keys) == 0 {
+		return
 	}
 	sort.Strings(keys)
 
@@ -415,7 +453,7 @@ func writeResources(dw printers.PrefixWriter, label string, request string, limi
 		return
 	}
 
-	dw.WriteColsLn(printers.Level1, "", l(label), value)
+	dw.WriteColsLn(printers.Level2, "", l(label), value)
 }
 
 // Join to key=value pair, comma separated, and truncate if longer than a limit
@@ -436,11 +474,22 @@ func joinAndTruncate(sortedKeys []string, m map[string]string) string {
 }
 
 // Format target percentage that it fits in the revision table
-func formatPercentage(percentage int) string {
-	if percentage == 0 {
-		return "   -"
+func formatBullet(percentage int, status corev1.ConditionStatus) string {
+	symbol := "+"
+	switch status {
+	case v1.ConditionTrue:
+		if percentage > 0 {
+			symbol = "%"
+		}
+	case v1.ConditionFalse:
+		symbol = "!"
+	default:
+		symbol = "?"
 	}
-	return fmt.Sprintf("%3d%%", percentage)
+	if percentage == 0 {
+		return fmt.Sprintf("   %s", symbol)
+	}
+	return fmt.Sprintf("%3d%s", percentage, symbol)
 }
 
 func age(t time.Time) string {
@@ -453,22 +502,28 @@ func age(t time.Time) string {
 // Call the backend to query revisions for the given service and build up
 // the view objects used for output
 func getRevisionDescriptions(client serving_kn_v1alpha1.KnServingClient, service *v1alpha1.Service, withDetails bool) ([]*revisionDesc, error) {
-	revisionDescs := make(map[string]*revisionDesc)
+	revisionsSeen := sets.NewString()
+	revisionDescs := []*revisionDesc{}
 
 	trafficTargets := service.Status.Traffic
-
+	var err error
 	for _, target := range trafficTargets {
 		revision, err := extractRevisionFromTarget(client, target)
 		if err != nil {
 			return nil, fmt.Errorf("cannot extract revision from service %s: %v", service.Name, err)
 		}
-		revisionDescs[revision.Name], err = newRevisionDesc(revision, &target)
+		revisionsSeen.Insert(revision.Name)
+		desc, err := newRevisionDesc(revision, &target, service)
 		if err != nil {
 			return nil, err
 		}
+		revisionDescs = append(revisionDescs, desc)
+	}
+	if revisionDescs, err = completeWithLatestRevisions(client, service, revisionsSeen, revisionDescs); err != nil {
+		return nil, err
 	}
 	if withDetails {
-		if err := completeWithUntargetedRevisions(client, service, revisionDescs); err != nil {
+		if revisionDescs, err = completeWithUntargetedRevisions(client, service, revisionsSeen, revisionDescs); err != nil {
 			return nil, err
 		}
 	}
@@ -476,36 +531,53 @@ func getRevisionDescriptions(client serving_kn_v1alpha1.KnServingClient, service
 }
 
 // Order the list of revisions so that the newest revisions are at the top
-func orderByConfigurationGeneration(descs map[string]*revisionDesc) []*revisionDesc {
-	descsList := make([]*revisionDesc, len(descs))
-	idx := 0
-	for _, desc := range descs {
-		descsList[idx] = desc
-		idx++
-	}
-	sort.SliceStable(descsList, func(i, j int) bool {
-		return descsList[i].configurationGeneration > descsList[j].configurationGeneration
+func orderByConfigurationGeneration(descs []*revisionDesc) []*revisionDesc {
+	sort.SliceStable(descs, func(i, j int) bool {
+		return descs[i].configurationGeneration > descs[j].configurationGeneration
 	})
-	return descsList
+	return descs
 }
 
-func completeWithUntargetedRevisions(client serving_kn_v1alpha1.KnServingClient, service *v1alpha1.Service, descs map[string]*revisionDesc) error {
+func completeWithLatestRevisions(client serving_kn_v1alpha1.KnServingClient, service *v1alpha1.Service, revisionsSeen sets.String, descs []*revisionDesc) ([]*revisionDesc, error) {
+	for _, revisionName := range []string{service.Status.LatestCreatedRevisionName, service.Status.LatestReadyRevisionName} {
+		if revisionsSeen.Has(revisionName) {
+			continue
+		}
+		revisionsSeen.Insert(revisionName)
+		rev, err := client.GetRevision(revisionName)
+		if err != nil {
+			return nil, err
+		}
+		newDesc, err := newRevisionDesc(rev, nil, service)
+		if err != nil {
+			return nil, err
+		}
+		descs = append(descs, newDesc)
+	}
+	return descs, nil
+}
+
+func completeWithUntargetedRevisions(client serving_kn_v1alpha1.KnServingClient, service *v1alpha1.Service, revisionsSeen sets.String, descs []*revisionDesc) ([]*revisionDesc, error) {
 	revisions, err := client.ListRevisions(serving_kn_v1alpha1.WithService(service.Name))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	for _, revision := range revisions.Items {
-		if _, ok := descs[revision.Name]; !ok {
-			descs[revision.Name], err = newRevisionDesc(&revision, nil)
-			if err != nil {
-				return err
-			}
+		if revisionsSeen.Has(revision.Name) {
+			continue
 		}
+		revisionsSeen.Insert(revision.Name)
+		newDesc, err := newRevisionDesc(&revision, nil, service)
+		if err != nil {
+			return nil, err
+		}
+		descs = append(descs, newDesc)
+
 	}
-	return nil
+	return descs, nil
 }
 
-func newRevisionDesc(revision *v1alpha1.Revision, target *v1alpha1.TrafficTarget) (*revisionDesc, error) {
+func newRevisionDesc(revision *v1alpha1.Revision, target *v1alpha1.TrafficTarget, service *v1alpha1.Service) (*revisionDesc, error) {
 	container := extractContainer(revision)
 	generation, err := strconv.ParseInt(revision.Labels[serving.ConfigurationGenerationLabelKey], 0, 0)
 	if err != nil {
@@ -521,8 +593,12 @@ func newRevisionDesc(revision *v1alpha1.Revision, target *v1alpha1.TrafficTarget
 
 		configurationGeneration: int(generation),
 		configuration:           revision.Labels[serving.ConfigurationLabelKey],
+
+		latestCreated: revision.Name == service.Status.LatestCreatedRevisionName,
+		latestReady:   revision.Name == service.Status.LatestReadyRevisionName,
 	}
 
+	addStatusInfo(&revisionDesc, revision)
 	addTargetInfo(&revisionDesc, target)
 	addContainerInfo(&revisionDesc, container)
 	addResourcesInfo(&revisionDesc, container)
@@ -533,10 +609,20 @@ func newRevisionDesc(revision *v1alpha1.Revision, target *v1alpha1.TrafficTarget
 	return &revisionDesc, nil
 }
 
+func addStatusInfo(desc *revisionDesc, revision *v1alpha1.Revision) {
+	for _, condition := range revision.Status.Conditions {
+		if condition.Type == "Ready" {
+			desc.reason = condition.Reason
+			desc.ready = condition.Status
+		}
+	}
+}
+
 func addTargetInfo(desc *revisionDesc, target *v1alpha1.TrafficTarget) {
 	if target != nil {
 		desc.percent = target.Percent
-		desc.latest = target.LatestRevision
+		desc.latestTraffic = target.LatestRevision
+		desc.tag = target.Tag
 	}
 }
 

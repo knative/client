@@ -37,6 +37,7 @@ import (
 	client_serving "knative.dev/client/pkg/serving"
 	knclient "knative.dev/client/pkg/serving/v1alpha1"
 	"knative.dev/client/pkg/util"
+	"knative.dev/pkg/ptr"
 )
 
 const (
@@ -63,14 +64,177 @@ func TestServiceDescribeBasic(t *testing.T) {
 	assert.NilError(t, err)
 
 	validateServiceOutput(t, "foo", output)
-	assert.Assert(t, util.ContainsAll(output, "Env:", "label1=lval1, label2=lval2\n"))
-	assert.Assert(t, util.ContainsAll(output, "1234567"))
+	assert.Assert(t, util.ContainsAll(output, "123456"))
 	assert.Assert(t, util.ContainsAll(output, "Annotations:", "anno1=aval1, anno2=aval2, anno3="))
 	assert.Assert(t, cmp.Regexp(`(?m)\s*Annotations:.*\.\.\.$`, output))
 	assert.Assert(t, util.ContainsAll(output, "Labels:", "label1=lval1, label2=lval2\n"))
 	assert.Assert(t, util.ContainsAll(output, "[1]"))
-	// no digest added (added only for details)
-	assert.Assert(t, !strings.Contains(output, "(123456789012)"))
+
+	assert.Equal(t, strings.Count(output, "rev1"), 1)
+
+	// Validate that all recorded API methods have been called
+	r.Validate()
+}
+
+func TestServiceDescribeSad(t *testing.T) {
+	client := knclient.NewMockKnClient(t)
+	r := client.Recorder()
+
+	expectedService := createTestService("foo", []string{"rev1"}, goodConditions())
+	expectedService.Status.Conditions[0].Status = v1.ConditionFalse
+	r.GetService("foo", &expectedService, nil)
+	rev1 := createTestRevision("rev1", 1)
+	r.GetRevision("rev1", &rev1, nil)
+
+	output, err := executeServiceCommand(client, "describe", "foo")
+	assert.NilError(t, err)
+	validateServiceOutput(t, "foo", output)
+	assert.Assert(t, util.ContainsAll(output, "!!", "Ready"))
+
+	r.Validate()
+}
+
+func TestServiceDescribeLatest(t *testing.T) {
+
+	// New mock client
+	client := knclient.NewMockKnClient(t)
+	r := client.Recorder()
+
+	expectedService := createTestService("foo", []string{"rev1"}, goodConditions())
+	expectedService.Status.Traffic[0].LatestRevision = ptr.Bool(true)
+
+	// Get service & revision
+	r.GetService("foo", &expectedService, nil)
+	rev1 := createTestRevision("rev1", 1)
+	r.GetRevision("rev1", &rev1, nil)
+
+	output, err := executeServiceCommand(client, "describe", "foo")
+	assert.NilError(t, err)
+	validateServiceOutput(t, "foo", output)
+	assert.Assert(t, util.ContainsAll(output, "@latest (rev1)"))
+
+	// Validate that all recorded API methods have been called
+	r.Validate()
+}
+
+func TestServiceDescribeLatestNotInTraffic(t *testing.T) {
+
+	// New mock client
+	client := knclient.NewMockKnClient(t)
+
+	// Recording:
+	r := client.Recorder()
+	// Prepare service
+	expectedService := createTestService("foo", []string{"rev1", "rev2"}, goodConditions())
+	expectedService.Status.Traffic = expectedService.Status.Traffic[:1]
+	expectedService.Status.Traffic[0].LatestRevision = ptr.Bool(false)
+	expectedService.Status.Traffic[0].Percent = 100
+
+	// Get service & revision
+	r.GetService("foo", &expectedService, nil)
+	rev1 := createTestRevision("rev1", 1)
+	rev2 := createTestRevision("rev2", 2)
+	r.GetRevision("rev1", &rev1, nil)
+	r.GetRevision("rev2", &rev2, nil)
+
+	// Testing:
+	output, err := executeServiceCommand(client, "describe", "foo")
+	assert.NilError(t, err)
+
+	validateServiceOutput(t, "foo", output)
+	assert.Assert(t, util.ContainsAll(output, "rev2 (current @latest)"))
+
+	// Validate that all recorded API methods have been called
+	r.Validate()
+}
+
+func TestServiceDescribeEachNamedOnce(t *testing.T) {
+
+	// New mock client
+	client := knclient.NewMockKnClient(t)
+
+	// Recording:
+	r := client.Recorder()
+	// Prepare service
+	expectedService := createTestService("foo", []string{"rev1", "rev2"}, goodConditions())
+	expectedService.Status.Traffic = expectedService.Status.Traffic[:1]
+	expectedService.Status.Traffic[0].LatestRevision = ptr.Bool(false)
+	expectedService.Status.Traffic[0].Percent = 100
+
+	// Get service & revision
+	r.GetService("foo", &expectedService, nil)
+	rev1 := createTestRevision("rev1", 1)
+	rev2 := createTestRevision("rev2", 2)
+	r.GetRevision("rev1", &rev1, nil)
+	r.GetRevision("rev2", &rev2, nil)
+
+	// Testing:
+	output, err := executeServiceCommand(client, "describe", "foo")
+	assert.NilError(t, err)
+
+	validateServiceOutput(t, "foo", output)
+	assert.Assert(t, util.ContainsAll(output, "rev1", "rev2"))
+	assert.Equal(t, strings.Count(output, "rev2"), 1)
+	assert.Equal(t, strings.Count(output, "rev1"), 1)
+
+	// Validate that all recorded API methods have been called
+	r.Validate()
+}
+
+func TestServiceDescribeLatestAndCurrentBothHaveTrafficEntries(t *testing.T) {
+	// New mock client
+	client := knclient.NewMockKnClient(t)
+
+	// Recording:
+	r := client.Recorder()
+	// Prepare service
+	expectedService := createTestService("foo", []string{"rev1", "rev1"}, goodConditions())
+	expectedService.Status.Traffic[0].LatestRevision = ptr.Bool(true)
+	expectedService.Status.Traffic[0].Tag = "latest"
+	expectedService.Status.Traffic[1].Tag = "current"
+
+	// Get service & revision
+	r.GetService("foo", &expectedService, nil)
+	rev1 := createTestRevision("rev1", 1)
+	r.GetRevision("rev1", &rev1, nil)
+	r.GetRevision("rev1", &rev1, nil)
+
+	// Testing:
+	output, err := executeServiceCommand(client, "describe", "foo")
+	assert.NilError(t, err)
+
+	validateServiceOutput(t, "foo", output)
+	assert.Assert(t, util.ContainsAll(output, "@latest (rev1) #latest", "rev1 (current @latest) #current", "50%"))
+
+	// Validate that all recorded API methods have been called
+	r.Validate()
+}
+
+func TestServiceDescribeLatestCreatedIsBroken(t *testing.T) {
+	// New mock client
+	client := knclient.NewMockKnClient(t)
+
+	// Recording:
+	r := client.Recorder()
+	// Prepare service
+	expectedService := createTestService("foo", []string{"rev1"}, goodConditions())
+	expectedService.Status.Traffic[0].LatestRevision = ptr.Bool(true)
+	expectedService.Status.LatestCreatedRevisionName = "rev2"
+
+	// Get service & revision
+	r.GetService("foo", &expectedService, nil)
+	rev1 := createTestRevision("rev1", 1)
+	rev2 := createTestRevision("rev2", 2)
+	rev2.Status.Conditions[0].Status = v1.ConditionFalse
+	r.GetRevision("rev1", &rev1, nil)
+	r.GetRevision("rev2", &rev2, nil)
+
+	// Testing:
+	output, err := executeServiceCommand(client, "describe", "foo")
+	assert.NilError(t, err)
+
+	validateServiceOutput(t, "foo", output)
+	assert.Assert(t, util.ContainsAll(output, "!", "rev2", "100%", "@latest (rev1)"))
 
 	// Validate that all recorded API methods have been called
 	r.Validate()
@@ -238,8 +402,8 @@ func TestServiceDescribeUserImageVsImage(t *testing.T) {
 
 	validateServiceOutput(t, "foo", output)
 
-	assert.Assert(t, util.ContainsAll(output, "Image", "Name", "gcr.io/test/image:latest (at 123456789012)",
-		"gcr.io/test/image:latest (pinned to 123456789012)", "gcr.io/a/b (at 123456789012)", "gcr.io/x/y"))
+	assert.Assert(t, util.ContainsAll(output, "Image", "Name",
+		"gcr.io/test/image:latest (pinned to 123456)", "gcr.io/a/b (at 123456)", "gcr.io/x/y"))
 	assert.Assert(t, util.ContainsAll(output, "[1]", "[2]"))
 
 	// Validate that all recorded API methods have been called
@@ -285,7 +449,7 @@ func TestServiceDescribeVerbose(t *testing.T) {
 
 	validateServiceOutput(t, "foo", output)
 
-	assert.Assert(t, util.ContainsAll(output, "Image", "Name", "gcr.io/test/image (at 123456789012)", "50%", "(0s)"))
+	assert.Assert(t, util.ContainsAll(output, "Image", "Name", "gcr.io/test/image (at 123456)", "50%", "(0s)"))
 	assert.Assert(t, util.ContainsAll(output, "Env:", "label1=lval1\n", "label2=lval2\n"))
 	assert.Assert(t, util.ContainsAll(output, "Annotations:", "anno1=aval1\n", "anno2=aval2\n"))
 	assert.Assert(t, util.ContainsAll(output, "Labels:", "label1=lval1\n", "label2=lval2\n"))
@@ -327,7 +491,7 @@ func validateServiceOutput(t *testing.T, service string, output string) {
 	assert.Assert(t, cmp.Regexp("Address:\\s+http://"+service+".default.svc.cluster.local", output))
 	assert.Assert(t, cmp.Regexp("URL:\\s+"+service+".default.example.com", output))
 
-	assert.Assert(t, util.ContainsAll(output, "Age:", "Revisions:", "Conditions:", "Labels:", "Annotations:", "Port:", "8080"))
+	assert.Assert(t, util.ContainsAll(output, "Age:", "Revisions:", "Conditions:", "Labels:", "Annotations:"))
 	assert.Assert(t, util.ContainsAll(output, "Ready", "RoutesReady", "OK", "TYPE", "AGE", "REASON"))
 }
 
@@ -363,6 +527,9 @@ func createTestService(name string, revisionNames []string, conditions duckv1bet
 			},
 		},
 	}
+	service.Status.LatestCreatedRevisionName = revisionNames[len(revisionNames)-1]
+	service.Status.LatestReadyRevisionName = revisionNames[len(revisionNames)-1]
+
 	if len(revisionNames) > 0 {
 		trafficTargets := make([]v1alpha1.TrafficTarget, 0)
 		for _, rname := range revisionNames {
@@ -455,6 +622,9 @@ func createTestRevision(revision string, gen int64) v1alpha1.Revision {
 		},
 		Status: v1alpha1.RevisionStatus{
 			ImageDigest: "gcr.io/test/image@" + imageDigest,
+			Status: duckv1beta1.Status{
+				Conditions: goodConditions(),
+			},
 		},
 	}
 }
