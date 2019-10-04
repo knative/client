@@ -16,9 +16,9 @@ kn plugin [flags]
 ### Options
 
 ```
-  -h, --help                     help for plugin
-      --lookup-plugins-in-path   look for kn plugins in $PATH
-      --plugins-dir string       kn plugins directory (default "~/.kn/plugins")
+  -h, --help                 help for plugin
+      --lookup-plugins       look for kn plugins in $PATH
+      --plugins-dir string   kn plugins directory (default "~/.kn/plugins")
 ```
 
 ### Options inherited from parent commands

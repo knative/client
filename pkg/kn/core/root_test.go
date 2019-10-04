@@ -177,7 +177,7 @@ func checkRootCmd(t *testing.T, rootCmd *cobra.Command) {
 	assert.Assert(t, rootCmd.SilenceErrors)
 
 	assert.Assert(t, rootCmd.Flags().Lookup("plugins-dir") != nil)
-	assert.Assert(t, rootCmd.Flags().Lookup("lookup-plugins-in-path") != nil)
+	assert.Assert(t, rootCmd.Flags().Lookup("lookup-plugins") != nil)
 
 	assert.Assert(t, rootCmd.RunE == nil)
 }

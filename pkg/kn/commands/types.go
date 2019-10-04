@@ -34,8 +34,8 @@ var Cfg Config
 
 // Config contains the variables for the Kn config
 type Config struct {
-	PluginsDir          string
-	LookupPluginsInPath bool
+	PluginsDir    string
+	LookupPlugins bool
 }
 
 // Parameters for creating commands. Useful for inserting mocks for testing.

@@ -41,14 +41,14 @@ Please refer to the documentation and examples for more information about how wr
 // AddPluginFlags plugins-dir and lookup-plugins-in-path to cmd
 func AddPluginFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&commands.Cfg.PluginsDir, "plugins-dir", "~/.kn/plugins", "kn plugins directory")
-	cmd.Flags().BoolVar(&commands.Cfg.LookupPluginsInPath, "lookup-plugins-in-path", false, "look for kn plugins in $PATH")
+	cmd.Flags().BoolVar(&commands.Cfg.LookupPlugins, "lookup-plugins", false, "look for kn plugins in $PATH")
 }
 
 // BindPluginsFlagToViper bind and set default with viper for plugins flags
 func BindPluginsFlagToViper(cmd *cobra.Command) {
-	viper.BindPFlag("pluginsDir", cmd.Flags().Lookup("plugins-dir"))
-	viper.BindPFlag("lookupPluginsInPath", cmd.Flags().Lookup("lookup-plugins-in-path"))
+	viper.BindPFlag("plugins-dir", cmd.Flags().Lookup("plugins-dir"))
+	viper.BindPFlag("lookup-plugins", cmd.Flags().Lookup("lookup-plugins"))
 
-	viper.SetDefault("pluginsDir", "~/.kn/plugins")
-	viper.SetDefault("lookupPluginsInPath", false)
+	viper.SetDefault("plugins-dir", "~/.kn/plugins")
+	viper.SetDefault("lookup-plugins", false)
 }
