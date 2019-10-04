@@ -17,6 +17,7 @@
 package e2e
 
 import (
+	"fmt"
 	"testing"
 
 	"gotest.tools/assert"
@@ -68,6 +69,14 @@ func TestServiceOptions(t *testing.T) {
 
 	t.Run("delete service", func(t *testing.T) {
 		test.serviceDelete(t, "svc2")
+	})
+
+	t.Run("create, update and validate service with annotations", func(t *testing.T) {
+		test.serviceCreateWithOptions(t, "svc3", []string{"--annotation", "alpha=wolf", "--annotation", "brave=horse"})
+		test.validateServiceAnnotations(t, "svc3", map[string]string{"alpha": "wolf", "brave": "horse"})
+		test.serviceUpdate(t, "svc3", []string{"--annotation", "alpha=direwolf", "--annotation", "brave-"})
+		test.validateServiceAnnotations(t, "svc3", map[string]string{"alpha": "direwolf", "brave": ""})
+		test.serviceDelete(t, "svc3")
 	})
 }
 
@@ -140,5 +149,29 @@ func (test *e2eTest) validateServiceMaxScale(t *testing.T, serviceName, maxScale
 		out, err := test.kn.RunWithOpts([]string{"service", "list", serviceName, "-o", jsonpath}, runOpts{})
 		assert.NilError(t, err)
 		assert.Equal(t, maxScale, out)
+	}
+}
+
+func (test *e2eTest) validateServiceAnnotations(t *testing.T, serviceName string, annotations map[string]string) {
+	metadataAnnotationsJsonpathFormat := "jsonpath={.metadata.annotations.%s}"
+	templateAnnotationsJsonpathFormat := "jsonpath={.spec.template.metadata.annotations.%s}"
+	oldTemplateAnnotationsJsonpathFormat := "jsonpath={.spec.runLatest.configuration.revisionTemplate.metadata.annotations.%s}"
+
+	for k, v := range annotations {
+		out, err := test.kn.RunWithOpts([]string{"service", "describe", serviceName, "-o", fmt.Sprintf(metadataAnnotationsJsonpathFormat, k)}, runOpts{})
+		assert.NilError(t, err)
+		assert.Equal(t, v, out)
+
+		out, err = test.kn.RunWithOpts([]string{"service", "describe", serviceName, "-o", fmt.Sprintf(templateAnnotationsJsonpathFormat, k)}, runOpts{})
+		assert.NilError(t, err)
+		if out != "" || v == "" {
+			assert.Equal(t, v, out)
+		} else {
+			// case where server returns fields like  spec.runLatest.configuration.revisionTemplate.metadata.annotations
+			// TODO: Remove this case when `runLatest` field is deprecated altogether / v1beta1
+			out, err := test.kn.RunWithOpts([]string{"service", "describe", serviceName, "-o", fmt.Sprintf(oldTemplateAnnotationsJsonpathFormat, k)}, runOpts{})
+			assert.NilError(t, err)
+			assert.Equal(t, v, out)
+		}
 	}
 }

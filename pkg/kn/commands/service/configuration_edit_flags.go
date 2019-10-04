@@ -41,6 +41,7 @@ type ConfigurationEditFlags struct {
 	NamePrefix                 string
 	RevisionName               string
 	ServiceAccountName         string
+	Annotations                []string
 
 	// Preferences about how to do the action.
 	LockToDigest         bool
@@ -110,6 +111,11 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	// Don't mark as changing the revision.
 	command.Flags().StringVar(&p.ServiceAccountName, "service-account", "", "Service account name to set. Empty service account name will result to clear the service account.")
 	p.markFlagMakesRevision("service-account")
+	command.Flags().StringArrayVar(&p.Annotations, "annotation", []string{},
+		"Service annotation to set. name=value; you may provide this flag "+
+			"any number of times to set multiple annotations. "+
+			"To unset, specify the annotation name followed by a \"-\" (e.g., name-).")
+	p.markFlagMakesRevision("annotation")
 }
 
 // AddUpdateFlags adds the flags specific to update.
@@ -251,6 +257,24 @@ func (p *ConfigurationEditFlags) Apply(
 			}
 		}
 		err = servinglib.UpdateLabels(service, template, labelsMap, labelsToRemove)
+		if err != nil {
+			return err
+		}
+	}
+
+	if cmd.Flags().Changed("annotation") {
+		annotationsMap, err := util.MapFromArrayAllowingSingles(p.Annotations, "=")
+		if err != nil {
+			return errors.Wrap(err, "Invalid --annotation")
+		}
+		annotationsToRemove := []string{}
+		for key := range annotationsMap {
+			if strings.HasSuffix(key, "-") {
+				annotationsToRemove = append(annotationsToRemove, key[:len(key)-1])
+				delete(annotationsMap, key)
+			}
+		}
+		err = servinglib.UpdateAnnotations(service, template, annotationsMap, annotationsToRemove)
 		if err != nil {
 			return err
 		}

@@ -52,24 +52,17 @@ func UpdateEnvVars(template *servingv1alpha1.RevisionTemplateSpec, toUpdate map[
 
 // UpdateMinScale updates min scale annotation
 func UpdateMinScale(template *servingv1alpha1.RevisionTemplateSpec, min int) error {
-	return UpdateAnnotation(template, autoscaling.MinScaleAnnotationKey, strconv.Itoa(min))
+	return UpdateRevisionTemplateAnnotation(template, autoscaling.MinScaleAnnotationKey, strconv.Itoa(min))
 }
 
 // UpdatMaxScale updates max scale annotation
 func UpdateMaxScale(template *servingv1alpha1.RevisionTemplateSpec, max int) error {
-	return UpdateAnnotation(template, autoscaling.MaxScaleAnnotationKey, strconv.Itoa(max))
+	return UpdateRevisionTemplateAnnotation(template, autoscaling.MaxScaleAnnotationKey, strconv.Itoa(max))
 }
 
 // UpdateConcurrencyTarget updates container concurrency annotation
 func UpdateConcurrencyTarget(template *servingv1alpha1.RevisionTemplateSpec, target int) error {
-	// TODO(toVersus): Remove the following validation once serving library is updated to v0.8.0
-	// and just rely on ValidateAnnotations method.
-	if target < autoscaling.TargetMin {
-		return fmt.Errorf("invalid 'concurrency-target' value: must be an integer greater than 0: %s",
-			autoscaling.TargetAnnotationKey)
-	}
-
-	return UpdateAnnotation(template, autoscaling.TargetAnnotationKey, strconv.Itoa(target))
+	return UpdateRevisionTemplateAnnotation(template, autoscaling.TargetAnnotationKey, strconv.Itoa(target))
 }
 
 // UpdateConcurrencyLimit updates container concurrency limit
@@ -84,8 +77,9 @@ func UpdateConcurrencyLimit(template *servingv1alpha1.RevisionTemplateSpec, limi
 	return nil
 }
 
-// UpdateAnnotation updates (or adds) an annotation to the given service
-func UpdateAnnotation(template *servingv1alpha1.RevisionTemplateSpec, annotation string, value string) error {
+// UpdateRevisionTemplateAnnotation updates an annotation for the given Revision Template.
+// Also validates the autoscaling annotation values
+func UpdateRevisionTemplateAnnotation(template *servingv1alpha1.RevisionTemplateSpec, annotation string, value string) error {
 	annoMap := template.Annotations
 	if annoMap == nil {
 		annoMap = make(map[string]string)
@@ -242,6 +236,35 @@ func UpdateLabels(service *servingv1alpha1.Service, template *servingv1alpha1.Re
 		delete(service.ObjectMeta.Labels, key)
 		delete(template.ObjectMeta.Labels, key)
 	}
+	return nil
+}
+
+// UpdateAnnotations updates the annotations identically on a service and template.
+// Does not overwrite the entire Annotations field, only makes the requested updates.
+func UpdateAnnotations(
+	service *servingv1alpha1.Service,
+	template *servingv1alpha1.RevisionTemplateSpec,
+	toUpdate map[string]string,
+	toRemove []string) error {
+
+	if service.ObjectMeta.Annotations == nil {
+		service.ObjectMeta.Annotations = make(map[string]string)
+	}
+
+	if template.ObjectMeta.Annotations == nil {
+		template.ObjectMeta.Annotations = make(map[string]string)
+	}
+
+	for key, value := range toUpdate {
+		service.ObjectMeta.Annotations[key] = value
+		template.ObjectMeta.Annotations[key] = value
+	}
+
+	for _, key := range toRemove {
+		delete(service.ObjectMeta.Annotations, key)
+		delete(template.ObjectMeta.Annotations, key)
+	}
+
 	return nil
 }
 

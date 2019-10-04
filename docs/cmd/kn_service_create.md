@@ -34,11 +34,15 @@ kn service create NAME --image IMAGE [flags]
   # (earlier configured resource requests and limits will be replaced with default)
   # (earlier configured environment variables will be cleared too if any)
   kn service create --force s1 --image dev.local/ns/image:v1
+
+  # Create a service with annotation
+  kn service create s1 --image dev.local/ns/image:v3 --annotation sidecar.istio.io/inject=false
 ```
 
 ### Options
 
 ```
+      --annotation stringArray   Service annotation to set. name=value; you may provide this flag any number of times to set multiple annotations. To unset, specify the annotation name followed by a "-" (e.g., name-).
       --async                    Create service and don't wait for it to become ready.
       --concurrency-limit int    Hard Limit of concurrent requests to be processed by a single replica.
       --concurrency-target int   Recommendation for when to scale up based on the concurrent number of incoming request. Defaults to --concurrency-limit when given.
