@@ -42,7 +42,7 @@ kn service create NAME --image IMAGE [flags]
 ### Options
 
 ```
-  -a, --annotation stringArray   Service annotation to set. name=value; you may provide this flag any number of times to set multiple annotations. To unset, specify the annotation name followed by a "-" (e.g., name-).
+      --annotation stringArray   Service annotation to set. name=value; you may provide this flag any number of times to set multiple annotations. To unset, specify the annotation name followed by a "-" (e.g., name-).
       --async                    Create service and don't wait for it to become ready.
       --concurrency-limit int    Hard Limit of concurrent requests to be processed by a single replica.
       --concurrency-target int   Recommendation for when to scale up based on the concurrent number of incoming request. Defaults to --concurrency-limit when given.

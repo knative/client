@@ -111,9 +111,9 @@ func TestServiceUpdateAnnotationsMock(t *testing.T) {
 
 	output, err := executeServiceCommand(client,
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",
-		"-a", "an1=staysConstant",
-		"-a", "an2=getsUpdated",
-		"-a", "an3=getsRemoved",
+		"--annotation", "an1=staysConstant",
+		"--annotation", "an2=getsUpdated",
+		"--annotation", "an3=getsRemoved",
 		"--async", "--revision-name=",
 	)
 	assert.NilError(t, err)
@@ -121,8 +121,8 @@ func TestServiceUpdateAnnotationsMock(t *testing.T) {
 
 	output, err = executeServiceCommand(client,
 		"update", svcName,
-		"-a", "an2=isUpdated",
-		"-a", "an3-",
+		"--annotation", "an2=isUpdated",
+		"--annotation", "an3-",
 		"--async", "--revision-name=",
 	)
 	assert.NilError(t, err)

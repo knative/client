@@ -111,7 +111,7 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	// Don't mark as changing the revision.
 	command.Flags().StringVar(&p.ServiceAccountName, "service-account", "", "Service account name to set. Empty service account name will result to clear the service account.")
 	p.markFlagMakesRevision("service-account")
-	command.Flags().StringArrayVarP(&p.Annotations, "annotation", "a", []string{},
+	command.Flags().StringArrayVar(&p.Annotations, "annotation", []string{},
 		"Service annotation to set. name=value; you may provide this flag "+
 			"any number of times to set multiple annotations. "+
 			"To unset, specify the annotation name followed by a \"-\" (e.g., name-).")
