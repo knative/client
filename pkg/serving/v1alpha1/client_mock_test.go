@@ -20,6 +20,8 @@ import (
 
 	api_serving "knative.dev/serving/pkg/apis/serving"
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
+
+	"knative.dev/client/pkg/wait"
 )
 
 func TestMockKnClient(t *testing.T) {
@@ -34,7 +36,7 @@ func TestMockKnClient(t *testing.T) {
 	recorder.CreateService(&v1alpha1.Service{}, nil)
 	recorder.UpdateService(&v1alpha1.Service{}, nil)
 	recorder.DeleteService("hello", nil)
-	recorder.WaitForService("hello", time.Duration(10)*time.Second, nil)
+	recorder.WaitForService("hello", time.Duration(10)*time.Second, wait.NoopMessageCallback(), nil, 10*time.Second)
 	recorder.GetRevision("hello", nil, nil)
 	recorder.ListRevisions(Any(), nil, nil)
 	recorder.DeleteRevision("hello", nil)
@@ -48,7 +50,7 @@ func TestMockKnClient(t *testing.T) {
 	client.CreateService(&v1alpha1.Service{})
 	client.UpdateService(&v1alpha1.Service{})
 	client.DeleteService("hello")
-	client.WaitForService("hello", time.Duration(10)*time.Second)
+	client.WaitForService("hello", time.Duration(10)*time.Second, wait.NoopMessageCallback())
 	client.GetRevision("hello")
 	client.ListRevisions(WithName("blub"))
 	client.DeleteRevision("hello")

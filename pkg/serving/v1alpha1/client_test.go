@@ -390,8 +390,9 @@ func TestWaitForService(t *testing.T) {
 		})
 
 	t.Run("wait on a service to become ready with success", func(t *testing.T) {
-		err := client.WaitForService(serviceName, 60*time.Second)
+		err, duration := client.WaitForService(serviceName, 60*time.Second, wait.NoopMessageCallback())
 		assert.NilError(t, err)
+		assert.Assert(t, duration > 0)
 	})
 }
 
@@ -509,8 +510,8 @@ func newRoute(name string) *v1alpha1.Route {
 
 func getServiceEvents(name string) []watch.Event {
 	return []watch.Event{
-		{watch.Added, wait.CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "")},
-		{watch.Modified, wait.CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionTrue, "")},
-		{watch.Modified, wait.CreateTestServiceWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "")},
+		{watch.Added, wait.CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "", "msg1")},
+		{watch.Modified, wait.CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionTrue, "", "msg2")},
+		{watch.Modified, wait.CreateTestServiceWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "", "")},
 	}
 }

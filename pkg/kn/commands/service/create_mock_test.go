@@ -16,6 +16,7 @@ package service
 
 import (
 	"testing"
+	"time"
 
 	"gotest.tools/assert"
 	corev1 "k8s.io/api/core/v1"
@@ -27,6 +28,7 @@ import (
 
 	servinglib "knative.dev/client/pkg/serving"
 	knclient "knative.dev/client/pkg/serving/v1alpha1"
+	"knative.dev/client/pkg/wait"
 
 	"knative.dev/client/pkg/util"
 )
@@ -43,14 +45,14 @@ func TestServiceCreateImageMock(t *testing.T) {
 	// Create service (don't validate given service --> "Any()" arg is allowed)
 	r.CreateService(knclient.Any(), nil)
 	// Wait for service to become ready
-	r.WaitForService("foo", knclient.Any(), nil)
+	r.WaitForService("foo", knclient.Any(), wait.NoopMessageCallback(), nil, time.Second)
 	// Get for showing the URL
 	r.GetService("foo", getServiceWithUrl("foo", "http://foo.example.com"), nil)
 
 	// Testing:
 	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz")
 	assert.NilError(t, err)
-	assert.Assert(t, util.ContainsAll(output, "created", "foo", "http://foo.example.com", "Waiting"))
+	assert.Assert(t, util.ContainsAll(output, "Creating", "foo", "http://foo.example.com", "Ready"))
 
 	// Validate that all recorded API methods have been called
 	r.Validate()

@@ -85,7 +85,7 @@ func (test *e2eTest) serviceCreateWithOptions(t *testing.T, serviceName string, 
 	command = append(command, options...)
 	out, err := test.kn.RunWithOpts(command, runOpts{NoNamespace: false})
 	assert.NilError(t, err)
-	assert.Check(t, util.ContainsAll(out, "Service", serviceName, "successfully created in namespace", test.kn.namespace, "OK"))
+	assert.Check(t, util.ContainsAll(out, "service", serviceName, "Creating", "namespace", test.kn.namespace, "Ready"))
 }
 
 func (test *e2eTest) validateServiceConcurrencyLimit(t *testing.T, serviceName, concurrencyLimit string) {

@@ -17,11 +17,14 @@ package service
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"gotest.tools/assert"
 	"k8s.io/apimachinery/pkg/api/errors"
 	knclient "knative.dev/client/pkg/serving/v1alpha1"
 	"knative.dev/client/pkg/util"
+	"knative.dev/client/pkg/wait"
+
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
@@ -32,17 +35,17 @@ func TestServiceListAllNamespaceMock(t *testing.T) {
 
 	r.GetService("svc1", nil, errors.NewNotFound(v1alpha1.Resource("service"), "svc1"))
 	r.CreateService(knclient.Any(), nil)
-	r.WaitForService("svc1", knclient.Any(), nil)
+	r.WaitForService("svc1", knclient.Any(), wait.NoopMessageCallback(), nil, time.Second)
 	r.GetService("svc1", getServiceWithNamespace("svc1", "default"), nil)
 
 	r.GetService("svc2", nil, errors.NewNotFound(v1alpha1.Resource("service"), "foo"))
 	r.CreateService(knclient.Any(), nil)
-	r.WaitForService("svc2", knclient.Any(), nil)
+	r.WaitForService("svc2", knclient.Any(), wait.NoopMessageCallback(), nil, time.Second)
 	r.GetService("svc2", getServiceWithNamespace("svc2", "foo"), nil)
 
 	r.GetService("svc3", nil, errors.NewNotFound(v1alpha1.Resource("service"), "svc3"))
 	r.CreateService(knclient.Any(), nil)
-	r.WaitForService("svc3", knclient.Any(), nil)
+	r.WaitForService("svc3", knclient.Any(), wait.NoopMessageCallback(), nil, time.Second)
 	r.GetService("svc3", getServiceWithNamespace("svc3", "bar"), nil)
 
 	r.ListServices(knclient.Any(), &v1alpha1.ServiceList{
@@ -55,15 +58,17 @@ func TestServiceListAllNamespaceMock(t *testing.T) {
 
 	output, err := executeServiceCommand(client, "create", "svc1", "--image", "gcr.io/foo/bar:baz", "--namespace", "default")
 	assert.NilError(t, err)
-	assert.Assert(t, util.ContainsAll(output, "created", "svc1", "default", "Waiting"))
+	assert.Assert(t, util.ContainsAll(output, "Creating", "svc1", "default", "Ready"))
 
+	r.Namespace("foo")
 	output, err = executeServiceCommand(client, "create", "svc2", "--image", "gcr.io/foo/bar:baz", "--namespace", "foo")
 	assert.NilError(t, err)
-	assert.Assert(t, util.ContainsAll(output, "created", "svc2", "foo", "Waiting"))
+	assert.Assert(t, util.ContainsAll(output, "Creating", "svc2", "foo", "Ready"))
 
+	r.Namespace("bar")
 	output, err = executeServiceCommand(client, "create", "svc3", "--image", "gcr.io/foo/bar:baz", "--namespace", "bar")
 	assert.NilError(t, err)
-	assert.Assert(t, util.ContainsAll(output, "created", "svc3", "bar", "Waiting"))
+	assert.Assert(t, util.ContainsAll(output, "Creating", "svc3", "bar", "Ready"))
 
 	output, err = executeServiceCommand(client, "list", "--all-namespaces")
 	assert.NilError(t, err)

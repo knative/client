@@ -24,6 +24,8 @@ import (
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
+
+	"knative.dev/client/pkg/wait"
 )
 
 type Recorder struct {
@@ -31,11 +33,15 @@ type Recorder struct {
 
 	// List of recorded calls in order
 	recordedCalls map[string][]apiMethodCall
+
+	// Namespace for client
+	namespace string
 }
 
 type MockKnClient struct {
-	t        *testing.T
-	recorder Recorder
+	t         *testing.T
+	recorder  Recorder
+	namespace string
 }
 
 // Recorded method call
@@ -51,6 +57,7 @@ func NewMockKnClient(t *testing.T) *MockKnClient {
 		recorder: Recorder{
 			t:             t,
 			recordedCalls: make(map[string][]apiMethodCall),
+			namespace:     "default",
 		},
 	}
 }
@@ -63,6 +70,15 @@ func (c *MockKnClient) Recorder() *Recorder {
 // any() can be used in recording to not check for the argument
 func Any() func(t *testing.T, a interface{}) {
 	return func(t *testing.T, a interface{}) {}
+}
+
+func (r *Recorder) Namespace(namespace string) {
+	r.namespace = namespace
+}
+
+// Namespace of this client
+func (c *MockKnClient) Namespace() string {
+	return c.recorder.namespace
 }
 
 // Get Service
@@ -121,14 +137,14 @@ func (c *MockKnClient) DeleteService(name string) error {
 }
 
 // Wait for a service to become ready, but not longer than provided timeout
-func (r *Recorder) WaitForService(name interface{}, timeout interface{}, err error) {
-	r.add("WaitForService", apiMethodCall{[]interface{}{name}, []interface{}{err}})
+func (r *Recorder) WaitForService(name interface{}, timeout interface{}, callback interface{}, err error, duration time.Duration) {
+	r.add("WaitForService", apiMethodCall{[]interface{}{name, timeout, callback}, []interface{}{err, duration}})
 }
 
-func (c *MockKnClient) WaitForService(name string, timeout time.Duration) error {
+func (c *MockKnClient) WaitForService(name string, timeout time.Duration, msgCallback wait.MessageCallback) (error, time.Duration) {
 	call := c.getCall("WaitForService")
-	c.verifyArgs(call, name)
-	return errorOrNil(call.result[0])
+	c.verifyArgs(call, name, timeout, msgCallback)
+	return errorOrNil(call.result[0]), call.result[1].(time.Duration)
 }
 
 // Get a revision by name
@@ -288,12 +304,18 @@ func (c *MockKnClient) verifyArgs(call *apiMethodCall, args ...interface{}) {
 	callArgs := call.args
 	for i, arg := range args {
 		assert.Assert(c.t, len(callArgs) > i, "Internal: Invalid recording: Expected %d args, got %d", len(callArgs), len(args))
-		fn := reflect.ValueOf(call.args[i])
+		fn := reflect.ValueOf(callArgs[i])
 		fnType := fn.Type()
-		if fnType.Kind() == reflect.Func && fnType.NumIn() == 2 {
-			fn.Call([]reflect.Value{reflect.ValueOf(c.t), reflect.ValueOf(arg)})
+		if fnType.Kind() == reflect.Func {
+			if fnType.NumIn() == 2 &&
+				// It's an assertion function which takes a Testing as first parameter
+				fnType.In(0).AssignableTo(reflect.TypeOf(c.t)) {
+				fn.Call([]reflect.Value{reflect.ValueOf(c.t), reflect.ValueOf(arg)})
+			} else {
+				assert.Assert(c.t, fnType.AssignableTo(reflect.TypeOf(arg)))
+			}
 		} else {
-			assert.DeepEqual(c.t, call.args[i], arg)
+			assert.DeepEqual(c.t, callArgs[i], arg)
 		}
 	}
 }

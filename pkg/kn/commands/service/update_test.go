@@ -158,7 +158,7 @@ func TestServiceUpdateImageSync(t *testing.T) {
 	assert.NilError(t, err)
 
 	assert.Equal(t, template.Spec.Containers[0].Image, "gcr.io/foo/quux:xyzzy")
-	assert.Assert(t, util.ContainsAll(strings.ToLower(output), "update", "foo", "service", "namespace", "bar", "ok", "waiting"))
+	assert.Assert(t, util.ContainsAll(strings.ToLower(output), "updating", "foo", "service", "namespace", "bar", "ready"))
 }
 
 func TestServiceUpdateImage(t *testing.T) {

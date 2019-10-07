@@ -40,6 +40,9 @@ import (
 // namespace specified during construction
 type KnServingClient interface {
 
+	// Namespace in which this client is operating for
+	Namespace() string
+
 	// Get a service by its unique name
 	GetService(name string) (*v1alpha1.Service, error)
 
@@ -55,8 +58,9 @@ type KnServingClient interface {
 	// Delete a service by name
 	DeleteService(name string) error
 
-	// Wait for a service to become ready, but not longer than provided timeout
-	WaitForService(name string, timeout time.Duration) error
+	// Wait for a service to become ready, but not longer than provided timeout.
+	// Return error and how long has been waited
+	WaitForService(name string, timeout time.Duration, msgCallback wait.MessageCallback) (error, time.Duration)
 
 	// Get a configuration by name
 	GetConfiguration(name string) (*v1alpha1.Configuration, error)
@@ -137,6 +141,11 @@ func NewKnServingClient(client client_v1alpha1.ServingV1alpha1Interface, namespa
 	}
 }
 
+// Return the client's namespace
+func (cl *knServingClient) Namespace() string {
+	return cl.namespace
+}
+
 // Get a service by its unique name
 func (cl *knServingClient) GetService(name string) (*v1alpha1.Service, error) {
 	service, err := cl.client.Services(cl.namespace).Get(name, v1.GetOptions{})
@@ -206,9 +215,9 @@ func (cl *knServingClient) DeleteService(serviceName string) error {
 }
 
 // Wait for a service to become ready, but not longer than provided timeout
-func (cl *knServingClient) WaitForService(name string, timeout time.Duration) error {
+func (cl *knServingClient) WaitForService(name string, timeout time.Duration, msgCallback wait.MessageCallback) (error, time.Duration) {
 	waitForReady := newServiceWaitForReady(cl.client.Services(cl.namespace).Watch)
-	return waitForReady.Wait(name, timeout)
+	return waitForReady.Wait(name, timeout, msgCallback)
 }
 
 // Get the configuration for a service
