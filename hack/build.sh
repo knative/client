@@ -222,7 +222,7 @@ watch() {
     set -e
 
     echo "🔁 Watch"
-    fswatch $fswatch_opts | xargs -n1 -I{} $command
+    fswatch $fswatch_opts | xargs -n1 -I{} sh -c "$command && echo 👌 OK"
 }
 
 # Dir where this script is located
