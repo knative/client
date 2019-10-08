@@ -42,8 +42,7 @@ Examples:
 ```bash
 # Listing a service's revision
 
-kn revision list --service srvc # CHECK this since current command does not have --service flag
-
+kn revision list --service srvc
 ```
 
 ## Utilities
