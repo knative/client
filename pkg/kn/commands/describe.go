@@ -37,13 +37,17 @@ func WriteMetadata(dw printers.PrefixWriter, m *metav1.ObjectMeta, printDetails 
 	WriteMapDesc(dw, m.Labels, l("Labels"), "", printDetails)
 	WriteMapDesc(dw, m.Annotations, l("Annotations"), "", printDetails)
 	dw.WriteAttribute("Age", Age(m.CreationTimestamp.Time))
-
 }
 
 var boringDomains = map[string]bool{
 	"serving.knative.dev":   true,
 	"client.knative.dev":    true,
 	"kubectl.kubernetes.io": true,
+}
+
+func keyIsBoring(k string) bool {
+	parts := strings.Split(k, "/")
+	return len(parts) > 1 && boringDomains[parts[0]]
 }
 
 // Write a map either compact in a single line (possibly truncated) or, if printDetails is set,
@@ -55,8 +59,7 @@ func WriteMapDesc(dw printers.PrefixWriter, m map[string]string, label string, l
 
 	var keys []string
 	for k := range m {
-		parts := strings.Split(k, "/")
-		if details || len(parts) <= 1 || !boringDomains[parts[0]] {
+		if details || !keyIsBoring(k) {
 			keys = append(keys, k)
 		}
 	}
@@ -85,7 +88,6 @@ func Age(t time.Time) string {
 	return duration.ShortHumanDuration(time.Now().Sub(t))
 }
 
-// Color the type of the conditions
 func formatConditionType(condition apis.Condition) string {
 	return string(condition.Type)
 }
@@ -160,7 +162,7 @@ func sortConditions(conditions []apis.Condition) []apis.Condition {
 	return ret
 }
 
-// Print out a table with conditions. Use green for 'ok', and red for 'nok' if color is enabled
+// Print out a table with conditions.
 func WriteConditions(dw printers.PrefixWriter, conditions []apis.Condition, printMessage bool) {
 	section := dw.WriteAttribute("Conditions", "")
 	conditions = sortConditions(conditions)
