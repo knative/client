@@ -25,6 +25,10 @@ type flusher interface {
 	Flush() error
 }
 
+func NewBarePrefixWriter(out io.Writer) PrefixWriter {
+	return &prefixWriter{out: out, nested: nil, colIndent: 0, spaceIndent: 0}
+}
+
 // NewPrefixWriter creates a new PrefixWriter.
 func NewPrefixWriter(out io.Writer) PrefixWriter {
 	tabWriter := tabwriter.NewWriter(out, 0, 8, 2, ' ', 0)
@@ -86,7 +90,7 @@ func (pw *prefixWriter) WriteCols(cols ...string) PrefixWriter {
 	}
 
 	pw.Writef(format, s...)
-	return &prefixWriter{pw.out, pw, len(cols) - 1, 0}
+	return &prefixWriter{pw.out, pw, 1, 0}
 }
 
 // WriteCols writes the columns to the writer and returns a PrefixWriter for

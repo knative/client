@@ -75,7 +75,7 @@ func WriteMapDesc(dw printers.PrefixWriter, m map[string]string, label string, l
 		return
 	}
 
-	dw.WriteColsLn(label, joinAndTruncate(keys, m))
+	dw.WriteColsLn(label, joinAndTruncate(keys, m, TruncateAt-len(label)-2))
 }
 
 func Age(t time.Time) string {
@@ -126,9 +126,9 @@ func getMaxTypeLen(conditions []apis.Condition) int {
 // Sort conditions: Ready first, followed by error, then Warning, then Info
 func sortConditions(conditions []apis.Condition) []apis.Condition {
 	// Don't change the orig slice
-	ret := make([]apis.Condition, 0, len(conditions))
-	for _, c := range conditions {
-		ret = append(ret, c)
+	ret := make([]apis.Condition, len(conditions))
+	for i, c := range conditions {
+		ret[i] = c
 	}
 	sort.SliceStable(ret, func(i, j int) bool {
 		ic := &ret[i]
@@ -136,6 +136,9 @@ func sortConditions(conditions []apis.Condition) []apis.Condition {
 		// Ready first
 		if ic.Type == apis.ConditionReady {
 			return jc.Type != apis.ConditionReady
+		}
+		if jc.Type == apis.ConditionReady {
+			return false
 		}
 		// Among conditions of the same Severity, sort by Type
 		if ic.Severity == jc.Severity {
@@ -181,18 +184,18 @@ func l(label string) string {
 }
 
 // Join to key=value pair, comma separated, and truncate if longer than a limit
-func joinAndTruncate(sortedKeys []string, m map[string]string) string {
+func joinAndTruncate(sortedKeys []string, m map[string]string, width int) string {
 	ret := ""
 	for _, key := range sortedKeys {
 		ret += fmt.Sprintf("%s=%s, ", key, m[key])
-		if len(ret) > TruncateAt {
+		if len(ret) > width {
 			break
 		}
 	}
 	// cut of two latest chars
 	ret = strings.TrimRight(ret, ", ")
-	if len(ret) <= TruncateAt {
+	if len(ret) <= width {
 		return ret
 	}
-	return string(ret[:TruncateAt-4]) + " ..."
+	return string(ret[:width-4]) + " ..."
 }
