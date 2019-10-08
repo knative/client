@@ -56,7 +56,7 @@ These are commands that provide some useful information to the user.
 
 ## Common Flags
 
-For every `kn` command, you can use these optional common additional flags:
+For every `kn` command, you can use these common additional flags:
 
 * `-h` or `--help` to display specific help for that command
 * `--config string` which specifies the `kn` config file (default is $HOME/.kn.yaml)
