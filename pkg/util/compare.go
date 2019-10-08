@@ -39,6 +39,23 @@ func ContainsAll(target string, substrings ...string) cmp.Comparison {
 	}
 }
 
+// Like ContainsAll but ignores the case when checking
+func ContainsAllIgnoreCase(target string, substrings ...string) cmp.Comparison {
+	return func() cmp.Result {
+		var missing []string
+		lTarget := strings.ToLower(target)
+		for _, sub := range substrings {
+			if !strings.Contains(lTarget, strings.ToLower(sub)) {
+				missing = append(missing, sub)
+			}
+		}
+		if len(missing) > 0 {
+			return cmp.ResultFailure(fmt.Sprintf("\nActual output (lower-cased): %s\nMissing strings (lower-cased): %s", lTarget, strings.ToLower(strings.Join(missing[:], ", "))))
+		}
+		return cmp.ResultSuccess
+	}
+}
+
 // ContainsNone is a comparison utility, compares given substrings against
 // target string and returns the gotest.tools/assert/cmp.Comaprison function.
 // Provide target string as first arg, followed by any number of substring as args
