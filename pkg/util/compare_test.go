@@ -62,15 +62,47 @@ func TestContainsAll(t *testing.T) {
 			success:    true,
 		},
 	} {
-		comparison := ContainsAll(tc.target, tc.substrings...)
-		result := comparison()
+		result := ContainsAll(tc.target, tc.substrings...)()
 		if result.Success() != tc.success {
 			t.Errorf("%d: Expecting %s to contain %s", i, tc.target, tc.substrings)
 		}
 		if !tc.success {
 			message := fmt.Sprintf("\nActual output: %s\nMissing strings: %s", tc.target, strings.Join(tc.missing[:], ", "))
 			if !reflect.DeepEqual(result, cmp.ResultFailure(message)) {
-				t.Errorf("%d: Incorrect error message returned\nExpecting: %s", i, message)
+				t.Errorf("%d: Incorrect error message returned\nGot: %v\nExpecting: %s", i, result, message)
+			}
+		}
+	}
+}
+
+func TestContainsIgnoreCase(t *testing.T) {
+	for i, tc := range []containsAllTestCase{
+		{
+			target:     "NAME SERVICE AGE CONDITIONS READY REASON",
+			substrings: []string{"reason", "age"},
+			success:    true,
+		},
+		{
+			"No resources found.",
+			[]string{"NAME", "AGE"},
+			false,
+			[]string{"name", "age"},
+		},
+		{
+			"NAME SERVICE AGE CONDITIONS READY REASON",
+			[]string{"name", "url", "domain", "ready"},
+			false,
+			[]string{"url", "domain"},
+		},
+	} {
+		result := ContainsAllIgnoreCase(tc.target, tc.substrings...)()
+		if result.Success() != tc.success {
+			t.Errorf("%d: Expecting %s to contain %s", i, tc.target, tc.substrings)
+		}
+		if !tc.success {
+			message := fmt.Sprintf("\nActual output (lower-cased): %s\nMissing strings (lower-cased): %s", strings.ToLower(tc.target), strings.ToLower(strings.Join(tc.missing[:], ", ")))
+			if !reflect.DeepEqual(result, cmp.ResultFailure(message)) {
+				t.Errorf("%d: Incorrect error message returned\n. Got: %v\nExpecting: %s", i, result, message)
 			}
 		}
 	}
