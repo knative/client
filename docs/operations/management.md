@@ -1,5 +1,11 @@
 # Management Commands
 
+* [Service Management](#Service-Management)
+* [Revision Management](#Revision-Management)
+* [Utilities](#Utilities)
+* [Common Flags](#Common-Flags)
+
+
 ## Service Management
 
 A Knative service is the embodiment of a serverless workload. It is generally in the form of a collection of containers running in a group of pods, in the underlying Kubernetes cluster. Each Knative service associates with a collection of revisions, which represent the evolution of that service.
@@ -37,6 +43,7 @@ Examples:
 # Listing a service's revision
 
 kn revision list --service srvc # CHECK this since current command does not have --service flag
+
 ```
 
 ## Utilities
@@ -50,8 +57,8 @@ These are commands that provide some useful information to the user.
 
 ## Common Flags
 
-For every Kn command you can use these optional common additional flags:
+For every `kn` command, you can use these optional common additional flags:
 
 * `-h` or `--help` to display specific help for that command
-* `--config string` which specifies the Kn config file (default is $HOME/.kn.yaml)
+* `--config string` which specifies the `kn` config file (default is $HOME/.kn.yaml)
 * `--kubeconfig string` which specifies the kubectl config file (default is $HOME/.kube/config)
