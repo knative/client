@@ -72,7 +72,7 @@
 
 | 🎁
 | Update build.sh -w to add a message when compilation succeeded
-| https://github.com/knative/client/pull/[]
+| https://github.com/knative/client/pull/432[#432]
 |===
 
 ## v0.2.0 (2019-07-10)
