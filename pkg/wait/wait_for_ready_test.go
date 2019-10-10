@@ -18,6 +18,8 @@ import (
 	"testing"
 	"time"
 
+	"gotest.tools/assert"
+	"gotest.tools/assert/cmp"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -27,9 +29,10 @@ import (
 )
 
 type waitForReadyTestCase struct {
-	events        []watch.Event
-	timeout       time.Duration
-	errorExpected bool
+	events           []watch.Event
+	timeout          time.Duration
+	errorExpected    bool
+	messagesExpected []string
 }
 
 func TestAddWaitForReady(t *testing.T) {
@@ -46,7 +49,10 @@ func TestAddWaitForReady(t *testing.T) {
 				return apis.Conditions(obj.(*v1alpha1.Service).Status.Conditions), nil
 			})
 		fakeWatchApi.Start()
-		err := waitForReady.Wait("foobar", tc.timeout)
+		var msgs []string
+		err, _ := waitForReady.Wait("foobar", tc.timeout, func(_ time.Duration, msg string) {
+			msgs = append(msgs, msg)
+		})
 		close(fakeWatchApi.eventChan)
 
 		if !tc.errorExpected && err != nil {
@@ -56,6 +62,9 @@ func TestAddWaitForReady(t *testing.T) {
 		if tc.errorExpected && err == nil {
 			t.Errorf("%d: No error but expected one", i)
 		}
+
+		// check messages
+		assert.Assert(t, cmp.DeepEqual(tc.messagesExpected, msgs), "%d: Messages expected to be equal", i)
 
 		if fakeWatchApi.StopCalled != 1 {
 			t.Errorf("%d: Exactly one 'stop' should be called, but got %d", i, fakeWatchApi.StopCalled)
@@ -67,39 +76,59 @@ func TestAddWaitForReady(t *testing.T) {
 // Test cases which consists of a series of events to send and the expected behaviour.
 func prepareTestCases(name string) []waitForReadyTestCase {
 	return []waitForReadyTestCase{
-		{peNormal(name), time.Second, false},
-		{peError(name), time.Second, true},
-		{peTimeout(name), time.Second, true},
-		{peWrongGeneration(name), time.Second, true},
+		tc(peNormal, name, false),
+		tc(peError, name, true),
+		tc(peWrongGeneration, name, true),
+		tc(peTimeout, name, true),
 	}
+}
+
+func tc(f func(name string) (evts []watch.Event, nrMessages int), name string, isError bool) waitForReadyTestCase {
+	events, nrMsgs := f(name)
+	return waitForReadyTestCase{
+		events,
+		time.Second,
+		isError,
+		pMessages(nrMsgs),
+	}
+}
+
+func pMessages(max int) []string {
+	return []string{
+		"msg1", "msg2", "msg3", "msg4", "msg5", "msg6",
+	}[:max]
 }
 
 // =============================================================================
 
-func peNormal(name string) []watch.Event {
+func peNormal(name string) ([]watch.Event, int) {
+	messages := pMessages(2)
 	return []watch.Event{
-		{watch.Added, CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "")},
-		{watch.Modified, CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionTrue, "")},
-		{watch.Modified, CreateTestServiceWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "")},
-	}
+		{watch.Added, CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "", messages[0])},
+		{watch.Modified, CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionTrue, "", messages[1])},
+		{watch.Modified, CreateTestServiceWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "", "")},
+	}, len(messages)
 }
 
-func peError(name string) []watch.Event {
+func peError(name string) ([]watch.Event, int) {
+	messages := pMessages(1)
 	return []watch.Event{
-		{watch.Added, CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "")},
-		{watch.Modified, CreateTestServiceWithConditions(name, corev1.ConditionFalse, corev1.ConditionTrue, "FakeError")},
-	}
+		{watch.Added, CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "", messages[0])},
+		{watch.Modified, CreateTestServiceWithConditions(name, corev1.ConditionFalse, corev1.ConditionTrue, "FakeError", "")},
+	}, len(messages)
 }
 
-func peTimeout(name string) []watch.Event {
+func peTimeout(name string) ([]watch.Event, int) {
+	messages := pMessages(1)
 	return []watch.Event{
-		{watch.Added, CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "")},
-	}
+		{watch.Added, CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "", messages[0])},
+	}, len(messages)
 }
 
-func peWrongGeneration(name string) []watch.Event {
+func peWrongGeneration(name string) ([]watch.Event, int) {
+	messages := pMessages(1)
 	return []watch.Event{
-		{watch.Added, CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "")},
-		{watch.Modified, CreateTestServiceWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "", 1, 2)},
-	}
+		{watch.Added, CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "", messages[0])},
+		{watch.Modified, CreateTestServiceWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "", "", 1, 2)},
+	}, len(messages)
 }

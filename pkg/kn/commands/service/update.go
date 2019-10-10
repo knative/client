@@ -80,12 +80,12 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 					return err
 				}
 				service = service.DeepCopy()
-
+				latestRevisionBeforeUpdate := service.Status.LatestReadyRevisionName
 				var baseRevision *v1alpha1.Revision
 				if !cmd.Flags().Changed("image") && editFlags.LockToDigest {
 					baseRevision, err = client.GetBaseRevision(service)
 					if _, ok := err.(*serving.NoBaseRevisionError); ok {
-						fmt.Fprintf(cmd.OutOrStdout(), "Warning: No reivision found to update image digest")
+						fmt.Fprintf(cmd.OutOrStdout(), "Warning: No revision found to update image digest")
 					}
 				}
 				err = editFlags.Apply(service, baseRevision, cmd)
@@ -112,15 +112,19 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 					return err
 				}
 
+				out := cmd.OutOrStdout()
 				if !waitFlags.Async {
-					out := cmd.OutOrStdout()
+					fmt.Fprintf(cmd.OutOrStdout(), "Updating Service '%s' in namespace '%s':\n", args[0], namespace)
 					err := waitForService(client, name, out, waitFlags.TimeoutInSeconds)
 					if err != nil {
 						return err
 					}
+					return showUrl(client, name, latestRevisionBeforeUpdate, "updated", out)
+				} else {
+					fmt.Fprintf(out, "Service '%s' updated in namespace '%s'.\n", args[0], namespace)
+
 				}
 
-				fmt.Fprintf(cmd.OutOrStdout(), "Service '%s' updated in namespace '%s'.\n", args[0], namespace)
 				return nil
 			}
 		},

@@ -73,6 +73,11 @@
 | 🎁
 | Update build.sh -w to add a message when compilation succeeded
 | https://github.com/knative/client/pull/432[#432]
+
+| 🧽
+| Add more progress information during service create/update
+| https://github.com/knative/client/pull/431[#431]
+
 |===
 
 ## v0.2.0 (2019-07-10)

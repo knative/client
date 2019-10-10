@@ -37,7 +37,7 @@ var targetsJsonPath = "jsonpath={range .status.traffic[*]}{.tag}{','}{.revisionN
 // returns deployed service latest revision name
 var latestRevisionJsonPath = "jsonpath={.status.latestCreatedRevisionName}"
 
-// TargetFileds are used in e2e to store expected fields per traffic target
+// TargetFields are used in e2e to store expected fields per traffic target
 // and actual traffic targets fields of deployed service are converted into struct before comparing
 type TargetFields struct {
 	Tag      string
@@ -385,5 +385,5 @@ func (test *e2eTest) serviceUpdateWithOptions(t *testing.T, serviceName string, 
 	command = append(command, options...)
 	out, err := test.kn.RunWithOpts(command, runOpts{NoNamespace: false})
 	assert.NilError(t, err)
-	assert.Check(t, util.ContainsAll(out, "Service", serviceName, "update", "namespace", test.kn.namespace))
+	assert.Check(t, util.ContainsAllIgnoreCase(out, "Service", serviceName, "updating", "namespace", test.kn.namespace))
 }

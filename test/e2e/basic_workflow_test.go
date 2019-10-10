@@ -83,7 +83,7 @@ func (test *e2eTest) serviceCreate(t *testing.T, serviceName string) {
 		"--image", KnDefaultTestImage}, runOpts{NoNamespace: false})
 	assert.NilError(t, err)
 
-	assert.Check(t, util.ContainsAll(out, "Service", serviceName, "successfully created in namespace", test.kn.namespace, "OK"))
+	assert.Check(t, util.ContainsAllIgnoreCase(out, "service", serviceName, "creating", "namespace", test.kn.namespace, "ready"))
 }
 
 func (test *e2eTest) serviceList(t *testing.T, serviceName string) {
@@ -106,8 +106,7 @@ func (test *e2eTest) serviceUpdate(t *testing.T, serviceName string, args []stri
 	out, err := test.kn.RunWithOpts(append([]string{"service", "update", serviceName}, args...), runOpts{NoNamespace: false})
 	assert.NilError(t, err)
 
-	expectedOutput := fmt.Sprintf("Service '%s' updated", serviceName)
-	assert.Check(t, util.ContainsAll(out, expectedOutput))
+	assert.Check(t, util.ContainsAllIgnoreCase(out, "updating", "service", serviceName, "ready"))
 }
 
 func (test *e2eTest) serviceDelete(t *testing.T, serviceName string) {
