@@ -59,7 +59,7 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 		Example: update_example,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
-				return errors.New("requires the service name.")
+				return errors.New("requires the service name")
 			}
 
 			namespace, err := p.GetNamespace(cmd)
@@ -114,7 +114,7 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 
 				out := cmd.OutOrStdout()
 				if !waitFlags.Async {
-					fmt.Fprintf(cmd.OutOrStdout(), "Updating Service '%s' in namespace '%s':\n", args[0], namespace)
+					fmt.Fprintf(out, "Updating Service '%s' in namespace '%s':\n", args[0], namespace)
 					err := waitForService(client, name, out, waitFlags.TimeoutInSeconds)
 					if err != nil {
 						return err
@@ -122,7 +122,6 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 					return showUrl(client, name, latestRevisionBeforeUpdate, "updated", out)
 				} else {
 					fmt.Fprintf(out, "Service '%s' updated in namespace '%s'.\n", args[0], namespace)
-
 				}
 
 				return nil

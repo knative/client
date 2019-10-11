@@ -43,17 +43,18 @@ func NewVersionCommand(p *KnParams) *cobra.Command {
 		Use:   "version",
 		Short: "Prints the client version",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Printf("Version:      %s\n", Version)
-			fmt.Printf("Build Date:   %s\n", BuildDate)
-			fmt.Printf("Git Revision: %s\n", GitRevision)
-			fmt.Printf("Support:\n")
+			out := cmd.OutOrStdout()
+			fmt.Fprintf(out, "Version:      %s\n", Version)
+			fmt.Fprintf(out, "Build Date:   %s\n", BuildDate)
+			fmt.Fprintf(out, "Git Revision: %s\n", GitRevision)
+			fmt.Fprintf(out, "Support:\n")
 			if m, ok := supportMatrix[ServingVersion]; ok {
-				fmt.Printf("- Serving: %s\n", strings.Join(m.Versions, "  "))
-				fmt.Printf("- API(s):  %s\n", strings.Join(m.APIs, " "))
+				fmt.Fprintf(out, "- Serving: %s\n", strings.Join(m.Versions, "  "))
+				fmt.Fprintf(out, "- API(s):  %s\n", strings.Join(m.APIs, " "))
 			} else {
 				// ensure the go build works when we update,
 				// but version command tests fails to prevent shipping
-				fmt.Printf("- Serving: %s\n", ServingVersion)
+				fmt.Fprintf(out, "- Serving: %s\n", ServingVersion)
 			}
 			return nil
 		},
