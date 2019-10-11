@@ -46,7 +46,6 @@ func NewServiceCommand(p *commands.KnParams) *cobra.Command {
 }
 
 func waitForService(client serving_kn_v1alpha1.KnServingClient, serviceName string, out io.Writer, timeout int) error {
-	fmt.Println("")
 	err, duration := client.WaitForService(serviceName, time.Duration(timeout)*time.Second, wait.SimpleMessageCallback(out))
 	if err != nil {
 		return err

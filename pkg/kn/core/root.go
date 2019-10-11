@@ -46,7 +46,7 @@ func NewDefaultKnCommand() *cobra.Command {
 	// and will not be parsed
 	pluginsDir, lookupPluginsInPath, err := extractKnPluginFlags(os.Args)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", err)
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
 
@@ -79,8 +79,7 @@ func NewDefaultKnCommandWithArgs(rootCmd *cobra.Command,
 			err := plugin.HandlePluginCommand(pluginHandler, cmdPathPieces)
 			if err != nil {
 				rootCmd.Help()
-				fmt.Println()
-				fmt.Printf("unknown command or plugin \"%s\" for \"kn\"\n", args[1])
+				fmt.Fprintf(rootCmd.OutOrStderr(), "Unknown command or plugin '%s'.\n", args[1])
 				os.Exit(1)
 			}
 		}
@@ -171,8 +170,6 @@ func EmptyAndUnknownSubCommands(cmd *cobra.Command) {
 		if childCmd.HasSubCommands() && childCmd.RunE == nil {
 			childCmd.RunE = func(aCmd *cobra.Command, args []string) error {
 				aCmd.Help()
-				fmt.Println()
-
 				if len(args) == 0 {
 					return fmt.Errorf("please provide a valid sub-command for \"kn %s\"", aCmd.Name())
 				}
@@ -196,7 +193,7 @@ func initConfig() {
 		// Find home directory.
 		home, err := homedir.Dir()
 		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
+			fmt.Fprintf(os.Stderr, "%v\n", err)
 			os.Exit(1)
 		}
 
