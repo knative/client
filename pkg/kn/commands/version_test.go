@@ -49,6 +49,7 @@ func TestVersion(t *testing.T) {
 		versionCmd            *cobra.Command
 		knParams              *KnParams
 		expectedVersionOutput string
+		output                *bytes.Buffer
 	)
 
 	setup := func() {
@@ -66,12 +67,12 @@ func TestVersion(t *testing.T) {
 
 		knParams = &KnParams{}
 		versionCmd = NewVersionCommand(knParams)
+		output = new(bytes.Buffer)
+		versionCmd.SetOutput(output)
 	}
 
 	t.Run("creates a VersionCommand", func(t *testing.T) {
 		setup()
-		CaptureStdout(t)
-		defer ReleaseStdout(t)
 
 		assert.Equal(t, versionCmd.Use, "version")
 		assert.Equal(t, versionCmd.Short, "Prints the client version")
@@ -80,12 +81,10 @@ func TestVersion(t *testing.T) {
 
 	t.Run("prints version, build date, git revision, supported serving version and APIs", func(t *testing.T) {
 		setup()
-		CaptureStdout(t)
-		defer ReleaseStdout(t)
 
-		err := versionCmd.RunE(nil, []string{})
+		err := versionCmd.RunE(versionCmd, []string{})
 		assert.NilError(t, err)
-		assert.Equal(t, ReadStdout(t), expectedVersionOutput)
+		assert.Equal(t, output.String(), expectedVersionOutput)
 	})
 
 }
