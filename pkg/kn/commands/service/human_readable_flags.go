@@ -30,7 +30,7 @@ func ServiceListHandlers(h hprinters.PrintHandler) {
 		{Name: "Namespace", Type: "string", Description: "Namespace of the Knative service", Priority: 0},
 		{Name: "Name", Type: "string", Description: "Name of the Knative service.", Priority: 1},
 		{Name: "Url", Type: "string", Description: "URL of the Knative service.", Priority: 1},
-		{Name: "Generation", Type: "integer", Description: "Sequence number of 'Generation' of the service that was last processed by the controller.", Priority: 1},
+		{Name: "Latest", Type: "string", Description: "Name of the latest ready revision.", Priority: 1},
 		{Name: "Age", Type: "string", Description: "Age of the service.", Priority: 1},
 		{Name: "Conditions", Type: "string", Description: "Conditions describing statuses of service components.", Priority: 1},
 		{Name: "Ready", Type: "string", Description: "Ready condition status of the service.", Priority: 1},
@@ -98,9 +98,7 @@ func printKServiceWithNaemspace(kServiceList *servingv1alpha1.ServiceList, optio
 func printKService(kService *servingv1alpha1.Service, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	name := kService.Name
 	url := kService.Status.URL
-	//lastCreatedRevision := kService.Status.LatestCreatedRevisionName
-	//lastReadyRevision := kService.Status.LatestReadyRevisionName
-	generation := kService.Status.ObservedGeneration
+	lastestRevision := kService.Status.ConfigurationStatusFields.LatestReadyRevisionName
 	age := commands.TranslateTimestampSince(kService.CreationTimestamp)
 	conditions := commands.ConditionsValue(kService.Status.Conditions)
 	ready := commands.ReadyCondition(kService.Status.Conditions)
@@ -117,9 +115,7 @@ func printKService(kService *servingv1alpha1.Service, options hprinters.PrintOpt
 	row.Cells = append(row.Cells,
 		name,
 		url,
-		//lastCreatedRevision,
-		//lastReadyRevision,
-		generation,
+		lastestRevision,
 		age,
 		conditions,
 		ready,
