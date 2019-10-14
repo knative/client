@@ -20,6 +20,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Default time out to use when waiting for reconciliation. It is deliberately very long as it is expected that
+// the service doesn't stay in `Unknown` status very long and eventually ends up as `False` or `True` in a timely
+// manner
+const WaitDefaultTimeout = 600
+
 // Flags for tuning wait behaviour
 type WaitFlags struct {
 	// Timeout in seconds for how long to wait for a command to return

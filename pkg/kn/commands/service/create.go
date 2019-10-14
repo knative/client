@@ -114,7 +114,7 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 	}
 	commands.AddNamespaceFlags(serviceCreateCommand.Flags(), false)
 	editFlags.AddCreateFlags(serviceCreateCommand)
-	waitFlags.AddConditionWaitFlags(serviceCreateCommand, 600, "Create", "service")
+	waitFlags.AddConditionWaitFlags(serviceCreateCommand, commands.WaitDefaultTimeout, "Create", "service")
 	return serviceCreateCommand
 }
 
@@ -188,10 +188,12 @@ func prepareAndUpdateService(client serving_kn_v1alpha1.KnServingClient, service
 }
 
 func waitForServiceToGetReady(client serving_kn_v1alpha1.KnServingClient, name string, timeout int, verbDone string, out io.Writer) error {
+	fmt.Fprintln(out, "")
 	err := waitForService(client, name, out, timeout)
 	if err != nil {
 		return err
 	}
+	fmt.Fprintln(out, "")
 	return showUrl(client, name, "", verbDone, out)
 }
 

@@ -68,6 +68,6 @@ func showUrl(client serving_kn_v1alpha1.KnServingClient, serviceName string, ori
 	if originalRevision != "" && originalRevision == newRevision {
 		revisionUpdateStatus = " (unchanged)"
 	}
-	fmt.Fprintf(out, "\nService '%s' %s with latest revision '%s'%s and URL:\n%s\n", serviceName, what, newRevision, revisionUpdateStatus, url)
+	fmt.Fprintf(out, "Service '%s' %s with latest revision '%s'%s and URL:\n%s\n", serviceName, what, newRevision, revisionUpdateStatus, url)
 	return nil
 }
