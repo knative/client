@@ -31,6 +31,6 @@ else
   git status --porcelain
   echo "ERROR: Diff"
   git diff
-  echo "ERROR: ${REPO_ROOT_DIR} is out of date. Please run ./hack/build.sh -u and commit."
+  echo "ERROR: ${REPO_ROOT_DIR} is out of date. Please run ./hack/build.sh -c and commit."
   exit 1
 fi
