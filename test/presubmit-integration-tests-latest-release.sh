@@ -18,5 +18,5 @@
 # integration tests against Knative serving of a specific version. We
 # currently take 0.6.0 as the latest release version.
 
-export KNATIVE_VERSION="0.7.1"
+export KNATIVE_VERSION="0.8.1"
 $(dirname $0)/presubmit-tests.sh --integration-tests
