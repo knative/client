@@ -115,10 +115,12 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 				out := cmd.OutOrStdout()
 				if !waitFlags.Async {
 					fmt.Fprintf(out, "Updating Service '%s' in namespace '%s':\n", args[0], namespace)
+					fmt.Fprintln(out, "")
 					err := waitForService(client, name, out, waitFlags.TimeoutInSeconds)
 					if err != nil {
 						return err
 					}
+					fmt.Fprintln(out, "")
 					return showUrl(client, name, latestRevisionBeforeUpdate, "updated", out)
 				} else {
 					fmt.Fprintf(out, "Service '%s' updated in namespace '%s'.\n", args[0], namespace)
@@ -134,7 +136,7 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 
 	commands.AddNamespaceFlags(serviceUpdateCommand.Flags(), false)
 	editFlags.AddUpdateFlags(serviceUpdateCommand)
-	waitFlags.AddConditionWaitFlags(serviceUpdateCommand, 60, "Update", "service")
+	waitFlags.AddConditionWaitFlags(serviceUpdateCommand, commands.WaitDefaultTimeout, "Update", "service")
 	trafficFlags.Add(serviceUpdateCommand)
 	return serviceUpdateCommand
 }

@@ -61,7 +61,7 @@ kn service update NAME [flags]
       --tag strings              Set tag (format: --tag revisionRef=tagName) where revisionRef can be a revision or '@latest' string representing latest ready revision. This flag can be specified multiple times.
       --traffic strings          Set traffic distribution (format: --traffic revisionRef=percent) where revisionRef can be a revision or a tag or '@latest' string representing latest ready revision. This flag can be given multiple times with percent summing up to 100%.
       --untag strings            Untag revision (format: --untag tagName). This flag can be spcified multiple times.
-      --wait-timeout int         Seconds to wait before giving up on waiting for service to be ready. (default 60)
+      --wait-timeout int         Seconds to wait before giving up on waiting for service to be ready. (default 600)
 ```
 
 ### Options inherited from parent commands
