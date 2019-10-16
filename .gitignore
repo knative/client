@@ -39,3 +39,5 @@ tags
 # VSCode specific
 .vscode
 
+# Operating system temporary files
+.DS_Store
