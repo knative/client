@@ -12,31 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package commands
+package version
 
 import (
 	"bytes"
 	"testing"
 	"text/template"
 
+	"knative.dev/client/pkg/kn/commands"
+
 	"github.com/spf13/cobra"
 	"gotest.tools/assert"
 )
 
 type versionOutput struct {
-	Version      string
-	BuildDate    string
-	GitRevision  string
-	VersionsAPIs *VersionsAPIs
+	Version       string
+	BuildDate     string
+	GitRevision   string
+	SupportedAPIs *SupportedAPIs
 }
 
 var versionOutputTemplate = `Version:      {{.Version}}
 Build Date:   {{.BuildDate}}
 Git Revision: {{.GitRevision}}
-Support:
-- Serving: {{index .VersionsAPIs.Versions 0}}  {{index .VersionsAPIs.Versions 1}}
-- API(s):  {{index .VersionsAPIs.APIs 0}}
-`
+Supported APIs:{{range $item := .SupportedAPIs }}
+- {{$item}}
+{{end}}`
 
 const (
 	fakeVersion     = "fake-version"
@@ -47,7 +48,7 @@ const (
 func TestVersion(t *testing.T) {
 	var (
 		versionCmd            *cobra.Command
-		knParams              *KnParams
+		knParams              *commands.KnParams
 		expectedVersionOutput string
 		output                *bytes.Buffer
 	)
@@ -65,7 +66,7 @@ func TestVersion(t *testing.T) {
 				fakeGitRevision,
 				supportMatrix[ServingVersion]})
 
-		knParams = &KnParams{}
+		knParams = &commands.KnParams{}
 		versionCmd = NewVersionCommand(knParams)
 		output = new(bytes.Buffer)
 		versionCmd.SetOutput(output)
@@ -88,8 +89,6 @@ func TestVersion(t *testing.T) {
 	})
 
 }
-
-// Private
 
 func genVersionOuput(t *testing.T, templ string, vOutput versionOutput) string {
 	tmpl, err := template.New("versionOutput").Parse(versionOutputTemplate)
