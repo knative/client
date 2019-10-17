@@ -17,7 +17,6 @@
 package e2e
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -51,10 +50,11 @@ func newTargetFields(tag, revision string, percent int, latest bool) TargetField
 }
 
 func splitTargets(s, separator string, partsCount int) ([]string, error) {
-	parts := strings.SplitN(s, separator, partsCount)
+	s = strings.TrimSuffix(s, targetsSeparator)
+	parts := strings.Split(s, separator)
 	if len(parts) != partsCount {
-		return nil, errors.New(fmt.Sprintf("expecting to receive parts of length %d, got %d "+
-			"string: %s seprator: %s", partsCount, len(parts), s, separator))
+		return nil, fmt.Errorf("expecting %d targets, got %d targets "+
+			"targets: %s seprator: %s", partsCount, len(parts), s, separator)
 	}
 	return parts, nil
 }
@@ -362,7 +362,6 @@ func TestTrafficSplit(t *testing.T) {
 func (test *e2eTest) verifyTargets(t *testing.T, serviceName string, expectedTargets []TargetFields) {
 	out := test.serviceDescribeWithJsonPath(t, serviceName, targetsJsonPath)
 	assert.Check(t, out != "")
-	out = strings.TrimSuffix(out, targetsSeparator)
 	actualTargets, err := splitTargets(out, targetsSeparator, len(expectedTargets))
 	assert.NilError(t, err)
 	formattedActualTargets := formatActualTargets(t, actualTargets)
