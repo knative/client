@@ -17,7 +17,6 @@
 package e2e
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -54,8 +53,8 @@ func splitTargets(s, separator string, partsCount int) ([]string, error) {
 	s = strings.TrimSuffix(s, targetsSeparator)
 	parts := strings.Split(s, separator)
 	if len(parts) != partsCount {
-		return nil, errors.New(fmt.Sprintf("expecting %d targets, got %d targets "+
-			"targets: %s seprator: %s", partsCount, len(parts), s, separator))
+		return nil, fmt.Errorf("expecting %d targets, got %d targets "+
+			"targets: %s seprator: %s", partsCount, len(parts), s, separator)
 	}
 	return parts, nil
 }
