@@ -26,7 +26,5 @@ function build_flags() {
     version="v$(date +%Y%m%d)-local-${commit}"
   fi
 
-  local serving_version=$(grep 'knative.dev/serving' ${base}/go.mod | sed -e 's/.*serving \(.*\)/\1/')
-
-  echo "-X '${pkg}.BuildDate=${now}' -X ${pkg}.Version=${version} -X ${pkg}.GitRevision=${rev} -X ${pkg}.ServingVersion=${serving_version}"
+  echo "-X '${pkg}.BuildDate=${now}' -X ${pkg}.Version=${version} -X ${pkg}.GitRevision=${rev}"
 }

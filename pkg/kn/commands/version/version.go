@@ -26,14 +26,12 @@ import (
 var Version string
 var BuildDate string
 var GitRevision string
-var ServingVersion string
 
 type SupportedAPIs []string
 
-// update this var as we increase the serving version in go.mod
-var knServingDep = "v0.8.0"
+// update this var as we add more deps or update
 var supportMatrix = map[string]*SupportedAPIs{
-	knServingDep: {"serving.knative.dev/v1alpha1 (knative-serving v0.8.0)"},
+	"v0.8.0": {"serving.knative.dev/v1alpha1 (knative-serving v0.8.0)"},
 }
 
 func (s SupportedAPIs) print(out io.Writer) {
@@ -47,20 +45,15 @@ func NewVersionCommand(p *commands.KnParams) *cobra.Command {
 	versionCmd := &cobra.Command{
 		Use:   "version",
 		Short: "Prints the client version",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		Run: func(cmd *cobra.Command, args []string) {
 			out := cmd.OutOrStdout()
 			fmt.Fprintf(out, "Version:      %s\n", Version)
 			fmt.Fprintf(out, "Build Date:   %s\n", BuildDate)
 			fmt.Fprintf(out, "Git Revision: %s\n", GitRevision)
 			fmt.Fprintf(out, "Supported APIs:\n")
-			if apis, ok := supportMatrix[ServingVersion]; ok {
+			for _, apis := range supportMatrix {
 				apis.print(out)
-			} else {
-				// ensure the go build works when we update,
-				// but version command tests fails to prevent shipping
-				fmt.Fprintf(out, "- Serving: %s\n", ServingVersion)
 			}
-			return nil
 		},
 	}
 	return versionCmd

@@ -26,18 +26,17 @@ import (
 )
 
 type versionOutput struct {
-	Version       string
-	BuildDate     string
-	GitRevision   string
-	SupportedAPIs *SupportedAPIs
+	Version     string
+	BuildDate   string
+	GitRevision string
 }
 
 var versionOutputTemplate = `Version:      {{.Version}}
 Build Date:   {{.BuildDate}}
 Git Revision: {{.GitRevision}}
-Supported APIs:{{range $item := .SupportedAPIs }}
-- {{$item}}
-{{end}}`
+Supported APIs:
+- serving.knative.dev/v1alpha1 (knative-serving v0.8.0)
+`
 
 const (
 	fakeVersion     = "fake-version"
@@ -57,14 +56,12 @@ func TestVersion(t *testing.T) {
 		Version = fakeVersion
 		BuildDate = fakeBuildDate
 		GitRevision = fakeGitRevision
-		ServingVersion = knServingDep
 
 		expectedVersionOutput = genVersionOuput(t, versionOutputTemplate,
 			versionOutput{
 				fakeVersion,
 				fakeBuildDate,
-				fakeGitRevision,
-				supportMatrix[ServingVersion]})
+				fakeGitRevision})
 
 		knParams = &commands.KnParams{}
 		versionCmd = NewVersionCommand(knParams)
@@ -77,14 +74,13 @@ func TestVersion(t *testing.T) {
 
 		assert.Equal(t, versionCmd.Use, "version")
 		assert.Equal(t, versionCmd.Short, "Prints the client version")
-		assert.Assert(t, versionCmd.RunE != nil)
+		assert.Assert(t, versionCmd.Run != nil)
 	})
 
-	t.Run("prints version, build date, git revision, supported serving version and APIs", func(t *testing.T) {
+	t.Run("prints version, build date, git revision, supported APIs", func(t *testing.T) {
 		setup()
 
-		err := versionCmd.RunE(versionCmd, []string{})
-		assert.NilError(t, err)
+		versionCmd.Run(versionCmd, []string{})
 		assert.Equal(t, output.String(), expectedVersionOutput)
 	})
 
