@@ -54,7 +54,7 @@ func splitTargets(s, separator string, partsCount int) ([]string, error) {
 	parts := strings.Split(s, separator)
 	if len(parts) != partsCount {
 		return nil, fmt.Errorf("expecting %d targets, got %d targets "+
-			"targets: %s seprator: %s", partsCount, len(parts), s, separator)
+			"targets: %s separator: %s", partsCount, len(parts), s, separator)
 	}
 	return parts, nil
 }
