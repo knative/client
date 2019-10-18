@@ -190,6 +190,7 @@ check_license() {
 
 update_deps() {
   echo "🕸️ ${S}Update"
+  go mod tidy
   go mod vendor
 }
 
