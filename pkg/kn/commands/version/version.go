@@ -16,7 +16,6 @@ package version
 
 import (
 	"fmt"
-	"io"
 
 	"knative.dev/client/pkg/kn/commands"
 
@@ -27,17 +26,9 @@ var Version string
 var BuildDate string
 var GitRevision string
 
-type SupportedAPIs []string
-
-// update this var as we add more deps or update
-var supportMatrix = map[string]*SupportedAPIs{
-	"v0.8.0": {"serving.knative.dev/v1alpha1 (knative-serving v0.8.0)"},
-}
-
-func (s SupportedAPIs) print(out io.Writer) {
-	for _, api := range s {
-		fmt.Fprintf(out, "- %s\n", api)
-	}
+// update this var as we add more deps
+var apiVersions = []string{
+	"serving.knative.dev/v1alpha1 (knative-serving v0.8.0)",
 }
 
 // NewVersionCommand implements 'kn version' command
@@ -51,8 +42,8 @@ func NewVersionCommand(p *commands.KnParams) *cobra.Command {
 			fmt.Fprintf(out, "Build Date:   %s\n", BuildDate)
 			fmt.Fprintf(out, "Git Revision: %s\n", GitRevision)
 			fmt.Fprintf(out, "Supported APIs:\n")
-			for _, apis := range supportMatrix {
-				apis.print(out)
+			for _, api := range apiVersions {
+				fmt.Fprintf(out, "- %s\n", api)
 			}
 		},
 	}
