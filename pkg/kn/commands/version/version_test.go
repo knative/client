@@ -12,30 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package commands
+package version
 
 import (
 	"bytes"
 	"testing"
 	"text/template"
 
+	"knative.dev/client/pkg/kn/commands"
+
 	"github.com/spf13/cobra"
 	"gotest.tools/assert"
 )
 
 type versionOutput struct {
-	Version      string
-	BuildDate    string
-	GitRevision  string
-	VersionsAPIs *VersionsAPIs
+	Version     string
+	BuildDate   string
+	GitRevision string
 }
 
 var versionOutputTemplate = `Version:      {{.Version}}
 Build Date:   {{.BuildDate}}
 Git Revision: {{.GitRevision}}
-Support:
-- Serving: {{index .VersionsAPIs.Versions 0}}  {{index .VersionsAPIs.Versions 1}}
-- API(s):  {{index .VersionsAPIs.APIs 0}}
+Supported APIs:
+- serving.knative.dev/v1alpha1 (knative-serving v0.8.0)
 `
 
 const (
@@ -47,7 +47,7 @@ const (
 func TestVersion(t *testing.T) {
 	var (
 		versionCmd            *cobra.Command
-		knParams              *KnParams
+		knParams              *commands.KnParams
 		expectedVersionOutput string
 		output                *bytes.Buffer
 	)
@@ -56,16 +56,14 @@ func TestVersion(t *testing.T) {
 		Version = fakeVersion
 		BuildDate = fakeBuildDate
 		GitRevision = fakeGitRevision
-		ServingVersion = knServingDep
 
 		expectedVersionOutput = genVersionOuput(t, versionOutputTemplate,
 			versionOutput{
 				fakeVersion,
 				fakeBuildDate,
-				fakeGitRevision,
-				supportMatrix[ServingVersion]})
+				fakeGitRevision})
 
-		knParams = &KnParams{}
+		knParams = &commands.KnParams{}
 		versionCmd = NewVersionCommand(knParams)
 		output = new(bytes.Buffer)
 		versionCmd.SetOutput(output)
@@ -76,20 +74,17 @@ func TestVersion(t *testing.T) {
 
 		assert.Equal(t, versionCmd.Use, "version")
 		assert.Equal(t, versionCmd.Short, "Prints the client version")
-		assert.Assert(t, versionCmd.RunE != nil)
+		assert.Assert(t, versionCmd.Run != nil)
 	})
 
-	t.Run("prints version, build date, git revision, supported serving version and APIs", func(t *testing.T) {
+	t.Run("prints version, build date, git revision, supported APIs", func(t *testing.T) {
 		setup()
 
-		err := versionCmd.RunE(versionCmd, []string{})
-		assert.NilError(t, err)
+		versionCmd.Run(versionCmd, []string{})
 		assert.Equal(t, output.String(), expectedVersionOutput)
 	})
 
 }
-
-// Private
 
 func genVersionOuput(t *testing.T, templ string, vOutput versionOutput) string {
 	tmpl, err := template.New("versionOutput").Parse(versionOutputTemplate)

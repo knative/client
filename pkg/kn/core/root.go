@@ -34,6 +34,7 @@ import (
 	"knative.dev/client/pkg/kn/commands/revision"
 	"knative.dev/client/pkg/kn/commands/route"
 	"knative.dev/client/pkg/kn/commands/service"
+	"knative.dev/client/pkg/kn/commands/version"
 	"knative.dev/client/pkg/kn/flags"
 )
 
@@ -139,7 +140,7 @@ func NewKnCommand(params ...commands.KnParams) *cobra.Command {
 	rootCmd.AddCommand(plugin.NewPluginCommand(p))
 	rootCmd.AddCommand(route.NewRouteCommand(p))
 	rootCmd.AddCommand(commands.NewCompletionCommand(p))
-	rootCmd.AddCommand(commands.NewVersionCommand(p))
+	rootCmd.AddCommand(version.NewVersionCommand(p))
 
 	// Deal with empty and unknown sub command groups
 	EmptyAndUnknownSubCommands(rootCmd)

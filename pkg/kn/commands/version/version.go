@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package commands
+package version
 
 import (
 	"fmt"
-	"strings"
+
+	"knative.dev/client/pkg/kn/commands"
 
 	"github.com/spf13/cobra"
 )
@@ -24,39 +25,26 @@ import (
 var Version string
 var BuildDate string
 var GitRevision string
-var ServingVersion string
 
-// VersionsAPIs hold the list of supported versions and APIs for component kn can work with
-type VersionsAPIs struct {
-	Versions, APIs []string
-}
-
-// update this var as we increase the serving version in go.mod
-var knServingDep = "v0.8.0"
-var supportMatrix = map[string]*VersionsAPIs{
-	knServingDep: {[]string{"v0.8.0", "v0.7.1"}, []string{"v1alpha1"}},
+// update this var as we add more deps
+var apiVersions = []string{
+	"serving.knative.dev/v1alpha1 (knative-serving v0.8.0)",
 }
 
 // NewVersionCommand implements 'kn version' command
-func NewVersionCommand(p *KnParams) *cobra.Command {
+func NewVersionCommand(p *commands.KnParams) *cobra.Command {
 	versionCmd := &cobra.Command{
 		Use:   "version",
 		Short: "Prints the client version",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		Run: func(cmd *cobra.Command, args []string) {
 			out := cmd.OutOrStdout()
 			fmt.Fprintf(out, "Version:      %s\n", Version)
 			fmt.Fprintf(out, "Build Date:   %s\n", BuildDate)
 			fmt.Fprintf(out, "Git Revision: %s\n", GitRevision)
-			fmt.Fprintf(out, "Support:\n")
-			if m, ok := supportMatrix[ServingVersion]; ok {
-				fmt.Fprintf(out, "- Serving: %s\n", strings.Join(m.Versions, "  "))
-				fmt.Fprintf(out, "- API(s):  %s\n", strings.Join(m.APIs, " "))
-			} else {
-				// ensure the go build works when we update,
-				// but version command tests fails to prevent shipping
-				fmt.Fprintf(out, "- Serving: %s\n", ServingVersion)
+			fmt.Fprintf(out, "Supported APIs:\n")
+			for _, api := range apiVersions {
+				fmt.Fprintf(out, "- %s\n", api)
 			}
-			return nil
 		},
 	}
 	return versionCmd
