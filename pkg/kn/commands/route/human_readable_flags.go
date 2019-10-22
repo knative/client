@@ -15,8 +15,6 @@
 package route
 
 import (
-	"fmt"
-
 	metav1beta1 "k8s.io/apimachinery/pkg/apis/meta/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"knative.dev/client/pkg/kn/commands"
@@ -29,9 +27,7 @@ func RouteListHandlers(h hprinters.PrintHandler) {
 	kRouteColumnDefinitions := []metav1beta1.TableColumnDefinition{
 		{Name: "Name", Type: "string", Description: "Name of the Knative route.", Priority: 1},
 		{Name: "URL", Type: "string", Description: "URL of the Knative route.", Priority: 1},
-		{Name: "Age", Type: "string", Description: "Age of the Knative route.", Priority: 1},
-		{Name: "Conditions", Type: "string", Description: "Conditions describing statuses of route components.", Priority: 1},
-		{Name: "Traffic", Type: "integer", Description: "Traffic configured for route.", Priority: 1},
+		{Name: "READY", Type: "string", Description: "Ready condition status of the Knative route.", Priority: 1},
 	}
 	h.TableHandler(kRouteColumnDefinitions, printRoute)
 	h.TableHandler(kRouteColumnDefinitions, printKRouteList)
@@ -54,29 +50,13 @@ func printKRouteList(kRouteList *servingv1alpha1.RouteList, options hprinters.Pr
 func printRoute(route *servingv1alpha1.Route, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	name := route.Name
 	url := route.Status.URL
-	age := commands.TranslateTimestampSince(route.CreationTimestamp)
-	conditions := commands.ConditionsValue(route.Status.Conditions)
-	traffic := calculateTraffic(route.Status.Traffic)
+	ready := commands.ReadyCondition(route.Status.Conditions)
 	row := metav1beta1.TableRow{
 		Object: runtime.RawExtension{Object: route},
 	}
 	row.Cells = append(row.Cells,
 		name,
 		url,
-		age,
-		conditions,
-		traffic)
+		ready)
 	return []metav1beta1.TableRow{row}, nil
-}
-
-func calculateTraffic(targets []servingv1alpha1.TrafficTarget) string {
-	var traffic string
-	for _, target := range targets {
-		if len(traffic) > 0 {
-			traffic = fmt.Sprintf("%s, %d%% -> %s", traffic, target.Percent, target.RevisionName)
-		} else {
-			traffic = fmt.Sprintf("%d%% -> %s", target.Percent, target.RevisionName)
-		}
-	}
-	return traffic
 }
