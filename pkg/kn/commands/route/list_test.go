@@ -67,9 +67,9 @@ func TestRouteListDefaultOutput(t *testing.T) {
 	} else if !action.Matches("list", "routes") {
 		t.Errorf("Bad action %v", action)
 	}
-	assert.Check(t, util.ContainsAll(output[0], "NAME", "URL", "AGE", "CONDITIONS", "TRAFFIC"))
-	assert.Check(t, util.ContainsAll(output[1], "foo", "100% -> foo-01234"))
-	assert.Check(t, util.ContainsAll(output[2], "bar", "100% -> bar-98765"))
+	assert.Check(t, util.ContainsAll(output[0], "NAME", "URL", "READY"))
+	assert.Check(t, util.ContainsAll(output[1], "foo"))
+	assert.Check(t, util.ContainsAll(output[2], "bar"))
 }
 
 func TestRouteListDefaultOutputNoHeaders(t *testing.T) {
@@ -84,9 +84,9 @@ func TestRouteListDefaultOutputNoHeaders(t *testing.T) {
 		t.Errorf("Bad action %v", action)
 	}
 
-	assert.Check(t, util.ContainsNone(output[0], "NAME", "URL", "GENERATION", "AGE", "CONDITIONS", "READY", "REASON"))
-	assert.Check(t, util.ContainsAll(output[0], "foo", "100% -> foo-01234"))
-	assert.Check(t, util.ContainsAll(output[1], "bar", "100% -> bar-98765"))
+	assert.Check(t, util.ContainsNone(output[0], "NAME", "URL", "READY"))
+	assert.Check(t, util.ContainsAll(output[0], "foo"))
+	assert.Check(t, util.ContainsAll(output[1], "bar"))
 
 }
 
@@ -100,8 +100,8 @@ func TestRouteListWithTwoTargetsOutput(t *testing.T) {
 	} else if !action.Matches("list", "routes") {
 		t.Errorf("Bad action %v", action)
 	}
-	assert.Check(t, util.ContainsAll(output[0], "NAME", "URL", "AGE", "CONDITIONS", "TRAFFIC"))
-	assert.Check(t, util.ContainsAll(output[1], "foo", "20% -> foo-01234, 80% -> foo-98765"))
+	assert.Check(t, util.ContainsAll(output[0], "NAME", "URL", "READY"))
+	assert.Check(t, util.ContainsAll(output[1], "foo"))
 }
 
 func createMockRouteMeta(name string) *v1alpha1.Route {
