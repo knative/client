@@ -38,7 +38,7 @@ func TestCompletion(t *testing.T) {
 	t.Run("creates a CompletionCommand", func(t *testing.T) {
 		setup()
 		assert.Equal(t, completionCmd.Use, "completion")
-		assert.Equal(t, completionCmd.Short, "Output shell completion code (default Bash)")
+		assert.Equal(t, completionCmd.Short, "Output shell completion code (Bash)")
 		assert.Assert(t, completionCmd.RunE == nil)
 	})
 
@@ -48,15 +48,6 @@ func TestCompletion(t *testing.T) {
 		defer ReleaseStdout(t)
 
 		completionCmd.Run(fakeRootCmd, []string{})
-		assert.Assert(t, ReadStdout(t) != "")
-	})
-
-	t.Run("returns completion code for ZSH", func(t *testing.T) {
-		setup()
-		CaptureStdout(t)
-		defer ReleaseStdout(t)
-
-		completionCmd.Run(fakeRootCmd, []string{"--zsh"})
 		assert.Assert(t, ReadStdout(t) != "")
 	})
 }
