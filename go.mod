@@ -44,8 +44,8 @@ require (
 	k8s.io/cli-runtime v0.0.0-20190325194458-f2b4781c3ae1
 	k8s.io/client-go v0.0.0-20190226174127-78295b709ec6
 	k8s.io/kube-openapi v0.0.0-20190722073852-5e22f3d471e6 // indirect
-	knative.dev/pkg v0.0.0-20190815170108-426561fd098d
-	knative.dev/serving v0.8.0
+	knative.dev/pkg v0.0.0-20191022181926-0b19b4ad9139
+	knative.dev/serving v0.9.0
 	knative.dev/test-infra v0.0.0-20190730202142-17f2331e80ad
 	sigs.k8s.io/yaml v1.1.0
 )
