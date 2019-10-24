@@ -238,7 +238,7 @@ func (p *ConfigurationEditFlags) Apply(
 	}
 
 	if cmd.Flags().Changed("concurrency-limit") {
-		err = servinglib.UpdateConcurrencyLimit(template, p.ConcurrencyLimit)
+		err = servinglib.UpdateConcurrencyLimit(template, int64(p.ConcurrencyLimit))
 		if err != nil {
 			return err
 		}

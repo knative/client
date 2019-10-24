@@ -27,12 +27,12 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"knative.dev/pkg/apis"
+	duckv1 "knative.dev/pkg/apis/duck/v1"
 	duckv1alpha1 "knative.dev/pkg/apis/duck/v1alpha1"
-	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
 	"knative.dev/serving/pkg/apis/autoscaling"
 	api_serving "knative.dev/serving/pkg/apis/serving"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
-	"knative.dev/serving/pkg/apis/serving/v1beta1"
 
 	client_serving "knative.dev/client/pkg/serving"
 	knclient "knative.dev/client/pkg/serving/v1alpha1"
@@ -128,7 +128,7 @@ func TestServiceDescribeLatestNotInTraffic(t *testing.T) {
 	expectedService := createTestService("foo", []string{"rev1", "rev2"}, goodConditions())
 	expectedService.Status.Traffic = expectedService.Status.Traffic[:1]
 	expectedService.Status.Traffic[0].LatestRevision = ptr.Bool(false)
-	expectedService.Status.Traffic[0].Percent = 100
+	expectedService.Status.Traffic[0].Percent = ptr.Int64(int64(100))
 
 	// Get service & revision
 	r.GetService("foo", &expectedService, nil)
@@ -159,7 +159,7 @@ func TestServiceDescribeEachNamedOnce(t *testing.T) {
 	expectedService := createTestService("foo", []string{"rev1", "rev2"}, goodConditions())
 	expectedService.Status.Traffic = expectedService.Status.Traffic[:1]
 	expectedService.Status.Traffic[0].LatestRevision = ptr.Bool(false)
-	expectedService.Status.Traffic[0].Percent = 100
+	expectedService.Status.Traffic[0].Percent = ptr.Int64(int64(100))
 
 	// Get service & revision
 	r.GetService("foo", &expectedService, nil)
@@ -495,7 +495,7 @@ func validateServiceOutput(t *testing.T, service string, output string) {
 	assert.Assert(t, util.ContainsAll(output, "Ready", "RoutesReady", "OK", "TYPE", "AGE", "REASON"))
 }
 
-func createTestService(name string, revisionNames []string, conditions duckv1beta1.Conditions) v1alpha1.Service {
+func createTestService(name string, revisionNames []string, conditions duckv1.Conditions) v1alpha1.Service {
 
 	labelMap := make(map[string]string)
 	labelMap["label1"] = "lval1"
@@ -522,7 +522,7 @@ func createTestService(name string, revisionNames []string, conditions duckv1bet
 				DeprecatedDomain: name + ".default.example.com",
 				Address:          &duckv1alpha1.Addressable{Hostname: name + ".default.svc.cluster.local"},
 			},
-			Status: duckv1beta1.Status{
+			Status: duckv1.Status{
 				Conditions: conditions,
 			},
 		},
@@ -535,10 +535,10 @@ func createTestService(name string, revisionNames []string, conditions duckv1bet
 		for _, rname := range revisionNames {
 			url, _ := apis.ParseURL(fmt.Sprintf("https://%s", rname))
 			target := v1alpha1.TrafficTarget{
-				TrafficTarget: v1beta1.TrafficTarget{
+				TrafficTarget: servingv1.TrafficTarget{
 					RevisionName:      rname,
 					ConfigurationName: name,
-					Percent:           100 / len(revisionNames),
+					Percent:           ptr.Int64(int64(100 / len(revisionNames))),
 					URL:               url,
 				},
 			}
@@ -549,7 +549,7 @@ func createTestService(name string, revisionNames []string, conditions duckv1bet
 	return service
 }
 
-func addScaling(revision *v1alpha1.Revision, minScale, maxScale, concurrencyTarget, concurrenyLimit string) {
+func addScaling(revision *v1alpha1.Revision, minScale, maxScale, concurrencyTarget, concurrencyLimit string) {
 	annos := make(map[string]string)
 	if minScale != "" {
 		annos[autoscaling.MinScaleAnnotationKey] = minScale
@@ -561,9 +561,9 @@ func addScaling(revision *v1alpha1.Revision, minScale, maxScale, concurrencyTarg
 		annos[autoscaling.TargetAnnotationKey] = concurrencyTarget
 	}
 	revision.Annotations = annos
-	if concurrenyLimit != "" {
-		l, _ := strconv.Atoi(concurrenyLimit)
-		revision.Spec.ContainerConcurrency = v1beta1.RevisionContainerConcurrencyType(l)
+	if concurrencyLimit != "" {
+		l, _ := strconv.ParseInt(concurrencyLimit, 10, 64)
+		revision.Spec.ContainerConcurrency = ptr.Int64(l)
 	}
 }
 
@@ -603,7 +603,7 @@ func createTestRevision(revision string, gen int64) v1alpha1.Revision {
 			CreationTimestamp: metav1.Time{Time: time.Now()},
 		},
 		Spec: v1alpha1.RevisionSpec{
-			RevisionSpec: v1beta1.RevisionSpec{
+			RevisionSpec: servingv1.RevisionSpec{
 				PodSpec: v1.PodSpec{
 					Containers: []v1.Container{
 						{
@@ -622,15 +622,15 @@ func createTestRevision(revision string, gen int64) v1alpha1.Revision {
 		},
 		Status: v1alpha1.RevisionStatus{
 			ImageDigest: "gcr.io/test/image@" + imageDigest,
-			Status: duckv1beta1.Status{
+			Status: duckv1.Status{
 				Conditions: goodConditions(),
 			},
 		},
 	}
 }
 
-func goodConditions() duckv1beta1.Conditions {
-	ret := make(duckv1beta1.Conditions, 0)
+func goodConditions() duckv1.Conditions {
+	ret := make(duckv1.Conditions, 0)
 	ret = append(ret, apis.Condition{
 		Type:   apis.ConditionReady,
 		Status: v1.ConditionTrue,

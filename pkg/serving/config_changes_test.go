@@ -21,11 +21,12 @@ import (
 
 	"gotest.tools/assert"
 
+	"knative.dev/pkg/ptr"
 	"knative.dev/serving/pkg/apis/autoscaling"
-	"knative.dev/serving/pkg/apis/serving/v1beta1"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
@@ -42,7 +43,7 @@ func TestUpdateAutoscalingAnnotations(t *testing.T) {
 	if annos[autoscaling.TargetAnnotationKey] != "1000" {
 		t.Error("target failed")
 	}
-	if template.Spec.ContainerConcurrency != 1000 {
+	if *template.Spec.ContainerConcurrency != int64(1000) {
 		t.Error("limit failed")
 	}
 }
@@ -62,8 +63,8 @@ func TestUpdateInvalidAutoscalingAnnotations(t *testing.T) {
 	if annos[autoscaling.TargetAnnotationKey] != "1000" {
 		t.Error("target failed")
 	}
-	if template.Spec.ContainerConcurrency != 1000 {
-		t.Error("limit failed")
+	if *template.Spec.ContainerConcurrency != 1000 {
+		t.Errorf("limit failed")
 	}
 }
 
@@ -256,7 +257,7 @@ func TestUpdateConcurrencyLimit(t *testing.T) {
 	err := UpdateConcurrencyLimit(template, 10)
 	assert.NilError(t, err)
 	// Verify update is successful or not
-	checkContainerConcurrency(t, template, 10)
+	checkContainerConcurrency(t, template, ptr.Int64(int64(10)))
 	// Update with invalid value
 	err = UpdateConcurrencyLimit(template, -1)
 	assert.ErrorContains(t, err, "invalid")
@@ -492,7 +493,7 @@ func getV1alpha1RevisionTemplateWithOldFields() (*servingv1alpha1.RevisionTempla
 	container := &corev1.Container{}
 	template := &servingv1alpha1.RevisionTemplateSpec{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "template-foo",
+			Name:      "-template-foo",
 			Namespace: "default",
 		},
 		Spec: servingv1alpha1.RevisionSpec{
@@ -506,11 +507,11 @@ func getV1alpha1Config() (*servingv1alpha1.RevisionTemplateSpec, *corev1.Contain
 	containers := []corev1.Container{{}}
 	template := &servingv1alpha1.RevisionTemplateSpec{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "template-foo",
+			Name:      "-template-foo",
 			Namespace: "default",
 		},
 		Spec: servingv1alpha1.RevisionSpec{
-			RevisionSpec: v1beta1.RevisionSpec{
+			RevisionSpec: servingv1.RevisionSpec{
 				PodSpec: corev1.PodSpec{
 					Containers: containers,
 				},
@@ -561,8 +562,8 @@ func checkAnnotationValue(t *testing.T, template *servingv1alpha1.RevisionTempla
 	}
 }
 
-func checkContainerConcurrency(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, value int) {
-	if got, want := template.Spec.ContainerConcurrency, value; got != v1beta1.RevisionContainerConcurrencyType(want) {
+func checkContainerConcurrency(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, value *int64) {
+	if got, want := *template.Spec.ContainerConcurrency, *value; got != want {
 		t.Errorf("Failed to update containerConcurrency value: got=%d, want=%d", got, want)
 	}
 }
@@ -571,5 +572,5 @@ func updateConcurrencyConfiguration(template *servingv1alpha1.RevisionTemplateSp
 	UpdateMinScale(template, minScale)
 	UpdateMaxScale(template, maxScale)
 	UpdateConcurrencyTarget(template, target)
-	UpdateConcurrencyLimit(template, limit)
+	UpdateConcurrencyLimit(template, int64(limit))
 }

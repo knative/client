@@ -23,7 +23,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/duration"
 	hprinters "knative.dev/client/pkg/printers"
 	"knative.dev/pkg/apis"
-	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
+	duckv1 "knative.dev/pkg/apis/duck/v1"
 )
 
 // HumanPrintFlags provides default flags necessary for printing.
@@ -70,7 +70,7 @@ func (f *HumanPrintFlags) EnsureWithNamespace() {
 // Private functions
 
 // conditionsValue returns the True conditions count among total conditions
-func ConditionsValue(conditions duckv1beta1.Conditions) string {
+func ConditionsValue(conditions duckv1.Conditions) string {
 	var ok int
 	for _, condition := range conditions {
 		if condition.Status == "True" {
@@ -81,7 +81,7 @@ func ConditionsValue(conditions duckv1beta1.Conditions) string {
 }
 
 // readyCondition returns status of resource's Ready type condition
-func ReadyCondition(conditions duckv1beta1.Conditions) string {
+func ReadyCondition(conditions duckv1.Conditions) string {
 	for _, condition := range conditions {
 		if condition.Type == apis.ConditionReady {
 			return string(condition.Status)
@@ -90,7 +90,7 @@ func ReadyCondition(conditions duckv1beta1.Conditions) string {
 	return "<unknown>"
 }
 
-func NonReadyConditionReason(conditions duckv1beta1.Conditions) string {
+func NonReadyConditionReason(conditions duckv1.Conditions) string {
 	for _, condition := range conditions {
 		if condition.Type == apis.ConditionReady {
 			if string(condition.Status) == "True" {

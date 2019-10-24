@@ -34,7 +34,7 @@ import (
 	serving_kn_v1alpha1 "knative.dev/client/pkg/serving/v1alpha1"
 
 	"knative.dev/pkg/apis"
-	"knative.dev/pkg/apis/duck/v1beta1"
+	duckv1 "knative.dev/pkg/apis/duck/v1"
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 
 	"github.com/spf13/cobra"
@@ -68,7 +68,7 @@ type revisionDesc struct {
 	creationTimestamp       time.Time
 
 	// traffic stuff
-	percent       int
+	percent       int64
 	tag           string
 	latestTraffic *bool
 
@@ -319,7 +319,7 @@ func revisionHeader(desc *revisionDesc) string {
 
 // Used for conditions table to do own formatting for the table,
 // as the tabbed writer doesn't work nicely with colors
-func getMaxTypeLen(conditions v1beta1.Conditions) int {
+func getMaxTypeLen(conditions duckv1.Conditions) int {
 	max := 0
 	for _, condition := range conditions {
 		if len(condition.Type) > max {
@@ -474,7 +474,7 @@ func joinAndTruncate(sortedKeys []string, m map[string]string) string {
 }
 
 // Format target percentage that it fits in the revision table
-func formatBullet(percentage int, status corev1.ConditionStatus) string {
+func formatBullet(percentage int64, status corev1.ConditionStatus) string {
 	symbol := "+"
 	switch status {
 	case v1.ConditionTrue:
@@ -620,7 +620,7 @@ func addStatusInfo(desc *revisionDesc, revision *v1alpha1.Revision) {
 
 func addTargetInfo(desc *revisionDesc, target *v1alpha1.TrafficTarget) {
 	if target != nil {
-		desc.percent = target.Percent
+		desc.percent = *target.Percent
 		desc.latestTraffic = target.LatestRevision
 		desc.tag = target.Tag
 	}
@@ -669,9 +669,8 @@ func addConcurrencyAndScaleInfo(desc *revisionDesc, revision *v1alpha1.Revision)
 	}
 	desc.concurrencyTarget = target
 
-	if revision.Spec.ContainerConcurrency != 0 {
-		limit := int64(revision.Spec.ContainerConcurrency)
-		desc.concurrencyLimit = &limit
+	if revision.Spec.ContainerConcurrency != nil {
+		desc.concurrencyLimit = revision.Spec.ContainerConcurrency
 	}
 
 	return nil

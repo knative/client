@@ -383,23 +383,22 @@ k8s.io/client-go/listers/storage/v1beta1
 k8s.io/kube-openapi/pkg/util/proto
 # knative.dev/pkg v0.0.0-20191022181926-0b19b4ad9139
 knative.dev/pkg/apis
-knative.dev/pkg/apis/duck/v1beta1
+knative.dev/pkg/apis/duck/v1
 knative.dev/pkg/ptr
 knative.dev/pkg/kmp
 knative.dev/pkg/apis/duck
-knative.dev/pkg/apis/duck/v1
 knative.dev/pkg/apis/v1alpha1
 knative.dev/pkg/apis/duck/v1alpha1
 knative.dev/pkg/kmeta
 knative.dev/pkg/configmap
 knative.dev/pkg/network
+knative.dev/pkg/apis/duck/v1beta1
 # knative.dev/serving v0.9.0
 knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1
 knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake
 knative.dev/serving/pkg/apis/serving
 knative.dev/serving/pkg/apis/serving/v1alpha1
 knative.dev/serving/pkg/apis/autoscaling
-knative.dev/serving/pkg/apis/serving/v1beta1
 knative.dev/serving/pkg/client/clientset/versioned/scheme
 knative.dev/serving/pkg/apis/config
 knative.dev/serving/pkg/apis/networking
@@ -407,6 +406,7 @@ knative.dev/serving/pkg/reconciler/route/config
 knative.dev/serving/pkg/apis/autoscaling/v1alpha1
 knative.dev/serving/pkg/apis/networking/v1alpha1
 knative.dev/serving/pkg/apis/serving/v1
+knative.dev/serving/pkg/apis/serving/v1beta1
 knative.dev/serving/pkg/gc
 knative.dev/serving/pkg/network
 # knative.dev/test-infra v0.0.0-20190730202142-17f2331e80ad

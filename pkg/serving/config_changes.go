@@ -15,7 +15,6 @@
 package serving
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"sort"
@@ -24,9 +23,12 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
+	"knative.dev/pkg/ptr"
 	"knative.dev/serving/pkg/apis/autoscaling"
 	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
-	servingv1beta1 "knative.dev/serving/pkg/apis/serving/v1beta1"
+
+	//servingv1beta1 "knative.dev/serving/pkg/apis/serving/v1beta1"
+	"knative.dev/serving/pkg/apis/serving"
 )
 
 var UserImageAnnotationKey = "client.knative.dev/user-image"
@@ -66,14 +68,13 @@ func UpdateConcurrencyTarget(template *servingv1alpha1.RevisionTemplateSpec, tar
 }
 
 // UpdateConcurrencyLimit updates container concurrency limit
-func UpdateConcurrencyLimit(template *servingv1alpha1.RevisionTemplateSpec, limit int) error {
-	cc := servingv1beta1.RevisionContainerConcurrencyType(limit)
-	// Validate input limit
-	ctx := context.Background()
-	if err := cc.Validate(ctx).ViaField("spec.containerConcurrency"); err != nil {
+func UpdateConcurrencyLimit(template *servingv1alpha1.RevisionTemplateSpec, limit int64) error {
+	err := serving.ValidateContainerConcurrency(ptr.Int64(limit)).ViaField("spec.containerConcurrency")
+	if err != nil {
 		return fmt.Errorf("invalid 'concurrency-limit' value: %s", err)
 	}
-	template.Spec.ContainerConcurrency = cc
+
+	template.Spec.ContainerConcurrency = ptr.Int64(limit)
 	return nil
 }
 

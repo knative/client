@@ -42,8 +42,8 @@ func splitByEqualSign(pair string) (string, string, error) {
 	return parts[0], strings.TrimSuffix(parts[1], "%"), nil
 }
 
-func newTarget(tag, revision string, percent int, latestRevision bool) (target v1alpha1.TrafficTarget) {
-	target.Percent = percent
+func newTarget(tag, revision string, percent int64, latestRevision bool) (target v1alpha1.TrafficTarget) {
+	target.Percent = ptr.Int64(percent)
 	target.Tag = tag
 	if latestRevision {
 		target.LatestRevision = ptr.Bool(true)
@@ -140,30 +140,30 @@ func (e ServiceTraffic) TagLatestRevision(tag string) ServiceTraffic {
 }
 
 // SetTrafficByRevision checks given revision in existing traffic block and sets given percent if found
-func (e ServiceTraffic) SetTrafficByRevision(revision string, percent int) {
+func (e ServiceTraffic) SetTrafficByRevision(revision string, percent int64) {
 	for i, target := range e {
 		if target.RevisionName == revision {
-			e[i].Percent = percent
+			e[i].Percent = ptr.Int64(percent)
 			break
 		}
 	}
 }
 
 // SetTrafficByTag checks given tag in existing traffic block and sets given percent if found
-func (e ServiceTraffic) SetTrafficByTag(tag string, percent int) {
+func (e ServiceTraffic) SetTrafficByTag(tag string, percent int64) {
 	for i, target := range e {
 		if target.Tag == tag {
-			e[i].Percent = percent
+			e[i].Percent = ptr.Int64(percent)
 			break
 		}
 	}
 }
 
 // SetTrafficByLatestRevision sets given percent to latest ready revision of service
-func (e ServiceTraffic) SetTrafficByLatestRevision(percent int) {
+func (e ServiceTraffic) SetTrafficByLatestRevision(percent int64) {
 	for i, target := range e {
 		if *target.LatestRevision {
-			e[i].Percent = percent
+			e[i].Percent = ptr.Int64(percent)
 			break
 		}
 	}
@@ -172,14 +172,14 @@ func (e ServiceTraffic) SetTrafficByLatestRevision(percent int) {
 // ResetAllTargetPercent resets (0) 'Percent' field for all the traffic targets
 func (e ServiceTraffic) ResetAllTargetPercent() {
 	for i := range e {
-		e[i].Percent = 0
+		e[i].Percent = ptr.Int64(0)
 	}
 }
 
 // RemoveNullTargets removes targets from traffic block if they don't have and 0 percent traffic
 func (e ServiceTraffic) RemoveNullTargets() (newTraffic ServiceTraffic) {
 	for _, target := range e {
-		if target.Tag == "" && target.Percent == 0 {
+		if target.Tag == "" && target.Percent == ptr.Int64(0) {
 		} else {
 			newTraffic = append(newTraffic, target)
 		}
@@ -323,8 +323,8 @@ func Compute(cmd *cobra.Command, targets []v1alpha1.TrafficTarget, trafficFlags 
 
 		for _, each := range trafficFlags.RevisionsPercentages {
 			// revisionRef works here as either revision or tag as either can be specified on CLI
-			revisionRef, percent, _ := splitByEqualSign(each) // err is verified in verifyInputSanity
-			percentInt, _ := strconv.Atoi(percent)            // percentInt (for int) is verified in verifyInputSanity
+			revisionRef, percent, _ := splitByEqualSign(each)  // err is verified in verifyInputSanity
+			percentInt, _ := strconv.ParseInt(percent, 10, 64) // percentInt (for int) is verified in verifyInputSanity
 
 			// fourth precedence: set traffic for latest revision
 			if revisionRef == latestRevisionRef {

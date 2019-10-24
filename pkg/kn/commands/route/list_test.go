@@ -23,8 +23,9 @@ import (
 	client_testing "k8s.io/client-go/testing"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/util"
+	"knative.dev/pkg/ptr"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
-	"knative.dev/serving/pkg/apis/serving/v1beta1"
 )
 
 func fakeRouteList(args []string, response *v1alpha1.RouteList) (action client_testing.Action, output []string, err error) {
@@ -115,9 +116,9 @@ func createMockRouteMeta(name string) *v1alpha1.Route {
 
 func createMockTrafficTarget(revision string, percent int) *v1alpha1.TrafficTarget {
 	return &v1alpha1.TrafficTarget{
-		TrafficTarget: v1beta1.TrafficTarget{
+		TrafficTarget: servingv1.TrafficTarget{
 			RevisionName: revision,
-			Percent:      percent,
+			Percent:      ptr.Int64(int64(percent)),
 		},
 	}
 }
