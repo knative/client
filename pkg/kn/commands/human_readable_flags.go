@@ -90,6 +90,8 @@ func ReadyCondition(conditions duckv1.Conditions) string {
 	return "<unknown>"
 }
 
+// NonReadyConditionReason returns formatted string of
+// reason and message for non ready conditions
 func NonReadyConditionReason(conditions duckv1.Conditions) string {
 	for _, condition := range conditions {
 		if condition.Type == apis.ConditionReady {
