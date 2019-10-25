@@ -176,14 +176,15 @@ func (e ServiceTraffic) ResetAllTargetPercent() {
 	}
 }
 
-// RemoveNullTargets removes targets from traffic block if they don't have and 0 percent traffic
+// RemoveNullTargets removes targets from traffic block
+// if they don't have a tag and 0 percent traffic
 func (e ServiceTraffic) RemoveNullTargets() (newTraffic ServiceTraffic) {
 	for _, target := range e {
-		if target.Tag == "" && target.Percent == ptr.Int64(0) {
-		} else {
+		if target.Tag != "" || *target.Percent != int64(0) {
 			newTraffic = append(newTraffic, target)
 		}
 	}
+
 	return newTraffic
 }
 
@@ -192,6 +193,7 @@ func errorOverWritingtagOfLatestReadyRevision(existingTag, requestedTag string) 
 		"refusing to overwrite existing tag with '%s', "+
 		"add flag '--untag %s' in command to untag it", existingTag, requestedTag, existingTag)
 }
+
 func errorOverWritingTag(tag string) error {
 	return fmt.Errorf("refusing to overwrite existing tag in service, "+
 		"add flag '--untag %s' in command to untag it", tag)
