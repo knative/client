@@ -61,7 +61,7 @@ kn service update NAME [flags]
       --service-account string     Service account name to set. Empty service account name will result to clear the service account.
       --tag strings                Set tag (format: --tag revisionRef=tagName) where revisionRef can be a revision or '@latest' string representing latest ready revision. This flag can be specified multiple times.
       --traffic strings            Set traffic distribution (format: --traffic revisionRef=percent) where revisionRef can be a revision or a tag or '@latest' string representing latest ready revision. This flag can be given multiple times with percent summing up to 100%.
-      --untag strings              Untag revision (format: --untag tagName). This flag can be spcified multiple times.
+      --untag strings              Untag revision (format: --untag tagName). This flag can be specified multiple times.
       --volume stringArray         Config a volume with a config map or secret. VOLUME_NAME=(config-map|secret):CONFIG_MAP_OR_SECRET_NAME ; you may provide this flag any number of times to define multiple volumes. To unset, specify the volume name followed by a "-" (e.g., /mount/path-).
       --volume-mount stringArray   Config a volume mount. /mount/path=VOLUME_MOUNT ; you may provide this flag any number of times to mount multiple volumes. To unset, specify the mount path followed by a "-" (e.g., /mount/path-).
       --wait-timeout int           Seconds to wait before giving up on waiting for service to be ready. (default 600)
