@@ -64,7 +64,7 @@ func TestUpdateInvalidAutoscalingAnnotations(t *testing.T) {
 		t.Error("target failed")
 	}
 	if *template.Spec.ContainerConcurrency != 1000 {
-		t.Errorf("limit failed")
+		t.Error("limit failed")
 	}
 }
 
@@ -493,7 +493,7 @@ func getV1alpha1RevisionTemplateWithOldFields() (*servingv1alpha1.RevisionTempla
 	container := &corev1.Container{}
 	template := &servingv1alpha1.RevisionTemplateSpec{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "-template-foo",
+			Name:      "template-foo",
 			Namespace: "default",
 		},
 		Spec: servingv1alpha1.RevisionSpec{
@@ -507,7 +507,7 @@ func getV1alpha1Config() (*servingv1alpha1.RevisionTemplateSpec, *corev1.Contain
 	containers := []corev1.Container{{}}
 	template := &servingv1alpha1.RevisionTemplateSpec{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "-template-foo",
+			Name:      "template-foo",
 			Namespace: "default",
 		},
 		Spec: servingv1alpha1.RevisionSpec{

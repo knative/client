@@ -25,10 +25,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 	"knative.dev/pkg/ptr"
 	"knative.dev/serving/pkg/apis/autoscaling"
-	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
-
-	//servingv1beta1 "knative.dev/serving/pkg/apis/serving/v1beta1"
 	"knative.dev/serving/pkg/apis/serving"
+	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
 var UserImageAnnotationKey = "client.knative.dev/user-image"
