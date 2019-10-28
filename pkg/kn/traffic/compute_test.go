@@ -30,7 +30,7 @@ type trafficTestCase struct {
 	inputFlags       []string
 	desiredRevisions []string
 	desiredTags      []string
-	desiredPercents  []int
+	desiredPercents  []int64
 }
 
 type trafficErrorTestCase struct {
@@ -59,7 +59,7 @@ func TestCompute(t *testing.T) {
 			[]string{"--tag", "@latest=latest"},
 			[]string{"@latest"},
 			[]string{"latest"},
-			[]int{100},
+			[]int64{100},
 		},
 		{
 			"assign tag to revision",
@@ -67,7 +67,7 @@ func TestCompute(t *testing.T) {
 			[]string{"--tag", "echo-v1=stable"},
 			[]string{"echo-v1"},
 			[]string{"stable"},
-			[]int{100},
+			[]int64{100},
 		},
 		{
 			"re-assign same tag to same revision (unchanged)",
@@ -75,7 +75,7 @@ func TestCompute(t *testing.T) {
 			[]string{"--tag", "@latest=current"},
 			[]string{""},
 			[]string{"current"},
-			[]int{100},
+			[]int64{100},
 		},
 		{
 			"split traffic to tags",
@@ -83,7 +83,7 @@ func TestCompute(t *testing.T) {
 			[]string{"--traffic", "@latest=10,rev-v1=90"},
 			[]string{"@latest", "rev-v1"},
 			[]string{"", ""},
-			[]int{10, 90},
+			[]int64{10, 90},
 		},
 		{
 			"split traffic to tags with '%' suffix",
@@ -91,7 +91,7 @@ func TestCompute(t *testing.T) {
 			[]string{"--traffic", "@latest=10%,rev-v1=90%"},
 			[]string{"@latest", "rev-v1"},
 			[]string{"", ""},
-			[]int{10, 90},
+			[]int64{10, 90},
 		},
 		{
 			"add 2 more tagged revisions without giving them traffic portions",
@@ -99,7 +99,7 @@ func TestCompute(t *testing.T) {
 			[]string{"--tag", "echo-v0=stale,echo-v1=old"},
 			[]string{"@latest", "echo-v0", "echo-v1"},
 			[]string{"latest", "stale", "old"},
-			[]int{100, 0, 0},
+			[]int64{100, 0, 0},
 		},
 		{
 			"re-assign same tag to 'echo-v1' revision",
@@ -107,7 +107,7 @@ func TestCompute(t *testing.T) {
 			[]string{"--tag", "echo-v1=latest"},
 			[]string{"echo-v1"},
 			[]string{"latest"},
-			[]int{100},
+			[]int64{100},
 		},
 		{
 			"set 2% traffic to latest revision by appending it in traffic block",
@@ -115,7 +115,7 @@ func TestCompute(t *testing.T) {
 			[]string{"--traffic", "@latest=2,echo-v1=98"},
 			[]string{"echo-v1", "@latest"},
 			[]string{"latest", ""},
-			[]int{98, 2},
+			[]int64{98, 2},
 		},
 		{
 			"set 2% to @latest with tag (append it in traffic block)",
@@ -123,7 +123,7 @@ func TestCompute(t *testing.T) {
 			[]string{"--traffic", "@latest=2,echo-v1=98", "--tag", "@latest=testing"},
 			[]string{"echo-v1", "@latest"},
 			[]string{"latest", "testing"},
-			[]int{98, 2},
+			[]int64{98, 2},
 		},
 		{
 			"change traffic percent of an existing revision in traffic block, add new revision with traffic share",
@@ -131,7 +131,7 @@ func TestCompute(t *testing.T) {
 			[]string{"--tag", "echo-v2=v2", "--traffic", "v1=10,v2=90"},
 			[]string{"echo-v1", "echo-v2"},
 			[]string{"v1", "v2"},
-			[]int{10, 90}, //default value,
+			[]int64{10, 90}, //default value,
 		},
 		{
 			"untag 'latest' tag from 'echo-v1' revision",
@@ -139,7 +139,7 @@ func TestCompute(t *testing.T) {
 			[]string{"--untag", "latest"},
 			[]string{"echo-v1"},
 			[]string{""},
-			[]int{100},
+			[]int64{100},
 		},
 		{
 			"replace revision pointing to 'latest' tag from 'echo-v1' to 'echo-v2' revision",
@@ -147,7 +147,7 @@ func TestCompute(t *testing.T) {
 			[]string{"--untag", "latest", "--tag", "echo-v1=old,echo-v2=latest"},
 			[]string{"echo-v1", "echo-v2"},
 			[]string{"old", "latest"},
-			[]int{50, 50},
+			[]int64{50, 50},
 		},
 		{
 			"have multiple tags for a revision, revision present in traffic block",
@@ -155,7 +155,7 @@ func TestCompute(t *testing.T) {
 			[]string{"--tag", "echo-v1=latest,echo-v1=current"},
 			[]string{"echo-v1", "echo-v2", "echo-v1"}, // appends a new target
 			[]string{"latest", "", "current"},         // with new tag requested
-			[]int{50, 50, 0},                          // and assign 0% to it
+			[]int64{50, 50, 0},                        // and assign 0% to it
 		},
 
 		{
@@ -164,7 +164,7 @@ func TestCompute(t *testing.T) {
 			[]string{"--tag", "echo-v1=latest,echo-v1=current"},
 			[]string{"echo-v2", "echo-v1", "echo-v1"}, // appends two new targets
 			[]string{"", "latest", "current"},         // with new tags requested
-			[]int{100, 0, 0},                          // and assign 0% to each
+			[]int64{100, 0, 0},                        // and assign 0% to each
 		},
 		{
 			"re-assign same tag 'current' to @latest",
@@ -172,7 +172,7 @@ func TestCompute(t *testing.T) {
 			[]string{"--tag", "@latest=current"},
 			[]string{""},
 			[]string{"current"}, // since no change, no error
-			[]int{100},
+			[]int64{100},
 		},
 		{
 			"assign echo-v1 10% traffic adjusting rest to @latest, echo-v1 isn't present in existing traffic block",
@@ -180,7 +180,7 @@ func TestCompute(t *testing.T) {
 			[]string{"--traffic", "echo-v1=10,@latest=90"},
 			[]string{"", "echo-v1"},
 			[]string{"", ""}, // since no change, no error
-			[]int{90, 10},
+			[]int64{90, 10},
 		},
 	} {
 		t.Run(testCase.name, func(t *testing.T) {
@@ -203,7 +203,7 @@ func TestCompute(t *testing.T) {
 					assert.Equal(t, target.RevisionName, testCase.desiredRevisions[i])
 				}
 				assert.Equal(t, target.Tag, testCase.desiredTags[i])
-				assert.Equal(t, target.Percent, testCase.desiredPercents[i])
+				assert.Equal(t, *target.Percent, testCase.desiredPercents[i])
 			}
 		})
 	}

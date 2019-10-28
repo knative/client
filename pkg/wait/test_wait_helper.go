@@ -20,7 +20,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"knative.dev/pkg/apis"
-	duck "knative.dev/pkg/apis/duck/v1beta1"
+	duck "knative.dev/pkg/apis/duck/v1"
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 

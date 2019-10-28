@@ -94,6 +94,17 @@ github.com/spf13/jwalterweatherman
 github.com/spf13/pflag
 # github.com/spf13/viper v1.3.1
 github.com/spf13/viper
+# go.uber.org/atomic v1.4.0
+go.uber.org/atomic
+# go.uber.org/multierr v1.2.0
+go.uber.org/multierr
+# go.uber.org/zap v1.10.0
+go.uber.org/zap
+go.uber.org/zap/internal/bufferpool
+go.uber.org/zap/zapcore
+go.uber.org/zap/buffer
+go.uber.org/zap/internal/color
+go.uber.org/zap/internal/exit
 # golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
 golang.org/x/crypto/ssh/terminal
 # golang.org/x/net v0.0.0-20190724013045-ca1201d0de80
@@ -101,9 +112,9 @@ golang.org/x/net/http2
 golang.org/x/net/http/httpguts
 golang.org/x/net/http2/hpack
 golang.org/x/net/idna
+golang.org/x/net/http2/h2c
 golang.org/x/net/context/ctxhttp
 golang.org/x/net/context
-golang.org/x/net/http2/h2c
 # golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 golang.org/x/oauth2
 golang.org/x/oauth2/google
@@ -150,9 +161,9 @@ gotest.tools/internal/difflib
 # k8s.io/api v0.0.0-20190226173710-145d52631d00
 k8s.io/api/core/v1
 k8s.io/api/authentication/v1
+k8s.io/api/apps/v1
 k8s.io/api/admissionregistration/v1alpha1
 k8s.io/api/admissionregistration/v1beta1
-k8s.io/api/apps/v1
 k8s.io/api/apps/v1beta1
 k8s.io/api/apps/v1beta2
 k8s.io/api/authentication/v1beta1
@@ -370,9 +381,9 @@ k8s.io/client-go/listers/storage/v1alpha1
 k8s.io/client-go/listers/storage/v1beta1
 # k8s.io/kube-openapi v0.0.0-20190722073852-5e22f3d471e6
 k8s.io/kube-openapi/pkg/util/proto
-# knative.dev/pkg v0.0.0-20190815170108-426561fd098d
+# knative.dev/pkg v0.0.0-20191022181926-0b19b4ad9139
 knative.dev/pkg/apis
-knative.dev/pkg/apis/duck/v1beta1
+knative.dev/pkg/apis/duck/v1
 knative.dev/pkg/ptr
 knative.dev/pkg/kmp
 knative.dev/pkg/apis/duck
@@ -380,19 +391,22 @@ knative.dev/pkg/apis/v1alpha1
 knative.dev/pkg/apis/duck/v1alpha1
 knative.dev/pkg/kmeta
 knative.dev/pkg/configmap
-# knative.dev/serving v0.8.0
+knative.dev/pkg/network
+knative.dev/pkg/apis/duck/v1beta1
+# knative.dev/serving v0.9.0
 knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1
 knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake
 knative.dev/serving/pkg/apis/serving
 knative.dev/serving/pkg/apis/serving/v1alpha1
 knative.dev/serving/pkg/apis/autoscaling
-knative.dev/serving/pkg/apis/serving/v1beta1
 knative.dev/serving/pkg/client/clientset/versioned/scheme
 knative.dev/serving/pkg/apis/config
 knative.dev/serving/pkg/apis/networking
-knative.dev/serving/pkg/apis/networking/v1alpha1
 knative.dev/serving/pkg/reconciler/route/config
 knative.dev/serving/pkg/apis/autoscaling/v1alpha1
+knative.dev/serving/pkg/apis/networking/v1alpha1
+knative.dev/serving/pkg/apis/serving/v1
+knative.dev/serving/pkg/apis/serving/v1beta1
 knative.dev/serving/pkg/gc
 knative.dev/serving/pkg/network
 # knative.dev/test-infra v0.0.0-20190730202142-17f2331e80ad
