@@ -194,10 +194,10 @@ func describe(w io.Writer, service *v1alpha1.Service, revisions []*revisionDesc,
 // Write out main service information. Use colors for major items.
 func writeService(dw printers.PrefixWriter, service *v1alpha1.Service) {
 	commands.WriteMetadata(dw, &service.ObjectMeta, printDetails)
-	dw.WriteAttribute("Route URL", extractURL(service))
+	dw.WriteAttribute("URL", extractURL(service))
 	if service.Status.Address != nil {
 		url := service.Status.Address.GetURL()
-		dw.WriteAttribute("Cluster URL", url.String())
+		dw.WriteAttribute("Cluster", url.String())
 	}
 	if (service.Spec.Template != nil) && (service.Spec.Template.Spec.ServiceAccountName != "") {
 		dw.WriteAttribute("ServiceAccount", service.Spec.Template.Spec.ServiceAccountName)
