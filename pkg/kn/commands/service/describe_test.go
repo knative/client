@@ -489,8 +489,8 @@ func TestServiceDescribeMachineReadable(t *testing.T) {
 func validateServiceOutput(t *testing.T, service string, output string) {
 	assert.Assert(t, cmp.Regexp("Name:\\s+"+service, output))
 	assert.Assert(t, cmp.Regexp("Namespace:\\s+default", output))
-	assert.Assert(t, cmp.Regexp("Address:\\s+http://"+service+".default.svc.cluster.local", output))
-	assert.Assert(t, cmp.Regexp("URL:\\s+"+service+".default.example.com", output))
+	assert.Assert(t, cmp.Regexp("Cluster URL:\\s+http://"+service+".default.svc.cluster.local", output))
+	assert.Assert(t, cmp.Regexp("Route URL:\\s+"+service+".default.example.com", output))
 
 	assert.Assert(t, util.ContainsAll(output, "Age:", "Revisions:", "Conditions:", "Labels:", "Annotations:"))
 	assert.Assert(t, util.ContainsAll(output, "Ready", "RoutesReady", "OK", "TYPE", "AGE", "REASON"))
