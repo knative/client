@@ -33,15 +33,11 @@ import (
 	client_serving "knative.dev/client/pkg/serving"
 	serving_kn_v1alpha1 "knative.dev/client/pkg/serving/v1alpha1"
 
-	"knative.dev/pkg/apis"
-	duckv1 "knative.dev/pkg/apis/duck/v1"
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/util/duration"
-
 	"knative.dev/client/pkg/kn/commands"
 )
 
@@ -51,9 +47,6 @@ import (
 
 // Whether to print extended information
 var printDetails bool
-
-// Max length When to truncate long strings (when not "all" mode switched on)
-const truncateAt = 100
 
 // Matching image digest
 var imageDigestRegexp = regexp.MustCompile(`(?i)sha256:([0-9a-f]{64})`)
@@ -190,7 +183,7 @@ func describe(w io.Writer, service *v1alpha1.Service, revisions []*revisionDesc,
 	}
 
 	// Condition info
-	writeConditions(dw, service)
+	commands.WriteConditions(dw, service.Status.Conditions, printDetails)
 	if err := dw.Flush(); err != nil {
 		return err
 	}
@@ -200,76 +193,56 @@ func describe(w io.Writer, service *v1alpha1.Service, revisions []*revisionDesc,
 
 // Write out main service information. Use colors for major items.
 func writeService(dw printers.PrefixWriter, service *v1alpha1.Service) {
-	dw.WriteColsLn(printers.Level0, l("Name"), service.Name)
-	dw.WriteColsLn(printers.Level0, l("Namespace"), service.Namespace)
-	dw.WriteColsLn(printers.Level0, l("URL"), extractURL(service))
+	commands.WriteMetadata(dw, &service.ObjectMeta, printDetails)
+	dw.WriteAttribute("URL", extractURL(service))
 	if service.Status.Address != nil {
 		url := service.Status.Address.GetURL()
-		dw.WriteColsLn(printers.Level0, l("Address"), url.String())
+		dw.WriteAttribute("Address", url.String())
 	}
-	writeMapDesc(dw, printers.Level0, service.Labels, l("Labels"), "")
-	writeMapDesc(dw, printers.Level0, service.Annotations, l("Annotations"), "")
-	dw.WriteColsLn(printers.Level0, l("Age"), age(service.CreationTimestamp.Time))
 }
 
 // Write out revisions associated with this service. By default only active
 // target revisions are printed, but with --all also inactive revisions
 // created by this services are shown
 func writeRevisions(dw printers.PrefixWriter, revisions []*revisionDesc, printDetails bool) {
-	dw.WriteColsLn(printers.Level0, l("Revisions"))
+	revSection := dw.WriteAttribute("Revisions", "")
+	dw.Flush()
 	for _, revisionDesc := range revisions {
-		dw.WriteColsLn(printers.Level1, formatBullet(revisionDesc.percent, revisionDesc.ready), revisionHeader(revisionDesc))
+		section := revSection.WriteColsLn(formatBullet(revisionDesc.percent, revisionDesc.ready), revisionHeader(revisionDesc))
 		if revisionDesc.ready == v1.ConditionFalse {
-			dw.WriteColsLn(printers.Level1, "", l("Error"), revisionDesc.reason)
+			section.WriteAttribute("Error", revisionDesc.reason)
 		}
-		dw.WriteColsLn(printers.Level1, "", l("Image"), getImageDesc(revisionDesc))
+		section.WriteAttribute("Image", getImageDesc(revisionDesc))
 		if printDetails {
 			if revisionDesc.port != nil {
-				dw.WriteColsLn(printers.Level1, "", l("Port"), strconv.FormatInt(int64(*revisionDesc.port), 10))
+				section.WriteAttribute("Port", strconv.FormatInt(int64(*revisionDesc.port), 10))
 			}
-			writeSliceDesc(dw, printers.Level1, revisionDesc.env, l("Env"), "\t")
+			writeSliceDesc(section, revisionDesc.env, l("Env"), "")
 
 			// Scale spec if given
 			if revisionDesc.maxScale != nil || revisionDesc.minScale != nil {
-				dw.WriteColsLn(printers.Level1, "", l("Scale"), formatScale(revisionDesc.minScale, revisionDesc.maxScale))
+				section.WriteAttribute("Scale", formatScale(revisionDesc.minScale, revisionDesc.maxScale))
 			}
 
 			// Concurrency specs if given
 			if revisionDesc.concurrencyLimit != nil || revisionDesc.concurrencyTarget != nil {
-				writeConcurrencyOptions(dw, revisionDesc)
+				writeConcurrencyOptions(section, revisionDesc)
 			}
 
 			// Resources if given
-			writeResources(dw, "Memory", revisionDesc.requestsMemory, revisionDesc.limitsMemory)
-			writeResources(dw, "CPU", revisionDesc.requestsCPU, revisionDesc.limitsCPU)
+			writeResources(section, "Memory", revisionDesc.requestsMemory, revisionDesc.limitsMemory)
+			writeResources(section, "CPU", revisionDesc.requestsCPU, revisionDesc.limitsCPU)
 		}
-	}
-}
-
-// Print out a table with conditions. Use green for 'ok', and red for 'nok' if color is enabled
-func writeConditions(dw printers.PrefixWriter, service *v1alpha1.Service) {
-	dw.WriteColsLn(printers.Level0, l("Conditions"))
-	maxLen := getMaxTypeLen(service.Status.Conditions)
-	formatHeader := "%-2s %-" + strconv.Itoa(maxLen) + "s %6s %-s\n"
-	formatRow := "%-2s %-" + strconv.Itoa(maxLen) + "s %6s %-s\n"
-	dw.Write(printers.Level1, formatHeader, "OK", "TYPE", "AGE", "REASON")
-	for _, condition := range service.Status.Conditions {
-		ok := formatStatus(condition.Status)
-		reason := condition.Reason
-		if printDetails && reason != "" {
-			reason = fmt.Sprintf("%s (%s)", reason, condition.Message)
-		}
-		dw.Write(printers.Level1, formatRow, ok, formatConditionType(condition), age(condition.LastTransitionTime.Inner.Time), reason)
 	}
 }
 
 func writeConcurrencyOptions(dw printers.PrefixWriter, desc *revisionDesc) {
-	dw.WriteColsLn(printers.Level2, "", l("Concurrency"))
+	section := dw.WriteAttribute("Concurrency", "")
 	if desc.concurrencyLimit != nil {
-		dw.WriteColsLn(printers.Level3, "", "", l("Limit"), strconv.FormatInt(*desc.concurrencyLimit, 10))
+		section.WriteAttribute("Limit", strconv.FormatInt(*desc.concurrencyLimit, 10))
 	}
 	if desc.concurrencyTarget != nil {
-		dw.WriteColsLn(printers.Level3, "", "", l("Target"), strconv.Itoa(*desc.concurrencyTarget))
+		section.WriteAttribute("Target", strconv.Itoa(*desc.concurrencyTarget))
 	}
 }
 
@@ -314,36 +287,7 @@ func revisionHeader(desc *revisionDesc) string {
 	return header + " " +
 		"[" + strconv.Itoa(desc.configurationGeneration) + "]" +
 		" " +
-		"(" + age(desc.creationTimestamp) + ")"
-}
-
-// Used for conditions table to do own formatting for the table,
-// as the tabbed writer doesn't work nicely with colors
-func getMaxTypeLen(conditions duckv1.Conditions) int {
-	max := 0
-	for _, condition := range conditions {
-		if len(condition.Type) > max {
-			max = len(condition.Type)
-		}
-	}
-	return max
-}
-
-// Color the type of the conditions
-func formatConditionType(condition apis.Condition) string {
-	return string(condition.Type)
-}
-
-// Status in ASCII format
-func formatStatus(status corev1.ConditionStatus) string {
-	switch status {
-	case v1.ConditionTrue:
-		return "++"
-	case v1.ConditionFalse:
-		return "!!"
-	default:
-		return "??"
-	}
+		"(" + commands.Age(desc.creationTimestamp) + ")"
 }
 
 // Return either image name with tag or together with its resolved digest
@@ -376,47 +320,9 @@ func shortenDigest(digest string) string {
 	return digest
 }
 
-var boringDomains = map[string]bool{
-	"serving.knative.dev":   true,
-	"client.knative.dev":    true,
-	"kubectl.kubernetes.io": true,
-}
-
-// Write a map either compact in a single line (possibly truncated) or, if printDetails is set,
-// over multiple line, one line per key-value pair. The output is sorted by keys.
-func writeMapDesc(dw printers.PrefixWriter, indent int, m map[string]string, label string, labelPrefix string) {
-	if len(m) == 0 {
-		return
-	}
-
-	var keys []string
-	for k := range m {
-		parts := strings.Split(k, "/")
-		if printDetails || len(parts) <= 1 || !boringDomains[parts[0]] {
-			keys = append(keys, k)
-		}
-	}
-	if len(keys) == 0 {
-		return
-	}
-	sort.Strings(keys)
-
-	if printDetails {
-		l := labelPrefix + label
-
-		for _, key := range keys {
-			dw.WriteColsLn(indent, l, key+"="+m[key])
-			l = labelPrefix
-		}
-		return
-	}
-
-	dw.WriteColsLn(indent, label, joinAndTruncate(keys, m))
-}
-
 // Writer a slice compact (printDetails == false) in one line, or over multiple line
 // with key-value line-by-line (printDetails == true)
-func writeSliceDesc(dw printers.PrefixWriter, indent int, s []string, label string, labelPrefix string) {
+func writeSliceDesc(dw printers.PrefixWriter, s []string, label string, labelPrefix string) {
 
 	if len(s) == 0 {
 		return
@@ -425,17 +331,17 @@ func writeSliceDesc(dw printers.PrefixWriter, indent int, s []string, label stri
 	if printDetails {
 		l := labelPrefix + label
 		for _, value := range s {
-			dw.WriteColsLn(indent, l, value)
+			dw.WriteColsLn(l, value)
 			l = labelPrefix
 		}
 		return
 	}
 
 	joined := strings.Join(s, ", ")
-	if len(joined) > truncateAt {
-		joined = joined[:truncateAt-4] + " ..."
+	if len(joined) > commands.TruncateAt {
+		joined = joined[:commands.TruncateAt-4] + " ..."
 	}
-	dw.WriteColsLn(indent, labelPrefix+label, joined)
+	dw.WriteAttribute(labelPrefix+label, joined)
 }
 
 // Write request ... limits or only one of them
@@ -453,24 +359,7 @@ func writeResources(dw printers.PrefixWriter, label string, request string, limi
 		return
 	}
 
-	dw.WriteColsLn(printers.Level2, "", l(label), value)
-}
-
-// Join to key=value pair, comma separated, and truncate if longer than a limit
-func joinAndTruncate(sortedKeys []string, m map[string]string) string {
-	ret := ""
-	for _, key := range sortedKeys {
-		ret += fmt.Sprintf("%s=%s, ", key, m[key])
-		if len(ret) > truncateAt {
-			break
-		}
-	}
-	// cut of two latest chars
-	ret = strings.TrimRight(ret, ", ")
-	if len(ret) <= truncateAt {
-		return ret
-	}
-	return string(ret[:truncateAt-4]) + " ..."
+	dw.WriteAttribute(label, value)
 }
 
 // Format target percentage that it fits in the revision table
@@ -490,13 +379,6 @@ func formatBullet(percentage int64, status corev1.ConditionStatus) string {
 		return fmt.Sprintf("   %s", symbol)
 	}
 	return fmt.Sprintf("%3d%s", percentage, symbol)
-}
-
-func age(t time.Time) string {
-	if t.IsZero() {
-		return ""
-	}
-	return duration.ShortHumanDuration(time.Now().Sub(t))
 }
 
 // Call the backend to query revisions for the given service and build up

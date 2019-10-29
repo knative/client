@@ -25,51 +25,60 @@ type flusher interface {
 	Flush() error
 }
 
+func NewBarePrefixWriter(out io.Writer) PrefixWriter {
+	return &prefixWriter{out: out, nested: nil, colIndent: 0, spaceIndent: 0}
+}
+
 // NewPrefixWriter creates a new PrefixWriter.
 func NewPrefixWriter(out io.Writer) PrefixWriter {
 	tabWriter := tabwriter.NewWriter(out, 0, 8, 2, ' ', 0)
-	return &prefixWriter{out: tabWriter}
+	return &prefixWriter{out: tabWriter, nested: nil, colIndent: 0, spaceIndent: 0}
 }
 
 // PrefixWriter can write text at various indentation levels.
 type PrefixWriter interface {
 	// Write writes text with the specified indentation level.
-	Write(level int, format string, a ...interface{})
+	Writef(format string, a ...interface{})
 	// WriteLine writes an entire line with no indentation level.
 	WriteLine(a ...interface{})
 	// Write columns with an initial indentation
-	WriteCols(level int, cols ...string)
+	WriteCols(cols ...string) PrefixWriter
 	// Write columns with an initial indentation and a newline at the end
-	WriteColsLn(level int, cols ...string)
+	WriteColsLn(cols ...string) PrefixWriter
 	// Flush forces indentation to be reset.
 	Flush() error
+
+	WriteAttribute(attr, value string) PrefixWriter
 }
 
 // prefixWriter implements PrefixWriter
 type prefixWriter struct {
-	out io.Writer
+	out         io.Writer
+	nested      PrefixWriter
+	colIndent   int
+	spaceIndent int
 }
 
 var _ PrefixWriter = &prefixWriter{}
 
-// Each level has 2 spaces for PrefixWriter
-const (
-	Level0 = iota
-	Level1
-	Level2
-	Level3
-)
-
-func (pw *prefixWriter) Write(level int, format string, a ...interface{}) {
-	levelSpace := "  "
+func (pw *prefixWriter) Writef(format string, a ...interface{}) {
 	prefix := ""
-	for i := 0; i < level; i++ {
+	levelSpace := "  "
+	for i := 0; i < pw.spaceIndent; i++ {
 		prefix += levelSpace
 	}
-	fmt.Fprintf(pw.out, prefix+format, a...)
+	levelTab := "\t"
+	for i := 0; i < pw.colIndent; i++ {
+		prefix += levelTab
+	}
+	if pw.nested != nil {
+		pw.nested.Writef(prefix+format, a...)
+	} else {
+		fmt.Fprintf(pw.out, prefix+format, a...)
+	}
 }
 
-func (pw *prefixWriter) WriteCols(level int, cols ...string) {
+func (pw *prefixWriter) WriteCols(cols ...string) PrefixWriter {
 	ss := make([]string, len(cols))
 	for i := range cols {
 		ss[i] = "%s"
@@ -80,16 +89,27 @@ func (pw *prefixWriter) WriteCols(level int, cols ...string) {
 		s[i] = v
 	}
 
-	pw.Write(level, format, s...)
+	pw.Writef(format, s...)
+	return &prefixWriter{pw.out, pw, 1, 0}
 }
 
-func (pw *prefixWriter) WriteColsLn(level int, cols ...string) {
-	pw.WriteCols(level, cols...)
+// WriteCols writes the columns to the writer and returns a PrefixWriter for
+// writing any further parts of the "record" in the last column.
+func (pw *prefixWriter) WriteColsLn(cols ...string) PrefixWriter {
+	ret := pw.WriteCols(cols...)
 	pw.WriteLine()
+	return ret
 }
 
 func (pw *prefixWriter) WriteLine(a ...interface{}) {
 	fmt.Fprintln(pw.out, a...)
+}
+
+// WriteAttribute writes the attr (as a label) with the given value and returns
+// a PrefixWriter for writing any subattributes.
+func (pw *prefixWriter) WriteAttribute(attr, value string) PrefixWriter {
+	pw.WriteColsLn(l(attr), value)
+	return &prefixWriter{pw.out, pw, 0, 1}
 }
 
 func (pw *prefixWriter) Flush() error {
@@ -97,4 +117,9 @@ func (pw *prefixWriter) Flush() error {
 		return f.Flush()
 	}
 	return fmt.Errorf("output stream %v doesn't support Flush", pw.out)
+}
+
+// Format label (extracted so that color could be added more easily to all labels)
+func l(label string) string {
+	return label + ":"
 }
