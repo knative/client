@@ -35,7 +35,7 @@ var versionOutputTemplate = `Version:      {{.Version}}
 Build Date:   {{.BuildDate}}
 Git Revision: {{.GitRevision}}
 Supported APIs:
-- serving.knative.dev/v1alpha1 (knative-serving v0.8.0)
+- serving.knative.dev/v1alpha1 (knative-serving v0.9.0)
 `
 
 const (
