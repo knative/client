@@ -119,6 +119,7 @@ func NewKnCommand(params ...commands.KnParams) *cobra.Command {
 		SilenceErrors: true,
 
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			initConfigFlags()
 			return flags.ReconcileBoolFlags(cmd.Flags())
 		},
 	}
@@ -209,6 +210,16 @@ func initConfig() {
 	err := viper.ReadInConfig()
 	if err == nil {
 		fmt.Fprintln(os.Stderr, "Using kn config file:", viper.ConfigFileUsed())
+	}
+}
+
+func initConfigFlags() {
+	if commands.Cfg.PluginsDir == "" {
+		commands.Cfg.PluginsDir = viper.GetString("plugins-dir")
+	}
+
+	if commands.Cfg.LookupPlugins != viper.GetBool("lookup-plugins") {
+		commands.Cfg.LookupPlugins = viper.GetBool("lookup-plugins")
 	}
 }
 
