@@ -19,6 +19,10 @@ Alternatively, check out the client repository, and type:
 go install ./cmd/kn
 ```
 
+To use the kn container image:
+ * Nightly: `gcr.io/knative-nightly/knative.dev/client/cmd/kn`
+ * Latest release: `gcr.io/knative-releases/knative.dev/client/cmd/kn`
+
 ### Connecting to your cluster
 
 You'll need a `kubectl`-style config file to connect to your cluster.
