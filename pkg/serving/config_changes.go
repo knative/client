@@ -441,8 +441,8 @@ func updateEnvFrom(envFromSources []corev1.EnvFromSource, toUpdate []string) ([]
 			return nil, err
 		}
 
-		if newEnvSrc := info.createEnvFromSource(existingNameSet); newEnvSrc != nil {
-			envFromSources = append(envFromSources, *newEnvSrc)
+		if _, ok := existingNameSet[info.getCanonicalName()]; !ok {
+			envFromSources = append(envFromSources, *info.createEnvFromSource())
 		}
 	}
 
@@ -635,23 +635,19 @@ func getCanonicalNameFromEnvFromSource(envSrc *corev1.EnvFromSource) (string, er
 	return "", fmt.Errorf("there is no ConfigMapRef or SecretRef in a EnvFromSource")
 }
 
-func (info *volumeSourceInfo) createEnvFromSource(existingNameSet map[string]bool) *corev1.EnvFromSource {
-	if _, ok := existingNameSet[info.getCanonicalName()]; ok {
-		return nil
-	}
-
-	switch info.volumeSourceType {
+func (vol *volumeSourceInfo) createEnvFromSource() *corev1.EnvFromSource {
+	switch vol.volumeSourceType {
 	case ConfigMapVolumeSourceType:
 		return &corev1.EnvFromSource{
 			ConfigMapRef: &corev1.ConfigMapEnvSource{
 				LocalObjectReference: corev1.LocalObjectReference{
-					Name: info.volumeSourceName,
+					Name: vol.volumeSourceName,
 				}}}
 	case SecretVolumeSourceType:
 		return &corev1.EnvFromSource{
 			SecretRef: &corev1.SecretEnvSource{
 				LocalObjectReference: corev1.LocalObjectReference{
-					Name: info.volumeSourceName,
+					Name: vol.volumeSourceName,
 				}}}
 	}
 
