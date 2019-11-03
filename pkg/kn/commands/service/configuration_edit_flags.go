@@ -86,18 +86,19 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	p.markFlagMakesRevision("env-from")
 
 	command.Flags().StringArrayVarP(&p.Mount, "mount", "", []string{},
-		"Mount a ConfigMap (prefix cm: or config-map:), a Secret (prefix secret:), or an existing Volume (prefix volume:) on the specified directory. "+
-			"Example: --mount /mydir=cm:myconfigmap, --mount /mydir=secret:mysecret, or --mount /mydir=volume:myvolume. "+
+		"Mount a ConfigMap (prefix cm: or config-map:), a Secret (prefix secret: or sc:), or an existing Volume (without any prefix) on the specified directory. "+
+			"Example: --mount /mydir=cm:myconfigmap, --mount /mydir=secret:mysecret, or --mount /mydir=myvolume. "+
 			"When a configmap or a secret is specified, a corresponding volume is automatically generated. "+
 			"You can use this flag multiple times. "+
-			"To unmount, append \"-\" to the mounted directory, e.g. --volume /mydir-.")
+			"To unmount, append \"-\" to the mounted directory, e.g. --volume /mydir-. "+
+			"When unmounting, the automatically generated volume is removed as well.")
 	p.markFlagMakesRevision("mount")
 
 	command.Flags().StringArrayVarP(&p.Volume, "volume", "", []string{},
-		"Add a volume from a ConfigMap (prefix cm: or config-map:) or a Secret (prefix secret:). "+
+		"Add a volume from a ConfigMap (prefix cm: or config-map:) or a Secret (prefix secret: or sc:). "+
 			"Example: --volume myvolume=cm:myconfigmap or --volume myvolume=secret:mysecret. "+
 			"You can use this flag multiple times. "+
-			"To unset a ConfigMap/Secret reference, append \"-\" to the name, e.g. --volume myvolume-.")
+			"To unset a ConfigMap/Secret reference, append \"-\" to the name,. e.g. --volume myvolume-.")
 	p.markFlagMakesRevision("volume")
 
 	command.Flags().StringVar(&p.RequestsFlags.CPU, "requests-cpu", "", "The requested CPU (e.g., 250m).")
