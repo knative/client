@@ -21,6 +21,7 @@ import (
 
 	"gotest.tools/assert"
 
+	"knative.dev/client/pkg/util"
 	"knative.dev/pkg/ptr"
 	"knative.dev/serving/pkg/apis/autoscaling"
 
@@ -485,31 +486,31 @@ func TestUpdateVolumeMountsAndVolumes(t *testing.T) {
 	)
 
 	err := UpdateVolumeMountsAndVolumes(template,
-		map[string]string{"/new-config-map/mount/path": "new-config-map-volume-name"},
+		util.NewOrderedMapWithKVStrings([][]string{{"/new-config-map/mount/path", "new-config-map-volume-name"}}),
 		[]string{},
-		map[string]string{"new-config-map-volume-name": "config-map:new-config-map"},
+		util.NewOrderedMapWithKVStrings([][]string{{"new-config-map-volume-name", "config-map:new-config-map"}}),
 		[]string{})
 	assert.NilError(t, err)
 
 	err = UpdateVolumeMountsAndVolumes(template,
-		map[string]string{"/updated-config-map/mount/path": "existing-config-map-volume-name-2"},
+		util.NewOrderedMapWithKVStrings([][]string{{"/updated-config-map/mount/path", "existing-config-map-volume-name-2"}}),
 		[]string{},
-		map[string]string{"existing-config-map-volume-name-2": "config-map:updated-config-map"},
+		util.NewOrderedMapWithKVStrings([][]string{{"existing-config-map-volume-name-2", "config-map:updated-config-map"}}),
 		[]string{})
 	assert.NilError(t, err)
 
 	err = UpdateVolumeMountsAndVolumes(template,
-		map[string]string{"/new-secret/mount/path": "new-secret-volume-name"},
+		util.NewOrderedMapWithKVStrings([][]string{{"/new-secret/mount/path", "new-secret-volume-name"}}),
 		[]string{},
-		map[string]string{"new-secret-volume-name": "secret:new-secret"},
+		util.NewOrderedMapWithKVStrings([][]string{{"new-secret-volume-name", "secret:new-secret"}}),
 		[]string{})
 	assert.NilError(t, err)
 
 	err = UpdateVolumeMountsAndVolumes(template,
-		map[string]string{"/updated-secret/mount/path": "existing-secret-volume-name-2"},
+		util.NewOrderedMapWithKVStrings([][]string{{"/updated-secret/mount/path", "existing-secret-volume-name-2"}}),
 		[]string{"/existing-config-map-1/mount/path",
 			"/existing-secret-1/mount/path"},
-		map[string]string{"existing-secret-volume-name-2": "secret:updated-secret"},
+		util.NewOrderedMapWithKVStrings([][]string{{"existing-secret-volume-name-2", "secret:updated-secret"}}),
 		[]string{"existing-config-map-volume-name-1",
 			"existing-secret-volume-name-1"})
 	assert.NilError(t, err)

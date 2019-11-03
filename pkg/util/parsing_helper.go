@@ -19,20 +19,27 @@ import (
 	"strings"
 )
 
-// MapAndRemovalListFromArray creates a map using MapFromArrayAllowingSingles, and a list of removal entries
-func MapAndRemovalListFromArray(arr []string, delimiter string) (map[string]string, []string, error) {
-	updateMap, _ := mapFromArray(arr, delimiter, true)
+// OrderedMapAndRemovalListFromArray creates a list of key-value pair using MapFromArrayAllowingSingles, and a list of removal entries
+func OrderedMapAndRemovalListFromArray(arr []string, delimiter string) (*OrderedMap, []string, error) {
+	orderedMap := NewOrderedMap()
 	removalList := []string{}
-	for name := range updateMap {
-		if strings.HasSuffix(name, "-") {
-			removalList = append(removalList, name[:len(name)-1])
-			delete(updateMap, name)
-		} else if updateMap[name] == "" {
-			return nil, nil, fmt.Errorf("Argument requires a value that contains the %q character; got %q", delimiter, name)
+
+	for _, pairStr := range arr {
+		pairSlice := strings.SplitN(pairStr, delimiter, 2)
+		if len(pairSlice) == 0 || (len(pairSlice) == 1 && !strings.HasSuffix(pairSlice[0], "-")) {
+			return nil, nil, fmt.Errorf("argument requires a value that contains the %q character; got %q", delimiter, pairStr)
+		}
+		key := pairSlice[0]
+		if len(pairSlice) == 2 {
+			value := pairSlice[1]
+			orderedMap.Set(key, value)
+		} else {
+			// error cases are already filtered out from above part
+			removalList = append(removalList, key[:len(key)-1])
 		}
 	}
 
-	return updateMap, removalList, nil
+	return orderedMap, removalList, nil
 }
 
 func MapFromArrayAllowingSingles(arr []string, delimiter string) (map[string]string, error) {

@@ -15,6 +15,7 @@
 package service
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -29,11 +30,11 @@ import (
 
 type ConfigurationEditFlags struct {
 	// Direct field manipulation
-	Image       string
-	Env         []string
-	EnvFrom     []string
-	VolumeMount []string
-	Volume      []string
+	Image   string
+	Env     []string
+	EnvFrom []string
+	Mount   []string
+	Volume  []string
 
 	RequestsFlags, LimitsFlags ResourceFlags
 	MinScale                   int
@@ -78,21 +79,25 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	p.markFlagMakesRevision("env")
 
 	command.Flags().StringArrayVarP(&p.EnvFrom, "env-from", "", []string{},
-		"Config a envfrom with a config map or secret. (config-map | secret):CONFIG_MAP_OR_SECRET_NAME "+
-			"you may provide this flag any number of times. "+
-			"To unset, specify the config map name followed by a \"-\" (e.g., config-map:CONFIG_MAP_NAME- or secret:SECRET_NAME-).")
+		"Add environment variables from a ConfigMap (prefix cm: or config-map:) or a Secret (prefix secret:). "+
+			"Example: --env-from cm:myconfigmap or --env-from secret:mysecret. "+
+			"You can use this flag multiple times. "+
+			"To unset a ConfigMap/Secret reference, append \"-\" to the name, e.g. --env-from cm:myconfigmap-.")
 	p.markFlagMakesRevision("env-from")
 
-	command.Flags().StringArrayVarP(&p.VolumeMount, "volume-mount", "", []string{},
-		"Config a volume mount. /mount/path=VOLUME_MOUNT ; "+
-			"you may provide this flag any number of times to mount multiple volumes. "+
-			"To unset, specify the mount path followed by a \"-\" (e.g., /mount/path-).")
-	p.markFlagMakesRevision("volume-mount")
+	command.Flags().StringArrayVarP(&p.Mount, "mount", "", []string{},
+		"Mount a ConfigMap (prefix cm: or config-map:), a Secret (prefix secret:), or an existing Volume (prefix volume:) on the specified directory. "+
+			"Example: --mount /mydir=cm:myconfigmap, --mount /mydir=secret:mysecret, or --mount /mydir=volume:myvolume. "+
+			"When a configmap or a secret is specified, a corresponding volume is automatically generated. "+
+			"You can use this flag multiple times. "+
+			"To unmount, append \"-\" to the mounted directory, e.g. --volume /mydir-.")
+	p.markFlagMakesRevision("mount")
 
 	command.Flags().StringArrayVarP(&p.Volume, "volume", "", []string{},
-		"Config a volume with a config map or secret. VOLUME_NAME=(config-map|secret):CONFIG_MAP_OR_SECRET_NAME ; "+
-			"you may provide this flag any number of times to define multiple volumes. "+
-			"To unset, specify the volume name followed by a \"-\" (e.g., /mount/path-).")
+		"Add a volume from a ConfigMap (prefix cm: or config-map:) or a Secret (prefix secret:). "+
+			"Example: --volume myvolume=cm:myconfigmap or --volume myvolume=secret:mysecret. "+
+			"You can use this flag multiple times. "+
+			"To unset a ConfigMap/Secret reference, append \"-\" to the name, e.g. --volume myvolume-.")
 	p.markFlagMakesRevision("volume")
 
 	command.Flags().StringVar(&p.RequestsFlags.CPU, "requests-cpu", "", "The requested CPU (e.g., 250m).")
@@ -188,7 +193,9 @@ func (p *ConfigurationEditFlags) Apply(
 		envFromSourceToUpdate := []string{}
 		envFromSourceToRemove := []string{}
 		for _, name := range p.EnvFrom {
-			if strings.HasSuffix(name, "-") {
+			if name == "-" {
+				return fmt.Errorf("\"-\" is not a valid value for \"--env-from\"")
+			} else if strings.HasSuffix(name, "-") {
 				envFromSourceToRemove = append(envFromSourceToRemove, name[:len(name)-1])
 			} else {
 				envFromSourceToUpdate = append(envFromSourceToUpdate, name)
@@ -201,18 +208,18 @@ func (p *ConfigurationEditFlags) Apply(
 		}
 	}
 
-	if cmd.Flags().Changed("volume-mount") || cmd.Flags().Changed("volume") {
-		volumeMountMap, volumeMountsToRemove, err := util.MapAndRemovalListFromArray(p.VolumeMount, "=")
+	if cmd.Flags().Changed("mount") || cmd.Flags().Changed("volume") {
+		mountsToUpdate, mountsToRemove, err := util.OrderedMapAndRemovalListFromArray(p.Mount, "=")
 		if err != nil {
-			return errors.Wrap(err, "Invalid --volume-mount")
+			return errors.Wrap(err, "Invalid --mount")
 		}
 
-		volumeMap, volumesToRemove, err := util.MapAndRemovalListFromArray(p.Volume, "=")
+		volumesToUpdate, volumesToRemove, err := util.OrderedMapAndRemovalListFromArray(p.Volume, "=")
 		if err != nil {
 			return errors.Wrap(err, "Invalid --volume")
 		}
 
-		err = servinglib.UpdateVolumeMountsAndVolumes(template, volumeMountMap, volumeMountsToRemove, volumeMap, volumesToRemove)
+		err = servinglib.UpdateVolumeMountsAndVolumes(template, mountsToUpdate, mountsToRemove, volumesToUpdate, volumesToRemove)
 		if err != nil {
 			return err
 		}

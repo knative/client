@@ -34,15 +34,15 @@ func testMapFromArray(t *testing.T, input []string, delimiter string, expected m
 	assert.DeepEqual(t, expected, actual)
 }
 
-func TestMapAndRemovalListFromArray(t *testing.T) {
-	testMapAndRemovalListFromArray(t, []string{"add=value"}, "=", map[string]string{"add": "value"}, []string{})
-	testMapAndRemovalListFromArray(t, []string{"add=value", "remove-"}, "=", map[string]string{"add": "value"}, []string{"remove"})
+func TestKeyValuePairListAndRemovalListFromArray(t *testing.T) {
+	testKeyValuePairListAndRemovalListFromArray(t, []string{"add=value"}, "=", [][]string{{"add", "value"}}, []string{})
+	testKeyValuePairListAndRemovalListFromArray(t, []string{"add=value", "remove-"}, "=", [][]string{{"add", "value"}}, []string{"remove"})
 }
 
-func testMapAndRemovalListFromArray(t *testing.T, input []string, delimiter string, expectedMap map[string]string, expectedList []string) {
-	actualMap, actualList, err := MapAndRemovalListFromArray(input, delimiter)
+func testKeyValuePairListAndRemovalListFromArray(t *testing.T, input []string, delimiter string, expectedKVList [][]string, expectedList []string) {
+	actualKVList, actualList, err := OrderedMapAndRemovalListFromArray(input, delimiter)
 	assert.NilError(t, err)
-	assert.DeepEqual(t, expectedMap, actualMap)
+	assert.DeepEqual(t, NewOrderedMapWithKVStrings(expectedKVList), actualKVList)
 	assert.DeepEqual(t, expectedList, actualList)
 }
 

@@ -23,6 +23,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
+	"knative.dev/client/pkg/util"
 	"knative.dev/pkg/ptr"
 	"knative.dev/serving/pkg/apis/autoscaling"
 	"knative.dev/serving/pkg/apis/serving"
@@ -37,6 +38,14 @@ const (
 	ConfigMapVolumeSourceType VolumeSourceType = iota
 	SecretVolumeSourceType
 )
+
+func (vt VolumeSourceType) String() string {
+	names := [...]string{"config-map", "secret"}
+	if vt < ConfigMapVolumeSourceType || vt > SecretVolumeSourceType {
+		return "unknown"
+	}
+	return names[vt]
+}
 
 var UserImageAnnotationKey = "client.knative.dev/user-image"
 
@@ -73,21 +82,75 @@ func UpdateEnvFrom(template *servingv1alpha1.RevisionTemplateSpec, toUpdate []st
 	return err
 }
 
+func reviseVolumeInfoAndMountsToUpdate(volumes []corev1.Volume, mountsToUpdate *util.OrderedMap,
+	volumesToUpdate *util.OrderedMap) (*util.OrderedMap, *util.OrderedMap, error) {
+	volumeSourceInfoByName := util.NewOrderedMap() //make(map[string]*volumeSourceInfo)
+	mountsToUpdateRevised := util.NewOrderedMap()  //make(map[string]string)
+
+	it := mountsToUpdate.Iterator()
+	for path, value, ok := it.NextString(); ok; path, value, ok = it.NextString() {
+		// slices[0] -> config-map, cm, secret, sc, volume, or vo
+		// slices[1] -> secret, config-map, or volume name
+		slices := strings.SplitN(value, ":", 2)
+		if len(slices) == 1 {
+			mountsToUpdateRevised.Set(path, slices[0])
+		} else {
+			switch volumeType := slices[0]; volumeType {
+			case "config-map", "cm":
+				generatedName := generateVolumeName(path)
+				volumeSourceInfoByName.Set(generatedName, &volumeSourceInfo{
+					volumeSourceType: ConfigMapVolumeSourceType,
+					volumeSourceName: slices[1],
+				})
+				mountsToUpdateRevised.Set(path, generatedName)
+			case "secret", "sc":
+				generatedName := generateVolumeName(path)
+				volumeSourceInfoByName.Set(generatedName, &volumeSourceInfo{
+					volumeSourceType: SecretVolumeSourceType,
+					volumeSourceName: slices[1],
+				})
+				mountsToUpdateRevised.Set(path, generatedName)
+
+			default:
+				return nil, nil, fmt.Errorf("unsupported volume type \"%q\"; supported volume types are \"config-map or cm\", \"secret or sc\", and \"volume or vo\"", slices[0])
+			}
+		}
+	}
+
+	it = volumesToUpdate.Iterator()
+	for name, value, ok := it.NextString(); ok; name, value, ok = it.NextString() {
+		info, err := newVolumeSourceInfoWithSpecString(value)
+		if err != nil {
+			return nil, nil, err
+		}
+		volumeSourceInfoByName.Set(name, info)
+	}
+
+	return volumeSourceInfoByName, mountsToUpdateRevised, nil
+}
+
+func reviseVolumesToRemove(volumeMounts []corev1.VolumeMount, volumesToRemove []string, mountsToRemove []string) []string {
+	for _, pathToRemove := range mountsToRemove {
+		for _, volumeMount := range volumeMounts {
+			if volumeMount.MountPath == pathToRemove && volumeMount.Name == generateVolumeName(pathToRemove) {
+				volumesToRemove = append(volumesToRemove, volumeMount.Name)
+			}
+		}
+	}
+	return volumesToRemove
+}
+
 // UpdateVolumeMountsAndVolumes updates the configuration for volume mounts and volumes.
 func UpdateVolumeMountsAndVolumes(template *servingv1alpha1.RevisionTemplateSpec,
-	mountsToUpdate map[string]string, mountsToRemove []string, volumesToUpdate map[string]string, volumesToRemove []string) error {
+	mountsToUpdate *util.OrderedMap, mountsToRemove []string, volumesToUpdate *util.OrderedMap, volumesToRemove []string) error {
 	container, err := ContainerOfRevisionTemplate(template)
 	if err != nil {
 		return err
 	}
 
-	volumeSourceInfoByName := make(map[string]*volumeSourceInfo)
-	for name, value := range volumesToUpdate {
-		info, err := parseVolumeSourceString(value)
-		if err != nil {
-			return err
-		}
-		volumeSourceInfoByName[name] = info
+	volumeSourceInfoByName, mountsToUpdate, err := reviseVolumeInfoAndMountsToUpdate(template.Spec.Volumes, mountsToUpdate, volumesToUpdate)
+	if err != nil {
+		return err
 	}
 
 	volumes, err := updateVolumesFromMap(template.Spec.Volumes, volumeSourceInfoByName)
@@ -100,6 +163,8 @@ func UpdateVolumeMountsAndVolumes(template *servingv1alpha1.RevisionTemplateSpec
 		return err
 	}
 
+	volumesToRemove = reviseVolumesToRemove(container.VolumeMounts, volumesToRemove, mountsToRemove)
+
 	container.VolumeMounts = removeVolumeMounts(volumeMounts, mountsToRemove)
 	template.Spec.Volumes, err = removeVolumes(volumes, volumesToRemove, container.VolumeMounts)
 
@@ -111,7 +176,7 @@ func UpdateMinScale(template *servingv1alpha1.RevisionTemplateSpec, min int) err
 	return UpdateRevisionTemplateAnnotation(template, autoscaling.MinScaleAnnotationKey, strconv.Itoa(min))
 }
 
-// UpdatMaxScale updates max scale annotation
+// UpdateMaxScale updates max scale annotation
 func UpdateMaxScale(template *servingv1alpha1.RevisionTemplateSpec, max int) error {
 	return UpdateRevisionTemplateAnnotation(template, autoscaling.MaxScaleAnnotationKey, strconv.Itoa(max))
 }
@@ -228,7 +293,7 @@ func FreezeImageToDigest(template *servingv1alpha1.RevisionTemplateSpec, baseRev
 		return err
 	}
 	if currentContainer.Image != baseContainer.Image {
-		return fmt.Errorf("could not freeze image to digest since current revision contains unexpected image.")
+		return fmt.Errorf("could not freeze image to digest since current revision contains unexpected image")
 	}
 
 	if baseRevision.Status.ImageDigest != "" {
@@ -361,82 +426,23 @@ func removeEnvVars(env []corev1.EnvVar, toRemove []string) []corev1.EnvVar {
 	return env
 }
 
-type volumeSourceInfo struct {
-	volumeSourceType VolumeSourceType
-	volumeSourceName string
-}
-
-func parseVolumeSourceString(s string) (*volumeSourceInfo, error) {
-	slices := strings.SplitN(s, ":", 2)
-	if len(slices) != 2 {
-		return nil, fmt.Errorf("Argument requires a value that contains the : character; got %q", s)
-	}
-
-	var volumeSourceType VolumeSourceType
-	volumeSourceName := strings.TrimSpace(slices[1])
-	if strings.TrimSpace(slices[0]) == "config-map" {
-		volumeSourceType = ConfigMapVolumeSourceType
-	} else if strings.TrimSpace(slices[0]) == "secret" {
-		volumeSourceType = SecretVolumeSourceType
-	} else {
-		return nil, fmt.Errorf("Unsupported volume source type \"%q\"; supported volume source types are \"config-map\" and \"secret\"", slices[0])
-	}
-
-	return &volumeSourceInfo{
-		volumeSourceType: volumeSourceType,
-		volumeSourceName: volumeSourceName,
-	}, nil
-}
-
 func updateEnvFrom(envFromSources []corev1.EnvFromSource, toUpdate []string) ([]corev1.EnvFromSource, error) {
-	insertConfigMapSet := make(map[string]bool)
-	insertSecretSet := make(map[string]bool)
+	existingNameSet := make(map[string]bool)
+
+	for _, envSrc := range envFromSources {
+		if canonicalName, err := getCanonicalNameFromEnvFromSource(&envSrc); err == nil {
+			existingNameSet[canonicalName] = true
+		}
+	}
 
 	for _, s := range toUpdate {
-		info, err := parseVolumeSourceString(s)
+		info, err := newVolumeSourceInfoWithSpecString(s)
 		if err != nil {
 			return nil, err
 		}
-		switch info.volumeSourceType {
-		case ConfigMapVolumeSourceType:
-			insertConfigMapSet[info.volumeSourceName] = false
-		case SecretVolumeSourceType:
-			insertSecretSet[info.volumeSourceName] = false
-		}
-	}
 
-	for i := range envFromSources {
-		envSrc := &envFromSources[i]
-		if envSrc.ConfigMapRef != nil {
-			if _, ok := insertConfigMapSet[envSrc.ConfigMapRef.Name]; ok {
-				insertConfigMapSet[envSrc.ConfigMapRef.Name] = true
-			}
-		}
-
-		if envSrc.SecretRef != nil {
-			if _, ok := insertSecretSet[envSrc.SecretRef.Name]; ok {
-				insertSecretSet[envSrc.SecretRef.Name] = true
-			}
-		}
-	}
-
-	for k, v := range insertConfigMapSet {
-		if !v {
-			envFromSources = append(envFromSources, corev1.EnvFromSource{
-				ConfigMapRef: &corev1.ConfigMapEnvSource{
-					LocalObjectReference: corev1.LocalObjectReference{
-						Name: k,
-					}}})
-		}
-	}
-
-	for k, v := range insertSecretSet {
-		if !v {
-			envFromSources = append(envFromSources, corev1.EnvFromSource{
-				SecretRef: &corev1.SecretEnvSource{
-					LocalObjectReference: corev1.LocalObjectReference{
-						Name: k,
-					}}})
+		if newEnvSrc := info.createEnvFromSource(existingNameSet); newEnvSrc != nil {
+			envFromSources = append(envFromSources, *newEnvSrc)
 		}
 	}
 
@@ -445,7 +451,7 @@ func updateEnvFrom(envFromSources []corev1.EnvFromSource, toUpdate []string) ([]
 
 func removeEnvFrom(envFromSources []corev1.EnvFromSource, toRemove []string) ([]corev1.EnvFromSource, error) {
 	for _, name := range toRemove {
-		info, err := parseVolumeSourceString(name)
+		info, err := newVolumeSourceInfoWithSpecString(name)
 		if err != nil {
 			return nil, err
 		}
@@ -457,6 +463,11 @@ func removeEnvFrom(envFromSources []corev1.EnvFromSource, toRemove []string) ([]
 			}
 		}
 	}
+
+	if len(envFromSources) == 0 {
+		envFromSources = nil
+	}
+
 	return envFromSources, nil
 }
 
@@ -474,31 +485,13 @@ func updateVolume(volume *corev1.Volume, info *volumeSourceInfo) error {
 	return nil
 }
 
-func existsVolumeNameInVolumes(volumeName string, volumes []corev1.Volume) bool {
-	for _, volume := range volumes {
-		if volume.Name == volumeName {
-			return true
-		}
-	}
-	return false
-}
-
-func existsVolumeNameInVolumeMounts(volumeName string, volumeMounts []corev1.VolumeMount) bool {
-	for _, volumeMount := range volumeMounts {
-		if volumeMount.Name == volumeName {
-			return true
-		}
-	}
-	return false
-}
-
 // updateVolumeMountsFromMap updates or adds volume mounts. If a given name of a volume is not existing, it returns an error
-func updateVolumeMountsFromMap(volumeMounts []corev1.VolumeMount, toUpdate map[string]string, volumes []corev1.Volume) ([]corev1.VolumeMount, error) {
+func updateVolumeMountsFromMap(volumeMounts []corev1.VolumeMount, toUpdate *util.OrderedMap, volumes []corev1.Volume) ([]corev1.VolumeMount, error) {
 	set := make(map[string]bool)
 
 	for i := range volumeMounts {
 		volumeMount := &volumeMounts[i]
-		name, present := toUpdate[volumeMount.MountPath]
+		name, present := toUpdate.GetString(volumeMount.MountPath)
 
 		if present {
 			if !existsVolumeNameInVolumes(name, volumes) {
@@ -511,7 +504,8 @@ func updateVolumeMountsFromMap(volumeMounts []corev1.VolumeMount, toUpdate map[s
 		}
 	}
 
-	for mountPath, name := range toUpdate {
+	it := toUpdate.Iterator()
+	for mountPath, name, ok := it.NextString(); ok; mountPath, name, ok = it.NextString() {
 		if !set[mountPath] {
 			volumeMounts = append(volumeMounts, corev1.VolumeMount{
 				Name:      name,
@@ -533,18 +527,23 @@ func removeVolumeMounts(volumeMounts []corev1.VolumeMount, toRemove []string) []
 			}
 		}
 	}
+
+	if len(volumeMounts) == 0 {
+		return nil
+	}
+
 	return volumeMounts
 }
 
 // updateVolumesFromMap updates or adds volumes regardless whether the volume is used or not
-func updateVolumesFromMap(volumes []corev1.Volume, toUpdate map[string]*volumeSourceInfo) ([]corev1.Volume, error) {
+func updateVolumesFromMap(volumes []corev1.Volume, toUpdate *util.OrderedMap) ([]corev1.Volume, error) {
 	set := make(map[string]bool)
 
 	for i := range volumes {
 		volume := &volumes[i]
-		info, present := toUpdate[volume.Name]
+		info, present := toUpdate.Get(volume.Name)
 		if present {
-			err := updateVolume(volume, info)
+			err := updateVolume(volume, info.(*volumeSourceInfo))
 			if err != nil {
 				return nil, err
 			}
@@ -552,10 +551,11 @@ func updateVolumesFromMap(volumes []corev1.Volume, toUpdate map[string]*volumeSo
 		}
 	}
 
-	for name, info := range toUpdate {
+	it := toUpdate.Iterator()
+	for name, info, ok := it.Next(); ok; name, info, ok = it.Next() {
 		if !set[name] {
 			volumes = append(volumes, corev1.Volume{Name: name})
-			updateVolume(&volumes[len(volumes)-1], info)
+			updateVolume(&volumes[len(volumes)-1], info.(*volumeSourceInfo))
 		}
 	}
 
@@ -575,5 +575,109 @@ func removeVolumes(volumes []corev1.Volume, toRemove []string, volumeMounts []co
 			}
 		}
 	}
+
+	if len(volumes) == 0 {
+		return nil, nil
+	}
+
 	return volumes, nil
+}
+
+// =======================================================================================
+
+type volumeSourceInfo struct {
+	volumeSourceType VolumeSourceType
+	volumeSourceName string
+}
+
+func newVolumeSourceInfoWithSpecString(spec string) (*volumeSourceInfo, error) {
+	slices := strings.SplitN(spec, ":", 2)
+	if len(slices) != 2 {
+		return nil, fmt.Errorf("argument requires a value that contains the : character; got %q", spec)
+	}
+
+	var volumeSourceType VolumeSourceType
+
+	typeString := strings.TrimSpace(slices[0])
+	volumeSourceName := strings.TrimSpace(slices[1])
+
+	switch typeString {
+	case "config-map", "cm":
+		volumeSourceType = ConfigMapVolumeSourceType
+	case "secret", "sc":
+		volumeSourceType = SecretVolumeSourceType
+	default:
+		return nil, fmt.Errorf("unsupported volume source type \"%q\"; supported volume source types are \"config-map\" and \"secret\"", slices[0])
+	}
+
+	if len(volumeSourceName) == 0 {
+		return nil, fmt.Errorf("the name of %s cannot be an empty string", volumeSourceType)
+	}
+
+	return &volumeSourceInfo{
+		volumeSourceType: volumeSourceType,
+		volumeSourceName: volumeSourceName,
+	}, nil
+}
+
+func (vol *volumeSourceInfo) getCanonicalName() string {
+	return fmt.Sprintf("%s:%s", vol.volumeSourceType, vol.volumeSourceName)
+}
+
+func getCanonicalNameFromEnvFromSource(envSrc *corev1.EnvFromSource) (string, error) {
+	if envSrc.ConfigMapRef != nil {
+		return fmt.Sprintf("%s:%s", ConfigMapVolumeSourceType, envSrc.ConfigMapRef.Name), nil
+	}
+	if envSrc.SecretRef != nil {
+		return fmt.Sprintf("%s:%s", SecretVolumeSourceType, envSrc.SecretRef.Name), nil
+	}
+
+	return "", fmt.Errorf("there is no ConfigMapRef or SecretRef in a EnvFromSource")
+}
+
+func (info *volumeSourceInfo) createEnvFromSource(existingNameSet map[string]bool) *corev1.EnvFromSource {
+	if _, ok := existingNameSet[info.getCanonicalName()]; ok {
+		return nil
+	}
+
+	switch info.volumeSourceType {
+	case ConfigMapVolumeSourceType:
+		return &corev1.EnvFromSource{
+			ConfigMapRef: &corev1.ConfigMapEnvSource{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: info.volumeSourceName,
+				}}}
+	case SecretVolumeSourceType:
+		return &corev1.EnvFromSource{
+			SecretRef: &corev1.SecretEnvSource{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: info.volumeSourceName,
+				}}}
+	}
+
+	return nil
+}
+
+// =======================================================================================
+
+func existsVolumeNameInVolumes(volumeName string, volumes []corev1.Volume) bool {
+	for _, volume := range volumes {
+		if volume.Name == volumeName {
+			return true
+		}
+	}
+	return false
+}
+
+func existsVolumeNameInVolumeMounts(volumeName string, volumeMounts []corev1.VolumeMount) bool {
+	for _, volumeMount := range volumeMounts {
+		if volumeMount.Name == volumeName {
+			return true
+		}
+	}
+	return false
+}
+
+func generateVolumeName(path string) string {
+	return fmt.Sprintf("kn-managed-volume:%s", path)
 }
