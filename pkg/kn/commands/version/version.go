@@ -28,7 +28,7 @@ var GitRevision string
 
 // update this var as we add more deps
 var apiVersions = []string{
-	"serving.knative.dev/v1alpha1 (knative-serving v0.9.0)",
+	"serving.knative.dev/v1alpha1 (knative-serving v0.10.0)",
 }
 
 // NewVersionCommand implements 'kn version' command
