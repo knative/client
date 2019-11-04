@@ -199,6 +199,9 @@ func writeService(dw printers.PrefixWriter, service *v1alpha1.Service) {
 		url := service.Status.Address.GetURL()
 		dw.WriteAttribute("Address", url.String())
 	}
+	if (service.Spec.Template != nil) && (service.Spec.Template.Spec.ServiceAccountName != "") {
+		dw.WriteAttribute("ServiceAccount", service.Spec.Template.Spec.ServiceAccountName)
+	}
 }
 
 // Write out revisions associated with this service. By default only active
