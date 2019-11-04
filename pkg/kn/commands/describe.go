@@ -180,6 +180,32 @@ func WriteConditions(dw printers.PrefixWriter, conditions []apis.Condition, prin
 	}
 }
 
+// Writer a slice compact (printDetails == false) in one line, or over multiple line
+// with key-value line-by-line (printDetails == true)
+func WriteSliceDesc(dw printers.PrefixWriter, s []string, label string, printDetails bool) {
+
+	if len(s) == 0 {
+		return
+	}
+
+	if printDetails {
+		for i, value := range s {
+			if i == 0 {
+				dw.WriteColsLn(printers.Label(label), value)
+			} else {
+				dw.WriteColsLn("", value)
+			}
+		}
+		return
+	}
+
+	joined := strings.Join(s, ", ")
+	if len(joined) > TruncateAt {
+		joined = joined[:TruncateAt-4] + " ..."
+	}
+	dw.WriteAttribute(label, joined)
+}
+
 // Format label (extracted so that color could be added more easily to all labels)
 func l(label string) string {
 	return label + ":"

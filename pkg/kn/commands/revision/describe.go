@@ -126,10 +126,10 @@ func describe(w io.Writer, revision *v1alpha1.Revision, service *v1alpha1.Servic
 func WriteConcurrencyOptions(dw printers.PrefixWriter, revision *v1alpha1.Revision) {
 	target := clientserving.ConcurrencyTarget(&revision.ObjectMeta)
 	limit := revision.Spec.ContainerConcurrency
-	if target != nil || limit != 0 {
+	if target != nil || limit != nil {
 		section := dw.WriteAttribute("Concurrency", "")
-		if limit != 0 {
-			section.WriteAttribute("Limit", strconv.FormatInt(int64(limit), 10))
+		if limit != nil {
+			section.WriteAttribute("Limit", strconv.FormatInt(int64(*limit), 10))
 		}
 		if target != nil {
 			section.WriteAttribute("Target", strconv.Itoa(*target))
@@ -266,15 +266,17 @@ func stringifyEnv(revision *v1alpha1.Revision) []string {
 	return envVars
 }
 
-func trafficForRevision(name string, service *v1alpha1.Service) (int, []string) {
+func trafficForRevision(name string, service *v1alpha1.Service) (int64, []string) {
 	if len(service.Status.Traffic) == 0 {
 		return 0, nil
 	}
-	percent := 0
+	var percent int64
 	tags := []string{}
 	for _, target := range service.Status.Traffic {
 		if target.RevisionName == name {
-			percent += target.Percent
+			if target.Percent != nil {
+				percent += *target.Percent
+			}
 			if target.Tag != "" {
 				tags = append(tags, target.Tag)
 			}
