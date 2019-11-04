@@ -70,7 +70,7 @@ func TestDescribeRevisionYaml(t *testing.T) {
 		},
 	}
 
-	action, data, err := fakeRevision([]string{"revision", "describe", "test-rev"}, &expectedRevision)
+	action, data, err := fakeRevision([]string{"revision", "describe", "test-rev", "-o", "yaml"}, &expectedRevision)
 	if err != nil {
 		t.Fatal(err)
 	}
