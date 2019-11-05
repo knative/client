@@ -39,6 +39,7 @@ Supported Shells:
  source <(kn completion zsh)`
 )
 
+// NewCompletionCommand implements shell auto-completion feature for Bash and Zsh
 func NewCompletionCommand(p *commands.KnParams) *cobra.Command {
 	return &cobra.Command{
 		Use:       "completion [SHELL]",
