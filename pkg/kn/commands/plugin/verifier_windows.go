@@ -88,7 +88,7 @@ func (v *pluginVerifier) verify(eaw errorsAndWarnings, path string) errorsAndWar
 func (v *pluginVerifier) addWarningIfAlreadySeen(eaw errorsAndWarnings, path string) errorsAndWarnings {
 	fileName := filepath.Base(path)
 	if existingPath, ok := v.seenPlugins[fileName]; ok {
-		return eaw.addWarning("%s is ignored because it is shadowed by a equally named plugin: %s.", path, existingPath)
+		return eaw.addWarning("%s is ignored because it is shadowed by an equally named plugin: %s.", path, existingPath)
 	}
 	return eaw
 }
