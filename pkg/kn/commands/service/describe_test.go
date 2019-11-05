@@ -52,7 +52,7 @@ func TestServiceDescribeBasic(t *testing.T) {
 	// Recording:
 	r := client.Recorder()
 	// Prepare service
-	expectedService := createTestService("foo", []string{"rev1"}, goodConditions())
+	expectedService := createTestServiceWithServiceAccount("foo", []string{"rev1"}, "default-sa", goodConditions())
 
 	// Get service & revision
 	r.GetService("foo", &expectedService, nil)
@@ -69,6 +69,7 @@ func TestServiceDescribeBasic(t *testing.T) {
 	assert.Assert(t, cmp.Regexp(`(?m)\s*Annotations:.*\.\.\.$`, output))
 	assert.Assert(t, util.ContainsAll(output, "Labels:", "label1=lval1, label2=lval2\n"))
 	assert.Assert(t, util.ContainsAll(output, "[1]"))
+	assert.Assert(t, cmp.Regexp("ServiceAccount: \\s+default-sa", output))
 
 	assert.Equal(t, strings.Count(output, "rev1"), 1)
 
@@ -546,6 +547,26 @@ func createTestService(name string, revisionNames []string, conditions duckv1.Co
 		}
 		service.Status.Traffic = trafficTargets
 	}
+
+	return service
+}
+
+func createTestServiceWithServiceAccount(name string, revisionNames []string, serviceAccountName string, conditions duckv1.Conditions) v1alpha1.Service {
+	service := createTestService(name, revisionNames, conditions)
+
+	if serviceAccountName != "" {
+		template := v1alpha1.RevisionTemplateSpec{
+			Spec: v1alpha1.RevisionSpec{
+				RevisionSpec: servingv1.RevisionSpec{
+					PodSpec: v1.PodSpec{
+						ServiceAccountName: serviceAccountName,
+					},
+				},
+			},
+		}
+		service.Spec.Template = &template
+	}
+
 	return service
 }
 
