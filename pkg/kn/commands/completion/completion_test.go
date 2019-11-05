@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package commands
+package completion
 
 import (
 	"testing"
@@ -38,7 +38,7 @@ func TestCompletion(t *testing.T) {
 	t.Run("creates a CompletionCommand", func(t *testing.T) {
 		setup()
 		assert.Equal(t, completionCmd.Use, "completion")
-		assert.Equal(t, completionCmd.Short, "Output shell completion code (Bash)")
+		assert.Equal(t, completionCmd.Short, "Output shell completion code")
 		assert.Assert(t, completionCmd.RunE == nil)
 	})
 
@@ -47,7 +47,34 @@ func TestCompletion(t *testing.T) {
 		CaptureStdout(t)
 		defer ReleaseStdout(t)
 
-		completionCmd.Run(fakeRootCmd, []string{})
+		completionCmd.Run(fakeRootCmd, []string{"bash"})
 		assert.Assert(t, ReadStdout(t) != "")
+	})
+
+	t.Run("returns completion code for Zsh", func(t *testing.T) {
+		setup()
+		CaptureStdout(t)
+		defer ReleaseStdout(t)
+
+		completionCmd.Run(fakeRootCmd, []string{"zsh"})
+		assert.Assert(t, ReadStdout(t) != "")
+	})
+
+	t.Run("returns error on command without args", func(t *testing.T) {
+		setup()
+		CaptureStdout(t)
+		defer ReleaseStdout(t)
+
+		completionCmd.Run(fakeRootCmd, []string{})
+		assert.Assert(t, ReadStdout(t) == "accepts one argument either 'bash' or 'zsh'")
+	})
+
+	t.Run("returns error on command with invalid args", func(t *testing.T) {
+		setup()
+		CaptureStdout(t)
+		defer ReleaseStdout(t)
+
+		completionCmd.Run(fakeRootCmd, []string{"sh"})
+		assert.Assert(t, ReadStdout(t) == "only supports 'bash' or 'zsh' shell completion")
 	})
 }

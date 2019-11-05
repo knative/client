@@ -17,23 +17,21 @@ Start with the [user's guide](docs/README.md) to learn more. You can read about 
 * [User's guide](docs/README.md)
 * [Generated documentation](docs/cmd/kn.md)
 
-**Bash auto completion:**
+**Shell auto completion:**
 
-Run the following command to enable BASH auto-completion:
+Run the following command to enable shell auto-completion:
 
+For Zsh:
 ```sh
-$ source <(kn completion)
+$ source <(kn completion zsh)
 ```
 
-Use TAB to list available sub-commands:
-
+For Bash:
 ```sh
-$ kn <TAB>
-completion revision service version
-
-$ kn revision <TAB>
-describe get
+$ source <(kn completion bash)
 ```
+
+Use TAB to list available sub-commands or flags.
 
 # Developers
 
