@@ -284,7 +284,7 @@ func TestServiceCreateWithMountConfigMap(t *testing.T) {
 	assert.NilError(t, err)
 	template.Spec.Volumes = []corev1.Volume{
 		{
-			Name: "kn-managed-volume:/mount/path",
+			Name: servinglib.GenerateVolumeName("/mount/path"),
 			VolumeSource: corev1.VolumeSource{
 				ConfigMap: &corev1.ConfigMapVolumeSource{
 					LocalObjectReference: corev1.LocalObjectReference{
@@ -297,7 +297,7 @@ func TestServiceCreateWithMountConfigMap(t *testing.T) {
 
 	template.Spec.Containers[0].VolumeMounts = []corev1.VolumeMount{
 		{
-			Name:      "kn-managed-volume:/mount/path",
+			Name:      servinglib.GenerateVolumeName("/mount/path"),
 			MountPath: "/mount/path",
 			ReadOnly:  true,
 		},
@@ -366,7 +366,7 @@ func TestServiceCreateWithMountSecret(t *testing.T) {
 	assert.NilError(t, err)
 	template.Spec.Volumes = []corev1.Volume{
 		{
-			Name: "kn-managed-volume:/mount/path",
+			Name: servinglib.GenerateVolumeName("/mount/path"),
 			VolumeSource: corev1.VolumeSource{
 				Secret: &corev1.SecretVolumeSource{
 					SecretName: "secret-name",
@@ -377,7 +377,7 @@ func TestServiceCreateWithMountSecret(t *testing.T) {
 
 	template.Spec.Containers[0].VolumeMounts = []corev1.VolumeMount{
 		{
-			Name:      "kn-managed-volume:/mount/path",
+			Name:      servinglib.GenerateVolumeName("/mount/path"),
 			MountPath: "/mount/path",
 			ReadOnly:  true,
 		},

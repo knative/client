@@ -1116,7 +1116,7 @@ func TestServiceUpdateWithAddingMount(t *testing.T) {
 
 	template.Spec.Volumes = []corev1.Volume{
 		{
-			Name: "kn-managed-volume:/mount/config-map-path",
+			Name: servinglib.GenerateVolumeName("/mount/config-map-path"),
 			VolumeSource: corev1.VolumeSource{
 				ConfigMap: &corev1.ConfigMapVolumeSource{
 					LocalObjectReference: corev1.LocalObjectReference{
@@ -1126,7 +1126,7 @@ func TestServiceUpdateWithAddingMount(t *testing.T) {
 			},
 		},
 		{
-			Name: "kn-managed-volume:/mount/secret-path",
+			Name: servinglib.GenerateVolumeName("/mount/secret-path"),
 			VolumeSource: corev1.VolumeSource{
 				Secret: &corev1.SecretVolumeSource{
 					SecretName: "secret-name",
@@ -1137,12 +1137,12 @@ func TestServiceUpdateWithAddingMount(t *testing.T) {
 
 	template.Spec.Containers[0].VolumeMounts = []corev1.VolumeMount{
 		{
-			Name:      "kn-managed-volume:/mount/config-map-path",
+			Name:      servinglib.GenerateVolumeName("/mount/config-map-path"),
 			MountPath: "/mount/config-map-path",
 			ReadOnly:  true,
 		},
 		{
-			Name:      "kn-managed-volume:/mount/secret-path",
+			Name:      servinglib.GenerateVolumeName("/mount/secret-path"),
 			MountPath: "/mount/secret-path",
 			ReadOnly:  true,
 		},
@@ -1185,7 +1185,7 @@ func TestServiceUpdateWithUpdatingMount(t *testing.T) {
 
 	template.Spec.Volumes = []corev1.Volume{
 		{
-			Name: "kn-managed-volume:/mount/config-map-path",
+			Name: servinglib.GenerateVolumeName("/mount/config-map-path"),
 			VolumeSource: corev1.VolumeSource{
 				ConfigMap: &corev1.ConfigMapVolumeSource{
 					LocalObjectReference: corev1.LocalObjectReference{
@@ -1195,7 +1195,7 @@ func TestServiceUpdateWithUpdatingMount(t *testing.T) {
 			},
 		},
 		{
-			Name: "kn-managed-volume:/mount/secret-path",
+			Name: servinglib.GenerateVolumeName("/mount/secret-path"),
 			VolumeSource: corev1.VolumeSource{
 				Secret: &corev1.SecretVolumeSource{
 					SecretName: "secret-name-1",
@@ -1206,12 +1206,12 @@ func TestServiceUpdateWithUpdatingMount(t *testing.T) {
 
 	template.Spec.Containers[0].VolumeMounts = []corev1.VolumeMount{
 		{
-			Name:      "kn-managed-volume:/mount/config-map-path",
+			Name:      servinglib.GenerateVolumeName("/mount/config-map-path"),
 			MountPath: "/mount/config-map-path",
 			ReadOnly:  true,
 		},
 		{
-			Name:      "kn-managed-volume:/mount/secret-path",
+			Name:      servinglib.GenerateVolumeName("/mount/secret-path"),
 			MountPath: "/mount/secret-path",
 			ReadOnly:  true,
 		},
@@ -1226,7 +1226,7 @@ func TestServiceUpdateWithUpdatingMount(t *testing.T) {
 
 	template.Spec.Volumes = []corev1.Volume{
 		{
-			Name: "kn-managed-volume:/mount/config-map-path",
+			Name: servinglib.GenerateVolumeName("/mount/config-map-path"),
 			VolumeSource: corev1.VolumeSource{
 				ConfigMap: &corev1.ConfigMapVolumeSource{
 					LocalObjectReference: corev1.LocalObjectReference{
@@ -1236,7 +1236,7 @@ func TestServiceUpdateWithUpdatingMount(t *testing.T) {
 			},
 		},
 		{
-			Name: "kn-managed-volume:/mount/secret-path",
+			Name: servinglib.GenerateVolumeName("/mount/secret-path"),
 			VolumeSource: corev1.VolumeSource{
 				Secret: &corev1.SecretVolumeSource{
 					SecretName: "secret-name-2",
@@ -1247,12 +1247,12 @@ func TestServiceUpdateWithUpdatingMount(t *testing.T) {
 
 	template.Spec.Containers[0].VolumeMounts = []corev1.VolumeMount{
 		{
-			Name:      "kn-managed-volume:/mount/config-map-path",
+			Name:      servinglib.GenerateVolumeName("/mount/config-map-path"),
 			MountPath: "/mount/config-map-path",
 			ReadOnly:  true,
 		},
 		{
-			Name:      "kn-managed-volume:/mount/secret-path",
+			Name:      servinglib.GenerateVolumeName("/mount/secret-path"),
 			MountPath: "/mount/secret-path",
 			ReadOnly:  true,
 		},
@@ -1299,7 +1299,7 @@ func TestServiceUpdateWithRemovingMount(t *testing.T) {
 
 	template.Spec.Volumes = []corev1.Volume{
 		{
-			Name: "kn-managed-volume:/mount/config-map-path-1",
+			Name: servinglib.GenerateVolumeName("/mount/config-map-path-1"),
 			VolumeSource: corev1.VolumeSource{
 				ConfigMap: &corev1.ConfigMapVolumeSource{
 					LocalObjectReference: corev1.LocalObjectReference{
@@ -1309,7 +1309,7 @@ func TestServiceUpdateWithRemovingMount(t *testing.T) {
 			},
 		},
 		{
-			Name: "kn-managed-volume:/mount/secret-path-1",
+			Name: servinglib.GenerateVolumeName("/mount/secret-path-1"),
 			VolumeSource: corev1.VolumeSource{
 				Secret: &corev1.SecretVolumeSource{
 					SecretName: "secret-name-1",
@@ -1317,7 +1317,7 @@ func TestServiceUpdateWithRemovingMount(t *testing.T) {
 			},
 		},
 		{
-			Name: "kn-managed-volume:/mount/config-map-path-2",
+			Name: servinglib.GenerateVolumeName("/mount/config-map-path-2"),
 			VolumeSource: corev1.VolumeSource{
 				ConfigMap: &corev1.ConfigMapVolumeSource{
 					LocalObjectReference: corev1.LocalObjectReference{
@@ -1327,7 +1327,7 @@ func TestServiceUpdateWithRemovingMount(t *testing.T) {
 			},
 		},
 		{
-			Name: "kn-managed-volume:/mount/secret-path-2",
+			Name: servinglib.GenerateVolumeName("/mount/secret-path-2"),
 			VolumeSource: corev1.VolumeSource{
 				Secret: &corev1.SecretVolumeSource{
 					SecretName: "secret-name-2",
@@ -1348,22 +1348,22 @@ func TestServiceUpdateWithRemovingMount(t *testing.T) {
 
 	template.Spec.Containers[0].VolumeMounts = []corev1.VolumeMount{
 		{
-			Name:      "kn-managed-volume:/mount/config-map-path-1",
+			Name:      servinglib.GenerateVolumeName("/mount/config-map-path-1"),
 			MountPath: "/mount/config-map-path-1",
 			ReadOnly:  true,
 		},
 		{
-			Name:      "kn-managed-volume:/mount/secret-path-1",
+			Name:      servinglib.GenerateVolumeName("/mount/secret-path-1"),
 			MountPath: "/mount/secret-path-1",
 			ReadOnly:  true,
 		},
 		{
-			Name:      "kn-managed-volume:/mount/config-map-path-2",
+			Name:      servinglib.GenerateVolumeName("/mount/config-map-path-2"),
 			MountPath: "/mount/config-map-path-2",
 			ReadOnly:  true,
 		},
 		{
-			Name:      "kn-managed-volume:/mount/secret-path-2",
+			Name:      servinglib.GenerateVolumeName("/mount/secret-path-2"),
 			MountPath: "/mount/secret-path-2",
 			ReadOnly:  true,
 		},
@@ -1383,7 +1383,7 @@ func TestServiceUpdateWithRemovingMount(t *testing.T) {
 
 	template.Spec.Volumes = []corev1.Volume{
 		{
-			Name: "kn-managed-volume:/mount/config-map-path-1",
+			Name: servinglib.GenerateVolumeName("/mount/config-map-path-1"),
 			VolumeSource: corev1.VolumeSource{
 				ConfigMap: &corev1.ConfigMapVolumeSource{
 					LocalObjectReference: corev1.LocalObjectReference{
@@ -1393,7 +1393,7 @@ func TestServiceUpdateWithRemovingMount(t *testing.T) {
 			},
 		},
 		{
-			Name: "kn-managed-volume:/mount/secret-path-2",
+			Name: servinglib.GenerateVolumeName("/mount/secret-path-2"),
 			VolumeSource: corev1.VolumeSource{
 				Secret: &corev1.SecretVolumeSource{
 					SecretName: "secret-name-2",
@@ -1414,12 +1414,12 @@ func TestServiceUpdateWithRemovingMount(t *testing.T) {
 
 	template.Spec.Containers[0].VolumeMounts = []corev1.VolumeMount{
 		{
-			Name:      "kn-managed-volume:/mount/config-map-path-1",
+			Name:      servinglib.GenerateVolumeName("/mount/config-map-path-1"),
 			MountPath: "/mount/config-map-path-1",
 			ReadOnly:  true,
 		},
 		{
-			Name:      "kn-managed-volume:/mount/secret-path-2",
+			Name:      servinglib.GenerateVolumeName("/mount/secret-path-2"),
 			MountPath: "/mount/secret-path-2",
 			ReadOnly:  true,
 		},

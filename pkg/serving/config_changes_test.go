@@ -617,6 +617,28 @@ func TestUpdateAnnotationsRemoveExisting(t *testing.T) {
 	assert.DeepEqual(t, expected, actual)
 }
 
+func TestGenerateVolumeName(t *testing.T) {
+	actual := []string{
+		"Ab12~`!@#$%^&*()-=_+[]{}|/\\<>,./?:;\"'xZ",
+		"/Ab12~`!@#$%^&*()-=_+[]{}|/\\<>,./?:;\"'xZ/",
+		"",
+		"/",
+	}
+
+	expected := []string{
+		"ab12---------------------.----..-----xz",
+		"ab12---------------------.----..-----xz.",
+		"",
+		"",
+	}
+
+	for i := range actual {
+		actualName := GenerateVolumeName(actual[i])
+		expectedName := appendCheckSum(expected[i], actual[i])
+		assert.Equal(t, actualName, expectedName)
+	}
+}
+
 //
 // =========================================================================================================
 

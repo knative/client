@@ -15,11 +15,13 @@
 package serving
 
 import (
+	"crypto/sha1"
 	"errors"
 	"fmt"
 	"sort"
 	"strconv"
 	"strings"
+	"unicode"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -97,14 +99,14 @@ func reviseVolumeInfoAndMountsToUpdate(volumes []corev1.Volume, mountsToUpdate *
 		} else {
 			switch volumeType := slices[0]; volumeType {
 			case "config-map", "cm":
-				generatedName := generateVolumeName(path)
+				generatedName := GenerateVolumeName(path)
 				volumeSourceInfoByName.Set(generatedName, &volumeSourceInfo{
 					volumeSourceType: ConfigMapVolumeSourceType,
 					volumeSourceName: slices[1],
 				})
 				mountsToUpdateRevised.Set(path, generatedName)
 			case "secret", "sc":
-				generatedName := generateVolumeName(path)
+				generatedName := GenerateVolumeName(path)
 				volumeSourceInfoByName.Set(generatedName, &volumeSourceInfo{
 					volumeSourceType: SecretVolumeSourceType,
 					volumeSourceName: slices[1],
@@ -132,7 +134,7 @@ func reviseVolumeInfoAndMountsToUpdate(volumes []corev1.Volume, mountsToUpdate *
 func reviseVolumesToRemove(volumeMounts []corev1.VolumeMount, volumesToRemove []string, mountsToRemove []string) []string {
 	for _, pathToRemove := range mountsToRemove {
 		for _, volumeMount := range volumeMounts {
-			if volumeMount.MountPath == pathToRemove && volumeMount.Name == generateVolumeName(pathToRemove) {
+			if volumeMount.MountPath == pathToRemove && volumeMount.Name == GenerateVolumeName(pathToRemove) {
 				volumesToRemove = append(volumesToRemove, volumeMount.Name)
 			}
 		}
@@ -393,6 +395,29 @@ func UpdateServiceAccountName(template *servingv1alpha1.RevisionTemplateSpec, se
 	serviceAccountName = strings.TrimSpace(serviceAccountName)
 	template.Spec.ServiceAccountName = serviceAccountName
 	return nil
+}
+
+// GenerateVolumeName generates a volume name with respect to a given path string.
+// Current implementation basically sanitizes the path string by changing "/" into "."
+// To reduce any chance of duplication, a checksum part generated from the path string is appended to the sanitized string.
+func GenerateVolumeName(path string) string {
+	builder := &strings.Builder{}
+	for idx, r := range path {
+		switch {
+		case unicode.IsLower(r) || unicode.IsDigit(r) || r == '-' || r == '.':
+			builder.WriteRune(r)
+		case unicode.IsUpper(r):
+			builder.WriteRune(unicode.ToLower(r))
+		case r == '/':
+			if idx != 0 {
+				builder.WriteRune('.')
+			}
+		default:
+			builder.WriteRune('-')
+		}
+	}
+
+	return appendCheckSum(builder.String(), path)
 }
 
 // =======================================================================================
@@ -674,6 +699,8 @@ func existsVolumeNameInVolumeMounts(volumeName string, volumeMounts []corev1.Vol
 	return false
 }
 
-func generateVolumeName(path string) string {
-	return fmt.Sprintf("kn-managed-volume:%s", path)
+func appendCheckSum(sanitiedString string, path string) string {
+	checkSum := sha1.Sum([]byte(path))
+	shortCheckSum := checkSum[0:4]
+	return fmt.Sprintf("%s-%x", sanitiedString, shortCheckSum)
 }

@@ -57,7 +57,7 @@ kn service create NAME --image IMAGE [flags]
       --lock-to-digest           keep the running image for the service constant when not explicitly specifying the image. (--no-lock-to-digest pulls the image tag afresh with each new revision) (default true)
       --max-scale int            Maximal number of replicas.
       --min-scale int            Minimal number of replicas.
-      --mount stringArray        Mount a ConfigMap (prefix cm: or config-map:), a Secret (prefix secret: or sc:), or an existing Volume (without any prefix) on the specified directory. Example: --mount /mydir=cm:myconfigmap, --mount /mydir=secret:mysecret, or --mount /mydir=myvolume. When a configmap or a secret is specified, a corresponding volume is automatically generated. You can use this flag multiple times. To unmount, append "-" to the mounted directory, e.g. --volume /mydir-. When unmounting, the automatically generated volume is removed as well.
+      --mount stringArray        Mount a ConfigMap (prefix cm: or config-map:), a Secret (prefix secret: or sc:), or an existing Volume (without any prefix) on the specified directory. Example: --mount /mydir=cm:myconfigmap, --mount /mydir=secret:mysecret, or --mount /mydir=myvolume. When a configmap or a secret is specified, a corresponding volume is automatically generated. You can use this flag multiple times. For unmounting a directory, append "-", e.g. --mount /mydir-, which also removes any auto-generated volume.
   -n, --namespace string         Specify the namespace to operate in.
       --no-lock-to-digest        do not keep the running image for the service constant when not explicitly specifying the image. (--no-lock-to-digest pulls the image tag afresh with each new revision)
   -p, --port int32               The port where application listens on.
@@ -65,7 +65,7 @@ kn service create NAME --image IMAGE [flags]
       --requests-memory string   The requested memory (e.g., 64Mi).
       --revision-name string     The revision name to set. Must start with the service name and a dash as a prefix. Empty revision name will result in the server generating a name for the revision. Accepts golang templates, allowing {{.Service}} for the service name, {{.Generation}} for the generation, and {{.Random [n]}} for n random consonants. (default "{{.Service}}-{{.Random 5}}-{{.Generation}}")
       --service-account string   Service account name to set. Empty service account name will result to clear the service account.
-      --volume stringArray       Add a volume from a ConfigMap (prefix cm: or config-map:) or a Secret (prefix secret: or sc:). Example: --volume myvolume=cm:myconfigmap or --volume myvolume=secret:mysecret. You can use this flag multiple times. To unset a ConfigMap/Secret reference, append "-" to the name,. e.g. --volume myvolume-.
+      --volume stringArray       Add a volume from a ConfigMap (prefix cm: or config-map:) or a Secret (prefix secret: or sc:). Example: --volume myvolume=cm:myconfigmap or --volume myvolume=secret:mysecret. You can use this flag multiple times. To unset a ConfigMap/Secret reference, append "-" to the name, e.g. --volume myvolume-.
       --wait-timeout int         Seconds to wait before giving up on waiting for service to be ready. (default 600)
 ```
 
