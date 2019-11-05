@@ -24,7 +24,7 @@
 
 | 🎁
 | Adds zsh completion
-| https://github.com/knative/client/pull/475[#475]
+| https://github.com/knative/client/pull/476[#476]
 
 |===
 
