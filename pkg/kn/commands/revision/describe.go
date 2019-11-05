@@ -184,7 +184,7 @@ func WriteEnv(dw printers.PrefixWriter, revision *v1alpha1.Revision, printDetail
 
 func WriteScale(dw printers.PrefixWriter, revision *v1alpha1.Revision) {
 	// Scale spec if given
-	scale, _ := clientserving.ScalingInfo(&revision.ObjectMeta, &revision.Spec)
+	scale, _ := clientserving.ScalingInfo(&revision.ObjectMeta)
 	if scale != nil && (scale.Max != nil || scale.Min != nil) {
 		dw.WriteAttribute("Scale", formatScale(scale.Min, scale.Max))
 	}

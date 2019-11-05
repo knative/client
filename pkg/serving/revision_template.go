@@ -44,7 +44,7 @@ func ContainerOfRevisionSpec(revisionSpec *servingv1alpha1.RevisionSpec) (*corev
 	return container, nil
 }
 
-func ScalingInfo(m *metav1.ObjectMeta, s *servingv1alpha1.RevisionSpec) (*Scaling, error) {
+func ScalingInfo(m *metav1.ObjectMeta) (*Scaling, error) {
 	ret := &Scaling{}
 	var err error
 	ret.Min, err = annotationAsInt(m, autoscaling.MinScaleAnnotationKey)

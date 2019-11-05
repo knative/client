@@ -16,16 +16,28 @@ package revision
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
+	"time"
 
-	corev1 "k8s.io/api/core/v1"
+	"gotest.tools/assert"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/equality"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	client_testing "k8s.io/client-go/testing"
 	"knative.dev/client/pkg/kn/commands"
+	"knative.dev/client/pkg/util"
+	"knative.dev/pkg/apis"
+	duckv1 "knative.dev/pkg/apis/duck/v1"
+	api_serving "knative.dev/serving/pkg/apis/serving"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 	"sigs.k8s.io/yaml"
+)
+
+const (
+	imageDigest = "sha256:1234567890123456789012345678901234567890123456789012345678901234"
 )
 
 func fakeRevision(args []string, response *v1alpha1.Revision) (action client_testing.Action, output string, err error) {
@@ -60,7 +72,7 @@ func TestDescribeRevisionYaml(t *testing.T) {
 			Namespace: "default",
 		},
 		Spec: v1alpha1.RevisionSpec{
-			DeprecatedContainer: &corev1.Container{
+			DeprecatedContainer: &v1.Container{
 				Name:  "some-container",
 				Image: "knative/test:latest",
 			},
@@ -95,4 +107,84 @@ func TestDescribeRevisionYaml(t *testing.T) {
 	if !equality.Semantic.DeepEqual(expectedRevision, returnedRevision) {
 		t.Fatal("mismatched objects")
 	}
+}
+
+func TestDescribeRevisionBasic(t *testing.T) {
+	expectedRevision := createTestRevision("test-rev", 3)
+
+	action, data, err := fakeRevision([]string{"revision", "describe", "test-rev"}, &expectedRevision)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if action == nil {
+		t.Fatal("No action")
+	} else if !action.Matches("get", "revisions") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	assert.Assert(t, util.ContainsAll(data, "Image:", "gcr.io/test/image", "++ Ready", "Port:", "8080"))
+}
+
+func createTestRevision(revision string, gen int64) v1alpha1.Revision {
+	labels := make(map[string]string)
+	labels[api_serving.ConfigurationGenerationLabelKey] = fmt.Sprintf("%d", gen)
+
+	return v1alpha1.Revision{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Revision",
+			APIVersion: "knative.dev/v1alpha1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:              revision,
+			Namespace:         "default",
+			Generation:        1,
+			Labels:            labels,
+			Annotations:       make(map[string]string),
+			CreationTimestamp: metav1.Time{Time: time.Now()},
+		},
+		Spec: v1alpha1.RevisionSpec{
+			RevisionSpec: servingv1.RevisionSpec{
+				PodSpec: v1.PodSpec{
+					Containers: []v1.Container{
+						{
+							Image: "gcr.io/test/image",
+							Env: []v1.EnvVar{
+								{Name: "env1", Value: "eval1"},
+								{Name: "env2", Value: "eval2"},
+							},
+							Ports: []v1.ContainerPort{
+								{ContainerPort: 8080},
+							},
+						},
+					},
+				},
+			},
+		},
+		Status: v1alpha1.RevisionStatus{
+			ImageDigest: "gcr.io/test/image@" + imageDigest,
+			Status: duckv1.Status{
+				Conditions: goodConditions(),
+			},
+		},
+	}
+}
+
+func goodConditions() duckv1.Conditions {
+	ret := make(duckv1.Conditions, 0)
+	ret = append(ret, apis.Condition{
+		Type:   apis.ConditionReady,
+		Status: v1.ConditionTrue,
+		LastTransitionTime: apis.VolatileTime{
+			Inner: metav1.Time{Time: time.Now()},
+		},
+	})
+	ret = append(ret, apis.Condition{
+		Type:   v1alpha1.ServiceConditionRoutesReady,
+		Status: v1.ConditionTrue,
+		LastTransitionTime: apis.VolatileTime{
+			Inner: metav1.Time{Time: time.Now()},
+		},
+	})
+	return ret
 }
