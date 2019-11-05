@@ -43,7 +43,7 @@ import (
 func NewDefaultKnCommand() *cobra.Command {
 	rootCmd := NewKnCommand()
 
-	// Needed since otherwise --plugins-dir and --lookup-plugins-in-path
+	// Needed since otherwise --plugins-dir and --lookup-plugins
 	// will not be accounted for since the plugin is not a Cobra command
 	// and will not be parsed
 	pluginsDir, lookupPluginsInPath, err := extractKnPluginFlags(os.Args)
@@ -218,7 +218,7 @@ func extractKnPluginFlags(args []string) (string, bool, error) {
 	lookupPluginsInPath := false
 
 	dirFlag := "--plugins-dir"
-	pathFlag := "--lookup-plugins-in-path"
+	pathFlag := "--lookup-plugins"
 	var err error
 
 	for _, arg := range args {
@@ -235,10 +235,10 @@ func extractKnPluginFlags(args []string) (string, bool, error) {
 		}
 
 		if arg == pathFlag {
-			// just --lookup-plugins-in-path   no "="
+			// just --lookup-plugins   no "="
 			lookupPluginsInPath = true
 		} else if strings.HasPrefix(arg, pathFlag+"=") {
-			// Starts with --lookup-plugins-in-path=  so we parse value
+			// Starts with --lookup-plugins=  so we parse value
 			arg = arg[len(pathFlag)+1:]
 			if lookupPluginsInPath, err = strconv.ParseBool(arg); err != nil {
 				return "", false, fmt.Errorf("Invalid boolean value(%q) for %s flag", arg, dirFlag)
@@ -257,8 +257,8 @@ func removeKnPluginFlags(args []string) []string {
 	for _, arg := range args {
 		if arg == "--plugins-dir" ||
 			strings.HasPrefix(arg, "--plugins-dir=") ||
-			arg == "--lookup-plugins-in-path" ||
-			strings.HasPrefix(arg, "--plookup-plugins-in-path=") {
+			arg == "--lookup-plugins" ||
+			strings.HasPrefix(arg, "--lookup-plugins=") {
 			continue
 		} else {
 			remainingArgs = append(remainingArgs, arg)

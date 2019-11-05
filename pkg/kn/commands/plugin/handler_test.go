@@ -90,7 +90,7 @@ func TestPluginHandler(t *testing.T) {
 		})
 
 		t.Run("when plugin is in $PATH", func(t *testing.T) {
-			t.Run("--lookup-plugins-in-path=true", func(t *testing.T) {
+			t.Run("--lookup-plugins=true", func(t *testing.T) {
 				setup(t)
 				defer cleanup(t)
 
@@ -106,7 +106,7 @@ func TestPluginHandler(t *testing.T) {
 				assert.Assert(t, exists == true, fmt.Sprintf("could not Lookup(%s)", pluginName))
 			})
 
-			t.Run("--lookup-plugins-in-path=false", func(t *testing.T) {
+			t.Run("--lookup-plugins=false", func(t *testing.T) {
 				setup(t)
 				defer cleanup(t)
 
