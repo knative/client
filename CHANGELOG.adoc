@@ -12,6 +12,22 @@
 |===
 ////
 
+## v0.10.0 (2019-11-05)
+
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🧽
+| Update to Knative serving dependency to 0.10.0
+| https://github.com/knative/client/pull/474[#474]
+
+| 🎁
+| Adds zsh completion
+| https://github.com/knative/client/pull/476[#476]
+
+|===
+
 ## v0.9.0 (2019-10-29)
 
 [cols="1,10,3", options="header", width="100%"]
