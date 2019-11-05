@@ -102,7 +102,7 @@ func describe(w io.Writer, revision *v1alpha1.Revision, service *v1alpha1.Servic
 	if ok {
 		serviceSection := dw.WriteAttribute("Service", serviceName)
 		if printDetails {
-			serviceSection.WriteAttribute("Config Gen", revision.Labels[servingserving.ConfigurationGenerationLabelKey])
+			serviceSection.WriteAttribute("Configuration Generation", revision.Labels[servingserving.ConfigurationGenerationLabelKey])
 			serviceSection.WriteAttribute("Latest Created", strconv.FormatBool(revision.Name == service.Status.LatestCreatedRevisionName))
 			serviceSection.WriteAttribute("Latest Ready", strconv.FormatBool(revision.Name == service.Status.LatestReadyRevisionName))
 			percent, tags := trafficForRevision(revision.Name, service)

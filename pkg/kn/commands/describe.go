@@ -34,8 +34,8 @@ const TruncateAt = 100
 func WriteMetadata(dw printers.PrefixWriter, m *metav1.ObjectMeta, printDetails bool) {
 	dw.WriteAttribute("Name", m.Name)
 	dw.WriteAttribute("Namespace", m.Namespace)
-	WriteMapDesc(dw, m.Labels, l("Labels"), "", printDetails)
-	WriteMapDesc(dw, m.Annotations, l("Annotations"), "", printDetails)
+	WriteMapDesc(dw, m.Labels, "Labels", "", printDetails)
+	WriteMapDesc(dw, m.Annotations, "Annotations", "", printDetails)
 	dw.WriteAttribute("Age", Age(m.CreationTimestamp.Time))
 }
 
@@ -78,7 +78,7 @@ func WriteMapDesc(dw printers.PrefixWriter, m map[string]string, label string, l
 		return
 	}
 
-	dw.WriteColsLn(label, joinAndTruncate(keys, m, TruncateAt-len(label)-2))
+	dw.WriteColsLn(printers.Label(label), joinAndTruncate(keys, m, TruncateAt-len(label)-2))
 }
 
 func Age(t time.Time) string {
@@ -204,11 +204,6 @@ func WriteSliceDesc(dw printers.PrefixWriter, s []string, label string, printDet
 		joined = joined[:TruncateAt-4] + " ..."
 	}
 	dw.WriteAttribute(label, joined)
-}
-
-// Format label (extracted so that color could be added more easily to all labels)
-func l(label string) string {
-	return label + ":"
 }
 
 // Join to key=value pair, comma separated, and truncate if longer than a limit
