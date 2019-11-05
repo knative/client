@@ -34,8 +34,8 @@ const TruncateAt = 100
 func WriteMetadata(dw printers.PrefixWriter, m *metav1.ObjectMeta, printDetails bool) {
 	dw.WriteAttribute("Name", m.Name)
 	dw.WriteAttribute("Namespace", m.Namespace)
-	WriteMapDesc(dw, m.Labels, "Labels", "", printDetails)
-	WriteMapDesc(dw, m.Annotations, "Annotations", "", printDetails)
+	WriteMapDesc(dw, m.Labels, "Labels", printDetails)
+	WriteMapDesc(dw, m.Annotations, "Annotations", printDetails)
 	dw.WriteAttribute("Age", Age(m.CreationTimestamp.Time))
 }
 
@@ -52,7 +52,7 @@ func keyIsBoring(k string) bool {
 
 // Write a map either compact in a single line (possibly truncated) or, if printDetails is set,
 // over multiple line, one line per key-value pair. The output is sorted by keys.
-func WriteMapDesc(dw printers.PrefixWriter, m map[string]string, label string, labelPrefix string, details bool) {
+func WriteMapDesc(dw printers.PrefixWriter, m map[string]string, label string, details bool) {
 	if len(m) == 0 {
 		return
 	}
@@ -69,11 +69,12 @@ func WriteMapDesc(dw printers.PrefixWriter, m map[string]string, label string, l
 	sort.Strings(keys)
 
 	if details {
-		l := labelPrefix + label
-
-		for _, key := range keys {
+		for i, key := range keys {
+			l := ""
+			if i == 0 {
+				l = printers.Label(label)
+			}
 			dw.WriteColsLn(l, key+"="+m[key])
-			l = labelPrefix
 		}
 		return
 	}

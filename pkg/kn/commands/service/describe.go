@@ -26,13 +26,13 @@ import (
 	"knative.dev/client/pkg/kn/commands/revision"
 	"knative.dev/client/pkg/printers"
 	serving_kn_v1alpha1 "knative.dev/client/pkg/serving/v1alpha1"
-	"knative.dev/client/pkg/wait"
 	"knative.dev/serving/pkg/apis/serving"
 
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	"knative.dev/client/pkg/kn/commands"
+	"knative.dev/pkg/apis"
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
@@ -50,7 +50,7 @@ type revisionDesc struct {
 	revision *v1alpha1.Revision
 
 	// traffic stuff
-	percent       int
+	percent       int64
 	tag           string
 	latestTraffic *bool
 
@@ -175,7 +175,16 @@ func writeRevisions(dw printers.PrefixWriter, revisions []*revisionDesc, printDe
 	revSection := dw.WriteAttribute("Revisions", "")
 	dw.Flush()
 	for _, revisionDesc := range revisions {
-		ready := wait.ReadyCondition(revisionDesc.revision.Status.Conditions)
+		ready := apis.Condition{
+			Type:   apis.ConditionReady,
+			Status: v1.ConditionUnknown,
+		}
+		for _, cond := range revisionDesc.revision.Status.Conditions {
+			if cond.Type == apis.ConditionReady {
+				ready = cond
+				break
+			}
+		}
 		section := revSection.WriteColsLn(formatBullet(revisionDesc.percent, ready.Status), revisionHeader(revisionDesc))
 		if ready.Status == v1.ConditionFalse {
 			section.WriteAttribute("Error", ready.Reason)
@@ -219,7 +228,7 @@ func revisionHeader(desc *revisionDesc) string {
 }
 
 // Format target percentage that it fits in the revision table
-func formatBullet(percentage int, status corev1.ConditionStatus) string {
+func formatBullet(percentage int64, status corev1.ConditionStatus) string {
 	symbol := "+"
 	switch status {
 	case v1.ConditionTrue:
@@ -336,7 +345,9 @@ func newRevisionDesc(revision *v1alpha1.Revision, target *v1alpha1.TrafficTarget
 
 func addTargetInfo(desc *revisionDesc, target *v1alpha1.TrafficTarget) {
 	if target != nil {
-		desc.percent = target.Percent
+		if target.Percent != nil {
+			desc.percent = *target.Percent
+		}
 		desc.latestTraffic = target.LatestRevision
 		desc.tag = target.Tag
 	}
