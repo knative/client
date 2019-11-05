@@ -30,12 +30,15 @@ import (
 var CfgFile string
 
 // Cfg is Kn's configuration values
-var Cfg Config
+var Cfg Config = Config{
+	PluginsDir:    "",
+	LookupPlugins: newBoolP(false),
+}
 
 // Config contains the variables for the Kn config
 type Config struct {
 	PluginsDir    string
-	LookupPlugins bool
+	LookupPlugins *bool
 }
 
 // Parameters for creating commands. Useful for inserting mocks for testing.
@@ -113,4 +116,12 @@ func (params *KnParams) GetClientConfig() (clientcmd.ClientConfig, error) {
 			"Please use the env var KUBECONFIG if you want to check for multiple configuration files", params.KubeCfgPath)
 	}
 	return nil, fmt.Errorf("Config file '%s' can not be found", params.KubeCfgPath)
+}
+
+// Private
+
+// Returns a pointer to bool, hard to do better in Golang
+func newBoolP(b bool) *bool {
+	aBool := b
+	return &aBool
 }

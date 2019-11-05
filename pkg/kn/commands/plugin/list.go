@@ -63,7 +63,7 @@ func listPlugins(cmd *cobra.Command, flags pluginListFlags) error {
 	if err != nil {
 		return err
 	}
-	if commands.Cfg.LookupPlugins {
+	if *commands.Cfg.LookupPlugins {
 		pluginPath = pluginPath + string(os.PathListSeparator) + os.Getenv("PATH")
 	}
 

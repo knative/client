@@ -215,12 +215,34 @@ func initConfig() {
 }
 
 func initConfigFlags() {
+	//DEBUG
+	fmt.Printf("initConfigFlags\n")
+	fmt.Printf("commands.Cfg.PluginsDir: %s\n", commands.Cfg.PluginsDir)
+	fmt.Printf("commands.Cfg.LookupPlugins: %#v\n\n", commands.Cfg.LookupPlugins)
+
+	fmt.Printf("viper.GetString(plugins-dir): %s\n", viper.GetString("plugins-dir"))
+	fmt.Printf("viper.GetBool(lookup-plugins): %b\n", viper.GetBool("lookup-plugins"))
+	//DEBUG
+
 	if commands.Cfg.PluginsDir == "" {
 		commands.Cfg.PluginsDir = viper.GetString("plugins-dir")
 	}
 
-	if commands.Cfg.LookupPlugins != viper.GetBool("lookup-plugins") {
-		commands.Cfg.LookupPlugins = viper.GetBool("lookup-plugins")
+	var aBool bool
+	// This condition if (...) never actually executes since setting
+	// commands.Cfg.LookupPlugins to nil ends up with SEG fault in adding the flag
+	// to the root command
+	if commands.Cfg.LookupPlugins == nil {
+		aBool = viper.GetBool("lookup-plugins")
+		commands.Cfg.LookupPlugins = &aBool
+	} else {
+		if viper.GetBool("lookup-plugins") {
+			aBool = viper.GetBool("lookup-plugins")
+			commands.Cfg.LookupPlugins = &aBool
+		} else {
+			aBool = false
+			commands.Cfg.LookupPlugins = &aBool
+		}
 	}
 }
 
