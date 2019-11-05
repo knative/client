@@ -17,7 +17,6 @@
 package e2e
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
@@ -134,10 +133,5 @@ func (test *e2eTest) revisionDescribe(t *testing.T, serviceName string) {
 
 	out, err := test.kn.RunWithOpts([]string{"revision", "describe", revName}, runOpts{})
 	assert.NilError(t, err)
-
-	expectedGVK := `apiVersion: serving.knative.dev/v1alpha1
-kind: Revision`
-	expectedNamespace := fmt.Sprintf("namespace: %s", test.kn.namespace)
-	expectedServiceLabel := fmt.Sprintf("serving.knative.dev/service: %s", serviceName)
-	assert.Check(t, util.ContainsAll(out, expectedGVK, expectedNamespace, expectedServiceLabel))
+	assert.Check(t, util.ContainsAll(out, revName, test.kn.namespace, serviceName, "++ Ready", "TARGET=kn"))
 }

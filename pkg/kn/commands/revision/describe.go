@@ -70,6 +70,9 @@ func NewRevisionDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return printer.PrintObj(revision, cmd.OutOrStdout())
 			}
 			printDetails, err := cmd.Flags().GetBool("verbose")
+			if err != nil {
+				return err
+			}
 			var service *v1alpha1.Service
 			serviceName, ok := revision.Labels[servingserving.ServiceLabelKey]
 			if printDetails && ok {
@@ -126,9 +129,9 @@ func describe(w io.Writer, revision *v1alpha1.Revision, service *v1alpha1.Servic
 func WriteConcurrencyOptions(dw printers.PrefixWriter, revision *v1alpha1.Revision) {
 	target := clientserving.ConcurrencyTarget(&revision.ObjectMeta)
 	limit := revision.Spec.ContainerConcurrency
-	if target != nil || limit != nil {
+	if target != nil || limit != nil && *limit != 0 {
 		section := dw.WriteAttribute("Concurrency", "")
-		if limit != nil {
+		if limit != nil && *limit != 0 {
 			section.WriteAttribute("Limit", strconv.FormatInt(int64(*limit), 10))
 		}
 		if target != nil {
@@ -184,7 +187,10 @@ func WriteEnv(dw printers.PrefixWriter, revision *v1alpha1.Revision, printDetail
 
 func WriteScale(dw printers.PrefixWriter, revision *v1alpha1.Revision) {
 	// Scale spec if given
-	scale, _ := clientserving.ScalingInfo(&revision.ObjectMeta)
+	scale, err := clientserving.ScalingInfo(&revision.ObjectMeta)
+	if err != nil {
+		dw.WriteAttribute("Scale", fmt.Sprintf("Misformatted: %v", err))
+	}
 	if scale != nil && (scale.Max != nil || scale.Min != nil) {
 		dw.WriteAttribute("Scale", formatScale(scale.Min, scale.Max))
 	}
@@ -255,11 +261,9 @@ func stringifyEnv(revision *v1alpha1.Revision) []string {
 
 	envVars := make([]string, 0, len(container.Env))
 	for _, env := range container.Env {
-		var value string
+		value := env.Value
 		if env.ValueFrom != nil {
 			value = "[ref]"
-		} else {
-			value = env.Value
 		}
 		envVars = append(envVars, fmt.Sprintf("%s=%s", env.Name, value))
 	}
