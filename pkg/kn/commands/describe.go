@@ -34,8 +34,8 @@ const TruncateAt = 100
 func WriteMetadata(dw printers.PrefixWriter, m *metav1.ObjectMeta, printDetails bool) {
 	dw.WriteAttribute("Name", m.Name)
 	dw.WriteAttribute("Namespace", m.Namespace)
-	WriteMapDesc(dw, m.Labels, l("Labels"), "", printDetails)
-	WriteMapDesc(dw, m.Annotations, l("Annotations"), "", printDetails)
+	WriteMapDesc(dw, m.Labels, "Labels", printDetails)
+	WriteMapDesc(dw, m.Annotations, "Annotations", printDetails)
 	dw.WriteAttribute("Age", Age(m.CreationTimestamp.Time))
 }
 
@@ -52,7 +52,7 @@ func keyIsBoring(k string) bool {
 
 // Write a map either compact in a single line (possibly truncated) or, if printDetails is set,
 // over multiple line, one line per key-value pair. The output is sorted by keys.
-func WriteMapDesc(dw printers.PrefixWriter, m map[string]string, label string, labelPrefix string, details bool) {
+func WriteMapDesc(dw printers.PrefixWriter, m map[string]string, label string, details bool) {
 	if len(m) == 0 {
 		return
 	}
@@ -69,16 +69,17 @@ func WriteMapDesc(dw printers.PrefixWriter, m map[string]string, label string, l
 	sort.Strings(keys)
 
 	if details {
-		l := labelPrefix + label
-
-		for _, key := range keys {
+		for i, key := range keys {
+			l := ""
+			if i == 0 {
+				l = printers.Label(label)
+			}
 			dw.WriteColsLn(l, key+"="+m[key])
-			l = labelPrefix
 		}
 		return
 	}
 
-	dw.WriteColsLn(label, joinAndTruncate(keys, m, TruncateAt-len(label)-2))
+	dw.WriteColsLn(printers.Label(label), joinAndTruncate(keys, m, TruncateAt-len(label)-2))
 }
 
 func Age(t time.Time) string {
@@ -180,9 +181,30 @@ func WriteConditions(dw printers.PrefixWriter, conditions []apis.Condition, prin
 	}
 }
 
-// Format label (extracted so that color could be added more easily to all labels)
-func l(label string) string {
-	return label + ":"
+// Writer a slice compact (printDetails == false) in one line, or over multiple line
+// with key-value line-by-line (printDetails == true)
+func WriteSliceDesc(dw printers.PrefixWriter, s []string, label string, printDetails bool) {
+
+	if len(s) == 0 {
+		return
+	}
+
+	if printDetails {
+		for i, value := range s {
+			if i == 0 {
+				dw.WriteColsLn(printers.Label(label), value)
+			} else {
+				dw.WriteColsLn("", value)
+			}
+		}
+		return
+	}
+
+	joined := strings.Join(s, ", ")
+	if len(joined) > TruncateAt {
+		joined = joined[:TruncateAt-4] + " ..."
+	}
+	dw.WriteAttribute(label, joined)
 }
 
 // Join to key=value pair, comma separated, and truncate if longer than a limit

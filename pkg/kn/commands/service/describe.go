@@ -18,27 +18,22 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"regexp"
 	"sort"
 	"strconv"
-	"strings"
-	"time"
 
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
-	"knative.dev/serving/pkg/apis/autoscaling"
-	"knative.dev/serving/pkg/apis/serving"
-
+	"knative.dev/client/pkg/kn/commands/revision"
 	"knative.dev/client/pkg/printers"
-	client_serving "knative.dev/client/pkg/serving"
 	serving_kn_v1alpha1 "knative.dev/client/pkg/serving/v1alpha1"
-
-	"knative.dev/serving/pkg/apis/serving/v1alpha1"
+	"knative.dev/serving/pkg/apis/serving"
 
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	"knative.dev/client/pkg/kn/commands"
+	"knative.dev/pkg/apis"
+	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
 // Command for printing out a description of a service, meant to be consumed by humans
@@ -48,48 +43,20 @@ import (
 // Whether to print extended information
 var printDetails bool
 
-// Matching image digest
-var imageDigestRegexp = regexp.MustCompile(`(?i)sha256:([0-9a-f]{64})`)
-
 // View object for collecting revision related information in the context
 // of a Service. These are plain data types which can be directly used
 // for printing out
 type revisionDesc struct {
-	name                    string
-	configuration           string
-	configurationGeneration int
-	creationTimestamp       time.Time
+	revision *v1alpha1.Revision
 
 	// traffic stuff
 	percent       int64
 	tag           string
 	latestTraffic *bool
 
-	// basic revision stuff
-	logURL         string
-	timeoutSeconds *int64
-
-	image       string
-	userImage   string
-	imageDigest string
-	env         []string
-	port        *int32
-
-	// concurrency options
-	maxScale          *int
-	minScale          *int
-	concurrencyTarget *int
-	concurrencyLimit  *int64
-
-	// resource options
-	requestsMemory string
-	requestsCPU    string
-	limitsMemory   string
-	limitsCPU      string
+	configurationGeneration int
 
 	// status info
-	ready         corev1.ConditionStatus
-	reason        string
 	latestCreated bool
 	latestReady   bool
 }
@@ -211,41 +178,28 @@ func writeRevisions(dw printers.PrefixWriter, revisions []*revisionDesc, printDe
 	revSection := dw.WriteAttribute("Revisions", "")
 	dw.Flush()
 	for _, revisionDesc := range revisions {
-		section := revSection.WriteColsLn(formatBullet(revisionDesc.percent, revisionDesc.ready), revisionHeader(revisionDesc))
-		if revisionDesc.ready == v1.ConditionFalse {
-			section.WriteAttribute("Error", revisionDesc.reason)
+		ready := apis.Condition{
+			Type:   apis.ConditionReady,
+			Status: v1.ConditionUnknown,
 		}
-		section.WriteAttribute("Image", getImageDesc(revisionDesc))
+		for _, cond := range revisionDesc.revision.Status.Conditions {
+			if cond.Type == apis.ConditionReady {
+				ready = cond
+				break
+			}
+		}
+		section := revSection.WriteColsLn(formatBullet(revisionDesc.percent, ready.Status), revisionHeader(revisionDesc))
+		if ready.Status == v1.ConditionFalse {
+			section.WriteAttribute("Error", ready.Reason)
+		}
+		revision.WriteImage(section, revisionDesc.revision)
 		if printDetails {
-			if revisionDesc.port != nil {
-				section.WriteAttribute("Port", strconv.FormatInt(int64(*revisionDesc.port), 10))
-			}
-			writeSliceDesc(section, revisionDesc.env, l("Env"), "")
-
-			// Scale spec if given
-			if revisionDesc.maxScale != nil || revisionDesc.minScale != nil {
-				section.WriteAttribute("Scale", formatScale(revisionDesc.minScale, revisionDesc.maxScale))
-			}
-
-			// Concurrency specs if given
-			if revisionDesc.concurrencyLimit != nil || revisionDesc.concurrencyTarget != nil {
-				writeConcurrencyOptions(section, revisionDesc)
-			}
-
-			// Resources if given
-			writeResources(section, "Memory", revisionDesc.requestsMemory, revisionDesc.limitsMemory)
-			writeResources(section, "CPU", revisionDesc.requestsCPU, revisionDesc.limitsCPU)
+			revision.WritePort(section, revisionDesc.revision)
+			revision.WriteEnv(section, revisionDesc.revision, printDetails)
+			revision.WriteScale(section, revisionDesc.revision)
+			revision.WriteConcurrencyOptions(section, revisionDesc.revision)
+			revision.WriteResources(section, revisionDesc.revision)
 		}
-	}
-}
-
-func writeConcurrencyOptions(dw printers.PrefixWriter, desc *revisionDesc) {
-	section := dw.WriteAttribute("Concurrency", "")
-	if desc.concurrencyLimit != nil {
-		section.WriteAttribute("Limit", strconv.FormatInt(*desc.concurrencyLimit, 10))
-	}
-	if desc.concurrencyTarget != nil {
-		section.WriteAttribute("Target", strconv.Itoa(*desc.concurrencyTarget))
 	}
 }
 
@@ -257,32 +211,15 @@ func l(label string) string {
 	return label + ":"
 }
 
-// Format scale in the format "min ... max" with max = ∞ if not set
-func formatScale(minScale *int, maxScale *int) string {
-	ret := "0"
-	if minScale != nil {
-		ret = strconv.Itoa(*minScale)
-	}
-
-	ret += " ... "
-
-	if maxScale != nil {
-		ret += strconv.Itoa(*maxScale)
-	} else {
-		ret += "∞"
-	}
-	return ret
-}
-
 // Format the revision name along with its generation. Use colors if enabled.
 func revisionHeader(desc *revisionDesc) string {
-	header := desc.name
+	header := desc.revision.Name
 	if desc.latestTraffic != nil && *desc.latestTraffic {
-		header = fmt.Sprintf("@latest (%s)", desc.name)
+		header = fmt.Sprintf("@latest (%s)", desc.revision.Name)
 	} else if desc.latestReady {
-		header = desc.name + " (current @latest)"
+		header = desc.revision.Name + " (current @latest)"
 	} else if desc.latestCreated {
-		header = desc.name + " (latest created)"
+		header = desc.revision.Name + " (latest created)"
 	}
 	if desc.tag != "" {
 		header = fmt.Sprintf("%s #%s", header, desc.tag)
@@ -290,79 +227,7 @@ func revisionHeader(desc *revisionDesc) string {
 	return header + " " +
 		"[" + strconv.Itoa(desc.configurationGeneration) + "]" +
 		" " +
-		"(" + commands.Age(desc.creationTimestamp) + ")"
-}
-
-// Return either image name with tag or together with its resolved digest
-func getImageDesc(desc *revisionDesc) string {
-	image := desc.image
-	// Check if the user image is likely a more user-friendly description
-	pinnedDesc := "at"
-	if desc.userImage != "" && desc.imageDigest != "" {
-		parts := strings.Split(image, "@")
-		// Check if the user image refers to the same thing.
-		if strings.HasPrefix(desc.userImage, parts[0]) {
-			pinnedDesc = "pinned to"
-			image = desc.userImage
-		}
-	}
-	if desc.imageDigest != "" {
-		return fmt.Sprintf("%s (%s %s)", image, pinnedDesc, shortenDigest(desc.imageDigest))
-	}
-	return image
-}
-
-// Extract pure sha sum and shorten to 8 digits,
-// as the digest should to be user consumable. Use the resource via `kn service get`
-// to get to the full sha
-func shortenDigest(digest string) string {
-	match := imageDigestRegexp.FindStringSubmatch(digest)
-	if len(match) > 1 {
-		return string(match[1][:6])
-	}
-	return digest
-}
-
-// Writer a slice compact (printDetails == false) in one line, or over multiple line
-// with key-value line-by-line (printDetails == true)
-func writeSliceDesc(dw printers.PrefixWriter, s []string, label string, labelPrefix string) {
-
-	if len(s) == 0 {
-		return
-	}
-
-	if printDetails {
-		l := labelPrefix + label
-		for _, value := range s {
-			dw.WriteColsLn(l, value)
-			l = labelPrefix
-		}
-		return
-	}
-
-	joined := strings.Join(s, ", ")
-	if len(joined) > commands.TruncateAt {
-		joined = joined[:commands.TruncateAt-4] + " ..."
-	}
-	dw.WriteAttribute(labelPrefix+label, joined)
-}
-
-// Write request ... limits or only one of them
-func writeResources(dw printers.PrefixWriter, label string, request string, limit string) {
-	value := ""
-	if request != "" && limit != "" {
-		value = request + " ... " + limit
-	} else if request != "" {
-		value = request
-	} else if limit != "" {
-		value = limit
-	}
-
-	if value == "" {
-		return
-	}
-
-	dw.WriteAttribute(label, value)
+		"(" + commands.Age(desc.revision.CreationTimestamp.Time) + ")"
 }
 
 // Format target percentage that it fits in the revision table
@@ -463,146 +328,32 @@ func completeWithUntargetedRevisions(client serving_kn_v1alpha1.KnServingClient,
 }
 
 func newRevisionDesc(revision *v1alpha1.Revision, target *v1alpha1.TrafficTarget, service *v1alpha1.Service) (*revisionDesc, error) {
-	container := extractContainer(revision)
 	generation, err := strconv.ParseInt(revision.Labels[serving.ConfigurationGenerationLabelKey], 0, 0)
 	if err != nil {
 		return nil, fmt.Errorf("cannot extract configuration generation for revision %s: %v", revision.Name, err)
 	}
 	revisionDesc := revisionDesc{
-		name:              revision.Name,
-		logURL:            revision.Status.LogURL,
-		timeoutSeconds:    revision.Spec.TimeoutSeconds,
-		userImage:         revision.Annotations[client_serving.UserImageAnnotationKey],
-		imageDigest:       revision.Status.ImageDigest,
-		creationTimestamp: revision.CreationTimestamp.Time,
-
+		revision:                revision,
 		configurationGeneration: int(generation),
-		configuration:           revision.Labels[serving.ConfigurationLabelKey],
-
-		latestCreated: revision.Name == service.Status.LatestCreatedRevisionName,
-		latestReady:   revision.Name == service.Status.LatestReadyRevisionName,
+		latestCreated:           revision.Name == service.Status.LatestCreatedRevisionName,
+		latestReady:             revision.Name == service.Status.LatestReadyRevisionName,
 	}
 
-	addStatusInfo(&revisionDesc, revision)
 	addTargetInfo(&revisionDesc, target)
-	addContainerInfo(&revisionDesc, container)
-	addResourcesInfo(&revisionDesc, container)
-	err = addConcurrencyAndScaleInfo(&revisionDesc, revision)
 	if err != nil {
 		return nil, err
 	}
 	return &revisionDesc, nil
 }
 
-func addStatusInfo(desc *revisionDesc, revision *v1alpha1.Revision) {
-	for _, condition := range revision.Status.Conditions {
-		if condition.Type == "Ready" {
-			desc.reason = condition.Reason
-			desc.ready = condition.Status
-		}
-	}
-}
-
 func addTargetInfo(desc *revisionDesc, target *v1alpha1.TrafficTarget) {
 	if target != nil {
-		desc.percent = *target.Percent
+		if target.Percent != nil {
+			desc.percent = *target.Percent
+		}
 		desc.latestTraffic = target.LatestRevision
 		desc.tag = target.Tag
 	}
-}
-
-func addContainerInfo(desc *revisionDesc, container *v1.Container) {
-	addImage(desc, container)
-	addEnv(desc, container)
-	addPort(desc, container)
-}
-
-func addResourcesInfo(desc *revisionDesc, container *v1.Container) {
-	requests := container.Resources.Requests
-	if !requests.Memory().IsZero() {
-		desc.requestsMemory = requests.Memory().String()
-	}
-	if !requests.Cpu().IsZero() {
-		desc.requestsCPU = requests.Cpu().String()
-	}
-
-	limits := container.Resources.Limits
-	if !limits.Memory().IsZero() {
-		desc.limitsMemory = limits.Memory().String()
-	}
-	if !limits.Cpu().IsZero() {
-		desc.limitsCPU = limits.Cpu().String()
-	}
-}
-
-func addConcurrencyAndScaleInfo(desc *revisionDesc, revision *v1alpha1.Revision) error {
-	min, err := annotationAsInt(revision, autoscaling.MinScaleAnnotationKey)
-	if err != nil {
-		return err
-	}
-	desc.minScale = min
-
-	max, err := annotationAsInt(revision, autoscaling.MaxScaleAnnotationKey)
-	if err != nil {
-		return err
-	}
-	desc.maxScale = max
-
-	target, err := annotationAsInt(revision, autoscaling.TargetAnnotationKey)
-	if err != nil {
-		return err
-	}
-	desc.concurrencyTarget = target
-
-	if revision.Spec.ContainerConcurrency != nil {
-		desc.concurrencyLimit = revision.Spec.ContainerConcurrency
-	}
-
-	return nil
-}
-
-func annotationAsInt(revision *v1alpha1.Revision, annotationKey string) (*int, error) {
-	annos := revision.Annotations
-	if val, ok := annos[annotationKey]; ok {
-		valInt, err := strconv.Atoi(val)
-		if err != nil {
-			return nil, err
-		}
-		return &valInt, nil
-	}
-	return nil, nil
-}
-
-func addEnv(desc *revisionDesc, container *v1.Container) {
-	envVars := make([]string, 0, len(container.Env))
-	for _, env := range container.Env {
-		var value string
-		if env.ValueFrom != nil {
-			value = "[ref]"
-		} else {
-			value = env.Value
-		}
-		envVars = append(envVars, fmt.Sprintf("%s=%s", env.Name, value))
-	}
-	desc.env = envVars
-}
-
-func addPort(desc *revisionDesc, container *v1.Container) {
-	if len(container.Ports) > 0 {
-		port := container.Ports[0].ContainerPort
-		desc.port = &port
-	}
-}
-
-func addImage(desc *revisionDesc, container *v1.Container) {
-	desc.image = container.Image
-}
-
-func extractContainer(revision *v1alpha1.Revision) *v1.Container {
-	if revision.Spec.Containers != nil && len(revision.Spec.Containers) > 0 {
-		return &revision.Spec.Containers[0]
-	}
-	return revision.Spec.DeprecatedContainer
 }
 
 func extractRevisionFromTarget(client serving_kn_v1alpha1.KnServingClient, target v1alpha1.TrafficTarget) (*v1alpha1.Revision, error) {
