@@ -164,7 +164,7 @@ func writeService(dw printers.PrefixWriter, service *v1alpha1.Service) {
 	dw.WriteAttribute("URL", extractURL(service))
 	if service.Status.Address != nil {
 		url := service.Status.Address.GetURL()
-		dw.WriteAttribute("Address", url.String())
+		dw.WriteAttribute("Cluster", url.String())
 	}
 	if (service.Spec.Template != nil) && (service.Spec.Template.Spec.ServiceAccountName != "") {
 		dw.WriteAttribute("ServiceAccount", service.Spec.Template.Spec.ServiceAccountName)

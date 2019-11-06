@@ -98,7 +98,7 @@ func (test *e2eTest) serviceDescribe(t *testing.T, serviceName string) {
 
 	assert.Assert(t, util.ContainsAll(out, serviceName, test.kn.namespace, KnDefaultTestImage))
 	assert.Assert(t, util.ContainsAll(out, "Conditions", "ConfigurationsReady", "Ready", "RoutesReady"))
-	assert.Assert(t, util.ContainsAll(out, "Name", "Namespace", "URL", "Address", "Age", "Revisions"))
+	assert.Assert(t, util.ContainsAll(out, "Name", "Namespace", "URL", "Cluster", "Age", "Revisions"))
 }
 
 func (test *e2eTest) serviceUpdate(t *testing.T, serviceName string, args []string) {

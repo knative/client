@@ -489,7 +489,7 @@ func TestServiceDescribeMachineReadable(t *testing.T) {
 func validateServiceOutput(t *testing.T, service string, output string) {
 	assert.Assert(t, cmp.Regexp("Name:\\s+"+service, output))
 	assert.Assert(t, cmp.Regexp("Namespace:\\s+default", output))
-	assert.Assert(t, cmp.Regexp("Address:\\s+http://"+service+".default.svc.cluster.local", output))
+	assert.Assert(t, cmp.Regexp("Cluster:\\s+http://"+service+".default.svc.cluster.local", output))
 	assert.Assert(t, cmp.Regexp("URL:\\s+"+service+".default.example.com", output))
 
 	assert.Assert(t, util.ContainsAll(output, "Age:", "Revisions:", "Conditions:", "Labels:", "Annotations:"))
