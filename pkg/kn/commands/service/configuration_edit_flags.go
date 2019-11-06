@@ -361,7 +361,8 @@ func (p *ConfigurationEditFlags) computeResources(resourceFlags ResourceFlags) (
 	if resourceFlags.CPU != "" {
 		cpuQuantity, err := resource.ParseQuantity(resourceFlags.CPU)
 		if err != nil {
-			return corev1.ResourceList{}, err
+			return corev1.ResourceList{},
+				errors.Wrapf(err, "Error parsing %q", resourceFlags.CPU)
 		}
 
 		resourceList[corev1.ResourceCPU] = cpuQuantity
@@ -370,7 +371,8 @@ func (p *ConfigurationEditFlags) computeResources(resourceFlags ResourceFlags) (
 	if resourceFlags.Memory != "" {
 		memoryQuantity, err := resource.ParseQuantity(resourceFlags.Memory)
 		if err != nil {
-			return corev1.ResourceList{}, err
+			return corev1.ResourceList{},
+				errors.Wrapf(err, "Error parsing %q", resourceFlags.Memory)
 		}
 
 		resourceList[corev1.ResourceMemory] = memoryQuantity
