@@ -40,7 +40,7 @@ func (t *Traffic) Add(cmd *cobra.Command) {
 	cmd.Flags().StringSliceVar(&t.UntagRevisions,
 		"untag",
 		nil,
-		"Untag revision (format: --untag tagName). This flag can be spcified multiple times.")
+		"Untag revision (format: --untag tagName). This flag can be specified multiple times.")
 }
 
 func (t *Traffic) PercentagesChanged(cmd *cobra.Command) bool {

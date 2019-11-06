@@ -21,6 +21,7 @@ import (
 
 	"gotest.tools/assert"
 
+	"knative.dev/client/pkg/util"
 	"knative.dev/pkg/ptr"
 	"knative.dev/serving/pkg/apis/autoscaling"
 
@@ -409,6 +410,136 @@ func TestUpdateLabelsRemoveExisting(t *testing.T) {
 	assert.DeepEqual(t, expected, actual)
 }
 
+func TestUpdateEnvFrom(t *testing.T) {
+	template, container := getV1alpha1RevisionTemplateWithOldFields()
+	container.EnvFrom = append(container.EnvFrom,
+		corev1.EnvFromSource{
+			ConfigMapRef: &corev1.ConfigMapEnvSource{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "config-map-existing-name",
+				}}},
+		corev1.EnvFromSource{
+			SecretRef: &corev1.SecretEnvSource{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "secret-existing-name",
+				}}},
+	)
+	UpdateEnvFrom(template,
+		[]string{"config-map:config-map-new-name-1", "secret:secret-new-name-1"},
+		[]string{"config-map:config-map-existing-name", "secret:secret-existing-name"})
+	assert.Equal(t, len(container.EnvFrom), 2)
+	assert.Equal(t, container.EnvFrom[0].ConfigMapRef.Name, "config-map-new-name-1")
+	assert.Equal(t, container.EnvFrom[1].SecretRef.Name, "secret-new-name-1")
+}
+
+func TestUpdateVolumeMountsAndVolumes(t *testing.T) {
+	template, container := getV1alpha1RevisionTemplateWithOldFields()
+	template.Spec.Volumes = append(template.Spec.Volumes,
+		corev1.Volume{
+			Name: "existing-config-map-volume-name-1",
+			VolumeSource: corev1.VolumeSource{
+				ConfigMap: &corev1.ConfigMapVolumeSource{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: "existing-config-map-1",
+					}}}},
+		corev1.Volume{
+			Name: "existing-config-map-volume-name-2",
+			VolumeSource: corev1.VolumeSource{
+				ConfigMap: &corev1.ConfigMapVolumeSource{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: "existing-config-map-2",
+					}}}},
+		corev1.Volume{
+			Name: "existing-secret-volume-name-1",
+			VolumeSource: corev1.VolumeSource{
+				Secret: &corev1.SecretVolumeSource{
+					SecretName: "existing-secret-1",
+				}}},
+		corev1.Volume{
+			Name: "existing-secret-volume-name-2",
+			VolumeSource: corev1.VolumeSource{
+				Secret: &corev1.SecretVolumeSource{
+					SecretName: "existing-secret-2",
+				}}})
+
+	container.VolumeMounts = append(container.VolumeMounts,
+		corev1.VolumeMount{
+			Name:      "existing-config-map-volume-name-1",
+			ReadOnly:  true,
+			MountPath: "/existing-config-map-1/mount/path",
+		},
+		corev1.VolumeMount{
+			Name:      "existing-config-map-volume-name-2",
+			ReadOnly:  true,
+			MountPath: "/existing-config-map-2/mount/path",
+		},
+		corev1.VolumeMount{
+			Name:      "existing-secret-volume-name-1",
+			ReadOnly:  true,
+			MountPath: "/existing-secret-1/mount/path",
+		},
+		corev1.VolumeMount{
+			Name:      "existing-secret-volume-name-2",
+			ReadOnly:  true,
+			MountPath: "/existing-secret-2/mount/path",
+		},
+	)
+
+	err := UpdateVolumeMountsAndVolumes(template,
+		util.NewOrderedMapWithKVStrings([][]string{{"/new-config-map/mount/path", "new-config-map-volume-name"}}),
+		[]string{},
+		util.NewOrderedMapWithKVStrings([][]string{{"new-config-map-volume-name", "config-map:new-config-map"}}),
+		[]string{})
+	assert.NilError(t, err)
+
+	err = UpdateVolumeMountsAndVolumes(template,
+		util.NewOrderedMapWithKVStrings([][]string{{"/updated-config-map/mount/path", "existing-config-map-volume-name-2"}}),
+		[]string{},
+		util.NewOrderedMapWithKVStrings([][]string{{"existing-config-map-volume-name-2", "config-map:updated-config-map"}}),
+		[]string{})
+	assert.NilError(t, err)
+
+	err = UpdateVolumeMountsAndVolumes(template,
+		util.NewOrderedMapWithKVStrings([][]string{{"/new-secret/mount/path", "new-secret-volume-name"}}),
+		[]string{},
+		util.NewOrderedMapWithKVStrings([][]string{{"new-secret-volume-name", "secret:new-secret"}}),
+		[]string{})
+	assert.NilError(t, err)
+
+	err = UpdateVolumeMountsAndVolumes(template,
+		util.NewOrderedMapWithKVStrings([][]string{{"/updated-secret/mount/path", "existing-secret-volume-name-2"}}),
+		[]string{"/existing-config-map-1/mount/path",
+			"/existing-secret-1/mount/path"},
+		util.NewOrderedMapWithKVStrings([][]string{{"existing-secret-volume-name-2", "secret:updated-secret"}}),
+		[]string{"existing-config-map-volume-name-1",
+			"existing-secret-volume-name-1"})
+	assert.NilError(t, err)
+
+	assert.Equal(t, len(template.Spec.Volumes), 4)
+	assert.Equal(t, len(container.VolumeMounts), 6)
+	assert.Equal(t, template.Spec.Volumes[0].Name, "existing-config-map-volume-name-2")
+	assert.Equal(t, template.Spec.Volumes[0].ConfigMap.Name, "updated-config-map")
+	assert.Equal(t, template.Spec.Volumes[1].Name, "existing-secret-volume-name-2")
+	assert.Equal(t, template.Spec.Volumes[1].Secret.SecretName, "updated-secret")
+	assert.Equal(t, template.Spec.Volumes[2].Name, "new-config-map-volume-name")
+	assert.Equal(t, template.Spec.Volumes[2].ConfigMap.Name, "new-config-map")
+	assert.Equal(t, template.Spec.Volumes[3].Name, "new-secret-volume-name")
+	assert.Equal(t, template.Spec.Volumes[3].Secret.SecretName, "new-secret")
+
+	assert.Equal(t, container.VolumeMounts[0].Name, "existing-config-map-volume-name-2")
+	assert.Equal(t, container.VolumeMounts[0].MountPath, "/existing-config-map-2/mount/path")
+	assert.Equal(t, container.VolumeMounts[1].Name, "existing-secret-volume-name-2")
+	assert.Equal(t, container.VolumeMounts[1].MountPath, "/existing-secret-2/mount/path")
+	assert.Equal(t, container.VolumeMounts[2].Name, "new-config-map-volume-name")
+	assert.Equal(t, container.VolumeMounts[2].MountPath, "/new-config-map/mount/path")
+	assert.Equal(t, container.VolumeMounts[3].Name, "existing-config-map-volume-name-2")
+	assert.Equal(t, container.VolumeMounts[3].MountPath, "/updated-config-map/mount/path")
+	assert.Equal(t, container.VolumeMounts[4].Name, "new-secret-volume-name")
+	assert.Equal(t, container.VolumeMounts[4].MountPath, "/new-secret/mount/path")
+	assert.Equal(t, container.VolumeMounts[5].Name, "existing-secret-volume-name-2")
+	assert.Equal(t, container.VolumeMounts[5].MountPath, "/updated-secret/mount/path")
+}
+
 func TestUpdateServiceAccountName(t *testing.T) {
 	template, _ := getV1alpha1RevisionTemplateWithOldFields()
 	template.Spec.ServiceAccountName = ""
@@ -484,6 +615,28 @@ func TestUpdateAnnotationsRemoveExisting(t *testing.T) {
 
 	actual = template.ObjectMeta.Annotations
 	assert.DeepEqual(t, expected, actual)
+}
+
+func TestGenerateVolumeName(t *testing.T) {
+	actual := []string{
+		"Ab12~`!@#$%^&*()-=_+[]{}|/\\<>,./?:;\"'xZ",
+		"/Ab12~`!@#$%^&*()-=_+[]{}|/\\<>,./?:;\"'xZ/",
+		"",
+		"/",
+	}
+
+	expected := []string{
+		"ab12---------------------.----..-----xz",
+		"ab12---------------------.----..-----xz.",
+		"",
+		"",
+	}
+
+	for i := range actual {
+		actualName := GenerateVolumeName(actual[i])
+		expectedName := appendCheckSum(expected[i], actual[i])
+		assert.Equal(t, actualName, expectedName)
+	}
 }
 
 //
