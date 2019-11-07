@@ -21,7 +21,6 @@ import (
 	"gotest.tools/assert"
 	"gotest.tools/assert/cmp"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"knative.dev/pkg/apis"
@@ -42,7 +41,7 @@ func TestAddWaitForReady(t *testing.T) {
 
 		waitForReady := NewWaitForReady(
 			"blub",
-			func(opts v1.ListOptions) (watch.Interface, error) {
+			func(name string, timeout time.Duration) (watch.Interface, error) {
 				return fakeWatchApi, nil
 			},
 			func(obj runtime.Object) (apis.Conditions, error) {
