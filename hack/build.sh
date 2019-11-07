@@ -80,15 +80,16 @@ run() {
     exit 0
   fi
 
+  # Cross compile only
+  if $(has_flag --all -x); then
+    cross_build || (echo "✋ Cross platform build failed" && exit 1)
+    exit 0
+  fi
+
   # Default flow
   codegen
   go_build
   go_test
-
-  # Cross compile in addition if requested
-  if $(has_flag --all -x); then
-    cross_build || (echo "✋ Cross platform build failed" && exit 1)
-  fi
 
   echo "────────────────────────────────────────────"
   ./kn version
@@ -297,7 +298,7 @@ with the following options:
 -t  --test                    Run tests when used with --fast or --watch
 -c  --codegen                 Runs formatting, doc gen and update without compiling/testing
 -w  --watch                   Watch for source changes and recompile in fast mode
--x  --all                     Build binaries for all platforms
+-x  --all                     Only build cross platform binaries without code-generation/testing
 -h  --help                    Display this help message
     --verbose                 More output
     --debug                   Debug information for this script (set -x)
