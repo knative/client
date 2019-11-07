@@ -28,5 +28,3 @@ require (
 // Fix for `[` in help messages and shell completion code
 // See https://github.com/spf13/cobra/pull/899
 replace github.com/spf13/cobra => github.com/chmouel/cobra v0.0.0-20191021105835-a78788917390
-
-go 1.13
