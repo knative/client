@@ -645,7 +645,7 @@ knative.dev/serving/pkg/apis/serving/v1
 knative.dev/serving/pkg/apis/serving/v1beta1
 knative.dev/serving/pkg/gc
 knative.dev/serving/pkg/network
-# knative.dev/test-infra v0.0.0-20190730202142-17f2331e80ad
+# knative.dev/test-infra v0.0.0-20191106182702-a6a34418ff33
 knative.dev/test-infra/scripts
 # sigs.k8s.io/kustomize v2.0.3+incompatible
 sigs.k8s.io/kustomize/pkg/fs

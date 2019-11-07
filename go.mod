@@ -18,7 +18,7 @@ require (
 	k8s.io/client-go v0.0.0-20190819141724-e14f31a72a77
 	knative.dev/pkg v0.0.0-20191022181926-0b19b4ad9139
 	knative.dev/serving v0.10.0
-	knative.dev/test-infra v0.0.0-20190730202142-17f2331e80ad
+	knative.dev/test-infra v0.0.0-20191106182702-a6a34418ff33
 	sigs.k8s.io/yaml v1.1.0
 )
 
