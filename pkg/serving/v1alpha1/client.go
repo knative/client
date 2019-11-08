@@ -161,7 +161,8 @@ func (cl *knServingClient) GetService(name string) (*v1alpha1.Service, error) {
 }
 
 func (cl *knServingClient) WatchService(name string, timeout time.Duration) (watch.Interface, error) {
-	return wait.NewWatcher(cl.client.RESTClient(), cl.namespace, "services", name, timeout)
+	return wait.NewWatcher(cl.client.Services(cl.namespace).Watch,
+		cl.client.RESTClient(), cl.namespace, "services", name, timeout)
 }
 
 // List services

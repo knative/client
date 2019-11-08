@@ -15,7 +15,6 @@
 package wait
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
@@ -28,7 +27,7 @@ import (
 	"knative.dev/serving/pkg/client/clientset/versioned/scheme"
 )
 
-type PollingWatcher struct {
+type pollingWatcher struct {
 	c        rest.Interface
 	ns       string
 	resource string
@@ -39,13 +38,16 @@ type PollingWatcher struct {
 	wg       *sync.WaitGroup
 }
 
-func NewWatcher(c rest.Interface, ns string, resource string, name string, timeout time.Duration) (watch.Interface, error) {
-	native, err := nativeWatch(c, ns, resource, name, timeout)
+type WatchFunc func(v1.ListOptions) (watch.Interface, error)
+
+// NewWatcher makes a watch.Interface on the given resource in the client,
+// falling back to polling if the server does not support Watch.
+func NewWatcher(watchFunc WatchFunc, c rest.Interface, ns string, resource string, name string, timeout time.Duration) (watch.Interface, error) {
+	native, err := nativeWatch(watchFunc, c, ns, resource, name, timeout)
 	if err == nil {
 		return native, nil
 	}
-	fmt.Println("falling back to polling")
-	polling := &PollingWatcher{c, ns, resource, name, timeout, make(chan bool), make(chan watch.Event), &sync.WaitGroup{}}
+	polling := &pollingWatcher{c, ns, resource, name, timeout, make(chan bool), make(chan watch.Event), &sync.WaitGroup{}}
 	err = polling.start()
 	if err != nil {
 		return nil, err
@@ -53,7 +55,7 @@ func NewWatcher(c rest.Interface, ns string, resource string, name string, timeo
 	return polling, nil
 }
 
-func (w *PollingWatcher) poll() (runtime.Object, error) {
+func (w *pollingWatcher) poll() (runtime.Object, error) {
 	return w.c.Get().
 		Namespace(w.ns).
 		Resource(w.resource).
@@ -62,22 +64,7 @@ func (w *PollingWatcher) poll() (runtime.Object, error) {
 		Get()
 }
 
-func nativeWatch(c rest.Interface, ns string, resource string, name string, timeout time.Duration) (watch.Interface, error) {
-	opts := v1.ListOptions{
-		FieldSelector: fields.OneTermEqualSelector("metadata.name", name).String(),
-	}
-	opts.Watch = true
-	addWatchTimeout(&opts, timeout)
-
-	return c.Get().
-		Namespace(ns).
-		Resource(resource).
-		VersionedParams(&opts, scheme.ParameterCodec).
-		Timeout(timeout).
-		Watch()
-}
-
-func (w *PollingWatcher) start() error {
+func (w *pollingWatcher) start() error {
 	w.wg.Add(1)
 
 	go func() {
@@ -85,65 +72,55 @@ func (w *PollingWatcher) start() error {
 		var err error
 		ticker := time.NewTicker(time.Second)
 		defer ticker.Stop()
-		var obj, newobj runtime.Object
-		gotNotFound := false
+		var old, new runtime.Object
 		done := false
 		for !done {
-			obj = newobj
+			old = new
+
 			select {
 			case <-ticker.C:
-				newobj, err = w.poll()
-				if err != nil {
-					if api_errors.IsNotFound(err) {
-						// This is ok. It's either a delete or not created yet.
-						if obj != nil {
-							// a delete
-							w.result <- watch.Event{
-								Type:   watch.Deleted,
-								Object: obj,
-							}
-						}
-						gotNotFound = true
-						continue
-					} else {
-						// Send an error and then break
-						w.result <- watch.Event{
-							Type: watch.Error,
-						}
-						break
-					}
-				}
-				if gotNotFound {
-					// Created
-					w.result <- watch.Event{
-						Type:   watch.Added,
-						Object: newobj,
-					}
-					gotNotFound = false
-					continue
-				}
-				gotNotFound = false
-				// This could still be a create. Are the uids the same?
-				newObj, ok1 := newobj.(v1.Object)
-				oldObj, ok2 := obj.(v1.Object)
-				if ok1 && ok2 && newObj.GetUID() != oldObj.GetUID() {
-					// It's a delete and recreate
+				new, err = w.poll()
+				newObj, ok1 := new.(v1.Object)
+				oldObj, ok2 := old.(v1.Object)
+
+				if old != nil && err != nil && api_errors.IsNotFound(err) {
+					// Deleted
 					w.result <- watch.Event{
 						Type:   watch.Deleted,
-						Object: obj,
+						Object: old,
+					}
+				} else if err != nil {
+					// Just an error
+					w.result <- watch.Event{
+						Type: watch.Error,
+					}
+				} else if old == nil && new != nil {
+					// Added
+					w.result <- watch.Event{
+						Type:   watch.Added,
+						Object: new,
+					}
+				} else if !(ok1 && ok2) {
+					// Error wrong types
+					w.result <- watch.Event{
+						Type: watch.Error,
+					}
+				} else if newObj.GetUID() != oldObj.GetUID() {
+					// Deleted and readded.
+					w.result <- watch.Event{
+						Type:   watch.Deleted,
+						Object: old,
 					}
 					w.result <- watch.Event{
 						Type:   watch.Added,
-						Object: newobj,
+						Object: new,
 					}
-					continue
-				}
-				if ok1 && ok2 && newObj.GetResourceVersion() != oldObj.GetResourceVersion() {
+				} else if newObj.GetResourceVersion() != oldObj.GetResourceVersion() {
+					// Modified.
 					w.result <- watch.Event{
 						Type:   watch.Modified,
-						Object: newobj,
+						Object: new,
 					}
-					continue
 				}
 			case done = <-w.done:
 				break
@@ -153,12 +130,42 @@ func (w *PollingWatcher) start() error {
 	return nil
 }
 
-func (w *PollingWatcher) ResultChan() <-chan watch.Event {
+func (w *pollingWatcher) ResultChan() <-chan watch.Event {
 	return w.result
 }
 
-func (w *PollingWatcher) Stop() {
+func (w *pollingWatcher) Stop() {
 	w.done <- true
 	w.wg.Wait()
 	close(w.result)
+	close(w.done)
+}
+
+func nativeWatch(watchFunc WatchFunc, c rest.Interface, ns string, resource string, name string, timeout time.Duration) (watch.Interface, error) {
+	opts := v1.ListOptions{
+		FieldSelector: fields.OneTermEqualSelector("metadata.name", name).String(),
+	}
+	opts.Watch = true
+	addWatchTimeout(&opts, timeout)
+
+	if watchFunc != nil {
+		return watchFunc(opts)
+	}
+	return c.Get().
+		Namespace(ns).
+		Resource(resource).
+		VersionedParams(&opts, scheme.ParameterCodec).
+		Timeout(timeout).
+		Watch()
+}
+
+func addWatchTimeout(opts *v1.ListOptions, timeout time.Duration) {
+	if timeout == 0 {
+		return
+	}
+	// Wait for service to enter 'Ready' state, with a timeout of which is slightly larger than
+	// the provided timeout. We have our own timeout which fires after "timeout" seconds
+	// and stops the watch
+	timeOutWatchSeconds := int64((timeout + 30*time.Second) / time.Second)
+	opts.TimeoutSeconds = &timeOutWatchSeconds
 }

@@ -20,7 +20,6 @@ import (
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"knative.dev/pkg/apis"
@@ -41,12 +40,6 @@ type WaitForReady interface {
 	// and write event messages for unknown event to the status writer
 	Wait(name string, timeout time.Duration, msgCallback MessageCallback) (error, time.Duration)
 }
-
-// Utility alias for "A function like Watch from the client"
-type WatchFunc func(opts v1.ListOptions) (watch.Interface, error)
-
-// Utility alias for "A function that takes the name and just gets the resource"
-type GetFunc func(name string) (runtime.Object, error)
 
 // Create watch which is used when waiting for Ready condition
 type WatchMaker func(name string, timeout time.Duration) (watch.Interface, error)
@@ -109,17 +102,6 @@ func (w *waitForReadyConfig) Wait(name string, timeout time.Duration, msgCallbac
 		}
 		return nil, time.Since(start)
 	}
-}
-
-func addWatchTimeout(opts *v1.ListOptions, timeout time.Duration) {
-	if timeout == 0 {
-		return
-	}
-	// Wait for service to enter 'Ready' state, with a timeout of which is slightly larger than
-	// the provided timeout. We have our own timeout which fires after "timeout" seconds
-	// and stops the watch
-	timeOutWatchSeconds := int64((timeout + 30*time.Second) / time.Second)
-	opts.TimeoutSeconds = &timeOutWatchSeconds
 }
 
 func (w *waitForReadyConfig) waitForReadyCondition(start time.Time, name string, timeout time.Duration, msgCallback MessageCallback) (retry bool, timeoutReached bool, err error) {
