@@ -26,6 +26,8 @@ import (
 	"k8s.io/client-go/rest"
 )
 
+// PollInterval determins when you should poll.  Useful to mock out, or for
+// replacing with exponential backoff later.
 type PollInterval interface {
 	PollChan() <-chan time.Time
 	Stop()
@@ -46,7 +48,7 @@ type pollingWatcher struct {
 	poll func() (runtime.Object, error)
 }
 
-type WatchFunc func(v1.ListOptions) (watch.Interface, error)
+type watchF func(v1.ListOptions) (watch.Interface, error)
 
 type tickerPollInterval struct {
 	t *time.Ticker
@@ -66,7 +68,7 @@ func newTickerPollInterval(d time.Duration) *tickerPollInterval {
 
 // NewWatcher makes a watch.Interface on the given resource in the client,
 // falling back to polling if the server does not support Watch.
-func NewWatcher(watchFunc WatchFunc, c rest.Interface, ns string, resource string, name string, timeout time.Duration) (watch.Interface, error) {
+func NewWatcher(watchFunc watchF, c rest.Interface, ns string, resource string, name string, timeout time.Duration) (watch.Interface, error) {
 	native, err := nativeWatch(watchFunc, name, timeout)
 	if err == nil {
 		return native, nil
@@ -160,7 +162,7 @@ func (w *pollingWatcher) Stop() {
 	close(w.done)
 }
 
-func nativeWatch(watchFunc WatchFunc, name string, timeout time.Duration) (watch.Interface, error) {
+func nativeWatch(watchFunc watchF, name string, timeout time.Duration) (watch.Interface, error) {
 	opts := v1.ListOptions{
 		FieldSelector: fields.OneTermEqualSelector("metadata.name", name).String(),
 	}
