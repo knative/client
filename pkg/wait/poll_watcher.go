@@ -27,6 +27,11 @@ import (
 	"knative.dev/serving/pkg/client/clientset/versioned/scheme"
 )
 
+type PollInterval interface {
+	PollChan() <-chan time.Time
+	Stop()
+}
+
 type pollingWatcher struct {
 	c        rest.Interface
 	ns       string
@@ -36,9 +41,29 @@ type pollingWatcher struct {
 	done     chan bool
 	result   chan watch.Event
 	wg       *sync.WaitGroup
+	// we can mock the interface for testing.
+	pollInterval PollInterval
+	// mock hook for testing.
+	poll func() (runtime.Object, error)
 }
 
 type WatchFunc func(v1.ListOptions) (watch.Interface, error)
+
+type tickerPollInterval struct {
+	t *time.Ticker
+}
+
+func (t *tickerPollInterval) PollChan() <-chan time.Time {
+	return t.t.C
+}
+
+func (t *tickerPollInterval) Stop() {
+	t.t.Stop()
+}
+
+func newTickerPollInterval(d time.Duration) *tickerPollInterval {
+	return &tickerPollInterval{time.NewTicker(d)}
+}
 
 // NewWatcher makes a watch.Interface on the given resource in the client,
 // falling back to polling if the server does not support Watch.
@@ -47,7 +72,9 @@ func NewWatcher(watchFunc WatchFunc, c rest.Interface, ns string, resource strin
 	if err == nil {
 		return native, nil
 	}
-	polling := &pollingWatcher{c, ns, resource, name, timeout, make(chan bool), make(chan watch.Event), &sync.WaitGroup{}}
+	polling := &pollingWatcher{
+		c, ns, resource, name, timeout, make(chan bool), make(chan watch.Event), &sync.WaitGroup{},
+		newTickerPollInterval(time.Second), nativePoll(c, ns, resource, name)}
 	err = polling.start()
 	if err != nil {
 		return nil, err
@@ -55,40 +82,33 @@ func NewWatcher(watchFunc WatchFunc, c rest.Interface, ns string, resource strin
 	return polling, nil
 }
 
-func (w *pollingWatcher) poll() (runtime.Object, error) {
-	return w.c.Get().
-		Namespace(w.ns).
-		Resource(w.resource).
-		Name(w.name).
-		Do().
-		Get()
-}
-
 func (w *pollingWatcher) start() error {
 	w.wg.Add(1)
 
 	go func() {
 		defer w.wg.Done()
+		defer w.pollInterval.Stop()
 		var err error
-		ticker := time.NewTicker(time.Second)
-		defer ticker.Stop()
 		var old, new runtime.Object
 		done := false
 		for !done {
 			old = new
 
 			select {
-			case <-ticker.C:
+			case <-w.pollInterval.PollChan():
 				new, err = w.poll()
 				newObj, ok1 := new.(v1.Object)
 				oldObj, ok2 := old.(v1.Object)
 
-				if old != nil && err != nil && api_errors.IsNotFound(err) {
-					// Deleted
-					w.result <- watch.Event{
-						Type:   watch.Deleted,
-						Object: old,
+				if err != nil && api_errors.IsNotFound(err) {
+					if old != nil {
+						// Deleted
+						w.result <- watch.Event{
+							Type:   watch.Deleted,
+							Object: old,
+						}
 					}
+					//... Otherwise maybe just doesn't exist.
 				} else if err != nil {
 					// Just an error
 					w.result <- watch.Event{
@@ -151,12 +171,21 @@ func nativeWatch(watchFunc WatchFunc, c rest.Interface, ns string, resource stri
 	if watchFunc != nil {
 		return watchFunc(opts)
 	}
+	// Technically the watchFunc isn't necessary, we could just do this. But the
+	// watchFunc is *much* easier to mock, so we might as well plumb it in for
+	// ease of testing.
 	return c.Get().
 		Namespace(ns).
 		Resource(resource).
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Timeout(timeout).
 		Watch()
+}
+
+func nativePoll(c rest.Interface, ns, resource, name string) func() (runtime.Object, error) {
+	return func() (runtime.Object, error) {
+		return c.Get().Namespace(ns).Resource(resource).Name(name).Do().Get()
+	}
 }
 
 func addWatchTimeout(opts *v1.ListOptions, timeout time.Duration) {
