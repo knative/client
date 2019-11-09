@@ -24,7 +24,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/rest"
-	"knative.dev/serving/pkg/client/clientset/versioned/scheme"
 )
 
 type PollInterval interface {
@@ -68,7 +67,7 @@ func newTickerPollInterval(d time.Duration) *tickerPollInterval {
 // NewWatcher makes a watch.Interface on the given resource in the client,
 // falling back to polling if the server does not support Watch.
 func NewWatcher(watchFunc WatchFunc, c rest.Interface, ns string, resource string, name string, timeout time.Duration) (watch.Interface, error) {
-	native, err := nativeWatch(watchFunc, c, ns, resource, name, timeout)
+	native, err := nativeWatch(watchFunc, name, timeout)
 	if err == nil {
 		return native, nil
 	}
@@ -161,25 +160,13 @@ func (w *pollingWatcher) Stop() {
 	close(w.done)
 }
 
-func nativeWatch(watchFunc WatchFunc, c rest.Interface, ns string, resource string, name string, timeout time.Duration) (watch.Interface, error) {
+func nativeWatch(watchFunc WatchFunc, name string, timeout time.Duration) (watch.Interface, error) {
 	opts := v1.ListOptions{
 		FieldSelector: fields.OneTermEqualSelector("metadata.name", name).String(),
 	}
 	opts.Watch = true
 	addWatchTimeout(&opts, timeout)
-
-	if watchFunc != nil {
-		return watchFunc(opts)
-	}
-	// Technically the watchFunc isn't necessary, we could just do this. But the
-	// watchFunc is *much* easier to mock, so we might as well plumb it in for
-	// ease of testing.
-	return c.Get().
-		Namespace(ns).
-		Resource(resource).
-		VersionedParams(&opts, scheme.ParameterCodec).
-		Timeout(timeout).
-		Watch()
+	return watchFunc(opts)
 }
 
 func nativePoll(c rest.Interface, ns, resource, name string) func() (runtime.Object, error) {

@@ -86,10 +86,14 @@ type testCase struct {
 
 func TestPollWatcher(t *testing.T) {
 	cases := []testCase{
+		// Doesn't exist for a while, then does for a while.
 		{[]runtime.Object{nil, nil, a, aa, nil}, []watch.Event{{watch.Added, a}, {watch.Deleted, a}}},
+		// Changes.
 		{[]runtime.Object{a, b}, []watch.Event{{watch.Added, a}, {watch.Modified, b}}},
+		// Changes but stays the same a couple times too.
 		{[]runtime.Object{a, aa, b, bb, c, cc, nil},
 			[]watch.Event{{watch.Added, a}, {watch.Modified, b}, {watch.Modified, c}, {watch.Deleted, c}}},
+		// Deleted and recreated between polls.
 		{[]runtime.Object{a, z}, []watch.Event{{watch.Added, a}, {watch.Deleted, a}, {watch.Added, z}}},
 	}
 	for _, c := range cases {
@@ -103,5 +107,6 @@ func TestPollWatcher(t *testing.T) {
 				assert.Equal(t, actual.Object.(metav1.Object).GetUID(), expected.Object.(metav1.Object).GetUID())
 			}
 		}
+		w.Stop()
 	}
 }
