@@ -59,3 +59,22 @@ func TestServiceDelete(t *testing.T) {
 	}
 	assert.Check(t, util.ContainsAll(output, "Service", sevName, "deleted", "namespace", commands.FakeNamespace))
 }
+
+func TestMultipleServiceDelete(t *testing.T) {
+	sevName1 := "sev-12345"
+	sevName2 := "sev-67890"
+	sevName3 := "sev-abcde"
+	action, _, output, err := fakeServiceDelete([]string{"service", "delete", sevName1, sevName2, sevName3})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	if action == nil {
+		t.Errorf("No action")
+	} else if !action.Matches("delete", "services") {
+		t.Errorf("Bad action %v", action)
+	}
+	assert.Check(t, util.ContainsAll(output, "Service", sevName1, "deleted", "namespace", commands.FakeNamespace))
+	assert.Check(t, util.ContainsAll(output, "Service", sevName2, "deleted", "namespace", commands.FakeNamespace))
+	assert.Check(t, util.ContainsAll(output, "Service", sevName3, "deleted", "namespace", commands.FakeNamespace))
+}
