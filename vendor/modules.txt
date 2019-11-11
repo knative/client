@@ -346,7 +346,7 @@ gotest.tools/assert/cmp
 gotest.tools/internal/format
 gotest.tools/internal/source
 gotest.tools/internal/difflib
-# k8s.io/api v0.0.0-20190819141258-3544db3b9e44
+# k8s.io/api v0.0.0-20191016110246-af539daaa43a
 k8s.io/api/core/v1
 k8s.io/api/authentication/v1
 k8s.io/api/apps/v1
@@ -383,7 +383,7 @@ k8s.io/api/settings/v1alpha1
 k8s.io/api/storage/v1
 k8s.io/api/storage/v1alpha1
 k8s.io/api/storage/v1beta1
-# k8s.io/apimachinery v0.0.0-20190817020851-f2f3a405f61d
+# k8s.io/apimachinery v0.0.0-20191004115701-31ade1b30762
 k8s.io/apimachinery/pkg/api/errors
 k8s.io/apimachinery/pkg/apis/meta/v1
 k8s.io/apimachinery/pkg/util/duration
@@ -431,7 +431,7 @@ k8s.io/apimachinery/pkg/util/cache
 k8s.io/apimachinery/pkg/util/diff
 k8s.io/apimachinery/pkg/util/wait
 k8s.io/apimachinery/pkg/apis/meta/internalversion
-# k8s.io/cli-runtime v0.0.0-20190819144027-541433d7ce35
+# k8s.io/cli-runtime v0.0.0-20191016113937-7693ce2cae74
 k8s.io/cli-runtime/pkg/genericclioptions
 k8s.io/cli-runtime/pkg/printers
 k8s.io/cli-runtime/pkg/resource
@@ -444,7 +444,7 @@ k8s.io/cli-runtime/pkg/kustomize/k8sdeps/configmapandsecret
 k8s.io/cli-runtime/pkg/kustomize/k8sdeps/transformer/hash
 k8s.io/cli-runtime/pkg/kustomize/k8sdeps/transformer/patch
 k8s.io/cli-runtime/pkg/kustomize/k8sdeps/kv
-# k8s.io/client-go v0.0.0-20190819141724-e14f31a72a77
+# k8s.io/client-go v0.0.0-20191016110837-54936ba21026
 k8s.io/client-go/testing
 k8s.io/client-go/tools/clientcmd
 k8s.io/client-go/plugin/pkg/client/auth/gcp
