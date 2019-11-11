@@ -38,7 +38,7 @@ Please refer to the documentation and examples for more information about how wr
 	return pluginCmd
 }
 
-// AddPluginFlags plugins-dir and lookup-plugins-in-path to cmd
+// AddPluginFlags plugins-dir and lookup-plugins to cmd
 func AddPluginFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&commands.Cfg.PluginsDir, "plugins-dir", "~/.kn/plugins", "kn plugins directory")
 	cmd.Flags().BoolVar(&commands.Cfg.LookupPlugins, "lookup-plugins", false, "look for kn plugins in $PATH")
