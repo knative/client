@@ -36,7 +36,7 @@ func NewServiceDeleteCommand(p *commands.KnParams) *cobra.Command {
 
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 1 {
-				return errors.New("requires the service name.")
+				return errors.New("requires the service name")
 			}
 
 			namespace, err := p.GetNamespace(cmd)
@@ -51,9 +51,10 @@ func NewServiceDeleteCommand(p *commands.KnParams) *cobra.Command {
 			for _, name := range args {
 				err = client.DeleteService(name)
 				if err != nil {
-					return err
+					fmt.Fprintf(cmd.OutOrStdout(), "%s.\n", err)
+				} else {
+					fmt.Fprintf(cmd.OutOrStdout(), "Service '%s' successfully deleted in namespace '%s'.\n", name, namespace)
 				}
-				fmt.Fprintf(cmd.OutOrStdout(), "Service '%s' successfully deleted in namespace '%s'.\n", name, namespace)
 			}
 			return nil
 		},
