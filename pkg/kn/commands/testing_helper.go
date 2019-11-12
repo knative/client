@@ -60,6 +60,12 @@ func CreateTestKnCommand(cmd *cobra.Command, knParams *KnParams) (*cobra.Command
 // CreateSourcesTestKnCommand helper for creating test commands
 func CreateSourcesTestKnCommand(cmd *cobra.Command, knParams *KnParams) (*cobra.Command, *sources_fake.FakeSourcesV1alpha1, *bytes.Buffer) {
 	buf := new(bytes.Buffer)
+	// create fake serving client because the sink of source depends on serving client
+	fakeServing := &fake.FakeServingV1alpha1{&client_testing.Fake{}}
+	knParams.NewServingClient = func(namespace string) (v1alpha1.KnServingClient, error) {
+		return v1alpha1.NewKnServingClient(fakeServing, FakeNamespace), nil
+	}
+	// create fake sources client
 	fakeEventing := &sources_fake.FakeSourcesV1alpha1{&client_testing.Fake{}}
 	knParams.Output = buf
 	knParams.NewSourcesClient = func(namespace string) (sources_client.KnSourcesClient, error) {
