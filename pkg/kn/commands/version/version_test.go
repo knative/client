@@ -36,6 +36,7 @@ Build Date:   {{.BuildDate}}
 Git Revision: {{.GitRevision}}
 Supported APIs:
 - serving.knative.dev/v1alpha1 (knative-serving v0.10.0)
+- sources.eventing.knative.dev/v1alpha1 (knative-eventing v0.10.0)
 `
 
 const (
