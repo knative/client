@@ -22,4 +22,7 @@ In the following cases, add a short description of PR to the unreleased section 
 - 🧽 Update or clean up current behaviour
 - 🗑️ Remove feature or internal logic
 
+See other entries in CHANGELOG.adoc as an example.
+
+PLEASE DON'T ADD THAT LINE HERE IN THE PULL-REQUEST DESCRIPTION BUT DIRECTLY IN CHANGELOG.ADOC AND ADD CHANGELOG.ADOC AS PART OF YOUR PULL-REQUEST.
 -->
