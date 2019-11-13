@@ -6,15 +6,25 @@ In this basic worflow we show the CRUD (create, read, update, delete) operations
 
 ```bash
 kn service create hello --image gcr.io/knative-samples/helloworld-go --env TARGET=Knative
-Service 'hello' successfully created in namespace 'default'.
+
+Creating service 'hello' in namespace 'default':
+
+  0.247s The Route is still working to reflect the latest desired specification.
+  0.299s Configuration "hello" is waiting for a Revision to become ready.
+ 11.631s ...
+ 11.719s Ingress has not yet been reconciled.
+ 13.102s Ready to serve.
+
+Service 'hello' created with latest revision 'hello-bxshg-1' and URL:
+http://hello.default.apps-crc.testing
 ```
 
 * **List a service**
 
 ```bash
-kn service list hello
-NAME           DOMAIN                             GENERATION   AGE     CONDITIONS   READY   REASON
-hello          hello.default.example.com          1            3m5s    3 OK / 3     True
+kn service list
+NAME    URL                                LATEST          AGE     CONDITIONS   READY   REASON
+hello   http://hello.default.example.com   hello-dskww-1   2m42s   3 OK / 3     True
 ```
 
 * **Curl service endpoint**
@@ -30,6 +40,15 @@ Where `http://xxx.xx.xxx.xx` is your Knative installation ingress.
 
 ```bash
 kn service update hello --env TARGET=Kn
+
+Updating Service 'hello' in namespace 'default':
+
+  3.559s Traffic is not yet migrated to the latest revision.
+  3.624s Ingress has not yet been reconciled.
+  3.770s Ready to serve.
+
+Service 'hello' updated with latest revision 'hello-nhbwv-2' and URL:
+http://hello.default.example.com
 ```
 
 The service's environment variable `TARGET` is now set to `Kn`.
@@ -38,53 +57,21 @@ The service's environment variable `TARGET` is now set to `Kn`.
 
 ```bash
 kn service describe hello
-```
-```yaml
-apiVersion: knative.dev/v1alpha1
-kind: Service
-metadata:
-  creationTimestamp: "2019-05-14T20:11:06Z"
-  generation: 1
-  name: hello
-  namespace: default
-  resourceVersion: "29659961"
-  selfLink: /apis/serving.knative.dev/v1alpha1/namespaces/default/services/hello
-  uid: 67d46126-7684-11e9-b088-4639f5970760
-spec:
-  generation: 2
-  runLatest:
-    configuration:
-      revisionTemplate:
-        metadata:
-          creationTimestamp: null
-        spec:
-          concurrencyModel: Multi
-          container:
-            env:
-            - name: TARGET
-              value: Kn
-            name: ""
-            resources: {}
-status:
-  conditions:
-  - lastTransitionTime: "2019-05-14T20:11:42Z"
-    status: "True"
-    type: RoutesReady
-  - lastTransitionTime: "2019-05-14T20:14:53Z"
-    status: Unknown
-    type: ConfigurationsReady
-  - lastTransitionTime: "2019-05-14T20:14:53Z"
-    status: Unknown
-    type: Ready
-  domain: hello.default.example.com
-  domainInternal: hello.default.svc.cluster.local
-  latestCreatedRevisionName: hello-00002
-  latestReadyRevisionName: hello-00001
-  observedGeneration: 2
-  traffic:
-  - configurationName: hello
-    percent: 100
-    revisionName: hello-00001
+Name:       hello
+Namespace:  default
+Age:        5m
+URL:        http://hello.default.example.com
+Address:    http://hello.default.svc.cluster.local
+
+Revisions:
+  100%  @latest (hello-nhbwv-2) [2] (50s)
+        Image:  gcr.io/knative-samples/helloworld-go (pinned to 5ea96b)
+
+Conditions:
+  OK TYPE                   AGE REASON
+  ++ Ready                  46s
+  ++ ConfigurationsReady    46s
+  ++ RoutesReady            46s
 ```
 
 * **Delete a service**
@@ -98,5 +85,5 @@ You can then verify that the 'hello' service is deleted by trying to `list` it a
 
 ```bash
 kn service list hello
-No resources found.
+No services found.
 ```
