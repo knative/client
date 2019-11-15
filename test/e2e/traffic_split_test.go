@@ -21,6 +21,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"gotest.tools/assert"
 	"knative.dev/client/pkg/util"
@@ -366,6 +367,7 @@ func TestTrafficSplit(t *testing.T) {
 }
 
 func (test *e2eTest) verifyTargets(t *testing.T, serviceName string, expectedTargets []TargetFields) {
+	time.Sleep(3 * time.Second)
 	out := test.serviceDescribeWithJsonPath(t, serviceName, targetsJsonPath)
 	assert.Check(t, out != "")
 	actualTargets, err := splitTargets(out, targetsSeparator, len(expectedTargets))
