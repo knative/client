@@ -27,11 +27,6 @@ fi
 
 set -eu
 
-# Temporary fix for iTerm issue https://gitlab.com/gnachman/iterm2/issues/7901
-S=""
-if [ -n "${ITERM_PROFILE:-}" ]; then
-  S=" "
-fi
 # Run build
 run() {
   # Switch on modules unconditionally
@@ -126,7 +121,7 @@ source_format() {
      # Run go fmt instead
      go_fmt
   else
-     echo "🧽 ${S}Format"
+     echo "🧽 ${X}Format"
      goimports -w $(echo $source_dirs)
      find $(echo $source_dirs) -name "*.go" -print0 | xargs -0 gofmt -s -w
   fi
@@ -149,7 +144,7 @@ go_test() {
     reset="[39m"
   fi
 
-  echo "🧪 ${S}Test"
+  echo "🧪 ${X}Test"
   set +e
   go test -v ./pkg/... >$test_output 2>&1
   local err=$?
@@ -190,7 +185,7 @@ check_license() {
 
 
 update_deps() {
-  echo "🕸️ ${S}Update"
+  echo "🚒 Update"
   go mod tidy
   go mod vendor
 }
@@ -284,6 +279,27 @@ cross_build() {
   return ${failed}
 }
 
+# Spaced fillers needed for certain emojis in certain terminals
+S=""
+X=""
+
+# Calculate space fixing variables S and X
+apply_emoji_fixes() {
+  # Temporary fix for iTerm issue https://gitlab.com/gnachman/iterm2/issues/7901
+  if [ -n "${ITERM_PROFILE:-}" ]; then
+    S=" "
+    # This issue has been fixed with iTerm2 3.3.7, so let's check for this
+    # We can remove this code alltogether if iTerm2 3.3.7 is in common usage everywhere
+    if [ -n "${TERM_PROGRAM_VERSION}" ]; then
+      args=$(echo $TERM_PROGRAM_VERSION | sed -e 's#[^0-9]*\([0-9]*\)[.]\([0-9]*\)[.]\([0-9]*\)\([0-9A-Za-z-]*\)#\1 \2 \3#')
+      expanded=$(printf '%03d%03d%03d' $args)
+      if [ $expanded -lt "003003007" ]; then
+        X=" "
+      fi
+    fi
+  fi
+}
+
 # Display a help message.
 display_help() {
     local command="${1:-}"
@@ -327,5 +343,8 @@ fi
 
 # Shared funcs with CI
 source $(basedir)/hack/build-flags.sh
+
+# Fixe emoji labels for certain terminals
+apply_emoji_fixes
 
 run $*
