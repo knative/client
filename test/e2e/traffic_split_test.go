@@ -34,8 +34,8 @@ var targetFieldsLength = 4
 // returns deployed service targets separated by '|' and each target fields seprated by comma
 var targetsJsonPath = "jsonpath={range .status.traffic[*]}{.tag}{','}{.revisionName}{','}{.percent}{','}{.latestRevision}{'|'}{end}"
 
-// returns latest ready revision name jsonpath
-//var LRRJsonPath = "jsonpath={.status.latestReadyRevisionName}"
+var lcrJsonPath = "jsonpath={.status.latestCreatedRevisionName}"
+var lrrJsonPath = "jsonpath={.status.latestReadyRevisionName}"
 
 // TargetFields are used in e2e to store expected fields per traffic target
 // and actual traffic targets fields of deployed service are converted into struct before comparing
@@ -366,8 +366,24 @@ func TestTrafficSplit(t *testing.T) {
 	)
 }
 
+// TODO: Remove after serving/issue#6060 is fixed
+// Since service update request has returned (True), lets retry 5 times
+// with 2 seconds delay to ensure LCR = LRR, fail otherwise
+func (test *e2eTest) ensureLRREqualToLCR(t *testing.T, serviceName string) {
+	for i := 0; i < 5; i++ {
+		lcr := test.serviceDescribeWithJsonPath(t, serviceName, lcrJsonPath)
+		lrr := test.serviceDescribeWithJsonPath(t, serviceName, lrrJsonPath)
+		if lcr == lrr {
+			return
+		}
+		time.Sleep(time.Second * 2)
+	}
+}
+
 func (test *e2eTest) verifyTargets(t *testing.T, serviceName string, expectedTargets []TargetFields) {
-	time.Sleep(3 * time.Second)
+	// TODO: Workaround for serving/issue#6060, remove as fixed
+	test.ensureLRREqualToLCR(t, serviceName)
+
 	out := test.serviceDescribeWithJsonPath(t, serviceName, targetsJsonPath)
 	assert.Check(t, out != "")
 	actualTargets, err := splitTargets(out, targetsSeparator, len(expectedTargets))
@@ -375,10 +391,6 @@ func (test *e2eTest) verifyTargets(t *testing.T, serviceName string, expectedTar
 	formattedActualTargets := formatActualTargets(t, actualTargets)
 	assert.DeepEqual(t, expectedTargets, formattedActualTargets)
 }
-
-//func (test *e2eTest) latestReadyRevisionOfService(t *testing.T, serviceName string) string {
-//	return test.serviceDescribeWithJsonPath(t, serviceName, LRRJsonPath)
-//}
 
 func (test *e2eTest) serviceDescribeWithJsonPath(t *testing.T, serviceName, jsonpath string) string {
 	command := []string{"service", "describe", serviceName, "-o", jsonpath}
