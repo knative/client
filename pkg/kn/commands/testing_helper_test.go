@@ -21,6 +21,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"gotest.tools/assert"
+	sources_fake "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1/fake"
 	"knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake"
 )
 
@@ -34,6 +35,37 @@ func TestCreateTestKnCommand(t *testing.T) {
 	setup := func(t *testing.T) {
 		knParams := &KnParams{}
 		knCmd, serving, buffer = CreateTestKnCommand(&cobra.Command{Use: "fake"}, knParams)
+		assert.Assert(t, knCmd != nil)
+		assert.Assert(t, len(knCmd.Commands()) == 1)
+		assert.Assert(t, knCmd.Commands()[0].Use == "fake")
+		assert.Assert(t, serving != nil)
+		assert.Assert(t, buffer != nil)
+	}
+
+	t.Run("creates a new kn cobra.Command", func(t *testing.T) {
+		setup(t)
+
+		assert.Assert(t, knCmd != nil)
+		assert.Assert(t, knCmd.Use == "kn")
+		assert.Assert(t, knCmd.Short == "Knative client")
+		assert.Assert(t, strings.Contains(knCmd.Long, "Manage your Knative building blocks:"))
+		assert.Assert(t, knCmd.RunE == nil)
+		assert.Assert(t, knCmd.DisableAutoGenTag == true)
+		assert.Assert(t, knCmd.SilenceUsage == true)
+		assert.Assert(t, knCmd.SilenceErrors == true)
+	})
+}
+
+func TestCreateSourcesTestKnCommand(t *testing.T) {
+	var (
+		knCmd   *cobra.Command
+		serving *sources_fake.FakeSourcesV1alpha1
+		buffer  *bytes.Buffer
+	)
+
+	setup := func(t *testing.T) {
+		knParams := &KnParams{}
+		knCmd, serving, buffer = CreateSourcesTestKnCommand(&cobra.Command{Use: "fake"}, knParams)
 		assert.Assert(t, knCmd != nil)
 		assert.Assert(t, len(knCmd.Commands()) == 1)
 		assert.Assert(t, knCmd.Commands()[0].Use == "fake")
