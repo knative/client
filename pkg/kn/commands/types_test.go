@@ -26,7 +26,7 @@ import (
 	"knative.dev/client/pkg/util"
 )
 
-type getConfigTestCase struct {
+type configTestCase struct {
 	clientConfig      clientcmd.ClientConfig
 	expectedErrString string
 	logHttp           bool
@@ -53,12 +53,12 @@ contexts:
 current-context: a
 `
 
-func TestGetConfig(t *testing.T) {
+func TestPrepareConfig(t *testing.T) {
 	basic, err := clientcmd.NewClientConfigFromBytes([]byte(BASIC_KUBECONFIG))
 	if err != nil {
 		t.Error(err)
 	}
-	for i, tc := range []getConfigTestCase{
+	for i, tc := range []configTestCase{
 		{
 			clientcmd.NewDefaultClientConfig(clientcmdapi.Config{}, &clientcmd.ConfigOverrides{}),
 			"no configuration has been provided",
@@ -80,7 +80,7 @@ func TestGetConfig(t *testing.T) {
 			LogHTTP:      tc.logHttp,
 		}
 
-		_, err := p.GetConfig()
+		_, err := p.prepareRestConfig()
 
 		switch len(tc.expectedErrString) {
 		case 0:
@@ -148,7 +148,7 @@ func TestNewSourcesClient(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	for i, tc := range []getConfigTestCase{
+	for i, tc := range []configTestCase{
 		{
 			clientcmd.NewDefaultClientConfig(clientcmdapi.Config{}, &clientcmd.ConfigOverrides{}),
 			"no configuration has been provided",
