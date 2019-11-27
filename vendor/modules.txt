@@ -622,6 +622,7 @@ k8s.io/utils/buffer
 k8s.io/utils/trace
 # knative.dev/eventing v0.10.0
 knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1
+knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1/fake
 knative.dev/eventing/pkg/apis/sources/v1alpha1
 knative.dev/eventing/pkg/client/clientset/versioned/scheme
 knative.dev/eventing/pkg/apis/duck

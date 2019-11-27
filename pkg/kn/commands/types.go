@@ -21,8 +21,10 @@ import (
 	"path/filepath"
 
 	"k8s.io/client-go/tools/clientcmd"
+	sources_kn_v1alpha1 "knative.dev/client/pkg/eventing/sources/v1alpha1"
 	serving_kn_v1alpha1 "knative.dev/client/pkg/serving/v1alpha1"
 	"knative.dev/client/pkg/util"
+	eventing_sources "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1"
 	serving_v1alpha1_client "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
 )
 
@@ -40,10 +42,11 @@ type Config struct {
 
 // Parameters for creating commands. Useful for inserting mocks for testing.
 type KnParams struct {
-	Output       io.Writer
-	KubeCfgPath  string
-	ClientConfig clientcmd.ClientConfig
-	NewClient    func(namespace string) (serving_kn_v1alpha1.KnServingClient, error)
+	Output           io.Writer
+	KubeCfgPath      string
+	ClientConfig     clientcmd.ClientConfig
+	NewClient        func(namespace string) (serving_kn_v1alpha1.KnServingClient, error)
+	NewSourcesClient func(namespace string) (sources_kn_v1alpha1.KnSourcesClient, error)
 
 	// General global options
 	LogHTTP bool
@@ -56,6 +59,9 @@ func (params *KnParams) Initialize() {
 	if params.NewClient == nil {
 		params.NewClient = params.newClient
 	}
+	if params.NewSourcesClient == nil {
+		params.NewSourcesClient = params.newSourcesClient
+	}
 }
 
 func (params *KnParams) newClient(namespace string) (serving_kn_v1alpha1.KnServingClient, error) {
@@ -64,6 +70,29 @@ func (params *KnParams) newClient(namespace string) (serving_kn_v1alpha1.KnServi
 		return nil, err
 	}
 	return serving_kn_v1alpha1.NewKnServingClient(client, namespace), nil
+}
+
+func (params *KnParams) newSourcesClient(namespace string) (sources_kn_v1alpha1.KnSourcesClient, error) {
+	var err error
+
+	if params.ClientConfig == nil {
+		params.ClientConfig, err = params.GetClientConfig()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	clientConfig, err := params.ClientConfig.ClientConfig()
+	if err != nil {
+		return nil, err
+	}
+	if params.LogHTTP {
+		// TODO: When we update to the newer version of client-go, replace with
+		// config.Wrap() for future compat.
+		clientConfig.WrapTransport = util.NewLoggingTransport
+	}
+	client, _ := eventing_sources.NewForConfig(clientConfig)
+	return sources_kn_v1alpha1.NewKnSourcesClient(client, namespace), nil
 }
 
 // GetConfig returns Serving Client

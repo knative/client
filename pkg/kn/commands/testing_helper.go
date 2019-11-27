@@ -29,6 +29,9 @@ import (
 
 	"knative.dev/client/pkg/serving/v1alpha1"
 	"knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake"
+
+	sources_client "knative.dev/client/pkg/eventing/sources/v1alpha1"
+	sources_fake "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1/fake"
 )
 
 const FakeNamespace = "current"
@@ -52,6 +55,19 @@ func CreateTestKnCommand(cmd *cobra.Command, knParams *KnParams) (*cobra.Command
 	knParams.fixedCurrentNamespace = FakeNamespace
 	knCommand := NewKnTestCommand(cmd, knParams)
 	return knCommand, fakeServing, buf
+}
+
+// CreateSourcesTestKnCommand helper for creating test commands
+func CreateSourcesTestKnCommand(cmd *cobra.Command, knParams *KnParams) (*cobra.Command, *sources_fake.FakeSourcesV1alpha1, *bytes.Buffer) {
+	buf := new(bytes.Buffer)
+	fakeEventing := &sources_fake.FakeSourcesV1alpha1{&client_testing.Fake{}}
+	knParams.Output = buf
+	knParams.NewSourcesClient = func(namespace string) (sources_client.KnSourcesClient, error) {
+		return sources_client.NewKnSourcesClient(fakeEventing, FakeNamespace), nil
+	}
+	knParams.fixedCurrentNamespace = FakeNamespace
+	knCommand := NewKnTestCommand(cmd, knParams)
+	return knCommand, fakeEventing, buf
 }
 
 // CaptureStdout collects the current content of os.Stdout
