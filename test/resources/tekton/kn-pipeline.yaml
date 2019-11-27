@@ -1,0 +1,57 @@
+# Copyright 2019 The Knative Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+apiVersion: tekton.dev/v1alpha1
+kind: Pipeline
+metadata:
+  name: buildah-build-kn-create
+spec:
+  resources:
+  - name: source
+    type: git
+  - name: image
+    type: image
+  params:
+  - name: ARGS
+    type: array
+    description: Arguments to pass to kn CLI
+    default:
+      - "help"
+  tasks:
+  - name: buildah-build
+    taskRef:
+      name: buildah
+    resources:
+      inputs:
+        - name: source
+          resource: source
+      outputs:
+        - name: image
+          resource: image
+  - name: kn-service-create
+    taskRef:
+      name: kn
+    runAfter:
+      - buildah-build
+    resources:
+      inputs:
+      - name: image
+        resource: image
+        from:
+          - buildah-build
+    params:
+    - name: kn-image
+      value: "gcr.io/knative-nightly/knative.dev/client/cmd/kn"
+    - name: ARGS
+      value:
+        - "$(params.ARGS)"

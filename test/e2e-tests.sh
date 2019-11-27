@@ -28,36 +28,19 @@
 # $KNATIVE_VERSION with a valid release, e.g. 0.6.0, Knative serving
 # of this specified version will be installed in the Kubernetes cluster, and
 # all the tests will run against Knative serving of this specific version.
-source $(dirname $0)/../vendor/knative.dev/test-infra/scripts/e2e-tests.sh
-
-# Helper functions.
-
-# Build kn before integration tests, so we fail fast in case of error.
-function cluster_setup() {
-  header "Building client"
-  ${REPO_ROOT_DIR}/hack/build.sh -u || return 1
-}
-
-function knative_setup() {
-  local version=${KNATIVE_VERSION:-latest}
-  header "Installing Knative serving (${version})"
-
-  if [ "${version}" = "latest" ]; then
-    start_latest_knative_serving
-  else
-    start_release_knative_serving "${version}"
-  fi
-}
+#source $(dirname $0)/../vendor/knative.dev/test-infra/scripts/e2e-tests.sh
+#source $(dirname $0)/e2e-common.sh
 
 # Add local dir to have access to built kn
-export PATH=$PATH:${REPO_ROOT_DIR}
-export KNATIVE_VERSION=${KNATIVE_VERSION:-latest}
+#export PATH=$PATH:${REPO_ROOT_DIR}
 
 # Script entry point.
 
-initialize $@
+#initialize $@
 
-header "Running tests for Knative serving $KNATIVE_VERSION"
+#header "Running tests for Knative serving $KNATIVE_VERSION"
 
-go_test_e2e -timeout=30m ./test/e2e || fail_test
-success
+bash -x $(dirname $0)/tekton-tests.sh
+
+#go_test_e2e -timeout=30m ./test/e2e || fail_test
+#success
