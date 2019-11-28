@@ -26,6 +26,5 @@ func initializeFlags() bool {
 	// emitmetrics is a required flag for running periodic test jobs, add it here as a no-op to avoid the error
 	emitMetrics := flag.Bool("emitmetrics", false,
 		"Set this flag to true if you would like tests to emit metrics, e.g. latency of resources being realized in the system.")
-	flag.Parse()
 	return *emitMetrics
 }
