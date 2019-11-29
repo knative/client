@@ -65,8 +65,8 @@ func TestServiceDeleteNoSvcNameMock(t *testing.T) {
 	// Recording:
 	r := client.Recorder()
 
-	output, _ := executeServiceCommand(client, "delete")
-	assert.Assert(t, util.ContainsAll(output, "requires", "the", "service", "name"))
+	_, err := executeServiceCommand(client, "delete")
+	assert.ErrorContains(t, err, "requires", "the", "service", "name")
 
 	r.Validate()
 
