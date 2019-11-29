@@ -184,7 +184,7 @@ func TestServiceListOneOutputMock(t *testing.T) {
 	r.Validate()
 }
 
-func TestServiceGetWithTwoSrvNameMock(t *testing.T) {
+func TestServiceListWithTwoSrvNameMock(t *testing.T) {
 	// New mock client
 	client := knclient.NewMockKnClient(t)
 
