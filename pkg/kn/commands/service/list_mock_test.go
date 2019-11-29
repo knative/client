@@ -98,7 +98,7 @@ func TestListEmptyMock(t *testing.T) {
 	r.Validate()
 }
 
-func TestGetEmptyMock(t *testing.T) {
+func TestListEmptyWithArgMock(t *testing.T) {
 	// New mock client
 	client := knclient.NewMockKnClient(t)
 
@@ -140,31 +140,6 @@ func TestServiceListDefaultOutputMock(t *testing.T) {
 	r.Validate()
 }
 
-func TestServiceListAllNamespacesOutputMock(t *testing.T) {
-	// New mock client
-	client := knclient.NewMockKnClient(t)
-
-	// Recording:
-	r := client.Recorder()
-
-	service1 := createMockServiceWithParams("foo", "default", "http://foo.default.example.com", "foo-xyz")
-	service2 := createMockServiceWithParams("bar", "foo", "http://bar.foo.example.com", "bar-xyz")
-	service3 := createMockServiceWithParams("sss", "bar", "http://sss.bar.example.com", "sss-xyz")
-	serviceList := &v1alpha1.ServiceList{Items: []v1alpha1.Service{*service1, *service2, *service3}}
-	r.ListServices(knclient.Any(), serviceList, nil)
-
-	output, err := executeServiceCommand(client, "list", "--all-namespaces")
-	assert.NilError(t, err)
-
-	outputLines := strings.Split(output, "\n")
-	assert.Check(t, util.ContainsAll(outputLines[0], "NAMESPACE", "NAME", "URL", "LATEST", "AGE", "CONDITIONS", "READY", "REASON"))
-	assert.Check(t, util.ContainsAll(outputLines[1], "default", "foo", "foo.default.example.com", "foo-xyz"))
-	assert.Check(t, util.ContainsAll(outputLines[2], "bar", "sss", "sss.bar.example.com", "sss-xyz"))
-	assert.Check(t, util.ContainsAll(outputLines[3], "foo", "bar", "bar.foo.example.com", "bar-xyz"))
-
-	r.Validate()
-}
-
 func TestServiceListDefaultOutputNoHeadersMock(t *testing.T) {
 	// New mock client
 	client := knclient.NewMockKnClient(t)
@@ -188,7 +163,7 @@ func TestServiceListDefaultOutputNoHeadersMock(t *testing.T) {
 	r.Validate()
 }
 
-func TestServiceGetOneOutputMock(t *testing.T) {
+func TestServiceListOneOutputMock(t *testing.T) {
 	// New mock client
 	client := knclient.NewMockKnClient(t)
 
