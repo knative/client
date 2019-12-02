@@ -50,10 +50,10 @@ func TestTektonPipeline(t *testing.T) {
 	_, err = kubectl.RunWithOpts([]string{"apply", "-n", test.env.Namespace, "-f", basedir + "/kn-deployer-rbac.yaml"}, runOpts{})
 	assert.NilError(t, err)
 
-	_, err = kubectl.RunWithOpts([]string{"apply", "-n", test.env.Namespace, "-f", basedir + "/buildah-task.yaml"}, runOpts{})
+	_, err = kubectl.RunWithOpts([]string{"apply", "-n", test.env.Namespace, "-f", "https://raw.githubusercontent.com/tektoncd/catalog/master/buildah/buildah.yaml"}, runOpts{})
 	assert.NilError(t, err)
 
-	_, err = kubectl.RunWithOpts([]string{"apply", "-n", test.env.Namespace, "-f", basedir + "/kn-task.yaml"}, runOpts{})
+	_, err = kubectl.RunWithOpts([]string{"apply", "-n", test.env.Namespace, "-f", "https://raw.githubusercontent.com/tektoncd/catalog/master/kn/kn.yaml"}, runOpts{})
 	assert.NilError(t, err)
 
 	_, err = kubectl.RunWithOpts([]string{"apply", "-n", test.env.Namespace, "-f", basedir + "/kn-pipeline.yaml"}, runOpts{})

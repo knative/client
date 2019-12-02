@@ -5,7 +5,7 @@ FROM golang:1.12 as builder
 
 # Copy local code to the container image.
 WORKDIR /go/src/knative.dev/client/test/test_images/helloworld
-COPY . .
+COPY ./test/test_images/helloworld/helloworld.go .
 
 # Build the command inside the container.
 # (You may fetch or manage dependencies here,

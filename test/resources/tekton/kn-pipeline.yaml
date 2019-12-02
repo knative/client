@@ -38,6 +38,9 @@ spec:
       outputs:
         - name: image
           resource: image
+    params:
+    - name: DOCKERFILE
+      value: ./test/test_images/helloworld/Dockerfile
   - name: kn-service-create
     taskRef:
       name: kn
