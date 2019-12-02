@@ -21,7 +21,7 @@ source $(dirname $0)/e2e-common.sh
 
 # Add local dir to have access to built kn
 export PATH=$PATH:${REPO_ROOT_DIR}
-export TEKTON_VERSION=${TEKTON_VERSION:-v0.7.0}
+export TEKTON_VERSION=${TEKTON_VERSION:-v0.8.0}
 export E2E_PROJECT_ID=$(gcloud config get-value project)
 export GCR_REPO=gcr.io/${E2E_PROJECT_ID}/${E2E_BASE_NAME}-e2e-img/${RANDOM}
 export KN_E2E_NAMESPACE=tkn-kn
