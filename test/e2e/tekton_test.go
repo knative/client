@@ -17,7 +17,6 @@
 package e2e
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -44,7 +43,7 @@ func TestTektonPipeline(t *testing.T) {
 	// create secret for the kn-deployer-account service account
 	_, err := kubectl.RunWithOpts([]string{"create", "-n", test.env.Namespace, "secret",
 		"generic", "container-registry",
-		fmt.Sprintf("--from-file=.dockerconfigjson=%s", Flags.DockerConfigJSON),
+		"--from-file=.dockerconfigjson=" + Flags.DockerConfigJSON,
 		"--type=kubernetes.io/dockerconfigjson"}, runOpts{})
 	assert.NilError(t, err)
 
