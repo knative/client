@@ -29,4 +29,4 @@ spec:
   type: image
   params:
     - name: url
-      value: "${GCR_REPO}/helloworld:tkn"
+      value: "${CONTAINER_REGISTRY}/helloworld:tkn"
