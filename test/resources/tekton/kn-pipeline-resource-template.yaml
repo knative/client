@@ -19,9 +19,7 @@ spec:
   type: git
   params:
     - name: url
-      value: "https://github.com/mgencur/knative-client" #TODO: change to https://github.com/knative/client
-    - name: revision    #TODO: remove
-      value: tekton_tests_cli
+      value: "https://github.com/knative/client"
 ---
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
