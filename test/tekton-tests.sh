@@ -34,8 +34,10 @@ export KN_E2E_NAMESPACE=tkn-kn
 
 header "Running integration tests for Tekton"
 
-# Install Tekton
-kubectl apply -f https://github.com/tektoncd/pipeline/releases/download/${TEKTON_VERSION}/release.yaml
+# Install Tekton if not already installed
+if [[ $(kubectl api-resources | grep -c tekton.dev) -eq 0 ]]; then
+  kubectl apply -f https://github.com/tektoncd/pipeline/releases/download/${TEKTON_VERSION}/release.yaml
+fi
 
 if (( IS_PROW )); then
   # Configure Docker so that we can create a secret for GCR
