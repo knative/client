@@ -79,12 +79,8 @@ func TestTektonPipeline(t *testing.T) {
 }
 
 func waitForPipelineSuccess(t *testing.T, k kubectl, namespace string) error {
-	waitErr := wait.PollImmediate(Interval, Timeout, func() (bool, error) {
+	return wait.PollImmediate(Interval, Timeout, func() (bool, error) {
 		out, err := k.RunWithOpts([]string{"get", "pipelinerun", "-n", namespace, "-o=jsonpath='{.items[0].status.conditions[?(@.type==\"Succeeded\")].status}'"}, runOpts{})
 		return strings.Contains(out, "True"), err
 	})
-	if waitErr != nil {
-		return waitErr
-	}
-	return nil
 }

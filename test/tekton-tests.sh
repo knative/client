@@ -20,7 +20,6 @@
 # and container registry, you must set the $CONTAINER_REGISTRY and $DOCKER_CONFIG_JSON
 # environment variables and login to your registry of choice.
 
-source $(dirname $0)/../vendor/knative.dev/test-infra/scripts/e2e-tests.sh
 source $(dirname $0)/e2e-common.sh
 
 # Add local dir to have access to built kn

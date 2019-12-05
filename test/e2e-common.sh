@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+source $(dirname $0)/../vendor/knative.dev/test-infra/scripts/e2e-tests.sh
+
 function cluster_setup() {
   header "Building client"
   ${REPO_ROOT_DIR}/hack/build.sh -f || return 1
