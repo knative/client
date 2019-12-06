@@ -105,7 +105,7 @@ func (params *KnParams) newDynamicClient(namespace string) (dynamic_kn.KnDynamic
 		return nil, err
 	}
 
-	return dynamic_kn.NewDynamicClient(client, namespace), nil
+	return dynamic_kn.NewKnDynamicClient(client, namespace), nil
 }
 
 // prepareRestConfig returns REST config, which can be to use to create specific clientset

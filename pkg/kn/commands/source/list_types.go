@@ -22,8 +22,9 @@ import (
 	"knative.dev/client/pkg/kn/commands"
 )
 
+// NewListTypesCommand defines and processes `kn source list-types` command operations
 func NewListTypesCommand(p *commands.KnParams) *cobra.Command {
-	sourceListTypesFlags := NewSourceListTypesFlags()
+	listTypesFlags := NewListTypesFlags()
 	listTypesCommand := &cobra.Command{
 		Use:   "list-types",
 		Short: "List available source types",
@@ -48,7 +49,7 @@ func NewListTypesCommand(p *commands.KnParams) *cobra.Command {
 				return nil
 			}
 
-			printer, err := sourceListTypesFlags.ToPrinter()
+			printer, err := listTypesFlags.ToPrinter()
 			if err != nil {
 				return nil
 			}
@@ -63,6 +64,6 @@ func NewListTypesCommand(p *commands.KnParams) *cobra.Command {
 		},
 	}
 	commands.AddNamespaceFlags(listTypesCommand.Flags(), false)
-	sourceListTypesFlags.AddFlags(listTypesCommand)
+	listTypesFlags.AddFlags(listTypesCommand)
 	return listTypesCommand
 }

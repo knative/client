@@ -21,23 +21,23 @@ import (
 	hprinters "knative.dev/client/pkg/printers"
 )
 
-// SourceListTypesFlags composes common printer flag structs
+// ListTypesFlags composes common printer flag structs
 // used in the 'kn source list-types' command.
-type SourceListTypesFlags struct {
+type ListTypesFlags struct {
 	GenericPrintFlags  *genericclioptions.PrintFlags
 	HumanReadableFlags *commands.HumanPrintFlags
 }
 
 // AllowedFormats is the list of formats in which data can be displayed
-func (f *SourceListTypesFlags) AllowedFormats() []string {
+func (f *ListTypesFlags) AllowedFormats() []string {
 	formats := f.GenericPrintFlags.AllowedFormats()
 	formats = append(formats, f.HumanReadableFlags.AllowedFormats()...)
 	return formats
 }
 
-// ToPrinter attempts to find a composed set of SourceListTypesFlags suitable for
+// ToPrinter attempts to find a composed set of ListTypesFlags suitable for
 // returning a printer based on current flag values.
-func (f *SourceListTypesFlags) ToPrinter() (hprinters.ResourcePrinter, error) {
+func (f *ListTypesFlags) ToPrinter() (hprinters.ResourcePrinter, error) {
 	// if there are flags specified for generic printing
 	if f.GenericPrintFlags.OutputFlagSpecified() {
 		p, err := f.GenericPrintFlags.ToPrinter()
@@ -47,7 +47,7 @@ func (f *SourceListTypesFlags) ToPrinter() (hprinters.ResourcePrinter, error) {
 		return p, nil
 	}
 
-	p, err := f.HumanReadableFlags.ToPrinter(SourceListTypesHandlers)
+	p, err := f.HumanReadableFlags.ToPrinter(ListTypesHandlers)
 	if err != nil {
 		return nil, err
 	}
@@ -56,15 +56,15 @@ func (f *SourceListTypesFlags) ToPrinter() (hprinters.ResourcePrinter, error) {
 
 // AddFlags receives a *cobra.Command reference and binds
 // flags related to humanreadable and template printing.
-func (f *SourceListTypesFlags) AddFlags(cmd *cobra.Command) {
+func (f *ListTypesFlags) AddFlags(cmd *cobra.Command) {
 	f.GenericPrintFlags.AddFlags(cmd)
 	f.HumanReadableFlags.AddFlags(cmd)
 }
 
-// NewSourceListTypesFlags returns flags associated with humanreadable,
+// NewListTypesFlags returns flags associated with humanreadable,
 // template, and "name" printing, with default values set.
-func NewSourceListTypesFlags() *SourceListTypesFlags {
-	return &SourceListTypesFlags{
+func NewListTypesFlags() *ListTypesFlags {
+	return &ListTypesFlags{
 		GenericPrintFlags:  genericclioptions.NewPrintFlags(""),
 		HumanReadableFlags: commands.NewHumanPrintFlags(),
 	}

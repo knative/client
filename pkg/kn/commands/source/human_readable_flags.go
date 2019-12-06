@@ -33,7 +33,8 @@ func getSourceTypeDescription(kind string) string {
 	return sourceTypeDescription[kind]
 }
 
-func SourceListTypesHandlers(h hprinters.PrintHandler) {
+// ListTypesHandlers handles printing human readable table for `kn source list-types` command's output
+func ListTypesHandlers(h hprinters.PrintHandler) {
 	sourceTypesColumnDefinitions := []metav1beta1.TableColumnDefinition{
 		{Name: "Type", Type: "string", Description: "Kind / Type of the source type", Priority: 1},
 		{Name: "Name", Type: "string", Description: "Name of the source type", Priority: 1},
