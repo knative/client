@@ -53,7 +53,7 @@ func executeServiceCommand(client knclient.KnServingClient, args ...string) (str
 
 	output := new(bytes.Buffer)
 	knParams.Output = output
-	knParams.NewClient = func(namespace string) (knclient.KnServingClient, error) {
+	knParams.NewServingClient = func(namespace string) (knclient.KnServingClient, error) {
 		return client, nil
 	}
 	cmd := NewServiceCommand(knParams)
