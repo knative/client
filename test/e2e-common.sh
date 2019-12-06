@@ -25,7 +25,7 @@ function knative_setup() {
   local serving_version=${KNATIVE_SERVING_VERSION:-latest}
   header "Installing Knative Serving (${serving_version})"
 
-  if [ "${version}" = "latest" ]; then
+  if [ "${serving_version}" = "latest" ]; then
     start_latest_knative_serving
   else
     start_release_knative_serving "${serving_version}"
@@ -34,7 +34,7 @@ function knative_setup() {
   local eventing_version=${KNATIVE_EVENTING_VERSION:-latest}
   header "Installing Knative Eventing (${eventing_version})"
 
-  if ["${eventing_version}" = "latest"]; then
+  if [ "${eventing_version}" = "latest" ]; then
     start_latest_knative_eventing
   else
     start_release_knative_eventing "${eventing_version}"
