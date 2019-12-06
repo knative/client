@@ -24,7 +24,6 @@
 # project $PROJECT_ID, start Knative serving, run the tests and delete
 # the cluster.
 
-source $(dirname $0)/../vendor/knative.dev/test-infra/scripts/e2e-tests.sh
 source $(dirname $0)/e2e-common.sh
 
 # Will create and delete this namespace and use it for smoke tests
