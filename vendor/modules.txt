@@ -427,8 +427,6 @@ k8s.io/apimachinery/pkg/api/validation
 k8s.io/apimachinery/pkg/conversion/queryparams
 k8s.io/apimachinery/pkg/util/naming
 k8s.io/apimachinery/pkg/util/yaml
-k8s.io/apimachinery/pkg/runtime/serializer
-k8s.io/apimachinery/pkg/runtime/serializer/streaming
 k8s.io/apimachinery/pkg/util/wait
 k8s.io/apimachinery/third_party/forked/golang/reflect
 k8s.io/apimachinery/pkg/runtime/serializer/protobuf
