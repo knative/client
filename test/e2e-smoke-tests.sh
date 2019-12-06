@@ -25,15 +25,7 @@
 # the cluster.
 
 source $(dirname $0)/../vendor/knative.dev/test-infra/scripts/e2e-tests.sh
-
-# Helper functions.
-
-# Build kn before integration tests, so we fail fast in case of error.
-./hack/build.sh -f
-
-function knative_setup() {
-  start_latest_knative_serving
-}
+source $(dirname $0)/e2e-common.sh
 
 # Will create and delete this namespace and use it for smoke tests
 export KN_E2E_SMOKE_TESTS_NAMESPACE=kne2esmoketests

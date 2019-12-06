@@ -18,13 +18,28 @@ package e2e
 
 import (
 	"flag"
+	"os"
 )
 
-var _ = initializeFlags()
+// Flags holds the command line flags or defaults for settings in the user's environment.
+// See ClientFlags for the list of supported fields.
+var Flags = initializeFlags()
 
-func initializeFlags() bool {
+// ClientFlags define the flags that are needed to run the e2e tests.
+type ClientFlags struct {
+	EmitMetrics      bool
+	DockerConfigJSON string
+}
+
+func initializeFlags() *ClientFlags {
+	var f ClientFlags
 	// emitmetrics is a required flag for running periodic test jobs, add it here as a no-op to avoid the error
-	emitMetrics := flag.Bool("emitmetrics", false,
+	flag.BoolVar(&f.EmitMetrics, "emitmetrics", false,
 		"Set this flag to true if you would like tests to emit metrics, e.g. latency of resources being realized in the system.")
-	return *emitMetrics
+
+	dockerConfigJSON := os.Getenv("DOCKER_CONFIG_JSON")
+	flag.StringVar(&f.DockerConfigJSON, "dockerconfigjson", dockerConfigJSON,
+		"Provide the path to Docker configuration file in json format. Defaults to $DOCKER_CONFIG_JSON")
+
+	return &f
 }
