@@ -27,6 +27,7 @@ var sourceTypeDescription = map[string]string{
 	"ApiServerSource": "Kubernetes API Server events source",
 	"ContainerSource": "Container events source",
 	"CronJobSource":   "CronJob events source",
+	"SinkBinding":     "Binding Pattern for ContainerSource",
 }
 
 func getSourceTypeDescription(kind string) string {
