@@ -139,6 +139,7 @@ github.com/joho/godotenv
 github.com/json-iterator/go
 # github.com/magiconair/properties v1.8.0
 github.com/magiconair/properties
+github.com/magiconair/properties/assert
 # github.com/mailru/easyjson v0.0.0-20190614124828-94de47d64c63
 github.com/mailru/easyjson/jlexer
 github.com/mailru/easyjson/jwriter
@@ -626,6 +627,8 @@ k8s.io/klog
 # k8s.io/kube-openapi v0.0.0-20190816220812-743ec37842bf
 k8s.io/kube-openapi/pkg/util/proto
 k8s.io/kube-openapi/pkg/common
+# k8s.io/kubernetes v1.14.0
+k8s.io/kubernetes/staging/src/k8s.io/client-go/dynamic/fake
 # k8s.io/utils v0.0.0-20190221042446-c2654d5206da
 k8s.io/utils/integer
 k8s.io/utils/buffer
