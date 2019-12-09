@@ -1,19 +1,28 @@
-## kn source
+## kn source cronjob delete
 
-Event source command group
+Delete a Cronjob source.
 
 ### Synopsis
 
-Event source command group
+Delete a Cronjob source.
 
 ```
-kn source [flags]
+kn source cronjob delete NAME [flags]
+```
+
+### Examples
+
+```
+
+  # Delete a CronJob source 'my-cron-trigger'
+  kn source cronjob delete my-cron-trigger
 ```
 
 ### Options
 
 ```
-  -h, --help   help for source
+  -h, --help               help for delete
+  -n, --namespace string   Specify the namespace to operate in.
 ```
 
 ### Options inherited from parent commands
@@ -26,8 +35,5 @@ kn source [flags]
 
 ### SEE ALSO
 
-* [kn](kn.md)	 - Knative client
-* [kn source apiserver](kn_source_apiserver.md)	 - Kubernetes API Server Event Source command group
 * [kn source cronjob](kn_source_cronjob.md)	 - Cronjob source command group
-* [kn source list-types](kn_source_list-types.md)	 - List available source types
 

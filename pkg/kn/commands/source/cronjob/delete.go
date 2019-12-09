@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package apiserver
+package cronjob
 
 import (
 	"errors"
@@ -22,35 +22,31 @@ import (
 	"knative.dev/client/pkg/kn/commands"
 )
 
-// NewRevisionDeleteCommand represent 'revision delete' command
-func NewApiServerDeleteCommand(p *commands.KnParams) *cobra.Command {
+// NewCronJobDelete command for deleting a cronjob source
+func NewCronJobDeleteCommand(p *commands.KnParams) *cobra.Command {
 	ApiServerDeleteCommand := &cobra.Command{
 		Use:   "delete NAME",
-		Short: "Delete an ApiServerSource.",
+		Short: "Delete a Cronjob source.",
 		Example: `
-  # Delete an ApiServerSource 'k8sevents' in default namespace
-  kn source apiserver delete k8sevents`,
+  # Delete a CronJob source 'my-cron-trigger'
+  kn source cronjob delete my-cron-trigger`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
-				return errors.New("'source apiserver delete' requires the name of the source as single argument")
+				return errors.New("'requires the name of the crobjob source to delete as single argument")
 			}
 			name := args[0]
 
-			namespace, err := p.GetNamespace(cmd)
+			cronSourceClient, err := newCronJobSourceClient(p, cmd)
 			if err != nil {
 				return err
 			}
 
-			sourcesClient, err := p.NewSourcesClient(namespace)
+			err = cronSourceClient.DeleteCronJobSource(name)
 			if err != nil {
 				return err
 			}
 
-			err = sourcesClient.ApiServerSourcesClient().DeleteApiServerSource(name)
-			if err != nil {
-				return err
-			}
-			fmt.Fprintf(cmd.OutOrStdout(), "ApiServerSource '%s' deleted in namespace '%s'.\n", args[0], namespace)
+			fmt.Fprintf(cmd.OutOrStdout(), "Cronjob source '%s' deleted in namespace '%s'.\n", name, cronSourceClient.Namespace())
 			return nil
 		},
 	}

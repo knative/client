@@ -26,7 +26,7 @@ kn source apiserver [flags]
 
 ### SEE ALSO
 
-* [kn source](kn_source.md)	 - Event Source command group
+* [kn source](kn_source.md)	 - Event source command group
 * [kn source apiserver create](kn_source_apiserver_create.md)	 - Create an ApiServerSource, which watches for Kubernetes events and forwards them to a sink
 * [kn source apiserver delete](kn_source_apiserver_delete.md)	 - Delete an ApiServerSource.
 
