@@ -55,7 +55,7 @@ func printSourceTypes(sourceType unstructured.Unstructured, options hprinters.Pr
 	}
 
 	if !found {
-		return nil, fmt.Errorf("can't find kind of CRD for %s", name)
+		return nil, fmt.Errorf("can't find specs.names.kind for %s", name)
 	}
 
 	row := metav1beta1.TableRow{
