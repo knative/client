@@ -45,7 +45,7 @@ type KnParams struct {
 	Output           io.Writer
 	KubeCfgPath      string
 	ClientConfig     clientcmd.ClientConfig
-	NewClient        func(namespace string) (serving_kn_v1alpha1.KnServingClient, error)
+	NewServingClient func(namespace string) (serving_kn_v1alpha1.KnServingClient, error)
 	NewSourcesClient func(namespace string) (sources_kn_v1alpha1.KnSourcesClient, error)
 
 	// General global options
@@ -56,15 +56,15 @@ type KnParams struct {
 }
 
 func (params *KnParams) Initialize() {
-	if params.NewClient == nil {
-		params.NewClient = params.newClient
+	if params.NewServingClient == nil {
+		params.NewServingClient = params.newServingClient
 	}
 	if params.NewSourcesClient == nil {
 		params.NewSourcesClient = params.newSourcesClient
 	}
 }
 
-func (params *KnParams) newClient(namespace string) (serving_kn_v1alpha1.KnServingClient, error) {
+func (params *KnParams) newServingClient(namespace string) (serving_kn_v1alpha1.KnServingClient, error) {
 	client, err := params.GetConfig()
 	if err != nil {
 		return nil, err
