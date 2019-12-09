@@ -22,7 +22,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/kubernetes/staging/src/k8s.io/client-go/dynamic/fake"
+	"k8s.io/client-go/dynamic/fake"
 )
 
 const testNamespace = "testns"

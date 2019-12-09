@@ -19,7 +19,6 @@ require (
 	k8s.io/apimachinery v0.0.0-20191004115701-31ade1b30762
 	k8s.io/cli-runtime v0.0.0-20191016113937-7693ce2cae74
 	k8s.io/client-go v0.0.0-20191016110837-54936ba21026
-	k8s.io/kubernetes v1.14.0
 	knative.dev/eventing v0.10.0
 	knative.dev/pkg v0.0.0-20191107185656-884d50f09454
 	knative.dev/serving v0.10.0

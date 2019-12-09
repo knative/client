@@ -467,6 +467,7 @@ k8s.io/client-go/testing
 k8s.io/client-go/tools/clientcmd
 k8s.io/client-go/plugin/pkg/client/auth/gcp
 k8s.io/client-go/plugin/pkg/client/auth/oidc
+k8s.io/client-go/dynamic/fake
 k8s.io/client-go/pkg/version
 k8s.io/client-go/plugin/pkg/client/auth/exec
 k8s.io/client-go/rest/watch
@@ -627,8 +628,6 @@ k8s.io/klog
 # k8s.io/kube-openapi v0.0.0-20190816220812-743ec37842bf
 k8s.io/kube-openapi/pkg/util/proto
 k8s.io/kube-openapi/pkg/common
-# k8s.io/kubernetes v1.14.0
-k8s.io/kubernetes/staging/src/k8s.io/client-go/dynamic/fake
 # k8s.io/utils v0.0.0-20190221042446-c2654d5206da
 k8s.io/utils/integer
 k8s.io/utils/buffer

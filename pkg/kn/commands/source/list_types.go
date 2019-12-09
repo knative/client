@@ -18,7 +18,6 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-
 	"knative.dev/client/pkg/kn/commands"
 )
 
