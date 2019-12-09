@@ -27,15 +27,11 @@ var Flags = initializeFlags()
 
 // ClientFlags define the flags that are needed to run the e2e tests.
 type ClientFlags struct {
-	EmitMetrics      bool
 	DockerConfigJSON string
 }
 
 func initializeFlags() *ClientFlags {
 	var f ClientFlags
-	// emitmetrics is a required flag for running periodic test jobs, add it here as a no-op to avoid the error
-	flag.BoolVar(&f.EmitMetrics, "emitmetrics", false,
-		"Set this flag to true if you would like tests to emit metrics, e.g. latency of resources being realized in the system.")
 
 	dockerConfigJSON := os.Getenv("DOCKER_CONFIG_JSON")
 	flag.StringVar(&f.DockerConfigJSON, "dockerconfigjson", dockerConfigJSON,
