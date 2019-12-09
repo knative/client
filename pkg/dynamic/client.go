@@ -22,6 +22,15 @@ import (
 	"k8s.io/client-go/dynamic"
 )
 
+const (
+	crdGroup          = "apiextensions.k8s.io"
+	crdVersion        = "v1beta1"
+	crdKind           = "CustomResourceDefinition"
+	crdKinds          = "customresourcedefinitions"
+	sourcesLabelKey   = "duck.knative.dev/source"
+	sourcesLabelValue = "true"
+)
+
 // KnDynamicClient to client-go Dynamic client. All methods are relative to the
 // namespace specified during construction
 type KnDynamicClient interface {
@@ -57,11 +66,10 @@ func (c *knDynamicClient) Namespace() string {
 // TODO(navidshaikh): Use ListConfigs here instead of ListOptions
 // ListCRDs returns list of installed CRDs in the cluster and filters based on the given options
 func (c *knDynamicClient) ListCRDs(options metav1.ListOptions) (*unstructured.UnstructuredList, error) {
-	// TODO(navidshaikh): We should populate this in a better way
 	gvr := schema.GroupVersionResource{
-		"apiextensions.k8s.io",
-		"v1beta1",
-		"customresourcedefinitions",
+		Group:    crdGroup,
+		Version:  crdVersion,
+		Resource: crdKinds,
 	}
 
 	uList, err := c.client.Resource(gvr).List(options)
@@ -75,7 +83,7 @@ func (c *knDynamicClient) ListCRDs(options metav1.ListOptions) (*unstructured.Un
 // ListSourcesTypes returns installed knative eventing sources CRDs
 func (c *knDynamicClient) ListSourcesTypes() (*unstructured.UnstructuredList, error) {
 	options := metav1.ListOptions{}
-	sourcesLabels := labels.Set{"duck.knative.dev/source": "true"}
+	sourcesLabels := labels.Set{sourcesLabelKey: sourcesLabelValue}
 	options.LabelSelector = sourcesLabels.String()
 	return c.ListCRDs(options)
 }
