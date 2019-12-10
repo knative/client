@@ -10,6 +10,17 @@ List available source types
 kn source list-types [flags]
 ```
 
+### Examples
+
+```
+
+  # List available eventing source types
+  kn source list-types
+
+  # List available eventing source types in JSON format
+  kn source list-types -o yaml
+```
+
 ### Options
 
 ```
