@@ -16,6 +16,7 @@ package source
 
 import (
 	"fmt"
+	"sort"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	metav1beta1 "k8s.io/apimachinery/pkg/apis/meta/v1beta1"
@@ -69,6 +70,10 @@ func printSourceTypes(sourceType unstructured.Unstructured, options hprinters.Pr
 // printSourceTypesList populates the source types list table rows
 func printSourceTypesList(sourceTypesList *unstructured.UnstructuredList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	rows := make([]metav1beta1.TableRow, 0, len(sourceTypesList.Items))
+
+	sort.SliceStable(sourceTypesList.Items, func(i, j int) bool {
+		return sourceTypesList.Items[i].GetName() < sourceTypesList.Items[j].GetName()
+	})
 
 	for _, item := range sourceTypesList.Items {
 		row, err := printSourceTypes(item, options)

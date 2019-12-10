@@ -52,7 +52,6 @@ func NewListTypesCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return nil
 			}
-			//TODO(navidshaikh): Sort the list
 
 			err = printer.PrintObj(sourceListTypes, cmd.OutOrStdout())
 			if err != nil {

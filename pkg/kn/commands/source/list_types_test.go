@@ -70,8 +70,8 @@ func TestSourceListTypes(t *testing.T) {
 
 	assert.NilError(t, err)
 	assert.Check(t, util.ContainsAll(output[0], "TYPE", "NAME", "DESCRIPTION"))
-	assert.Check(t, util.ContainsAll(output[1], "foo", "foo.in"))
-	assert.Check(t, util.ContainsAll(output[2], "bar", "bar.in"))
+	assert.Check(t, util.ContainsAll(output[1], "bar", "bar.in"))
+	assert.Check(t, util.ContainsAll(output[2], "foo", "foo.in"))
 }
 
 func TestSourceListTypesNoHeaders(t *testing.T) {
