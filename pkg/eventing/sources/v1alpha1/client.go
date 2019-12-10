@@ -46,8 +46,8 @@ type knSourcesClient struct {
 // NewKnSourcesClient is to invoke Eventing Sources Client API to create object
 func NewKnSourcesClient(client client_v1alpha1.SourcesV1alpha1Interface, namespace string) KnSourcesClient {
 	return &knSourcesClient{
-		namespace: namespace,
 		client:    client,
+		namespace: namespace,
 	}
 }
 

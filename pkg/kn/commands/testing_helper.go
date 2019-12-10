@@ -24,12 +24,14 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"gotest.tools/assert"
+	"k8s.io/apimachinery/pkg/runtime"
 	client_testing "k8s.io/client-go/testing"
 	"knative.dev/client/pkg/kn/flags"
-
 	"knative.dev/client/pkg/serving/v1alpha1"
 	"knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake"
 
+	dynamic_fake "k8s.io/client-go/dynamic/fake"
+	dynamic_kn "knative.dev/client/pkg/dynamic"
 	sources_client "knative.dev/client/pkg/eventing/sources/v1alpha1"
 	sources_fake "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1/fake"
 )
@@ -74,6 +76,21 @@ func CreateSourcesTestKnCommand(cmd *cobra.Command, knParams *KnParams) (*cobra.
 	knParams.fixedCurrentNamespace = FakeNamespace
 	knCommand := NewKnTestCommand(cmd, knParams)
 	return knCommand, fakeEventing, buf
+}
+
+// CreateDynamicTestKnCommand helper for creating test commands using dynamic client
+func CreateDynamicTestKnCommand(cmd *cobra.Command, knParams *KnParams, objects ...runtime.Object) (*cobra.Command, *dynamic_fake.FakeDynamicClient, *bytes.Buffer) {
+	buf := new(bytes.Buffer)
+	fakeDynamic := dynamic_fake.NewSimpleDynamicClient(runtime.NewScheme(), objects...)
+	knParams.Output = buf
+	knParams.NewDynamicClient = func(namespace string) (dynamic_kn.KnDynamicClient, error) {
+		return dynamic_kn.NewKnDynamicClient(fakeDynamic, FakeNamespace), nil
+	}
+
+	knParams.fixedCurrentNamespace = FakeNamespace
+	knCommand := NewKnTestCommand(cmd, knParams)
+	return knCommand, fakeDynamic, buf
+
 }
 
 // CaptureStdout collects the current content of os.Stdout

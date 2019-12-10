@@ -21,12 +21,13 @@ import (
 	"knative.dev/client/pkg/kn/commands/source/apiserver"
 )
 
+// NewSourceCommand defines and processes the `kn source` event source command group
 func NewSourceCommand(p *commands.KnParams) *cobra.Command {
 	sourceCmd := &cobra.Command{
 		Use:   "source",
 		Short: "Event Source command group",
 	}
-	//sourceCmd.AddCommand(cron.NewCronCommand(p))
 	sourceCmd.AddCommand(apiserver.NewApiServerCommand(p))
+	sourceCmd.AddCommand(NewListTypesCommand(p))
 	return sourceCmd
 }
