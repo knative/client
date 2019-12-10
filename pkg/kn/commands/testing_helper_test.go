@@ -72,7 +72,6 @@ func TestCreateSourcesTestKnCommand(t *testing.T) {
 		assert.Assert(t, knCmd.Commands()[0].Use == "fake")
 		assert.Assert(t, sources != nil)
 		assert.Assert(t, buffer != nil)
-		assert.Assert(t, knParams.NewDynamicClient != nil)
 	}
 
 	t.Run("creates a new kn cobra.Command", func(t *testing.T) {
