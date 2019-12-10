@@ -452,7 +452,7 @@ func TestServiceDescribeVerbose(t *testing.T) {
 	assert.NilError(t, err)
 
 	validateServiceOutput(t, "foo", output)
-	
+
 	assert.Assert(t, cmp.Regexp("Cluster:\\s+http://foo.default.svc.cluster.local", output))
 	assert.Assert(t, util.ContainsAll(output, "Image", "Name", "gcr.io/test/image (at 123456)", "50%", "(0s)"))
 	assert.Assert(t, util.ContainsAll(output, "Env:", "label1=lval1\n", "label2=lval2\n"))
