@@ -23,9 +23,10 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"knative.dev/pkg/apis"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
-	apisv1alpha1 "knative.dev/pkg/apis/v1alpha1"
+	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
 	"knative.dev/pkg/kmeta"
-	"knative.dev/pkg/webhook"
+
+	eventingduckv1alpha1 "knative.dev/eventing/pkg/apis/duck/v1alpha1"
 )
 
 // +genclient
@@ -45,13 +46,11 @@ var (
 	// Check that Subscription can be validated, can be defaulted, and has immutable fields.
 	_ apis.Validatable = (*Subscription)(nil)
 	_ apis.Defaultable = (*Subscription)(nil)
-	_ apis.Immutable   = (*Subscription)(nil)
 
 	// Check that Subscription can return its spec untyped.
 	_ apis.HasSpec = (*Subscription)(nil)
 
-	_ runtime.Object     = (*Subscription)(nil)
-	_ webhook.GenericCRD = (*Subscription)(nil)
+	_ runtime.Object = (*Subscription)(nil)
 
 	// Check that we can create OwnerReferences to a Subscription.
 	_ kmeta.OwnerRefable = (*Subscription)(nil)
@@ -105,22 +104,32 @@ type SubscriptionSpec struct {
 	// Events from the Channel will be delivered here and replies are
 	// sent to a channel as specified by the Reply.
 	// +optional
-	Subscriber *apisv1alpha1.Destination `json:"subscriber,omitempty"`
+	Subscriber *duckv1beta1.Destination `json:"subscriber,omitempty"`
 
 	// Reply specifies (optionally) how to handle events returned from
 	// the Subscriber target.
 	// +optional
 	Reply *ReplyStrategy `json:"reply,omitempty"`
+
+	// Delivery configuration
+	// +optional
+	Delivery *eventingduckv1alpha1.DeliverySpec `json:"delivery,omitempty"`
 }
 
 // ReplyStrategy specifies the handling of the Subscriber's returned replies.
 // If no Subscriber is specified, the identity function is assumed.
 type ReplyStrategy struct {
+	//  The resource pointed by this Destination must meet the Addressable contract
+	//  with a reference to the Addressable duck type. If the resource does not meet this contract,
+	//  it will be reflected in the Subscription's status.
+	// +optional
+	*duckv1beta1.Destination `json:",inline"`
+
 	//  The resource pointed by this ObjectReference must meet the Addressable contract
 	//  with a reference to the Addressable duck type. If the resource does not meet this contract,
 	//  it will be reflected in the Subscription's status.
 	// +optional
-	Channel *apisv1alpha1.Destination `json:"channel,omitempty"`
+	DeprecatedChannel *duckv1beta1.Destination `json:"channel,omitempty"`
 }
 
 // SubscriptionStatus (computed) for a subscription
@@ -142,6 +151,9 @@ type SubscriptionStatusPhysicalSubscription struct {
 
 	// ReplyURI is the fully resolved URI for the spec.reply.
 	ReplyURI *apis.URL `json:"replyURI,omitempty"`
+
+	// ReplyURI is the fully resolved URI for the spec.delivery.deadLetterSink.
+	DeadLetterSinkURI *apis.URL `json:"deadLetterSinkURI,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

@@ -20,5 +20,6 @@
 # latest release version.
 
 export KNATIVE_SERVING_VERSION="0.11.0"
-export KNATIVE_EVENTING_VERSION="0.10.2"
+export KNATIVE_EVENTING_VERSION="0.11.0"
+
 $(dirname $0)/presubmit-tests.sh --integration-tests

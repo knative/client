@@ -27,7 +27,7 @@ import (
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/util"
 	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
-	apisv1alpha1 "knative.dev/pkg/apis/v1alpha1"
+	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
 )
 
 var (
@@ -87,7 +87,7 @@ func TestApiServerSourceCreate(t *testing.T) {
 			}},
 			ServiceAccountName: "myaccountname",
 			Mode:               "Ref",
-			Sink: &apisv1alpha1.Destination{
+			Sink: &duckv1beta1.Destination{
 				Ref: &v1.ObjectReference{
 					Kind:       "Service",
 					APIVersion: "serving.knative.dev/v1alpha1",

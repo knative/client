@@ -20,7 +20,7 @@ import (
 
 	"github.com/spf13/cobra"
 	v1 "k8s.io/api/core/v1"
-	apisv1alpha1 "knative.dev/pkg/apis/v1alpha1"
+	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
 
 	"knative.dev/client/pkg/serving/v1alpha1"
 )
@@ -33,7 +33,7 @@ func (i *SinkFlags) Add(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&i.sink, "sink", "s", "", "Addressable sink for events")
 }
 
-func (i *SinkFlags) ResolveSink(client v1alpha1.KnServingClient) (*apisv1alpha1.Destination, error) {
+func (i *SinkFlags) ResolveSink(client v1alpha1.KnServingClient) (*duckv1beta1.Destination, error) {
 	if i.sink == "" {
 		return nil, nil
 	}
@@ -44,7 +44,7 @@ func (i *SinkFlags) ResolveSink(client v1alpha1.KnServingClient) (*apisv1alpha1.
 		if err != nil {
 			return nil, err
 		}
-		return &apisv1alpha1.Destination{
+		return &duckv1beta1.Destination{
 			Ref: &v1.ObjectReference{
 				Kind:       service.Kind,
 				APIVersion: service.APIVersion,
