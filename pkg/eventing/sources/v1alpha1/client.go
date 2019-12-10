@@ -15,6 +15,10 @@
 package v1alpha1
 
 import (
+	apis_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	kn_errors "knative.dev/client/pkg/errors"
+	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
 	client_v1alpha1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1"
 )
 
@@ -23,6 +27,12 @@ import (
 type KnSourcesClient interface {
 	// Namespace in which this client is operating for
 	Namespace() string
+
+	// Get an ApiServerSource by object
+	CreateApiServerSource(apisvrsrc *v1alpha1.ApiServerSource) (*v1alpha1.ApiServerSource, error)
+
+	// Delete an ApiServerSource by name
+	DeleteApiServerSource(name string) error
 }
 
 // knSourcesClient is a combination of Sources client interface and namespace
@@ -39,6 +49,21 @@ func NewKnSourcesClient(client client_v1alpha1.SourcesV1alpha1Interface, namespa
 		namespace: namespace,
 		client:    client,
 	}
+}
+
+//CreateApiServerSource is used to create an instance of ApiServerSource
+func (c *knSourcesClient) CreateApiServerSource(apisvrsrc *v1alpha1.ApiServerSource) (*v1alpha1.ApiServerSource, error) {
+	ins, err := c.client.ApiServerSources(c.namespace).Create(apisvrsrc)
+	if err != nil {
+		return nil, kn_errors.GetError(err)
+	}
+	return ins, nil
+}
+
+//DeleteApiServerSource is used to create an instance of ApiServerSource
+func (c *knSourcesClient) DeleteApiServerSource(name string) error {
+	err := c.client.ApiServerSources(c.namespace).Delete(name, &apis_v1.DeleteOptions{})
+	return err
 }
 
 // Return the client's namespace
