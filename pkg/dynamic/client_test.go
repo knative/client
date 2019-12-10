@@ -80,7 +80,6 @@ func TestListCRDs(t *testing.T) {
 
 		assert.Equal(t, len(uList.Items), 0)
 	})
-
 }
 
 func TestListSourceTypes(t *testing.T) {

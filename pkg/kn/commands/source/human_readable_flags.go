@@ -62,7 +62,6 @@ func printSourceTypes(sourceType unstructured.Unstructured, options hprinters.Pr
 	row := metav1beta1.TableRow{
 		Object: runtime.RawExtension{Object: &sourceType},
 	}
-
 	row.Cells = append(row.Cells, kind, name, getSourceTypeDescription(kind))
 	return []metav1beta1.TableRow{row}, nil
 }
@@ -74,7 +73,6 @@ func printSourceTypesList(sourceTypesList *unstructured.UnstructuredList, option
 	sort.SliceStable(sourceTypesList.Items, func(i, j int) bool {
 		return sourceTypesList.Items[i].GetName() < sourceTypesList.Items[j].GetName()
 	})
-
 	for _, item := range sourceTypesList.Items {
 		row, err := printSourceTypes(item, options)
 		if err != nil {
