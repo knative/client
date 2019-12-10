@@ -73,3 +73,13 @@ func TestSourceListTypes(t *testing.T) {
 	assert.Check(t, util.ContainsAll(output[1], "foo", "foo.in"))
 	assert.Check(t, util.ContainsAll(output[2], "bar", "bar.in"))
 }
+
+func TestSourceListTypesNoHeaders(t *testing.T) {
+	output, err := fakeListTypes([]string{"source", "list-types", "--no-headers"},
+		newUnstructuredWithSpecNames("foo.in", map[string]interface{}{"kind": "foo"}),
+		newUnstructuredWithSpecNames("bar.in", map[string]interface{}{"kind": "bar"}),
+	)
+
+	assert.NilError(t, err)
+	assert.Check(t, util.ContainsNone(output[0], "TYPE", "NAME", "DESCRIPTION"))
+}
