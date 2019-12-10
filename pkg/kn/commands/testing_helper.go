@@ -78,6 +78,7 @@ func CreateSourcesTestKnCommand(cmd *cobra.Command, knParams *KnParams) (*cobra.
 	return knCommand, fakeEventing, buf
 }
 
+// CreateDynamicTestKnCommand helper for creating test commands using dynamic client
 func CreateDynamicTestKnCommand(cmd *cobra.Command, knParams *KnParams, objects ...runtime.Object) (*cobra.Command, *dynamic_fake.FakeDynamicClient, *bytes.Buffer) {
 	buf := new(bytes.Buffer)
 	fakeDynamic := dynamic_fake.NewSimpleDynamicClient(runtime.NewScheme(), objects...)
