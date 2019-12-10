@@ -19,6 +19,6 @@
 # We currently take 0.10.0 for Serving and 0.10.2 for Eventing as the
 # latest release version.
 
-export KNATIVE_SERVING_VERSION="0.10.0"
+export KNATIVE_SERVING_VERSION="0.11.0"
 export KNATIVE_EVENTING_VERSION="0.10.2"
 $(dirname $0)/presubmit-tests.sh --integration-tests
