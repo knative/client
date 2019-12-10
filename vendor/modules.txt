@@ -439,13 +439,8 @@ k8s.io/apimachinery/pkg/util/mergepatch
 k8s.io/apimachinery/third_party/forked/golang/json
 k8s.io/apimachinery/pkg/apis/meta/v1/validation
 k8s.io/apimachinery/pkg/apis/meta/v1/unstructured/unstructuredscheme
-k8s.io/apimachinery/pkg/version
-k8s.io/apimachinery/pkg/runtime/serializer/protobuf
-k8s.io/apimachinery/pkg/runtime/serializer/recognizer
-k8s.io/apimachinery/pkg/util/clock
 k8s.io/apimachinery/pkg/util/cache
 k8s.io/apimachinery/pkg/util/diff
-k8s.io/apimachinery/pkg/util/framer
 k8s.io/apimachinery/pkg/apis/meta/internalversion
 # k8s.io/cli-runtime v0.0.0-20191016113937-7693ce2cae74
 k8s.io/cli-runtime/pkg/genericclioptions
@@ -476,11 +471,6 @@ k8s.io/client-go/tools/metrics
 k8s.io/client-go/transport
 k8s.io/client-go/util/cert
 k8s.io/client-go/util/flowcontrol
-k8s.io/client-go/tools/cache
-k8s.io/client-go/tools/clientcmd/api/v1
-k8s.io/client-go/dynamic
-k8s.io/client-go/kubernetes/scheme
-k8s.io/client-go/third_party/forked/golang/template
 k8s.io/client-go/tools/auth
 k8s.io/client-go/tools/clientcmd/api/latest
 k8s.io/client-go/util/homedir
@@ -488,13 +478,13 @@ k8s.io/client-go/discovery
 k8s.io/client-go/discovery/cached/disk
 k8s.io/client-go/restmapper
 k8s.io/client-go/util/jsonpath
+k8s.io/client-go/tools/cache
 k8s.io/client-go/pkg/apis/clientauthentication
 k8s.io/client-go/pkg/apis/clientauthentication/v1alpha1
 k8s.io/client-go/pkg/apis/clientauthentication/v1beta1
 k8s.io/client-go/util/connrotation
 k8s.io/client-go/util/keyutil
 k8s.io/client-go/tools/clientcmd/api/v1
-k8s.io/client-go/tools/cache
 k8s.io/client-go/kubernetes/scheme
 k8s.io/client-go/third_party/forked/golang/template
 k8s.io/client-go/tools/pager
