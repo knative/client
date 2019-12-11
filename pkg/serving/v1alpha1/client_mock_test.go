@@ -21,27 +21,28 @@ import (
 	api_serving "knative.dev/serving/pkg/apis/serving"
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 
+	"knative.dev/client/pkg/util/mock"
 	"knative.dev/client/pkg/wait"
 )
 
 func TestMockKnClient(t *testing.T) {
 
-	client := NewMockKnClient(t)
+	client := NewMockKnServiceClient(t)
 
 	recorder := client.Recorder()
 
 	// Record all services
 	recorder.GetService("hello", nil, nil)
-	recorder.ListServices(Any(), nil, nil)
+	recorder.ListServices(mock.Any(), nil, nil)
 	recorder.CreateService(&v1alpha1.Service{}, nil)
 	recorder.UpdateService(&v1alpha1.Service{}, nil)
 	recorder.DeleteService("hello", nil)
 	recorder.WaitForService("hello", time.Duration(10)*time.Second, wait.NoopMessageCallback(), nil, 10*time.Second)
 	recorder.GetRevision("hello", nil, nil)
-	recorder.ListRevisions(Any(), nil, nil)
+	recorder.ListRevisions(mock.Any(), nil, nil)
 	recorder.DeleteRevision("hello", nil)
 	recorder.GetRoute("hello", nil, nil)
-	recorder.ListRoutes(Any(), nil, nil)
+	recorder.ListRoutes(mock.Any(), nil, nil)
 	recorder.GetConfiguration("hello", nil, nil)
 
 	// Call all services

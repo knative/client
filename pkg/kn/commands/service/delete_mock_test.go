@@ -25,7 +25,7 @@ import (
 
 func TestServiceDeleteMock(t *testing.T) {
 	// New mock client
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 
 	// Recording:
 	r := client.Recorder()
@@ -42,7 +42,7 @@ func TestServiceDeleteMock(t *testing.T) {
 
 func TestMultipleServiceDeleteMock(t *testing.T) {
 	// New mock client
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 
 	// Recording:
 	r := client.Recorder()
@@ -60,7 +60,7 @@ func TestMultipleServiceDeleteMock(t *testing.T) {
 
 func TestServiceDeleteNoSvcNameMock(t *testing.T) {
 	// New mock client
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 
 	// Recording:
 	r := client.Recorder()
