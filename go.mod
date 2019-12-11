@@ -22,7 +22,7 @@ require (
 	knative.dev/eventing v0.11.0
 	knative.dev/pkg v0.0.0-20191203221237-94a34e416c44
 	knative.dev/serving v0.11.0
-	knative.dev/test-infra v0.0.0-20191205012837-30f1a1f7b77e
+	knative.dev/test-infra v0.0.0-20191210173947-ed220f8d779f
 	sigs.k8s.io/yaml v1.1.0
 )
 
@@ -32,3 +32,5 @@ require (
 // Fix for `[` in help messages and shell completion code
 // See https://github.com/spf13/cobra/pull/899
 replace github.com/spf13/cobra => github.com/chmouel/cobra v0.0.0-20191021105835-a78788917390
+
+go 1.13
