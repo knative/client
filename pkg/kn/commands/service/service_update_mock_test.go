@@ -30,7 +30,7 @@ import (
 )
 
 func TestServiceUpdateEnvMock(t *testing.T) {
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 
 	service := getService("foo")
 	template, err := servinglib.RevisionTemplateOfService(service)
@@ -71,7 +71,7 @@ func TestServiceUpdateEnvMock(t *testing.T) {
 }
 
 func TestServiceUpdateAnnotationsMock(t *testing.T) {
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 	svcName := "svc1"
 	newService := getService(svcName)
 	template, err := servinglib.RevisionTemplateOfService(newService)
@@ -132,7 +132,7 @@ func TestServiceUpdateAnnotationsMock(t *testing.T) {
 }
 
 func TestServiceUpdateEnvFromAddingWithConfigMap(t *testing.T) {
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 	svcName := "svc1"
 	// prepare original state
 	newService := getService(svcName)
@@ -201,7 +201,7 @@ func TestServiceUpdateEnvFromAddingWithConfigMap(t *testing.T) {
 }
 
 func TestServiceUpdateEnvFromRemovalWithConfigMap(t *testing.T) {
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 	svcName := "svc1"
 	// prepare original state
 	newService := getService(svcName)
@@ -335,7 +335,7 @@ func TestServiceUpdateEnvFromRemovalWithConfigMap(t *testing.T) {
 }
 
 func TestServiceUpdateEnvFromRemovalWithEmptyName(t *testing.T) {
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 	svcName := "svc1"
 	// prepare original state
 	newService := getService(svcName)
@@ -410,7 +410,7 @@ func TestServiceUpdateEnvFromRemovalWithEmptyName(t *testing.T) {
 }
 
 func TestServiceUpdateEnvFromExistingWithConfigMap(t *testing.T) {
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 	svcName := "svc1"
 	// prepare original state
 	newService := getService(svcName)
@@ -495,7 +495,7 @@ func TestServiceUpdateEnvFromExistingWithConfigMap(t *testing.T) {
 }
 
 func TestServiceUpdateEnvFromAddingWithSecret(t *testing.T) {
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 	svcName := "svc1"
 	// prepare original state
 	newService := getService(svcName)
@@ -563,7 +563,7 @@ func TestServiceUpdateEnvFromAddingWithSecret(t *testing.T) {
 	r.Validate()
 }
 func TestServiceUpdateEnvFromRemovalWithSecret(t *testing.T) {
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 	svcName := "svc1"
 	// prepare original state
 	newService := getService(svcName)
@@ -697,7 +697,7 @@ func TestServiceUpdateEnvFromRemovalWithSecret(t *testing.T) {
 }
 
 func TestServiceUpdateEnvFromExistingWithSecret(t *testing.T) {
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 	svcName := "svc1"
 	// prepare original state
 	newService := getService(svcName)
@@ -782,7 +782,7 @@ func TestServiceUpdateEnvFromExistingWithSecret(t *testing.T) {
 }
 
 func TestServiceUpdateWithAddingVolume(t *testing.T) {
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 	svcName := "svc1"
 	// prepare original state
 	newService := getService(svcName)
@@ -886,7 +886,7 @@ func TestServiceUpdateWithAddingVolume(t *testing.T) {
 }
 
 func TestServiceUpdateWithUpdatingVolume(t *testing.T) {
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 	svcName := "svc1"
 	// prepare original state
 	newService := getService(svcName)
@@ -992,7 +992,7 @@ func TestServiceUpdateWithUpdatingVolume(t *testing.T) {
 }
 
 func TestServiceUpdateWithRemovingVolume(t *testing.T) {
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 	svcName := "svc1"
 	// prepare original state
 	newService := getService(svcName)
@@ -1098,7 +1098,7 @@ func TestServiceUpdateWithRemovingVolume(t *testing.T) {
 }
 
 func TestServiceUpdateWithAddingMount(t *testing.T) {
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 	svcName := "svc1"
 	// prepare original state
 	newService := getService(svcName)
@@ -1174,7 +1174,7 @@ func TestServiceUpdateWithAddingMount(t *testing.T) {
 }
 
 func TestServiceUpdateWithUpdatingMount(t *testing.T) {
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 	svcName := "svc1"
 	// prepare original state
 	newService := getService(svcName)
@@ -1288,7 +1288,7 @@ func TestServiceUpdateWithUpdatingMount(t *testing.T) {
 }
 
 func TestServiceUpdateWithRemovingMount(t *testing.T) {
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 	svcName := "svc1"
 	// prepare original state
 	newService := getService(svcName)

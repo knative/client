@@ -15,8 +15,6 @@
 package v1alpha1
 
 import (
-	"fmt"
-	"reflect"
 	"testing"
 	"time"
 
@@ -25,209 +23,174 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 
+	"knative.dev/client/pkg/util/mock"
 	"knative.dev/client/pkg/wait"
 )
 
-type Recorder struct {
-	t *testing.T
-
-	// List of recorded calls in order
-	recordedCalls map[string][]apiMethodCall
-
-	// Namespace for client
-	namespace string
-}
-
-type MockKnClient struct {
+type MockKnServingClient struct {
 	t         *testing.T
-	recorder  Recorder
+	recorder  *ServingRecorder
 	namespace string
 }
 
-// Recorded method call
-type apiMethodCall struct {
-	args   []interface{}
-	result []interface{}
-}
-
-// NewMockKnClient returns a new mock instance which you need to record for
-func NewMockKnClient(t *testing.T) *MockKnClient {
-	return &MockKnClient{
-		t: t,
-		recorder: Recorder{
-			t:             t,
-			recordedCalls: make(map[string][]apiMethodCall),
-			namespace:     "default",
-		},
+// NewMockKnServiceClient returns a new mock instance which you need to record for
+func NewMockKnServiceClient(t *testing.T, ns ...string) *MockKnServingClient {
+	namespace := "default"
+	if len(ns) > 0 {
+		namespace = ns[0]
+	}
+	return &MockKnServingClient{
+		t:        t,
+		recorder: &ServingRecorder{mock.NewRecorder(t, namespace)},
 	}
 }
 
+// recorder for service
+type ServingRecorder struct {
+	r *mock.Recorder
+}
+
 // Get the record to start for the recorder
-func (c *MockKnClient) Recorder() *Recorder {
-	return &c.recorder
-}
-
-// any() can be used in recording to not check for the argument
-func Any() func(t *testing.T, a interface{}) {
-	return func(t *testing.T, a interface{}) {}
-}
-
-func (r *Recorder) Namespace(namespace string) {
-	r.namespace = namespace
+func (c *MockKnServingClient) Recorder() *ServingRecorder {
+	return c.recorder
 }
 
 // Namespace of this client
-func (c *MockKnClient) Namespace() string {
-	return c.recorder.namespace
+func (c *MockKnServingClient) Namespace() string {
+	return c.recorder.r.Namespace()
 }
 
 // Get Service
-func (r *Recorder) GetService(name interface{}, service *v1alpha1.Service, err error) {
-	r.add("GetService", apiMethodCall{[]interface{}{name}, []interface{}{service, err}})
+func (sr *ServingRecorder) GetService(name interface{}, service *v1alpha1.Service, err error) {
+	sr.r.Add("GetService", []interface{}{name}, []interface{}{service, err})
 }
 
-func (c *MockKnClient) GetService(name string) (*v1alpha1.Service, error) {
-	call := c.getCall("GetService")
-	c.verifyArgs(call, name)
-	return call.result[0].(*v1alpha1.Service), errorOrNil(call.result[1])
+func (c *MockKnServingClient) GetService(name string) (*v1alpha1.Service, error) {
+	call := c.recorder.r.VerifyCall("GetService", name)
+	return call.Result[0].(*v1alpha1.Service), mock.ErrorOrNil(call.Result[1])
 }
 
 // List services
-func (r *Recorder) ListServices(opts interface{}, serviceList *v1alpha1.ServiceList, err error) {
-	r.add("ListServices", apiMethodCall{[]interface{}{opts}, []interface{}{serviceList, err}})
+func (sr *ServingRecorder) ListServices(opts interface{}, serviceList *v1alpha1.ServiceList, err error) {
+	sr.r.Add("ListServices", []interface{}{opts}, []interface{}{serviceList, err})
 }
 
-func (c *MockKnClient) ListServices(opts ...ListConfig) (*v1alpha1.ServiceList, error) {
-	call := c.getCall("ListServices")
-	c.verifyArgs(call, opts)
-	return call.result[0].(*v1alpha1.ServiceList), errorOrNil(call.result[1])
+func (c *MockKnServingClient) ListServices(opts ...ListConfig) (*v1alpha1.ServiceList, error) {
+	call := c.recorder.r.VerifyCall("ListServices", opts)
+	return call.Result[0].(*v1alpha1.ServiceList), mock.ErrorOrNil(call.Result[1])
 }
 
 // Create a new service
-func (r *Recorder) CreateService(service interface{}, err error) {
-	r.add("CreateService", apiMethodCall{[]interface{}{service}, []interface{}{err}})
+func (sr *ServingRecorder) CreateService(service interface{}, err error) {
+	sr.r.Add("CreateService", []interface{}{service}, []interface{}{err})
 }
 
-func (c *MockKnClient) CreateService(service *v1alpha1.Service) error {
-	call := c.getCall("CreateService")
-	c.verifyArgs(call, service)
-	return errorOrNil(call.result[0])
+func (c *MockKnServingClient) CreateService(service *v1alpha1.Service) error {
+	call := c.recorder.r.VerifyCall("CreateService", service)
+	return mock.ErrorOrNil(call.Result[0])
 }
 
 // Update the given service
-func (r *Recorder) UpdateService(service interface{}, err error) {
-	r.add("UpdateService", apiMethodCall{[]interface{}{service}, []interface{}{err}})
+func (sr *ServingRecorder) UpdateService(service interface{}, err error) {
+	sr.r.Add("UpdateService", []interface{}{service}, []interface{}{err})
 }
 
-func (c *MockKnClient) UpdateService(service *v1alpha1.Service) error {
-	call := c.getCall("UpdateService")
-	c.verifyArgs(call, service)
-	return errorOrNil(call.result[0])
+func (c *MockKnServingClient) UpdateService(service *v1alpha1.Service) error {
+	call := c.recorder.r.VerifyCall("UpdateService", service)
+	return mock.ErrorOrNil(call.Result[0])
 }
 
 // Delete a service by name
-func (r *Recorder) DeleteService(name interface{}, err error) {
-	r.add("DeleteService", apiMethodCall{[]interface{}{name}, []interface{}{err}})
+func (sr *ServingRecorder) DeleteService(name interface{}, err error) {
+	sr.r.Add("DeleteService", []interface{}{name}, []interface{}{err})
 }
 
-func (c *MockKnClient) DeleteService(name string) error {
-	call := c.getCall("DeleteService")
-	c.verifyArgs(call, name)
-	return errorOrNil(call.result[0])
+func (c *MockKnServingClient) DeleteService(name string) error {
+	call := c.recorder.r.VerifyCall("DeleteService", name)
+	return mock.ErrorOrNil(call.Result[0])
 }
 
 // Wait for a service to become ready, but not longer than provided timeout
-func (r *Recorder) WaitForService(name interface{}, timeout interface{}, callback interface{}, err error, duration time.Duration) {
-	r.add("WaitForService", apiMethodCall{[]interface{}{name, timeout, callback}, []interface{}{err, duration}})
+func (sr *ServingRecorder) WaitForService(name interface{}, timeout interface{}, callback interface{}, err error, duration time.Duration) {
+	sr.r.Add("WaitForService", []interface{}{name, timeout, callback}, []interface{}{err, duration})
 }
 
-func (c *MockKnClient) WaitForService(name string, timeout time.Duration, msgCallback wait.MessageCallback) (error, time.Duration) {
-	call := c.getCall("WaitForService")
-	c.verifyArgs(call, name, timeout, msgCallback)
-	return errorOrNil(call.result[0]), call.result[1].(time.Duration)
+func (c *MockKnServingClient) WaitForService(name string, timeout time.Duration, msgCallback wait.MessageCallback) (error, time.Duration) {
+	call := c.recorder.r.VerifyCall("WaitForService", name, timeout, msgCallback)
+	return mock.ErrorOrNil(call.Result[0]), call.Result[1].(time.Duration)
 }
 
 // Get a revision by name
-func (r *Recorder) GetRevision(name interface{}, revision *v1alpha1.Revision, err error) {
-	r.add("GetRevision", apiMethodCall{[]interface{}{name}, []interface{}{revision, err}})
+func (sr *ServingRecorder) GetRevision(name interface{}, revision *v1alpha1.Revision, err error) {
+	sr.r.Add("GetRevision", []interface{}{name}, []interface{}{revision, err})
 }
 
-func (c *MockKnClient) GetRevision(name string) (*v1alpha1.Revision, error) {
-	call := c.getCall("GetRevision")
-	c.verifyArgs(call, name)
-	return call.result[0].(*v1alpha1.Revision), errorOrNil(call.result[1])
+func (c *MockKnServingClient) GetRevision(name string) (*v1alpha1.Revision, error) {
+	call := c.recorder.r.VerifyCall("GetRevision", name)
+	return call.Result[0].(*v1alpha1.Revision), mock.ErrorOrNil(call.Result[1])
 }
 
 // List revisions
-func (r *Recorder) ListRevisions(opts interface{}, revisionList *v1alpha1.RevisionList, err error) {
-	r.add("ListRevisions", apiMethodCall{[]interface{}{opts}, []interface{}{revisionList, err}})
+func (sr *ServingRecorder) ListRevisions(opts interface{}, revisionList *v1alpha1.RevisionList, err error) {
+	sr.r.Add("ListRevisions", []interface{}{opts}, []interface{}{revisionList, err})
 }
 
-func (c *MockKnClient) ListRevisions(opts ...ListConfig) (*v1alpha1.RevisionList, error) {
-	call := c.getCall("ListRevisions")
-	c.verifyArgs(call, opts)
-	return call.result[0].(*v1alpha1.RevisionList), errorOrNil(call.result[1])
+func (c *MockKnServingClient) ListRevisions(opts ...ListConfig) (*v1alpha1.RevisionList, error) {
+	call := c.recorder.r.VerifyCall("ListRevisions", opts)
+	return call.Result[0].(*v1alpha1.RevisionList), mock.ErrorOrNil(call.Result[1])
 }
 
 // Delete a revision
-func (r *Recorder) DeleteRevision(name interface{}, err error) {
-	r.add("DeleteRevision", apiMethodCall{[]interface{}{name}, []interface{}{err}})
+func (sr *ServingRecorder) DeleteRevision(name interface{}, err error) {
+	sr.r.Add("DeleteRevision", []interface{}{name}, []interface{}{err})
 }
 
-func (c *MockKnClient) DeleteRevision(name string) error {
-	call := c.getCall("DeleteRevision")
-	c.verifyArgs(call, name)
-	return errorOrNil(call.result[0])
-
+func (c *MockKnServingClient) DeleteRevision(name string) error {
+	call := c.recorder.r.VerifyCall("DeleteRevision", name)
+	return mock.ErrorOrNil(call.Result[0])
 }
 
 // Get a route by its unique name
-func (r *Recorder) GetRoute(name interface{}, route *v1alpha1.Route, err error) {
-	r.add("GetRoute", apiMethodCall{[]interface{}{name}, []interface{}{route, err}})
+func (sr *ServingRecorder) GetRoute(name interface{}, route *v1alpha1.Route, err error) {
+	sr.r.Add("GetRoute", []interface{}{name}, []interface{}{route, err})
 }
 
-func (c *MockKnClient) GetRoute(name string) (*v1alpha1.Route, error) {
-	call := c.getCall("GetRoute")
-	c.verifyArgs(call, name)
-	return call.result[0].(*v1alpha1.Route), errorOrNil(call.result[1])
+func (c *MockKnServingClient) GetRoute(name string) (*v1alpha1.Route, error) {
+	call := c.recorder.r.VerifyCall("GetRoute", name)
+	return call.Result[0].(*v1alpha1.Route), mock.ErrorOrNil(call.Result[1])
 
 }
 
 // List routes
-func (r *Recorder) ListRoutes(opts interface{}, routeList *v1alpha1.RouteList, err error) {
-	r.add("ListRoutes", apiMethodCall{[]interface{}{opts}, []interface{}{routeList, err}})
+func (sr *ServingRecorder) ListRoutes(opts interface{}, routeList *v1alpha1.RouteList, err error) {
+	sr.r.Add("ListRoutes", []interface{}{opts}, []interface{}{routeList, err})
 }
 
-func (c *MockKnClient) ListRoutes(opts ...ListConfig) (*v1alpha1.RouteList, error) {
-	call := c.getCall("ListRoutes")
-	c.verifyArgs(call, opts)
-	return call.result[0].(*v1alpha1.RouteList), errorOrNil(call.result[1])
+func (c *MockKnServingClient) ListRoutes(opts ...ListConfig) (*v1alpha1.RouteList, error) {
+	call := c.recorder.r.VerifyCall("ListRoutes", opts)
+	return call.Result[0].(*v1alpha1.RouteList), mock.ErrorOrNil(call.Result[1])
 }
 
 // GetConfiguration records a call to GetConfiguration with possible return values
-func (r *Recorder) GetConfiguration(name string, config *v1alpha1.Configuration, err error) {
-	r.add("GetConfiguration", apiMethodCall{[]interface{}{name}, []interface{}{config, err}})
+func (sr *ServingRecorder) GetConfiguration(name string, config *v1alpha1.Configuration, err error) {
+	sr.r.Add("GetConfiguration", []interface{}{name}, []interface{}{config, err})
 
 }
 
-func (c *MockKnClient) GetBaseRevision(service *v1alpha1.Service) (*v1alpha1.Revision, error) {
+// Check for the base reviision
+func (c *MockKnServingClient) GetBaseRevision(service *v1alpha1.Service) (*v1alpha1.Revision, error) {
 	return getBaseRevision(c, service)
 }
 
 // GetConfiguration returns a configuration looked up by name
-func (c *MockKnClient) GetConfiguration(name string) (*v1alpha1.Configuration, error) {
-	call := c.getCall("GetConfiguration")
-	c.verifyArgs(call, name)
-	return call.result[0].(*v1alpha1.Configuration), errorOrNil(call.result[1])
+func (c *MockKnServingClient) GetConfiguration(name string) (*v1alpha1.Configuration, error) {
+	call := c.recorder.r.VerifyCall("GetConfiguration", name)
+	return call.Result[0].(*v1alpha1.Configuration), mock.ErrorOrNil(call.Result[1])
 }
 
 // Check that every recorded method has been called
-func (r *Recorder) Validate() {
-	for k, v := range r.recordedCalls {
-		if len(v) > 0 {
-			r.t.Errorf("Recorded method \"%s\" not been called", k)
-		}
-	}
+func (sr *ServingRecorder) Validate() {
+	sr.r.CheckThatAllRecordedMethodsHaveBeenCalled()
 }
 
 // HasLabelSelector returns a comparable which can be used for asserting that list methods are called
@@ -269,60 +232,4 @@ func HasSelector(labelKeysAndValues []string, fieldKeysAndValue []string) func(t
 		HasLabelSelector(labelKeysAndValues...)(t, a)
 		HasFieldSelector(fieldKeysAndValue...)(t, a)
 	}
-}
-
-// Add a recorded api call the list of calls
-func (r *Recorder) add(name string, call apiMethodCall) {
-	calls, ok := r.recordedCalls[name]
-	if !ok {
-		calls = make([]apiMethodCall, 0)
-		r.recordedCalls[name] = calls
-	}
-	r.recordedCalls[name] = append(calls, call)
-}
-
-// Get the next recorded call
-func (r *Recorder) shift(name string) (*apiMethodCall, error) {
-	calls := r.recordedCalls[name]
-	if len(calls) == 0 {
-		return nil, fmt.Errorf("no call to '%s' recorded", name)
-	}
-	call, calls := calls[0], calls[1:]
-	r.recordedCalls[name] = calls
-	return &call, nil
-}
-
-// Get call and verify that it exist
-func (c *MockKnClient) getCall(name string) *apiMethodCall {
-	call, err := c.recorder.shift(name)
-	assert.NilError(c.t, err, "invalid mock setup, missing recording step")
-	return call
-}
-
-// Verify given arguments against recorded arguments
-func (c *MockKnClient) verifyArgs(call *apiMethodCall, args ...interface{}) {
-	callArgs := call.args
-	for i, arg := range args {
-		assert.Assert(c.t, len(callArgs) > i, "Internal: Invalid recording: Expected %d args, got %d", len(callArgs), len(args))
-		fn := reflect.ValueOf(callArgs[i])
-		fnType := fn.Type()
-		if fnType.Kind() == reflect.Func {
-			if fnType.NumIn() == 2 &&
-				// It's an assertion function which takes a Testing as first parameter
-				fnType.In(0).AssignableTo(reflect.TypeOf(c.t)) {
-				fn.Call([]reflect.Value{reflect.ValueOf(c.t), reflect.ValueOf(arg)})
-			} else {
-				assert.Assert(c.t, fnType.AssignableTo(reflect.TypeOf(arg)))
-			}
-		} else {
-			assert.DeepEqual(c.t, callArgs[i], arg)
-		}
-	}
-}
-
-func errorOrNil(err interface{}) error {
-	if err == nil {
-		return nil
-	}
-	return err.(error)
 }

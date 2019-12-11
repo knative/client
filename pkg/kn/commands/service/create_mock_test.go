@@ -28,6 +28,7 @@ import (
 
 	servinglib "knative.dev/client/pkg/serving"
 	knclient "knative.dev/client/pkg/serving/v1alpha1"
+	"knative.dev/client/pkg/util/mock"
 	"knative.dev/client/pkg/wait"
 
 	"knative.dev/client/pkg/util"
@@ -36,16 +37,16 @@ import (
 func TestServiceCreateImageMock(t *testing.T) {
 
 	// New mock client
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 
 	// Recording:
 	r := client.Recorder()
 	// Check for existing service --> no
 	r.GetService("foo", nil, errors.NewNotFound(v1alpha1.Resource("service"), "foo"))
 	// Create service (don't validate given service --> "Any()" arg is allowed)
-	r.CreateService(knclient.Any(), nil)
+	r.CreateService(mock.Any(), nil)
 	// Wait for service to become ready
-	r.WaitForService("foo", knclient.Any(), wait.NoopMessageCallback(), nil, time.Second)
+	r.WaitForService("foo", mock.Any(), wait.NoopMessageCallback(), nil, time.Second)
 	// Get for showing the URL
 	r.GetService("foo", getServiceWithUrl("foo", "http://foo.example.com"), nil)
 
@@ -59,7 +60,7 @@ func TestServiceCreateImageMock(t *testing.T) {
 }
 
 func TestServiceCreateEnvMock(t *testing.T) {
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 
 	r := client.Recorder()
 	r.GetService("foo", nil, errors.NewNotFound(v1alpha1.Resource("service"), "foo"))
@@ -85,7 +86,7 @@ func TestServiceCreateEnvMock(t *testing.T) {
 }
 
 func TestServiceCreateLabel(t *testing.T) {
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 
 	r := client.Recorder()
 	r.GetService("foo", nil, errors.NewNotFound(v1alpha1.Resource("service"), "foo"))
@@ -114,7 +115,7 @@ func TestServiceCreateLabel(t *testing.T) {
 }
 
 func TestServiceCreateWithEnvFromConfigMap(t *testing.T) {
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 
 	r := client.Recorder()
 	r.GetService("foo", nil, errors.NewNotFound(v1alpha1.Resource("service"), "foo"))
@@ -143,7 +144,7 @@ func TestServiceCreateWithEnvFromConfigMap(t *testing.T) {
 }
 
 func TestServiceCreateWithEnvFromConfigMapRemoval(t *testing.T) {
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 
 	r := client.Recorder()
 	r.GetService("foo", nil, errors.NewNotFound(v1alpha1.Resource("service"), "foo"))
@@ -164,7 +165,7 @@ func TestServiceCreateWithEnvFromConfigMapRemoval(t *testing.T) {
 }
 
 func TestServiceCreateWithEnvFromEmptyRemoval(t *testing.T) {
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 
 	r := client.Recorder()
 	r.GetService("foo", nil, errors.NewNotFound(v1alpha1.Resource("service"), "foo"))
@@ -182,7 +183,7 @@ func TestServiceCreateWithEnvFromEmptyRemoval(t *testing.T) {
 }
 
 func TestServiceCreateWithEnvFromSecret(t *testing.T) {
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 
 	r := client.Recorder()
 	r.GetService("foo", nil, errors.NewNotFound(v1alpha1.Resource("service"), "foo"))
@@ -211,7 +212,7 @@ func TestServiceCreateWithEnvFromSecret(t *testing.T) {
 }
 
 func TestServiceCreateWithEnvFromSecretRemoval(t *testing.T) {
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 
 	r := client.Recorder()
 	r.GetService("foo", nil, errors.NewNotFound(v1alpha1.Resource("service"), "foo"))
@@ -232,7 +233,7 @@ func TestServiceCreateWithEnvFromSecretRemoval(t *testing.T) {
 }
 
 func TestServiceCreateWithVolumeAndMountConfigMap(t *testing.T) {
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 
 	r := client.Recorder()
 	r.GetService("foo", nil, errors.NewNotFound(v1alpha1.Resource("service"), "foo"))
@@ -274,7 +275,7 @@ func TestServiceCreateWithVolumeAndMountConfigMap(t *testing.T) {
 }
 
 func TestServiceCreateWithMountConfigMap(t *testing.T) {
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 
 	r := client.Recorder()
 	r.GetService("foo", nil, errors.NewNotFound(v1alpha1.Resource("service"), "foo"))
@@ -316,7 +317,7 @@ func TestServiceCreateWithMountConfigMap(t *testing.T) {
 }
 
 func TestServiceCreateWithVolumeAndMountSecret(t *testing.T) {
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 
 	r := client.Recorder()
 	r.GetService("foo", nil, errors.NewNotFound(v1alpha1.Resource("service"), "foo"))
@@ -356,7 +357,7 @@ func TestServiceCreateWithVolumeAndMountSecret(t *testing.T) {
 }
 
 func TestServiceCreateWithMountSecret(t *testing.T) {
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 
 	r := client.Recorder()
 	r.GetService("foo", nil, errors.NewNotFound(v1alpha1.Resource("service"), "foo"))

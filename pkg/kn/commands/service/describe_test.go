@@ -47,7 +47,7 @@ const (
 func TestServiceDescribeBasic(t *testing.T) {
 
 	// New mock client
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 
 	// Recording:
 	r := client.Recorder()
@@ -78,7 +78,7 @@ func TestServiceDescribeBasic(t *testing.T) {
 }
 
 func TestServiceDescribeSad(t *testing.T) {
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 	r := client.Recorder()
 
 	expectedService := createTestService("foo", []string{"rev1"}, goodConditions())
@@ -98,7 +98,7 @@ func TestServiceDescribeSad(t *testing.T) {
 func TestServiceDescribeLatest(t *testing.T) {
 
 	// New mock client
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 	r := client.Recorder()
 
 	expectedService := createTestService("foo", []string{"rev1"}, goodConditions())
@@ -121,7 +121,7 @@ func TestServiceDescribeLatest(t *testing.T) {
 func TestServiceDescribeLatestNotInTraffic(t *testing.T) {
 
 	// New mock client
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 
 	// Recording:
 	r := client.Recorder()
@@ -152,7 +152,7 @@ func TestServiceDescribeLatestNotInTraffic(t *testing.T) {
 func TestServiceDescribeEachNamedOnce(t *testing.T) {
 
 	// New mock client
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 
 	// Recording:
 	r := client.Recorder()
@@ -184,7 +184,7 @@ func TestServiceDescribeEachNamedOnce(t *testing.T) {
 
 func TestServiceDescribeLatestAndCurrentBothHaveTrafficEntries(t *testing.T) {
 	// New mock client
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 
 	// Recording:
 	r := client.Recorder()
@@ -213,7 +213,7 @@ func TestServiceDescribeLatestAndCurrentBothHaveTrafficEntries(t *testing.T) {
 
 func TestServiceDescribeLatestCreatedIsBroken(t *testing.T) {
 	// New mock client
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 
 	// Recording:
 	r := client.Recorder()
@@ -254,7 +254,7 @@ func TestServiceDescribeScaling(t *testing.T) {
 		{"", "", "20", "30", ""},
 	} {
 		// New mock client
-		client := knclient.NewMockKnClient(t)
+		client := knclient.NewMockKnServiceClient(t)
 
 		// Recording:
 		r := client.Recorder()
@@ -323,7 +323,7 @@ func TestServiceDescribeResources(t *testing.T) {
 		{"10Mi", "", "100m", "", "10Mi", "100m"},
 	} {
 		// New mock client
-		client := knclient.NewMockKnClient(t)
+		client := knclient.NewMockKnServiceClient(t)
 
 		// Recording:
 		r := client.Recorder()
@@ -368,7 +368,7 @@ func TestServiceDescribeResources(t *testing.T) {
 
 func TestServiceDescribeUserImageVsImage(t *testing.T) {
 	// New mock client
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 
 	// Recording:
 	r := client.Recorder()
@@ -418,7 +418,7 @@ func TestServiceDescribeUserImageVsImage(t *testing.T) {
 func TestServiceDescribeVerbose(t *testing.T) {
 
 	// New mock client
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 
 	// Recording:
 	r := client.Recorder()
@@ -465,7 +465,7 @@ func TestServiceDescribeVerbose(t *testing.T) {
 }
 
 func TestServiceDescribeWithWrongArguments(t *testing.T) {
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 	_, err := executeServiceCommand(client, "describe")
 	assert.ErrorContains(t, err, "no", "service", "provided")
 
@@ -474,7 +474,7 @@ func TestServiceDescribeWithWrongArguments(t *testing.T) {
 }
 
 func TestServiceDescribeMachineReadable(t *testing.T) {
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 
 	// Recording:
 	r := client.Recorder()
