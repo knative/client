@@ -25,10 +25,9 @@ import (
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 	"knative.dev/pkg/apis/duck/v1alpha1"
 	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
-	apisv1alpha1 "knative.dev/pkg/apis/v1alpha1"
 )
 
-// +genclient
+// +genduck
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // Channelable is a skeleton type wrapping Subscribable and Addressable in the manner we expect resource writers
@@ -70,8 +69,9 @@ type ChannelableStatus struct {
 
 var (
 	// Verify Channelable resources meet duck contracts.
-	_ duck.Populatable = (*Channelable)(nil)
-	_ apis.Listable    = (*Channelable)(nil)
+	_ duck.Populatable   = (*Channelable)(nil)
+	_ duck.Implementable = (*Channelable)(nil)
+	_ apis.Listable      = (*Channelable)(nil)
 )
 
 // Populate implements duck.Populatable
@@ -81,20 +81,20 @@ func (c *Channelable) Populate() {
 		Subscribers: []SubscriberSpec{{
 			UID:           "2f9b5e8e-deb6-11e8-9f32-f2801f1b9fd1",
 			Generation:    1,
-			SubscriberURI: "call1",
-			ReplyURI:      "sink2",
+			SubscriberURI: apis.HTTP("call1"),
+			ReplyURI:      apis.HTTP("sink2"),
 		}, {
 			UID:           "34c5aec8-deb6-11e8-9f32-f2801f1b9fd1",
 			Generation:    2,
-			SubscriberURI: "call2",
-			ReplyURI:      "sink2",
+			SubscriberURI: apis.HTTP("call2"),
+			ReplyURI:      apis.HTTP("sink2"),
 		}},
 	}
 	retry := int32(5)
 	linear := BackoffPolicyLinear
 	delay := "5s"
 	c.Spec.Delivery = &DeliverySpec{
-		DeadLetterSink: &apisv1alpha1.Destination{
+		DeadLetterSink: &duckv1beta1.Destination{
 			Ref: &corev1.ObjectReference{
 				Name: "aname",
 			},
@@ -121,19 +121,6 @@ func (c *Channelable) Populate() {
 			},
 		},
 		SubscribableTypeStatus: SubscribableTypeStatus{
-			DeprecatedSubscribableStatus: &SubscribableStatus{
-				Subscribers: []SubscriberStatus{{
-					UID:                "2f9b5e8e-deb6-11e8-9f32-f2801f1b9fd1",
-					ObservedGeneration: 1,
-					Ready:              corev1.ConditionTrue,
-					Message:            "Some message",
-				}, {
-					UID:                "34c5aec8-deb6-11e8-9f32-f2801f1b9fd1",
-					ObservedGeneration: 2,
-					Ready:              corev1.ConditionFalse,
-					Message:            "Some message",
-				}},
-			},
 			SubscribableStatus: &SubscribableStatus{
 				Subscribers: []SubscriberStatus{{
 					UID:                "2f9b5e8e-deb6-11e8-9f32-f2801f1b9fd1",
@@ -149,6 +136,11 @@ func (c *Channelable) Populate() {
 			},
 		},
 	}
+}
+
+// GetFullType implements duck.Implementable
+func (s *Channelable) GetFullType() duck.Populatable {
+	return &Channelable{}
 }
 
 // GetListType implements apis.Listable
