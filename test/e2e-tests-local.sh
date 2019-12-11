@@ -26,4 +26,4 @@ echo "📋 Formatting"
 go fmt ${base}/test/e2e/...
 
 echo "🧪  Testing"
-go test ${base}/test/e2e/ -test.v --tags 'e2e' "$@"
+go test ${base}/test/e2e/ -test.v -tags "e2e ${E2E_TAGS}" "$@"
