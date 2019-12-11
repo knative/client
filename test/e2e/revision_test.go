@@ -13,6 +13,7 @@
 // limitations under the License.
 
 // +build e2e
+// +build !eventing
 
 package e2e
 
