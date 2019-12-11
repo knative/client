@@ -28,8 +28,8 @@ func TestMockKnClient(t *testing.T) {
 
 	// Record all services
 	recorder.GetCronJobSource("hello", nil, nil)
-	recorder.CreateCronJobSource("hello", "* * * * *","",&v1beta1.Destination{}, nil)
-	recorder.UpdateCronJobSource("hello", "* * * * *","",&v1beta1.Destination{}, nil)
+	recorder.CreateCronJobSource("hello", "* * * * *", "", &v1beta1.Destination{}, nil)
+	recorder.UpdateCronJobSource("hello", "* * * * *", "", &v1beta1.Destination{}, nil)
 	recorder.DeleteCronJobSource("hello", nil)
 
 	// Call all service
