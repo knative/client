@@ -20,6 +20,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"knative.dev/client/pkg/eventing/sources/v1alpha1"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
 )
@@ -57,7 +58,12 @@ func NewCronJobCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			err = cronSourceClient.CreateCronJobSource(name, cronUpdateFlags.schedule, cronUpdateFlags.data, destination)
+			err = cronSourceClient.CreateCronJobSource(
+				v1alpha1.NewCronJobSourceBuilder(name).
+					Schedule(cronUpdateFlags.schedule).
+					Data(cronUpdateFlags.data).
+					Sink(destination).
+					Build())
 			if err == nil {
 				fmt.Fprintf(cmd.OutOrStdout(), "Cronjob source '%s' created in namespace '%s'.\n", args[0], cronSourceClient.Namespace())
 			}

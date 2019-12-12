@@ -16,53 +16,70 @@ package cronjob
 
 import (
 	"errors"
-	"fmt"
 	"testing"
 
 	"gotest.tools/assert"
-	"k8s.io/apimachinery/pkg/runtime"
-	client_testing "k8s.io/client-go/testing"
-	"k8s.io/client-go/tools/clientcmd"
-	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	serving_v1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
-
-	sources_fake "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1/fake"
 
 	v1alpha12 "knative.dev/client/pkg/eventing/sources/v1alpha1"
 	knservingclient "knative.dev/client/pkg/serving/v1alpha1"
 	"knative.dev/client/pkg/util"
 )
 
-func TestCreateCronJobSource(t *testing.T) {
+func TestSimpleCreateCronJobSource(t *testing.T) {
 
 	servingClient := knservingclient.NewMockKnServiceClient(t)
+	cronjobClient := v1alpha12.NewMockKnCronJobSourceClient(t)
 
-	recorder := servingClient.Recorder()
-	recorder.GetService("mysvc", &serving_v1alpha1.Service{}, nil)
+	servingRecorder := servingClient.Recorder()
+	servingRecorder.GetService("mysvc", &serving_v1alpha1.Service{
+		TypeMeta:   v1.TypeMeta{Kind: "Service"},
+		ObjectMeta: v1.ObjectMeta{Name: "mysvc"},
+	}, nil)
 
-	sources := prepareFakeCronJobSourceClientFactory()
-	sources.AddReactor("create", "cronjobsources",
-		func(a client_testing.Action) (bool, runtime.Object, error) {
-			createAction, ok := a.(client_testing.CreateAction)
-			if !ok {
-				return true, nil, fmt.Errorf("wrong kind of action %v", a)
-			}
-			src, ok := createAction.GetObject().(*v1alpha1.CronJobSource)
-			if !ok {
-				return true, nil, errors.New("was passed the wrong object")
-			}
-			return true, src, nil
-		})
+	cronJobRecorder := cronjobClient.Recorder()
+	cronJobRecorder.CreateCronJobSource(createCronJobSource("testsource", "* * * * */2", "maxwell", "mysvc"), nil)
 
-	out, err := executeCronJobSourceCommand(servingClient, "create", "--sink", "svc:mysvc", "--schedule", "* * * * *", "testsource")
+	out, err := executeCronJobSourceCommand(cronjobClient, servingClient, "create", "--sink", "svc:mysvc", "--schedule", "* * * * */2", "--data", "maxwell", "testsource")
 	assert.NilError(t, err, "Source should have been created")
 	util.ContainsAll(out, "created", "default", "testsource")
+
+	cronJobRecorder.Validate()
+	servingRecorder.Validate()
 }
 
-func prepareFakeCronJobSourceClientFactory() *sources_fake.FakeSourcesV1alpha1 {
-	sources := &sources_fake.FakeSourcesV1alpha1{&client_testing.Fake{}}
-	cronJobSourceClientFactory = func(config clientcmd.ClientConfig, namespace string) (client v1alpha12.KnCronJobSourcesClient, err error) {
-		return v1alpha12.NewKnSourcesClient(sources, namespace).CronJobSourcesClient(), nil
-	}
-	return sources
+func TestNoSinkError(t *testing.T) {
+	servingClient := knservingclient.NewMockKnServiceClient(t)
+	cronjobClient := v1alpha12.NewMockKnCronJobSourceClient(t)
+
+	errorMsg := "no Service mysvc found"
+	servingRecorder := servingClient.Recorder()
+	servingRecorder.GetService("mysvc", nil, errors.New(errorMsg))
+
+	out, err := executeCronJobSourceCommand(cronjobClient, servingClient, "create", "--sink", "svc:mysvc", "--schedule", "* * * * */2", "--data", "maxwell", "testsource")
+	assert.Error(t, err, errorMsg)
+	assert.Assert(t, util.ContainsAll(out, errorMsg, "Usage"))
+	servingRecorder.Validate()
+}
+
+func TestNoSinkGivenError(t *testing.T) {
+	out, err := executeCronJobSourceCommand(nil, nil, "create", "--schedule", "* * * * */2", "--data", "maxwell", "testsource")
+	assert.ErrorContains(t, err, "sink")
+	assert.ErrorContains(t, err, "required")
+	assert.Assert(t, util.ContainsAll(out, "Usage", "not set", "required"))
+}
+
+func TestNoScheduleGivenError(t *testing.T) {
+	out, err := executeCronJobSourceCommand(nil, nil, "create", "--sink", "svc:mysvc", "--data", "maxwell", "testsource")
+	assert.ErrorContains(t, err, "schedule")
+	assert.ErrorContains(t, err, "required")
+	assert.Assert(t, util.ContainsAll(out, "Usage", "not set", "required"))
+}
+
+func TestNoNameGivenError(t *testing.T) {
+	out, err := executeCronJobSourceCommand(nil, nil, "create", "--sink", "svc:mysvc", "--schedule", "* * * * */2")
+	assert.ErrorContains(t, err, "name")
+	assert.ErrorContains(t, err, "require")
+	assert.Assert(t, util.ContainsAll(out, "Usage", "require", "name"))
 }

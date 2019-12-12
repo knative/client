@@ -17,10 +17,14 @@ package cronjob
 import (
 	"bytes"
 
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/clientcmd"
+	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
+	"knative.dev/pkg/apis/duck/v1beta1"
 
+	source_client_v1alpha1 "knative.dev/client/pkg/eventing/sources/v1alpha1"
 	"knative.dev/client/pkg/kn/commands"
-	knclient "knative.dev/client/pkg/serving/v1alpha1"
+	serving_client_v1alpha1 "knative.dev/client/pkg/serving/v1alpha1"
 )
 
 // Helper methods
@@ -50,19 +54,37 @@ current-context: x
 	}
 }
 
-func executeCronJobSourceCommand(client knclient.KnServingClient, args ...string) (string, error) {
+func executeCronJobSourceCommand(cronJobSourceClient source_client_v1alpha1.KnCronJobSourcesClient, servingClient serving_client_v1alpha1.KnServingClient, args ...string) (string, error) {
 	knParams := &commands.KnParams{}
 	knParams.ClientConfig = blankConfig
 
 	output := new(bytes.Buffer)
 	knParams.Output = output
-	knParams.NewServingClient = func(namespace string) (knclient.KnServingClient, error) {
-		return client, nil
+	knParams.NewServingClient = func(namespace string) (serving_client_v1alpha1.KnServingClient, error) {
+		return servingClient, nil
 	}
 
 	cmd := NewCronJobCommand(knParams)
 	cmd.SetArgs(args)
 	cmd.SetOutput(output)
+
+	cronJobSourceClientFactory = func(config clientcmd.ClientConfig, namespace string) (source_client_v1alpha1.KnCronJobSourcesClient, error) {
+		return cronJobSourceClient, nil
+	}
+	defer cleanupCronJobMockClient()
+
 	err := cmd.Execute()
+
 	return output.String(), err
+}
+
+func cleanupCronJobMockClient() {
+	cronJobSourceClientFactory = nil
+}
+
+func createCronJobSource(name, schedule, data, service string) *v1alpha1.CronJobSource {
+	sink := &v1beta1.Destination{
+		Ref: &corev1.ObjectReference{Name: service, Kind: "Service"},
+	}
+	return source_client_v1alpha1.NewCronJobSourceBuilder(name).Schedule(schedule).Data(data).Sink(sink).Build()
 }

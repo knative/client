@@ -17,9 +17,11 @@ package v1alpha1
 import (
 	"fmt"
 
+	v1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
 	client_v1alpha1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1"
+	"knative.dev/pkg/apis"
 	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
 )
 
@@ -30,10 +32,10 @@ type KnCronJobSourcesClient interface {
 	GetCronJobSource(name string) (*v1alpha1.CronJobSource, error)
 
 	// Create a cronjob source by providing the schedule, data and sink
-	CreateCronJobSource(name, schedule, data string, sink *duckv1beta1.Destination) error
+	CreateCronJobSource(cronjobSource *v1alpha1.CronJobSource) error
 
 	// Update a cronjob source by providing the schedule, data and sink
-	UpdateCronJobSource(name, schedule, data string, sink *duckv1beta1.Destination) error
+	UpdateCronJobSource(cronjobSource *v1alpha1.CronJobSource) error
 
 	// Delete a cronjob source by name
 	DeleteCronJobSource(name string) error
@@ -63,41 +65,16 @@ func (c *cronJobSourcesClient) Namespace() string {
 	return c.namespace
 }
 
-func (c *cronJobSourcesClient) CreateCronJobSource(name, schedule, data string, sink *duckv1beta1.Destination) error {
-	if sink == nil {
+func (c *cronJobSourcesClient) CreateCronJobSource(cronjobSource *v1alpha1.CronJobSource) error {
+	if cronjobSource.Spec.Sink == nil {
 		return fmt.Errorf("a sink is required for creating a source")
 	}
-	source := v1alpha1.CronJobSource{
-		ObjectMeta: meta_v1.ObjectMeta{
-			Name: name,
-		},
-		Spec: v1alpha1.CronJobSourceSpec{
-			Schedule: schedule,
-			Data:     data,
-			Sink:     sink,
-		},
-	}
-
-	_, err := c.client.Create(&source)
+	_, err := c.client.Create(cronjobSource)
 	return err
 }
 
-func (c *cronJobSourcesClient) UpdateCronJobSource(name, schedule, data string, sink *duckv1beta1.Destination) error {
-	source, err := c.GetCronJobSource(name)
-	if err != nil {
-		return err
-	}
-
-	if schedule != "" {
-		source.Spec.Schedule = schedule
-	}
-	if data != "" {
-		source.Spec.Data = data
-	}
-	if sink != nil {
-		source.Spec.Sink = sink
-	}
-	_, err = c.client.Update(source)
+func (c *cronJobSourcesClient) UpdateCronJobSource(cronjobSource *v1alpha1.CronJobSource) error {
+	_, err := c.client.Update(cronjobSource)
 	return err
 }
 
@@ -107,4 +84,51 @@ func (c *cronJobSourcesClient) DeleteCronJobSource(name string) error {
 
 func (c *cronJobSourcesClient) GetCronJobSource(name string) (*v1alpha1.CronJobSource, error) {
 	return c.client.Get(name, meta_v1.GetOptions{})
+}
+
+// Builder for building up cronjob sources
+
+type CronJobSourceBuilder struct {
+	cronjobSource *v1alpha1.CronJobSource
+}
+
+func NewCronJobSourceBuilder(name string) *CronJobSourceBuilder {
+	return &CronJobSourceBuilder{cronjobSource: &v1alpha1.CronJobSource{
+		ObjectMeta: meta_v1.ObjectMeta{
+			Name: name,
+		},
+	}}
+}
+
+func NewCronJobSourceBuilderFromExisting(cronjobsource *v1alpha1.CronJobSource) *CronJobSourceBuilder {
+	return &CronJobSourceBuilder{cronjobSource: cronjobsource.DeepCopy()}
+}
+
+func (b *CronJobSourceBuilder) Schedule(schedule string) *CronJobSourceBuilder {
+	b.cronjobSource.Spec.Schedule = schedule
+	return b
+}
+
+func (b *CronJobSourceBuilder) Data(data string) *CronJobSourceBuilder {
+	b.cronjobSource.Spec.Data = data
+	return b
+}
+
+func (b *CronJobSourceBuilder) Sink(sink *duckv1beta1.Destination) *CronJobSourceBuilder {
+	b.cronjobSource.Spec.Sink = sink
+	return b
+}
+
+func (b *CronJobSourceBuilder) SinkRef(ref *v1.ObjectReference) *CronJobSourceBuilder {
+	b.cronjobSource.Spec.Sink.Ref = ref
+	return b
+}
+
+func (b *CronJobSourceBuilder) SinkUri(url *apis.URL) *CronJobSourceBuilder {
+	b.cronjobSource.Spec.Sink.URI = url
+	return b
+}
+
+func (b *CronJobSourceBuilder) Build() *v1alpha1.CronJobSource {
+	return b.cronjobSource
 }

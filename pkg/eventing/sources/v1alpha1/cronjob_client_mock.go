@@ -18,7 +18,6 @@ import (
 	"testing"
 
 	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
-	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
 
 	"knative.dev/client/pkg/util/mock"
 )
@@ -41,6 +40,9 @@ func NewMockKnCronJobSourceClient(t *testing.T, ns ...string) *MockKnCronJobSour
 	}
 }
 
+// Ensure that the interface is implemented
+var _ KnCronJobSourcesClient = &MockKnCronJobSourceClient{}
+
 // recorder for service
 type CronJobSourcesRecorder struct {
 	r *mock.Recorder
@@ -57,12 +59,12 @@ func (c *MockKnCronJobSourceClient) Namespace() string {
 }
 
 // Create CronJob
-func (sr *CronJobSourcesRecorder) CreateCronJobSource(name, schedule, data, sink interface{}, err error) {
-	sr.r.Add("CreateCronJobSource", []interface{}{name, schedule, data, sink}, []interface{}{err})
+func (sr *CronJobSourcesRecorder) CreateCronJobSource(cronjobSource interface{}, err error) {
+	sr.r.Add("CreateCronJobSource", []interface{}{cronjobSource}, []interface{}{err})
 }
 
-func (c *MockKnCronJobSourceClient) CreateCronJobSource(name, schedule, data string, sink *duckv1beta1.Destination) error {
-	call := c.recorder.r.VerifyCall("CreateCronJobSource", name, schedule, data, sink)
+func (c *MockKnCronJobSourceClient) CreateCronJobSource(cronjobSource *v1alpha1.CronJobSource) error {
+	call := c.recorder.r.VerifyCall("CreateCronJobSource", cronjobSource)
 	return mock.ErrorOrNil(call.Result[0])
 }
 
@@ -77,12 +79,12 @@ func (c *MockKnCronJobSourceClient) GetCronJobSource(name string) (*v1alpha1.Cro
 }
 
 // Update CronJob
-func (sr *CronJobSourcesRecorder) UpdateCronJobSource(name, schedule, data, sink interface{}, err error) {
-	sr.r.Add("UpdateCronJobSource", []interface{}{name, schedule, data, sink}, []interface{}{err})
+func (sr *CronJobSourcesRecorder) UpdateCronJobSource(cronjobSource interface{}, err error) {
+	sr.r.Add("UpdateCronJobSource", []interface{}{cronjobSource}, []interface{}{err})
 }
 
-func (c *MockKnCronJobSourceClient) UpdateCronJobSource(name, schedule, data string, sink *duckv1beta1.Destination) error {
-	call := c.recorder.r.VerifyCall("UpdateCronJobSource", name, schedule, data, sink)
+func (c *MockKnCronJobSourceClient) UpdateCronJobSource(cronjobSource *v1alpha1.CronJobSource) error {
+	call := c.recorder.r.VerifyCall("UpdateCronJobSource", cronjobSource)
 	return mock.ErrorOrNil(call.Result[0])
 }
 

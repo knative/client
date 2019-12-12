@@ -20,6 +20,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"knative.dev/client/pkg/eventing/sources/v1alpha1"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
 )
@@ -51,11 +52,26 @@ func NewCronJobUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			destination, err := sinkFlags.ResolveSink(servingClient)
+			source, err := cronSourceClient.GetCronJobSource(name)
 			if err != nil {
 				return err
 			}
-			err = cronSourceClient.UpdateCronJobSource(name, cronUpdateFlags.schedule, cronUpdateFlags.data, destination)
+
+			b := v1alpha1.NewCronJobSourceBuilderFromExisting(source)
+			if cmd.Flags().Changed("schedule") {
+				b.Schedule(cronUpdateFlags.schedule)
+			}
+			if cmd.Flags().Changed("data") {
+				b.Data(cronUpdateFlags.data)
+			}
+			if cmd.Flags().Changed("sink") {
+				destination, err := sinkFlags.ResolveSink(servingClient)
+				if err != nil {
+					return err
+				}
+				b.Sink(destination)
+			}
+			err = cronSourceClient.UpdateCronJobSource(b.Build())
 			if err == nil {
 				fmt.Fprintf(cmd.OutOrStdout(), "Cronjob source '%s' updated in namespace '%s'.\n", name, cronSourceClient.Namespace())
 			}

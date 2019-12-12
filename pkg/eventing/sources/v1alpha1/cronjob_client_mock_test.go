@@ -17,7 +17,7 @@ package v1alpha1
 import (
 	"testing"
 
-	"knative.dev/pkg/apis/duck/v1beta1"
+	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
 )
 
 func TestMockKnClient(t *testing.T) {
@@ -28,14 +28,14 @@ func TestMockKnClient(t *testing.T) {
 
 	// Record all services
 	recorder.GetCronJobSource("hello", nil, nil)
-	recorder.CreateCronJobSource("hello", "* * * * *", "", &v1beta1.Destination{}, nil)
-	recorder.UpdateCronJobSource("hello", "* * * * *", "", &v1beta1.Destination{}, nil)
+	recorder.CreateCronJobSource(&v1alpha1.CronJobSource{}, nil)
+	recorder.UpdateCronJobSource(&v1alpha1.CronJobSource{}, nil)
 	recorder.DeleteCronJobSource("hello", nil)
 
 	// Call all service
 	client.GetCronJobSource("hello")
-	client.CreateCronJobSource("hello", "* * * * *", "", &v1beta1.Destination{})
-	client.UpdateCronJobSource("hello", "* * * * *", "", &v1beta1.Destination{})
+	client.CreateCronJobSource(&v1alpha1.CronJobSource{})
+	client.UpdateCronJobSource(&v1alpha1.CronJobSource{})
 	client.DeleteCronJobSource("hello")
 
 	// Validate
