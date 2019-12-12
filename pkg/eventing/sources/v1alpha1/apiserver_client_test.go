@@ -27,23 +27,23 @@ import (
 	"knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1/fake"
 )
 
-var testNamespace = "test-ns"
+var testApiServerSourceNamespace = "test-ns"
 
-func setup() (sources fake.FakeSourcesV1alpha1, client KnApiServerSourcesClient) {
+func setupApiServerSourcesClient() (sources fake.FakeSourcesV1alpha1, client KnApiServerSourcesClient) {
 	sources = fake.FakeSourcesV1alpha1{Fake: &client_testing.Fake{}}
-	client = NewKnSourcesClient(&sources, testNamespace).ApiServerSourcesClient()
+	client = NewKnSourcesClient(&sources, testApiServerSourceNamespace).ApiServerSourcesClient()
 	return
 }
 
 func TestDeleteApiServerSource(t *testing.T) {
 	var srcName = "new-src"
-	sourcesServer, client := setup()
+	sourcesServer, client := setupApiServerSourcesClient()
 
 	apisourceNew := newApiServerSource(srcName)
 
 	sourcesServer.AddReactor("create", "apiserversources",
 		func(a client_testing.Action) (bool, runtime.Object, error) {
-			assert.Equal(t, testNamespace, a.GetNamespace())
+			assert.Equal(t, testApiServerSourceNamespace, a.GetNamespace())
 			name := a.(client_testing.CreateAction).GetObject().(metav1.Object).GetName()
 			if name == apisourceNew.Name {
 				apisourceNew.Generation = 2
@@ -56,7 +56,7 @@ func TestDeleteApiServerSource(t *testing.T) {
 		ins, err := client.CreateApiServerSource(apisourceNew)
 		assert.NilError(t, err)
 		assert.Equal(t, ins.Name, srcName)
-		assert.Equal(t, ins.Namespace, testNamespace)
+		assert.Equal(t, ins.Namespace, testApiServerSourceNamespace)
 	})
 
 	t.Run("create apiserversource with an error returns an error object", func(t *testing.T) {
@@ -67,13 +67,13 @@ func TestDeleteApiServerSource(t *testing.T) {
 
 func TestCreateApiServerSource(t *testing.T) {
 	var srcName = "new-src"
-	sourcesServer, client := setup()
+	sourcesServer, client := setupApiServerSourcesClient()
 
 	apisourceNew := newApiServerSource(srcName)
 
 	sourcesServer.AddReactor("create", "apiserversources",
 		func(a client_testing.Action) (bool, runtime.Object, error) {
-			assert.Equal(t, testNamespace, a.GetNamespace())
+			assert.Equal(t, testApiServerSourceNamespace, a.GetNamespace())
 			name := a.(client_testing.CreateAction).GetObject().(metav1.Object).GetName()
 			if name == apisourceNew.Name {
 				apisourceNew.Generation = 2
@@ -86,7 +86,7 @@ func TestCreateApiServerSource(t *testing.T) {
 		ins, err := client.CreateApiServerSource(apisourceNew)
 		assert.NilError(t, err)
 		assert.Equal(t, ins.Name, srcName)
-		assert.Equal(t, ins.Namespace, testNamespace)
+		assert.Equal(t, ins.Namespace, testApiServerSourceNamespace)
 	})
 
 	t.Run("create apiserversource with an error returns an error object", func(t *testing.T) {
@@ -99,10 +99,10 @@ func newApiServerSource(name string) *v1alpha1.ApiServerSource {
 	src := &v1alpha1.ApiServerSource{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
-			Namespace: testNamespace,
+			Namespace: testApiServerSourceNamespace,
 		},
 	}
 	src.Name = name
-	src.Namespace = testNamespace
+	src.Namespace = testApiServerSourceNamespace
 	return src
 }

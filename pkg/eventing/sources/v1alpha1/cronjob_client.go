@@ -17,11 +17,9 @@ package v1alpha1
 import (
 	"fmt"
 
-	v1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
 	client_v1alpha1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1"
-	"knative.dev/pkg/apis"
 	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
 )
 
@@ -116,16 +114,6 @@ func (b *CronJobSourceBuilder) Data(data string) *CronJobSourceBuilder {
 
 func (b *CronJobSourceBuilder) Sink(sink *duckv1beta1.Destination) *CronJobSourceBuilder {
 	b.cronjobSource.Spec.Sink = sink
-	return b
-}
-
-func (b *CronJobSourceBuilder) SinkRef(ref *v1.ObjectReference) *CronJobSourceBuilder {
-	b.cronjobSource.Spec.Sink.Ref = ref
-	return b
-}
-
-func (b *CronJobSourceBuilder) SinkUri(url *apis.URL) *CronJobSourceBuilder {
-	b.cronjobSource.Spec.Sink.URI = url
 	return b
 }
 
