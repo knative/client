@@ -108,7 +108,7 @@ func (pw *prefixWriter) WriteLine(a ...interface{}) {
 // WriteAttribute writes the attr (as a label) with the given value and returns
 // a PrefixWriter for writing any subattributes.
 func (pw *prefixWriter) WriteAttribute(attr, value string) PrefixWriter {
-	pw.WriteColsLn(l(attr), value)
+	pw.WriteColsLn(Label(attr), value)
 	return &prefixWriter{pw.out, pw, 0, 1}
 }
 
@@ -120,6 +120,6 @@ func (pw *prefixWriter) Flush() error {
 }
 
 // Format label (extracted so that color could be added more easily to all labels)
-func l(label string) string {
+func Label(label string) string {
 	return label + ":"
 }

@@ -25,14 +25,17 @@
 # in a net-negative contributor experience.
 # Tracked by https://github.com/knative/test-infra/issues/428
 
-# If you call this script after configuring the environment variable
-# $KNATIVE_VERSION with a valid release, e.g. 0.6.0, Knative serving
-# of this specified version will be installed in the Kubernetes cluster, and
-# all the tests will run against Knative serving of this specific version.
+# If you call this script after configuring the environment variables
+# $KNATIVE_SERVING_VERSION / $KNATIVE_EVENTING_VERSION with a valid release,
+# e.g. 0.6.0, Knative Serving / Eventing of this specified version will be installed
+# in the Kubernetes cluster, and all the tests will run against Knative
+# Serving / Eventing of this specific version.
+
 export DISABLE_MD_LINTING=1
 
 export GO111MODULE=on
-export KNATIVE_VERSION=${KNATIVE_VERSION:-latest}
+export KNATIVE_SERVING_VERSION=${KNATIVE_SERVING_VERSION:-latest}
+export KNATIVE_EVENTING_VERSION=${KNATIVE_EVENTING_VERSION:-latest}
 source $(dirname $0)/../vendor/knative.dev/test-infra/scripts/presubmit-tests.sh
 
 # Run cross platform build to ensure kn compiles for Linux, macOS and Windows
@@ -46,6 +49,11 @@ function post_build_tests() {
   fi
 }
 
+# Run the unit tests with an additional flag '-mod=vendor' to avoid
+# downloading the deps in unit tests CI job
+function unit_tests() {
+  report_go_test -race -mod=vendor ./... || failed=1
+}
 
-# We use the default build, unit and integration test runners.
+# We use the default build and integration test runners.
 main $@

@@ -29,6 +29,7 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/watch"
 	api_serving "knative.dev/serving/pkg/apis/serving"
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 	client_v1alpha1 "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
@@ -159,6 +160,11 @@ func (cl *knServingClient) GetService(name string) (*v1alpha1.Service, error) {
 	return service, nil
 }
 
+func (cl *knServingClient) WatchService(name string, timeout time.Duration) (watch.Interface, error) {
+	return wait.NewWatcher(cl.client.Services(cl.namespace).Watch,
+		cl.client.RESTClient(), cl.namespace, "services", name, timeout)
+}
+
 // List services
 func (cl *knServingClient) ListServices(config ...ListConfig) (*v1alpha1.ServiceList, error) {
 	serviceList, err := cl.client.Services(cl.namespace).List(ListConfigs(config).toListOptions())
@@ -216,7 +222,7 @@ func (cl *knServingClient) DeleteService(serviceName string) error {
 
 // Wait for a service to become ready, but not longer than provided timeout
 func (cl *knServingClient) WaitForService(name string, timeout time.Duration, msgCallback wait.MessageCallback) (error, time.Duration) {
-	waitForReady := newServiceWaitForReady(cl.client.Services(cl.namespace).Watch)
+	waitForReady := wait.NewWaitForReady("service", cl.WatchService, serviceConditionExtractor)
 	return waitForReady.Wait(name, timeout, msgCallback)
 }
 
@@ -388,16 +394,6 @@ func updateServingGvkForRouteList(routeList *v1alpha1.RouteList) (*v1alpha1.Rout
 // update with the v1alpha1 group + version
 func updateServingGvk(obj runtime.Object) error {
 	return util.UpdateGroupVersionKindWithScheme(obj, v1alpha1.SchemeGroupVersion, scheme.Scheme)
-}
-
-// Create wait arguments for a Knative service which can be used to wait for
-// a create/update options to be finished
-// Can be used by `service_create` and `service_update`, hence this extra file
-func newServiceWaitForReady(watch wait.WatchFunc) wait.WaitForReady {
-	return wait.NewWaitForReady(
-		"service",
-		watch,
-		serviceConditionExtractor)
 }
 
 func serviceConditionExtractor(obj runtime.Object) (apis.Conditions, error) {

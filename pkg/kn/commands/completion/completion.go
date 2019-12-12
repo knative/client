@@ -25,7 +25,7 @@ import (
 
 const (
 	desc = `
-This command prints shell completion code which need to be evaluated
+This command prints shell completion code which needs to be evaluated
 to provide interactive completion
 
 Supported Shells:
@@ -47,7 +47,6 @@ func NewCompletionCommand(p *commands.KnParams) *cobra.Command {
 		Long:      desc,
 		ValidArgs: []string{"bash", "zsh"},
 		Example:   eg,
-		Hidden:    true, // Don't show this in help listing
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) == 1 {
 				switch args[0] {

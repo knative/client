@@ -61,16 +61,19 @@ This is a helper script to run the presubmit tests. To use it:
    the integration tests (either your custom one or the default action) and will
    cause the test to fail if they don't return success.
 
-1. Call the `main()` function passing `$@` (without quotes).
+1. Call the `main()` function passing `"$@"` (with quotes).
 
 Running the script without parameters, or with the `--all-tests` flag causes all
 tests to be executed, in the right order (i.e., build, then unit, then
 integration tests).
 
 Use the flags `--build-tests`, `--unit-tests` and `--integration-tests` to run a
-specific set of tests. The flag `--emit-metrics` is used to emit metrics when
-running the tests, and is automatically handled by the default action for
-integration tests (see above).
+specific set of tests.
+
+To run a specific program as a test, use the `--run-test` flag, and provide the
+program as the argument. If arguments are required for the program, pass
+everything as a single quotes argument. For example,
+`./presubmit-tests.sh --run-test "test/my/test data"`.
 
 The script will automatically skip all presubmit tests for PRs where all changed
 files are exempt of tests (e.g., a PR changing only the `OWNERS` file).
@@ -99,7 +102,7 @@ function pre_integration_tests() {
 
 # We use the default integration test runner.
 
-main $@
+main "$@"
 ```
 
 ## Using the `e2e-tests.sh` helper script
@@ -162,12 +165,7 @@ This is a helper script for Knative E2E test scripts. To use it:
    (or `report_go_test()` if you need a more fine-grained control) and call
    `fail_test()` or `success()` if any of them failed. The environment variable
    `KO_DOCKER_REPO` and `E2E_PROJECT_ID` will be set according to the test
-   cluster. You can also use the following boolean (0 is false, 1 is true)
-   environment variables for the logic:
-
-   - `EMIT_METRICS`: true if `--emit-metrics` was passed.
-
-   All environment variables above are marked read-only.
+   cluster.
 
 **Notes:**
 
@@ -222,6 +220,64 @@ initialize $@
 kubectl get pods || fail_test
 
 success
+```
+
+## Using the `performance-tests.sh` helper script
+
+This is a helper script for Knative performance test scripts. In combination
+with specific Prow jobs, it can automatically manage the environment for running
+benchmarking jobs for each repo. To use it:
+
+1. Source the script.
+
+1. [optional] Customize GCP project settings for the benchmarks. Set the
+   following environment variables if the default value doesn't fit your needs:
+
+   - `PROJECT_NAME`: GCP project name for keeping the clusters that run the
+     benchmarks. Defaults to `knative-performance`.
+   - `SERVICE_ACCOUNT_NAME`: Service account name for controlling GKE clusters
+     and interacting with [Mako](https://github.com/google/mako) server. It MUST
+     have `Kubernetes Engine Admin` and `Storage Admin` role, and be
+     [whitelisted](https://github.com/google/mako/blob/master/docs/ACCESS.md) by
+     Mako admin. Defaults to `mako-job`.
+
+1. [optional] Customize root path of the benchmarks. This root folder should
+   contain and only contain all benchmarks you want to run continuously. Set the
+   following environment variable if the default value doesn't fit your needs:
+
+   - `BENCHMARK_ROOT_PATH`: Benchmark root path, defaults to
+     `test/performance/benchmarks`. Each repo can decide which folder to put its
+     benchmarks in, and override this environment variable to be the path of
+     that folder.
+
+1. [optional] Write the `update_knative` function, which will update your system
+   under test (e.g. Knative Serving).
+
+1. [optional] Write the `update_benchmark` function, which will update the
+   underlying resources for the benchmark (usually Knative resources and
+   Kubernetes cronjobs for benchmarking). This function accepts a parameter,
+   which is the benchmark name in the current repo.
+
+1. Call the `main()` function with all parameters (e.g. `$@`).
+
+### Sample performance test script
+
+This script will update `Knative serving` and the given benchmark.
+
+```bash
+source vendor/knative.dev/test-infra/scripts/performance-tests.sh
+
+function update_knative() {
+  echo ">> Updating serving"
+  ko apply -f config/ || abort "failed to apply serving"
+}
+
+function update_benchmark() {
+  echo ">> Updating benchmark $1"
+  ko apply -f ${BENCHMARK_ROOT_PATH}/$1 || abort "failed to apply benchmark $1"
+}
+
+main $@
 ```
 
 ## Using the `release.sh` helper script

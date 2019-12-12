@@ -36,15 +36,15 @@ var testMap = map[string]string{
 func TestWriteMapDesc(t *testing.T) {
 	buf := &bytes.Buffer{}
 	dw := printers.NewBarePrefixWriter(buf)
-	WriteMapDesc(dw, testMap, "eggs", "", false)
-	assert.Equal(t, buf.String(), "eggs\ta=b, c=d, foo=bar\n")
+	WriteMapDesc(dw, testMap, "eggs", false)
+	assert.Equal(t, buf.String(), "eggs:\ta=b, c=d, foo=bar\n")
 }
 
 func TestWriteMapDescDetailed(t *testing.T) {
 	buf := &bytes.Buffer{}
 	dw := printers.NewBarePrefixWriter(buf)
-	WriteMapDesc(dw, testMap, "eggs", "", true)
-	assert.Equal(t, buf.String(), "eggs\ta=b\n\tc=d\n\tfoo=bar\n\tserving.knative.dev/funky=chicken\n")
+	WriteMapDesc(dw, testMap, "eggs", true)
+	assert.Equal(t, buf.String(), "eggs:\ta=b\n\tc=d\n\tfoo=bar\n\tserving.knative.dev/funky=chicken\n")
 }
 
 func TestWriteMapTruncated(t *testing.T) {
@@ -55,7 +55,7 @@ func TestWriteMapTruncated(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		items[strconv.Itoa(i)] = strconv.Itoa(i + 1)
 	}
-	WriteMapDesc(dw, items, "eggs", "", false)
+	WriteMapDesc(dw, items, "eggs", false)
 	assert.Assert(t, len(strings.TrimSpace(buf.String())) <= TruncateAt)
 }
 

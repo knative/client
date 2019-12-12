@@ -13,11 +13,11 @@
 // limitations under the License.
 
 // +build e2e
+// +build !eventing
 
 package e2e
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
@@ -99,7 +99,7 @@ func (test *e2eTest) serviceDescribe(t *testing.T, serviceName string) {
 
 	assert.Assert(t, util.ContainsAll(out, serviceName, test.kn.namespace, KnDefaultTestImage))
 	assert.Assert(t, util.ContainsAll(out, "Conditions", "ConfigurationsReady", "Ready", "RoutesReady"))
-	assert.Assert(t, util.ContainsAll(out, "Name", "Namespace", "URL", "Address", "Age", "Revisions"))
+	assert.Assert(t, util.ContainsAll(out, "Name", "Namespace", "URL", "Age", "Revisions"))
 }
 
 func (test *e2eTest) serviceUpdate(t *testing.T, serviceName string, args []string) {
@@ -134,10 +134,5 @@ func (test *e2eTest) revisionDescribe(t *testing.T, serviceName string) {
 
 	out, err := test.kn.RunWithOpts([]string{"revision", "describe", revName}, runOpts{})
 	assert.NilError(t, err)
-
-	expectedGVK := `apiVersion: serving.knative.dev/v1alpha1
-kind: Revision`
-	expectedNamespace := fmt.Sprintf("namespace: %s", test.kn.namespace)
-	expectedServiceLabel := fmt.Sprintf("serving.knative.dev/service: %s", serviceName)
-	assert.Check(t, util.ContainsAll(out, expectedGVK, expectedNamespace, expectedServiceLabel))
+	assert.Check(t, util.ContainsAll(out, revName, test.kn.namespace, serviceName, "++ Ready", "TARGET=kn"))
 }

@@ -15,6 +15,7 @@
 package service
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -29,8 +30,12 @@ import (
 
 type ConfigurationEditFlags struct {
 	// Direct field manipulation
-	Image                      string
-	Env                        []string
+	Image   string
+	Env     []string
+	EnvFrom []string
+	Mount   []string
+	Volume  []string
+
 	RequestsFlags, LimitsFlags ResourceFlags
 	MinScale                   int
 	MaxScale                   int
@@ -72,6 +77,29 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 			"any number of times to set multiple environment variables. "+
 			"To unset, specify the environment variable name followed by a \"-\" (e.g., NAME-).")
 	p.markFlagMakesRevision("env")
+
+	command.Flags().StringArrayVarP(&p.EnvFrom, "env-from", "", []string{},
+		"Add environment variables from a ConfigMap (prefix cm: or config-map:) or a Secret (prefix secret:). "+
+			"Example: --env-from cm:myconfigmap or --env-from secret:mysecret. "+
+			"You can use this flag multiple times. "+
+			"To unset a ConfigMap/Secret reference, append \"-\" to the name, e.g. --env-from cm:myconfigmap-.")
+	p.markFlagMakesRevision("env-from")
+
+	command.Flags().StringArrayVarP(&p.Mount, "mount", "", []string{},
+		"Mount a ConfigMap (prefix cm: or config-map:), a Secret (prefix secret: or sc:), or an existing Volume (without any prefix) on the specified directory. "+
+			"Example: --mount /mydir=cm:myconfigmap, --mount /mydir=secret:mysecret, or --mount /mydir=myvolume. "+
+			"When a configmap or a secret is specified, a corresponding volume is automatically generated. "+
+			"You can use this flag multiple times. "+
+			"For unmounting a directory, append \"-\", e.g. --mount /mydir-, which also removes any auto-generated volume.")
+	p.markFlagMakesRevision("mount")
+
+	command.Flags().StringArrayVarP(&p.Volume, "volume", "", []string{},
+		"Add a volume from a ConfigMap (prefix cm: or config-map:) or a Secret (prefix secret: or sc:). "+
+			"Example: --volume myvolume=cm:myconfigmap or --volume myvolume=secret:mysecret. "+
+			"You can use this flag multiple times. "+
+			"To unset a ConfigMap/Secret reference, append \"-\" to the name, e.g. --volume myvolume-.")
+	p.markFlagMakesRevision("volume")
+
 	command.Flags().StringVar(&p.RequestsFlags.CPU, "requests-cpu", "", "The requested CPU (e.g., 250m).")
 	p.markFlagMakesRevision("requests-cpu")
 	command.Flags().StringVar(&p.RequestsFlags.Memory, "requests-memory", "", "The requested memory (e.g., 64Mi).")
@@ -105,6 +133,7 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 			"Accepts golang templates, allowing {{.Service}} for the service name, "+
 			"{{.Generation}} for the generation, and {{.Random [n]}} for n random consonants.")
 	p.markFlagMakesRevision("revision-name")
+
 	flags.AddBothBoolFlagsUnhidden(command.Flags(), &p.LockToDigest, "lock-to-digest", "", true,
 		"keep the running image for the service constant when not explicitly specifying "+
 			"the image. (--no-lock-to-digest pulls the image tag afresh with each new revision)")
@@ -155,6 +184,42 @@ func (p *ConfigurationEditFlags) Apply(
 			}
 		}
 		err = servinglib.UpdateEnvVars(template, envMap, envToRemove)
+		if err != nil {
+			return err
+		}
+	}
+
+	if cmd.Flags().Changed("env-from") {
+		envFromSourceToUpdate := []string{}
+		envFromSourceToRemove := []string{}
+		for _, name := range p.EnvFrom {
+			if name == "-" {
+				return fmt.Errorf("\"-\" is not a valid value for \"--env-from\"")
+			} else if strings.HasSuffix(name, "-") {
+				envFromSourceToRemove = append(envFromSourceToRemove, name[:len(name)-1])
+			} else {
+				envFromSourceToUpdate = append(envFromSourceToUpdate, name)
+			}
+		}
+
+		err = servinglib.UpdateEnvFrom(template, envFromSourceToUpdate, envFromSourceToRemove)
+		if err != nil {
+			return err
+		}
+	}
+
+	if cmd.Flags().Changed("mount") || cmd.Flags().Changed("volume") {
+		mountsToUpdate, mountsToRemove, err := util.OrderedMapAndRemovalListFromArray(p.Mount, "=")
+		if err != nil {
+			return errors.Wrap(err, "Invalid --mount")
+		}
+
+		volumesToUpdate, volumesToRemove, err := util.OrderedMapAndRemovalListFromArray(p.Volume, "=")
+		if err != nil {
+			return errors.Wrap(err, "Invalid --volume")
+		}
+
+		err = servinglib.UpdateVolumeMountsAndVolumes(template, mountsToUpdate, mountsToRemove, volumesToUpdate, volumesToRemove)
 		if err != nil {
 			return err
 		}
@@ -296,7 +361,8 @@ func (p *ConfigurationEditFlags) computeResources(resourceFlags ResourceFlags) (
 	if resourceFlags.CPU != "" {
 		cpuQuantity, err := resource.ParseQuantity(resourceFlags.CPU)
 		if err != nil {
-			return corev1.ResourceList{}, err
+			return corev1.ResourceList{},
+				errors.Wrapf(err, "Error parsing %q", resourceFlags.CPU)
 		}
 
 		resourceList[corev1.ResourceCPU] = cpuQuantity
@@ -305,7 +371,8 @@ func (p *ConfigurationEditFlags) computeResources(resourceFlags ResourceFlags) (
 	if resourceFlags.Memory != "" {
 		memoryQuantity, err := resource.ParseQuantity(resourceFlags.Memory)
 		if err != nil {
-			return corev1.ResourceList{}, err
+			return corev1.ResourceList{},
+				errors.Wrapf(err, "Error parsing %q", resourceFlags.Memory)
 		}
 
 		resourceList[corev1.ResourceMemory] = memoryQuantity

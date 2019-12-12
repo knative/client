@@ -47,7 +47,7 @@ const (
 func TestServiceDescribeBasic(t *testing.T) {
 
 	// New mock client
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 
 	// Recording:
 	r := client.Recorder()
@@ -78,7 +78,7 @@ func TestServiceDescribeBasic(t *testing.T) {
 }
 
 func TestServiceDescribeSad(t *testing.T) {
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 	r := client.Recorder()
 
 	expectedService := createTestService("foo", []string{"rev1"}, goodConditions())
@@ -98,7 +98,7 @@ func TestServiceDescribeSad(t *testing.T) {
 func TestServiceDescribeLatest(t *testing.T) {
 
 	// New mock client
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 	r := client.Recorder()
 
 	expectedService := createTestService("foo", []string{"rev1"}, goodConditions())
@@ -121,7 +121,7 @@ func TestServiceDescribeLatest(t *testing.T) {
 func TestServiceDescribeLatestNotInTraffic(t *testing.T) {
 
 	// New mock client
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 
 	// Recording:
 	r := client.Recorder()
@@ -152,7 +152,7 @@ func TestServiceDescribeLatestNotInTraffic(t *testing.T) {
 func TestServiceDescribeEachNamedOnce(t *testing.T) {
 
 	// New mock client
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 
 	// Recording:
 	r := client.Recorder()
@@ -184,7 +184,7 @@ func TestServiceDescribeEachNamedOnce(t *testing.T) {
 
 func TestServiceDescribeLatestAndCurrentBothHaveTrafficEntries(t *testing.T) {
 	// New mock client
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 
 	// Recording:
 	r := client.Recorder()
@@ -213,7 +213,7 @@ func TestServiceDescribeLatestAndCurrentBothHaveTrafficEntries(t *testing.T) {
 
 func TestServiceDescribeLatestCreatedIsBroken(t *testing.T) {
 	// New mock client
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 
 	// Recording:
 	r := client.Recorder()
@@ -254,7 +254,7 @@ func TestServiceDescribeScaling(t *testing.T) {
 		{"", "", "20", "30", ""},
 	} {
 		// New mock client
-		client := knclient.NewMockKnClient(t)
+		client := knclient.NewMockKnServiceClient(t)
 
 		// Recording:
 		r := client.Recorder()
@@ -292,6 +292,7 @@ func TestServiceDescribeScaling(t *testing.T) {
 		} else {
 			assert.Assert(t, !strings.Contains(output, "Concurrency:"))
 		}
+		assert.Assert(t, cmp.Regexp("Cluster:\\s+http://foo.default.svc.cluster.local", output))
 
 		validateOutputLine(t, output, "Scale", data.scaleOut)
 		validateOutputLine(t, output, "Limit", data.limit)
@@ -322,7 +323,7 @@ func TestServiceDescribeResources(t *testing.T) {
 		{"10Mi", "", "100m", "", "10Mi", "100m"},
 	} {
 		// New mock client
-		client := knclient.NewMockKnClient(t)
+		client := knclient.NewMockKnServiceClient(t)
 
 		// Recording:
 		r := client.Recorder()
@@ -355,6 +356,8 @@ func TestServiceDescribeResources(t *testing.T) {
 
 		validateServiceOutput(t, "foo", output)
 
+		assert.Assert(t, cmp.Regexp("Cluster:\\s+http://foo.default.svc.cluster.local", output))
+
 		validateOutputLine(t, output, "Memory", data.memoryOut)
 		validateOutputLine(t, output, "CPU", data.cpuOut)
 
@@ -365,7 +368,7 @@ func TestServiceDescribeResources(t *testing.T) {
 
 func TestServiceDescribeUserImageVsImage(t *testing.T) {
 	// New mock client
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 
 	// Recording:
 	r := client.Recorder()
@@ -415,7 +418,7 @@ func TestServiceDescribeUserImageVsImage(t *testing.T) {
 func TestServiceDescribeVerbose(t *testing.T) {
 
 	// New mock client
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 
 	// Recording:
 	r := client.Recorder()
@@ -450,6 +453,7 @@ func TestServiceDescribeVerbose(t *testing.T) {
 
 	validateServiceOutput(t, "foo", output)
 
+	assert.Assert(t, cmp.Regexp("Cluster:\\s+http://foo.default.svc.cluster.local", output))
 	assert.Assert(t, util.ContainsAll(output, "Image", "Name", "gcr.io/test/image (at 123456)", "50%", "(0s)"))
 	assert.Assert(t, util.ContainsAll(output, "Env:", "label1=lval1\n", "label2=lval2\n"))
 	assert.Assert(t, util.ContainsAll(output, "Annotations:", "anno1=aval1\n", "anno2=aval2\n"))
@@ -461,7 +465,7 @@ func TestServiceDescribeVerbose(t *testing.T) {
 }
 
 func TestServiceDescribeWithWrongArguments(t *testing.T) {
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 	_, err := executeServiceCommand(client, "describe")
 	assert.ErrorContains(t, err, "no", "service", "provided")
 
@@ -470,7 +474,7 @@ func TestServiceDescribeWithWrongArguments(t *testing.T) {
 }
 
 func TestServiceDescribeMachineReadable(t *testing.T) {
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 
 	// Recording:
 	r := client.Recorder()
@@ -489,7 +493,6 @@ func TestServiceDescribeMachineReadable(t *testing.T) {
 func validateServiceOutput(t *testing.T, service string, output string) {
 	assert.Assert(t, cmp.Regexp("Name:\\s+"+service, output))
 	assert.Assert(t, cmp.Regexp("Namespace:\\s+default", output))
-	assert.Assert(t, cmp.Regexp("Address:\\s+http://"+service+".default.svc.cluster.local", output))
 	assert.Assert(t, cmp.Regexp("URL:\\s+"+service+".default.example.com", output))
 
 	assert.Assert(t, util.ContainsAll(output, "Age:", "Revisions:", "Conditions:", "Labels:", "Annotations:"))

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Copyright 2018 The Knative Authors
 #
@@ -49,7 +49,7 @@ function pr_only_contains() {
 # List changed files in the current PR.
 # This is implemented as a function so it can be mocked in unit tests.
 function list_changed_files() {
-  /workspace/githubhelper -list-changed-files
+  /workspace/githubhelper -list-changed-files -github-token /etc/repoview-token/token
 }
 
 # Initialize flags and context for presubmit tests:
@@ -156,8 +156,10 @@ function default_build_test_runner() {
   markdown_build_tests || failed=1
   # For documentation PRs, just check the md files
   (( IS_DOCUMENTATION_PR )) && return ${failed}
+  # Don't merge these two lines, or return code will always be 0.
+  local go_pkg_dirs
+  go_pkg_dirs="$(go list ./...)" || return 1
   # Skip build test if there is no go code
-  local go_pkg_dirs="$(go list ./...)"
   [[ -z "${go_pkg_dirs}" ]] && return ${failed}
   # Ensure all the code builds
   subheader "Checking that go code builds"
@@ -172,14 +174,19 @@ function default_build_test_runner() {
   # Get all build tags in go code (ignore /vendor)
   local tags="$(grep -r '// +build' . \
       | grep -v '^./vendor/' | cut -f3 -d' ' | sort | uniq | tr '\n' ' ')"
-  if [[ -n "${tags}" ]]; then
-    errors=""
-    if ! capture_output "${report}" go test -run=^$ -tags="${tags}" ./... ; then
+  local tagged_pkgs="$(grep -r '// +build' . \
+    | grep -v '^./vendor/' | grep ":// +build " | cut -f1 -d: | xargs dirname | sort | uniq | tr '\n' ' ')"
+  for pkg in ${tagged_pkgs}; do
+    # `go test -c` lets us compile the tests but do not run them.
+    if ! capture_output "${report}" go test -c -tags="${tags}" ${pkg} ; then
       failed=1
       # Consider an error message everything that's not a successful test result.
-      errors_go2="$(grep -v '^\(ok\|\?\)\s\+\(github\.com\|knative\.dev\)/' "${report}")"
+      errors_go2+="$(grep -v '^\(ok\|\?\)\s\+\(github\.com\|knative\.dev\)/' "${report}")"
     fi
-  fi
+    # Remove unused generated binary, if any.
+    rm -f e2e.test
+  done
+  
   local errors_go="$(echo -e "${errors_go1}\n${errors_go2}" | uniq)"
   create_junit_xml _build_tests Build_Go "${errors_go}"
   if [[ -f ./hack/verify-codegen.sh ]]; then
@@ -262,7 +269,6 @@ function run_integration_tests() {
 function default_integration_test_runner() {
   local options=""
   local failed=0
-  (( EMIT_METRICS )) && options="--emit-metrics"
   for e2e_test in $(find test/ -name e2e-*tests.sh); do
     echo "Running integration test ${e2e_test}"
     if ! ${e2e_test} ${options}; then
@@ -276,7 +282,6 @@ function default_integration_test_runner() {
 RUN_BUILD_TESTS=0
 RUN_UNIT_TESTS=0
 RUN_INTEGRATION_TESTS=0
-EMIT_METRICS=0
 
 # Process flags and run tests accordingly.
 function main() {
@@ -299,7 +304,7 @@ function main() {
     go version
     echo ">> git version"
     git version
-    echo ">> ko built from commit"
+    echo ">> ko version"
     [[ -f /ko_version ]] && cat /ko_version || echo "unknown"
     echo ">> bazel version"
     [[ -f /bazel_version ]] && cat /bazel_version || echo "unknown"
@@ -328,7 +333,6 @@ function main() {
       --build-tests) RUN_BUILD_TESTS=1 ;;
       --unit-tests) RUN_UNIT_TESTS=1 ;;
       --integration-tests) RUN_INTEGRATION_TESTS=1 ;;
-      --emit-metrics) EMIT_METRICS=1 ;;
       --all-tests)
         RUN_BUILD_TESTS=1
         RUN_UNIT_TESTS=1
@@ -337,7 +341,7 @@ function main() {
       --run-test)
         shift
         [[ $# -ge 1 ]] || abort "missing executable after --run-test"
-        TEST_TO_RUN=$1
+        TEST_TO_RUN="$1"
         ;;
       *) abort "error: unknown option ${parameter}" ;;
     esac
@@ -347,7 +351,6 @@ function main() {
   readonly RUN_BUILD_TESTS
   readonly RUN_UNIT_TESTS
   readonly RUN_INTEGRATION_TESTS
-  readonly EMIT_METRICS
   readonly TEST_TO_RUN
 
   cd ${REPO_ROOT_DIR}

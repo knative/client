@@ -26,7 +26,7 @@ import (
 	"knative.dev/client/pkg/util"
 )
 
-type getConfigTestCase struct {
+type configTestCase struct {
 	clientConfig      clientcmd.ClientConfig
 	expectedErrString string
 	logHttp           bool
@@ -53,12 +53,12 @@ contexts:
 current-context: a
 `
 
-func TestGetConfig(t *testing.T) {
+func TestPrepareConfig(t *testing.T) {
 	basic, err := clientcmd.NewClientConfigFromBytes([]byte(BASIC_KUBECONFIG))
 	if err != nil {
 		t.Error(err)
 	}
-	for i, tc := range []getConfigTestCase{
+	for i, tc := range []configTestCase{
 		{
 			clientcmd.NewDefaultClientConfig(clientcmdapi.Config{}, &clientcmd.ConfigOverrides{}),
 			"no configuration has been provided",
@@ -80,7 +80,7 @@ func TestGetConfig(t *testing.T) {
 			LogHTTP:      tc.logHttp,
 		}
 
-		_, err := p.GetConfig()
+		_, err := p.prepareRestConfig()
 
 		switch len(tc.expectedErrString) {
 		case 0:
@@ -138,6 +138,106 @@ func TestGetClientConfig(t *testing.T) {
 			configAccess := clientConfig.ConfigAccess()
 
 			assert.Assert(t, configAccess.GetExplicitFile() == tc.explicitPath)
+		}
+	}
+}
+
+func TestNewSourcesClient(t *testing.T) {
+	basic, err := clientcmd.NewClientConfigFromBytes([]byte(BASIC_KUBECONFIG))
+	namespace := "test"
+	if err != nil {
+		t.Error(err)
+	}
+	for i, tc := range []configTestCase{
+		{
+			clientcmd.NewDefaultClientConfig(clientcmdapi.Config{}, &clientcmd.ConfigOverrides{}),
+			"no configuration has been provided",
+			false,
+		},
+		{
+			basic,
+			"",
+			false,
+		},
+		{ // Test that the cast to wrap the http client in a logger works
+			basic,
+			"",
+			true,
+		},
+	} {
+		p := &KnParams{
+			ClientConfig: tc.clientConfig,
+			LogHTTP:      tc.logHttp,
+		}
+
+		sourcesClient, err := p.newSourcesClient(namespace)
+
+		switch len(tc.expectedErrString) {
+		case 0:
+			if err != nil {
+				t.Errorf("%d: unexpected error: %s", i, err.Error())
+			}
+		default:
+			if err == nil {
+				t.Errorf("%d: wrong error detected: %s (expected) != %s (actual)", i, tc.expectedErrString, err)
+			}
+			if !strings.Contains(err.Error(), tc.expectedErrString) {
+				t.Errorf("%d: wrong error detected: %s (expected) != %s (actual)", i, tc.expectedErrString, err.Error())
+			}
+		}
+
+		if sourcesClient != nil {
+			assert.Assert(t, sourcesClient.Namespace() == namespace)
+		}
+	}
+}
+
+func TestNewDynamicClient(t *testing.T) {
+	basic, err := clientcmd.NewClientConfigFromBytes([]byte(BASIC_KUBECONFIG))
+	namespace := "test"
+	if err != nil {
+		t.Error(err)
+	}
+	for i, tc := range []configTestCase{
+		{
+			clientcmd.NewDefaultClientConfig(clientcmdapi.Config{}, &clientcmd.ConfigOverrides{}),
+			"no configuration has been provided",
+			false,
+		},
+		{
+			basic,
+			"",
+			false,
+		},
+		{ // Test that the cast to wrap the http client in a logger works
+			basic,
+			"",
+			true,
+		},
+	} {
+		p := &KnParams{
+			ClientConfig: tc.clientConfig,
+			LogHTTP:      tc.logHttp,
+		}
+
+		dynamicClient, err := p.newDynamicClient(namespace)
+
+		switch len(tc.expectedErrString) {
+		case 0:
+			if err != nil {
+				t.Errorf("%d: unexpected error: %s", i, err.Error())
+			}
+		default:
+			if err == nil {
+				t.Errorf("%d: wrong error detected: %s (expected) != %s (actual)", i, tc.expectedErrString, err)
+			}
+			if !strings.Contains(err.Error(), tc.expectedErrString) {
+				t.Errorf("%d: wrong error detected: %s (expected) != %s (actual)", i, tc.expectedErrString, err.Error())
+			}
+		}
+
+		if dynamicClient != nil {
+			assert.Assert(t, dynamicClient.Namespace() == namespace)
 		}
 	}
 }

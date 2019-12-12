@@ -12,20 +12,42 @@
 |===
 ////
 
-## v0.10.0 (2019-11-05)
+## v0.11.0 (unreleased)
 
 [cols="1,10,3", options="header", width="100%"]
 |===
 | | Description | PR
 
 | 🧽
-| Update to Knative serving dependency to 0.10.0
+| Support multiple NAMEs on kn service delete
+| https://github.com/knative/client/pull/492[#492]
+|===
+
+## v0.10.0 (2019-11-06)
+
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🧽
+| Update Knative serving dependency to 0.10.0
 | https://github.com/knative/client/pull/474[#474]
 
 | 🎁
-| Adds zsh completion
-| https://github.com/knative/client/pull/476[#476]
+| Add Support for envFrom and volumeMounts
+| https://github.com/knative/client/pull/393[#393]
 
+| 🎁
+| Human-readable revision describe
+| https://github.com/knative/client/pull/475[#475]
+
+| 🎁
+| Print ServiceAccount in service describe output
+| https://github.com/knative/client/pull/472[#472]
+
+| 🎁
+| Add zsh completion
+| https://github.com/knative/client/pull/476[#476]
 |===
 
 ## v0.9.0 (2019-10-29)
