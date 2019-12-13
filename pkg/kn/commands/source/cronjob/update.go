@@ -25,13 +25,14 @@ import (
 	"knative.dev/client/pkg/kn/commands/flags"
 )
 
+// NewCronJobUpdateCommand prepares the command for a CronJobSource update
 func NewCronJobUpdateCommand(p *commands.KnParams) *cobra.Command {
 	var cronUpdateFlags cronJobUpdateFlags
 	var sinkFlags flags.SinkFlags
 
 	cmd := &cobra.Command{
 		Use:   "update NAME --schedule SCHEDULE --sink SERVICE --data DATA",
-		Short: "Update a Cronjob source.",
+		Short: "Update a CronJob source.",
 		Example: `
   # Update the schedule of a crontab source 'my-cron-trigger' to fire every minute
   kn source cronjob update my-cron-trigger --schedule "* * * * */1"`,
@@ -73,7 +74,7 @@ func NewCronJobUpdateCommand(p *commands.KnParams) *cobra.Command {
 			}
 			err = cronSourceClient.UpdateCronJobSource(b.Build())
 			if err == nil {
-				fmt.Fprintf(cmd.OutOrStdout(), "Cronjob source '%s' updated in namespace '%s'.\n", name, cronSourceClient.Namespace())
+				fmt.Fprintf(cmd.OutOrStdout(), "CronJob source '%s' updated in namespace '%s'.\n", name, cronSourceClient.Namespace())
 			}
 			return err
 		},

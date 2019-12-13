@@ -1,10 +1,10 @@
 ## kn source cronjob delete
 
-Delete a Cronjob source.
+Delete a CronJob source.
 
 ### Synopsis
 
-Delete a Cronjob source.
+Delete a CronJob source.
 
 ```
 kn source cronjob delete NAME [flags]
@@ -35,5 +35,5 @@ kn source cronjob delete NAME [flags]
 
 ### SEE ALSO
 
-* [kn source cronjob](kn_source_cronjob.md)	 - Cronjob source command group
+* [kn source cronjob](kn_source_cronjob.md)	 - CronJob source command group
 

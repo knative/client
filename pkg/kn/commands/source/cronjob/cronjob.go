@@ -23,10 +23,11 @@ import (
 	"knative.dev/client/pkg/kn/commands"
 )
 
+// NewCronJobCommand is the root command for all cronjob related commands
 func NewCronJobCommand(p *commands.KnParams) *cobra.Command {
 	cronImporterCmd := &cobra.Command{
 		Use:   "cronjob",
-		Short: "Cronjob source command group",
+		Short: "CronJob source command group",
 	}
 	cronImporterCmd.AddCommand(NewCronJobCreateCommand(p))
 	cronImporterCmd.AddCommand(NewCronJobDeleteCommand(p))
@@ -43,16 +44,15 @@ func newCronJobSourceClient(p *commands.KnParams, cmd *cobra.Command) (v1alpha1.
 		return nil, err
 	}
 
-	config, err := p.GetClientConfig()
-	if err != nil {
-		return nil, err
-	}
-
 	if cronJobSourceClientFactory != nil {
+		config, err := p.GetClientConfig()
+		if err != nil {
+			return nil, err
+		}
 		return cronJobSourceClientFactory(config, namespace)
 	}
 
-	clientConfig, err := config.ClientConfig()
+	clientConfig, err := p.RestConfig()
 	if err != nil {
 		return nil, err
 	}

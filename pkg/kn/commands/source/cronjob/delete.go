@@ -22,11 +22,11 @@ import (
 	"knative.dev/client/pkg/kn/commands"
 )
 
-// NewCronJobDelete command for deleting a cronjob source
+// NewCronJobDeleteCommand is for deleting a CronJob source
 func NewCronJobDeleteCommand(p *commands.KnParams) *cobra.Command {
 	ApiServerDeleteCommand := &cobra.Command{
 		Use:   "delete NAME",
-		Short: "Delete a Cronjob source.",
+		Short: "Delete a CronJob source.",
 		Example: `
   # Delete a CronJob source 'my-cron-trigger'
   kn source cronjob delete my-cron-trigger`,
@@ -46,7 +46,7 @@ func NewCronJobDeleteCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			fmt.Fprintf(cmd.OutOrStdout(), "Cronjob source '%s' deleted in namespace '%s'.\n", name, cronSourceClient.Namespace())
+			fmt.Fprintf(cmd.OutOrStdout(), "CronJob source '%s' deleted in namespace '%s'.\n", name, cronSourceClient.Namespace())
 			return nil
 		},
 	}

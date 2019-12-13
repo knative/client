@@ -25,13 +25,14 @@ import (
 	"knative.dev/client/pkg/kn/commands/flags"
 )
 
+// NewCronJobCreateCommand is for creating CronJob source COs
 func NewCronJobCreateCommand(p *commands.KnParams) *cobra.Command {
 	var cronUpdateFlags cronJobUpdateFlags
 	var sinkFlags flags.SinkFlags
 
 	cmd := &cobra.Command{
 		Use:   "create NAME --schedule SCHEDULE --sink SINK --data DATA",
-		Short: "Create a Cronjob source.",
+		Short: "Create a CronJob source.",
 		Example: `
   # Create a crontab scheduler 'my-cron-trigger' which fires every minute and sends 'ping' to service 'mysvc' as a cloudevent
   kn source cronjob create my-cron-trigger --schedule "* * * * */1" --data "ping" --sink svc:mysvc`,
@@ -65,7 +66,7 @@ func NewCronJobCreateCommand(p *commands.KnParams) *cobra.Command {
 					Sink(destination).
 					Build())
 			if err == nil {
-				fmt.Fprintf(cmd.OutOrStdout(), "Cronjob source '%s' created in namespace '%s'.\n", args[0], cronSourceClient.Namespace())
+				fmt.Fprintf(cmd.OutOrStdout(), "CronJob source '%s' created in namespace '%s'.\n", args[0], cronSourceClient.Namespace())
 			}
 			return err
 		},

@@ -29,9 +29,9 @@ import (
 
 var testApiServerSourceNamespace = "test-ns"
 
-func setupApiServerSourcesClient() (sources fake.FakeSourcesV1alpha1, client KnApiServerSourcesClient) {
-	sources = fake.FakeSourcesV1alpha1{Fake: &client_testing.Fake{}}
-	client = NewKnSourcesClient(&sources, testApiServerSourceNamespace).ApiServerSourcesClient()
+func setupApiServerSourcesClient() (fakeSources fake.FakeSourcesV1alpha1, client KnApiServerSourcesClient) {
+	fakeSources = fake.FakeSourcesV1alpha1{Fake: &client_testing.Fake{}}
+	client = NewKnSourcesClient(&fakeSources, testApiServerSourceNamespace).ApiServerSourcesClient()
 	return
 }
 

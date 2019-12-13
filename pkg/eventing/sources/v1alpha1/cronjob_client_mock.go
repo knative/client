@@ -28,7 +28,7 @@ type MockKnCronJobSourceClient struct {
 	namespace string
 }
 
-// NewMockKnServiceClient returns a new mock instance which you need to record for
+// NewMockKnCronJobSourceClient returns a new mock instance which you need to record for
 func NewMockKnCronJobSourceClient(t *testing.T, ns ...string) *MockKnCronJobSourceClient {
 	namespace := "default"
 	if len(ns) > 0 {
@@ -48,7 +48,7 @@ type CronJobSourcesRecorder struct {
 	r *mock.Recorder
 }
 
-// Get the record to start for the recorder
+// Recorder returns the recorder for registering API calls
 func (c *MockKnCronJobSourceClient) Recorder() *CronJobSourcesRecorder {
 	return c.recorder
 }
@@ -58,47 +58,51 @@ func (c *MockKnCronJobSourceClient) Namespace() string {
 	return c.recorder.r.Namespace()
 }
 
-// Create CronJob
+// CreateCronJobSource records a call for CreateCronJobSource with the expected error
 func (sr *CronJobSourcesRecorder) CreateCronJobSource(cronjobSource interface{}, err error) {
 	sr.r.Add("CreateCronJobSource", []interface{}{cronjobSource}, []interface{}{err})
 }
 
+// CreateCronJobSource performs a previously recorded action, failing if non has been registered
 func (c *MockKnCronJobSourceClient) CreateCronJobSource(cronjobSource *v1alpha1.CronJobSource) error {
 	call := c.recorder.r.VerifyCall("CreateCronJobSource", cronjobSource)
 	return mock.ErrorOrNil(call.Result[0])
 }
 
-// Get CronJob
+// GetCronJobSource records a call for GetCronJobSource with the expected object or error. Either cronjobsource or err should be nil
 func (sr *CronJobSourcesRecorder) GetCronJobSource(name interface{}, cronjobSource *v1alpha1.CronJobSource, err error) {
 	sr.r.Add("GetCronJobSource", []interface{}{name}, []interface{}{cronjobSource, err})
 }
 
+// GetCronJobSource performs a previously recorded action, failing if non has been registered
 func (c *MockKnCronJobSourceClient) GetCronJobSource(name string) (*v1alpha1.CronJobSource, error) {
 	call := c.recorder.r.VerifyCall("GetCronJobSource", name)
 	return call.Result[0].(*v1alpha1.CronJobSource), mock.ErrorOrNil(call.Result[1])
 }
 
-// Update CronJob
+// UpdateCronJobSource records a call for UpdateCronJobSource with the expected error (nil if none)
 func (sr *CronJobSourcesRecorder) UpdateCronJobSource(cronjobSource interface{}, err error) {
 	sr.r.Add("UpdateCronJobSource", []interface{}{cronjobSource}, []interface{}{err})
 }
 
+// UpdateCronJobSource performs a previously recorded action, failing if non has been registered
 func (c *MockKnCronJobSourceClient) UpdateCronJobSource(cronjobSource *v1alpha1.CronJobSource) error {
 	call := c.recorder.r.VerifyCall("UpdateCronJobSource", cronjobSource)
 	return mock.ErrorOrNil(call.Result[0])
 }
 
-// Delete CronJob
+// UpdateCronJobSource records a call for DeleteCronJobSource with the expected error (nil if none)
 func (sr *CronJobSourcesRecorder) DeleteCronJobSource(name interface{}, err error) {
 	sr.r.Add("DeleteCronJobSource", []interface{}{name}, []interface{}{err})
 }
 
+// DeleteCronJobSource performs a previously recorded action, failing if non has been registered
 func (c *MockKnCronJobSourceClient) DeleteCronJobSource(name string) error {
 	call := c.recorder.r.VerifyCall("DeleteCronJobSource", name)
 	return mock.ErrorOrNil(call.Result[0])
 }
 
-// Check that every recorded method has been called
+// Validates validates whether every recorded action has been called
 func (sr *CronJobSourcesRecorder) Validate() {
 	sr.r.CheckThatAllRecordedMethodsHaveBeenCalled()
 }

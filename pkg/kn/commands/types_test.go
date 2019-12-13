@@ -80,7 +80,7 @@ func TestPrepareConfig(t *testing.T) {
 			LogHTTP:      tc.logHttp,
 		}
 
-		_, err := p.prepareRestConfig()
+		_, err := p.RestConfig()
 
 		switch len(tc.expectedErrString) {
 		case 0:

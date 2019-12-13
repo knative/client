@@ -75,7 +75,7 @@ func (params *KnParams) Initialize() {
 }
 
 func (params *KnParams) newServingClient(namespace string) (serving_kn_v1alpha1.KnServingClient, error) {
-	restConfig, err := params.prepareRestConfig()
+	restConfig, err := params.RestConfig()
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +85,7 @@ func (params *KnParams) newServingClient(namespace string) (serving_kn_v1alpha1.
 }
 
 func (params *KnParams) newSourcesClient(namespace string) (sources_kn_v1alpha1.KnSourcesClient, error) {
-	restConfig, err := params.prepareRestConfig()
+	restConfig, err := params.RestConfig()
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +95,7 @@ func (params *KnParams) newSourcesClient(namespace string) (sources_kn_v1alpha1.
 }
 
 func (params *KnParams) newDynamicClient(namespace string) (dynamic_kn.KnDynamicClient, error) {
-	restConfig, err := params.prepareRestConfig()
+	restConfig, err := params.RestConfig()
 	if err != nil {
 		return nil, err
 	}
@@ -104,8 +104,8 @@ func (params *KnParams) newDynamicClient(namespace string) (dynamic_kn.KnDynamic
 	return dynamic_kn.NewKnDynamicClient(client, namespace), nil
 }
 
-// prepareRestConfig returns REST config, which can be to use to create specific clientset
-func (params *KnParams) prepareRestConfig() (*rest.Config, error) {
+// RestConfig returns REST config, which can be to use to create specific clientset
+func (params *KnParams) RestConfig() (*rest.Config, error) {
 	var err error
 
 	if params.ClientConfig == nil {

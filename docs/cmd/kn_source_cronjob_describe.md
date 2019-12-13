@@ -1,10 +1,10 @@
 ## kn source cronjob describe
 
-Describe a Cronjob source.
+Describe a CronJob source.
 
 ### Synopsis
 
-Describe a Cronjob source.
+Describe a CronJob source.
 
 ```
 kn source cronjob describe NAME [flags]
@@ -36,5 +36,5 @@ kn source cronjob describe NAME [flags]
 
 ### SEE ALSO
 
-* [kn source cronjob](kn_source_cronjob.md)	 - Cronjob source command group
+* [kn source cronjob](kn_source_cronjob.md)	 - CronJob source command group
 

@@ -1,10 +1,10 @@
 ## kn source cronjob update
 
-Update a Cronjob source.
+Update a CronJob source.
 
 ### Synopsis
 
-Update a Cronjob source.
+Update a CronJob source.
 
 ```
 kn source cronjob update NAME --schedule SCHEDULE --sink SERVICE --data DATA [flags]
@@ -38,5 +38,5 @@ kn source cronjob update NAME --schedule SCHEDULE --sink SERVICE --data DATA [fl
 
 ### SEE ALSO
 
-* [kn source cronjob](kn_source_cronjob.md)	 - Cronjob source command group
+* [kn source cronjob](kn_source_cronjob.md)	 - CronJob source command group
 

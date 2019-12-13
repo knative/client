@@ -1,10 +1,10 @@
 ## kn source cronjob create
 
-Create a Cronjob source.
+Create a CronJob source.
 
 ### Synopsis
 
-Create a Cronjob source.
+Create a CronJob source.
 
 ```
 kn source cronjob create NAME --schedule SCHEDULE --sink SINK --data DATA [flags]
@@ -38,5 +38,5 @@ kn source cronjob create NAME --schedule SCHEDULE --sink SINK --data DATA [flags
 
 ### SEE ALSO
 
-* [kn source cronjob](kn_source_cronjob.md)	 - Cronjob source command group
+* [kn source cronjob](kn_source_cronjob.md)	 - CronJob source command group
 

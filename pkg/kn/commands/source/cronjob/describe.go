@@ -26,18 +26,18 @@ import (
 	"knative.dev/client/pkg/printers"
 )
 
-// Return a new command for describe a cron job source object
+// NewCronJobDescribeCommand returns a new command for describe a CronJob source object
 func NewCronJobDescribeCommand(p *commands.KnParams) *cobra.Command {
 
 	cronJobDescribe := &cobra.Command{
 		Use:   "describe NAME",
-		Short: "Describe a Cronjob source.",
+		Short: "Describe a CronJob source.",
 		Example: `
   # Describe a cronjob source with name 'my-cron-trigger'
   kn source cronjob describe my-cron-trigger`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
-				return errors.New("source name required as argument")
+				return errors.New("'source cronjob describe' requires the name of the source as single argument")
 			}
 			name := args[0]
 
