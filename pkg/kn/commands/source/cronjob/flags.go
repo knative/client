@@ -12,23 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package source
+package cronjob
 
-import (
-	"github.com/spf13/cobra"
+import "github.com/spf13/cobra"
 
-	"knative.dev/client/pkg/kn/commands"
-	"knative.dev/client/pkg/kn/commands/source/apiserver"
-	"knative.dev/client/pkg/kn/commands/source/cronjob"
-)
+type cronJobUpdateFlags struct {
+	schedule string
+	data     string
+}
 
-func NewSourceCommand(p *commands.KnParams) *cobra.Command {
-	sourceCmd := &cobra.Command{
-		Use:   "source",
-		Short: "Event source command group",
-	}
-	sourceCmd.AddCommand(apiserver.NewApiServerCommand(p))
-	sourceCmd.AddCommand(NewListTypesCommand(p))
-	sourceCmd.AddCommand(cronjob.NewCronJobCommand(p))
-	return sourceCmd
+func (c *cronJobUpdateFlags) addCronJobFlags(cmd *cobra.Command) {
+	cmd.Flags().StringVar(&c.schedule, "schedule", "", "Schedule specification in crontab format (e.g. '* * * * */2' for every two minutes")
+	cmd.Flags().StringVarP(&c.data, "data", "d", "", "String data to send")
 }

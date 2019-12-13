@@ -73,7 +73,7 @@ func NewApiServerCreateCommand(p *commands.KnParams) *cobra.Command {
 			apisrvsrc.Spec.Sink = objectRef
 
 			// create
-			_, err = sourcesClient.CreateApiServerSource(apisrvsrc)
+			_, err = sourcesClient.ApiServerSourcesClient().CreateApiServerSource(apisrvsrc)
 			if err != nil {
 				return fmt.Errorf(
 					"cannot create ApiServerSource '%s' in namespace '%s' "+

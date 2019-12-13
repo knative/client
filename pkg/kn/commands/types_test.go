@@ -80,7 +80,7 @@ func TestPrepareConfig(t *testing.T) {
 			LogHTTP:      tc.logHttp,
 		}
 
-		_, err := p.prepareRestConfig()
+		_, err := p.RestConfig()
 
 		switch len(tc.expectedErrString) {
 		case 0:
@@ -187,7 +187,8 @@ func TestNewSourcesClient(t *testing.T) {
 		}
 
 		if sourcesClient != nil {
-			assert.Assert(t, sourcesClient.Namespace() == namespace)
+			assert.Assert(t, sourcesClient.ApiServerSourcesClient().Namespace() == namespace)
+			assert.Assert(t, sourcesClient.CronJobSourcesClient().Namespace() == namespace)
 		}
 	}
 }

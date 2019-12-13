@@ -42,5 +42,5 @@ kn source list-types [flags]
 
 ### SEE ALSO
 
-* [kn source](kn_source.md)	 - Event Source command group
+* [kn source](kn_source.md)	 - Event source command group
 
