@@ -15,7 +15,7 @@
 package v1alpha1
 
 import (
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
 	client_v1alpha1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1"
 
@@ -25,8 +25,14 @@ import (
 // Interface for working with ApiServer sources
 type KnApiServerSourcesClient interface {
 
-	// Get an ApiServerSource by object
-	CreateApiServerSource(apisvrsrc *v1alpha1.ApiServerSource) error
+	// Get an ApiServerSource by name
+	GetApiServerSource(name string) (*v1alpha1.ApiServerSource, error)
+
+	// Create an ApiServerSource by object
+	CreateApiServerSource(apiSource *v1alpha1.ApiServerSource) error
+
+	// Update an ApiServerSource by object
+	UpdateApiServerSource(apiSource *v1alpha1.ApiServerSource) error
 
 	// Delete an ApiServerSource by name
 	DeleteApiServerSource(name string) error
@@ -51,9 +57,29 @@ func newKnApiServerSourcesClient(client client_v1alpha1.ApiServerSourceInterface
 	}
 }
 
+//GetApiServerSource returns apiSource object if present
+func (c *apiServerSourcesClient) GetApiServerSource(name string) (*v1alpha1.ApiServerSource, error) {
+	apiSource, err := c.client.Get(name, metav1.GetOptions{})
+	if err != nil {
+		return nil, kn_errors.GetError(err)
+	}
+
+	return apiSource, nil
+}
+
 //CreateApiServerSource is used to create an instance of ApiServerSource
-func (c *apiServerSourcesClient) CreateApiServerSource(apisvrsrc *v1alpha1.ApiServerSource) error {
-	_, err := c.client.Create(apisvrsrc)
+func (c *apiServerSourcesClient) CreateApiServerSource(apiSource *v1alpha1.ApiServerSource) error {
+	_, err := c.client.Create(apiSource)
+	if err != nil {
+		return kn_errors.GetError(err)
+	}
+
+	return nil
+}
+
+//UpdateApiServerSource is used to update an instance of ApiServerSource
+func (c *apiServerSourcesClient) UpdateApiServerSource(apiSource *v1alpha1.ApiServerSource) error {
+	_, err := c.client.Update(apiSource)
 	if err != nil {
 		return kn_errors.GetError(err)
 	}
@@ -63,7 +89,7 @@ func (c *apiServerSourcesClient) CreateApiServerSource(apisvrsrc *v1alpha1.ApiSe
 
 //DeleteApiServerSource is used to create an instance of ApiServerSource
 func (c *apiServerSourcesClient) DeleteApiServerSource(name string) error {
-	err := c.client.Delete(name, &v1.DeleteOptions{})
+	err := c.client.Delete(name, &metav1.DeleteOptions{})
 	return err
 }
 

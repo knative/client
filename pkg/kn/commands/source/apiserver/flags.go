@@ -19,7 +19,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	sources_v1alpha1 "knative.dev/eventing/pkg/apis/sources/v1alpha1"
+	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
 )
 
 const (
@@ -35,11 +35,11 @@ type ApiServerSourceUpdateFlags struct {
 }
 
 // GetApiServerResourceArray is to return an array of ApiServerResource from a string. A sample is Event:v1:true,Pod:v2:false
-func (f *ApiServerSourceUpdateFlags) GetApiServerResourceArray() []sources_v1alpha1.ApiServerResource {
-	var resourceList []sources_v1alpha1.ApiServerResource
+func (f *ApiServerSourceUpdateFlags) GetApiServerResourceArray() []v1alpha1.ApiServerResource {
+	var resourceList []v1alpha1.ApiServerResource
 	for _, r := range f.Resources {
 		version, kind, controller := getValidResource(r)
-		resourceRef := sources_v1alpha1.ApiServerResource{
+		resourceRef := v1alpha1.ApiServerResource{
 			APIVersion: version,
 			Kind:       kind,
 			Controller: controller,
@@ -85,5 +85,20 @@ func (f *ApiServerSourceUpdateFlags) Add(cmd *cobra.Command) {
 		nil,
 		`Comma seperate Kind:APIVersion:isController list, e.g. Event:v1:true.
 "APIVersion" and "isControler" can be omitted.
-"APIVersion" is "v1" by default, "isController" is "false" by default. `)
+"APIVersion" is "v1" by default, "isController" is "false" by default.`)
+}
+
+//Apply updates the service object based on flags
+func (f *ApiServerSourceUpdateFlags) Apply(source *v1alpha1.ApiServerSource, cmd *cobra.Command) {
+	if cmd.Flags().Changed("service-account") {
+		source.Spec.ServiceAccountName = f.ServiceAccountName
+	}
+
+	if cmd.Flags().Changed("mod") {
+		source.Spec.Mode = f.Mode
+	}
+
+	if cmd.Flags().Changed("resource") {
+		source.Spec.Resources = f.GetApiServerResourceArray()
+	}
 }

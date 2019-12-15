@@ -1,27 +1,27 @@
-## kn source apiserver create
+## kn source apiserver update
 
-Create an ApiServerSource, which watches for Kubernetes events and forwards them to a sink
+update an ApiServerSource, which watches for Kubernetes events and forwards them to a sink
 
 ### Synopsis
 
-Create an ApiServerSource, which watches for Kubernetes events and forwards them to a sink
+update an ApiServerSource, which watches for Kubernetes events and forwards them to a sink
 
 ```
-kn source apiserver create NAME --resource RESOURCE --service-account ACCOUNTNAME --sink SINK --mode MODE [flags]
+kn source apiserver update NAME --resource RESOURCE --service-account ACCOUNTNAME --sink SINK --mode MODE [flags]
 ```
 
 ### Examples
 
 ```
 
-  # Create an ApiServerSource 'k8sevents' which consumes Kubernetes events and sends message to service 'mysvc' as a cloudevent
-  kn source apiserver create k8sevents --resource Event --service-account myaccountname --sink svc:mysvc
+  # Update an ApiServerSource 'k8sevents' with different service account and sink service
+  kn source apiserver update k8sevents --service-account newsa --sink svc:newsvc
 ```
 
 ### Options
 
 ```
-  -h, --help                     help for create
+  -h, --help                     help for update
       --mode string              The mode the receive adapter controller runs under:, 
                                  "Ref" sends only the reference to the resource, 
                                  "Resource" send the full resource. (default "Ref")

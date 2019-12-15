@@ -30,6 +30,7 @@ func NewApiServerCommand(p *commands.KnParams) *cobra.Command {
 		Short: "Kubernetes API Server Event Source command group",
 	}
 	apiServerSourceCmd.AddCommand(NewApiServerCreateCommand(p))
+	apiServerSourceCmd.AddCommand(NewApiServerUpdateCommand(p))
 	apiServerSourceCmd.AddCommand(NewApiServerDeleteCommand(p))
 	return apiServerSourceCmd
 }
