@@ -16,16 +16,49 @@ package apiserver
 
 import (
 	"github.com/spf13/cobra"
+	"k8s.io/client-go/tools/clientcmd"
 
+	sources_v1alpha1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1"
+
+	"knative.dev/client/pkg/eventing/sources/v1alpha1"
 	"knative.dev/client/pkg/kn/commands"
 )
 
 func NewApiServerCommand(p *commands.KnParams) *cobra.Command {
-	apiServerImporterCmd := &cobra.Command{
+	apiServerSourceCmd := &cobra.Command{
 		Use:   "apiserver",
 		Short: "Kubernetes API Server Event Source command group",
 	}
-	apiServerImporterCmd.AddCommand(NewApiServerCreateCommand(p))
-	apiServerImporterCmd.AddCommand(NewApiServerDeleteCommand(p))
-	return apiServerImporterCmd
+	apiServerSourceCmd.AddCommand(NewApiServerCreateCommand(p))
+	apiServerSourceCmd.AddCommand(NewApiServerDeleteCommand(p))
+	return apiServerSourceCmd
+}
+
+var apiServerSourceClientFactory func(config clientcmd.ClientConfig, namespace string) (v1alpha1.KnApiServerSourcesClient, error)
+
+func newApiServerSourceClient(p *commands.KnParams, cmd *cobra.Command) (v1alpha1.KnApiServerSourcesClient, error) {
+	namespace, err := p.GetNamespace(cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	if apiServerSourceClientFactory != nil {
+		config, err := p.GetClientConfig()
+		if err != nil {
+			return nil, err
+		}
+		return apiServerSourceClientFactory(config, namespace)
+	}
+
+	clientConfig, err := p.RestConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	client, err := sources_v1alpha1.NewForConfig(clientConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	return v1alpha1.NewKnSourcesClient(client, namespace).ApiServerSourcesClient(), nil
 }

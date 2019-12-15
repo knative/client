@@ -41,12 +41,12 @@ func NewApiServerDeleteCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			sourcesClient, err := p.NewSourcesClient(namespace)
+			apiSourceClient, err := newApiServerSourceClient(p, cmd)
 			if err != nil {
 				return err
 			}
 
-			err = sourcesClient.ApiServerSourcesClient().DeleteApiServerSource(name)
+			err = apiSourceClient.DeleteApiServerSource(name)
 			if err != nil {
 				return err
 			}

@@ -50,7 +50,7 @@ func NewApiServerCreateCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			// get client
-			sourcesClient, err := p.NewSourcesClient(namespace)
+			apiSourceClient, err := newApiServerSourceClient(p, cmd)
 			if err != nil {
 				return err
 			}
@@ -73,7 +73,7 @@ func NewApiServerCreateCommand(p *commands.KnParams) *cobra.Command {
 			apisrvsrc.Spec.Sink = objectRef
 
 			// create
-			err = sourcesClient.ApiServerSourcesClient().CreateApiServerSource(apisrvsrc)
+			err = apiSourceClient.CreateApiServerSource(apisrvsrc)
 			if err != nil {
 				return fmt.Errorf(
 					"cannot create ApiServerSource '%s' in namespace '%s' "+
