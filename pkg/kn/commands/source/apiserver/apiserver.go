@@ -20,7 +20,7 @@ import (
 
 	sources_v1alpha1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1"
 
-	"knative.dev/client/pkg/eventing/sources/v1alpha1"
+	knsources_v1alpha1 "knative.dev/client/pkg/eventing/sources/v1alpha1"
 	"knative.dev/client/pkg/kn/commands"
 )
 
@@ -35,9 +35,9 @@ func NewApiServerCommand(p *commands.KnParams) *cobra.Command {
 	return apiServerSourceCmd
 }
 
-var apiServerSourceClientFactory func(config clientcmd.ClientConfig, namespace string) (v1alpha1.KnApiServerSourcesClient, error)
+var apiServerSourceClientFactory func(config clientcmd.ClientConfig, namespace string) (knsources_v1alpha1.KnApiServerSourcesClient, error)
 
-func newApiServerSourceClient(p *commands.KnParams, cmd *cobra.Command) (v1alpha1.KnApiServerSourcesClient, error) {
+func newApiServerSourceClient(p *commands.KnParams, cmd *cobra.Command) (knsources_v1alpha1.KnApiServerSourcesClient, error) {
 	namespace, err := p.GetNamespace(cmd)
 	if err != nil {
 		return nil, err
@@ -61,5 +61,5 @@ func newApiServerSourceClient(p *commands.KnParams, cmd *cobra.Command) (v1alpha
 		return nil, err
 	}
 
-	return v1alpha1.NewKnSourcesClient(client, namespace).ApiServerSourcesClient(), nil
+	return knsources_v1alpha1.NewKnSourcesClient(client, namespace).ApiServerSourcesClient(), nil
 }
