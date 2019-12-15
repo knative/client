@@ -33,7 +33,7 @@ func NewApiServerCreateCommand(p *commands.KnParams) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create NAME --resource RESOURCE --service-account ACCOUNTNAME --sink SINK --mode MODE",
 		Short: "Create an ApiServerSource, which watches for Kubernetes events and forwards them to a sink",
-		Example: `  
+		Example: `
   # Create an ApiServerSource 'k8sevents' which consumes Kubernetes events and sends message to service 'mysvc' as a cloudevent
   kn source apiserver create k8sevents --resource Event --service-account myaccountname --sink svc:mysvc`,
 
@@ -73,7 +73,7 @@ func NewApiServerCreateCommand(p *commands.KnParams) *cobra.Command {
 			apisrvsrc.Spec.Sink = objectRef
 
 			// create
-			_, err = sourcesClient.ApiServerSourcesClient().CreateApiServerSource(apisrvsrc)
+			err = sourcesClient.ApiServerSourcesClient().CreateApiServerSource(apisrvsrc)
 			if err != nil {
 				return fmt.Errorf(
 					"cannot create ApiServerSource '%s' in namespace '%s' "+

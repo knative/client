@@ -26,7 +26,7 @@ import (
 type KnApiServerSourcesClient interface {
 
 	// Get an ApiServerSource by object
-	CreateApiServerSource(apisvrsrc *v1alpha1.ApiServerSource) (*v1alpha1.ApiServerSource, error)
+	CreateApiServerSource(apisvrsrc *v1alpha1.ApiServerSource) error
 
 	// Delete an ApiServerSource by name
 	DeleteApiServerSource(name string) error
@@ -52,12 +52,13 @@ func newKnApiServerSourcesClient(client client_v1alpha1.ApiServerSourceInterface
 }
 
 //CreateApiServerSource is used to create an instance of ApiServerSource
-func (c *apiServerSourcesClient) CreateApiServerSource(apisvrsrc *v1alpha1.ApiServerSource) (*v1alpha1.ApiServerSource, error) {
-	ins, err := c.client.Create(apisvrsrc)
+func (c *apiServerSourcesClient) CreateApiServerSource(apisvrsrc *v1alpha1.ApiServerSource) error {
+	_, err := c.client.Create(apisvrsrc)
 	if err != nil {
-		return nil, kn_errors.GetError(err)
+		return kn_errors.GetError(err)
 	}
-	return ins, nil
+
+	return nil
 }
 
 //DeleteApiServerSource is used to create an instance of ApiServerSource

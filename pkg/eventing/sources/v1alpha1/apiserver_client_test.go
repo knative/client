@@ -53,14 +53,12 @@ func TestDeleteApiServerSource(t *testing.T) {
 		})
 
 	t.Run("create apiserversource without error", func(t *testing.T) {
-		ins, err := client.CreateApiServerSource(apisourceNew)
+		err := client.CreateApiServerSource(apisourceNew)
 		assert.NilError(t, err)
-		assert.Equal(t, ins.Name, srcName)
-		assert.Equal(t, ins.Namespace, testApiServerSourceNamespace)
 	})
 
 	t.Run("create apiserversource with an error returns an error object", func(t *testing.T) {
-		_, err := client.CreateApiServerSource(newApiServerSource("unknown"))
+		err := client.CreateApiServerSource(newApiServerSource("unknown"))
 		assert.ErrorContains(t, err, "unknown")
 	})
 }
@@ -83,14 +81,12 @@ func TestCreateApiServerSource(t *testing.T) {
 		})
 
 	t.Run("create apiserversource without error", func(t *testing.T) {
-		ins, err := client.CreateApiServerSource(apisourceNew)
+		err := client.CreateApiServerSource(apisourceNew)
 		assert.NilError(t, err)
-		assert.Equal(t, ins.Name, srcName)
-		assert.Equal(t, ins.Namespace, testApiServerSourceNamespace)
 	})
 
 	t.Run("create apiserversource with an error returns an error object", func(t *testing.T) {
-		_, err := client.CreateApiServerSource(newApiServerSource("unknown"))
+		err := client.CreateApiServerSource(newApiServerSource("unknown"))
 		assert.ErrorContains(t, err, "unknown")
 	})
 }
