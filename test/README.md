@@ -33,13 +33,13 @@ $ ./e2e-tests-local.sh
 
 ### Running end to end tests selectively
 
-#### Run only serving specific e2e tests locally
+To run only serving specific e2e tests locally, use
 
 ```
 E2E_TAGS="serving" ./e2e-tests-local.sh
 ```
 
-#### Run only eventing specific e2e tests locally
+To run only eventing specific e2e tests locally, use
 
 ```
 E2E_TAGS="eventing" ./e2e-tests-local.sh
