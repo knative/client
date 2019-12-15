@@ -31,15 +31,15 @@ Before running the e2e tests please make sure you dont have any namespaces with 
 $ ./e2e-tests-local.sh
 ```
 
-## Running end to end tests selectively
+### Running end to end tests selectively
 
-### Run only serving specific e2e tests locally
+#### Run only serving specific e2e tests locally
 
 ```
 E2E_TAGS="serving" ./e2e-tests-local.sh
 ```
 
-### Run only eventing specific e2e tests locally
+#### Run only eventing specific e2e tests locally
 
 ```
 E2E_TAGS="eventing" ./e2e-tests-local.sh
@@ -65,6 +65,6 @@ mode, use
 go test -v -tags=e2e -count=1 -short ./e2e
 ```
 
-### Presubmit tests
+## Presubmit tests
 
 Presubmit tests and subsequents tests require a --gcp-project and cannot be run locally.
