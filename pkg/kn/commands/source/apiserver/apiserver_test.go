@@ -18,7 +18,6 @@ import (
 	"bytes"
 
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/clientcmd"
 	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
 	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
@@ -85,30 +84,22 @@ func cleanupApiServerMockClient() {
 }
 
 func createApiServerSource(name, resourceKind, resourceVersion, serviceAccount, mode, service string, isController bool) *v1alpha1.ApiServerSource {
-	source := &v1alpha1.ApiServerSource{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: testNamespace,
-		},
-		Spec: v1alpha1.ApiServerSourceSpec{
-			Resources: []v1alpha1.ApiServerResource{
-				{
-					APIVersion: resourceVersion,
-					Kind:       resourceKind,
-					Controller: isController,
-				},
-			},
-			ServiceAccountName: serviceAccount,
-			Mode:               mode,
-		},
-	}
+	resources := []v1alpha1.ApiServerResource{{
+		APIVersion: resourceVersion,
+		Kind:       resourceKind,
+		Controller: isController,
+	}}
 
-	source.Spec.Sink = &duckv1beta1.Destination{
+	sink := &duckv1beta1.Destination{
 		Ref: &corev1.ObjectReference{
 			Kind: "Service",
 			Name: service,
-		},
-	}
+		}}
 
-	return source
+	return knsource_v1alpha1.NewAPIServerSourceBuilder(name).
+		Resources(resources).
+		ServiceAccount(serviceAccount).
+		Mode(mode).
+		Sink(sink).
+		Build()
 }

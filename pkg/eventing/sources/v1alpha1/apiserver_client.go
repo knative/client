@@ -16,10 +16,10 @@ package v1alpha1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	kn_errors "knative.dev/client/pkg/errors"
 	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
 	client_v1alpha1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1"
-
-	kn_errors "knative.dev/client/pkg/errors"
+	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
 )
 
 // Interface for working with ApiServer sources
@@ -96,4 +96,45 @@ func (c *apiServerSourcesClient) DeleteApiServerSource(name string) error {
 // Return the client's namespace
 func (c *apiServerSourcesClient) Namespace() string {
 	return c.namespace
+}
+
+// APIServerSourceBuilder is for building the source
+type APIServerSourceBuilder struct {
+	apiServerSource *v1alpha1.ApiServerSource
+}
+
+func NewAPIServerSourceBuilder(name string) *APIServerSourceBuilder {
+	return &APIServerSourceBuilder{apiServerSource: &v1alpha1.ApiServerSource{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
+		},
+	}}
+}
+
+func NewAPIServerSourceBuilderFromExisting(apiServerSource *v1alpha1.ApiServerSource) *APIServerSourceBuilder {
+	return &APIServerSourceBuilder{apiServerSource: apiServerSource.DeepCopy()}
+}
+
+func (b *APIServerSourceBuilder) Resources(resources []v1alpha1.ApiServerResource) *APIServerSourceBuilder {
+	b.apiServerSource.Spec.Resources = resources
+	return b
+}
+
+func (b *APIServerSourceBuilder) ServiceAccount(sa string) *APIServerSourceBuilder {
+	b.apiServerSource.Spec.ServiceAccountName = sa
+	return b
+}
+
+func (b *APIServerSourceBuilder) Mode(mode string) *APIServerSourceBuilder {
+	b.apiServerSource.Spec.Mode = mode
+	return b
+}
+
+func (b *APIServerSourceBuilder) Sink(sink *duckv1beta1.Destination) *APIServerSourceBuilder {
+	b.apiServerSource.Spec.Sink = sink
+	return b
+}
+
+func (b *APIServerSourceBuilder) Build() *v1alpha1.ApiServerSource {
+	return b.apiServerSource
 }

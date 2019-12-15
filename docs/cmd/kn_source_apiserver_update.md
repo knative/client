@@ -1,10 +1,10 @@
 ## kn source apiserver update
 
-update an ApiServerSource, which watches for Kubernetes events and forwards them to a sink
+Update an ApiServerSource, which watches for Kubernetes events and forwards them to a sink
 
 ### Synopsis
 
-update an ApiServerSource, which watches for Kubernetes events and forwards them to a sink
+Update an ApiServerSource, which watches for Kubernetes events and forwards them to a sink
 
 ```
 kn source apiserver update NAME --resource RESOURCE --service-account ACCOUNTNAME --sink SINK --mode MODE [flags]
