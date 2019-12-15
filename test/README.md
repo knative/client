@@ -31,7 +31,19 @@ Before running the e2e tests please make sure you dont have any namespaces with 
 $ ./e2e-tests-local.sh
 ```
 
-### Running a test case selectively
+## Running end to end tests selectively
+
+### Run only serving specific e2e tests locally
+
+```
+E2E_TAGS="serving" ./e2e-tests-local.sh
+```
+
+### Run only eventing specific e2e tests locally
+
+```
+E2E_TAGS="eventing" ./e2e-tests-local.sh
+```
 
 ### Running a single test case
 
