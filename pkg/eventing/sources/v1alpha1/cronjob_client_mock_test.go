@@ -20,7 +20,7 @@ import (
 	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
 )
 
-func TestMockKnClient(t *testing.T) {
+func TestMockKnCronJobSourceClient(t *testing.T) {
 
 	client := NewMockKnCronJobSourceClient(t)
 
