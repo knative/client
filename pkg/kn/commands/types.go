@@ -24,11 +24,13 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"knative.dev/client/pkg/util"
+	eventing "knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1alpha1"
 	eventing_sources "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1"
 	serving_v1alpha1_client "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
 
 	dynamic_kn "knative.dev/client/pkg/dynamic"
 	sources_kn_v1alpha1 "knative.dev/client/pkg/eventing/sources/v1alpha1"
+	eventing_kn_v1alpha1 "knative.dev/client/pkg/eventing/v1alpha1"
 	serving_kn_v1alpha1 "knative.dev/client/pkg/serving/v1alpha1"
 )
 
@@ -46,12 +48,13 @@ type Config struct {
 
 // KnParams for creating commands. Useful for inserting mocks for testing.
 type KnParams struct {
-	Output           io.Writer
-	KubeCfgPath      string
-	ClientConfig     clientcmd.ClientConfig
-	NewServingClient func(namespace string) (serving_kn_v1alpha1.KnServingClient, error)
-	NewSourcesClient func(namespace string) (sources_kn_v1alpha1.KnSourcesClient, error)
-	NewDynamicClient func(namespace string) (dynamic_kn.KnDynamicClient, error)
+	Output            io.Writer
+	KubeCfgPath       string
+	ClientConfig      clientcmd.ClientConfig
+	NewServingClient  func(namespace string) (serving_kn_v1alpha1.KnServingClient, error)
+	NewSourcesClient  func(namespace string) (sources_kn_v1alpha1.KnSourcesClient, error)
+	NewEventingClient func(namespace string) (eventing_kn_v1alpha1.KnEventingClient, error)
+	NewDynamicClient  func(namespace string) (dynamic_kn.KnDynamicClient, error)
 
 	// General global options
 	LogHTTP bool
@@ -67,6 +70,10 @@ func (params *KnParams) Initialize() {
 
 	if params.NewSourcesClient == nil {
 		params.NewSourcesClient = params.newSourcesClient
+	}
+
+	if params.NewEventingClient == nil {
+		params.NewEventingClient = params.newEventingClient
 	}
 
 	if params.NewDynamicClient == nil {
@@ -92,6 +99,16 @@ func (params *KnParams) newSourcesClient(namespace string) (sources_kn_v1alpha1.
 
 	client, _ := eventing_sources.NewForConfig(restConfig)
 	return sources_kn_v1alpha1.NewKnSourcesClient(client, namespace), nil
+}
+
+func (params *KnParams) newEventingClient(namespace string) (eventing_kn_v1alpha1.KnEventingClient, error) {
+	restConfig, err := params.RestConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	client, _ := eventing.NewForConfig(restConfig)
+	return eventing_kn_v1alpha1.NewKnEventingClient(client, namespace), nil
 }
 
 func (params *KnParams) newDynamicClient(namespace string) (dynamic_kn.KnDynamicClient, error) {

@@ -28,5 +28,6 @@ Manage your Knative building blocks:
 * [kn route](kn_route.md)	 - Route command group
 * [kn service](kn_service.md)	 - Service command group
 * [kn source](kn_source.md)	 - Event source command group
+* [kn trigger](kn_trigger.md)	 - Trigger command group
 * [kn version](kn_version.md)	 - Prints the client version
 
