@@ -31,7 +31,7 @@ func NewApiServerUpdateCommand(p *commands.KnParams) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "update NAME --resource RESOURCE --service-account ACCOUNTNAME --sink SINK --mode MODE",
-		Short: "Update an ApiServerSource, which watches for Kubernetes events and forwards them to a sink",
+		Short: "Update an ApiServerSource.",
 		Example: `
   # Update an ApiServerSource 'k8sevents' with different service account and sink service
   kn source apiserver update k8sevents --service-account newsa --sink svc:newsvc`,

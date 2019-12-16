@@ -31,14 +31,14 @@ func NewApiServerCreateCommand(p *commands.KnParams) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "create NAME --resource RESOURCE --service-account ACCOUNTNAME --sink SINK --mode MODE",
-		Short: "Create an ApiServerSource, which watches for Kubernetes events and forwards them to a sink",
+		Short: "Create an ApiServer source.",
 		Example: `
   # Create an ApiServerSource 'k8sevents' which consumes Kubernetes events and sends message to service 'mysvc' as a cloudevent
   kn source apiserver create k8sevents --resource Event --service-account myaccountname --sink svc:mysvc`,
 
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
-				return errors.New("requires the name of the APIServer source to create as single argument")
+				return errors.New("requires the name of the source to create as single argument")
 			}
 			name := args[0]
 

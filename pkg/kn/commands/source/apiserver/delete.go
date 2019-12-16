@@ -26,13 +26,13 @@ import (
 func NewApiServerDeleteCommand(p *commands.KnParams) *cobra.Command {
 	ApiServerDeleteCommand := &cobra.Command{
 		Use:   "delete NAME",
-		Short: "Delete an ApiServerSource.",
+		Short: "Delete an ApiServer source.",
 		Example: `
   # Delete an ApiServerSource 'k8sevents' in default namespace
   kn source apiserver delete k8sevents`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
-				return errors.New("'source apiserver delete' requires the name of the source as single argument")
+				return errors.New("requires the name of the source as single argument")
 			}
 			name := args[0]
 

@@ -1,10 +1,10 @@
 ## kn source apiserver create
 
-Create an ApiServerSource, which watches for Kubernetes events and forwards them to a sink
+Create an ApiServer source.
 
 ### Synopsis
 
-Create an ApiServerSource, which watches for Kubernetes events and forwards them to a sink
+Create an ApiServer source.
 
 ```
 kn source apiserver create NAME --resource RESOURCE --service-account ACCOUNTNAME --sink SINK --mode MODE [flags]
