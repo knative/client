@@ -87,18 +87,3 @@ func (f *ApiServerSourceUpdateFlags) Add(cmd *cobra.Command) {
 "APIVersion" and "isControler" can be omitted.
 "APIVersion" is "v1" by default, "isController" is "false" by default.`)
 }
-
-//Apply updates the service object based on flags
-func (f *ApiServerSourceUpdateFlags) Apply(source *v1alpha1.ApiServerSource, cmd *cobra.Command) {
-	if cmd.Flags().Changed("service-account") {
-		source.Spec.ServiceAccountName = f.ServiceAccountName
-	}
-
-	if cmd.Flags().Changed("mode") {
-		source.Spec.Mode = f.Mode
-	}
-
-	if cmd.Flags().Changed("resource") {
-		source.Spec.Resources = f.GetApiServerResourceArray()
-	}
-}

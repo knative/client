@@ -20,6 +20,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"knative.dev/client/pkg/eventing/sources/v1alpha1"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
 )
@@ -47,6 +48,11 @@ func NewApiServerUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
+			servingClient, err := p.NewServingClient(namespace)
+			if err != nil {
+				return err
+			}
+
 			sourcesClient, err := newApiServerSourceClient(p, cmd)
 			if err != nil {
 				return err
@@ -57,9 +63,17 @@ func NewApiServerUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			servingClient, err := p.NewServingClient(namespace)
-			if err != nil {
-				return err
+			b := v1alpha1.NewAPIServerSourceBuilderFromExisting(source)
+			if cmd.Flags().Changed("service-account") {
+				b.ServiceAccount(apiServerUpdateFlags.ServiceAccountName)
+			}
+
+			if cmd.Flags().Changed("mode") {
+				b.Mode(apiServerUpdateFlags.Mode)
+			}
+
+			if cmd.Flags().Changed("resource") {
+				b.Resources(apiServerUpdateFlags.GetApiServerResourceArray())
 			}
 
 			if cmd.Flags().Changed("sink") {
@@ -67,19 +81,15 @@ func NewApiServerUpdateCommand(p *commands.KnParams) *cobra.Command {
 				if err != nil {
 					return err
 				}
-
-				source.Spec.Sink = objectRef
+				b.Sink(objectRef)
 			}
 
-			apiServerUpdateFlags.Apply(source, cmd)
-
-			err = sourcesClient.UpdateApiServerSource(source)
-			if err != nil {
-				return err
+			err = sourcesClient.UpdateApiServerSource(b.Build())
+			if err == nil {
+				fmt.Fprintf(cmd.OutOrStdout(), "ApiServer source '%s' updated in namespace '%s'.\n", args[0], namespace)
 			}
 
-			fmt.Fprintf(cmd.OutOrStdout(), "ApiServer source '%s' updated in namespace '%s'.\n", args[0], namespace)
-			return nil
+			return err
 		},
 	}
 	commands.AddNamespaceFlags(cmd.Flags(), false)
