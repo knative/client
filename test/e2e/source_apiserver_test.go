@@ -64,7 +64,7 @@ func (test *e2eTest) apiServerSourceCreate(t *testing.T, sourceName string, reso
 	out, err := test.kn.RunWithOpts([]string{"source", "apiserver", "create", sourceName,
 		"--resource", resources, "--service-account", sa, "--sink", sink}, runOpts{NoNamespace: false})
 	assert.NilError(t, err)
-	assert.Check(t, util.ContainsAllIgnoreCase(out, "ApiServerSource", sourceName, "created", "namespace", test.kn.namespace))
+	assert.Check(t, util.ContainsAllIgnoreCase(out, "apiserver", "source", sourceName, "created", "namespace", test.kn.namespace))
 }
 
 func (test *e2eTest) apiServerSourceCreateMissingSink(t *testing.T, sourceName string, resources string, sa string, sink string) {
@@ -76,7 +76,7 @@ func (test *e2eTest) apiServerSourceCreateMissingSink(t *testing.T, sourceName s
 func (test *e2eTest) apiServerSourceDelete(t *testing.T, sourceName string) {
 	out, err := test.kn.RunWithOpts([]string{"source", "apiserver", "delete", sourceName}, runOpts{NoNamespace: false})
 	assert.NilError(t, err)
-	assert.Check(t, util.ContainsAllIgnoreCase(out, "ApiServerSource", sourceName, "deleted", "namespace", test.kn.namespace))
+	assert.Check(t, util.ContainsAllIgnoreCase(out, "apiserver", "source", sourceName, "deleted", "namespace", test.kn.namespace))
 }
 
 func (test *e2eTest) setupServiceAccountForApiserver(t *testing.T, name string) {
