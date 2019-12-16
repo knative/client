@@ -42,7 +42,7 @@ E2E_TAGS="serving" test/e2e-tests-local.sh
 To run only eventing specific e2e tests locally, use
 
 ```
-E2E_TAGS="eventing" ./e2e-tests-local.sh
+E2E_TAGS="eventing" test/e2e-tests-local.sh
 ```
 
 ### Running a single test case
