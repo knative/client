@@ -1,6 +1,6 @@
 # Test
 
-This directory contains tests and testing docs for `Kn client`:
+This directory contains e2e tests and testing docs:
 
 - [Unit tests](#running-unit-tests) currently reside in the codebase alongside
   the code they test
