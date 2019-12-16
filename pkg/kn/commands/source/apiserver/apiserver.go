@@ -32,6 +32,7 @@ func NewAPIServerCommand(p *commands.KnParams) *cobra.Command {
 	}
 	apiServerSourceCmd.AddCommand(NewAPIServerCreateCommand(p))
 	apiServerSourceCmd.AddCommand(NewAPIServerUpdateCommand(p))
+	apiServerSourceCmd.AddCommand(NewAPIServerDescribeCommand(p))
 	apiServerSourceCmd.AddCommand(NewAPIServerDeleteCommand(p))
 	return apiServerSourceCmd
 }
