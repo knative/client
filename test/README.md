@@ -12,7 +12,7 @@ This directory contains e2e tests and testing docs:
 To run all unit tests:
 
 ```bash
-$ hack/build.sh -f -t
+$ hack/build.sh -t
 ```
 
 _By default `go test` will not run [the e2e tests](#running-end-to-end-tests-locally),
