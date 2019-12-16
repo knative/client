@@ -1,28 +1,29 @@
-## kn source apiserver delete
+## kn source apiserver describe
 
-Delete an ApiServer source.
+Describe an ApiServer source.
 
 ### Synopsis
 
-Delete an ApiServer source.
+Describe an ApiServer source.
 
 ```
-kn source apiserver delete NAME [flags]
+kn source apiserver describe NAME [flags]
 ```
 
 ### Examples
 
 ```
 
-  # Delete an ApiServerSource 'k8sevents' in default namespace
-  kn source apiserver delete k8sevents
+  # Describe an ApiServer source with name 'k8sevents'
+  kn source apiserver describe k8sevents
 ```
 
 ### Options
 
 ```
-  -h, --help               help for delete
+  -h, --help               help for describe
   -n, --namespace string   Specify the namespace to operate in.
+  -v, --verbose            More output.
 ```
 
 ### Options inherited from parent commands

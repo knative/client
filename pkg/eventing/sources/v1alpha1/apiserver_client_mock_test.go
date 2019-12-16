@@ -20,23 +20,23 @@ import (
 	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
 )
 
-func TestMockKnCronJobSourceClient(t *testing.T) {
+func TestMockKnAPIServerSourceClient(t *testing.T) {
 
-	client := NewMockKnCronJobSourceClient(t)
+	client := NewMockKnAPIServerSourceClient(t)
 
 	recorder := client.Recorder()
 
 	// Record all services
-	recorder.GetCronJobSource("hello", nil, nil)
-	recorder.CreateCronJobSource(&v1alpha1.CronJobSource{}, nil)
-	recorder.UpdateCronJobSource(&v1alpha1.CronJobSource{}, nil)
-	recorder.DeleteCronJobSource("hello", nil)
+	recorder.GetAPIServerSource("hello", nil, nil)
+	recorder.CreateAPIServerSource(&v1alpha1.ApiServerSource{}, nil)
+	recorder.UpdateAPIServerSource(&v1alpha1.ApiServerSource{}, nil)
+	recorder.DeleteAPIServerSource("hello", nil)
 
 	// Call all service
-	client.GetCronJobSource("hello")
-	client.CreateCronJobSource(&v1alpha1.CronJobSource{})
-	client.UpdateCronJobSource(&v1alpha1.CronJobSource{})
-	client.DeleteCronJobSource("hello")
+	client.GetAPIServerSource("hello")
+	client.CreateAPIServerSource(&v1alpha1.ApiServerSource{})
+	client.UpdateAPIServerSource(&v1alpha1.ApiServerSource{})
+	client.DeleteAPIServerSource("hello")
 
 	// Validate
 	recorder.Validate()

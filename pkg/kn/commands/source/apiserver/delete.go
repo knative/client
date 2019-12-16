@@ -22,17 +22,17 @@ import (
 	"knative.dev/client/pkg/kn/commands"
 )
 
-// NewRevisionDeleteCommand represent 'revision delete' command
-func NewApiServerDeleteCommand(p *commands.KnParams) *cobra.Command {
-	ApiServerDeleteCommand := &cobra.Command{
+// NewAPIServerDeleteCommand for deleting source
+func NewAPIServerDeleteCommand(p *commands.KnParams) *cobra.Command {
+	deleteCommand := &cobra.Command{
 		Use:   "delete NAME",
-		Short: "Delete an ApiServerSource.",
+		Short: "Delete an ApiServer source.",
 		Example: `
   # Delete an ApiServerSource 'k8sevents' in default namespace
   kn source apiserver delete k8sevents`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
-				return errors.New("'source apiserver delete' requires the name of the source as single argument")
+				return errors.New("requires the name of the source as single argument")
 			}
 			name := args[0]
 
@@ -41,19 +41,19 @@ func NewApiServerDeleteCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			sourcesClient, err := p.NewSourcesClient(namespace)
+			apiSourceClient, err := newAPIServerSourceClient(p, cmd)
 			if err != nil {
 				return err
 			}
 
-			err = sourcesClient.ApiServerSourcesClient().DeleteApiServerSource(name)
+			err = apiSourceClient.DeleteAPIServerSource(name)
 			if err != nil {
 				return err
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "ApiServerSource '%s' deleted in namespace '%s'.\n", args[0], namespace)
+			fmt.Fprintf(cmd.OutOrStdout(), "ApiServer source '%s' deleted in namespace '%s'.\n", args[0], namespace)
 			return nil
 		},
 	}
-	commands.AddNamespaceFlags(ApiServerDeleteCommand.Flags(), false)
-	return ApiServerDeleteCommand
+	commands.AddNamespaceFlags(deleteCommand.Flags(), false)
+	return deleteCommand
 }

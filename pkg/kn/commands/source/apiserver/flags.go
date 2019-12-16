@@ -19,27 +19,27 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	sources_v1alpha1 "knative.dev/eventing/pkg/apis/sources/v1alpha1"
+	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
 )
 
 const (
-	ApiVersionSplitChar = ":"
-	DefaultApiVersion   = "v1"
+	apiVersionSplitChar = ":"
+	defaultAPIVersion   = "v1"
 )
 
-// ApiServerSourceUpdateFlags are flags for create and update a ApiServerSource
-type ApiServerSourceUpdateFlags struct {
+// APIServerSourceUpdateFlags are flags for create and update a ApiServerSource
+type APIServerSourceUpdateFlags struct {
 	ServiceAccountName string
 	Mode               string
 	Resources          []string
 }
 
-// GetApiServerResourceArray is to return an array of ApiServerResource from a string. A sample is Event:v1:true,Pod:v2:false
-func (f *ApiServerSourceUpdateFlags) GetApiServerResourceArray() []sources_v1alpha1.ApiServerResource {
-	var resourceList []sources_v1alpha1.ApiServerResource
+// GetAPIServerResourceArray is to return an array of ApiServerResource from a string. A sample is Event:v1:true,Pod:v2:false
+func (f *APIServerSourceUpdateFlags) GetAPIServerResourceArray() []v1alpha1.ApiServerResource {
+	var resourceList []v1alpha1.ApiServerResource
 	for _, r := range f.Resources {
 		version, kind, controller := getValidResource(r)
-		resourceRef := sources_v1alpha1.ApiServerResource{
+		resourceRef := v1alpha1.ApiServerResource{
 			APIVersion: version,
 			Kind:       kind,
 			Controller: controller,
@@ -50,11 +50,11 @@ func (f *ApiServerSourceUpdateFlags) GetApiServerResourceArray() []sources_v1alp
 }
 
 func getValidResource(resource string) (string, string, bool) {
-	var version = DefaultApiVersion // v1 as default
+	var version = defaultAPIVersion // v1 as default
 	var isController = false        //false as default
 	var err error
 
-	parts := strings.Split(resource, ApiVersionSplitChar)
+	parts := strings.Split(resource, apiVersionSplitChar)
 	kind := parts[0]
 	if len(parts) >= 2 {
 		version = parts[1]
@@ -69,7 +69,7 @@ func getValidResource(resource string) (string, string, bool) {
 }
 
 //Add is to set parameters
-func (f *ApiServerSourceUpdateFlags) Add(cmd *cobra.Command) {
+func (f *APIServerSourceUpdateFlags) Add(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&f.ServiceAccountName,
 		"service-account",
 		"",
@@ -85,5 +85,5 @@ func (f *ApiServerSourceUpdateFlags) Add(cmd *cobra.Command) {
 		nil,
 		`Comma seperate Kind:APIVersion:isController list, e.g. Event:v1:true.
 "APIVersion" and "isControler" can be omitted.
-"APIVersion" is "v1" by default, "isController" is "false" by default. `)
+"APIVersion" is "v1" by default, "isController" is "false" by default.`)
 }

@@ -187,7 +187,7 @@ func TestNewSourcesClient(t *testing.T) {
 		}
 
 		if sourcesClient != nil {
-			assert.Assert(t, sourcesClient.ApiServerSourcesClient().Namespace() == namespace)
+			assert.Assert(t, sourcesClient.APIServerSourcesClient().Namespace() == namespace)
 			assert.Assert(t, sourcesClient.CronJobSourcesClient().Namespace() == namespace)
 		}
 	}
