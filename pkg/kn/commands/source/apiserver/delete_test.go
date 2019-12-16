@@ -26,12 +26,12 @@ import (
 
 func TestApiServerSourceDelete(t *testing.T) {
 
-	apiServerClient := knsources_v1alpha1.NewMockKnApiServerSourceClient(t, "testns")
+	apiServerClient := knsources_v1alpha1.NewMockKnAPIServerSourceClient(t, "testns")
 	apiServerRecorder := apiServerClient.Recorder()
 
-	apiServerRecorder.DeleteApiServerSource("testsource", nil)
+	apiServerRecorder.DeleteAPIServerSource("testsource", nil)
 
-	out, err := executeApiServerSourceCommand(apiServerClient, nil, "delete", "testsource")
+	out, err := executeAPIServerSourceCommand(apiServerClient, nil, "delete", "testsource")
 	assert.NilError(t, err)
 	util.ContainsAll(out, "deleted", "testns", "testsource")
 
@@ -40,12 +40,12 @@ func TestApiServerSourceDelete(t *testing.T) {
 
 func TestDeleteWithError(t *testing.T) {
 
-	apiServerClient := knsources_v1alpha1.NewMockKnApiServerSourceClient(t, "mynamespace")
+	apiServerClient := knsources_v1alpha1.NewMockKnAPIServerSourceClient(t, "mynamespace")
 	apiServerRecorder := apiServerClient.Recorder()
 
-	apiServerRecorder.DeleteApiServerSource("testsource", errors.New("apiserver source testsource not found"))
+	apiServerRecorder.DeleteAPIServerSource("testsource", errors.New("apiserver source testsource not found"))
 
-	out, err := executeApiServerSourceCommand(apiServerClient, nil, "delete", "testsource")
+	out, err := executeAPIServerSourceCommand(apiServerClient, nil, "delete", "testsource")
 	assert.ErrorContains(t, err, "testsource")
 	util.ContainsAll(out, "apiserver", "source", "testsource", "not found")
 

@@ -28,7 +28,7 @@ import (
 
 func TestCreateApiServerSource(t *testing.T) {
 
-	apiServerClient := knsources_v1alpha1.NewMockKnApiServerSourceClient(t)
+	apiServerClient := knsources_v1alpha1.NewMockKnAPIServerSourceClient(t)
 	servingClient := knserving_client.NewMockKnServiceClient(t)
 
 	servingRecorder := servingClient.Recorder()
@@ -38,9 +38,9 @@ func TestCreateApiServerSource(t *testing.T) {
 	}, nil)
 
 	apiServerRecorder := apiServerClient.Recorder()
-	apiServerRecorder.CreateApiServerSource(createApiServerSource("testsource", "Event", "v1", "testsa", "Ref", "testsvc", false), nil)
+	apiServerRecorder.CreateAPIServerSource(createAPIServerSource("testsource", "Event", "v1", "testsa", "Ref", "testsvc", false), nil)
 
-	out, err := executeApiServerSourceCommand(apiServerClient, servingClient, "create", "testsource", "--resource", "Event:v1:false", "--service-account", "testsa", "--sink", "svc:testsvc", "--mode", "Ref")
+	out, err := executeAPIServerSourceCommand(apiServerClient, servingClient, "create", "testsource", "--resource", "Event:v1:false", "--service-account", "testsa", "--sink", "svc:testsvc", "--mode", "Ref")
 	assert.NilError(t, err, "ApiServer source should be created")
 	util.ContainsAll(out, "created", "default", "testsource")
 
@@ -50,13 +50,13 @@ func TestCreateApiServerSource(t *testing.T) {
 
 func TestNoSinkError(t *testing.T) {
 	servingClient := knserving_client.NewMockKnServiceClient(t)
-	apiServerClient := knsources_v1alpha1.NewMockKnApiServerSourceClient(t)
+	apiServerClient := knsources_v1alpha1.NewMockKnAPIServerSourceClient(t)
 
 	errorMsg := "cannot create ApiServerSource 'testsource' in namespace 'default' because no Service svc found"
 	servingRecorder := servingClient.Recorder()
 	servingRecorder.GetService("testsvc", nil, errors.New("no Service svc found"))
 
-	out, err := executeApiServerSourceCommand(apiServerClient, servingClient, "create", "testsource", "--resource", "Event:v1:false", "--service-account", "testsa", "--sink", "svc:testsvc", "--mode", "Ref")
+	out, err := executeAPIServerSourceCommand(apiServerClient, servingClient, "create", "testsource", "--resource", "Event:v1:false", "--service-account", "testsa", "--sink", "svc:testsvc", "--mode", "Ref")
 	assert.Error(t, err, errorMsg)
 	assert.Assert(t, util.ContainsAll(out, errorMsg, "Usage"))
 	servingRecorder.Validate()

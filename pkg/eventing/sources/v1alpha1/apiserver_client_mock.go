@@ -22,87 +22,88 @@ import (
 	"knative.dev/client/pkg/util/mock"
 )
 
-type MockKnApiServerSourceClient struct {
+// MockKnAPIServerSourceClient for mocking the client
+type MockKnAPIServerSourceClient struct {
 	t         *testing.T
-	recorder  *ApiServerSourcesRecorder
+	recorder  *APIServerSourcesRecorder
 	namespace string
 }
 
-// NewMockKnApiServerSourceClient returns a new mock instance which you need to record for
-func NewMockKnApiServerSourceClient(t *testing.T, ns ...string) *MockKnApiServerSourceClient {
+// NewMockKnAPIServerSourceClient returns a new mock instance which you need to record for
+func NewMockKnAPIServerSourceClient(t *testing.T, ns ...string) *MockKnAPIServerSourceClient {
 	namespace := "default"
 	if len(ns) > 0 {
 		namespace = ns[0]
 	}
-	return &MockKnApiServerSourceClient{
+	return &MockKnAPIServerSourceClient{
 		t:        t,
-		recorder: &ApiServerSourcesRecorder{mock.NewRecorder(t, namespace)},
+		recorder: &APIServerSourcesRecorder{mock.NewRecorder(t, namespace)},
 	}
 }
 
 // Ensure that the interface is implemented
-var _ KnApiServerSourcesClient = &MockKnApiServerSourceClient{}
+var _ KnAPIServerSourcesClient = &MockKnAPIServerSourceClient{}
 
-// recorder for service
-type ApiServerSourcesRecorder struct {
+// APIServerSourcesRecorder for recording actions on source
+type APIServerSourcesRecorder struct {
 	r *mock.Recorder
 }
 
 // Recorder returns the recorder for registering API calls
-func (c *MockKnApiServerSourceClient) Recorder() *ApiServerSourcesRecorder {
+func (c *MockKnAPIServerSourceClient) Recorder() *APIServerSourcesRecorder {
 	return c.recorder
 }
 
 // Namespace of this client
-func (c *MockKnApiServerSourceClient) Namespace() string {
+func (c *MockKnAPIServerSourceClient) Namespace() string {
 	return c.recorder.r.Namespace()
 }
 
-// GetApiServerSource records a call for GetApiServerSource with the expected object or error. Either apiServerSource or err should be nil
-func (sr *ApiServerSourcesRecorder) GetApiServerSource(name interface{}, apiServerSource *v1alpha1.ApiServerSource, err error) {
+// GetAPIServerSource records a call for GetApiServerSource with the expected object or error. Either apiServerSource or err should be nil
+func (sr *APIServerSourcesRecorder) GetAPIServerSource(name interface{}, apiServerSource *v1alpha1.ApiServerSource, err error) {
 	sr.r.Add("GetApiServerSource", []interface{}{name}, []interface{}{apiServerSource, err})
 }
 
-// GetApiServerSource performs a previously recorded action, failing if non has been registered
-func (c *MockKnApiServerSourceClient) GetApiServerSource(name string) (*v1alpha1.ApiServerSource, error) {
+// GetAPIServerSource performs a previously recorded action, failing if non has been registered
+func (c *MockKnAPIServerSourceClient) GetAPIServerSource(name string) (*v1alpha1.ApiServerSource, error) {
 	call := c.recorder.r.VerifyCall("GetApiServerSource", name)
 	return call.Result[0].(*v1alpha1.ApiServerSource), mock.ErrorOrNil(call.Result[1])
 }
 
-// CreateApiServerSource records a call for CreateApiServerSource with the expected error
-func (sr *ApiServerSourcesRecorder) CreateApiServerSource(apiServerSource interface{}, err error) {
+// CreateAPIServerSource records a call for CreateApiServerSource with the expected error
+func (sr *APIServerSourcesRecorder) CreateAPIServerSource(apiServerSource interface{}, err error) {
 	sr.r.Add("CreateApiServerSource", []interface{}{apiServerSource}, []interface{}{err})
 }
 
-// CreateApiServerSource performs a previously recorded action, failing if non has been registered
-func (c *MockKnApiServerSourceClient) CreateApiServerSource(apiServerSource *v1alpha1.ApiServerSource) error {
+// CreateAPIServerSource performs a previously recorded action, failing if non has been registered
+func (c *MockKnAPIServerSourceClient) CreateAPIServerSource(apiServerSource *v1alpha1.ApiServerSource) error {
 	call := c.recorder.r.VerifyCall("CreateApiServerSource", apiServerSource)
 	return mock.ErrorOrNil(call.Result[0])
 }
 
-// UpdateApiServerSource records a call for UpdateApiServerSource with the expected error (nil if none)
-func (sr *ApiServerSourcesRecorder) UpdateApiServerSource(apiServerSource interface{}, err error) {
-	sr.r.Add("UpdateApiServerSource", []interface{}{apiServerSource}, []interface{}{err})
+// UpdateAPIServerSource records a call for UpdateAPIServerSource with the expected error (nil if none)
+func (sr *APIServerSourcesRecorder) UpdateAPIServerSource(apiServerSource interface{}, err error) {
+	sr.r.Add("UpdateAPIServerSource", []interface{}{apiServerSource}, []interface{}{err})
 }
 
-// UpdateApiServerSource performs a previously recorded action, failing if non has been registered
-func (c *MockKnApiServerSourceClient) UpdateApiServerSource(apiServerSource *v1alpha1.ApiServerSource) error {
-	call := c.recorder.r.VerifyCall("UpdateApiServerSource", apiServerSource)
+// UpdateAPIServerSource performs a previously recorded action, failing if non has been registered
+func (c *MockKnAPIServerSourceClient) UpdateAPIServerSource(apiServerSource *v1alpha1.ApiServerSource) error {
+	call := c.recorder.r.VerifyCall("UpdateAPIServerSource", apiServerSource)
 	return mock.ErrorOrNil(call.Result[0])
 }
 
-// UpdateApiServerSource records a call for DeleteApiServerSource with the expected error (nil if none)
-func (sr *ApiServerSourcesRecorder) DeleteApiServerSource(name interface{}, err error) {
-	sr.r.Add("DeleteApiServerSource", []interface{}{name}, []interface{}{err})
+// DeleteAPIServerSource records a call for DeleteAPIServerSource with the expected error (nil if none)
+func (sr *APIServerSourcesRecorder) DeleteAPIServerSource(name interface{}, err error) {
+	sr.r.Add("DeleteAPIServerSource", []interface{}{name}, []interface{}{err})
 }
 
-// DeleteApiServerSource performs a previously recorded action, failing if non has been registered
-func (c *MockKnApiServerSourceClient) DeleteApiServerSource(name string) error {
-	call := c.recorder.r.VerifyCall("DeleteApiServerSource", name)
+// DeleteAPIServerSource performs a previously recorded action, failing if non has been registered
+func (c *MockKnAPIServerSourceClient) DeleteAPIServerSource(name string) error {
+	call := c.recorder.r.VerifyCall("DeleteAPIServerSource", name)
 	return mock.ErrorOrNil(call.Result[0])
 }
 
-// Validates validates whether every recorded action has been called
-func (sr *ApiServerSourcesRecorder) Validate() {
+// Validate validates whether every recorded action has been called
+func (sr *APIServerSourcesRecorder) Validate() {
 	sr.r.CheckThatAllRecordedMethodsHaveBeenCalled()
 }

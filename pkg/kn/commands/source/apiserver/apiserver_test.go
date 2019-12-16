@@ -55,7 +55,7 @@ current-context: x
 	}
 }
 
-func executeApiServerSourceCommand(apiServerSourceClient knsource_v1alpha1.KnApiServerSourcesClient, servingClient knserving_v1alpha1.KnServingClient, args ...string) (string, error) {
+func executeAPIServerSourceCommand(apiServerSourceClient knsource_v1alpha1.KnAPIServerSourcesClient, servingClient knserving_v1alpha1.KnServingClient, args ...string) (string, error) {
 	knParams := &commands.KnParams{}
 	knParams.ClientConfig = blankConfig
 
@@ -65,25 +65,25 @@ func executeApiServerSourceCommand(apiServerSourceClient knsource_v1alpha1.KnApi
 		return servingClient, nil
 	}
 
-	cmd := NewApiServerCommand(knParams)
+	cmd := NewAPIServerCommand(knParams)
 	cmd.SetArgs(args)
 	cmd.SetOutput(output)
 
-	apiServerSourceClientFactory = func(config clientcmd.ClientConfig, namespace string) (knsource_v1alpha1.KnApiServerSourcesClient, error) {
+	apiServerSourceClientFactory = func(config clientcmd.ClientConfig, namespace string) (knsource_v1alpha1.KnAPIServerSourcesClient, error) {
 		return apiServerSourceClient, nil
 	}
-	defer cleanupApiServerMockClient()
+	defer cleanupAPIServerMockClient()
 
 	err := cmd.Execute()
 
 	return output.String(), err
 }
 
-func cleanupApiServerMockClient() {
+func cleanupAPIServerMockClient() {
 	apiServerSourceClientFactory = nil
 }
 
-func createApiServerSource(name, resourceKind, resourceVersion, serviceAccount, mode, service string, isController bool) *v1alpha1.ApiServerSource {
+func createAPIServerSource(name, resourceKind, resourceVersion, serviceAccount, mode, service string, isController bool) *v1alpha1.ApiServerSource {
 	resources := []v1alpha1.ApiServerResource{{
 		APIVersion: resourceVersion,
 		Kind:       resourceKind,

@@ -25,8 +25,9 @@ import (
 	"knative.dev/client/pkg/kn/commands/flags"
 )
 
-func NewApiServerCreateCommand(p *commands.KnParams) *cobra.Command {
-	var apiServerUpdateFlags ApiServerSourceUpdateFlags
+// NewAPIServerCreateCommand for creating source
+func NewAPIServerCreateCommand(p *commands.KnParams) *cobra.Command {
+	var updateFlags APIServerSourceUpdateFlags
 	var sinkFlags flags.SinkFlags
 
 	cmd := &cobra.Command{
@@ -43,7 +44,7 @@ func NewApiServerCreateCommand(p *commands.KnParams) *cobra.Command {
 			name := args[0]
 
 			// get client
-			apiSourceClient, err := newApiServerSourceClient(p, cmd)
+			apiSourceClient, err := newAPIServerSourceClient(p, cmd)
 			if err != nil {
 				return err
 			}
@@ -64,11 +65,11 @@ func NewApiServerCreateCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			// create
-			err = apiSourceClient.CreateApiServerSource(
+			err = apiSourceClient.CreateAPIServerSource(
 				v1alpha1.NewAPIServerSourceBuilder(name).
-					Resources(apiServerUpdateFlags.GetApiServerResourceArray()).
-					ServiceAccount(apiServerUpdateFlags.ServiceAccountName).
-					Mode(apiServerUpdateFlags.Mode).
+					Resources(updateFlags.GetAPIServerResourceArray()).
+					ServiceAccount(updateFlags.ServiceAccountName).
+					Mode(updateFlags.Mode).
 					Sink(objectRef).
 					Build())
 
@@ -86,9 +87,8 @@ func NewApiServerCreateCommand(p *commands.KnParams) *cobra.Command {
 		},
 	}
 	commands.AddNamespaceFlags(cmd.Flags(), false)
-	apiServerUpdateFlags.Add(cmd)
+	updateFlags.Add(cmd)
 	sinkFlags.Add(cmd)
 	cmd.MarkFlagRequired("resource")
-
 	return cmd
 }

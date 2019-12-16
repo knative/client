@@ -28,24 +28,24 @@ import (
 )
 
 func TestApiServerSourceUpdate(t *testing.T) {
-	apiServerClient := knsources_v1alpha1.NewMockKnApiServerSourceClient(t)
+	apiServerClient := knsources_v1alpha1.NewMockKnAPIServerSourceClient(t)
 	servingClient := knserving_client.NewMockKnServiceClient(t)
 
 	apiServerRecorder := apiServerClient.Recorder()
 	servingRecorder := servingClient.Recorder()
 
-	present := createApiServerSource("testsource", "Event", "v1", "testsa1", "Ref", "svc1", false)
-	apiServerRecorder.GetApiServerSource("testsource", present, nil)
+	present := createAPIServerSource("testsource", "Event", "v1", "testsa1", "Ref", "svc1", false)
+	apiServerRecorder.GetAPIServerSource("testsource", present, nil)
 
 	servingRecorder.GetService("svc2", &serving_v1alpha1.Service{
 		TypeMeta:   metav1.TypeMeta{Kind: "Service"},
 		ObjectMeta: metav1.ObjectMeta{Name: "svc2"},
 	}, nil)
 
-	updated := createApiServerSource("testsource", "Event", "v1", "testsa2", "Ref", "svc2", false)
-	apiServerRecorder.UpdateApiServerSource(updated, nil)
+	updated := createAPIServerSource("testsource", "Event", "v1", "testsa2", "Ref", "svc2", false)
+	apiServerRecorder.UpdateAPIServerSource(updated, nil)
 
-	output, err := executeApiServerSourceCommand(apiServerClient, servingClient, "update", "testsource", "--service-account", "testsa2", "--sink", "svc:svc2")
+	output, err := executeAPIServerSourceCommand(apiServerClient, servingClient, "update", "testsource", "--service-account", "testsa2", "--sink", "svc:svc2")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "testsource", "updated", "default"))
 

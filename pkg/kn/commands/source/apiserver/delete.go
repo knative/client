@@ -22,9 +22,9 @@ import (
 	"knative.dev/client/pkg/kn/commands"
 )
 
-// NewRevisionDeleteCommand represent 'revision delete' command
-func NewApiServerDeleteCommand(p *commands.KnParams) *cobra.Command {
-	ApiServerDeleteCommand := &cobra.Command{
+// NewAPIServerDeleteCommand for deleting source
+func NewAPIServerDeleteCommand(p *commands.KnParams) *cobra.Command {
+	deleteCommand := &cobra.Command{
 		Use:   "delete NAME",
 		Short: "Delete an ApiServer source.",
 		Example: `
@@ -41,19 +41,19 @@ func NewApiServerDeleteCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			apiSourceClient, err := newApiServerSourceClient(p, cmd)
+			apiSourceClient, err := newAPIServerSourceClient(p, cmd)
 			if err != nil {
 				return err
 			}
 
-			err = apiSourceClient.DeleteApiServerSource(name)
+			err = apiSourceClient.DeleteAPIServerSource(name)
 			if err != nil {
 				return err
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "ApiServerSource '%s' deleted in namespace '%s'.\n", args[0], namespace)
+			fmt.Fprintf(cmd.OutOrStdout(), "ApiServer source '%s' deleted in namespace '%s'.\n", args[0], namespace)
 			return nil
 		},
 	}
-	commands.AddNamespaceFlags(ApiServerDeleteCommand.Flags(), false)
-	return ApiServerDeleteCommand
+	commands.AddNamespaceFlags(deleteCommand.Flags(), false)
+	return deleteCommand
 }

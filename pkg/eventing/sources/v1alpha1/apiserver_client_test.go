@@ -29,17 +29,17 @@ import (
 	"knative.dev/pkg/apis/duck/v1beta1"
 )
 
-var testApiServerSourceNamespace = "test-ns"
+var testAPIServerSourceNamespace = "test-ns"
 
-func setupApiServerSourcesClient(t *testing.T) (fakeSources fake.FakeSourcesV1alpha1, client KnApiServerSourcesClient) {
+func setupAPIServerSourcesClient(t *testing.T) (fakeSources fake.FakeSourcesV1alpha1, client KnAPIServerSourcesClient) {
 	fakeSources = fake.FakeSourcesV1alpha1{Fake: &client_testing.Fake{}}
-	client = NewKnSourcesClient(&fakeSources, testApiServerSourceNamespace).ApiServerSourcesClient()
-	assert.Equal(t, client.Namespace(), testApiServerSourceNamespace)
+	client = NewKnSourcesClient(&fakeSources, testAPIServerSourceNamespace).APIServerSourcesClient()
+	assert.Equal(t, client.Namespace(), testAPIServerSourceNamespace)
 	return
 }
 
 func TestDeleteApiServerSource(t *testing.T) {
-	sourcesServer, client := setupApiServerSourcesClient(t)
+	sourcesServer, client := setupAPIServerSourcesClient(t)
 
 	sourcesServer.AddReactor("delete", "apiserversources",
 		func(a client_testing.Action) (bool, runtime.Object, error) {
@@ -50,15 +50,15 @@ func TestDeleteApiServerSource(t *testing.T) {
 			return true, nil, nil
 		})
 
-	err := client.DeleteApiServerSource("foo")
+	err := client.DeleteAPIServerSource("foo")
 	assert.NilError(t, err)
 
-	err = client.DeleteApiServerSource("errorSource")
+	err = client.DeleteAPIServerSource("errorSource")
 	assert.ErrorContains(t, err, "errorSource")
 }
 
 func TestCreateApiServerSource(t *testing.T) {
-	sourcesServer, client := setupApiServerSourcesClient(t)
+	sourcesServer, client := setupAPIServerSourcesClient(t)
 
 	sourcesServer.AddReactor("create", "apiserversources",
 		func(a client_testing.Action) (bool, runtime.Object, error) {
@@ -69,16 +69,16 @@ func TestCreateApiServerSource(t *testing.T) {
 			}
 			return true, newSource, nil
 		})
-	err := client.CreateApiServerSource(newApiServerSource("foo", "Event"))
+	err := client.CreateAPIServerSource(newAPIServerSource("foo", "Event"))
 	assert.NilError(t, err)
 
-	err = client.CreateApiServerSource(newApiServerSource("errorSource", "Event"))
+	err = client.CreateAPIServerSource(newAPIServerSource("errorSource", "Event"))
 	assert.ErrorContains(t, err, "errorSource")
 
 }
 
 func TestGetApiServerSource(t *testing.T) {
-	sourcesServer, client := setupApiServerSourcesClient(t)
+	sourcesServer, client := setupAPIServerSourcesClient(t)
 
 	sourcesServer.AddReactor("get", "apiserversources",
 		func(a client_testing.Action) (bool, runtime.Object, error) {
@@ -86,19 +86,19 @@ func TestGetApiServerSource(t *testing.T) {
 			if name == "errorSource" {
 				return true, nil, fmt.Errorf("error while getting ApiServer source %s", name)
 			}
-			return true, newApiServerSource(name, "Event"), nil
+			return true, newAPIServerSource(name, "Event"), nil
 		})
-	testsource, err := client.GetApiServerSource("foo")
+	testsource, err := client.GetAPIServerSource("foo")
 	assert.NilError(t, err)
 	assert.Equal(t, testsource.Name, "foo")
 	assert.Equal(t, testsource.Spec.Sink.Ref.Name, "foosvc")
 
-	_, err = client.GetApiServerSource("errorSource")
+	_, err = client.GetAPIServerSource("errorSource")
 	assert.ErrorContains(t, err, "errorSource")
 }
 
 func TestUpdateApiServerSource(t *testing.T) {
-	sourcesServer, client := setupApiServerSourcesClient(t)
+	sourcesServer, client := setupAPIServerSourcesClient(t)
 
 	sourcesServer.AddReactor("update", "apiserversources",
 		func(a client_testing.Action) (bool, runtime.Object, error) {
@@ -109,14 +109,14 @@ func TestUpdateApiServerSource(t *testing.T) {
 			}
 			return true, NewAPIServerSourceBuilderFromExisting(updatedSource.(*v1alpha1.ApiServerSource)).Build(), nil
 		})
-	err := client.UpdateApiServerSource(newApiServerSource("foo", "Event"))
+	err := client.UpdateAPIServerSource(newAPIServerSource("foo", "Event"))
 	assert.NilError(t, err)
 
-	err = client.UpdateApiServerSource(newApiServerSource("errorSource", "Event"))
+	err = client.UpdateAPIServerSource(newAPIServerSource("errorSource", "Event"))
 	assert.ErrorContains(t, err, "errorSource")
 }
 
-func newApiServerSource(name, resource string) *v1alpha1.ApiServerSource {
+func newAPIServerSource(name, resource string) *v1alpha1.ApiServerSource {
 	b := NewAPIServerSourceBuilder(name).ServiceAccount("testsa").Mode("Ref")
 	b.Sink(&v1beta1.Destination{
 		Ref: &v1.ObjectReference{

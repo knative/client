@@ -20,23 +20,23 @@ import (
 	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
 )
 
-func TestMockKnApiServerSourceClient(t *testing.T) {
+func TestMockKnAPIServerSourceClient(t *testing.T) {
 
-	client := NewMockKnApiServerSourceClient(t)
+	client := NewMockKnAPIServerSourceClient(t)
 
 	recorder := client.Recorder()
 
 	// Record all services
-	recorder.GetApiServerSource("hello", nil, nil)
-	recorder.CreateApiServerSource(&v1alpha1.ApiServerSource{}, nil)
-	recorder.UpdateApiServerSource(&v1alpha1.ApiServerSource{}, nil)
-	recorder.DeleteApiServerSource("hello", nil)
+	recorder.GetAPIServerSource("hello", nil, nil)
+	recorder.CreateAPIServerSource(&v1alpha1.ApiServerSource{}, nil)
+	recorder.UpdateAPIServerSource(&v1alpha1.ApiServerSource{}, nil)
+	recorder.DeleteAPIServerSource("hello", nil)
 
 	// Call all service
-	client.GetApiServerSource("hello")
-	client.CreateApiServerSource(&v1alpha1.ApiServerSource{})
-	client.UpdateApiServerSource(&v1alpha1.ApiServerSource{})
-	client.DeleteApiServerSource("hello")
+	client.GetAPIServerSource("hello")
+	client.CreateAPIServerSource(&v1alpha1.ApiServerSource{})
+	client.UpdateAPIServerSource(&v1alpha1.ApiServerSource{})
+	client.DeleteAPIServerSource("hello")
 
 	// Validate
 	recorder.Validate()

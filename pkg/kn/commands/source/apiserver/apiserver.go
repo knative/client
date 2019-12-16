@@ -24,20 +24,21 @@ import (
 	"knative.dev/client/pkg/kn/commands"
 )
 
-func NewApiServerCommand(p *commands.KnParams) *cobra.Command {
+// NewAPIServerCommand for managing ApiServer source
+func NewAPIServerCommand(p *commands.KnParams) *cobra.Command {
 	apiServerSourceCmd := &cobra.Command{
 		Use:   "apiserver",
 		Short: "Kubernetes API Server Event Source command group",
 	}
-	apiServerSourceCmd.AddCommand(NewApiServerCreateCommand(p))
-	apiServerSourceCmd.AddCommand(NewApiServerUpdateCommand(p))
-	apiServerSourceCmd.AddCommand(NewApiServerDeleteCommand(p))
+	apiServerSourceCmd.AddCommand(NewAPIServerCreateCommand(p))
+	apiServerSourceCmd.AddCommand(NewAPIServerUpdateCommand(p))
+	apiServerSourceCmd.AddCommand(NewAPIServerDeleteCommand(p))
 	return apiServerSourceCmd
 }
 
-var apiServerSourceClientFactory func(config clientcmd.ClientConfig, namespace string) (knsources_v1alpha1.KnApiServerSourcesClient, error)
+var apiServerSourceClientFactory func(config clientcmd.ClientConfig, namespace string) (knsources_v1alpha1.KnAPIServerSourcesClient, error)
 
-func newApiServerSourceClient(p *commands.KnParams, cmd *cobra.Command) (knsources_v1alpha1.KnApiServerSourcesClient, error) {
+func newAPIServerSourceClient(p *commands.KnParams, cmd *cobra.Command) (knsources_v1alpha1.KnAPIServerSourcesClient, error) {
 	namespace, err := p.GetNamespace(cmd)
 	if err != nil {
 		return nil, err
@@ -61,5 +62,5 @@ func newApiServerSourceClient(p *commands.KnParams, cmd *cobra.Command) (knsourc
 		return nil, err
 	}
 
-	return knsources_v1alpha1.NewKnSourcesClient(client, namespace).ApiServerSourcesClient(), nil
+	return knsources_v1alpha1.NewKnSourcesClient(client, namespace).APIServerSourcesClient(), nil
 }

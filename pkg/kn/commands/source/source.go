@@ -27,7 +27,7 @@ func NewSourceCommand(p *commands.KnParams) *cobra.Command {
 		Use:   "source",
 		Short: "Event source command group",
 	}
-	sourceCmd.AddCommand(apiserver.NewApiServerCommand(p))
+	sourceCmd.AddCommand(apiserver.NewAPIServerCommand(p))
 	sourceCmd.AddCommand(NewListTypesCommand(p))
 	sourceCmd.AddCommand(cronjob.NewCronJobCommand(p))
 	return sourceCmd
