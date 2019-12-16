@@ -47,7 +47,6 @@ func NewApiServerUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			// get client
 			sourcesClient, err := newApiServerSourceClient(p, cmd)
 			if err != nil {
 				return err
@@ -58,30 +57,28 @@ func NewApiServerUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			// resolve sink
 			servingClient, err := p.NewServingClient(namespace)
 			if err != nil {
 				return err
 			}
 
-			objectRef, err := sinkFlags.ResolveSink(servingClient)
-			if err != nil {
-				return fmt.Errorf(
-					"cannot update ApiServerSource '%s' in namespace '%s' "+
-						"because %v", name, namespace, err)
+			if cmd.Flags().Changed("sink") {
+				objectRef, err := sinkFlags.ResolveSink(servingClient)
+				if err != nil {
+					return err
+				}
+
+				source.Spec.Sink = objectRef
 			}
 
-			source = source.DeepCopy()
 			apiServerUpdateFlags.Apply(source, cmd)
-			source.Spec.Sink = objectRef
 
 			err = sourcesClient.UpdateApiServerSource(source)
 			if err != nil {
-				return fmt.Errorf(
-					"cannot create ApiServerSource '%s' in namespace '%s' "+
-						"because %s", name, namespace, err)
+				return err
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "ApiServerSource '%s' updated in namespace '%s'.\n", args[0], namespace)
+
+			fmt.Fprintf(cmd.OutOrStdout(), "ApiServer source '%s' updated in namespace '%s'.\n", args[0], namespace)
 			return nil
 		},
 	}

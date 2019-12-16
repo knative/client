@@ -88,7 +88,7 @@ func NewApiServerCreateCommand(p *commands.KnParams) *cobra.Command {
 	commands.AddNamespaceFlags(cmd.Flags(), false)
 	apiServerUpdateFlags.Add(cmd)
 	sinkFlags.Add(cmd)
-	cmd.MarkFlagRequired("schedule")
+	cmd.MarkFlagRequired("resource")
 
 	return cmd
 }

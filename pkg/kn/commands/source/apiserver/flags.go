@@ -94,7 +94,7 @@ func (f *ApiServerSourceUpdateFlags) Apply(source *v1alpha1.ApiServerSource, cmd
 		source.Spec.ServiceAccountName = f.ServiceAccountName
 	}
 
-	if cmd.Flags().Changed("mod") {
+	if cmd.Flags().Changed("mode") {
 		source.Spec.Mode = f.Mode
 	}
 
