@@ -36,7 +36,7 @@ $ test/e2e-tests-local.sh
 To run only serving specific e2e tests locally, use
 
 ```
-E2E_TAGS="serving" ./e2e-tests-local.sh
+E2E_TAGS="serving" test/e2e-tests-local.sh
 ```
 
 To run only eventing specific e2e tests locally, use
