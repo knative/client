@@ -20,7 +20,7 @@ which need [`-tags=e2e`](#running-end-to-end-tests) to be enabled._
 
 To run [the e2e tests](./e2e) , you need to have a 
 
-1. [running knative environment.](./../DEVELOPMENT.md#create-a-cluster)
+1. [Running knative environment.](./../DEVELOPMENT.md#create-a-cluster)
 2. `kn` binary in the $PATH.
 
 Before running the e2e tests please make sure you dont have any namespaces with the name starting with `kne2etests`
