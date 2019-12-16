@@ -2,7 +2,7 @@
 
 This directory contains e2e tests and testing docs:
 
-- [Unit tests](#running-unit-tests) currently reside in the codebase alongside
+- Unit tests are in the code base alongside the code they test
   the code they test
 - [End-to-end tests](#running-end-to-end-tests) :
   - end-to-end tests in [`/test/e2e`](./e2e)
