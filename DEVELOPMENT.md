@@ -84,6 +84,10 @@ See `build.sh --help` for a full list of options and usage examples.
 
 In the end, the build results in `kn` binary in your current directory, which can be directly executed.
 
+**Testing:**
+
+Please follow the [guide](./test) here to test your work.
+
 **Notes:**
 
 - For building, Go `1.11.4` is required [due to a go mod issue](https://github.com/golang/go/issues/27925).
