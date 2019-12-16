@@ -53,7 +53,7 @@ func TestSourceApiServer(t *testing.T) {
 		test.serviceCreate(t, "testsvc1")
 		test.apiServerSourceUpdateSink(t, "testapisource3", "svc:testsvc1")
 		jpSinkRefNameInSpec := "jsonpath={.spec.sink.ref.name}"
-		out, err := test.k8sGetResourceJsonPath(t, "apiserversource", "testapisource3", jpSinkRefNameInSpec)
+		out, err := test.getResourceFieldsWithJSONPath(t, "apiserversource", "testapisource3", jpSinkRefNameInSpec)
 		assert.NilError(t, err)
 		assert.Equal(t, out, "testsvc1")
 		// TODO(navidshaikh): Verify the source's status with synchronous create/update
@@ -102,7 +102,7 @@ func (test *e2eTest) apiServerSourceUpdateSink(t *testing.T, sourceName string, 
 	assert.Check(t, util.ContainsAll(out, sourceName, "updated", "namespace", test.kn.namespace))
 }
 
-func (test *e2eTest) k8sGetResourceJsonPath(t *testing.T, resource, name, jsonpath string) (string, error) {
+func (test *e2eTest) getResourceFieldsWithJSONPath(t *testing.T, resource, name, jsonpath string) (string, error) {
 	kubectl := kubectl{t, Logger{}}
 	out, err := kubectl.RunWithOpts([]string{"get", resource, name, "-o", jsonpath, "-n", test.kn.namespace}, runOpts{})
 	if err != nil {

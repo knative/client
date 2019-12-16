@@ -1,10 +1,10 @@
 ## kn source apiserver update
 
-Update an ApiServerSource.
+Update an ApiServer source.
 
 ### Synopsis
 
-Update an ApiServerSource.
+Update an ApiServer source.
 
 ```
 kn source apiserver update NAME --resource RESOURCE --service-account ACCOUNTNAME --sink SINK --mode MODE [flags]
