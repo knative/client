@@ -19,86 +19,117 @@ import (
 	"testing"
 
 	"gotest.tools/assert"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	client_testing "k8s.io/client-go/testing"
 	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
 	"knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1/fake"
+	"knative.dev/pkg/apis/duck/v1beta1"
 )
 
 var testApiServerSourceNamespace = "test-ns"
 
-func setupApiServerSourcesClient() (fakeSources fake.FakeSourcesV1alpha1, client KnApiServerSourcesClient) {
+func setupApiServerSourcesClient(t *testing.T) (fakeSources fake.FakeSourcesV1alpha1, client KnApiServerSourcesClient) {
 	fakeSources = fake.FakeSourcesV1alpha1{Fake: &client_testing.Fake{}}
 	client = NewKnSourcesClient(&fakeSources, testApiServerSourceNamespace).ApiServerSourcesClient()
+	assert.Equal(t, client.Namespace(), testApiServerSourceNamespace)
 	return
 }
 
 func TestDeleteApiServerSource(t *testing.T) {
-	var srcName = "new-src"
-	sourcesServer, client := setupApiServerSourcesClient()
+	sourcesServer, client := setupApiServerSourcesClient(t)
 
-	apisourceNew := newApiServerSource(srcName)
-
-	sourcesServer.AddReactor("create", "apiserversources",
+	sourcesServer.AddReactor("delete", "apiserversources",
 		func(a client_testing.Action) (bool, runtime.Object, error) {
-			assert.Equal(t, testApiServerSourceNamespace, a.GetNamespace())
-			name := a.(client_testing.CreateAction).GetObject().(metav1.Object).GetName()
-			if name == apisourceNew.Name {
-				apisourceNew.Generation = 2
-				return true, apisourceNew, nil
+			name := a.(client_testing.DeleteAction).GetName()
+			if name == "errorSource" {
+				return true, nil, fmt.Errorf("error while deleting ApiServer source %s", name)
 			}
-			return true, nil, fmt.Errorf("error while creating apiserversource %s", name)
+			return true, nil, nil
 		})
 
-	t.Run("create apiserversource without error", func(t *testing.T) {
-		err := client.CreateApiServerSource(apisourceNew)
-		assert.NilError(t, err)
-	})
+	err := client.DeleteApiServerSource("foo")
+	assert.NilError(t, err)
 
-	t.Run("create apiserversource with an error returns an error object", func(t *testing.T) {
-		err := client.CreateApiServerSource(newApiServerSource("unknown"))
-		assert.ErrorContains(t, err, "unknown")
-	})
+	err = client.DeleteApiServerSource("errorSource")
+	assert.ErrorContains(t, err, "errorSource")
 }
 
 func TestCreateApiServerSource(t *testing.T) {
-	var srcName = "new-src"
-	sourcesServer, client := setupApiServerSourcesClient()
-
-	apisourceNew := newApiServerSource(srcName)
+	sourcesServer, client := setupApiServerSourcesClient(t)
 
 	sourcesServer.AddReactor("create", "apiserversources",
 		func(a client_testing.Action) (bool, runtime.Object, error) {
-			assert.Equal(t, testApiServerSourceNamespace, a.GetNamespace())
-			name := a.(client_testing.CreateAction).GetObject().(metav1.Object).GetName()
-			if name == apisourceNew.Name {
-				apisourceNew.Generation = 2
-				return true, apisourceNew, nil
+			newSource := a.(client_testing.CreateAction).GetObject()
+			name := newSource.(metav1.Object).GetName()
+			if name == "errorSource" {
+				return true, nil, fmt.Errorf("error while creating ApiServer source %s", name)
 			}
-			return true, nil, fmt.Errorf("error while creating apiserversource %s", name)
+			return true, newSource, nil
 		})
+	err := client.CreateApiServerSource(newApiServerSource("foo", "Event"))
+	assert.NilError(t, err)
 
-	t.Run("create apiserversource without error", func(t *testing.T) {
-		err := client.CreateApiServerSource(apisourceNew)
-		assert.NilError(t, err)
-	})
+	err = client.CreateApiServerSource(newApiServerSource("errorSource", "Event"))
+	assert.ErrorContains(t, err, "errorSource")
 
-	t.Run("create apiserversource with an error returns an error object", func(t *testing.T) {
-		err := client.CreateApiServerSource(newApiServerSource("unknown"))
-		assert.ErrorContains(t, err, "unknown")
-	})
 }
 
-func newApiServerSource(name string) *v1alpha1.ApiServerSource {
-	src := &v1alpha1.ApiServerSource{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: testApiServerSourceNamespace,
-		},
+func TestGetApiServerSource(t *testing.T) {
+	sourcesServer, client := setupApiServerSourcesClient(t)
+
+	sourcesServer.AddReactor("get", "apiserversources",
+		func(a client_testing.Action) (bool, runtime.Object, error) {
+			name := a.(client_testing.GetAction).GetName()
+			if name == "errorSource" {
+				return true, nil, fmt.Errorf("error while getting ApiServer source %s", name)
+			}
+			return true, newApiServerSource(name, "Event"), nil
+		})
+	testsource, err := client.GetApiServerSource("foo")
+	assert.NilError(t, err)
+	assert.Equal(t, testsource.Name, "foo")
+	assert.Equal(t, testsource.Spec.Sink.Ref.Name, "foosvc")
+
+	_, err = client.GetApiServerSource("errorSource")
+	assert.ErrorContains(t, err, "errorSource")
+}
+
+func TestUpdateApiServerSource(t *testing.T) {
+	sourcesServer, client := setupApiServerSourcesClient(t)
+
+	sourcesServer.AddReactor("update", "apiserversources",
+		func(a client_testing.Action) (bool, runtime.Object, error) {
+			updatedSource := a.(client_testing.UpdateAction).GetObject()
+			name := updatedSource.(metav1.Object).GetName()
+			if name == "errorSource" {
+				return true, nil, fmt.Errorf("error while updating ApiServer source %s", name)
+			}
+			return true, NewAPIServerSourceBuilderFromExisting(updatedSource.(*v1alpha1.ApiServerSource)).Build(), nil
+		})
+	err := client.UpdateApiServerSource(newApiServerSource("foo", "Event"))
+	assert.NilError(t, err)
+
+	err = client.UpdateApiServerSource(newApiServerSource("errorSource", "Event"))
+	assert.ErrorContains(t, err, "errorSource")
+}
+
+func newApiServerSource(name, resource string) *v1alpha1.ApiServerSource {
+	b := NewAPIServerSourceBuilder(name).ServiceAccount("testsa").Mode("Ref")
+	b.Sink(&v1beta1.Destination{
+		Ref: &v1.ObjectReference{
+			Kind: "Service",
+			Name: "foosvc",
+		}})
+
+	if resource != "" {
+		b.Resources([]v1alpha1.ApiServerResource{{
+			APIVersion: "v1",
+			Kind:       resource,
+			Controller: false,
+		}})
 	}
-	src.Name = name
-	src.Namespace = testApiServerSourceNamespace
-	return src
+	return b.Build()
 }
