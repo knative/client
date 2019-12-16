@@ -62,7 +62,7 @@ mode, use
 [the `-short` flag with `go test`](https://golang.org/cmd/go/#hdr-Testing_flags)
 
 ```bash
-go test -v -tags=e2e -count=1 -short ./e2e
+test/e2e-tests-local.sh -short
 ```
 
 ## Presubmit tests
