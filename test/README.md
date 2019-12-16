@@ -28,7 +28,7 @@ To run [the e2e tests](./e2e) , you need to have a
 Before running the e2e tests please make sure you dont have any namespaces with the name starting with `kne2etests`
 Run all e2e tests:
 ```bash
-$ ./e2e-tests-local.sh
+$ test/e2e-tests-local.sh
 ```
 
 ### Running e2e tests selectively
