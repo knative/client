@@ -31,7 +31,7 @@ Run all e2e tests:
 $ ./e2e-tests-local.sh
 ```
 
-### Running end to end tests selectively
+### Running e2e tests selectively
 
 To run only serving specific e2e tests locally, use
 
