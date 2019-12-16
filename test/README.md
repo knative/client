@@ -18,7 +18,7 @@ $ hack/build.sh -t
 _By default `go test` will not run [the e2e tests](#running-end-to-end-tests-locally),
 which need [`-tags=e2e`](#running-end-to-end-tests) to be enabled._
 
-## Running all end to end tests locally
+## Running e2e tests locally
 
 To run [the e2e tests](./e2e) , you need to have a 
 
