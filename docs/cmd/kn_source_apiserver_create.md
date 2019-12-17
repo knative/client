@@ -26,9 +26,8 @@ kn source apiserver create NAME --resource RESOURCE --service-account ACCOUNTNAM
                                  "Ref" sends only the reference to the resource,
                                  "Resource" send the full resource. (default "Ref")
   -n, --namespace string         Specify the namespace to operate in.
-      --resource strings         Comma seperate Kind:APIVersion:isController list, e.g. Event:v1:true.
-                                 "APIVersion" and "isControler" can be omitted.
-                                 "APIVersion" is "v1" by default, "isController" is "false" by default.
+      --resource strings         Specification for which events to listen, in the format Kind:APIVersion:isController, e.g. Deployment:apps/v1:true.
+                                 "isController" can be omitted and is "false" by default.
       --service-account string   Name of the service account to use to run this source
   -s, --sink string              Addressable sink for events
 ```

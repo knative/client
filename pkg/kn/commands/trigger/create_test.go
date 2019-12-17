@@ -57,7 +57,7 @@ func TestSinkNotFoundError(t *testing.T) {
 	eventingClient := eventing_client.NewMockKnEventingClient(t)
 	servingClient := knserving_client.NewMockKnServiceClient(t)
 
-	errorMsg := fmt.Sprintf("cannot create trigger '%s' in namespace 'default' because no Service mysvc found", triggerName)
+	errorMsg := fmt.Sprintf("cannot create trigger '%s' in namespace 'default' because: no Service mysvc found", triggerName)
 	servingRecorder := servingClient.Recorder()
 	servingRecorder.GetService("mysvc", nil, errors.New("no Service mysvc found"))
 

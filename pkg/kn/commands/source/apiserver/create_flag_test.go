@@ -28,8 +28,8 @@ func TestGetAPIServerResourceArray(t *testing.T) {
 			Mode:               "Ref",
 			Resources:          []string{"Service:serving.knative.dev/v1alpha1:true"},
 		}
-		created := createFlag.GetAPIServerResourceArray()
-		wanted := []sources_v1alpha1.ApiServerResource{{
+		created, _ := createFlag.GetAPIServerResourceArray()
+		wanted := &[]sources_v1alpha1.ApiServerResource{{
 			APIVersion: "serving.knative.dev/v1alpha1",
 			Kind:       "Service",
 			Controller: true,
@@ -42,8 +42,8 @@ func TestGetAPIServerResourceArray(t *testing.T) {
 			Mode:               "Ref",
 			Resources:          []string{"Service:serving.knative.dev/v1alpha1"},
 		}
-		created = createFlag.GetAPIServerResourceArray()
-		wanted = []sources_v1alpha1.ApiServerResource{{
+		created, _ = createFlag.GetAPIServerResourceArray()
+		wanted = &[]sources_v1alpha1.ApiServerResource{{
 			APIVersion: "serving.knative.dev/v1alpha1",
 			Kind:       "Service",
 			Controller: false,
@@ -54,10 +54,10 @@ func TestGetAPIServerResourceArray(t *testing.T) {
 		createFlag = APIServerSourceUpdateFlags{
 			ServiceAccountName: "test-sa",
 			Mode:               "Ref",
-			Resources:          []string{"Service"},
+			Resources:          []string{"Service:v1"},
 		}
-		created = createFlag.GetAPIServerResourceArray()
-		wanted = []sources_v1alpha1.ApiServerResource{{
+		created, _ = createFlag.GetAPIServerResourceArray()
+		wanted = &[]sources_v1alpha1.ApiServerResource{{
 			APIVersion: "v1",
 			Kind:       "Service",
 			Controller: false,
@@ -71,8 +71,8 @@ func TestGetAPIServerResourceArray(t *testing.T) {
 			Mode:               "Resource",
 			Resources:          []string{"Event:v1:true", "Pod:v2:false"},
 		}
-		created := createFlag.GetAPIServerResourceArray()
-		wanted := []sources_v1alpha1.ApiServerResource{{
+		created, _ := createFlag.GetAPIServerResourceArray()
+		wanted := &[]sources_v1alpha1.ApiServerResource{{
 			APIVersion: "v1",
 			Kind:       "Event",
 			Controller: true,
@@ -87,11 +87,11 @@ func TestGetAPIServerResourceArray(t *testing.T) {
 		createFlag = APIServerSourceUpdateFlags{
 			ServiceAccountName: "test-sa",
 			Mode:               "Resource",
-			Resources:          []string{"Event", "Pod"},
+			Resources:          []string{"Event:v1", "Pod:v1"},
 		}
-		created = createFlag.GetAPIServerResourceArray()
+		created, _ = createFlag.GetAPIServerResourceArray()
 
-		wanted = []sources_v1alpha1.ApiServerResource{{
+		wanted = &[]sources_v1alpha1.ApiServerResource{{
 			APIVersion: "v1",
 			Kind:       "Event",
 			Controller: false,

@@ -52,7 +52,7 @@ func TestSinkNotFoundError(t *testing.T) {
 	servingClient := knserving_client.NewMockKnServiceClient(t)
 	apiServerClient := knsources_v1alpha1.NewMockKnAPIServerSourceClient(t)
 
-	errorMsg := "cannot create ApiServerSource 'testsource' in namespace 'default' because no Service svc found"
+	errorMsg := "cannot create ApiServerSource 'testsource' in namespace 'default' because: no Service svc found"
 	servingRecorder := servingClient.Recorder()
 	servingRecorder.GetService("testsvc", nil, errors.New("no Service svc found"))
 

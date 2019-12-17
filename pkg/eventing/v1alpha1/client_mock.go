@@ -60,13 +60,13 @@ func (c *MockKnEventingClient) Namespace() string {
 
 // CreateTrigger records a call for CreateCronJobSource with the expected error
 func (sr *EventingRecorder) CreateTrigger(trigger interface{}, err error) {
-	sr.r.Add("CreateTrigger", []interface{}{trigger}, []interface{}{trigger, err})
+	sr.r.Add("CreateTrigger", []interface{}{trigger}, []interface{}{err})
 }
 
 // CreateTrigger performs a previously recorded action
-func (c *MockKnEventingClient) CreateTrigger(trigger *v1alpha1.Trigger) (*v1alpha1.Trigger, error) {
+func (c *MockKnEventingClient) CreateTrigger(trigger *v1alpha1.Trigger) error {
 	call := c.recorder.r.VerifyCall("CreateTrigger", trigger)
-	return call.Result[0].(*v1alpha1.Trigger), mock.ErrorOrNil(call.Result[1])
+	return mock.ErrorOrNil(call.Result[0])
 }
 
 // GetTrigger records a call for GetTrigger with the expected object or error. Either trigger or err should be nil

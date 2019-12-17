@@ -18,15 +18,15 @@ import (
 	"bytes"
 
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/clientcmd"
+
+	"knative.dev/eventing/pkg/apis/eventing/v1alpha1"
+	"knative.dev/pkg/apis"
+	duckv1 "knative.dev/pkg/apis/duck/v1"
 
 	eventc_v1alpha1 "knative.dev/client/pkg/eventing/v1alpha1"
 	"knative.dev/client/pkg/kn/commands"
 	serving_client_v1alpha1 "knative.dev/client/pkg/serving/v1alpha1"
-	"knative.dev/eventing/pkg/apis/eventing/v1alpha1"
-	"knative.dev/pkg/apis"
-	duckv1 "knative.dev/pkg/apis/duck/v1"
 )
 
 // Helper methods
@@ -77,26 +77,21 @@ func executeTriggerCommand(triggerClient eventc_v1alpha1.KnEventingClient, servi
 }
 
 func createTrigger(namespace string, name string, filters map[string]string, broker string, svcname string) *v1alpha1.Trigger {
-	triggerFilterAttributes := v1alpha1.TriggerFilterAttributes(filters)
-	wanted := &v1alpha1.Trigger{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
-		},
-		Spec: v1alpha1.TriggerSpec{
-			Broker: broker,
-			Filter: &v1alpha1.TriggerFilter{
-				Attributes: &triggerFilterAttributes,
-			},
-			Subscriber: &duckv1.Destination{
-				Ref: &corev1.ObjectReference{
-					Name: svcname,
-					Kind: "Service",
-				},
-			},
-		},
+	triggerBuilder := eventc_v1alpha1.NewTriggerBuilder(name).
+		Namespace(namespace).
+		Broker(broker)
+
+	for k, v := range filters {
+		triggerBuilder.AddFilter(k, v)
 	}
-	return wanted
+
+	triggerBuilder.Subscriber(&duckv1.Destination{
+		Ref: &corev1.ObjectReference{
+			Name: svcname,
+			Kind: "Service",
+		},
+	})
+	return triggerBuilder.Build()
 }
 
 func createTriggerWithStatus(namespace string, name string, filters map[string]string, broker string, svcname string) *v1alpha1.Trigger {

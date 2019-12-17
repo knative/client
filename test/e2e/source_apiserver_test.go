@@ -36,7 +36,7 @@ func TestSourceApiServer(t *testing.T) {
 
 	t.Run("create apiserver sources with a sink to a service", func(t *testing.T) {
 		test.apiServerSourceCreate(t, "testapisource0", "Event:v1:true", "testsa", "svc:testsvc0")
-		test.apiServerSourceCreate(t, "testapisource1", "Event", "testsa", "svc:testsvc0")
+		test.apiServerSourceCreate(t, "testapisource1", "Event:v1", "testsa", "svc:testsvc0")
 	})
 
 	t.Run("delete apiserver sources", func(t *testing.T) {
@@ -49,7 +49,7 @@ func TestSourceApiServer(t *testing.T) {
 	})
 
 	t.Run("update apiserver source sink service", func(t *testing.T) {
-		test.apiServerSourceCreate(t, "testapisource3", "Event:1:true", "testsa", "svc:testsvc0")
+		test.apiServerSourceCreate(t, "testapisource3", "Event:v1:true", "testsa", "svc:testsvc0")
 		test.serviceCreate(t, "testsvc1")
 		test.apiServerSourceUpdateSink(t, "testapisource3", "svc:testsvc1")
 		jpSinkRefNameInSpec := "jsonpath={.spec.sink.ref.name}"
@@ -82,7 +82,7 @@ func (test *e2eTest) apiServerSourceDelete(t *testing.T, sourceName string) {
 func (test *e2eTest) setupServiceAccountForApiserver(t *testing.T, name string) {
 	kubectl := kubectl{t, Logger{}}
 
-	_, err := kubectl.RunWithOpts([]string{"create", "serviceaccount", name}, runOpts{})
+	_, err := kubectl.RunWithOpts([]string{"create", "serviceaccount", name, "--namespace", test.kn.namespace}, runOpts{})
 	if err != nil {
 		t.Fatalf(fmt.Sprintf("Error executing 'kubectl create serviceaccount test-sa'. Error: %s", err.Error()))
 	}

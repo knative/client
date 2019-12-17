@@ -18,12 +18,13 @@ import (
 	apis_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	kn_errors "knative.dev/client/pkg/errors"
-	"knative.dev/client/pkg/util"
 	"knative.dev/eventing/pkg/apis/eventing/v1alpha1"
 	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
 	client_v1alpha1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1alpha1"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
+
+	kn_errors "knative.dev/client/pkg/errors"
+	"knative.dev/client/pkg/util"
 )
 
 const (
@@ -36,7 +37,7 @@ type KnEventingClient interface {
 	// Namespace in which this client is operating for
 	Namespace() string
 	// CreateTrigger is used to create an instance of trigger
-	CreateTrigger(trigger *v1alpha1.Trigger) (*v1alpha1.Trigger, error)
+	CreateTrigger(trigger *v1alpha1.Trigger) error
 	// DeleteTrigger is used to delete an instance of trigger
 	DeleteTrigger(name string) error
 	// GetTrigger is used to get an instance of trigger
@@ -64,12 +65,12 @@ func NewKnEventingClient(client client_v1alpha1.EventingV1alpha1Interface, names
 }
 
 //CreateTrigger is used to create an instance of trigger
-func (c *knEventingClient) CreateTrigger(trigger *v1alpha1.Trigger) (*v1alpha1.Trigger, error) {
+func (c *knEventingClient) CreateTrigger(trigger *v1alpha1.Trigger) error {
 	trigger, err := c.client.Triggers(c.namespace).Create(trigger)
 	if err != nil {
-		return nil, kn_errors.GetError(err)
+		return kn_errors.GetError(err)
 	}
-	return trigger, nil
+	return nil
 }
 
 //DeleteTrigger is used to delete an instance of trigger
@@ -147,50 +148,53 @@ func NewTriggerBuilder(name string) *TriggerBuilder {
 }
 
 // NewTriggerBuilderFromExisting for building the object from existing Trigger object
-func NewTriggerBuilderFromExisting(tr *v1alpha1.Trigger) *TriggerBuilder {
-	return &TriggerBuilder{trigger: tr.DeepCopy()}
+func NewTriggerBuilderFromExisting(trigger *v1alpha1.Trigger) *TriggerBuilder {
+	return &TriggerBuilder{trigger: trigger.DeepCopy()}
+}
+
+// Namespace for this trigger
+func (b *TriggerBuilder) Namespace(ns string) *TriggerBuilder {
+	b.trigger.Namespace = ns
+	return b
+}
+
+// Subscriber for the trigger to send to (it's a Sink actually)
+func (b *TriggerBuilder) Subscriber(subscriber *duckv1.Destination) *TriggerBuilder {
+	b.trigger.Spec.Subscriber = subscriber
+	return b
 }
 
 // Broker to set the broker of trigger object
 func (b *TriggerBuilder) Broker(broker string) *TriggerBuilder {
-	if broker != "" {
-		b.trigger.Spec.Broker = broker
-	}
+	b.trigger.Spec.Broker = broker
 	return b
 }
 
-// Filters to set the filters of trigger object
-func (b *TriggerBuilder) Filters(filters map[string]string) *TriggerBuilder {
-	if filters != nil {
-		triggerFilterAttributes := v1alpha1.TriggerFilterAttributes(filters)
-		b.trigger.Spec.Filter = &v1alpha1.TriggerFilter{
-			Attributes: &triggerFilterAttributes,
-		}
+func (b *TriggerBuilder) AddFilter(key, value string) *TriggerBuilder {
+	filter := b.trigger.Spec.Filter
+	if filter == nil {
+		filter = &v1alpha1.TriggerFilter{}
+		b.trigger.Spec.Filter = filter
 	}
+	attributes := filter.Attributes
+	if attributes == nil {
+		attributes = &v1alpha1.TriggerFilterAttributes{}
+		filter.Attributes = attributes
+	}
+	(*attributes)[key] = value
 	return b
 }
 
-// UpdateFilters to update the filters of trigger object
-func (b *TriggerBuilder) UpdateFilters(toUpdate map[string]string, toRemove []string) *TriggerBuilder {
-	if b.trigger.Spec.Filter == nil {
-		b.Filters(toUpdate)
+func (b *TriggerBuilder) RemoveFilter(key string) *TriggerBuilder {
+	filter := b.trigger.Spec.Filter
+	if filter == nil {
 		return b
 	}
-
-	existing := map[string]string(*b.trigger.Spec.Filter.Attributes)
-	for key, value := range toUpdate {
-		existing[key] = value
+	attributes := filter.Attributes
+	if attributes == nil {
+		return b
 	}
-	for _, key := range toRemove {
-		delete(existing, key)
-	}
-	b.Filters(existing)
-	return b
-}
-
-// Sink to set the subscriber of trigger object
-func (b *TriggerBuilder) Sink(sink *duckv1.Destination) *TriggerBuilder {
-	b.trigger.Spec.Subscriber = sink
+	delete(*attributes, key)
 	return b
 }
 
