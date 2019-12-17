@@ -33,6 +33,7 @@ func NewCronJobCommand(p *commands.KnParams) *cobra.Command {
 	cronImporterCmd.AddCommand(NewCronJobDeleteCommand(p))
 	cronImporterCmd.AddCommand(NewCronJobDescribeCommand(p))
 	cronImporterCmd.AddCommand(NewCronJobUpdateCommand(p))
+	cronImporterCmd.AddCommand(NewCronJobListCommand(p))
 	return cronImporterCmd
 }
 
