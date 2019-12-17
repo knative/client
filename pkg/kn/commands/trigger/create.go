@@ -67,7 +67,19 @@ func NewTriggerCreateCommand(p *commands.KnParams) *cobra.Command {
 						"because %s", name, namespace, err)
 			}
 
-			trigger := constructTrigger(name, namespace, triggerUpdateFlags)
+			filters, err := triggerUpdateFlags.GetFilters()
+			if err != nil {
+				return fmt.Errorf(
+					"cannot create trigger '%s' "+
+						"because %s", name, err)
+			}
+			if filters == nil {
+				return fmt.Errorf(
+					"cannot create trigger '%s' "+
+						"because filters are required", name)
+			}
+
+			trigger := constructTrigger(name, namespace, triggerUpdateFlags.Broker, filters)
 			trigger.Spec.Subscriber = &duckv1.Destination{
 				Ref: objectRef.Ref,
 				URI: objectRef.URI,
@@ -87,28 +99,26 @@ func NewTriggerCreateCommand(p *commands.KnParams) *cobra.Command {
 	triggerUpdateFlags.Add(cmd)
 	sinkFlags.Add(cmd)
 	cmd.MarkFlagRequired("sink")
+	cmd.MarkFlagRequired("filter")
 
 	return cmd
 }
 
 // constructTrigger is to create an instance of v1alpha1.Trigger
-func constructTrigger(name string, namespace string, flags TriggerUpdateFlags) *v1alpha1.Trigger {
+func constructTrigger(name string, namespace string, broker string, filters map[string]string) *v1alpha1.Trigger {
 	trigger := v1alpha1.Trigger{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
 		},
 		Spec: v1alpha1.TriggerSpec{
-			Broker: flags.Broker,
+			Broker: broker,
 		},
 	}
 
-	filters := flags.GetFilters()
-	if filters != nil {
-		triggerFilterAttributes := v1alpha1.TriggerFilterAttributes(filters)
-		trigger.Spec.Filter = &v1alpha1.TriggerFilter{
-			Attributes: &triggerFilterAttributes,
-		}
+	triggerFilterAttributes := v1alpha1.TriggerFilterAttributes(filters)
+	trigger.Spec.Filter = &v1alpha1.TriggerFilter{
+		Attributes: &triggerFilterAttributes,
 	}
 
 	return &trigger

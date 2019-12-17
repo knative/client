@@ -47,17 +47,17 @@ type TriggerUpdateFlags struct {
 }
 
 // GetFilter to return a map type of filters
-func (f *TriggerUpdateFlags) GetFilters() map[string]string {
+func (f *TriggerUpdateFlags) GetFilters() (map[string]string, error) {
 	filters := map[string]string{}
 	for _, item := range f.Filters {
 		parts := strings.Split(item, "=")
-		if len(parts) == 2 {
-			filters[parts[0]] = parts[1]
+		if len(parts) < 2 || parts[0] == "" || parts[1] == "" {
+			return nil, fmt.Errorf("invalid filter %s", f.Filters)
 		} else {
-			fmt.Printf("Ignore invalid filter %s", f)
+			filters[parts[0]] = parts[1]
 		}
 	}
-	return filters
+	return filters, nil
 }
 
 //Add is to set parameters

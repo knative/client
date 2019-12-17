@@ -16,6 +16,7 @@ package v1alpha1
 
 import (
 	apis_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	kn_errors "knative.dev/client/pkg/errors"
 	"knative.dev/client/pkg/util"
@@ -117,4 +118,43 @@ func (c *knEventingClient) Namespace() string {
 // update with the v1alpha1 group + version
 func updateTriggerGvk(obj runtime.Object) error {
 	return util.UpdateGroupVersionKindWithScheme(obj, v1alpha1.SchemeGroupVersion, scheme.Scheme)
+}
+
+// TriggerBuilder is for building the trigger
+type TriggerBuilder struct {
+	trigger *v1alpha1.Trigger
+}
+
+// NewTriggerBuilder for building trigger object
+func NewTriggerBuilder(name string) *TriggerBuilder {
+	return &TriggerBuilder{trigger: &v1alpha1.Trigger{
+		ObjectMeta: meta_v1.ObjectMeta{
+			Name: name,
+		},
+	}}
+}
+
+// NewTriggerBuilderFromExisting for building the object from existing Trigger object
+func NewTriggerBuilderFromExisting(tr *v1alpha1.Trigger) *TriggerBuilder {
+	return &TriggerBuilder{trigger: tr.DeepCopy()}
+}
+
+// Broker with which this source should operate
+func (b *TriggerBuilder) Broker(broker string) *TriggerBuilder {
+	if broker != "" {
+		b.trigger.Spec.Broker = broker
+	}
+	return b
+}
+
+// Filter with which this source should operate
+func (b *TriggerBuilder) Filter(filters map[string]string) *TriggerBuilder {
+	if filters != nil {
+		if b.trigger.Spec.Filter==nil || 
+		triggerFilterAttributes := v1alpha1.TriggerFilterAttributes(filters)
+		b.trigger.Spec.Filter = &v1alpha1.TriggerFilter{
+			Attributes: &triggerFilterAttributes,
+		}
+	}
+	return b
 }

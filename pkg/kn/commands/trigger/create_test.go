@@ -75,6 +75,13 @@ func TestNoSinkError(t *testing.T) {
 	assert.ErrorContains(t, err, "required flag(s)", "sink", "not set")
 }
 
+func TestNoFilterError(t *testing.T) {
+	eventingClient := eventing_client.NewMockKnEventingClient(t)
+	_, err := executeTriggerCommand(eventingClient, nil, "create", triggerName, "--broker", "mybroker",
+		"--sink", "svc:mysvc")
+	assert.ErrorContains(t, err, "required flag(s)", "filter", "not set")
+}
+
 func TestTriggerCreateMultipleFilter(t *testing.T) {
 	eventingClient := eventing_client.NewMockKnEventingClient(t)
 	servingClient := knserving_client.NewMockKnServiceClient(t)

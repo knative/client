@@ -25,11 +25,38 @@ func TestGetFilter(t *testing.T) {
 		createFlag := TriggerUpdateFlags{
 			Filters: filterArray{"type=abc.edf.ghi", "attr=value"},
 		}
-		created := createFlag.GetFilters()
+		created, err := createFlag.GetFilters()
 		wanted := map[string]string{
 			"type": "abc.edf.ghi",
 			"attr": "value",
 		}
+		assert.NilError(t, err, "Filter should be created")
 		assert.DeepEqual(t, wanted, created)
+	})
+
+	t.Run("get filters with errors", func(t *testing.T) {
+		createFlag := TriggerUpdateFlags{
+			Filters: filterArray{"type"},
+		}
+		_, err := createFlag.GetFilters()
+		assert.ErrorContains(t, err, "invalid filter")
+
+		createFlag = TriggerUpdateFlags{
+			Filters: filterArray{"type="},
+		}
+		_, err = createFlag.GetFilters()
+		assert.ErrorContains(t, err, "invalid filter")
+
+		createFlag = TriggerUpdateFlags{
+			Filters: filterArray{"=value"},
+		}
+		_, err = createFlag.GetFilters()
+		assert.ErrorContains(t, err, "invalid filter")
+
+		createFlag = TriggerUpdateFlags{
+			Filters: filterArray{"="},
+		}
+		_, err = createFlag.GetFilters()
+		assert.ErrorContains(t, err, "invalid filter")
 	})
 }
