@@ -37,6 +37,10 @@ type KnAPIServerSourcesClient interface {
 	// Delete an ApiServerSource by name
 	DeleteAPIServerSource(name string) error
 
+	// List ApiServerSource
+	// TODO: Support list configs like in service list
+	ListAPIServerSource() (*v1alpha1.ApiServerSourceList, error)
+
 	// Get namespace for this client
 	Namespace() string
 }
@@ -96,6 +100,35 @@ func (c *apiServerSourcesClient) DeleteAPIServerSource(name string) error {
 // Return the client's namespace
 func (c *apiServerSourcesClient) Namespace() string {
 	return c.namespace
+}
+
+// ListAPIServerSource returns the available ApiServer type sources
+func (c *apiServerSourcesClient) ListAPIServerSource() (*v1alpha1.ApiServerSourceList, error) {
+	sourceList, err := c.client.List(metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return updateAPIServerSourceListGVK(sourceList)
+}
+
+func updateAPIServerSourceListGVK(sourceList *v1alpha1.ApiServerSourceList) (*v1alpha1.ApiServerSourceList, error) {
+	sourceListNew := sourceList.DeepCopy()
+	err := updateSourceGVK(sourceListNew)
+	if err != nil {
+		return nil, err
+	}
+
+	sourceListNew.Items = make([]v1alpha1.ApiServerSource, len(sourceList.Items))
+	for idx, source := range sourceList.Items {
+		sourceClone := source.DeepCopy()
+		err := updateSourceGVK(sourceClone)
+		if err != nil {
+			return nil, err
+		}
+		sourceListNew.Items[idx] = *sourceClone
+	}
+	return sourceListNew, nil
 }
 
 // APIServerSourceBuilder is for building the source

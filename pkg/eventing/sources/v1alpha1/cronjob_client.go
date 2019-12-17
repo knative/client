@@ -17,8 +17,12 @@ package v1alpha1
 import (
 	"fmt"
 
-	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
+
+	"knative.dev/client/pkg/util"
+	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
 	client_v1alpha1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1"
 	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
 )
@@ -37,6 +41,10 @@ type KnCronJobSourcesClient interface {
 
 	// Delete a cronjob source by name
 	DeleteCronJobSource(name string) error
+
+	// List CronJob sources
+	// TODO: Support list configs like in service list
+	ListCronJobSource() (*v1alpha1.CronJobSourceList, error)
 
 	// Get namespace for this source
 	Namespace() string
@@ -77,11 +85,44 @@ func (c *cronJobSourcesClient) UpdateCronJobSource(cronjobSource *v1alpha1.CronJ
 }
 
 func (c *cronJobSourcesClient) DeleteCronJobSource(name string) error {
-	return c.client.Delete(name, &meta_v1.DeleteOptions{})
+	return c.client.Delete(name, &metav1.DeleteOptions{})
 }
 
 func (c *cronJobSourcesClient) GetCronJobSource(name string) (*v1alpha1.CronJobSource, error) {
-	return c.client.Get(name, meta_v1.GetOptions{})
+	return c.client.Get(name, metav1.GetOptions{})
+}
+
+// ListCronJobSource returns the available CronJob type sources
+func (c *cronJobSourcesClient) ListCronJobSource() (*v1alpha1.CronJobSourceList, error) {
+	sourceList, err := c.client.List(metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return updateCronJobSourceListGVK(sourceList)
+}
+
+func updateCronJobSourceListGVK(sourceList *v1alpha1.CronJobSourceList) (*v1alpha1.CronJobSourceList, error) {
+	sourceListNew := sourceList.DeepCopy()
+	err := updateSourceGVK(sourceListNew)
+	if err != nil {
+		return nil, err
+	}
+
+	sourceListNew.Items = make([]v1alpha1.CronJobSource, len(sourceList.Items))
+	for idx, source := range sourceList.Items {
+		sourceClone := source.DeepCopy()
+		err := updateSourceGVK(sourceClone)
+		if err != nil {
+			return nil, err
+		}
+		sourceListNew.Items[idx] = *sourceClone
+	}
+	return sourceListNew, nil
+}
+
+func updateSourceGVK(obj runtime.Object) error {
+	return util.UpdateGroupVersionKindWithScheme(obj, v1alpha1.SchemeGroupVersion, scheme.Scheme)
 }
 
 // Builder for building up cronjob sources
@@ -92,7 +133,7 @@ type CronJobSourceBuilder struct {
 
 func NewCronJobSourceBuilder(name string) *CronJobSourceBuilder {
 	return &CronJobSourceBuilder{cronjobSource: &v1alpha1.CronJobSource{
-		ObjectMeta: meta_v1.ObjectMeta{
+		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
 		},
 	}}

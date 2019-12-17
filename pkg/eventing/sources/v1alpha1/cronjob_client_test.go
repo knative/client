@@ -119,6 +119,20 @@ func TestGetCronJobSource(t *testing.T) {
 	assert.ErrorContains(t, err, "errorSource")
 }
 
+func TestListCronJobSource(t *testing.T) {
+	sourcesServer, client := setupCronJobSourcesClient(t)
+
+	sourcesServer.AddReactor("list", "cronjobsources",
+		func(a client_testing.Action) (bool, runtime.Object, error) {
+			cJSource := newCronJobSource("testsource", "mysvc")
+			return true, &v1alpha1.CronJobSourceList{Items: []v1alpha1.CronJobSource{*cJSource}}, nil
+		})
+
+	sourceList, err := client.ListCronJobSource()
+	assert.NilError(t, err)
+	assert.Equal(t, len(sourceList.Items), 1)
+}
+
 func newCronJobSource(name string, sink string) *v1alpha1.CronJobSource {
 	b := NewCronJobSourceBuilder(name).
 		Schedule("* * * * *").
