@@ -17,11 +17,16 @@ package trigger
 import (
 	"bytes"
 
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/clientcmd"
 
 	eventc_v1alpha1 "knative.dev/client/pkg/eventing/v1alpha1"
 	"knative.dev/client/pkg/kn/commands"
 	serving_client_v1alpha1 "knative.dev/client/pkg/serving/v1alpha1"
+	"knative.dev/eventing/pkg/apis/eventing/v1alpha1"
+	"knative.dev/pkg/apis"
+	duckv1 "knative.dev/pkg/apis/duck/v1"
 )
 
 // Helper methods
@@ -69,4 +74,41 @@ func executeTriggerCommand(triggerClient eventc_v1alpha1.KnEventingClient, servi
 	err := cmd.Execute()
 
 	return output.String(), err
+}
+
+func createTrigger(namespace string, name string, filters map[string]string, broker string, svcname string) *v1alpha1.Trigger {
+	triggerFilterAttributes := v1alpha1.TriggerFilterAttributes(filters)
+	wanted := &v1alpha1.Trigger{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
+		Spec: v1alpha1.TriggerSpec{
+			Broker: broker,
+			Filter: &v1alpha1.TriggerFilter{
+				Attributes: &triggerFilterAttributes,
+			},
+			Subscriber: &duckv1.Destination{
+				Ref: &corev1.ObjectReference{
+					Name: svcname,
+					Kind: "Service",
+				},
+			},
+		},
+	}
+	return wanted
+}
+
+func createTriggerWithStatus(namespace string, name string, filters map[string]string, broker string, svcname string) *v1alpha1.Trigger {
+	wanted := createTrigger(namespace, name, filters, broker, svcname)
+	wanted.Status = v1alpha1.TriggerStatus{
+		Status: duckv1.Status{
+			Conditions: []apis.Condition{{
+				Type:   "Ready",
+				Status: "True",
+			}},
+		},
+		SubscriberURI: apis.HTTP(svcname),
+	}
+	return wanted
 }

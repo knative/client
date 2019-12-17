@@ -48,7 +48,7 @@ func TestCreateApiServerSource(t *testing.T) {
 	servingRecorder.Validate()
 }
 
-func TestNoSinkError(t *testing.T) {
+func TestSinkNotFoundError(t *testing.T) {
 	servingClient := knserving_client.NewMockKnServiceClient(t)
 	apiServerClient := knsources_v1alpha1.NewMockKnAPIServerSourceClient(t)
 
@@ -60,4 +60,10 @@ func TestNoSinkError(t *testing.T) {
 	assert.Error(t, err, errorMsg)
 	assert.Assert(t, util.ContainsAll(out, errorMsg, "Usage"))
 	servingRecorder.Validate()
+}
+
+func TestNoSinkError(t *testing.T) {
+	apiServerClient := knsources_v1alpha1.NewMockKnAPIServerSourceClient(t)
+	_, err := executeAPIServerSourceCommand(apiServerClient, nil, "create", "testsource", "--resource", "Event:v1:false", "--service-account", "testsa", "--mode", "Ref")
+	assert.ErrorContains(t, err, "required flag(s)", "sink", "not set")
 }

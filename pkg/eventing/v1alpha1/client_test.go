@@ -107,6 +107,27 @@ func TestGetTrigger(t *testing.T) {
 	assert.ErrorContains(t, err, "errorTrigger")
 }
 
+func TestListTrigger(t *testing.T) {
+	serving, client := setup()
+
+	t.Run("list trigger returns a list of triggers", func(t *testing.T) {
+		trigger1 := newTrigger("trigger-1")
+		trigger2 := newTrigger("trigger-2")
+
+		serving.AddReactor("list", "triggers",
+			func(a client_testing.Action) (bool, runtime.Object, error) {
+				assert.Equal(t, testNamespace, a.GetNamespace())
+				return true, &v1alpha1.TriggerList{Items: []v1alpha1.Trigger{*trigger1, *trigger2}}, nil
+			})
+
+		listTriggers, err := client.ListTriggers()
+		assert.NilError(t, err)
+		assert.Assert(t, len(listTriggers.Items) == 2)
+		assert.Equal(t, listTriggers.Items[0].Name, "trigger-1")
+		assert.Equal(t, listTriggers.Items[1].Name, "trigger-2")
+	})
+}
+
 func newTrigger(name string) *v1alpha1.Trigger {
 	obj := &v1alpha1.Trigger{
 		ObjectMeta: metav1.ObjectMeta{

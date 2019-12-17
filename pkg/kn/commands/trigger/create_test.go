@@ -20,13 +20,10 @@ import (
 	"testing"
 
 	"gotest.tools/assert"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	eventing_client "knative.dev/client/pkg/eventing/v1alpha1"
 	knserving_client "knative.dev/client/pkg/serving/v1alpha1"
 	"knative.dev/client/pkg/util"
-	"knative.dev/eventing/pkg/apis/eventing/v1alpha1"
-	duckv1 "knative.dev/pkg/apis/duck/v1"
 	serving_v1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
@@ -45,7 +42,7 @@ func TestTriggerCreate(t *testing.T) {
 	}, nil)
 
 	eventingRecorder := eventingClient.Recorder()
-	eventingRecorder.CreateTrigger(createTrigger(triggerName, map[string]string{"type": "dev.knative.foo"}, "mybroker", "mysvc"), nil)
+	eventingRecorder.CreateTrigger(createTrigger("default", triggerName, map[string]string{"type": "dev.knative.foo"}, "mybroker", "mysvc"), nil)
 
 	out, err := executeTriggerCommand(eventingClient, servingClient, "create", triggerName, "--broker", "mybroker",
 		"--filter", "type=dev.knative.foo", "--sink", "svc:mysvc")
@@ -56,7 +53,7 @@ func TestTriggerCreate(t *testing.T) {
 	servingRecorder.Validate()
 }
 
-func TestNoSinkError(t *testing.T) {
+func TestSinkNotFoundError(t *testing.T) {
 	eventingClient := eventing_client.NewMockKnEventingClient(t)
 	servingClient := knserving_client.NewMockKnServiceClient(t)
 
@@ -71,6 +68,13 @@ func TestNoSinkError(t *testing.T) {
 	servingRecorder.Validate()
 }
 
+func TestNoSinkError(t *testing.T) {
+	eventingClient := eventing_client.NewMockKnEventingClient(t)
+	_, err := executeTriggerCommand(eventingClient, nil, "create", triggerName, "--broker", "mybroker",
+		"--filter", "type=dev.knative.foo")
+	assert.ErrorContains(t, err, "required flag(s)", "sink", "not set")
+}
+
 func TestTriggerCreateMultipleFilter(t *testing.T) {
 	eventingClient := eventing_client.NewMockKnEventingClient(t)
 	servingClient := knserving_client.NewMockKnServiceClient(t)
@@ -82,7 +86,7 @@ func TestTriggerCreateMultipleFilter(t *testing.T) {
 	}, nil)
 
 	eventingRecorder := eventingClient.Recorder()
-	eventingRecorder.CreateTrigger(createTrigger(triggerName, map[string]string{"type": "dev.knative.foo", "source": "event.host"}, "mybroker", "mysvc"), nil)
+	eventingRecorder.CreateTrigger(createTrigger("default", triggerName, map[string]string{"type": "dev.knative.foo", "source": "event.host"}, "mybroker", "mysvc"), nil)
 
 	out, err := executeTriggerCommand(eventingClient, servingClient, "create", triggerName, "--broker", "mybroker",
 		"--filter", "type=dev.knative.foo", "--filter", "source=event.host", "--sink", "svc:mysvc")
@@ -91,27 +95,4 @@ func TestTriggerCreateMultipleFilter(t *testing.T) {
 
 	eventingRecorder.Validate()
 	servingRecorder.Validate()
-}
-
-func createTrigger(name string, filters map[string]string, broker string, svcname string) *v1alpha1.Trigger {
-	triggerFilterAttributes := v1alpha1.TriggerFilterAttributes(filters)
-	wanted := &v1alpha1.Trigger{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: "default",
-		},
-		Spec: v1alpha1.TriggerSpec{
-			Broker: broker,
-			Filter: &v1alpha1.TriggerFilter{
-				Attributes: &triggerFilterAttributes,
-			},
-			Subscriber: &duckv1.Destination{
-				Ref: &corev1.ObjectReference{
-					Name: svcname,
-					Kind: "Service",
-				},
-			},
-		},
-	}
-	return wanted
 }

@@ -41,7 +41,7 @@ func NewTriggerCreateCommand(p *commands.KnParams) *cobra.Command {
 
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
-				return errors.New("'trigger create' requires the name of the trigger as single argument")
+				return errors.New("'trigger create' requires the name of the trigger")
 			}
 			name := args[0]
 
@@ -86,7 +86,7 @@ func NewTriggerCreateCommand(p *commands.KnParams) *cobra.Command {
 	commands.AddNamespaceFlags(cmd.Flags(), false)
 	triggerUpdateFlags.Add(cmd)
 	sinkFlags.Add(cmd)
-	cmd.MarkFlagRequired("schedule")
+	cmd.MarkFlagRequired("sink")
 
 	return cmd
 }
