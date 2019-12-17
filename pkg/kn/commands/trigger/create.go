@@ -64,7 +64,7 @@ func NewTriggerCreateCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return fmt.Errorf(
 					"cannot create trigger '%s' in namespace '%s' "+
-						"because %s", name, namespace, err)
+						"because: %s", name, namespace, err)
 			}
 
 			filters, err := triggerUpdateFlags.GetFilters()
@@ -85,11 +85,11 @@ func NewTriggerCreateCommand(p *commands.KnParams) *cobra.Command {
 				URI: objectRef.URI,
 			}
 
-			_, err = eventingClient.CreateTrigger(trigger)
+			err = eventingClient.CreateTrigger(trigger)
 			if err != nil {
 				return fmt.Errorf(
 					"cannot create trigger '%s' in namespace '%s' "+
-						"because %s", name, namespace, err)
+						"because: %s", name, namespace, err)
 			}
 			fmt.Fprintf(cmd.OutOrStdout(), "Trigger '%s' successfully created in namespace '%s'.\n", args[0], namespace)
 			return nil

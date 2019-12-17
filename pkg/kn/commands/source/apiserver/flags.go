@@ -31,7 +31,6 @@ import (
 
 const (
 	apiVersionSplitChar = ":"
-	defaultAPIVersion   = "v1"
 )
 
 // APIServerSourceUpdateFlags are flags for create and update a ApiServerSource
@@ -41,38 +40,47 @@ type APIServerSourceUpdateFlags struct {
 	Resources          []string
 }
 
+type resourceSpec struct {
+	kind         string
+	apiVersion   string
+	isController bool
+}
+
 // GetAPIServerResourceArray is to return an array of ApiServerResource from a string. A sample is Event:v1:true,Pod:v2:false
-func (f *APIServerSourceUpdateFlags) GetAPIServerResourceArray() []v1alpha1.ApiServerResource {
+func (f *APIServerSourceUpdateFlags) GetAPIServerResourceArray() (*[]v1alpha1.ApiServerResource, error) {
 	var resourceList []v1alpha1.ApiServerResource
 	for _, r := range f.Resources {
-		version, kind, controller := getValidResource(r)
+		resourceSpec, err := getValidResource(r)
+		if err != nil {
+			return nil, err
+		}
 		resourceRef := v1alpha1.ApiServerResource{
-			APIVersion: version,
-			Kind:       kind,
-			Controller: controller,
+			APIVersion: resourceSpec.apiVersion,
+			Kind:       resourceSpec.kind,
+			Controller: resourceSpec.isController,
 		}
 		resourceList = append(resourceList, resourceRef)
 	}
-	return resourceList
+	return &resourceList, nil
 }
 
-func getValidResource(resource string) (string, string, bool) {
-	var version = defaultAPIVersion // v1 as default
-	var isController = false        //false as default
+func getValidResource(resource string) (*resourceSpec, error) {
+	var isController = false //false as default
 	var err error
 
 	parts := strings.Split(resource, apiVersionSplitChar)
 	kind := parts[0]
-	if len(parts) >= 2 {
-		version = parts[1]
+	if len(parts) < 2 {
+		return nil, fmt.Errorf("no APIVersion given for resource %s", resource)
 	}
+	version := parts[1]
 	if len(parts) >= 3 {
 		isController, err = strconv.ParseBool(parts[2])
 		if err != nil {
-			isController = false
+			return nil, fmt.Errorf("cannot parse controller flage in resource specification %s", resource)
 		}
 	}
-	return version, kind, isController
+	return &resourceSpec{apiVersion: version, kind: kind, isController: isController}, nil
 }
 
 //Add is to set parameters
@@ -90,9 +98,8 @@ func (f *APIServerSourceUpdateFlags) Add(cmd *cobra.Command) {
 	cmd.Flags().StringSliceVar(&f.Resources,
 		"resource",
 		nil,
-		`Comma seperate Kind:APIVersion:isController list, e.g. Event:v1:true.
-"APIVersion" and "isControler" can be omitted.
-"APIVersion" is "v1" by default, "isController" is "false" by default.`)
+		`Specification for which events to listen, in the format Kind:APIVersion:isController, e.g. Deployment:apps/v1:true.
+"isController" can be omitted and is "false" by default.`)
 }
 
 // APIServerSourceListHandlers handles printing human readable table for `kn source apiserver list` command's output

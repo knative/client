@@ -39,7 +39,7 @@ func NewCronJobCreateCommand(p *commands.KnParams) *cobra.Command {
 
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
-				return errors.New("requires the name of the crobjob source to create as single argument")
+				return errors.New("requires the name of the crojob source to create as single argument")
 
 			}
 			name := args[0]

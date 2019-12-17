@@ -63,7 +63,7 @@ func (f *TriggerUpdateFlags) GetFilters() (map[string]string, error) {
 // GetFilter to return a map type of filters
 func (f *TriggerUpdateFlags) GetUpdateFilters() (map[string]string, []string, error) {
 	filters := map[string]string{}
-	removes := []string{}
+	var removes []string
 	for _, item := range f.Filters {
 		if strings.HasSuffix(item, "-") {
 			removes = append(removes, item[:len(item)-1])

@@ -61,22 +61,27 @@ func NewAPIServerCreateCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return fmt.Errorf(
 					"cannot create ApiServerSource '%s' in namespace '%s' "+
-						"because %s", name, namespace, err)
+						"because: %s", name, namespace, err)
 			}
 
 			// create
+			resources, err := updateFlags.GetAPIServerResourceArray()
+			if err != nil {
+				return err
+			}
+
 			err = apiSourceClient.CreateAPIServerSource(
 				v1alpha1.NewAPIServerSourceBuilder(name).
-					Resources(updateFlags.GetAPIServerResourceArray()).
 					ServiceAccount(updateFlags.ServiceAccountName).
 					Mode(updateFlags.Mode).
+					Resources(*resources).
 					Sink(objectRef).
 					Build())
 
 			if err != nil {
 				return fmt.Errorf(
 					"cannot create ApiServerSource '%s' in namespace '%s' "+
-						"because %s", name, namespace, err)
+						"because: %s", name, namespace, err)
 			}
 
 			if err == nil {

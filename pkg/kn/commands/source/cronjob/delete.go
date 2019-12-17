@@ -32,7 +32,7 @@ func NewCronJobDeleteCommand(p *commands.KnParams) *cobra.Command {
   kn source cronjob delete my-cron-trigger`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
-				return errors.New("'requires the name of the crobjob source to delete as single argument")
+				return errors.New("'requires the name of the cronjob source to delete as single argument")
 			}
 			name := args[0]
 

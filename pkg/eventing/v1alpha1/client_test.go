@@ -73,14 +73,12 @@ func TestCreateTrigger(t *testing.T) {
 		})
 
 	t.Run("create trigger without error", func(t *testing.T) {
-		ins, err := client.CreateTrigger(objNew)
+		err := client.CreateTrigger(objNew)
 		assert.NilError(t, err)
-		assert.Equal(t, ins.Name, name)
-		assert.Equal(t, ins.Namespace, testNamespace)
 	})
 
 	t.Run("create trigger with an error returns an error object", func(t *testing.T) {
-		_, err := client.CreateTrigger(newTrigger("unknown"))
+		err := client.CreateTrigger(newTrigger("unknown"))
 		assert.ErrorContains(t, err, "unknown")
 	})
 }
@@ -130,12 +128,12 @@ func TestListTrigger(t *testing.T) {
 
 func TestTriggerBuilder(t *testing.T) {
 	a := NewTriggerBuilder("testtrigger")
-	a.Filters(map[string]string{"type": "foo", "source": "bar"})
+	a.AddFilter("type", "foo").AddFilter("source", "bar")
 
 	t.Run("update filter", func(t *testing.T) {
 		b := NewTriggerBuilderFromExisting(a.Build())
 		assert.DeepEqual(t, b.Build(), a.Build())
-		b.UpdateFilters(map[string]string{"type": "new"}, []string{"source"})
+		b.AddFilter("type", "new").RemoveFilter("source")
 		expected := &v1alpha1.TriggerFilter{
 			Attributes: &v1alpha1.TriggerFilterAttributes{
 				"type": "new",
@@ -147,7 +145,7 @@ func TestTriggerBuilder(t *testing.T) {
 	t.Run("update filter with only deletions", func(t *testing.T) {
 		b := NewTriggerBuilderFromExisting(a.Build())
 		assert.DeepEqual(t, b.Build(), a.Build())
-		b.UpdateFilters(nil, []string{"source"})
+		b.RemoveFilter("source")
 		expected := &v1alpha1.TriggerFilter{
 			Attributes: &v1alpha1.TriggerFilterAttributes{
 				"type": "foo",
@@ -159,7 +157,7 @@ func TestTriggerBuilder(t *testing.T) {
 	t.Run("update filter with only updates", func(t *testing.T) {
 		b := NewTriggerBuilderFromExisting(a.Build())
 		assert.DeepEqual(t, b.Build(), a.Build())
-		b.UpdateFilters(map[string]string{"type": "new"}, nil)
+		b.AddFilter("type", "new")
 		expected := &v1alpha1.TriggerFilter{
 			Attributes: &v1alpha1.TriggerFilterAttributes{
 				"type":   "new",
@@ -168,14 +166,12 @@ func TestTriggerBuilder(t *testing.T) {
 		}
 		assert.DeepEqual(t, expected, b.Build().Spec.Filter)
 	})
-
 }
 
 func newTrigger(name string) *v1alpha1.Trigger {
-	b := NewTriggerBuilder(name)
-	b.Filters(map[string]string{"type": "foo"})
-	b.Broker("default")
-	b.trigger.Name = name
-	b.trigger.Namespace = testNamespace
-	return b.Build()
+	return NewTriggerBuilder(name).
+		Namespace(testNamespace).
+		Broker("default").
+		AddFilter("type", "foo").
+		Build()
 }
