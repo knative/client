@@ -31,12 +31,14 @@ func TestMockKnClient(t *testing.T) {
 	recorder.CreateTrigger(&v1alpha1.Trigger{}, nil)
 	recorder.DeleteTrigger("hello", nil)
 	recorder.ListTriggers(nil, nil)
+	recorder.UpdateTrigger(&v1alpha1.Trigger{}, nil)
 
 	// Call all service
 	client.GetTrigger("hello")
 	client.CreateTrigger(&v1alpha1.Trigger{})
 	client.DeleteTrigger("hello")
 	client.ListTriggers()
+	client.UpdateTrigger(&v1alpha1.Trigger{})
 
 	// Validate
 	recorder.Validate()

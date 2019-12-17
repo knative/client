@@ -16,12 +16,14 @@ package v1alpha1
 
 import (
 	apis_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	kn_errors "knative.dev/client/pkg/errors"
 	"knative.dev/client/pkg/util"
 	"knative.dev/eventing/pkg/apis/eventing/v1alpha1"
 	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
 	client_v1alpha1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1alpha1"
+	duckv1 "knative.dev/pkg/apis/duck/v1"
 )
 
 const (
@@ -41,6 +43,8 @@ type KnEventingClient interface {
 	GetTrigger(name string) (*v1alpha1.Trigger, error)
 	// ListTrigger returns list of trigger CRDs
 	ListTriggers() (*v1alpha1.TriggerList, error)
+	// UpdateTrigger is used to update an instance of trigger
+	UpdateTrigger(trigger *v1alpha1.Trigger) error
 }
 
 // KnEventingClient is a combination of Sources client interface and namespace
@@ -109,6 +113,15 @@ func (c *knEventingClient) ListTriggers() (*v1alpha1.TriggerList, error) {
 	return triggerListNew, nil
 }
 
+//CreateTrigger is used to create an instance of trigger
+func (c *knEventingClient) UpdateTrigger(trigger *v1alpha1.Trigger) error {
+	trigger, err := c.client.Triggers(c.namespace).Update(trigger)
+	if err != nil {
+		return kn_errors.GetError(err)
+	}
+	return nil
+}
+
 // Return the client's namespace
 func (c *knEventingClient) Namespace() string {
 	return c.namespace
@@ -117,4 +130,71 @@ func (c *knEventingClient) Namespace() string {
 // update with the v1alpha1 group + version
 func updateTriggerGvk(obj runtime.Object) error {
 	return util.UpdateGroupVersionKindWithScheme(obj, v1alpha1.SchemeGroupVersion, scheme.Scheme)
+}
+
+// TriggerBuilder is for building the trigger
+type TriggerBuilder struct {
+	trigger *v1alpha1.Trigger
+}
+
+// NewTriggerBuilder for building trigger object
+func NewTriggerBuilder(name string) *TriggerBuilder {
+	return &TriggerBuilder{trigger: &v1alpha1.Trigger{
+		ObjectMeta: meta_v1.ObjectMeta{
+			Name: name,
+		},
+	}}
+}
+
+// NewTriggerBuilderFromExisting for building the object from existing Trigger object
+func NewTriggerBuilderFromExisting(tr *v1alpha1.Trigger) *TriggerBuilder {
+	return &TriggerBuilder{trigger: tr.DeepCopy()}
+}
+
+// Broker to set the broker of trigger object
+func (b *TriggerBuilder) Broker(broker string) *TriggerBuilder {
+	if broker != "" {
+		b.trigger.Spec.Broker = broker
+	}
+	return b
+}
+
+// Filters to set the filters of trigger object
+func (b *TriggerBuilder) Filters(filters map[string]string) *TriggerBuilder {
+	if filters != nil {
+		triggerFilterAttributes := v1alpha1.TriggerFilterAttributes(filters)
+		b.trigger.Spec.Filter = &v1alpha1.TriggerFilter{
+			Attributes: &triggerFilterAttributes,
+		}
+	}
+	return b
+}
+
+// UpdateFilters to update the filters of trigger object
+func (b *TriggerBuilder) UpdateFilters(toUpdate map[string]string, toRemove []string) *TriggerBuilder {
+	if b.trigger.Spec.Filter == nil {
+		b.Filters(toUpdate)
+		return b
+	}
+
+	existing := map[string]string(*b.trigger.Spec.Filter.Attributes)
+	for key, value := range toUpdate {
+		existing[key] = value
+	}
+	for _, key := range toRemove {
+		delete(existing, key)
+	}
+	b.Filters(existing)
+	return b
+}
+
+// Sink to set the subscriber of trigger object
+func (b *TriggerBuilder) Sink(sink *duckv1.Destination) *TriggerBuilder {
+	b.trigger.Spec.Subscriber = sink
+	return b
+}
+
+// Build to return an instance of trigger object
+func (b *TriggerBuilder) Build() *v1alpha1.Trigger {
+	return b.trigger
 }

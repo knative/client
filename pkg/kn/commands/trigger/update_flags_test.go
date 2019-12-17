@@ -20,16 +20,85 @@ import (
 	"gotest.tools/assert"
 )
 
-func TestGetFilter(t *testing.T) {
+func TestGetFilters(t *testing.T) {
 	t.Run("get multiple filters", func(t *testing.T) {
 		createFlag := TriggerUpdateFlags{
 			Filters: filterArray{"type=abc.edf.ghi", "attr=value"},
 		}
-		created := createFlag.GetFilters()
+		created, err := createFlag.GetFilters()
 		wanted := map[string]string{
 			"type": "abc.edf.ghi",
 			"attr": "value",
 		}
+		assert.NilError(t, err, "Filter should be created")
 		assert.DeepEqual(t, wanted, created)
+	})
+
+	t.Run("get filters with errors", func(t *testing.T) {
+		createFlag := TriggerUpdateFlags{
+			Filters: filterArray{"type"},
+		}
+		_, err := createFlag.GetFilters()
+		assert.ErrorContains(t, err, "invalid filter")
+
+		createFlag = TriggerUpdateFlags{
+			Filters: filterArray{"type="},
+		}
+		_, err = createFlag.GetFilters()
+		assert.ErrorContains(t, err, "invalid filter")
+
+		createFlag = TriggerUpdateFlags{
+			Filters: filterArray{"=value"},
+		}
+		_, err = createFlag.GetFilters()
+		assert.ErrorContains(t, err, "invalid filter")
+
+		createFlag = TriggerUpdateFlags{
+			Filters: filterArray{"="},
+		}
+		_, err = createFlag.GetFilters()
+		assert.ErrorContains(t, err, "invalid filter")
+	})
+}
+
+func TestGetUpdateFilters(t *testing.T) {
+	t.Run("get updated filters", func(t *testing.T) {
+		createFlag := TriggerUpdateFlags{
+			Filters: filterArray{"type=abc.edf.ghi", "attr=value"},
+		}
+		updated, removed, err := createFlag.GetUpdateFilters()
+		wanted := map[string]string{
+			"type": "abc.edf.ghi",
+			"attr": "value",
+		}
+		assert.NilError(t, err, "UpdateFilter should be created")
+		assert.DeepEqual(t, wanted, updated)
+		assert.Assert(t, len(removed) == 0)
+	})
+
+	t.Run("get deleted filters", func(t *testing.T) {
+		createFlag := TriggerUpdateFlags{
+			Filters: filterArray{"type-", "attr-"},
+		}
+		updated, removed, err := createFlag.GetUpdateFilters()
+		wanted := []string{"type", "attr"}
+		assert.NilError(t, err, "UpdateFilter should be created")
+		assert.DeepEqual(t, wanted, removed)
+		assert.Assert(t, len(updated) == 0)
+	})
+
+	t.Run("get updated & deleted filters", func(t *testing.T) {
+		createFlag := TriggerUpdateFlags{
+			Filters: filterArray{"type=foo", "attr-", "source=bar", "env-"},
+		}
+		updated, removed, err := createFlag.GetUpdateFilters()
+		wantedRemoved := []string{"attr", "env"}
+		wantedUpdated := map[string]string{
+			"type":   "foo",
+			"source": "bar",
+		}
+		assert.NilError(t, err, "UpdateFilter should be created")
+		assert.DeepEqual(t, wantedRemoved, removed)
+		assert.DeepEqual(t, wantedUpdated, updated)
 	})
 }
