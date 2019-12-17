@@ -19,6 +19,10 @@
 | | Description | PR
 
 | 🎁
+| Add `kn trigger update` for updating triggers
+| https://github.com/knative/client/pull/562[#562]
+
+| 🎁
 | Add `kn trigger list` for listing triggers
 | https://github.com/knative/client/pull/558[#558]
 
