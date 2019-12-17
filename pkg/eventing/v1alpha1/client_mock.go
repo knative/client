@@ -102,6 +102,17 @@ func (c *MockKnEventingClient) ListTriggers() (*v1alpha1.TriggerList, error) {
 	return call.Result[0].(*v1alpha1.TriggerList), mock.ErrorOrNil(call.Result[1])
 }
 
+// UpdateTrigger records a call for ListTriggers with the expected result and error (nil if none)
+func (sr *EventingRecorder) UpdateTrigger(trigger interface{}, err error) {
+	sr.r.Add("UpdateTrigger", []interface{}{trigger}, []interface{}{err})
+}
+
+// UpdateTrigger performs a previously recorded action
+func (c *MockKnEventingClient) UpdateTrigger(trigger *v1alpha1.Trigger) error {
+	call := c.recorder.r.VerifyCall("UpdateTrigger")
+	return mock.ErrorOrNil(call.Result[0])
+}
+
 // Validate validates whether every recorded action has been called
 func (sr *EventingRecorder) Validate() {
 	sr.r.CheckThatAllRecordedMethodsHaveBeenCalled()

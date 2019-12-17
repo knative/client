@@ -23,6 +23,7 @@ import (
 	client_v1alpha1 "knative.dev/client/pkg/eventing/v1alpha1"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
+	duckv1 "knative.dev/pkg/apis/duck/v1"
 )
 
 // NewTriggerUpdateCommand prepares the command for a CronJobSource update
@@ -31,14 +32,14 @@ func NewTriggerUpdateCommand(p *commands.KnParams) *cobra.Command {
 	var sinkFlags flags.SinkFlags
 
 	cmd := &cobra.Command{
-		Use:   "update NAME --broker BROKER --filter KEY=VALUE --sink SINK",
+		Use:   "update NAME --filter KEY=VALUE --sink SINK",
 		Short: "Update a trigger",
 		Example: `
-  # Update the broker of a trigger 'mytrigger' to 'new-broker'
-  kn trigger update mytrigger --broker new-broker
-
-  # Update the filter of a trigger 'mytrigger' to 'type=knative.dev.bar'
+  # Update the filter which key is 'type' to value 'knative.dev.bar' in a trigger 'mytrigger'
   kn trigger update mytrigger --filter type=knative.dev.bar
+
+  # Remove the filter which key is 'type' from a trigger 'mytrigger' 
+  kn trigger update mytrigger --filter type-
 
   # Update the sink of a trigger 'mytrigger' to 'svc:new-service'
   kn trigger update mytrigger --sink svc:new-service
@@ -73,17 +74,26 @@ func NewTriggerUpdateCommand(p *commands.KnParams) *cobra.Command {
 			b := client_v1alpha1.NewTriggerBuilderFromExisting(trigger)
 
 			if cmd.Flags().Changed("broker") {
-				b.Broker(triggerUpdateFlags.Broker)
+				return fmt.Errorf(
+					"cannot update trigger '%s' because broker is immutable", name)
 			}
 			if cmd.Flags().Changed("filter") {
-				b.Filter(triggerUpdateFlags.GetFilters())
+				updated, removed, err := triggerUpdateFlags.GetUpdateFilters()
+				if err != nil {
+					return fmt.Errorf(
+						"cannot update trigger '%s' because %s", name, err)
+				}
+				b.UpdateFilters(updated, removed)
 			}
 			if cmd.Flags().Changed("sink") {
 				destination, err := sinkFlags.ResolveSink(servingClient)
 				if err != nil {
 					return err
 				}
-				b.Sink(destination)
+				b.Sink(&duckv1.Destination{
+					Ref: destination.Ref,
+					URI: destination.URI,
+				})
 			}
 			err = eventingClient.UpdateTrigger(b.Build())
 			if err == nil {

@@ -128,22 +128,54 @@ func TestListTrigger(t *testing.T) {
 	})
 }
 
-func newTrigger(name string) *v1alpha1.Trigger {
-	obj := &v1alpha1.Trigger{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: testNamespace,
-		},
-		Spec: v1alpha1.TriggerSpec{
-			Broker: "default",
-			Filter: &v1alpha1.TriggerFilter{
-				Attributes: &v1alpha1.TriggerFilterAttributes{
-					"type": "foo",
-				},
+func TestTriggerBuilder(t *testing.T) {
+	a := NewTriggerBuilder("testtrigger")
+	a.Filters(map[string]string{"type": "foo", "source": "bar"})
+
+	t.Run("update filter", func(t *testing.T) {
+		b := NewTriggerBuilderFromExisting(a.Build())
+		assert.DeepEqual(t, b.Build(), a.Build())
+		b.UpdateFilters(map[string]string{"type": "new"}, []string{"source"})
+		expected := &v1alpha1.TriggerFilter{
+			Attributes: &v1alpha1.TriggerFilterAttributes{
+				"type": "new",
 			},
-		},
-	}
-	obj.Name = name
-	obj.Namespace = testNamespace
-	return obj
+		}
+		assert.DeepEqual(t, expected, b.Build().Spec.Filter)
+	})
+
+	t.Run("update filter with only deletions", func(t *testing.T) {
+		b := NewTriggerBuilderFromExisting(a.Build())
+		assert.DeepEqual(t, b.Build(), a.Build())
+		b.UpdateFilters(nil, []string{"source"})
+		expected := &v1alpha1.TriggerFilter{
+			Attributes: &v1alpha1.TriggerFilterAttributes{
+				"type": "foo",
+			},
+		}
+		assert.DeepEqual(t, expected, b.Build().Spec.Filter)
+	})
+
+	t.Run("update filter with only updates", func(t *testing.T) {
+		b := NewTriggerBuilderFromExisting(a.Build())
+		assert.DeepEqual(t, b.Build(), a.Build())
+		b.UpdateFilters(map[string]string{"type": "new"}, nil)
+		expected := &v1alpha1.TriggerFilter{
+			Attributes: &v1alpha1.TriggerFilterAttributes{
+				"type":   "new",
+				"source": "bar",
+			},
+		}
+		assert.DeepEqual(t, expected, b.Build().Spec.Filter)
+	})
+
+}
+
+func newTrigger(name string) *v1alpha1.Trigger {
+	b := NewTriggerBuilder(name)
+	b.Filters(map[string]string{"type": "foo"})
+	b.Broker("default")
+	b.trigger.Name = name
+	b.trigger.Namespace = testNamespace
+	return b.Build()
 }
