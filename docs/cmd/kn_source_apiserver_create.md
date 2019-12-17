@@ -22,8 +22,8 @@ kn source apiserver create NAME --resource RESOURCE --service-account ACCOUNTNAM
 
 ```
   -h, --help                     help for create
-      --mode string              The mode the receive adapter controller runs under:, 
-                                 "Ref" sends only the reference to the resource, 
+      --mode string              The mode the receive adapter controller runs under:,
+                                 "Ref" sends only the reference to the resource,
                                  "Resource" send the full resource. (default "Ref")
   -n, --namespace string         Specify the namespace to operate in.
       --resource strings         Comma seperate Kind:APIVersion:isController list, e.g. Event:v1:true.

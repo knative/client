@@ -103,6 +103,17 @@ func (c *MockKnAPIServerSourceClient) DeleteAPIServerSource(name string) error {
 	return mock.ErrorOrNil(call.Result[0])
 }
 
+// ListAPIServerSource records a call for ListAPIServerSource with the expected error (nil if none)
+func (sr *APIServerSourcesRecorder) ListAPIServerSource(apiJobSourceList *v1alpha1.ApiServerSourceList, err error) {
+	sr.r.Add("ListAPIServerSource", []interface{}{}, []interface{}{apiJobSourceList, err})
+}
+
+// ListAPIServerSource performs a previously recorded action, failing if non has been registered
+func (c *MockKnAPIServerSourceClient) ListAPIServerSource() (*v1alpha1.ApiServerSourceList, error) {
+	call := c.recorder.r.VerifyCall("ListAPIServerSource")
+	return call.Result[0].(*v1alpha1.ApiServerSourceList), mock.ErrorOrNil(call.Result[1])
+}
+
 // Validate validates whether every recorded action has been called
 func (sr *APIServerSourcesRecorder) Validate() {
 	sr.r.CheckThatAllRecordedMethodsHaveBeenCalled()

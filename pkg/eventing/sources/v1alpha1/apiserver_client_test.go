@@ -116,6 +116,20 @@ func TestUpdateApiServerSource(t *testing.T) {
 	assert.ErrorContains(t, err, "errorSource")
 }
 
+func TestListAPIServerSource(t *testing.T) {
+	sourcesServer, client := setupAPIServerSourcesClient(t)
+
+	sourcesServer.AddReactor("list", "apiserversources",
+		func(a client_testing.Action) (bool, runtime.Object, error) {
+			cJSource := newAPIServerSource("testsource", "Event")
+			return true, &v1alpha1.ApiServerSourceList{Items: []v1alpha1.ApiServerSource{*cJSource}}, nil
+		})
+
+	sourceList, err := client.ListAPIServerSource()
+	assert.NilError(t, err)
+	assert.Equal(t, len(sourceList.Items), 1)
+}
+
 func newAPIServerSource(name, resource string) *v1alpha1.ApiServerSource {
 	b := NewAPIServerSourceBuilder(name).ServiceAccount("testsa").Mode("Ref")
 	b.Sink(&v1beta1.Destination{
