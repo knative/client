@@ -82,7 +82,7 @@ func (test *e2eTest) apiServerSourceDelete(t *testing.T, sourceName string) {
 func (test *e2eTest) setupServiceAccountForApiserver(t *testing.T, name string) {
 	kubectl := kubectl{t, Logger{}}
 
-	_, err := kubectl.RunWithOpts([]string{"create", "serviceaccount", name}, runOpts{})
+	_, err := kubectl.RunWithOpts([]string{"create", "serviceaccount", name, "--namespace",test.kn.namespace}, runOpts{})
 	if err != nil {
 		t.Fatalf(fmt.Sprintf("Error executing 'kubectl create serviceaccount test-sa'. Error: %s", err.Error()))
 	}
