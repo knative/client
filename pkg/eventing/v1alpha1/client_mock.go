@@ -63,7 +63,7 @@ func (sr *EventingRecorder) CreateTrigger(trigger interface{}, err error) {
 	sr.r.Add("CreateTrigger", []interface{}{trigger}, []interface{}{trigger, err})
 }
 
-// CreateTrigger performs a previously recorded action, failing if non has been registered
+// CreateTrigger performs a previously recorded action
 func (c *MockKnEventingClient) CreateTrigger(trigger *v1alpha1.Trigger) (*v1alpha1.Trigger, error) {
 	call := c.recorder.r.VerifyCall("CreateTrigger", trigger)
 	return call.Result[0].(*v1alpha1.Trigger), mock.ErrorOrNil(call.Result[1])
@@ -74,7 +74,7 @@ func (sr *EventingRecorder) GetTrigger(name interface{}, trigger *v1alpha1.Trigg
 	sr.r.Add("GetTrigger", []interface{}{name}, []interface{}{trigger, err})
 }
 
-// GetTrigger performs a previously recorded action, failing if non has been registered
+// GetTrigger performs a previously recorded action
 func (c *MockKnEventingClient) GetTrigger(name string) (*v1alpha1.Trigger, error) {
 	call := c.recorder.r.VerifyCall("GetTrigger", name)
 	return call.Result[0].(*v1alpha1.Trigger), mock.ErrorOrNil(call.Result[1])
@@ -89,6 +89,17 @@ func (sr *EventingRecorder) DeleteTrigger(name interface{}, err error) {
 func (c *MockKnEventingClient) DeleteTrigger(name string) error {
 	call := c.recorder.r.VerifyCall("DeleteTrigger", name)
 	return mock.ErrorOrNil(call.Result[0])
+}
+
+// ListTriggers records a call for ListTriggers with the expected result and error (nil if none)
+func (sr *EventingRecorder) ListTriggers(triggerList *v1alpha1.TriggerList, err error) {
+	sr.r.Add("ListTriggers", nil, []interface{}{triggerList, err})
+}
+
+// ListTriggers performs a previously recorded action
+func (c *MockKnEventingClient) ListTriggers() (*v1alpha1.TriggerList, error) {
+	call := c.recorder.r.VerifyCall("ListTriggers")
+	return call.Result[0].(*v1alpha1.TriggerList), mock.ErrorOrNil(call.Result[1])
 }
 
 // Validate validates whether every recorded action has been called

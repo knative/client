@@ -16,10 +16,16 @@ package v1alpha1
 
 import (
 	apis_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
+	"k8s.io/apimachinery/pkg/runtime"
 	kn_errors "knative.dev/client/pkg/errors"
+	"knative.dev/client/pkg/util"
 	"knative.dev/eventing/pkg/apis/eventing/v1alpha1"
+	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
 	client_v1alpha1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1alpha1"
+)
+
+const (
+	nameFieldKey = "metadata.name"
 )
 
 // KnEventingClient to Eventing Sources. All methods are relative to the
@@ -33,6 +39,8 @@ type KnEventingClient interface {
 	DeleteTrigger(name string) error
 	// GetTrigger is used to get an instance of trigger
 	GetTrigger(name string) (*v1alpha1.Trigger, error)
+	// ListTrigger returns list of trigger CRDs
+	ListTriggers() (*v1alpha1.TriggerList, error)
 }
 
 // KnEventingClient is a combination of Sources client interface and namespace
@@ -78,7 +86,35 @@ func (c *knEventingClient) GetTrigger(name string) (*v1alpha1.Trigger, error) {
 	return trigger, nil
 }
 
+func (c *knEventingClient) ListTriggers() (*v1alpha1.TriggerList, error) {
+	triggerList, err := c.client.Triggers(c.namespace).List(apis_v1.ListOptions{})
+	if err != nil {
+		return nil, kn_errors.GetError(err)
+	}
+	triggerListNew := triggerList.DeepCopy()
+	err = updateTriggerGvk(triggerListNew)
+	if err != nil {
+		return nil, err
+	}
+
+	triggerListNew.Items = make([]v1alpha1.Trigger, len(triggerList.Items))
+	for idx, trigger := range triggerList.Items {
+		triggerClone := trigger.DeepCopy()
+		err := updateTriggerGvk(triggerClone)
+		if err != nil {
+			return nil, err
+		}
+		triggerListNew.Items[idx] = *triggerClone
+	}
+	return triggerListNew, nil
+}
+
 // Return the client's namespace
 func (c *knEventingClient) Namespace() string {
 	return c.namespace
+}
+
+// update with the v1alpha1 group + version
+func updateTriggerGvk(obj runtime.Object) error {
+	return util.UpdateGroupVersionKindWithScheme(obj, v1alpha1.SchemeGroupVersion, scheme.Scheme)
 }

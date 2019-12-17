@@ -15,7 +15,6 @@
 package trigger
 
 import (
-	"errors"
 	"fmt"
 	"testing"
 
@@ -43,7 +42,7 @@ func TestTriggerDeleteWithError(t *testing.T) {
 
 	eventingClient := eventing_client.NewMockKnEventingClient(t)
 	eventingRecorder := eventingClient.Recorder()
-	eventingRecorder.DeleteTrigger(triggerName, errors.New(fmt.Sprintf("trigger %s not found", triggerName)))
+	eventingRecorder.DeleteTrigger(triggerName, fmt.Errorf("trigger %s not found", triggerName))
 
 	out, err := executeTriggerCommand(eventingClient, nil, "delete", triggerName)
 	assert.ErrorContains(t, err, triggerName)

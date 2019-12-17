@@ -90,5 +90,6 @@ func NewAPIServerCreateCommand(p *commands.KnParams) *cobra.Command {
 	updateFlags.Add(cmd)
 	sinkFlags.Add(cmd)
 	cmd.MarkFlagRequired("resource")
+	cmd.MarkFlagRequired("sink")
 	return cmd
 }
