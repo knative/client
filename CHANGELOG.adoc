@@ -70,6 +70,10 @@
 | Update to Go 1.13
 | https://github.com/knative/client/pull/535[#535]
 
+| 🎁
+| Add CI tests for using Kn with Tekton
+| https://github.com/knative/client/pull/528[#528]
+
 | 🧽
 | Update version information for eventing dependencies
 | https://github.com/knative/client/pull/495[#495]
