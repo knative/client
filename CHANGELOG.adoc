@@ -12,15 +12,83 @@
 |===
 ////
 
-## v0.11.0 (unreleased)
+## v0.11.0 (2019-12-17)
 
 [cols="1,10,3", options="header", width="100%"]
 |===
 | | Description | PR
 
+| 🎁
+| Add `kn trigger update` for updating triggers
+| https://github.com/knative/client/pull/562[#562]
+
+| 🎁
+| Add `kn source cronjob list` for listing CronJob sources
+| https://github.com/knative/client/pull/559[#559]
+
+| 🎁
+| Add `kn source apiserver list` for listing ApiServer sources 
+| https://github.com/knative/client/pull/559[#559]
+
+| 🎁
+| Add `kn trigger list` for listing triggers
+| https://github.com/knative/client/pull/558[#558]
+
+| 🎁
+| Add `kn source apiserver create/delete/update/describe` for managing ApiServer sources
+| https://github.com/knative/client/pull/556[#556]
+
+| 🧽
+| Update to Knative eventing dependency to 0.11.0
+| https://github.com/knative/client/pull/546[#546]
+
+| 🧽
+| Update to Knative serving dependency to 0.11.0
+| https://github.com/knative/client/pull/545[#546]
+
+| 🧽
+| Move cluster URL to `--verbose` for `service describe`
+| https://github.com/knative/client/pull/543[#543]
+
+| 🎁
+| Add `kn source cronjob create/delete/update/describe` for managing CronJob sources
+| https://github.com/knative/client/pull/542[#542]
+
+| 🎁
+| Add `kn trigger create/delete` for managing Eventing triggers
+| https://github.com/knative/client/pull/541[#541]
+
+| 🎁
+| Eventing setup in CI
+| https://github.com/knative/client/pull/538[#538]
+
+| 🎁
+| Add `kn source list-types` for showing available Eventing sources
+| https://github.com/knative/client/pull/536[#536]
+
+| 🐛
+| Update to Go 1.13
+| https://github.com/knative/client/pull/535[#535]
+
+| 🎁
+| Add CI tests for using Kn with Tekton
+| https://github.com/knative/client/pull/528[#528]
+
+| 🧽
+| Update version information for eventing dependencies
+| https://github.com/knative/client/pull/495[#495]
+
 | 🧽
 | Support multiple NAMEs on kn service delete
 | https://github.com/knative/client/pull/492[#492]
+
+| 🧽
+| Add polling fallback for watching on service readiness
+| https://github.com/knative/client/pull/491[#491]
+
+| 🎁
+| Add dependencies for eventing
+| https://github.com/knative/client/pull/470[#470]
 |===
 
 ## v0.10.0 (2019-11-06)
