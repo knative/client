@@ -33,6 +33,8 @@ import (
 	dynamic_fake "k8s.io/client-go/dynamic/fake"
 	dynamic_kn "knative.dev/client/pkg/dynamic"
 	sources_client "knative.dev/client/pkg/eventing/sources/v1alpha1"
+	eventing_client "knative.dev/client/pkg/eventing/v1alpha1"
+	eventing_fake "knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1alpha1/fake"
 	sources_fake "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1/fake"
 )
 
@@ -72,6 +74,25 @@ func CreateSourcesTestKnCommand(cmd *cobra.Command, knParams *KnParams) (*cobra.
 	knParams.Output = buf
 	knParams.NewSourcesClient = func(namespace string) (sources_client.KnSourcesClient, error) {
 		return sources_client.NewKnSourcesClient(fakeEventing, FakeNamespace), nil
+	}
+	knParams.fixedCurrentNamespace = FakeNamespace
+	knCommand := NewKnTestCommand(cmd, knParams)
+	return knCommand, fakeEventing, buf
+}
+
+// CreateEventingTestKnCommand helper for creating test commands
+func CreateEventingTestKnCommand(cmd *cobra.Command, knParams *KnParams) (*cobra.Command, *eventing_fake.FakeEventingV1alpha1, *bytes.Buffer) {
+	buf := new(bytes.Buffer)
+	// create fake serving client because the sink of source depends on serving client
+	fakeServing := &fake.FakeServingV1alpha1{&client_testing.Fake{}}
+	knParams.NewServingClient = func(namespace string) (v1alpha1.KnServingClient, error) {
+		return v1alpha1.NewKnServingClient(fakeServing, FakeNamespace), nil
+	}
+	// create fake sources client
+	fakeEventing := &eventing_fake.FakeEventingV1alpha1{&client_testing.Fake{}}
+	knParams.Output = buf
+	knParams.NewEventingClient = func(namespace string) (eventing_client.KnEventingClient, error) {
+		return eventing_client.NewKnEventingClient(fakeEventing, FakeNamespace), nil
 	}
 	knParams.fixedCurrentNamespace = FakeNamespace
 	knCommand := NewKnTestCommand(cmd, knParams)

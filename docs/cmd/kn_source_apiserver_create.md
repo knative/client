@@ -1,10 +1,10 @@
 ## kn source apiserver create
 
-Create an ApiServerSource, which watches for Kubernetes events and forwards them to a sink
+Create an ApiServer source.
 
 ### Synopsis
 
-Create an ApiServerSource, which watches for Kubernetes events and forwards them to a sink
+Create an ApiServer source.
 
 ```
 kn source apiserver create NAME --resource RESOURCE --service-account ACCOUNTNAME --sink SINK --mode MODE [flags]
@@ -13,7 +13,7 @@ kn source apiserver create NAME --resource RESOURCE --service-account ACCOUNTNAM
 ### Examples
 
 ```
-  
+
   # Create an ApiServerSource 'k8sevents' which consumes Kubernetes events and sends message to service 'mysvc' as a cloudevent
   kn source apiserver create k8sevents --resource Event --service-account myaccountname --sink svc:mysvc
 ```
@@ -22,13 +22,12 @@ kn source apiserver create NAME --resource RESOURCE --service-account ACCOUNTNAM
 
 ```
   -h, --help                     help for create
-      --mode string              The mode the receive adapter controller runs under:, 
-                                 "Ref" sends only the reference to the resource, 
+      --mode string              The mode the receive adapter controller runs under:,
+                                 "Ref" sends only the reference to the resource,
                                  "Resource" send the full resource. (default "Ref")
   -n, --namespace string         Specify the namespace to operate in.
-      --resource strings         Comma seperate Kind:APIVersion:isController list, e.g. Event:v1:true.
-                                 "APIVersion" and "isControler" can be omitted.
-                                 "APIVersion" is "v1" by default, "isController" is "false" by default. 
+      --resource strings         Specification for which events to listen, in the format Kind:APIVersion:isController, e.g. Deployment:apps/v1:true.
+                                 "isController" can be omitted and is "false" by default.
       --service-account string   Name of the service account to use to run this source
   -s, --sink string              Addressable sink for events
 ```

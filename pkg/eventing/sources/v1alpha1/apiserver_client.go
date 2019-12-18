@@ -15,21 +15,31 @@
 package v1alpha1
 
 import (
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	kn_errors "knative.dev/client/pkg/errors"
 	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
 	client_v1alpha1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1"
-
-	kn_errors "knative.dev/client/pkg/errors"
+	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
 )
 
-// Interface for working with ApiServer sources
-type KnApiServerSourcesClient interface {
+// KnAPIServerSourcesClient interface for working with ApiServer sources
+type KnAPIServerSourcesClient interface {
 
-	// Get an ApiServerSource by object
-	CreateApiServerSource(apisvrsrc *v1alpha1.ApiServerSource) (*v1alpha1.ApiServerSource, error)
+	// Get an ApiServerSource by name
+	GetAPIServerSource(name string) (*v1alpha1.ApiServerSource, error)
+
+	// Create an ApiServerSource by object
+	CreateAPIServerSource(apiSource *v1alpha1.ApiServerSource) error
+
+	// Update an ApiServerSource by object
+	UpdateAPIServerSource(apiSource *v1alpha1.ApiServerSource) error
 
 	// Delete an ApiServerSource by name
-	DeleteApiServerSource(name string) error
+	DeleteAPIServerSource(name string) error
+
+	// List ApiServerSource
+	// TODO: Support list configs like in service list
+	ListAPIServerSource() (*v1alpha1.ApiServerSourceList, error)
 
 	// Get namespace for this client
 	Namespace() string
@@ -43,30 +53,128 @@ type apiServerSourcesClient struct {
 	namespace string
 }
 
-// NewKnSourcesClient is to invoke Eventing Sources Client API to create object
-func newKnApiServerSourcesClient(client client_v1alpha1.ApiServerSourceInterface, namespace string) KnApiServerSourcesClient {
+// newKnAPIServerSourcesClient is to invoke Eventing Sources Client API to create object
+func newKnAPIServerSourcesClient(client client_v1alpha1.ApiServerSourceInterface, namespace string) KnAPIServerSourcesClient {
 	return &apiServerSourcesClient{
 		client:    client,
 		namespace: namespace,
 	}
 }
 
-//CreateApiServerSource is used to create an instance of ApiServerSource
-func (c *apiServerSourcesClient) CreateApiServerSource(apisvrsrc *v1alpha1.ApiServerSource) (*v1alpha1.ApiServerSource, error) {
-	ins, err := c.client.Create(apisvrsrc)
+//GetAPIServerSource returns apiSource object if present
+func (c *apiServerSourcesClient) GetAPIServerSource(name string) (*v1alpha1.ApiServerSource, error) {
+	apiSource, err := c.client.Get(name, metav1.GetOptions{})
 	if err != nil {
 		return nil, kn_errors.GetError(err)
 	}
-	return ins, nil
+
+	return apiSource, nil
 }
 
-//DeleteApiServerSource is used to create an instance of ApiServerSource
-func (c *apiServerSourcesClient) DeleteApiServerSource(name string) error {
-	err := c.client.Delete(name, &v1.DeleteOptions{})
+//CreateAPIServerSource is used to create an instance of ApiServerSource
+func (c *apiServerSourcesClient) CreateAPIServerSource(apiSource *v1alpha1.ApiServerSource) error {
+	_, err := c.client.Create(apiSource)
+	if err != nil {
+		return kn_errors.GetError(err)
+	}
+
+	return nil
+}
+
+//UpdateAPIServerSource is used to update an instance of ApiServerSource
+func (c *apiServerSourcesClient) UpdateAPIServerSource(apiSource *v1alpha1.ApiServerSource) error {
+	_, err := c.client.Update(apiSource)
+	if err != nil {
+		return kn_errors.GetError(err)
+	}
+
+	return nil
+}
+
+//DeleteAPIServerSource is used to create an instance of ApiServerSource
+func (c *apiServerSourcesClient) DeleteAPIServerSource(name string) error {
+	err := c.client.Delete(name, &metav1.DeleteOptions{})
 	return err
 }
 
 // Return the client's namespace
 func (c *apiServerSourcesClient) Namespace() string {
 	return c.namespace
+}
+
+// ListAPIServerSource returns the available ApiServer type sources
+func (c *apiServerSourcesClient) ListAPIServerSource() (*v1alpha1.ApiServerSourceList, error) {
+	sourceList, err := c.client.List(metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return updateAPIServerSourceListGVK(sourceList)
+}
+
+func updateAPIServerSourceListGVK(sourceList *v1alpha1.ApiServerSourceList) (*v1alpha1.ApiServerSourceList, error) {
+	sourceListNew := sourceList.DeepCopy()
+	err := updateSourceGVK(sourceListNew)
+	if err != nil {
+		return nil, err
+	}
+
+	sourceListNew.Items = make([]v1alpha1.ApiServerSource, len(sourceList.Items))
+	for idx, source := range sourceList.Items {
+		sourceClone := source.DeepCopy()
+		err := updateSourceGVK(sourceClone)
+		if err != nil {
+			return nil, err
+		}
+		sourceListNew.Items[idx] = *sourceClone
+	}
+	return sourceListNew, nil
+}
+
+// APIServerSourceBuilder is for building the source
+type APIServerSourceBuilder struct {
+	apiServerSource *v1alpha1.ApiServerSource
+}
+
+// NewAPIServerSourceBuilder for building ApiServer source object
+func NewAPIServerSourceBuilder(name string) *APIServerSourceBuilder {
+	return &APIServerSourceBuilder{apiServerSource: &v1alpha1.ApiServerSource{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
+		},
+	}}
+}
+
+// NewAPIServerSourceBuilderFromExisting for building the object from existing ApiServerSource object
+func NewAPIServerSourceBuilderFromExisting(apiServerSource *v1alpha1.ApiServerSource) *APIServerSourceBuilder {
+	return &APIServerSourceBuilder{apiServerSource: apiServerSource.DeepCopy()}
+}
+
+// Resources which should be streamed
+func (b *APIServerSourceBuilder) Resources(resources []v1alpha1.ApiServerResource) *APIServerSourceBuilder {
+	b.apiServerSource.Spec.Resources = resources
+	return b
+}
+
+// ServiceAccount with which this source should operate
+func (b *APIServerSourceBuilder) ServiceAccount(sa string) *APIServerSourceBuilder {
+	b.apiServerSource.Spec.ServiceAccountName = sa
+	return b
+}
+
+// Mode for whether to send resource 'Ref' or complete 'Resource'
+func (b *APIServerSourceBuilder) Mode(mode string) *APIServerSourceBuilder {
+	b.apiServerSource.Spec.Mode = mode
+	return b
+}
+
+// Sink or destination of the source
+func (b *APIServerSourceBuilder) Sink(sink *duckv1beta1.Destination) *APIServerSourceBuilder {
+	b.apiServerSource.Spec.Sink = sink
+	return b
+}
+
+// Build the ApiServerSource object
+func (b *APIServerSourceBuilder) Build() *v1alpha1.ApiServerSource {
+	return b.apiServerSource
 }

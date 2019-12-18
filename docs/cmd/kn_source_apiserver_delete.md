@@ -1,10 +1,10 @@
 ## kn source apiserver delete
 
-Delete an ApiServerSource.
+Delete an ApiServer source.
 
 ### Synopsis
 
-Delete an ApiServerSource.
+Delete an ApiServer source.
 
 ```
 kn source apiserver delete NAME [flags]

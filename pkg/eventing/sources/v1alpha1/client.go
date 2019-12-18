@@ -22,7 +22,7 @@ import (
 // namespace specified during construction
 type KnSourcesClient interface {
 	// Get client for ApiServer sources
-	ApiServerSourcesClient() KnApiServerSourcesClient
+	APIServerSourcesClient() KnAPIServerSourcesClient
 
 	// Get client for CronJob sources
 	CronJobSourcesClient() KnCronJobSourcesClient
@@ -36,7 +36,7 @@ type sourcesClient struct {
 	namespace string
 }
 
-// Create a new client for managing all eventing built-in sources
+// NewKnSourcesClient for managing all eventing built-in sources
 func NewKnSourcesClient(client client_v1alpha1.SourcesV1alpha1Interface, namespace string) KnSourcesClient {
 	return &sourcesClient{
 		client:    client,
@@ -44,9 +44,9 @@ func NewKnSourcesClient(client client_v1alpha1.SourcesV1alpha1Interface, namespa
 	}
 }
 
-// Get the client for dealing with apiserver sources
-func (c *sourcesClient) ApiServerSourcesClient() KnApiServerSourcesClient {
-	return newKnApiServerSourcesClient(c.client.ApiServerSources(c.namespace), c.namespace)
+// ApiServerSourcesClient for dealing with ApiServer sources
+func (c *sourcesClient) APIServerSourcesClient() KnAPIServerSourcesClient {
+	return newKnAPIServerSourcesClient(c.client.ApiServerSources(c.namespace), c.namespace)
 }
 
 // Get the client for dealing with cronjob sources

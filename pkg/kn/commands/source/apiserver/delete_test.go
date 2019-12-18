@@ -15,47 +15,39 @@
 package apiserver
 
 import (
+	"errors"
 	"testing"
 
 	"gotest.tools/assert"
-	"k8s.io/apimachinery/pkg/runtime"
-	client_testing "k8s.io/client-go/testing"
-	"knative.dev/client/pkg/kn/commands"
+
+	knsources_v1alpha1 "knative.dev/client/pkg/eventing/sources/v1alpha1"
 	"knative.dev/client/pkg/util"
 )
 
-func fakeServiceDelete(args []string) (action client_testing.Action, name string, output string, err error) {
-	knParams := &commands.KnParams{}
-	cmd, fakeSource, buf := commands.CreateSourcesTestKnCommand(NewApiServerCommand(knParams), knParams)
-	fakeSource.AddReactor("delete", "apiserversources",
-		func(a client_testing.Action) (bool, runtime.Object, error) {
-			deleteAction, _ := a.(client_testing.DeleteAction)
-			action = deleteAction
-			name = deleteAction.GetName()
-			return true, nil, nil
-		})
-	cmd.SetArgs(args)
-	err = cmd.Execute()
-	if err != nil {
-		return
-	}
-	output = buf.String()
-	return
+func TestApiServerSourceDelete(t *testing.T) {
+
+	apiServerClient := knsources_v1alpha1.NewMockKnAPIServerSourceClient(t, "testns")
+	apiServerRecorder := apiServerClient.Recorder()
+
+	apiServerRecorder.DeleteAPIServerSource("testsource", nil)
+
+	out, err := executeAPIServerSourceCommand(apiServerClient, nil, "delete", "testsource")
+	assert.NilError(t, err)
+	util.ContainsAll(out, "deleted", "testns", "testsource")
+
+	apiServerRecorder.Validate()
 }
 
-func TestServiceDelete(t *testing.T) {
-	srcName := "src-12345"
-	action, name, output, err := fakeServiceDelete([]string{"apiserver", "delete", srcName})
-	if err != nil {
-		t.Error(err)
-		return
-	}
-	if action == nil {
-		t.Errorf("No action")
-	} else if !action.Matches("delete", "apiserversources") {
-		t.Errorf("Bad action %v", action)
-	} else if name != srcName {
-		t.Errorf("Bad service name returned after delete.")
-	}
-	assert.Check(t, util.ContainsAll(output, "ApiServerSource", srcName, "deleted", "namespace", commands.FakeNamespace))
+func TestDeleteWithError(t *testing.T) {
+
+	apiServerClient := knsources_v1alpha1.NewMockKnAPIServerSourceClient(t, "mynamespace")
+	apiServerRecorder := apiServerClient.Recorder()
+
+	apiServerRecorder.DeleteAPIServerSource("testsource", errors.New("apiserver source testsource not found"))
+
+	out, err := executeAPIServerSourceCommand(apiServerClient, nil, "delete", "testsource")
+	assert.ErrorContains(t, err, "testsource")
+	util.ContainsAll(out, "apiserver", "source", "testsource", "not found")
+
+	apiServerRecorder.Validate()
 }

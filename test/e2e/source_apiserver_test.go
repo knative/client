@@ -31,47 +31,58 @@ func TestSourceApiServer(t *testing.T) {
 	test.Setup(t)
 	defer test.Teardown(t)
 
-	test.setupServiceAccountForApiserver(t, "mysa")
-	test.serviceCreate(t, "myservice")
+	test.setupServiceAccountForApiserver(t, "testsa")
+	test.serviceCreate(t, "testsvc0")
 
-	t.Run("create apiserver source with a sink to a service", func(t *testing.T) {
-		test.apiServerSourceCreate(t, "firstsrc", "Eventing:v1:true", "mysa", "svc:myservice")
-		test.apiServerSourceCreate(t, "secondsrc", "Eventing,Namespace", "mysa", "svc:myservice")
+	t.Run("create apiserver sources with a sink to a service", func(t *testing.T) {
+		test.apiServerSourceCreate(t, "testapisource0", "Event:v1:true", "testsa", "svc:testsvc0")
+		test.apiServerSourceCreate(t, "testapisource1", "Event:v1", "testsa", "svc:testsvc0")
 	})
 
-	t.Run("create apiserver source and delete it", func(t *testing.T) {
-		test.apiServerSourceDelete(t, "firstsrc")
-		test.apiServerSourceDelete(t, "secondsrc")
+	t.Run("delete apiserver sources", func(t *testing.T) {
+		test.apiServerSourceDelete(t, "testapisource0")
+		test.apiServerSourceDelete(t, "testapisource1")
 	})
 
 	t.Run("create apiserver source with a missing sink service", func(t *testing.T) {
-		test.apiServerSourceCreateMissingSink(t, "wrongsrc", "Eventing:v1:true", "mysa", "svc:unknown")
+		test.apiServerSourceCreateMissingSink(t, "testapisource2", "Event:v1:true", "testsa", "svc:unknown")
+	})
+
+	t.Run("update apiserver source sink service", func(t *testing.T) {
+		test.apiServerSourceCreate(t, "testapisource3", "Event:v1:true", "testsa", "svc:testsvc0")
+		test.serviceCreate(t, "testsvc1")
+		test.apiServerSourceUpdateSink(t, "testapisource3", "svc:testsvc1")
+		jpSinkRefNameInSpec := "jsonpath={.spec.sink.ref.name}"
+		out, err := test.getResourceFieldsWithJSONPath(t, "apiserversource", "testapisource3", jpSinkRefNameInSpec)
+		assert.NilError(t, err)
+		assert.Equal(t, out, "testsvc1")
+		// TODO(navidshaikh): Verify the source's status with synchronous create/update
 	})
 }
 
-func (test *e2eTest) apiServerSourceCreate(t *testing.T, srcName string, resources string, sa string, sink string) {
-	out, err := test.kn.RunWithOpts([]string{"source", "apiserver", "create", srcName,
+func (test *e2eTest) apiServerSourceCreate(t *testing.T, sourceName string, resources string, sa string, sink string) {
+	out, err := test.kn.RunWithOpts([]string{"source", "apiserver", "create", sourceName,
 		"--resource", resources, "--service-account", sa, "--sink", sink}, runOpts{NoNamespace: false})
 	assert.NilError(t, err)
-	assert.Check(t, util.ContainsAllIgnoreCase(out, "ApiServerSource", srcName, "created", "namespace", test.kn.namespace))
+	assert.Check(t, util.ContainsAllIgnoreCase(out, "apiserver", "source", sourceName, "created", "namespace", test.kn.namespace))
 }
 
-func (test *e2eTest) apiServerSourceCreateMissingSink(t *testing.T, srcName string, resources string, sa string, sink string) {
-	_, err := test.kn.RunWithOpts([]string{"source", "apiserver", "create", srcName,
+func (test *e2eTest) apiServerSourceCreateMissingSink(t *testing.T, sourceName string, resources string, sa string, sink string) {
+	_, err := test.kn.RunWithOpts([]string{"source", "apiserver", "create", sourceName,
 		"--resource", resources, "--service-account", sa, "--sink", sink}, runOpts{NoNamespace: false, AllowError: true})
 	assert.ErrorContains(t, err, "services.serving.knative.dev", "not found")
 }
 
-func (test *e2eTest) apiServerSourceDelete(t *testing.T, srcName string) {
-	out, err := test.kn.RunWithOpts([]string{"source", "apiserver", "delete", srcName}, runOpts{NoNamespace: false})
+func (test *e2eTest) apiServerSourceDelete(t *testing.T, sourceName string) {
+	out, err := test.kn.RunWithOpts([]string{"source", "apiserver", "delete", sourceName}, runOpts{NoNamespace: false})
 	assert.NilError(t, err)
-	assert.Check(t, util.ContainsAllIgnoreCase(out, "ApiServerSource", srcName, "deleted", "namespace", test.kn.namespace))
+	assert.Check(t, util.ContainsAllIgnoreCase(out, "apiserver", "source", sourceName, "deleted", "namespace", test.kn.namespace))
 }
 
 func (test *e2eTest) setupServiceAccountForApiserver(t *testing.T, name string) {
 	kubectl := kubectl{t, Logger{}}
 
-	_, err := kubectl.RunWithOpts([]string{"create", "serviceaccount", name}, runOpts{})
+	_, err := kubectl.RunWithOpts([]string{"create", "serviceaccount", name, "--namespace", test.kn.namespace}, runOpts{})
 	if err != nil {
 		t.Fatalf(fmt.Sprintf("Error executing 'kubectl create serviceaccount test-sa'. Error: %s", err.Error()))
 	}
@@ -83,4 +94,20 @@ func (test *e2eTest) setupServiceAccountForApiserver(t *testing.T, name string) 
 	if err != nil {
 		t.Fatalf(fmt.Sprintf("Error executing 'kubectl clusterrolebinding testsa-binding'. Error: %s", err.Error()))
 	}
+}
+
+func (test *e2eTest) apiServerSourceUpdateSink(t *testing.T, sourceName string, sink string) {
+	out, err := test.kn.RunWithOpts([]string{"source", "apiserver", "update", sourceName, "--sink", sink}, runOpts{})
+	assert.NilError(t, err)
+	assert.Check(t, util.ContainsAll(out, sourceName, "updated", "namespace", test.kn.namespace))
+}
+
+func (test *e2eTest) getResourceFieldsWithJSONPath(t *testing.T, resource, name, jsonpath string) (string, error) {
+	kubectl := kubectl{t, Logger{}}
+	out, err := kubectl.RunWithOpts([]string{"get", resource, name, "-o", jsonpath, "-n", test.kn.namespace}, runOpts{})
+	if err != nil {
+		return "", err
+	}
+
+	return out, nil
 }

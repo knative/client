@@ -30,5 +30,6 @@ kn source cronjob [flags]
 * [kn source cronjob create](kn_source_cronjob_create.md)	 - Create a CronJob source.
 * [kn source cronjob delete](kn_source_cronjob_delete.md)	 - Delete a CronJob source.
 * [kn source cronjob describe](kn_source_cronjob_describe.md)	 - Describe a CronJob source.
+* [kn source cronjob list](kn_source_cronjob_list.md)	 - List CronJob sources.
 * [kn source cronjob update](kn_source_cronjob_update.md)	 - Update a CronJob source.
 

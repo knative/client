@@ -102,6 +102,17 @@ func (c *MockKnCronJobSourceClient) DeleteCronJobSource(name string) error {
 	return mock.ErrorOrNil(call.Result[0])
 }
 
+// ListCronJobSource records a call for ListCronJobSource with the expected error (nil if none)
+func (sr *CronJobSourcesRecorder) ListCronJobSource(cronJobSourceList *v1alpha1.CronJobSourceList, err error) {
+	sr.r.Add("ListCronJobSource", []interface{}{}, []interface{}{cronJobSourceList, err})
+}
+
+// ListCronJobSource performs a previously recorded action, failing if non has been registered
+func (c *MockKnCronJobSourceClient) ListCronJobSource() (*v1alpha1.CronJobSourceList, error) {
+	call := c.recorder.r.VerifyCall("ListCronJobSource")
+	return call.Result[0].(*v1alpha1.CronJobSourceList), mock.ErrorOrNil(call.Result[1])
+}
+
 // Validates validates whether every recorded action has been called
 func (sr *CronJobSourcesRecorder) Validate() {
 	sr.r.CheckThatAllRecordedMethodsHaveBeenCalled()

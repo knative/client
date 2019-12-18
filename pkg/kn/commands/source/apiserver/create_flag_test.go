@@ -21,15 +21,15 @@ import (
 	sources_v1alpha1 "knative.dev/eventing/pkg/apis/sources/v1alpha1"
 )
 
-func TestGetApiServerResourceArray(t *testing.T) {
+func TestGetAPIServerResourceArray(t *testing.T) {
 	t.Run("get single apiserver resource", func(t *testing.T) {
-		createFlag := ApiServerSourceUpdateFlags{
+		createFlag := APIServerSourceUpdateFlags{
 			ServiceAccountName: "test-sa",
 			Mode:               "Ref",
 			Resources:          []string{"Service:serving.knative.dev/v1alpha1:true"},
 		}
-		created := createFlag.GetApiServerResourceArray()
-		wanted := []sources_v1alpha1.ApiServerResource{{
+		created, _ := createFlag.GetAPIServerResourceArray()
+		wanted := &[]sources_v1alpha1.ApiServerResource{{
 			APIVersion: "serving.knative.dev/v1alpha1",
 			Kind:       "Service",
 			Controller: true,
@@ -37,13 +37,13 @@ func TestGetApiServerResourceArray(t *testing.T) {
 		assert.DeepEqual(t, wanted, created)
 
 		// default isController
-		createFlag = ApiServerSourceUpdateFlags{
+		createFlag = APIServerSourceUpdateFlags{
 			ServiceAccountName: "test-sa",
 			Mode:               "Ref",
 			Resources:          []string{"Service:serving.knative.dev/v1alpha1"},
 		}
-		created = createFlag.GetApiServerResourceArray()
-		wanted = []sources_v1alpha1.ApiServerResource{{
+		created, _ = createFlag.GetAPIServerResourceArray()
+		wanted = &[]sources_v1alpha1.ApiServerResource{{
 			APIVersion: "serving.knative.dev/v1alpha1",
 			Kind:       "Service",
 			Controller: false,
@@ -51,13 +51,13 @@ func TestGetApiServerResourceArray(t *testing.T) {
 		assert.DeepEqual(t, wanted, created)
 
 		// default api version and isController
-		createFlag = ApiServerSourceUpdateFlags{
+		createFlag = APIServerSourceUpdateFlags{
 			ServiceAccountName: "test-sa",
 			Mode:               "Ref",
-			Resources:          []string{"Service"},
+			Resources:          []string{"Service:v1"},
 		}
-		created = createFlag.GetApiServerResourceArray()
-		wanted = []sources_v1alpha1.ApiServerResource{{
+		created, _ = createFlag.GetAPIServerResourceArray()
+		wanted = &[]sources_v1alpha1.ApiServerResource{{
 			APIVersion: "v1",
 			Kind:       "Service",
 			Controller: false,
@@ -66,13 +66,13 @@ func TestGetApiServerResourceArray(t *testing.T) {
 	})
 
 	t.Run("get multiple apiserver resources", func(t *testing.T) {
-		createFlag := ApiServerSourceUpdateFlags{
+		createFlag := APIServerSourceUpdateFlags{
 			ServiceAccountName: "test-sa",
 			Mode:               "Resource",
 			Resources:          []string{"Event:v1:true", "Pod:v2:false"},
 		}
-		created := createFlag.GetApiServerResourceArray()
-		wanted := []sources_v1alpha1.ApiServerResource{{
+		created, _ := createFlag.GetAPIServerResourceArray()
+		wanted := &[]sources_v1alpha1.ApiServerResource{{
 			APIVersion: "v1",
 			Kind:       "Event",
 			Controller: true,
@@ -84,14 +84,14 @@ func TestGetApiServerResourceArray(t *testing.T) {
 		assert.DeepEqual(t, wanted, created)
 
 		// default api version and isController
-		createFlag = ApiServerSourceUpdateFlags{
+		createFlag = APIServerSourceUpdateFlags{
 			ServiceAccountName: "test-sa",
 			Mode:               "Resource",
-			Resources:          []string{"Event", "Pod"},
+			Resources:          []string{"Event:v1", "Pod:v1"},
 		}
-		created = createFlag.GetApiServerResourceArray()
+		created, _ = createFlag.GetAPIServerResourceArray()
 
-		wanted = []sources_v1alpha1.ApiServerResource{{
+		wanted = &[]sources_v1alpha1.ApiServerResource{{
 			APIVersion: "v1",
 			Kind:       "Event",
 			Controller: false,
