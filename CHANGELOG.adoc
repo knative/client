@@ -27,7 +27,7 @@
 | https://github.com/knative/client/pull/559[#559]
 
 | 🎁
-| Add `kn source apiserver list` for listing ApiServer sources 
+| Add `kn source apiserver list` for listing ApiServer sources
 | https://github.com/knative/client/pull/559[#559]
 
 | 🎁
@@ -44,7 +44,7 @@
 
 | 🧽
 | Update to Knative serving dependency to 0.11.0
-| https://github.com/knative/client/pull/545[#546]
+| https://github.com/knative/client/pull/545[#545]
 
 | 🧽
 | Move cluster URL to `--verbose` for `service describe`
