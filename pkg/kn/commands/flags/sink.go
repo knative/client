@@ -35,6 +35,7 @@ func (i *SinkFlags) Add(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&i.sink, "sink", "s", "", "Addressable sink for events")
 }
 
+// SinkPrefixes maps prefixes used for sinks to their GroupVersionResources.
 var SinkPrefixes = map[string]schema.GroupVersionResource{
 	"broker": {
 		Resource: "brokers",

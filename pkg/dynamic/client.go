@@ -100,6 +100,7 @@ func (c knDynamicClient) RawClient() dynamic.Interface {
 	return c.client
 }
 
+// CreateFakeKnDynamicClient gives you a dynamic client for testing contianing the given objects.
 func CreateFakeKnDynamicClient(testNamespace string, objects ...runtime.Object) KnDynamicClient {
 	scheme := runtime.NewScheme()
 	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "serving.knative.dev", Version: "v1alpha1", Kind: "Service"}, &serving_v1alpha1.Service{})
