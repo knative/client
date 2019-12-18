@@ -21,8 +21,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/dynamic/fake"
 )
 
 const testNamespace = "testns"
@@ -43,18 +41,14 @@ func newUnstructured(name string) *unstructured.Unstructured {
 	}
 }
 
-func createFakeKnDynamicClient(objects ...runtime.Object) KnDynamicClient {
-	client := fake.NewSimpleDynamicClient(runtime.NewScheme(), objects...)
-	return NewKnDynamicClient(client, testNamespace)
-}
-
 func TestNamespace(t *testing.T) {
-	client := createFakeKnDynamicClient(newUnstructured("foo"))
+	client := CreateFakeKnDynamicClient(testNamespace, newUnstructured("foo"))
 	assert.Equal(t, client.Namespace(), testNamespace)
 }
 
 func TestListCRDs(t *testing.T) {
-	client := createFakeKnDynamicClient(
+	client := CreateFakeKnDynamicClient(
+		testNamespace,
 		newUnstructured("foo"),
 		newUnstructured("bar"),
 	)
@@ -83,7 +77,8 @@ func TestListCRDs(t *testing.T) {
 }
 
 func TestListSourceTypes(t *testing.T) {
-	client := createFakeKnDynamicClient(
+	client := CreateFakeKnDynamicClient(
+		testNamespace,
 		newUnstructured("foo"),
 		newUnstructured("bar"),
 	)

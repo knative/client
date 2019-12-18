@@ -20,13 +20,15 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/clientcmd"
 
+	kn_dynamic "knative.dev/client/pkg/dynamic"
+	"knative.dev/client/pkg/kn/commands"
+
 	"knative.dev/eventing/pkg/apis/eventing/v1alpha1"
 	"knative.dev/pkg/apis"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 
 	eventc_v1alpha1 "knative.dev/client/pkg/eventing/v1alpha1"
 	"knative.dev/client/pkg/kn/commands"
-	serving_client_v1alpha1 "knative.dev/client/pkg/serving/v1alpha1"
 )
 
 // Helper methods
@@ -54,15 +56,16 @@ current-context: x
 	}
 }
 
-func executeTriggerCommand(triggerClient eventc_v1alpha1.KnEventingClient, servingClient serving_client_v1alpha1.KnServingClient, args ...string) (string, error) {
+func executeTriggerCommand(triggerClient eventc_v1alpha1.KnEventingClient, dynamicClient kn_dynamic.KnDynamicClient, args ...string) (string, error) {
 	knParams := &commands.KnParams{}
 	knParams.ClientConfig = blankConfig
 
 	output := new(bytes.Buffer)
 	knParams.Output = output
-	knParams.NewServingClient = func(namespace string) (serving_client_v1alpha1.KnServingClient, error) {
-		return servingClient, nil
+	knParams.NewDynamicClient = func(namespace string) (kn_dynamic.KnDynamicClient, error) {
+		return dynamicClient, nil
 	}
+
 	knParams.NewEventingClient = func(namespace string) (eventc_v1alpha1.KnEventingClient, error) {
 		return triggerClient, nil
 	}

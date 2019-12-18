@@ -18,8 +18,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/dynamic/fake"
+
+	serving_v1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
 const (
@@ -42,6 +46,9 @@ type KnDynamicClient interface {
 
 	// ListSourceCRDs returns list of eventing sources CRDs
 	ListSourcesTypes() (*unstructured.UnstructuredList, error)
+
+	// RawClient returns the raw dynamic client interface
+	RawClient() dynamic.Interface
 }
 
 // knDynamicClient is a combination of client-go Dynamic client interface and namespace
@@ -86,4 +93,15 @@ func (c *knDynamicClient) ListSourcesTypes() (*unstructured.UnstructuredList, er
 	sourcesLabels := labels.Set{sourcesLabelKey: sourcesLabelValue}
 	options.LabelSelector = sourcesLabels.String()
 	return c.ListCRDs(options)
+}
+
+func (c knDynamicClient) RawClient() dynamic.Interface {
+	return c.client
+}
+
+func CreateFakeKnDynamicClient(testNamespace string, objects ...runtime.Object) KnDynamicClient {
+	scheme := runtime.NewScheme()
+	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "serving.knative.dev", Version: "v1alpha1", Kind: "Service"}, &serving_v1alpha1.Service{})
+	client := fake.NewSimpleDynamicClient(scheme, objects...)
+	return NewKnDynamicClient(client, testNamespace)
 }

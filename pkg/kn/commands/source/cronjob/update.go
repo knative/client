@@ -48,7 +48,11 @@ func NewCronJobUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			servingClient, err := p.NewServingClient(cronSourceClient.Namespace())
+			namespace, err := p.GetNamespace(cmd)
+			if err != nil {
+				return err
+			}
+			dynamicClient, err := p.NewDynamicClient(namespace)
 			if err != nil {
 				return err
 			}
@@ -66,7 +70,7 @@ func NewCronJobUpdateCommand(p *commands.KnParams) *cobra.Command {
 				b.Data(cronUpdateFlags.data)
 			}
 			if cmd.Flags().Changed("sink") {
-				destination, err := sinkFlags.ResolveSink(servingClient)
+				destination, err := sinkFlags.ResolveSink(dynamicClient.RawClient(), namespace)
 				if err != nil {
 					return err
 				}

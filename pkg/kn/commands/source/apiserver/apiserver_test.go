@@ -19,12 +19,12 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/clientcmd"
+	kn_dynamic "knative.dev/client/pkg/dynamic"
 	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
 	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
 
 	knsource_v1alpha1 "knative.dev/client/pkg/eventing/sources/v1alpha1"
 	"knative.dev/client/pkg/kn/commands"
-	knserving_v1alpha1 "knative.dev/client/pkg/serving/v1alpha1"
 )
 
 const testNamespace = "default"
@@ -55,14 +55,14 @@ current-context: x
 	}
 }
 
-func executeAPIServerSourceCommand(apiServerSourceClient knsource_v1alpha1.KnAPIServerSourcesClient, servingClient knserving_v1alpha1.KnServingClient, args ...string) (string, error) {
+func executeAPIServerSourceCommand(apiServerSourceClient knsource_v1alpha1.KnAPIServerSourcesClient, dynamicClient kn_dynamic.KnDynamicClient, args ...string) (string, error) {
 	knParams := &commands.KnParams{}
 	knParams.ClientConfig = blankConfig
 
 	output := new(bytes.Buffer)
 	knParams.Output = output
-	knParams.NewServingClient = func(namespace string) (knserving_v1alpha1.KnServingClient, error) {
-		return servingClient, nil
+	knParams.NewDynamicClient = func(namespace string) (kn_dynamic.KnDynamicClient, error) {
+		return dynamicClient, nil
 	}
 
 	cmd := NewAPIServerCommand(knParams)
@@ -92,8 +92,10 @@ func createAPIServerSource(name, resourceKind, resourceVersion, serviceAccount, 
 
 	sink := &duckv1beta1.Destination{
 		Ref: &corev1.ObjectReference{
-			Kind: "Service",
-			Name: service,
+			Kind:       "Service",
+			Name:       service,
+			APIVersion: "serving.knative.dev/v1alpha1",
+			Namespace:  "default",
 		}}
 
 	return knsource_v1alpha1.NewAPIServerSourceBuilder(name).

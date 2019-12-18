@@ -20,21 +20,18 @@ import (
 
 	"gotest.tools/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	kn_dynamic "knative.dev/client/pkg/dynamic"
 	eventing_client "knative.dev/client/pkg/eventing/v1alpha1"
-	knserving_client "knative.dev/client/pkg/serving/v1alpha1"
 	"knative.dev/client/pkg/util"
 	serving_v1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
 func TestTriggerUpdate(t *testing.T) {
 	eventingClient := eventing_client.NewMockKnEventingClient(t)
-	servingClient := knserving_client.NewMockKnServiceClient(t)
-
-	servingRecorder := servingClient.Recorder()
-	servingRecorder.GetService("mysvc", &serving_v1alpha1.Service{
-		TypeMeta:   metav1.TypeMeta{Kind: "Service"},
-		ObjectMeta: metav1.ObjectMeta{Name: "mysvc"},
-	}, nil)
+	dynamicClient := kn_dynamic.CreateFakeKnDynamicClient("default", &serving_v1alpha1.Service{
+		TypeMeta:   metav1.TypeMeta{Kind: "Service", APIVersion: "serving.knative.dev/v1alpha1"},
+		ObjectMeta: metav1.ObjectMeta{Name: "mysvc", Namespace: "default"},
+	})
 
 	eventingRecorder := eventingClient.Recorder()
 	present := createTrigger("default", triggerName, map[string]string{"type": "dev.knative.foo"}, "mybroker", "mysvc")
@@ -42,13 +39,12 @@ func TestTriggerUpdate(t *testing.T) {
 	eventingRecorder.GetTrigger(triggerName, present, nil)
 	eventingRecorder.UpdateTrigger(updated, nil)
 
-	out, err := executeTriggerCommand(eventingClient, servingClient, "update", triggerName,
+	out, err := executeTriggerCommand(eventingClient, dynamicClient, "update", triggerName,
 		"--filter", "type=dev.knative.new", "--sink", "svc:mysvc")
 	assert.NilError(t, err, "Trigger should be updated")
 	util.ContainsAll(out, "Trigger", triggerName, "updated", "namespace", "default")
 
 	eventingRecorder.Validate()
-	servingRecorder.Validate()
 }
 
 func TestTriggerUpdateWithError(t *testing.T) {

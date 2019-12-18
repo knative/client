@@ -49,12 +49,16 @@ func NewCronJobCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			servingClient, err := p.NewServingClient(cronSourceClient.Namespace())
+			namespace, err := p.GetNamespace(cmd)
+			if err != nil {
+				return err
+			}
+			dynamicClient, err := p.NewDynamicClient(namespace)
 			if err != nil {
 				return err
 			}
 
-			destination, err := sinkFlags.ResolveSink(servingClient)
+			destination, err := sinkFlags.ResolveSink(dynamicClient.RawClient(), namespace)
 			if err != nil {
 				return err
 			}
