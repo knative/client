@@ -23,6 +23,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
+	"knative.dev/client/pkg/kn/commands/source"
 	"knative.dev/eventing/pkg/apis/eventing/v1alpha1"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 )
@@ -39,11 +40,12 @@ func NewTriggerCreateCommand(p *commands.KnParams) *cobra.Command {
   # Create a trigger 'mytrigger' to declare a subscription to events with attribute 'type=dev.knative.foo' from default broker. The subscriber is service 'mysvc'
   kn trigger create mytrigger --broker default --filter type=dev.knative.foo --sink svc:mysvc`,
 
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			if len(args) != 1 {
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
 				return errors.New("'trigger create' requires the name of the trigger")
 			}
 			name := args[0]
+			sourceArgs := args[1:]
 
 			namespace, err := p.GetNamespace(cmd)
 			if err != nil {
@@ -83,6 +85,20 @@ func NewTriggerCreateCommand(p *commands.KnParams) *cobra.Command {
 			trigger.Spec.Subscriber = &duckv1.Destination{
 				Ref: objectRef.Ref,
 				URI: objectRef.URI,
+			}
+			if triggerUpdateFlags.Source != "" {
+				sourceCmd := source.NewSourceCommand(p)
+				fullSourceArgs := []string{triggerUpdateFlags.Source, "create"}
+				fullSourceArgs = append(fullSourceArgs, sourceArgs...)
+				createSource, args, err := sourceCmd.Traverse(fullSourceArgs)
+				if err != nil {
+					return err
+				}
+				fmt.Printf("SOURCE COMMAND %v\n", createSource)
+				err = createSource.RunE(createSource, args)
+				if err != nil {
+					return err
+				}
 			}
 
 			err = eventingClient.CreateTrigger(trigger)

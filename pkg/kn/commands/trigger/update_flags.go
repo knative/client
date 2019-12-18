@@ -44,6 +44,7 @@ func (filters *filterArray) Type() string {
 type TriggerUpdateFlags struct {
 	Broker  string
 	Filters filterArray
+	Source  string
 }
 
 // GetFilter to return a map type of filters
@@ -88,4 +89,5 @@ func (f *TriggerUpdateFlags) GetUpdateFilters() (map[string]string, []string, er
 func (f *TriggerUpdateFlags) Add(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&f.Broker, "broker", "default", "Name of the Broker which the trigger associates with.")
 	cmd.Flags().Var(&f.Filters, "filter", "Key-value pair for exact CloudEvent attribute matching against incoming events, e.g type=dev.knative.foo")
+	cmd.Flags().StringVar(&f.Source, "source", "", "Source of the events to use for the trigger. Creates a source instance paired to this trigger.")
 }
