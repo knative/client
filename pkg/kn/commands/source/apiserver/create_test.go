@@ -46,7 +46,7 @@ func TestCreateApiServerSource(t *testing.T) {
 func TestSinkNotFoundError(t *testing.T) {
 	dynamicClient := kn_dynamic.CreateFakeKnDynamicClient("default")
 	apiServerClient := knsources_v1alpha1.NewMockKnAPIServerSourceClient(t)
-	errorMsg := "cannot create ApiServerSource 'testsource' in namespace 'default' because services.serving.knative.dev \"testsvc\" not found"
+	errorMsg := "cannot create ApiServerSource 'testsource' in namespace 'default' because: services.serving.knative.dev \"testsvc\" not found"
 	out, err := executeAPIServerSourceCommand(apiServerClient, dynamicClient, "create", "testsource", "--resource", "Event:v1:false", "--service-account", "testsa", "--sink", "svc:testsvc", "--mode", "Ref")
 	assert.Error(t, err, errorMsg)
 	assert.Assert(t, util.ContainsAll(out, errorMsg, "Usage"))

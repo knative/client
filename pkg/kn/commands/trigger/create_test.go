@@ -52,7 +52,7 @@ func TestSinkNotFoundError(t *testing.T) {
 	eventingClient := eventing_client.NewMockKnEventingClient(t)
 	dynamicClient := kn_dynamic.CreateFakeKnDynamicClient("default")
 
-	errorMsg := fmt.Sprintf("cannot create trigger '%s' in namespace 'default' because services.serving.knative.dev \"mysvc\" not found", triggerName)
+	errorMsg := fmt.Sprintf("cannot create trigger '%s' in namespace 'default' because: services.serving.knative.dev \"mysvc\" not found", triggerName)
 
 	out, err := executeTriggerCommand(eventingClient, dynamicClient, "create", triggerName, "--broker", "mybroker",
 		"--filter", "type=dev.knative.foo", "--sink", "svc:mysvc")

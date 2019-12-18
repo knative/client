@@ -19,16 +19,12 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/clientcmd"
-
 	kn_dynamic "knative.dev/client/pkg/dynamic"
+	eventc_v1alpha1 "knative.dev/client/pkg/eventing/v1alpha1"
 	"knative.dev/client/pkg/kn/commands"
-
 	"knative.dev/eventing/pkg/apis/eventing/v1alpha1"
 	"knative.dev/pkg/apis"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
-
-	eventc_v1alpha1 "knative.dev/client/pkg/eventing/v1alpha1"
-	"knative.dev/client/pkg/kn/commands"
 )
 
 // Helper methods
@@ -90,8 +86,10 @@ func createTrigger(namespace string, name string, filters map[string]string, bro
 
 	triggerBuilder.Subscriber(&duckv1.Destination{
 		Ref: &corev1.ObjectReference{
-			Name: svcname,
-			Kind: "Service",
+			Name:       svcname,
+			Kind:       "Service",
+			Namespace:  "default",
+			APIVersion: "serving.knative.dev/v1alpha1",
 		},
 	})
 	return triggerBuilder.Build()
