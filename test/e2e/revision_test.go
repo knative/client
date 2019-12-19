@@ -30,8 +30,8 @@ import (
 func TestRevision(t *testing.T) {
 	t.Parallel()
 	test := NewE2eTest(t)
-	test.Setup(t)
 	defer test.Teardown(t)
+	test.Setup(t)
 
 	t.Run("create hello service and return no error", func(t *testing.T) {
 		test.serviceCreate(t, "hello")

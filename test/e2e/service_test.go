@@ -28,8 +28,8 @@ import (
 func TestService(t *testing.T) {
 	t.Parallel()
 	test := NewE2eTest(t)
-	test.Setup(t)
 	defer test.Teardown(t)
+	test.Setup(t)
 
 	t.Run("create hello service duplicate and get service already exists error", func(t *testing.T) {
 		test.serviceCreate(t, "hello")

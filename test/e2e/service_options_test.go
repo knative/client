@@ -28,8 +28,8 @@ import (
 func TestServiceOptions(t *testing.T) {
 	t.Parallel()
 	test := NewE2eTest(t)
-	test.Setup(t)
 	defer test.Teardown(t)
+	test.Setup(t)
 
 	t.Run("create and validate service with concurrency options", func(t *testing.T) {
 		test.serviceCreateWithOptions(t, "svc1", []string{"--concurrency-limit", "250", "--concurrency-target", "300"})

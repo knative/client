@@ -28,8 +28,8 @@ import (
 func TestBasicWorkflow(t *testing.T) {
 	t.Parallel()
 	test := NewE2eTest(t)
-	test.Setup(t)
 	defer test.Teardown(t)
+	test.Setup(t)
 
 	t.Run("returns no service before running tests", func(t *testing.T) {
 		test.serviceListEmpty(t)

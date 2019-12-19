@@ -27,8 +27,8 @@ import (
 func TestSourceListTypes(t *testing.T) {
 	t.Parallel()
 	test := NewE2eTest(t)
-	test.Setup(t)
 	defer test.Teardown(t)
+	test.Setup(t)
 
 	t.Run("List available source types", func(t *testing.T) {
 		output := test.sourceListTypes(t)

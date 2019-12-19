@@ -28,8 +28,11 @@ import (
 func TestSourceApiServer(t *testing.T) {
 	t.Parallel()
 	test := NewE2eTest(t)
+	defer func() {
+		test.deleteServiceAccountForApiserver(t, "testsa")
+		test.Teardown(t)
+	}()
 	test.Setup(t)
-	defer test.Teardown(t)
 
 	test.setupServiceAccountForApiserver(t, "testsa")
 	test.serviceCreate(t, "testsvc0")
@@ -88,11 +91,28 @@ func (test *e2eTest) setupServiceAccountForApiserver(t *testing.T, name string) 
 	}
 	_, err = kubectl.RunWithOpts([]string{"create", "clusterrole", "testsa-role", "--verb=get,list,watch", "--resource=events,namespaces"}, runOpts{})
 	if err != nil {
-		t.Fatalf(fmt.Sprintf("Error executing 'kubectl clusterrole testsa-role'. Error: %s", err.Error()))
+		t.Fatalf(fmt.Sprintf("Error executing 'kubectl create clusterrole testsa-role'. Error: %s", err.Error()))
 	}
 	_, err = kubectl.RunWithOpts([]string{"create", "clusterrolebinding", "testsa-binding", "--clusterrole=testsa-role", "--serviceaccount=" + test.kn.namespace + ":" + name}, runOpts{})
 	if err != nil {
-		t.Fatalf(fmt.Sprintf("Error executing 'kubectl clusterrolebinding testsa-binding'. Error: %s", err.Error()))
+		t.Fatalf(fmt.Sprintf("Error executing 'kubectl create clusterrolebinding testsa-binding'. Error: %s", err.Error()))
+	}
+}
+
+func (test *e2eTest) deleteServiceAccountForApiserver(t *testing.T, name string) {
+	kubectl := kubectl{t, Logger{}}
+
+	_, err := kubectl.RunWithOpts([]string{"delete", "serviceaccount", name, "--namespace", test.kn.namespace}, runOpts{})
+	if err != nil {
+		t.Fatalf(fmt.Sprintf("Error executing 'kubectl delete serviceaccount test-sa'. Error: %s", err.Error()))
+	}
+	_, err = kubectl.RunWithOpts([]string{"delete", "clusterrole", "testsa-role"}, runOpts{})
+	if err != nil {
+		t.Fatalf(fmt.Sprintf("Error executing 'kubectl delete clusterrole testsa-role'. Error: %s", err.Error()))
+	}
+	_, err = kubectl.RunWithOpts([]string{"delete", "clusterrolebinding", "testsa-binding"}, runOpts{})
+	if err != nil {
+		t.Fatalf(fmt.Sprintf("Error executing 'kubectl delete clusterrolebinding testsa-binding'. Error: %s", err.Error()))
 	}
 }
 

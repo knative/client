@@ -77,8 +77,8 @@ func formatActualTargets(t *testing.T, actualTargets []string) (formattedTargets
 func TestTrafficSplit(t *testing.T) {
 	t.Parallel()
 	test := NewE2eTest(t)
-	test.Setup(t)
 	defer test.Teardown(t)
+	test.Setup(t)
 
 	serviceBase := "echo"
 	t.Run("tag two revisions as v1 and v2 and give 50-50% share",
