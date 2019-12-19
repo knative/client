@@ -58,12 +58,11 @@ Available plugins are those that are:
 
 // List plugins by looking up in plugin directory and path
 func listPlugins(cmd *cobra.Command, flags pluginListFlags) error {
-
 	pluginPath, err := homedir.Expand(commands.Cfg.PluginsDir)
 	if err != nil {
 		return err
 	}
-	if commands.Cfg.LookupPlugins {
+	if *commands.Cfg.LookupPlugins {
 		pluginPath = pluginPath + string(os.PathListSeparator) + os.Getenv("PATH")
 	}
 
@@ -74,12 +73,12 @@ func listPlugins(cmd *cobra.Command, flags pluginListFlags) error {
 	if flags.verbose {
 		fmt.Fprintf(out, "The following plugins are available, using options:\n")
 		fmt.Fprintf(out, "  - plugins dir: '%s'%s\n", commands.Cfg.PluginsDir, extraLabelIfPathNotExists(pluginPath))
-		fmt.Fprintf(out, "  - lookup plugins in $PATH: '%t'\n", commands.Cfg.LookupPlugins)
+		fmt.Fprintf(out, "  - lookup plugins in $PATH: '%t'\n", *commands.Cfg.LookupPlugins)
 	}
 
 	if len(pluginsFound) == 0 {
 		if flags.verbose {
-			fmt.Fprintf(out, "No plugins found in path %s.\n", pluginPath)
+			fmt.Fprintf(out, "No plugins found in path '%s'.\n", pluginPath)
 		} else {
 			fmt.Fprintln(out, "No plugins found.")
 		}
