@@ -25,7 +25,7 @@ import (
 
 // NewTriggerListCommand represents 'kn trigger list' command
 func NewTriggerListCommand(p *commands.KnParams) *cobra.Command {
-	triggerListFlags := flags.NewListFlags(TriggerListHandlers)
+	triggerListFlags := flags.NewListPrintFlags(TriggerListHandlers)
 
 	triggerListCommand := &cobra.Command{
 		Use:   "list [name]",

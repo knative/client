@@ -24,7 +24,7 @@ import (
 
 // NewCronJobListCommand is for listing CronJob source COs
 func NewCronJobListCommand(p *commands.KnParams) *cobra.Command {
-	listFlags := flags.NewListFlags(CronJobSourceListHandlers)
+	listFlags := flags.NewListPrintFlags(CronJobSourceListHandlers)
 
 	listCommand := &cobra.Command{
 		Use:   "list",

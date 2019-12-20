@@ -22,16 +22,16 @@ import (
 	hprinters "knative.dev/client/pkg/printers"
 )
 
-func TestListFlagsFormats(t *testing.T) {
-	flags := NewListFlags(nil)
+func TestListPrintFlagsFormats(t *testing.T) {
+	flags := NewListPrintFlags(nil)
 	formats := flags.AllowedFormats()
 	expected := []string{"json", "yaml", "name", "go-template", "go-template-file", "template", "templatefile", "jsonpath", "jsonpath-file", "no-headers"}
 	assert.DeepEqual(t, formats, expected)
 }
 
-func TestListFlags(t *testing.T) {
+func TestListPrintFlags(t *testing.T) {
 	var cmd *cobra.Command
-	flags := NewListFlags(func(h hprinters.PrintHandler) {})
+	flags := NewListPrintFlags(func(h hprinters.PrintHandler) {})
 
 	cmd = &cobra.Command{}
 	flags.AddFlags(cmd)

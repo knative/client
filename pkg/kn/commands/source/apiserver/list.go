@@ -24,7 +24,7 @@ import (
 
 // NewAPIServerListCommand is for listing ApiServer source COs
 func NewAPIServerListCommand(p *commands.KnParams) *cobra.Command {
-	listFlags := flags.NewListFlags(APIServerSourceListHandlers)
+	listFlags := flags.NewListPrintFlags(APIServerSourceListHandlers)
 
 	listCommand := &cobra.Command{
 		Use:   "list",
