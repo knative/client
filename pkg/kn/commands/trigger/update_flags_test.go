@@ -59,6 +59,14 @@ func TestGetFilters(t *testing.T) {
 		_, err = createFlag.GetFilters()
 		assert.ErrorContains(t, err, "invalid filter")
 	})
+
+	t.Run("get duplicate filters", func(t *testing.T) {
+		createFlag := TriggerUpdateFlags{
+			Filters: filterArray{"type=foo", "type=bar"},
+		}
+		_, err := createFlag.GetFilters()
+		assert.ErrorContains(t, err, "duplicate key")
+	})
 }
 
 func TestGetUpdateFilters(t *testing.T) {
@@ -100,5 +108,13 @@ func TestGetUpdateFilters(t *testing.T) {
 		assert.NilError(t, err, "UpdateFilter should be created")
 		assert.DeepEqual(t, wantedRemoved, removed)
 		assert.DeepEqual(t, wantedUpdated, updated)
+	})
+
+	t.Run("update duplicate filters", func(t *testing.T) {
+		createFlag := TriggerUpdateFlags{
+			Filters: filterArray{"type=foo", "type=bar"},
+		}
+		_, _, err := createFlag.GetUpdateFilters()
+		assert.ErrorContains(t, err, "duplicate key")
 	})
 }

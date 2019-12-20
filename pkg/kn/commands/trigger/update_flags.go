@@ -54,6 +54,9 @@ func (f *TriggerUpdateFlags) GetFilters() (map[string]string, error) {
 		if len(parts) < 2 || parts[0] == "" || parts[1] == "" {
 			return nil, fmt.Errorf("invalid filter %s", f.Filters)
 		} else {
+			if _, ok := filters[parts[0]]; ok {
+				return nil, fmt.Errorf("duplicate key '%s' in filters %s", parts[0], f.Filters)
+			}
 			filters[parts[0]] = parts[1]
 		}
 	}
@@ -71,6 +74,9 @@ func (f *TriggerUpdateFlags) GetUpdateFilters() (map[string]string, []string, er
 			parts := strings.Split(item, "=")
 			if len(parts) < 2 || parts[0] == "" || parts[1] == "" {
 				return nil, nil, fmt.Errorf("invalid filter %s", f.Filters)
+			}
+			if _, ok := filters[parts[0]]; ok {
+				return nil, nil, fmt.Errorf("duplicate key '%s' in filters %s", parts[0], f.Filters)
 			}
 			filters[parts[0]] = parts[1]
 		}
