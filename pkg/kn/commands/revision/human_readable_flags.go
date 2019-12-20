@@ -23,11 +23,18 @@ import (
 	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
+const (
+	RevisionTrafficAnnotation = "client.knative.dev/traffic"
+	RevisionTagsAnnotation    = "client.knative.dev/tags"
+)
+
 // RevisionListHandlers adds print handlers for revision list command
 func RevisionListHandlers(h hprinters.PrintHandler) {
 	RevisionColumnDefinitions := []metav1beta1.TableColumnDefinition{
 		{Name: "Name", Type: "string", Description: "Name of the revision.", Priority: 1},
 		{Name: "Service", Type: "string", Description: "Name of the Knative service.", Priority: 1},
+		{Name: "Traffic", Type: "string", Description: "Percentage of traffic assigned to this revision.", Priority: 1},
+		{Name: "Tags", Type: "string", Description: "Set of tags assigned to this revision.", Priority: 1},
 		{Name: "Generation", Type: "string", Description: "Generation of the revision", Priority: 1},
 		{Name: "Age", Type: "string", Description: "Age of the revision.", Priority: 1},
 		{Name: "Conditions", Type: "string", Description: "Conditions describing statuses of the revision.", Priority: 1},
@@ -57,6 +64,8 @@ func printRevisionList(revisionList *servingv1alpha1.RevisionList, options hprin
 func printRevision(revision *servingv1alpha1.Revision, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	name := revision.Name
 	service := revision.Labels[serving.ServiceLabelKey]
+	traffic := revision.Annotations[RevisionTrafficAnnotation]
+	tags := revision.Annotations[RevisionTagsAnnotation]
 	generation := revision.Labels[serving.ConfigurationGenerationLabelKey]
 	age := commands.TranslateTimestampSince(revision.CreationTimestamp)
 	conditions := commands.ConditionsValue(revision.Status.Conditions)
@@ -68,6 +77,8 @@ func printRevision(revision *servingv1alpha1.Revision, options hprinters.PrintOp
 	row.Cells = append(row.Cells,
 		name,
 		service,
+		traffic,
+		tags,
 		generation,
 		age,
 		conditions,

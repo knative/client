@@ -29,7 +29,7 @@ import (
 	"knative.dev/client/pkg/util"
 )
 
-var revisionListHeader = []string{"NAME", "SERVICE", "GENERATION", "AGE", "CONDITIONS", "READY", "REASON"}
+var revisionListHeader = []string{"NAME", "SERVICE", "TRAFFIC", "TAGS", "GENERATION", "AGE", "CONDITIONS", "READY", "REASON"}
 
 func fakeRevisionList(args []string, response *v1alpha1.RevisionList) (action client_testing.Action, output []string, err error) {
 	knParams := &commands.KnParams{}
@@ -71,13 +71,13 @@ func TestRevisionListEmptyByName(t *testing.T) {
 }
 
 func TestRevisionListDefaultOutput(t *testing.T) {
-	revision1 := createMockRevisionWithParams("foo-abcd", "foo", "1")
-	revision2 := createMockRevisionWithParams("bar-abcd", "bar", "1")
-	revision3 := createMockRevisionWithParams("foo-wxyz", "foo", "2")
-	revision4 := createMockRevisionWithParams("bar-wxyz", "bar", "2")
+	revision1 := createMockRevisionWithParams("foo-abcd", "foo", "1", "100", "")
+	revision2 := createMockRevisionWithParams("bar-abcd", "bar", "1", "100", "")
+	revision3 := createMockRevisionWithParams("foo-wxyz", "foo", "2", "50", "tag10")
+	revision4 := createMockRevisionWithParams("bar-wxyz", "bar", "2", "0", "tag2")
 	// Validate edge case for catching the sorting issue caused by string comparison
-	revision5 := createMockRevisionWithParams("foo-wxyz", "foo", "10")
-	revision6 := createMockRevisionWithParams("bar-wxyz", "bar", "10")
+	revision5 := createMockRevisionWithParams("foo-wxyz", "foo", "10", "tag1", "tagx")
+	revision6 := createMockRevisionWithParams("bar-wxyz", "bar", "10", "50", "")
 
 	RevisionList := &v1alpha1.RevisionList{Items: []v1alpha1.Revision{
 		*revision1, *revision2, *revision3, *revision4, *revision5, *revision6}}
@@ -98,8 +98,8 @@ func TestRevisionListDefaultOutput(t *testing.T) {
 }
 
 func TestRevisionListDefaultOutputNoHeaders(t *testing.T) {
-	revision1 := createMockRevisionWithParams("foo-abcd", "foo", "2")
-	revision2 := createMockRevisionWithParams("bar-wxyz", "bar", "1")
+	revision1 := createMockRevisionWithParams("foo-abcd", "foo", "2", "100", "")
+	revision2 := createMockRevisionWithParams("bar-wxyz", "bar", "1", "100", "")
 	RevisionList := &v1alpha1.RevisionList{Items: []v1alpha1.Revision{*revision1, *revision2}}
 	action, output, err := fakeRevisionList([]string{"revision", "list", "--no-headers"}, RevisionList)
 	assert.NilError(t, err)
@@ -116,10 +116,10 @@ func TestRevisionListDefaultOutputNoHeaders(t *testing.T) {
 }
 
 func TestRevisionListForService(t *testing.T) {
-	revision1 := createMockRevisionWithParams("foo-abcd", "svc1", "1")
-	revision2 := createMockRevisionWithParams("bar-wxyz", "svc1", "2")
-	revision3 := createMockRevisionWithParams("foo-abcd", "svc2", "1")
-	revision4 := createMockRevisionWithParams("bar-wxyz", "svc2", "2")
+	revision1 := createMockRevisionWithParams("foo-abcd", "svc1", "1", "50", "")
+	revision2 := createMockRevisionWithParams("bar-wxyz", "svc1", "2", "50", "")
+	revision3 := createMockRevisionWithParams("foo-abcd", "svc2", "1", "0", "")
+	revision4 := createMockRevisionWithParams("bar-wxyz", "svc2", "2", "100", "")
 	RevisionList := &v1alpha1.RevisionList{Items: []v1alpha1.Revision{*revision1, *revision2, *revision3, *revision4}}
 	action, output, err := fakeRevisionList([]string{"revision", "list", "-s", "svc1"}, RevisionList)
 	assert.NilError(t, err)
@@ -156,7 +156,7 @@ func TestRevisionListForService(t *testing.T) {
 }
 
 func TestRevisionListOneOutput(t *testing.T) {
-	revision := createMockRevisionWithParams("foo-abcd", "foo", "1")
+	revision := createMockRevisionWithParams("foo-abcd", "foo", "1", "100", "")
 	RevisionList := &v1alpha1.RevisionList{Items: []v1alpha1.Revision{*revision}}
 	action, output, err := fakeRevisionList([]string{"revision", "list", "foo-abcd"}, RevisionList)
 	assert.NilError(t, err)
@@ -176,7 +176,7 @@ func TestRevisionListOutputWithTwoRevName(t *testing.T) {
 	assert.ErrorContains(t, err, "'kn revision list' accepts maximum 1 argument")
 }
 
-func createMockRevisionWithParams(name, svcName, generation string) *v1alpha1.Revision {
+func createMockRevisionWithParams(name, svcName, generation, traffic, tags string) *v1alpha1.Revision {
 	revision := &v1alpha1.Revision{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Revision",
@@ -188,6 +188,10 @@ func createMockRevisionWithParams(name, svcName, generation string) *v1alpha1.Re
 			Labels: map[string]string{
 				serving.ServiceLabelKey:                 svcName,
 				serving.ConfigurationGenerationLabelKey: generation,
+			},
+			Annotations: map[string]string{
+				"client.knative.dev/traffic": traffic,
+				"client.knative.dev/tags":    tags,
 			},
 		},
 	}
