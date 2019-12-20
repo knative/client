@@ -8,11 +8,11 @@
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or im
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package service
+package flags
 
 import (
 	"github.com/spf13/cobra"
@@ -21,23 +21,24 @@ import (
 	hprinters "knative.dev/client/pkg/printers"
 )
 
-// ServiceListFlags composes common printer flag structs
-// used in the 'kn service list' command.
-type ServiceListFlags struct {
+// ListFlags composes common printer flag structs
+// used in the list command.
+type ListPrintFlags struct {
 	GenericPrintFlags  *genericclioptions.PrintFlags
 	HumanReadableFlags *commands.HumanPrintFlags
+	PrinterHandler     func(h hprinters.PrintHandler)
 }
 
 // AllowedFormats is the list of formats in which data can be displayed
-func (f *ServiceListFlags) AllowedFormats() []string {
+func (f *ListPrintFlags) AllowedFormats() []string {
 	formats := f.GenericPrintFlags.AllowedFormats()
 	formats = append(formats, f.HumanReadableFlags.AllowedFormats()...)
 	return formats
 }
 
-// ToPrinter attempts to find a composed set of ServiceListFlags suitable for
+// ToPrinter attempts to find a composed set of ListTypesFlags suitable for
 // returning a printer based on current flag values.
-func (f *ServiceListFlags) ToPrinter() (hprinters.ResourcePrinter, error) {
+func (f *ListPrintFlags) ToPrinter() (hprinters.ResourcePrinter, error) {
 	// if there are flags specified for generic printing
 	if f.GenericPrintFlags.OutputFlagSpecified() {
 		p, err := f.GenericPrintFlags.ToPrinter()
@@ -47,7 +48,7 @@ func (f *ServiceListFlags) ToPrinter() (hprinters.ResourcePrinter, error) {
 		return p, nil
 	}
 
-	p, err := f.HumanReadableFlags.ToPrinter(ServiceListHandlers)
+	p, err := f.HumanReadableFlags.ToPrinter(f.PrinterHandler)
 	if err != nil {
 		return nil, err
 	}
@@ -56,22 +57,23 @@ func (f *ServiceListFlags) ToPrinter() (hprinters.ResourcePrinter, error) {
 
 // AddFlags receives a *cobra.Command reference and binds
 // flags related to humanreadable and template printing.
-func (f *ServiceListFlags) AddFlags(cmd *cobra.Command) {
+func (f *ListPrintFlags) AddFlags(cmd *cobra.Command) {
 	f.GenericPrintFlags.AddFlags(cmd)
 	f.HumanReadableFlags.AddFlags(cmd)
 }
 
-// NewServiceListFlags returns flags associated with humanreadable,
+// NewListFlags returns flags associated with humanreadable,
 // template, and "name" printing, with default values set.
-func NewServiceListFlags() *ServiceListFlags {
-	return &ServiceListFlags{
+func NewListPrintFlags(printer func(h hprinters.PrintHandler)) *ListPrintFlags {
+	return &ListPrintFlags{
 		GenericPrintFlags:  genericclioptions.NewPrintFlags(""),
 		HumanReadableFlags: commands.NewHumanPrintFlags(),
+		PrinterHandler:     printer,
 	}
 }
 
 // EnsureWithNamespace ensures that humanreadable flags return
 // a printer capable of printing with a "namespace" column.
-func (f *ServiceListFlags) EnsureWithNamespace() {
+func (f *ListPrintFlags) EnsureWithNamespace() {
 	f.HumanReadableFlags.EnsureWithNamespace()
 }

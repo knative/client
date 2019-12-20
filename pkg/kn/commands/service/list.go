@@ -20,13 +20,14 @@ import (
 
 	"github.com/spf13/cobra"
 	"knative.dev/client/pkg/kn/commands"
+	"knative.dev/client/pkg/kn/commands/flags"
 	v1alpha12 "knative.dev/client/pkg/serving/v1alpha1"
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
 // NewServiceListCommand represents 'kn service list' command
 func NewServiceListCommand(p *commands.KnParams) *cobra.Command {
-	serviceListFlags := NewServiceListFlags()
+	serviceListFlags := flags.NewListPrintFlags(ServiceListHandlers)
 
 	serviceListCommand := &cobra.Command{
 		Use:   "list [name]",
