@@ -256,6 +256,16 @@ func UpdateImage(template *servingv1alpha1.RevisionTemplateSpec, image string) e
 	return nil
 }
 
+// UpdateImagePullPolicy updates image pull policy
+func UpdateImagePullPolicy(template *servingv1alpha1.RevisionTemplateSpec, imagePullPolicy string) error {
+	container, err := ContainerOfRevisionTemplate(template)
+	if err != nil {
+		return err
+	}
+	container.ImagePullPolicy = corev1.PullPolicy(imagePullPolicy)
+	return nil
+}
+
 // UnsetUserImageAnnot removes the user image annotation
 func UnsetUserImageAnnot(template *servingv1alpha1.RevisionTemplateSpec) {
 	delete(template.Annotations, UserImageAnnotationKey)

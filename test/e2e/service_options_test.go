@@ -79,6 +79,11 @@ func TestServiceOptions(t *testing.T) {
 		test.validateServiceAnnotations(t, "svc3", map[string]string{"alpha": "direwolf", "brave": ""})
 		test.serviceDelete(t, "svc3")
 	})
+
+	t.Run("create and validate service with pull-policy options", func(t *testing.T) {
+		test.serviceCreateWithOptions(t, "svc4", []string{"--pull-policy", "IfNotPresent"})
+		test.validateServicePullPolicy(t, "svc4", "IfNotPresent")
+	})
 }
 
 func (test *e2eTest) serviceCreateWithOptions(t *testing.T, serviceName string, options []string) {
@@ -87,6 +92,15 @@ func (test *e2eTest) serviceCreateWithOptions(t *testing.T, serviceName string, 
 	out, err := test.kn.RunWithOpts(command, runOpts{NoNamespace: false})
 	assert.NilError(t, err)
 	assert.Check(t, util.ContainsAll(out, "service", serviceName, "Creating", "namespace", test.kn.namespace, "Ready"))
+}
+
+func (test *e2eTest) validateServicePullPolicy(t *testing.T, serviceName, imagePullPolicy string) {
+	jsonpath := "jsonpath={.items[0].spec.template.spec.containers[0].imagePullPolicy}"
+	out, err := test.kn.RunWithOpts([]string{"service", "list", serviceName, "-o", jsonpath}, runOpts{})
+	assert.NilError(t, err)
+	if out != "" {
+		assert.Equal(t, out, imagePullPolicy)
+	}
 }
 
 func (test *e2eTest) validateServiceConcurrencyLimit(t *testing.T, serviceName, concurrencyLimit string) {

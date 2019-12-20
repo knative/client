@@ -12,6 +12,17 @@
 |===
 ////
 
+## v0.12.0 (unreleased)
+
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🎁
+| Support a flag to set ImagePullPolicy
+| https://github.com/knative/client/pull/583[#583]
+|===
+
 ## v0.11.0 (2019-12-17)
 
 [cols="1,10,3", options="header", width="100%"]

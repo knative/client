@@ -30,11 +30,12 @@ import (
 
 type ConfigurationEditFlags struct {
 	// Direct field manipulation
-	Image   string
-	Env     []string
-	EnvFrom []string
-	Mount   []string
-	Volume  []string
+	Image           string
+	ImagePullPolicy string
+	Env             []string
+	EnvFrom         []string
+	Mount           []string
+	Volume          []string
 
 	RequestsFlags, LimitsFlags ResourceFlags
 	MinScale                   int
@@ -72,6 +73,9 @@ func (p *ConfigurationEditFlags) markFlagMakesRevision(f string) {
 func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	command.Flags().StringVar(&p.Image, "image", "", "Image to run.")
 	p.markFlagMakesRevision("image")
+	command.Flags().StringVar(&p.ImagePullPolicy, "pull-policy", "",
+		"Image pull policy with the possible values 'Always', 'Never' or 'IfNotPresent'")
+	p.markFlagMakesRevision("pull-policy")
 	command.Flags().StringArrayVarP(&p.Env, "env", "e", []string{},
 		"Environment variable to set. NAME=value; you may provide this flag "+
 			"any number of times to set multiple environment variables. "+
@@ -259,6 +263,17 @@ func (p *ConfigurationEditFlags) Apply(
 		}
 	} else if !p.LockToDigest {
 		servinglib.UnsetUserImageAnnot(template)
+	}
+
+	if cmd.Flags().Changed("pull-policy") {
+		if p.ImagePullPolicy == string(corev1.PullAlways) || p.ImagePullPolicy == string(corev1.PullNever) || p.ImagePullPolicy == string(corev1.PullIfNotPresent) {
+			err = servinglib.UpdateImagePullPolicy(template, p.ImagePullPolicy)
+			if err != nil {
+				return err
+			}
+		} else {
+			return fmt.Errorf("Invalid --pull-policy %q. Only support Always/Never/IfNotPresent", p.ImagePullPolicy)
+		}
 	}
 
 	limitsResources, err := p.computeResources(p.LimitsFlags)

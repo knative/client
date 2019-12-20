@@ -156,6 +156,23 @@ func TestServiceCreateImageSync(t *testing.T) {
 	}
 }
 
+func TestServiceCreateImagePullPolicy(t *testing.T) {
+	action, created, output, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--async", "--pull-policy", "IfNotPresent"}, false, false)
+	fmt.Printf(output)
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("create", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+	template, err := servinglib.RevisionTemplateOfService(created)
+	if err != nil {
+		t.Fatal(err)
+	} else if template.Spec.Containers[0].ImagePullPolicy != "IfNotPresent" {
+		t.Fatalf("wrong image pull policy: %v", template.Spec.Containers[0].ImagePullPolicy)
+	}
+}
+
 func TestServiceCreateEnv(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "-e", "A=DOGS", "--env", "B=WOLVES", "--env=EMPTY", "--async"}, false, false)
