@@ -17,6 +17,7 @@ package core
 import (
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"strings"
 	"testing"
 
@@ -38,6 +39,51 @@ func TestNewDefaultKnCommand(t *testing.T) {
 
 		checkRootCmd(t, rootCmd)
 	})
+}
+
+func TestNewDefKnCmdWithArgsforCmdValiditySuccess(t *testing.T) {
+
+	pluginHandler := plugin.NewDefaultPluginHandler(plugin.ValidPluginFilenamePrefixes,
+		"/random/plugins", false)
+	args := []string{"kn", "service", "update", "--tag=0.13"}
+	rootCmd := NewDefaultKnCommandWithArgs(NewKnCommand(), pluginHandler, args, os.Stdin, os.Stdout, os.Stderr)
+	checkRootCmd(t, rootCmd)
+}
+
+func TestNewDefKnCmdWithArgsforPrimaryCmdValidityErr(t *testing.T) {
+
+	if os.Getenv("EXIT") == "1" {
+		pluginHandler := plugin.NewDefaultPluginHandler(plugin.ValidPluginFilenamePrefixes,
+			"/random/plugins", false)
+		args := []string{"kn", "srevice", "update", "--tag=0.13"}
+		NewDefaultKnCommandWithArgs(NewKnCommand(), pluginHandler, args, os.Stdin, os.Stdout, os.Stderr)
+		return
+	}
+	cmd := exec.Command(os.Args[0], "-test.run=TestNewDefKnCmdWithArgsforPrimaryCmdValidityErr")
+	cmd.Env = append(os.Environ(), "EXIT=1")
+	err := cmd.Run()
+	if e, ok := err.(*exec.ExitError); ok && !e.Success() {
+		return
+	}
+	t.Fatalf("process ran with err %v, want exit status 1", err)
+}
+
+func TestNewDefKnCmdWithArgsforSecondaryCmdValidityErr(t *testing.T) {
+
+	if os.Getenv("EXIT") == "1" {
+		pluginHandler := plugin.NewDefaultPluginHandler(plugin.ValidPluginFilenamePrefixes,
+			"/random/plugins", false)
+		args := []string{"kn", "service", "udpate", "--tag=0.13"}
+		NewDefaultKnCommandWithArgs(NewKnCommand(), pluginHandler, args, os.Stdin, os.Stdout, os.Stderr)
+		return
+	}
+	cmd := exec.Command(os.Args[0], "-test.run=TestNewDefKnCmdWithArgsforSecondaryCmdValidityErr")
+	cmd.Env = append(os.Environ(), "EXIT=1")
+	err := cmd.Run()
+	if e, ok := err.(*exec.ExitError); ok && !e.Success() {
+		return
+	}
+	t.Fatalf("process ran with err %v, want exit status 1", err)
 }
 
 func TestNewDefaultKnCommandWithArgs(t *testing.T) {
