@@ -73,7 +73,7 @@ func TestNewDefKnCmdWithArgsforSecondaryCmdValidityErr(t *testing.T) {
 	if os.Getenv("EXIT") == "1" {
 		pluginHandler := plugin.NewDefaultPluginHandler(plugin.ValidPluginFilenamePrefixes,
 			"/random/plugins", false)
-		args := []string{"kn", "service", "udpate", "--tag=0.13"}
+		args := []string{"kn", "revision", "update", "--tag=0.13"}
 		NewDefaultKnCommandWithArgs(NewKnCommand(), pluginHandler, args, os.Stdin, os.Stdout, os.Stderr)
 		return
 	}

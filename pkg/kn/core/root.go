@@ -86,15 +86,11 @@ func NewDefaultKnCommandWithArgs(rootCmd *cobra.Command,
 				fmt.Fprintf(rootCmd.OutOrStderr(), "Unknown command or plugin '%s'.\n", args[1])
 				os.Exit(1)
 			}
-		}
-		if foundCmd.HasSubCommands() {
+		} else if foundCmd.HasSubCommands() {
 			if _, _, err := rootCmd.Find(argsMinusFirstX(cmdPathPieces, args[1])); err != nil {
-				err := plugin.HandlePluginCommand(pluginHandler, argsMinusFirstX(cmdPathPieces, args[1]))
-				if err != nil {
-					rootCmd.Help()
-					fmt.Fprintf(rootCmd.OutOrStderr(), "Unknown command or plugin '%s'.\n", args[2])
-					os.Exit(1)
-				}
+				rootCmd.Help()
+				fmt.Fprintf(rootCmd.OutOrStderr(), "Unknown command or plugin '%s'.\n", args[2])
+				os.Exit(1)
 			}
 		}
 	}
