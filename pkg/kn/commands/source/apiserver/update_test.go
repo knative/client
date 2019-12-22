@@ -22,14 +22,14 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	serving_v1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
 
-	kn_dynamic "knative.dev/client/pkg/dynamic"
+	dynamic_fake "knative.dev/client/pkg/dynamic/fake"
 	knsources_v1alpha1 "knative.dev/client/pkg/eventing/sources/v1alpha1"
 	"knative.dev/client/pkg/util"
 )
 
 func TestApiServerSourceUpdate(t *testing.T) {
 	apiServerClient := knsources_v1alpha1.NewMockKnAPIServerSourceClient(t)
-	dynamicClient := kn_dynamic.CreateFakeKnDynamicClient("default", &serving_v1alpha1.Service{
+	dynamicClient := dynamic_fake.CreateFakeKnDynamicClient("default", &serving_v1alpha1.Service{
 		TypeMeta:   metav1.TypeMeta{Kind: "Service", APIVersion: "serving.knative.dev/v1alpha1"},
 		ObjectMeta: metav1.ObjectMeta{Name: "svc2", Namespace: "default"},
 	})

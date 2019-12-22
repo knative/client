@@ -21,6 +21,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	k8s_fake "k8s.io/client-go/dynamic/fake"
+	eventing_v1alpha1 "knative.dev/eventing/pkg/apis/eventing/v1alpha1"
+	serving_v1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
 const testNamespace = "testns"
@@ -42,12 +47,12 @@ func newUnstructured(name string) *unstructured.Unstructured {
 }
 
 func TestNamespace(t *testing.T) {
-	client := CreateFakeKnDynamicClient(testNamespace, newUnstructured("foo"))
+	client := createFakeKnDynamicClient(testNamespace, newUnstructured("foo"))
 	assert.Equal(t, client.Namespace(), testNamespace)
 }
 
 func TestListCRDs(t *testing.T) {
-	client := CreateFakeKnDynamicClient(
+	client := createFakeKnDynamicClient(
 		testNamespace,
 		newUnstructured("foo"),
 		newUnstructured("bar"),
@@ -77,7 +82,7 @@ func TestListCRDs(t *testing.T) {
 }
 
 func TestListSourceTypes(t *testing.T) {
-	client := CreateFakeKnDynamicClient(
+	client := createFakeKnDynamicClient(
 		testNamespace,
 		newUnstructured("foo"),
 		newUnstructured("bar"),
@@ -93,4 +98,14 @@ func TestListSourceTypes(t *testing.T) {
 		assert.Equal(t, uList.Items[0].GetName(), "foo")
 		assert.Equal(t, uList.Items[1].GetName(), "bar")
 	})
+}
+
+// createFakeKnDynamicClient gives you a dynamic client for testing contianing the given objects.
+// See also the one in the fake package. Duplicated here to avoid a dependency loop.
+func createFakeKnDynamicClient(testNamespace string, objects ...runtime.Object) KnDynamicClient {
+	scheme := runtime.NewScheme()
+	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "serving.knative.dev", Version: "v1alpha1", Kind: "Service"}, &serving_v1alpha1.Service{})
+	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "eventing.knative.dev", Version: "v1alpha1", Kind: "Broker"}, &eventing_v1alpha1.Broker{})
+	client := k8s_fake.NewSimpleDynamicClient(scheme, objects...)
+	return NewKnDynamicClient(client, testNamespace)
 }

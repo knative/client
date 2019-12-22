@@ -19,7 +19,7 @@ import (
 
 	"gotest.tools/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	kn_dynamic "knative.dev/client/pkg/dynamic"
+	dynamic_fake "knative.dev/client/pkg/dynamic/fake"
 	serving_v1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
 
 	v1alpha12 "knative.dev/client/pkg/eventing/sources/v1alpha1"
@@ -31,7 +31,7 @@ func TestSimpleCreateCronJobSource(t *testing.T) {
 		TypeMeta:   v1.TypeMeta{Kind: "Service", APIVersion: "serving.knative.dev/v1alpha1"},
 		ObjectMeta: v1.ObjectMeta{Name: "mysvc", Namespace: "default"},
 	}
-	dynamicClient := kn_dynamic.CreateFakeKnDynamicClient("default", mysvc)
+	dynamicClient := dynamic_fake.CreateFakeKnDynamicClient("default", mysvc)
 
 	cronjobClient := v1alpha12.NewMockKnCronJobSourceClient(t)
 
@@ -48,7 +48,7 @@ func TestSimpleCreateCronJobSource(t *testing.T) {
 func TestNoSinkError(t *testing.T) {
 	cronjobClient := v1alpha12.NewMockKnCronJobSourceClient(t)
 
-	dynamicClient := kn_dynamic.CreateFakeKnDynamicClient("default")
+	dynamicClient := dynamic_fake.CreateFakeKnDynamicClient("default")
 
 	out, err := executeCronJobSourceCommand(cronjobClient, dynamicClient, "create", "--sink", "svc:mysvc", "--schedule", "* * * * */2", "--data", "maxwell", "testsource")
 	assert.Error(t, err, "services.serving.knative.dev \"mysvc\" not found")

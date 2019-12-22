@@ -20,7 +20,7 @@ import (
 	"gotest.tools/assert"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	kn_dynamic "knative.dev/client/pkg/dynamic"
+	dynamic_fake "knative.dev/client/pkg/dynamic/fake"
 	eventing_v1alpha1 "knative.dev/eventing/pkg/apis/eventing/v1alpha1"
 	"knative.dev/pkg/apis"
 	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
@@ -62,7 +62,7 @@ func TestResolve(t *testing.T) {
 			URI: targetExampleCom,
 		}, ""},
 	}
-	dynamicClient := kn_dynamic.CreateFakeKnDynamicClient("default", mysvc, defaultBroker)
+	dynamicClient := dynamic_fake.CreateFakeKnDynamicClient("default", mysvc, defaultBroker)
 	for _, c := range cases {
 		i := &SinkFlags{c.sink}
 		result, err := i.ResolveSink(dynamicClient.RawClient(), "default")

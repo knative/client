@@ -19,7 +19,7 @@ import (
 
 	"gotest.tools/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	kn_dynamic "knative.dev/client/pkg/dynamic"
+	dynamic_fake "knative.dev/client/pkg/dynamic/fake"
 	knsources_v1alpha1 "knative.dev/client/pkg/eventing/sources/v1alpha1"
 	"knative.dev/client/pkg/util"
 	serving_v1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
@@ -30,7 +30,7 @@ func TestCreateApiServerSource(t *testing.T) {
 		TypeMeta:   metav1.TypeMeta{Kind: "Service", APIVersion: "serving.knative.dev/v1alpha1"},
 		ObjectMeta: metav1.ObjectMeta{Name: "testsvc", Namespace: "default"},
 	}
-	dynamicClient := kn_dynamic.CreateFakeKnDynamicClient("default", testsvc)
+	dynamicClient := dynamic_fake.CreateFakeKnDynamicClient("default", testsvc)
 	apiServerClient := knsources_v1alpha1.NewMockKnAPIServerSourceClient(t)
 
 	apiServerRecorder := apiServerClient.Recorder()
@@ -44,7 +44,7 @@ func TestCreateApiServerSource(t *testing.T) {
 }
 
 func TestSinkNotFoundError(t *testing.T) {
-	dynamicClient := kn_dynamic.CreateFakeKnDynamicClient("default")
+	dynamicClient := dynamic_fake.CreateFakeKnDynamicClient("default")
 	apiServerClient := knsources_v1alpha1.NewMockKnAPIServerSourceClient(t)
 	errorMsg := "cannot create ApiServerSource 'testsource' in namespace 'default' because: services.serving.knative.dev \"testsvc\" not found"
 	out, err := executeAPIServerSourceCommand(apiServerClient, dynamicClient, "create", "testsource", "--resource", "Event:v1:false", "--service-account", "testsa", "--sink", "svc:testsvc", "--mode", "Ref")

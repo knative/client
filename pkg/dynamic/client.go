@@ -18,13 +18,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/dynamic/fake"
-
-	eventing_v1alpha1 "knative.dev/eventing/pkg/apis/eventing/v1alpha1"
-	serving_v1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
 const (
@@ -98,13 +93,4 @@ func (c *knDynamicClient) ListSourcesTypes() (*unstructured.UnstructuredList, er
 
 func (c knDynamicClient) RawClient() dynamic.Interface {
 	return c.client
-}
-
-// CreateFakeKnDynamicClient gives you a dynamic client for testing contianing the given objects.
-func CreateFakeKnDynamicClient(testNamespace string, objects ...runtime.Object) KnDynamicClient {
-	scheme := runtime.NewScheme()
-	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "serving.knative.dev", Version: "v1alpha1", Kind: "Service"}, &serving_v1alpha1.Service{})
-	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "eventing.knative.dev", Version: "v1alpha1", Kind: "Broker"}, &eventing_v1alpha1.Broker{})
-	client := fake.NewSimpleDynamicClient(scheme, objects...)
-	return NewKnDynamicClient(client, testNamespace)
 }
