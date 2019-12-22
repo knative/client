@@ -51,6 +51,11 @@ func TestResolve(t *testing.T) {
 				APIVersion: "serving.knative.dev/v1alpha1",
 				Name:       "mysvc",
 				Namespace:  "default"}}, ""},
+		{"service:mysvc", &duckv1beta1.Destination{
+			Ref: &v1.ObjectReference{Kind: "Service",
+				APIVersion: "serving.knative.dev/v1alpha1",
+				Name:       "mysvc",
+				Namespace:  "default"}}, ""},
 		{"svc:absent", nil, "\"absent\" not found"},
 		{"broker:default", &duckv1beta1.Destination{
 			Ref: &v1.ObjectReference{Kind: "Broker",
