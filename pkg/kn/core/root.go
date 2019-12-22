@@ -89,7 +89,7 @@ func NewDefaultKnCommandWithArgs(rootCmd *cobra.Command,
 		} else if foundCmd.HasSubCommands() {
 			if _, _, err := rootCmd.Find(argsMinusFirstX(cmdPathPieces, args[1])); err != nil {
 				rootCmd.Help()
-				fmt.Fprintf(rootCmd.OutOrStderr(), "Unknown command or plugin '%s'.\n", args[2])
+				fmt.Fprintf(rootCmd.OutOrStderr(), "unknown sub-command \"%s\" for \"kn %s\"", args[2], args[1])
 				os.Exit(1)
 			}
 		}
