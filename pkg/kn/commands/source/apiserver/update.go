@@ -82,7 +82,7 @@ func NewAPIServerUpdateCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			if cmd.Flags().Changed("sink") {
-				objectRef, err := sinkFlags.ResolveSink(dynamicClient.RawClient(), namespace)
+				objectRef, err := sinkFlags.ResolveSink(dynamicClient, namespace)
 				if err != nil {
 					return err
 				}

@@ -22,7 +22,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/client-go/dynamic"
+	kn_dynamic "knative.dev/client/pkg/dynamic"
 	"knative.dev/pkg/apis"
 	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
 )
@@ -57,7 +57,8 @@ var SinkPrefixes = map[string]schema.GroupVersionResource{
 
 // ResolveSink returns the Destination referred to by the flags in the acceptor.
 // It validates that any object the user is referring to exists.
-func (i *SinkFlags) ResolveSink(client dynamic.Interface, namespace string) (*duckv1beta1.Destination, error) {
+func (i *SinkFlags) ResolveSink(knclient kn_dynamic.KnDynamicClient, namespace string) (*duckv1beta1.Destination, error) {
+	client := knclient.RawClient()
 	if i.sink == "" {
 		return nil, nil
 	}

@@ -65,7 +65,7 @@ func TestResolve(t *testing.T) {
 	dynamicClient := dynamic_fake.CreateFakeKnDynamicClient("default", mysvc, defaultBroker)
 	for _, c := range cases {
 		i := &SinkFlags{c.sink}
-		result, err := i.ResolveSink(dynamicClient.RawClient(), "default")
+		result, err := i.ResolveSink(dynamicClient, "default")
 		if c.destination != nil {
 			assert.DeepEqual(t, result, c.destination)
 			assert.NilError(t, err)

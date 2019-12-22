@@ -58,7 +58,7 @@ func NewCronJobCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			destination, err := sinkFlags.ResolveSink(dynamicClient.RawClient(), namespace)
+			destination, err := sinkFlags.ResolveSink(dynamicClient, namespace)
 			if err != nil {
 				return err
 			}

@@ -90,7 +90,7 @@ func NewTriggerUpdateCommand(p *commands.KnParams) *cobra.Command {
 				}
 			}
 			if cmd.Flags().Changed("sink") {
-				destination, err := sinkFlags.ResolveSink(dynamicClient.RawClient(), namespace)
+				destination, err := sinkFlags.ResolveSink(dynamicClient, namespace)
 				if err != nil {
 					return err
 				}
