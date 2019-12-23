@@ -66,6 +66,12 @@ type KnServingClient interface {
 	// Get a configuration by name
 	GetConfiguration(name string) (*v1alpha1.Configuration, error)
 
+	// Create a new revision
+	CreateRevision(revision *v1alpha1.Revision) error
+
+	// Update the given revision
+	UpdateRevision(revision *v1alpha1.Revision) error
+
 	// Get a revision by name
 	GetRevision(name string) (*v1alpha1.Revision, error)
 
@@ -237,6 +243,24 @@ func (cl *knServingClient) GetConfiguration(name string) (*v1alpha1.Configuratio
 		return nil, err
 	}
 	return configuration, nil
+}
+
+// Create a new revision
+func (cl *knServingClient) CreateRevision(revision *v1alpha1.Revision) error {
+	_, err := cl.client.Revisions(cl.namespace).Create(revision)
+	if err != nil {
+		return kn_errors.GetError(err)
+	}
+	return updateServingGvk(revision)
+}
+
+// Update the given revision
+func (cl *knServingClient) UpdateRevision(revision *v1alpha1.Revision) error {
+	_, err := cl.client.Revisions(cl.namespace).Update(revision)
+	if err != nil {
+		return err
+	}
+	return updateServingGvk(revision)
 }
 
 // Get a revision by name

@@ -26,7 +26,7 @@ import (
 func TestMigrateWithoutNamespaceParameter(t *testing.T) {
 
 	// New mock client
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 	fmt.Println(os.LookupEnv("KUBECONFIG"))
 	// Testing:
 	_, err := executeServiceCommand(client, "migrate")
@@ -36,7 +36,7 @@ func TestMigrateWithoutNamespaceParameter(t *testing.T) {
 func TestMigrateWithoutKubeconfigParameter(t *testing.T) {
 
 	// New mock client
-	client := knclient.NewMockKnClient(t)
+	client := knclient.NewMockKnServiceClient(t)
 
 	// Testing:
 	_, err := executeServiceCommand(client, "migrate", "--namespace", "default", "--destination-namespace", "default")

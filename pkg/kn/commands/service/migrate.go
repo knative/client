@@ -86,12 +86,12 @@ func NewServiceMigrateCommand(p *commands.KnParams) *cobra.Command {
 
 			// For source
 			p.KubeCfgPath = kubeconfigS
-			client_s, err := p.NewClient(namespaceS)
+			clientS, err := p.NewServingClient(namespaceS)
 			if err != nil {
 				return err
 			}
 
-			err = printServiceWithRevisions(client_s, namespaceS, "source")
+			err = printServiceWithRevisions(clientS, namespaceS, "source")
 			if err != nil {
 				return err
 			}
@@ -101,13 +101,13 @@ func NewServiceMigrateCommand(p *commands.KnParams) *cobra.Command {
 			}
 			// For destination
 			dp.Initialize()
-			client_d, err := dp.NewClient(namespaceD)
+			clientD, err := dp.NewServingClient(namespaceD)
 			if err != nil {
 				return err
 			}
 
 			fmt.Println("[Before migration in destination cluster]")
-			err = printServiceWithRevisions(client_d, namespaceD, "destination")
+			err = printServiceWithRevisions(clientD, namespaceD, "destination")
 			if err != nil {
 				return err
 			}
@@ -139,74 +139,74 @@ func NewServiceMigrateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			services_s, err := client_s.ListServices()
+			servicesS, err := clientS.ListServices()
 			if err != nil {
 				return err
 			}
-			for i := 0; i < len(services_s.Items); i++ {
-				service_s := services_s.Items[i]
-				serviceExists, err := serviceExists(client_d, service_s.Name)
+			for i := 0; i < len(servicesS.Items); i++ {
+				serviceS := servicesS.Items[i]
+				serviceExists, err := serviceExists(clientD, serviceS.Name)
 				if err != nil {
 					return err
 				}
 
 				if serviceExists {
 					if !migrateFlags.ForceReplace {
-						fmt.Println("\n[Error] Cannot migrate service", service_s.Name, "in namespace", namespaceS,
+						fmt.Println("\n[Error] Cannot migrate service", serviceS.Name, "in namespace", namespaceS,
 							"because the service already exists and no --force option was given")
 						os.Exit(1)
 					}
-					fmt.Println("Deleting service", service_s.Name, "from the destination cluster and recreate as replacement")
-					err = client_d.DeleteService(service_s.Name)
+					fmt.Println("Deleting service", serviceS.Name, "from the destination cluster and recreate as replacement")
+					err = clientD.DeleteService(serviceS.Name)
 					if err != nil {
 						return err
 					}
 				}
 
-				err = client_d.CreateService(constructMigratedService(service_s, namespaceD))
+				err = clientD.CreateService(constructMigratedService(serviceS, namespaceD))
 				if err != nil {
 					return err
 				}
-				fmt.Println("Migrated service", service_s.Name, "Successfully")
+				fmt.Println("Migrated service", serviceS.Name, "Successfully")
 
-				service_d, err := client_d.GetService(service_s.Name)
+				serviceD, err := clientD.GetService(serviceS.Name)
 				if err != nil {
 					return err
 				}
 
-				config, err := client_d.GetConfiguration(service_d.Name)
+				config, err := clientD.GetConfiguration(serviceD.Name)
 				if err != nil {
 					return err
 				}
-				config_uuid := config.UID
+				configUuid := config.UID
 
-				revisions_s, err := client_s.ListRevisions(v1alpha12.WithService(service_s.Name))
+				revisionsS, err := clientS.ListRevisions(v1alpha12.WithService(serviceS.Name))
 				if err != nil {
 					fmt.Errorf(err.Error())
 				}
-				servingclient_d, err := dp.GetConfig()
+
 				if err != nil {
 					return err
 				}
-				for i := 0; i < len(revisions_s.Items); i++ {
-					revision_s := revisions_s.Items[i]
-					if revision_s.Name != service_s.Status.LatestReadyRevisionName {
-						revision, err := servingclient_d.Revisions(namespaceD).Create(constructRevision(revision_s, config_uuid, namespaceD))
+				for i := 0; i < len(revisionsS.Items); i++ {
+					revisionS := revisionsS.Items[i]
+					if revisionS.Name != serviceS.Status.LatestReadyRevisionName {
+						err := clientD.CreateRevision(constructRevision(revisionS, configUuid, namespaceD))
 						if err != nil {
 							return err
 						}
-						fmt.Println("Migrated revision", revision.Name, "successfully")
+						fmt.Println("Migrated revision", revisionS.Name, "successfully")
 					} else {
 						retries := 0
 						for {
-							revision, err := client_d.GetRevision(revision_s.Name)
+							revision, err := clientD.GetRevision(revisionS.Name)
 							if err != nil {
 								return err
 							}
 
-							source_revision_generation := revision_s.ObjectMeta.Labels["serving.knative.dev/configurationGeneration"]
-							revision.ObjectMeta.Labels["serving.knative.dev/configurationGeneration"] = source_revision_generation
-							_, err = servingclient_d.Revisions(namespaceD).Update(revision)
+							sourceRevisionGeneration := revisionS.ObjectMeta.Labels["serving.knative.dev/configurationGeneration"]
+							revision.ObjectMeta.Labels["serving.knative.dev/configurationGeneration"] = sourceRevisionGeneration
+							err = clientD.UpdateRevision(revision)
 							if err != nil {
 								// Retry to update when a resource version conflict exists
 								if api_errors.IsConflict(err) && retries < MaxUpdateRetries {
@@ -215,7 +215,7 @@ func NewServiceMigrateCommand(p *commands.KnParams) *cobra.Command {
 								}
 								return err
 							}
-							fmt.Println("Replace revision", revision_s.Name, "to generation", source_revision_generation, "successfully")
+							fmt.Println("Replace revision", revisionS.Name, "to generation", sourceRevisionGeneration, "successfully")
 							break
 						}
 					}
@@ -224,7 +224,7 @@ func NewServiceMigrateCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			fmt.Println("[After migration in destination cluster]")
-			err = printServiceWithRevisions(client_d, namespaceD, "destination")
+			err = printServiceWithRevisions(clientD, namespaceD, "destination")
 			if err != nil {
 				return err
 			}
@@ -233,17 +233,17 @@ func NewServiceMigrateCommand(p *commands.KnParams) *cobra.Command {
 				fmt.Println("Migrate without --delete option, skip deleting Knative resource in source cluster")
 			} else {
 				fmt.Println("Migrate with --delete option, deleting all Knative resource in source cluster")
-				services_s, err := client_s.ListServices()
+				servicesS, err := clientS.ListServices()
 				if err != nil {
 					return err
 				}
-				for i := 0; i < len(services_s.Items); i++ {
-					service_s := services_s.Items[i]
-					err = client_s.DeleteService(service_s.Name)
+				for i := 0; i < len(servicesS.Items); i++ {
+					serviceS := servicesS.Items[i]
+					err = clientS.DeleteService(serviceS.Name)
 					if err != nil {
 						return err
 					}
-					fmt.Println("Deleted service", service_s.Name, "in source cluster", namespaceS, "namespace")
+					fmt.Println("Deleted service", serviceS.Name, "in source cluster", namespaceS, "namespace")
 				}
 			}
 			return nil
@@ -265,7 +265,7 @@ func namespaceExists(client clientset.Clientset, namespace string) (bool, error)
 }
 
 // Get service list with revisions
-func printServiceWithRevisions(client v1alpha1.KnClient, namespace, clustername string) error {
+func printServiceWithRevisions(client v1alpha1.KnServingClient, namespace, clustername string) error {
 	services, err := client.ListServices()
 	if err != nil {
 		return err
@@ -277,13 +277,13 @@ func printServiceWithRevisions(client v1alpha1.KnClient, namespace, clustername 
 		fmt.Printf("%-25s%-30s%-20s\n", "Name", "Current Revision", "Ready")
 		fmt.Printf("%-25s%-30s%-20s\n", service.Name, service.Status.LatestReadyRevisionName, fmt.Sprint(service.Status.IsReady()))
 
-		revisions_s, err := client.ListRevisions(v1alpha12.WithService(service.Name))
+		revisionsS, err := client.ListRevisions(v1alpha12.WithService(service.Name))
 		if err != nil {
 			return err
 		}
-		for i := 0; i < len(revisions_s.Items); i++ {
-			revision_s := revisions_s.Items[i]
-			fmt.Println("  |- Revision", revision_s.Name, "( Generation: "+fmt.Sprint(revision_s.Labels["serving.knative.dev/configurationGeneration"]), ", Ready:", revision_s.Status.IsReady(), ")")
+		for i := 0; i < len(revisionsS.Items); i++ {
+			revisionS := revisionsS.Items[i]
+			fmt.Println("  |- Revision", revisionS.Name, "( Generation: "+fmt.Sprint(revisionS.Labels["serving.knative.dev/configurationGeneration"]), ", Ready:", revisionS.Status.IsReady(), ")")
 		}
 		fmt.Println("")
 	}
@@ -291,30 +291,30 @@ func printServiceWithRevisions(client v1alpha1.KnClient, namespace, clustername 
 }
 
 // Create service struct from provided options
-func constructMigratedService(originalservice serving_v1alpha1_api.Service, namespace string) *serving_v1alpha1_api.Service {
+func constructMigratedService(originalService serving_v1alpha1_api.Service, namespace string) *serving_v1alpha1_api.Service {
 	service := serving_v1alpha1_api.Service{
-		ObjectMeta: originalservice.ObjectMeta,
+		ObjectMeta: originalService.ObjectMeta,
 	}
 
 	service.ObjectMeta.Namespace = namespace
-	service.Spec = originalservice.Spec
-	service.Spec.Template.ObjectMeta.Name = originalservice.Status.LatestCreatedRevisionName
+	service.Spec = originalService.Spec
+	service.Spec.Template.ObjectMeta.Name = originalService.Status.LatestCreatedRevisionName
 	service.ObjectMeta.ResourceVersion = ""
 	return &service
 }
 
 // Create revision struct from provided options
-func constructRevision(originalrevision serving_v1alpha1_api.Revision, config_uuid types.UID, namespace string) *serving_v1alpha1_api.Revision {
+func constructRevision(originalRevision serving_v1alpha1_api.Revision, configUuid types.UID, namespace string) *serving_v1alpha1_api.Revision {
 
 	revision := serving_v1alpha1_api.Revision{
-		ObjectMeta: originalrevision.ObjectMeta,
+		ObjectMeta: originalRevision.ObjectMeta,
 	}
 
 	revision.ObjectMeta.Namespace = namespace
 	revision.ObjectMeta.ResourceVersion = ""
-	revision.ObjectMeta.OwnerReferences[0].UID = config_uuid
-	revision.ObjectMeta.Labels["serving.knative.dev/configurationGeneration"] = originalrevision.ObjectMeta.Labels["serving.knative.dev/configurationGeneration"]
-	revision.Spec = originalrevision.Spec
+	revision.ObjectMeta.OwnerReferences[0].UID = configUuid
+	revision.ObjectMeta.Labels["serving.knative.dev/configurationGeneration"] = originalRevision.ObjectMeta.Labels["serving.knative.dev/configurationGeneration"]
+	revision.Spec = originalRevision.Spec
 
 	return &revision
 }
