@@ -78,7 +78,7 @@ func NewDefaultKnCommandWithArgs(rootCmd *cobra.Command,
 
 		// only look for suitable extension executables if
 		// the specified command does not already exist
-		foundCmd, _, err := rootCmd.Find(cmdPathPieces)
+		foundCmd, innerArgs, err := rootCmd.Find(cmdPathPieces)
 		if err != nil {
 			err := plugin.HandlePluginCommand(pluginHandler, cmdPathPieces)
 			if err != nil {
@@ -87,7 +87,7 @@ func NewDefaultKnCommandWithArgs(rootCmd *cobra.Command,
 				os.Exit(1)
 			}
 		} else if foundCmd.HasSubCommands() {
-			if _, _, err := rootCmd.Find(argsMinusFirstX(cmdPathPieces, args[1])); err != nil {
+			if _, _, err := rootCmd.Find(innerArgs); err != nil {
 				rootCmd.Help()
 				fmt.Fprintf(rootCmd.OutOrStderr(), "unknown sub-command \"%s\" for \"kn %s\"", args[2], args[1])
 				os.Exit(1)
@@ -293,18 +293,4 @@ func removeKnPluginFlags(args []string) []string {
 func width() (int, error) {
 	width, _, err := terminal.GetSize(int(os.Stdout.Fd()))
 	return width, err
-}
-
-// argsMinusFirstX removes only the first x from args.
-
-func argsMinusFirstX(args []string, x string) []string {
-	for i, y := range args {
-		if x == y {
-			ret := []string{}
-			ret = append(ret, args[:i]...)
-			ret = append(ret, args[i+1:]...)
-			return ret
-		}
-	}
-	return args
 }
