@@ -102,3 +102,9 @@ func TestStringMap(t *testing.T) {
 	expectedMap := StringMap{"a1": "b1-new", "a3": "b3"}
 	assert.DeepEqual(t, expectedMap, inputMap)
 }
+
+func TestAddListAndRemovalListFromArray(t *testing.T) {
+	addList, removeList := AddListAndRemovalListFromArray([]string{"addvalue1", "remove1-", "addvalue2", "remove2-"})
+	assert.DeepEqual(t, []string{"addvalue1", "addvalue2"}, addList)
+	assert.DeepEqual(t, []string{"remove1", "remove2"}, removeList)
+}

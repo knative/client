@@ -62,19 +62,20 @@ func NewAPIServerCreateCommand(p *commands.KnParams) *cobra.Command {
 						"because: %s", name, namespace, err)
 			}
 
-			// create
-			resources, err := updateFlags.GetAPIServerResourceArray()
+			b := v1alpha1.NewAPIServerSourceBuilder(name).
+				ServiceAccount(updateFlags.ServiceAccountName).
+				Mode(updateFlags.Mode).
+				Sink(objectRef)
+
+			resources, err := updateFlags.getAPIServerResourceArray()
 			if err != nil {
 				return err
 			}
+			for _, k := range resources {
+				b.AddResource(k.ApiVersion, k.Kind, k.IsController)
+			}
 
-			err = apiSourceClient.CreateAPIServerSource(
-				v1alpha1.NewAPIServerSourceBuilder(name).
-					ServiceAccount(updateFlags.ServiceAccountName).
-					Mode(updateFlags.Mode).
-					Resources(*resources).
-					Sink(objectRef).
-					Build())
+			err = apiSourceClient.CreateAPIServerSource(b.Build())
 
 			if err != nil {
 				return fmt.Errorf(

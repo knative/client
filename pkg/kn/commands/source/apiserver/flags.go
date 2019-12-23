@@ -27,6 +27,7 @@ import (
 
 	metav1beta1 "k8s.io/apimachinery/pkg/apis/meta/v1beta1"
 	hprinters "knative.dev/client/pkg/printers"
+	"knative.dev/client/pkg/util"
 )
 
 const (
@@ -41,27 +42,45 @@ type APIServerSourceUpdateFlags struct {
 }
 
 type resourceSpec struct {
-	kind         string
-	apiVersion   string
-	isController bool
+	Kind         string
+	ApiVersion   string
+	IsController bool
 }
 
-// GetAPIServerResourceArray is to return an array of ApiServerResource from a string. A sample is Event:v1:true,Pod:v2:false
-func (f *APIServerSourceUpdateFlags) GetAPIServerResourceArray() (*[]v1alpha1.ApiServerResource, error) {
-	var resourceList []v1alpha1.ApiServerResource
+// getAPIServerResourceArray is to return an array of ApiServerResource from a string. A sample is Event:v1:true,Pod:v2:false
+func (f *APIServerSourceUpdateFlags) getAPIServerResourceArray() ([]resourceSpec, error) {
+	var resourceList []resourceSpec
 	for _, r := range f.Resources {
 		resourceSpec, err := getValidResource(r)
 		if err != nil {
 			return nil, err
 		}
-		resourceRef := v1alpha1.ApiServerResource{
-			APIVersion: resourceSpec.apiVersion,
-			Kind:       resourceSpec.kind,
-			Controller: resourceSpec.isController,
-		}
-		resourceList = append(resourceList, resourceRef)
+		resourceList = append(resourceList, *resourceSpec)
 	}
-	return &resourceList, nil
+	return resourceList, nil
+}
+
+// getAPIServerResourceArray is to return an array of ApiServerResource from a string. A sample is Event:v1:true
+func (f *APIServerSourceUpdateFlags) getUpdateAPIServerResourceArray() ([]resourceSpec, []resourceSpec, error) {
+	var added []resourceSpec
+	var removed []resourceSpec
+
+	addedArray, removedArray := util.AddListAndRemovalListFromArray(f.Resources)
+	for _, r := range addedArray {
+		resourceSpec, err := getValidResource(r)
+		if err != nil {
+			return nil, nil, err
+		}
+		added = append(added, *resourceSpec)
+	}
+	for _, r := range removedArray {
+		resourceSpec, err := getValidResource(r)
+		if err != nil {
+			return nil, nil, err
+		}
+		removed = append(removed, *resourceSpec)
+	}
+	return added, removed, nil
 }
 
 func getValidResource(resource string) (*resourceSpec, error) {
@@ -80,7 +99,7 @@ func getValidResource(resource string) (*resourceSpec, error) {
 			return nil, fmt.Errorf("cannot parse controller flage in resource specification %s", resource)
 		}
 	}
-	return &resourceSpec{apiVersion: version, kind: kind, isController: isController}, nil
+	return &resourceSpec{Kind: kind, ApiVersion: version, IsController: isController}, nil
 }
 
 //Add is to set parameters
@@ -95,9 +114,9 @@ func (f *APIServerSourceUpdateFlags) Add(cmd *cobra.Command) {
 		`The mode the receive adapter controller runs under:,
 "Ref" sends only the reference to the resource,
 "Resource" send the full resource.`)
-	cmd.Flags().StringSliceVar(&f.Resources,
+	cmd.Flags().StringArrayVar(&f.Resources,
 		"resource",
-		nil,
+		[]string{},
 		`Specification for which events to listen, in the format Kind:APIVersion:isController, e.g. Deployment:apps/v1:true.
 "isController" can be omitted and is "false" by default.`)
 }
