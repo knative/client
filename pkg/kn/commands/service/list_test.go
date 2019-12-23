@@ -23,7 +23,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	client_testing "k8s.io/client-go/testing"
 	"knative.dev/pkg/apis"
-	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 
 	"knative.dev/client/pkg/kn/commands"
@@ -70,9 +69,9 @@ func TestGetEmpty(t *testing.T) {
 }
 
 func TestServiceListDefaultOutput(t *testing.T) {
-	service1 := createMockServiceWithParams("foo", "default", "http://foo.default.example.com", 2)
-	service3 := createMockServiceWithParams("sss", "default", "http://sss.default.example.com", 3)
-	service2 := createMockServiceWithParams("bar", "default", "http://bar.default.example.com", 1)
+	service1 := createMockServiceWithParams("foo", "default", "http://foo.default.example.com", "foo-xyz")
+	service3 := createMockServiceWithParams("sss", "default", "http://sss.default.example.com", "sss-xyz")
+	service2 := createMockServiceWithParams("bar", "default", "http://bar.default.example.com", "bar-xyz")
 	serviceList := &v1alpha1.ServiceList{Items: []v1alpha1.Service{*service1, *service2, *service3}}
 	action, output, err := fakeServiceList([]string{"service", "list"}, serviceList)
 	assert.NilError(t, err)
@@ -82,16 +81,16 @@ func TestServiceListDefaultOutput(t *testing.T) {
 		t.Errorf("Bad action %v", action)
 	}
 	// Outputs in alphabetical order
-	assert.Check(t, util.ContainsAll(output[0], "NAME", "URL", "GENERATION", "AGE", "CONDITIONS", "READY", "REASON"))
-	assert.Check(t, util.ContainsAll(output[1], "bar", "bar.default.example.com", "1"))
-	assert.Check(t, util.ContainsAll(output[2], "foo", "foo.default.example.com", "2"))
-	assert.Check(t, util.ContainsAll(output[3], "sss", "sss.default.example.com", "3"))
+	assert.Check(t, util.ContainsAll(output[0], "NAME", "URL", "LATEST", "AGE", "CONDITIONS", "READY", "REASON"))
+	assert.Check(t, util.ContainsAll(output[1], "bar", "bar.default.example.com", "bar-xyz"))
+	assert.Check(t, util.ContainsAll(output[2], "foo", "foo.default.example.com", "foo-xyz"))
+	assert.Check(t, util.ContainsAll(output[3], "sss", "sss.default.example.com", "sss-xyz"))
 }
 
 func TestServiceListAllNamespacesOutput(t *testing.T) {
-	service1 := createMockServiceWithParams("foo", "default", "http://foo.default.example.com", 1)
-	service2 := createMockServiceWithParams("bar", "foo", "http://bar.foo.example.com", 2)
-	service3 := createMockServiceWithParams("sss", "bar", "http://sss.bar.example.com", 3)
+	service1 := createMockServiceWithParams("foo", "default", "http://foo.default.example.com", "foo-xyz")
+	service2 := createMockServiceWithParams("bar", "foo", "http://bar.foo.example.com", "bar-xyz")
+	service3 := createMockServiceWithParams("sss", "bar", "http://sss.bar.example.com", "sss-xyz")
 	serviceList := &v1alpha1.ServiceList{Items: []v1alpha1.Service{*service1, *service2, *service3}}
 	action, output, err := fakeServiceList([]string{"service", "list", "--all-namespaces"}, serviceList)
 	if err != nil {
@@ -103,15 +102,15 @@ func TestServiceListAllNamespacesOutput(t *testing.T) {
 		t.Errorf("Bad action %v", action)
 	}
 	// Outputs in alphabetical order
-	assert.Check(t, util.ContainsAll(output[0], "NAMESPACE", "NAME", "URL", "GENERATION", "AGE", "CONDITIONS", "READY", "REASON"))
-	assert.Check(t, util.ContainsAll(output[1], "default", "foo", "foo.default.example.com", "1"))
-	assert.Check(t, util.ContainsAll(output[2], "bar", "sss", "sss.bar.example.com", "3"))
-	assert.Check(t, util.ContainsAll(output[3], "foo", "bar", "bar.foo.example.com", "2"))
+	assert.Check(t, util.ContainsAll(output[0], "NAMESPACE", "NAME", "URL", "LATEST", "AGE", "CONDITIONS", "READY", "REASON"))
+	assert.Check(t, util.ContainsAll(output[1], "default", "foo", "foo.default.example.com", "foo-xyz"))
+	assert.Check(t, util.ContainsAll(output[2], "bar", "sss", "sss.bar.example.com", "sss-xyz"))
+	assert.Check(t, util.ContainsAll(output[3], "foo", "bar", "bar.foo.example.com", "bar-xyz"))
 }
 
 func TestServiceListDefaultOutputNoHeaders(t *testing.T) {
-	service1 := createMockServiceWithParams("foo", "default", "http://foo.default.example.com", 1)
-	service2 := createMockServiceWithParams("bar", "default", "http://bar.default.example.com", 2)
+	service1 := createMockServiceWithParams("foo", "default", "http://foo.default.example.com", "foo-xyz")
+	service2 := createMockServiceWithParams("bar", "default", "http://bar.default.example.com", "bar-xyz")
 	serviceList := &v1alpha1.ServiceList{Items: []v1alpha1.Service{*service1, *service2}}
 	action, output, err := fakeServiceList([]string{"service", "list", "--no-headers"}, serviceList)
 	assert.NilError(t, err)
@@ -121,14 +120,14 @@ func TestServiceListDefaultOutputNoHeaders(t *testing.T) {
 		t.Errorf("Bad action %v", action)
 	}
 
-	assert.Check(t, util.ContainsNone(output[0], "NAME", "URL", "GENERATION", "AGE", "CONDITIONS", "READY", "REASON"))
-	assert.Check(t, util.ContainsAll(output[0], "bar", "bar.default.example.com", "2"))
-	assert.Check(t, util.ContainsAll(output[1], "foo", "foo.default.example.com", "1"))
+	assert.Check(t, util.ContainsNone(output[0], "NAME", "URL", "LATEST", "AGE", "CONDITIONS", "READY", "REASON"))
+	assert.Check(t, util.ContainsAll(output[0], "bar", "bar.default.example.com", "bar-xyz"))
+	assert.Check(t, util.ContainsAll(output[1], "foo", "foo.default.example.com", "foo-xyz"))
 
 }
 
 func TestServiceGetOneOutput(t *testing.T) {
-	service := createMockServiceWithParams("foo", "default", "foo.default.example.com", 1)
+	service := createMockServiceWithParams("foo", "default", "foo.default.example.com", "foo-xyz")
 	serviceList := &v1alpha1.ServiceList{Items: []v1alpha1.Service{*service}}
 	action, output, err := fakeServiceList([]string{"service", "list", "foo"}, serviceList)
 	assert.NilError(t, err)
@@ -137,18 +136,18 @@ func TestServiceGetOneOutput(t *testing.T) {
 	} else if !action.Matches("list", "services") {
 		t.Errorf("Bad action %v", action)
 	}
-	assert.Check(t, util.ContainsAll(output[0], "NAME", "URL", "GENERATION", "AGE", "CONDITIONS", "READY", "REASON"))
-	assert.Check(t, util.ContainsAll(output[1], "foo", "foo.default.example.com", "1"))
+	assert.Check(t, util.ContainsAll(output[0], "NAME", "URL", "LATEST", "AGE", "CONDITIONS", "READY", "REASON"))
+	assert.Check(t, util.ContainsAll(output[1], "foo", "foo.default.example.com", "foo-xyz"))
 }
 
 func TestServiceGetWithTwoSrvName(t *testing.T) {
-	service := createMockServiceWithParams("foo", "default", "foo.default.example.com", 1)
+	service := createMockServiceWithParams("foo", "default", "foo.default.example.com", "foo-xyz")
 	serviceList := &v1alpha1.ServiceList{Items: []v1alpha1.Service{*service}}
 	_, _, err := fakeServiceList([]string{"service", "list", "foo", "bar"}, serviceList)
 	assert.ErrorContains(t, err, "'kn service list' accepts maximum 1 argument")
 }
 
-func createMockServiceWithParams(name, namespace, urlS string, generation int64) *v1alpha1.Service {
+func createMockServiceWithParams(name, namespace, urlS string, revision string) *v1alpha1.Service {
 	url, _ := apis.ParseURL(urlS)
 	service := &v1alpha1.Service{
 		TypeMeta: metav1.TypeMeta{
@@ -163,10 +162,12 @@ func createMockServiceWithParams(name, namespace, urlS string, generation int64)
 			DeprecatedRunLatest: &v1alpha1.RunLatestType{},
 		},
 		Status: v1alpha1.ServiceStatus{
-			Status: duckv1beta1.Status{
-				ObservedGeneration: generation},
 			RouteStatusFields: v1alpha1.RouteStatusFields{
 				URL: url,
+			},
+			ConfigurationStatusFields: v1alpha1.ConfigurationStatusFields{
+				LatestCreatedRevisionName: revision,
+				LatestReadyRevisionName:   revision,
 			},
 		},
 	}

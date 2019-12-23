@@ -13,11 +13,11 @@
 // limitations under the License.
 
 // +build e2e
+// +build !eventing
 
 package e2e
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
@@ -83,7 +83,7 @@ func (test *e2eTest) serviceCreate(t *testing.T, serviceName string) {
 		"--image", KnDefaultTestImage}, runOpts{NoNamespace: false})
 	assert.NilError(t, err)
 
-	assert.Check(t, util.ContainsAll(out, "Service", serviceName, "successfully created in namespace", test.kn.namespace, "OK"))
+	assert.Check(t, util.ContainsAllIgnoreCase(out, "service", serviceName, "creating", "namespace", test.kn.namespace, "ready"))
 }
 
 func (test *e2eTest) serviceList(t *testing.T, serviceName string) {
@@ -99,15 +99,14 @@ func (test *e2eTest) serviceDescribe(t *testing.T, serviceName string) {
 
 	assert.Assert(t, util.ContainsAll(out, serviceName, test.kn.namespace, KnDefaultTestImage))
 	assert.Assert(t, util.ContainsAll(out, "Conditions", "ConfigurationsReady", "Ready", "RoutesReady"))
-	assert.Assert(t, util.ContainsAll(out, "Name", "Namespace", "URL", "Address", "Annotations", "Age", "Revisions"))
+	assert.Assert(t, util.ContainsAll(out, "Name", "Namespace", "URL", "Age", "Revisions"))
 }
 
 func (test *e2eTest) serviceUpdate(t *testing.T, serviceName string, args []string) {
 	out, err := test.kn.RunWithOpts(append([]string{"service", "update", serviceName}, args...), runOpts{NoNamespace: false})
 	assert.NilError(t, err)
 
-	expectedOutput := fmt.Sprintf("Service '%s' updated", serviceName)
-	assert.Check(t, util.ContainsAll(out, expectedOutput))
+	assert.Check(t, util.ContainsAllIgnoreCase(out, "updating", "service", serviceName, "ready"))
 }
 
 func (test *e2eTest) serviceDelete(t *testing.T, serviceName string) {
@@ -135,10 +134,5 @@ func (test *e2eTest) revisionDescribe(t *testing.T, serviceName string) {
 
 	out, err := test.kn.RunWithOpts([]string{"revision", "describe", revName}, runOpts{})
 	assert.NilError(t, err)
-
-	expectedGVK := `apiVersion: serving.knative.dev/v1alpha1
-kind: Revision`
-	expectedNamespace := fmt.Sprintf("namespace: %s", test.kn.namespace)
-	expectedServiceLabel := fmt.Sprintf("serving.knative.dev/service: %s", serviceName)
-	assert.Check(t, util.ContainsAll(out, expectedGVK, expectedNamespace, expectedServiceLabel))
+	assert.Check(t, util.ContainsAll(out, revName, test.kn.namespace, serviceName, "++ Ready", "TARGET=kn"))
 }

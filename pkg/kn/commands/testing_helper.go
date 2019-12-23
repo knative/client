@@ -24,11 +24,18 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"gotest.tools/assert"
+	"k8s.io/apimachinery/pkg/runtime"
 	client_testing "k8s.io/client-go/testing"
 	"knative.dev/client/pkg/kn/flags"
-
 	"knative.dev/client/pkg/serving/v1alpha1"
 	"knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake"
+
+	dynamic_fake "k8s.io/client-go/dynamic/fake"
+	dynamic_kn "knative.dev/client/pkg/dynamic"
+	sources_client "knative.dev/client/pkg/eventing/sources/v1alpha1"
+	eventing_client "knative.dev/client/pkg/eventing/v1alpha1"
+	eventing_fake "knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1alpha1/fake"
+	sources_fake "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1/fake"
 )
 
 const FakeNamespace = "current"
@@ -39,8 +46,6 @@ var (
 	output    string
 
 	readFile, writeFile *os.File
-
-	origArgs []string
 )
 
 // CreateTestKnCommand helper for creating test commands
@@ -48,12 +53,65 @@ func CreateTestKnCommand(cmd *cobra.Command, knParams *KnParams) (*cobra.Command
 	buf := new(bytes.Buffer)
 	fakeServing := &fake.FakeServingV1alpha1{&client_testing.Fake{}}
 	knParams.Output = buf
-	knParams.NewClient = func(namespace string) (v1alpha1.KnClient, error) {
-		return v1alpha1.NewKnServingClient(fakeServing, namespace), nil
+	knParams.NewServingClient = func(namespace string) (v1alpha1.KnServingClient, error) {
+		return v1alpha1.NewKnServingClient(fakeServing, FakeNamespace), nil
 	}
 	knParams.fixedCurrentNamespace = FakeNamespace
 	knCommand := NewKnTestCommand(cmd, knParams)
 	return knCommand, fakeServing, buf
+}
+
+// CreateSourcesTestKnCommand helper for creating test commands
+func CreateSourcesTestKnCommand(cmd *cobra.Command, knParams *KnParams) (*cobra.Command, *sources_fake.FakeSourcesV1alpha1, *bytes.Buffer) {
+	buf := new(bytes.Buffer)
+	// create fake serving client because the sink of source depends on serving client
+	fakeServing := &fake.FakeServingV1alpha1{&client_testing.Fake{}}
+	knParams.NewServingClient = func(namespace string) (v1alpha1.KnServingClient, error) {
+		return v1alpha1.NewKnServingClient(fakeServing, FakeNamespace), nil
+	}
+	// create fake sources client
+	fakeEventing := &sources_fake.FakeSourcesV1alpha1{&client_testing.Fake{}}
+	knParams.Output = buf
+	knParams.NewSourcesClient = func(namespace string) (sources_client.KnSourcesClient, error) {
+		return sources_client.NewKnSourcesClient(fakeEventing, FakeNamespace), nil
+	}
+	knParams.fixedCurrentNamespace = FakeNamespace
+	knCommand := NewKnTestCommand(cmd, knParams)
+	return knCommand, fakeEventing, buf
+}
+
+// CreateEventingTestKnCommand helper for creating test commands
+func CreateEventingTestKnCommand(cmd *cobra.Command, knParams *KnParams) (*cobra.Command, *eventing_fake.FakeEventingV1alpha1, *bytes.Buffer) {
+	buf := new(bytes.Buffer)
+	// create fake serving client because the sink of source depends on serving client
+	fakeServing := &fake.FakeServingV1alpha1{&client_testing.Fake{}}
+	knParams.NewServingClient = func(namespace string) (v1alpha1.KnServingClient, error) {
+		return v1alpha1.NewKnServingClient(fakeServing, FakeNamespace), nil
+	}
+	// create fake sources client
+	fakeEventing := &eventing_fake.FakeEventingV1alpha1{&client_testing.Fake{}}
+	knParams.Output = buf
+	knParams.NewEventingClient = func(namespace string) (eventing_client.KnEventingClient, error) {
+		return eventing_client.NewKnEventingClient(fakeEventing, FakeNamespace), nil
+	}
+	knParams.fixedCurrentNamespace = FakeNamespace
+	knCommand := NewKnTestCommand(cmd, knParams)
+	return knCommand, fakeEventing, buf
+}
+
+// CreateDynamicTestKnCommand helper for creating test commands using dynamic client
+func CreateDynamicTestKnCommand(cmd *cobra.Command, knParams *KnParams, objects ...runtime.Object) (*cobra.Command, *dynamic_fake.FakeDynamicClient, *bytes.Buffer) {
+	buf := new(bytes.Buffer)
+	fakeDynamic := dynamic_fake.NewSimpleDynamicClient(runtime.NewScheme(), objects...)
+	knParams.Output = buf
+	knParams.NewDynamicClient = func(namespace string) (dynamic_kn.KnDynamicClient, error) {
+		return dynamic_kn.NewKnDynamicClient(fakeDynamic, FakeNamespace), nil
+	}
+
+	knParams.fixedCurrentNamespace = FakeNamespace
+	knCommand := NewKnTestCommand(cmd, knParams)
+	return knCommand, fakeDynamic, buf
+
 }
 
 // CaptureStdout collects the current content of os.Stdout
@@ -121,13 +179,13 @@ Eventing: Manage event subscriptions and channels. Connect up event sources.`,
 	rootCmd.PersistentFlags().StringVar(&params.KubeCfgPath, "kubeconfig", "", "kubectl config file (default is $HOME/.kube/config)")
 
 	rootCmd.Flags().StringVar(&Cfg.PluginsDir, "plugins-dir", "~/.kn/plugins", "kn plugins directory")
-	rootCmd.Flags().BoolVar(&Cfg.LookupPluginsInPath, "lookup-plugins-in-path", false, "look for kn plugins in $PATH")
+	rootCmd.Flags().BoolVar(Cfg.LookupPlugins, "lookup-plugins", false, "look for kn plugins in $PATH")
 
-	viper.BindPFlag("pluginsDir", rootCmd.Flags().Lookup("plugins-dir"))
-	viper.BindPFlag("lookupPluginsInPath", rootCmd.Flags().Lookup("lookup-plugins-in-path"))
+	viper.BindPFlag("plugins-dir", rootCmd.Flags().Lookup("plugins-dir"))
+	viper.BindPFlag("lookup-plugins", rootCmd.Flags().Lookup("lookup-plugins"))
 
-	viper.SetDefault("pluginsDir", "~/.kn/plugins")
-	viper.SetDefault("lookupPluginsInPath", false)
+	viper.SetDefault("plugins-dir", "~/.kn/plugins")
+	viper.SetDefault("lookup-plugins", false)
 
 	rootCmd.AddCommand(subCommand)
 

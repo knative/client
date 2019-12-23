@@ -16,11 +16,10 @@ package wait
 
 import (
 	"fmt"
+	"io"
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"knative.dev/pkg/apis"
@@ -28,7 +27,7 @@ import (
 
 // Callbacks and configuration used while waiting
 type waitForReadyConfig struct {
-	watchFunc           WatchFunc
+	watchMaker          WatchMaker
 	conditionsExtractor ConditionsExtractor
 	kind                string
 }
@@ -38,69 +37,76 @@ type waitForReadyConfig struct {
 type WaitForReady interface {
 
 	// Wait on resource the resource with this name until a given timeout
-	// and write status out on writer
-	Wait(name string, timeout time.Duration) error
+	// and write event messages for unknown event to the status writer
+	Wait(name string, timeout time.Duration, msgCallback MessageCallback) (error, time.Duration)
 }
 
 // Create watch which is used when waiting for Ready condition
-type WatchFunc func(opts v1.ListOptions) (watch.Interface, error)
+type WatchMaker func(name string, timeout time.Duration) (watch.Interface, error)
 
 // Extract conditions from a runtime object
 type ConditionsExtractor func(obj runtime.Object) (apis.Conditions, error)
 
+// Callback for event messages
+type MessageCallback func(durationSinceState time.Duration, message string)
+
 // Constructor with resource type specific configuration
-func NewWaitForReady(kind string, watchFunc WatchFunc, extractor ConditionsExtractor) WaitForReady {
+func NewWaitForReady(kind string, watchMaker WatchMaker, extractor ConditionsExtractor) WaitForReady {
 	return &waitForReadyConfig{
 		kind:                kind,
-		watchFunc:           watchFunc,
+		watchMaker:          watchMaker,
 		conditionsExtractor: extractor,
 	}
+}
+
+// A simple message callback which prints out messages line by line
+func SimpleMessageCallback(out io.Writer) MessageCallback {
+	oldMessage := ""
+	return func(duration time.Duration, message string) {
+		txt := message
+		if message == oldMessage {
+			txt = "..."
+		}
+		fmt.Fprintf(out, "%7.3fs %s\n", float64(duration.Round(time.Millisecond))/float64(time.Second), txt)
+		oldMessage = message
+	}
+}
+
+// Noop-callback
+func NoopMessageCallback() MessageCallback {
+	return func(durationSinceState time.Duration, message string) {}
 }
 
 // Wait until a resource enters condition of type "Ready" to "False" or "True".
 // `watchFunc` creates the actual watch, `kind` is the type what your are watching for
 // (e.g. "service"), `timeout` is a timeout after which the watch should be cancelled if no
 // target state has been entered yet and `out` is used for printing out status messages
-func (w *waitForReadyConfig) Wait(name string, timeout time.Duration) error {
-	opts := v1.ListOptions{
-		FieldSelector: fields.OneTermEqualSelector("metadata.name", name).String(),
-	}
-	addWatchTimeout(&opts, timeout)
+// msgCallback gets called for every event with an 'Ready' condition == UNKNOWN with the event's message.
+func (w *waitForReadyConfig) Wait(name string, timeout time.Duration, msgCallback MessageCallback) (error, time.Duration) {
 
 	floatingTimeout := timeout
 	for {
 		start := time.Now()
-		retry, timeoutReached, err := w.waitForReadyCondition(opts, name, floatingTimeout)
+		retry, timeoutReached, err := w.waitForReadyCondition(start, name, floatingTimeout, msgCallback)
 		if err != nil {
-			return err
+			return err, time.Since(start)
 		}
 		floatingTimeout = floatingTimeout - time.Since(start)
 		if timeoutReached || floatingTimeout < 0 {
-			return fmt.Errorf("timeout: %s '%s' not ready after %d seconds", w.kind, name, int(timeout/time.Second))
+			return fmt.Errorf("timeout: %s '%s' not ready after %d seconds", w.kind, name, int(timeout/time.Second)), time.Since(start)
 		}
 
 		if retry {
 			// restart loop
 			continue
 		}
-		return nil
+		return nil, time.Since(start)
 	}
 }
 
-func addWatchTimeout(opts *v1.ListOptions, timeout time.Duration) {
-	if timeout == 0 {
-		return
-	}
-	// Wait for service to enter 'Ready' state, with a timeout of which is slightly larger than
-	// the provided timeout. We have our own timeout which fires after "timeout" seconds
-	// and stops the watch
-	timeOutWatchSeconds := int64((timeout + 30*time.Second) / time.Second)
-	opts.TimeoutSeconds = &timeOutWatchSeconds
-}
+func (w *waitForReadyConfig) waitForReadyCondition(start time.Time, name string, timeout time.Duration, msgCallback MessageCallback) (retry bool, timeoutReached bool, err error) {
 
-func (w *waitForReadyConfig) waitForReadyCondition(opts v1.ListOptions, name string, timeout time.Duration) (bool, bool, error) {
-
-	watcher, err := w.watchFunc(opts)
+	watcher, err := w.watchMaker(name, timeout)
 	if err != nil {
 		return false, false, err
 	}
@@ -135,6 +141,9 @@ func (w *waitForReadyConfig) waitForReadyCondition(opts v1.ListOptions, name str
 						return false, false, nil
 					case corev1.ConditionFalse:
 						return false, false, fmt.Errorf("%s: %s", cond.Reason, cond.Message)
+					}
+					if cond.Message != "" {
+						msgCallback(time.Since(start), cond.Message)
 					}
 				}
 			}

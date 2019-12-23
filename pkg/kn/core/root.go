@@ -30,10 +30,14 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
 	"knative.dev/client/pkg/kn/commands"
+	"knative.dev/client/pkg/kn/commands/completion"
 	"knative.dev/client/pkg/kn/commands/plugin"
 	"knative.dev/client/pkg/kn/commands/revision"
 	"knative.dev/client/pkg/kn/commands/route"
 	"knative.dev/client/pkg/kn/commands/service"
+	"knative.dev/client/pkg/kn/commands/source"
+	"knative.dev/client/pkg/kn/commands/trigger"
+	"knative.dev/client/pkg/kn/commands/version"
 	"knative.dev/client/pkg/kn/flags"
 )
 
@@ -41,12 +45,12 @@ import (
 func NewDefaultKnCommand() *cobra.Command {
 	rootCmd := NewKnCommand()
 
-	// Needed since otherwise --plugins-dir and --lookup-plugins-in-path
+	// Needed since otherwise --plugins-dir and --lookup-plugins
 	// will not be accounted for since the plugin is not a Cobra command
 	// and will not be parsed
 	pluginsDir, lookupPluginsInPath, err := extractKnPluginFlags(os.Args)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", err)
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
 
@@ -79,8 +83,7 @@ func NewDefaultKnCommandWithArgs(rootCmd *cobra.Command,
 			err := plugin.HandlePluginCommand(pluginHandler, cmdPathPieces)
 			if err != nil {
 				rootCmd.Help()
-				fmt.Println()
-				fmt.Printf("unknown command or plugin \"%s\" for \"kn\"\n", args[1])
+				fmt.Fprintf(rootCmd.OutOrStderr(), "Unknown command or plugin '%s'.\n", args[1])
 				os.Exit(1)
 			}
 		}
@@ -119,6 +122,7 @@ func NewKnCommand(params ...commands.KnParams) *cobra.Command {
 		SilenceErrors: true,
 
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			initConfigFlags()
 			return flags.ReconcileBoolFlags(cmd.Flags())
 		},
 	}
@@ -139,8 +143,10 @@ func NewKnCommand(params ...commands.KnParams) *cobra.Command {
 	rootCmd.AddCommand(revision.NewRevisionCommand(p))
 	rootCmd.AddCommand(plugin.NewPluginCommand(p))
 	rootCmd.AddCommand(route.NewRouteCommand(p))
-	rootCmd.AddCommand(commands.NewCompletionCommand(p))
-	rootCmd.AddCommand(commands.NewVersionCommand(p))
+	rootCmd.AddCommand(completion.NewCompletionCommand(p))
+	rootCmd.AddCommand(version.NewVersionCommand(p))
+	rootCmd.AddCommand(source.NewSourceCommand(p))
+	rootCmd.AddCommand(trigger.NewTriggerCommand(p))
 
 	// Deal with empty and unknown sub command groups
 	EmptyAndUnknownSubCommands(rootCmd)
@@ -171,8 +177,6 @@ func EmptyAndUnknownSubCommands(cmd *cobra.Command) {
 		if childCmd.HasSubCommands() && childCmd.RunE == nil {
 			childCmd.RunE = func(aCmd *cobra.Command, args []string) error {
 				aCmd.Help()
-				fmt.Println()
-
 				if len(args) == 0 {
 					return fmt.Errorf("please provide a valid sub-command for \"kn %s\"", aCmd.Name())
 				}
@@ -196,7 +200,7 @@ func initConfig() {
 		// Find home directory.
 		home, err := homedir.Dir()
 		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
+			fmt.Fprintf(os.Stderr, "%v\n", err)
 			os.Exit(1)
 		}
 
@@ -214,12 +218,23 @@ func initConfig() {
 	}
 }
 
+func initConfigFlags() {
+	if viper.IsSet("plugins-dir") {
+		commands.Cfg.PluginsDir = viper.GetString("plugins-dir")
+	}
+
+	// Always set the Cfg.LookupPlugins from viper value since default is false both ways
+	var aBool bool
+	aBool = viper.GetBool("lookup-plugins")
+	commands.Cfg.LookupPlugins = &aBool
+}
+
 func extractKnPluginFlags(args []string) (string, bool, error) {
 	pluginsDir := "~/.kn/plugins"
 	lookupPluginsInPath := false
 
 	dirFlag := "--plugins-dir"
-	pathFlag := "--lookup-plugins-in-path"
+	pathFlag := "--lookup-plugins"
 	var err error
 
 	for _, arg := range args {
@@ -236,10 +251,10 @@ func extractKnPluginFlags(args []string) (string, bool, error) {
 		}
 
 		if arg == pathFlag {
-			// just --lookup-plugins-in-path   no "="
+			// just --lookup-plugins   no "="
 			lookupPluginsInPath = true
 		} else if strings.HasPrefix(arg, pathFlag+"=") {
-			// Starts with --lookup-plugins-in-path=  so we parse value
+			// Starts with --lookup-plugins=  so we parse value
 			arg = arg[len(pathFlag)+1:]
 			if lookupPluginsInPath, err = strconv.ParseBool(arg); err != nil {
 				return "", false, fmt.Errorf("Invalid boolean value(%q) for %s flag", arg, dirFlag)
@@ -258,8 +273,8 @@ func removeKnPluginFlags(args []string) []string {
 	for _, arg := range args {
 		if arg == "--plugins-dir" ||
 			strings.HasPrefix(arg, "--plugins-dir=") ||
-			arg == "--lookup-plugins-in-path" ||
-			strings.HasPrefix(arg, "--plookup-plugins-in-path=") {
+			arg == "--lookup-plugins" ||
+			strings.HasPrefix(arg, "--lookup-plugins=") {
 			continue
 		} else {
 			remainingArgs = append(remainingArgs, arg)

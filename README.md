@@ -1,7 +1,6 @@
 # Knative Client
 
-This section outlines best practices for the Knative developer experience, is a reference for Knative CLI
-implementation, and a reference for Knative client libraries.
+This section outlines best practices for the Knative developer experience. It is a reference for Knative CLI implementation, and a reference for Knative client libraries.
 
 The goals of the Knative Client are to:
 
@@ -16,26 +15,23 @@ The goals of the Knative Client are to:
 Start with the [user's guide](docs/README.md) to learn more. You can read about common use cases, get detailed documentation on each command, and learn how to extend the `kn` CLI. For more information, access the following links:
 
 * [User's guide](docs/README.md)
-* [Basic workflows](docs/workflows.md) (use cases)
 * [Generated documentation](docs/cmd/kn.md)
 
-**Bash auto completion:**
+**Shell auto completion:**
 
-Run the following command to enable BASH auto-completion:
+Run the following command to enable shell auto-completion:
 
+For Zsh:
 ```sh
-$ source <(kn completion)
+$ source <(kn completion zsh)
 ```
 
-Use TAB to list available sub-commands:
-
+For Bash:
 ```sh
-$ kn <TAB>
-completion revision service version
-
-$ kn revision <TAB>
-describe get
+$ source <(kn completion bash)
 ```
+
+Use TAB to list available sub-commands or flags.
 
 # Developers
 

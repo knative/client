@@ -143,7 +143,10 @@ func TestServiceUpdateImageSync(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
+	err = servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	action, updated, output, err := fakeServiceUpdate(orig, []string{
 		"service", "update", "foo", "--image", "gcr.io/foo/quux:xyzzy", "--namespace", "bar"}, true)
@@ -155,7 +158,7 @@ func TestServiceUpdateImageSync(t *testing.T) {
 	assert.NilError(t, err)
 
 	assert.Equal(t, template.Spec.Containers[0].Image, "gcr.io/foo/quux:xyzzy")
-	assert.Assert(t, util.ContainsAll(strings.ToLower(output), "update", "foo", "service", "namespace", "bar", "ok", "waiting"))
+	assert.Assert(t, util.ContainsAll(strings.ToLower(output), "updating", "foo", "service", "namespace", "bar", "ready"))
 }
 
 func TestServiceUpdateImage(t *testing.T) {
@@ -166,7 +169,10 @@ func TestServiceUpdateImage(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
+		err = servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
+		if err != nil {
+			t.Fatal(err)
+		}
 
 		action, updated, output, err := fakeServiceUpdate(orig, []string{
 			"service", "update", "foo", "--image", "gcr.io/foo/quux:xyzzy", "--namespace", "bar", "--async"}, false)
@@ -322,7 +328,7 @@ func TestServiceUpdateMaxMinScale(t *testing.T) {
 		}
 	}
 
-	if template.Spec.ContainerConcurrency != 100 {
+	if *template.Spec.ContainerConcurrency != int64(100) {
 		t.Fatalf("container concurrency not set to given value 1000")
 	}
 
@@ -371,7 +377,10 @@ func TestServiceUpdatePinsToDigestWhenAsked(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
+	err = servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	action, updated, _, err := fakeServiceUpdate(orig, []string{
 		"service", "update", "foo", "-e", "TARGET=Awesome", "--lock-to-digest", "--async"}, false)
@@ -396,7 +405,10 @@ func TestServiceUpdatePinsToDigestWhenPreviouslyDidSo(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
+	err = servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	action, updated, _, err := fakeServiceUpdate(orig, []string{
 		"service", "update", "foo", "-e", "TARGET=Awesome", "--async"}, false)
@@ -421,7 +433,10 @@ func TestServiceUpdateDoesntPinToDigestWhenUnAsked(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
+	err = servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	action, updated, _, err := fakeServiceUpdate(orig, []string{
 		"service", "update", "foo", "-e", "TARGET=Awesome", "--no-lock-to-digest", "--async"}, false)
@@ -443,12 +458,15 @@ func TestServiceUpdateDoesntPinToDigestWhenPreviouslyDidnt(t *testing.T) {
 	orig := newEmptyService()
 
 	template, err := servinglib.RevisionTemplateOfService(orig)
-	delete(template.Annotations, servinglib.UserImageAnnotationKey)
 	if err != nil {
 		t.Fatal(err)
 	}
+	delete(template.Annotations, servinglib.UserImageAnnotationKey)
 
-	servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
+	err = servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	action, updated, _, err := fakeServiceUpdate(orig, []string{
 		"service", "update", "foo", "-e", "TARGET=Awesome", "--async"}, false)

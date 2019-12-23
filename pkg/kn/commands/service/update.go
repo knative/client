@@ -28,14 +28,7 @@ import (
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
-func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
-	var editFlags ConfigurationEditFlags
-	var waitFlags commands.WaitFlags
-	var trafficFlags flags.Traffic
-	serviceUpdateCommand := &cobra.Command{
-		Use:   "update NAME [flags]",
-		Short: "Update a service.",
-		Example: `
+var update_example = `
   # Updates a service 'svc' with new environment variables
   kn service update svc --env KEY1=VALUE1 --env KEY2=VALUE2
 
@@ -54,10 +47,19 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
   kn service update svc --untag testing --tag @latest=staging
 
   # Add tag 'test' to echo-v3 revision with 10% traffic and rest to latest ready revision of service
-  kn service update svc --tag echo-v3=test --traffic test=10,@latest=90`,
+  kn service update svc --tag echo-v3=test --traffic test=10,@latest=90`
+
+func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
+	var editFlags ConfigurationEditFlags
+	var waitFlags commands.WaitFlags
+	var trafficFlags flags.Traffic
+	serviceUpdateCommand := &cobra.Command{
+		Use:     "update NAME [flags]",
+		Short:   "Update a service.",
+		Example: update_example,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
-				return errors.New("requires the service name.")
+				return errors.New("requires the service name")
 			}
 
 			namespace, err := p.GetNamespace(cmd)
@@ -65,7 +67,7 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			client, err := p.NewClient(namespace)
+			client, err := p.NewServingClient(namespace)
 			if err != nil {
 				return err
 			}
@@ -78,12 +80,12 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 					return err
 				}
 				service = service.DeepCopy()
-
+				latestRevisionBeforeUpdate := service.Status.LatestReadyRevisionName
 				var baseRevision *v1alpha1.Revision
 				if !cmd.Flags().Changed("image") && editFlags.LockToDigest {
 					baseRevision, err = client.GetBaseRevision(service)
 					if _, ok := err.(*serving.NoBaseRevisionError); ok {
-						fmt.Fprintf(cmd.OutOrStdout(), "Warning: No reivision found to update image digest")
+						fmt.Fprintf(cmd.OutOrStdout(), "Warning: No revision found to update image digest")
 					}
 				}
 				err = editFlags.Apply(service, baseRevision, cmd)
@@ -110,15 +112,20 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 					return err
 				}
 
+				out := cmd.OutOrStdout()
 				if !waitFlags.Async {
-					out := cmd.OutOrStdout()
+					fmt.Fprintf(out, "Updating Service '%s' in namespace '%s':\n", args[0], namespace)
+					fmt.Fprintln(out, "")
 					err := waitForService(client, name, out, waitFlags.TimeoutInSeconds)
 					if err != nil {
 						return err
 					}
+					fmt.Fprintln(out, "")
+					return showUrl(client, name, latestRevisionBeforeUpdate, "updated", out)
+				} else {
+					fmt.Fprintf(out, "Service '%s' updated in namespace '%s'.\n", args[0], namespace)
 				}
 
-				fmt.Fprintf(cmd.OutOrStdout(), "Service '%s' updated in namespace '%s'.\n", args[0], namespace)
 				return nil
 			}
 		},
@@ -129,7 +136,7 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 
 	commands.AddNamespaceFlags(serviceUpdateCommand.Flags(), false)
 	editFlags.AddUpdateFlags(serviceUpdateCommand)
-	waitFlags.AddConditionWaitFlags(serviceUpdateCommand, 60, "Update", "service")
+	waitFlags.AddConditionWaitFlags(serviceUpdateCommand, commands.WaitDefaultTimeout, "Update", "service")
 	trafficFlags.Add(serviceUpdateCommand)
 	return serviceUpdateCommand
 }

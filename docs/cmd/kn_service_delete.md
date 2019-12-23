@@ -25,7 +25,7 @@ kn service delete NAME [flags]
 
 ```
   -h, --help               help for delete
-  -n, --namespace string   List the requested object(s) in given namespace.
+  -n, --namespace string   Specify the namespace to operate in.
 ```
 
 ### Options inherited from parent commands

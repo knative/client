@@ -37,7 +37,7 @@ Available Commands:
 
 Flags:
   -h, --help                     help for plugin
-      --lookup-plugins-in-path   look for kn plugins in $PATH
+      --lookup-plugins           look for kn plugins in $PATH
       --plugins-dir string       kn plugins directory (default "~/.kn/plugins")
 
 Global Flags:
@@ -68,7 +68,7 @@ func TestNewPluginCommand(t *testing.T) {
 		assert.Assert(t, pluginCmd.Short == "Plugin command group")
 		assert.Assert(t, strings.Contains(pluginCmd.Long, "Provides utilities for interacting and managing with kn plugins."))
 		assert.Assert(t, pluginCmd.Flags().Lookup("plugins-dir") != nil)
-		assert.Assert(t, pluginCmd.Flags().Lookup("lookup-plugins-in-path") != nil)
+		assert.Assert(t, pluginCmd.Flags().Lookup("lookup-plugins") != nil)
 		assert.Assert(t, pluginCmd.Args == nil)
 	})
 }

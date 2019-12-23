@@ -21,11 +21,13 @@ import (
 
 	"gotest.tools/assert"
 
+	"knative.dev/client/pkg/util"
+	"knative.dev/pkg/ptr"
 	"knative.dev/serving/pkg/apis/autoscaling"
-	"knative.dev/serving/pkg/apis/serving/v1beta1"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
@@ -42,7 +44,7 @@ func TestUpdateAutoscalingAnnotations(t *testing.T) {
 	if annos[autoscaling.TargetAnnotationKey] != "1000" {
 		t.Error("target failed")
 	}
-	if template.Spec.ContainerConcurrency != 1000 {
+	if *template.Spec.ContainerConcurrency != int64(1000) {
 		t.Error("limit failed")
 	}
 }
@@ -62,7 +64,7 @@ func TestUpdateInvalidAutoscalingAnnotations(t *testing.T) {
 	if annos[autoscaling.TargetAnnotationKey] != "1000" {
 		t.Error("target failed")
 	}
-	if template.Spec.ContainerConcurrency != 1000 {
+	if *template.Spec.ContainerConcurrency != 1000 {
 		t.Error("limit failed")
 	}
 }
@@ -78,15 +80,15 @@ func TestUpdateEnvVarsNew(t *testing.T) {
 }
 
 func testUpdateEnvVarsNew(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, container *corev1.Container) {
-	env := map[string]string{
-		"a": "foo",
-		"b": "bar",
+	env := []corev1.EnvVar{
+		{Name: "a", Value: "foo"},
+		{Name: "b", Value: "bar"},
 	}
-	err := UpdateEnvVars(template, env, []string{})
+	found, err := EnvToMap(env)
 	assert.NilError(t, err)
-	found, err := EnvToMap(container.Env)
+	err = UpdateEnvVars(template, found, []string{})
 	assert.NilError(t, err)
-	assert.DeepEqual(t, env, found)
+	assert.DeepEqual(t, env, container.Env)
 }
 
 func TestUpdateEnvVarsAppendOld(t *testing.T) {
@@ -149,20 +151,19 @@ func testUpdateEnvVarsAppendOld(t *testing.T, template *servingv1alpha1.Revision
 	container.Env = []corev1.EnvVar{
 		{Name: "a", Value: "foo"},
 	}
+
 	env := map[string]string{
 		"b": "bar",
 	}
 	err := UpdateEnvVars(template, env, []string{})
 	assert.NilError(t, err)
 
-	expected := map[string]string{
-		"a": "foo",
-		"b": "bar",
+	expected := []corev1.EnvVar{
+		{Name: "a", Value: "foo"},
+		{Name: "b", Value: "bar"},
 	}
 
-	found, err := EnvToMap(container.Env)
-	assert.NilError(t, err)
-	assert.DeepEqual(t, expected, found)
+	assert.DeepEqual(t, expected, container.Env)
 }
 
 func TestUpdateEnvVarsModify(t *testing.T) {
@@ -212,13 +213,11 @@ func testUpdateEnvVarsRemove(t *testing.T, revision *servingv1alpha1.RevisionTem
 	err := UpdateEnvVars(revision, map[string]string{}, remove)
 	assert.NilError(t, err)
 
-	expected := map[string]string{
-		"a": "foo",
+	expected := []corev1.EnvVar{
+		{"a", "foo", nil},
 	}
 
-	found, err := EnvToMap(container.Env)
-	assert.NilError(t, err)
-	assert.DeepEqual(t, expected, found)
+	assert.DeepEqual(t, expected, container.Env)
 }
 
 func TestUpdateMinScale(t *testing.T) {
@@ -259,7 +258,7 @@ func TestUpdateConcurrencyLimit(t *testing.T) {
 	err := UpdateConcurrencyLimit(template, 10)
 	assert.NilError(t, err)
 	// Verify update is successful or not
-	checkContainerConcurrency(t, template, 10)
+	checkContainerConcurrency(t, template, ptr.Int64(int64(10)))
 	// Update with invalid value
 	err = UpdateConcurrencyLimit(template, -1)
 	assert.ErrorContains(t, err, "invalid")
@@ -336,17 +335,13 @@ func testUpdateEnvVarsAll(t *testing.T, template *servingv1alpha1.RevisionTempla
 	err := UpdateEnvVars(template, env, remove)
 	assert.NilError(t, err)
 
-	expected := map[string]string{
-		"a": "fancy",
-		"b": "boo",
-		"c": "caroline",
+	expected := []corev1.EnvVar{
+		{Name: "a", Value: "fancy"},
+		{Name: "b", Value: "boo"},
+		{Name: "c", Value: "caroline"},
 	}
 
-	found, err := EnvToMap(container.Env)
-	assert.NilError(t, err)
-	if !reflect.DeepEqual(expected, found) {
-		t.Fatalf("Env did not match expected %v, found %v", env, found)
-	}
+	assert.DeepEqual(t, expected, container.Env)
 }
 
 func TestUpdateLabelsNew(t *testing.T) {
@@ -415,6 +410,236 @@ func TestUpdateLabelsRemoveExisting(t *testing.T) {
 	assert.DeepEqual(t, expected, actual)
 }
 
+func TestUpdateEnvFrom(t *testing.T) {
+	template, container := getV1alpha1RevisionTemplateWithOldFields()
+	container.EnvFrom = append(container.EnvFrom,
+		corev1.EnvFromSource{
+			ConfigMapRef: &corev1.ConfigMapEnvSource{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "config-map-existing-name",
+				}}},
+		corev1.EnvFromSource{
+			SecretRef: &corev1.SecretEnvSource{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "secret-existing-name",
+				}}},
+	)
+	UpdateEnvFrom(template,
+		[]string{"config-map:config-map-new-name-1", "secret:secret-new-name-1"},
+		[]string{"config-map:config-map-existing-name", "secret:secret-existing-name"})
+	assert.Equal(t, len(container.EnvFrom), 2)
+	assert.Equal(t, container.EnvFrom[0].ConfigMapRef.Name, "config-map-new-name-1")
+	assert.Equal(t, container.EnvFrom[1].SecretRef.Name, "secret-new-name-1")
+}
+
+func TestUpdateVolumeMountsAndVolumes(t *testing.T) {
+	template, container := getV1alpha1RevisionTemplateWithOldFields()
+	template.Spec.Volumes = append(template.Spec.Volumes,
+		corev1.Volume{
+			Name: "existing-config-map-volume-name-1",
+			VolumeSource: corev1.VolumeSource{
+				ConfigMap: &corev1.ConfigMapVolumeSource{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: "existing-config-map-1",
+					}}}},
+		corev1.Volume{
+			Name: "existing-config-map-volume-name-2",
+			VolumeSource: corev1.VolumeSource{
+				ConfigMap: &corev1.ConfigMapVolumeSource{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: "existing-config-map-2",
+					}}}},
+		corev1.Volume{
+			Name: "existing-secret-volume-name-1",
+			VolumeSource: corev1.VolumeSource{
+				Secret: &corev1.SecretVolumeSource{
+					SecretName: "existing-secret-1",
+				}}},
+		corev1.Volume{
+			Name: "existing-secret-volume-name-2",
+			VolumeSource: corev1.VolumeSource{
+				Secret: &corev1.SecretVolumeSource{
+					SecretName: "existing-secret-2",
+				}}})
+
+	container.VolumeMounts = append(container.VolumeMounts,
+		corev1.VolumeMount{
+			Name:      "existing-config-map-volume-name-1",
+			ReadOnly:  true,
+			MountPath: "/existing-config-map-1/mount/path",
+		},
+		corev1.VolumeMount{
+			Name:      "existing-config-map-volume-name-2",
+			ReadOnly:  true,
+			MountPath: "/existing-config-map-2/mount/path",
+		},
+		corev1.VolumeMount{
+			Name:      "existing-secret-volume-name-1",
+			ReadOnly:  true,
+			MountPath: "/existing-secret-1/mount/path",
+		},
+		corev1.VolumeMount{
+			Name:      "existing-secret-volume-name-2",
+			ReadOnly:  true,
+			MountPath: "/existing-secret-2/mount/path",
+		},
+	)
+
+	err := UpdateVolumeMountsAndVolumes(template,
+		util.NewOrderedMapWithKVStrings([][]string{{"/new-config-map/mount/path", "new-config-map-volume-name"}}),
+		[]string{},
+		util.NewOrderedMapWithKVStrings([][]string{{"new-config-map-volume-name", "config-map:new-config-map"}}),
+		[]string{})
+	assert.NilError(t, err)
+
+	err = UpdateVolumeMountsAndVolumes(template,
+		util.NewOrderedMapWithKVStrings([][]string{{"/updated-config-map/mount/path", "existing-config-map-volume-name-2"}}),
+		[]string{},
+		util.NewOrderedMapWithKVStrings([][]string{{"existing-config-map-volume-name-2", "config-map:updated-config-map"}}),
+		[]string{})
+	assert.NilError(t, err)
+
+	err = UpdateVolumeMountsAndVolumes(template,
+		util.NewOrderedMapWithKVStrings([][]string{{"/new-secret/mount/path", "new-secret-volume-name"}}),
+		[]string{},
+		util.NewOrderedMapWithKVStrings([][]string{{"new-secret-volume-name", "secret:new-secret"}}),
+		[]string{})
+	assert.NilError(t, err)
+
+	err = UpdateVolumeMountsAndVolumes(template,
+		util.NewOrderedMapWithKVStrings([][]string{{"/updated-secret/mount/path", "existing-secret-volume-name-2"}}),
+		[]string{"/existing-config-map-1/mount/path",
+			"/existing-secret-1/mount/path"},
+		util.NewOrderedMapWithKVStrings([][]string{{"existing-secret-volume-name-2", "secret:updated-secret"}}),
+		[]string{"existing-config-map-volume-name-1",
+			"existing-secret-volume-name-1"})
+	assert.NilError(t, err)
+
+	assert.Equal(t, len(template.Spec.Volumes), 4)
+	assert.Equal(t, len(container.VolumeMounts), 6)
+	assert.Equal(t, template.Spec.Volumes[0].Name, "existing-config-map-volume-name-2")
+	assert.Equal(t, template.Spec.Volumes[0].ConfigMap.Name, "updated-config-map")
+	assert.Equal(t, template.Spec.Volumes[1].Name, "existing-secret-volume-name-2")
+	assert.Equal(t, template.Spec.Volumes[1].Secret.SecretName, "updated-secret")
+	assert.Equal(t, template.Spec.Volumes[2].Name, "new-config-map-volume-name")
+	assert.Equal(t, template.Spec.Volumes[2].ConfigMap.Name, "new-config-map")
+	assert.Equal(t, template.Spec.Volumes[3].Name, "new-secret-volume-name")
+	assert.Equal(t, template.Spec.Volumes[3].Secret.SecretName, "new-secret")
+
+	assert.Equal(t, container.VolumeMounts[0].Name, "existing-config-map-volume-name-2")
+	assert.Equal(t, container.VolumeMounts[0].MountPath, "/existing-config-map-2/mount/path")
+	assert.Equal(t, container.VolumeMounts[1].Name, "existing-secret-volume-name-2")
+	assert.Equal(t, container.VolumeMounts[1].MountPath, "/existing-secret-2/mount/path")
+	assert.Equal(t, container.VolumeMounts[2].Name, "new-config-map-volume-name")
+	assert.Equal(t, container.VolumeMounts[2].MountPath, "/new-config-map/mount/path")
+	assert.Equal(t, container.VolumeMounts[3].Name, "existing-config-map-volume-name-2")
+	assert.Equal(t, container.VolumeMounts[3].MountPath, "/updated-config-map/mount/path")
+	assert.Equal(t, container.VolumeMounts[4].Name, "new-secret-volume-name")
+	assert.Equal(t, container.VolumeMounts[4].MountPath, "/new-secret/mount/path")
+	assert.Equal(t, container.VolumeMounts[5].Name, "existing-secret-volume-name-2")
+	assert.Equal(t, container.VolumeMounts[5].MountPath, "/updated-secret/mount/path")
+}
+
+func TestUpdateServiceAccountName(t *testing.T) {
+	template, _ := getV1alpha1RevisionTemplateWithOldFields()
+	template.Spec.ServiceAccountName = ""
+
+	UpdateServiceAccountName(template, "foo-bar")
+	assert.Equal(t, template.Spec.ServiceAccountName, "foo-bar")
+
+	UpdateServiceAccountName(template, "")
+	assert.Equal(t, template.Spec.ServiceAccountName, "")
+}
+
+func TestUpdateAnnotationsNew(t *testing.T) {
+	service, template, _ := getV1alpha1Service()
+
+	annotations := map[string]string{
+		"a": "foo",
+		"b": "bar",
+	}
+	err := UpdateAnnotations(service, template, annotations, []string{})
+	assert.NilError(t, err)
+
+	actual := service.ObjectMeta.Annotations
+	if !reflect.DeepEqual(annotations, actual) {
+		t.Fatalf("Service annotations did not match expected %v found %v", annotations, actual)
+	}
+
+	actual = template.ObjectMeta.Annotations
+	if !reflect.DeepEqual(annotations, actual) {
+		t.Fatalf("Template annotations did not match expected %v found %v", annotations, actual)
+	}
+}
+
+func TestUpdateAnnotationsExisting(t *testing.T) {
+	service, template, _ := getV1alpha1Service()
+	service.ObjectMeta.Annotations = map[string]string{"a": "foo", "b": "bar"}
+	template.ObjectMeta.Annotations = map[string]string{"a": "foo", "b": "bar"}
+
+	annotations := map[string]string{
+		"a": "notfoo",
+		"c": "bat",
+		"d": "",
+	}
+	err := UpdateAnnotations(service, template, annotations, []string{})
+	assert.NilError(t, err)
+	expected := map[string]string{
+		"a": "notfoo",
+		"b": "bar",
+		"c": "bat",
+		"d": "",
+	}
+
+	actual := service.ObjectMeta.Annotations
+	assert.DeepEqual(t, expected, actual)
+
+	actual = template.ObjectMeta.Annotations
+	assert.DeepEqual(t, expected, actual)
+}
+
+func TestUpdateAnnotationsRemoveExisting(t *testing.T) {
+	service, template, _ := getV1alpha1Service()
+	service.ObjectMeta.Annotations = map[string]string{"a": "foo", "b": "bar"}
+	template.ObjectMeta.Annotations = map[string]string{"a": "foo", "b": "bar"}
+
+	remove := []string{"b"}
+	err := UpdateAnnotations(service, template, map[string]string{}, remove)
+	assert.NilError(t, err)
+	expected := map[string]string{
+		"a": "foo",
+	}
+
+	actual := service.ObjectMeta.Annotations
+	assert.DeepEqual(t, expected, actual)
+
+	actual = template.ObjectMeta.Annotations
+	assert.DeepEqual(t, expected, actual)
+}
+
+func TestGenerateVolumeName(t *testing.T) {
+	actual := []string{
+		"Ab12~`!@#$%^&*()-=_+[]{}|/\\<>,./?:;\"'xZ",
+		"/Ab12~`!@#$%^&*()-=_+[]{}|/\\<>,./?:;\"'xZ/",
+		"",
+		"/",
+	}
+
+	expected := []string{
+		"ab12---------------------.----..-----xz",
+		"ab12---------------------.----..-----xz.",
+		"",
+		"",
+	}
+
+	for i := range actual {
+		actualName := GenerateVolumeName(actual[i])
+		expectedName := appendCheckSum(expected[i], actual[i])
+		assert.Equal(t, actualName, expectedName)
+	}
+}
+
+//
 // =========================================================================================================
 
 func getV1alpha1RevisionTemplateWithOldFields() (*servingv1alpha1.RevisionTemplateSpec, *corev1.Container) {
@@ -439,7 +664,7 @@ func getV1alpha1Config() (*servingv1alpha1.RevisionTemplateSpec, *corev1.Contain
 			Namespace: "default",
 		},
 		Spec: servingv1alpha1.RevisionSpec{
-			RevisionSpec: v1beta1.RevisionSpec{
+			RevisionSpec: servingv1.RevisionSpec{
 				PodSpec: corev1.PodSpec{
 					Containers: containers,
 				},
@@ -490,8 +715,8 @@ func checkAnnotationValue(t *testing.T, template *servingv1alpha1.RevisionTempla
 	}
 }
 
-func checkContainerConcurrency(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, value int) {
-	if got, want := template.Spec.ContainerConcurrency, value; got != v1beta1.RevisionContainerConcurrencyType(want) {
+func checkContainerConcurrency(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, value *int64) {
+	if got, want := *template.Spec.ContainerConcurrency, *value; got != want {
 		t.Errorf("Failed to update containerConcurrency value: got=%d, want=%d", got, want)
 	}
 }
@@ -500,5 +725,5 @@ func updateConcurrencyConfiguration(template *servingv1alpha1.RevisionTemplateSp
 	UpdateMinScale(template, minScale)
 	UpdateMaxScale(template, maxScale)
 	UpdateConcurrencyTarget(template, target)
-	UpdateConcurrencyLimit(template, limit)
+	UpdateConcurrencyLimit(template, int64(limit))
 }

@@ -23,6 +23,7 @@ import (
 	"gotest.tools/assert/cmp"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/watch"
+	"knative.dev/serving/pkg/client/clientset/versioned/scheme"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -35,13 +36,13 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	client_testing "k8s.io/client-go/testing"
 
-	"knative.dev/client/pkg/serving"
+	"knative.dev/client/pkg/util"
 	"knative.dev/client/pkg/wait"
 )
 
 var testNamespace = "test-ns"
 
-func setup() (serving fake.FakeServingV1alpha1, client KnClient) {
+func setup() (serving fake.FakeServingV1alpha1, client KnServingClient) {
 	serving = fake.FakeServingV1alpha1{Fake: &client_testing.Fake{}}
 	client = NewKnServingClient(&serving, testNamespace)
 	return
@@ -389,8 +390,9 @@ func TestWaitForService(t *testing.T) {
 		})
 
 	t.Run("wait on a service to become ready with success", func(t *testing.T) {
-		err := client.WaitForService(serviceName, 60*time.Second)
+		err, duration := client.WaitForService(serviceName, 60*time.Second, wait.NoopMessageCallback())
 		assert.NilError(t, err)
+		assert.Assert(t, duration > 0)
 	})
 }
 
@@ -422,9 +424,8 @@ func TestGetBaseRevision(t *testing.T) {
 		if c.foundRevisionImage != "" {
 			revision.Spec.Containers[0].Image = c.foundRevisionImage
 			return true, revision, nil
-		} else {
-			return true, nil, errors.NewNotFound(v1alpha1.Resource("revision"), name)
 		}
+		return true, nil, errors.NewNotFound(v1alpha1.Resource("revision"), name)
 	})
 	for _, c = range cases {
 		service := v1alpha1.Service{}
@@ -481,7 +482,7 @@ func TestGetConfiguration(t *testing.T) {
 }
 
 func validateGroupVersionKind(t *testing.T, obj runtime.Object) {
-	gvkExpected, err := serving.GetGroupVersionKind(obj, v1alpha1.SchemeGroupVersion)
+	gvkExpected, err := util.GetGroupVersionKind(obj, v1alpha1.SchemeGroupVersion, scheme.Scheme)
 	assert.NilError(t, err)
 	gvkGiven := obj.GetObjectKind().GroupVersionKind()
 	assert.Equal(t, *gvkExpected, gvkGiven, "GVK should be the same")
@@ -509,8 +510,8 @@ func newRoute(name string) *v1alpha1.Route {
 
 func getServiceEvents(name string) []watch.Event {
 	return []watch.Event{
-		{watch.Added, wait.CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "")},
-		{watch.Modified, wait.CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionTrue, "")},
-		{watch.Modified, wait.CreateTestServiceWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "")},
+		{watch.Added, wait.CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "", "msg1")},
+		{watch.Modified, wait.CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionTrue, "", "msg2")},
+		{watch.Modified, wait.CreateTestServiceWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "", "")},
 	}
 }

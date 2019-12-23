@@ -20,7 +20,6 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"os"
-	"strings"
 
 	"k8s.io/apimachinery/pkg/util/sets"
 )
@@ -56,11 +55,7 @@ func (t *LoggingHttpTransport) RoundTrip(r *http.Request) (*http.Response, error
 	for k, v := range r.Header {
 		if sensitiveRequestHeaders.Has(k) {
 			redacted[k] = v
-			l := 0
-			for _, h := range v {
-				l += len(h)
-			}
-			r.Header.Set(k, strings.Repeat("*", l))
+			r.Header.Set(k, "********")
 		}
 	}
 	reqBytes, err := httputil.DumpRequestOut(r, true)

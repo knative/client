@@ -53,7 +53,7 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			client, err := p.NewClient(namespace)
+			client, err := p.NewServingClient(namespace)
 			if err != nil {
 				return err
 			}
@@ -122,7 +122,7 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 	return revisionListCommand
 }
 
-func getRevisionInfo(args []string, client v1alpha12.KnClient) (*v1alpha1.RevisionList, error) {
+func getRevisionInfo(args []string, client v1alpha12.KnServingClient) (*v1alpha1.RevisionList, error) {
 	var (
 		revisionList *v1alpha1.RevisionList
 		err          error

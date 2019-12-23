@@ -24,7 +24,7 @@ Start by creating [a GitHub account](https://github.com/join), then set up
 You must install these tools:
 
 1. [`go`](https://golang.org/doc/install): The language `Knative Client` is
-   built in (1.12 or later)
+   built in (1.13 or later)
 1. [`goimports`](https://godoc.org/golang.org/x/tools/cmd/goimports)
 1. `gcc` compiler: Used during testing. Not needed if golang is installed
    via the installer
@@ -83,6 +83,10 @@ You can link that script into a directory within your search `$PATH`. This allow
 See `build.sh --help` for a full list of options and usage examples.
 
 In the end, the build results in `kn` binary in your current directory, which can be directly executed.
+
+**Testing:**
+
+Please follow the [guide](./test) here to test the `knative client`.
 
 **Notes:**
 

@@ -107,14 +107,14 @@ func TestPluginList(t *testing.T) {
 		assert.Assert(t, pluginListCmd.RunE != nil)
 	})
 
-	t.Run("when pluginsDir does not include any plugins", func(t *testing.T) {
-		t.Run("when --lookup-plugins-in-path is true", func(t *testing.T) {
+	t.Run("when plugins-dir does not include any plugins", func(t *testing.T) {
+		t.Run("when --lookup-plugins is true", func(t *testing.T) {
 			t.Run("no plugins installed", func(t *testing.T) {
 
 				t.Run("warns user that no plugins found in verbose mode", func(t *testing.T) {
 					ctx := setup(t)
 					defer ctx.cleanup()
-					err := ctx.execute("plugin", "list", "--lookup-plugins-in-path=true", "--verbose")
+					err := ctx.execute("plugin", "list", "--lookup-plugins=true", "--verbose")
 					assert.NilError(t, err)
 					assert.Assert(t, util.ContainsAll(ctx.output(), "No plugins found"))
 				})
@@ -122,7 +122,7 @@ func TestPluginList(t *testing.T) {
 				t.Run("no output when no plugins found", func(t *testing.T) {
 					ctx := setup(t)
 					defer ctx.cleanup()
-					err := ctx.execute("plugin", "list", "--lookup-plugins-in-path=true")
+					err := ctx.execute("plugin", "list", "--lookup-plugins=true")
 					assert.NilError(t, err)
 					assert.Equal(t, ctx.output(), "No plugins found.\n")
 				})
@@ -138,7 +138,7 @@ func TestPluginList(t *testing.T) {
 						err := ctx.createTestPlugin(KnTestPluginName, FileModeExecutable, true)
 						assert.NilError(t, err)
 
-						err = ctx.execute("plugin", "list", "--lookup-plugins-in-path=true")
+						err = ctx.execute("plugin", "list", "--lookup-plugins=true")
 						assert.NilError(t, err)
 						assert.Assert(t, util.ContainsAll(ctx.output(), KnTestPluginName))
 					})
@@ -152,7 +152,7 @@ func TestPluginList(t *testing.T) {
 						err := ctx.createTestPlugin(KnTestPluginName, FileModeReadable, false)
 						assert.NilError(t, err)
 
-						err = ctx.execute("plugin", "list", "--lookup-plugins-in-path=false")
+						err = ctx.execute("plugin", "list", "--lookup-plugins=false")
 						assert.NilError(t, err)
 						assert.Assert(t, util.ContainsAll(ctx.output(), "WARNING", "not executable", "current user"))
 					})
@@ -177,7 +177,7 @@ func TestPluginList(t *testing.T) {
 						err = ctx.createTestPluginWithPath(KnTestPluginName, FileModeExecutable, tmpPathDir2)
 						assert.NilError(t, err)
 
-						err = ctx.execute("plugin", "list", "--lookup-plugins-in-path=true")
+						err = ctx.execute("plugin", "list", "--lookup-plugins=true")
 						assert.NilError(t, err)
 						assert.Assert(t, util.ContainsAll(ctx.output(), "WARNING", "shadowed", "ignored"))
 					})
@@ -197,7 +197,7 @@ func TestPluginList(t *testing.T) {
 						err := ctx.createTestPlugin("kn-fake", FileModeExecutable, true)
 						assert.NilError(t, err)
 
-						err = ctx.execute("plugin", "list", "--lookup-plugins-in-path=true")
+						err = ctx.execute("plugin", "list", "--lookup-plugins=true")
 						assert.ErrorContains(t, err, "overwrite", "built-in")
 						assert.Assert(t, util.ContainsAll(ctx.output(), "ERROR", "overwrite", "built-in"))
 					})
@@ -206,7 +206,7 @@ func TestPluginList(t *testing.T) {
 		})
 	})
 
-	t.Run("when pluginsDir has plugins", func(t *testing.T) {
+	t.Run("when plugins-dir has plugins", func(t *testing.T) {
 		t.Run("list plugins in --plugins-dir", func(t *testing.T) {
 			ctx := setup(t)
 			defer ctx.cleanup()

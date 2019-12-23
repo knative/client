@@ -33,7 +33,7 @@ kn revision list [name] [flags]
   -A, --all-namespaces                If present, list the requested object(s) across all namespaces. Namespace in current context is ignored even if specified with --namespace.
       --allow-missing-template-keys   If true, ignore any errors in templates when a field or map key is missing in the template. Only applies to golang and jsonpath output formats. (default true)
   -h, --help                          help for list
-  -n, --namespace string              List the requested object(s) in given namespace.
+  -n, --namespace string              Specify the namespace to operate in.
       --no-headers                    When using the default output format, don't print headers (default: print headers).
   -o, --output string                 Output format. One of: json|yaml|name|go-template|go-template-file|template|templatefile|jsonpath|jsonpath-file.
   -s, --service string                Service name

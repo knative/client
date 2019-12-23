@@ -23,8 +23,9 @@ import (
 	client_testing "k8s.io/client-go/testing"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/util"
+	"knative.dev/pkg/ptr"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
-	"knative.dev/serving/pkg/apis/serving/v1beta1"
 )
 
 func fakeRouteList(args []string, response *v1alpha1.RouteList) (action client_testing.Action, output []string, err error) {
@@ -67,9 +68,9 @@ func TestRouteListDefaultOutput(t *testing.T) {
 	} else if !action.Matches("list", "routes") {
 		t.Errorf("Bad action %v", action)
 	}
-	assert.Check(t, util.ContainsAll(output[0], "NAME", "URL", "AGE", "CONDITIONS", "TRAFFIC"))
-	assert.Check(t, util.ContainsAll(output[1], "foo", "100% -> foo-01234"))
-	assert.Check(t, util.ContainsAll(output[2], "bar", "100% -> bar-98765"))
+	assert.Check(t, util.ContainsAll(output[0], "NAME", "URL", "READY"))
+	assert.Check(t, util.ContainsAll(output[1], "foo"))
+	assert.Check(t, util.ContainsAll(output[2], "bar"))
 }
 
 func TestRouteListDefaultOutputNoHeaders(t *testing.T) {
@@ -84,9 +85,9 @@ func TestRouteListDefaultOutputNoHeaders(t *testing.T) {
 		t.Errorf("Bad action %v", action)
 	}
 
-	assert.Check(t, util.ContainsNone(output[0], "NAME", "URL", "GENERATION", "AGE", "CONDITIONS", "READY", "REASON"))
-	assert.Check(t, util.ContainsAll(output[0], "foo", "100% -> foo-01234"))
-	assert.Check(t, util.ContainsAll(output[1], "bar", "100% -> bar-98765"))
+	assert.Check(t, util.ContainsNone(output[0], "NAME", "URL", "READY"))
+	assert.Check(t, util.ContainsAll(output[0], "foo"))
+	assert.Check(t, util.ContainsAll(output[1], "bar"))
 
 }
 
@@ -100,8 +101,8 @@ func TestRouteListWithTwoTargetsOutput(t *testing.T) {
 	} else if !action.Matches("list", "routes") {
 		t.Errorf("Bad action %v", action)
 	}
-	assert.Check(t, util.ContainsAll(output[0], "NAME", "URL", "AGE", "CONDITIONS", "TRAFFIC"))
-	assert.Check(t, util.ContainsAll(output[1], "foo", "20% -> foo-01234, 80% -> foo-98765"))
+	assert.Check(t, util.ContainsAll(output[0], "NAME", "URL", "READY"))
+	assert.Check(t, util.ContainsAll(output[1], "foo"))
 }
 
 func createMockRouteMeta(name string) *v1alpha1.Route {
@@ -115,9 +116,9 @@ func createMockRouteMeta(name string) *v1alpha1.Route {
 
 func createMockTrafficTarget(revision string, percent int) *v1alpha1.TrafficTarget {
 	return &v1alpha1.TrafficTarget{
-		TrafficTarget: v1beta1.TrafficTarget{
+		TrafficTarget: servingv1.TrafficTarget{
 			RevisionName: revision,
-			Percent:      percent,
+			Percent:      ptr.Int64(int64(percent)),
 		},
 	}
 }

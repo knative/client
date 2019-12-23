@@ -22,12 +22,13 @@ import (
 	v1alpha12 "knative.dev/client/pkg/serving/v1alpha1"
 
 	"github.com/spf13/cobra"
+	"knative.dev/client/pkg/kn/commands/flags"
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
 // NewrouteListCommand represents 'kn route list' command
 func NewRouteListCommand(p *commands.KnParams) *cobra.Command {
-	routeListFlags := NewRouteListFlags()
+	routeListFlags := flags.NewListPrintFlags(RouteListHandlers)
 	routeListCommand := &cobra.Command{
 		Use:   "list NAME",
 		Short: "List available routes.",
@@ -46,7 +47,7 @@ func NewRouteListCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			client, err := p.NewClient(namespace)
+			client, err := p.NewServingClient(namespace)
 			if err != nil {
 				return err
 			}

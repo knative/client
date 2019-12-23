@@ -87,6 +87,8 @@ func TestElideAuthorizationHeader(t *testing.T) {
 	assert.NilError(t, e)
 	s := out.String()
 	assert.Assert(t, strings.Contains(s, "REQUEST"))
+	assert.Assert(t, strings.Contains(s, "Authorization"))
+	assert.Assert(t, strings.Contains(s, "********"))
 	assert.Assert(t, strings.Contains(s, "la la normal text"))
 	assert.Assert(t, !strings.Contains(s, "SECRET"))
 	assert.Assert(t, strings.Contains(s, "RESPONSE"))

@@ -20,22 +20,29 @@ import (
 
 	"k8s.io/apimachinery/pkg/fields"
 	"knative.dev/pkg/apis"
+	"knative.dev/serving/pkg/client/clientset/versioned/scheme"
 
 	"knative.dev/client/pkg/serving"
+	"knative.dev/client/pkg/util"
 	"knative.dev/client/pkg/wait"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
-	kn_errors "knative.dev/client/pkg/errors"
+	"k8s.io/apimachinery/pkg/watch"
 	api_serving "knative.dev/serving/pkg/apis/serving"
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 	client_v1alpha1 "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
+
+	kn_errors "knative.dev/client/pkg/errors"
 )
 
 // Kn interface to serving. All methods are relative to the
 // namespace specified during construction
-type KnClient interface {
+type KnServingClient interface {
+
+	// Namespace in which this client is operating for
+	Namespace() string
 
 	// Get a service by its unique name
 	GetService(name string) (*v1alpha1.Service, error)
@@ -52,8 +59,9 @@ type KnClient interface {
 	// Delete a service by name
 	DeleteService(name string) error
 
-	// Wait for a service to become ready, but not longer than provided timeout
-	WaitForService(name string, timeout time.Duration) error
+	// Wait for a service to become ready, but not longer than provided timeout.
+	// Return error and how long has been waited
+	WaitForService(name string, timeout time.Duration, msgCallback wait.MessageCallback) (error, time.Duration)
 
 	// Get a configuration by name
 	GetConfiguration(name string) (*v1alpha1.Configuration, error)
@@ -121,34 +129,44 @@ func WithService(service string) ListConfig {
 	}
 }
 
-type knClient struct {
+type knServingClient struct {
 	client    client_v1alpha1.ServingV1alpha1Interface
 	namespace string
 }
 
 // Create a new client facade for the provided namespace
-func NewKnServingClient(client client_v1alpha1.ServingV1alpha1Interface, namespace string) KnClient {
-	return &knClient{
+func NewKnServingClient(client client_v1alpha1.ServingV1alpha1Interface, namespace string) KnServingClient {
+	return &knServingClient{
 		client:    client,
 		namespace: namespace,
 	}
 }
 
+// Return the client's namespace
+func (cl *knServingClient) Namespace() string {
+	return cl.namespace
+}
+
 // Get a service by its unique name
-func (cl *knClient) GetService(name string) (*v1alpha1.Service, error) {
+func (cl *knServingClient) GetService(name string) (*v1alpha1.Service, error) {
 	service, err := cl.client.Services(cl.namespace).Get(name, v1.GetOptions{})
 	if err != nil {
 		return nil, kn_errors.GetError(err)
 	}
-	err = serving.UpdateGroupVersionKind(service, v1alpha1.SchemeGroupVersion)
+	err = updateServingGvk(service)
 	if err != nil {
 		return nil, err
 	}
 	return service, nil
 }
 
+func (cl *knServingClient) WatchService(name string, timeout time.Duration) (watch.Interface, error) {
+	return wait.NewWatcher(cl.client.Services(cl.namespace).Watch,
+		cl.client.RESTClient(), cl.namespace, "services", name, timeout)
+}
+
 // List services
-func (cl *knClient) ListServices(config ...ListConfig) (*v1alpha1.ServiceList, error) {
+func (cl *knServingClient) ListServices(config ...ListConfig) (*v1alpha1.ServiceList, error) {
 	serviceList, err := cl.client.Services(cl.namespace).List(ListConfigs(config).toListOptions())
 	if err != nil {
 		return nil, kn_errors.GetError(err)
@@ -172,7 +190,7 @@ func (cl *knClient) ListServices(config ...ListConfig) (*v1alpha1.ServiceList, e
 }
 
 // Create a new service
-func (cl *knClient) CreateService(service *v1alpha1.Service) error {
+func (cl *knServingClient) CreateService(service *v1alpha1.Service) error {
 	_, err := cl.client.Services(cl.namespace).Create(service)
 	if err != nil {
 		return kn_errors.GetError(err)
@@ -181,7 +199,7 @@ func (cl *knClient) CreateService(service *v1alpha1.Service) error {
 }
 
 // Update the given service
-func (cl *knClient) UpdateService(service *v1alpha1.Service) error {
+func (cl *knServingClient) UpdateService(service *v1alpha1.Service) error {
 	_, err := cl.client.Services(cl.namespace).Update(service)
 	if err != nil {
 		return err
@@ -190,7 +208,7 @@ func (cl *knClient) UpdateService(service *v1alpha1.Service) error {
 }
 
 // Delete a service by name
-func (cl *knClient) DeleteService(serviceName string) error {
+func (cl *knServingClient) DeleteService(serviceName string) error {
 	err := cl.client.Services(cl.namespace).Delete(
 		serviceName,
 		&v1.DeleteOptions{},
@@ -203,13 +221,13 @@ func (cl *knClient) DeleteService(serviceName string) error {
 }
 
 // Wait for a service to become ready, but not longer than provided timeout
-func (cl *knClient) WaitForService(name string, timeout time.Duration) error {
-	waitForReady := newServiceWaitForReady(cl.client.Services(cl.namespace).Watch)
-	return waitForReady.Wait(name, timeout)
+func (cl *knServingClient) WaitForService(name string, timeout time.Duration, msgCallback wait.MessageCallback) (error, time.Duration) {
+	waitForReady := wait.NewWaitForReady("service", cl.WatchService, serviceConditionExtractor)
+	return waitForReady.Wait(name, timeout, msgCallback)
 }
 
 // Get the configuration for a service
-func (cl *knClient) GetConfiguration(name string) (*v1alpha1.Configuration, error) {
+func (cl *knServingClient) GetConfiguration(name string) (*v1alpha1.Configuration, error) {
 	configuration, err := cl.client.Configurations(cl.namespace).Get(name, v1.GetOptions{})
 	if err != nil {
 		return nil, err
@@ -222,7 +240,7 @@ func (cl *knClient) GetConfiguration(name string) (*v1alpha1.Configuration, erro
 }
 
 // Get a revision by name
-func (cl *knClient) GetRevision(name string) (*v1alpha1.Revision, error) {
+func (cl *knServingClient) GetRevision(name string) (*v1alpha1.Revision, error) {
 	revision, err := cl.client.Revisions(cl.namespace).Get(name, v1.GetOptions{})
 	if err != nil {
 		return nil, kn_errors.GetError(err)
@@ -248,11 +266,11 @@ var noBaseRevisionError = &NoBaseRevisionError{"base revision not found"}
 // a Service. It may not be findable with our heuristics, in which case this
 // method returns Errors()["no-base-revision"]. If it simply doesn't exist (like
 // it wasn't yet created or was deleted), return the usual not found error.
-func (cl *knClient) GetBaseRevision(service *v1alpha1.Service) (*v1alpha1.Revision, error) {
+func (cl *knServingClient) GetBaseRevision(service *v1alpha1.Service) (*v1alpha1.Revision, error) {
 	return getBaseRevision(cl, service)
 }
 
-func getBaseRevision(cl KnClient, service *v1alpha1.Service) (*v1alpha1.Revision, error) {
+func getBaseRevision(cl KnServingClient, service *v1alpha1.Service) (*v1alpha1.Revision, error) {
 	template, err := serving.RevisionTemplateOfService(service)
 	if err != nil {
 		return nil, err
@@ -291,7 +309,7 @@ func getBaseRevision(cl KnClient, service *v1alpha1.Service) (*v1alpha1.Revision
 }
 
 // Delete a revision by name
-func (cl *knClient) DeleteRevision(name string) error {
+func (cl *knServingClient) DeleteRevision(name string) error {
 	err := cl.client.Revisions(cl.namespace).Delete(name, &v1.DeleteOptions{})
 	if err != nil {
 		return kn_errors.GetError(err)
@@ -301,7 +319,7 @@ func (cl *knClient) DeleteRevision(name string) error {
 }
 
 // List revisions
-func (cl *knClient) ListRevisions(config ...ListConfig) (*v1alpha1.RevisionList, error) {
+func (cl *knServingClient) ListRevisions(config ...ListConfig) (*v1alpha1.RevisionList, error) {
 	revisionList, err := cl.client.Revisions(cl.namespace).List(ListConfigs(config).toListOptions())
 	if err != nil {
 		return nil, kn_errors.GetError(err)
@@ -310,12 +328,12 @@ func (cl *knClient) ListRevisions(config ...ListConfig) (*v1alpha1.RevisionList,
 }
 
 // Get a route by its unique name
-func (cl *knClient) GetRoute(name string) (*v1alpha1.Route, error) {
+func (cl *knServingClient) GetRoute(name string) (*v1alpha1.Route, error) {
 	route, err := cl.client.Routes(cl.namespace).Get(name, v1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
-	err = serving.UpdateGroupVersionKind(route, v1alpha1.SchemeGroupVersion)
+	err = updateServingGvk(route)
 	if err != nil {
 		return nil, err
 	}
@@ -323,7 +341,7 @@ func (cl *knClient) GetRoute(name string) (*v1alpha1.Route, error) {
 }
 
 // List routes
-func (cl *knClient) ListRoutes(config ...ListConfig) (*v1alpha1.RouteList, error) {
+func (cl *knServingClient) ListRoutes(config ...ListConfig) (*v1alpha1.RouteList, error) {
 	routeList, err := cl.client.Routes(cl.namespace).List(ListConfigs(config).toListOptions())
 	if err != nil {
 		return nil, err
@@ -375,17 +393,7 @@ func updateServingGvkForRouteList(routeList *v1alpha1.RouteList) (*v1alpha1.Rout
 
 // update with the v1alpha1 group + version
 func updateServingGvk(obj runtime.Object) error {
-	return serving.UpdateGroupVersionKind(obj, v1alpha1.SchemeGroupVersion)
-}
-
-// Create wait arguments for a Knative service which can be used to wait for
-// a create/update options to be finished
-// Can be used by `service_create` and `service_update`, hence this extra file
-func newServiceWaitForReady(watch wait.WatchFunc) wait.WaitForReady {
-	return wait.NewWaitForReady(
-		"service",
-		watch,
-		serviceConditionExtractor)
+	return util.UpdateGroupVersionKindWithScheme(obj, v1alpha1.SchemeGroupVersion, scheme.Scheme)
 }
 
 func serviceConditionExtractor(obj runtime.Object) (apis.Conditions, error) {

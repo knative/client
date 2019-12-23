@@ -26,21 +26,14 @@ import (
 	"knative.dev/serving/pkg/apis/serving"
 
 	"github.com/spf13/cobra"
-	serving_v1alpha1_api "knative.dev/serving/pkg/apis/serving/v1alpha1"
-
 	corev1 "k8s.io/api/core/v1"
 	api_errors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	serving_kn_v1alpha1 "knative.dev/client/pkg/serving/v1alpha1"
+	serving_v1alpha1_api "knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
-func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
-	var editFlags ConfigurationEditFlags
-	var waitFlags commands.WaitFlags
-
-	serviceCreateCommand := &cobra.Command{
-		Use:   "create NAME --image IMAGE",
-		Short: "Create a service.",
-		Example: `
+var create_example = `
   # Create a service 'mysvc' using image at dev.local/ns/image:latest
   kn service create mysvc --image dev.local/ns/image:latest
 
@@ -60,8 +53,19 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
   # Create or replace default resources of a service 's1' using --force flag
   # (earlier configured resource requests and limits will be replaced with default)
   # (earlier configured environment variables will be cleared too if any)
-  kn service create --force s1 --image dev.local/ns/image:v1`,
+  kn service create --force s1 --image dev.local/ns/image:v1
 
+  # Create a service with annotation
+  kn service create s1 --image dev.local/ns/image:v3 --annotation sidecar.istio.io/inject=false`
+
+func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
+	var editFlags ConfigurationEditFlags
+	var waitFlags commands.WaitFlags
+
+	serviceCreateCommand := &cobra.Command{
+		Use:     "create NAME --image IMAGE",
+		Short:   "Create a service.",
+		Example: create_example,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
 				return errors.New("'service create' requires the service name given as single argument")
@@ -81,7 +85,7 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			client, err := p.NewClient(namespace)
+			client, err := p.NewServingClient(namespace)
 			if err != nil {
 				return err
 			}
@@ -91,59 +95,57 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
+			out := cmd.OutOrStdout()
 			if serviceExists {
 				if !editFlags.ForceCreate {
 					return fmt.Errorf(
 						"cannot create service '%s' in namespace '%s' "+
 							"because the service already exists and no --force option was given", name, namespace)
 				}
-				err = replaceService(client, service, namespace, cmd.OutOrStdout())
+				err = replaceService(client, service, waitFlags, out)
 			} else {
-				err = createService(client, service, namespace, cmd.OutOrStdout())
+				err = createService(client, service, waitFlags, out)
 			}
 			if err != nil {
 				return err
 			}
-
-			if !waitFlags.Async {
-				out := cmd.OutOrStdout()
-				err := waitForService(client, name, out, waitFlags.TimeoutInSeconds)
-				if err != nil {
-					return err
-				}
-				return showUrl(client, name, namespace, out)
-			}
-
 			return nil
 		},
 	}
 	commands.AddNamespaceFlags(serviceCreateCommand.Flags(), false)
 	editFlags.AddCreateFlags(serviceCreateCommand)
-	waitFlags.AddConditionWaitFlags(serviceCreateCommand, 60, "Create", "service")
+	waitFlags.AddConditionWaitFlags(serviceCreateCommand, commands.WaitDefaultTimeout, "Create", "service")
 	return serviceCreateCommand
 }
 
-// Duck type for writers having a flush
-type flusher interface {
-	Flush() error
-}
-
-func flush(out io.Writer) {
-	if flusher, ok := out.(flusher); ok {
-		flusher.Flush()
-	}
-}
-
-func createService(client v1alpha1.KnClient, service *serving_v1alpha1_api.Service, namespace string, out io.Writer) error {
+func createService(client serving_kn_v1alpha1.KnServingClient, service *serving_v1alpha1_api.Service, waitFlags commands.WaitFlags, out io.Writer) error {
 	err := client.CreateService(service)
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(out, "Service '%s' successfully created in namespace '%s'.\n", service.Name, namespace)
-	return nil
+
+	return waitIfRequested(client, service, waitFlags, "Creating", "created", out)
 }
 
-func replaceService(client v1alpha1.KnClient, service *serving_v1alpha1_api.Service, namespace string, out io.Writer) error {
+func replaceService(client serving_kn_v1alpha1.KnServingClient, service *serving_v1alpha1_api.Service, waitFlags commands.WaitFlags, out io.Writer) error {
+	err := prepareAndUpdateService(client, service)
+	if err != nil {
+		return err
+	}
+	return waitIfRequested(client, service, waitFlags, "Replacing", "replaced", out)
+}
+
+func waitIfRequested(client serving_kn_v1alpha1.KnServingClient, service *serving_v1alpha1_api.Service, waitFlags commands.WaitFlags, verbDoing string, verbDone string, out io.Writer) error {
+	if waitFlags.Async {
+		fmt.Fprintf(out, "Service '%s' %s in namespace '%s'.\n", service.Name, verbDone, client.Namespace())
+		return nil
+	}
+
+	fmt.Fprintf(out, "%s service '%s' in namespace '%s':\n", verbDoing, service.Name, client.Namespace())
+	return waitForServiceToGetReady(client, service.Name, waitFlags.TimeoutInSeconds, verbDone, out)
+}
+
+func prepareAndUpdateService(client serving_kn_v1alpha1.KnServingClient, service *serving_v1alpha1_api.Service) error {
 	var retries = 0
 	for {
 		existingService, err := client.GetService(service.Name)
@@ -181,12 +183,32 @@ func replaceService(client v1alpha1.KnClient, service *serving_v1alpha1_api.Serv
 			}
 			return err
 		}
-		fmt.Fprintf(out, "Service '%s' successfully replaced in namespace '%s'.\n", service.Name, namespace)
 		return nil
 	}
 }
 
-func serviceExists(client v1alpha1.KnClient, name string) (bool, error) {
+func waitForServiceToGetReady(client serving_kn_v1alpha1.KnServingClient, name string, timeout int, verbDone string, out io.Writer) error {
+	fmt.Fprintln(out, "")
+	err := waitForService(client, name, out, timeout)
+	if err != nil {
+		return err
+	}
+	fmt.Fprintln(out, "")
+	return showUrl(client, name, "", verbDone, out)
+}
+
+// Duck type for writers having a flush
+type flusher interface {
+	Flush() error
+}
+
+func flush(out io.Writer) {
+	if flusher, ok := out.(flusher); ok {
+		flusher.Flush()
+	}
+}
+
+func serviceExists(client v1alpha1.KnServingClient, name string) (bool, error) {
 	_, err := client.GetService(name)
 	if api_errors.IsNotFound(err) {
 		return false, nil
@@ -223,18 +245,4 @@ func constructService(cmd *cobra.Command, editFlags ConfigurationEditFlags, name
 		return nil, err
 	}
 	return &service, nil
-}
-
-func showUrl(client v1alpha1.KnClient, serviceName string, namespace string, out io.Writer) error {
-	service, err := client.GetService(serviceName)
-	if err != nil {
-		return fmt.Errorf("cannot fetch service '%s' in namespace '%s' for extracting the URL: %v", serviceName, namespace, err)
-	}
-	url := service.Status.URL.String()
-	if url == "" {
-		url = service.Status.DeprecatedDomain
-	}
-	fmt.Fprintln(out, "\nService URL:")
-	fmt.Fprintf(out, "%s\n", url)
-	return nil
 }

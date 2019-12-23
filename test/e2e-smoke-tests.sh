@@ -24,16 +24,7 @@
 # project $PROJECT_ID, start Knative serving, run the tests and delete
 # the cluster.
 
-source $(dirname $0)/../vendor/knative.dev/test-infra/scripts/e2e-tests.sh
-
-# Helper functions.
-
-# Build kn before integration tests, so we fail fast in case of error.
-./hack/build.sh -f
-
-function knative_setup() {
-  start_latest_knative_serving
-}
+source $(dirname $0)/e2e-common.sh
 
 # Will create and delete this namespace and use it for smoke tests
 export KN_E2E_SMOKE_TESTS_NAMESPACE=kne2esmoketests
@@ -49,8 +40,8 @@ kubectl create ns $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
 sleep 4 # Wait for the namespace to get initialized by kube-controller-manager
 
 ./kn service create svc1 --async --image gcr.io/knative-samples/helloworld-go -e TARGET=Knative -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
-./kn service create hello --image gcr.io/knative-samples/helloworld-go -e TARGET=Knative -n $KN_E2E_SMOKE_TESTS_NAMESPACE --wait-timeout 240 || fail_test
-./kn service list hello -n $KN_E2E_SMOKE_TESTS_NAMESPACE -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
+./kn service create hello --image gcr.io/knative-samples/helloworld-go -e TARGET=Knative -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
+./kn service list hello -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
 ./kn service update hello --env TARGET=kn -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
 ./kn revision list hello -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
 ./kn service list -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
@@ -65,6 +56,7 @@ sleep 4 # Wait for the namespace to get initialized by kube-controller-manager
 ./kn service delete foo -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
 ./kn service list -n $KN_E2E_SMOKE_TESTS_NAMESPACE | grep -q svc1 || fail_test
 ./kn service delete svc1 -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
+./kn source list-types || fail_test
 kubectl delete ns $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
 
 success

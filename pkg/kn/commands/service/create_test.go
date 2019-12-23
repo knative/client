@@ -107,9 +107,9 @@ func fakeServiceCreate(args []string, withExistingService bool, sync bool) (
 
 func getServiceEvents(name string) []watch.Event {
 	return []watch.Event{
-		{watch.Added, wait.CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "")},
-		{watch.Modified, wait.CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionTrue, "")},
-		{watch.Modified, wait.CreateTestServiceWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "")},
+		{watch.Added, wait.CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "", "msg1")},
+		{watch.Modified, wait.CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionTrue, "", "msg2")},
+		{watch.Modified, wait.CreateTestServiceWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "", "")},
 	}
 }
 
@@ -147,11 +147,11 @@ func TestServiceCreateImageSync(t *testing.T) {
 	if template.Spec.Containers[0].Image != "gcr.io/foo/bar:baz" {
 		t.Fatalf("wrong image set: %v", template.Spec.Containers[0].Image)
 	}
-	if !strings.Contains(output, "foo") || !strings.Contains(output, "created") ||
+	if !strings.Contains(output, "foo") || !strings.Contains(output, "Creating") ||
 		!strings.Contains(output, commands.FakeNamespace) {
 		t.Fatalf("wrong stdout message: %v", output)
 	}
-	if !strings.Contains(output, "OK") || !strings.Contains(output, "Waiting") {
+	if !strings.Contains(output, "Ready") {
 		t.Fatalf("not running in sync mode")
 	}
 }
@@ -349,7 +349,7 @@ func TestServiceCreateMaxMinScale(t *testing.T) {
 		}
 	}
 
-	if template.Spec.ContainerConcurrency != 100 {
+	if *template.Spec.ContainerConcurrency != int64(100) {
 		t.Fatalf("container concurrency not set to given value 1000")
 	}
 }
@@ -470,5 +470,26 @@ func TestServiceCreateEnvForce(t *testing.T) {
 		t.Fatalf("wrong env vars:%v", template.Spec.Containers[0].Env)
 	} else if !strings.Contains(output, "foo") || !strings.Contains(output, commands.FakeNamespace) {
 		t.Fatalf("wrong output: %s", output)
+	}
+}
+
+func TestServiceCreateWithServiceAccountName(t *testing.T) {
+	action, created, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
+		"--service-account", "foo-bar-account",
+		"--async"}, false, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("create", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template, err := servinglib.RevisionTemplateOfService(created)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if template.Spec.ServiceAccountName != "foo-bar-account" {
+		t.Fatalf("wrong service account name:%v", template.Spec.ServiceAccountName)
 	}
 }

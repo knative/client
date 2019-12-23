@@ -34,6 +34,18 @@ func testMapFromArray(t *testing.T, input []string, delimiter string, expected m
 	assert.DeepEqual(t, expected, actual)
 }
 
+func TestKeyValuePairListAndRemovalListFromArray(t *testing.T) {
+	testKeyValuePairListAndRemovalListFromArray(t, []string{"add=value"}, "=", [][]string{{"add", "value"}}, []string{})
+	testKeyValuePairListAndRemovalListFromArray(t, []string{"add=value", "remove-"}, "=", [][]string{{"add", "value"}}, []string{"remove"})
+}
+
+func testKeyValuePairListAndRemovalListFromArray(t *testing.T, input []string, delimiter string, expectedKVList [][]string, expectedList []string) {
+	actualKVList, actualList, err := OrderedMapAndRemovalListFromArray(input, delimiter)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, NewOrderedMapWithKVStrings(expectedKVList), actualKVList)
+	assert.DeepEqual(t, expectedList, actualList)
+}
+
 func TestMapFromArrayNoDelimiter(t *testing.T) {
 	input := []string{"badvalue"}
 	_, err := MapFromArray(input, "+")

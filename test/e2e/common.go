@@ -220,3 +220,11 @@ func matchRegexp(t *testing.T, matchingRegexp, actual string) bool {
 	}
 	return matched
 }
+
+func currentDir(t *testing.T) string {
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Fatal("Unable to read current dir:", err)
+	}
+	return dir
+}

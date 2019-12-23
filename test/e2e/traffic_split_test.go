@@ -13,11 +13,11 @@
 // limitations under the License.
 
 // +build e2e
+// +build !eventing
 
 package e2e
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -34,10 +34,7 @@ var targetFieldsLength = 4
 // returns deployed service targets separated by '|' and each target fields seprated by comma
 var targetsJsonPath = "jsonpath={range .status.traffic[*]}{.tag}{','}{.revisionName}{','}{.percent}{','}{.latestRevision}{'|'}{end}"
 
-// returns deployed service latest revision name
-var latestRevisionJsonPath = "jsonpath={.status.latestCreatedRevisionName}"
-
-// TargetFileds are used in e2e to store expected fields per traffic target
+// TargetFields are used in e2e to store expected fields per traffic target
 // and actual traffic targets fields of deployed service are converted into struct before comparing
 type TargetFields struct {
 	Tag      string
@@ -51,10 +48,11 @@ func newTargetFields(tag, revision string, percent int, latest bool) TargetField
 }
 
 func splitTargets(s, separator string, partsCount int) ([]string, error) {
-	parts := strings.SplitN(s, separator, partsCount)
+	s = strings.TrimSuffix(s, targetsSeparator)
+	parts := strings.Split(s, separator)
 	if len(parts) != partsCount {
-		return nil, errors.New(fmt.Sprintf("expecting to receive parts of length %d, got %d "+
-			"string: %s seprator: %s", partsCount, len(parts), s, separator))
+		return nil, fmt.Errorf("expecting %d targets, got %d targets "+
+			"targets: %s separator: %s", partsCount, len(parts), s, separator)
 	}
 	return parts, nil
 }
@@ -87,10 +85,12 @@ func TestTrafficSplit(t *testing.T) {
 		func(t *testing.T) {
 			serviceName := getServiceNameAndIncrement(serviceBase)
 			test.serviceCreate(t, serviceName)
-			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v1"})
-			rev1 := test.latestRevisionOfService(t, serviceName)
-			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v2"})
-			rev2 := test.latestRevisionOfService(t, serviceName)
+
+			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
+			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v1", "--revision-name", rev1})
+
+			rev2 := fmt.Sprintf("%s-rev-2", serviceName)
+			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v2", "--revision-name", rev2})
 
 			tflags := []string{"--tag", fmt.Sprintf("%s=v1,%s=v2", rev1, rev2),
 				"--traffic", "v1=50,v2=50"}
@@ -106,10 +106,12 @@ func TestTrafficSplit(t *testing.T) {
 		func(t *testing.T) {
 			serviceName := getServiceNameAndIncrement(serviceBase)
 			test.serviceCreate(t, serviceName)
-			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v1"})
-			rev1 := test.latestRevisionOfService(t, serviceName)
-			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v2"})
-			rev2 := test.latestRevisionOfService(t, serviceName)
+
+			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
+			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v1", "--revision-name", rev1})
+
+			rev2 := fmt.Sprintf("%s-rev-2", serviceName)
+			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v2", "--revision-name", rev2})
 
 			tflags := []string{"--traffic", fmt.Sprintf("%s=20,%s=80", rev1, rev2)} // traffic by revision name
 			test.serviceUpdateWithOptions(t, serviceName, tflags)
@@ -122,10 +124,11 @@ func TestTrafficSplit(t *testing.T) {
 	t.Run("tag a revision as candidate, without otherwise changing any traffic split",
 		func(t *testing.T) {
 			serviceName := getServiceNameAndIncrement(serviceBase)
-			test.serviceCreate(t, serviceName)
-			rev1 := test.latestRevisionOfService(t, serviceName)
-			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v1"})
-			rev2 := test.latestRevisionOfService(t, serviceName)
+			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
+			test.serviceCreateWithOptions(t, serviceName, []string{"--revision-name", rev1})
+
+			rev2 := fmt.Sprintf("%s-rev-2", serviceName)
+			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v1", "--revision-name", rev2})
 
 			tflags := []string{"--tag", fmt.Sprintf("%s=%s", rev1, "candidate")} // no traffic, append new target with tag in traffic block
 			test.serviceUpdateWithOptions(t, serviceName, tflags)
@@ -138,10 +141,11 @@ func TestTrafficSplit(t *testing.T) {
 	t.Run("tag a revision as candidate, set 2% traffic adjusting other traffic to accommodate",
 		func(t *testing.T) {
 			serviceName := getServiceNameAndIncrement(serviceBase)
-			test.serviceCreate(t, serviceName)
-			rev1 := test.latestRevisionOfService(t, serviceName)
-			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v1"})
-			rev2 := test.latestRevisionOfService(t, serviceName)
+			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
+			test.serviceCreateWithOptions(t, serviceName, []string{"--revision-name", rev1})
+
+			rev2 := fmt.Sprintf("%s-rev-2", serviceName)
+			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v1", "--revision-name", rev2})
 
 			tflags := []string{"--tag", fmt.Sprintf("%s=%s", rev1, "candidate"),
 				"--traffic", "candidate=2%,@latest=98%"} // traffic by tag name and use % at the end
@@ -156,14 +160,14 @@ func TestTrafficSplit(t *testing.T) {
 		func(t *testing.T) {
 			serviceName := getServiceNameAndIncrement(serviceBase)
 			// make available 3 revisions for service first
-			test.serviceCreate(t, serviceName)
-			rev1 := test.latestRevisionOfService(t, serviceName)
+			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
+			test.serviceCreateWithOptions(t, serviceName, []string{"--revision-name", rev1})
 
-			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v2"})
-			rev2 := test.latestRevisionOfService(t, serviceName)
+			rev2 := fmt.Sprintf("%s-rev-2", serviceName)
+			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v2", "--revision-name", rev2})
 
-			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v3"}) //note that this gives 100% traffic to latest revision (rev3)
-			rev3 := test.latestRevisionOfService(t, serviceName)
+			rev3 := fmt.Sprintf("%s-rev-3", serviceName)
+			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v3", "--revision-name", rev3}) //note that this gives 100% traffic to latest revision (rev3)
 
 			// make existing state: tag current and candidate exist in traffic block
 			tflags := []string{"--tag", fmt.Sprintf("%s=current,%s=candidate", rev1, rev2)}
@@ -183,8 +187,8 @@ func TestTrafficSplit(t *testing.T) {
 	t.Run("update tag from testing to staging for @latest revision",
 		func(t *testing.T) {
 			serviceName := getServiceNameAndIncrement(serviceBase)
-			test.serviceCreate(t, serviceName)
-			rev1 := test.latestRevisionOfService(t, serviceName)
+			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
+			test.serviceCreateWithOptions(t, serviceName, []string{"--revision-name", rev1})
 
 			// make existing state: tag @latest as testing
 			tflags := []string{"--tag", "@latest=testing"}
@@ -202,11 +206,11 @@ func TestTrafficSplit(t *testing.T) {
 	t.Run("update tag from testing to staging for a revision (non @latest)",
 		func(t *testing.T) {
 			serviceName := getServiceNameAndIncrement(serviceBase)
-			test.serviceCreate(t, serviceName)
-			rev1 := test.latestRevisionOfService(t, serviceName)
+			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
+			test.serviceCreateWithOptions(t, serviceName, []string{"--revision-name", rev1})
 
-			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v2"})
-			rev2 := test.latestRevisionOfService(t, serviceName)
+			rev2 := fmt.Sprintf("%s-rev-2", serviceName)
+			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v2", "--revision-name", rev2})
 
 			// make existing state: tag a revision as testing
 			tflags := []string{"--tag", fmt.Sprintf("%s=testing", rev1)}
@@ -226,11 +230,11 @@ func TestTrafficSplit(t *testing.T) {
 	t.Run("remove a revision with tag old from traffic block entirely",
 		func(t *testing.T) {
 			serviceName := getServiceNameAndIncrement(serviceBase)
-			test.serviceCreate(t, serviceName)
-			rev1 := test.latestRevisionOfService(t, serviceName)
+			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
+			test.serviceCreateWithOptions(t, serviceName, []string{"--revision-name", rev1})
 
-			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v2"})
-			rev2 := test.latestRevisionOfService(t, serviceName)
+			rev2 := fmt.Sprintf("%s-rev-2", serviceName)
+			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v2", "--revision-name", rev2})
 
 			// existing state: traffic block having a revision with tag old and some traffic
 			tflags := []string{"--tag", fmt.Sprintf("%s=old", rev1),
@@ -249,8 +253,8 @@ func TestTrafficSplit(t *testing.T) {
 	t.Run("tag a revision as stable and current with 50-50% traffic",
 		func(t *testing.T) {
 			serviceName := getServiceNameAndIncrement(serviceBase)
-			test.serviceCreate(t, serviceName)
-			rev1 := test.latestRevisionOfService(t, serviceName)
+			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
+			test.serviceCreateWithOptions(t, serviceName, []string{"--revision-name", rev1})
 
 			// existing state: traffic block having two targets
 			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v2"})
@@ -268,17 +272,17 @@ func TestTrafficSplit(t *testing.T) {
 	t.Run("revert all traffic to latest ready revision of service",
 		func(t *testing.T) {
 			serviceName := getServiceNameAndIncrement(serviceBase)
-			test.serviceCreate(t, serviceName)
-			rev1 := test.latestRevisionOfService(t, serviceName)
+			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
+			test.serviceCreateWithOptions(t, serviceName, []string{"--revision-name", rev1})
 
-			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v2"})
-			rev2 := test.latestRevisionOfService(t, serviceName)
+			rev2 := fmt.Sprintf("%s-rev-2", serviceName)
+			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v2", "--revision-name", rev2})
 
-			// existing state: latest revision not getting any traffic
+			// existing state: latest ready revision not getting any traffic
 			tflags := []string{"--traffic", fmt.Sprintf("%s=100", rev1)}
 			test.serviceUpdateWithOptions(t, serviceName, tflags)
 
-			// desired state: revert traffic to latest revision
+			// desired state: revert traffic to latest ready revision
 			tflags = []string{"--traffic", "@latest=100"}
 			test.serviceUpdateWithOptions(t, serviceName, tflags)
 
@@ -291,10 +295,10 @@ func TestTrafficSplit(t *testing.T) {
 		func(t *testing.T) {
 			serviceName := getServiceNameAndIncrement(serviceBase)
 			// existing state: latest revision has no tag
-			test.serviceCreate(t, serviceName)
-			rev1 := test.latestRevisionOfService(t, serviceName)
+			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
+			test.serviceCreateWithOptions(t, serviceName, []string{"--revision-name", rev1})
 
-			// desired state: tag current to latest ready revision
+			// desired state: tag latest ready revision as 'current'
 			tflags := []string{"--tag", "@latest=current"}
 			test.serviceUpdateWithOptions(t, serviceName, tflags)
 
@@ -306,11 +310,11 @@ func TestTrafficSplit(t *testing.T) {
 	t.Run("update tag for a revision as testing and assign all the traffic to it:",
 		func(t *testing.T) {
 			serviceName := getServiceNameAndIncrement(serviceBase)
-			test.serviceCreate(t, serviceName)
-			rev1 := test.latestRevisionOfService(t, serviceName)
+			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
+			test.serviceCreateWithOptions(t, serviceName, []string{"--revision-name", rev1})
 
-			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v2"})
-			rev2 := test.latestRevisionOfService(t, serviceName)
+			rev2 := fmt.Sprintf("%s-rev-2", serviceName)
+			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v2", "--revision-name", rev2})
 
 			// existing state: two revision exists with traffic share and
 			// each revision has tag and traffic portions
@@ -332,11 +336,11 @@ func TestTrafficSplit(t *testing.T) {
 	t.Run("replace latest tag of a revision with old and give latest to another revision",
 		func(t *testing.T) {
 			serviceName := getServiceNameAndIncrement(serviceBase)
-			test.serviceCreate(t, serviceName)
-			rev1 := test.latestRevisionOfService(t, serviceName)
+			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
+			test.serviceCreateWithOptions(t, serviceName, []string{"--revision-name", rev1})
 
-			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v2"})
-			rev2 := test.latestRevisionOfService(t, serviceName)
+			rev2 := fmt.Sprintf("%s-rev-2", serviceName)
+			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v2", "--revision-name", rev2})
 
 			// existing state: a revision exist with latest tag
 			tflags := []string{"--tag", fmt.Sprintf("%s=latest", rev1)}
@@ -362,15 +366,10 @@ func TestTrafficSplit(t *testing.T) {
 func (test *e2eTest) verifyTargets(t *testing.T, serviceName string, expectedTargets []TargetFields) {
 	out := test.serviceDescribeWithJsonPath(t, serviceName, targetsJsonPath)
 	assert.Check(t, out != "")
-	out = strings.TrimSuffix(out, targetsSeparator)
 	actualTargets, err := splitTargets(out, targetsSeparator, len(expectedTargets))
 	assert.NilError(t, err)
 	formattedActualTargets := formatActualTargets(t, actualTargets)
 	assert.DeepEqual(t, expectedTargets, formattedActualTargets)
-}
-
-func (test *e2eTest) latestRevisionOfService(t *testing.T, serviceName string) string {
-	return test.serviceDescribeWithJsonPath(t, serviceName, latestRevisionJsonPath)
 }
 
 func (test *e2eTest) serviceDescribeWithJsonPath(t *testing.T, serviceName, jsonpath string) string {
@@ -385,5 +384,5 @@ func (test *e2eTest) serviceUpdateWithOptions(t *testing.T, serviceName string, 
 	command = append(command, options...)
 	out, err := test.kn.RunWithOpts(command, runOpts{NoNamespace: false})
 	assert.NilError(t, err)
-	assert.Check(t, util.ContainsAll(out, "Service", serviceName, "update", "namespace", test.kn.namespace))
+	assert.Check(t, util.ContainsAllIgnoreCase(out, "Service", serviceName, "updating", "namespace", test.kn.namespace))
 }

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 // +build e2e
+// +build !eventing
 
 package e2e
 
@@ -43,6 +44,11 @@ func TestService(t *testing.T) {
 		test.serviceDelete(t, "hello")
 		test.serviceDeleteNonexistent(t, "hello")
 	})
+
+	t.Run("delete two services with a service nonexistent", func(t *testing.T) {
+		test.serviceCreate(t, "hello")
+		test.serviceMultipleDelete(t, []string{"hello123", "hello"})
+	})
 }
 
 func (test *e2eTest) serviceCreateDuplicate(t *testing.T, serviceName string) {
@@ -69,8 +75,24 @@ func (test *e2eTest) serviceDeleteNonexistent(t *testing.T, serviceName string) 
 	assert.NilError(t, err)
 	assert.Check(t, !strings.Contains(out, serviceName), "The service exists")
 
-	_, err = test.kn.RunWithOpts([]string{"service", "delete", serviceName}, runOpts{NoNamespace: false, AllowError: true})
+	out, err = test.kn.RunWithOpts([]string{"service", "delete", serviceName}, runOpts{NoNamespace: false, AllowError: true})
 
 	expectedErr := fmt.Sprintf(`services.serving.knative.dev "%s" not found`, serviceName)
-	assert.ErrorContains(t, err, expectedErr)
+	assert.Check(t, strings.Contains(out, expectedErr), "Failed to get 'not found' error")
+}
+
+func (test *e2eTest) serviceMultipleDelete(t *testing.T, serviceName []string) {
+	existService := serviceName[1]
+	nonexistService := serviceName[0]
+	out, err := test.kn.RunWithOpts([]string{"service", "list"}, runOpts{NoNamespace: false})
+	assert.NilError(t, err)
+	assert.Check(t, strings.Contains(out, existService), "The service not exists")
+	assert.Check(t, !strings.Contains(out, nonexistService), "The service exists")
+
+	out, err = test.kn.RunWithOpts([]string{"service", "delete", serviceName[0], serviceName[1]}, runOpts{NoNamespace: false, AllowError: true})
+
+	expectedSuccess := fmt.Sprintf(`Service '%s' successfully deleted in namespace '%s'.`, existService, test.kn.namespace)
+	expectedErr := fmt.Sprintf(`services.serving.knative.dev "%s" not found`, nonexistService)
+	assert.Check(t, strings.Contains(out, expectedSuccess), "Failed to get 'successfully deleted' message")
+	assert.Check(t, strings.Contains(out, expectedErr), "Failed to get 'not found' error")
 }

@@ -12,19 +12,22 @@ Manage your Knative building blocks:
 ### Options
 
 ```
-      --config string            kn config file (default is $HOME/.kn/config.yaml)
-  -h, --help                     help for kn
-      --kubeconfig string        kubectl config file (default is $HOME/.kube/config)
-      --log-http                 log http traffic
-      --lookup-plugins-in-path   look for kn plugins in $PATH
-      --plugins-dir string       kn plugins directory (default "~/.kn/plugins")
+      --config string        kn config file (default is $HOME/.kn/config.yaml)
+  -h, --help                 help for kn
+      --kubeconfig string    kubectl config file (default is $HOME/.kube/config)
+      --log-http             log http traffic
+      --lookup-plugins       look for kn plugins in $PATH
+      --plugins-dir string   kn plugins directory (default "~/.kn/plugins")
 ```
 
 ### SEE ALSO
 
+* [kn completion](kn_completion.md)	 - Output shell completion code
 * [kn plugin](kn_plugin.md)	 - Plugin command group
 * [kn revision](kn_revision.md)	 - Revision command group
 * [kn route](kn_route.md)	 - Route command group
 * [kn service](kn_service.md)	 - Service command group
+* [kn source](kn_source.md)	 - Event source command group
+* [kn trigger](kn_trigger.md)	 - Trigger command group
 * [kn version](kn_version.md)	 - Prints the client version
 

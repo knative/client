@@ -13,6 +13,7 @@
 // limitations under the License.
 
 // +build e2e
+// +build !eventing
 
 package e2e
 
@@ -64,7 +65,7 @@ func (test *e2eTest) routeList(t *testing.T) {
 	out, err := test.kn.RunWithOpts([]string{"route", "list"}, runOpts{})
 	assert.NilError(t, err)
 
-	expectedHeaders := []string{"NAME", "URL", "AGE", "CONDITIONS", "TRAFFIC"}
+	expectedHeaders := []string{"NAME", "URL", "READY"}
 	assert.Check(t, util.ContainsAll(out, expectedHeaders...))
 }
 
@@ -72,8 +73,7 @@ func (test *e2eTest) routeListWithArgument(t *testing.T, routeName string) {
 	out, err := test.kn.RunWithOpts([]string{"route", "list", routeName}, runOpts{})
 	assert.NilError(t, err)
 
-	expectedOutput := fmt.Sprintf("100%% -> %s", routeName)
-	assert.Check(t, util.ContainsAll(out, routeName, expectedOutput))
+	assert.Check(t, util.ContainsAll(out, routeName))
 }
 
 func (test *e2eTest) routeDescribe(t *testing.T, routeName string) {

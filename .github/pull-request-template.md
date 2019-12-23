@@ -12,12 +12,17 @@ Fixes #
 *
 *
 
-**Release Note**
+<!--
+Release Note:
 
-<!-- Enter your extended release note in the below block. If the PR requires
-additional action from users switching to the new release, include the string
-"action required". If no release note is required, write "NONE". -->
+In the following cases, add a short description of PR to the unreleased section in CHANGELOG.adoc:
 
-```release-note
+- 🎁 Add new feature
+- 🐛 Fix bug
+- 🧽 Update or clean up current behaviour
+- 🗑️ Remove feature or internal logic
 
-```
+See other entries in CHANGELOG.adoc as an example.
+
+PLEASE DON'T ADD THAT LINE HERE IN THE PULL-REQUEST DESCRIPTION BUT DIRECTLY IN CHANGELOG.ADOC AND ADD CHANGELOG.ADOC AS PART OF YOUR PULL-REQUEST.
+-->
