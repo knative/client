@@ -15,10 +15,10 @@
 package trigger
 
 import (
-	"fmt"
-	"strings"
-
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
+	"knative.dev/client/pkg/util"
 )
 
 type filterArray []string
@@ -48,39 +48,20 @@ type TriggerUpdateFlags struct {
 
 // GetFilter to return a map type of filters
 func (f *TriggerUpdateFlags) GetFilters() (map[string]string, error) {
-	filters := map[string]string{}
-	for _, item := range f.Filters {
-		parts := strings.Split(item, "=")
-		if len(parts) < 2 || parts[0] == "" || parts[1] == "" {
-			return nil, fmt.Errorf("invalid filter %s", f.Filters)
-		} else {
-			if _, ok := filters[parts[0]]; ok {
-				return nil, fmt.Errorf("duplicate key '%s' in filters %s", parts[0], f.Filters)
-			}
-			filters[parts[0]] = parts[1]
-		}
+	filters, err := util.MapFromArray(f.Filters, "=")
+	if err != nil {
+		return nil, errors.Wrap(err, "Invalid --filter")
 	}
 	return filters, nil
 }
 
 // GetFilter to return a map type of filters
 func (f *TriggerUpdateFlags) GetUpdateFilters() (map[string]string, []string, error) {
-	filters := map[string]string{}
-	var removes []string
-	for _, item := range f.Filters {
-		if strings.HasSuffix(item, "-") {
-			removes = append(removes, item[:len(item)-1])
-		} else {
-			parts := strings.Split(item, "=")
-			if len(parts) < 2 || parts[0] == "" || parts[1] == "" {
-				return nil, nil, fmt.Errorf("invalid filter %s", f.Filters)
-			}
-			if _, ok := filters[parts[0]]; ok {
-				return nil, nil, fmt.Errorf("duplicate key '%s' in filters %s", parts[0], f.Filters)
-			}
-			filters[parts[0]] = parts[1]
-		}
+	filters, err := util.MapFromArrayAllowingSingles(f.Filters, "=")
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "Invalid --filter")
 	}
+	removes := util.ParseMinusSuffix(filters)
 	return filters, removes, nil
 }
 

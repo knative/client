@@ -176,13 +176,8 @@ func (p *ConfigurationEditFlags) Apply(
 		if err != nil {
 			return errors.Wrap(err, "Invalid --env")
 		}
-		envToRemove := []string{}
-		for key := range envMap {
-			if strings.HasSuffix(key, "-") {
-				envToRemove = append(envToRemove, key[:len(key)-1])
-				delete(envMap, key)
-			}
-		}
+
+		envToRemove := util.ParseMinusSuffix(envMap)
 		err = servinglib.UpdateEnvVars(template, envMap, envToRemove)
 		if err != nil {
 			return err
@@ -314,13 +309,8 @@ func (p *ConfigurationEditFlags) Apply(
 		if err != nil {
 			return errors.Wrap(err, "Invalid --label")
 		}
-		labelsToRemove := []string{}
-		for key := range labelsMap {
-			if strings.HasSuffix(key, "-") {
-				labelsToRemove = append(labelsToRemove, key[:len(key)-1])
-				delete(labelsMap, key)
-			}
-		}
+
+		labelsToRemove := util.ParseMinusSuffix(labelsMap)
 		err = servinglib.UpdateLabels(service, template, labelsMap, labelsToRemove)
 		if err != nil {
 			return err
@@ -332,13 +322,8 @@ func (p *ConfigurationEditFlags) Apply(
 		if err != nil {
 			return errors.Wrap(err, "Invalid --annotation")
 		}
-		annotationsToRemove := []string{}
-		for key := range annotationsMap {
-			if strings.HasSuffix(key, "-") {
-				annotationsToRemove = append(annotationsToRemove, key[:len(key)-1])
-				delete(annotationsMap, key)
-			}
-		}
+
+		annotationsToRemove := util.ParseMinusSuffix(annotationsMap)
 		err = servinglib.UpdateAnnotations(service, template, annotationsMap, annotationsToRemove)
 		if err != nil {
 			return err
