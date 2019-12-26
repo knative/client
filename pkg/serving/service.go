@@ -17,10 +17,10 @@ package serving
 import (
 	"bytes"
 	"errors"
-	"math/rand"
 	"strings"
 	"text/template"
 
+	"knative.dev/client/pkg/util/random"
 	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
@@ -42,22 +42,13 @@ func RevisionTemplateOfService(service *servingv1alpha1.Service) (*servingv1alph
 	return config.DeprecatedRevisionTemplate, nil
 }
 
-var charChoices = []string{
-	"b", "c", "d", "f", "g", "h", "j", "k", "l", "m", "n", "p", "q", "r", "s", "t", "v", "w", "x",
-	"y", "z",
-}
-
 type revisionTemplContext struct {
 	Service    string
 	Generation int64
 }
 
 func (c *revisionTemplContext) Random(l int) string {
-	chars := make([]string, 0, l)
-	for i := 0; i < l; i++ {
-		chars = append(chars, charChoices[rand.Int()%len(charChoices)])
-	}
-	return strings.Join(chars, "")
+	return random.Random(l)
 }
 
 // GenerateRevisionName returns an automatically-generated name suitable for the

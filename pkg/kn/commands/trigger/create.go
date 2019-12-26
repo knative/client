@@ -23,7 +23,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
-	"knative.dev/client/pkg/kn/commands/source"
 	"knative.dev/eventing/pkg/apis/eventing/v1alpha1"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 )
@@ -87,15 +86,17 @@ func NewTriggerCreateCommand(p *commands.KnParams) *cobra.Command {
 				URI: objectRef.URI,
 			}
 			if triggerUpdateFlags.Source != "" {
-				sourceCmd := source.NewSourceCommand(p)
-				fullSourceArgs := []string{triggerUpdateFlags.Source, "create"}
+				fullSourceArgs := []string{
+					"source", triggerUpdateFlags.Source, "create",
+					"--sink", fmt.Sprintf("broker:%s", triggerUpdateFlags.Broker)}
 				fullSourceArgs = append(fullSourceArgs, sourceArgs...)
-				createSource, args, err := sourceCmd.Traverse(fullSourceArgs)
-				if err != nil {
-					return err
+				fullSourceArgs = append(fullSourceArgs, name)
+				root := cmd
+				for root.HasParent() {
+					root = root.Parent()
 				}
-				fmt.Printf("SOURCE COMMAND %v\n", createSource)
-				err = createSource.RunE(createSource, args)
+				root.SetArgs(fullSourceArgs)
+				err = root.Execute()
 				if err != nil {
 					return err
 				}
