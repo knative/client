@@ -22,9 +22,9 @@ import (
 	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
 	"knative.dev/pkg/apis/duck/v1beta1"
 
+	kn_dynamic "knative.dev/client/pkg/dynamic"
 	source_client_v1alpha1 "knative.dev/client/pkg/eventing/sources/v1alpha1"
 	"knative.dev/client/pkg/kn/commands"
-	serving_client_v1alpha1 "knative.dev/client/pkg/serving/v1alpha1"
 )
 
 // Helper methods
@@ -54,14 +54,14 @@ current-context: x
 	}
 }
 
-func executeCronJobSourceCommand(cronJobSourceClient source_client_v1alpha1.KnCronJobSourcesClient, servingClient serving_client_v1alpha1.KnServingClient, args ...string) (string, error) {
+func executeCronJobSourceCommand(cronJobSourceClient source_client_v1alpha1.KnCronJobSourcesClient, dynamicClient kn_dynamic.KnDynamicClient, args ...string) (string, error) {
 	knParams := &commands.KnParams{}
 	knParams.ClientConfig = blankConfig
 
 	output := new(bytes.Buffer)
 	knParams.Output = output
-	knParams.NewServingClient = func(namespace string) (serving_client_v1alpha1.KnServingClient, error) {
-		return servingClient, nil
+	knParams.NewDynamicClient = func(namespace string) (kn_dynamic.KnDynamicClient, error) {
+		return dynamicClient, nil
 	}
 
 	cmd := NewCronJobCommand(knParams)
@@ -84,7 +84,7 @@ func cleanupCronJobMockClient() {
 
 func createCronJobSource(name, schedule, data, service string) *v1alpha1.CronJobSource {
 	sink := &v1beta1.Destination{
-		Ref: &corev1.ObjectReference{Name: service, Kind: "Service"},
+		Ref: &corev1.ObjectReference{Name: service, Kind: "Service", Namespace: "default", APIVersion: "serving.knative.dev/v1alpha1"},
 	}
 	return source_client_v1alpha1.NewCronJobSourceBuilder(name).Schedule(schedule).Data(data).Sink(sink).Build()
 }

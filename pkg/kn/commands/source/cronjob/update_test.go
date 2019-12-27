@@ -43,8 +43,10 @@ func TestSimpleUpdate(t *testing.T) {
 			Data:     "maxwell",
 			Sink: &v1beta1.Destination{
 				Ref: &corev1.ObjectReference{
-					Kind: "Service",
-					Name: "mysvc",
+					Kind:       "Service",
+					Name:       "mysvc",
+					Namespace:  "default",
+					APIVersion: "serving.knative.dev/v1alpha1",
 				},
 			},
 		},

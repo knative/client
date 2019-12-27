@@ -15,52 +15,44 @@
 package cronjob
 
 import (
-	"errors"
 	"testing"
 
 	"gotest.tools/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	dynamic_fake "knative.dev/client/pkg/dynamic/fake"
 	serving_v1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
 
 	v1alpha12 "knative.dev/client/pkg/eventing/sources/v1alpha1"
-	knservingclient "knative.dev/client/pkg/serving/v1alpha1"
 	"knative.dev/client/pkg/util"
 )
 
 func TestSimpleCreateCronJobSource(t *testing.T) {
+	mysvc := &serving_v1alpha1.Service{
+		TypeMeta:   v1.TypeMeta{Kind: "Service", APIVersion: "serving.knative.dev/v1alpha1"},
+		ObjectMeta: v1.ObjectMeta{Name: "mysvc", Namespace: "default"},
+	}
+	dynamicClient := dynamic_fake.CreateFakeKnDynamicClient("default", mysvc)
 
-	servingClient := knservingclient.NewMockKnServiceClient(t)
 	cronjobClient := v1alpha12.NewMockKnCronJobSourceClient(t)
-
-	servingRecorder := servingClient.Recorder()
-	servingRecorder.GetService("mysvc", &serving_v1alpha1.Service{
-		TypeMeta:   v1.TypeMeta{Kind: "Service"},
-		ObjectMeta: v1.ObjectMeta{Name: "mysvc"},
-	}, nil)
 
 	cronJobRecorder := cronjobClient.Recorder()
 	cronJobRecorder.CreateCronJobSource(createCronJobSource("testsource", "* * * * */2", "maxwell", "mysvc"), nil)
 
-	out, err := executeCronJobSourceCommand(cronjobClient, servingClient, "create", "--sink", "svc:mysvc", "--schedule", "* * * * */2", "--data", "maxwell", "testsource")
+	out, err := executeCronJobSourceCommand(cronjobClient, dynamicClient, "create", "--sink", "svc:mysvc", "--schedule", "* * * * */2", "--data", "maxwell", "testsource")
 	assert.NilError(t, err, "Source should have been created")
 	util.ContainsAll(out, "created", "default", "testsource")
 
 	cronJobRecorder.Validate()
-	servingRecorder.Validate()
 }
 
 func TestNoSinkError(t *testing.T) {
-	servingClient := knservingclient.NewMockKnServiceClient(t)
 	cronjobClient := v1alpha12.NewMockKnCronJobSourceClient(t)
 
-	errorMsg := "no Service mysvc found"
-	servingRecorder := servingClient.Recorder()
-	servingRecorder.GetService("mysvc", nil, errors.New(errorMsg))
+	dynamicClient := dynamic_fake.CreateFakeKnDynamicClient("default")
 
-	out, err := executeCronJobSourceCommand(cronjobClient, servingClient, "create", "--sink", "svc:mysvc", "--schedule", "* * * * */2", "--data", "maxwell", "testsource")
-	assert.Error(t, err, errorMsg)
-	assert.Assert(t, util.ContainsAll(out, errorMsg, "Usage"))
-	servingRecorder.Validate()
+	out, err := executeCronJobSourceCommand(cronjobClient, dynamicClient, "create", "--sink", "svc:mysvc", "--schedule", "* * * * */2", "--data", "maxwell", "testsource")
+	assert.Error(t, err, "services.serving.knative.dev \"mysvc\" not found")
+	assert.Assert(t, util.ContainsAll(out, "Usage"))
 }
 
 func TestNoSinkGivenError(t *testing.T) {
