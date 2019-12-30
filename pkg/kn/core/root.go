@@ -89,7 +89,7 @@ func NewDefaultKnCommandWithArgs(rootCmd *cobra.Command,
 		} else if foundCmd.HasSubCommands() {
 			if _, _, err := rootCmd.Find(innerArgs); err != nil {
 				rootCmd.Help()
-				fmt.Fprintf(rootCmd.OutOrStderr(), "unknown sub-command \"%s\" for \"kn %s\"", args[2], args[1])
+				fmt.Fprintf(rootCmd.OutOrStderr(), "unknown sub-command \"%s\" for \"kn %s\"", innerArgs[0], getCommands(cmdPathPieces, innerArgs[0]))
 				os.Exit(1)
 			}
 		}
@@ -293,4 +293,17 @@ func removeKnPluginFlags(args []string) []string {
 func width() (int, error) {
 	width, _, err := terminal.GetSize(int(os.Stdout.Fd()))
 	return width, err
+}
+
+// return the commands visiting the inner arg
+
+func getCommands (args []string, innerArg string) string {
+	var commands []string
+	for _, arg := range args {
+		if arg == innerArg {
+			return strings.Join(commands, " ") 
+		}
+		commands = append(commands, arg)
+	} 
+	return ""
 }

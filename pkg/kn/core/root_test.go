@@ -50,7 +50,7 @@ func TestNewDefKnCmdWithArgsforCmdValiditySuccess(t *testing.T) {
 	checkRootCmd(t, rootCmd)
 }
 
-func TestNewDefKnCmdWithArgsforPrimaryCmdValidityErr(t *testing.T) {
+func TestNewDefKnCmdWithArgsforWrongCmd(t *testing.T) {
 
 	if os.Getenv("EXIT") == "1" {
 		pluginHandler := plugin.NewDefaultPluginHandler(plugin.ValidPluginFilenamePrefixes,
@@ -59,7 +59,7 @@ func TestNewDefKnCmdWithArgsforPrimaryCmdValidityErr(t *testing.T) {
 		NewDefaultKnCommandWithArgs(NewKnCommand(), pluginHandler, args, os.Stdin, os.Stdout, os.Stderr)
 		return
 	}
-	cmd := exec.Command(os.Args[0], "-test.run=TestNewDefKnCmdWithArgsforPrimaryCmdValidityErr")
+	cmd := exec.Command(os.Args[0], "-test.run=TestNewDefKnCmdWithArgsforWrongCmd")
 	cmd.Env = append(os.Environ(), "EXIT=1")
 	err := cmd.Run()
 	if e, ok := err.(*exec.ExitError); ok && !e.Success() {
@@ -68,7 +68,7 @@ func TestNewDefKnCmdWithArgsforPrimaryCmdValidityErr(t *testing.T) {
 	t.Fatalf("process ran with err %v, want exit status 1", err)
 }
 
-func TestNewDefKnCmdWithArgsforSecondaryCmdValidityErr(t *testing.T) {
+func TestNewDefKnCmdWithArgsforWrongVerb(t *testing.T) {
 
 	if os.Getenv("EXIT") == "1" {
 		pluginHandler := plugin.NewDefaultPluginHandler(plugin.ValidPluginFilenamePrefixes,
@@ -77,7 +77,25 @@ func TestNewDefKnCmdWithArgsforSecondaryCmdValidityErr(t *testing.T) {
 		NewDefaultKnCommandWithArgs(NewKnCommand(), pluginHandler, args, os.Stdin, os.Stdout, os.Stderr)
 		return
 	}
-	cmd := exec.Command(os.Args[0], "-test.run=TestNewDefKnCmdWithArgsforSecondaryCmdValidityErr")
+	cmd := exec.Command(os.Args[0], "-test.run=TestNewDefKnCmdWithArgsforWrongVerb")
+	cmd.Env = append(os.Environ(), "EXIT=1")
+	err := cmd.Run()
+	if e, ok := err.(*exec.ExitError); ok && !e.Success() {
+		return
+	}
+	t.Fatalf("process ran with err %v, want exit status 1", err)
+}
+
+func TestNewDefKnCmdWithArgsforWrongVerbwithMultipleCmds(t *testing.T) {
+
+	if os.Getenv("EXIT") == "1" {
+		pluginHandler := plugin.NewDefaultPluginHandler(plugin.ValidPluginFilenamePrefixes,
+			"/random/plugins", false)
+		args := []string{"kn", "source", "apiserver", "noverb"}
+		NewDefaultKnCommandWithArgs(NewKnCommand(), pluginHandler, args, os.Stdin, os.Stdout, os.Stderr)
+		return
+	}
+	cmd := exec.Command(os.Args[0], "-test.run=TestNewDefKnCmdWithArgsforWrongVerbwithMultipleCmds")
 	cmd.Env = append(os.Environ(), "EXIT=1")
 	err := cmd.Run()
 	if e, ok := err.(*exec.ExitError); ok && !e.Success() {
