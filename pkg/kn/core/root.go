@@ -297,13 +297,13 @@ func width() (int, error) {
 
 // return the commands visiting the inner arg
 
-func getCommands (args []string, innerArg string) string {
+func getCommands(args []string, innerArg string) string {
 	var commands []string
 	for _, arg := range args {
 		if arg == innerArg {
-			return strings.Join(commands, " ") 
+			return strings.Join(commands, " ")
 		}
 		commands = append(commands, arg)
-	} 
+	}
 	return ""
 }
