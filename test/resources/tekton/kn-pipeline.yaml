@@ -41,6 +41,8 @@ spec:
     params:
     - name: DOCKERFILE
       value: ./test/test_images/helloworld/Dockerfile
+    - name: BUILDER_IMAGE
+      value: "quay.io/buildah/stable:latest"
   - name: kn-service-create
     taskRef:
       name: kn

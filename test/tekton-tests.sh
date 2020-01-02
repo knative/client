@@ -28,7 +28,7 @@ export PATH=$PATH:${REPO_ROOT_DIR}
 # Script entry point.
 initialize $@
 
-export TEKTON_VERSION=${TEKTON_VERSION:-v0.8.0}
+export TEKTON_VERSION=${TEKTON_VERSION:-v0.9.2}
 export KN_E2E_NAMESPACE=tkn-kn
 
 header "Running integration tests for Tekton"
