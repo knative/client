@@ -15,6 +15,7 @@
 package trigger
 
 import (
+	"sort"
 	"testing"
 
 	"gotest.tools/assert"
@@ -39,25 +40,26 @@ func TestGetFilters(t *testing.T) {
 			Filters: filterArray{"type"},
 		}
 		_, err := createFlag.GetFilters()
-		assert.ErrorContains(t, err, "invalid filter")
+		assert.ErrorContains(t, err, "Invalid --filter")
 
 		createFlag = TriggerUpdateFlags{
 			Filters: filterArray{"type="},
 		}
-		_, err = createFlag.GetFilters()
-		assert.ErrorContains(t, err, "invalid filter")
+		filters, err := createFlag.GetFilters()
+		wanted := map[string]string{"type": ""}
+		assert.DeepEqual(t, wanted, filters)
 
 		createFlag = TriggerUpdateFlags{
 			Filters: filterArray{"=value"},
 		}
 		_, err = createFlag.GetFilters()
-		assert.ErrorContains(t, err, "invalid filter")
+		assert.ErrorContains(t, err, "Invalid --filter")
 
 		createFlag = TriggerUpdateFlags{
 			Filters: filterArray{"="},
 		}
 		_, err = createFlag.GetFilters()
-		assert.ErrorContains(t, err, "invalid filter")
+		assert.ErrorContains(t, err, "Invalid --filter")
 	})
 
 	t.Run("get duplicate filters", func(t *testing.T) {
@@ -65,7 +67,7 @@ func TestGetFilters(t *testing.T) {
 			Filters: filterArray{"type=foo", "type=bar"},
 		}
 		_, err := createFlag.GetFilters()
-		assert.ErrorContains(t, err, "duplicate key")
+		assert.ErrorContains(t, err, "duplicate")
 	})
 }
 
@@ -90,6 +92,8 @@ func TestGetUpdateFilters(t *testing.T) {
 		}
 		updated, removed, err := createFlag.GetUpdateFilters()
 		wanted := []string{"type", "attr"}
+		sort.Strings(wanted)
+		sort.Strings(removed)
 		assert.NilError(t, err, "UpdateFilter should be created")
 		assert.DeepEqual(t, wanted, removed)
 		assert.Assert(t, len(updated) == 0)
@@ -105,6 +109,8 @@ func TestGetUpdateFilters(t *testing.T) {
 			"type":   "foo",
 			"source": "bar",
 		}
+		sort.Strings(wantedRemoved)
+		sort.Strings(removed)
 		assert.NilError(t, err, "UpdateFilter should be created")
 		assert.DeepEqual(t, wantedRemoved, removed)
 		assert.DeepEqual(t, wantedUpdated, updated)
@@ -115,6 +121,6 @@ func TestGetUpdateFilters(t *testing.T) {
 			Filters: filterArray{"type=foo", "type=bar"},
 		}
 		_, _, err := createFlag.GetUpdateFilters()
-		assert.ErrorContains(t, err, "duplicate key")
+		assert.ErrorContains(t, err, "duplicate")
 	})
 }
