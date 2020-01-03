@@ -48,10 +48,10 @@ E2E_TAGS="eventing" test/e2e-tests-local.sh
 
 ### Running a single test case
 
-To run one e2e test case, e.g. TestTrafficSplit
+To run one e2e test case, e.g. TestBasicWorkflow
 
 ```bash
-test/e2e-tests-local.sh -run ^TestTrafficSplit$
+go test -v -tags=e2e -count=1 ./e2e -run ^TestBasicWorkflow$
 ```
 
 ### Running tests in short mode
