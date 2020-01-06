@@ -42,6 +42,9 @@ type KnDynamicClient interface {
 
 	// ListSourceCRDs returns list of eventing sources CRDs
 	ListSourcesTypes() (*unstructured.UnstructuredList, error)
+
+	// RawClient returns the raw dynamic client interface
+	RawClient() dynamic.Interface
 }
 
 // knDynamicClient is a combination of client-go Dynamic client interface and namespace
@@ -86,4 +89,8 @@ func (c *knDynamicClient) ListSourcesTypes() (*unstructured.UnstructuredList, er
 	sourcesLabels := labels.Set{sourcesLabelKey: sourcesLabelValue}
 	options.LabelSelector = sourcesLabels.String()
 	return c.ListCRDs(options)
+}
+
+func (c knDynamicClient) RawClient() dynamic.Interface {
+	return c.client
 }

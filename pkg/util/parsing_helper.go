@@ -50,6 +50,17 @@ func MapFromArray(arr []string, delimiter string) (map[string]string, error) {
 	return mapFromArray(arr, delimiter, false)
 }
 
+func ParseMinusSuffix(m map[string]string) []string {
+	stringToRemove := []string{}
+	for key := range m {
+		if strings.HasSuffix(key, "-") {
+			stringToRemove = append(stringToRemove, key[:len(key)-1])
+			delete(m, key)
+		}
+	}
+	return stringToRemove
+}
+
 // mapFromArray takes an array of strings where each item is a (key, value) pair
 // separated by a delimiter and returns a map where keys are mapped to their respective values.
 // If allowSingles is true, values without a delimiter will be added as keys pointing to empty strings
@@ -63,6 +74,12 @@ func mapFromArray(arr []string, delimiter string, allowSingles bool) (map[string
 			}
 			returnMap[pairSlice[0]] = ""
 		} else {
+			if pairSlice[0] == "" {
+				return nil, fmt.Errorf("The key is empty")
+			}
+			if _, ok := returnMap[pairSlice[0]]; ok {
+				return nil, fmt.Errorf("The key %q has been duplicate in %v", pairSlice[0], arr)
+			}
 			returnMap[pairSlice[0]] = pairSlice[1]
 		}
 	}

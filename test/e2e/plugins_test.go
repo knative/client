@@ -32,7 +32,7 @@ const (
 
 echo "Hello Knative, I'm a Kn plugin"
 echo "  My plugin file is $0"
-echo "  I recieved arguments: $1 $2 $3 $4"`
+echo "  I received arguments: $1 $2 $3 $4"`
 
 	KnConfigDefault string = `plugins-dir: %s
 lookup-plugins: %s`
@@ -58,32 +58,32 @@ func TestPluginWorkflow(t *testing.T) {
 		defer test.Teardown(t)
 
 		knConfigDir, err = ioutil.TempDir("", "kn-config")
-		assert.Assert(t, err == nil)
+		assert.NilError(t, err)
 
 		knPluginsDir = filepath.Join(knConfigDir, "plugins")
 		err = os.MkdirAll(knPluginsDir, FileModeExecutable)
-		assert.Assert(t, err == nil)
+		assert.NilError(t, err)
 
 		knPluginsDir2 = filepath.Join(knConfigDir, "plugins2")
 		err = os.MkdirAll(knPluginsDir2, FileModeExecutable)
-		assert.Assert(t, err == nil)
+		assert.NilError(t, err)
 
-		knConfigPath, err = test.createConfig(t, "config.yaml", "", knConfigDir)
-		assert.Assert(t, err == nil)
+		knConfigPath, err = test.createFile(t, "config.yaml", "", knConfigDir, FileModeReadWrite)
+		assert.NilError(t, err)
 		assert.Assert(t, knConfigPath != "")
 
-		knPluginPath, err = test.createPlugin(t, "kn-helloe2e", TestPluginCode, knPluginsDir)
-		assert.Assert(t, err == nil)
+		knPluginPath, err = test.createFile(t, "kn-helloe2e", TestPluginCode, knPluginsDir, FileModeExecutable)
+		assert.NilError(t, err)
 		assert.Assert(t, knPluginPath != "")
 
-		knPluginPath2, err = test.createPlugin(t, "kn-hello2e2e", TestPluginCode, knPluginsDir2)
-		assert.Assert(t, err == nil)
+		knPluginPath2, err = test.createFile(t, "kn-hello2e2e", TestPluginCode, knPluginsDir2, FileModeExecutable)
+		assert.NilError(t, err)
 		assert.Assert(t, knPluginPath2 != "")
 	}
 
 	teardown := func(t *testing.T) {
 		err = os.RemoveAll(knConfigDir)
-		assert.Assert(t, err == nil)
+		assert.NilError(t, err)
 	}
 
 	t.Run("when kn config is empty", func(t *testing.T) {
@@ -95,15 +95,15 @@ func TestPluginWorkflow(t *testing.T) {
 					setup(t)
 					defer teardown(t)
 
-					knFlags := []string{fmt.Sprintf("--plugins-dir=%s", knPluginsDir), "--lookup-plugins=false"}
 					assert.Assert(t, lookupPlugins == false)
+					knFlags := []string{fmt.Sprintf("--plugins-dir=%s", knPluginsDir), fmt.Sprintf("--lookup-plugins=%t", lookupPlugins)}
 
 					t.Run("list plugin in --plugins-dir", func(t *testing.T) {
 						test.listPlugin(t, knFlags, []string{knPluginPath}, []string{})
 					})
 
 					t.Run("execute plugin in --plugins-dir", func(t *testing.T) {
-						test.runPlugin(t, knFlags, "helloe2e", []string{"e2e", "test"}, []string{"Hello Knative, I'm a Kn plugin", "I recieved arguments: e2e"})
+						test.runPlugin(t, knFlags, "helloe2e", []string{"e2e", "test"}, []string{"Hello Knative, I'm a Kn plugin", "I received arguments: e2e"})
 					})
 
 					t.Run("does not list any other plugin in $PATH", func(t *testing.T) {
@@ -117,8 +117,8 @@ func TestPluginWorkflow(t *testing.T) {
 					setup(t)
 					defer teardown(t)
 
-					knFlags := []string{fmt.Sprintf("--plugins-dir=%s", knPluginsDir), "--lookup-plugins=true"}
 					assert.Assert(t, lookupPlugins == true)
+					knFlags := []string{fmt.Sprintf("--plugins-dir=%s", knPluginsDir), fmt.Sprintf("--lookup-plugins=%t", lookupPlugins)}
 
 					t.Run("list plugin in --plugins-dir", func(t *testing.T) {
 						test.listPlugin(t, knFlags, []string{knPluginPath}, []string{knPluginPath2})
@@ -134,12 +134,12 @@ func TestPluginWorkflow(t *testing.T) {
 						setupPath := func(t *testing.T) {
 							oldPath = os.Getenv("PATH")
 							err := os.Setenv("PATH", fmt.Sprintf("%s:%s", oldPath, knPluginsDir2))
-							assert.Assert(t, err == nil)
+							assert.NilError(t, err)
 						}
 
 						tearDownPath := func(t *testing.T) {
 							err = os.Setenv("PATH", oldPath)
-							assert.Assert(t, err == nil)
+							assert.NilError(t, err)
 						}
 
 						t.Run("list plugin in $PATH", func(t *testing.T) {
@@ -162,49 +162,34 @@ func TestPluginWorkflow(t *testing.T) {
 
 // Private
 
-func (test *e2eTest) createConfig(t *testing.T, configName, configCode, configPath string) (string, error) {
-	configFilename := filepath.Join(configPath, configName)
-	err := ioutil.WriteFile(configFilename, []byte(configCode), FileModeReadWrite)
+func (test *e2eTest) createFile(t *testing.T, fileName, fileContent, filePath string, fileMode os.FileMode) (string, error) {
+	file := filepath.Join(filePath, fileName)
+	err := ioutil.WriteFile(file, []byte(fileContent), fileMode)
+	assert.NilError(t, err)
 	if err != nil {
 		return "", err
 	}
-	return configFilename, nil
-}
-
-func (test *e2eTest) createPlugin(t *testing.T, pluginName, pluginCode, pluginPath string) (string, error) {
-	pluginFilename := filepath.Join(pluginPath, pluginName)
-	err := ioutil.WriteFile(pluginFilename, []byte(pluginCode), FileModeExecutable)
-	if err != nil {
-		return "", err
-	}
-	return pluginFilename, nil
+	return file, nil
 }
 
 func (test *e2eTest) listPlugin(t *testing.T, knFlags []string, expectedPlugins []string, unexpectedPlugins []string) {
-	knArgs := addArgs([]string{}, knFlags...)
-	knArgs = addArgs(knArgs, []string{"plugin", "list"}...)
+	knArgs := append([]string{}, knFlags...)
+	knArgs = append(knArgs, []string{"plugin", "list"}...)
 
 	out, err := test.kn.RunWithOpts(knArgs, runOpts{NoNamespace: true})
-	assert.Assert(t, err == nil)
+	assert.NilError(t, err)
 	assert.Check(t, util.ContainsAll(out, expectedPlugins...))
 	assert.Check(t, util.ContainsNone(out, unexpectedPlugins...))
 }
 
 func (test *e2eTest) runPlugin(t *testing.T, knFlags []string, pluginName string, args []string, expectedOutput []string) {
-	knArgs := addArgs([]string{}, knFlags...)
+	knArgs := append([]string{}, knFlags...)
 	knArgs = append(knArgs, pluginName)
-	knArgs = addArgs(knArgs, args...)
+	knArgs = append(knArgs, args...)
 
 	out, err := test.kn.RunWithOpts(knArgs, runOpts{NoNamespace: true})
-	assert.Assert(t, err == nil)
+	assert.NilError(t, err)
 	for _, output := range expectedOutput {
 		assert.Check(t, util.ContainsAll(out, output))
 	}
-}
-
-func addArgs(cmdArgs []string, args ...string) []string {
-	for _, arg := range args {
-		cmdArgs = append(cmdArgs, arg)
-	}
-	return cmdArgs
 }
