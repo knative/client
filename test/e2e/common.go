@@ -92,7 +92,7 @@ func (test *e2eTest) CreateTestNamespace(t *testing.T, namespace string) {
 	expectedOutputRegexp := fmt.Sprintf("namespace?.+%s.+created", namespace)
 	out, err := createNamespace(t, namespace, MaxRetries, logger)
 	if err != nil {
-		logger.Fatalf("Could not create namespace, giving up")
+		logger.Fatalf("Could not create namespace with error %v, giving up\n", err)
 	}
 
 	// check that last output indeed show created namespace
@@ -159,12 +159,12 @@ func createNamespace(t *testing.T, namespace string, maxRetries int, logger Logg
 	)
 
 	for retries < maxRetries {
-		out, err := kubectlCreateNamespace()
+		out, err = kubectlCreateNamespace()
 		if err == nil {
 			return out, nil
 		}
 		retries++
-		logger.Debugf("Could not create namespace, waiting %ds, and trying again: %d of %d\n", int(RetrySleepDuration.Seconds()), retries, maxRetries)
+		logger.Debugf("Could not create namespace with error %v, waiting %ds, and trying again: %d of %d\n", err, int(RetrySleepDuration.Seconds()), retries, maxRetries)
 		time.Sleep(RetrySleepDuration)
 	}
 
