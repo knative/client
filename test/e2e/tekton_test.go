@@ -35,6 +35,7 @@ const (
 
 func TestTektonPipeline(t *testing.T) {
 	test := NewE2eTest(t)
+	defer test.Teardown(t)
 	test.Setup(t)
 
 	kubectl := kubectl{t, Logger{}}
