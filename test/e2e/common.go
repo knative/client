@@ -106,7 +106,7 @@ func (test *e2eTest) DeleteTestNamespace(t *testing.T, namespace string) {
 	kubectl := kubectl{t, Logger{}}
 	out, err := kubectl.RunWithOpts([]string{"delete", "namespace", namespace}, runOpts{})
 	if err != nil {
-		t.Fatalf(fmt.Sprintf("Error executing 'kubectl delete namespace' command. Error: %s", err.Error()))
+		t.Fatalf("Error executing 'kubectl delete namespace' command. Error: %s", err.Error())
 	}
 
 	expectedOutputRegexp := fmt.Sprintf("namespace?.+%s.+deleted", namespace)
@@ -120,7 +120,7 @@ func (test *e2eTest) WaitForNamespaceDeleted(t *testing.T, namespace string) {
 	logger := Logger{}
 	deleted := checkNamespaceDeleted(t, namespace, MaxRetries, logger)
 	if !deleted {
-		t.Fatalf(fmt.Sprintf("Error deleting namespace %s, timed out", namespace))
+		t.Fatalf("Error deleting namespace %s, timed out", namespace)
 	}
 }
 
@@ -216,7 +216,7 @@ func cmdCLIDesc(cli string, args []string) string {
 func matchRegexp(t *testing.T, matchingRegexp, actual string) bool {
 	matched, err := regexp.MatchString(matchingRegexp, actual)
 	if err != nil {
-		t.Fatalf(fmt.Sprintf("Failed to match regexp '%s'. Error: '%s'", matchingRegexp, err.Error()))
+		t.Fatalf("Failed to match regexp '%s'. Error: '%s'", matchingRegexp, err.Error())
 	}
 	return matched
 }
