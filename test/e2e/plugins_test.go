@@ -68,16 +68,13 @@ func TestPluginWorkflow(t *testing.T) {
 		err = os.MkdirAll(knPluginsDir2, FileModeExecutable)
 		assert.NilError(t, err)
 
-		knConfigPath, err = test.createFile(t, "config.yaml", "", knConfigDir, FileModeReadWrite)
-		assert.NilError(t, err)
+		knConfigPath = test.createFile(t, "config.yaml", "", knConfigDir, FileModeReadWrite)
 		assert.Assert(t, knConfigPath != "")
 
-		knPluginPath, err = test.createFile(t, "kn-helloe2e", TestPluginCode, knPluginsDir, FileModeExecutable)
-		assert.NilError(t, err)
+		knPluginPath = test.createFile(t, "kn-helloe2e", TestPluginCode, knPluginsDir, FileModeExecutable)
 		assert.Assert(t, knPluginPath != "")
 
-		knPluginPath2, err = test.createFile(t, "kn-hello2e2e", TestPluginCode, knPluginsDir2, FileModeExecutable)
-		assert.NilError(t, err)
+		knPluginPath2 = test.createFile(t, "kn-hello2e2e", TestPluginCode, knPluginsDir2, FileModeExecutable)
 		assert.Assert(t, knPluginPath2 != "")
 	}
 
@@ -162,14 +159,11 @@ func TestPluginWorkflow(t *testing.T) {
 
 // Private
 
-func (test *e2eTest) createFile(t *testing.T, fileName, fileContent, filePath string, fileMode os.FileMode) (string, error) {
+func (test *e2eTest) createFile(t *testing.T, fileName, fileContent, filePath string, fileMode os.FileMode) string {
 	file := filepath.Join(filePath, fileName)
 	err := ioutil.WriteFile(file, []byte(fileContent), fileMode)
 	assert.NilError(t, err)
-	if err != nil {
-		return "", err
-	}
-	return file, nil
+	return file
 }
 
 func (test *e2eTest) listPlugin(t *testing.T, knFlags []string, expectedPlugins []string, unexpectedPlugins []string) {
