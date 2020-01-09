@@ -47,13 +47,16 @@ const (
 var m sync.Mutex
 
 type e2eTest struct {
-	env env
-	kn  kn
+	env                    env
+	kn                     kn
+	createNamespaceOnSetup bool
+	namespaceCreated       bool
 }
 
 func NewE2eTest(t *testing.T) *e2eTest {
 	return &e2eTest{
-		env: buildEnv(t),
+		env:                    buildEnv(t),
+		createNamespaceOnSetup: true,
 	}
 }
 
@@ -61,8 +64,10 @@ func NewE2eTest(t *testing.T) *e2eTest {
 func (test *e2eTest) Setup(t *testing.T) {
 	test.env.Namespace = fmt.Sprintf("%s%d", test.env.Namespace, getNamespaceCountAndIncrement())
 	test.kn = kn{t, test.env.Namespace, Logger{}}
-	test.CreateTestNamespace(t, test.env.Namespace)
-	time.Sleep(20 * time.Second)
+	if test.createNamespaceOnSetup {
+		test.CreateTestNamespace(t, test.env.Namespace)
+		time.Sleep(20 * time.Second)
+	}
 }
 
 func getNamespaceCountAndIncrement() int {
@@ -83,7 +88,9 @@ func getServiceNameAndIncrement(base string) string {
 
 // Teardown clean up
 func (test *e2eTest) Teardown(t *testing.T) {
-	test.DeleteTestNamespace(t, test.env.Namespace)
+	if test.namespaceCreated {
+		test.DeleteTestNamespace(t, test.env.Namespace)
+	}
 }
 
 // CreateTestNamespace creates and tests a namesspace creation invoking kubectl
@@ -92,13 +99,14 @@ func (test *e2eTest) CreateTestNamespace(t *testing.T, namespace string) {
 	expectedOutputRegexp := fmt.Sprintf("namespace?.+%s.+created", namespace)
 	out, err := createNamespace(t, namespace, MaxRetries, logger)
 	if err != nil {
-		logger.Fatalf("Could not create namespace, giving up")
+		logger.Fatalf("Could not create namespace with error %v, giving up\n", err)
 	}
 
 	// check that last output indeed show created namespace
 	if !matchRegexp(t, expectedOutputRegexp, out) {
 		t.Fatalf("Expected output incorrect, expecting to include:\n%s\n Instead found:\n%s\n", expectedOutputRegexp, out)
 	}
+	test.namespaceCreated = true
 }
 
 // CreateTestNamespace deletes and tests a namesspace deletion invoking kubectl
@@ -106,13 +114,14 @@ func (test *e2eTest) DeleteTestNamespace(t *testing.T, namespace string) {
 	kubectl := kubectl{t, Logger{}}
 	out, err := kubectl.RunWithOpts([]string{"delete", "namespace", namespace}, runOpts{})
 	if err != nil {
-		t.Fatalf(fmt.Sprintf("Error executing 'kubectl delete namespace' command. Error: %s", err.Error()))
+		t.Fatalf("Error executing 'kubectl delete namespace' command. Error: %s", err.Error())
 	}
 
 	expectedOutputRegexp := fmt.Sprintf("namespace?.+%s.+deleted", namespace)
 	if !matchRegexp(t, expectedOutputRegexp, out) {
 		t.Fatalf("Expected output incorrect, expecting to include:\n%s\n Instead found:\n%s\n", expectedOutputRegexp, out)
 	}
+	test.namespaceCreated = false
 }
 
 // WaitForNamespaceDeleted wait until namespace is deleted
@@ -120,7 +129,7 @@ func (test *e2eTest) WaitForNamespaceDeleted(t *testing.T, namespace string) {
 	logger := Logger{}
 	deleted := checkNamespaceDeleted(t, namespace, MaxRetries, logger)
 	if !deleted {
-		t.Fatalf(fmt.Sprintf("Error deleting namespace %s, timed out", namespace))
+		t.Fatalf("Error deleting namespace %s, timed out", namespace)
 	}
 }
 
@@ -159,12 +168,12 @@ func createNamespace(t *testing.T, namespace string, maxRetries int, logger Logg
 	)
 
 	for retries < maxRetries {
-		out, err := kubectlCreateNamespace()
+		out, err = kubectlCreateNamespace()
 		if err == nil {
 			return out, nil
 		}
 		retries++
-		logger.Debugf("Could not create namespace, waiting %ds, and trying again: %d of %d\n", int(RetrySleepDuration.Seconds()), retries, maxRetries)
+		logger.Debugf("Could not create namespace with error %v, waiting %ds, and trying again: %d of %d\n", err, int(RetrySleepDuration.Seconds()), retries, maxRetries)
 		time.Sleep(RetrySleepDuration)
 	}
 
@@ -216,7 +225,7 @@ func cmdCLIDesc(cli string, args []string) string {
 func matchRegexp(t *testing.T, matchingRegexp, actual string) bool {
 	matched, err := regexp.MatchString(matchingRegexp, actual)
 	if err != nil {
-		t.Fatalf(fmt.Sprintf("Failed to match regexp '%s'. Error: '%s'", matchingRegexp, err.Error()))
+		t.Fatalf("Failed to match regexp '%s'. Error: '%s'", matchingRegexp, err.Error())
 	}
 	return matched
 }

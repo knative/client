@@ -44,7 +44,7 @@ func TestTriggerList(t *testing.T) {
 	triggerList := &v1alpha1.TriggerList{Items: []v1alpha1.Trigger{*trigger1, *trigger2, *trigger3}}
 	eventingRecorder.ListTriggers(triggerList, nil)
 
-	output, err := executeTriggerCommand(eventingClient, servingClient, "list")
+	output, err := executeTriggerCommand(eventingClient, nil, "list")
 	assert.NilError(t, err)
 
 	outputLines := strings.Split(output, "\n")
@@ -85,7 +85,7 @@ func TestTriggerListAllNamespace(t *testing.T) {
 	triggerList := &v1alpha1.TriggerList{Items: []v1alpha1.Trigger{*trigger1, *trigger2, *trigger3}}
 	eventingRecorder.ListTriggers(triggerList, nil)
 
-	output, err := executeTriggerCommand(eventingClient, servingClient, "list", "--all-namespaces")
+	output, err := executeTriggerCommand(eventingClient, nil, "list", "--all-namespaces")
 	assert.NilError(t, err)
 
 	outputLines := strings.Split(output, "\n")

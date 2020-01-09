@@ -23,9 +23,8 @@ import (
 func TestMapFromArray(t *testing.T) {
 	testMapFromArray(t, []string{"good=value"}, "=", map[string]string{"good": "value"})
 	testMapFromArray(t, []string{"multi=value", "other=value"}, "=", map[string]string{"multi": "value", "other": "value"})
-	testMapFromArray(t, []string{"over|write", "over|written"}, "|", map[string]string{"over": "written"})
 	testMapFromArray(t, []string{"only,split,once", "just,once,"}, ",", map[string]string{"only": "split,once", "just": "once,"})
-	testMapFromArray(t, []string{"empty=", "="}, "=", map[string]string{"empty": "", "": ""})
+	testMapFromArray(t, []string{"empty="}, "=", map[string]string{"empty": ""})
 }
 
 func testMapFromArray(t *testing.T, input []string, delimiter string, expected map[string]string) {
@@ -71,4 +70,25 @@ func TestMapFromArrayEmptyValueEmptyDelimiterAllowingSingles(t *testing.T) {
 	input := []string{""}
 	_, err := MapFromArrayAllowingSingles(input, "")
 	assert.ErrorContains(t, err, "Argument requires")
+}
+
+func TestMapFromArrayMapRepeat(t *testing.T) {
+	input := []string{"a1=b1", "a1=b2"}
+	_, err := MapFromArrayAllowingSingles(input, "=")
+	assert.ErrorContains(t, err, "duplicate")
+}
+
+func TestMapFromArrayMapKeyEmpty(t *testing.T) {
+	input := []string{"=a1"}
+	_, err := MapFromArrayAllowingSingles(input, "=")
+	assert.ErrorContains(t, err, "empty")
+}
+
+func TestParseMinusSuffix(t *testing.T) {
+	inputMap := map[string]string{"a1": "b1", "a2-": ""}
+	expectedMap := map[string]string{"a1": "b1"}
+	expectedStringToRemove := []string{"a2"}
+	stringToRemove := ParseMinusSuffix(inputMap)
+	assert.DeepEqual(t, expectedMap, inputMap)
+	assert.DeepEqual(t, expectedStringToRemove, stringToRemove)
 }

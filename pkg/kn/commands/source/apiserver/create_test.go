@@ -15,51 +15,41 @@
 package apiserver
 
 import (
-	"errors"
 	"testing"
 
 	"gotest.tools/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	dynamic_fake "knative.dev/client/pkg/dynamic/fake"
 	knsources_v1alpha1 "knative.dev/client/pkg/eventing/sources/v1alpha1"
-	knserving_client "knative.dev/client/pkg/serving/v1alpha1"
 	"knative.dev/client/pkg/util"
 	serving_v1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
 func TestCreateApiServerSource(t *testing.T) {
-
+	testsvc := &serving_v1alpha1.Service{
+		TypeMeta:   metav1.TypeMeta{Kind: "Service", APIVersion: "serving.knative.dev/v1alpha1"},
+		ObjectMeta: metav1.ObjectMeta{Name: "testsvc", Namespace: "default"},
+	}
+	dynamicClient := dynamic_fake.CreateFakeKnDynamicClient("default", testsvc)
 	apiServerClient := knsources_v1alpha1.NewMockKnAPIServerSourceClient(t)
-	servingClient := knserving_client.NewMockKnServiceClient(t)
-
-	servingRecorder := servingClient.Recorder()
-	servingRecorder.GetService("testsvc", &serving_v1alpha1.Service{
-		TypeMeta:   metav1.TypeMeta{Kind: "Service"},
-		ObjectMeta: metav1.ObjectMeta{Name: "testsvc"},
-	}, nil)
 
 	apiServerRecorder := apiServerClient.Recorder()
 	apiServerRecorder.CreateAPIServerSource(createAPIServerSource("testsource", "Event", "v1", "testsa", "Ref", "testsvc", false), nil)
 
-	out, err := executeAPIServerSourceCommand(apiServerClient, servingClient, "create", "testsource", "--resource", "Event:v1:false", "--service-account", "testsa", "--sink", "svc:testsvc", "--mode", "Ref")
+	out, err := executeAPIServerSourceCommand(apiServerClient, dynamicClient, "create", "testsource", "--resource", "Event:v1:false", "--service-account", "testsa", "--sink", "svc:testsvc", "--mode", "Ref")
 	assert.NilError(t, err, "ApiServer source should be created")
 	util.ContainsAll(out, "created", "default", "testsource")
 
 	apiServerRecorder.Validate()
-	servingRecorder.Validate()
 }
 
 func TestSinkNotFoundError(t *testing.T) {
-	servingClient := knserving_client.NewMockKnServiceClient(t)
+	dynamicClient := dynamic_fake.CreateFakeKnDynamicClient("default")
 	apiServerClient := knsources_v1alpha1.NewMockKnAPIServerSourceClient(t)
-
-	errorMsg := "cannot create ApiServerSource 'testsource' in namespace 'default' because: no Service svc found"
-	servingRecorder := servingClient.Recorder()
-	servingRecorder.GetService("testsvc", nil, errors.New("no Service svc found"))
-
-	out, err := executeAPIServerSourceCommand(apiServerClient, servingClient, "create", "testsource", "--resource", "Event:v1:false", "--service-account", "testsa", "--sink", "svc:testsvc", "--mode", "Ref")
+	errorMsg := "cannot create ApiServerSource 'testsource' in namespace 'default' because: services.serving.knative.dev \"testsvc\" not found"
+	out, err := executeAPIServerSourceCommand(apiServerClient, dynamicClient, "create", "testsource", "--resource", "Event:v1:false", "--service-account", "testsa", "--sink", "svc:testsvc", "--mode", "Ref")
 	assert.Error(t, err, errorMsg)
 	assert.Assert(t, util.ContainsAll(out, errorMsg, "Usage"))
-	servingRecorder.Validate()
 }
 
 func TestNoSinkError(t *testing.T) {
