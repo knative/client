@@ -47,13 +47,16 @@ const (
 var m sync.Mutex
 
 type e2eTest struct {
-	env env
-	kn  kn
+	env                    env
+	kn                     kn
+	createNamespaceOnSetup bool
+	namespaceCreated       bool
 }
 
 func NewE2eTest(t *testing.T) *e2eTest {
 	return &e2eTest{
-		env: buildEnv(t),
+		env:                    buildEnv(t),
+		createNamespaceOnSetup: true,
 	}
 }
 
@@ -61,8 +64,10 @@ func NewE2eTest(t *testing.T) *e2eTest {
 func (test *e2eTest) Setup(t *testing.T) {
 	test.env.Namespace = fmt.Sprintf("%s%d", test.env.Namespace, getNamespaceCountAndIncrement())
 	test.kn = kn{t, test.env.Namespace, Logger{}}
-	test.CreateTestNamespace(t, test.env.Namespace)
-	time.Sleep(20 * time.Second)
+	if test.createNamespaceOnSetup {
+		test.CreateTestNamespace(t, test.env.Namespace)
+		time.Sleep(20 * time.Second)
+	}
 }
 
 func getNamespaceCountAndIncrement() int {
@@ -83,7 +88,9 @@ func getServiceNameAndIncrement(base string) string {
 
 // Teardown clean up
 func (test *e2eTest) Teardown(t *testing.T) {
-	test.DeleteTestNamespace(t, test.env.Namespace)
+	if test.namespaceCreated {
+		test.DeleteTestNamespace(t, test.env.Namespace)
+	}
 }
 
 // CreateTestNamespace creates and tests a namesspace creation invoking kubectl
@@ -99,6 +106,7 @@ func (test *e2eTest) CreateTestNamespace(t *testing.T, namespace string) {
 	if !matchRegexp(t, expectedOutputRegexp, out) {
 		t.Fatalf("Expected output incorrect, expecting to include:\n%s\n Instead found:\n%s\n", expectedOutputRegexp, out)
 	}
+	test.namespaceCreated = true
 }
 
 // CreateTestNamespace deletes and tests a namesspace deletion invoking kubectl
@@ -113,6 +121,7 @@ func (test *e2eTest) DeleteTestNamespace(t *testing.T, namespace string) {
 	if !matchRegexp(t, expectedOutputRegexp, out) {
 		t.Fatalf("Expected output incorrect, expecting to include:\n%s\n Instead found:\n%s\n", expectedOutputRegexp, out)
 	}
+	test.namespaceCreated = false
 }
 
 // WaitForNamespaceDeleted wait until namespace is deleted
