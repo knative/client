@@ -20,6 +20,11 @@ import (
 	"knative.dev/client/pkg/kn/commands"
 )
 
+const (
+	// How often to retry in case of an optimistic lock error when replacing a trigger (--force)
+	MaxUpdateRetries = 3
+)
+
 // NewTriggerCommand to create trigger command group
 func NewTriggerCommand(p *commands.KnParams) *cobra.Command {
 	triggerCmd := &cobra.Command{
