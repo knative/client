@@ -24,7 +24,7 @@ import (
 func TestGetFilters(t *testing.T) {
 	t.Run("get multiple filters", func(t *testing.T) {
 		createFlag := TriggerUpdateFlags{
-			Filters: filterArray{"type=abc.edf.ghi", "attr=value"},
+			Filters: []string{"type=abc.edf.ghi", "attr=value"},
 		}
 		created, err := createFlag.GetFilters()
 		wanted := map[string]string{
@@ -37,26 +37,26 @@ func TestGetFilters(t *testing.T) {
 
 	t.Run("get filters with errors", func(t *testing.T) {
 		createFlag := TriggerUpdateFlags{
-			Filters: filterArray{"type"},
+			Filters: []string{"type"},
 		}
 		_, err := createFlag.GetFilters()
 		assert.ErrorContains(t, err, "Invalid --filter")
 
 		createFlag = TriggerUpdateFlags{
-			Filters: filterArray{"type="},
+			Filters: []string{"type="},
 		}
 		filters, err := createFlag.GetFilters()
 		wanted := map[string]string{"type": ""}
 		assert.DeepEqual(t, wanted, filters)
 
 		createFlag = TriggerUpdateFlags{
-			Filters: filterArray{"=value"},
+			Filters: []string{"=value"},
 		}
 		_, err = createFlag.GetFilters()
 		assert.ErrorContains(t, err, "Invalid --filter")
 
 		createFlag = TriggerUpdateFlags{
-			Filters: filterArray{"="},
+			Filters: []string{"="},
 		}
 		_, err = createFlag.GetFilters()
 		assert.ErrorContains(t, err, "Invalid --filter")
@@ -64,7 +64,7 @@ func TestGetFilters(t *testing.T) {
 
 	t.Run("get duplicate filters", func(t *testing.T) {
 		createFlag := TriggerUpdateFlags{
-			Filters: filterArray{"type=foo", "type=bar"},
+			Filters: []string{"type=foo", "type=bar"},
 		}
 		_, err := createFlag.GetFilters()
 		assert.ErrorContains(t, err, "duplicate")
@@ -74,7 +74,7 @@ func TestGetFilters(t *testing.T) {
 func TestGetUpdateFilters(t *testing.T) {
 	t.Run("get updated filters", func(t *testing.T) {
 		createFlag := TriggerUpdateFlags{
-			Filters: filterArray{"type=abc.edf.ghi", "attr=value"},
+			Filters: []string{"type=abc.edf.ghi", "attr=value"},
 		}
 		updated, removed, err := createFlag.GetUpdateFilters()
 		wanted := map[string]string{
@@ -88,7 +88,7 @@ func TestGetUpdateFilters(t *testing.T) {
 
 	t.Run("get deleted filters", func(t *testing.T) {
 		createFlag := TriggerUpdateFlags{
-			Filters: filterArray{"type-", "attr-"},
+			Filters: []string{"type-", "attr-"},
 		}
 		updated, removed, err := createFlag.GetUpdateFilters()
 		wanted := []string{"type", "attr"}
@@ -101,7 +101,7 @@ func TestGetUpdateFilters(t *testing.T) {
 
 	t.Run("get updated & deleted filters", func(t *testing.T) {
 		createFlag := TriggerUpdateFlags{
-			Filters: filterArray{"type=foo", "attr-", "source=bar", "env-"},
+			Filters: []string{"type=foo", "attr-", "source=bar", "env-"},
 		}
 		updated, removed, err := createFlag.GetUpdateFilters()
 		wantedRemoved := []string{"attr", "env"}
@@ -118,7 +118,7 @@ func TestGetUpdateFilters(t *testing.T) {
 
 	t.Run("update duplicate filters", func(t *testing.T) {
 		createFlag := TriggerUpdateFlags{
-			Filters: filterArray{"type=foo", "type=bar"},
+			Filters: []string{"type=foo", "type=bar"},
 		}
 		_, _, err := createFlag.GetUpdateFilters()
 		assert.ErrorContains(t, err, "duplicate")

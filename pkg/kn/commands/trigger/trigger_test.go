@@ -78,20 +78,16 @@ func executeTriggerCommand(triggerClient eventc_v1alpha1.KnEventingClient, dynam
 func createTrigger(namespace string, name string, filters map[string]string, broker string, svcname string) *v1alpha1.Trigger {
 	triggerBuilder := eventc_v1alpha1.NewTriggerBuilder(name).
 		Namespace(namespace).
-		Broker(broker)
-
-	for k, v := range filters {
-		triggerBuilder.AddFilter(k, v)
-	}
-
-	triggerBuilder.Subscriber(&duckv1.Destination{
-		Ref: &corev1.ObjectReference{
-			Name:       svcname,
-			Kind:       "Service",
-			Namespace:  "default",
-			APIVersion: "serving.knative.dev/v1alpha1",
-		},
-	})
+		Broker(broker).
+		Filters(filters).
+		Subscriber(&duckv1.Destination{
+			Ref: &corev1.ObjectReference{
+				Name:       svcname,
+				Kind:       "Service",
+				Namespace:  "default",
+				APIVersion: "serving.knative.dev/v1alpha1",
+			},
+		})
 	return triggerBuilder.Build()
 }
 

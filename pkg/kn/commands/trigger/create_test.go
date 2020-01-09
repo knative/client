@@ -67,13 +67,6 @@ func TestNoSinkError(t *testing.T) {
 	assert.ErrorContains(t, err, "required flag(s)", "sink", "not set")
 }
 
-func TestNoFilterError(t *testing.T) {
-	eventingClient := eventing_client.NewMockKnEventingClient(t)
-	_, err := executeTriggerCommand(eventingClient, nil, "create", triggerName, "--broker", "mybroker",
-		"--sink", "svc:mysvc")
-	assert.ErrorContains(t, err, "required flag(s)", "filter", "not set")
-}
-
 func TestTriggerCreateMultipleFilter(t *testing.T) {
 	eventingClient := eventing_client.NewMockKnEventingClient(t)
 	dynamicClient := dynamic_fake.CreateFakeKnDynamicClient("default", &serving_v1alpha1.Service{
@@ -86,6 +79,23 @@ func TestTriggerCreateMultipleFilter(t *testing.T) {
 
 	out, err := executeTriggerCommand(eventingClient, dynamicClient, "create", triggerName, "--broker", "mybroker",
 		"--filter", "type=dev.knative.foo", "--filter", "source=event.host", "--sink", "svc:mysvc")
+	assert.NilError(t, err, "Trigger should be created")
+	util.ContainsAll(out, "Trigger", triggerName, "created", "namespace", "default")
+
+	eventingRecorder.Validate()
+}
+
+func TestTriggerCreateWithoutFilter(t *testing.T) {
+	eventingClient := eventing_client.NewMockKnEventingClient(t)
+	dynamicClient := dynamic_fake.CreateFakeKnDynamicClient("default", &serving_v1alpha1.Service{
+		TypeMeta:   metav1.TypeMeta{Kind: "Service", APIVersion: "serving.knative.dev/v1alpha1"},
+		ObjectMeta: metav1.ObjectMeta{Name: "mysvc", Namespace: "default"},
+	})
+
+	eventingRecorder := eventingClient.Recorder()
+	eventingRecorder.CreateTrigger(createTrigger("default", triggerName, nil, "mybroker", "mysvc"), nil)
+
+	out, err := executeTriggerCommand(eventingClient, dynamicClient, "create", triggerName, "--broker", "mybroker", "--sink", "svc:mysvc")
 	assert.NilError(t, err, "Trigger should be created")
 	util.ContainsAll(out, "Trigger", triggerName, "created", "namespace", "default")
 

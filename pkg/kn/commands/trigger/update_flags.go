@@ -21,32 +21,13 @@ import (
 	"knative.dev/client/pkg/util"
 )
 
-type filterArray []string
-
-func (filters *filterArray) String() string {
-	str := ""
-	for _, filter := range *filters {
-		str = str + filter + " "
-	}
-	return str
-}
-
-func (filters *filterArray) Set(value string) error {
-	*filters = append(*filters, value)
-	return nil
-}
-
-func (filters *filterArray) Type() string {
-	return "[]string"
-}
-
 // TriggerUpdateFlags are flags for create and update a trigger
 type TriggerUpdateFlags struct {
 	Broker  string
-	Filters filterArray
+	Filters []string
 }
 
-// GetFilter to return a map type of filters
+// GetFilters to return a map type of filters
 func (f *TriggerUpdateFlags) GetFilters() (map[string]string, error) {
 	filters, err := util.MapFromArray(f.Filters, "=")
 	if err != nil {
@@ -55,7 +36,7 @@ func (f *TriggerUpdateFlags) GetFilters() (map[string]string, error) {
 	return filters, nil
 }
 
-// GetFilter to return a map type of filters
+// GetUpdateFilters to return a map type of filters
 func (f *TriggerUpdateFlags) GetUpdateFilters() (map[string]string, []string, error) {
 	filters, err := util.MapFromArrayAllowingSingles(f.Filters, "=")
 	if err != nil {
@@ -68,5 +49,5 @@ func (f *TriggerUpdateFlags) GetUpdateFilters() (map[string]string, []string, er
 //Add is to set parameters
 func (f *TriggerUpdateFlags) Add(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&f.Broker, "broker", "default", "Name of the Broker which the trigger associates with.")
-	cmd.Flags().Var(&f.Filters, "filter", "Key-value pair for exact CloudEvent attribute matching against incoming events, e.g type=dev.knative.foo")
+	cmd.Flags().StringSliceVar(&f.Filters, "filter", nil, "Key-value pair for exact CloudEvent attribute matching against incoming events, e.g type=dev.knative.foo")
 }

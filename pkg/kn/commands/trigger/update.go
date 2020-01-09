@@ -82,12 +82,7 @@ func NewTriggerUpdateCommand(p *commands.KnParams) *cobra.Command {
 					return fmt.Errorf(
 						"cannot update trigger '%s' because %s", name, err)
 				}
-				for k, v := range updated {
-					b.AddFilter(k, v)
-				}
-				for _, k := range removed {
-					b.RemoveFilter(k)
-				}
+				b.Filters(updated).RemoveFilters(removed)
 			}
 			if cmd.Flags().Changed("sink") {
 				destination, err := sinkFlags.ResolveSink(dynamicClient, namespace)
