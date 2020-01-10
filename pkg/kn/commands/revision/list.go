@@ -90,10 +90,10 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 				}
 			}
 
-			// Sort by revision
+			// Sort by generation
 			sortRevisionInfosByGeneration(revisionList)
 
-			// Print out infos via printer
+			// Print out infos via printer framework 
 			printer, err := revisionListFlags.ToPrinter()
 			if err != nil {
 				return err
