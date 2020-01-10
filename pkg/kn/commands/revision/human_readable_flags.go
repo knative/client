@@ -15,8 +15,11 @@
 package revision
 
 import (
+	"io"
+
 	metav1beta1 "k8s.io/apimachinery/pkg/apis/meta/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/cli-runtime/pkg/printers"
 	"knative.dev/client/pkg/kn/commands"
 	hprinters "knative.dev/client/pkg/printers"
 	serving "knative.dev/serving/pkg/apis/serving"
@@ -85,4 +88,38 @@ func printRevision(revision *servingv1alpha1.Revision, options hprinters.PrintOp
 		ready,
 		reason)
 	return []metav1beta1.TableRow{row}, nil
+}
+
+type annotationCleanupPrinter struct {
+	wrappedPrinter      printers.ResourcePrinter
+	annotationsToRemove []string
+}
+
+// Wrap a resource printer so that annotations can be cleaned up
+// Could easily be generalized
+func wrapPrinterForAnnotationCleanup(printer printers.ResourcePrinter, origError error) (hprinters.ResourcePrinter, error) {
+	if origError != nil {
+		return printer, origError
+	}
+	return annotationCleanupPrinter{
+		wrappedPrinter:      printer,
+		annotationsToRemove: []string{RevisionTrafficAnnotation, RevisionTagsAnnotation},
+	}, nil
+}
+
+func (acp annotationCleanupPrinter) PrintObj(rto runtime.Object, w io.Writer) error {
+	revisionList, ok := rto.(*servingv1alpha1.RevisionList)
+	if ok {
+		// Remove any temporary annotations
+		for _, revision := range revisionList.Items {
+			annos := revision.Annotations
+			if annos == nil {
+				continue
+			}
+			for _, anno := range acp.annotationsToRemove {
+				delete(annos, anno)
+			}
+		}
+	}
+	return acp.wrappedPrinter.PrintObj(rto, w)
 }

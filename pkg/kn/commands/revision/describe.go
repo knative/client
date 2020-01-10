@@ -108,7 +108,7 @@ func describe(w io.Writer, revision *v1alpha1.Revision, service *v1alpha1.Servic
 			serviceSection.WriteAttribute("Configuration Generation", revision.Labels[servingserving.ConfigurationGenerationLabelKey])
 			serviceSection.WriteAttribute("Latest Created", strconv.FormatBool(revision.Name == service.Status.LatestCreatedRevisionName))
 			serviceSection.WriteAttribute("Latest Ready", strconv.FormatBool(revision.Name == service.Status.LatestReadyRevisionName))
-			percent, tags := trafficForRevision(revision.Name, service)
+			percent, tags := trafficAndTagsForRevision(revision.Name, service)
 			if percent != 0 {
 				serviceSection.WriteAttribute("Traffic", strconv.FormatInt(int64(percent), 10)+"%")
 			}
@@ -268,23 +268,4 @@ func stringifyEnv(revision *v1alpha1.Revision) []string {
 		envVars = append(envVars, fmt.Sprintf("%s=%s", env.Name, value))
 	}
 	return envVars
-}
-
-func trafficForRevision(name string, service *v1alpha1.Service) (int64, []string) {
-	if len(service.Status.Traffic) == 0 {
-		return 0, nil
-	}
-	var percent int64
-	tags := []string{}
-	for _, target := range service.Status.Traffic {
-		if target.RevisionName == name {
-			if target.Percent != nil {
-				percent += *target.Percent
-			}
-			if target.Tag != "" {
-				tags = append(tags, target.Tag)
-			}
-		}
-	}
-	return percent, tags
 }

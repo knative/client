@@ -152,7 +152,7 @@ func TestRevisionListForService(t *testing.T) {
 	if !action.Matches("list", "revisions") {
 		t.Errorf("Bad action %v", action)
 	}
-	assert.Assert(t, util.ContainsAll(output[0], "No", "revisions", "svc3"), "no revisions")
+	assert.Assert(t, util.ContainsAll(output[0], "No", "revisions", "found"), "no revisions")
 }
 
 func TestRevisionListOneOutput(t *testing.T) {

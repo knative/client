@@ -17,6 +17,7 @@ package revision
 import (
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+
 	"knative.dev/client/pkg/kn/commands"
 	hprinters "knative.dev/client/pkg/printers"
 )
@@ -41,11 +42,8 @@ func (f *RevisionListFlags) AllowedFormats() []string {
 func (f *RevisionListFlags) ToPrinter() (hprinters.ResourcePrinter, error) {
 	// if there are flags specified for generic printing
 	if f.GenericPrintFlags.OutputFlagSpecified() {
-		p, err := f.GenericPrintFlags.ToPrinter()
-		if err != nil {
-			return nil, err
-		}
-		return p, nil
+		// we need to wrap for cleaning up any temporary annotations
+		return wrapPrinterForAnnotationCleanup(f.GenericPrintFlags.ToPrinter())
 	}
 	// if no flags specified, use the table printing
 	p, err := f.HumanReadableFlags.ToPrinter(RevisionListHandlers)
@@ -55,7 +53,7 @@ func (f *RevisionListFlags) ToPrinter() (hprinters.ResourcePrinter, error) {
 	return p, nil
 }
 
-// AddFlags receives a *cobra.Command reference and binds
+// Flags receives a *cobra.Command reference and binds
 // flags related to humanreadable and template printing
 // as well as to reference a service
 func (f *RevisionListFlags) AddFlags(cmd *cobra.Command) {
