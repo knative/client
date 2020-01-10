@@ -95,19 +95,19 @@ func (test *e2eTest) setupForSourceApiServer(t *testing.T) {
 	saCmd := []string{"create", "serviceaccount", testServiceAccount, "--namespace", test.kn.namespace}
 	_, err := kubectl.RunWithOpts(saCmd, runOpts{})
 	if err != nil {
-		t.Fatalf("Error executing '%s'. Error: %s", strings.Join(saCmd, " "), err.Error())
+		t.Fatalf("Error executing '%s'. Error: %v", strings.Join(saCmd, " "), err.Error())
 	}
 
 	crCmd := []string{"create", "clusterrole", clusterRolePrefix + test.kn.namespace, "--verb=get,list,watch", "--resource=events,namespaces"}
 	_, err = kubectl.RunWithOpts(crCmd, runOpts{})
 	if err != nil {
-		t.Fatalf("Error executing '%s'. Error: %s", strings.Join(crCmd, " "), err.Error())
+		t.Fatalf("Error executing '%s'. Error: %v", strings.Join(crCmd, " "), err.Error())
 	}
 
 	crbCmd := []string{"create", "clusterrolebinding", clusterRoleBindingPrefix + test.kn.namespace, "--clusterrole=" + clusterRolePrefix + test.kn.namespace, "--serviceaccount=" + test.kn.namespace + ":" + testServiceAccount}
 	_, err = kubectl.RunWithOpts(crbCmd, runOpts{})
 	if err != nil {
-		t.Fatalf("Error executing '%s'. Error: %s", strings.Join(crbCmd, " "), err.Error())
+		t.Fatalf("Error executing '%s'. Error: %v", strings.Join(crbCmd, " "), err.Error())
 	}
 }
 
@@ -117,19 +117,19 @@ func (test *e2eTest) tearDownForSourceApiServer(t *testing.T) {
 	saCmd := []string{"delete", "serviceaccount", testServiceAccount, "--namespace", test.kn.namespace}
 	_, err := kubectl.RunWithOpts(saCmd, runOpts{})
 	if err != nil {
-		t.Fatalf("Error executing '%s'. Error: %s", strings.Join(saCmd, " "), err.Error())
+		t.Fatalf("Error executing '%s'. Error: %v", strings.Join(saCmd, " "), err.Error())
 	}
 
 	crCmd := []string{"delete", "clusterrole", clusterRolePrefix + test.kn.namespace}
 	_, err = kubectl.RunWithOpts(crCmd, runOpts{})
 	if err != nil {
-		t.Fatalf("Error executing '%s'. Error: %s", strings.Join(crCmd, " "), err.Error())
+		t.Fatalf("Error executing '%s'. Error: %v", strings.Join(crCmd, " "), err.Error())
 	}
 
 	crbCmd := []string{"delete", "clusterrolebinding", clusterRoleBindingPrefix + test.kn.namespace}
 	_, err = kubectl.RunWithOpts(crbCmd, runOpts{})
 	if err != nil {
-		t.Fatalf("Error executing '%s'. Error: %s", strings.Join(crbCmd, " "), err.Error())
+		t.Fatalf("Error executing '%s'. Error: %v", strings.Join(crbCmd, " "), err.Error())
 	}
 }
 
