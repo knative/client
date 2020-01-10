@@ -59,15 +59,18 @@ func showUrl(client serving_kn_v1alpha1.KnServingClient, serviceName string, ori
 	if err != nil {
 		return fmt.Errorf("cannot fetch service '%s' in namespace '%s' for extracting the URL: %v", serviceName, client.Namespace(), err)
 	}
+
 	url := service.Status.URL.String()
 	if url == "" {
 		url = service.Status.DeprecatedDomain
 	}
-	revisionUpdateStatus := ""
+
 	newRevision := service.Status.LatestReadyRevisionName
 	if originalRevision != "" && originalRevision == newRevision {
-		revisionUpdateStatus = " (unchanged)"
+		fmt.Fprintf(out, "Service '%s' with latest revision '%s' (unchanged) is available at URL:\n%s\n", serviceName, newRevision, url)
+	} else {
+		fmt.Fprintf(out, "Service '%s' %s to latest revision '%s' is available at URL:\n%s\n", serviceName, what, newRevision, url)
 	}
-	fmt.Fprintf(out, "Service '%s' %s with latest revision '%s'%s and URL:\n%s\n", serviceName, what, newRevision, revisionUpdateStatus, url)
+
 	return nil
 }
