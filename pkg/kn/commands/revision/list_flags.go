@@ -43,7 +43,7 @@ func (f *RevisionListFlags) ToPrinter() (hprinters.ResourcePrinter, error) {
 	// if there are flags specified for generic printing
 	if f.GenericPrintFlags.OutputFlagSpecified() {
 		// we need to wrap for cleaning up any temporary annotations
-		return wrapPrinterForAnnotationCleanup(f.GenericPrintFlags.ToPrinter())
+		return f.GenericPrintFlags.ToPrinter()
 	}
 	// if no flags specified, use the table printing
 	p, err := f.HumanReadableFlags.ToPrinter(RevisionListHandlers)

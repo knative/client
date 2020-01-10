@@ -82,11 +82,15 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 				return nil
 			}
 
-			// Create view objects and sort
-			err = enrichRevisionAnnotationsWithServiceData(p.NewServingClient, revisionList)
-			if err != nil {
-				return err
+			// Only add temporary annotations if human readable output is requested
+			if !revisionListFlags.GenericPrintFlags.OutputFlagSpecified() {
+				err = enrichRevisionAnnotationsWithServiceData(p.NewServingClient, revisionList)
+				if err != nil {
+					return err
+				}
 			}
+
+			// Sort by revision
 			sortRevisionInfosByGeneration(revisionList)
 
 			// Print out infos via printer
