@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"sort"
 	"strconv"
+	"strings"
 
 	"knative.dev/serving/pkg/apis/serving"
 
@@ -85,6 +86,23 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 				}
 			}
 
+			// Add revision/service info as annotations: traffic and tags
+			var service *v1alpha1.Service
+			var serviceName string
+			for _, revision := range revisionList.Items {
+				if serviceName == "" || revision.Labels[serving.ServiceLabelKey] != serviceName {
+					serviceName = revision.Labels[serving.ServiceLabelKey]
+					service, err = client.GetService(serviceName)
+					if err != nil {
+						return err
+					}
+				}
+
+				traffic, tags := trafficForRevision(revision.Name, service)
+				revision.Annotations[RevisionTrafficAnnotation] = fmt.Sprintf("%d%%", traffic)
+				revision.Annotations[RevisionTagsAnnotation] = strings.Join(tags, ",")
+			}
+
 			// sort revisionList by configuration generation key
 			sort.SliceStable(revisionList.Items, func(i, j int) bool {
 				a := revisionList.Items[i]
@@ -110,6 +128,7 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
+
 			err = printer.PrintObj(revisionList, cmd.OutOrStdout())
 			if err != nil {
 				return err

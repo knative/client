@@ -26,7 +26,7 @@ import (
 type RevisionListFlags struct {
 	GenericPrintFlags  *genericclioptions.PrintFlags
 	HumanReadableFlags *commands.HumanPrintFlags
-	ServiceRefFlags    ServiceReferenceFlags
+	ServiceRefFlags    *ServiceReferenceFlags
 }
 
 // AllowedFormats is the list of formats in which data can be displayed
@@ -70,6 +70,7 @@ func NewRevisionListFlags() *RevisionListFlags {
 	return &RevisionListFlags{
 		GenericPrintFlags:  genericclioptions.NewPrintFlags(""),
 		HumanReadableFlags: commands.NewHumanPrintFlags(),
+		ServiceRefFlags:    &ServiceReferenceFlags{},
 	}
 }
 
