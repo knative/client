@@ -23,6 +23,8 @@ import (
 	client_v1alpha1 "knative.dev/client/pkg/eventing/v1alpha1"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
+	"knative.dev/client/pkg/util"
+	"knative.dev/eventing/pkg/apis/eventing/v1alpha1"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 )
 
@@ -82,7 +84,8 @@ func NewTriggerUpdateCommand(p *commands.KnParams) *cobra.Command {
 					return fmt.Errorf(
 						"cannot update trigger '%s' because %s", name, err)
 				}
-				b.Filters(updated).RemoveFilters(removed)
+				existing := extractFilters(trigger)
+				b.Filters(existing.Merge(updated).Remove(removed))
 			}
 			if cmd.Flags().Changed("sink") {
 				destination, err := sinkFlags.ResolveSink(dynamicClient, namespace)
@@ -106,4 +109,14 @@ func NewTriggerUpdateCommand(p *commands.KnParams) *cobra.Command {
 	sinkFlags.Add(cmd)
 
 	return cmd
+}
+
+func extractFilters(trigger *v1alpha1.Trigger) util.StringMap {
+	attributes := make(util.StringMap)
+	if trigger.Spec.Filter != nil && trigger.Spec.Filter.Attributes != nil {
+		for k, v := range *trigger.Spec.Filter.Attributes {
+			attributes[k] = v
+		}
+	}
+	return attributes
 }

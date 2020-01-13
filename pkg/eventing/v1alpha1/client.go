@@ -187,21 +187,6 @@ func (b *TriggerBuilder) Filters(filters map[string]string) *TriggerBuilder {
 	return b
 }
 
-func (b *TriggerBuilder) RemoveFilters(keys []string) *TriggerBuilder {
-	filter := b.trigger.Spec.Filter
-	if filter == nil {
-		return b
-	}
-	attributes := filter.Attributes
-	if attributes == nil {
-		return b
-	}
-	for _, k := range keys {
-		delete(*attributes, k)
-	}
-	return b
-}
-
 // Build to return an instance of trigger object
 func (b *TriggerBuilder) Build() *v1alpha1.Trigger {
 	return b.trigger

@@ -50,6 +50,16 @@ func MapFromArray(arr []string, delimiter string) (map[string]string, error) {
 	return mapFromArray(arr, delimiter, false)
 }
 
+func Add(original *map[string]string, toAdd map[string]string, toRemove []string) map[string]string {
+	for k, v := range toAdd {
+		(*original)[k] = v
+	}
+	for _, k := range toRemove {
+		delete(*original, k)
+	}
+	return *original
+}
+
 func ParseMinusSuffix(m map[string]string) []string {
 	stringToRemove := []string{}
 	for key := range m {
@@ -59,6 +69,25 @@ func ParseMinusSuffix(m map[string]string) []string {
 		}
 	}
 	return stringToRemove
+}
+
+// StringMap is a map which key and value are strings
+type StringMap map[string]string
+
+// Merge to merge a map to a StringMap
+func (m StringMap) Merge(toMerge map[string]string) StringMap {
+	for k, v := range toMerge {
+		m[k] = v
+	}
+	return m
+}
+
+// Remove to remove from StringMap
+func (m StringMap) Remove(toRemove []string) StringMap {
+	for _, k := range toRemove {
+		delete(m, k)
+	}
+	return m
 }
 
 // mapFromArray takes an array of strings where each item is a (key, value) pair
