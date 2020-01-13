@@ -35,7 +35,7 @@ func NewAPIServerCreateCommand(p *commands.KnParams) *cobra.Command {
 		Short: "Create an ApiServer source.",
 		Example: `
   # Create an ApiServerSource 'k8sevents' which consumes Kubernetes events and sends message to service 'mysvc' as a cloudevent
-  kn source apiserver create k8sevents --resource Event --service-account myaccountname --sink svc:mysvc`,
+  kn source apiserver create k8sevents --resource Event:v1 --service-account myaccountname --sink svc:mysvc`,
 
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
@@ -71,9 +71,7 @@ func NewAPIServerCreateCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			for _, k := range resources {
-				b.AddResource(k.ApiVersion, k.Kind, k.IsController)
-			}
+			b.Resources(resources)
 
 			err = apiSourceClient.CreateAPIServerSource(b.Build())
 

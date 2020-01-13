@@ -74,19 +74,11 @@ func NewAPIServerUpdateCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			if cmd.Flags().Changed("resource") {
-				added, removed, err := apiServerUpdateFlags.getUpdateAPIServerResourceArray()
+				updateExisting, err := apiServerUpdateFlags.updateExistingAPIServerResourceArray(source.Spec.Resources)
 				if err != nil {
 					return err
 				}
-				for _, k := range removed {
-					_, err = b.RemoveResource(k.ApiVersion, k.Kind, k.IsController)
-					if err != nil {
-						return err
-					}
-				}
-				for _, k := range added {
-					b.AddResource(k.ApiVersion, k.Kind, k.IsController)
-				}
+				b.Resources(updateExisting)
 			}
 
 			if cmd.Flags().Changed("sink") {

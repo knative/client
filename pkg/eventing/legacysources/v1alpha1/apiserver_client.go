@@ -15,9 +15,6 @@
 package v1alpha1
 
 import (
-	"fmt"
-	"reflect"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kn_errors "knative.dev/client/pkg/errors"
 	"knative.dev/eventing/pkg/apis/legacysources/v1alpha1"
@@ -157,43 +154,6 @@ func NewAPIServerSourceBuilderFromExisting(apiServerSource *v1alpha1.ApiServerSo
 func (b *APIServerSourceBuilder) Resources(resources []v1alpha1.ApiServerResource) *APIServerSourceBuilder {
 	b.apiServerSource.Spec.Resources = resources
 	return b
-}
-
-// AddResource which should be streamed
-func (b *APIServerSourceBuilder) AddResource(version string, kind string, isController bool) *APIServerSourceBuilder {
-	resources := b.apiServerSource.Spec.Resources
-	if resources == nil {
-		resources = []v1alpha1.ApiServerResource{}
-		b.apiServerSource.Spec.Resources = resources
-	}
-	resourceRef := v1alpha1.ApiServerResource{
-		APIVersion: version,
-		Kind:       kind,
-		Controller: isController,
-	}
-	b.apiServerSource.Spec.Resources = append(resources, resourceRef)
-	return b
-}
-
-// RemoveResource which should be streamed
-func (b *APIServerSourceBuilder) RemoveResource(version string, kind string, isController bool) (*APIServerSourceBuilder, error) {
-	resources := b.apiServerSource.Spec.Resources
-	if resources == nil {
-		resources = []v1alpha1.ApiServerResource{}
-		b.apiServerSource.Spec.Resources = resources
-	}
-	resourceRef := v1alpha1.ApiServerResource{
-		APIVersion: version,
-		Kind:       kind,
-		Controller: isController,
-	}
-	for i, k := range resources {
-		if reflect.DeepEqual(k, resourceRef) {
-			resources = append(resources[:i], resources[i+1:]...)
-			return b, nil
-		}
-	}
-	return b, fmt.Errorf("cannot find resource %s:%s:%t to remove", version, kind, isController)
 }
 
 // ServiceAccount with which this source should operate

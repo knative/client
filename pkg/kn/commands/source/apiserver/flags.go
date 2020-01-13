@@ -16,6 +16,7 @@ package apiserver
 
 import (
 	"fmt"
+	"reflect"
 	"sort"
 	"strconv"
 	"strings"
@@ -41,15 +42,9 @@ type APIServerSourceUpdateFlags struct {
 	Resources          []string
 }
 
-type resourceSpec struct {
-	Kind         string
-	ApiVersion   string
-	IsController bool
-}
-
-// getAPIServerResourceArray is to return an array of ApiServerResource from a string. A sample is Event:v1:true,Pod:v2:false
-func (f *APIServerSourceUpdateFlags) getAPIServerResourceArray() ([]resourceSpec, error) {
-	var resourceList []resourceSpec
+// getAPIServerResourceArray is to construct an array of resources.
+func (f *APIServerSourceUpdateFlags) getAPIServerResourceArray() ([]v1alpha1.ApiServerResource, error) {
+	var resourceList []v1alpha1.ApiServerResource
 	for _, r := range f.Resources {
 		resourceSpec, err := getValidResource(r)
 		if err != nil {
@@ -60,46 +55,88 @@ func (f *APIServerSourceUpdateFlags) getAPIServerResourceArray() ([]resourceSpec
 	return resourceList, nil
 }
 
-// getAPIServerResourceArray is to return an array of ApiServerResource from a string. A sample is Event:v1:true
-func (f *APIServerSourceUpdateFlags) getUpdateAPIServerResourceArray() ([]resourceSpec, []resourceSpec, error) {
-	var added []resourceSpec
-	var removed []resourceSpec
+// updateExistingAPIServerResourceArray is to update an array of resources.
+func (f *APIServerSourceUpdateFlags) updateExistingAPIServerResourceArray(existing []v1alpha1.ApiServerResource) ([]v1alpha1.ApiServerResource, error) {
+	var found bool
 
-	addedArray, removedArray := util.AddListAndRemovalListFromArray(f.Resources)
-	for _, r := range addedArray {
-		resourceSpec, err := getValidResource(r)
-		if err != nil {
-			return nil, nil, err
-		}
-		added = append(added, *resourceSpec)
+	added, removed, err := f.getUpdateAPIServerResourceArray()
+	if err != nil {
+		return nil, err
 	}
-	for _, r := range removedArray {
-		resourceSpec, err := getValidResource(r)
-		if err != nil {
-			return nil, nil, err
+
+	if existing == nil {
+		existing = []v1alpha1.ApiServerResource{}
+	}
+
+	existing = append(existing, added...)
+
+	for _, item := range removed {
+		found = false
+		for i, ref := range existing {
+			if reflect.DeepEqual(item, ref) {
+				existing = append(existing[:i], existing[i+1:]...)
+				found = true
+				break
+			}
 		}
-		removed = append(removed, *resourceSpec)
+		if !found {
+			return nil, fmt.Errorf("cannot find resource %s:%s:%t to remove", item.Kind, item.APIVersion, item.Controller)
+		}
+	}
+	return existing, nil
+}
+
+// getUpdateAPIServerResourceArray is to construct an array of resources for update action.
+func (f *APIServerSourceUpdateFlags) getUpdateAPIServerResourceArray() ([]v1alpha1.ApiServerResource, []v1alpha1.ApiServerResource, error) {
+	addedArray, removedArray := util.AddedAndRemovalListsFromArray(f.Resources)
+	added, err := constructApiServerResourceArray(addedArray)
+	if err != nil {
+		return nil, nil, err
+	}
+	removed, err := constructApiServerResourceArray(removedArray)
+	if err != nil {
+		return nil, nil, err
 	}
 	return added, removed, nil
 }
 
-func getValidResource(resource string) (*resourceSpec, error) {
-	var isController = false //false as default
+func constructApiServerResourceArray(s []string) ([]v1alpha1.ApiServerResource, error) {
+	array := make([]v1alpha1.ApiServerResource, 0)
+	for _, r := range s {
+		resourceSpec, err := getValidResource(r)
+		if err != nil {
+			return array, err
+		}
+		array = append(array, *resourceSpec)
+	}
+	return array, nil
+}
+
+//getValidResource is to parse resource spec from a string
+func getValidResource(resource string) (*v1alpha1.ApiServerResource, error) {
+	var isController bool
 	var err error
 
-	parts := strings.Split(resource, apiVersionSplitChar)
+	parts := strings.SplitN(resource, apiVersionSplitChar, 3)
+	if len(parts[0]) == 0 {
+		return nil, fmt.Errorf("cannot find 'Kind' part in resource specification %s (expected: <Kind:ApiVersion[:controllerFlag]>", resource)
+	}
 	kind := parts[0]
-	if len(parts) < 2 {
-		return nil, fmt.Errorf("no APIVersion given for resource %s", resource)
+
+	if len(parts) < 2 || len(parts[1]) == 0 {
+		return nil, fmt.Errorf("cannot find 'APIVersion' part in resource specification %s (expected: <Kind:ApiVersion[:controllerFlag]>", resource)
 	}
 	version := parts[1]
-	if len(parts) >= 3 {
+
+	if len(parts) >= 3 && len(parts[2]) > 0 {
 		isController, err = strconv.ParseBool(parts[2])
 		if err != nil {
-			return nil, fmt.Errorf("cannot parse controller flage in resource specification %s", resource)
+			return nil, fmt.Errorf("controller flag is not a boolean in resource specification %s (expected: <Kind:ApiVersion[:controllerFlag]>)", resource)
 		}
+	} else {
+		isController = false
 	}
-	return &resourceSpec{Kind: kind, ApiVersion: version, IsController: isController}, nil
+	return &v1alpha1.ApiServerResource{Kind: kind, APIVersion: version, Controller: isController}, nil
 }
 
 //Add is to set parameters
@@ -117,8 +154,8 @@ func (f *APIServerSourceUpdateFlags) Add(cmd *cobra.Command) {
 	cmd.Flags().StringArrayVar(&f.Resources,
 		"resource",
 		[]string{},
-		`Specification for which events to listen, in the format Kind:APIVersion:isController, e.g. Deployment:apps/v1:true.
-"isController" can be omitted and is "false" by default.`)
+		`Specification for which events to listen, in the format Kind:APIVersion:isController, e.g. "Event:v1:true".
+"isController" can be omitted and is "false" by default, e.g. "Event:v1".`)
 }
 
 // APIServerSourceListHandlers handles printing human readable table for `kn source apiserver list` command's output

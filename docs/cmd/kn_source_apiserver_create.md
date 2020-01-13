@@ -15,7 +15,7 @@ kn source apiserver create NAME --resource RESOURCE --service-account ACCOUNTNAM
 ```
 
   # Create an ApiServerSource 'k8sevents' which consumes Kubernetes events and sends message to service 'mysvc' as a cloudevent
-  kn source apiserver create k8sevents --resource Event --service-account myaccountname --sink svc:mysvc
+  kn source apiserver create k8sevents --resource Event:v1 --service-account myaccountname --sink svc:mysvc
 ```
 
 ### Options
@@ -26,8 +26,8 @@ kn source apiserver create NAME --resource RESOURCE --service-account ACCOUNTNAM
                                  "Ref" sends only the reference to the resource,
                                  "Resource" send the full resource. (default "Ref")
   -n, --namespace string         Specify the namespace to operate in.
-      --resource stringArray     Specification for which events to listen, in the format Kind:APIVersion:isController, e.g. Deployment:apps/v1:true.
-                                 "isController" can be omitted and is "false" by default.
+      --resource stringArray     Specification for which events to listen, in the format Kind:APIVersion:isController, e.g. "Event:v1:true".
+                                 "isController" can be omitted and is "false" by default, e.g. "Event:v1".
       --service-account string   Name of the service account to use to run this source
   -s, --sink string              Addressable sink for events
 ```

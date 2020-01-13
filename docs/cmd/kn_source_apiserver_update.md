@@ -26,8 +26,8 @@ kn source apiserver update NAME --resource RESOURCE --service-account ACCOUNTNAM
                                  "Ref" sends only the reference to the resource,
                                  "Resource" send the full resource. (default "Ref")
   -n, --namespace string         Specify the namespace to operate in.
-      --resource stringArray     Specification for which events to listen, in the format Kind:APIVersion:isController, e.g. Deployment:apps/v1:true.
-                                 "isController" can be omitted and is "false" by default.
+      --resource stringArray     Specification for which events to listen, in the format Kind:APIVersion:isController, e.g. "Event:v1:true".
+                                 "isController" can be omitted and is "false" by default, e.g. "Event:v1".
       --service-account string   Name of the service account to use to run this source
   -s, --sink string              Addressable sink for events
 ```

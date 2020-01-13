@@ -90,8 +90,8 @@ func (m StringMap) Remove(toRemove []string) StringMap {
 	return m
 }
 
-// AddListAndRemovalListFromArray returns a list of add entries and a list of removal entries
-func AddListAndRemovalListFromArray(m []string) ([]string, []string) {
+// AddedAndRemovalListsFromArray returns a list of added entries and a list of removal entries
+func AddedAndRemovalListsFromArray(m []string) ([]string, []string) {
 	stringToRemove := []string{}
 	stringToAdd := []string{}
 	for _, key := range m {
