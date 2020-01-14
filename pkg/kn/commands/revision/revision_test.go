@@ -19,7 +19,7 @@ import (
 	"testing"
 
 	"gotest.tools/assert"
-	"knative.dev/serving/pkg/apis/serving/v1"
+	v1 "knative.dev/serving/pkg/apis/serving/v1"
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 
 	"knative.dev/client/pkg/util"
