@@ -28,9 +28,9 @@ import (
 func TestExtractTrafficAndTag(t *testing.T) {
 
 	service := &v1alpha1.Service{
-		Status: v1alpha1.ServiceStatus {
+		Status: v1alpha1.ServiceStatus{
 			RouteStatusFields: v1alpha1.RouteStatusFields{
-				Traffic:                  []v1alpha1.TrafficTarget {
+				Traffic: []v1alpha1.TrafficTarget{
 					createTarget("myv1", 10, "v1"),
 					createTarget("myv2", 100, "v1"),
 					createTarget("myv1", 20, "stable"),
@@ -47,7 +47,7 @@ func TestExtractTrafficAndTag(t *testing.T) {
 }
 
 func createTarget(rev string, percent int64, tag string) v1alpha1.TrafficTarget {
-	return 	v1alpha1.TrafficTarget	{
+	return v1alpha1.TrafficTarget{
 		TrafficTarget: v1.TrafficTarget{
 			Tag:          tag,
 			RevisionName: rev,
