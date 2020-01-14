@@ -29,6 +29,9 @@ const (
 	RevisionTagsAnnotation    = "client.knative.dev/tags"
 )
 
+// Max column size
+const ListColumnMaxLength = 50
+
 // RevisionListHandlers adds print handlers for revision list command
 func RevisionListHandlers(h hprinters.PrintHandler) {
 	RevisionColumnDefinitions := []metav1beta1.TableColumnDefinition{
@@ -80,18 +83,25 @@ func printRevision(revision *servingv1alpha1.Revision, options hprinters.PrintOp
 
 	// Namespace is first column for "-A"
 	if options.AllNamespaces {
-		row.Cells = append(row.Cells, revision.Namespace)
+		row.Cells = append(row.Cells, trunc(revision.Namespace))
 	}
 
 	row.Cells = append(row.Cells,
-		name,
-		service,
-		traffic,
-		tags,
-		generation,
-		age,
-		conditions,
-		ready,
-		reason)
+		trunc(name),
+		trunc(service),
+		trunc(traffic),
+		trunc(tags),
+		trunc(generation),
+		trunc(age),
+		trunc(conditions),
+		trunc(ready),
+		trunc(reason))
 	return []metav1beta1.TableRow{row}, nil
+}
+
+func trunc(txt string) string {
+	if len(txt) <= ListColumnMaxLength {
+		return txt
+	}
+	return string(txt[:ListColumnMaxLength-4]) + " ..."
 }
