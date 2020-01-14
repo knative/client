@@ -32,6 +32,7 @@ const (
 // RevisionListHandlers adds print handlers for revision list command
 func RevisionListHandlers(h hprinters.PrintHandler) {
 	RevisionColumnDefinitions := []metav1beta1.TableColumnDefinition{
+		{Name: "Namespace", Type: "string", Description: "Namespace of the Knative service", Priority: 0},
 		{Name: "Name", Type: "string", Description: "Name of the revision.", Priority: 1},
 		{Name: "Service", Type: "string", Description: "Name of the Knative service.", Priority: 1},
 		{Name: "Traffic", Type: "string", Description: "Percentage of traffic assigned to this revision.", Priority: 1},
@@ -50,6 +51,7 @@ func RevisionListHandlers(h hprinters.PrintHandler) {
 
 // printRevisionList populates the Knative revision list table rows
 func printRevisionList(revisionList *servingv1alpha1.RevisionList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+
 	rows := make([]metav1beta1.TableRow, 0, len(revisionList.Items))
 	for _, rev := range revisionList.Items {
 		r, err := printRevision(&rev, options)
@@ -75,6 +77,12 @@ func printRevision(revision *servingv1alpha1.Revision, options hprinters.PrintOp
 	row := metav1beta1.TableRow{
 		Object: runtime.RawExtension{Object: revision},
 	}
+
+	// Namespace is first column for "-A"
+	if options.AllNamespaces {
+		row.Cells = append(row.Cells, revision.Namespace)
+	}
+
 	row.Cells = append(row.Cells,
 		name,
 		service,

@@ -26,12 +26,16 @@ import (
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 
 	"knative.dev/client/pkg/kn/commands"
+	"knative.dev/client/pkg/kn/commands/flags"
 	serving_v1alpha "knative.dev/client/pkg/serving/v1alpha1"
 )
 
+// Service name filter, used with "-s"
+var serviceNameFilter string
+
 // NewRevisionListCommand represents 'kn revision list' command
 func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
-	revisionListFlags := NewRevisionListFlags()
+	revisionListFlags := flags.NewListPrintFlags(RevisionListHandlers)
 
 	revisionListCommand := &cobra.Command{
 		Use:   "list [name]",
@@ -82,6 +86,11 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 				return nil
 			}
 
+			// Add namespace column if no namespace is given ("-A")
+			if namespace == "" {
+				revisionListFlags.EnsureWithNamespace()
+			}
+
 			// Only add temporary annotations if human readable output is requested
 			if !revisionListFlags.GenericPrintFlags.OutputFlagSpecified() {
 				err = enrichRevisionAnnotationsWithServiceData(p.NewServingClient, revisionList)
@@ -90,8 +99,8 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 				}
 			}
 
-			// Sort by generation
-			sortRevisionInfosByGeneration(revisionList)
+			// Sort revisions by namespace, service, generation (in this order)
+			sortRevisions(revisionList)
 
 			// Print out infos via printer framework
 			printer, err := revisionListFlags.ToPrinter()
@@ -104,6 +113,8 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 	}
 	commands.AddNamespaceFlags(revisionListCommand.Flags(), true)
 	revisionListFlags.AddFlags(revisionListCommand)
+	revisionListCommand.Flags().StringVarP(&serviceNameFilter, "service", "s", "", "Service name")
+
 	return revisionListCommand
 }
 
@@ -123,7 +134,7 @@ func appendServiceFilter(lConfig []serving_v1alpha.ListConfig, client serving_v1
 	return append(lConfig, serving_v1alpha.WithService(serviceName)), nil
 }
 
-// If an additional name is given use this as a revision name filter
+// If an additional name is given append this as a revision name filter to the given list
 func appendRevisionNameFilter(lConfigs []serving_v1alpha.ListConfig, client serving_v1alpha.KnServingClient, args []string) ([]serving_v1alpha.ListConfig, error) {
 
 	switch len(args) {
@@ -134,17 +145,33 @@ func appendRevisionNameFilter(lConfigs []serving_v1alpha.ListConfig, client serv
 		// Exactly one name given
 		return append(lConfigs, serving_v1alpha.WithName(args[0])), nil
 	default:
-		return nil, fmt.Errorf("'kn revision list' accepts maximum 1 argument, not %d as given", len(args))
+		return nil, fmt.Errorf("'kn revision list' accepts maximum 1 argument, not %d arguments as given", len(args))
 	}
 }
 
-// Sort revisions by generation
-func sortRevisionInfosByGeneration(revisionList *v1alpha1.RevisionList) {
+// sortRevisions sorts revisions by namespace, service and generation (in this order)
+func sortRevisions(revisionList *v1alpha1.RevisionList) {
 	// sort revisionList by configuration generation key
 	sort.SliceStable(revisionList.Items, func(i, j int) bool {
 		a := revisionList.Items[i]
 		b := revisionList.Items[j]
 
+		// By Namespace
+		aNamespace := a.Namespace
+		bNamespace := b.Namespace
+		if aNamespace != bNamespace {
+			return aNamespace < bNamespace
+		}
+
+		// By Service
+		aService := a.Labels[serving.ServiceLabelKey]
+		bService := b.Labels[serving.ServiceLabelKey]
+
+		if aService != bService {
+			return aService < bService
+		}
+
+		// By Generation
 		// Convert configuration generation key from string to int for avoiding string comparison.
 		agen, err := strconv.Atoi(a.Labels[serving.ConfigurationGenerationLabelKey])
 		if err != nil {
