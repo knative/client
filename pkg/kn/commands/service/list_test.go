@@ -103,8 +103,8 @@ func TestServiceListAllNamespacesOutput(t *testing.T) {
 	}
 	// Outputs in alphabetical order
 	assert.Check(t, util.ContainsAll(output[0], "NAMESPACE", "NAME", "URL", "LATEST", "AGE", "CONDITIONS", "READY", "REASON"))
-	assert.Check(t, util.ContainsAll(output[1], "default", "foo", "foo.default.example.com", "foo-xyz"))
-	assert.Check(t, util.ContainsAll(output[2], "bar", "sss", "sss.bar.example.com", "sss-xyz"))
+	assert.Check(t, util.ContainsAll(output[1], "bar", "sss", "sss.bar.example.com", "sss-xyz"))
+	assert.Check(t, util.ContainsAll(output[2], "default", "foo", "foo.default.example.com", "foo-xyz"))
 	assert.Check(t, util.ContainsAll(output[3], "foo", "bar", "bar.foo.example.com", "bar-xyz"))
 }
 

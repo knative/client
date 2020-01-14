@@ -69,9 +69,15 @@ func NewServiceListCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			// Sort serviceList by name
+			// Sort serviceList by namespace and name (in this order)
 			sort.SliceStable(serviceList.Items, func(i, j int) bool {
-				return serviceList.Items[i].ObjectMeta.Name < serviceList.Items[j].ObjectMeta.Name
+				a := serviceList.Items[i]
+				b := serviceList.Items[j]
+
+				if a.Namespace != b.Namespace {
+					return a.Namespace < b.Namespace
+				}
+				return a.ObjectMeta.Name < b.ObjectMeta.Name
 			})
 
 			err = printer.PrintObj(serviceList, cmd.OutOrStdout())
