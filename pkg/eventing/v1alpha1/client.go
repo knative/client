@@ -170,7 +170,7 @@ func (b *TriggerBuilder) Broker(broker string) *TriggerBuilder {
 	return b
 }
 
-func (b *TriggerBuilder) AddFilter(key, value string) *TriggerBuilder {
+func (b *TriggerBuilder) Filters(filters map[string]string) *TriggerBuilder {
 	filter := b.trigger.Spec.Filter
 	if filter == nil {
 		filter = &v1alpha1.TriggerFilter{}
@@ -181,20 +181,9 @@ func (b *TriggerBuilder) AddFilter(key, value string) *TriggerBuilder {
 		attributes = &v1alpha1.TriggerFilterAttributes{}
 		filter.Attributes = attributes
 	}
-	(*attributes)[key] = value
-	return b
-}
-
-func (b *TriggerBuilder) RemoveFilter(key string) *TriggerBuilder {
-	filter := b.trigger.Spec.Filter
-	if filter == nil {
-		return b
+	for k, v := range filters {
+		(*attributes)[k] = v
 	}
-	attributes := filter.Attributes
-	if attributes == nil {
-		return b
-	}
-	delete(*attributes, key)
 	return b
 }
 

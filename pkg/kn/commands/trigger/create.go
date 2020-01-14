@@ -20,10 +20,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	client_v1alpha1 "knative.dev/client/pkg/eventing/v1alpha1"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
-	"knative.dev/eventing/pkg/apis/eventing/v1alpha1"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 )
 
@@ -73,19 +72,18 @@ func NewTriggerCreateCommand(p *commands.KnParams) *cobra.Command {
 					"cannot create trigger '%s' "+
 						"because %s", name, err)
 			}
-			if filters == nil {
-				return fmt.Errorf(
-					"cannot create trigger '%s' "+
-						"because filters are required", name)
-			}
 
-			trigger := constructTrigger(name, namespace, triggerUpdateFlags.Broker, filters)
-			trigger.Spec.Subscriber = &duckv1.Destination{
-				Ref: objectRef.Ref,
-				URI: objectRef.URI,
-			}
+			triggerBuilder := client_v1alpha1.
+				NewTriggerBuilder(name).
+				Namespace(namespace).
+				Broker(triggerUpdateFlags.Broker).
+				Filters(filters).
+				Subscriber(&duckv1.Destination{
+					Ref: objectRef.Ref,
+					URI: objectRef.URI,
+				})
 
-			err = eventingClient.CreateTrigger(trigger)
+			err = eventingClient.CreateTrigger(triggerBuilder.Build())
 			if err != nil {
 				return fmt.Errorf(
 					"cannot create trigger '%s' in namespace '%s' "+
@@ -99,27 +97,6 @@ func NewTriggerCreateCommand(p *commands.KnParams) *cobra.Command {
 	triggerUpdateFlags.Add(cmd)
 	sinkFlags.Add(cmd)
 	cmd.MarkFlagRequired("sink")
-	cmd.MarkFlagRequired("filter")
 
 	return cmd
-}
-
-// constructTrigger is to create an instance of v1alpha1.Trigger
-func constructTrigger(name string, namespace string, broker string, filters map[string]string) *v1alpha1.Trigger {
-	trigger := v1alpha1.Trigger{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
-		},
-		Spec: v1alpha1.TriggerSpec{
-			Broker: broker,
-		},
-	}
-
-	triggerFilterAttributes := v1alpha1.TriggerFilterAttributes(filters)
-	trigger.Spec.Filter = &v1alpha1.TriggerFilter{
-		Attributes: &triggerFilterAttributes,
-	}
-
-	return &trigger
 }

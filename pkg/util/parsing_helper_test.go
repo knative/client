@@ -92,3 +92,13 @@ func TestParseMinusSuffix(t *testing.T) {
 	assert.DeepEqual(t, expectedMap, inputMap)
 	assert.DeepEqual(t, expectedStringToRemove, stringToRemove)
 }
+
+func TestStringMap(t *testing.T) {
+	inputMap := StringMap{"a1": "b1", "a2": "b2"}
+	mergedMap := map[string]string{"a1": "b1-new", "a3": "b3"}
+	removedKeys := []string{"a2", "a4"}
+
+	inputMap.Merge(mergedMap).Remove(removedKeys)
+	expectedMap := StringMap{"a1": "b1-new", "a3": "b3"}
+	assert.DeepEqual(t, expectedMap, inputMap)
+}
