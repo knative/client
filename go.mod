@@ -22,7 +22,7 @@ require (
 	knative.dev/eventing v0.11.0
 	knative.dev/pkg v0.0.0-20191203221237-94a34e416c44
 	knative.dev/serving v0.11.0
-	knative.dev/test-infra v0.0.0-20191210173947-ed220f8d779f
+	knative.dev/test-infra v0.0.0-20200116044902-d5990f0e5a05
 	sigs.k8s.io/yaml v1.1.0
 )
 
