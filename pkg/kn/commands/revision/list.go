@@ -86,7 +86,7 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 				return nil
 			}
 
-			// Add namespace column if no namespace is given ("-A")
+			// Add namespace column if no namespace is given (i.e. "--all-namespaces" option is given)
 			if namespace == "" {
 				revisionListFlags.EnsureWithNamespace()
 			}
@@ -149,10 +149,15 @@ func appendRevisionNameFilter(lConfigs []serving_v1alpha.ListConfig, client serv
 	}
 }
 
-// sortRevisions sorts revisions by namespace, service and generation (in this order)
+// sortRevisions sorts revisions by namespace, service, generation and name (in this order)
 func sortRevisions(revisionList *v1alpha1.RevisionList) {
 	// sort revisionList by configuration generation key
-	sort.SliceStable(revisionList.Items, func(i, j int) bool {
+	sort.SliceStable(revisionList.Items, revisionListSortFunc(revisionList))
+}
+
+// revisionListSortFunc sorts by namespace, service,  generation and name
+func revisionListSortFunc(revisionList *v1alpha1.RevisionList) func(i int, j int) bool {
+	return func(i, j int) bool {
 		a := revisionList.Items[i]
 		b := revisionList.Items[j]
 
@@ -186,7 +191,7 @@ func sortRevisions(revisionList *v1alpha1.RevisionList) {
 			return agen > bgen
 		}
 		return a.Name < b.Name
-	})
+	}
 }
 
 // Service factory function for a namespace
