@@ -17,10 +17,11 @@ package revision
 import (
 	metav1beta1 "k8s.io/apimachinery/pkg/apis/meta/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"knative.dev/client/pkg/kn/commands"
-	hprinters "knative.dev/client/pkg/printers"
 	serving "knative.dev/serving/pkg/apis/serving"
 	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
+
+	"knative.dev/client/pkg/kn/commands"
+	hprinters "knative.dev/client/pkg/printers"
 )
 
 const (
@@ -28,9 +29,13 @@ const (
 	RevisionTagsAnnotation    = "client.knative.dev/tags"
 )
 
+// Max column size
+const ListColumnMaxLength = 50
+
 // RevisionListHandlers adds print handlers for revision list command
 func RevisionListHandlers(h hprinters.PrintHandler) {
 	RevisionColumnDefinitions := []metav1beta1.TableColumnDefinition{
+		{Name: "Namespace", Type: "string", Description: "Namespace of the Knative service", Priority: 0},
 		{Name: "Name", Type: "string", Description: "Name of the revision.", Priority: 1},
 		{Name: "Service", Type: "string", Description: "Name of the Knative service.", Priority: 1},
 		{Name: "Traffic", Type: "string", Description: "Percentage of traffic assigned to this revision.", Priority: 1},
@@ -49,6 +54,7 @@ func RevisionListHandlers(h hprinters.PrintHandler) {
 
 // printRevisionList populates the Knative revision list table rows
 func printRevisionList(revisionList *servingv1alpha1.RevisionList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+
 	rows := make([]metav1beta1.TableRow, 0, len(revisionList.Items))
 	for _, rev := range revisionList.Items {
 		r, err := printRevision(&rev, options)
@@ -74,15 +80,28 @@ func printRevision(revision *servingv1alpha1.Revision, options hprinters.PrintOp
 	row := metav1beta1.TableRow{
 		Object: runtime.RawExtension{Object: revision},
 	}
+
+	// Namespace is first column for "-A"
+	if options.AllNamespaces {
+		row.Cells = append(row.Cells, trunc(revision.Namespace))
+	}
+
 	row.Cells = append(row.Cells,
-		name,
-		service,
-		traffic,
-		tags,
-		generation,
-		age,
-		conditions,
-		ready,
-		reason)
+		trunc(name),
+		trunc(service),
+		trunc(traffic),
+		trunc(tags),
+		trunc(generation),
+		trunc(age),
+		trunc(conditions),
+		trunc(ready),
+		trunc(reason))
 	return []metav1beta1.TableRow{row}, nil
+}
+
+func trunc(txt string) string {
+	if len(txt) <= ListColumnMaxLength {
+		return txt
+	}
+	return string(txt[:ListColumnMaxLength-4]) + " ..."
 }

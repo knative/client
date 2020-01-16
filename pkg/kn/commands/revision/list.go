@@ -26,12 +26,16 @@ import (
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 
 	"knative.dev/client/pkg/kn/commands"
-	v1alpha12 "knative.dev/client/pkg/serving/v1alpha1"
+	"knative.dev/client/pkg/kn/commands/flags"
+	serving_v1alpha "knative.dev/client/pkg/serving/v1alpha1"
 )
+
+// Service name filter, used with "-s"
+var serviceNameFilter string
 
 // NewRevisionListCommand represents 'kn revision list' command
 func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
-	revisionListFlags := NewRevisionListFlags()
+	revisionListFlags := flags.NewListPrintFlags(RevisionListHandlers)
 
 	revisionListCommand := &cobra.Command{
 		Use:   "list [name]",
@@ -58,101 +62,197 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			var revisionList *v1alpha1.RevisionList
-			if cmd.Flags().Changed("service") {
-				serviceName := cmd.Flag("service").Value.String()
 
-				// Verify that service exists
-				_, err := client.GetService(serviceName)
+			// Create list filters
+			var params []serving_v1alpha.ListConfig
+			params, err = appendServiceFilter(params, client, cmd)
+			if err != nil {
+				return err
+			}
+			params, err = appendRevisionNameFilter(params, client, args)
+			if err != nil {
+				return err
+			}
+
+			// Query for list with filters
+			revisionList, err := client.ListRevisions(params...)
+			if err != nil {
+				return err
+			}
+
+			// Stop if nothing found
+			if len(revisionList.Items) == 0 {
+				fmt.Fprintf(cmd.OutOrStdout(), "No revisions found.\n")
+				return nil
+			}
+
+			// Add namespace column if no namespace is given (i.e. "--all-namespaces" option is given)
+			if namespace == "" {
+				revisionListFlags.EnsureWithNamespace()
+			}
+
+			// Only add temporary annotations if human readable output is requested
+			if !revisionListFlags.GenericPrintFlags.OutputFlagSpecified() {
+				err = enrichRevisionAnnotationsWithServiceData(p.NewServingClient, revisionList)
 				if err != nil {
 					return err
-				}
-				revisionList, err = client.ListRevisions(v1alpha12.WithService(serviceName))
-				if err != nil {
-					return err
-				}
-				if len(revisionList.Items) == 0 {
-					fmt.Fprintf(cmd.OutOrStdout(), "No revisions found for service '%s'.\n", serviceName)
-					return nil
-				}
-			} else {
-				revisionList, err = getRevisionInfo(args, client)
-				if err != nil {
-					return err
-				}
-				if len(revisionList.Items) == 0 {
-					fmt.Fprintf(cmd.OutOrStdout(), "No revisions found.\n")
-					return nil
 				}
 			}
 
-			// Add revision/service info as annotations: traffic and tags
-			var service *v1alpha1.Service
-			var serviceName string
-			for _, revision := range revisionList.Items {
-				if serviceName == "" || revision.Labels[serving.ServiceLabelKey] != serviceName {
-					serviceName = revision.Labels[serving.ServiceLabelKey]
-					service, err = client.GetService(serviceName)
-					if err != nil {
-						return err
-					}
-				}
+			// Sort revisions by namespace, service, generation (in this order)
+			sortRevisions(revisionList)
 
-				traffic, tags := trafficForRevision(revision.Name, service)
-				revision.Annotations[RevisionTrafficAnnotation] = fmt.Sprintf("%d%%", traffic)
-				revision.Annotations[RevisionTagsAnnotation] = strings.Join(tags, ",")
-			}
-
-			// sort revisionList by configuration generation key
-			sort.SliceStable(revisionList.Items, func(i, j int) bool {
-				a := revisionList.Items[i]
-				b := revisionList.Items[j]
-
-				// Convert configuration generation key from string to int for avoiding string comparison.
-				agen, err := strconv.Atoi(a.Labels[serving.ConfigurationGenerationLabelKey])
-				if err != nil {
-					return a.Name < b.Name
-				}
-				bgen, err := strconv.Atoi(b.Labels[serving.ConfigurationGenerationLabelKey])
-				if err != nil {
-					return a.Name < b.Name
-				}
-
-				if agen != bgen {
-					return agen > bgen
-				}
-				return a.Name < b.Name
-			})
-
+			// Print out infos via printer framework
 			printer, err := revisionListFlags.ToPrinter()
 			if err != nil {
 				return err
 			}
 
-			err = printer.PrintObj(revisionList, cmd.OutOrStdout())
-			if err != nil {
-				return err
-			}
-			return nil
+			return printer.PrintObj(revisionList, cmd.OutOrStdout())
 		},
 	}
 	commands.AddNamespaceFlags(revisionListCommand.Flags(), true)
 	revisionListFlags.AddFlags(revisionListCommand)
+	revisionListCommand.Flags().StringVarP(&serviceNameFilter, "service", "s", "", "Service name")
+
 	return revisionListCommand
 }
 
-func getRevisionInfo(args []string, client v1alpha12.KnServingClient) (*v1alpha1.RevisionList, error) {
-	var (
-		revisionList *v1alpha1.RevisionList
-		err          error
-	)
+// If a service option is given append a filter to the list of filters
+func appendServiceFilter(lConfig []serving_v1alpha.ListConfig, client serving_v1alpha.KnServingClient, cmd *cobra.Command) ([]serving_v1alpha.ListConfig, error) {
+	if !cmd.Flags().Changed("service") {
+		return lConfig, nil
+	}
+
+	serviceName := cmd.Flag("service").Value.String()
+
+	// Verify that service exists first
+	_, err := client.GetService(serviceName)
+	if err != nil {
+		return nil, err
+	}
+	return append(lConfig, serving_v1alpha.WithService(serviceName)), nil
+}
+
+// If an additional name is given append this as a revision name filter to the given list
+func appendRevisionNameFilter(lConfigs []serving_v1alpha.ListConfig, client serving_v1alpha.KnServingClient, args []string) ([]serving_v1alpha.ListConfig, error) {
+
 	switch len(args) {
 	case 0:
-		revisionList, err = client.ListRevisions()
+		// No revision name given
+		return lConfigs, nil
 	case 1:
-		revisionList, err = client.ListRevisions(v1alpha12.WithName(args[0]))
+		// Exactly one name given
+		return append(lConfigs, serving_v1alpha.WithName(args[0])), nil
 	default:
-		return nil, fmt.Errorf("'kn revision list' accepts maximum 1 argument")
+		return nil, fmt.Errorf("'kn revision list' accepts maximum 1 argument, not %d arguments as given", len(args))
 	}
-	return revisionList, err
+}
+
+// sortRevisions sorts revisions by namespace, service, generation and name (in this order)
+func sortRevisions(revisionList *v1alpha1.RevisionList) {
+	// sort revisionList by configuration generation key
+	sort.SliceStable(revisionList.Items, revisionListSortFunc(revisionList))
+}
+
+// revisionListSortFunc sorts by namespace, service,  generation and name
+func revisionListSortFunc(revisionList *v1alpha1.RevisionList) func(i int, j int) bool {
+	return func(i, j int) bool {
+		a := revisionList.Items[i]
+		b := revisionList.Items[j]
+
+		// By Namespace
+		aNamespace := a.Namespace
+		bNamespace := b.Namespace
+		if aNamespace != bNamespace {
+			return aNamespace < bNamespace
+		}
+
+		// By Service
+		aService := a.Labels[serving.ServiceLabelKey]
+		bService := b.Labels[serving.ServiceLabelKey]
+
+		if aService != bService {
+			return aService < bService
+		}
+
+		// By Generation
+		// Convert configuration generation key from string to int for avoiding string comparison.
+		agen, err := strconv.Atoi(a.Labels[serving.ConfigurationGenerationLabelKey])
+		if err != nil {
+			return a.Name < b.Name
+		}
+		bgen, err := strconv.Atoi(b.Labels[serving.ConfigurationGenerationLabelKey])
+		if err != nil {
+			return a.Name < b.Name
+		}
+
+		if agen != bgen {
+			return agen > bgen
+		}
+		return a.Name < b.Name
+	}
+}
+
+// Service factory function for a namespace
+type serviceFactoryFunc func(namespace string) (serving_v1alpha.KnServingClient, error)
+
+// A function which looks up a service by name
+type serviceGetFunc func(namespace, serviceName string) (*v1alpha1.Service, error)
+
+// Create revision info with traffic and tag information (if present)
+func enrichRevisionAnnotationsWithServiceData(serviceFactory serviceFactoryFunc, revisionList *v1alpha1.RevisionList) error {
+	serviceLookup := serviceLookup(serviceFactory)
+
+	for _, revision := range revisionList.Items {
+		serviceName := revision.Labels[serving.ServiceLabelKey]
+		if serviceName == "" {
+			continue
+		}
+		service, err := serviceLookup(revision.Namespace, serviceName)
+		if err != nil {
+			return err
+		}
+
+		traffic, tags := trafficAndTagsForRevision(revision.Name, service)
+		if traffic != 0 {
+			revision.Annotations[RevisionTrafficAnnotation] = fmt.Sprintf("%d%%", traffic)
+		}
+		if len(tags) > 0 {
+			revision.Annotations[RevisionTagsAnnotation] = strings.Join(tags, ",")
+		}
+	}
+	return nil
+
+}
+
+// Create a function for being able to lookup a service for an arbitrary namespace
+func serviceLookup(serviceFactory serviceFactoryFunc) serviceGetFunc {
+
+	// Two caches: For service & clients (clients might not be necessary though)
+	serviceCache := make(map[string]*v1alpha1.Service)
+	clientCache := make(map[string]serving_v1alpha.KnServingClient)
+
+	return func(namespace, serviceName string) (*v1alpha1.Service, error) {
+		if service, exists := serviceCache[serviceName]; exists {
+			return service, nil
+		}
+
+		client := clientCache[namespace]
+		if client == nil {
+			var err error
+			client, err = serviceFactory(namespace)
+			if err != nil {
+				return nil, err
+			}
+			clientCache[namespace] = client
+		}
+
+		service, err := client.GetService(serviceName)
+		if err != nil {
+			return nil, err
+		}
+		serviceCache[serviceName] = service
+		return service, nil
+	}
 }

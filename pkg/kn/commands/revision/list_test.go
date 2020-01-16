@@ -89,12 +89,17 @@ func TestRevisionListDefaultOutput(t *testing.T) {
 		t.Errorf("Bad action %v", action)
 	}
 	assert.Check(t, util.ContainsAll(output[0], revisionListHeader...))
-	assert.Check(t, util.ContainsAll(output[1], "bar-wxyz", "bar", "10"))
-	assert.Check(t, util.ContainsAll(output[2], "foo-wxyz", "foo", "10"))
-	assert.Check(t, util.ContainsAll(output[3], "bar-wxyz", "bar", "2"))
-	assert.Check(t, util.ContainsAll(output[4], "foo-wxyz", "foo", "2"))
-	assert.Check(t, util.ContainsAll(output[5], "bar-abcd", "bar", "1"))
-	assert.Check(t, util.ContainsAll(output[6], "foo-abcd", "foo", "1"))
+	var expectedOutput [][]string = [][]string{
+		{"bar-wxyz", "bar", "10"},
+		{"bar-wxyz", "bar", "2"},
+		{"bar-abcd", "bar", "1"},
+		{"foo-wxyz", "foo", "10"},
+		{"foo-wxyz", "foo", "2"},
+		{"foo-abcd", "foo", "1"},
+	}
+	for i, content := range expectedOutput {
+		assert.Check(t, util.ContainsAll(output[i+1], content...))
+	}
 }
 
 func TestRevisionListDefaultOutputNoHeaders(t *testing.T) {
@@ -110,8 +115,8 @@ func TestRevisionListDefaultOutputNoHeaders(t *testing.T) {
 	}
 
 	assert.Check(t, util.ContainsNone(output[0], "NAME", "URL", "GENERATION", "AGE", "CONDITIONS", "READY", "REASON"))
-	assert.Check(t, util.ContainsAll(output[0], "foo-abcd", "foo", "2"))
-	assert.Check(t, util.ContainsAll(output[1], "bar-wxyz", "bar", "1"))
+	assert.Check(t, util.ContainsAll(output[0], "bar-wxyz", "bar", "1"))
+	assert.Check(t, util.ContainsAll(output[1], "foo-abcd", "foo", "2"))
 
 }
 
@@ -152,7 +157,7 @@ func TestRevisionListForService(t *testing.T) {
 	if !action.Matches("list", "revisions") {
 		t.Errorf("Bad action %v", action)
 	}
-	assert.Assert(t, util.ContainsAll(output[0], "No", "revisions", "svc3"), "no revisions")
+	assert.Assert(t, util.ContainsAll(output[0], "No", "revisions", "found"), "no revisions")
 }
 
 func TestRevisionListOneOutput(t *testing.T) {
