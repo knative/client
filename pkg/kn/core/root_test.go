@@ -17,7 +17,6 @@ package core
 import (
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"strings"
 	"testing"
 
@@ -39,69 +38,6 @@ func TestNewDefaultKnCommand(t *testing.T) {
 
 		checkRootCmd(t, rootCmd)
 	})
-}
-
-func TestNewDefKnCmdWithArgsforCmdValiditySuccess(t *testing.T) {
-
-	pluginHandler := plugin.NewDefaultPluginHandler(plugin.ValidPluginFilenamePrefixes,
-		"/random/plugins", false)
-	args := []string{"kn", "service", "update", "--tag=0.13"}
-	rootCmd := NewDefaultKnCommandWithArgs(NewKnCommand(), pluginHandler, args, os.Stdin, os.Stdout, os.Stderr)
-	checkRootCmd(t, rootCmd)
-}
-
-func TestNewDefKnCmdWithArgsforWrongCmd(t *testing.T) {
-
-	if os.Getenv("EXIT") == "1" {
-		pluginHandler := plugin.NewDefaultPluginHandler(plugin.ValidPluginFilenamePrefixes,
-			"/random/plugins", false)
-		args := []string{"kn", "srevice", "update", "--tag=0.13"}
-		NewDefaultKnCommandWithArgs(NewKnCommand(), pluginHandler, args, os.Stdin, os.Stdout, os.Stderr)
-		return
-	}
-	cmd := exec.Command(os.Args[0], "-test.run=TestNewDefKnCmdWithArgsforWrongCmd")
-	cmd.Env = append(os.Environ(), "EXIT=1")
-	err := cmd.Run()
-	if e, ok := err.(*exec.ExitError); ok && !e.Success() {
-		return
-	}
-	t.Fatalf("process ran with err %v, want exit status 1", err)
-}
-
-func TestNewDefKnCmdWithArgsforWrongVerb(t *testing.T) {
-
-	if os.Getenv("EXIT") == "1" {
-		pluginHandler := plugin.NewDefaultPluginHandler(plugin.ValidPluginFilenamePrefixes,
-			"/random/plugins", false)
-		args := []string{"kn", "revision", "update", "--tag=0.13"}
-		NewDefaultKnCommandWithArgs(NewKnCommand(), pluginHandler, args, os.Stdin, os.Stdout, os.Stderr)
-		return
-	}
-	cmd := exec.Command(os.Args[0], "-test.run=TestNewDefKnCmdWithArgsforWrongVerb")
-	cmd.Env = append(os.Environ(), "EXIT=1")
-	err := cmd.Run()
-	if e, ok := err.(*exec.ExitError); ok && !e.Success() {
-		return
-	}
-	t.Fatalf("process ran with err %v, want exit status 1", err)
-}
-
-func TestNewDefKnCmdWithArgsforWrongVerbwithMultipleCmds(t *testing.T) {
-
-	if os.Getenv("EXIT") == "1" {
-		pluginHandler := plugin.NewDefaultPluginHandler(plugin.ValidPluginFilenamePrefixes,
-			"/random/plugins", false)
-		args := []string{"kn", "source", "apiserver", "noverb"}
-		NewDefaultKnCommandWithArgs(NewKnCommand(), pluginHandler, args, os.Stdin, os.Stdout, os.Stderr)
-		return
-	}
-	cmd := exec.Command(os.Args[0], "-test.run=TestNewDefKnCmdWithArgsforWrongVerbwithMultipleCmds")
-	cmd.Env = append(os.Environ(), "EXIT=1")
-	err := cmd.Run()
-	if e, ok := err.(*exec.ExitError); ok && !e.Success() {
-		return
-	}
-	t.Fatalf("process ran with err %v, want exit status 1", err)
 }
 
 func TestNewDefaultKnCommandWithArgs(t *testing.T) {

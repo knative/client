@@ -82,13 +82,12 @@ func NewDefaultKnCommandWithArgs(rootCmd *cobra.Command,
 		if err != nil {
 			err := plugin.HandlePluginCommand(pluginHandler, cmdPathPieces)
 			if err != nil {
-				rootCmd.Help()
-				fmt.Fprintf(rootCmd.OutOrStderr(), "Invalid command '%s' - see available commands/subcommands above .\n", args[1])
+				fmt.Fprintf(rootCmd.OutOrStderr(), "Error: unknown command '%s' \nRun 'kn --help' for usage.\n", args[1])
 				os.Exit(1)
 			}
 		} else if foundCmd.HasSubCommands() {
 			if _, _, err := rootCmd.Find(innerArgs); err != nil {
-				fmt.Fprintf(rootCmd.OutOrStderr(), showSubcommands(foundCmd))
+				fmt.Fprintf(rootCmd.OutOrStderr(), showSubcommands(foundCmd, cmdPathPieces, innerArgs[0]))
 				os.Exit(1)
 			}
 		}
@@ -294,10 +293,21 @@ func width() (int, error) {
 	return width, err
 }
 
-func showSubcommands(cmd *cobra.Command) string {
+func getCommands(args []string, innerArg string) string {
+	var commands []string
+	for _, arg := range args {
+		if arg == innerArg {
+			return strings.Join(commands, " ")
+		}
+		commands = append(commands, arg)
+	}
+	return ""
+}
+
+func showSubcommands(cmd *cobra.Command, args []string, innerArg string) string {
 	var strs []string
 	for _, subcmd := range cmd.Commands() {
 		strs = append(strs, subcmd.Name())
 	}
-	return fmt.Sprintf("Use one of available subcommands for '%s' : %s\n", cmd.Name(), strings.Join(strs, ", "))
+	return fmt.Sprintf("Error: unknown subcommand '%s' for %s. Available subcommands: %s\nRun 'kn --help' for usage.\n", innerArg, getCommands(args, innerArg), strings.Join(strs, ", "))
 }
