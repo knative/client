@@ -144,7 +144,7 @@ func (test *e2eTest) revisionDescribe(t *testing.T, serviceName string) {
 func (test *e2eTest) wrongSubCommand(t *testing.T) {
 
 	_, err := test.kn.RunWithOpts([]string{"source", "apiserver", "noverb", "--tag=0.13"}, runOpts{AllowError: true})
-	assert.ErrorContains(t, err, "Error: unknown subcommand 'noverb' for source apiserver. Available subcommands: create, delete, describe, list, update")
+	assert.ErrorContains(t, err, "Error: unknown subcommand 'noverb' for 'kn source apiserver'. Available subcommands: create, delete, describe, list, update")
 }
 
 func (test *e2eTest) wrongCommand(t *testing.T) {
