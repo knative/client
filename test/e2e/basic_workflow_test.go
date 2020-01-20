@@ -69,6 +69,10 @@ func TestBasicWorkflow(t *testing.T) {
 	t.Run("return no service after completing tests", func(t *testing.T) {
 		test.serviceListEmpty(t)
 	})
+	t.Run("error out of wrong commands and subcommands", func(t *testing.T) {
+		test.wrongSubCommand(t)
+		test.wrongCommand(t)
+	})
 }
 
 func (test *e2eTest) serviceListEmpty(t *testing.T) {
@@ -135,4 +139,16 @@ func (test *e2eTest) revisionDescribe(t *testing.T, serviceName string) {
 	out, err := test.kn.RunWithOpts([]string{"revision", "describe", revName}, runOpts{})
 	assert.NilError(t, err)
 	assert.Check(t, util.ContainsAll(out, revName, test.kn.namespace, serviceName, "++ Ready", "TARGET=kn"))
+}
+
+func (test *e2eTest) wrongSubCommand(t *testing.T) {
+
+	_, err := test.kn.RunWithOpts([]string{"source", "apiserver", "noverb", "--tag=0.13"}, runOpts{AllowError: true})
+	assert.ErrorContains(t, err, "Error: unknown subcommand 'noverb' for 'kn source apiserver'. Available subcommands: create, delete, describe, list, update")
+}
+
+func (test *e2eTest) wrongCommand(t *testing.T) {
+
+	_, err := test.kn.RunWithOpts([]string{"rev"}, runOpts{AllowError: true})
+	assert.ErrorContains(t, err, "Error: unknown command 'rev'", "Run 'kn --help' for usage.")
 }
