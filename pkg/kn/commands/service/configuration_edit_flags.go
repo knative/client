@@ -47,6 +47,7 @@ type ConfigurationEditFlags struct {
 	NamePrefix                 string
 	RevisionName               string
 	ServiceAccountName         string
+	ImagePullSecrets           string
 	Annotations                []string
 
 	// Preferences about how to do the action.
@@ -148,6 +149,11 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 			"any number of times to set multiple annotations. "+
 			"To unset, specify the annotation name followed by a \"-\" (e.g., name-).")
 	p.markFlagMakesRevision("annotation")
+	command.Flags().StringVar(&p.ImagePullSecrets,
+		"pull-secrets",
+		"",
+		"Image pull secrets to set. Empty image pull secrets will result to clear the pull secrets.")
+	p.markFlagMakesRevision("pull-secrets")
 }
 
 // AddUpdateFlags adds the flags specific to update.
@@ -345,6 +351,10 @@ func (p *ConfigurationEditFlags) Apply(
 		if err != nil {
 			return err
 		}
+	}
+
+	if cmd.Flags().Changed("pull-secrets") {
+		servinglib.UpdateImagePullSecrets(template, p.ImagePullSecrets)
 	}
 
 	return nil

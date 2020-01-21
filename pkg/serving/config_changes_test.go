@@ -562,6 +562,17 @@ func TestUpdateServiceAccountName(t *testing.T) {
 	assert.Equal(t, template.Spec.ServiceAccountName, "")
 }
 
+func TestUpdateImagePullSecrets(t *testing.T) {
+	template, _ := getV1alpha1RevisionTemplateWithOldFields()
+	template.Spec.ImagePullSecrets = nil
+
+	UpdateImagePullSecrets(template, "quay")
+	assert.Equal(t, template.Spec.ImagePullSecrets[0].Name, "quay")
+
+	UpdateImagePullSecrets(template, " ")
+	assert.Check(t, template.Spec.ImagePullSecrets == nil)
+}
+
 func TestUpdateAnnotationsNew(t *testing.T) {
 	service, template, _ := getV1alpha1Service()
 
