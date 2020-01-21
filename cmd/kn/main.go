@@ -35,7 +35,9 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 	err = core.NewDefaultKnCommand().Execute()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		if err.Error() != "subcommand is required" {
+			fmt.Fprintln(os.Stderr, err)
+		}
 		os.Exit(1)
 	}
 }
