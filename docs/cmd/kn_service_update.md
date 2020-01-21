@@ -40,7 +40,7 @@ kn service update NAME [flags]
 ```
       --annotation stringArray    Service annotation to set. name=value; you may provide this flag any number of times to set multiple annotations. To unset, specify the annotation name followed by a "-" (e.g., name-).
       --async                     Update service and don't wait for it to become ready.
-      --autoscale-window string   Autoscale window duration for when to scale down. (eg: 10s)
+      --autoscale-window string   Duration to look back for making auto-scaling decisions. The service is scaled to zero if no request was received in during that time. (eg: 10s)
       --concurrency-limit int     Hard Limit of concurrent requests to be processed by a single replica.
       --concurrency-target int    Recommendation for when to scale up based on the concurrent number of incoming request. Defaults to --concurrency-limit when given.
   -e, --env stringArray           Environment variable to set. NAME=value; you may provide this flag any number of times to set multiple environment variables. To unset, specify the environment variable name followed by a "-" (e.g., NAME-).
