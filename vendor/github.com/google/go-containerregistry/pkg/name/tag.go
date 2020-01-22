@@ -28,8 +28,7 @@ const (
 // Tag stores a docker tag name in a structured form.
 type Tag struct {
 	Repository
-	tag      string
-	original string
+	tag string
 }
 
 // Ensure Tag implements Reference
@@ -58,9 +57,8 @@ func (t Tag) Name() string {
 	return t.Repository.Name() + tagDelim + t.TagStr()
 }
 
-// String returns the original input string.
 func (t Tag) String() string {
-	return t.original
+	return t.Name()
 }
 
 // Scope returns the scope required to perform the given action on the tag.
@@ -100,9 +98,5 @@ func NewTag(name string, opts ...Option) (Tag, error) {
 	if err != nil {
 		return Tag{}, err
 	}
-	return Tag{
-		Repository: repo,
-		tag:        tag,
-		original:   name,
-	}, nil
+	return Tag{repo, tag}, nil
 }
