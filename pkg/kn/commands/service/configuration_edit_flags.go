@@ -142,7 +142,10 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 		"keep the running image for the service constant when not explicitly specifying "+
 			"the image. (--no-lock-to-digest pulls the image tag afresh with each new revision)")
 	// Don't mark as changing the revision.
-	command.Flags().StringVar(&p.ServiceAccountName, "service-account", "", "Service account name to set. Empty service account name will result to clear the service account.")
+	command.Flags().StringVar(&p.ServiceAccountName,
+		"service-account",
+		"",
+		"Service account name to set. An empty argument (\"\") clears the service account. The referenced service account must exist in the service's namespace.")
 	p.markFlagMakesRevision("service-account")
 	command.Flags().StringArrayVar(&p.Annotations, "annotation", []string{},
 		"Service annotation to set. name=value; you may provide this flag "+
@@ -150,10 +153,10 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 			"To unset, specify the annotation name followed by a \"-\" (e.g., name-).")
 	p.markFlagMakesRevision("annotation")
 	command.Flags().StringVar(&p.ImagePullSecrets,
-		"pull-secrets",
+		"pull-secret",
 		"",
-		"Image pull secrets to set. Empty image pull secrets will result to clear the pull secrets.")
-	p.markFlagMakesRevision("pull-secrets")
+		"Image pull secret to set. An empty argument (\"\") clears the pull secret. The referenced secret must exist in the service's namespace.")
+	p.markFlagMakesRevision("pull-secret")
 }
 
 // AddUpdateFlags adds the flags specific to update.
@@ -353,7 +356,7 @@ func (p *ConfigurationEditFlags) Apply(
 		}
 	}
 
-	if cmd.Flags().Changed("pull-secrets") {
+	if cmd.Flags().Changed("pull-secret") {
 		servinglib.UpdateImagePullSecrets(template, p.ImagePullSecrets)
 	}
 

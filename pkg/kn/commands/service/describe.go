@@ -169,10 +169,10 @@ func writeService(dw printers.PrefixWriter, service *v1alpha1.Service) {
 		}
 	}
 	if (service.Spec.Template != nil) && (service.Spec.Template.Spec.ServiceAccountName != "") {
-		dw.WriteAttribute("ServiceAccount", service.Spec.Template.Spec.ServiceAccountName)
+		dw.WriteAttribute("Service Account", service.Spec.Template.Spec.ServiceAccountName)
 	}
 	if service.Spec.Template != nil && service.Spec.Template.Spec.ImagePullSecrets != nil {
-		dw.WriteAttribute("ImagePullSecrets", service.Spec.Template.Spec.ImagePullSecrets[0].Name)
+		dw.WriteAttribute("Image Pull Secret", service.Spec.Template.Spec.ImagePullSecrets[0].Name)
 	}
 }
 
