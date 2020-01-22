@@ -407,6 +407,18 @@ func UpdateServiceAccountName(template *servingv1alpha1.RevisionTemplateSpec, se
 	return nil
 }
 
+// UpdateImagePullSecrets updates the image pull secrets used for the corresponding knative service
+func UpdateImagePullSecrets(template *servingv1alpha1.RevisionTemplateSpec, pullsecrets string) {
+	pullsecrets = strings.TrimSpace(pullsecrets)
+	if pullsecrets == "" {
+		template.Spec.ImagePullSecrets = nil
+	} else {
+		template.Spec.ImagePullSecrets = []corev1.LocalObjectReference{{
+			Name: pullsecrets,
+		}}
+	}
+}
+
 // GenerateVolumeName generates a volume name with respect to a given path string.
 // Current implementation basically sanitizes the path string by changing "/" into "."
 // To reduce any chance of duplication, a checksum part generated from the path string is appended to the sanitized string.

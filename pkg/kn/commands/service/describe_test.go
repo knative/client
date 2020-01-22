@@ -69,7 +69,7 @@ func TestServiceDescribeBasic(t *testing.T) {
 	assert.Assert(t, cmp.Regexp(`(?m)\s*Annotations:.*\.\.\.$`, output))
 	assert.Assert(t, util.ContainsAll(output, "Labels:", "label1=lval1, label2=lval2\n"))
 	assert.Assert(t, util.ContainsAll(output, "[1]"))
-	assert.Assert(t, cmp.Regexp("ServiceAccount: \\s+default-sa", output))
+	assert.Assert(t, cmp.Regexp("Service Account: \\s+default-sa", output))
 
 	assert.Equal(t, strings.Count(output, "rev1"), 1)
 
