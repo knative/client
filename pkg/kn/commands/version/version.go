@@ -29,11 +29,11 @@ var GitRevision string
 // update this var as we add more deps
 var apiVersions = map[string][]string{
 	"serving": {
-		"serving.knative.dev/v1alpha1 (knative-serving v0.11.0)",
+		"serving.knative.dev/v1alpha1 (knative-serving v0.12.0)",
 	},
 	"eventing": {
-		"sources.eventing.knative.dev/v1alpha1 (knative-eventing v0.11.0)",
-		"eventing.knative.dev/v1alpha1 (knative-eventing v0.11.0)",
+		"sources.eventing.knative.dev/v1alpha1 (knative-eventing v0.12.0)",
+		"eventing.knative.dev/v1alpha1 (knative-eventing v0.12.0)",
 	},
 }
 

@@ -17,9 +17,9 @@ package cronjob
 import (
 	"github.com/spf13/cobra"
 	"k8s.io/client-go/tools/clientcmd"
-	sources_v1alpha1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1"
+	sources_v1alpha1 "knative.dev/eventing/pkg/legacyclient/clientset/versioned/typed/legacysources/v1alpha1"
 
-	"knative.dev/client/pkg/eventing/sources/v1alpha1"
+	"knative.dev/client/pkg/eventing/legacysources/v1alpha1"
 	"knative.dev/client/pkg/kn/commands"
 )
 

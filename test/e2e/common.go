@@ -41,7 +41,7 @@ type runOpts struct {
 const (
 	KnDefaultTestImage string        = "gcr.io/knative-samples/helloworld-go"
 	MaxRetries         int           = 10
-	RetrySleepDuration time.Duration = 30 * time.Second
+	RetrySleepDuration time.Duration = 5 * time.Second
 )
 
 var m sync.Mutex

@@ -18,6 +18,7 @@ package v1alpha1
 
 import (
 	v1 "k8s.io/api/apps/v1"
+	"knative.dev/eventing/pkg/apis/legacysources/v1alpha1"
 	"knative.dev/pkg/apis"
 	pkgduckv1alpha1 "knative.dev/pkg/apis/duck/v1alpha1"
 
@@ -59,27 +60,34 @@ func (testHelper) ReadySubscriptionStatus() *messagingv1alpha1.SubscriptionStatu
 	return ss
 }
 
-func (testHelper) NotReadySubscriptionStatus() *messagingv1alpha1.SubscriptionStatus {
+func (testHelper) FalseSubscriptionStatus() *messagingv1alpha1.SubscriptionStatus {
 	ss := &messagingv1alpha1.SubscriptionStatus{}
 	ss.MarkReferencesResolved()
-	ss.MarkChannelNotReady("testInducedError", "test induced %s", "error")
+	ss.MarkChannelFailed("testInducedError", "test induced %s", "error")
 	return ss
 }
 
 func (t testHelper) ReadyBrokerStatus() *BrokerStatus {
 	bs := &BrokerStatus{}
 	bs.PropagateIngressDeploymentAvailability(t.AvailableDeployment())
-	bs.PropagateIngressChannelReadiness(t.ReadyChannelStatus())
 	bs.PropagateTriggerChannelReadiness(t.ReadyChannelStatus())
-	bs.PropagateIngressSubscriptionReadiness(t.ReadySubscriptionStatus())
 	bs.PropagateFilterDeploymentAvailability(t.AvailableDeployment())
 	bs.SetAddress(&apis.URL{Scheme: "http", Host: "foo"})
 	return bs
 }
 
-func (t testHelper) NotReadyBrokerStatus() *BrokerStatus {
+func (t testHelper) UnknownBrokerStatus() *BrokerStatus {
 	bs := &BrokerStatus{}
-	bs.PropagateIngressChannelReadiness(&duckv1alpha1.ChannelableStatus{})
+	bs.InitializeConditions()
+	return bs
+}
+
+func (t testHelper) FalseBrokerStatus() *BrokerStatus {
+	bs := &BrokerStatus{}
+	bs.MarkIngressFailed("DeploymentUnavailable", "The Deployment is unavailable.")
+	bs.MarkTriggerChannelFailed("ChannelNotReady", "trigger Channel is not ready: not addressalbe")
+	bs.MarkFilterFailed("DeploymentUnavailable", "The Deployment is unavailable.")
+	bs.SetAddress(nil)
 	return bs
 }
 
@@ -114,4 +122,10 @@ func (t testHelper) AvailableDeployment() *v1.Deployment {
 		},
 	}
 	return d
+}
+
+func (t testHelper) UnknownCronJobSourceStatus() *v1alpha1.CronJobSourceStatus {
+	cjss := &v1alpha1.CronJobSourceStatus{}
+	cjss.InitializeConditions()
+	return cjss
 }

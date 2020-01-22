@@ -160,7 +160,7 @@ func (b *TriggerBuilder) Namespace(ns string) *TriggerBuilder {
 
 // Subscriber for the trigger to send to (it's a Sink actually)
 func (b *TriggerBuilder) Subscriber(subscriber *duckv1.Destination) *TriggerBuilder {
-	b.trigger.Spec.Subscriber = subscriber
+	b.trigger.Spec.Subscriber = *subscriber
 	return b
 }
 

@@ -18,7 +18,7 @@ import (
 	"testing"
 
 	"gotest.tools/assert"
-	sources_v1alpha1 "knative.dev/eventing/pkg/apis/sources/v1alpha1"
+	sources_v1alpha1 "knative.dev/eventing/pkg/apis/legacysources/v1alpha1"
 )
 
 func TestGetAPIServerResourceArray(t *testing.T) {

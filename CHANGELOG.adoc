@@ -18,6 +18,10 @@
 |===
 | | Description | PR
 
+| 🧽
+| checks for namespace creation instead of waiting
+| https://github.com/knative/client/pull/611[#611]
+
 | 🎁
 | Add `kn trigger update` for updating triggers
 | https://github.com/knative/client/pull/562[#562]
