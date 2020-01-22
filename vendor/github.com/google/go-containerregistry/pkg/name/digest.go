@@ -28,8 +28,7 @@ const (
 // Digest stores a digest name in a structured form.
 type Digest struct {
 	Repository
-	digest   string
-	original string
+	digest string
 }
 
 // Ensure Digest implements Reference
@@ -55,9 +54,8 @@ func (d Digest) Name() string {
 	return d.Repository.Name() + digestDelim + d.DigestStr()
 }
 
-// String returns the original input string.
 func (d Digest) String() string {
-	return d.original
+	return d.Name()
 }
 
 func checkDigest(name string) error {
@@ -88,9 +86,5 @@ func NewDigest(name string, opts ...Option) (Digest, error) {
 	if err != nil {
 		return Digest{}, err
 	}
-	return Digest{
-		Repository: repo,
-		digest:     digest,
-		original:   name,
-	}, nil
+	return Digest{repo, digest}, nil
 }
