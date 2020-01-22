@@ -649,7 +649,7 @@ knative.dev/eventing/pkg/legacyclient/clientset/versioned/scheme
 knative.dev/eventing/pkg/legacyclient/clientset/versioned/typed/legacysources/v1alpha1
 knative.dev/eventing/pkg/legacyclient/clientset/versioned/typed/legacysources/v1alpha1/fake
 knative.dev/eventing/pkg/logging
-# knative.dev/pkg v0.0.0-20200113182502-b8dc5fbc6d2f
+# knative.dev/pkg v0.0.0-20200120180006-96d3b8c24c34
 knative.dev/pkg/apis
 knative.dev/pkg/apis/duck
 knative.dev/pkg/apis/duck/v1
@@ -668,7 +668,7 @@ knative.dev/pkg/network
 knative.dev/pkg/profiling
 knative.dev/pkg/ptr
 knative.dev/pkg/tracker
-# knative.dev/serving v0.11.0
+# knative.dev/serving v0.12.0
 knative.dev/serving/pkg/apis/autoscaling
 knative.dev/serving/pkg/apis/autoscaling/v1alpha1
 knative.dev/serving/pkg/apis/config
