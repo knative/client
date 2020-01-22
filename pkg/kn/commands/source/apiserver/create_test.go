@@ -20,7 +20,7 @@ import (
 	"gotest.tools/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	dynamic_fake "knative.dev/client/pkg/dynamic/fake"
-	knsources_v1alpha1 "knative.dev/client/pkg/eventing/sources/v1alpha1"
+	knsources_v1alpha1 "knative.dev/client/pkg/eventing/legacysources/v1alpha1"
 	"knative.dev/client/pkg/util"
 	serving_v1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
 )

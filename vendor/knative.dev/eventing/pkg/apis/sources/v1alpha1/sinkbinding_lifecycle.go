@@ -1,5 +1,5 @@
 /*
-Copyright 2019 The Knative Authors
+Copyright 2020 The Knative Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -37,50 +37,50 @@ func (s *SinkBinding) GetGroupVersionKind() schema.GroupVersionKind {
 }
 
 // GetUntypedSpec implements apis.HasSpec
-func (c *SinkBinding) GetUntypedSpec() interface{} {
-	return c.Spec
+func (s *SinkBinding) GetUntypedSpec() interface{} {
+	return s.Spec
 }
 
 // GetSubject implements psbinding.Bindable
-func (fb *SinkBinding) GetSubject() tracker.Reference {
-	return fb.Spec.Subject
+func (sb *SinkBinding) GetSubject() tracker.Reference {
+	return sb.Spec.Subject
 }
 
 // GetBindingStatus implements psbinding.Bindable
-func (fb *SinkBinding) GetBindingStatus() duck.BindableStatus {
-	return &fb.Status
+func (sb *SinkBinding) GetBindingStatus() duck.BindableStatus {
+	return &sb.Status
 }
 
 // SetObservedGeneration implements psbinding.BindableStatus
-func (fbs *SinkBindingStatus) SetObservedGeneration(gen int64) {
-	fbs.ObservedGeneration = gen
+func (sbs *SinkBindingStatus) SetObservedGeneration(gen int64) {
+	sbs.ObservedGeneration = gen
 }
 
 // InitializeConditions populates the SinkBindingStatus's conditions field
 // with all of its conditions configured to Unknown.
-func (fbs *SinkBindingStatus) InitializeConditions() {
-	sbCondSet.Manage(fbs).InitializeConditions()
+func (sbs *SinkBindingStatus) InitializeConditions() {
+	sbCondSet.Manage(sbs).InitializeConditions()
 }
 
 // MarkBindingUnavailable marks the SinkBinding's Ready condition to False with
 // the provided reason and message.
-func (fbs *SinkBindingStatus) MarkBindingUnavailable(reason, message string) {
-	sbCondSet.Manage(fbs).MarkFalse(SinkBindingConditionReady, reason, message)
+func (sbs *SinkBindingStatus) MarkBindingUnavailable(reason, message string) {
+	sbCondSet.Manage(sbs).MarkFalse(SinkBindingConditionReady, reason, message)
 }
 
 // MarkBindingAvailable marks the SinkBinding's Ready condition to True.
-func (fbs *SinkBindingStatus) MarkBindingAvailable() {
-	sbCondSet.Manage(fbs).MarkTrue(SinkBindingConditionReady)
+func (sbs *SinkBindingStatus) MarkBindingAvailable() {
+	sbCondSet.Manage(sbs).MarkTrue(SinkBindingConditionReady)
 }
 
 // Do implements psbinding.Bindable
-func (fb *SinkBinding) Do(ctx context.Context, ps *duckv1.WithPod) {
+func (sb *SinkBinding) Do(ctx context.Context, ps *duckv1.WithPod) {
 	// First undo so that we can just unconditionally append below.
-	fb.Undo(ctx, ps)
+	sb.Undo(ctx, ps)
 
 	uri := GetSinkURI(ctx)
 	if uri == nil {
-		logging.FromContext(ctx).Error(fmt.Sprintf("No sink URI associated with context for %+v", fb))
+		logging.FromContext(ctx).Error(fmt.Sprintf("No sink URI associated with context for %+v", sb))
 		return
 	}
 
@@ -99,7 +99,7 @@ func (fb *SinkBinding) Do(ctx context.Context, ps *duckv1.WithPod) {
 	}
 }
 
-func (fb *SinkBinding) Undo(ctx context.Context, ps *duckv1.WithPod) {
+func (sb *SinkBinding) Undo(ctx context.Context, ps *duckv1.WithPod) {
 	spec := ps.Spec.Template.Spec
 	for i, c := range spec.InitContainers {
 		for j, ev := range c.Env {

@@ -521,8 +521,8 @@ k8s.io/kube-openapi v0.0.0-20190816220812-743ec37842bf/go.mod h1:1TqjTSzOxsLGIKf
 k8s.io/kubernetes v1.11.10/go.mod h1:ocZa8+6APFNC2tX1DZASIbocyYT5jHzqFVsY5aoB7Jk=
 k8s.io/utils v0.0.0-20190221042446-c2654d5206da h1:ElyM7RPonbKnQqOcw7dG2IK5uvQQn3b/WPHqD5mBvP4=
 k8s.io/utils v0.0.0-20190221042446-c2654d5206da/go.mod h1:8k8uAuAQ0rXslZKaEWd0c3oVhZz7sSzSiPnVZayjIX0=
-knative.dev/eventing v0.11.0 h1:g+vzgmRzYQIrADd8To3MskGdXxIhWXbUhadALPloU10=
-knative.dev/eventing v0.11.0/go.mod h1:UxweNv8yXhsdHJitcb9R6rmfNaUD2DFi9GWwNRyIs58=
+knative.dev/eventing v0.12.0 h1:u3Ck5+dpr2affDlsGfRKnBTb87Is/tfzWNfZz1FSAMI=
+knative.dev/eventing v0.12.0/go.mod h1:UxweNv8yXhsdHJitcb9R6rmfNaUD2DFi9GWwNRyIs58=
 knative.dev/pkg v0.0.0-20200120180006-96d3b8c24c34 h1:rzwD07KAeJ8IfHMV8VWZ0y4txfWHhA07fH2G1mYvKYs=
 knative.dev/pkg v0.0.0-20200120180006-96d3b8c24c34/go.mod h1:pgODObA1dTyhNoFxPZTTjNWfx6F0aKsKzn+vaT9XO/Q=
 knative.dev/serving v0.12.0 h1:Jdtc3WwaBNhDY8n5mKwmLqldXra5RKk8FesjIR8k4ts=

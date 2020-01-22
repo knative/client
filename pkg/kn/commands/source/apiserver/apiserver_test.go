@@ -20,10 +20,10 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/clientcmd"
 	kn_dynamic "knative.dev/client/pkg/dynamic"
-	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
+	"knative.dev/eventing/pkg/apis/legacysources/v1alpha1"
 	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
 
-	knsource_v1alpha1 "knative.dev/client/pkg/eventing/sources/v1alpha1"
+	knsource_v1alpha1 "knative.dev/client/pkg/eventing/legacysources/v1alpha1"
 	"knative.dev/client/pkg/kn/commands"
 )
 

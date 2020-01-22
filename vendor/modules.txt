@@ -629,13 +629,15 @@ k8s.io/kube-openapi/pkg/util/proto
 k8s.io/utils/buffer
 k8s.io/utils/integer
 k8s.io/utils/trace
-# knative.dev/eventing v0.11.0
+# knative.dev/eventing v0.12.0
 knative.dev/eventing/pkg/apis/duck
 knative.dev/eventing/pkg/apis/duck/v1alpha1
 knative.dev/eventing/pkg/apis/eventing
 knative.dev/eventing/pkg/apis/eventing/v1alpha1
 knative.dev/eventing/pkg/apis/flows
 knative.dev/eventing/pkg/apis/flows/v1alpha1
+knative.dev/eventing/pkg/apis/legacysources
+knative.dev/eventing/pkg/apis/legacysources/v1alpha1
 knative.dev/eventing/pkg/apis/messaging
 knative.dev/eventing/pkg/apis/messaging/v1alpha1
 knative.dev/eventing/pkg/apis/sources
@@ -643,8 +645,9 @@ knative.dev/eventing/pkg/apis/sources/v1alpha1
 knative.dev/eventing/pkg/client/clientset/versioned/scheme
 knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1alpha1
 knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1alpha1/fake
-knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1
-knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1/fake
+knative.dev/eventing/pkg/legacyclient/clientset/versioned/scheme
+knative.dev/eventing/pkg/legacyclient/clientset/versioned/typed/legacysources/v1alpha1
+knative.dev/eventing/pkg/legacyclient/clientset/versioned/typed/legacysources/v1alpha1/fake
 knative.dev/eventing/pkg/logging
 # knative.dev/pkg v0.0.0-20200120180006-96d3b8c24c34
 knative.dev/pkg/apis

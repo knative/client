@@ -1,5 +1,5 @@
 /*
-Copyright 2019 The Knative Authors
+Copyright 2020 The Knative Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package v1alpha1
 import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	"knative.dev/pkg/apis"
 
@@ -48,6 +49,16 @@ var apiserverCondSet = apis.NewLivingConditionSet(
 	ApiServerConditionSufficientPermissions,
 )
 
+// GetGroupVersionKind returns the GroupVersionKind.
+func (s *ApiServerSource) GetGroupVersionKind() schema.GroupVersionKind {
+	return SchemeGroupVersion.WithKind("ApiServerSource")
+}
+
+// GetUntypedSpec returns the spec of the ApiServerSource.
+func (s *ApiServerSource) GetUntypedSpec() interface{} {
+	return s.Spec
+}
+
 // GetCondition returns the condition currently associated with the given type, or nil.
 func (s *ApiServerSourceStatus) GetCondition(t apis.ConditionType) *apis.Condition {
 	return apiserverCondSet.Manage(s).GetCondition(t)
@@ -64,7 +75,7 @@ func (s *ApiServerSourceStatus) MarkSink(uri string) {
 	if len(uri) > 0 {
 		apiserverCondSet.Manage(s).MarkTrue(ApiServerConditionSinkProvided)
 	} else {
-		apiserverCondSet.Manage(s).MarkUnknown(ApiServerConditionSinkProvided, "SinkEmpty", "Sink has resolved to empty.%s", "")
+		apiserverCondSet.Manage(s).MarkFalse(ApiServerConditionSinkProvided, "SinkEmpty", "Sink has resolved to empty.%s", "")
 	}
 }
 

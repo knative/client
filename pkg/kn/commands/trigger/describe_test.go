@@ -76,7 +76,7 @@ func getTrigger() *v1alpha1.Trigger {
 					"source": "src.eventing.knative",
 				},
 			},
-			Subscriber: &duckv1.Destination{
+			Subscriber: duckv1.Destination{
 				Ref: &corev1.ObjectReference{
 					Kind:      "Service",
 					Namespace: "myservicenamespace",

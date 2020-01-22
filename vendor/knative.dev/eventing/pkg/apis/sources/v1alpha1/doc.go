@@ -1,5 +1,5 @@
 /*
-Copyright 2019 The Knative Authors
+Copyright 2020 The Knative Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,5 +16,5 @@ limitations under the License.
 
 // Package v1alpha1 contains API Schema definitions for the sources v1alpha1 API group
 // +k8s:deepcopy-gen=package
-// +groupName=sources.eventing.knative.dev
+// +groupName=sources.knative.dev
 package v1alpha1
