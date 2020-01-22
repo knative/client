@@ -129,7 +129,8 @@ func describe(w io.Writer, revision *v1alpha1.Revision, service *v1alpha1.Servic
 func WriteConcurrencyOptions(dw printers.PrefixWriter, revision *v1alpha1.Revision) {
 	target := clientserving.ConcurrencyTarget(&revision.ObjectMeta)
 	limit := revision.Spec.ContainerConcurrency
-	if target != nil || limit != nil && *limit != 0 {
+	autoscaleWindow := clientserving.AutoscaleWindow(&revision.ObjectMeta)
+	if target != nil || limit != nil && *limit != 0 || autoscaleWindow != "" {
 		section := dw.WriteAttribute("Concurrency", "")
 		if limit != nil && *limit != 0 {
 			section.WriteAttribute("Limit", strconv.FormatInt(int64(*limit), 10))
@@ -137,7 +138,11 @@ func WriteConcurrencyOptions(dw printers.PrefixWriter, revision *v1alpha1.Revisi
 		if target != nil {
 			section.WriteAttribute("Target", strconv.Itoa(*target))
 		}
+		if autoscaleWindow != "" {
+			section.WriteAttribute("Window", autoscaleWindow)
+		}
 	}
+
 }
 
 // Write the image attribute (with

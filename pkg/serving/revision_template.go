@@ -67,6 +67,10 @@ func ConcurrencyTarget(m *metav1.ObjectMeta) *int {
 	return ret
 }
 
+func AutoscaleWindow(m *metav1.ObjectMeta) string {
+	return m.Annotations[autoscaling.WindowAnnotationKey]
+}
+
 func Port(revisionSpec *servingv1alpha1.RevisionSpec) *int32 {
 	c, err := ContainerOfRevisionSpec(revisionSpec)
 	if err != nil {

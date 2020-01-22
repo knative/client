@@ -79,6 +79,14 @@ func TestServiceOptions(t *testing.T) {
 		test.validateServiceAnnotations(t, "svc3", map[string]string{"alpha": "direwolf", "brave": ""})
 		test.serviceDelete(t, "svc3")
 	})
+
+	t.Run("create, update and validate service with autoscale window option", func(t *testing.T) {
+		test.serviceCreateWithOptions(t, "svc4", []string{"--autoscale-window", "1m"})
+		test.validateAutoscaleWindow(t, "svc4", "1m")
+		test.serviceUpdate(t, "svc4", []string{"--autoscale-window", "15s"})
+		test.validateAutoscaleWindow(t, "svc4", "15s")
+		test.serviceDelete(t, "svc4")
+	})
 }
 
 func (test *e2eTest) serviceCreateWithOptions(t *testing.T, serviceName string, options []string) {
@@ -119,6 +127,13 @@ func (test *e2eTest) validateServiceConcurrencyTarget(t *testing.T, serviceName,
 		assert.NilError(t, err)
 		assert.Equal(t, out, concurrencyTarget)
 	}
+}
+
+func (test *e2eTest) validateAutoscaleWindow(t *testing.T, serviceName, window string) {
+	jsonpath := "jsonpath={.items[0].spec.template.metadata.annotations.autoscaling\\.knative\\.dev/window}"
+	out, err := test.kn.RunWithOpts([]string{"service", "list", serviceName, "-o", jsonpath}, runOpts{})
+	assert.NilError(t, err)
+	assert.Equal(t, out, window)
 }
 
 func (test *e2eTest) validateServiceMinScale(t *testing.T, serviceName, minScale string) {

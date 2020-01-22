@@ -41,6 +41,7 @@ type ConfigurationEditFlags struct {
 	MaxScale                   int
 	ConcurrencyTarget          int
 	ConcurrencyLimit           int
+	AutoscaleWindow            string
 	Port                       int32
 	Labels                     []string
 	NamePrefix                 string
@@ -113,6 +114,8 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	p.markFlagMakesRevision("min-scale")
 	command.Flags().IntVar(&p.MaxScale, "max-scale", 0, "Maximal number of replicas.")
 	p.markFlagMakesRevision("max-scale")
+	command.Flags().StringVar(&p.AutoscaleWindow, "autoscale-window", "", "Duration to look back for making auto-scaling decisions. The service is scaled to zero if no request was received in during that time. (eg: 10s)")
+	p.markFlagMakesRevision("autoscale-window")
 	command.Flags().IntVar(&p.ConcurrencyTarget, "concurrency-target", 0,
 		"Recommendation for when to scale up based on the concurrent number of incoming request. "+
 			"Defaults to --concurrency-limit when given.")
@@ -285,6 +288,13 @@ func (p *ConfigurationEditFlags) Apply(
 
 	if cmd.Flags().Changed("max-scale") {
 		err = servinglib.UpdateMaxScale(template, p.MaxScale)
+		if err != nil {
+			return err
+		}
+	}
+
+	if cmd.Flags().Changed("autoscale-window") {
+		err = servinglib.UpdateAutoscaleWindow(template, p.AutoscaleWindow)
 		if err != nil {
 			return err
 		}

@@ -21,6 +21,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 	"unicode"
 
 	corev1 "k8s.io/api/core/v1"
@@ -181,6 +182,15 @@ func UpdateMinScale(template *servingv1alpha1.RevisionTemplateSpec, min int) err
 // UpdateMaxScale updates max scale annotation
 func UpdateMaxScale(template *servingv1alpha1.RevisionTemplateSpec, max int) error {
 	return UpdateRevisionTemplateAnnotation(template, autoscaling.MaxScaleAnnotationKey, strconv.Itoa(max))
+}
+
+// UpdateAutoscaleWindow updates the autoscale window annotation
+func UpdateAutoscaleWindow(template *servingv1alpha1.RevisionTemplateSpec, window string) error {
+	_, err := time.ParseDuration(window)
+	if err != nil {
+		return fmt.Errorf("invalid duration for 'autoscale-window': %v", err)
+	}
+	return UpdateRevisionTemplateAnnotation(template, autoscaling.WindowAnnotationKey, window)
 }
 
 // UpdateConcurrencyTarget updates container concurrency annotation

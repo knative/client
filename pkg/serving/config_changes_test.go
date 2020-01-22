@@ -225,7 +225,7 @@ func TestUpdateMinScale(t *testing.T) {
 	err := UpdateMinScale(template, 10)
 	assert.NilError(t, err)
 	// Verify update is successful or not
-	checkAnnotationValue(t, template, autoscaling.MinScaleAnnotationKey, 10)
+	checkAnnotationValueInt(t, template, autoscaling.MinScaleAnnotationKey, 10)
 	// Update with invalid value
 	err = UpdateMinScale(template, -1)
 	assert.ErrorContains(t, err, "minScale")
@@ -236,10 +236,21 @@ func TestUpdateMaxScale(t *testing.T) {
 	err := UpdateMaxScale(template, 10)
 	assert.NilError(t, err)
 	// Verify update is successful or not
-	checkAnnotationValue(t, template, autoscaling.MaxScaleAnnotationKey, 10)
+	checkAnnotationValueInt(t, template, autoscaling.MaxScaleAnnotationKey, 10)
 	// Update with invalid value
 	err = UpdateMaxScale(template, -1)
 	assert.ErrorContains(t, err, "maxScale")
+}
+
+func TestAutoscaleWindow(t *testing.T) {
+	template, _ := getV1alpha1RevisionTemplateWithOldFields()
+	err := UpdateAutoscaleWindow(template, "10s")
+	assert.NilError(t, err)
+	// Verify update is successful or not
+	checkAnnotationValue(t, template, autoscaling.WindowAnnotationKey, "10s")
+	// Update with invalid value
+	err = UpdateAutoscaleWindow(template, "blub")
+	assert.Check(t, util.ContainsAll(err.Error(), "invalid duration", "autoscale-window"))
 }
 
 func TestUpdateConcurrencyTarget(t *testing.T) {
@@ -247,7 +258,7 @@ func TestUpdateConcurrencyTarget(t *testing.T) {
 	err := UpdateConcurrencyTarget(template, 10)
 	assert.NilError(t, err)
 	// Verify update is successful or not
-	checkAnnotationValue(t, template, autoscaling.TargetAnnotationKey, 10)
+	checkAnnotationValueInt(t, template, autoscaling.TargetAnnotationKey, 10)
 	// Update with invalid value
 	err = UpdateConcurrencyTarget(template, -1)
 	assert.ErrorContains(t, err, "invalid")
@@ -708,10 +719,17 @@ func assertNoV1alpha1(t *testing.T, template *servingv1alpha1.RevisionTemplateSp
 	}
 }
 
-func checkAnnotationValue(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, key string, value int) {
+func checkAnnotationValueInt(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, key string, value int) {
 	anno := template.GetAnnotations()
 	if v, ok := anno[key]; !ok && v != strconv.Itoa(value) {
 		t.Errorf("Failed to update %s annotation key: got=%s, want=%d", key, v, value)
+	}
+}
+
+func checkAnnotationValue(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, key string, value string) {
+	anno := template.GetAnnotations()
+	if v, ok := anno[key]; !ok && v != value {
+		t.Errorf("Failed to update %s annotation key: got=%s, want=%s", key, v, value)
 	}
 }
 
