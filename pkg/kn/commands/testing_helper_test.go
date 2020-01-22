@@ -22,7 +22,7 @@ import (
 	"github.com/spf13/cobra"
 	"gotest.tools/assert"
 	dynamic_fake "k8s.io/client-go/dynamic/fake"
-	sources_fake "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1/fake"
+	sources_fake "knative.dev/eventing/pkg/legacyclient/clientset/versioned/typed/legacysources/v1alpha1/fake"
 	"knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake"
 )
 

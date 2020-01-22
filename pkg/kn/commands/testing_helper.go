@@ -32,10 +32,10 @@ import (
 
 	dynamic_fake "k8s.io/client-go/dynamic/fake"
 	dynamic_kn "knative.dev/client/pkg/dynamic"
-	sources_client "knative.dev/client/pkg/eventing/sources/v1alpha1"
+	sources_client "knative.dev/client/pkg/eventing/legacysources/v1alpha1"
 	eventing_client "knative.dev/client/pkg/eventing/v1alpha1"
 	eventing_fake "knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1alpha1/fake"
-	sources_fake "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1/fake"
+	sources_fake "knative.dev/eventing/pkg/legacyclient/clientset/versioned/typed/legacysources/v1alpha1/fake"
 )
 
 const FakeNamespace = "current"

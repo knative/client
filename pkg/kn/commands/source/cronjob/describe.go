@@ -19,7 +19,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
+	"knative.dev/eventing/pkg/apis/legacysources/v1alpha1"
 	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
 
 	"knative.dev/client/pkg/kn/commands"

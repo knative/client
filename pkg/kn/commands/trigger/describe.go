@@ -73,7 +73,7 @@ func NewTriggerDescribeCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			// Revisions summary info
-			writeSink(dw, trigger.Spec.Subscriber)
+			writeSink(dw, &trigger.Spec.Subscriber)
 			dw.WriteLine()
 			if err := dw.Flush(); err != nil {
 				return err
