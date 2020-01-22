@@ -17,8 +17,8 @@ package v1alpha1
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kn_errors "knative.dev/client/pkg/errors"
-	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
-	client_v1alpha1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1"
+	"knative.dev/eventing/pkg/apis/legacysources/v1alpha1"
+	client_v1alpha1 "knative.dev/eventing/pkg/legacyclient/clientset/versioned/typed/legacysources/v1alpha1"
 	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
 )
 

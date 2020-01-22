@@ -25,7 +25,7 @@ import (
 	"knative.dev/client/pkg/kn/commands"
 	hprinters "knative.dev/client/pkg/printers"
 
-	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
+	"knative.dev/eventing/pkg/apis/legacysources/v1alpha1"
 )
 
 type cronJobUpdateFlags struct {

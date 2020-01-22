@@ -17,7 +17,7 @@ package v1alpha1
 import (
 	"testing"
 
-	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
+	"knative.dev/eventing/pkg/apis/legacysources/v1alpha1"
 )
 
 func TestMockKnAPIServerSourceClient(t *testing.T) {

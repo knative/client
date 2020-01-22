@@ -24,8 +24,8 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	client_testing "k8s.io/client-go/testing"
-	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
-	"knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1/fake"
+	"knative.dev/eventing/pkg/apis/legacysources/v1alpha1"
+	"knative.dev/eventing/pkg/legacyclient/clientset/versioned/typed/legacysources/v1alpha1/fake"
 	"knative.dev/pkg/apis/duck/v1beta1"
 )
 

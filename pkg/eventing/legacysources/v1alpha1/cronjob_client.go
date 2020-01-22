@@ -19,11 +19,11 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
+	"knative.dev/eventing/pkg/apis/legacysources/v1alpha1"
 
 	"knative.dev/client/pkg/util"
-	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
-	client_v1alpha1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1"
+	"knative.dev/eventing/pkg/legacyclient/clientset/versioned/scheme"
+	client_v1alpha1 "knative.dev/eventing/pkg/legacyclient/clientset/versioned/typed/legacysources/v1alpha1"
 	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
 )
 

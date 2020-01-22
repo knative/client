@@ -15,7 +15,7 @@
 package v1alpha1
 
 import (
-	client_v1alpha1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1"
+	client_v1alpha1 "knative.dev/eventing/pkg/legacyclient/clientset/versioned/typed/legacysources/v1alpha1"
 )
 
 // KnSourcesClient to Eventing Sources. All methods are relative to the

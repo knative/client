@@ -21,10 +21,10 @@ import (
 	"gotest.tools/assert"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
+	"knative.dev/eventing/pkg/apis/legacysources/v1alpha1"
 	"knative.dev/pkg/apis/duck/v1beta1"
 
-	v1alpha12 "knative.dev/client/pkg/eventing/sources/v1alpha1"
+	v1alpha12 "knative.dev/client/pkg/eventing/legacysources/v1alpha1"
 	"knative.dev/client/pkg/util"
 )
 

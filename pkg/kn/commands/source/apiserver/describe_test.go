@@ -20,7 +20,7 @@ import (
 
 	"gotest.tools/assert"
 
-	knsource_v1alpha1 "knative.dev/client/pkg/eventing/sources/v1alpha1"
+	knsource_v1alpha1 "knative.dev/client/pkg/eventing/legacysources/v1alpha1"
 	"knative.dev/client/pkg/util"
 )
 

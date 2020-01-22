@@ -19,9 +19,9 @@ import (
 
 	"gotest.tools/assert"
 
-	knsource_v1alpha1 "knative.dev/client/pkg/eventing/sources/v1alpha1"
+	knsource_v1alpha1 "knative.dev/client/pkg/eventing/legacysources/v1alpha1"
 	"knative.dev/client/pkg/util"
-	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
+	"knative.dev/eventing/pkg/apis/legacysources/v1alpha1"
 )
 
 func TestListCronJobSource(t *testing.T) {
