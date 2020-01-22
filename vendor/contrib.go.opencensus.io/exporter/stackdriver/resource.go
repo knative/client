@@ -26,7 +26,6 @@ import (
 // Consider exposing these labels and a type identifier in the future to allow
 // for customization.
 const (
-	stackdriverLocation             = "contrib.opencensus.io/exporter/stackdriver/location"
 	stackdriverProjectID            = "contrib.opencensus.io/exporter/stackdriver/project_id"
 	stackdriverGenericTaskNamespace = "contrib.opencensus.io/exporter/stackdriver/generic_task/namespace"
 	stackdriverGenericTaskJob       = "contrib.opencensus.io/exporter/stackdriver/generic_task/job"
@@ -74,7 +73,7 @@ var awsResourceMap = map[string]string{
 // Generic task resource.
 var genericResourceMap = map[string]string{
 	"project_id": stackdriverProjectID,
-	"location":   stackdriverLocation,
+	"location":   resourcekeys.CloudKeyZone,
 	"namespace":  stackdriverGenericTaskNamespace,
 	"job":        stackdriverGenericTaskJob,
 	"task_id":    stackdriverGenericTaskID,
