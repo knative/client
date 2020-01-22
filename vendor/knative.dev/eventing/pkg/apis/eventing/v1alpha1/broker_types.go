@@ -70,6 +70,11 @@ type BrokerSpec struct {
 	// are no defaults for the namespace).
 	// +optional
 	ChannelTemplate *eventingduckv1alpha1.ChannelTemplateSpec `json:"channelTemplateSpec,omitempty"`
+
+	// Delivery is the delivery specification to be used internally by the broker to
+	// create subscriptions.
+	// +optional
+	Delivery *eventingduckv1alpha1.DeliverySpec `json:"delivery,omitempty"`
 }
 
 // BrokerStatus represents the current state of a Broker.
@@ -88,9 +93,6 @@ type BrokerStatus struct {
 
 	// TriggerChannel is an objectref to the object for the TriggerChannel
 	TriggerChannel *corev1.ObjectReference `json:"triggerChannel,omitempty"`
-
-	// IngressChannel is an objectref to the object for the IngressChannel
-	IngressChannel *corev1.ObjectReference `json:"IngressChannel,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
