@@ -8,6 +8,7 @@ require (
 	github.com/magiconair/properties v1.8.0
 	github.com/mattbaird/jsonpatch v0.0.0-20171005235357-81af80346b1a // indirect
 	github.com/mitchellh/go-homedir v1.1.0
+	github.com/openzipkin/zipkin-go v0.2.2 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/robfig/cron v1.2.0 // indirect
 	github.com/spf13/cobra v0.0.5
