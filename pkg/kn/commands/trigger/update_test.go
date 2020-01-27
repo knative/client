@@ -20,10 +20,11 @@ import (
 
 	"gotest.tools/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	serving_v1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
+
 	dynamic_fake "knative.dev/client/pkg/dynamic/fake"
 	eventing_client "knative.dev/client/pkg/eventing/v1alpha1"
 	"knative.dev/client/pkg/util"
-	serving_v1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
 func TestTriggerUpdate(t *testing.T) {

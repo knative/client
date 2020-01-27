@@ -67,8 +67,6 @@ func (f *HumanPrintFlags) EnsureWithNamespace() {
 	f.WithNamespace = true
 }
 
-// Private functions
-
 // conditionsValue returns the True conditions count among total conditions
 func ConditionsValue(conditions duckv1.Conditions) string {
 	var ok int

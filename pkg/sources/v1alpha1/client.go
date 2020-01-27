@@ -15,17 +15,14 @@
 package v1alpha1
 
 import (
-	client_v1alpha1 "knative.dev/eventing/pkg/legacyclient/clientset/versioned/typed/legacysources/v1alpha1"
+	client_v1alpha1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1"
 )
 
 // KnSinkBindingClient to Eventing Sources. All methods are relative to the
 // namespace specified during construction
 type KnSourcesClient interface {
-	// Get client for ApiServer sources
-	APIServerSourcesClient() KnAPIServerSourcesClient
-
-	// Get client for CronJob sources
-	CronJobSourcesClient() KnCronJobSourcesClient
+	// Get client for sink binding sources
+	SinkBindingClient() KnSinkBindingClient
 }
 
 // sourcesClient is a combination of Sources client interface and namespace
@@ -45,11 +42,6 @@ func NewKnSourcesClient(client client_v1alpha1.SourcesV1alpha1Interface, namespa
 }
 
 // ApiServerSourcesClient for dealing with ApiServer sources
-func (c *sourcesClient) APIServerSourcesClient() KnAPIServerSourcesClient {
-	return newKnAPIServerSourcesClient(c.client.ApiServerSources(c.namespace), c.namespace)
-}
-
-// Get the client for dealing with cronjob sources
-func (c *sourcesClient) CronJobSourcesClient() KnCronJobSourcesClient {
-	return newKnCronJobSourcesClient(c.client.CronJobSources(c.namespace), c.namespace)
+func (c *sourcesClient) SinkBindingClient() KnSinkBindingClient {
+	return newKnSinkBindingClient(c.client.SinkBindings(c.namespace), c.namespace)
 }

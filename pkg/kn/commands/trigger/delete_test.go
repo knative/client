@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	"gotest.tools/assert"
+
 	eventing_client "knative.dev/client/pkg/eventing/v1alpha1"
 	"knative.dev/client/pkg/util"
 )

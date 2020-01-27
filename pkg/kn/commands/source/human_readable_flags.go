@@ -21,6 +21,8 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	metav1beta1 "k8s.io/apimachinery/pkg/apis/meta/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
+	v1 "knative.dev/pkg/apis/duck/v1"
+
 	hprinters "knative.dev/client/pkg/printers"
 )
 
@@ -82,4 +84,19 @@ func printSourceTypesList(sourceTypesList *unstructured.UnstructuredList, option
 		rows = append(rows, row...)
 	}
 	return rows, nil
+}
+
+// SinkToString prepares a sinkPrepare a sink for list output
+func SinkToString(sink v1.Destination) string {
+	if sink.Ref != nil {
+		if sink.Ref.Kind == "Service" {
+			return fmt.Sprintf("svc:%s", sink.Ref.Name)
+		} else {
+			return fmt.Sprintf("%s:%s", sink.Ref.Kind, sink.Ref.Name)
+		}
+	}
+	if sink.URI != nil {
+		return sink.URI.String()
+	}
+	return ""
 }

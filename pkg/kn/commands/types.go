@@ -23,10 +23,11 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	"knative.dev/client/pkg/util"
 	eventing "knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1alpha1"
 	eventing_sources "knative.dev/eventing/pkg/legacyclient/clientset/versioned/typed/legacysources/v1alpha1"
 	serving_v1alpha1_client "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
+
+	"knative.dev/client/pkg/util"
 
 	dynamic_kn "knative.dev/client/pkg/dynamic"
 	sources_kn_v1alpha1 "knative.dev/client/pkg/eventing/legacysources/v1alpha1"

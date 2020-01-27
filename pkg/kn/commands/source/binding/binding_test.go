@@ -12,25 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package trigger
+package binding
 
 import (
 	"bytes"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/tools/clientcmd"
-	"knative.dev/eventing/pkg/apis/eventing/v1alpha1"
-	"knative.dev/pkg/apis"
-	duckv1 "knative.dev/pkg/apis/duck/v1"
+	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
+	v1 "knative.dev/pkg/apis/duck/v1"
 
 	kn_dynamic "knative.dev/client/pkg/dynamic"
-	eventc_v1alpha1 "knative.dev/client/pkg/eventing/v1alpha1"
 	"knative.dev/client/pkg/kn/commands"
+	cl_sources_v1alpha1 "knative.dev/client/pkg/sources/v1alpha1"
 )
 
 // Helper methods
 var blankConfig clientcmd.ClientConfig
 
+// TOOD: Remove that blankConfig hack for tests in favor of overwriting GetConfig()
+// Remove also in service_test.go
 func init() {
 	var err error
 	blankConfig, err = clientcmd.NewClientConfigFromBytes([]byte(`kind: Config
@@ -53,7 +55,7 @@ current-context: x
 	}
 }
 
-func executeTriggerCommand(triggerClient eventc_v1alpha1.KnEventingClient, dynamicClient kn_dynamic.KnDynamicClient, args ...string) (string, error) {
+func executeSinkBindingCommand(sinkBindingClient cl_sources_v1alpha1.KnSinkBindingClient, dynamicClient kn_dynamic.KnDynamicClient, args ...string) (string, error) {
 	knParams := &commands.KnParams{}
 	knParams.ClientConfig = blankConfig
 
@@ -63,45 +65,32 @@ func executeTriggerCommand(triggerClient eventc_v1alpha1.KnEventingClient, dynam
 		return dynamicClient, nil
 	}
 
-	knParams.NewEventingClient = func(namespace string) (eventc_v1alpha1.KnEventingClient, error) {
-		return triggerClient, nil
-	}
-
-	cmd := NewTriggerCommand(knParams)
+	cmd := NewSinkBindingCommand(knParams)
 	cmd.SetArgs(args)
 	cmd.SetOutput(output)
+
+	sinkBindingClientFactory = func(config clientcmd.ClientConfig, namespace string) (cl_sources_v1alpha1.KnSinkBindingClient, error) {
+		return sinkBindingClient, nil
+	}
+	defer cleanupSinkBindingClient()
 
 	err := cmd.Execute()
 
 	return output.String(), err
 }
 
-func createTrigger(namespace string, name string, filters map[string]string, broker string, svcname string) *v1alpha1.Trigger {
-	triggerBuilder := eventc_v1alpha1.NewTriggerBuilder(name).
-		Namespace(namespace).
-		Broker(broker).
-		Filters(filters).
-		Subscriber(&duckv1.Destination{
-			Ref: &corev1.ObjectReference{
-				Name:       svcname,
-				Kind:       "Service",
-				Namespace:  "default",
-				APIVersion: "serving.knative.dev/v1alpha1",
-			},
-		})
-	return triggerBuilder.Build()
+func cleanupSinkBindingClient() {
+	sinkBindingClientFactory = nil
 }
 
-func createTriggerWithStatus(namespace string, name string, filters map[string]string, broker string, svcname string) *v1alpha1.Trigger {
-	wanted := createTrigger(namespace, name, filters, broker, svcname)
-	wanted.Status = v1alpha1.TriggerStatus{
-		Status: duckv1.Status{
-			Conditions: []apis.Condition{{
-				Type:   "Ready",
-				Status: "True",
-			}},
-		},
-		SubscriberURI: apis.HTTP(svcname),
+func createSinkBinding(name, service string, subjectGvk schema.GroupVersionKind, subjectName string) *v1alpha1.SinkBinding {
+	sink := v1.Destination{
+		Ref: &corev1.ObjectReference{Name: service, Kind: "Service", Namespace: "default", APIVersion: "serving.knative.dev/v1alpha1"},
 	}
-	return wanted
+	binding, _ := cl_sources_v1alpha1.NewSinkBindingBuilder(name).
+		Sink(&sink).
+		SubjectGVK(&subjectGvk).
+		SubjectName(subjectName).
+		Build()
+	return binding
 }
