@@ -25,12 +25,12 @@ import (
 
 // NewBindingCommand is the root command for all binding related commands
 func NewBindingCommand(p *commands.KnParams) *cobra.Command {
-	cronImporterCmd := &cobra.Command{
+	bindingCmd := &cobra.Command{
 		Use:   "binding",
 		Short: "Sink binding command group",
 	}
-	cronImporterCmd.AddCommand(NewSinkBindingCommand(p))
-	return cronImporterCmd
+	bindingCmd.AddCommand(NewBindingCreateCommand(p))
+	return bindingCmd
 }
 
 var sinkBindingClientFactory func(config clientcmd.ClientConfig, namespace string) (spources_v1alpha1.KnSinkBindingClient, error)

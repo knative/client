@@ -32,7 +32,7 @@ import (
 )
 
 // NewCronJobCreateCommand is for creating CronJob source COs
-func NewSinkBindingCommand(p *commands.KnParams) *cobra.Command {
+func NewBindingCreateCommand(p *commands.KnParams) *cobra.Command {
 	var bindingFlags bindingUpdateFlags
 	var sinkFlags flags.SinkFlags
 
@@ -45,7 +45,7 @@ func NewSinkBindingCommand(p *commands.KnParams) *cobra.Command {
 
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
-				return errors.New("requires the name of the crojob source to create as single argument")
+				return errors.New("requires the name of the sink binding to create as single argument")
 
 			}
 			name := args[0]

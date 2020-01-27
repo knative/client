@@ -65,7 +65,7 @@ func executeSinkBindingCommand(sinkBindingClient cl_sources_v1alpha1.KnSinkBindi
 		return dynamicClient, nil
 	}
 
-	cmd := NewSinkBindingCommand(knParams)
+	cmd := NewBindingCreateCommand(knParams)
 	cmd.SetArgs(args)
 	cmd.SetOutput(output)
 
