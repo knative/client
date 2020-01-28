@@ -28,7 +28,7 @@ func TestListSimple(t *testing.T) {
 	bindingClient := client_sources_v1alpha1.NewMockKnSinkBindingClient(t)
 
 	bindingRecorder := bindingClient.Recorder()
-	binding := createSinkBinding("testbinding", "mysvc", deploymentGvk, "mydeploy")
+	binding := createSinkBinding("testbinding", "mysvc", deploymentGvk, "mydeploy", nil)
 	bindingList := v1alpha1.SinkBindingList{
 		Items: []v1alpha1.SinkBinding{
 			*binding,

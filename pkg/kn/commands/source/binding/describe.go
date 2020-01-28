@@ -87,6 +87,9 @@ func writeSinkBinding(dw printers.PrefixWriter, binding *v1alpha12.SinkBinding, 
 	commands.WriteMetadata(dw, &binding.ObjectMeta, printDetails)
 	writeSubject(dw, binding.Namespace, &binding.Spec.Subject)
 	writeSink(dw, binding.Namespace, &binding.Spec.Sink)
+	if binding.Spec.CloudEventOverrides != nil && binding.Spec.CloudEventOverrides.Extensions != nil {
+		writeCeOverrides(dw, binding.Spec.CloudEventOverrides.Extensions)
+	}
 }
 
 func writeSink(dw printers.PrefixWriter, namespace string, sink *duckv1.Destination) {
@@ -102,6 +105,18 @@ func writeSink(dw printers.PrefixWriter, namespace string, sink *duckv1.Destinat
 	uri := sink.URI
 	if uri != nil {
 		subWriter.WriteAttribute("URI", uri.String())
+	}
+}
+
+func writeCeOverrides(dw printers.PrefixWriter, ceOverrides map[string]string) {
+	subDw := dw.WriteAttribute("CloudEvent Overrides", "")
+	var keys []string
+	for k := range ceOverrides {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		subDw.WriteAttribute(k, ceOverrides[k])
 	}
 }
 

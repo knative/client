@@ -23,8 +23,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/tools/clientcmd"
 	"knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1"
-	duck_v1 "knative.dev/pkg/apis/duck/v1"
-	duck_v1beta1 "knative.dev/pkg/apis/duck/v1beta1"
+	duckv1 "knative.dev/pkg/apis/duck/v1"
+	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
 	"knative.dev/pkg/tracker"
 
 	"knative.dev/client/pkg/kn/commands"
@@ -75,8 +75,8 @@ func newSinkBindingClient(p *commands.KnParams, cmd *cobra.Command) (sources_v1a
 }
 
 // Temporary conversions function until we move to duckv1
-func toDuckV1(destination *duck_v1beta1.Destination) *duck_v1.Destination {
-	return &duck_v1.Destination{
+func toDuckV1(destination *duckv1beta1.Destination) *duckv1.Destination {
+	return &duckv1.Destination{
 		Ref: destination.Ref,
 		URI: destination.URI,
 	}

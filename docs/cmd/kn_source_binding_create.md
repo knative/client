@@ -7,26 +7,25 @@ Create a sink binding source.
 Create a sink binding source.
 
 ```
-kn source binding create NAME --subject SCHEDULE --sink SINK --ce-override OVERRIDE [flags]
+kn source binding create NAME --subject SCHEDULE --sink SINK --ce-override KEY=VALUE [flags]
 ```
 
 ### Examples
 
 ```
 
-  # Create a sink binding source, which connects a deployment 'myapp' with a Knative service 'mysvc''
+  # Create a sink binding source, which connects a deployment 'myapp' with a Knative service 'mysvc'
   kn source binding create my-binding --subject "" --sink svc:mysvc
 ```
 
 ### Options
 
 ```
-      --ce-override stringArray    Cloud Event overrides to apply before sending event to sink. --ce-override can be provide multiple times
-  -h, --help                       help for create
-  -n, --namespace string           Specify the namespace to operate in.
-  -s, --sink string                Addressable sink for events
-      --subject string             Subject which emits cloud events
-      --subject-namespace string   Namespace where the referenced binding subject can be found
+      --ce-override stringArray   Cloud Event overrides to apply before sending event to sink in the format '--ce-override key=value'. --ce-override can be provide multiple times
+  -h, --help                      help for create
+  -n, --namespace string          Specify the namespace to operate in.
+  -s, --sink string               Addressable sink for events
+      --subject string            Subject which emits cloud events
 ```
 
 ### Options inherited from parent commands

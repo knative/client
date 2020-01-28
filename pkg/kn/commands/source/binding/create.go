@@ -23,6 +23,7 @@ import (
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
 	v1alpha12 "knative.dev/client/pkg/sources/v1alpha1"
+	"knative.dev/client/pkg/util"
 )
 
 // NewCronJobCreateCommand is for creating CronJob source COs
@@ -31,10 +32,10 @@ func NewBindingCreateCommand(p *commands.KnParams) *cobra.Command {
 	var sinkFlags flags.SinkFlags
 
 	cmd := &cobra.Command{
-		Use:   "create NAME --subject SCHEDULE --sink SINK --ce-override OVERRIDE",
+		Use:   "create NAME --subject SCHEDULE --sink SINK --ce-override KEY=VALUE",
 		Short: "Create a sink binding source.",
 		Example: `
-  # Create a sink binding source, which connects a deployment 'myapp' with a Knative service 'mysvc''
+  # Create a sink binding source, which connects a deployment 'myapp' with a Knative service 'mysvc'
   kn source binding create my-binding --subject "" --sink svc:mysvc`,
 
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -68,10 +69,17 @@ func NewBindingCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			binding, err := v1alpha12.NewSinkBindingBuilder(name).
+			bindingBuilder := v1alpha12.NewSinkBindingBuilder(name).
 				Sink(toDuckV1(destination)).
-				Subject(reference).
-				Build()
+				Subject(reference)
+			if bindingFlags.ceOverrides != nil {
+				ceOverrideMap, err := util.MapFromArray(bindingFlags.ceOverrides, "=")
+				if err != nil {
+					return err
+				}
+				bindingBuilder.AddCloudEventOverrides(ceOverrideMap)
+			}
+			binding, err := bindingBuilder.Build()
 			if err != nil {
 				return err
 			}

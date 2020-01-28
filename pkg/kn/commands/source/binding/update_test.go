@@ -36,10 +36,11 @@ func TestSimpleUpdate(t *testing.T) {
 	dynamicClient := dynamic_fake.CreateFakeKnDynamicClient("default", mysvc, othersvc)
 
 	bindingRecorder := sinkBindingClient.Recorder()
-	bindingRecorder.GetSinkBinding("testbinding", createSinkBinding("testbinding", "mysvc", deploymentGvk, "mydeploy"), nil)
-	bindingRecorder.UpdateSinkBinding(createSinkBinding("testbinding", "othersvc", deploymentGvk, "mydeploy"), nil)
+	ceOverrideMap := map[string]string{"bla": "blub", "foo": "bar"}
+	bindingRecorder.GetSinkBinding("testbinding", createSinkBinding("testbinding", "mysvc", deploymentGvk, "mydeploy", ceOverrideMap), nil)
+	bindingRecorder.UpdateSinkBinding(createSinkBinding("testbinding", "othersvc", deploymentGvk, "mydeploy", ceOverrideMap), nil)
 
-	out, err := executeSinkBindingCommand(sinkBindingClient, dynamicClient, "update", "testbinding", "--sink", "svc:othersvc")
+	out, err := executeSinkBindingCommand(sinkBindingClient, dynamicClient, "update", "testbinding", "--sink", "svc:othersvc", "--ce-override", "bla=blub", "--ce-override", "foo=bar")
 	assert.NilError(t, err)
 	util.ContainsAll(out, "updated", "default", "testbinding")
 

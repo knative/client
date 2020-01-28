@@ -86,14 +86,21 @@ func cleanupSinkBindingClient() {
 	sinkBindingClientFactory = nil
 }
 
-func createSinkBinding(name, service string, subjectGvk schema.GroupVersionKind, subjectName string) *v1alpha1.SinkBinding {
-	sink := v1.Destination{
-		Ref: &corev1.ObjectReference{Name: service, Kind: "Service", Namespace: "default", APIVersion: "serving.knative.dev/v1alpha1"},
-	}
-	binding, _ := cl_sources_v1alpha1.NewSinkBindingBuilder(name).
+func createSinkBinding(name, service string, subjectGvk schema.GroupVersionKind, subjectName string, ceOverrides map[string]string) *v1alpha1.SinkBinding {
+	sink := createServiceSink(service)
+	builder := cl_sources_v1alpha1.NewSinkBindingBuilder(name).
 		Sink(&sink).
 		SubjectGVK(&subjectGvk).
-		SubjectName(subjectName).
-		Build()
+		SubjectName(subjectName)
+	if ceOverrides != nil {
+		builder.AddCloudEventOverrides(ceOverrides)
+	}
+	binding, _ := builder.Build()
 	return binding
+}
+
+func createServiceSink(service string) v1.Destination {
+	return v1.Destination{
+		Ref: &corev1.ObjectReference{Name: service, Kind: "Service", APIVersion: "serving.knative.dev/v1alpha1"},
+	}
 }

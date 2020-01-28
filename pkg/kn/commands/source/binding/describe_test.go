@@ -35,20 +35,20 @@ func TestSimpleDescribeWitName(t *testing.T) {
 	bindingClient := v1alpha13.NewMockKnSinkBindingClient(t, "mynamespace")
 
 	bindingRecorder := bindingClient.Recorder()
-	bindingRecorder.GetSinkBinding("mybinding", getSinkBindingSource("myapp"), nil)
+	bindingRecorder.GetSinkBinding("mybinding", getSinkBindingSource("myapp", map[string]string{"foo": "bar"}), nil)
 
 	out, err := executeSinkBindingCommand(bindingClient, nil, "describe", "mybinding")
 	assert.NilError(t, err)
-	util.ContainsAll(out, "mybinding", "myapp", "Deployment", "app/v1", "mynamespace", "mysvc")
+	util.ContainsAll(out, "mybinding", "myapp", "Deployment", "app/v1", "mynamespace", "mysvc", "foo", "bar")
 
 	bindingRecorder.Validate()
 }
 
-func TestSimpleDescribeWitSelector(t *testing.T) {
+func TestSimpleDescribeWithSelector(t *testing.T) {
 	bindingClient := v1alpha13.NewMockKnSinkBindingClient(t, "mynamespace")
 
 	bindingRecorder := bindingClient.Recorder()
-	bindingRecorder.GetSinkBinding("mybinding", getSinkBindingSource("app=myapp,type=test"), nil)
+	bindingRecorder.GetSinkBinding("mybinding", getSinkBindingSource("app=myapp,type=test", nil), nil)
 
 	out, err := executeSinkBindingCommand(bindingClient, nil, "describe", "mybinding")
 	assert.NilError(t, err)
@@ -71,7 +71,7 @@ func TestDescribeError(t *testing.T) {
 
 }
 
-func getSinkBindingSource(nameOrSelector string) *v1alpha14.SinkBinding {
+func getSinkBindingSource(nameOrSelector string, ceOverrides map[string]string) *v1alpha14.SinkBinding {
 	binding := &v1alpha14.SinkBinding{
 		TypeMeta: v1.TypeMeta{},
 		ObjectMeta: v1.ObjectMeta{
@@ -105,6 +105,10 @@ func getSinkBindingSource(nameOrSelector string) *v1alpha14.SinkBinding {
 		}
 	} else {
 		binding.Spec.Subject.Name = nameOrSelector
+	}
+
+	if ceOverrides != nil {
+		binding.Spec.CloudEventOverrides = &duckv1.CloudEventOverrides{Extensions: ceOverrides}
 	}
 	return binding
 }

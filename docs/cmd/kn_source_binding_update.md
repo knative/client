@@ -21,12 +21,11 @@ kn source binding update NAME --subject SCHEDULE --sink SINK --ce-override OVERR
 ### Options
 
 ```
-      --ce-override stringArray    Cloud Event overrides to apply before sending event to sink. --ce-override can be provide multiple times
-  -h, --help                       help for update
-  -n, --namespace string           Specify the namespace to operate in.
-  -s, --sink string                Addressable sink for events
-      --subject string             Subject which emits cloud events
-      --subject-namespace string   Namespace where the referenced binding subject can be found
+      --ce-override stringArray   Cloud Event overrides to apply before sending event to sink in the format '--ce-override key=value'. --ce-override can be provide multiple times
+  -h, --help                      help for update
+  -n, --namespace string          Specify the namespace to operate in.
+  -s, --sink string               Addressable sink for events
+      --subject string            Subject which emits cloud events
 ```
 
 ### Options inherited from parent commands

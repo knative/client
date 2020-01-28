@@ -45,7 +45,6 @@ func TestSimpleUpdate(t *testing.T) {
 				Ref: &corev1.ObjectReference{
 					Kind:       "Service",
 					Name:       "mysvc",
-					Namespace:  "default",
 					APIVersion: "serving.knative.dev/v1alpha1",
 				},
 			},

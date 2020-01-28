@@ -95,7 +95,6 @@ func createAPIServerSource(name, resourceKind, resourceVersion, serviceAccount, 
 			Kind:       "Service",
 			Name:       service,
 			APIVersion: "serving.knative.dev/v1alpha1",
-			Namespace:  "default",
 		}}
 
 	return knsource_v1alpha1.NewAPIServerSourceBuilder(name).

@@ -18,28 +18,22 @@ import (
 	"testing"
 
 	"gotest.tools/assert"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	dynamic_fake "knative.dev/client/pkg/dynamic/fake"
 	"knative.dev/client/pkg/sources/v1alpha1"
-
-	serving_v1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
 
 	"knative.dev/client/pkg/util"
 )
 
 func TestSimpleCreateBinding(t *testing.T) {
-	mysvc := &serving_v1alpha1.Service{
-		TypeMeta:   v1.TypeMeta{Kind: "Service", APIVersion: "serving.knative.dev/v1alpha1"},
-		ObjectMeta: v1.ObjectMeta{Name: "mysvc", Namespace: "default"},
-	}
+	mysvc := createService("mysvc")
 	dynamicClient := dynamic_fake.CreateFakeKnDynamicClient("default", mysvc)
 
 	bindingClient := v1alpha1.NewMockKnSinkBindingClient(t)
 	bindingRecorder := bindingClient.Recorder()
-	bindingRecorder.CreateSinkBinding(createSinkBinding("testbinding", "mysvc", deploymentGvk, "mydeploy"), nil)
+	bindingRecorder.CreateSinkBinding(createSinkBinding("testbinding", "mysvc", deploymentGvk, "mydeploy", map[string]string{"bla": "blub", "foo": "bar"}), nil)
 
-	out, err := executeSinkBindingCommand(bindingClient, dynamicClient, "create", "testbinding", "--sink", "svc:mysvc", "--subject", "deployment:apps/v1:mydeploy")
+	out, err := executeSinkBindingCommand(bindingClient, dynamicClient, "create", "testbinding", "--sink", "svc:mysvc", "--subject", "deployment:apps/v1:mydeploy", "--ce-override", "bla=blub", "--ce-override", "foo=bar")
 	assert.NilError(t, err, "Source should have been created")
 	util.ContainsAll(out, "created", "default", "testbinding")
 

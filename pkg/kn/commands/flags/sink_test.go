@@ -49,20 +49,16 @@ func TestResolve(t *testing.T) {
 		{"svc:mysvc", &duckv1beta1.Destination{
 			Ref: &v1.ObjectReference{Kind: "Service",
 				APIVersion: "serving.knative.dev/v1alpha1",
-				Name:       "mysvc",
-				Namespace:  "default"}}, ""},
+				Name:       "mysvc"}}, ""},
 		{"service:mysvc", &duckv1beta1.Destination{
 			Ref: &v1.ObjectReference{Kind: "Service",
 				APIVersion: "serving.knative.dev/v1alpha1",
-				Name:       "mysvc",
-				Namespace:  "default"}}, ""},
+				Name:       "mysvc"}}, ""},
 		{"svc:absent", nil, "\"absent\" not found"},
 		{"broker:default", &duckv1beta1.Destination{
 			Ref: &v1.ObjectReference{Kind: "Broker",
 				APIVersion: "eventing.knative.dev/v1alpha1",
-				Name:       "default",
-				Namespace:  "default",
-			}}, ""},
+				Name:       "default"}}, ""},
 		{"http://target.example.com", &duckv1beta1.Destination{
 			URI: targetExampleCom,
 		}, ""},
