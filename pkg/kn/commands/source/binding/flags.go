@@ -27,18 +27,19 @@ import (
 	"knative.dev/client/pkg/kn/commands"
 	hprinters "knative.dev/client/pkg/printers"
 
-	"knative.dev/eventing/pkg/apis/legacysources/v1alpha1"
+	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
 )
 
 type bindingUpdateFlags struct {
-	subject              string
-	subjectNamespace     string
-	subjectSelectorParts []string
+	subject          string
+	subjectNamespace string
+	ceOverrides      []string
 }
 
 func (b *bindingUpdateFlags) addBindingFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&b.subject, "subject", "", "Subject which emits cloud events")
 	cmd.Flags().StringVar(&b.subjectNamespace, "subject-namespace", "", "Namespace where the referenced binding subject can be found")
+	cmd.Flags().StringArrayVar(&b.ceOverrides, "ce-override", nil, "Cloud Event overrides to apply before sending event to sink. --ce-override can be provide multiple times")
 }
 
 func BindingListHandlers(h hprinters.PrintHandler) {

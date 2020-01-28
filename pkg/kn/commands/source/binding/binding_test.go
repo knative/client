@@ -31,6 +31,9 @@ import (
 // Helper methods
 var blankConfig clientcmd.ClientConfig
 
+// Gvk used in tests
+var deploymentGvk = schema.GroupVersionKind{"apps", "v1", "deployment"}
+
 // TOOD: Remove that blankConfig hack for tests in favor of overwriting GetConfig()
 // Remove also in service_test.go
 func init() {
@@ -65,7 +68,7 @@ func executeSinkBindingCommand(sinkBindingClient cl_sources_v1alpha1.KnSinkBindi
 		return dynamicClient, nil
 	}
 
-	cmd := NewBindingCreateCommand(knParams)
+	cmd := NewBindingCommand(knParams)
 	cmd.SetArgs(args)
 	cmd.SetOutput(output)
 

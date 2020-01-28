@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cronjob
+package binding
 
 import (
 	"errors"
@@ -22,34 +22,34 @@ import (
 	"knative.dev/client/pkg/kn/commands"
 )
 
-// NewCronJobDeleteCommand is for deleting a CronJob source
-func NewCronJobDeleteCommand(p *commands.KnParams) *cobra.Command {
-	CronJobDeleteCommand := &cobra.Command{
+// NewBindingDeleteCommand is for deleting a sink binding
+func NewBindingDeleteCommand(p *commands.KnParams) *cobra.Command {
+	BindingDeleteCommand := &cobra.Command{
 		Use:   "delete NAME",
-		Short: "Delete a CronJob source.",
+		Short: "Delete a sink binding.",
 		Example: `
-  # Delete a CronJob source 'my-cron-trigger'
-  kn source cronjob delete my-cron-trigger`,
+  # Delete a sink binding with name 'my-binding'
+  kn source binding delete my-binding`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
-				return errors.New("'requires the name of the cronjob source to delete as single argument")
+				return errors.New("'requires the name of the sink bindinbg to delete as single argument")
 			}
 			name := args[0]
 
-			cronSourceClient, err := newCronJobSourceClient(p, cmd)
+			bindingClient, err := newSinkBindingClient(p, cmd)
 			if err != nil {
 				return err
 			}
 
-			err = cronSourceClient.DeleteCronJobSource(name)
+			err = bindingClient.DeleteSinkBinding(name)
 			if err != nil {
 				return err
 			}
 
-			fmt.Fprintf(cmd.OutOrStdout(), "CronJob source '%s' deleted in namespace '%s'.\n", name, cronSourceClient.Namespace())
+			fmt.Fprintf(cmd.OutOrStdout(), "Sink binding '%s' deleted in namespace '%s'.\n", name, bindingClient.Namespace())
 			return nil
 		},
 	}
-	commands.AddNamespaceFlags(CronJobDeleteCommand.Flags(), false)
-	return CronJobDeleteCommand
+	commands.AddNamespaceFlags(BindingDeleteCommand.Flags(), false)
+	return BindingDeleteCommand
 }

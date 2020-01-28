@@ -1,29 +1,28 @@
-## kn source cronjob describe
+## kn source binding delete
 
-Describe a CronJob source.
+Delete a sink binding.
 
 ### Synopsis
 
-Describe a CronJob source.
+Delete a sink binding.
 
 ```
-kn source cronjob describe NAME [flags]
+kn source binding delete NAME [flags]
 ```
 
 ### Examples
 
 ```
 
-  # Describe a cronjob source with name 'mycronjob'
-  kn source cronjob describe mycronjob
+  # Delete a sink binding with name 'my-binding'
+  kn source binding delete my-binding
 ```
 
 ### Options
 
 ```
-  -h, --help               help for describe
+  -h, --help               help for delete
   -n, --namespace string   Specify the namespace to operate in.
-  -v, --verbose            More output.
 ```
 
 ### Options inherited from parent commands
@@ -36,5 +35,5 @@ kn source cronjob describe NAME [flags]
 
 ### SEE ALSO
 
-* [kn source cronjob](kn_source_cronjob.md)	 - CronJob source command group
+* [kn source binding](kn_source_binding.md)	 - Sink binding command group
 

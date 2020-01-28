@@ -60,19 +60,19 @@ func (c *MockKnSinkBindingClient) Namespace() string {
 }
 
 // CreateSinkBinding records a call for CreateSinkBinding with the expected error
-func (sr *EventingRecorder) CreateSinkBinding(trigger interface{}, err error) {
-	sr.r.Add("CreateSinkBinding", []interface{}{trigger}, []interface{}{err})
+func (sr *EventingRecorder) CreateSinkBinding(binding interface{}, err error) {
+	sr.r.Add("CreateSinkBinding", []interface{}{binding}, []interface{}{err})
 }
 
 // CreateSinkBinding performs a previously recorded action
-func (c *MockKnSinkBindingClient) CreateSinkBinding(trigger *v1alpha1.SinkBinding) error {
-	call := c.recorder.r.VerifyCall("CreateSinkBinding", trigger)
+func (c *MockKnSinkBindingClient) CreateSinkBinding(binding *v1alpha1.SinkBinding) error {
+	call := c.recorder.r.VerifyCall("CreateSinkBinding", binding)
 	return mock.ErrorOrNil(call.Result[0])
 }
 
 // GetSinkBinding records a call for GetSinkBinding with the expected object or error. Either binding or err should be nil
-func (sr *EventingRecorder) GetSinkBinding(name interface{}, trigger *v1alpha1.SinkBinding, err error) {
-	sr.r.Add("GetSinkBinding", []interface{}{name}, []interface{}{trigger, err})
+func (sr *EventingRecorder) GetSinkBinding(name interface{}, binding *v1alpha1.SinkBinding, err error) {
+	sr.r.Add("GetSinkBinding", []interface{}{name}, []interface{}{binding, err})
 }
 
 // GetSinkBinding performs a previously recorded action
@@ -93,8 +93,8 @@ func (c *MockKnSinkBindingClient) DeleteSinkBinding(name string) error {
 }
 
 // ListSinkBindings records a call for ListSinkBindings with the expected result and error (nil if none)
-func (sr *EventingRecorder) ListSinkBindings(triggerList *v1alpha1.SinkBindingList, err error) {
-	sr.r.Add("ListSinkBindings", nil, []interface{}{triggerList, err})
+func (sr *EventingRecorder) ListSinkBindings(bindingList *v1alpha1.SinkBindingList, err error) {
+	sr.r.Add("ListSinkBindings", nil, []interface{}{bindingList, err})
 }
 
 // ListSinkBindings performs a previously recorded action
@@ -104,12 +104,12 @@ func (c *MockKnSinkBindingClient) ListSinkBindings() (*v1alpha1.SinkBindingList,
 }
 
 // UpdateSinkBinding records a call for ListSinkBindings with the expected result and error (nil if none)
-func (sr *EventingRecorder) UpdateSinkBinding(trigger interface{}, err error) {
-	sr.r.Add("UpdateSinkBinding", []interface{}{trigger}, []interface{}{err})
+func (sr *EventingRecorder) UpdateSinkBinding(binding interface{}, err error) {
+	sr.r.Add("UpdateSinkBinding", []interface{}{binding}, []interface{}{err})
 }
 
 // UpdateSinkBinding performs a previously recorded action
-func (c *MockKnSinkBindingClient) UpdateSinkBinding(trigger *v1alpha1.SinkBinding) error {
+func (c *MockKnSinkBindingClient) UpdateSinkBinding(binding *v1alpha1.SinkBinding) error {
 	call := c.recorder.r.VerifyCall("UpdateSinkBinding")
 	return mock.ErrorOrNil(call.Result[0])
 }

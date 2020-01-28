@@ -19,7 +19,6 @@ import (
 
 	"gotest.tools/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	dynamic_fake "knative.dev/client/pkg/dynamic/fake"
 	"knative.dev/client/pkg/sources/v1alpha1"
@@ -28,8 +27,6 @@ import (
 
 	"knative.dev/client/pkg/util"
 )
-
-var testGvk = schema.GroupVersionKind{"apps", "v1", "deployment"}
 
 func TestSimpleCreateBinding(t *testing.T) {
 	mysvc := &serving_v1alpha1.Service{
@@ -40,9 +37,9 @@ func TestSimpleCreateBinding(t *testing.T) {
 
 	bindingClient := v1alpha1.NewMockKnSinkBindingClient(t)
 	bindingRecorder := bindingClient.Recorder()
-	bindingRecorder.CreateSinkBinding(createSinkBinding("testbinding", "mysvc", testGvk, "mydeploy"), nil)
+	bindingRecorder.CreateSinkBinding(createSinkBinding("testbinding", "mysvc", deploymentGvk, "mydeploy"), nil)
 
-	out, err := executeSinkBindingCommand(bindingClient, dynamicClient, "testbinding", "--sink", "svc:mysvc", "--subject", "deployment:apps/v1:mydeploy")
+	out, err := executeSinkBindingCommand(bindingClient, dynamicClient, "create", "testbinding", "--sink", "svc:mysvc", "--subject", "deployment:apps/v1:mydeploy")
 	assert.NilError(t, err, "Source should have been created")
 	util.ContainsAll(out, "created", "default", "testbinding")
 
@@ -53,13 +50,13 @@ func TestNoSinkError(t *testing.T) {
 	bindingClient := v1alpha1.NewMockKnSinkBindingClient(t)
 	dynamicClient := dynamic_fake.CreateFakeKnDynamicClient("default")
 
-	_, err := executeSinkBindingCommand(bindingClient, dynamicClient, "testbinding", "--sink", "svc:mysvc", "--subject", "deployment:apps/v1:app=myapp")
+	_, err := executeSinkBindingCommand(bindingClient, dynamicClient, "create", "testbinding", "--sink", "svc:mysvc", "--subject", "deployment:apps/v1:app=myapp")
 	assert.ErrorContains(t, err, "mysvc")
 	assert.ErrorContains(t, err, "not found")
 }
 
 func TestNoSinkGivenError(t *testing.T) {
-	out, err := executeSinkBindingCommand(nil, nil, "testbinding", "--subject", "deployment:apps/v1:app=myapp")
+	out, err := executeSinkBindingCommand(nil, nil, "create", "testbinding", "--subject", "deployment:apps/v1:app=myapp")
 	assert.ErrorContains(t, err, "sink")
 	assert.ErrorContains(t, err, "required")
 	assert.Assert(t, util.ContainsAll(out, "not set", "required"))

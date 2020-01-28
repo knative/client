@@ -25,22 +25,21 @@ import (
 	v1alpha12 "knative.dev/client/pkg/sources/v1alpha1"
 )
 
-// NewCronJobCreateCommand is for creating CronJob source COs
-func NewBindingCreateCommand(p *commands.KnParams) *cobra.Command {
+// NewBindingUpdateCommand prepares the command for a CronJobSource update
+func NewBindingUpdateCommand(p *commands.KnParams) *cobra.Command {
 	var bindingFlags bindingUpdateFlags
 	var sinkFlags flags.SinkFlags
 
 	cmd := &cobra.Command{
-		Use:   "create NAME --subject SCHEDULE --sink SINK --ce-override OVERRIDE",
-		Short: "Create a sink binding source.",
+		Use:   "update NAME --subject SCHEDULE --sink SINK --ce-override OVERRIDE",
+		Short: "Update a sink binding.",
 		Example: `
-  # Create a sink binding source, which connects a deployment 'myapp' with a Knative service 'mysvc''
-  kn source binding create my-binding --subject "" --sink svc:mysvc`,
+  # Update the the subject of a sink binding 'my-binding' to a new cronjob with label selector 'app=ping'  
+  kn source binding update my-binding --subject cronjob:batch/v1beta1:app=ping"`,
 
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
-				return errors.New("requires the name of the sink binding to create as single argument")
-
+				return errors.New("name of sink binding required")
 			}
 			name := args[0]
 
@@ -58,26 +57,33 @@ func NewBindingCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			destination, err := sinkFlags.ResolveSink(dynamicClient, namespace)
+			source, err := sinkBindingClient.GetSinkBinding(name)
 			if err != nil {
 				return err
 			}
 
-			reference, err := toReference(bindingFlags.subject, bindingFlags.subjectNamespace)
+			b := v1alpha12.NewSinkBindingBuilderFromExisting(source)
+			if cmd.Flags().Changed("sink") {
+				destination, err := sinkFlags.ResolveSink(dynamicClient, namespace)
+				if err != nil {
+					return err
+				}
+				b.Sink(toDuckV1(destination))
+			}
+			if cmd.Flags().Changed("subject") {
+				reference, err := toReference(bindingFlags.subject, bindingFlags.subjectNamespace)
+				if err != nil {
+					return err
+				}
+				b.Subject(reference)
+			}
+			binding, err := b.Build()
 			if err != nil {
 				return err
 			}
-
-			binding, err := v1alpha12.NewSinkBindingBuilder(name).
-				Sink(toDuckV1(destination)).
-				Subject(reference).
-				Build()
-			if err != nil {
-				return err
-			}
-			err = sinkBindingClient.CreateSinkBinding(binding)
+			err = sinkBindingClient.UpdateSinkBinding(binding)
 			if err == nil {
-				fmt.Fprintf(cmd.OutOrStdout(), "Sink binding '%s' created in namespace '%s'.\n", args[0], sinkBindingClient.Namespace())
+				fmt.Fprintf(cmd.OutOrStdout(), "Sink binding '%s' updated in namespace '%s'.\n", name, sinkBindingClient.Namespace())
 			}
 			return err
 		},
@@ -85,8 +91,6 @@ func NewBindingCreateCommand(p *commands.KnParams) *cobra.Command {
 	commands.AddNamespaceFlags(cmd.Flags(), false)
 	bindingFlags.addBindingFlags(cmd)
 	sinkFlags.Add(cmd)
-	cmd.MarkFlagRequired("subject")
-	cmd.MarkFlagRequired("sink")
 
 	return cmd
 }

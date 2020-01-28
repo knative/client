@@ -1,21 +1,21 @@
-## kn source cronjob describe
+## kn source binding describe
 
-Describe a CronJob source.
+Describe a sink binding.
 
 ### Synopsis
 
-Describe a CronJob source.
+Describe a sink binding.
 
 ```
-kn source cronjob describe NAME [flags]
+kn source binding describe NAME [flags]
 ```
 
 ### Examples
 
 ```
 
-  # Describe a cronjob source with name 'mycronjob'
-  kn source cronjob describe mycronjob
+  # Describe a sink binding with name 'mysinkbinding'
+  kn source binding describe mysinkbinding
 ```
 
 ### Options
@@ -36,5 +36,5 @@ kn source cronjob describe NAME [flags]
 
 ### SEE ALSO
 
-* [kn source cronjob](kn_source_cronjob.md)	 - CronJob source command group
+* [kn source binding](kn_source_binding.md)	 - Sink binding command group
 
