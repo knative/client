@@ -63,7 +63,7 @@ func NewBindingCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			reference, err := toReference(bindingFlags.subject, bindingFlags.subjectNamespace)
+			reference, err := toReference(bindingFlags.subject)
 			if err != nil {
 				return err
 			}

@@ -32,13 +32,11 @@ import (
 
 type bindingUpdateFlags struct {
 	subject          string
-	subjectNamespace string
 	ceOverrides      []string
 }
 
 func (b *bindingUpdateFlags) addBindingFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&b.subject, "subject", "", "Subject which emits cloud events")
-	cmd.Flags().StringVar(&b.subjectNamespace, "subject-namespace", "", "Namespace where the referenced binding subject can be found")
 	cmd.Flags().StringArrayVar(&b.ceOverrides, "ce-override", nil, "Cloud Event overrides to apply before sending event to sink. --ce-override can be provide multiple times")
 }
 
@@ -46,8 +44,11 @@ func BindingListHandlers(h hprinters.PrintHandler) {
 	sourceColumnDefinitions := []metav1beta1.TableColumnDefinition{
 		{Name: "Namespace", Type: "string", Description: "Namespace of the sink binding", Priority: 0},
 		{Name: "Name", Type: "string", Description: "Name of sink binding", Priority: 1},
-		{Name: "Subject", Type: "string", Description: "Subject part of binding"},
+		{Name: "Subject", Type: "string", Description: "Subject part of binding", Priority: 1},
 		{Name: "Sink", Type: "string", Description: "Sink part of binding", Priority: 1},
+		{Name: "Conditions", Type: "string", Description: "Ready state conditions", Priority: 1},
+		{Name: "Ready", Type: "string", Description: "Ready state of the CronJob source", Priority: 1},
+		{Name: "Reason", Type: "string", Description: "Reason if state is not Ready", Priority: 1},
 	}
 	h.TableHandler(sourceColumnDefinitions, printSinkBinding)
 	h.TableHandler(sourceColumnDefinitions, printSinkBindingList)

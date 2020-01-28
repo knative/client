@@ -22,6 +22,7 @@ import (
 	"github.com/spf13/cobra"
 	v1alpha12 "knative.dev/eventing/pkg/apis/sources/v1alpha1"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
+	"knative.dev/pkg/tracker"
 
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/printers"
@@ -84,14 +85,16 @@ func NewBindingDescribeCommand(p *commands.KnParams) *cobra.Command {
 
 func writeSinkBinding(dw printers.PrefixWriter, binding *v1alpha12.SinkBinding, printDetails bool) {
 	commands.WriteMetadata(dw, &binding.ObjectMeta, printDetails)
-	writeSubject(dw, binding)
-	writeSink(dw, &binding.Spec.Sink)
+	writeSubject(dw, binding.Namespace, &binding.Spec.Subject)
+	writeSink(dw, binding.Namespace, &binding.Spec.Sink)
 }
 
-func writeSink(dw printers.PrefixWriter, sink *duckv1.Destination) {
+func writeSink(dw printers.PrefixWriter, namespace string, sink *duckv1.Destination) {
 	subWriter := dw.WriteAttribute("Sink", "")
+	if sink.Ref.Namespace != "" && sink.Ref.Namespace != namespace {
+		subWriter.WriteAttribute("Namespace", sink.Ref.Namespace)
+	}
 	subWriter.WriteAttribute("Name", sink.Ref.Name)
-	subWriter.WriteAttribute("Namespace", sink.Ref.Namespace)
 	ref := sink.Ref
 	if ref != nil {
 		subWriter.WriteAttribute("Resource", fmt.Sprintf("%s (%s)", sink.Ref.Kind, sink.Ref.APIVersion))
@@ -102,14 +105,15 @@ func writeSink(dw printers.PrefixWriter, sink *duckv1.Destination) {
 	}
 }
 
-func writeSubject(dw printers.PrefixWriter, binding *v1alpha12.SinkBinding) {
-	subject := binding.Spec.Subject
+func writeSubject(dw printers.PrefixWriter, namespace string, subject *tracker.Reference) {
 	subjectDw := dw.WriteAttribute("Subject", "")
-	subjectDw.WriteAttribute("Kind", subject.Kind)
-	subjectDw.WriteAttribute("APIVersion", subject.APIVersion)
+	if subject.Namespace != "" && subject.Namespace != namespace {
+		subjectDw.WriteAttribute("Namespace", subject.Namespace)
+	}
 	if subject.Name != "" {
 		subjectDw.WriteAttribute("Name", subject.Name)
 	}
+	subjectDw.WriteAttribute("Resource", fmt.Sprintf("%s (%s)", subject.Kind, subject.APIVersion))
 	if subject.Selector != nil {
 		matchDw := subjectDw.WriteAttribute("Selector", "")
 		selector := subject.Selector

@@ -71,7 +71,7 @@ func NewBindingUpdateCommand(p *commands.KnParams) *cobra.Command {
 				b.Sink(toDuckV1(destination))
 			}
 			if cmd.Flags().Changed("subject") {
-				reference, err := toReference(bindingFlags.subject, bindingFlags.subjectNamespace)
+				reference, err := toReference(bindingFlags.subject)
 				if err != nil {
 					return err
 				}

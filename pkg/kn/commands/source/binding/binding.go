@@ -82,7 +82,7 @@ func toDuckV1(destination *duck_v1beta1.Destination) *duck_v1.Destination {
 	}
 }
 
-func toReference(subjectArg string, subjectNamespace string) (*tracker.Reference, error) {
+func toReference(subjectArg string) (*tracker.Reference, error) {
 	parts := strings.SplitN(subjectArg, ":", 3)
 	if len(parts) < 3 {
 		return nil, fmt.Errorf("invalid subject argument '%s': not in format kind:api/version:nameOrSelector", subjectArg)
@@ -104,9 +104,6 @@ func toReference(subjectArg string, subjectNamespace string) (*tracker.Reference
 			return nil, err
 		}
 		reference.Selector = &metav1.LabelSelector{MatchLabels: selector}
-	}
-	if subjectNamespace != "" {
-		reference.Namespace = subjectNamespace
 	}
 	return reference, nil
 }
