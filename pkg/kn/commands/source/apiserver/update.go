@@ -74,11 +74,11 @@ func NewAPIServerUpdateCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			if cmd.Flags().Changed("resource") {
-				resources, err := apiServerUpdateFlags.GetAPIServerResourceArray()
+				updateExisting, err := apiServerUpdateFlags.updateExistingAPIServerResourceArray(source.Spec.Resources)
 				if err != nil {
 					return err
 				}
-				b.Resources(*resources)
+				b.Resources(updateExisting)
 			}
 
 			if cmd.Flags().Changed("sink") {

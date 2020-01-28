@@ -90,6 +90,20 @@ func (m StringMap) Remove(toRemove []string) StringMap {
 	return m
 }
 
+// AddedAndRemovalListsFromArray returns a list of added entries and a list of removal entries
+func AddedAndRemovalListsFromArray(m []string) ([]string, []string) {
+	stringToRemove := []string{}
+	stringToAdd := []string{}
+	for _, key := range m {
+		if strings.HasSuffix(key, "-") {
+			stringToRemove = append(stringToRemove, key[:len(key)-1])
+		} else {
+			stringToAdd = append(stringToAdd, key)
+		}
+	}
+	return stringToAdd, stringToRemove
+}
+
 // mapFromArray takes an array of strings where each item is a (key, value) pair
 // separated by a delimiter and returns a map where keys are mapped to their respective values.
 // If allowSingles is true, values without a delimiter will be added as keys pointing to empty strings
