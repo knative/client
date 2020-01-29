@@ -9,8 +9,74 @@
 | 🎁🐛🧽🗑️
 |
 | https://github.com/knative/client/pull/[#]
+
 |===
 ////
+
+
+## v0.12.0 (2020-01-29)
+
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🎁
+| Add `kn source binding` CRUD support for managing sink bindings
+| https://github.com/knative/client/pull/625[#625]
+
+| 🎁
+| Update to Knative eventing v0.12.0
+| https://github.com/knative/client/pull/621[#621]
+
+| 🧽️
+| Update to Knative serving v0.12.0
+| https://github.com/knative/client/pull/618[#618]
+
+| 🎁
+| Add `--pull-secret` for specifying pull secrets
+| https://github.com/knative/client/pull/617[#617]
+
+| 🧽
+| Improve error handling when no command is given
+| https://github.com/knative/client/pull/615[#615]
+
+| 🎁
+| Add `--autoscale-window` for service commands
+| https://github.com/knative/client/pull/614[#614]
+
+| 🧽
+| Add checks for namespace creation instead of waiting
+| https://github.com/knative/client/pull/611[#611]
+
+| 🐛
+| Fix mandatory `kn trigger` filter
+| https://github.com/knative/client/pull/603[#603]
+
+| 🎁
+| Add E2E tests for CronJob source
+| https://github.com/knative/client/pull/599[#599]
+
+| 🐛
+| Fix handling of map-like options
+| https://github.com/knative/client/pull/592[#592]
+
+| 🎁
+| Add E2E tests for plugins
+| https://github.com/knative/client/pull/591[#591]
+
+| 🐛
+| Fix misleading error message when verb is bad
+| https://github.com/knative/client/pull/589[#589]
+
+| 🎁
+| Add traffic and tag information to `kn revision list`
+| https://github.com/knative/client/pull/581[#581]
+
+
+| 🐛️
+| Fix duplicate key check in trigger filter option
+| https://github.com/knative/client/pull/575[#575]
+|===
 
 ## v0.11.0 (2019-12-17)
 
@@ -18,9 +84,6 @@
 |===
 | | Description | PR
 
-| 🧽
-| checks for namespace creation instead of waiting
-| https://github.com/knative/client/pull/611[#611]
 
 | 🎁
 | Add `kn trigger update` for updating triggers
