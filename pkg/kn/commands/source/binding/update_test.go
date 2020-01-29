@@ -42,7 +42,7 @@ func TestSimpleUpdate(t *testing.T) {
 
 	out, err := executeSinkBindingCommand(sinkBindingClient, dynamicClient, "update", "testbinding", "--sink", "svc:othersvc", "--ce-override", "bla=blub", "--ce-override", "foo=bar")
 	assert.NilError(t, err)
-	util.ContainsAll(out, "updated", "default", "testbinding")
+	util.ContainsAll(out, "updated", "default", "testbinding", "foo", "bar")
 
 	bindingRecorder.Validate()
 }

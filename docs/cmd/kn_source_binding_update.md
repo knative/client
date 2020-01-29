@@ -14,7 +14,7 @@ kn source binding update NAME --subject SCHEDULE --sink SINK --ce-override OVERR
 
 ```
 
-  # Update the the subject of a sink binding 'my-binding' to a new cronjob with label selector 'app=ping'  
+  # Update the subject of a sink binding 'my-binding' to a new cronjob with label selector 'app=ping'  
   kn source binding update my-binding --subject cronjob:batch/v1beta1:app=ping"
 ```
 

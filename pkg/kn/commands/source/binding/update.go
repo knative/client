@@ -34,12 +34,12 @@ func NewBindingUpdateCommand(p *commands.KnParams) *cobra.Command {
 		Use:   "update NAME --subject SCHEDULE --sink SINK --ce-override OVERRIDE",
 		Short: "Update a sink binding.",
 		Example: `
-  # Update the the subject of a sink binding 'my-binding' to a new cronjob with label selector 'app=ping'  
+  # Update the subject of a sink binding 'my-binding' to a new cronjob with label selector 'app=ping'  
   kn source binding update my-binding --subject cronjob:batch/v1beta1:app=ping"`,
 
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
-				return errors.New("name of sink binding required")
+				return errors.New("requires the name of the sink binding to update as single argument")
 			}
 			name := args[0]
 
@@ -77,6 +77,11 @@ func NewBindingUpdateCommand(p *commands.KnParams) *cobra.Command {
 				}
 				b.Subject(reference)
 			}
+			err = updateCeOverrides(bindingFlags, b)
+			if err != nil {
+				return err
+			}
+
 			binding, err := b.Build()
 			if err != nil {
 				return err
