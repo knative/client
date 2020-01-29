@@ -21,7 +21,6 @@ import (
 )
 
 func TestMockKnClient(t *testing.T) {
-
 	client := NewMockKnSinkBindingClient(t)
 
 	recorder := client.Recorder()

@@ -25,7 +25,7 @@ import (
 	v1alpha12 "knative.dev/client/pkg/sources/v1alpha1"
 )
 
-// NewBindingUpdateCommand prepares the command for a CronJobSource update
+// NewBindingUpdateCommand prepares the command for a sink binding update
 func NewBindingUpdateCommand(p *commands.KnParams) *cobra.Command {
 	var bindingFlags bindingUpdateFlags
 	var sinkFlags flags.SinkFlags
@@ -71,7 +71,7 @@ func NewBindingUpdateCommand(p *commands.KnParams) *cobra.Command {
 				b.Sink(toDuckV1(destination))
 			}
 			if cmd.Flags().Changed("subject") {
-				reference, err := toReference(bindingFlags.subject)
+				reference, err := toReference(bindingFlags.subject, namespace)
 				if err != nil {
 					return err
 				}

@@ -142,8 +142,9 @@ func newCronJobSource(name string, sink string) *v1alpha1.CronJobSource {
 		b.Sink(
 			&v1beta1.Destination{
 				Ref: &v1.ObjectReference{
-					Kind: "Service",
-					Name: sink,
+					Kind:      "Service",
+					Name:      sink,
+					Namespace: "default",
 				},
 			})
 	}

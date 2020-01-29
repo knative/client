@@ -29,7 +29,7 @@ import (
 	"knative.dev/client/pkg/util"
 )
 
-// NewTriggerUpdateCommand prepares the command for a CronJobSource update
+// NewTriggerUpdateCommand prepares the command for a tigger update
 func NewTriggerUpdateCommand(p *commands.KnParams) *cobra.Command {
 	var triggerUpdateFlags TriggerUpdateFlags
 	var sinkFlags flags.SinkFlags

@@ -34,7 +34,7 @@ var blankConfig clientcmd.ClientConfig
 // Gvk used in tests
 var deploymentGvk = schema.GroupVersionKind{"apps", "v1", "deployment"}
 
-// TOOD: Remove that blankConfig hack for tests in favor of overwriting GetConfig()
+// TODO: Remove that blankConfig hack for tests in favor of overwriting GetConfig()
 // Remove also in service_test.go
 func init() {
 	var err error
@@ -89,9 +89,11 @@ func cleanupSinkBindingClient() {
 func createSinkBinding(name, service string, subjectGvk schema.GroupVersionKind, subjectName string, ceOverrides map[string]string) *v1alpha1.SinkBinding {
 	sink := createServiceSink(service)
 	builder := cl_sources_v1alpha1.NewSinkBindingBuilder(name).
+		Namespace("default").
 		Sink(&sink).
 		SubjectGVK(&subjectGvk).
-		SubjectName(subjectName)
+		SubjectName(subjectName).
+		SubjectNamespace("default")
 	if ceOverrides != nil {
 		builder.AddCloudEventOverrides(ceOverrides)
 	}
@@ -101,6 +103,6 @@ func createSinkBinding(name, service string, subjectGvk schema.GroupVersionKind,
 
 func createServiceSink(service string) v1.Destination {
 	return v1.Destination{
-		Ref: &corev1.ObjectReference{Name: service, Kind: "Service", APIVersion: "serving.knative.dev/v1alpha1"},
+		Ref: &corev1.ObjectReference{Name: service, Kind: "Service", APIVersion: "serving.knative.dev/v1alpha1", Namespace: "default"},
 	}
 }

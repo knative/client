@@ -101,6 +101,6 @@ func createTriggerWithStatus(namespace string, name string, filters map[string]s
 
 func createServiceSink(service string) *duckv1.Destination {
 	return &duckv1.Destination{
-		Ref: &corev1.ObjectReference{Name: service, Kind: "Service", APIVersion: "serving.knative.dev/v1alpha1"},
+		Ref: &corev1.ObjectReference{Name: service, Kind: "Service", APIVersion: "serving.knative.dev/v1alpha1", Namespace: "default"},
 	}
 }

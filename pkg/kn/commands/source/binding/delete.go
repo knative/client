@@ -24,7 +24,7 @@ import (
 
 // NewBindingDeleteCommand is for deleting a sink binding
 func NewBindingDeleteCommand(p *commands.KnParams) *cobra.Command {
-	BindingDeleteCommand := &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "delete NAME",
 		Short: "Delete a sink binding.",
 		Example: `
@@ -50,6 +50,6 @@ func NewBindingDeleteCommand(p *commands.KnParams) *cobra.Command {
 			return nil
 		},
 	}
-	commands.AddNamespaceFlags(BindingDeleteCommand.Flags(), false)
-	return BindingDeleteCommand
+	commands.AddNamespaceFlags(cmd.Flags(), false)
+	return cmd
 }

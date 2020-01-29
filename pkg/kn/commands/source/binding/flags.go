@@ -15,14 +15,9 @@
 package binding
 
 import (
-	"fmt"
-	"strings"
-
 	"github.com/spf13/cobra"
 	metav1beta1 "k8s.io/apimachinery/pkg/apis/meta/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
-	v1 "knative.dev/pkg/apis/duck/v1"
-	"knative.dev/pkg/tracker"
 
 	"knative.dev/client/pkg/kn/commands"
 	hprinters "knative.dev/client/pkg/printers"
@@ -36,7 +31,7 @@ type bindingUpdateFlags struct {
 }
 
 func (b *bindingUpdateFlags) addBindingFlags(cmd *cobra.Command) {
-	cmd.Flags().StringVar(&b.subject, "subject", "", "Subject which emits cloud events")
+	cmd.Flags().StringVar(&b.subject, "subject", "", "Subject which emits cloud events. This argument takes format kind:apiVersion:name for named resources or kind:apiVersion:labelKey1=value1,labelKey2=value2 for matching via a label selector")
 	cmd.Flags().StringArrayVar(&b.ceOverrides, "ce-override", nil, "Cloud Event overrides to apply before sending event to sink in the format '--ce-override key=value'. --ce-override can be provide multiple times")
 }
 
@@ -54,7 +49,7 @@ func BindingListHandlers(h hprinters.PrintHandler) {
 	h.TableHandler(sourceColumnDefinitions, printSinkBindingList)
 }
 
-// printSource populates a single row of source sink binding list table
+// printSinkBinding populates a single row of source sink binding list table
 func printSinkBinding(binding *v1alpha1.SinkBinding, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	row := metav1beta1.TableRow{
 		Object: runtime.RawExtension{Object: binding},
@@ -86,37 +81,4 @@ func printSinkBindingList(sinkBindingList *v1alpha1.SinkBindingList, options hpr
 		rows = append(rows, r...)
 	}
 	return rows, nil
-}
-
-// subjectToString converts a reference to a string representation
-func subjectToString(ref tracker.Reference) string {
-
-	ret := ref.APIVersion + ":" + ref.Kind
-	if ref.Name != "" {
-		return ret + ":" + ref.Name
-	}
-	var keyValues []string
-	selector := ref.Selector
-	if selector != nil {
-		for k, v := range selector.MatchLabels {
-			keyValues = append(keyValues, k+"="+v)
-		}
-		return ret + ":" + strings.Join(keyValues, ",")
-	}
-	return ret
-}
-
-// sinkToString prepares a sink for list output
-func sinkToString(sink v1.Destination) string {
-	if sink.Ref != nil {
-		if sink.Ref.Kind == "Service" {
-			return fmt.Sprintf("svc:%s", sink.Ref.Name)
-		} else {
-			return fmt.Sprintf("%s:%s", sink.Ref.Kind, sink.Ref.Name)
-		}
-	}
-	if sink.URI != nil {
-		return sink.URI.String()
-	}
-	return ""
 }

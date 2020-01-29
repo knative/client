@@ -46,6 +46,7 @@ func TestSimpleUpdate(t *testing.T) {
 					Kind:       "Service",
 					Name:       "mysvc",
 					APIVersion: "serving.knative.dev/v1alpha1",
+					Namespace:  "default",
 				},
 			},
 		},

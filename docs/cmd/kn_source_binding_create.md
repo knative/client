@@ -1,10 +1,10 @@
 ## kn source binding create
 
-Create a sink binding source.
+Create a sink binding.
 
 ### Synopsis
 
-Create a sink binding source.
+Create a sink binding.
 
 ```
 kn source binding create NAME --subject SCHEDULE --sink SINK --ce-override KEY=VALUE [flags]
@@ -14,8 +14,8 @@ kn source binding create NAME --subject SCHEDULE --sink SINK --ce-override KEY=V
 
 ```
 
-  # Create a sink binding source, which connects a deployment 'myapp' with a Knative service 'mysvc'
-  kn source binding create my-binding --subject "" --sink svc:mysvc
+  # Create a sink binding which connects a deployment 'myapp' with a Knative service 'mysvc'
+  kn source binding create my-binding --subject Deployemnt:apps/v1:myapp --sink svc:mysvc
 ```
 
 ### Options
@@ -25,7 +25,7 @@ kn source binding create NAME --subject SCHEDULE --sink SINK --ce-override KEY=V
   -h, --help                      help for create
   -n, --namespace string          Specify the namespace to operate in.
   -s, --sink string               Addressable sink for events
-      --subject string            Subject which emits cloud events
+      --subject string            Subject which emits cloud events. This argument takes format kind:apiVersion:name for named resources or kind:apiVersion:labelKey1=value1,labelKey2=value2 for matching via a label selector
 ```
 
 ### Options inherited from parent commands

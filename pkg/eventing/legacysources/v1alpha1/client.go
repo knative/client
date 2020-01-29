@@ -18,7 +18,7 @@ import (
 	client_v1alpha1 "knative.dev/eventing/pkg/legacyclient/clientset/versioned/typed/legacysources/v1alpha1"
 )
 
-// KnSinkBindingClient to Eventing Sources. All methods are relative to the
+// KnSourcesClient to Eventing Sources. All methods are relative to the
 // namespace specified during construction
 type KnSourcesClient interface {
 	// Get client for ApiServer sources

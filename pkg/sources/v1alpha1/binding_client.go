@@ -51,21 +51,21 @@ type KnSinkBindingClient interface {
 // KnSinkBindingClient is a combination of Sources client interface and namespace
 // Temporarily help to add sources dependencies
 // May be changed when adding real sources features
-type knSourcesClient struct {
+type knBindingClient struct {
 	client    client_v1alpha1.SinkBindingInterface
 	namespace string
 }
 
 // NewKnSourcesClient is to invoke Eventing Sources Client API to create object
 func newKnSinkBindingClient(client client_v1alpha1.SinkBindingInterface, namespace string) KnSinkBindingClient {
-	return &knSourcesClient{
+	return &knBindingClient{
 		client:    client,
 		namespace: namespace,
 	}
 }
 
 //CreateSinkBinding is used to create an instance of binding
-func (c *knSourcesClient) CreateSinkBinding(trigger *v1alpha1.SinkBinding) error {
+func (c *knBindingClient) CreateSinkBinding(trigger *v1alpha1.SinkBinding) error {
 	trigger, err := c.client.Create(trigger)
 	if err != nil {
 		return kn_errors.GetError(err)
@@ -74,7 +74,7 @@ func (c *knSourcesClient) CreateSinkBinding(trigger *v1alpha1.SinkBinding) error
 }
 
 //DeleteSinkBinding is used to delete an instance of binding
-func (c *knSourcesClient) DeleteSinkBinding(name string) error {
+func (c *knBindingClient) DeleteSinkBinding(name string) error {
 	err := c.client.Delete(name, &apis_v1.DeleteOptions{})
 	if err != nil {
 		return kn_errors.GetError(err)
@@ -83,7 +83,7 @@ func (c *knSourcesClient) DeleteSinkBinding(name string) error {
 }
 
 //GetSinkBinding is used to get an instance of binding
-func (c *knSourcesClient) GetSinkBinding(name string) (*v1alpha1.SinkBinding, error) {
+func (c *knBindingClient) GetSinkBinding(name string) (*v1alpha1.SinkBinding, error) {
 	trigger, err := c.client.Get(name, apis_v1.GetOptions{})
 	if err != nil {
 		return nil, kn_errors.GetError(err)
@@ -91,7 +91,7 @@ func (c *knSourcesClient) GetSinkBinding(name string) (*v1alpha1.SinkBinding, er
 	return trigger, nil
 }
 
-func (c *knSourcesClient) ListSinkBindings() (*v1alpha1.SinkBindingList, error) {
+func (c *knBindingClient) ListSinkBindings() (*v1alpha1.SinkBindingList, error) {
 	triggerList, err := c.client.List(apis_v1.ListOptions{})
 	if err != nil {
 		return nil, kn_errors.GetError(err)
@@ -115,7 +115,7 @@ func (c *knSourcesClient) ListSinkBindings() (*v1alpha1.SinkBindingList, error) 
 }
 
 //CreateSinkBinding is used to create an instance of binding
-func (c *knSourcesClient) UpdateSinkBinding(trigger *v1alpha1.SinkBinding) error {
+func (c *knBindingClient) UpdateSinkBinding(trigger *v1alpha1.SinkBinding) error {
 	trigger, err := c.client.Update(trigger)
 	if err != nil {
 		return kn_errors.GetError(err)
@@ -124,7 +124,7 @@ func (c *knSourcesClient) UpdateSinkBinding(trigger *v1alpha1.SinkBinding) error
 }
 
 // Return the client's namespace
-func (c *knSourcesClient) Namespace() string {
+func (c *knBindingClient) Namespace() string {
 	return c.namespace
 }
 

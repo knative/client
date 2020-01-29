@@ -45,6 +45,8 @@ func NewBindingCommand(p *commands.KnParams) *cobra.Command {
 	return bindingCmd
 }
 
+// This var can be used to inject a factory for fake clients when doing
+// tests.
 var sinkBindingClientFactory func(config clientcmd.ClientConfig, namespace string) (sources_v1alpha1.KnSinkBindingClient, error)
 
 func newSinkBindingClient(p *commands.KnParams, cmd *cobra.Command) (sources_v1alpha1.KnSinkBindingClient, error) {
@@ -82,7 +84,7 @@ func toDuckV1(destination *duckv1beta1.Destination) *duckv1.Destination {
 	}
 }
 
-func toReference(subjectArg string) (*tracker.Reference, error) {
+func toReference(subjectArg string, namespace string) (*tracker.Reference, error) {
 	parts := strings.SplitN(subjectArg, ":", 3)
 	if len(parts) < 3 {
 		return nil, fmt.Errorf("invalid subject argument '%s': not in format kind:api/version:nameOrSelector", subjectArg)
@@ -95,6 +97,7 @@ func toReference(subjectArg string) (*tracker.Reference, error) {
 	reference := &tracker.Reference{
 		APIVersion: gv.String(),
 		Kind:       kind,
+		Namespace:  namespace,
 	}
 	if !strings.Contains(parts[2], "=") {
 		reference.Name = parts[2]
@@ -113,9 +116,44 @@ func parseSelector(labelSelector string) (map[string]string, error) {
 	for _, p := range strings.Split(labelSelector, ",") {
 		keyValue := strings.SplitN(p, "=", 2)
 		if len(keyValue) != 2 {
-			return nil, fmt.Errorf("invalid subject label selector '%s'. format: key1=value,key2=value", labelSelector)
+			return nil, fmt.Errorf("invalid subject label selector '%s', expected format: key1=value,key2=value", labelSelector)
 		}
 		selector[keyValue[0]] = keyValue[1]
 	}
 	return selector, nil
+}
+
+// subjectToString converts a reference to a string representation
+func subjectToString(ref tracker.Reference) string {
+
+	ret := ref.Kind + ":" + ref.APIVersion
+	if ref.Name != "" {
+		return ret + ":" + ref.Name
+	}
+	var keyValues []string
+	selector := ref.Selector
+	if selector != nil {
+		for k, v := range selector.MatchLabels {
+			keyValues = append(keyValues, k+"="+v)
+		}
+		return ret + ":" + strings.Join(keyValues, ",")
+	}
+	return ret
+}
+
+// sinkToString prepares a sink for list output
+// This is kept here until we have moved everything to duckv1 (currently the other sources
+// are still on duckv1beta1)
+func sinkToString(sink duckv1.Destination) string {
+	if sink.Ref != nil {
+		if sink.Ref.Kind == "Service" {
+			return fmt.Sprintf("svc:%s", sink.Ref.Name)
+		} else {
+			return fmt.Sprintf("%s:%s", sink.Ref.Kind, sink.Ref.Name)
+		}
+	}
+	if sink.URI != nil {
+		return sink.URI.String()
+	}
+	return ""
 }

@@ -86,6 +86,7 @@ func (i *SinkFlags) ResolveSink(knclient kn_dynamic.KnDynamicClient, namespace s
 			Kind:       obj.GetKind(),
 			APIVersion: obj.GetAPIVersion(),
 			Name:       obj.GetName(),
+			Namespace:  namespace,
 		},
 	}
 	return destination, nil

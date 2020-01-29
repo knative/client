@@ -22,11 +22,11 @@ import (
 	"knative.dev/client/pkg/kn/commands/flags"
 )
 
-// NewCronJobListCommand is for listing CronJob source COs
+// NewBindingListCommand is for listing sink bindings
 func NewBindingListCommand(p *commands.KnParams) *cobra.Command {
 	listFlags := flags.NewListPrintFlags(BindingListHandlers)
 
-	listCommand := &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List sink bindings.",
 		Example: `
@@ -68,7 +68,7 @@ func NewBindingListCommand(p *commands.KnParams) *cobra.Command {
 			return nil
 		},
 	}
-	commands.AddNamespaceFlags(listCommand.Flags(), true)
-	listFlags.AddFlags(listCommand)
-	return listCommand
+	commands.AddNamespaceFlags(cmd.Flags(), true)
+	listFlags.AddFlags(cmd)
+	return cmd
 }

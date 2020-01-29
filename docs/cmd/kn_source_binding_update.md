@@ -25,7 +25,7 @@ kn source binding update NAME --subject SCHEDULE --sink SINK --ce-override OVERR
   -h, --help                      help for update
   -n, --namespace string          Specify the namespace to operate in.
   -s, --sink string               Addressable sink for events
-      --subject string            Subject which emits cloud events
+      --subject string            Subject which emits cloud events. This argument takes format kind:apiVersion:name for named resources or kind:apiVersion:labelKey1=value1,labelKey2=value2 for matching via a label selector
 ```
 
 ### Options inherited from parent commands

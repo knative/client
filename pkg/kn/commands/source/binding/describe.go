@@ -30,8 +30,7 @@ import (
 
 // NewBindingDescribeCommand returns a new command for describe a sink binding object
 func NewBindingDescribeCommand(p *commands.KnParams) *cobra.Command {
-
-	bindingDescribeCommand := &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "describe NAME",
 		Short: "Describe a sink binding.",
 		Example: `
@@ -76,11 +75,11 @@ func NewBindingDescribeCommand(p *commands.KnParams) *cobra.Command {
 			return nil
 		},
 	}
-	flags := bindingDescribeCommand.Flags()
+	flags := cmd.Flags()
 	commands.AddNamespaceFlags(flags, false)
 	flags.BoolP("verbose", "v", false, "More output.")
 
-	return bindingDescribeCommand
+	return cmd
 }
 
 func writeSinkBinding(dw printers.PrefixWriter, binding *v1alpha12.SinkBinding, printDetails bool) {

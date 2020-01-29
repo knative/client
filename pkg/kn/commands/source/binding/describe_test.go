@@ -68,7 +68,6 @@ func TestDescribeError(t *testing.T) {
 	util.ContainsAll(out, "mybinding")
 
 	bindingRecorder.Validate()
-
 }
 
 func getSinkBindingSource(nameOrSelector string, ceOverrides map[string]string) *v1alpha14.SinkBinding {

@@ -84,7 +84,7 @@ func cleanupCronJobMockClient() {
 
 func createCronJobSource(name, schedule, data, service string) *v1alpha1.CronJobSource {
 	sink := &v1beta1.Destination{
-		Ref: &corev1.ObjectReference{Name: service, Kind: "Service", APIVersion: "serving.knative.dev/v1alpha1"},
+		Ref: &corev1.ObjectReference{Name: service, Kind: "Service", APIVersion: "serving.knative.dev/v1alpha1", Namespace: "default"},
 	}
 	return source_client_v1alpha1.NewCronJobSourceBuilder(name).Schedule(schedule).Data(data).Sink(sink).Build()
 }
