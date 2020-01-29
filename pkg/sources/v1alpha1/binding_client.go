@@ -37,7 +37,7 @@ type KnSinkBindingClient interface {
 	// Namespace in which this client is operating for
 	Namespace() string
 	// CreateSinkBinding is used to create an instance of binding
-	CreateSinkBinding(trigger *v1alpha1.SinkBinding) error
+	CreateSinkBinding(binding *v1alpha1.SinkBinding) error
 	// DeleteSinkBinding is used to delete an instance of binding
 	DeleteSinkBinding(name string) error
 	// GetSinkBinding is used to get an instance of binding
@@ -45,7 +45,7 @@ type KnSinkBindingClient interface {
 	// ListSinkBinding returns list of binding CRDs
 	ListSinkBindings() (*v1alpha1.SinkBindingList, error)
 	// UpdateSinkBinding is used to update an instance of binding
-	UpdateSinkBinding(trigger *v1alpha1.SinkBinding) error
+	UpdateSinkBinding(binding *v1alpha1.SinkBinding) error
 }
 
 // KnSinkBindingClient is a combination of Sources client interface and namespace
@@ -65,8 +65,8 @@ func newKnSinkBindingClient(client client_v1alpha1.SinkBindingInterface, namespa
 }
 
 //CreateSinkBinding is used to create an instance of binding
-func (c *knBindingClient) CreateSinkBinding(trigger *v1alpha1.SinkBinding) error {
-	trigger, err := c.client.Create(trigger)
+func (c *knBindingClient) CreateSinkBinding(binding *v1alpha1.SinkBinding) error {
+	binding, err := c.client.Create(binding)
 	if err != nil {
 		return kn_errors.GetError(err)
 	}
@@ -84,39 +84,39 @@ func (c *knBindingClient) DeleteSinkBinding(name string) error {
 
 //GetSinkBinding is used to get an instance of binding
 func (c *knBindingClient) GetSinkBinding(name string) (*v1alpha1.SinkBinding, error) {
-	trigger, err := c.client.Get(name, apis_v1.GetOptions{})
+	binding, err := c.client.Get(name, apis_v1.GetOptions{})
 	if err != nil {
 		return nil, kn_errors.GetError(err)
 	}
-	return trigger, nil
+	return binding, nil
 }
 
 func (c *knBindingClient) ListSinkBindings() (*v1alpha1.SinkBindingList, error) {
-	triggerList, err := c.client.List(apis_v1.ListOptions{})
+	bindingList, err := c.client.List(apis_v1.ListOptions{})
 	if err != nil {
 		return nil, kn_errors.GetError(err)
 	}
-	triggerListNew := triggerList.DeepCopy()
-	err = updateSinkBindingGvk(triggerListNew)
+	bindingListNew := bindingList.DeepCopy()
+	err = updateSinkBindingGvk(bindingListNew)
 	if err != nil {
 		return nil, err
 	}
 
-	triggerListNew.Items = make([]v1alpha1.SinkBinding, len(triggerList.Items))
-	for idx, trigger := range triggerList.Items {
-		triggerClone := trigger.DeepCopy()
-		err := updateSinkBindingGvk(triggerClone)
+	bindingListNew.Items = make([]v1alpha1.SinkBinding, len(bindingList.Items))
+	for idx, binding := range bindingList.Items {
+		bindingClone := binding.DeepCopy()
+		err := updateSinkBindingGvk(bindingClone)
 		if err != nil {
 			return nil, err
 		}
-		triggerListNew.Items[idx] = *triggerClone
+		bindingListNew.Items[idx] = *bindingClone
 	}
-	return triggerListNew, nil
+	return bindingListNew, nil
 }
 
 //CreateSinkBinding is used to create an instance of binding
-func (c *knBindingClient) UpdateSinkBinding(trigger *v1alpha1.SinkBinding) error {
-	trigger, err := c.client.Update(trigger)
+func (c *knBindingClient) UpdateSinkBinding(binding *v1alpha1.SinkBinding) error {
+	binding, err := c.client.Update(binding)
 	if err != nil {
 		return kn_errors.GetError(err)
 	}
@@ -155,8 +155,8 @@ func NewSinkBindingBuilder(name string) *SinkBindingBuilder {
 }
 
 // NewSinkBindingBuilderFromExisting for building the object from existing SinkBinding object
-func NewSinkBindingBuilderFromExisting(trigger *v1alpha1.SinkBinding) *SinkBindingBuilder {
-	return &SinkBindingBuilder{binding: trigger.DeepCopy()}
+func NewSinkBindingBuilderFromExisting(binding *v1alpha1.SinkBinding) *SinkBindingBuilder {
+	return &SinkBindingBuilder{binding: binding.DeepCopy()}
 }
 
 // Namespace for this binding
