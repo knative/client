@@ -20,10 +20,11 @@ import (
 
 	"github.com/spf13/cobra"
 
+	duckv1 "knative.dev/pkg/apis/duck/v1"
+
 	client_v1alpha1 "knative.dev/client/pkg/eventing/v1alpha1"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
-	duckv1 "knative.dev/pkg/apis/duck/v1"
 )
 
 // NewTriggerCreateCommand to create trigger create command

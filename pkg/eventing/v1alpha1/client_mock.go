@@ -17,8 +17,9 @@ package v1alpha1
 import (
 	"testing"
 
-	"knative.dev/client/pkg/util/mock"
 	"knative.dev/eventing/pkg/apis/eventing/v1alpha1"
+
+	"knative.dev/client/pkg/util/mock"
 )
 
 // MockKnEventingClient is a combine of test object and recorder

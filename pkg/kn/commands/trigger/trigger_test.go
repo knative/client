@@ -19,12 +19,13 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/clientcmd"
-	kn_dynamic "knative.dev/client/pkg/dynamic"
-	eventc_v1alpha1 "knative.dev/client/pkg/eventing/v1alpha1"
-	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/eventing/pkg/apis/eventing/v1alpha1"
 	"knative.dev/pkg/apis"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
+
+	kn_dynamic "knative.dev/client/pkg/dynamic"
+	eventc_v1alpha1 "knative.dev/client/pkg/eventing/v1alpha1"
+	"knative.dev/client/pkg/kn/commands"
 )
 
 // Helper methods
@@ -76,19 +77,12 @@ func executeTriggerCommand(triggerClient eventc_v1alpha1.KnEventingClient, dynam
 }
 
 func createTrigger(namespace string, name string, filters map[string]string, broker string, svcname string) *v1alpha1.Trigger {
-	triggerBuilder := eventc_v1alpha1.NewTriggerBuilder(name).
+	return eventc_v1alpha1.NewTriggerBuilder(name).
 		Namespace(namespace).
 		Broker(broker).
 		Filters(filters).
-		Subscriber(&duckv1.Destination{
-			Ref: &corev1.ObjectReference{
-				Name:       svcname,
-				Kind:       "Service",
-				Namespace:  "default",
-				APIVersion: "serving.knative.dev/v1alpha1",
-			},
-		})
-	return triggerBuilder.Build()
+		Subscriber(createServiceSink(svcname)).
+		Build()
 }
 
 func createTriggerWithStatus(namespace string, name string, filters map[string]string, broker string, svcname string) *v1alpha1.Trigger {
@@ -103,4 +97,10 @@ func createTriggerWithStatus(namespace string, name string, filters map[string]s
 		SubscriberURI: apis.HTTP(svcname),
 	}
 	return wanted
+}
+
+func createServiceSink(service string) *duckv1.Destination {
+	return &duckv1.Destination{
+		Ref: &corev1.ObjectReference{Name: service, Kind: "Service", APIVersion: "serving.knative.dev/v1alpha1", Namespace: "default"},
+	}
 }

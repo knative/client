@@ -134,8 +134,9 @@ func newAPIServerSource(name, resource string) *v1alpha1.ApiServerSource {
 	b := NewAPIServerSourceBuilder(name).ServiceAccount("testsa").Mode("Ref")
 	b.Sink(&v1beta1.Destination{
 		Ref: &v1.ObjectReference{
-			Kind: "Service",
-			Name: "foosvc",
+			Kind:      "Service",
+			Name:      "foosvc",
+			Namespace: "default",
 		}})
 
 	if resource != "" {

@@ -24,7 +24,7 @@ import (
 
 // NewCronJobDeleteCommand is for deleting a CronJob source
 func NewCronJobDeleteCommand(p *commands.KnParams) *cobra.Command {
-	ApiServerDeleteCommand := &cobra.Command{
+	CronJobDeleteCommand := &cobra.Command{
 		Use:   "delete NAME",
 		Short: "Delete a CronJob source.",
 		Example: `
@@ -50,6 +50,6 @@ func NewCronJobDeleteCommand(p *commands.KnParams) *cobra.Command {
 			return nil
 		},
 	}
-	commands.AddNamespaceFlags(ApiServerDeleteCommand.Flags(), false)
-	return ApiServerDeleteCommand
+	commands.AddNamespaceFlags(CronJobDeleteCommand.Flags(), false)
+	return CronJobDeleteCommand
 }

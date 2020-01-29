@@ -81,15 +81,15 @@ func (i *SinkFlags) ResolveSink(knclient kn_dynamic.KnDynamicClient, namespace s
 		return nil, err
 	}
 
-	return &duckv1beta1.Destination{
+	destination := &duckv1beta1.Destination{
 		Ref: &v1.ObjectReference{
 			Kind:       obj.GetKind(),
 			APIVersion: obj.GetAPIVersion(),
 			Name:       obj.GetName(),
 			Namespace:  namespace,
 		},
-	}, nil
-
+	}
+	return destination, nil
 }
 
 // parseSink takes the string given by the user into the prefix and the name of

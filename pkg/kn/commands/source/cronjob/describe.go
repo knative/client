@@ -33,8 +33,8 @@ func NewCronJobDescribeCommand(p *commands.KnParams) *cobra.Command {
 		Use:   "describe NAME",
 		Short: "Describe a CronJob source.",
 		Example: `
-  # Describe a cronjob source with name 'my-cron-trigger'
-  kn source cronjob describe my-cron-trigger`,
+  # Describe a cronjob source with name 'mycronjob'
+  kn source cronjob describe mycronjob`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("'source cronjob describe' requires the name of the source as single argument")

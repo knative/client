@@ -27,10 +27,6 @@ import (
 	"knative.dev/client/pkg/util"
 )
 
-const (
-	nameFieldKey = "metadata.name"
-)
-
 // KnEventingClient to Eventing Sources. All methods are relative to the
 // namespace specified during construction
 type KnEventingClient interface {

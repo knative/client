@@ -20,15 +20,16 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"knative.dev/eventing/pkg/apis/eventing/v1alpha1"
+	duckv1 "knative.dev/pkg/apis/duck/v1"
+
 	client_v1alpha1 "knative.dev/client/pkg/eventing/v1alpha1"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
 	"knative.dev/client/pkg/util"
-	"knative.dev/eventing/pkg/apis/eventing/v1alpha1"
-	duckv1 "knative.dev/pkg/apis/duck/v1"
 )
 
-// NewTriggerUpdateCommand prepares the command for a CronJobSource update
+// NewTriggerUpdateCommand prepares the command for a tigger update
 func NewTriggerUpdateCommand(p *commands.KnParams) *cobra.Command {
 	var triggerUpdateFlags TriggerUpdateFlags
 	var sinkFlags flags.SinkFlags

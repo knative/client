@@ -188,6 +188,9 @@ func printSource(source *v1alpha1.ApiServerSource, options hprinters.PrintOption
 		resources = append(resources, fmt.Sprintf("%s:%s:%s", resource.Kind, resource.APIVersion, strconv.FormatBool(resource.Controller)))
 	}
 
+	// Not moving to SinkToString() as it references v1beta1.Destination
+	// This source is going to be moved/removed soon to v1, so no need to move
+	// it now
 	var sink string
 	if source.Spec.Sink != nil {
 		if source.Spec.Sink.Ref != nil {

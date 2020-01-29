@@ -65,6 +65,9 @@ func printSource(source *v1alpha1.CronJobSource, options hprinters.PrintOptions)
 	ready := commands.ReadyCondition(source.Status.Conditions)
 	reason := commands.NonReadyConditionReason(source.Status.Conditions)
 
+	// Not moving to SinkToString() as it references v1beta1.Destination
+	// This source is going to be moved/removed soon to v1, so no need to move
+	// it now
 	var sink string
 	if source.Spec.Sink != nil {
 		if source.Spec.Sink.Ref != nil {

@@ -14,8 +14,8 @@ kn source cronjob describe NAME [flags]
 
 ```
 
-  # Describe a cronjob source with name 'my-cron-trigger'
-  kn source cronjob describe my-cron-trigger
+  # Describe a cronjob source with name 'mycronjob'
+  kn source cronjob describe mycronjob
 ```
 
 ### Options
