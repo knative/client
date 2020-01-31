@@ -695,7 +695,7 @@ knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake
 knative.dev/serving/pkg/gc
 knative.dev/serving/pkg/network
 knative.dev/serving/pkg/reconciler/route/config
-# knative.dev/test-infra v0.0.0-20200129221128-ee08b33b3cf0
+# knative.dev/test-infra v0.0.0-20200131013528-ae2eca5b0518
 knative.dev/test-infra/scripts
 # sigs.k8s.io/kustomize v2.0.3+incompatible
 sigs.k8s.io/kustomize/pkg/commands/build
