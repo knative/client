@@ -21,6 +21,7 @@ import (
 	"strings"
 	"testing"
 
+	"gotest.tools/assert"
 	api_errors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/watch"
@@ -492,4 +493,24 @@ func TestServiceCreateWithServiceAccountName(t *testing.T) {
 	} else if template.Spec.ServiceAccountName != "foo-bar-account" {
 		t.Fatalf("wrong service account name:%v", template.Spec.ServiceAccountName)
 	}
+}
+
+func TestServiceCreateWithClusterLocal(t *testing.T) {
+	action, created, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
+		"--cluster-local"}, false, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("create", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template, err := servinglib.RevisionTemplateOfService(created)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, present := template.Labels[config.VisibilityLabelKey]
+	assert.Assert(t, !present)
 }

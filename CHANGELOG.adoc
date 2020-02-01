@@ -13,6 +13,15 @@
 |===
 ////
 
+## v0.13.0 (2020-02-14)
+
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🎁
+| adds --cluster-local / --no-cluster-local flags
+| https://github.com/knative/client/pull/629[#629]
 
 ## v0.12.0 (2020-01-29)
 

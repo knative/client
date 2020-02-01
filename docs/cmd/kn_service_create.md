@@ -37,6 +37,9 @@ kn service create NAME --image IMAGE [flags]
 
   # Create a service with annotation
   kn service create s1 --image dev.local/ns/image:v3 --annotation sidecar.istio.io/inject=false
+
+  # Create a private service (that is a service with no external endpoint)
+  kn service create s1 --image dev.local/ns/image:v3 --cluster-local
 ```
 
 ### Options
@@ -45,6 +48,7 @@ kn service create NAME --image IMAGE [flags]
       --annotation stringArray    Service annotation to set. name=value; you may provide this flag any number of times to set multiple annotations. To unset, specify the annotation name followed by a "-" (e.g., name-).
       --async                     Create service and don't wait for it to become ready.
       --autoscale-window string   Duration to look back for making auto-scaling decisions. The service is scaled to zero if no request was received in during that time. (eg: 10s)
+      --cluster-local             specify that the service be private; sets service's route visibility to 'cluster-local'.(--no-cluster-local will remove any 'cluster-local' route visibility)
       --concurrency-limit int     Hard Limit of concurrent requests to be processed by a single replica.
       --concurrency-target int    Recommendation for when to scale up based on the concurrent number of incoming request. Defaults to --concurrency-limit when given.
   -e, --env stringArray           Environment variable to set. NAME=value; you may provide this flag any number of times to set multiple environment variables. To unset, specify the environment variable name followed by a "-" (e.g., NAME-).
@@ -60,6 +64,7 @@ kn service create NAME --image IMAGE [flags]
       --min-scale int             Minimal number of replicas.
       --mount stringArray         Mount a ConfigMap (prefix cm: or config-map:), a Secret (prefix secret: or sc:), or an existing Volume (without any prefix) on the specified directory. Example: --mount /mydir=cm:myconfigmap, --mount /mydir=secret:mysecret, or --mount /mydir=myvolume. When a configmap or a secret is specified, a corresponding volume is automatically generated. You can use this flag multiple times. For unmounting a directory, append "-", e.g. --mount /mydir-, which also removes any auto-generated volume.
   -n, --namespace string          Specify the namespace to operate in.
+      --no-cluster-local          do not specify that the service be private; sets service's route visibility to 'cluster-local'.(--no-cluster-local will remove any 'cluster-local' route visibility) (default true)
       --no-lock-to-digest         do not keep the running image for the service constant when not explicitly specifying the image. (--no-lock-to-digest pulls the image tag afresh with each new revision)
   -p, --port int32                The port where application listens on.
       --pull-secret string        Image pull secret to set. An empty argument ("") clears the pull secret. The referenced secret must exist in the service's namespace.

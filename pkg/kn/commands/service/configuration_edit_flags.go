@@ -49,6 +49,7 @@ type ConfigurationEditFlags struct {
 	ServiceAccountName         string
 	ImagePullSecrets           string
 	Annotations                []string
+	ClusterLocal               bool
 
 	// Preferences about how to do the action.
 	LockToDigest         bool
@@ -117,6 +118,10 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	p.markFlagMakesRevision("max-scale")
 	command.Flags().StringVar(&p.AutoscaleWindow, "autoscale-window", "", "Duration to look back for making auto-scaling decisions. The service is scaled to zero if no request was received in during that time. (eg: 10s)")
 	p.markFlagMakesRevision("autoscale-window")
+	flags.AddBothBoolFlagsUnhidden(command.Flags(), &p.ClusterLocal, "cluster-local", "", false,
+		"specify that the service be private; sets service's route visibility to 'cluster-local'."+
+			"(--no-cluster-local will remove any 'cluster-local' route visibility)")
+	p.markFlagMakesRevision("cluster-local")
 	command.Flags().IntVar(&p.ConcurrencyTarget, "concurrency-target", 0,
 		"Recommendation for when to scale up based on the concurrent number of incoming request. "+
 			"Defaults to --concurrency-limit when given.")
@@ -304,6 +309,13 @@ func (p *ConfigurationEditFlags) Apply(
 
 	if cmd.Flags().Changed("autoscale-window") {
 		err = servinglib.UpdateAutoscaleWindow(template, p.AutoscaleWindow)
+		if err != nil {
+			return err
+		}
+	}
+
+	if cmd.Flags().Changed("cluster-local") || cmd.Flags().Changed("no-cluster-local") {
+		err = servinglib.UpdateClusterLocal(service, template, p.ClusterLocal)
 		if err != nil {
 			return err
 		}

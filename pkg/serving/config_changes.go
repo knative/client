@@ -31,6 +31,7 @@ import (
 	"knative.dev/serving/pkg/apis/autoscaling"
 	"knative.dev/serving/pkg/apis/serving"
 	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
+	"knative.dev/serving/pkg/reconciler/route/config"
 )
 
 // VolumeSourceType is a type standing for enumeration of ConfigMap and Secret
@@ -191,6 +192,15 @@ func UpdateAutoscaleWindow(template *servingv1alpha1.RevisionTemplateSpec, windo
 		return fmt.Errorf("invalid duration for 'autoscale-window': %v", err)
 	}
 	return UpdateRevisionTemplateAnnotation(template, autoscaling.WindowAnnotationKey, window)
+}
+
+// UpdateClusterLocal updates container serving.knative.dev/visibility annotation
+func UpdateClusterLocal(service *servingv1alpha1.Service, template *servingv1alpha1.RevisionTemplateSpec, clusterLocal bool) error {
+	if clusterLocal {
+		return UpdateLabels(service, template, map[string]string{config.VisibilityLabelKey: config.VisibilityClusterLocal}, []string{})
+	} else {
+		return UpdateLabels(service, template, map[string]string{}, []string{config.VisibilityLabelKey})
+	}
 }
 
 // UpdateConcurrencyTarget updates container concurrency annotation
