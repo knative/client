@@ -124,6 +124,7 @@ func TestDescribeRevisionBasic(t *testing.T) {
 	}
 
 	assert.Assert(t, util.ContainsAll(data, "Image:", "gcr.io/test/image", "++ Ready", "Port:", "8080"))
+	assert.Assert(t, util.ContainsAll(data, "EnvFrom:", "cm:test1, cm:test2"))
 }
 
 func createTestRevision(revision string, gen int64) v1alpha1.Revision {
@@ -152,6 +153,10 @@ func createTestRevision(revision string, gen int64) v1alpha1.Revision {
 							Env: []v1.EnvVar{
 								{Name: "env1", Value: "eval1"},
 								{Name: "env2", Value: "eval2"},
+							},
+							EnvFrom: []v1.EnvFromSource{
+								{ConfigMapRef: &v1.ConfigMapEnvSource{LocalObjectReference: v1.LocalObjectReference{Name: "test1"}}},
+								{ConfigMapRef: &v1.ConfigMapEnvSource{LocalObjectReference: v1.LocalObjectReference{Name: "test2"}}},
 							},
 							Ports: []v1.ContainerPort{
 								{ContainerPort: 8080},
