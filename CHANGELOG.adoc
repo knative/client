@@ -14,6 +14,16 @@
 ////
 
 
+## v0.13.0 (unreleased)
+
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🐛
+| Show envFrom when running describe service or revision
+| https://github.com/knative/client/pull/630
+
 ## v0.12.0 (2020-01-29)
 
 [cols="1,10,3", options="header", width="100%"]
