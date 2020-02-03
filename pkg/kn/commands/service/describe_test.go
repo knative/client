@@ -455,7 +455,8 @@ func TestServiceDescribeVerbose(t *testing.T) {
 
 	assert.Assert(t, cmp.Regexp("Cluster:\\s+http://foo.default.svc.cluster.local", output))
 	assert.Assert(t, util.ContainsAll(output, "Image", "Name", "gcr.io/test/image (at 123456)", "50%", "(0s)"))
-	assert.Assert(t, util.ContainsAll(output, "Env:", "label1=lval1\n", "label2=lval2\n"))
+	assert.Assert(t, util.ContainsAll(output, "Env:", "env1=eval1\n", "env2=eval2\n"))
+	assert.Assert(t, util.ContainsAll(output, "EnvFrom:", "cm:test1\n", "cm:test2\n"))
 	assert.Assert(t, util.ContainsAll(output, "Annotations:", "anno1=aval1\n", "anno2=aval2\n"))
 	assert.Assert(t, util.ContainsAll(output, "Labels:", "label1=lval1\n", "label2=lval2\n"))
 	assert.Assert(t, util.ContainsAll(output, "[1]", "[2]"))
@@ -635,6 +636,10 @@ func createTestRevision(revision string, gen int64) v1alpha1.Revision {
 							Env: []v1.EnvVar{
 								{Name: "env1", Value: "eval1"},
 								{Name: "env2", Value: "eval2"},
+							},
+							EnvFrom: []v1.EnvFromSource{
+								{ConfigMapRef: &v1.ConfigMapEnvSource{LocalObjectReference: v1.LocalObjectReference{Name: "test1"}}},
+								{ConfigMapRef: &v1.ConfigMapEnvSource{LocalObjectReference: v1.LocalObjectReference{Name: "test2"}}},
 							},
 							Ports: []v1.ContainerPort{
 								{ContainerPort: 8080},

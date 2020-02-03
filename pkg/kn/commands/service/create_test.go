@@ -35,6 +35,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	client_testing "k8s.io/client-go/testing"
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
+	"knative.dev/serving/pkg/reconciler/route/config"
 )
 
 func fakeServiceCreate(args []string, withExistingService bool, sync bool) (
@@ -498,7 +499,7 @@ func TestServiceCreateWithServiceAccountName(t *testing.T) {
 func TestServiceCreateWithClusterLocal(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
-		"--cluster-local"}, false, false)
+		"--cluster-local", "--async"}, false, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -511,6 +512,10 @@ func TestServiceCreateWithClusterLocal(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, present := template.Labels[config.VisibilityLabelKey]
-	assert.Assert(t, !present)
+	labelValue, present := template.Labels[config.VisibilityLabelKey]
+	assert.Assert(t, present)
+
+	if labelValue != config.VisibilityClusterLocal {
+		t.Fatalf("Incorrect VisibilityClusterLocal value '%s'", labelValue)
+	}
 }

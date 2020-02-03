@@ -98,6 +98,7 @@ func describe(w io.Writer, revision *v1alpha1.Revision, service *v1alpha1.Servic
 	WriteImage(dw, revision)
 	WritePort(dw, revision)
 	WriteEnv(dw, revision, printDetails)
+	WriteEnvFrom(dw, revision, printDetails)
 	WriteScale(dw, revision)
 	WriteConcurrencyOptions(dw, revision)
 	WriteResources(dw, revision)
@@ -190,6 +191,13 @@ func WriteEnv(dw printers.PrefixWriter, revision *v1alpha1.Revision, printDetail
 	}
 }
 
+func WriteEnvFrom(dw printers.PrefixWriter, revision *v1alpha1.Revision, printDetails bool) {
+	envFrom := stringifyEnvFrom(revision)
+	if envFrom != nil {
+		commands.WriteSliceDesc(dw, envFrom, "EnvFrom", printDetails)
+	}
+}
+
 func WriteScale(dw printers.PrefixWriter, revision *v1alpha1.Revision) {
 	// Scale spec if given
 	scale, err := clientserving.ScalingInfo(&revision.ObjectMeta)
@@ -273,4 +281,22 @@ func stringifyEnv(revision *v1alpha1.Revision) []string {
 		envVars = append(envVars, fmt.Sprintf("%s=%s", env.Name, value))
 	}
 	return envVars
+}
+
+func stringifyEnvFrom(revision *v1alpha1.Revision) []string {
+	container, err := clientserving.ContainerOfRevisionSpec(&revision.Spec)
+	if err != nil {
+		return nil
+	}
+
+	var result []string
+	for _, envFromSource := range container.EnvFrom {
+		if envFromSource.ConfigMapRef != nil {
+			result = append(result, "cm:"+envFromSource.ConfigMapRef.Name)
+		}
+		if envFromSource.SecretRef != nil {
+			result = append(result, "secret:"+envFromSource.SecretRef.Name)
+		}
+	}
+	return result
 }

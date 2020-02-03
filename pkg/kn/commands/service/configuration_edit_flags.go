@@ -119,8 +119,7 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	command.Flags().StringVar(&p.AutoscaleWindow, "autoscale-window", "", "Duration to look back for making auto-scaling decisions. The service is scaled to zero if no request was received in during that time. (eg: 10s)")
 	p.markFlagMakesRevision("autoscale-window")
 	flags.AddBothBoolFlagsUnhidden(command.Flags(), &p.ClusterLocal, "cluster-local", "", false,
-		"specify that the service be private; sets service's route visibility to 'cluster-local'."+
-			"(--no-cluster-local will remove any 'cluster-local' route visibility)")
+		"specify that the service be private. (--no-cluster-local will make the service publicly available")
 	p.markFlagMakesRevision("cluster-local")
 	command.Flags().IntVar(&p.ConcurrencyTarget, "concurrency-target", 0,
 		"Recommendation for when to scale up based on the concurrent number of incoming request. "+

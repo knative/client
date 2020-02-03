@@ -201,6 +201,7 @@ func writeRevisions(dw printers.PrefixWriter, revisions []*revisionDesc, printDe
 		if printDetails {
 			revision.WritePort(section, revisionDesc.revision)
 			revision.WriteEnv(section, revisionDesc.revision, printDetails)
+			revision.WriteEnvFrom(section, revisionDesc.revision, printDetails)
 			revision.WriteScale(section, revisionDesc.revision)
 			revision.WriteConcurrencyOptions(section, revisionDesc.revision)
 			revision.WriteResources(section, revisionDesc.revision)
