@@ -24,6 +24,10 @@
 | Show envFrom when running describe service or revision
 | https://github.com/knative/client/pull/630
 
+| 🎁
+| Add `--cmd` and `--arg` for customization of container entrypoint
+| https://github.com/knative/client/pull/635[#635]
+
 ## v0.12.0 (2020-01-29)
 
 [cols="1,10,3", options="header", width="100%"]

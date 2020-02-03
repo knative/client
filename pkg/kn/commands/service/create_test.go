@@ -21,6 +21,8 @@ import (
 	"strings"
 	"testing"
 
+	"gotest.tools/assert"
+
 	api_errors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/watch"
@@ -154,6 +156,30 @@ func TestServiceCreateImageSync(t *testing.T) {
 	if !strings.Contains(output, "Ready") {
 		t.Fatalf("not running in sync mode")
 	}
+}
+
+func TestServiceCreateCommand(t *testing.T) {
+	action, created, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--cmd", "/app/start", "--async"}, false, false)
+	assert.NilError(t, err)
+	assert.Assert(t, action.Matches("create", "services"))
+
+	template, err := servinglib.RevisionTemplateOfService(created)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, template.Spec.Containers[0].Command, []string{"/app/start"})
+}
+
+func TestServiceCreateArg(t *testing.T) {
+	action, created, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--arg", "myArg1", "--arg", "--myArg2", "--arg", "--myArg3=3", "--async"}, false, false)
+	assert.NilError(t, err)
+	assert.Assert(t, action.Matches("create", "services"))
+
+	expectedArg := []string{"myArg1", "--myArg2", "--myArg3=3"}
+
+	template, err := servinglib.RevisionTemplateOfService(created)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, template.Spec.Containers[0].Args, expectedArg)
 }
 
 func TestServiceCreateEnv(t *testing.T) {

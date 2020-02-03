@@ -36,6 +36,9 @@ type ConfigurationEditFlags struct {
 	Mount   []string
 	Volume  []string
 
+	Command string
+	Arg     []string
+
 	RequestsFlags, LimitsFlags ResourceFlags
 	MinScale                   int
 	MaxScale                   int
@@ -101,6 +104,16 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 			"You can use this flag multiple times. "+
 			"To unset a ConfigMap/Secret reference, append \"-\" to the name, e.g. --volume myvolume-.")
 	p.markFlagMakesRevision("volume")
+
+	command.Flags().StringVarP(&p.Command, "cmd", "", "",
+		"Specify command to be used as entrypoint instead of default one. "+
+			"Example: --cmd /app/start or --cmd /app/start --arg myArg to pass aditional arguments.")
+	p.markFlagMakesRevision("cmd")
+	command.Flags().StringArrayVarP(&p.Arg, "arg", "", []string{},
+		"Add argument to the container command. "+
+			"Example: --arg myArg1 --arg --myArg2 --arg myArg3=3. "+
+			"You can use this flag multiple times.")
+	p.markFlagMakesRevision("arg")
 
 	command.Flags().StringVar(&p.RequestsFlags.CPU, "requests-cpu", "", "The requested CPU (e.g., 250m).")
 	p.markFlagMakesRevision("requests-cpu")
@@ -279,6 +292,20 @@ func (p *ConfigurationEditFlags) Apply(
 	err = servinglib.UpdateResources(template, requestsResources, limitsResources)
 	if err != nil {
 		return err
+	}
+
+	if cmd.Flags().Changed("cmd") {
+		err = servinglib.UpdateContainerCommand(template, p.Command)
+		if err != nil {
+			return err
+		}
+	}
+
+	if cmd.Flags().Changed("arg") {
+		err = servinglib.UpdateContainerArg(template, p.Arg)
+		if err != nil {
+			return err
+		}
 	}
 
 	if cmd.Flags().Changed("port") {
