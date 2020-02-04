@@ -15,7 +15,7 @@ kn source binding create NAME --subject SCHEDULE --sink SINK --ce-override KEY=V
 ```
 
   # Create a sink binding which connects a deployment 'myapp' with a Knative service 'mysvc'
-  kn source binding create my-binding --subject Deployemnt:apps/v1:myapp --sink svc:mysvc
+  kn source binding create my-binding --subject Deployment:apps/v1:myapp --sink svc:mysvc
 ```
 
 ### Options
