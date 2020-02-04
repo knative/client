@@ -314,6 +314,26 @@ func FreezeImageToDigest(template *servingv1alpha1.RevisionTemplateSpec, baseRev
 	return nil
 }
 
+// UpdateContainerCommand updates container with a given argument
+func UpdateContainerCommand(template *servingv1alpha1.RevisionTemplateSpec, command string) error {
+	container, err := ContainerOfRevisionTemplate(template)
+	if err != nil {
+		return err
+	}
+	container.Command = []string{command}
+	return nil
+}
+
+// UpdateContainerArg updates container with a given argument
+func UpdateContainerArg(template *servingv1alpha1.RevisionTemplateSpec, arg []string) error {
+	container, err := ContainerOfRevisionTemplate(template)
+	if err != nil {
+		return err
+	}
+	container.Args = arg
+	return nil
+}
+
 // UpdateContainerPort updates container with a give port
 func UpdateContainerPort(template *servingv1alpha1.RevisionTemplateSpec, port int32) error {
 	container, err := ContainerOfRevisionTemplate(template)

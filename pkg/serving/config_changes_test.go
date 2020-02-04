@@ -295,6 +295,28 @@ func checkContainerImage(t *testing.T, template *servingv1alpha1.RevisionTemplat
 	}
 }
 
+func TestUpdateContainerCommand(t *testing.T) {
+	template, _ := getV1alpha1RevisionTemplateWithOldFields()
+	err := UpdateContainerCommand(template, "/app/start")
+	assert.NilError(t, err)
+	assert.DeepEqual(t, template.Spec.GetContainer().Command, []string{"/app/start"})
+
+	err = UpdateContainerCommand(template, "/app/latest")
+	assert.NilError(t, err)
+	assert.DeepEqual(t, template.Spec.GetContainer().Command, []string{"/app/latest"})
+}
+
+func TestUpdateContainerArg(t *testing.T) {
+	template, _ := getV1alpha1RevisionTemplateWithOldFields()
+	err := UpdateContainerArg(template, []string{"--myArg"})
+	assert.NilError(t, err)
+	assert.DeepEqual(t, template.Spec.GetContainer().Args, []string{"--myArg"})
+
+	err = UpdateContainerArg(template, []string{"myArg1", "--myArg2"})
+	assert.NilError(t, err)
+	assert.DeepEqual(t, template.Spec.GetContainer().Args, []string{"myArg1", "--myArg2"})
+}
+
 func TestUpdateContainerPort(t *testing.T) {
 	template, _ := getV1alpha1Config()
 	err := UpdateContainerPort(template, 8888)

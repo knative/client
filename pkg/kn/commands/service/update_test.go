@@ -203,6 +203,44 @@ func TestServiceUpdateImage(t *testing.T) {
 	}
 }
 
+func TestServiceUpdateCommand(t *testing.T) {
+	orig := newEmptyService()
+
+	origTemplate, err := servinglib.RevisionTemplateOfService(orig)
+	assert.NilError(t, err)
+
+	err = servinglib.UpdateContainerCommand(origTemplate, "./start")
+	assert.NilError(t, err)
+
+	action, updated, _, err := fakeServiceUpdate(orig, []string{
+		"service", "update", "foo", "--cmd", "/app/start", "--async"}, false)
+	assert.NilError(t, err)
+	assert.Assert(t, action.Matches("update", "services"))
+
+	updatedTemplate, err := servinglib.RevisionTemplateOfService(updated)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, updatedTemplate.Spec.Containers[0].Command, []string{"/app/start"})
+}
+
+func TestServiceUpdateArg(t *testing.T) {
+	orig := newEmptyService()
+
+	origTemplate, err := servinglib.RevisionTemplateOfService(orig)
+	assert.NilError(t, err)
+
+	err = servinglib.UpdateContainerArg(origTemplate, []string{"myArg0"})
+	assert.NilError(t, err)
+
+	action, updated, _, err := fakeServiceUpdate(orig, []string{
+		"service", "update", "foo", "--arg", "myArg1", "--arg", "--myArg2", "--arg", "--myArg3=3", "--async"}, false)
+	assert.NilError(t, err)
+	assert.Assert(t, action.Matches("update", "services"))
+
+	updatedTemplate, err := servinglib.RevisionTemplateOfService(updated)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, updatedTemplate.Spec.Containers[0].Args, []string{"myArg1", "--myArg2", "--myArg3=3"})
+}
+
 func TestServiceUpdateRevisionNameExplicit(t *testing.T) {
 	orig := newEmptyServiceBetaAPIStyle()
 
