@@ -196,9 +196,18 @@ func UpdateAutoscaleWindow(template *servingv1alpha1.RevisionTemplateSpec, windo
 
 // UpdateClusterLocal updates container serving.knative.dev/visibility annotation
 func UpdateClusterLocal(service *servingv1alpha1.Service, template *servingv1alpha1.RevisionTemplateSpec, clusterLocal bool) error {
+	currentClusterLocal := template.Labels[config.VisibilityLabelKey]
 	if clusterLocal {
+		// NOOP when setting --cluster-local on already private service
+		if currentClusterLocal == config.VisibilityClusterLocal {
+			return nil
+		}
 		return UpdateLabels(service, template, map[string]string{config.VisibilityLabelKey: config.VisibilityClusterLocal}, []string{})
 	} else {
+		// NOOP when setting --no-cluster-local on already public service
+		if currentClusterLocal == "" {
+			return nil
+		}
 		return UpdateLabels(service, template, map[string]string{}, []string{config.VisibilityLabelKey})
 	}
 }
@@ -321,6 +330,26 @@ func FreezeImageToDigest(template *servingv1alpha1.RevisionTemplateSpec, baseRev
 	if baseRevision.Status.ImageDigest != "" {
 		return UpdateImage(template, baseRevision.Status.ImageDigest)
 	}
+	return nil
+}
+
+// UpdateContainerCommand updates container with a given argument
+func UpdateContainerCommand(template *servingv1alpha1.RevisionTemplateSpec, command string) error {
+	container, err := ContainerOfRevisionTemplate(template)
+	if err != nil {
+		return err
+	}
+	container.Command = []string{command}
+	return nil
+}
+
+// UpdateContainerArg updates container with a given argument
+func UpdateContainerArg(template *servingv1alpha1.RevisionTemplateSpec, arg []string) error {
+	container, err := ContainerOfRevisionTemplate(template)
+	if err != nil {
+		return err
+	}
+	container.Args = arg
 	return nil
 }
 

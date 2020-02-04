@@ -13,14 +13,14 @@
 |===
 ////
 
-## v0.13.0 (2020-02-14)
+## v0.13.0 (unreleased)
 
 [cols="1,10,3", options="header", width="100%"]
 |===
 | | Description | PR
 
 | 🎁
-| adds --cluster-local / --no-cluster-local flags
+| Add --cluster-local and --no-cluster-local flags
 | https://github.com/knative/client/pull/629[#629]
 
 ## v0.13.0 (unreleased)
@@ -32,6 +32,10 @@
 | 🐛
 | Show envFrom when running describe service or revision
 | https://github.com/knative/client/pull/630
+
+| 🎁
+| Add `--cmd` and `--arg` for customization of container entrypoint
+| https://github.com/knative/client/pull/635[#635]
 
 ## v0.12.0 (2020-01-29)
 

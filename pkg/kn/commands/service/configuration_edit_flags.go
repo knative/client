@@ -36,6 +36,9 @@ type ConfigurationEditFlags struct {
 	Mount   []string
 	Volume  []string
 
+	Command string
+	Arg     []string
+
 	RequestsFlags, LimitsFlags ResourceFlags
 	MinScale                   int
 	MaxScale                   int
@@ -103,6 +106,16 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 			"To unset a ConfigMap/Secret reference, append \"-\" to the name, e.g. --volume myvolume-.")
 	p.markFlagMakesRevision("volume")
 
+	command.Flags().StringVarP(&p.Command, "cmd", "", "",
+		"Specify command to be used as entrypoint instead of default one. "+
+			"Example: --cmd /app/start or --cmd /app/start --arg myArg to pass aditional arguments.")
+	p.markFlagMakesRevision("cmd")
+	command.Flags().StringArrayVarP(&p.Arg, "arg", "", []string{},
+		"Add argument to the container command. "+
+			"Example: --arg myArg1 --arg --myArg2 --arg myArg3=3. "+
+			"You can use this flag multiple times.")
+	p.markFlagMakesRevision("arg")
+
 	command.Flags().StringVar(&p.RequestsFlags.CPU, "requests-cpu", "", "The requested CPU (e.g., 250m).")
 	p.markFlagMakesRevision("requests-cpu")
 	command.Flags().StringVar(&p.RequestsFlags.Memory, "requests-memory", "", "The requested memory (e.g., 64Mi).")
@@ -119,7 +132,7 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	command.Flags().StringVar(&p.AutoscaleWindow, "autoscale-window", "", "Duration to look back for making auto-scaling decisions. The service is scaled to zero if no request was received in during that time. (eg: 10s)")
 	p.markFlagMakesRevision("autoscale-window")
 	flags.AddBothBoolFlagsUnhidden(command.Flags(), &p.ClusterLocal, "cluster-local", "", false,
-		"specify that the service be private. (--no-cluster-local will make the service publicly available")
+		"Specify that the service be private. (--no-cluster-local will make the service publicly available")
 	p.markFlagMakesRevision("cluster-local")
 	command.Flags().IntVar(&p.ConcurrencyTarget, "concurrency-target", 0,
 		"Recommendation for when to scale up based on the concurrent number of incoming request. "+
@@ -285,6 +298,20 @@ func (p *ConfigurationEditFlags) Apply(
 		return err
 	}
 
+	if cmd.Flags().Changed("cmd") {
+		err = servinglib.UpdateContainerCommand(template, p.Command)
+		if err != nil {
+			return err
+		}
+	}
+
+	if cmd.Flags().Changed("arg") {
+		err = servinglib.UpdateContainerArg(template, p.Arg)
+		if err != nil {
+			return err
+		}
+	}
+
 	if cmd.Flags().Changed("port") {
 		err = servinglib.UpdateContainerPort(template, p.Port)
 		if err != nil {
@@ -313,13 +340,6 @@ func (p *ConfigurationEditFlags) Apply(
 		}
 	}
 
-	if cmd.Flags().Changed("cluster-local") || cmd.Flags().Changed("no-cluster-local") {
-		err = servinglib.UpdateClusterLocal(service, template, p.ClusterLocal)
-		if err != nil {
-			return err
-		}
-	}
-
 	if cmd.Flags().Changed("concurrency-target") {
 		err = servinglib.UpdateConcurrencyTarget(template, p.ConcurrencyTarget)
 		if err != nil {
@@ -329,6 +349,13 @@ func (p *ConfigurationEditFlags) Apply(
 
 	if cmd.Flags().Changed("concurrency-limit") {
 		err = servinglib.UpdateConcurrencyLimit(template, int64(p.ConcurrencyLimit))
+		if err != nil {
+			return err
+		}
+	}
+
+	if cmd.Flags().Changed("cluster-local") || cmd.Flags().Changed("no-cluster-local") {
+		err = servinglib.UpdateClusterLocal(service, template, p.ClusterLocal)
 		if err != nil {
 			return err
 		}

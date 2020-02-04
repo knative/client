@@ -36,6 +36,7 @@ import (
 	"k8s.io/apimachinery/pkg/watch"
 	client_testing "k8s.io/client-go/testing"
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
+	"knative.dev/serving/pkg/reconciler/route/config"
 )
 
 var exampleImageByDigest = "gcr.io/foo/bar@sha256:deadbeefdeadbeef"
@@ -201,6 +202,44 @@ func TestServiceUpdateImage(t *testing.T) {
 			t.Fatalf("wrong or no success message: %s", output)
 		}
 	}
+}
+
+func TestServiceUpdateCommand(t *testing.T) {
+	orig := newEmptyService()
+
+	origTemplate, err := servinglib.RevisionTemplateOfService(orig)
+	assert.NilError(t, err)
+
+	err = servinglib.UpdateContainerCommand(origTemplate, "./start")
+	assert.NilError(t, err)
+
+	action, updated, _, err := fakeServiceUpdate(orig, []string{
+		"service", "update", "foo", "--cmd", "/app/start", "--async"}, false)
+	assert.NilError(t, err)
+	assert.Assert(t, action.Matches("update", "services"))
+
+	updatedTemplate, err := servinglib.RevisionTemplateOfService(updated)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, updatedTemplate.Spec.Containers[0].Command, []string{"/app/start"})
+}
+
+func TestServiceUpdateArg(t *testing.T) {
+	orig := newEmptyService()
+
+	origTemplate, err := servinglib.RevisionTemplateOfService(orig)
+	assert.NilError(t, err)
+
+	err = servinglib.UpdateContainerArg(origTemplate, []string{"myArg0"})
+	assert.NilError(t, err)
+
+	action, updated, _, err := fakeServiceUpdate(orig, []string{
+		"service", "update", "foo", "--arg", "myArg1", "--arg", "--myArg2", "--arg", "--myArg3=3", "--async"}, false)
+	assert.NilError(t, err)
+	assert.Assert(t, action.Matches("update", "services"))
+
+	updatedTemplate, err := servinglib.RevisionTemplateOfService(updated)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, updatedTemplate.Spec.Containers[0].Args, []string{"myArg1", "--myArg2", "--myArg3=3"})
 }
 
 func TestServiceUpdateRevisionNameExplicit(t *testing.T) {
@@ -667,6 +706,60 @@ func TestServiceUpdateLabelExisting(t *testing.T) {
 	assert.NilError(t, err)
 	actual = template.ObjectMeta.Labels
 	assert.DeepEqual(t, expected, actual)
+}
+
+func TestServiceUpdateNoClusterLocal(t *testing.T) {
+	original := newEmptyService()
+	original.ObjectMeta.Labels = map[string]string{config.VisibilityLabelKey: config.VisibilityClusterLocal}
+	originalTemplate, _ := servinglib.RevisionTemplateOfService(original)
+	originalTemplate.ObjectMeta.Labels = map[string]string{config.VisibilityLabelKey: config.VisibilityClusterLocal}
+
+	action, updated, _, err := fakeServiceUpdate(original, []string{
+		"service", "update", "foo", "--no-cluster-local", "--async"}, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	expected := map[string]string{}
+	actual := updated.ObjectMeta.Labels
+	assert.DeepEqual(t, expected, actual)
+
+	template, err := servinglib.RevisionTemplateOfService(updated)
+	assert.NilError(t, err)
+
+	actual = template.ObjectMeta.Labels
+	assert.DeepEqual(t, expected, actual)
+}
+
+func TestServiceUpdateNoClusterLocalOnPublicService(t *testing.T) {
+	original := newEmptyService()
+	original.ObjectMeta.Labels = map[string]string{}
+	originalTemplate, _ := servinglib.RevisionTemplateOfService(original)
+	originalTemplate.ObjectMeta.Labels = map[string]string{}
+	originalTemplate.Name = "public"
+
+	action, updated, _, err := fakeServiceUpdate(original, []string{
+		"service", "update", "foo", "--no-cluster-local", "--async"}, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	expected := map[string]string{}
+	actual := updated.ObjectMeta.Labels
+	assert.DeepEqual(t, expected, actual)
+
+	template, err := servinglib.RevisionTemplateOfService(updated)
+	assert.NilError(t, err)
+
+	actual = template.ObjectMeta.Labels
+	assert.DeepEqual(t, expected, actual)
+	assert.Equal(t, template.Name, "public")
 }
 
 func newEmptyService() *v1alpha1.Service {
