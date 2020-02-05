@@ -18,6 +18,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/spf13/pflag"
 )
@@ -30,8 +32,7 @@ func AddBothBoolFlagsUnhidden(f *pflag.FlagSet, p *bool, name, short string, val
 	negativeName := negPrefix + name
 
 	f.BoolVarP(p, name, short, value, usage)
-	f.Bool(negativeName, !value, "do not "+usage)
-
+	f.Bool(negativeName, !value, "Do not "+firstCharToLower(usage))
 }
 
 // AddBothBoolFlags adds the given flag in both `--foo` and `--no-foo` variants.
@@ -107,4 +108,9 @@ func checkExplicitFalse(f *pflag.Flag, betterFlag string) error {
 			betterFlag, f.Value.String(), f.Name)
 	}
 	return nil
+}
+
+func firstCharToLower(s string) string {
+	r, n := utf8.DecodeRuneInString(s)
+	return string(unicode.ToLower(r)) + s[n:]
 }
