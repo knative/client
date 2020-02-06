@@ -138,7 +138,7 @@ func replaceService(client clientservingv1.KnServingClient, service *servingv1.S
 func waitIfRequested(client clientservingv1.KnServingClient, service *servingv1.Service, waitFlags commands.WaitFlags, verbDoing string, verbDone string, out io.Writer) error {
 	//TODO: deprecated condition should be removed with --async flag
 	if waitFlags.Async {
-		fmt.Fprintf(out, "\nDEPRECATED WARNING: flag --async is going to be removed in future release, please use --no-wait instead.\n\n")
+		fmt.Fprintf(out, "\nWARNING: flag --async is deprecated and going to be removed in future release, please use --no-wait instead.\n\n")
 		fmt.Fprintf(out, "Service '%s' %s in namespace '%s'.\n", service.Name, verbDone, client.Namespace())
 		return nil
 	}

@@ -127,7 +127,7 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 					return showUrl(client, name, latestRevisionBeforeUpdate, "updated", out)
 				} else {
 					if waitFlags.Async {
-						fmt.Fprintf(out, "\nDEPRECATED WARNING: flag --async is going to be removed in future release, please use --no-wait instead.\n\n")
+						fmt.Fprintf(out, "\nWARNING: flag --async is deprecated and going to be removed in future release, please use --no-wait instead.\n\n")
 					}
 					fmt.Fprintf(out, "Service '%s' updated in namespace '%s'.\n", args[0], namespace)
 				}
