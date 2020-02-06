@@ -24,11 +24,12 @@ import (
 type waitTestCase struct {
 	args                 []string
 	timeoutExpected      int
-	isAsyncExpected      bool
+	isNoWaitExpected     bool
 	isParseErrorExpected bool
 }
 
-func TestAddWaitForReadyFlags(t *testing.T) {
+//TODO: deprecated test should be removed with --async flag
+func TestAddWaitForReadyDeprecatedFlags(t *testing.T) {
 
 	for i, tc := range []waitTestCase{
 		{[]string{"--async"}, 60, true, false},
@@ -53,8 +54,42 @@ func TestAddWaitForReadyFlags(t *testing.T) {
 		if tc.isParseErrorExpected {
 			continue
 		}
-		if flags.Async != tc.isAsyncExpected {
-			t.Errorf("%d: wrong async mode detected: %t (expected) != %t (actual)", i, tc.isAsyncExpected, flags.Async)
+		if flags.Async != tc.isNoWaitExpected {
+			t.Errorf("%d: wrong async mode detected: %t (expected) != %t (actual)", i, tc.isNoWaitExpected, flags.Async)
+		}
+		if flags.TimeoutInSeconds != tc.timeoutExpected {
+			t.Errorf("%d: Invalid timeout set. %d (expected) != %d (actual)", i, tc.timeoutExpected, flags.TimeoutInSeconds)
+		}
+	}
+}
+
+func TestAddWaitForReadyFlags(t *testing.T) {
+
+	for i, tc := range []waitTestCase{
+		{[]string{"--no-wait"}, 60, true, false},
+		{[]string{}, 60, false, false},
+		{[]string{"--wait-timeout=120"}, 120, false, false},
+		// Can't be easily prevented, the timeout is just ignored in this case:
+		{[]string{"--no-wait", "--wait-timeout=120"}, 120, true, false},
+		{[]string{"--wait-timeout=bla"}, 0, true, true},
+	} {
+
+		flags := &WaitFlags{}
+		cmd := cobra.Command{}
+		flags.AddConditionWaitFlags(&cmd, 60, "Create", "service")
+
+		err := cmd.ParseFlags(tc.args)
+		if err != nil && !tc.isParseErrorExpected {
+			t.Errorf("%d: parse flags: %v", i, err)
+		}
+		if err == nil && tc.isParseErrorExpected {
+			t.Errorf("%d: parse error expected, but got none: %v", i, err)
+		}
+		if tc.isParseErrorExpected {
+			continue
+		}
+		if flags.NoWait != tc.isNoWaitExpected {
+			t.Errorf("%d: wrong wait mode detected: %t (expected) != %t (actual)", i, tc.isNoWaitExpected, flags.NoWait)
 		}
 		if flags.TimeoutInSeconds != tc.timeoutExpected {
 			t.Errorf("%d: Invalid timeout set. %d (expected) != %d (actual)", i, tc.timeoutExpected, flags.TimeoutInSeconds)

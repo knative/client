@@ -77,7 +77,7 @@ func TestServiceCreateEnvMock(t *testing.T) {
 	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 	r.CreateService(service, nil)
 
-	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "-e", "a=mouse", "--env", "b=cookie", "--env=empty", "--async", "--revision-name=")
+	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "-e", "a=mouse", "--env", "b=cookie", "--env=empty", "--no-wait", "--revision-name=")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
 
@@ -105,7 +105,7 @@ func TestServiceCreateLabel(t *testing.T) {
 	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
 	r.CreateService(service, nil)
 
-	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "-l", "a=mouse", "--label", "b=cookie", "--label=empty", "--async", "--revision-name=")
+	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "-l", "a=mouse", "--label", "b=cookie", "--label=empty", "--no-wait", "--revision-name=")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
 
@@ -133,7 +133,7 @@ func TestServiceCreateWithEnvFromConfigMap(t *testing.T) {
 	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 	r.CreateService(service, nil)
 
-	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "--env-from", "config-map:config-map-name", "--async", "--revision-name=")
+	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "--env-from", "config-map:config-map-name", "--no-wait", "--revision-name=")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
 
@@ -153,7 +153,7 @@ func TestServiceCreateWithEnvFromConfigMapRemoval(t *testing.T) {
 	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 	r.CreateService(service, nil)
 
-	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "--env-from", "config-map:config-map-name-", "--async", "--revision-name=")
+	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "--env-from", "config-map:config-map-name-", "--no-wait", "--revision-name=")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
 
@@ -173,7 +173,7 @@ func TestServiceCreateWithEnvFromEmptyRemoval(t *testing.T) {
 	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 	r.CreateService(service, nil)
 
-	_, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "--env-from", "-", "--async", "--revision-name=")
+	_, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "--env-from", "-", "--no-wait", "--revision-name=")
 	assert.Error(t, err, "\"-\" is not a valid value for \"--env-from\"")
 }
 
@@ -198,7 +198,7 @@ func TestServiceCreateWithEnvFromSecret(t *testing.T) {
 	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 	r.CreateService(service, nil)
 
-	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "--env-from", "secret:secret-name", "--async", "--revision-name=")
+	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "--env-from", "secret:secret-name", "--no-wait", "--revision-name=")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
 
@@ -218,7 +218,7 @@ func TestServiceCreateWithEnvFromSecretRemoval(t *testing.T) {
 	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 	r.CreateService(service, nil)
 
-	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "--env-from", "secret:secret-name-", "--async", "--revision-name=")
+	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "--env-from", "secret:secret-name-", "--no-wait", "--revision-name=")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
 
@@ -259,7 +259,7 @@ func TestServiceCreateWithVolumeAndMountConfigMap(t *testing.T) {
 	r.CreateService(service, nil)
 
 	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz",
-		"--mount", "/mount/path=volume-name", "--volume", "volume-name=cm:config-map-name", "--async", "--revision-name=")
+		"--mount", "/mount/path=volume-name", "--volume", "volume-name=cm:config-map-name", "--no-wait", "--revision-name=")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
 
@@ -300,7 +300,7 @@ func TestServiceCreateWithMountConfigMap(t *testing.T) {
 	r.CreateService(service, nil)
 
 	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz",
-		"--mount", "/mount/path=cm:config-map-name", "--async", "--revision-name=")
+		"--mount", "/mount/path=cm:config-map-name", "--no-wait", "--revision-name=")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
 
@@ -339,7 +339,7 @@ func TestServiceCreateWithVolumeAndMountSecret(t *testing.T) {
 	r.CreateService(service, nil)
 
 	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz",
-		"--mount", "/mount/path=volume-name", "--volume", "volume-name=secret:secret-name", "--async", "--revision-name=")
+		"--mount", "/mount/path=volume-name", "--volume", "volume-name=secret:secret-name", "--no-wait", "--revision-name=")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
 
@@ -378,7 +378,7 @@ func TestServiceCreateWithMountSecret(t *testing.T) {
 	r.CreateService(service, nil)
 
 	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz",
-		"--mount", "/mount/path=sc:secret-name", "--async", "--revision-name=")
+		"--mount", "/mount/path=sc:secret-name", "--no-wait", "--revision-name=")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
 

@@ -39,7 +39,9 @@ kubectl create ns $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
 
 sleep 4 # Wait for the namespace to get initialized by kube-controller-manager
 
+#TODO: deprecated tests remove once --async is gone
 ./kn service create svc1 --async --image gcr.io/knative-samples/helloworld-go -e TARGET=Knative -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
+./kn service create svc2 --no-wait --image gcr.io/knative-samples/helloworld-go -e TARGET=Knative -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
 ./kn service create hello --image gcr.io/knative-samples/helloworld-go -e TARGET=Knative -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
 ./kn service list hello -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
 ./kn service update hello --env TARGET=kn -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test

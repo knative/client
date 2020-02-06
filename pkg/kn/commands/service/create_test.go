@@ -117,7 +117,7 @@ func getServiceEvents(name string) []watch.Event {
 
 func TestServiceCreateImage(t *testing.T) {
 	action, created, output, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--async"}, false, false)
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--no-wait"}, false, false)
 	if err != nil {
 		t.Fatal(err)
 	} else if !action.Matches("create", "services") {
@@ -160,7 +160,7 @@ func TestServiceCreateImageSync(t *testing.T) {
 
 func TestServiceCreateCommand(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--cmd", "/app/start", "--async"}, false, false)
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--cmd", "/app/start", "--no-wait"}, false, false)
 	assert.NilError(t, err)
 	assert.Assert(t, action.Matches("create", "services"))
 
@@ -171,7 +171,7 @@ func TestServiceCreateCommand(t *testing.T) {
 
 func TestServiceCreateArg(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--arg", "myArg1", "--arg", "--myArg2", "--arg", "--myArg3=3", "--async"}, false, false)
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--arg", "myArg1", "--arg", "--myArg2", "--arg", "--myArg3=3", "--no-wait"}, false, false)
 	assert.NilError(t, err)
 	assert.Assert(t, action.Matches("create", "services"))
 
@@ -184,7 +184,7 @@ func TestServiceCreateArg(t *testing.T) {
 
 func TestServiceCreateEnv(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "-e", "A=DOGS", "--env", "B=WOLVES", "--env=EMPTY", "--async"}, false, false)
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "-e", "A=DOGS", "--env", "B=WOLVES", "--env=EMPTY", "--no-wait"}, false, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -220,7 +220,7 @@ func TestServiceCreateEnv(t *testing.T) {
 
 func TestServiceCreateWithRequests(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--requests-cpu", "250m", "--requests-memory", "64Mi", "--async"}, false, false)
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--requests-cpu", "250m", "--requests-memory", "64Mi", "--no-wait"}, false, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -246,7 +246,7 @@ func TestServiceCreateWithRequests(t *testing.T) {
 
 func TestServiceCreateWithLimits(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--limits-cpu", "1000m", "--limits-memory", "1024Mi", "--async"}, false, false)
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--limits-cpu", "1000m", "--limits-memory", "1024Mi", "--no-wait"}, false, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -272,7 +272,7 @@ func TestServiceCreateWithLimits(t *testing.T) {
 
 func TestServiceCreateRequestsLimitsCPU(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--requests-cpu", "250m", "--limits-cpu", "1000m", "--async"}, false, false)
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--requests-cpu", "250m", "--limits-cpu", "1000m", "--no-wait"}, false, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -309,7 +309,7 @@ func TestServiceCreateRequestsLimitsCPU(t *testing.T) {
 
 func TestServiceCreateRequestsLimitsMemory(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--requests-memory", "64Mi", "--limits-memory", "1024Mi", "--async"}, false, false)
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--requests-memory", "64Mi", "--limits-memory", "1024Mi", "--no-wait"}, false, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -347,7 +347,7 @@ func TestServiceCreateRequestsLimitsMemory(t *testing.T) {
 func TestServiceCreateMaxMinScale(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
-		"--min-scale", "1", "--max-scale", "5", "--concurrency-target", "10", "--concurrency-limit", "100", "--async"}, false, false)
+		"--min-scale", "1", "--max-scale", "5", "--concurrency-target", "10", "--concurrency-limit", "100", "--no-wait"}, false, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -384,7 +384,7 @@ func TestServiceCreateRequestsLimitsCPUMemory(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
 		"--requests-cpu", "250m", "--limits-cpu", "1000m",
-		"--requests-memory", "64Mi", "--limits-memory", "1024Mi", "--async"}, false, false)
+		"--requests-memory", "64Mi", "--limits-memory", "1024Mi", "--no-wait"}, false, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -431,7 +431,7 @@ func parseQuantity(t *testing.T, quantityString string) resource.Quantity {
 
 func TestServiceCreateImageExistsAndNoForce(t *testing.T) {
 	_, _, output, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--image", "gcr.io/foo/bar:v2", "--async"}, true, false)
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:v2", "--no-wait"}, true, false)
 	if err == nil {
 		t.Fatal(err)
 	}
@@ -446,7 +446,7 @@ func TestServiceCreateImageExistsAndNoForce(t *testing.T) {
 
 func TestServiceCreateImageForce(t *testing.T) {
 	action, created, output, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--force", "--image", "gcr.io/foo/bar:v2", "--async"}, true, false)
+		"service", "create", "foo", "--force", "--image", "gcr.io/foo/bar:v2", "--no-wait"}, true, false)
 	if err != nil {
 		t.Fatal(err)
 	} else if !action.Matches("update", "services") {
@@ -464,12 +464,12 @@ func TestServiceCreateImageForce(t *testing.T) {
 
 func TestServiceCreateEnvForce(t *testing.T) {
 	_, _, _, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--image", "gcr.io/foo/bar:v1", "-e", "A=DOGS", "--env", "B=WOLVES", "--async"}, false, false)
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:v1", "-e", "A=DOGS", "--env", "B=WOLVES", "--no-wait"}, false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
 	action, created, output, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--force", "--image", "gcr.io/foo/bar:v2", "-e", "A=CATS", "--env", "B=LIONS", "--async"}, false, false)
+		"service", "create", "foo", "--force", "--image", "gcr.io/foo/bar:v2", "-e", "A=CATS", "--env", "B=LIONS", "--no-wait"}, false, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -503,7 +503,7 @@ func TestServiceCreateWithServiceAccountName(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
 		"--service-account", "foo-bar-account",
-		"--async"}, false, false)
+		"--no-wait"}, false, false)
 
 	if err != nil {
 		t.Fatal(err)
