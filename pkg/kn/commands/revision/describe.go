@@ -25,11 +25,12 @@ import (
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"knative.dev/serving/pkg/apis/serving"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
+
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/printers"
 	clientserving "knative.dev/client/pkg/serving"
-	servingserving "knative.dev/serving/pkg/apis/serving"
-	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
 // Matching image digest
@@ -73,8 +74,8 @@ func NewRevisionDescribeCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			var service *v1alpha1.Service
-			serviceName, ok := revision.Labels[servingserving.ServiceLabelKey]
+			var service *servingv1.Service
+			serviceName, ok := revision.Labels[serving.ServiceLabelKey]
 			if printDetails && ok {
 				service, err = client.GetService(serviceName)
 				if err != nil {
@@ -92,7 +93,7 @@ func NewRevisionDescribeCommand(p *commands.KnParams) *cobra.Command {
 	return command
 }
 
-func describe(w io.Writer, revision *v1alpha1.Revision, service *v1alpha1.Service, printDetails bool) error {
+func describe(w io.Writer, revision *servingv1.Revision, service *servingv1.Service, printDetails bool) error {
 	dw := printers.NewPrefixWriter(w)
 	commands.WriteMetadata(dw, &revision.ObjectMeta, printDetails)
 	WriteImage(dw, revision)
@@ -102,11 +103,11 @@ func describe(w io.Writer, revision *v1alpha1.Revision, service *v1alpha1.Servic
 	WriteScale(dw, revision)
 	WriteConcurrencyOptions(dw, revision)
 	WriteResources(dw, revision)
-	serviceName, ok := revision.Labels[servingserving.ServiceLabelKey]
+	serviceName, ok := revision.Labels[serving.ServiceLabelKey]
 	if ok {
 		serviceSection := dw.WriteAttribute("Service", serviceName)
 		if printDetails {
-			serviceSection.WriteAttribute("Configuration Generation", revision.Labels[servingserving.ConfigurationGenerationLabelKey])
+			serviceSection.WriteAttribute("Configuration Generation", revision.Labels[serving.ConfigurationGenerationLabelKey])
 			serviceSection.WriteAttribute("Latest Created", strconv.FormatBool(revision.Name == service.Status.LatestCreatedRevisionName))
 			serviceSection.WriteAttribute("Latest Ready", strconv.FormatBool(revision.Name == service.Status.LatestReadyRevisionName))
 			percent, tags := trafficAndTagsForRevision(revision.Name, service)
@@ -127,7 +128,7 @@ func describe(w io.Writer, revision *v1alpha1.Revision, service *v1alpha1.Servic
 	return nil
 }
 
-func WriteConcurrencyOptions(dw printers.PrefixWriter, revision *v1alpha1.Revision) {
+func WriteConcurrencyOptions(dw printers.PrefixWriter, revision *servingv1.Revision) {
 	target := clientserving.ConcurrencyTarget(&revision.ObjectMeta)
 	limit := revision.Spec.ContainerConcurrency
 	autoscaleWindow := clientserving.AutoscaleWindow(&revision.ObjectMeta)
@@ -147,7 +148,7 @@ func WriteConcurrencyOptions(dw printers.PrefixWriter, revision *v1alpha1.Revisi
 }
 
 // Write the image attribute (with
-func WriteImage(dw printers.PrefixWriter, revision *v1alpha1.Revision) {
+func WriteImage(dw printers.PrefixWriter, revision *servingv1.Revision) {
 	c, err := clientserving.ContainerOfRevisionSpec(&revision.Spec)
 	if err != nil {
 		dw.WriteAttribute("Image", "Unknown")
@@ -177,28 +178,28 @@ func WriteImage(dw printers.PrefixWriter, revision *v1alpha1.Revision) {
 	dw.WriteAttribute("Image", image)
 }
 
-func WritePort(dw printers.PrefixWriter, revision *v1alpha1.Revision) {
+func WritePort(dw printers.PrefixWriter, revision *servingv1.Revision) {
 	port := clientserving.Port(&revision.Spec)
 	if port != nil {
 		dw.WriteAttribute("Port", strconv.FormatInt(int64(*port), 10))
 	}
 }
 
-func WriteEnv(dw printers.PrefixWriter, revision *v1alpha1.Revision, printDetails bool) {
+func WriteEnv(dw printers.PrefixWriter, revision *servingv1.Revision, printDetails bool) {
 	env := stringifyEnv(revision)
 	if env != nil {
 		commands.WriteSliceDesc(dw, env, "Env", printDetails)
 	}
 }
 
-func WriteEnvFrom(dw printers.PrefixWriter, revision *v1alpha1.Revision, printDetails bool) {
+func WriteEnvFrom(dw printers.PrefixWriter, revision *servingv1.Revision, printDetails bool) {
 	envFrom := stringifyEnvFrom(revision)
 	if envFrom != nil {
 		commands.WriteSliceDesc(dw, envFrom, "EnvFrom", printDetails)
 	}
 }
 
-func WriteScale(dw printers.PrefixWriter, revision *v1alpha1.Revision) {
+func WriteScale(dw printers.PrefixWriter, revision *servingv1.Revision) {
 	// Scale spec if given
 	scale, err := clientserving.ScalingInfo(&revision.ObjectMeta)
 	if err != nil {
@@ -209,7 +210,7 @@ func WriteScale(dw printers.PrefixWriter, revision *v1alpha1.Revision) {
 	}
 }
 
-func WriteResources(dw printers.PrefixWriter, r *v1alpha1.Revision) {
+func WriteResources(dw printers.PrefixWriter, r *servingv1.Revision) {
 	c, err := clientserving.ContainerOfRevisionSpec(&r.Spec)
 	if err != nil {
 		return
@@ -266,7 +267,7 @@ func formatScale(minScale *int, maxScale *int) string {
 	return ret
 }
 
-func stringifyEnv(revision *v1alpha1.Revision) []string {
+func stringifyEnv(revision *servingv1.Revision) []string {
 	container, err := clientserving.ContainerOfRevisionSpec(&revision.Spec)
 	if err != nil {
 		return nil
@@ -283,7 +284,7 @@ func stringifyEnv(revision *v1alpha1.Revision) []string {
 	return envVars
 }
 
-func stringifyEnvFrom(revision *v1alpha1.Revision) []string {
+func stringifyEnvFrom(revision *servingv1.Revision) []string {
 	container, err := clientserving.ContainerOfRevisionSpec(&revision.Spec)
 	if err != nil {
 		return nil

@@ -28,14 +28,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"knative.dev/pkg/apis"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
-	duckv1alpha1 "knative.dev/pkg/apis/duck/v1alpha1"
 	"knative.dev/serving/pkg/apis/autoscaling"
 	api_serving "knative.dev/serving/pkg/apis/serving"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
-	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 
 	client_serving "knative.dev/client/pkg/serving"
-	knclient "knative.dev/client/pkg/serving/v1alpha1"
+	knclient "knative.dev/client/pkg/serving/v1"
 	"knative.dev/client/pkg/util"
 	"knative.dev/pkg/ptr"
 )
@@ -268,12 +266,12 @@ func TestServiceDescribeScaling(t *testing.T) {
 		addScaling(&rev1, data.minScale, data.maxScale, data.target, data.limit)
 		r.GetRevision("rev1", &rev1, nil)
 
-		revList := v1alpha1.RevisionList{
+		revList := servingv1.RevisionList{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "RevisionList",
-				APIVersion: "knative.dev/v1alpha1",
+				APIVersion: "serving.knative.dev/v1",
 			},
-			Items: []v1alpha1.Revision{
+			Items: []servingv1.Revision{
 				rev1,
 			},
 		}
@@ -292,7 +290,7 @@ func TestServiceDescribeScaling(t *testing.T) {
 		} else {
 			assert.Assert(t, !strings.Contains(output, "Concurrency:"))
 		}
-		assert.Assert(t, cmp.Regexp("Cluster:\\s+http://foo.default.svc.cluster.local", output))
+		assert.Assert(t, cmp.Regexp("Cluster:\\s+https://foo.default.svc.cluster.local", output))
 
 		validateOutputLine(t, output, "Scale", data.scaleOut)
 		validateOutputLine(t, output, "Limit", data.limit)
@@ -337,12 +335,12 @@ func TestServiceDescribeResources(t *testing.T) {
 		addResourceLimits(&rev1.Spec.Containers[0].Resources, data.reqMem, data.limitMem, data.reqCPU, data.limitCPU)
 		r.GetRevision("rev1", &rev1, nil)
 
-		revList := v1alpha1.RevisionList{
+		revList := servingv1.RevisionList{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "RevisionList",
-				APIVersion: "knative.dev/v1alpha1",
+				APIVersion: "serving.knative.dev/v1",
 			},
-			Items: []v1alpha1.Revision{
+			Items: []servingv1.Revision{
 				rev1,
 			},
 		}
@@ -356,7 +354,7 @@ func TestServiceDescribeResources(t *testing.T) {
 
 		validateServiceOutput(t, "foo", output)
 
-		assert.Assert(t, cmp.Regexp("Cluster:\\s+http://foo.default.svc.cluster.local", output))
+		assert.Assert(t, cmp.Regexp("Cluster:\\s+https://foo.default.svc.cluster.local", output))
 
 		validateOutputLine(t, output, "Memory", data.memoryOut)
 		validateOutputLine(t, output, "CPU", data.cpuOut)
@@ -430,12 +428,12 @@ func TestServiceDescribeVerbose(t *testing.T) {
 	rev1 := createTestRevision("rev1", 1)
 	rev2 := createTestRevision("rev2", 2)
 
-	revList := v1alpha1.RevisionList{
+	revList := servingv1.RevisionList{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "RevisionList",
-			APIVersion: "knative.dev/v1alpha1",
+			APIVersion: "serving.knative.dev/v1",
 		},
-		Items: []v1alpha1.Revision{
+		Items: []servingv1.Revision{
 			rev1, rev2,
 		},
 	}
@@ -453,7 +451,7 @@ func TestServiceDescribeVerbose(t *testing.T) {
 
 	validateServiceOutput(t, "foo", output)
 
-	assert.Assert(t, cmp.Regexp("Cluster:\\s+http://foo.default.svc.cluster.local", output))
+	assert.Assert(t, cmp.Regexp("Cluster:\\s+https://foo.default.svc.cluster.local", output))
 	assert.Assert(t, util.ContainsAll(output, "Image", "Name", "gcr.io/test/image (at 123456)", "50%", "(0s)"))
 	assert.Assert(t, util.ContainsAll(output, "Env:", "env1=eval1\n", "env2=eval2\n"))
 	assert.Assert(t, util.ContainsAll(output, "EnvFrom:", "cm:test1\n", "cm:test2\n"))
@@ -494,13 +492,13 @@ func TestServiceDescribeMachineReadable(t *testing.T) {
 func validateServiceOutput(t *testing.T, service string, output string) {
 	assert.Assert(t, cmp.Regexp("Name:\\s+"+service, output))
 	assert.Assert(t, cmp.Regexp("Namespace:\\s+default", output))
-	assert.Assert(t, cmp.Regexp("URL:\\s+"+service+".default.example.com", output))
+	assert.Assert(t, cmp.Regexp("URL:\\s+https://"+service+".default.example.com", output))
 
 	assert.Assert(t, util.ContainsAll(output, "Age:", "Revisions:", "Conditions:", "Labels:", "Annotations:"))
 	assert.Assert(t, util.ContainsAll(output, "Ready", "RoutesReady", "OK", "TYPE", "AGE", "REASON"))
 }
 
-func createTestService(name string, revisionNames []string, conditions duckv1.Conditions) v1alpha1.Service {
+func createTestService(name string, revisionNames []string, conditions duckv1.Conditions) servingv1.Service {
 
 	labelMap := make(map[string]string)
 	labelMap["label1"] = "lval1"
@@ -510,10 +508,12 @@ func createTestService(name string, revisionNames []string, conditions duckv1.Co
 	annoMap["anno2"] = "aval2"
 	annoMap["anno3"] = "very_long_value_which_should_be_truncated_in_normal_output_if_we_make_it_even_longer"
 
-	service := v1alpha1.Service{
+	serviceUrl, _ := apis.ParseURL(fmt.Sprintf("https://%s.default.svc.cluster.local", name))
+	addressUrl, _ := apis.ParseURL(fmt.Sprintf("https://%s.default.example.com", name))
+	service := servingv1.Service{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Service",
-			APIVersion: "knative.dev/v1alpha1",
+			APIVersion: "serving.knative.dev/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:              name,
@@ -522,10 +522,10 @@ func createTestService(name string, revisionNames []string, conditions duckv1.Co
 			Annotations:       annoMap,
 			CreationTimestamp: metav1.Time{Time: time.Now().Add(-30 * time.Second)},
 		},
-		Status: v1alpha1.ServiceStatus{
-			RouteStatusFields: v1alpha1.RouteStatusFields{
-				DeprecatedDomain: name + ".default.example.com",
-				Address:          &duckv1alpha1.Addressable{Hostname: name + ".default.svc.cluster.local"},
+		Status: servingv1.ServiceStatus{
+			RouteStatusFields: servingv1.RouteStatusFields{
+				URL:     addressUrl,
+				Address: &duckv1.Addressable{URL: serviceUrl},
 			},
 			Status: duckv1.Status{
 				Conditions: conditions,
@@ -536,16 +536,14 @@ func createTestService(name string, revisionNames []string, conditions duckv1.Co
 	service.Status.LatestReadyRevisionName = revisionNames[len(revisionNames)-1]
 
 	if len(revisionNames) > 0 {
-		trafficTargets := make([]v1alpha1.TrafficTarget, 0)
+		trafficTargets := make([]servingv1.TrafficTarget, 0)
 		for _, rname := range revisionNames {
 			url, _ := apis.ParseURL(fmt.Sprintf("https://%s", rname))
-			target := v1alpha1.TrafficTarget{
-				TrafficTarget: servingv1.TrafficTarget{
-					RevisionName:      rname,
-					ConfigurationName: name,
-					Percent:           ptr.Int64(int64(100 / len(revisionNames))),
-					URL:               url,
-				},
+			target := servingv1.TrafficTarget{
+				RevisionName:      rname,
+				ConfigurationName: name,
+				Percent:           ptr.Int64(int64(100 / len(revisionNames))),
+				URL:               url,
 			}
 			trafficTargets = append(trafficTargets, target)
 		}
@@ -555,26 +553,24 @@ func createTestService(name string, revisionNames []string, conditions duckv1.Co
 	return service
 }
 
-func createTestServiceWithServiceAccount(name string, revisionNames []string, serviceAccountName string, conditions duckv1.Conditions) v1alpha1.Service {
+func createTestServiceWithServiceAccount(name string, revisionNames []string, serviceAccountName string, conditions duckv1.Conditions) servingv1.Service {
 	service := createTestService(name, revisionNames, conditions)
 
 	if serviceAccountName != "" {
-		template := v1alpha1.RevisionTemplateSpec{
-			Spec: v1alpha1.RevisionSpec{
-				RevisionSpec: servingv1.RevisionSpec{
-					PodSpec: v1.PodSpec{
-						ServiceAccountName: serviceAccountName,
-					},
+		template := servingv1.RevisionTemplateSpec{
+			Spec: servingv1.RevisionSpec{
+				PodSpec: v1.PodSpec{
+					ServiceAccountName: serviceAccountName,
 				},
 			},
 		}
-		service.Spec.Template = &template
+		service.Spec.Template = template
 	}
 
 	return service
 }
 
-func addScaling(revision *v1alpha1.Revision, minScale, maxScale, concurrencyTarget, concurrencyLimit string) {
+func addScaling(revision *servingv1.Revision, minScale, maxScale, concurrencyTarget, concurrencyLimit string) {
 	annos := make(map[string]string)
 	if minScale != "" {
 		annos[autoscaling.MinScaleAnnotationKey] = minScale
@@ -610,14 +606,14 @@ func getResourceListQuantity(mem string, cpu string) v1.ResourceList {
 	return list
 }
 
-func createTestRevision(revision string, gen int64) v1alpha1.Revision {
+func createTestRevision(revision string, gen int64) servingv1.Revision {
 	labels := make(map[string]string)
 	labels[api_serving.ConfigurationGenerationLabelKey] = fmt.Sprintf("%d", gen)
 
-	return v1alpha1.Revision{
+	return servingv1.Revision{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Revision",
-			APIVersion: "knative.dev/v1alpha1",
+			APIVersion: "serving.knative.dev/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:              revision,
@@ -627,29 +623,27 @@ func createTestRevision(revision string, gen int64) v1alpha1.Revision {
 			Annotations:       make(map[string]string),
 			CreationTimestamp: metav1.Time{Time: time.Now()},
 		},
-		Spec: v1alpha1.RevisionSpec{
-			RevisionSpec: servingv1.RevisionSpec{
-				PodSpec: v1.PodSpec{
-					Containers: []v1.Container{
-						{
-							Image: "gcr.io/test/image",
-							Env: []v1.EnvVar{
-								{Name: "env1", Value: "eval1"},
-								{Name: "env2", Value: "eval2"},
-							},
-							EnvFrom: []v1.EnvFromSource{
-								{ConfigMapRef: &v1.ConfigMapEnvSource{LocalObjectReference: v1.LocalObjectReference{Name: "test1"}}},
-								{ConfigMapRef: &v1.ConfigMapEnvSource{LocalObjectReference: v1.LocalObjectReference{Name: "test2"}}},
-							},
-							Ports: []v1.ContainerPort{
-								{ContainerPort: 8080},
-							},
+		Spec: servingv1.RevisionSpec{
+			PodSpec: v1.PodSpec{
+				Containers: []v1.Container{
+					{
+						Image: "gcr.io/test/image",
+						Env: []v1.EnvVar{
+							{Name: "env1", Value: "eval1"},
+							{Name: "env2", Value: "eval2"},
+						},
+						EnvFrom: []v1.EnvFromSource{
+							{ConfigMapRef: &v1.ConfigMapEnvSource{LocalObjectReference: v1.LocalObjectReference{Name: "test1"}}},
+							{ConfigMapRef: &v1.ConfigMapEnvSource{LocalObjectReference: v1.LocalObjectReference{Name: "test2"}}},
+						},
+						Ports: []v1.ContainerPort{
+							{ContainerPort: 8080},
 						},
 					},
 				},
 			},
 		},
-		Status: v1alpha1.RevisionStatus{
+		Status: servingv1.RevisionStatus{
 			ImageDigest: "gcr.io/test/image@" + imageDigest,
 			Status: duckv1.Status{
 				Conditions: goodConditions(),
@@ -668,7 +662,7 @@ func goodConditions() duckv1.Conditions {
 		},
 	})
 	ret = append(ret, apis.Condition{
-		Type:   v1alpha1.ServiceConditionRoutesReady,
+		Type:   servingv1.ServiceConditionRoutesReady,
 		Status: v1.ConditionTrue,
 		LastTransitionTime: apis.VolatileTime{
 			Inner: metav1.Time{Time: time.Now()},

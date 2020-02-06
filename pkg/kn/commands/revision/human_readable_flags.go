@@ -17,8 +17,8 @@ package revision
 import (
 	metav1beta1 "k8s.io/apimachinery/pkg/apis/meta/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
-	serving "knative.dev/serving/pkg/apis/serving"
-	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
+	"knative.dev/serving/pkg/apis/serving"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	"knative.dev/client/pkg/kn/commands"
 	hprinters "knative.dev/client/pkg/printers"
@@ -53,7 +53,7 @@ func RevisionListHandlers(h hprinters.PrintHandler) {
 // Private functions
 
 // printRevisionList populates the Knative revision list table rows
-func printRevisionList(revisionList *servingv1alpha1.RevisionList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+func printRevisionList(revisionList *servingv1.RevisionList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 
 	rows := make([]metav1beta1.TableRow, 0, len(revisionList.Items))
 	for _, rev := range revisionList.Items {
@@ -67,7 +67,7 @@ func printRevisionList(revisionList *servingv1alpha1.RevisionList, options hprin
 }
 
 // printRevision populates the Knative revision table rows
-func printRevision(revision *servingv1alpha1.Revision, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+func printRevision(revision *servingv1.Revision, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	name := revision.Name
 	service := revision.Labels[serving.ServiceLabelKey]
 	traffic := revision.Annotations[RevisionTrafficAnnotation]

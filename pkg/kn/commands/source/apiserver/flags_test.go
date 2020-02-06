@@ -26,12 +26,12 @@ func TestGetAPIServerResourceArray(t *testing.T) {
 		createFlag := APIServerSourceUpdateFlags{
 			ServiceAccountName: "test-sa",
 			Mode:               "Ref",
-			Resources:          []string{"Service:serving.knative.dev/v1alpha1:true"},
+			Resources:          []string{"Service:serving.knative.dev/v1:true"},
 		}
 		created, _ := createFlag.getAPIServerResourceArray()
 		wanted := []v1alpha1.ApiServerResource{{
 			Kind:       "Service",
-			APIVersion: "serving.knative.dev/v1alpha1",
+			APIVersion: "serving.knative.dev/v1",
 			Controller: true,
 		}}
 		assert.DeepEqual(t, wanted, created)
@@ -41,12 +41,12 @@ func TestGetAPIServerResourceArray(t *testing.T) {
 		createFlag := APIServerSourceUpdateFlags{
 			ServiceAccountName: "test-sa",
 			Mode:               "Ref",
-			Resources:          []string{"Service:serving.knative.dev/v1alpha1"},
+			Resources:          []string{"Service:serving.knative.dev/v1"},
 		}
 		created, _ := createFlag.getAPIServerResourceArray()
 		wanted := []v1alpha1.ApiServerResource{{
 			Kind:       "Service",
-			APIVersion: "serving.knative.dev/v1alpha1",
+			APIVersion: "serving.knative.dev/v1",
 			Controller: false,
 		}}
 		assert.DeepEqual(t, wanted, created)

@@ -19,15 +19,15 @@ import (
 	"testing"
 
 	"gotest.tools/assert"
-	"knative.dev/serving/pkg/apis/serving/v1alpha1"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
-	knclient "knative.dev/client/pkg/serving/v1alpha1"
+	clientservingv1 "knative.dev/client/pkg/serving/v1"
 	"knative.dev/client/pkg/util"
 	"knative.dev/client/pkg/util/mock"
 )
 
 func TestServiceListAllNamespaceMock(t *testing.T) {
-	client := knclient.NewMockKnServiceClient(t, "default")
+	client := clientservingv1.NewMockKnServiceClient(t, "default")
 	r := client.Recorder()
 	setupListExpectations(r)
 
@@ -43,9 +43,9 @@ func TestServiceListAllNamespaceMock(t *testing.T) {
 	r.Validate()
 }
 
-func setupListExpectations(r *knclient.ServingRecorder) {
-	r.ListServices(mock.Any(), &v1alpha1.ServiceList{
-		Items: []v1alpha1.Service{
+func setupListExpectations(r *clientservingv1.ServingRecorder) {
+	r.ListServices(mock.Any(), &servingv1.ServiceList{
+		Items: []servingv1.Service{
 			*getServiceWithNamespace("svc1", "default"),
 			*getServiceWithNamespace("svc2", "foo"),
 			*getServiceWithNamespace("svc3", "bar"),
@@ -55,12 +55,12 @@ func setupListExpectations(r *knclient.ServingRecorder) {
 
 func TestListEmptyMock(t *testing.T) {
 	// New mock client
-	client := knclient.NewMockKnServiceClient(t)
+	client := clientservingv1.NewMockKnServiceClient(t)
 
 	// Recording:
 	r := client.Recorder()
 
-	r.ListServices(mock.Any(), &v1alpha1.ServiceList{}, nil)
+	r.ListServices(mock.Any(), &servingv1.ServiceList{}, nil)
 
 	output, err := executeServiceCommand(client, "list")
 	assert.NilError(t, err)
@@ -71,12 +71,12 @@ func TestListEmptyMock(t *testing.T) {
 
 func TestListEmptyWithArgMock(t *testing.T) {
 	// New mock client
-	client := knclient.NewMockKnServiceClient(t)
+	client := clientservingv1.NewMockKnServiceClient(t)
 
 	// Recording:
 	r := client.Recorder()
 
-	r.ListServices(mock.Any(), &v1alpha1.ServiceList{}, nil)
+	r.ListServices(mock.Any(), &servingv1.ServiceList{}, nil)
 
 	output, err := executeServiceCommand(client, "list", "bar")
 	assert.NilError(t, err)
@@ -88,7 +88,7 @@ func TestListEmptyWithArgMock(t *testing.T) {
 func TestServiceListDefaultOutputMock(t *testing.T) {
 
 	// New mock client
-	client := knclient.NewMockKnServiceClient(t)
+	client := clientservingv1.NewMockKnServiceClient(t)
 
 	// Recording:
 	r := client.Recorder()
@@ -96,7 +96,7 @@ func TestServiceListDefaultOutputMock(t *testing.T) {
 	service1 := createMockServiceWithParams("foo", "default", "http://foo.default.example.com", "foo-xyz")
 	service3 := createMockServiceWithParams("sss", "default", "http://sss.default.example.com", "sss-xyz")
 	service2 := createMockServiceWithParams("bar", "default", "http://bar.default.example.com", "bar-xyz")
-	serviceList := &v1alpha1.ServiceList{Items: []v1alpha1.Service{*service1, *service2, *service3}}
+	serviceList := &servingv1.ServiceList{Items: []servingv1.Service{*service1, *service2, *service3}}
 	r.ListServices(mock.Any(), serviceList, nil)
 
 	output, err := executeServiceCommand(client, "list")
@@ -113,14 +113,14 @@ func TestServiceListDefaultOutputMock(t *testing.T) {
 
 func TestServiceListDefaultOutputNoHeadersMock(t *testing.T) {
 	// New mock client
-	client := knclient.NewMockKnServiceClient(t)
+	client := clientservingv1.NewMockKnServiceClient(t)
 
 	// Recording:
 	r := client.Recorder()
 
 	service1 := createMockServiceWithParams("foo", "default", "http://foo.default.example.com", "foo-xyz")
 	service2 := createMockServiceWithParams("bar", "default", "http://bar.default.example.com", "bar-xyz")
-	serviceList := &v1alpha1.ServiceList{Items: []v1alpha1.Service{*service1, *service2}}
+	serviceList := &servingv1.ServiceList{Items: []servingv1.Service{*service1, *service2}}
 	r.ListServices(mock.Any(), serviceList, nil)
 
 	output, err := executeServiceCommand(client, "list", "--no-headers")
@@ -136,13 +136,13 @@ func TestServiceListDefaultOutputNoHeadersMock(t *testing.T) {
 
 func TestServiceListOneOutputMock(t *testing.T) {
 	// New mock client
-	client := knclient.NewMockKnServiceClient(t)
+	client := clientservingv1.NewMockKnServiceClient(t)
 
 	// Recording:
 	r := client.Recorder()
 
 	service := createMockServiceWithParams("foo", "default", "foo.default.example.com", "foo-xyz")
-	serviceList := &v1alpha1.ServiceList{Items: []v1alpha1.Service{*service}}
+	serviceList := &servingv1.ServiceList{Items: []servingv1.Service{*service}}
 	r.ListServices(mock.Any(), serviceList, nil)
 
 	output, err := executeServiceCommand(client, "list", "foo")
@@ -157,7 +157,7 @@ func TestServiceListOneOutputMock(t *testing.T) {
 
 func TestServiceListWithTwoSrvNameMock(t *testing.T) {
 	// New mock client
-	client := knclient.NewMockKnServiceClient(t)
+	client := clientservingv1.NewMockKnServiceClient(t)
 
 	// Recording:
 	r := client.Recorder()
@@ -168,8 +168,8 @@ func TestServiceListWithTwoSrvNameMock(t *testing.T) {
 	r.Validate()
 }
 
-func getServiceWithNamespace(name, namespace string) *v1alpha1.Service {
-	service := v1alpha1.Service{}
+func getServiceWithNamespace(name, namespace string) *servingv1.Service {
+	service := servingv1.Service{}
 	service.Name = name
 	service.Namespace = namespace
 	return &service

@@ -18,8 +18,9 @@ import (
 	"bytes"
 
 	"k8s.io/client-go/tools/clientcmd"
+
 	"knative.dev/client/pkg/kn/commands"
-	knclient "knative.dev/client/pkg/serving/v1alpha1"
+	clientservingv1 "knative.dev/client/pkg/serving/v1"
 )
 
 // Helper methods
@@ -47,13 +48,13 @@ current-context: x
 	}
 }
 
-func executeServiceCommand(client knclient.KnServingClient, args ...string) (string, error) {
+func executeServiceCommand(client clientservingv1.KnServingClient, args ...string) (string, error) {
 	knParams := &commands.KnParams{}
 	knParams.ClientConfig = blankConfig
 
 	output := new(bytes.Buffer)
 	knParams.Output = output
-	knParams.NewServingClient = func(namespace string) (knclient.KnServingClient, error) {
+	knParams.NewServingClient = func(namespace string) (clientservingv1.KnServingClient, error) {
 		return client, nil
 	}
 	cmd := NewServiceCommand(knParams)

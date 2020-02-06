@@ -23,17 +23,18 @@ import (
 
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"knative.dev/serving/pkg/apis/serving"
+
 	"knative.dev/client/pkg/kn/commands/revision"
 	"knative.dev/client/pkg/printers"
-	serving_kn_v1alpha1 "knative.dev/client/pkg/serving/v1alpha1"
-	"knative.dev/serving/pkg/apis/serving"
+	clientservingv1 "knative.dev/client/pkg/serving/v1"
 
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
-	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/pkg/apis"
-	"knative.dev/serving/pkg/apis/serving/v1alpha1"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
+
+	"knative.dev/client/pkg/kn/commands"
 )
 
 // Command for printing out a description of a service, meant to be consumed by humans
@@ -47,7 +48,7 @@ var printDetails bool
 // of a Service. These are plain data types which can be directly used
 // for printing out
 type revisionDesc struct {
-	revision *v1alpha1.Revision
+	revision *servingv1.Revision
 
 	// traffic stuff
 	percent       int64
@@ -132,7 +133,7 @@ func NewServiceDescribeCommand(p *commands.KnParams) *cobra.Command {
 }
 
 // Main action describing the service
-func describe(w io.Writer, service *v1alpha1.Service, revisions []*revisionDesc, printDetails bool) error {
+func describe(w io.Writer, service *servingv1.Service, revisions []*revisionDesc, printDetails bool) error {
 	dw := printers.NewPrefixWriter(w)
 
 	// Service info
@@ -159,19 +160,19 @@ func describe(w io.Writer, service *v1alpha1.Service, revisions []*revisionDesc,
 }
 
 // Write out main service information. Use colors for major items.
-func writeService(dw printers.PrefixWriter, service *v1alpha1.Service) {
+func writeService(dw printers.PrefixWriter, service *servingv1.Service) {
 	commands.WriteMetadata(dw, &service.ObjectMeta, printDetails)
 	dw.WriteAttribute("URL", extractURL(service))
 	if printDetails {
 		if service.Status.Address != nil {
-			url := service.Status.Address.GetURL()
+			url := service.Status.Address.URL
 			dw.WriteAttribute("Cluster", url.String())
 		}
 	}
-	if (service.Spec.Template != nil) && (service.Spec.Template.Spec.ServiceAccountName != "") {
+	if service.Spec.Template.Spec.ServiceAccountName != "" {
 		dw.WriteAttribute("Service Account", service.Spec.Template.Spec.ServiceAccountName)
 	}
-	if service.Spec.Template != nil && service.Spec.Template.Spec.ImagePullSecrets != nil {
+	if service.Spec.Template.Spec.ImagePullSecrets != nil {
 		dw.WriteAttribute("Image Pull Secret", service.Spec.Template.Spec.ImagePullSecrets[0].Name)
 	}
 }
@@ -185,7 +186,7 @@ func writeRevisions(dw printers.PrefixWriter, revisions []*revisionDesc, printDe
 	for _, revisionDesc := range revisions {
 		ready := apis.Condition{
 			Type:   apis.ConditionReady,
-			Status: v1.ConditionUnknown,
+			Status: corev1.ConditionUnknown,
 		}
 		for _, cond := range revisionDesc.revision.Status.Conditions {
 			if cond.Type == apis.ConditionReady {
@@ -194,7 +195,7 @@ func writeRevisions(dw printers.PrefixWriter, revisions []*revisionDesc, printDe
 			}
 		}
 		section := revSection.WriteColsLn(formatBullet(revisionDesc.percent, ready.Status), revisionHeader(revisionDesc))
-		if ready.Status == v1.ConditionFalse {
+		if ready.Status == corev1.ConditionFalse {
 			section.WriteAttribute("Error", ready.Reason)
 		}
 		revision.WriteImage(section, revisionDesc.revision)
@@ -240,11 +241,11 @@ func revisionHeader(desc *revisionDesc) string {
 func formatBullet(percentage int64, status corev1.ConditionStatus) string {
 	symbol := "+"
 	switch status {
-	case v1.ConditionTrue:
+	case corev1.ConditionTrue:
 		if percentage > 0 {
 			symbol = "%"
 		}
-	case v1.ConditionFalse:
+	case corev1.ConditionFalse:
 		symbol = "!"
 	default:
 		symbol = "?"
@@ -257,7 +258,7 @@ func formatBullet(percentage int64, status corev1.ConditionStatus) string {
 
 // Call the backend to query revisions for the given service and build up
 // the view objects used for output
-func getRevisionDescriptions(client serving_kn_v1alpha1.KnServingClient, service *v1alpha1.Service, withDetails bool) ([]*revisionDesc, error) {
+func getRevisionDescriptions(client clientservingv1.KnServingClient, service *servingv1.Service, withDetails bool) ([]*revisionDesc, error) {
 	revisionsSeen := sets.NewString()
 	revisionDescs := []*revisionDesc{}
 
@@ -294,7 +295,7 @@ func orderByConfigurationGeneration(descs []*revisionDesc) []*revisionDesc {
 	return descs
 }
 
-func completeWithLatestRevisions(client serving_kn_v1alpha1.KnServingClient, service *v1alpha1.Service, revisionsSeen sets.String, descs []*revisionDesc) ([]*revisionDesc, error) {
+func completeWithLatestRevisions(client clientservingv1.KnServingClient, service *servingv1.Service, revisionsSeen sets.String, descs []*revisionDesc) ([]*revisionDesc, error) {
 	for _, revisionName := range []string{service.Status.LatestCreatedRevisionName, service.Status.LatestReadyRevisionName} {
 		if revisionsSeen.Has(revisionName) {
 			continue
@@ -313,8 +314,8 @@ func completeWithLatestRevisions(client serving_kn_v1alpha1.KnServingClient, ser
 	return descs, nil
 }
 
-func completeWithUntargetedRevisions(client serving_kn_v1alpha1.KnServingClient, service *v1alpha1.Service, revisionsSeen sets.String, descs []*revisionDesc) ([]*revisionDesc, error) {
-	revisions, err := client.ListRevisions(serving_kn_v1alpha1.WithService(service.Name))
+func completeWithUntargetedRevisions(client clientservingv1.KnServingClient, service *servingv1.Service, revisionsSeen sets.String, descs []*revisionDesc) ([]*revisionDesc, error) {
+	revisions, err := client.ListRevisions(clientservingv1.WithService(service.Name))
 	if err != nil {
 		return nil, err
 	}
@@ -333,7 +334,7 @@ func completeWithUntargetedRevisions(client serving_kn_v1alpha1.KnServingClient,
 	return descs, nil
 }
 
-func newRevisionDesc(revision *v1alpha1.Revision, target *v1alpha1.TrafficTarget, service *v1alpha1.Service) (*revisionDesc, error) {
+func newRevisionDesc(revision *servingv1.Revision, target *servingv1.TrafficTarget, service *servingv1.Service) (*revisionDesc, error) {
 	generation, err := strconv.ParseInt(revision.Labels[serving.ConfigurationGenerationLabelKey], 0, 0)
 	if err != nil {
 		return nil, fmt.Errorf("cannot extract configuration generation for revision %s: %v", revision.Name, err)
@@ -352,7 +353,7 @@ func newRevisionDesc(revision *v1alpha1.Revision, target *v1alpha1.TrafficTarget
 	return &revisionDesc, nil
 }
 
-func addTargetInfo(desc *revisionDesc, target *v1alpha1.TrafficTarget) {
+func addTargetInfo(desc *revisionDesc, target *servingv1.TrafficTarget) {
 	if target != nil {
 		if target.Percent != nil {
 			desc.percent = *target.Percent
@@ -362,7 +363,7 @@ func addTargetInfo(desc *revisionDesc, target *v1alpha1.TrafficTarget) {
 	}
 }
 
-func extractRevisionFromTarget(client serving_kn_v1alpha1.KnServingClient, target v1alpha1.TrafficTarget) (*v1alpha1.Revision, error) {
+func extractRevisionFromTarget(client clientservingv1.KnServingClient, target servingv1.TrafficTarget) (*servingv1.Revision, error) {
 	var revisionName = target.RevisionName
 	if revisionName == "" {
 		configurationName := target.ConfigurationName
@@ -378,10 +379,6 @@ func extractRevisionFromTarget(client serving_kn_v1alpha1.KnServingClient, targe
 	return client.GetRevision(revisionName)
 }
 
-func extractURL(service *v1alpha1.Service) string {
-	status := service.Status
-	if status.URL != nil {
-		return status.URL.String()
-	}
-	return status.DeprecatedDomain
+func extractURL(service *servingv1.Service) string {
+	return service.Status.URL.String()
 }

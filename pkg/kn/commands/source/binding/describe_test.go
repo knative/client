@@ -20,7 +20,6 @@ import (
 	"testing"
 
 	"gotest.tools/assert"
-	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1alpha14 "knative.dev/eventing/pkg/apis/sources/v1alpha1"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
@@ -79,7 +78,7 @@ func getSinkBindingSource(nameOrSelector string, ceOverrides map[string]string) 
 		Spec: v1alpha14.SinkBindingSpec{
 			SourceSpec: duckv1.SourceSpec{
 				Sink: duckv1.Destination{
-					Ref: &corev1.ObjectReference{
+					Ref: &duckv1.KReference{
 						Kind:      "Service",
 						Namespace: "myservicenamespace",
 						Name:      "mysvc",

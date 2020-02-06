@@ -19,17 +19,18 @@ import (
 
 	"gotest.tools/assert"
 	"k8s.io/apimachinery/pkg/runtime"
-	client_testing "k8s.io/client-go/testing"
+	clienttesting "k8s.io/client-go/testing"
+
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/util"
 )
 
-func fakeRevisionDelete(args []string) (action client_testing.Action, name string, output string, err error) {
+func fakeRevisionDelete(args []string) (action clienttesting.Action, name string, output string, err error) {
 	knParams := &commands.KnParams{}
 	cmd, fakeServing, buf := commands.CreateTestKnCommand(NewRevisionCommand(knParams), knParams)
 	fakeServing.AddReactor("delete", "revisions",
-		func(a client_testing.Action) (bool, runtime.Object, error) {
-			deleteAction, _ := a.(client_testing.DeleteAction)
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			deleteAction, _ := a.(clienttesting.DeleteAction)
 			action = deleteAction
 			name = deleteAction.GetName()
 			return true, nil, nil

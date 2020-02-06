@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	"knative.dev/client/pkg/kn/commands"
+	"knative.dev/client/pkg/util"
 
 	"github.com/spf13/cobra"
 	"gotest.tools/assert"
@@ -77,6 +78,6 @@ func TestCompletion(t *testing.T) {
 		defer commands.ReleaseStdout(t)
 
 		completionCmd.Run(fakeRootCmd, []string{"sh"})
-		assert.Assert(t, commands.ReadStdout(t) == "only supports 'bash' or 'zsh' shell completion\n")
+		assert.Check(t, util.ContainsAll(commands.ReadStdout(t), "only supports 'bash' or 'zsh' shell completion"))
 	})
 }

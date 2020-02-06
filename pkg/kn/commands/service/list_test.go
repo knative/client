@@ -21,19 +21,19 @@ import (
 	"gotest.tools/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	client_testing "k8s.io/client-go/testing"
+	clienttesting "k8s.io/client-go/testing"
 	"knative.dev/pkg/apis"
-	"knative.dev/serving/pkg/apis/serving/v1alpha1"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/util"
 )
 
-func fakeServiceList(args []string, response *v1alpha1.ServiceList) (action client_testing.Action, output []string, err error) {
+func fakeServiceList(args []string, response *servingv1.ServiceList) (action clienttesting.Action, output []string, err error) {
 	knParams := &commands.KnParams{}
 	cmd, fakeServing, buf := commands.CreateTestKnCommand(NewServiceCommand(knParams), knParams)
 	fakeServing.AddReactor("*", "*",
-		func(a client_testing.Action) (bool, runtime.Object, error) {
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
 			action = a
 			return true, response, nil
 		})
@@ -47,7 +47,7 @@ func fakeServiceList(args []string, response *v1alpha1.ServiceList) (action clie
 }
 
 func TestListEmpty(t *testing.T) {
-	action, output, err := fakeServiceList([]string{"service", "list"}, &v1alpha1.ServiceList{})
+	action, output, err := fakeServiceList([]string{"service", "list"}, &servingv1.ServiceList{})
 	assert.NilError(t, err)
 	if action == nil {
 		t.Errorf("No action")
@@ -59,7 +59,7 @@ func TestListEmpty(t *testing.T) {
 }
 
 func TestGetEmpty(t *testing.T) {
-	action, _, err := fakeServiceList([]string{"service", "list", "name"}, &v1alpha1.ServiceList{})
+	action, _, err := fakeServiceList([]string{"service", "list", "name"}, &servingv1.ServiceList{})
 	assert.NilError(t, err)
 	if action == nil {
 		t.Errorf("No action")
@@ -72,7 +72,7 @@ func TestServiceListDefaultOutput(t *testing.T) {
 	service1 := createMockServiceWithParams("foo", "default", "http://foo.default.example.com", "foo-xyz")
 	service3 := createMockServiceWithParams("sss", "default", "http://sss.default.example.com", "sss-xyz")
 	service2 := createMockServiceWithParams("bar", "default", "http://bar.default.example.com", "bar-xyz")
-	serviceList := &v1alpha1.ServiceList{Items: []v1alpha1.Service{*service1, *service2, *service3}}
+	serviceList := &servingv1.ServiceList{Items: []servingv1.Service{*service1, *service2, *service3}}
 	action, output, err := fakeServiceList([]string{"service", "list"}, serviceList)
 	assert.NilError(t, err)
 	if action == nil {
@@ -91,7 +91,7 @@ func TestServiceListAllNamespacesOutput(t *testing.T) {
 	service1 := createMockServiceWithParams("foo", "default", "http://foo.default.example.com", "foo-xyz")
 	service2 := createMockServiceWithParams("bar", "foo", "http://bar.foo.example.com", "bar-xyz")
 	service3 := createMockServiceWithParams("sss", "bar", "http://sss.bar.example.com", "sss-xyz")
-	serviceList := &v1alpha1.ServiceList{Items: []v1alpha1.Service{*service1, *service2, *service3}}
+	serviceList := &servingv1.ServiceList{Items: []servingv1.Service{*service1, *service2, *service3}}
 	action, output, err := fakeServiceList([]string{"service", "list", "--all-namespaces"}, serviceList)
 	if err != nil {
 		t.Fatal(err)
@@ -111,7 +111,7 @@ func TestServiceListAllNamespacesOutput(t *testing.T) {
 func TestServiceListDefaultOutputNoHeaders(t *testing.T) {
 	service1 := createMockServiceWithParams("foo", "default", "http://foo.default.example.com", "foo-xyz")
 	service2 := createMockServiceWithParams("bar", "default", "http://bar.default.example.com", "bar-xyz")
-	serviceList := &v1alpha1.ServiceList{Items: []v1alpha1.Service{*service1, *service2}}
+	serviceList := &servingv1.ServiceList{Items: []servingv1.Service{*service1, *service2}}
 	action, output, err := fakeServiceList([]string{"service", "list", "--no-headers"}, serviceList)
 	assert.NilError(t, err)
 	if action == nil {
@@ -128,7 +128,7 @@ func TestServiceListDefaultOutputNoHeaders(t *testing.T) {
 
 func TestServiceGetOneOutput(t *testing.T) {
 	service := createMockServiceWithParams("foo", "default", "foo.default.example.com", "foo-xyz")
-	serviceList := &v1alpha1.ServiceList{Items: []v1alpha1.Service{*service}}
+	serviceList := &servingv1.ServiceList{Items: []servingv1.Service{*service}}
 	action, output, err := fakeServiceList([]string{"service", "list", "foo"}, serviceList)
 	assert.NilError(t, err)
 	if action == nil {
@@ -142,30 +142,28 @@ func TestServiceGetOneOutput(t *testing.T) {
 
 func TestServiceGetWithTwoSrvName(t *testing.T) {
 	service := createMockServiceWithParams("foo", "default", "foo.default.example.com", "foo-xyz")
-	serviceList := &v1alpha1.ServiceList{Items: []v1alpha1.Service{*service}}
+	serviceList := &servingv1.ServiceList{Items: []servingv1.Service{*service}}
 	_, _, err := fakeServiceList([]string{"service", "list", "foo", "bar"}, serviceList)
 	assert.ErrorContains(t, err, "'kn service list' accepts maximum 1 argument")
 }
 
-func createMockServiceWithParams(name, namespace, urlS string, revision string) *v1alpha1.Service {
+func createMockServiceWithParams(name, namespace, urlS string, revision string) *servingv1.Service {
 	url, _ := apis.ParseURL(urlS)
-	service := &v1alpha1.Service{
+	service := &servingv1.Service{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Service",
-			APIVersion: "knative.dev/v1alpha1",
+			APIVersion: "serving.knative.dev/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
 		},
-		Spec: v1alpha1.ServiceSpec{
-			DeprecatedRunLatest: &v1alpha1.RunLatestType{},
-		},
-		Status: v1alpha1.ServiceStatus{
-			RouteStatusFields: v1alpha1.RouteStatusFields{
+		Spec: servingv1.ServiceSpec{},
+		Status: servingv1.ServiceStatus{
+			RouteStatusFields: servingv1.RouteStatusFields{
 				URL: url,
 			},
-			ConfigurationStatusFields: v1alpha1.ConfigurationStatusFields{
+			ConfigurationStatusFields: servingv1.ConfigurationStatusFields{
 				LatestCreatedRevisionName: revision,
 				LatestReadyRevisionName:   revision,
 			},

@@ -20,17 +20,17 @@ import (
 
 	"gotest.tools/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	serving_v1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
-	dynamic_fake "knative.dev/client/pkg/dynamic/fake"
-	eventing_client "knative.dev/client/pkg/eventing/v1alpha1"
+	dynamicfake "knative.dev/client/pkg/dynamic/fake"
+	clienteventingv1alpha1 "knative.dev/client/pkg/eventing/v1alpha1"
 	"knative.dev/client/pkg/util"
 )
 
 func TestTriggerUpdate(t *testing.T) {
-	eventingClient := eventing_client.NewMockKnEventingClient(t)
-	dynamicClient := dynamic_fake.CreateFakeKnDynamicClient("default", &serving_v1alpha1.Service{
-		TypeMeta:   metav1.TypeMeta{Kind: "Service", APIVersion: "serving.knative.dev/v1alpha1"},
+	eventingClient := clienteventingv1alpha1.NewMockKnEventingClient(t)
+	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default", &servingv1.Service{
+		TypeMeta:   metav1.TypeMeta{Kind: "Service", APIVersion: "serving.knative.dev/v1"},
 		ObjectMeta: metav1.ObjectMeta{Name: "mysvc", Namespace: "default"},
 	})
 
@@ -49,7 +49,7 @@ func TestTriggerUpdate(t *testing.T) {
 }
 
 func TestTriggerUpdateWithError(t *testing.T) {
-	eventingClient := eventing_client.NewMockKnEventingClient(t)
+	eventingClient := clienteventingv1alpha1.NewMockKnEventingClient(t)
 	eventingRecorder := eventingClient.Recorder()
 	eventingRecorder.GetTrigger(triggerName, nil, fmt.Errorf("trigger not found"))
 
@@ -62,7 +62,7 @@ func TestTriggerUpdateWithError(t *testing.T) {
 }
 
 func TestTriggerUpdateInvalidBroker(t *testing.T) {
-	eventingClient := eventing_client.NewMockKnEventingClient(t)
+	eventingClient := clienteventingv1alpha1.NewMockKnEventingClient(t)
 	eventingRecorder := eventingClient.Recorder()
 	present := createTrigger("default", triggerName, map[string]string{"type": "dev.knative.new"}, "mybroker", "newsvc")
 	eventingRecorder.GetTrigger(triggerName, present, nil)

@@ -21,16 +21,17 @@ import (
 
 	"knative.dev/client/pkg/kn/commands"
 	servinglib "knative.dev/client/pkg/serving"
-	"knative.dev/client/pkg/serving/v1alpha1"
+	"knative.dev/client/pkg/serving/v1"
 
 	"knative.dev/serving/pkg/apis/serving"
 
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
-	api_errors "k8s.io/apimachinery/pkg/api/errors"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	serving_kn_v1alpha1 "knative.dev/client/pkg/serving/v1alpha1"
-	serving_v1alpha1_api "knative.dev/serving/pkg/apis/serving/v1alpha1"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
+
+	clientservingv1 "knative.dev/client/pkg/serving/v1"
 )
 
 var create_example = `
@@ -118,7 +119,7 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 	return serviceCreateCommand
 }
 
-func createService(client serving_kn_v1alpha1.KnServingClient, service *serving_v1alpha1_api.Service, waitFlags commands.WaitFlags, out io.Writer) error {
+func createService(client clientservingv1.KnServingClient, service *servingv1.Service, waitFlags commands.WaitFlags, out io.Writer) error {
 	err := client.CreateService(service)
 	if err != nil {
 		return err
@@ -127,7 +128,7 @@ func createService(client serving_kn_v1alpha1.KnServingClient, service *serving_
 	return waitIfRequested(client, service, waitFlags, "Creating", "created", out)
 }
 
-func replaceService(client serving_kn_v1alpha1.KnServingClient, service *serving_v1alpha1_api.Service, waitFlags commands.WaitFlags, out io.Writer) error {
+func replaceService(client clientservingv1.KnServingClient, service *servingv1.Service, waitFlags commands.WaitFlags, out io.Writer) error {
 	err := prepareAndUpdateService(client, service)
 	if err != nil {
 		return err
@@ -135,7 +136,7 @@ func replaceService(client serving_kn_v1alpha1.KnServingClient, service *serving
 	return waitIfRequested(client, service, waitFlags, "Replacing", "replaced", out)
 }
 
-func waitIfRequested(client serving_kn_v1alpha1.KnServingClient, service *serving_v1alpha1_api.Service, waitFlags commands.WaitFlags, verbDoing string, verbDone string, out io.Writer) error {
+func waitIfRequested(client clientservingv1.KnServingClient, service *servingv1.Service, waitFlags commands.WaitFlags, verbDoing string, verbDone string, out io.Writer) error {
 	if waitFlags.Async {
 		fmt.Fprintf(out, "Service '%s' %s in namespace '%s'.\n", service.Name, verbDone, client.Namespace())
 		return nil
@@ -145,7 +146,7 @@ func waitIfRequested(client serving_kn_v1alpha1.KnServingClient, service *servin
 	return waitForServiceToGetReady(client, service.Name, waitFlags.TimeoutInSeconds, verbDone, out)
 }
 
-func prepareAndUpdateService(client serving_kn_v1alpha1.KnServingClient, service *serving_v1alpha1_api.Service) error {
+func prepareAndUpdateService(client clientservingv1.KnServingClient, service *servingv1.Service) error {
 	var retries = 0
 	for {
 		existingService, err := client.GetService(service.Name)
@@ -177,7 +178,7 @@ func prepareAndUpdateService(client serving_kn_v1alpha1.KnServingClient, service
 		err = client.UpdateService(service)
 		if err != nil {
 			// Retry to update when a resource version conflict exists
-			if api_errors.IsConflict(err) && retries < MaxUpdateRetries {
+			if apierrors.IsConflict(err) && retries < MaxUpdateRetries {
 				retries++
 				continue
 			}
@@ -187,7 +188,7 @@ func prepareAndUpdateService(client serving_kn_v1alpha1.KnServingClient, service
 	}
 }
 
-func waitForServiceToGetReady(client serving_kn_v1alpha1.KnServingClient, name string, timeout int, verbDone string, out io.Writer) error {
+func waitForServiceToGetReady(client clientservingv1.KnServingClient, name string, timeout int, verbDone string, out io.Writer) error {
 	fmt.Fprintln(out, "")
 	err := waitForService(client, name, out, timeout)
 	if err != nil {
@@ -208,9 +209,9 @@ func flush(out io.Writer) {
 	}
 }
 
-func serviceExists(client v1alpha1.KnServingClient, name string) (bool, error) {
+func serviceExists(client v1.KnServingClient, name string) (bool, error) {
 	_, err := client.GetService(name)
-	if api_errors.IsNotFound(err) {
+	if apierrors.IsNotFound(err) {
 		return false, nil
 	}
 	if err != nil {
@@ -220,18 +221,18 @@ func serviceExists(client v1alpha1.KnServingClient, name string) (bool, error) {
 }
 
 // Create service struct from provided options
-func constructService(cmd *cobra.Command, editFlags ConfigurationEditFlags, name string, namespace string) (*serving_v1alpha1_api.Service,
+func constructService(cmd *cobra.Command, editFlags ConfigurationEditFlags, name string, namespace string) (*servingv1.Service,
 	error) {
 
-	service := serving_v1alpha1_api.Service{
+	service := servingv1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
 		},
 	}
 
-	service.Spec.Template = &serving_v1alpha1_api.RevisionTemplateSpec{
-		Spec: serving_v1alpha1_api.RevisionSpec{},
+	service.Spec.Template = servingv1.RevisionTemplateSpec{
+		Spec: servingv1.RevisionSpec{},
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{
 				servinglib.UserImageAnnotationKey: "", // Placeholder. Will be replaced or deleted as we apply mutations.

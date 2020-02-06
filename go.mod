@@ -4,7 +4,7 @@ require (
 	contrib.go.opencensus.io/exporter/ocagent v0.6.0 // indirect
 	contrib.go.opencensus.io/exporter/prometheus v0.1.0 // indirect
 	contrib.go.opencensus.io/exporter/stackdriver v0.12.9 // indirect
-	github.com/google/go-containerregistry v0.0.0-20190910142231-b02d448a3705 // indirect
+	github.com/google/go-containerregistry v0.0.0-20200131185320-aec8da010de2 // indirect
 	github.com/magiconair/properties v1.8.0
 	github.com/mattbaird/jsonpatch v0.0.0-20171005235357-81af80346b1a // indirect
 	github.com/mitchellh/go-homedir v1.1.0
@@ -16,14 +16,14 @@ require (
 	github.com/spf13/viper v1.4.0
 	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413
 	gotest.tools v2.2.0+incompatible
-	k8s.io/api v0.16.4
-	k8s.io/apimachinery v0.16.4
-	k8s.io/cli-runtime v0.16.4
-	k8s.io/client-go v0.16.4
-	knative.dev/eventing v0.12.0
-	knative.dev/pkg v0.0.0-20200122022923-4e81bc3c320f
-	knative.dev/serving v0.12.0
-	knative.dev/test-infra v0.0.0-20200131013528-ae2eca5b0518
+	k8s.io/api v0.17.0
+	k8s.io/apimachinery v0.17.0
+	k8s.io/cli-runtime v0.17.0
+	k8s.io/client-go v0.17.0
+	knative.dev/eventing v0.12.1-0.20200206203632-b0a7d8a77cc7
+	knative.dev/pkg v0.0.0-20200206191432-9072f494c940
+	knative.dev/serving v0.12.1-0.20200206201132-525b15d87dc1
+	knative.dev/test-infra v0.0.0-20200206203333-08d3515c0e1f
 	sigs.k8s.io/yaml v1.1.0
 )
 

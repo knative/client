@@ -24,7 +24,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"knative.dev/pkg/apis"
-	"knative.dev/serving/pkg/apis/serving/v1alpha1"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
 type waitForReadyTestCase struct {
@@ -45,7 +45,7 @@ func TestAddWaitForReady(t *testing.T) {
 				return fakeWatchApi, nil
 			},
 			func(obj runtime.Object) (apis.Conditions, error) {
-				return apis.Conditions(obj.(*v1alpha1.Service).Status.Conditions), nil
+				return apis.Conditions(obj.(*servingv1.Service).Status.Conditions), nil
 			})
 		fakeWatchApi.Start()
 		var msgs []string

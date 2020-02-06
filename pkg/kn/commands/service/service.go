@@ -15,14 +15,13 @@
 package service
 
 import (
+	"fmt"
 	"io"
 	"time"
 
 	"knative.dev/client/pkg/kn/commands"
-	serving_kn_v1alpha1 "knative.dev/client/pkg/serving/v1alpha1"
+	clientservingv1 "knative.dev/client/pkg/serving/v1"
 	"knative.dev/client/pkg/wait"
-
-	"fmt"
 
 	"github.com/spf13/cobra"
 )
@@ -45,7 +44,7 @@ func NewServiceCommand(p *commands.KnParams) *cobra.Command {
 	return serviceCmd
 }
 
-func waitForService(client serving_kn_v1alpha1.KnServingClient, serviceName string, out io.Writer, timeout int) error {
+func waitForService(client clientservingv1.KnServingClient, serviceName string, out io.Writer, timeout int) error {
 	err, duration := client.WaitForService(serviceName, time.Duration(timeout)*time.Second, wait.SimpleMessageCallback(out))
 	if err != nil {
 		return err
@@ -54,16 +53,13 @@ func waitForService(client serving_kn_v1alpha1.KnServingClient, serviceName stri
 	return nil
 }
 
-func showUrl(client serving_kn_v1alpha1.KnServingClient, serviceName string, originalRevision string, what string, out io.Writer) error {
+func showUrl(client clientservingv1.KnServingClient, serviceName string, originalRevision string, what string, out io.Writer) error {
 	service, err := client.GetService(serviceName)
 	if err != nil {
 		return fmt.Errorf("cannot fetch service '%s' in namespace '%s' for extracting the URL: %v", serviceName, client.Namespace(), err)
 	}
 
 	url := service.Status.URL.String()
-	if url == "" {
-		url = service.Status.DeprecatedDomain
-	}
 
 	newRevision := service.Status.LatestReadyRevisionName
 	if originalRevision != "" && originalRevision == newRevision {

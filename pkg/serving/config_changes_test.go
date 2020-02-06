@@ -21,18 +21,18 @@ import (
 
 	"gotest.tools/assert"
 
-	"knative.dev/client/pkg/util"
 	"knative.dev/pkg/ptr"
 	"knative.dev/serving/pkg/apis/autoscaling"
+
+	"knative.dev/client/pkg/util"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
-	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
 func TestUpdateAutoscalingAnnotations(t *testing.T) {
-	template := &servingv1alpha1.RevisionTemplateSpec{}
+	template := &servingv1.RevisionTemplateSpec{}
 	updateConcurrencyConfiguration(template, 10, 100, 1000, 1000)
 	annos := template.Annotations
 	if annos[autoscaling.MinScaleAnnotationKey] != "10" {
@@ -50,7 +50,7 @@ func TestUpdateAutoscalingAnnotations(t *testing.T) {
 }
 
 func TestUpdateInvalidAutoscalingAnnotations(t *testing.T) {
-	template := &servingv1alpha1.RevisionTemplateSpec{}
+	template := &servingv1.RevisionTemplateSpec{}
 	updateConcurrencyConfiguration(template, 10, 100, 1000, 1000)
 	// Update with invalid concurrency options
 	updateConcurrencyConfiguration(template, -1, -1, 0, -1)
@@ -70,16 +70,7 @@ func TestUpdateInvalidAutoscalingAnnotations(t *testing.T) {
 }
 
 func TestUpdateEnvVarsNew(t *testing.T) {
-	template, container := getV1alpha1RevisionTemplateWithOldFields()
-	testUpdateEnvVarsNew(t, template, container)
-	assertNoV1alpha1(t, template)
-
-	template, container = getV1alpha1Config()
-	testUpdateEnvVarsNew(t, template, container)
-	assertNoV1alpha1Old(t, template)
-}
-
-func testUpdateEnvVarsNew(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, container *corev1.Container) {
+	template, container := getRevisionTemplate()
 	env := []corev1.EnvVar{
 		{Name: "a", Value: "foo"},
 		{Name: "b", Value: "bar"},
@@ -89,16 +80,6 @@ func testUpdateEnvVarsNew(t *testing.T, template *servingv1alpha1.RevisionTempla
 	err = UpdateEnvVars(template, found, []string{})
 	assert.NilError(t, err)
 	assert.DeepEqual(t, env, container.Env)
-}
-
-func TestUpdateEnvVarsAppendOld(t *testing.T) {
-	template, container := getV1alpha1RevisionTemplateWithOldFields()
-	testUpdateEnvVarsAppendOld(t, template, container)
-	assertNoV1alpha1(t, template)
-
-	template, container = getV1alpha1Config()
-	testUpdateEnvVarsAppendOld(t, template, container)
-	assertNoV1alpha1Old(t, template)
 }
 
 type userImageAnnotCase struct {
@@ -118,7 +99,7 @@ func TestSetUserImageAnnot(t *testing.T) {
 		{"foo/bar", "baz/quux", "", false},
 	}
 	for _, c := range cases {
-		template, container := getV1alpha1Config()
+		template, container := getRevisionTemplate()
 		if c.annot == "" {
 			template.Annotations = nil
 		} else {
@@ -137,8 +118,8 @@ func TestSetUserImageAnnot(t *testing.T) {
 }
 
 func TestFreezeImageToDigest(t *testing.T) {
-	template, container := getV1alpha1Config()
-	revision := &servingv1alpha1.Revision{}
+	template, container := getRevisionTemplate()
+	revision := &servingv1.Revision{}
 	revision.Spec = template.Spec
 	revision.ObjectMeta = template.ObjectMeta
 	revision.Status.ImageDigest = "gcr.io/foo/bar@sha256:deadbeef"
@@ -147,7 +128,7 @@ func TestFreezeImageToDigest(t *testing.T) {
 	assert.Equal(t, container.Image, "gcr.io/foo/bar@sha256:deadbeef")
 }
 
-func testUpdateEnvVarsAppendOld(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, container *corev1.Container) {
+func testUpdateEnvVarsAppendOld(t *testing.T, template *servingv1.RevisionTemplateSpec, container *corev1.Container) {
 	container.Env = []corev1.EnvVar{
 		{Name: "a", Value: "foo"},
 	}
@@ -167,16 +148,7 @@ func testUpdateEnvVarsAppendOld(t *testing.T, template *servingv1alpha1.Revision
 }
 
 func TestUpdateEnvVarsModify(t *testing.T) {
-	template, container := getV1alpha1RevisionTemplateWithOldFields()
-	testUpdateEnvVarsModify(t, template, container)
-	assertNoV1alpha1(t, template)
-
-	template, container = getV1alpha1Config()
-	testUpdateEnvVarsModify(t, template, container)
-	assertNoV1alpha1Old(t, template)
-}
-
-func testUpdateEnvVarsModify(t *testing.T, revision *servingv1alpha1.RevisionTemplateSpec, container *corev1.Container) {
+	revision, container := getRevisionTemplate()
 	container.Env = []corev1.EnvVar{
 		{Name: "a", Value: "foo"}}
 	env := map[string]string{
@@ -195,16 +167,7 @@ func testUpdateEnvVarsModify(t *testing.T, revision *servingv1alpha1.RevisionTem
 }
 
 func TestUpdateEnvVarsRemove(t *testing.T) {
-	template, container := getV1alpha1RevisionTemplateWithOldFields()
-	testUpdateEnvVarsRemove(t, template, container)
-	assertNoV1alpha1(t, template)
-
-	template, container = getV1alpha1Config()
-	testUpdateEnvVarsRemove(t, template, container)
-	assertNoV1alpha1Old(t, template)
-}
-
-func testUpdateEnvVarsRemove(t *testing.T, revision *servingv1alpha1.RevisionTemplateSpec, container *corev1.Container) {
+	revision, container := getRevisionTemplate()
 	container.Env = []corev1.EnvVar{
 		{Name: "a", Value: "foo"},
 		{Name: "b", Value: "bar"},
@@ -221,7 +184,7 @@ func testUpdateEnvVarsRemove(t *testing.T, revision *servingv1alpha1.RevisionTem
 }
 
 func TestUpdateMinScale(t *testing.T) {
-	template, _ := getV1alpha1RevisionTemplateWithOldFields()
+	template, _ := getRevisionTemplate()
 	err := UpdateMinScale(template, 10)
 	assert.NilError(t, err)
 	// Verify update is successful or not
@@ -232,7 +195,7 @@ func TestUpdateMinScale(t *testing.T) {
 }
 
 func TestUpdateMaxScale(t *testing.T) {
-	template, _ := getV1alpha1RevisionTemplateWithOldFields()
+	template, _ := getRevisionTemplate()
 	err := UpdateMaxScale(template, 10)
 	assert.NilError(t, err)
 	// Verify update is successful or not
@@ -243,7 +206,7 @@ func TestUpdateMaxScale(t *testing.T) {
 }
 
 func TestAutoscaleWindow(t *testing.T) {
-	template, _ := getV1alpha1RevisionTemplateWithOldFields()
+	template, _ := getRevisionTemplate()
 	err := UpdateAutoscaleWindow(template, "10s")
 	assert.NilError(t, err)
 	// Verify update is successful or not
@@ -254,7 +217,7 @@ func TestAutoscaleWindow(t *testing.T) {
 }
 
 func TestUpdateConcurrencyTarget(t *testing.T) {
-	template, _ := getV1alpha1RevisionTemplateWithOldFields()
+	template, _ := getRevisionTemplate()
 	err := UpdateConcurrencyTarget(template, 10)
 	assert.NilError(t, err)
 	// Verify update is successful or not
@@ -265,7 +228,7 @@ func TestUpdateConcurrencyTarget(t *testing.T) {
 }
 
 func TestUpdateConcurrencyLimit(t *testing.T) {
-	template, _ := getV1alpha1RevisionTemplateWithOldFields()
+	template, _ := getRevisionTemplate()
 	err := UpdateConcurrencyLimit(template, 10)
 	assert.NilError(t, err)
 	// Verify update is successful or not
@@ -276,49 +239,49 @@ func TestUpdateConcurrencyLimit(t *testing.T) {
 }
 
 func TestUpdateContainerImage(t *testing.T) {
-	template, _ := getV1alpha1RevisionTemplateWithOldFields()
+	template, _ := getRevisionTemplate()
 	err := UpdateImage(template, "gcr.io/foo/bar:baz")
 	assert.NilError(t, err)
 	// Verify update is successful or not
 	checkContainerImage(t, template, "gcr.io/foo/bar:baz")
 	// Update template with container image info
-	template.Spec.GetContainer().Image = "docker.io/foo/bar:baz"
+	template.Spec.Containers[0].Image = "docker.io/foo/bar:baz"
 	err = UpdateImage(template, "query.io/foo/bar:baz")
 	assert.NilError(t, err)
 	// Verify that given image overrides the existing container image
 	checkContainerImage(t, template, "query.io/foo/bar:baz")
 }
 
-func checkContainerImage(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, image string) {
-	if got, want := template.Spec.GetContainer().Image, image; got != want {
+func checkContainerImage(t *testing.T, template *servingv1.RevisionTemplateSpec, image string) {
+	if got, want := template.Spec.Containers[0].Image, image; got != want {
 		t.Errorf("Failed to update the container image: got=%s, want=%s", got, want)
 	}
 }
 
 func TestUpdateContainerCommand(t *testing.T) {
-	template, _ := getV1alpha1RevisionTemplateWithOldFields()
+	template, _ := getRevisionTemplate()
 	err := UpdateContainerCommand(template, "/app/start")
 	assert.NilError(t, err)
-	assert.DeepEqual(t, template.Spec.GetContainer().Command, []string{"/app/start"})
+	assert.DeepEqual(t, template.Spec.Containers[0].Command, []string{"/app/start"})
 
 	err = UpdateContainerCommand(template, "/app/latest")
 	assert.NilError(t, err)
-	assert.DeepEqual(t, template.Spec.GetContainer().Command, []string{"/app/latest"})
+	assert.DeepEqual(t, template.Spec.Containers[0].Command, []string{"/app/latest"})
 }
 
 func TestUpdateContainerArg(t *testing.T) {
-	template, _ := getV1alpha1RevisionTemplateWithOldFields()
+	template, _ := getRevisionTemplate()
 	err := UpdateContainerArg(template, []string{"--myArg"})
 	assert.NilError(t, err)
-	assert.DeepEqual(t, template.Spec.GetContainer().Args, []string{"--myArg"})
+	assert.DeepEqual(t, template.Spec.Containers[0].Args, []string{"--myArg"})
 
 	err = UpdateContainerArg(template, []string{"myArg1", "--myArg2"})
 	assert.NilError(t, err)
-	assert.DeepEqual(t, template.Spec.GetContainer().Args, []string{"myArg1", "--myArg2"})
+	assert.DeepEqual(t, template.Spec.Containers[0].Args, []string{"myArg1", "--myArg2"})
 }
 
 func TestUpdateContainerPort(t *testing.T) {
-	template, _ := getV1alpha1Config()
+	template, _ := getRevisionTemplate()
 	err := UpdateContainerPort(template, 8888)
 	assert.NilError(t, err)
 	// Verify update is successful or not
@@ -331,30 +294,14 @@ func TestUpdateContainerPort(t *testing.T) {
 	checkPortUpdate(t, template, 80)
 }
 
-func TestUpdateName(t *testing.T) {
-	template, _ := getV1alpha1Config()
-	err := UpdateName(template, "foo-asdf")
-	assert.NilError(t, err)
-	assert.Equal(t, "foo-asdf", template.Name)
-}
-
-func checkPortUpdate(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, port int32) {
-	if template.Spec.GetContainer().Ports[0].ContainerPort != port {
+func checkPortUpdate(t *testing.T, template *servingv1.RevisionTemplateSpec, port int32) {
+	if template.Spec.Containers[0].Ports[0].ContainerPort != port {
 		t.Error("Failed to update the container port")
 	}
 }
 
 func TestUpdateEnvVarsBoth(t *testing.T) {
-	template, container := getV1alpha1RevisionTemplateWithOldFields()
-	testUpdateEnvVarsAll(t, template, container)
-	assertNoV1alpha1(t, template)
-
-	template, container = getV1alpha1Config()
-	testUpdateEnvVarsAll(t, template, container)
-	assertNoV1alpha1Old(t, template)
-}
-
-func testUpdateEnvVarsAll(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, container *corev1.Container) {
+	template, container := getRevisionTemplate()
 	container.Env = []corev1.EnvVar{
 		{Name: "a", Value: "foo"},
 		{Name: "c", Value: "caroline"},
@@ -444,7 +391,7 @@ func TestUpdateLabelsRemoveExisting(t *testing.T) {
 }
 
 func TestUpdateEnvFrom(t *testing.T) {
-	template, container := getV1alpha1RevisionTemplateWithOldFields()
+	template, container := getRevisionTemplate()
 	container.EnvFrom = append(container.EnvFrom,
 		corev1.EnvFromSource{
 			ConfigMapRef: &corev1.ConfigMapEnvSource{
@@ -466,7 +413,7 @@ func TestUpdateEnvFrom(t *testing.T) {
 }
 
 func TestUpdateVolumeMountsAndVolumes(t *testing.T) {
-	template, container := getV1alpha1RevisionTemplateWithOldFields()
+	template, container := getRevisionTemplate()
 	template.Spec.Volumes = append(template.Spec.Volumes,
 		corev1.Volume{
 			Name: "existing-config-map-volume-name-1",
@@ -574,7 +521,7 @@ func TestUpdateVolumeMountsAndVolumes(t *testing.T) {
 }
 
 func TestUpdateServiceAccountName(t *testing.T) {
-	template, _ := getV1alpha1RevisionTemplateWithOldFields()
+	template, _ := getRevisionTemplate()
 	template.Spec.ServiceAccountName = ""
 
 	UpdateServiceAccountName(template, "foo-bar")
@@ -585,7 +532,7 @@ func TestUpdateServiceAccountName(t *testing.T) {
 }
 
 func TestUpdateImagePullSecrets(t *testing.T) {
-	template, _ := getV1alpha1RevisionTemplateWithOldFields()
+	template, _ := getRevisionTemplate()
 	template.Spec.ImagePullSecrets = nil
 
 	UpdateImagePullSecrets(template, "quay")
@@ -686,93 +633,62 @@ func TestGenerateVolumeName(t *testing.T) {
 //
 // =========================================================================================================
 
-func getV1alpha1RevisionTemplateWithOldFields() (*servingv1alpha1.RevisionTemplateSpec, *corev1.Container) {
-	container := &corev1.Container{}
-	template := &servingv1alpha1.RevisionTemplateSpec{
+func getRevisionTemplate() (*servingv1.RevisionTemplateSpec, *corev1.Container) {
+	template := &servingv1.RevisionTemplateSpec{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "template-foo",
 			Namespace: "default",
 		},
-		Spec: servingv1alpha1.RevisionSpec{
-			DeprecatedContainer: container,
-		},
-	}
-	return template, container
-}
-
-func getV1alpha1Config() (*servingv1alpha1.RevisionTemplateSpec, *corev1.Container) {
-	containers := []corev1.Container{{}}
-	template := &servingv1alpha1.RevisionTemplateSpec{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "template-foo",
-			Namespace: "default",
-		},
-		Spec: servingv1alpha1.RevisionSpec{
-			RevisionSpec: servingv1.RevisionSpec{
-				PodSpec: corev1.PodSpec{
-					Containers: containers,
-				},
+		Spec: servingv1.RevisionSpec{
+			PodSpec: corev1.PodSpec{
+				Containers: []corev1.Container{{}},
 			},
 		},
 	}
-	return template, &containers[0]
+	return template, &template.Spec.Containers[0]
 }
 
-func getV1alpha1Service() (*servingv1alpha1.Service, *servingv1alpha1.RevisionTemplateSpec, *corev1.Container) {
-	template, container := getV1alpha1RevisionTemplateWithOldFields()
-	service := &servingv1alpha1.Service{
+func getV1alpha1Service() (*servingv1.Service, *servingv1.RevisionTemplateSpec, *corev1.Container) {
+	template, container := getRevisionTemplate()
+	service := &servingv1.Service{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Service",
-			APIVersion: "knative.dev/v1alph1",
+			APIVersion: "serving.knative.dev/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "foo",
 			Namespace: "default",
 		},
-		Spec: servingv1alpha1.ServiceSpec{
-			DeprecatedRunLatest: &servingv1alpha1.RunLatestType{
-				Configuration: servingv1alpha1.ConfigurationSpec{
-					DeprecatedRevisionTemplate: template,
-				},
+		Spec: servingv1.ServiceSpec{
+			ConfigurationSpec: servingv1.ConfigurationSpec{
+				Template: *template,
 			},
 		},
 	}
 	return service, template, container
 }
 
-func assertNoV1alpha1Old(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec) {
-	if template.Spec.DeprecatedContainer != nil {
-		t.Error("Assuming only new v1alpha1 fields but found spec.container")
-	}
-}
-
-func assertNoV1alpha1(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec) {
-	if template.Spec.Containers != nil {
-		t.Error("Assuming only old v1alpha1 fields but found spec.template")
-	}
-}
-
-func checkAnnotationValueInt(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, key string, value int) {
+func checkAnnotationValueInt(t *testing.T, template *servingv1.RevisionTemplateSpec, key string, value int) {
 	anno := template.GetAnnotations()
 	if v, ok := anno[key]; !ok && v != strconv.Itoa(value) {
 		t.Errorf("Failed to update %s annotation key: got=%s, want=%d", key, v, value)
 	}
 }
 
-func checkAnnotationValue(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, key string, value string) {
+func checkAnnotationValue(t *testing.T, template *servingv1.RevisionTemplateSpec, key string, value string) {
 	anno := template.GetAnnotations()
 	if v, ok := anno[key]; !ok && v != value {
 		t.Errorf("Failed to update %s annotation key: got=%s, want=%s", key, v, value)
 	}
 }
 
-func checkContainerConcurrency(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, value *int64) {
+func checkContainerConcurrency(t *testing.T, template *servingv1.RevisionTemplateSpec, value *int64) {
 	if got, want := *template.Spec.ContainerConcurrency, *value; got != want {
 		t.Errorf("Failed to update containerConcurrency value: got=%d, want=%d", got, want)
 	}
 }
 
-func updateConcurrencyConfiguration(template *servingv1alpha1.RevisionTemplateSpec, minScale int, maxScale int, target int, limit int) {
+func updateConcurrencyConfiguration(template *servingv1.RevisionTemplateSpec, minScale int, maxScale int, target int, limit int) {
 	UpdateMinScale(template, minScale)
 	UpdateMaxScale(template, maxScale)
 	UpdateConcurrencyTarget(template, target)

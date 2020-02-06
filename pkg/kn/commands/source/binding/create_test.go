@@ -19,7 +19,7 @@ import (
 
 	"gotest.tools/assert"
 
-	dynamic_fake "knative.dev/client/pkg/dynamic/fake"
+	dynamicfake "knative.dev/client/pkg/dynamic/fake"
 	"knative.dev/client/pkg/sources/v1alpha1"
 
 	"knative.dev/client/pkg/util"
@@ -27,7 +27,7 @@ import (
 
 func TestSimpleCreateBinding(t *testing.T) {
 	mysvc := createService("mysvc")
-	dynamicClient := dynamic_fake.CreateFakeKnDynamicClient("default", mysvc)
+	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default", mysvc)
 
 	bindingClient := v1alpha1.NewMockKnSinkBindingClient(t)
 	bindingRecorder := bindingClient.Recorder()
@@ -42,7 +42,7 @@ func TestSimpleCreateBinding(t *testing.T) {
 
 func TestNoSinkError(t *testing.T) {
 	bindingClient := v1alpha1.NewMockKnSinkBindingClient(t)
-	dynamicClient := dynamic_fake.CreateFakeKnDynamicClient("default")
+	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default")
 
 	_, err := executeSinkBindingCommand(bindingClient, dynamicClient, "create", "testbinding", "--sink", "svc:mysvc", "--subject", "deployment:apps/v1:app=myapp")
 	assert.ErrorContains(t, err, "mysvc")
