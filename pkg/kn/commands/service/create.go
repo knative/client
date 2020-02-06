@@ -21,7 +21,6 @@ import (
 
 	"knative.dev/client/pkg/kn/commands"
 	servinglib "knative.dev/client/pkg/serving"
-	"knative.dev/client/pkg/serving/v1"
 
 	"knative.dev/serving/pkg/apis/serving"
 
@@ -209,7 +208,7 @@ func flush(out io.Writer) {
 	}
 }
 
-func serviceExists(client v1.KnServingClient, name string) (bool, error) {
+func serviceExists(client clientservingv1.KnServingClient, name string) (bool, error) {
 	_, err := client.GetService(name)
 	if apierrors.IsNotFound(err) {
 		return false, nil
