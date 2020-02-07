@@ -35,7 +35,7 @@ func NewBindingCreateCommand(p *commands.KnParams) *cobra.Command {
 		Short: "Create a sink binding.",
 		Example: `
   # Create a sink binding which connects a deployment 'myapp' with a Knative service 'mysvc'
-  kn source binding create my-binding --subject Deployemnt:apps/v1:myapp --sink svc:mysvc`,
+  kn source binding create my-binding --subject Deployment:apps/v1:myapp --sink svc:mysvc`,
 
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {

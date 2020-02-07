@@ -22,7 +22,11 @@
 
 | 🐛
 | Show envFrom when running describe service or revision
-| https://github.com/knative/client/pull/630
+| https://github.com/knative/client/pull/630[#630]
+
+| 🎁
+| Add E2E test for `kn source binding` commands
+| https://github.com/knative/client/pull/634[#634]
 
 | 🎁
 | Add `--cmd` and `--arg` for customization of container entrypoint
