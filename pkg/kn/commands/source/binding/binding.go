@@ -24,11 +24,10 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
-	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
 	"knative.dev/pkg/tracker"
 
 	"knative.dev/client/pkg/kn/commands"
-	sources_v1alpha1 "knative.dev/client/pkg/sources/v1alpha1"
+	clientsourcesv1alpha1 "knative.dev/client/pkg/sources/v1alpha1"
 	"knative.dev/client/pkg/util"
 )
 
@@ -48,9 +47,9 @@ func NewBindingCommand(p *commands.KnParams) *cobra.Command {
 
 // This var can be used to inject a factory for fake clients when doing
 // tests.
-var sinkBindingClientFactory func(config clientcmd.ClientConfig, namespace string) (sources_v1alpha1.KnSinkBindingClient, error)
+var sinkBindingClientFactory func(config clientcmd.ClientConfig, namespace string) (clientsourcesv1alpha1.KnSinkBindingClient, error)
 
-func newSinkBindingClient(p *commands.KnParams, cmd *cobra.Command) (sources_v1alpha1.KnSinkBindingClient, error) {
+func newSinkBindingClient(p *commands.KnParams, cmd *cobra.Command) (clientsourcesv1alpha1.KnSinkBindingClient, error) {
 	namespace, err := p.GetNamespace(cmd)
 	if err != nil {
 		return nil, err
@@ -74,15 +73,7 @@ func newSinkBindingClient(p *commands.KnParams, cmd *cobra.Command) (sources_v1a
 		return nil, err
 	}
 
-	return sources_v1alpha1.NewKnSourcesClient(client, namespace).SinkBindingClient(), nil
-}
-
-// Temporary conversions function until we move to duckv1
-func toDuckV1(destination *duckv1beta1.Destination) *duckv1.Destination {
-	return &duckv1.Destination{
-		Ref: destination.Ref,
-		URI: destination.URI,
-	}
+	return clientsourcesv1alpha1.NewKnSourcesClient(client, namespace).SinkBindingClient(), nil
 }
 
 func toReference(subjectArg string, namespace string) (*tracker.Reference, error) {
@@ -160,7 +151,7 @@ func sinkToString(sink duckv1.Destination) string {
 }
 
 // updateCeOverrides updates the values of the --ce-override flags if given
-func updateCeOverrides(bindingFlags bindingUpdateFlags, bindingBuilder *sources_v1alpha1.SinkBindingBuilder) error {
+func updateCeOverrides(bindingFlags bindingUpdateFlags, bindingBuilder *clientsourcesv1alpha1.SinkBindingBuilder) error {
 	if bindingFlags.ceOverrides != nil {
 		ceOverrideMap, err := util.MapFromArray(bindingFlags.ceOverrides, "=")
 		if err != nil {

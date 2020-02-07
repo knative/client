@@ -94,7 +94,7 @@ func createAPIServerSource(name, resourceKind, resourceVersion, serviceAccount, 
 		Ref: &corev1.ObjectReference{
 			Kind:       "Service",
 			Name:       service,
-			APIVersion: "serving.knative.dev/v1alpha1",
+			APIVersion: "serving.knative.dev/v1",
 			Namespace:  "default",
 		}}
 

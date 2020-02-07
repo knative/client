@@ -19,13 +19,13 @@ import (
 
 	"gotest.tools/assert"
 
-	knclient "knative.dev/client/pkg/serving/v1alpha1"
+	clientservingv1 "knative.dev/client/pkg/serving/v1"
 	"knative.dev/client/pkg/util"
 )
 
 func TestServiceDeleteMock(t *testing.T) {
 	// New mock client
-	client := knclient.NewMockKnServiceClient(t)
+	client := clientservingv1.NewMockKnServiceClient(t)
 
 	// Recording:
 	r := client.Recorder()
@@ -42,7 +42,7 @@ func TestServiceDeleteMock(t *testing.T) {
 
 func TestMultipleServiceDeleteMock(t *testing.T) {
 	// New mock client
-	client := knclient.NewMockKnServiceClient(t)
+	client := clientservingv1.NewMockKnServiceClient(t)
 
 	// Recording:
 	r := client.Recorder()
@@ -60,7 +60,7 @@ func TestMultipleServiceDeleteMock(t *testing.T) {
 
 func TestServiceDeleteNoSvcNameMock(t *testing.T) {
 	// New mock client
-	client := knclient.NewMockKnServiceClient(t)
+	client := clientservingv1.NewMockKnServiceClient(t)
 
 	// Recording:
 	r := client.Recorder()

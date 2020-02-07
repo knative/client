@@ -20,10 +20,10 @@ import (
 
 	"gotest.tools/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	serving_v1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
-	dynamic_fake "knative.dev/client/pkg/dynamic/fake"
-	eventing_client "knative.dev/client/pkg/eventing/v1alpha1"
+	dynamicfake "knative.dev/client/pkg/dynamic/fake"
+	clienteventingv1alpha1 "knative.dev/client/pkg/eventing/v1alpha1"
 	"knative.dev/client/pkg/util"
 )
 
@@ -32,9 +32,9 @@ var (
 )
 
 func TestTriggerCreate(t *testing.T) {
-	eventingClient := eventing_client.NewMockKnEventingClient(t)
-	dynamicClient := dynamic_fake.CreateFakeKnDynamicClient("default", &serving_v1alpha1.Service{
-		TypeMeta:   metav1.TypeMeta{Kind: "Service", APIVersion: "serving.knative.dev/v1alpha1"},
+	eventingClient := clienteventingv1alpha1.NewMockKnEventingClient(t)
+	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default", &servingv1.Service{
+		TypeMeta:   metav1.TypeMeta{Kind: "Service", APIVersion: "serving.knative.dev/v1"},
 		ObjectMeta: metav1.ObjectMeta{Name: "mysvc", Namespace: "default"},
 	})
 
@@ -50,8 +50,8 @@ func TestTriggerCreate(t *testing.T) {
 }
 
 func TestSinkNotFoundError(t *testing.T) {
-	eventingClient := eventing_client.NewMockKnEventingClient(t)
-	dynamicClient := dynamic_fake.CreateFakeKnDynamicClient("default")
+	eventingClient := clienteventingv1alpha1.NewMockKnEventingClient(t)
+	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default")
 
 	errorMsg := fmt.Sprintf("cannot create trigger '%s' in namespace 'default' because: services.serving.knative.dev \"mysvc\" not found", triggerName)
 
@@ -62,16 +62,16 @@ func TestSinkNotFoundError(t *testing.T) {
 }
 
 func TestNoSinkError(t *testing.T) {
-	eventingClient := eventing_client.NewMockKnEventingClient(t)
+	eventingClient := clienteventingv1alpha1.NewMockKnEventingClient(t)
 	_, err := executeTriggerCommand(eventingClient, nil, "create", triggerName, "--broker", "mybroker",
 		"--filter", "type=dev.knative.foo")
 	assert.ErrorContains(t, err, "required flag(s)", "sink", "not set")
 }
 
 func TestTriggerCreateMultipleFilter(t *testing.T) {
-	eventingClient := eventing_client.NewMockKnEventingClient(t)
-	dynamicClient := dynamic_fake.CreateFakeKnDynamicClient("default", &serving_v1alpha1.Service{
-		TypeMeta:   metav1.TypeMeta{Kind: "Service", APIVersion: "serving.knative.dev/v1alpha1"},
+	eventingClient := clienteventingv1alpha1.NewMockKnEventingClient(t)
+	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default", &servingv1.Service{
+		TypeMeta:   metav1.TypeMeta{Kind: "Service", APIVersion: "serving.knative.dev/v1"},
 		ObjectMeta: metav1.ObjectMeta{Name: "mysvc", Namespace: "default"},
 	})
 
@@ -87,9 +87,9 @@ func TestTriggerCreateMultipleFilter(t *testing.T) {
 }
 
 func TestTriggerCreateWithoutFilter(t *testing.T) {
-	eventingClient := eventing_client.NewMockKnEventingClient(t)
-	dynamicClient := dynamic_fake.CreateFakeKnDynamicClient("default", &serving_v1alpha1.Service{
-		TypeMeta:   metav1.TypeMeta{Kind: "Service", APIVersion: "serving.knative.dev/v1alpha1"},
+	eventingClient := clienteventingv1alpha1.NewMockKnEventingClient(t)
+	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default", &servingv1.Service{
+		TypeMeta:   metav1.TypeMeta{Kind: "Service", APIVersion: "serving.knative.dev/v1"},
 		ObjectMeta: metav1.ObjectMeta{Name: "mysvc", Namespace: "default"},
 	})
 

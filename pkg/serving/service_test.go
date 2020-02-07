@@ -20,7 +20,7 @@ import (
 
 	"gotest.tools/assert"
 
-	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
 type generateNameTest struct {
@@ -32,7 +32,7 @@ type generateNameTest struct {
 func TestGenerateName(t *testing.T) {
 	rand.Seed(1)
 	someRandomChars := (&revisionTemplContext{}).Random(20)
-	service := &servingv1alpha1.Service{}
+	service := &servingv1.Service{}
 	service.Name = "foo"
 	service.Generation = 3
 	cases := []generateNameTest{
@@ -53,31 +53,4 @@ func TestGenerateName(t *testing.T) {
 			assert.Equal(t, name, c.result)
 		}
 	}
-}
-
-func TestRevisionTemplateOfServiceNewStyle(t *testing.T) {
-	service := &servingv1alpha1.Service{}
-	service.Name = "foo"
-	template := &servingv1alpha1.RevisionTemplateSpec{}
-	service.Spec.Template = template
-	got, err := RevisionTemplateOfService(service)
-	assert.NilError(t, err)
-	assert.Equal(t, got, template)
-}
-
-func TestRevisionTemplateOfServiceOldStyle(t *testing.T) {
-	service := &servingv1alpha1.Service{}
-	service.Name = "foo"
-	template := &servingv1alpha1.RevisionTemplateSpec{}
-	service.Spec.DeprecatedRunLatest = &servingv1alpha1.RunLatestType{}
-	service.Spec.DeprecatedRunLatest.Configuration.DeprecatedRevisionTemplate = template
-	got, err := RevisionTemplateOfService(service)
-	assert.NilError(t, err)
-	assert.Equal(t, got, template)
-}
-
-func TestRevisionTemplateOfServiceError(t *testing.T) {
-	service := &servingv1alpha1.Service{}
-	_, err := RevisionTemplateOfService(service)
-	assert.ErrorContains(t, err, "does not specify")
 }

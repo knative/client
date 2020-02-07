@@ -21,9 +21,9 @@ import (
 	"gotest.tools/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	client_testing "k8s.io/client-go/testing"
+	clienttesting "k8s.io/client-go/testing"
 	"knative.dev/serving/pkg/apis/serving"
-	"knative.dev/serving/pkg/apis/serving/v1alpha1"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/util"
@@ -31,11 +31,11 @@ import (
 
 var revisionListHeader = []string{"NAME", "SERVICE", "TRAFFIC", "TAGS", "GENERATION", "AGE", "CONDITIONS", "READY", "REASON"}
 
-func fakeRevisionList(args []string, response *v1alpha1.RevisionList) (action client_testing.Action, output []string, err error) {
+func fakeRevisionList(args []string, response *servingv1.RevisionList) (action clienttesting.Action, output []string, err error) {
 	knParams := &commands.KnParams{}
 	cmd, fakeServing, buf := commands.CreateTestKnCommand(NewRevisionCommand(knParams), knParams)
 	fakeServing.AddReactor("list", "*",
-		func(a client_testing.Action) (bool, runtime.Object, error) {
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
 			action = a
 			return true, response, nil
 		})
@@ -49,7 +49,7 @@ func fakeRevisionList(args []string, response *v1alpha1.RevisionList) (action cl
 }
 
 func TestRevisionListEmpty(t *testing.T) {
-	action, output, err := fakeRevisionList([]string{"revision", "list"}, &v1alpha1.RevisionList{})
+	action, output, err := fakeRevisionList([]string{"revision", "list"}, &servingv1.RevisionList{})
 	assert.NilError(t, err)
 	if action == nil {
 		t.Errorf("No action")
@@ -61,7 +61,7 @@ func TestRevisionListEmpty(t *testing.T) {
 }
 
 func TestRevisionListEmptyByName(t *testing.T) {
-	action, _, err := fakeRevisionList([]string{"revision", "list", "name"}, &v1alpha1.RevisionList{})
+	action, _, err := fakeRevisionList([]string{"revision", "list", "name"}, &servingv1.RevisionList{})
 	assert.NilError(t, err)
 	if action == nil {
 		t.Errorf("No action")
@@ -79,7 +79,7 @@ func TestRevisionListDefaultOutput(t *testing.T) {
 	revision5 := createMockRevisionWithParams("foo-wxyz", "foo", "10", "tag1", "tagx")
 	revision6 := createMockRevisionWithParams("bar-wxyz", "bar", "10", "50", "")
 
-	RevisionList := &v1alpha1.RevisionList{Items: []v1alpha1.Revision{
+	RevisionList := &servingv1.RevisionList{Items: []servingv1.Revision{
 		*revision1, *revision2, *revision3, *revision4, *revision5, *revision6}}
 	action, output, err := fakeRevisionList([]string{"revision", "list"}, RevisionList)
 	assert.NilError(t, err)
@@ -105,7 +105,7 @@ func TestRevisionListDefaultOutput(t *testing.T) {
 func TestRevisionListDefaultOutputNoHeaders(t *testing.T) {
 	revision1 := createMockRevisionWithParams("foo-abcd", "foo", "2", "100", "")
 	revision2 := createMockRevisionWithParams("bar-wxyz", "bar", "1", "100", "")
-	RevisionList := &v1alpha1.RevisionList{Items: []v1alpha1.Revision{*revision1, *revision2}}
+	RevisionList := &servingv1.RevisionList{Items: []servingv1.Revision{*revision1, *revision2}}
 	action, output, err := fakeRevisionList([]string{"revision", "list", "--no-headers"}, RevisionList)
 	assert.NilError(t, err)
 	if action == nil {
@@ -125,7 +125,7 @@ func TestRevisionListForService(t *testing.T) {
 	revision2 := createMockRevisionWithParams("bar-wxyz", "svc1", "2", "50", "")
 	revision3 := createMockRevisionWithParams("foo-abcd", "svc2", "1", "0", "")
 	revision4 := createMockRevisionWithParams("bar-wxyz", "svc2", "2", "100", "")
-	RevisionList := &v1alpha1.RevisionList{Items: []v1alpha1.Revision{*revision1, *revision2, *revision3, *revision4}}
+	RevisionList := &servingv1.RevisionList{Items: []servingv1.Revision{*revision1, *revision2, *revision3, *revision4}}
 	action, output, err := fakeRevisionList([]string{"revision", "list", "-s", "svc1"}, RevisionList)
 	assert.NilError(t, err)
 	if action == nil {
@@ -162,7 +162,7 @@ func TestRevisionListForService(t *testing.T) {
 
 func TestRevisionListOneOutput(t *testing.T) {
 	revision := createMockRevisionWithParams("foo-abcd", "foo", "1", "100", "")
-	RevisionList := &v1alpha1.RevisionList{Items: []v1alpha1.Revision{*revision}}
+	RevisionList := &servingv1.RevisionList{Items: []servingv1.Revision{*revision}}
 	action, output, err := fakeRevisionList([]string{"revision", "list", "foo-abcd"}, RevisionList)
 	assert.NilError(t, err)
 	if action == nil {
@@ -176,16 +176,16 @@ func TestRevisionListOneOutput(t *testing.T) {
 }
 
 func TestRevisionListOutputWithTwoRevName(t *testing.T) {
-	RevisionList := &v1alpha1.RevisionList{Items: []v1alpha1.Revision{}}
+	RevisionList := &servingv1.RevisionList{Items: []servingv1.Revision{}}
 	_, _, err := fakeRevisionList([]string{"revision", "list", "foo-abcd", "bar-abcd"}, RevisionList)
 	assert.ErrorContains(t, err, "'kn revision list' accepts maximum 1 argument")
 }
 
-func createMockRevisionWithParams(name, svcName, generation, traffic, tags string) *v1alpha1.Revision {
-	revision := &v1alpha1.Revision{
+func createMockRevisionWithParams(name, svcName, generation, traffic, tags string) *servingv1.Revision {
+	revision := &servingv1.Revision{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Revision",
-			APIVersion: "knative.dev/v1alpha1",
+			APIVersion: "serving.knative.dev/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,

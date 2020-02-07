@@ -23,9 +23,9 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	k8s_fake "k8s.io/client-go/dynamic/fake"
-	eventing_v1alpha1 "knative.dev/eventing/pkg/apis/eventing/v1alpha1"
-	serving_v1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
+	dynamicfake "k8s.io/client-go/dynamic/fake"
+	eventingv1alpha1 "knative.dev/eventing/pkg/apis/eventing/v1alpha1"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
 const testNamespace = "testns"
@@ -104,8 +104,8 @@ func TestListSourceTypes(t *testing.T) {
 // See also the one in the fake package. Duplicated here to avoid a dependency loop.
 func createFakeKnDynamicClient(testNamespace string, objects ...runtime.Object) KnDynamicClient {
 	scheme := runtime.NewScheme()
-	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "serving.knative.dev", Version: "v1alpha1", Kind: "Service"}, &serving_v1alpha1.Service{})
-	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "eventing.knative.dev", Version: "v1alpha1", Kind: "Broker"}, &eventing_v1alpha1.Broker{})
-	client := k8s_fake.NewSimpleDynamicClient(scheme, objects...)
+	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "serving.knative.dev", Version: "v1alpha1", Kind: "Service"}, &servingv1.Service{})
+	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "eventing.knative.dev", Version: "v1alpha1", Kind: "Broker"}, &eventingv1alpha1.Broker{})
+	client := dynamicfake.NewSimpleDynamicClient(scheme, objects...)
 	return NewKnDynamicClient(client, testNamespace)
 }

@@ -74,7 +74,7 @@ func NewCronJobUpdateCommand(p *commands.KnParams) *cobra.Command {
 				if err != nil {
 					return err
 				}
-				b.Sink(destination)
+				b.Sink(toDuckV1Beta1(destination))
 			}
 			err = cronSourceClient.UpdateCronJobSource(b.Build())
 			if err == nil {

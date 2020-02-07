@@ -80,7 +80,7 @@ func (test *e2eTest) routeDescribe(t *testing.T, routeName string) {
 	out, err := test.kn.RunWithOpts([]string{"route", "describe", routeName}, runOpts{})
 	assert.NilError(t, err)
 
-	expectedGVK := `apiVersion: serving.knative.dev/v1alpha1
+	expectedGVK := `apiVersion: serving.knative.dev/v1
 kind: Route`
 	expectedNamespace := fmt.Sprintf("namespace: %s", test.kn.namespace)
 	expectedServiceLabel := fmt.Sprintf("serving.knative.dev/service: %s", routeName)

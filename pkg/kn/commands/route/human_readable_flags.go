@@ -17,9 +17,10 @@ package route
 import (
 	metav1beta1 "k8s.io/apimachinery/pkg/apis/meta/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
+
 	"knative.dev/client/pkg/kn/commands"
 	hprinters "knative.dev/client/pkg/printers"
-	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
 // RouteListHandlers adds print handlers for route list command
@@ -34,7 +35,7 @@ func RouteListHandlers(h hprinters.PrintHandler) {
 }
 
 // printKRouteList populates the Knative route list table rows
-func printKRouteList(kRouteList *servingv1alpha1.RouteList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+func printKRouteList(kRouteList *servingv1.RouteList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	rows := make([]metav1beta1.TableRow, 0, len(kRouteList.Items))
 	for _, ksvc := range kRouteList.Items {
 		r, err := printRoute(&ksvc, options)
@@ -47,7 +48,7 @@ func printKRouteList(kRouteList *servingv1alpha1.RouteList, options hprinters.Pr
 }
 
 // printRoute populates the Knative route table rows
-func printRoute(route *servingv1alpha1.Route, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+func printRoute(route *servingv1.Route, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	name := route.Name
 	url := route.Status.URL
 	ready := commands.ReadyCondition(route.Status.Conditions)

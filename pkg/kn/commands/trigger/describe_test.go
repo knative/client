@@ -20,7 +20,6 @@ import (
 
 	"gotest.tools/assert"
 	"gotest.tools/assert/cmp"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1alpha1 "knative.dev/eventing/pkg/apis/eventing/v1alpha1"
@@ -78,7 +77,7 @@ func getTrigger() *v1alpha1.Trigger {
 				},
 			},
 			Subscriber: duckv1.Destination{
-				Ref: &corev1.ObjectReference{
+				Ref: &duckv1.KReference{
 					Kind:      "Service",
 					Namespace: "myservicenamespace",
 					Name:      "mysvc",

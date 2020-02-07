@@ -87,6 +87,15 @@ func TestServiceOptions(t *testing.T) {
 		test.validateAutoscaleWindow(t, "svc4", "15s")
 		test.serviceDelete(t, "svc4")
 	})
+
+	t.Run("create, update and validate service with cmd and arg options", func(t *testing.T) {
+		test.serviceCreateWithOptions(t, "svc5", []string{"--cmd", "/go/bin/helloworld"})
+		test.validateContainerField(t, "svc5", "command", "[/go/bin/helloworld]")
+		test.serviceUpdate(t, "svc5", []string{"--arg", "myArg1", "--arg", "--myArg2"})
+		test.validateContainerField(t, "svc5", "args", "[myArg1 --myArg2]")
+		test.serviceUpdate(t, "svc5", []string{"--arg", "myArg1"})
+		test.validateContainerField(t, "svc5", "args", "[myArg1]")
+	})
 }
 
 func (test *e2eTest) serviceCreateWithOptions(t *testing.T, serviceName string, options []string) {
@@ -190,4 +199,11 @@ func (test *e2eTest) validateServiceAnnotations(t *testing.T, serviceName string
 			assert.Equal(t, v, out)
 		}
 	}
+}
+
+func (test *e2eTest) validateContainerField(t *testing.T, serviceName, field, expected string) {
+	jsonpath := fmt.Sprintf("jsonpath={.items[0].spec.template.spec.containers[0].%s}", field)
+	out, err := test.kn.RunWithOpts([]string{"service", "list", serviceName, "-o", jsonpath}, runOpts{})
+	assert.NilError(t, err)
+	assert.Equal(t, out, expected)
 }

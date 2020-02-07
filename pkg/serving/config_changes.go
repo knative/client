@@ -30,7 +30,7 @@ import (
 	"knative.dev/pkg/ptr"
 	"knative.dev/serving/pkg/apis/autoscaling"
 	"knative.dev/serving/pkg/apis/serving"
-	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 	"knative.dev/serving/pkg/reconciler/route/config"
 )
 
@@ -56,7 +56,7 @@ var UserImageAnnotationKey = "client.knative.dev/user-image"
 // UpdateEnvVars gives the configuration all the env var values listed in the given map of
 // vars.  Does not touch any environment variables not mentioned, but it can add
 // new env vars and change the values of existing ones, then sort by env key name.
-func UpdateEnvVars(template *servingv1alpha1.RevisionTemplateSpec, toUpdate map[string]string, toRemove []string) error {
+func UpdateEnvVars(template *servingv1.RevisionTemplateSpec, toUpdate map[string]string, toRemove []string) error {
 	container, err := ContainerOfRevisionTemplate(template)
 	if err != nil {
 		return err
@@ -73,7 +73,7 @@ func UpdateEnvVars(template *servingv1alpha1.RevisionTemplateSpec, toUpdate map[
 }
 
 // UpdateEnvFrom updates envFrom
-func UpdateEnvFrom(template *servingv1alpha1.RevisionTemplateSpec, toUpdate []string, toRemove []string) error {
+func UpdateEnvFrom(template *servingv1.RevisionTemplateSpec, toUpdate []string, toRemove []string) error {
 	container, err := ContainerOfRevisionTemplate(template)
 	if err != nil {
 		return err
@@ -145,7 +145,7 @@ func reviseVolumesToRemove(volumeMounts []corev1.VolumeMount, volumesToRemove []
 }
 
 // UpdateVolumeMountsAndVolumes updates the configuration for volume mounts and volumes.
-func UpdateVolumeMountsAndVolumes(template *servingv1alpha1.RevisionTemplateSpec,
+func UpdateVolumeMountsAndVolumes(template *servingv1.RevisionTemplateSpec,
 	mountsToUpdate *util.OrderedMap, mountsToRemove []string, volumesToUpdate *util.OrderedMap, volumesToRemove []string) error {
 	container, err := ContainerOfRevisionTemplate(template)
 	if err != nil {
@@ -176,17 +176,17 @@ func UpdateVolumeMountsAndVolumes(template *servingv1alpha1.RevisionTemplateSpec
 }
 
 // UpdateMinScale updates min scale annotation
-func UpdateMinScale(template *servingv1alpha1.RevisionTemplateSpec, min int) error {
+func UpdateMinScale(template *servingv1.RevisionTemplateSpec, min int) error {
 	return UpdateRevisionTemplateAnnotation(template, autoscaling.MinScaleAnnotationKey, strconv.Itoa(min))
 }
 
 // UpdateMaxScale updates max scale annotation
-func UpdateMaxScale(template *servingv1alpha1.RevisionTemplateSpec, max int) error {
+func UpdateMaxScale(template *servingv1.RevisionTemplateSpec, max int) error {
 	return UpdateRevisionTemplateAnnotation(template, autoscaling.MaxScaleAnnotationKey, strconv.Itoa(max))
 }
 
 // UpdateAutoscaleWindow updates the autoscale window annotation
-func UpdateAutoscaleWindow(template *servingv1alpha1.RevisionTemplateSpec, window string) error {
+func UpdateAutoscaleWindow(template *servingv1.RevisionTemplateSpec, window string) error {
 	_, err := time.ParseDuration(window)
 	if err != nil {
 		return fmt.Errorf("invalid duration for 'autoscale-window': %v", err)
@@ -195,7 +195,7 @@ func UpdateAutoscaleWindow(template *servingv1alpha1.RevisionTemplateSpec, windo
 }
 
 // UpdateClusterLocal updates container serving.knative.dev/visibility annotation
-func UpdateClusterLocal(service *servingv1alpha1.Service, template *servingv1alpha1.RevisionTemplateSpec, clusterLocal bool) error {
+func UpdateClusterLocal(service *servingv1.Service, template *servingv1.RevisionTemplateSpec, clusterLocal bool) error {
 	currentClusterLocal := template.Labels[config.VisibilityLabelKey]
 	if clusterLocal {
 		// NOOP when setting --cluster-local on already private service
@@ -213,12 +213,12 @@ func UpdateClusterLocal(service *servingv1alpha1.Service, template *servingv1alp
 }
 
 // UpdateConcurrencyTarget updates container concurrency annotation
-func UpdateConcurrencyTarget(template *servingv1alpha1.RevisionTemplateSpec, target int) error {
+func UpdateConcurrencyTarget(template *servingv1.RevisionTemplateSpec, target int) error {
 	return UpdateRevisionTemplateAnnotation(template, autoscaling.TargetAnnotationKey, strconv.Itoa(target))
 }
 
 // UpdateConcurrencyLimit updates container concurrency limit
-func UpdateConcurrencyLimit(template *servingv1alpha1.RevisionTemplateSpec, limit int64) error {
+func UpdateConcurrencyLimit(template *servingv1.RevisionTemplateSpec, limit int64) error {
 	err := serving.ValidateContainerConcurrency(ptr.Int64(limit)).ViaField("spec.containerConcurrency")
 	if err != nil {
 		return fmt.Errorf("invalid 'concurrency-limit' value: %s", err)
@@ -230,7 +230,7 @@ func UpdateConcurrencyLimit(template *servingv1alpha1.RevisionTemplateSpec, limi
 
 // UpdateRevisionTemplateAnnotation updates an annotation for the given Revision Template.
 // Also validates the autoscaling annotation values
-func UpdateRevisionTemplateAnnotation(template *servingv1alpha1.RevisionTemplateSpec, annotation string, value string) error {
+func UpdateRevisionTemplateAnnotation(template *servingv1.RevisionTemplateSpec, annotation string, value string) error {
 	annoMap := template.Annotations
 	if annoMap == nil {
 		annoMap = make(map[string]string)
@@ -251,15 +251,6 @@ func UpdateRevisionTemplateAnnotation(template *servingv1alpha1.RevisionTemplate
 
 var ApiTooOldError = errors.New("the service is using too old of an API format for the operation")
 
-// UpdateName updates the revision name.
-func UpdateName(template *servingv1alpha1.RevisionTemplateSpec, name string) error {
-	if template.Spec.DeprecatedContainer != nil {
-		return ApiTooOldError
-	}
-	template.Name = name
-	return nil
-}
-
 // EnvToMap is an utility function to translate between the API list form of env vars, and the
 // more convenient map form.
 func EnvToMap(vars []corev1.EnvVar) (map[string]string, error) {
@@ -275,7 +266,7 @@ func EnvToMap(vars []corev1.EnvVar) (map[string]string, error) {
 }
 
 // UpdateImage a given image
-func UpdateImage(template *servingv1alpha1.RevisionTemplateSpec, image string) error {
+func UpdateImage(template *servingv1.RevisionTemplateSpec, image string) error {
 	// When not setting the image to a digest, add the user image annotation.
 	container, err := ContainerOfRevisionTemplate(template)
 	if err != nil {
@@ -286,12 +277,12 @@ func UpdateImage(template *servingv1alpha1.RevisionTemplateSpec, image string) e
 }
 
 // UnsetUserImageAnnot removes the user image annotation
-func UnsetUserImageAnnot(template *servingv1alpha1.RevisionTemplateSpec) {
+func UnsetUserImageAnnot(template *servingv1.RevisionTemplateSpec) {
 	delete(template.Annotations, UserImageAnnotationKey)
 }
 
 // SetUserImageAnnot sets the user image annotation if the image isn't by-digest already.
-func SetUserImageAnnot(template *servingv1alpha1.RevisionTemplateSpec) {
+func SetUserImageAnnot(template *servingv1.RevisionTemplateSpec) {
 	// If the current image isn't by-digest, set the user-image annotation to it
 	// so we remember what it was.
 	currentContainer, _ := ContainerOfRevisionTemplate(template)
@@ -309,7 +300,7 @@ func SetUserImageAnnot(template *servingv1alpha1.RevisionTemplateSpec) {
 }
 
 // FreezeImageToDigest sets the image on the template to the image digest of the base revision.
-func FreezeImageToDigest(template *servingv1alpha1.RevisionTemplateSpec, baseRevision *servingv1alpha1.Revision) error {
+func FreezeImageToDigest(template *servingv1.RevisionTemplateSpec, baseRevision *servingv1.Revision) error {
 	if baseRevision == nil {
 		return nil
 	}
@@ -334,7 +325,7 @@ func FreezeImageToDigest(template *servingv1alpha1.RevisionTemplateSpec, baseRev
 }
 
 // UpdateContainerCommand updates container with a given argument
-func UpdateContainerCommand(template *servingv1alpha1.RevisionTemplateSpec, command string) error {
+func UpdateContainerCommand(template *servingv1.RevisionTemplateSpec, command string) error {
 	container, err := ContainerOfRevisionTemplate(template)
 	if err != nil {
 		return err
@@ -344,7 +335,7 @@ func UpdateContainerCommand(template *servingv1alpha1.RevisionTemplateSpec, comm
 }
 
 // UpdateContainerArg updates container with a given argument
-func UpdateContainerArg(template *servingv1alpha1.RevisionTemplateSpec, arg []string) error {
+func UpdateContainerArg(template *servingv1.RevisionTemplateSpec, arg []string) error {
 	container, err := ContainerOfRevisionTemplate(template)
 	if err != nil {
 		return err
@@ -354,7 +345,7 @@ func UpdateContainerArg(template *servingv1alpha1.RevisionTemplateSpec, arg []st
 }
 
 // UpdateContainerPort updates container with a give port
-func UpdateContainerPort(template *servingv1alpha1.RevisionTemplateSpec, port int32) error {
+func UpdateContainerPort(template *servingv1.RevisionTemplateSpec, port int32) error {
 	container, err := ContainerOfRevisionTemplate(template)
 	if err != nil {
 		return err
@@ -366,7 +357,7 @@ func UpdateContainerPort(template *servingv1alpha1.RevisionTemplateSpec, port in
 }
 
 // UpdateResources updates resources as requested
-func UpdateResources(template *servingv1alpha1.RevisionTemplateSpec, requestsResourceList corev1.ResourceList, limitsResourceList corev1.ResourceList) error {
+func UpdateResources(template *servingv1.RevisionTemplateSpec, requestsResourceList corev1.ResourceList, limitsResourceList corev1.ResourceList) error {
 	container, err := ContainerOfRevisionTemplate(template)
 	if err != nil {
 		return err
@@ -392,7 +383,7 @@ func UpdateResources(template *servingv1alpha1.RevisionTemplateSpec, requestsRes
 
 // UpdateLabels updates the labels identically on a service and template.
 // Does not overwrite the entire Labels field, only makes the requested updates
-func UpdateLabels(service *servingv1alpha1.Service, template *servingv1alpha1.RevisionTemplateSpec, toUpdate map[string]string, toRemove []string) error {
+func UpdateLabels(service *servingv1.Service, template *servingv1.RevisionTemplateSpec, toUpdate map[string]string, toRemove []string) error {
 	if service.ObjectMeta.Labels == nil {
 		service.ObjectMeta.Labels = make(map[string]string)
 	}
@@ -413,8 +404,8 @@ func UpdateLabels(service *servingv1alpha1.Service, template *servingv1alpha1.Re
 // UpdateAnnotations updates the annotations identically on a service and template.
 // Does not overwrite the entire Annotations field, only makes the requested updates.
 func UpdateAnnotations(
-	service *servingv1alpha1.Service,
-	template *servingv1alpha1.RevisionTemplateSpec,
+	service *servingv1.Service,
+	template *servingv1.RevisionTemplateSpec,
 	toUpdate map[string]string,
 	toRemove []string) error {
 
@@ -440,14 +431,14 @@ func UpdateAnnotations(
 }
 
 // UpdateServiceAccountName updates the service account name used for the corresponding knative service
-func UpdateServiceAccountName(template *servingv1alpha1.RevisionTemplateSpec, serviceAccountName string) error {
+func UpdateServiceAccountName(template *servingv1.RevisionTemplateSpec, serviceAccountName string) error {
 	serviceAccountName = strings.TrimSpace(serviceAccountName)
 	template.Spec.ServiceAccountName = serviceAccountName
 	return nil
 }
 
 // UpdateImagePullSecrets updates the image pull secrets used for the corresponding knative service
-func UpdateImagePullSecrets(template *servingv1alpha1.RevisionTemplateSpec, pullsecrets string) {
+func UpdateImagePullSecrets(template *servingv1.RevisionTemplateSpec, pullsecrets string) {
 	pullsecrets = strings.TrimSpace(pullsecrets)
 	if pullsecrets == "" {
 		template.Spec.ImagePullSecrets = nil

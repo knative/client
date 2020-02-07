@@ -19,18 +19,17 @@ import (
 	"testing"
 
 	"gotest.tools/assert"
-	v1 "knative.dev/serving/pkg/apis/serving/v1"
-	"knative.dev/serving/pkg/apis/serving/v1alpha1"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	"knative.dev/client/pkg/util"
 )
 
 func TestExtractTrafficAndTag(t *testing.T) {
 
-	service := &v1alpha1.Service{
-		Status: v1alpha1.ServiceStatus{
-			RouteStatusFields: v1alpha1.RouteStatusFields{
-				Traffic: []v1alpha1.TrafficTarget{
+	service := &servingv1.Service{
+		Status: servingv1.ServiceStatus{
+			RouteStatusFields: servingv1.RouteStatusFields{
+				Traffic: []servingv1.TrafficTarget{
 					createTarget("myv1", 10, "v1"),
 					createTarget("myv2", 100, "v1"),
 					createTarget("myv1", 20, "stable"),
@@ -46,12 +45,10 @@ func TestExtractTrafficAndTag(t *testing.T) {
 
 }
 
-func createTarget(rev string, percent int64, tag string) v1alpha1.TrafficTarget {
-	return v1alpha1.TrafficTarget{
-		TrafficTarget: v1.TrafficTarget{
-			Tag:          tag,
-			RevisionName: rev,
-			Percent:      &percent,
-		},
+func createTarget(rev string, percent int64, tag string) servingv1.TrafficTarget {
+	return servingv1.TrafficTarget{
+		Tag:          tag,
+		RevisionName: rev,
+		Percent:      &percent,
 	}
 }
