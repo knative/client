@@ -25,6 +25,10 @@ import (
 	"knative.dev/pkg/apis"
 )
 
+// Window for how long to wait until a ReadyCondition == false has to stay
+// for being considered as an error
+var ErrorWindow = 2 * time.Second
+
 // Callbacks and configuration used while waiting
 type waitForReadyConfig struct {
 	watchMaker          WatchMaker
@@ -87,7 +91,7 @@ func (w *waitForReadyConfig) Wait(name string, timeout time.Duration, msgCallbac
 	floatingTimeout := timeout
 	for {
 		start := time.Now()
-		retry, timeoutReached, err := w.waitForReadyCondition(start, name, floatingTimeout, msgCallback)
+		retry, timeoutReached, err := w.waitForReadyCondition(start, name, floatingTimeout, ErrorWindow, msgCallback)
 		if err != nil {
 			return err, time.Since(start)
 		}
@@ -104,18 +108,30 @@ func (w *waitForReadyConfig) Wait(name string, timeout time.Duration, msgCallbac
 	}
 }
 
-func (w *waitForReadyConfig) waitForReadyCondition(start time.Time, name string, timeout time.Duration, msgCallback MessageCallback) (retry bool, timeoutReached bool, err error) {
+func (w *waitForReadyConfig) waitForReadyCondition(start time.Time, name string, timeout time.Duration, errorWindow time.Duration, msgCallback MessageCallback) (retry bool, timeoutReached bool, err error) {
 
 	watcher, err := w.watchMaker(name, timeout)
 	if err != nil {
 		return false, false, err
 	}
-
 	defer watcher.Stop()
+
+	// channel used to transport the error
+	errChan := make(chan error)
+	var errorTimer *time.Timer
+	// Stop any error time if any has started
+	defer (func() {
+		if errorTimer != nil {
+			errorTimer.Stop()
+		}
+	})()
+
 	for {
 		select {
 		case <-time.After(timeout):
 			return false, true, nil
+		case err = <-errChan:
+			return false, false, err
 		case event, ok := <-watcher.ResultChan():
 			if !ok || event.Object == nil {
 				return true, false, nil
@@ -140,7 +156,12 @@ func (w *waitForReadyConfig) waitForReadyCondition(start time.Time, name string,
 					case corev1.ConditionTrue:
 						return false, false, nil
 					case corev1.ConditionFalse:
-						return false, false, fmt.Errorf("%s: %s", cond.Reason, cond.Message)
+						// Fire up timer waiting for the duration of the error window for allowing to reconcile
+						// to a true condition after the condition went to false. If this is not the case within
+						// this window, then an error is returned.
+						errorTimer = time.AfterFunc(errorWindow, func() {
+							errChan <- fmt.Errorf("%s: %s", cond.Reason, cond.Message)
+						})
 					}
 					if cond.Message != "" {
 						msgCallback(time.Since(start), cond.Message)
