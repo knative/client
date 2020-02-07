@@ -325,7 +325,7 @@ func TestUpdateEnvVarsBoth(t *testing.T) {
 }
 
 func TestUpdateLabelsNew(t *testing.T) {
-	service, template, _ := getV1alpha1Service()
+	service, template, _ := getService()
 
 	labels := map[string]string{
 		"a": "foo",
@@ -346,7 +346,7 @@ func TestUpdateLabelsNew(t *testing.T) {
 }
 
 func TestUpdateLabelsExisting(t *testing.T) {
-	service, template, _ := getV1alpha1Service()
+	service, template, _ := getService()
 	service.ObjectMeta.Labels = map[string]string{"a": "foo", "b": "bar"}
 	template.ObjectMeta.Labels = map[string]string{"a": "foo", "b": "bar"}
 
@@ -372,7 +372,7 @@ func TestUpdateLabelsExisting(t *testing.T) {
 }
 
 func TestUpdateLabelsRemoveExisting(t *testing.T) {
-	service, template, _ := getV1alpha1Service()
+	service, template, _ := getService()
 	service.ObjectMeta.Labels = map[string]string{"a": "foo", "b": "bar"}
 	template.ObjectMeta.Labels = map[string]string{"a": "foo", "b": "bar"}
 
@@ -543,7 +543,7 @@ func TestUpdateImagePullSecrets(t *testing.T) {
 }
 
 func TestUpdateAnnotationsNew(t *testing.T) {
-	service, template, _ := getV1alpha1Service()
+	service, template, _ := getService()
 
 	annotations := map[string]string{
 		"a": "foo",
@@ -564,7 +564,7 @@ func TestUpdateAnnotationsNew(t *testing.T) {
 }
 
 func TestUpdateAnnotationsExisting(t *testing.T) {
-	service, template, _ := getV1alpha1Service()
+	service, template, _ := getService()
 	service.ObjectMeta.Annotations = map[string]string{"a": "foo", "b": "bar"}
 	template.ObjectMeta.Annotations = map[string]string{"a": "foo", "b": "bar"}
 
@@ -590,7 +590,7 @@ func TestUpdateAnnotationsExisting(t *testing.T) {
 }
 
 func TestUpdateAnnotationsRemoveExisting(t *testing.T) {
-	service, template, _ := getV1alpha1Service()
+	service, template, _ := getService()
 	service.ObjectMeta.Annotations = map[string]string{"a": "foo", "b": "bar"}
 	template.ObjectMeta.Annotations = map[string]string{"a": "foo", "b": "bar"}
 
@@ -648,7 +648,7 @@ func getRevisionTemplate() (*servingv1.RevisionTemplateSpec, *corev1.Container) 
 	return template, &template.Spec.Containers[0]
 }
 
-func getV1alpha1Service() (*servingv1.Service, *servingv1.RevisionTemplateSpec, *corev1.Container) {
+func getService() (*servingv1.Service, *servingv1.RevisionTemplateSpec, *corev1.Container) {
 	template, container := getRevisionTemplate()
 	service := &servingv1.Service{
 		TypeMeta: metav1.TypeMeta{
