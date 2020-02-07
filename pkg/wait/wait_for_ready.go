@@ -25,7 +25,7 @@ import (
 	"knative.dev/pkg/apis"
 )
 
-// Window for how long to wait until a ReadyCondition == false has to stay
+// Window for how long a ReadyCondition == false has to stay
 // for being considered as an error
 var ErrorWindow = 2 * time.Second
 
