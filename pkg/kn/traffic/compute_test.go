@@ -16,17 +16,18 @@ package traffic
 
 import (
 	"gotest.tools/assert"
-	"knative.dev/serving/pkg/apis/serving/v1alpha1"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	"testing"
 
 	"github.com/spf13/cobra"
+
 	"knative.dev/client/pkg/kn/commands/flags"
 )
 
 type trafficTestCase struct {
 	name             string
-	existingTraffic  []v1alpha1.TrafficTarget
+	existingTraffic  []servingv1.TrafficTarget
 	inputFlags       []string
 	desiredRevisions []string
 	desiredTags      []string
@@ -35,7 +36,7 @@ type trafficTestCase struct {
 
 type trafficErrorTestCase struct {
 	name            string
-	existingTraffic []v1alpha1.TrafficTarget
+	existingTraffic []servingv1.TrafficTarget
 	inputFlags      []string
 	errMsg          string
 }
@@ -55,7 +56,7 @@ func TestCompute(t *testing.T) {
 	for _, testCase := range []trafficTestCase{
 		{
 			"assign 'latest' tag to @latest revision",
-			append(newServiceTraffic([]v1alpha1.TrafficTarget{}), newTarget("", "", 100, true)),
+			append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("", "", 100, true)),
 			[]string{"--tag", "@latest=latest"},
 			[]string{"@latest"},
 			[]string{"latest"},
@@ -63,7 +64,7 @@ func TestCompute(t *testing.T) {
 		},
 		{
 			"assign tag to revision",
-			append(newServiceTraffic([]v1alpha1.TrafficTarget{}), newTarget("", "echo-v1", 100, false)),
+			append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("", "echo-v1", 100, false)),
 			[]string{"--tag", "echo-v1=stable"},
 			[]string{"echo-v1"},
 			[]string{"stable"},
@@ -71,7 +72,7 @@ func TestCompute(t *testing.T) {
 		},
 		{
 			"re-assign same tag to same revision (unchanged)",
-			append(newServiceTraffic([]v1alpha1.TrafficTarget{}), newTarget("current", "", 100, true)),
+			append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("current", "", 100, true)),
 			[]string{"--tag", "@latest=current"},
 			[]string{""},
 			[]string{"current"},
@@ -79,7 +80,7 @@ func TestCompute(t *testing.T) {
 		},
 		{
 			"split traffic to tags",
-			append(newServiceTraffic([]v1alpha1.TrafficTarget{}), newTarget("", "", 100, true), newTarget("", "rev-v1", 0, false)),
+			append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("", "", 100, true), newTarget("", "rev-v1", 0, false)),
 			[]string{"--traffic", "@latest=10,rev-v1=90"},
 			[]string{"@latest", "rev-v1"},
 			[]string{"", ""},
@@ -87,7 +88,7 @@ func TestCompute(t *testing.T) {
 		},
 		{
 			"split traffic to tags with '%' suffix",
-			append(newServiceTraffic([]v1alpha1.TrafficTarget{}), newTarget("", "", 100, true), newTarget("", "rev-v1", 0, false)),
+			append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("", "", 100, true), newTarget("", "rev-v1", 0, false)),
 			[]string{"--traffic", "@latest=10%,rev-v1=90%"},
 			[]string{"@latest", "rev-v1"},
 			[]string{"", ""},
@@ -95,7 +96,7 @@ func TestCompute(t *testing.T) {
 		},
 		{
 			"add 2 more tagged revisions without giving them traffic portions",
-			append(newServiceTraffic([]v1alpha1.TrafficTarget{}), newTarget("latest", "", 100, true)),
+			append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("latest", "", 100, true)),
 			[]string{"--tag", "echo-v0=stale,echo-v1=old"},
 			[]string{"@latest", "echo-v0", "echo-v1"},
 			[]string{"latest", "stale", "old"},
@@ -103,7 +104,7 @@ func TestCompute(t *testing.T) {
 		},
 		{
 			"re-assign same tag to 'echo-v1' revision",
-			append(newServiceTraffic([]v1alpha1.TrafficTarget{}), newTarget("latest", "echo-v1", 100, false)),
+			append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("latest", "echo-v1", 100, false)),
 			[]string{"--tag", "echo-v1=latest"},
 			[]string{"echo-v1"},
 			[]string{"latest"},
@@ -111,7 +112,7 @@ func TestCompute(t *testing.T) {
 		},
 		{
 			"set 2% traffic to latest revision by appending it in traffic block",
-			append(newServiceTraffic([]v1alpha1.TrafficTarget{}), newTarget("latest", "echo-v1", 100, false)),
+			append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("latest", "echo-v1", 100, false)),
 			[]string{"--traffic", "@latest=2,echo-v1=98"},
 			[]string{"echo-v1", "@latest"},
 			[]string{"latest", ""},
@@ -119,7 +120,7 @@ func TestCompute(t *testing.T) {
 		},
 		{
 			"set 2% to @latest with tag (append it in traffic block)",
-			append(newServiceTraffic([]v1alpha1.TrafficTarget{}), newTarget("latest", "echo-v1", 100, false)),
+			append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("latest", "echo-v1", 100, false)),
 			[]string{"--traffic", "@latest=2,echo-v1=98", "--tag", "@latest=testing"},
 			[]string{"echo-v1", "@latest"},
 			[]string{"latest", "testing"},
@@ -127,7 +128,7 @@ func TestCompute(t *testing.T) {
 		},
 		{
 			"change traffic percent of an existing revision in traffic block, add new revision with traffic share",
-			append(newServiceTraffic([]v1alpha1.TrafficTarget{}), newTarget("v1", "echo-v1", 100, false)),
+			append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("v1", "echo-v1", 100, false)),
 			[]string{"--tag", "echo-v2=v2", "--traffic", "v1=10,v2=90"},
 			[]string{"echo-v1", "echo-v2"},
 			[]string{"v1", "v2"},
@@ -135,7 +136,7 @@ func TestCompute(t *testing.T) {
 		},
 		{
 			"untag 'latest' tag from 'echo-v1' revision",
-			append(newServiceTraffic([]v1alpha1.TrafficTarget{}), newTarget("latest", "echo-v1", 100, false)),
+			append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("latest", "echo-v1", 100, false)),
 			[]string{"--untag", "latest"},
 			[]string{"echo-v1"},
 			[]string{""},
@@ -143,7 +144,7 @@ func TestCompute(t *testing.T) {
 		},
 		{
 			"replace revision pointing to 'latest' tag from 'echo-v1' to 'echo-v2' revision",
-			append(newServiceTraffic([]v1alpha1.TrafficTarget{}), newTarget("latest", "echo-v1", 50, false), newTarget("", "echo-v2", 50, false)),
+			append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("latest", "echo-v1", 50, false), newTarget("", "echo-v2", 50, false)),
 			[]string{"--untag", "latest", "--tag", "echo-v1=old,echo-v2=latest"},
 			[]string{"echo-v1", "echo-v2"},
 			[]string{"old", "latest"},
@@ -151,7 +152,7 @@ func TestCompute(t *testing.T) {
 		},
 		{
 			"have multiple tags for a revision, revision present in traffic block",
-			append(newServiceTraffic([]v1alpha1.TrafficTarget{}), newTarget("latest", "echo-v1", 50, false), newTarget("", "echo-v2", 50, false)),
+			append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("latest", "echo-v1", 50, false), newTarget("", "echo-v2", 50, false)),
 			[]string{"--tag", "echo-v1=latest,echo-v1=current"},
 			[]string{"echo-v1", "echo-v2", "echo-v1"}, // appends a new target
 			[]string{"latest", "", "current"},         // with new tag requested
@@ -160,7 +161,7 @@ func TestCompute(t *testing.T) {
 
 		{
 			"have multiple tags for a revision, revision absent in traffic block",
-			append(newServiceTraffic([]v1alpha1.TrafficTarget{}), newTarget("", "echo-v2", 100, false)),
+			append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("", "echo-v2", 100, false)),
 			[]string{"--tag", "echo-v1=latest,echo-v1=current"},
 			[]string{"echo-v2", "echo-v1", "echo-v1"}, // appends two new targets
 			[]string{"", "latest", "current"},         // with new tags requested
@@ -168,7 +169,7 @@ func TestCompute(t *testing.T) {
 		},
 		{
 			"re-assign same tag 'current' to @latest",
-			append(newServiceTraffic([]v1alpha1.TrafficTarget{}), newTarget("current", "", 100, true)),
+			append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("current", "", 100, true)),
 			[]string{"--tag", "@latest=current"},
 			[]string{""},
 			[]string{"current"}, // since no change, no error
@@ -176,7 +177,7 @@ func TestCompute(t *testing.T) {
 		},
 		{
 			"assign echo-v1 10% traffic adjusting rest to @latest, echo-v1 isn't present in existing traffic block",
-			append(newServiceTraffic([]v1alpha1.TrafficTarget{}), newTarget("", "", 100, true)),
+			append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("", "", 100, true)),
 			[]string{"--traffic", "echo-v1=10,@latest=90"},
 			[]string{"", "echo-v1"},
 			[]string{"", ""}, // since no change, no error
@@ -213,67 +214,67 @@ func TestComputeErrMsg(t *testing.T) {
 	for _, testCase := range []trafficErrorTestCase{
 		{
 			"invalid format for --traffic option",
-			append(newServiceTraffic([]v1alpha1.TrafficTarget{}), newTarget("", "", 100, true)),
+			append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("", "", 100, true)),
 			[]string{"--traffic", "@latest=100=latest"},
 			"expecting the value format in value1=value2, given @latest=100=latest",
 		},
 		{
 			"invalid format for --tag option",
-			append(newServiceTraffic([]v1alpha1.TrafficTarget{}), newTarget("", "", 100, true)),
+			append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("", "", 100, true)),
 			[]string{"--tag", "@latest="},
 			"expecting the value format in value1=value2, given @latest=",
 		},
 		{
 			"repeatedly spliting traffic to @latest revision",
-			append(newServiceTraffic([]v1alpha1.TrafficTarget{}), newTarget("", "", 100, true)),
+			append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("", "", 100, true)),
 			[]string{"--traffic", "@latest=90,@latest=10"},
 			"repetition of identifier @latest is not allowed, use only once with --traffic flag",
 		},
 		{
 			"repeatedly tagging to @latest revision not allowed",
-			append(newServiceTraffic([]v1alpha1.TrafficTarget{}), newTarget("", "", 100, true)),
+			append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("", "", 100, true)),
 			[]string{"--tag", "@latest=latest,@latest=2"},
 			"repetition of identifier @latest is not allowed, use only once with --tag flag",
 		},
 		{
 			"overwriting tag not allowed, to @latest from other revision",
-			append(append(newServiceTraffic([]v1alpha1.TrafficTarget{}), newTarget("latest", "", 2, true)), newTarget("stable", "echo-v2", 98, false)),
+			append(append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("latest", "", 2, true)), newTarget("stable", "echo-v2", 98, false)),
 			[]string{"--tag", "@latest=stable"},
 			"refusing to overwrite existing tag in service, add flag '--untag stable' in command to untag it",
 		},
 		{
 			"overwriting tag not allowed, to a revision from other revision",
-			append(append(newServiceTraffic([]v1alpha1.TrafficTarget{}), newTarget("latest", "", 2, true)), newTarget("stable", "echo-v2", 98, false)),
+			append(append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("latest", "", 2, true)), newTarget("stable", "echo-v2", 98, false)),
 			[]string{"--tag", "echo-v2=latest"},
 			"refusing to overwrite existing tag in service, add flag '--untag latest' in command to untag it",
 		},
 		{
 			"overwriting tag of @latest not allowed, existing != requested",
-			append(newServiceTraffic([]v1alpha1.TrafficTarget{}), newTarget("candidate", "", 100, true)),
+			append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("candidate", "", 100, true)),
 			[]string{"--tag", "@latest=current"},
 			"tag 'candidate' exists on latest ready revision of service, refusing to overwrite existing tag with 'current', add flag '--untag candidate' in command to untag it",
 		},
 		{
 			"verify error for non integer values given to percent",
-			append(newServiceTraffic([]v1alpha1.TrafficTarget{}), newTarget("", "", 100, true)),
+			append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("", "", 100, true)),
 			[]string{"--traffic", "@latest=100p"},
 			"error converting given 100p to integer value for traffic distribution",
 		},
 		{
 			"verify error for traffic sum not equal to 100",
-			append(newServiceTraffic([]v1alpha1.TrafficTarget{}), newTarget("", "", 100, true)),
+			append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("", "", 100, true)),
 			[]string{"--traffic", "@latest=19,echo-v1=71"},
 			"given traffic percents sum to 90, want 100",
 		},
 		{
 			"verify error for values out of range given to percent",
-			append(newServiceTraffic([]v1alpha1.TrafficTarget{}), newTarget("", "", 100, true)),
+			append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("", "", 100, true)),
 			[]string{"--traffic", "@latest=-100"},
 			"invalid value for traffic percent -100, expected 0 <= percent <= 100",
 		},
 		{
 			"repeatedly spliting traffic to the same revision",
-			append(newServiceTraffic([]v1alpha1.TrafficTarget{}), newTarget("", "", 100, true)),
+			append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("", "", 100, true)),
 			[]string{"--traffic", "echo-v1=40", "--traffic", "echo-v1=60"},
 			"repetition of revision reference echo-v1 is not allowed, use only once with --traffic flag",
 		},

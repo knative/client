@@ -21,15 +21,15 @@ import (
 
 	"github.com/spf13/cobra"
 	"gotest.tools/assert"
-	dynamic_fake "k8s.io/client-go/dynamic/fake"
-	sources_fake "knative.dev/eventing/pkg/legacyclient/clientset/versioned/typed/legacysources/v1alpha1/fake"
-	"knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake"
+	dynamicfake "k8s.io/client-go/dynamic/fake"
+	sourcesv1alpha1fake "knative.dev/eventing/pkg/legacyclient/clientset/versioned/typed/legacysources/v1alpha1/fake"
+	servingv1fake "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1/fake"
 )
 
 func TestCreateTestKnCommand(t *testing.T) {
 	var (
 		knCmd   *cobra.Command
-		serving *fake.FakeServingV1alpha1
+		serving *servingv1fake.FakeServingV1
 		buffer  *bytes.Buffer
 	)
 
@@ -60,7 +60,7 @@ func TestCreateTestKnCommand(t *testing.T) {
 func TestCreateSourcesTestKnCommand(t *testing.T) {
 	var (
 		knCmd   *cobra.Command
-		sources *sources_fake.FakeSourcesV1alpha1
+		sources *sourcesv1alpha1fake.FakeSourcesV1alpha1
 		buffer  *bytes.Buffer
 	)
 
@@ -91,7 +91,7 @@ func TestCreateSourcesTestKnCommand(t *testing.T) {
 func TestCreateDynamicTestKnCommand(t *testing.T) {
 	var (
 		knCmd   *cobra.Command
-		dynamic *dynamic_fake.FakeDynamicClient
+		dynamic *dynamicfake.FakeDynamicClient
 		buffer  *bytes.Buffer
 	)
 

@@ -16,7 +16,7 @@ package revision
 
 import (
 	"github.com/spf13/cobra"
-	"knative.dev/serving/pkg/apis/serving/v1alpha1"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	"knative.dev/client/pkg/kn/commands"
 )
@@ -36,7 +36,7 @@ func NewRevisionCommand(p *commands.KnParams) *cobra.Command {
 // Shared revision functions:
 
 // Extract traffic and tags for given revision from a service
-func trafficAndTagsForRevision(revision string, service *v1alpha1.Service) (int64, []string) {
+func trafficAndTagsForRevision(revision string, service *servingv1.Service) (int64, []string) {
 	if len(service.Status.Traffic) == 0 {
 		return 0, nil
 	}

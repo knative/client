@@ -23,17 +23,18 @@ import (
 	"k8s.io/apimachinery/pkg/api/equality"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	client_testing "k8s.io/client-go/testing"
-	"knative.dev/client/pkg/kn/commands"
-	"knative.dev/serving/pkg/apis/serving/v1alpha1"
+	clienttesting "k8s.io/client-go/testing"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 	"sigs.k8s.io/yaml"
+
+	"knative.dev/client/pkg/kn/commands"
 )
 
-func fakeRouteDescribe(args []string, response *v1alpha1.Route) (action client_testing.Action, output string, err error) {
+func fakeRouteDescribe(args []string, response *servingv1.Route) (action clienttesting.Action, output string, err error) {
 	knParams := &commands.KnParams{}
 	cmd, fakeRoute, buf := commands.CreateTestKnCommand(NewRouteCommand(knParams), knParams)
 	fakeRoute.AddReactor("*", "*",
-		func(a client_testing.Action) (bool, runtime.Object, error) {
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
 			action = a
 			return true, response, nil
 		})
@@ -47,13 +48,13 @@ func fakeRouteDescribe(args []string, response *v1alpha1.Route) (action client_t
 }
 
 func TestCompletion(t *testing.T) {
-	var expectedRoute v1alpha1.Route
+	var expectedRoute servingv1.Route
 
 	setup := func(t *testing.T) {
-		expectedRoute = v1alpha1.Route{
+		expectedRoute = servingv1.Route{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "Route",
-				APIVersion: "knative.dev/v1alpha1",
+				APIVersion: "serving.knative.dev/v1",
 			},
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "foo",
@@ -63,7 +64,7 @@ func TestCompletion(t *testing.T) {
 	}
 
 	t.Run("requires the route name", func(t *testing.T) {
-		_, _, err := fakeRouteDescribe([]string{"route", "describe"}, &v1alpha1.Route{})
+		_, _, err := fakeRouteDescribe([]string{"route", "describe"}, &servingv1.Route{})
 		assert.Assert(t, err != nil)
 		assert.Assert(t, strings.Contains(err.Error(), "requires the route name."))
 	})
@@ -79,7 +80,7 @@ func TestCompletion(t *testing.T) {
 		jsonData, err := yaml.YAMLToJSON([]byte(output))
 		assert.Assert(t, err == nil)
 
-		var returnedRoute v1alpha1.Route
+		var returnedRoute servingv1.Route
 		err = json.Unmarshal(jsonData, &returnedRoute)
 		assert.Assert(t, err == nil)
 		assert.Assert(t, equality.Semantic.DeepEqual(expectedRoute, returnedRoute))
@@ -97,7 +98,7 @@ func TestCompletion(t *testing.T) {
 			jsonData, err := yaml.YAMLToJSON([]byte(output))
 			assert.Assert(t, err == nil)
 
-			var returnedRoute v1alpha1.Route
+			var returnedRoute servingv1.Route
 			err = json.Unmarshal(jsonData, &returnedRoute)
 			assert.Assert(t, err == nil)
 			assert.Assert(t, equality.Semantic.DeepEqual(expectedRoute, returnedRoute))
@@ -111,7 +112,7 @@ func TestCompletion(t *testing.T) {
 			assert.Assert(t, action != nil)
 			assert.Assert(t, action.Matches("get", "routes"))
 
-			var returnedRoute v1alpha1.Route
+			var returnedRoute servingv1.Route
 			err = json.Unmarshal([]byte(output), &returnedRoute)
 			assert.Assert(t, err == nil)
 			assert.Assert(t, equality.Semantic.DeepEqual(expectedRoute, returnedRoute))

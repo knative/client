@@ -19,21 +19,22 @@ import (
 
 	"gotest.tools/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	dynamic_fake "knative.dev/client/pkg/dynamic/fake"
-	serving_v1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
-	v1alpha12 "knative.dev/client/pkg/eventing/legacysources/v1alpha1"
+	dynamicfake "knative.dev/client/pkg/dynamic/fake"
+
+	clientsourcesv1alpha1 "knative.dev/client/pkg/eventing/legacysources/v1alpha1"
 	"knative.dev/client/pkg/util"
 )
 
 func TestSimpleCreateCronJobSource(t *testing.T) {
-	mysvc := &serving_v1alpha1.Service{
-		TypeMeta:   v1.TypeMeta{Kind: "Service", APIVersion: "serving.knative.dev/v1alpha1"},
+	mysvc := &servingv1.Service{
+		TypeMeta:   v1.TypeMeta{Kind: "Service", APIVersion: "serving.knative.dev/v1"},
 		ObjectMeta: v1.ObjectMeta{Name: "mysvc", Namespace: "default"},
 	}
-	dynamicClient := dynamic_fake.CreateFakeKnDynamicClient("default", mysvc)
+	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default", mysvc)
 
-	cronjobClient := v1alpha12.NewMockKnCronJobSourceClient(t)
+	cronjobClient := clientsourcesv1alpha1.NewMockKnCronJobSourceClient(t)
 
 	cronJobRecorder := cronjobClient.Recorder()
 	cronJobRecorder.CreateCronJobSource(createCronJobSource("testsource", "* * * * */2", "maxwell", "mysvc"), nil)
@@ -46,9 +47,9 @@ func TestSimpleCreateCronJobSource(t *testing.T) {
 }
 
 func TestNoSinkError(t *testing.T) {
-	cronjobClient := v1alpha12.NewMockKnCronJobSourceClient(t)
+	cronjobClient := clientsourcesv1alpha1.NewMockKnCronJobSourceClient(t)
 
-	dynamicClient := dynamic_fake.CreateFakeKnDynamicClient("default")
+	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default")
 
 	out, err := executeCronJobSourceCommand(cronjobClient, dynamicClient, "create", "--sink", "svc:mysvc", "--schedule", "* * * * */2", "--data", "maxwell", "testsource")
 	assert.Error(t, err, "services.serving.knative.dev \"mysvc\" not found")

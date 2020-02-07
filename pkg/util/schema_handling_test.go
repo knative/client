@@ -18,26 +18,26 @@ import (
 	"testing"
 
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"knative.dev/serving/pkg/apis/serving/v1alpha1"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 	"knative.dev/serving/pkg/client/clientset/versioned/scheme"
 )
 
 func TestGVKUpdate(t *testing.T) {
-	service := v1alpha1.Service{}
-	err := UpdateGroupVersionKindWithScheme(&service, v1alpha1.SchemeGroupVersion, scheme.Scheme)
+	service := servingv1.Service{}
+	err := UpdateGroupVersionKindWithScheme(&service, servingv1.SchemeGroupVersion, scheme.Scheme)
 	if err != nil {
 		t.Fatalf("cannot update GVK to a service %v", err)
 	}
 	if service.Kind != "Service" {
 		t.Fatalf("wrong kind '%s'", service.Kind)
 	}
-	if service.APIVersion != v1alpha1.SchemeGroupVersion.Group+"/"+v1alpha1.SchemeGroupVersion.Version {
+	if service.APIVersion != servingv1.SchemeGroupVersion.Group+"/"+servingv1.SchemeGroupVersion.Version {
 		t.Fatalf("wrong version '%s'", service.APIVersion)
 	}
 }
 
 func TestGVKUpdateNegative(t *testing.T) {
-	service := v1alpha1.Service{}
+	service := servingv1.Service{}
 	err := UpdateGroupVersionKindWithScheme(&service, schema.GroupVersion{Group: "bla", Version: "blub"}, scheme.Scheme)
 	if err == nil {
 		t.Fatal("expect an error for an unregistered group version")

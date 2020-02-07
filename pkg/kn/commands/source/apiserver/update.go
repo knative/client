@@ -86,7 +86,7 @@ func NewAPIServerUpdateCommand(p *commands.KnParams) *cobra.Command {
 				if err != nil {
 					return err
 				}
-				b.Sink(objectRef)
+				b.Sink(toDuckV1Beta1(objectRef))
 			}
 
 			err = sourcesClient.UpdateAPIServerSource(b.Build())

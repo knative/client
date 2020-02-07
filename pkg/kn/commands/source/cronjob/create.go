@@ -67,7 +67,7 @@ func NewCronJobCreateCommand(p *commands.KnParams) *cobra.Command {
 				v1alpha1.NewCronJobSourceBuilder(name).
 					Schedule(cronUpdateFlags.schedule).
 					Data(cronUpdateFlags.data).
-					Sink(destination).
+					Sink(toDuckV1Beta1(destination)).
 					Build())
 			if err == nil {
 				fmt.Fprintf(cmd.OutOrStdout(), "CronJob source '%s' created in namespace '%s'.\n", args[0], cronSourceClient.Namespace())

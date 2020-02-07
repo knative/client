@@ -69,7 +69,7 @@ func NewBindingCreateCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			bindingBuilder := v1alpha12.NewSinkBindingBuilder(name).
-				Sink(toDuckV1(destination)).
+				Sink(destination).
 				Subject(reference).
 				Namespace(namespace)
 

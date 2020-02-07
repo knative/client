@@ -21,7 +21,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"knative.dev/serving/pkg/apis/autoscaling"
-	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
 type Scaling struct {
@@ -29,19 +29,15 @@ type Scaling struct {
 	Max *int
 }
 
-func ContainerOfRevisionTemplate(template *servingv1alpha1.RevisionTemplateSpec) (*corev1.Container, error) {
+func ContainerOfRevisionTemplate(template *servingv1.RevisionTemplateSpec) (*corev1.Container, error) {
 	return ContainerOfRevisionSpec(&template.Spec)
 }
 
-func ContainerOfRevisionSpec(revisionSpec *servingv1alpha1.RevisionSpec) (*corev1.Container, error) {
-	if usesOldV1alpha1ContainerField(revisionSpec) {
-		return revisionSpec.DeprecatedContainer, nil
-	}
-	container := revisionSpec.GetContainer()
-	if container == nil {
+func ContainerOfRevisionSpec(revisionSpec *servingv1.RevisionSpec) (*corev1.Container, error) {
+	if len(revisionSpec.Containers) == 0 {
 		return nil, fmt.Errorf("internal: no container set in spec.template.spec.containers")
 	}
-	return container, nil
+	return &revisionSpec.Containers[0], nil
 }
 
 func ScalingInfo(m *metav1.ObjectMeta) (*Scaling, error) {
@@ -71,7 +67,7 @@ func AutoscaleWindow(m *metav1.ObjectMeta) string {
 	return m.Annotations[autoscaling.WindowAnnotationKey]
 }
 
-func Port(revisionSpec *servingv1alpha1.RevisionSpec) *int32 {
+func Port(revisionSpec *servingv1.RevisionSpec) *int32 {
 	c, err := ContainerOfRevisionSpec(revisionSpec)
 	if err != nil {
 		return nil
@@ -84,10 +80,6 @@ func Port(revisionSpec *servingv1alpha1.RevisionSpec) *int32 {
 }
 
 // =======================================================================================
-
-func usesOldV1alpha1ContainerField(revisionSpec *servingv1alpha1.RevisionSpec) bool {
-	return revisionSpec.DeprecatedContainer != nil
-}
 
 func annotationAsInt(m *metav1.ObjectMeta, annotationKey string) (*int, error) {
 	annos := m.Annotations

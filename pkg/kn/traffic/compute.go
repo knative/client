@@ -20,17 +20,18 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"knative.dev/client/pkg/kn/commands/flags"
 	"knative.dev/pkg/ptr"
-	"knative.dev/serving/pkg/apis/serving/v1alpha1"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
+
+	"knative.dev/client/pkg/kn/commands/flags"
 )
 
 var latestRevisionRef = "@latest"
 
 // ServiceTraffic type for operating on service traffic targets
-type ServiceTraffic []v1alpha1.TrafficTarget
+type ServiceTraffic []servingv1.TrafficTarget
 
-func newServiceTraffic(traffic []v1alpha1.TrafficTarget) ServiceTraffic {
+func newServiceTraffic(traffic []servingv1.TrafficTarget) ServiceTraffic {
 	return ServiceTraffic(traffic)
 }
 
@@ -42,7 +43,7 @@ func splitByEqualSign(pair string) (string, string, error) {
 	return parts[0], strings.TrimSuffix(parts[1], "%"), nil
 }
 
-func newTarget(tag, revision string, percent int64, latestRevision bool) (target v1alpha1.TrafficTarget) {
+func newTarget(tag, revision string, percent int64, latestRevision bool) (target servingv1.TrafficTarget) {
 	target.Percent = ptr.Int64(percent)
 	target.Tag = tag
 	if latestRevision {
@@ -266,7 +267,7 @@ func verifyInputSanity(trafficFlags *flags.Traffic) error {
 }
 
 // Compute takes service traffic targets and updates per given traffic flags
-func Compute(cmd *cobra.Command, targets []v1alpha1.TrafficTarget, trafficFlags *flags.Traffic) ([]v1alpha1.TrafficTarget, error) {
+func Compute(cmd *cobra.Command, targets []servingv1.TrafficTarget, trafficFlags *flags.Traffic) ([]servingv1.TrafficTarget, error) {
 	err := verifyInputSanity(trafficFlags)
 	if err != nil {
 		return nil, err

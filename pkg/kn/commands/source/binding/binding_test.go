@@ -17,7 +17,6 @@ package binding
 import (
 	"bytes"
 
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/tools/clientcmd"
 	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
@@ -103,6 +102,6 @@ func createSinkBinding(name, service string, subjectGvk schema.GroupVersionKind,
 
 func createServiceSink(service string) v1.Destination {
 	return v1.Destination{
-		Ref: &corev1.ObjectReference{Name: service, Kind: "Service", APIVersion: "serving.knative.dev/v1alpha1", Namespace: "default"},
+		Ref: &v1.KReference{Name: service, Kind: "Service", APIVersion: "serving.knative.dev/v1", Namespace: "default"},
 	}
 }

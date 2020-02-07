@@ -28,7 +28,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/watch"
 
-	"knative.dev/serving/pkg/apis/serving/v1alpha1"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
 type fakePollInterval struct {
@@ -69,13 +69,13 @@ func newWatcherForTest(pollResults []runtime.Object) watch.Interface {
 var a, aa, b, bb, c, cc, z, zz runtime.Object
 
 func init() {
-	a = &v1alpha1.Service{ObjectMeta: metav1.ObjectMeta{Name: "foo", ResourceVersion: "a", UID: "one"}}
+	a = &servingv1.Service{ObjectMeta: metav1.ObjectMeta{Name: "foo", ResourceVersion: "a", UID: "one"}}
 	aa = a.DeepCopyObject()
-	b = &v1alpha1.Service{ObjectMeta: metav1.ObjectMeta{Name: "foo", ResourceVersion: "b", UID: "one"}}
+	b = &servingv1.Service{ObjectMeta: metav1.ObjectMeta{Name: "foo", ResourceVersion: "b", UID: "one"}}
 	bb = b.DeepCopyObject()
-	c = &v1alpha1.Service{ObjectMeta: metav1.ObjectMeta{Name: "foo", ResourceVersion: "c", UID: "one"}}
+	c = &servingv1.Service{ObjectMeta: metav1.ObjectMeta{Name: "foo", ResourceVersion: "c", UID: "one"}}
 	cc = c.DeepCopyObject()
-	z = &v1alpha1.Service{ObjectMeta: metav1.ObjectMeta{Name: "foo", ResourceVersion: "z", UID: "two"}}
+	z = &servingv1.Service{ObjectMeta: metav1.ObjectMeta{Name: "foo", ResourceVersion: "z", UID: "two"}}
 	zz = z.DeepCopyObject()
 }
 

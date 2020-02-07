@@ -20,20 +20,20 @@ import (
 
 	"gotest.tools/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	serving_v1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
-	dynamic_fake "knative.dev/client/pkg/dynamic/fake"
-	v1alpha13 "knative.dev/client/pkg/sources/v1alpha1"
+	dynamicfake "knative.dev/client/pkg/dynamic/fake"
+	clientsourcesv1alpha1 "knative.dev/client/pkg/sources/v1alpha1"
 	"knative.dev/client/pkg/util"
 )
 
 func TestSimpleUpdate(t *testing.T) {
-	sinkBindingClient := v1alpha13.NewMockKnSinkBindingClient(t)
+	sinkBindingClient := clientsourcesv1alpha1.NewMockKnSinkBindingClient(t)
 
 	mysvc := createService("myscv")
 	othersvc := createService("othersvc")
 
-	dynamicClient := dynamic_fake.CreateFakeKnDynamicClient("default", mysvc, othersvc)
+	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default", mysvc, othersvc)
 
 	bindingRecorder := sinkBindingClient.Recorder()
 	ceOverrideMap := map[string]string{"bla": "blub", "foo": "bar"}
@@ -47,16 +47,16 @@ func TestSimpleUpdate(t *testing.T) {
 	bindingRecorder.Validate()
 }
 
-func createService(name string) *serving_v1alpha1.Service {
-	mysvc := &serving_v1alpha1.Service{
-		TypeMeta:   v1.TypeMeta{Kind: "Service", APIVersion: "serving.knative.dev/v1alpha1"},
+func createService(name string) *servingv1.Service {
+	mysvc := &servingv1.Service{
+		TypeMeta:   v1.TypeMeta{Kind: "Service", APIVersion: "serving.knative.dev/v1"},
 		ObjectMeta: v1.ObjectMeta{Name: name, Namespace: "default"},
 	}
 	return mysvc
 }
 
 func TestUpdateError(t *testing.T) {
-	sinkBindingClient := v1alpha13.NewMockKnSinkBindingClient(t)
+	sinkBindingClient := clientsourcesv1alpha1.NewMockKnSinkBindingClient(t)
 	bindingRecorder := sinkBindingClient.Recorder()
 	bindingRecorder.GetSinkBinding("testbinding", nil, errors.New("no such binding testbinding"))
 
