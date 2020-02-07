@@ -28,6 +28,8 @@ import (
 	"sigs.k8s.io/yaml"
 
 	"knative.dev/client/pkg/kn/commands"
+	"knative.dev/client/pkg/util"
+	"knative.dev/pkg/ptr"
 )
 
 func fakeRouteDescribe(args []string, response *servingv1.Route) (action clienttesting.Action, output string, err error) {
@@ -59,17 +61,41 @@ func TestCompletion(t *testing.T) {
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "foo",
 				Namespace: "default",
+				OwnerReferences: []metav1.OwnerReference{
+					{
+						Kind:       "Service",
+						Name:       "foo",
+						APIVersion: "serving.knative.dev/v1",
+					},
+				},
+			},
+			Status: servingv1.RouteStatus{
+				RouteStatusFields: servingv1.RouteStatusFields{
+					Traffic: []servingv1.TrafficTarget{
+						{
+							RevisionName: "foo-v2",
+							Tag:          "v2",
+							Percent:      ptr.Int64(90),
+						},
+						{
+							LatestRevision: ptr.Bool(true),
+							RevisionName:   "foo-v3",
+							Tag:            "latest",
+							Percent:        ptr.Int64(10),
+						},
+					},
+				},
 			},
 		}
 	}
 
-	t.Run("requires the route name", func(t *testing.T) {
+	t.Run("describe route without route name arg", func(t *testing.T) {
 		_, _, err := fakeRouteDescribe([]string{"route", "describe"}, &servingv1.Route{})
 		assert.Assert(t, err != nil)
-		assert.Assert(t, strings.Contains(err.Error(), "requires the route name."))
+		assert.ErrorContains(t, err, "requires", "name", "route", "single", "argument")
 	})
 
-	t.Run("describe a valid route with default output", func(t *testing.T) {
+	t.Run("describe a route with human readable output", func(t *testing.T) {
 		setup(t)
 
 		action, output, err := fakeRouteDescribe([]string{"route", "describe", "foo"}, &expectedRoute)
@@ -77,16 +103,19 @@ func TestCompletion(t *testing.T) {
 		assert.Assert(t, action != nil)
 		assert.Assert(t, action.Matches("get", "routes"))
 
-		jsonData, err := yaml.YAMLToJSON([]byte(output))
-		assert.Assert(t, err == nil)
-
-		var returnedRoute servingv1.Route
-		err = json.Unmarshal(jsonData, &returnedRoute)
-		assert.Assert(t, err == nil)
-		assert.Assert(t, equality.Semantic.DeepEqual(expectedRoute, returnedRoute))
+		assert.Check(t, util.ContainsAll(output,
+			"Name", "URL", "Owner References", "Traffic Targets", "Conditions",
+			"foo", "default", "90%", "foo-v2", "#v2", "10%", "@latest", "foo-v3"))
 	})
 
-	t.Run("describe a valid route with special output", func(t *testing.T) {
+	t.Run("describe a route with verbose output", func(t *testing.T) {
+		_, output, err := fakeRouteDescribe([]string{"route", "describe", "foo", "-v"}, &expectedRoute)
+		assert.Assert(t, err == nil)
+
+		assert.Check(t, util.ContainsAll(output, "foo", "default", "serving.knative.dev/v1"))
+	})
+
+	t.Run("describe a valid route with machine readable output", func(t *testing.T) {
 		t.Run("yaml", func(t *testing.T) {
 			setup(t)
 

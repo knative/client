@@ -43,12 +43,11 @@ func NewRevisionDescribeCommand(p *commands.KnParams) *cobra.Command {
 
 	command := &cobra.Command{
 		Use:   "describe NAME",
-		Short: "Describe revisions.",
+		Short: "Show details of a given Revision",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if len(args) < 1 {
-				return errors.New("requires the revision name.")
+			if len(args) != 1 {
+				return errors.New("'kn revision describe' requires name of the revision as single argument")
 			}
-
 			namespace, err := p.GetNamespace(cmd)
 			if err != nil {
 				return err

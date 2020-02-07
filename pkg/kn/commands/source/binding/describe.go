@@ -38,7 +38,7 @@ func NewBindingDescribeCommand(p *commands.KnParams) *cobra.Command {
   kn source binding describe mysinkbinding`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
-				return errors.New("'kn source binding describe' requires the name of the source as single argument")
+				return errors.New("'kn source binding describe' requires name of the source binding as single argument")
 			}
 			name := args[0]
 
