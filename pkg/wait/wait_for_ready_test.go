@@ -79,6 +79,7 @@ func prepareTestCases(name string) []waitForReadyTestCase {
 		tc(peError, name, true),
 		tc(peWrongGeneration, name, true),
 		tc(peTimeout, name, true),
+		tc(peReadyFalseWithinErrorWindow, name, false),
 	}
 }
 
@@ -129,5 +130,13 @@ func peWrongGeneration(name string) ([]watch.Event, int) {
 	return []watch.Event{
 		{watch.Added, CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "", messages[0])},
 		{watch.Modified, CreateTestServiceWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "", "", 1, 2)},
+	}, len(messages)
+}
+
+func peReadyFalseWithinErrorWindow(name string) ([]watch.Event, int) {
+	messages := pMessages(1)
+	return []watch.Event{
+		{watch.Added, CreateTestServiceWithConditions(name, corev1.ConditionFalse, corev1.ConditionFalse, "Route not ready", messages[0])},
+		{watch.Modified, CreateTestServiceWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "Route ready", "")},
 	}, len(messages)
 }
