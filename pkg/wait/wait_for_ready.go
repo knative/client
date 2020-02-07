@@ -119,7 +119,8 @@ func (w *waitForReadyConfig) waitForReadyCondition(start time.Time, name string,
 	// channel used to transport the error
 	errChan := make(chan error)
 	var errorTimer *time.Timer
-	// Stop any error time if any has started
+	// Stop error timer if it has been started because of
+	// a ConditionReady has been set to false
 	defer (func() {
 		if errorTimer != nil {
 			errorTimer.Stop()
@@ -156,12 +157,15 @@ func (w *waitForReadyConfig) waitForReadyCondition(start time.Time, name string,
 					case corev1.ConditionTrue:
 						return false, false, nil
 					case corev1.ConditionFalse:
-						// Fire up timer waiting for the duration of the error window for allowing to reconcile
-						// to a true condition after the condition went to false. If this is not the case within
+						// Fire up a timer waiting for the error window duration to still allow to reconcile
+						// to a true condition even after the condition went to false. If this is not the case within
 						// this window, then an error is returned.
-						errorTimer = time.AfterFunc(errorWindow, func() {
-							errChan <- fmt.Errorf("%s: %s", cond.Reason, cond.Message)
-						})
+						// If there is already a timer running, we just log.
+						if errorTimer != nil {
+							errorTimer = time.AfterFunc(errorWindow, func() {
+								errChan <- fmt.Errorf("%s: %s", cond.Reason, cond.Message)
+							})
+						}
 					}
 					if cond.Message != "" {
 						msgCallback(time.Since(start), cond.Message)
