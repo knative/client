@@ -40,7 +40,7 @@ kn service update NAME [flags]
 ```
       --annotation stringArray    Service annotation to set. name=value; you may provide this flag any number of times to set multiple annotations. To unset, specify the annotation name followed by a "-" (e.g., name-).
       --arg stringArray           Add argument to the container command. Example: --arg myArg1 --arg --myArg2 --arg myArg3=3. You can use this flag multiple times.
-      --async                     Update service and don't wait for it to become ready.
+      --async                     DEPRECATED: please use --no-wait instead. Update service and don't wait for it to become ready.
       --autoscale-window string   Duration to look back for making auto-scaling decisions. The service is scaled to zero if no request was received in during that time. (eg: 10s)
       --cmd string                Specify command to be used as entrypoint instead of default one. Example: --cmd /app/start or --cmd /app/start --arg myArg to pass aditional arguments.
       --concurrency-limit int     Hard Limit of concurrent requests to be processed by a single replica.
@@ -58,6 +58,7 @@ kn service update NAME [flags]
       --mount stringArray         Mount a ConfigMap (prefix cm: or config-map:), a Secret (prefix secret: or sc:), or an existing Volume (without any prefix) on the specified directory. Example: --mount /mydir=cm:myconfigmap, --mount /mydir=secret:mysecret, or --mount /mydir=myvolume. When a configmap or a secret is specified, a corresponding volume is automatically generated. You can use this flag multiple times. For unmounting a directory, append "-", e.g. --mount /mydir-, which also removes any auto-generated volume.
   -n, --namespace string          Specify the namespace to operate in.
       --no-lock-to-digest         do not keep the running image for the service constant when not explicitly specifying the image. (--no-lock-to-digest pulls the image tag afresh with each new revision)
+      --no-wait                   Update service and don't wait for it to become ready.
   -p, --port int32                The port where application listens on.
       --pull-secret string        Image pull secret to set. An empty argument ("") clears the pull secret. The referenced secret must exist in the service's namespace.
       --requests-cpu string       The requested CPU (e.g., 250m).

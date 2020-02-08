@@ -57,11 +57,11 @@ func TestServiceUpdateEnvMock(t *testing.T) {
 	r.GetService("foo", service, nil)
 	r.UpdateService(updated, nil)
 
-	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "-e", "a=mouse", "--env", "b=cookie", "--env=empty", "--async", "--revision-name=")
+	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "-e", "a=mouse", "--env", "b=cookie", "--env=empty", "--no-wait", "--revision-name=")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
 
-	output, err = executeServiceCommand(client, "update", "foo", "-e", "a=rabbit", "--env=empty-", "--async", "--revision-name=")
+	output, err = executeServiceCommand(client, "update", "foo", "-e", "a=rabbit", "--env=empty-", "--no-wait", "--revision-name=")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "updated", "foo", "default"))
 
@@ -110,7 +110,7 @@ func TestServiceUpdateAnnotationsMock(t *testing.T) {
 		"--annotation", "an1=staysConstant",
 		"--annotation", "an2=getsUpdated",
 		"--annotation", "an3=getsRemoved",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", svcName, "default"))
@@ -119,7 +119,7 @@ func TestServiceUpdateAnnotationsMock(t *testing.T) {
 		"update", svcName,
 		"--annotation", "an2=isUpdated",
 		"--annotation", "an3-",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
@@ -178,7 +178,7 @@ func TestServiceUpdateEnvFromAddingWithConfigMap(t *testing.T) {
 	output, err := executeServiceCommand(client,
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",
 		"--env-from", "config-map:existing-name",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", svcName, "default"))
@@ -186,7 +186,7 @@ func TestServiceUpdateEnvFromAddingWithConfigMap(t *testing.T) {
 	output, err = executeServiceCommand(client,
 		"update", svcName,
 		"--env-from", "config-map:new-name",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
@@ -290,7 +290,7 @@ func TestServiceUpdateEnvFromRemovalWithConfigMap(t *testing.T) {
 		"--env-from", "config-map:existing-name-2",
 		"--env-from", "cm:existing-name-3",
 		"--env-from", "config-map:existing-name-4",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", svcName, "default"))
@@ -300,7 +300,7 @@ func TestServiceUpdateEnvFromRemovalWithConfigMap(t *testing.T) {
 		"--env-from", "config-map:existing-name-1-",
 		"--env-from", "cm:existing-name-2-",
 		"--env-from", "config-map:existing-name-3-",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
@@ -309,14 +309,14 @@ func TestServiceUpdateEnvFromRemovalWithConfigMap(t *testing.T) {
 	output, err = executeServiceCommand(client,
 		"update", svcName,
 		"--env-from", "config-map:-",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.Error(t, err, "the name of config-map cannot be an empty string")
 
 	output, err = executeServiceCommand(client,
 		"update", svcName,
 		"--env-from", "cm:existing-name-4-",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
@@ -376,7 +376,7 @@ func TestServiceUpdateEnvFromRemovalWithEmptyName(t *testing.T) {
 	output, err := executeServiceCommand(client,
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",
 		"--env-from", "config-map:existing-name-1",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", svcName, "default"))
@@ -384,14 +384,14 @@ func TestServiceUpdateEnvFromRemovalWithEmptyName(t *testing.T) {
 	_, err = executeServiceCommand(client,
 		"update", svcName,
 		"--env-from", "-",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.Error(t, err, "\"-\" is not a valid value for \"--env-from\"")
 
 	output, err = executeServiceCommand(client,
 		"update", svcName,
 		"--env-from", "config-map:existing-name-2",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
@@ -463,7 +463,7 @@ func TestServiceUpdateEnvFromExistingWithConfigMap(t *testing.T) {
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",
 		"--env-from", "config-map:existing-name-1",
 		"--env-from", "config-map:existing-name-2",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", svcName, "default"))
@@ -472,7 +472,7 @@ func TestServiceUpdateEnvFromExistingWithConfigMap(t *testing.T) {
 		"update", svcName,
 		"--env-from", "config-map:existing-name-1",
 		"--env-from", "config-map:new-name",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
@@ -531,7 +531,7 @@ func TestServiceUpdateEnvFromAddingWithSecret(t *testing.T) {
 	output, err := executeServiceCommand(client,
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",
 		"--env-from", "secret:existing-name",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", svcName, "default"))
@@ -539,7 +539,7 @@ func TestServiceUpdateEnvFromAddingWithSecret(t *testing.T) {
 	output, err = executeServiceCommand(client,
 		"update", svcName,
 		"--env-from", "sc:new-name",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
@@ -642,7 +642,7 @@ func TestServiceUpdateEnvFromRemovalWithSecret(t *testing.T) {
 		"--env-from", "secret:existing-name-2",
 		"--env-from", "sc:existing-name-3",
 		"--env-from", "secret:existing-name-4",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", svcName, "default"))
@@ -652,7 +652,7 @@ func TestServiceUpdateEnvFromRemovalWithSecret(t *testing.T) {
 		"--env-from", "secret:existing-name-1-",
 		"--env-from", "sc:existing-name-2-",
 		"--env-from", "secret:existing-name-3-",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
@@ -661,14 +661,14 @@ func TestServiceUpdateEnvFromRemovalWithSecret(t *testing.T) {
 	output, err = executeServiceCommand(client,
 		"update", svcName,
 		"--env-from", "secret:-",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.Error(t, err, "the name of secret cannot be an empty string")
 
 	output, err = executeServiceCommand(client,
 		"update", svcName,
 		"--env-from", "sc:existing-name-4-",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
@@ -742,7 +742,7 @@ func TestServiceUpdateEnvFromExistingWithSecret(t *testing.T) {
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",
 		"--env-from", "sc:existing-name-1",
 		"--env-from", "secret:existing-name-2",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", svcName, "default"))
@@ -751,7 +751,7 @@ func TestServiceUpdateEnvFromExistingWithSecret(t *testing.T) {
 		"update", svcName,
 		"--env-from", "secret:existing-name-1",
 		"--env-from", "secret:new-name",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
@@ -844,7 +844,7 @@ func TestServiceUpdateWithAddingVolume(t *testing.T) {
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",
 		"--volume", "vol-1=cm:existing-config-map-1",
 		"--volume", "vol-2=secret:existing-secret-1",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", svcName, "default"))
@@ -853,7 +853,7 @@ func TestServiceUpdateWithAddingVolume(t *testing.T) {
 		"update", svcName,
 		"--volume", "vol-3=cm:existing-config-map-2",
 		"--volume", "vol-4=secret:existing-secret-2",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
@@ -946,7 +946,7 @@ func TestServiceUpdateWithUpdatingVolume(t *testing.T) {
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",
 		"--volume", "vol-1=cm:existing-config-map-1",
 		"--volume", "vol-2=secret:existing-secret-1",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", svcName, "default"))
@@ -957,7 +957,7 @@ func TestServiceUpdateWithUpdatingVolume(t *testing.T) {
 		"--volume", "vol-2=secret:existing-secret-3",
 		"--volume", "vol-3=cm:existing-config-map-2",
 		"--volume", "vol-4=secret:existing-secret-2",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
@@ -1052,7 +1052,7 @@ func TestServiceUpdateWithRemovingVolume(t *testing.T) {
 		"--volume", "vol-2=secret:existing-secret-1",
 		"--volume", "vol-3=cm:existing-config-map-2",
 		"--volume", "vol-4=secret:existing-secret-2",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", svcName, "default"))
@@ -1061,7 +1061,7 @@ func TestServiceUpdateWithRemovingVolume(t *testing.T) {
 		"update", svcName,
 		"--volume", "vol-3-",
 		"--volume", "vol-2-",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
@@ -1126,7 +1126,7 @@ func TestServiceUpdateWithAddingMount(t *testing.T) {
 
 	output, err := executeServiceCommand(client,
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", svcName, "default"))
@@ -1135,7 +1135,7 @@ func TestServiceUpdateWithAddingMount(t *testing.T) {
 		"update", svcName,
 		"--mount", "/mount/config-map-path=cm:config-map-name",
 		"--mount", "/mount/secret-path=secret:secret-name",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
@@ -1236,7 +1236,7 @@ func TestServiceUpdateWithUpdatingMount(t *testing.T) {
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",
 		"--mount", "/mount/config-map-path=cm:config-map-name-1",
 		"--mount", "/mount/secret-path=secret:secret-name-1",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", svcName, "default"))
@@ -1247,7 +1247,7 @@ func TestServiceUpdateWithUpdatingMount(t *testing.T) {
 		"update", svcName,
 		"--mount", "/mount/secret-path=secret:secret-name-2",
 		"--mount", "/mount/config-map-path=cm:config-map-name-2",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
@@ -1418,7 +1418,7 @@ func TestServiceUpdateWithRemovingMount(t *testing.T) {
 		"--mount", "/mount/secret-path-2=secret:secret-name-2",
 		"--mount", "/mount/custom-path=custom-vol",
 		"--volume", "custom-vol=cm:config-map",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", svcName, "default"))
@@ -1440,7 +1440,7 @@ func TestServiceUpdateWithRemovingMount(t *testing.T) {
 		"update", svcName,
 		"--mount", "/mount/config-map-path-2-",
 		"--mount", "/mount/secret-path-1-",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
@@ -1450,7 +1450,7 @@ func TestServiceUpdateWithRemovingMount(t *testing.T) {
 		"--mount", "/mount/config-map-path-1-",
 		"--mount", "/mount/secret-path-2-",
 		"--mount", "/mount/custom-path-",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
