@@ -99,7 +99,7 @@ Revision even if nothing else has changed.
 Example:
 
 ```yaml
-apiVersion: serving.knative.dev/v1alpha1
+apiVersion: serving.knative.dev/v1
 kind: Configuration
 metadata:
   name: my-service # Named the same as the Service

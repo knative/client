@@ -24,10 +24,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"knative.dev/pkg/apis"
 
-	"knative.dev/serving/pkg/apis/serving/v1alpha1"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	servinglib "knative.dev/client/pkg/serving"
-	knclient "knative.dev/client/pkg/serving/v1alpha1"
+	knclient "knative.dev/client/pkg/serving/v1"
 	"knative.dev/client/pkg/util/mock"
 	"knative.dev/client/pkg/wait"
 
@@ -42,7 +42,7 @@ func TestServiceCreateImageMock(t *testing.T) {
 	// Recording:
 	r := client.Recorder()
 	// Check for existing service --> no
-	r.GetService("foo", nil, errors.NewNotFound(v1alpha1.Resource("service"), "foo"))
+	r.GetService("foo", nil, errors.NewNotFound(servingv1.Resource("service"), "foo"))
 	// Create service (don't validate given service --> "Any()" arg is allowed)
 	r.CreateService(mock.Any(), nil)
 	// Wait for service to become ready
@@ -63,7 +63,7 @@ func TestServiceCreateEnvMock(t *testing.T) {
 	client := knclient.NewMockKnServiceClient(t)
 
 	r := client.Recorder()
-	r.GetService("foo", nil, errors.NewNotFound(v1alpha1.Resource("service"), "foo"))
+	r.GetService("foo", nil, errors.NewNotFound(servingv1.Resource("service"), "foo"))
 
 	service := getService("foo")
 	envVars := []corev1.EnvVar{
@@ -71,14 +71,13 @@ func TestServiceCreateEnvMock(t *testing.T) {
 		{Name: "b", Value: "cookie"},
 		{Name: "empty", Value: ""},
 	}
-	template, err := servinglib.RevisionTemplateOfService(service)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().Env = envVars
+	template := &service.Spec.Template
+	template.Spec.Containers[0].Env = envVars
 	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
 	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 	r.CreateService(service, nil)
 
-	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "-e", "a=mouse", "--env", "b=cookie", "--env=empty", "--async", "--revision-name=")
+	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "-e", "a=mouse", "--env", "b=cookie", "--env=empty", "--no-wait", "--revision-name=")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
 
@@ -89,7 +88,7 @@ func TestServiceCreateLabel(t *testing.T) {
 	client := knclient.NewMockKnServiceClient(t)
 
 	r := client.Recorder()
-	r.GetService("foo", nil, errors.NewNotFound(v1alpha1.Resource("service"), "foo"))
+	r.GetService("foo", nil, errors.NewNotFound(servingv1.Resource("service"), "foo"))
 
 	service := getService("foo")
 	expected := map[string]string{
@@ -101,13 +100,12 @@ func TestServiceCreateLabel(t *testing.T) {
 	service.Spec.Template.Annotations = map[string]string{
 		servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz",
 	}
-	template, err := servinglib.RevisionTemplateOfService(service)
-	assert.NilError(t, err)
+	template := &service.Spec.Template
 	template.ObjectMeta.Labels = expected
 	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
 	r.CreateService(service, nil)
 
-	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "-l", "a=mouse", "--label", "b=cookie", "--label=empty", "--async", "--revision-name=")
+	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "-l", "a=mouse", "--label", "b=cookie", "--label=empty", "--no-wait", "--revision-name=")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
 
@@ -118,12 +116,11 @@ func TestServiceCreateWithEnvFromConfigMap(t *testing.T) {
 	client := knclient.NewMockKnServiceClient(t)
 
 	r := client.Recorder()
-	r.GetService("foo", nil, errors.NewNotFound(v1alpha1.Resource("service"), "foo"))
+	r.GetService("foo", nil, errors.NewNotFound(servingv1.Resource("service"), "foo"))
 
 	service := getService("foo")
-	template, err := servinglib.RevisionTemplateOfService(service)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().EnvFrom = []corev1.EnvFromSource{
+	template := &service.Spec.Template
+	template.Spec.Containers[0].EnvFrom = []corev1.EnvFromSource{
 		{
 			ConfigMapRef: &corev1.ConfigMapEnvSource{
 				LocalObjectReference: corev1.LocalObjectReference{
@@ -136,7 +133,7 @@ func TestServiceCreateWithEnvFromConfigMap(t *testing.T) {
 	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 	r.CreateService(service, nil)
 
-	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "--env-from", "config-map:config-map-name", "--async", "--revision-name=")
+	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "--env-from", "config-map:config-map-name", "--no-wait", "--revision-name=")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
 
@@ -147,17 +144,16 @@ func TestServiceCreateWithEnvFromConfigMapRemoval(t *testing.T) {
 	client := knclient.NewMockKnServiceClient(t)
 
 	r := client.Recorder()
-	r.GetService("foo", nil, errors.NewNotFound(v1alpha1.Resource("service"), "foo"))
+	r.GetService("foo", nil, errors.NewNotFound(servingv1.Resource("service"), "foo"))
 
 	service := getService("foo")
-	template, err := servinglib.RevisionTemplateOfService(service)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().EnvFrom = nil
+	template := &service.Spec.Template
+	template.Spec.Containers[0].EnvFrom = nil
 	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
 	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 	r.CreateService(service, nil)
 
-	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "--env-from", "config-map:config-map-name-", "--async", "--revision-name=")
+	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "--env-from", "config-map:config-map-name-", "--no-wait", "--revision-name=")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
 
@@ -168,17 +164,16 @@ func TestServiceCreateWithEnvFromEmptyRemoval(t *testing.T) {
 	client := knclient.NewMockKnServiceClient(t)
 
 	r := client.Recorder()
-	r.GetService("foo", nil, errors.NewNotFound(v1alpha1.Resource("service"), "foo"))
+	r.GetService("foo", nil, errors.NewNotFound(servingv1.Resource("service"), "foo"))
 
 	service := getService("foo")
-	template, err := servinglib.RevisionTemplateOfService(service)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().EnvFrom = nil
+	template := &service.Spec.Template
+	template.Spec.Containers[0].EnvFrom = nil
 	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
 	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 	r.CreateService(service, nil)
 
-	_, err = executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "--env-from", "-", "--async", "--revision-name=")
+	_, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "--env-from", "-", "--no-wait", "--revision-name=")
 	assert.Error(t, err, "\"-\" is not a valid value for \"--env-from\"")
 }
 
@@ -186,12 +181,11 @@ func TestServiceCreateWithEnvFromSecret(t *testing.T) {
 	client := knclient.NewMockKnServiceClient(t)
 
 	r := client.Recorder()
-	r.GetService("foo", nil, errors.NewNotFound(v1alpha1.Resource("service"), "foo"))
+	r.GetService("foo", nil, errors.NewNotFound(servingv1.Resource("service"), "foo"))
 
 	service := getService("foo")
-	template, err := servinglib.RevisionTemplateOfService(service)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().EnvFrom = []corev1.EnvFromSource{
+	template := &service.Spec.Template
+	template.Spec.Containers[0].EnvFrom = []corev1.EnvFromSource{
 		{
 			SecretRef: &corev1.SecretEnvSource{
 				LocalObjectReference: corev1.LocalObjectReference{
@@ -204,7 +198,7 @@ func TestServiceCreateWithEnvFromSecret(t *testing.T) {
 	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 	r.CreateService(service, nil)
 
-	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "--env-from", "secret:secret-name", "--async", "--revision-name=")
+	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "--env-from", "secret:secret-name", "--no-wait", "--revision-name=")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
 
@@ -215,17 +209,16 @@ func TestServiceCreateWithEnvFromSecretRemoval(t *testing.T) {
 	client := knclient.NewMockKnServiceClient(t)
 
 	r := client.Recorder()
-	r.GetService("foo", nil, errors.NewNotFound(v1alpha1.Resource("service"), "foo"))
+	r.GetService("foo", nil, errors.NewNotFound(servingv1.Resource("service"), "foo"))
 
 	service := getService("foo")
-	template, err := servinglib.RevisionTemplateOfService(service)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().EnvFrom = nil
+	template := &service.Spec.Template
+	template.Spec.Containers[0].EnvFrom = nil
 	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
 	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 	r.CreateService(service, nil)
 
-	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "--env-from", "secret:secret-name-", "--async", "--revision-name=")
+	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "--env-from", "secret:secret-name-", "--no-wait", "--revision-name=")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
 
@@ -236,11 +229,10 @@ func TestServiceCreateWithVolumeAndMountConfigMap(t *testing.T) {
 	client := knclient.NewMockKnServiceClient(t)
 
 	r := client.Recorder()
-	r.GetService("foo", nil, errors.NewNotFound(v1alpha1.Resource("service"), "foo"))
+	r.GetService("foo", nil, errors.NewNotFound(servingv1.Resource("service"), "foo"))
 
 	service := getService("foo")
-	template, err := servinglib.RevisionTemplateOfService(service)
-	assert.NilError(t, err)
+	template := &service.Spec.Template
 	template.Spec.Volumes = []corev1.Volume{
 		{
 			Name: "volume-name",
@@ -267,7 +259,7 @@ func TestServiceCreateWithVolumeAndMountConfigMap(t *testing.T) {
 	r.CreateService(service, nil)
 
 	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz",
-		"--mount", "/mount/path=volume-name", "--volume", "volume-name=cm:config-map-name", "--async", "--revision-name=")
+		"--mount", "/mount/path=volume-name", "--volume", "volume-name=cm:config-map-name", "--no-wait", "--revision-name=")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
 
@@ -278,11 +270,10 @@ func TestServiceCreateWithMountConfigMap(t *testing.T) {
 	client := knclient.NewMockKnServiceClient(t)
 
 	r := client.Recorder()
-	r.GetService("foo", nil, errors.NewNotFound(v1alpha1.Resource("service"), "foo"))
+	r.GetService("foo", nil, errors.NewNotFound(servingv1.Resource("service"), "foo"))
 
 	service := getService("foo")
-	template, err := servinglib.RevisionTemplateOfService(service)
-	assert.NilError(t, err)
+	template := &service.Spec.Template
 	template.Spec.Volumes = []corev1.Volume{
 		{
 			Name: servinglib.GenerateVolumeName("/mount/path"),
@@ -309,7 +300,7 @@ func TestServiceCreateWithMountConfigMap(t *testing.T) {
 	r.CreateService(service, nil)
 
 	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz",
-		"--mount", "/mount/path=cm:config-map-name", "--async", "--revision-name=")
+		"--mount", "/mount/path=cm:config-map-name", "--no-wait", "--revision-name=")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
 
@@ -320,11 +311,10 @@ func TestServiceCreateWithVolumeAndMountSecret(t *testing.T) {
 	client := knclient.NewMockKnServiceClient(t)
 
 	r := client.Recorder()
-	r.GetService("foo", nil, errors.NewNotFound(v1alpha1.Resource("service"), "foo"))
+	r.GetService("foo", nil, errors.NewNotFound(servingv1.Resource("service"), "foo"))
 
 	service := getService("foo")
-	template, err := servinglib.RevisionTemplateOfService(service)
-	assert.NilError(t, err)
+	template := &service.Spec.Template
 	template.Spec.Volumes = []corev1.Volume{
 		{
 			Name: "volume-name",
@@ -349,7 +339,7 @@ func TestServiceCreateWithVolumeAndMountSecret(t *testing.T) {
 	r.CreateService(service, nil)
 
 	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz",
-		"--mount", "/mount/path=volume-name", "--volume", "volume-name=secret:secret-name", "--async", "--revision-name=")
+		"--mount", "/mount/path=volume-name", "--volume", "volume-name=secret:secret-name", "--no-wait", "--revision-name=")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
 
@@ -360,11 +350,10 @@ func TestServiceCreateWithMountSecret(t *testing.T) {
 	client := knclient.NewMockKnServiceClient(t)
 
 	r := client.Recorder()
-	r.GetService("foo", nil, errors.NewNotFound(v1alpha1.Resource("service"), "foo"))
+	r.GetService("foo", nil, errors.NewNotFound(servingv1.Resource("service"), "foo"))
 
 	service := getService("foo")
-	template, err := servinglib.RevisionTemplateOfService(service)
-	assert.NilError(t, err)
+	template := &service.Spec.Template
 	template.Spec.Volumes = []corev1.Volume{
 		{
 			Name: servinglib.GenerateVolumeName("/mount/path"),
@@ -389,24 +378,24 @@ func TestServiceCreateWithMountSecret(t *testing.T) {
 	r.CreateService(service, nil)
 
 	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz",
-		"--mount", "/mount/path=sc:secret-name", "--async", "--revision-name=")
+		"--mount", "/mount/path=sc:secret-name", "--no-wait", "--revision-name=")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
 
 	r.Validate()
 }
 
-func getService(name string) *v1alpha1.Service {
-	service := &v1alpha1.Service{
+func getService(name string) *servingv1.Service {
+	service := &servingv1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: "default",
 		},
-		Spec: v1alpha1.ServiceSpec{},
+		Spec: servingv1.ServiceSpec{},
 	}
 
-	service.Spec.Template = &v1alpha1.RevisionTemplateSpec{
-		Spec: v1alpha1.RevisionSpec{},
+	service.Spec.Template = servingv1.RevisionTemplateSpec{
+		Spec: servingv1.RevisionSpec{},
 	}
 
 	service.Spec.Template.Spec.Containers = []corev1.Container{{
@@ -418,8 +407,8 @@ func getService(name string) *v1alpha1.Service {
 	return service
 }
 
-func getServiceWithUrl(name string, urlName string) *v1alpha1.Service {
-	service := v1alpha1.Service{}
+func getServiceWithUrl(name string, urlName string) *servingv1.Service {
+	service := servingv1.Service{}
 	url, _ := apis.ParseURL(urlName)
 	service.Status.URL = url
 	service.Name = name

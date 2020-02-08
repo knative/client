@@ -25,7 +25,7 @@ import (
 	"knative.dev/client/pkg/kn/flags"
 	servinglib "knative.dev/client/pkg/serving"
 	"knative.dev/client/pkg/util"
-	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
 type ConfigurationEditFlags struct {
@@ -187,15 +187,11 @@ func (p *ConfigurationEditFlags) AddCreateFlags(command *cobra.Command) {
 
 // Apply mutates the given service according to the flags in the command.
 func (p *ConfigurationEditFlags) Apply(
-	service *servingv1alpha1.Service,
-	baseRevision *servingv1alpha1.Revision,
+	service *servingv1.Service,
+	baseRevision *servingv1.Revision,
 	cmd *cobra.Command) error {
 
-	template, err := servinglib.RevisionTemplateOfService(service)
-	if err != nil {
-		return err
-	}
-
+	template := &service.Spec.Template
 	if cmd.Flags().Changed("env") {
 		envMap, err := util.MapFromArrayAllowingSingles(p.Env, "=")
 		if err != nil {
@@ -222,7 +218,7 @@ func (p *ConfigurationEditFlags) Apply(
 			}
 		}
 
-		err = servinglib.UpdateEnvFrom(template, envFromSourceToUpdate, envFromSourceToRemove)
+		err := servinglib.UpdateEnvFrom(template, envFromSourceToUpdate, envFromSourceToRemove)
 		if err != nil {
 			return err
 		}
@@ -251,13 +247,7 @@ func (p *ConfigurationEditFlags) Apply(
 	}
 
 	if p.AnyMutation(cmd) {
-		err = servinglib.UpdateName(template, name)
-		if err == servinglib.ApiTooOldError && !cmd.Flags().Changed("revision-name") {
-			// Ignore the error if we don't support revision names and nobody
-			// explicitly asked for one.
-		} else if err != nil {
-			return err
-		}
+		template.Name = name
 	}
 	imageSet := false
 	if cmd.Flags().Changed("image") {

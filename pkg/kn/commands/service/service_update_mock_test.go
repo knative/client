@@ -21,49 +21,47 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 
-	"knative.dev/serving/pkg/apis/serving/v1alpha1"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
-	servinglib "knative.dev/client/pkg/serving"
-	knclient "knative.dev/client/pkg/serving/v1alpha1"
+	clientserving "knative.dev/client/pkg/serving"
+	clientservingv1 "knative.dev/client/pkg/serving/v1"
 
 	"knative.dev/client/pkg/util"
 )
 
 func TestServiceUpdateEnvMock(t *testing.T) {
-	client := knclient.NewMockKnServiceClient(t)
+	client := clientservingv1.NewMockKnServiceClient(t)
 
 	service := getService("foo")
-	template, err := servinglib.RevisionTemplateOfService(service)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().Env = []corev1.EnvVar{
+	template := &service.Spec.Template
+	template.Spec.Containers[0].Env = []corev1.EnvVar{
 		{Name: "a", Value: "mouse"},
 		{Name: "b", Value: "cookie"},
 		{Name: "empty", Value: ""},
 	}
-	template.Spec.GetContainer().Image = "gcr.io/foo/bar:baz"
-	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.Annotations = map[string]string{clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 
 	updated := getService("foo")
-	template, err = servinglib.RevisionTemplateOfService(updated)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().Env = []corev1.EnvVar{
+	template = &updated.Spec.Template
+	template.Spec.Containers[0].Env = []corev1.EnvVar{
 		{Name: "a", Value: "rabbit"},
 		{Name: "b", Value: "cookie"},
 	}
-	template.Spec.GetContainer().Image = "gcr.io/foo/bar:baz"
-	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.Annotations = map[string]string{clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 
 	r := client.Recorder()
-	r.GetService("foo", nil, errors.NewNotFound(v1alpha1.Resource("service"), "foo"))
+	r.GetService("foo", nil, errors.NewNotFound(servingv1.Resource("service"), "foo"))
 	r.CreateService(service, nil)
 	r.GetService("foo", service, nil)
 	r.UpdateService(updated, nil)
 
-	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "-e", "a=mouse", "--env", "b=cookie", "--env=empty", "--async", "--revision-name=")
+	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "-e", "a=mouse", "--env", "b=cookie", "--env=empty", "--no-wait", "--revision-name=")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
 
-	output, err = executeServiceCommand(client, "update", "foo", "-e", "a=rabbit", "--env=empty-", "--async", "--revision-name=")
+	output, err = executeServiceCommand(client, "update", "foo", "-e", "a=rabbit", "--env=empty-", "--no-wait", "--revision-name=")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "updated", "foo", "default"))
 
@@ -71,40 +69,38 @@ func TestServiceUpdateEnvMock(t *testing.T) {
 }
 
 func TestServiceUpdateAnnotationsMock(t *testing.T) {
-	client := knclient.NewMockKnServiceClient(t)
+	client := clientservingv1.NewMockKnServiceClient(t)
 	svcName := "svc1"
 	newService := getService(svcName)
-	template, err := servinglib.RevisionTemplateOfService(newService)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().Image = "gcr.io/foo/bar:baz"
+	template := &newService.Spec.Template
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
 	newService.ObjectMeta.Annotations = map[string]string{
 		"an1": "staysConstant",
 		"an2": "getsUpdated",
 		"an3": "getsRemoved",
 	}
 	template.ObjectMeta.Annotations = map[string]string{
-		"an1":                             "staysConstant",
-		"an2":                             "getsUpdated",
-		"an3":                             "getsRemoved",
-		servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz",
+		"an1":                                "staysConstant",
+		"an2":                                "getsUpdated",
+		"an3":                                "getsRemoved",
+		clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz",
 	}
 
 	updatedService := getService(svcName)
-	template, err = servinglib.RevisionTemplateOfService(updatedService)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().Image = "gcr.io/foo/bar:baz"
+	template = &updatedService.Spec.Template
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
 	updatedService.ObjectMeta.Annotations = map[string]string{
 		"an1": "staysConstant",
 		"an2": "isUpdated",
 	}
 	template.ObjectMeta.Annotations = map[string]string{
-		"an1":                             "staysConstant",
-		"an2":                             "isUpdated",
-		servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz",
+		"an1":                                "staysConstant",
+		"an2":                                "isUpdated",
+		clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz",
 	}
 
 	r := client.Recorder()
-	r.GetService(svcName, nil, errors.NewNotFound(v1alpha1.Resource("service"), svcName))
+	r.GetService(svcName, nil, errors.NewNotFound(servingv1.Resource("service"), svcName))
 	r.CreateService(newService, nil)
 	r.GetService(svcName, newService, nil)
 	r.UpdateService(updatedService, nil)
@@ -114,7 +110,7 @@ func TestServiceUpdateAnnotationsMock(t *testing.T) {
 		"--annotation", "an1=staysConstant",
 		"--annotation", "an2=getsUpdated",
 		"--annotation", "an3=getsRemoved",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", svcName, "default"))
@@ -123,7 +119,7 @@ func TestServiceUpdateAnnotationsMock(t *testing.T) {
 		"update", svcName,
 		"--annotation", "an2=isUpdated",
 		"--annotation", "an3-",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
@@ -132,16 +128,15 @@ func TestServiceUpdateAnnotationsMock(t *testing.T) {
 }
 
 func TestServiceUpdateEnvFromAddingWithConfigMap(t *testing.T) {
-	client := knclient.NewMockKnServiceClient(t)
+	client := clientservingv1.NewMockKnServiceClient(t)
 	svcName := "svc1"
 	// prepare original state
 	newService := getService(svcName)
-	template, err := servinglib.RevisionTemplateOfService(newService)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().Image = "gcr.io/foo/bar:baz"
-	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
+	template := &newService.Spec.Template
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.Annotations = map[string]string{clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 
-	template.Spec.GetContainer().EnvFrom = []corev1.EnvFromSource{
+	template.Spec.Containers[0].EnvFrom = []corev1.EnvFromSource{
 		{
 			ConfigMapRef: &corev1.ConfigMapEnvSource{
 				LocalObjectReference: corev1.LocalObjectReference{
@@ -153,12 +148,11 @@ func TestServiceUpdateEnvFromAddingWithConfigMap(t *testing.T) {
 
 	// prepare updated state
 	updatedService := getService(svcName)
-	template, err = servinglib.RevisionTemplateOfService(updatedService)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().Image = "gcr.io/foo/bar:baz"
-	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
+	template = &updatedService.Spec.Template
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.Annotations = map[string]string{clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 
-	template.Spec.GetContainer().EnvFrom = []corev1.EnvFromSource{
+	template.Spec.Containers[0].EnvFrom = []corev1.EnvFromSource{
 		{
 			ConfigMapRef: &corev1.ConfigMapEnvSource{
 				LocalObjectReference: corev1.LocalObjectReference{
@@ -176,7 +170,7 @@ func TestServiceUpdateEnvFromAddingWithConfigMap(t *testing.T) {
 	}
 
 	r := client.Recorder()
-	r.GetService(svcName, nil, errors.NewNotFound(v1alpha1.Resource("service"), svcName))
+	r.GetService(svcName, nil, errors.NewNotFound(servingv1.Resource("service"), svcName))
 	r.CreateService(newService, nil)
 	r.GetService(svcName, newService, nil)
 	r.UpdateService(updatedService, nil)
@@ -184,7 +178,7 @@ func TestServiceUpdateEnvFromAddingWithConfigMap(t *testing.T) {
 	output, err := executeServiceCommand(client,
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",
 		"--env-from", "config-map:existing-name",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", svcName, "default"))
@@ -192,7 +186,7 @@ func TestServiceUpdateEnvFromAddingWithConfigMap(t *testing.T) {
 	output, err = executeServiceCommand(client,
 		"update", svcName,
 		"--env-from", "config-map:new-name",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
@@ -201,16 +195,15 @@ func TestServiceUpdateEnvFromAddingWithConfigMap(t *testing.T) {
 }
 
 func TestServiceUpdateEnvFromRemovalWithConfigMap(t *testing.T) {
-	client := knclient.NewMockKnServiceClient(t)
+	client := clientservingv1.NewMockKnServiceClient(t)
 	svcName := "svc1"
 	// prepare original state
 	newService := getService(svcName)
-	template, err := servinglib.RevisionTemplateOfService(newService)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().Image = "gcr.io/foo/bar:baz"
-	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
+	template := &newService.Spec.Template
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.Annotations = map[string]string{clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 
-	template.Spec.GetContainer().EnvFrom = []corev1.EnvFromSource{
+	template.Spec.Containers[0].EnvFrom = []corev1.EnvFromSource{
 		{
 			ConfigMapRef: &corev1.ConfigMapEnvSource{
 				LocalObjectReference: corev1.LocalObjectReference{
@@ -243,12 +236,11 @@ func TestServiceUpdateEnvFromRemovalWithConfigMap(t *testing.T) {
 
 	// prepare updated state
 	updatedService1 := getService(svcName)
-	template, err = servinglib.RevisionTemplateOfService(updatedService1)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().Image = "gcr.io/foo/bar:baz"
-	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
+	template = &updatedService1.Spec.Template
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.Annotations = map[string]string{clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 
-	template.Spec.GetContainer().EnvFrom = []corev1.EnvFromSource{
+	template.Spec.Containers[0].EnvFrom = []corev1.EnvFromSource{
 		{
 			ConfigMapRef: &corev1.ConfigMapEnvSource{
 				LocalObjectReference: corev1.LocalObjectReference{
@@ -260,12 +252,11 @@ func TestServiceUpdateEnvFromRemovalWithConfigMap(t *testing.T) {
 
 	// prepare updated state
 	updatedService2 := getService(svcName)
-	template, err = servinglib.RevisionTemplateOfService(updatedService2)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().Image = "gcr.io/foo/bar:baz"
-	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
+	template = &updatedService2.Spec.Template
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.Annotations = map[string]string{clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 
-	template.Spec.GetContainer().EnvFrom = []corev1.EnvFromSource{
+	template.Spec.Containers[0].EnvFrom = []corev1.EnvFromSource{
 		{
 			ConfigMapRef: &corev1.ConfigMapEnvSource{
 				LocalObjectReference: corev1.LocalObjectReference{
@@ -277,15 +268,14 @@ func TestServiceUpdateEnvFromRemovalWithConfigMap(t *testing.T) {
 
 	// prepare updated state
 	updatedService3 := getService(svcName)
-	template, err = servinglib.RevisionTemplateOfService(updatedService3)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().Image = "gcr.io/foo/bar:baz"
-	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
+	template = &updatedService3.Spec.Template
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.Annotations = map[string]string{clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 
-	template.Spec.GetContainer().EnvFrom = nil
+	template.Spec.Containers[0].EnvFrom = nil
 
 	r := client.Recorder()
-	r.GetService(svcName, nil, errors.NewNotFound(v1alpha1.Resource("service"), svcName))
+	r.GetService(svcName, nil, errors.NewNotFound(servingv1.Resource("service"), svcName))
 	r.CreateService(newService, nil)
 	r.GetService(svcName, newService, nil)
 	r.UpdateService(updatedService1, nil)
@@ -300,7 +290,7 @@ func TestServiceUpdateEnvFromRemovalWithConfigMap(t *testing.T) {
 		"--env-from", "config-map:existing-name-2",
 		"--env-from", "cm:existing-name-3",
 		"--env-from", "config-map:existing-name-4",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", svcName, "default"))
@@ -310,7 +300,7 @@ func TestServiceUpdateEnvFromRemovalWithConfigMap(t *testing.T) {
 		"--env-from", "config-map:existing-name-1-",
 		"--env-from", "cm:existing-name-2-",
 		"--env-from", "config-map:existing-name-3-",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
@@ -319,14 +309,14 @@ func TestServiceUpdateEnvFromRemovalWithConfigMap(t *testing.T) {
 	output, err = executeServiceCommand(client,
 		"update", svcName,
 		"--env-from", "config-map:-",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.Error(t, err, "the name of config-map cannot be an empty string")
 
 	output, err = executeServiceCommand(client,
 		"update", svcName,
 		"--env-from", "cm:existing-name-4-",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
@@ -335,16 +325,15 @@ func TestServiceUpdateEnvFromRemovalWithConfigMap(t *testing.T) {
 }
 
 func TestServiceUpdateEnvFromRemovalWithEmptyName(t *testing.T) {
-	client := knclient.NewMockKnServiceClient(t)
+	client := clientservingv1.NewMockKnServiceClient(t)
 	svcName := "svc1"
 	// prepare original state
 	newService := getService(svcName)
-	template, err := servinglib.RevisionTemplateOfService(newService)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().Image = "gcr.io/foo/bar:baz"
-	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
+	template := &newService.Spec.Template
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.Annotations = map[string]string{clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 
-	template.Spec.GetContainer().EnvFrom = []corev1.EnvFromSource{
+	template.Spec.Containers[0].EnvFrom = []corev1.EnvFromSource{
 		{
 			ConfigMapRef: &corev1.ConfigMapEnvSource{
 				LocalObjectReference: corev1.LocalObjectReference{
@@ -356,12 +345,11 @@ func TestServiceUpdateEnvFromRemovalWithEmptyName(t *testing.T) {
 
 	// prepare updated state
 	updatedService1 := getService(svcName)
-	template, err = servinglib.RevisionTemplateOfService(updatedService1)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().Image = "gcr.io/foo/bar:baz"
-	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
+	template = &updatedService1.Spec.Template
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.Annotations = map[string]string{clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 
-	template.Spec.GetContainer().EnvFrom = []corev1.EnvFromSource{
+	template.Spec.Containers[0].EnvFrom = []corev1.EnvFromSource{
 		{
 			ConfigMapRef: &corev1.ConfigMapEnvSource{
 				LocalObjectReference: corev1.LocalObjectReference{
@@ -379,7 +367,7 @@ func TestServiceUpdateEnvFromRemovalWithEmptyName(t *testing.T) {
 	}
 
 	r := client.Recorder()
-	r.GetService(svcName, nil, errors.NewNotFound(v1alpha1.Resource("service"), svcName))
+	r.GetService(svcName, nil, errors.NewNotFound(servingv1.Resource("service"), svcName))
 	r.CreateService(newService, nil)
 	r.GetService(svcName, newService, nil)
 	r.GetService(svcName, newService, nil)
@@ -388,7 +376,7 @@ func TestServiceUpdateEnvFromRemovalWithEmptyName(t *testing.T) {
 	output, err := executeServiceCommand(client,
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",
 		"--env-from", "config-map:existing-name-1",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", svcName, "default"))
@@ -396,30 +384,29 @@ func TestServiceUpdateEnvFromRemovalWithEmptyName(t *testing.T) {
 	_, err = executeServiceCommand(client,
 		"update", svcName,
 		"--env-from", "-",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.Error(t, err, "\"-\" is not a valid value for \"--env-from\"")
 
 	output, err = executeServiceCommand(client,
 		"update", svcName,
 		"--env-from", "config-map:existing-name-2",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
 }
 
 func TestServiceUpdateEnvFromExistingWithConfigMap(t *testing.T) {
-	client := knclient.NewMockKnServiceClient(t)
+	client := clientservingv1.NewMockKnServiceClient(t)
 	svcName := "svc1"
 	// prepare original state
 	newService := getService(svcName)
-	template, err := servinglib.RevisionTemplateOfService(newService)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().Image = "gcr.io/foo/bar:baz"
-	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
+	template := &newService.Spec.Template
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.Annotations = map[string]string{clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 
-	template.Spec.GetContainer().EnvFrom = []corev1.EnvFromSource{
+	template.Spec.Containers[0].EnvFrom = []corev1.EnvFromSource{
 		{
 			ConfigMapRef: &corev1.ConfigMapEnvSource{
 				LocalObjectReference: corev1.LocalObjectReference{
@@ -438,12 +425,11 @@ func TestServiceUpdateEnvFromExistingWithConfigMap(t *testing.T) {
 
 	// prepare updated state
 	updatedService := getService(svcName)
-	template, err = servinglib.RevisionTemplateOfService(updatedService)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().Image = "gcr.io/foo/bar:baz"
-	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
+	template = &updatedService.Spec.Template
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.Annotations = map[string]string{clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 
-	template.Spec.GetContainer().EnvFrom = []corev1.EnvFromSource{
+	template.Spec.Containers[0].EnvFrom = []corev1.EnvFromSource{
 		{
 			ConfigMapRef: &corev1.ConfigMapEnvSource{
 				LocalObjectReference: corev1.LocalObjectReference{
@@ -468,7 +454,7 @@ func TestServiceUpdateEnvFromExistingWithConfigMap(t *testing.T) {
 	}
 
 	r := client.Recorder()
-	r.GetService(svcName, nil, errors.NewNotFound(v1alpha1.Resource("service"), svcName))
+	r.GetService(svcName, nil, errors.NewNotFound(servingv1.Resource("service"), svcName))
 	r.CreateService(newService, nil)
 	r.GetService(svcName, newService, nil)
 	r.UpdateService(updatedService, nil)
@@ -477,7 +463,7 @@ func TestServiceUpdateEnvFromExistingWithConfigMap(t *testing.T) {
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",
 		"--env-from", "config-map:existing-name-1",
 		"--env-from", "config-map:existing-name-2",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", svcName, "default"))
@@ -486,7 +472,7 @@ func TestServiceUpdateEnvFromExistingWithConfigMap(t *testing.T) {
 		"update", svcName,
 		"--env-from", "config-map:existing-name-1",
 		"--env-from", "config-map:new-name",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
@@ -495,16 +481,15 @@ func TestServiceUpdateEnvFromExistingWithConfigMap(t *testing.T) {
 }
 
 func TestServiceUpdateEnvFromAddingWithSecret(t *testing.T) {
-	client := knclient.NewMockKnServiceClient(t)
+	client := clientservingv1.NewMockKnServiceClient(t)
 	svcName := "svc1"
 	// prepare original state
 	newService := getService(svcName)
-	template, err := servinglib.RevisionTemplateOfService(newService)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().Image = "gcr.io/foo/bar:baz"
-	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
+	template := &newService.Spec.Template
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.Annotations = map[string]string{clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 
-	template.Spec.GetContainer().EnvFrom = []corev1.EnvFromSource{
+	template.Spec.Containers[0].EnvFrom = []corev1.EnvFromSource{
 		{
 			SecretRef: &corev1.SecretEnvSource{
 				LocalObjectReference: corev1.LocalObjectReference{
@@ -516,12 +501,11 @@ func TestServiceUpdateEnvFromAddingWithSecret(t *testing.T) {
 
 	// prepare updated state
 	updatedService := getService(svcName)
-	template, err = servinglib.RevisionTemplateOfService(updatedService)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().Image = "gcr.io/foo/bar:baz"
-	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
+	template = &updatedService.Spec.Template
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.Annotations = map[string]string{clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 
-	template.Spec.GetContainer().EnvFrom = []corev1.EnvFromSource{
+	template.Spec.Containers[0].EnvFrom = []corev1.EnvFromSource{
 		{
 			SecretRef: &corev1.SecretEnvSource{
 				LocalObjectReference: corev1.LocalObjectReference{
@@ -539,7 +523,7 @@ func TestServiceUpdateEnvFromAddingWithSecret(t *testing.T) {
 	}
 
 	r := client.Recorder()
-	r.GetService(svcName, nil, errors.NewNotFound(v1alpha1.Resource("service"), svcName))
+	r.GetService(svcName, nil, errors.NewNotFound(servingv1.Resource("service"), svcName))
 	r.CreateService(newService, nil)
 	r.GetService(svcName, newService, nil)
 	r.UpdateService(updatedService, nil)
@@ -547,7 +531,7 @@ func TestServiceUpdateEnvFromAddingWithSecret(t *testing.T) {
 	output, err := executeServiceCommand(client,
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",
 		"--env-from", "secret:existing-name",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", svcName, "default"))
@@ -555,7 +539,7 @@ func TestServiceUpdateEnvFromAddingWithSecret(t *testing.T) {
 	output, err = executeServiceCommand(client,
 		"update", svcName,
 		"--env-from", "sc:new-name",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
@@ -563,16 +547,15 @@ func TestServiceUpdateEnvFromAddingWithSecret(t *testing.T) {
 	r.Validate()
 }
 func TestServiceUpdateEnvFromRemovalWithSecret(t *testing.T) {
-	client := knclient.NewMockKnServiceClient(t)
+	client := clientservingv1.NewMockKnServiceClient(t)
 	svcName := "svc1"
 	// prepare original state
 	newService := getService(svcName)
-	template, err := servinglib.RevisionTemplateOfService(newService)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().Image = "gcr.io/foo/bar:baz"
-	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
+	template := &newService.Spec.Template
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.Annotations = map[string]string{clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 
-	template.Spec.GetContainer().EnvFrom = []corev1.EnvFromSource{
+	template.Spec.Containers[0].EnvFrom = []corev1.EnvFromSource{
 		{
 			SecretRef: &corev1.SecretEnvSource{
 				LocalObjectReference: corev1.LocalObjectReference{
@@ -605,12 +588,11 @@ func TestServiceUpdateEnvFromRemovalWithSecret(t *testing.T) {
 
 	// prepare updated state
 	updatedService1 := getService(svcName)
-	template, err = servinglib.RevisionTemplateOfService(updatedService1)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().Image = "gcr.io/foo/bar:baz"
-	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
+	template = &updatedService1.Spec.Template
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.Annotations = map[string]string{clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 
-	template.Spec.GetContainer().EnvFrom = []corev1.EnvFromSource{
+	template.Spec.Containers[0].EnvFrom = []corev1.EnvFromSource{
 		{
 			SecretRef: &corev1.SecretEnvSource{
 				LocalObjectReference: corev1.LocalObjectReference{
@@ -622,12 +604,11 @@ func TestServiceUpdateEnvFromRemovalWithSecret(t *testing.T) {
 
 	// prepare updated state
 	updatedService2 := getService(svcName)
-	template, err = servinglib.RevisionTemplateOfService(updatedService2)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().Image = "gcr.io/foo/bar:baz"
-	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
+	template = &updatedService2.Spec.Template
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.Annotations = map[string]string{clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 
-	template.Spec.GetContainer().EnvFrom = []corev1.EnvFromSource{
+	template.Spec.Containers[0].EnvFrom = []corev1.EnvFromSource{
 		{
 			SecretRef: &corev1.SecretEnvSource{
 				LocalObjectReference: corev1.LocalObjectReference{
@@ -639,15 +620,14 @@ func TestServiceUpdateEnvFromRemovalWithSecret(t *testing.T) {
 
 	// prepare updated state
 	updatedService3 := getService(svcName)
-	template, err = servinglib.RevisionTemplateOfService(updatedService3)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().Image = "gcr.io/foo/bar:baz"
-	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
+	template = &updatedService3.Spec.Template
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.Annotations = map[string]string{clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 
-	template.Spec.GetContainer().EnvFrom = nil
+	template.Spec.Containers[0].EnvFrom = nil
 
 	r := client.Recorder()
-	r.GetService(svcName, nil, errors.NewNotFound(v1alpha1.Resource("service"), svcName))
+	r.GetService(svcName, nil, errors.NewNotFound(servingv1.Resource("service"), svcName))
 	r.CreateService(newService, nil)
 	r.GetService(svcName, newService, nil)
 	r.UpdateService(updatedService1, nil)
@@ -662,7 +642,7 @@ func TestServiceUpdateEnvFromRemovalWithSecret(t *testing.T) {
 		"--env-from", "secret:existing-name-2",
 		"--env-from", "sc:existing-name-3",
 		"--env-from", "secret:existing-name-4",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", svcName, "default"))
@@ -672,7 +652,7 @@ func TestServiceUpdateEnvFromRemovalWithSecret(t *testing.T) {
 		"--env-from", "secret:existing-name-1-",
 		"--env-from", "sc:existing-name-2-",
 		"--env-from", "secret:existing-name-3-",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
@@ -681,14 +661,14 @@ func TestServiceUpdateEnvFromRemovalWithSecret(t *testing.T) {
 	output, err = executeServiceCommand(client,
 		"update", svcName,
 		"--env-from", "secret:-",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.Error(t, err, "the name of secret cannot be an empty string")
 
 	output, err = executeServiceCommand(client,
 		"update", svcName,
 		"--env-from", "sc:existing-name-4-",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
@@ -697,16 +677,15 @@ func TestServiceUpdateEnvFromRemovalWithSecret(t *testing.T) {
 }
 
 func TestServiceUpdateEnvFromExistingWithSecret(t *testing.T) {
-	client := knclient.NewMockKnServiceClient(t)
+	client := clientservingv1.NewMockKnServiceClient(t)
 	svcName := "svc1"
 	// prepare original state
 	newService := getService(svcName)
-	template, err := servinglib.RevisionTemplateOfService(newService)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().Image = "gcr.io/foo/bar:baz"
-	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
+	template := &newService.Spec.Template
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.Annotations = map[string]string{clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 
-	template.Spec.GetContainer().EnvFrom = []corev1.EnvFromSource{
+	template.Spec.Containers[0].EnvFrom = []corev1.EnvFromSource{
 		{
 			SecretRef: &corev1.SecretEnvSource{
 				LocalObjectReference: corev1.LocalObjectReference{
@@ -725,12 +704,11 @@ func TestServiceUpdateEnvFromExistingWithSecret(t *testing.T) {
 
 	// prepare updated state
 	updatedService := getService(svcName)
-	template, err = servinglib.RevisionTemplateOfService(updatedService)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().Image = "gcr.io/foo/bar:baz"
-	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
+	template = &updatedService.Spec.Template
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.Annotations = map[string]string{clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 
-	template.Spec.GetContainer().EnvFrom = []corev1.EnvFromSource{
+	template.Spec.Containers[0].EnvFrom = []corev1.EnvFromSource{
 		{
 			SecretRef: &corev1.SecretEnvSource{
 				LocalObjectReference: corev1.LocalObjectReference{
@@ -755,7 +733,7 @@ func TestServiceUpdateEnvFromExistingWithSecret(t *testing.T) {
 	}
 
 	r := client.Recorder()
-	r.GetService(svcName, nil, errors.NewNotFound(v1alpha1.Resource("service"), svcName))
+	r.GetService(svcName, nil, errors.NewNotFound(servingv1.Resource("service"), svcName))
 	r.CreateService(newService, nil)
 	r.GetService(svcName, newService, nil)
 	r.UpdateService(updatedService, nil)
@@ -764,7 +742,7 @@ func TestServiceUpdateEnvFromExistingWithSecret(t *testing.T) {
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",
 		"--env-from", "sc:existing-name-1",
 		"--env-from", "secret:existing-name-2",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", svcName, "default"))
@@ -773,7 +751,7 @@ func TestServiceUpdateEnvFromExistingWithSecret(t *testing.T) {
 		"update", svcName,
 		"--env-from", "secret:existing-name-1",
 		"--env-from", "secret:new-name",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
@@ -782,14 +760,13 @@ func TestServiceUpdateEnvFromExistingWithSecret(t *testing.T) {
 }
 
 func TestServiceUpdateWithAddingVolume(t *testing.T) {
-	client := knclient.NewMockKnServiceClient(t)
+	client := clientservingv1.NewMockKnServiceClient(t)
 	svcName := "svc1"
 	// prepare original state
 	newService := getService(svcName)
-	template, err := servinglib.RevisionTemplateOfService(newService)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().Image = "gcr.io/foo/bar:baz"
-	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
+	template := &newService.Spec.Template
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.Annotations = map[string]string{clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 
 	template.Spec.Volumes = []corev1.Volume{
 		{
@@ -814,10 +791,9 @@ func TestServiceUpdateWithAddingVolume(t *testing.T) {
 
 	// prepare updated state
 	updatedService := getService(svcName)
-	template, err = servinglib.RevisionTemplateOfService(updatedService)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().Image = "gcr.io/foo/bar:baz"
-	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
+	template = &updatedService.Spec.Template
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.Annotations = map[string]string{clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 
 	template.Spec.Volumes = []corev1.Volume{
 		{
@@ -859,7 +835,7 @@ func TestServiceUpdateWithAddingVolume(t *testing.T) {
 	}
 
 	r := client.Recorder()
-	r.GetService(svcName, nil, errors.NewNotFound(v1alpha1.Resource("service"), svcName))
+	r.GetService(svcName, nil, errors.NewNotFound(servingv1.Resource("service"), svcName))
 	r.CreateService(newService, nil)
 	r.GetService(svcName, newService, nil)
 	r.UpdateService(updatedService, nil)
@@ -868,7 +844,7 @@ func TestServiceUpdateWithAddingVolume(t *testing.T) {
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",
 		"--volume", "vol-1=cm:existing-config-map-1",
 		"--volume", "vol-2=secret:existing-secret-1",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", svcName, "default"))
@@ -877,7 +853,7 @@ func TestServiceUpdateWithAddingVolume(t *testing.T) {
 		"update", svcName,
 		"--volume", "vol-3=cm:existing-config-map-2",
 		"--volume", "vol-4=secret:existing-secret-2",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
@@ -886,14 +862,13 @@ func TestServiceUpdateWithAddingVolume(t *testing.T) {
 }
 
 func TestServiceUpdateWithUpdatingVolume(t *testing.T) {
-	client := knclient.NewMockKnServiceClient(t)
+	client := clientservingv1.NewMockKnServiceClient(t)
 	svcName := "svc1"
 	// prepare original state
 	newService := getService(svcName)
-	template, err := servinglib.RevisionTemplateOfService(newService)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().Image = "gcr.io/foo/bar:baz"
-	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
+	template := &newService.Spec.Template
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.Annotations = map[string]string{clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 
 	template.Spec.Volumes = []corev1.Volume{
 		{
@@ -918,10 +893,9 @@ func TestServiceUpdateWithUpdatingVolume(t *testing.T) {
 
 	// prepare updated state
 	updatedService := getService(svcName)
-	template, err = servinglib.RevisionTemplateOfService(updatedService)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().Image = "gcr.io/foo/bar:baz"
-	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
+	template = &updatedService.Spec.Template
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.Annotations = map[string]string{clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 
 	template.Spec.Volumes = []corev1.Volume{
 		{
@@ -963,7 +937,7 @@ func TestServiceUpdateWithUpdatingVolume(t *testing.T) {
 	}
 
 	r := client.Recorder()
-	r.GetService(svcName, nil, errors.NewNotFound(v1alpha1.Resource("service"), svcName))
+	r.GetService(svcName, nil, errors.NewNotFound(servingv1.Resource("service"), svcName))
 	r.CreateService(newService, nil)
 	r.GetService(svcName, newService, nil)
 	r.UpdateService(updatedService, nil)
@@ -972,7 +946,7 @@ func TestServiceUpdateWithUpdatingVolume(t *testing.T) {
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",
 		"--volume", "vol-1=cm:existing-config-map-1",
 		"--volume", "vol-2=secret:existing-secret-1",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", svcName, "default"))
@@ -983,7 +957,7 @@ func TestServiceUpdateWithUpdatingVolume(t *testing.T) {
 		"--volume", "vol-2=secret:existing-secret-3",
 		"--volume", "vol-3=cm:existing-config-map-2",
 		"--volume", "vol-4=secret:existing-secret-2",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
@@ -992,14 +966,13 @@ func TestServiceUpdateWithUpdatingVolume(t *testing.T) {
 }
 
 func TestServiceUpdateWithRemovingVolume(t *testing.T) {
-	client := knclient.NewMockKnServiceClient(t)
+	client := clientservingv1.NewMockKnServiceClient(t)
 	svcName := "svc1"
 	// prepare original state
 	newService := getService(svcName)
-	template, err := servinglib.RevisionTemplateOfService(newService)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().Image = "gcr.io/foo/bar:baz"
-	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
+	template := &newService.Spec.Template
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.Annotations = map[string]string{clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 
 	template.Spec.Volumes = []corev1.Volume{
 		{
@@ -1042,10 +1015,9 @@ func TestServiceUpdateWithRemovingVolume(t *testing.T) {
 
 	// prepare updated state
 	updatedService := getService(svcName)
-	template, err = servinglib.RevisionTemplateOfService(updatedService)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().Image = "gcr.io/foo/bar:baz"
-	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
+	template = &updatedService.Spec.Template
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.Annotations = map[string]string{clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 
 	template.Spec.Volumes = []corev1.Volume{
 		{
@@ -1069,7 +1041,7 @@ func TestServiceUpdateWithRemovingVolume(t *testing.T) {
 	}
 
 	r := client.Recorder()
-	r.GetService(svcName, nil, errors.NewNotFound(v1alpha1.Resource("service"), svcName))
+	r.GetService(svcName, nil, errors.NewNotFound(servingv1.Resource("service"), svcName))
 	r.CreateService(newService, nil)
 	r.GetService(svcName, newService, nil)
 	r.UpdateService(updatedService, nil)
@@ -1080,7 +1052,7 @@ func TestServiceUpdateWithRemovingVolume(t *testing.T) {
 		"--volume", "vol-2=secret:existing-secret-1",
 		"--volume", "vol-3=cm:existing-config-map-2",
 		"--volume", "vol-4=secret:existing-secret-2",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", svcName, "default"))
@@ -1089,7 +1061,7 @@ func TestServiceUpdateWithRemovingVolume(t *testing.T) {
 		"update", svcName,
 		"--volume", "vol-3-",
 		"--volume", "vol-2-",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
@@ -1098,25 +1070,23 @@ func TestServiceUpdateWithRemovingVolume(t *testing.T) {
 }
 
 func TestServiceUpdateWithAddingMount(t *testing.T) {
-	client := knclient.NewMockKnServiceClient(t)
+	client := clientservingv1.NewMockKnServiceClient(t)
 	svcName := "svc1"
 	// prepare original state
 	newService := getService(svcName)
-	template, err := servinglib.RevisionTemplateOfService(newService)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().Image = "gcr.io/foo/bar:baz"
-	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
+	template := &newService.Spec.Template
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.Annotations = map[string]string{clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 
 	// prepare updated state
 	updatedService := getService(svcName)
-	template, err = servinglib.RevisionTemplateOfService(updatedService)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().Image = "gcr.io/foo/bar:baz"
-	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
+	template = &updatedService.Spec.Template
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.Annotations = map[string]string{clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 
 	template.Spec.Volumes = []corev1.Volume{
 		{
-			Name: servinglib.GenerateVolumeName("/mount/config-map-path"),
+			Name: clientserving.GenerateVolumeName("/mount/config-map-path"),
 			VolumeSource: corev1.VolumeSource{
 				ConfigMap: &corev1.ConfigMapVolumeSource{
 					LocalObjectReference: corev1.LocalObjectReference{
@@ -1126,7 +1096,7 @@ func TestServiceUpdateWithAddingMount(t *testing.T) {
 			},
 		},
 		{
-			Name: servinglib.GenerateVolumeName("/mount/secret-path"),
+			Name: clientserving.GenerateVolumeName("/mount/secret-path"),
 			VolumeSource: corev1.VolumeSource{
 				Secret: &corev1.SecretVolumeSource{
 					SecretName: "secret-name",
@@ -1137,26 +1107,26 @@ func TestServiceUpdateWithAddingMount(t *testing.T) {
 
 	template.Spec.Containers[0].VolumeMounts = []corev1.VolumeMount{
 		{
-			Name:      servinglib.GenerateVolumeName("/mount/config-map-path"),
+			Name:      clientserving.GenerateVolumeName("/mount/config-map-path"),
 			MountPath: "/mount/config-map-path",
 			ReadOnly:  true,
 		},
 		{
-			Name:      servinglib.GenerateVolumeName("/mount/secret-path"),
+			Name:      clientserving.GenerateVolumeName("/mount/secret-path"),
 			MountPath: "/mount/secret-path",
 			ReadOnly:  true,
 		},
 	}
 
 	r := client.Recorder()
-	r.GetService(svcName, nil, errors.NewNotFound(v1alpha1.Resource("service"), svcName))
+	r.GetService(svcName, nil, errors.NewNotFound(servingv1.Resource("service"), svcName))
 	r.CreateService(newService, nil)
 	r.GetService(svcName, newService, nil)
 	r.UpdateService(updatedService, nil)
 
 	output, err := executeServiceCommand(client,
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", svcName, "default"))
@@ -1165,7 +1135,7 @@ func TestServiceUpdateWithAddingMount(t *testing.T) {
 		"update", svcName,
 		"--mount", "/mount/config-map-path=cm:config-map-name",
 		"--mount", "/mount/secret-path=secret:secret-name",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
@@ -1174,18 +1144,17 @@ func TestServiceUpdateWithAddingMount(t *testing.T) {
 }
 
 func TestServiceUpdateWithUpdatingMount(t *testing.T) {
-	client := knclient.NewMockKnServiceClient(t)
+	client := clientservingv1.NewMockKnServiceClient(t)
 	svcName := "svc1"
 	// prepare original state
 	newService := getService(svcName)
-	template, err := servinglib.RevisionTemplateOfService(newService)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().Image = "gcr.io/foo/bar:baz"
-	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
+	template := &newService.Spec.Template
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.Annotations = map[string]string{clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 
 	template.Spec.Volumes = []corev1.Volume{
 		{
-			Name: servinglib.GenerateVolumeName("/mount/config-map-path"),
+			Name: clientserving.GenerateVolumeName("/mount/config-map-path"),
 			VolumeSource: corev1.VolumeSource{
 				ConfigMap: &corev1.ConfigMapVolumeSource{
 					LocalObjectReference: corev1.LocalObjectReference{
@@ -1195,7 +1164,7 @@ func TestServiceUpdateWithUpdatingMount(t *testing.T) {
 			},
 		},
 		{
-			Name: servinglib.GenerateVolumeName("/mount/secret-path"),
+			Name: clientserving.GenerateVolumeName("/mount/secret-path"),
 			VolumeSource: corev1.VolumeSource{
 				Secret: &corev1.SecretVolumeSource{
 					SecretName: "secret-name-1",
@@ -1206,12 +1175,12 @@ func TestServiceUpdateWithUpdatingMount(t *testing.T) {
 
 	template.Spec.Containers[0].VolumeMounts = []corev1.VolumeMount{
 		{
-			Name:      servinglib.GenerateVolumeName("/mount/config-map-path"),
+			Name:      clientserving.GenerateVolumeName("/mount/config-map-path"),
 			MountPath: "/mount/config-map-path",
 			ReadOnly:  true,
 		},
 		{
-			Name:      servinglib.GenerateVolumeName("/mount/secret-path"),
+			Name:      clientserving.GenerateVolumeName("/mount/secret-path"),
 			MountPath: "/mount/secret-path",
 			ReadOnly:  true,
 		},
@@ -1219,14 +1188,13 @@ func TestServiceUpdateWithUpdatingMount(t *testing.T) {
 
 	// prepare updated state
 	updatedService := getService(svcName)
-	template, err = servinglib.RevisionTemplateOfService(updatedService)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().Image = "gcr.io/foo/bar:baz"
-	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
+	template = &updatedService.Spec.Template
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.Annotations = map[string]string{clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 
 	template.Spec.Volumes = []corev1.Volume{
 		{
-			Name: servinglib.GenerateVolumeName("/mount/config-map-path"),
+			Name: clientserving.GenerateVolumeName("/mount/config-map-path"),
 			VolumeSource: corev1.VolumeSource{
 				ConfigMap: &corev1.ConfigMapVolumeSource{
 					LocalObjectReference: corev1.LocalObjectReference{
@@ -1236,7 +1204,7 @@ func TestServiceUpdateWithUpdatingMount(t *testing.T) {
 			},
 		},
 		{
-			Name: servinglib.GenerateVolumeName("/mount/secret-path"),
+			Name: clientserving.GenerateVolumeName("/mount/secret-path"),
 			VolumeSource: corev1.VolumeSource{
 				Secret: &corev1.SecretVolumeSource{
 					SecretName: "secret-name-2",
@@ -1247,19 +1215,19 @@ func TestServiceUpdateWithUpdatingMount(t *testing.T) {
 
 	template.Spec.Containers[0].VolumeMounts = []corev1.VolumeMount{
 		{
-			Name:      servinglib.GenerateVolumeName("/mount/config-map-path"),
+			Name:      clientserving.GenerateVolumeName("/mount/config-map-path"),
 			MountPath: "/mount/config-map-path",
 			ReadOnly:  true,
 		},
 		{
-			Name:      servinglib.GenerateVolumeName("/mount/secret-path"),
+			Name:      clientserving.GenerateVolumeName("/mount/secret-path"),
 			MountPath: "/mount/secret-path",
 			ReadOnly:  true,
 		},
 	}
 
 	r := client.Recorder()
-	r.GetService(svcName, nil, errors.NewNotFound(v1alpha1.Resource("service"), svcName))
+	r.GetService(svcName, nil, errors.NewNotFound(servingv1.Resource("service"), svcName))
 	r.CreateService(newService, nil)
 	r.GetService(svcName, newService, nil)
 	r.UpdateService(updatedService, nil)
@@ -1268,7 +1236,7 @@ func TestServiceUpdateWithUpdatingMount(t *testing.T) {
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",
 		"--mount", "/mount/config-map-path=cm:config-map-name-1",
 		"--mount", "/mount/secret-path=secret:secret-name-1",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", svcName, "default"))
@@ -1279,7 +1247,7 @@ func TestServiceUpdateWithUpdatingMount(t *testing.T) {
 		"update", svcName,
 		"--mount", "/mount/secret-path=secret:secret-name-2",
 		"--mount", "/mount/config-map-path=cm:config-map-name-2",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
@@ -1288,18 +1256,17 @@ func TestServiceUpdateWithUpdatingMount(t *testing.T) {
 }
 
 func TestServiceUpdateWithRemovingMount(t *testing.T) {
-	client := knclient.NewMockKnServiceClient(t)
+	client := clientservingv1.NewMockKnServiceClient(t)
 	svcName := "svc1"
 	// prepare original state
 	newService := getService(svcName)
-	template, err := servinglib.RevisionTemplateOfService(newService)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().Image = "gcr.io/foo/bar:baz"
-	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
+	template := &newService.Spec.Template
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.Annotations = map[string]string{clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 
 	template.Spec.Volumes = []corev1.Volume{
 		{
-			Name: servinglib.GenerateVolumeName("/mount/config-map-path-1"),
+			Name: clientserving.GenerateVolumeName("/mount/config-map-path-1"),
 			VolumeSource: corev1.VolumeSource{
 				ConfigMap: &corev1.ConfigMapVolumeSource{
 					LocalObjectReference: corev1.LocalObjectReference{
@@ -1309,7 +1276,7 @@ func TestServiceUpdateWithRemovingMount(t *testing.T) {
 			},
 		},
 		{
-			Name: servinglib.GenerateVolumeName("/mount/secret-path-1"),
+			Name: clientserving.GenerateVolumeName("/mount/secret-path-1"),
 			VolumeSource: corev1.VolumeSource{
 				Secret: &corev1.SecretVolumeSource{
 					SecretName: "secret-name-1",
@@ -1317,7 +1284,7 @@ func TestServiceUpdateWithRemovingMount(t *testing.T) {
 			},
 		},
 		{
-			Name: servinglib.GenerateVolumeName("/mount/config-map-path-2"),
+			Name: clientserving.GenerateVolumeName("/mount/config-map-path-2"),
 			VolumeSource: corev1.VolumeSource{
 				ConfigMap: &corev1.ConfigMapVolumeSource{
 					LocalObjectReference: corev1.LocalObjectReference{
@@ -1327,7 +1294,7 @@ func TestServiceUpdateWithRemovingMount(t *testing.T) {
 			},
 		},
 		{
-			Name: servinglib.GenerateVolumeName("/mount/secret-path-2"),
+			Name: clientserving.GenerateVolumeName("/mount/secret-path-2"),
 			VolumeSource: corev1.VolumeSource{
 				Secret: &corev1.SecretVolumeSource{
 					SecretName: "secret-name-2",
@@ -1348,22 +1315,22 @@ func TestServiceUpdateWithRemovingMount(t *testing.T) {
 
 	template.Spec.Containers[0].VolumeMounts = []corev1.VolumeMount{
 		{
-			Name:      servinglib.GenerateVolumeName("/mount/config-map-path-1"),
+			Name:      clientserving.GenerateVolumeName("/mount/config-map-path-1"),
 			MountPath: "/mount/config-map-path-1",
 			ReadOnly:  true,
 		},
 		{
-			Name:      servinglib.GenerateVolumeName("/mount/secret-path-1"),
+			Name:      clientserving.GenerateVolumeName("/mount/secret-path-1"),
 			MountPath: "/mount/secret-path-1",
 			ReadOnly:  true,
 		},
 		{
-			Name:      servinglib.GenerateVolumeName("/mount/config-map-path-2"),
+			Name:      clientserving.GenerateVolumeName("/mount/config-map-path-2"),
 			MountPath: "/mount/config-map-path-2",
 			ReadOnly:  true,
 		},
 		{
-			Name:      servinglib.GenerateVolumeName("/mount/secret-path-2"),
+			Name:      clientserving.GenerateVolumeName("/mount/secret-path-2"),
 			MountPath: "/mount/secret-path-2",
 			ReadOnly:  true,
 		},
@@ -1376,14 +1343,13 @@ func TestServiceUpdateWithRemovingMount(t *testing.T) {
 
 	// prepare updated state
 	updatedService1 := getService(svcName)
-	template, err = servinglib.RevisionTemplateOfService(updatedService1)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().Image = "gcr.io/foo/bar:baz"
-	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
+	template = &updatedService1.Spec.Template
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.Annotations = map[string]string{clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 
 	template.Spec.Volumes = []corev1.Volume{
 		{
-			Name: servinglib.GenerateVolumeName("/mount/config-map-path-1"),
+			Name: clientserving.GenerateVolumeName("/mount/config-map-path-1"),
 			VolumeSource: corev1.VolumeSource{
 				ConfigMap: &corev1.ConfigMapVolumeSource{
 					LocalObjectReference: corev1.LocalObjectReference{
@@ -1393,7 +1359,7 @@ func TestServiceUpdateWithRemovingMount(t *testing.T) {
 			},
 		},
 		{
-			Name: servinglib.GenerateVolumeName("/mount/secret-path-2"),
+			Name: clientserving.GenerateVolumeName("/mount/secret-path-2"),
 			VolumeSource: corev1.VolumeSource{
 				Secret: &corev1.SecretVolumeSource{
 					SecretName: "secret-name-2",
@@ -1414,12 +1380,12 @@ func TestServiceUpdateWithRemovingMount(t *testing.T) {
 
 	template.Spec.Containers[0].VolumeMounts = []corev1.VolumeMount{
 		{
-			Name:      servinglib.GenerateVolumeName("/mount/config-map-path-1"),
+			Name:      clientserving.GenerateVolumeName("/mount/config-map-path-1"),
 			MountPath: "/mount/config-map-path-1",
 			ReadOnly:  true,
 		},
 		{
-			Name:      servinglib.GenerateVolumeName("/mount/secret-path-2"),
+			Name:      clientserving.GenerateVolumeName("/mount/secret-path-2"),
 			MountPath: "/mount/secret-path-2",
 			ReadOnly:  true,
 		},
@@ -1432,13 +1398,12 @@ func TestServiceUpdateWithRemovingMount(t *testing.T) {
 
 	// prepare updated state
 	updatedService2 := getService(svcName)
-	template, err = servinglib.RevisionTemplateOfService(updatedService2)
-	assert.NilError(t, err)
-	template.Spec.GetContainer().Image = "gcr.io/foo/bar:baz"
-	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
+	template = &updatedService2.Spec.Template
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.Annotations = map[string]string{clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 
 	r := client.Recorder()
-	r.GetService(svcName, nil, errors.NewNotFound(v1alpha1.Resource("service"), svcName))
+	r.GetService(svcName, nil, errors.NewNotFound(servingv1.Resource("service"), svcName))
 	r.CreateService(newService, nil)
 	r.GetService(svcName, newService, nil)
 	r.UpdateService(updatedService1, nil)
@@ -1453,7 +1418,7 @@ func TestServiceUpdateWithRemovingMount(t *testing.T) {
 		"--mount", "/mount/secret-path-2=secret:secret-name-2",
 		"--mount", "/mount/custom-path=custom-vol",
 		"--volume", "custom-vol=cm:config-map",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", svcName, "default"))
@@ -1475,7 +1440,7 @@ func TestServiceUpdateWithRemovingMount(t *testing.T) {
 		"update", svcName,
 		"--mount", "/mount/config-map-path-2-",
 		"--mount", "/mount/secret-path-1-",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
@@ -1485,7 +1450,7 @@ func TestServiceUpdateWithRemovingMount(t *testing.T) {
 		"--mount", "/mount/config-map-path-1-",
 		"--mount", "/mount/secret-path-2-",
 		"--mount", "/mount/custom-path-",
-		"--async", "--revision-name=",
+		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))

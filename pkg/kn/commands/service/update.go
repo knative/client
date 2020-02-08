@@ -19,16 +19,18 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	api_errors "k8s.io/apimachinery/pkg/api/errors"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+
 	"knative.dev/client/pkg/kn/commands/flags"
 	"knative.dev/client/pkg/kn/traffic"
 
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
+
 	"knative.dev/client/pkg/kn/commands"
-	serving "knative.dev/client/pkg/serving/v1alpha1"
-	"knative.dev/serving/pkg/apis/serving/v1alpha1"
+	clientservingv1 "knative.dev/client/pkg/serving/v1"
 )
 
-var update_example = `
+var updateExample = `
   # Updates a service 'svc' with new environment variables
   kn service update svc --env KEY1=VALUE1 --env KEY2=VALUE2
 
@@ -56,7 +58,7 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 	serviceUpdateCommand := &cobra.Command{
 		Use:     "update NAME [flags]",
 		Short:   "Update a service.",
-		Example: update_example,
+		Example: updateExample,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
 				return errors.New("requires the service name")
@@ -81,10 +83,10 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 				}
 				service = service.DeepCopy()
 				latestRevisionBeforeUpdate := service.Status.LatestReadyRevisionName
-				var baseRevision *v1alpha1.Revision
+				var baseRevision *servingv1.Revision
 				if !cmd.Flags().Changed("image") && editFlags.LockToDigest {
 					baseRevision, err = client.GetBaseRevision(service)
-					if _, ok := err.(*serving.NoBaseRevisionError); ok {
+					if _, ok := err.(*clientservingv1.NoBaseRevisionError); ok {
 						fmt.Fprintf(cmd.OutOrStdout(), "Warning: No revision found to update image digest")
 					}
 				}
@@ -105,7 +107,7 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 				err = client.UpdateService(service)
 				if err != nil {
 					// Retry to update when a resource version conflict exists
-					if api_errors.IsConflict(err) && retries < MaxUpdateRetries {
+					if apierrors.IsConflict(err) && retries < MaxUpdateRetries {
 						retries++
 						continue
 					}
@@ -113,7 +115,8 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 				}
 
 				out := cmd.OutOrStdout()
-				if !waitFlags.Async {
+				//TODO: deprecated condition should be once --async is gone
+				if !waitFlags.Async && !waitFlags.NoWait {
 					fmt.Fprintf(out, "Updating Service '%s' in namespace '%s':\n", args[0], namespace)
 					fmt.Fprintln(out, "")
 					err := waitForService(client, name, out, waitFlags.TimeoutInSeconds)
@@ -123,6 +126,9 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 					fmt.Fprintln(out, "")
 					return showUrl(client, name, latestRevisionBeforeUpdate, "updated", out)
 				} else {
+					if waitFlags.Async {
+						fmt.Fprintf(out, "\nWARNING: flag --async is deprecated and going to be removed in future release, please use --no-wait instead.\n\n")
+					}
 					fmt.Fprintf(out, "Service '%s' updated in namespace '%s'.\n", args[0], namespace)
 				}
 

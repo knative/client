@@ -19,10 +19,11 @@ import (
 	"sort"
 
 	"github.com/spf13/cobra"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
+
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
-	v1alpha12 "knative.dev/client/pkg/serving/v1alpha1"
-	"knative.dev/serving/pkg/apis/serving/v1alpha1"
+	clientservingv1 "knative.dev/client/pkg/serving/v1"
 )
 
 // NewServiceListCommand represents 'kn service list' command
@@ -92,16 +93,16 @@ func NewServiceListCommand(p *commands.KnParams) *cobra.Command {
 	return serviceListCommand
 }
 
-func getServiceInfo(args []string, client v1alpha12.KnServingClient) (*v1alpha1.ServiceList, error) {
+func getServiceInfo(args []string, client clientservingv1.KnServingClient) (*servingv1.ServiceList, error) {
 	var (
-		serviceList *v1alpha1.ServiceList
+		serviceList *servingv1.ServiceList
 		err         error
 	)
 	switch len(args) {
 	case 0:
 		serviceList, err = client.ListServices()
 	case 1:
-		serviceList, err = client.ListServices(v1alpha12.WithName(args[0]))
+		serviceList, err = client.ListServices(clientservingv1.WithName(args[0]))
 	default:
 		return nil, fmt.Errorf("'kn service list' accepts maximum 1 argument")
 	}

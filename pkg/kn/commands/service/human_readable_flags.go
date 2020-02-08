@@ -17,7 +17,7 @@ package service
 import (
 	metav1beta1 "k8s.io/apimachinery/pkg/apis/meta/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
-	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	"knative.dev/client/pkg/kn/commands"
 	hprinters "knative.dev/client/pkg/printers"
@@ -43,7 +43,7 @@ func ServiceListHandlers(h hprinters.PrintHandler) {
 // Private functions
 
 // printKServiceList populates the knative service list table rows
-func printKServiceList(kServiceList *servingv1alpha1.ServiceList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+func printKServiceList(kServiceList *servingv1.ServiceList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	rows := make([]metav1beta1.TableRow, 0, len(kServiceList.Items))
 
 	for _, ksvc := range kServiceList.Items {
@@ -57,7 +57,7 @@ func printKServiceList(kServiceList *servingv1alpha1.ServiceList, options hprint
 }
 
 // printKService populates the knative service table rows
-func printKService(kService *servingv1alpha1.Service, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+func printKService(kService *servingv1.Service, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	name := kService.Name
 	url := kService.Status.URL
 	lastestRevision := kService.Status.ConfigurationStatusFields.LatestReadyRevisionName

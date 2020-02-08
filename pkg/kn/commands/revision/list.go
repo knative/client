@@ -23,11 +23,11 @@ import (
 	"knative.dev/serving/pkg/apis/serving"
 
 	"github.com/spf13/cobra"
-	"knative.dev/serving/pkg/apis/serving/v1alpha1"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
-	serving_v1alpha "knative.dev/client/pkg/serving/v1alpha1"
+	clientservingv1alpha "knative.dev/client/pkg/serving/v1"
 )
 
 // Service name filter, used with "-s"
@@ -64,7 +64,7 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			// Create list filters
-			var params []serving_v1alpha.ListConfig
+			var params []clientservingv1alpha.ListConfig
 			params, err = appendServiceFilter(params, client, cmd)
 			if err != nil {
 				return err
@@ -119,7 +119,7 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 }
 
 // If a service option is given append a filter to the list of filters
-func appendServiceFilter(lConfig []serving_v1alpha.ListConfig, client serving_v1alpha.KnServingClient, cmd *cobra.Command) ([]serving_v1alpha.ListConfig, error) {
+func appendServiceFilter(lConfig []clientservingv1alpha.ListConfig, client clientservingv1alpha.KnServingClient, cmd *cobra.Command) ([]clientservingv1alpha.ListConfig, error) {
 	if !cmd.Flags().Changed("service") {
 		return lConfig, nil
 	}
@@ -131,11 +131,11 @@ func appendServiceFilter(lConfig []serving_v1alpha.ListConfig, client serving_v1
 	if err != nil {
 		return nil, err
 	}
-	return append(lConfig, serving_v1alpha.WithService(serviceName)), nil
+	return append(lConfig, clientservingv1alpha.WithService(serviceName)), nil
 }
 
 // If an additional name is given append this as a revision name filter to the given list
-func appendRevisionNameFilter(lConfigs []serving_v1alpha.ListConfig, client serving_v1alpha.KnServingClient, args []string) ([]serving_v1alpha.ListConfig, error) {
+func appendRevisionNameFilter(lConfigs []clientservingv1alpha.ListConfig, client clientservingv1alpha.KnServingClient, args []string) ([]clientservingv1alpha.ListConfig, error) {
 
 	switch len(args) {
 	case 0:
@@ -143,20 +143,20 @@ func appendRevisionNameFilter(lConfigs []serving_v1alpha.ListConfig, client serv
 		return lConfigs, nil
 	case 1:
 		// Exactly one name given
-		return append(lConfigs, serving_v1alpha.WithName(args[0])), nil
+		return append(lConfigs, clientservingv1alpha.WithName(args[0])), nil
 	default:
 		return nil, fmt.Errorf("'kn revision list' accepts maximum 1 argument, not %d arguments as given", len(args))
 	}
 }
 
 // sortRevisions sorts revisions by namespace, service, generation and name (in this order)
-func sortRevisions(revisionList *v1alpha1.RevisionList) {
+func sortRevisions(revisionList *servingv1.RevisionList) {
 	// sort revisionList by configuration generation key
 	sort.SliceStable(revisionList.Items, revisionListSortFunc(revisionList))
 }
 
 // revisionListSortFunc sorts by namespace, service,  generation and name
-func revisionListSortFunc(revisionList *v1alpha1.RevisionList) func(i int, j int) bool {
+func revisionListSortFunc(revisionList *servingv1.RevisionList) func(i int, j int) bool {
 	return func(i, j int) bool {
 		a := revisionList.Items[i]
 		b := revisionList.Items[j]
@@ -195,13 +195,13 @@ func revisionListSortFunc(revisionList *v1alpha1.RevisionList) func(i int, j int
 }
 
 // Service factory function for a namespace
-type serviceFactoryFunc func(namespace string) (serving_v1alpha.KnServingClient, error)
+type serviceFactoryFunc func(namespace string) (clientservingv1alpha.KnServingClient, error)
 
 // A function which looks up a service by name
-type serviceGetFunc func(namespace, serviceName string) (*v1alpha1.Service, error)
+type serviceGetFunc func(namespace, serviceName string) (*servingv1.Service, error)
 
 // Create revision info with traffic and tag information (if present)
-func enrichRevisionAnnotationsWithServiceData(serviceFactory serviceFactoryFunc, revisionList *v1alpha1.RevisionList) error {
+func enrichRevisionAnnotationsWithServiceData(serviceFactory serviceFactoryFunc, revisionList *servingv1.RevisionList) error {
 	serviceLookup := serviceLookup(serviceFactory)
 
 	for _, revision := range revisionList.Items {
@@ -230,10 +230,10 @@ func enrichRevisionAnnotationsWithServiceData(serviceFactory serviceFactoryFunc,
 func serviceLookup(serviceFactory serviceFactoryFunc) serviceGetFunc {
 
 	// Two caches: For service & clients (clients might not be necessary though)
-	serviceCache := make(map[string]*v1alpha1.Service)
-	clientCache := make(map[string]serving_v1alpha.KnServingClient)
+	serviceCache := make(map[string]*servingv1.Service)
+	clientCache := make(map[string]clientservingv1alpha.KnServingClient)
 
-	return func(namespace, serviceName string) (*v1alpha1.Service, error) {
+	return func(namespace, serviceName string) (*servingv1.Service, error) {
 		if service, exists := serviceCache[serviceName]; exists {
 			return service, nil
 		}

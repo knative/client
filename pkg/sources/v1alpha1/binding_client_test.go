@@ -19,21 +19,20 @@ import (
 	"testing"
 
 	"gotest.tools/assert"
-	v12 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	client_testing "k8s.io/client-go/testing"
+	clienttesting "k8s.io/client-go/testing"
 	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
 	"knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1/fake"
-	v1 "knative.dev/pkg/apis/duck/v1"
+	duckv1 "knative.dev/pkg/apis/duck/v1"
 	"knative.dev/pkg/tracker"
 )
 
 var testNamespace = "test-ns"
 
 func setup() (fakeSvr fake.FakeSourcesV1alpha1, client KnSinkBindingClient) {
-	fakeE := fake.FakeSourcesV1alpha1{Fake: &client_testing.Fake{}}
+	fakeE := fake.FakeSourcesV1alpha1{Fake: &clienttesting.Fake{}}
 	cli := NewKnSourcesClient(&fakeE, "test-ns").SinkBindingClient()
 	return fakeE, cli
 }
@@ -43,8 +42,8 @@ func TestDeleteSinkBinding(t *testing.T) {
 	server, client := setup()
 
 	server.AddReactor("delete", "sinkbindings",
-		func(a client_testing.Action) (bool, runtime.Object, error) {
-			name := a.(client_testing.DeleteAction).GetName()
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			name := a.(clienttesting.DeleteAction).GetName()
 			if name == "errorSinkBinding" {
 				return true, nil, fmt.Errorf("error while deleting binding %s", name)
 			}
@@ -65,9 +64,9 @@ func TestCreateSinkBinding(t *testing.T) {
 	objNew := newSinkBinding(name, "mysvc", "mycronjob")
 
 	server.AddReactor("create", "sinkbindings",
-		func(a client_testing.Action) (bool, runtime.Object, error) {
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
 			assert.Equal(t, testNamespace, a.GetNamespace())
-			name := a.(client_testing.CreateAction).GetObject().(metav1.Object).GetName()
+			name := a.(clienttesting.CreateAction).GetObject().(metav1.Object).GetName()
 			if name == objNew.Name {
 				objNew.Generation = 2
 				return true, objNew, nil
@@ -91,8 +90,8 @@ func TestGetSinkBinding(t *testing.T) {
 	server, client := setup()
 
 	server.AddReactor("get", "sinkbindings",
-		func(a client_testing.Action) (bool, runtime.Object, error) {
-			name := a.(client_testing.GetAction).GetName()
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			name := a.(clienttesting.GetAction).GetName()
 			if name == "errorSinkBinding" {
 				return true, nil, fmt.Errorf("error while getting binding %s", name)
 			}
@@ -117,7 +116,7 @@ func TestListSinkBinding(t *testing.T) {
 		binding2 := newSinkBinding("binding-2", "mysvc-2", "mycronjob")
 
 		serving.AddReactor("list", "sinkbindings",
-			func(a client_testing.Action) (bool, runtime.Object, error) {
+			func(a clienttesting.Action) (bool, runtime.Object, error) {
 				assert.Equal(t, testNamespace, a.GetNamespace())
 				return true, &v1alpha1.SinkBindingList{Items: []v1alpha1.SinkBinding{*binding1, *binding2}}, nil
 			})
@@ -147,7 +146,7 @@ func TestSinkBindingBuilderAddCloudEventOverrides(t *testing.T) {
 		assert.NilError(t, err)
 		assert.DeepEqual(t, b, a)
 		bBuilder.AddCloudEventOverrides(map[string]string{"type": "new"})
-		expected := &v1.CloudEventOverrides{
+		expected := &duckv1.CloudEventOverrides{
 			Extensions: map[string]string{
 				"type": "new",
 			},
@@ -162,7 +161,7 @@ func TestSinkBindingBuilderAddCloudEventOverrides(t *testing.T) {
 		assert.NilError(t, err)
 		assert.DeepEqual(t, b, a)
 		bBuilder.AddCloudEventOverrides(map[string]string{"source": "bar"})
-		expected := &v1.CloudEventOverrides{
+		expected := &duckv1.CloudEventOverrides{
 			Extensions: map[string]string{
 				"type":   "foo",
 				"source": "bar",
@@ -239,8 +238,8 @@ func TestSinkBindingBuilderForSubjectDirect(t *testing.T) {
 }
 
 func newSinkBinding(name, sinkService, cronJobName string) *v1alpha1.SinkBinding {
-	sink := &v1.Destination{
-		Ref: &v12.ObjectReference{Name: sinkService, Kind: "Service", Namespace: "default", APIVersion: "serving.knative.dev/v1alpha1"},
+	sink := &duckv1.Destination{
+		Ref: &duckv1.KReference{Name: sinkService, Kind: "Service", Namespace: "default", APIVersion: "serving.knative.dev/v1"},
 	}
 	b, _ := NewSinkBindingBuilder(name).
 		Namespace(testNamespace).

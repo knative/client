@@ -24,15 +24,15 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	eventing "knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1alpha1"
-	eventing_sources "knative.dev/eventing/pkg/legacyclient/clientset/versioned/typed/legacysources/v1alpha1"
-	serving_v1alpha1_client "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
+	sourcesv1alpha1client "knative.dev/eventing/pkg/legacyclient/clientset/versioned/typed/legacysources/v1alpha1"
+	servingv1client "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1"
 
 	"knative.dev/client/pkg/util"
 
-	dynamic_kn "knative.dev/client/pkg/dynamic"
-	sources_kn_v1alpha1 "knative.dev/client/pkg/eventing/legacysources/v1alpha1"
-	eventing_kn_v1alpha1 "knative.dev/client/pkg/eventing/v1alpha1"
-	serving_kn_v1alpha1 "knative.dev/client/pkg/serving/v1alpha1"
+	clientdynamic "knative.dev/client/pkg/dynamic"
+	clientsourcesv1alpha1 "knative.dev/client/pkg/eventing/legacysources/v1alpha1"
+	clienteventingv1alpha1 "knative.dev/client/pkg/eventing/v1alpha1"
+	clientservingv1 "knative.dev/client/pkg/serving/v1"
 )
 
 // CfgFile is Kn's config file is the path for the Kubernetes config
@@ -55,10 +55,10 @@ type KnParams struct {
 	Output            io.Writer
 	KubeCfgPath       string
 	ClientConfig      clientcmd.ClientConfig
-	NewServingClient  func(namespace string) (serving_kn_v1alpha1.KnServingClient, error)
-	NewSourcesClient  func(namespace string) (sources_kn_v1alpha1.KnSourcesClient, error)
-	NewEventingClient func(namespace string) (eventing_kn_v1alpha1.KnEventingClient, error)
-	NewDynamicClient  func(namespace string) (dynamic_kn.KnDynamicClient, error)
+	NewServingClient  func(namespace string) (clientservingv1.KnServingClient, error)
+	NewSourcesClient  func(namespace string) (clientsourcesv1alpha1.KnSourcesClient, error)
+	NewEventingClient func(namespace string) (clienteventingv1alpha1.KnEventingClient, error)
+	NewDynamicClient  func(namespace string) (clientdynamic.KnDynamicClient, error)
 
 	// General global options
 	LogHTTP bool
@@ -85,44 +85,44 @@ func (params *KnParams) Initialize() {
 	}
 }
 
-func (params *KnParams) newServingClient(namespace string) (serving_kn_v1alpha1.KnServingClient, error) {
+func (params *KnParams) newServingClient(namespace string) (clientservingv1.KnServingClient, error) {
 	restConfig, err := params.RestConfig()
 	if err != nil {
 		return nil, err
 	}
 
-	client, _ := serving_v1alpha1_client.NewForConfig(restConfig)
-	return serving_kn_v1alpha1.NewKnServingClient(client, namespace), nil
+	client, _ := servingv1client.NewForConfig(restConfig)
+	return clientservingv1.NewKnServingClient(client, namespace), nil
 }
 
-func (params *KnParams) newSourcesClient(namespace string) (sources_kn_v1alpha1.KnSourcesClient, error) {
+func (params *KnParams) newSourcesClient(namespace string) (clientsourcesv1alpha1.KnSourcesClient, error) {
 	restConfig, err := params.RestConfig()
 	if err != nil {
 		return nil, err
 	}
 
-	client, _ := eventing_sources.NewForConfig(restConfig)
-	return sources_kn_v1alpha1.NewKnSourcesClient(client, namespace), nil
+	client, _ := sourcesv1alpha1client.NewForConfig(restConfig)
+	return clientsourcesv1alpha1.NewKnSourcesClient(client, namespace), nil
 }
 
-func (params *KnParams) newEventingClient(namespace string) (eventing_kn_v1alpha1.KnEventingClient, error) {
+func (params *KnParams) newEventingClient(namespace string) (clienteventingv1alpha1.KnEventingClient, error) {
 	restConfig, err := params.RestConfig()
 	if err != nil {
 		return nil, err
 	}
 
 	client, _ := eventing.NewForConfig(restConfig)
-	return eventing_kn_v1alpha1.NewKnEventingClient(client, namespace), nil
+	return clienteventingv1alpha1.NewKnEventingClient(client, namespace), nil
 }
 
-func (params *KnParams) newDynamicClient(namespace string) (dynamic_kn.KnDynamicClient, error) {
+func (params *KnParams) newDynamicClient(namespace string) (clientdynamic.KnDynamicClient, error) {
 	restConfig, err := params.RestConfig()
 	if err != nil {
 		return nil, err
 	}
 
 	client, _ := dynamic.NewForConfig(restConfig)
-	return dynamic_kn.NewKnDynamicClient(client, namespace), nil
+	return clientdynamic.NewKnDynamicClient(client, namespace), nil
 }
 
 // RestConfig returns REST config, which can be to use to create specific clientset
