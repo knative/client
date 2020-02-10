@@ -23,6 +23,7 @@ import (
 	"testing"
 
 	"gotest.tools/assert"
+	"knative.dev/client/pkg/util"
 )
 
 func TestService(t *testing.T) {
@@ -34,6 +35,11 @@ func TestService(t *testing.T) {
 	t.Run("create hello service duplicate and get service already exists error", func(t *testing.T) {
 		test.serviceCreate(t, "hello")
 		test.serviceCreateDuplicate(t, "hello")
+	})
+
+	t.Run("create private service and change test change pf visibility", func(t *testing.T) {
+		test.serviceCreatePrivate(t, "hello-private")
+		test.serviceCreatePrivateUpdatePublic(t, "hello-private-public")
 	})
 
 	t.Run("return valid info about hello service with print flags", func(t *testing.T) {
@@ -60,6 +66,36 @@ func (test *e2eTest) serviceCreateDuplicate(t *testing.T, serviceName string) {
 		"--image", KnDefaultTestImage}, runOpts{NoNamespace: false, AllowError: true})
 
 	assert.ErrorContains(t, err, "the service already exists")
+}
+
+func (test *e2eTest) serviceCreatePrivate(t *testing.T, serviceName string) {
+	out, err := test.kn.RunWithOpts([]string{"service", "list", serviceName}, runOpts{NoNamespace: false})
+	assert.NilError(t, err)
+	assert.Check(t, strings.Contains(out, serviceName), "The service does not exist yet")
+
+	_, err = test.kn.RunWithOpts([]string{"service", "create", serviceName,
+		"--image", KnDefaultTestImage, "--cluster-local"}, runOpts{NoNamespace: false, AllowError: true})
+	assert.NilError(t, err)
+
+	assert.Check(t, util.ContainsAllIgnoreCase(out, "service", serviceName, "creating", "namespace", test.kn.namespace, "ready"))
+}
+
+func (test *e2eTest) serviceCreatePrivateUpdatePublic(t *testing.T, serviceName string) {
+	out, err := test.kn.RunWithOpts([]string{"service", "list", serviceName}, runOpts{NoNamespace: false})
+	assert.NilError(t, err)
+	assert.Check(t, strings.Contains(out, serviceName), "The service does not exist yet")
+
+	_, err = test.kn.RunWithOpts([]string{"service", "create", serviceName,
+		"--image", KnDefaultTestImage, "--cluster-local"}, runOpts{NoNamespace: false, AllowError: true})
+	assert.NilError(t, err)
+
+	assert.Check(t, util.ContainsAllIgnoreCase(out, "service", serviceName, "creating", "namespace", test.kn.namespace, "ready"))
+
+	_, err = test.kn.RunWithOpts([]string{"service", "update", serviceName,
+		"--image", KnDefaultTestImage, "--no-cluster-local"}, runOpts{NoNamespace: false, AllowError: true})
+	assert.NilError(t, err)
+
+	assert.Check(t, util.ContainsAllIgnoreCase(out, "service", serviceName, "updated", "namespace", test.kn.namespace, "ready"))
 }
 
 func (test *e2eTest) serviceDescribeWithPrintFlags(t *testing.T, serviceName string) {

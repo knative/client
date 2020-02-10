@@ -59,10 +59,7 @@ func fakeRevision(args []string, response *servingv1.Revision) (action clienttes
 
 func TestDescribeRevisionWithNoName(t *testing.T) {
 	_, _, err := fakeRevision([]string{"revision", "describe"}, &servingv1.Revision{})
-	expectedError := "requires the revision name."
-	if err == nil || err.Error() != expectedError {
-		t.Fatal("expect to fail with missing revision name")
-	}
+	assert.ErrorContains(t, err, "requires", "name", "revision", "single", "argument")
 }
 
 func TestDescribeRevisionYaml(t *testing.T) {

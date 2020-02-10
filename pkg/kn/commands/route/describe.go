@@ -16,22 +16,27 @@ package route
 
 import (
 	"errors"
+	"fmt"
+	"io"
 
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	"knative.dev/client/pkg/kn/commands"
+	"knative.dev/client/pkg/printers"
 )
 
 // NewRouteDescribeCommand represents 'kn route describe' command
 func NewRouteDescribeCommand(p *commands.KnParams) *cobra.Command {
-	routeDescribePrintFlags := genericclioptions.NewPrintFlags("").WithDefaultOutput("yaml")
-	routeDescribeCommand := &cobra.Command{
+	// For machine readable output
+	machineReadablePrintFlags := genericclioptions.NewPrintFlags("")
+	command := &cobra.Command{
 		Use:   "describe NAME",
-		Short: "Describe available route.",
+		Short: "Show details of a route",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if len(args) < 1 {
-				return errors.New("requires the route name.")
+			if len(args) != 1 {
+				return errors.New("'kn route describe' requires name of the route as single argument")
 			}
 			namespace, err := p.GetNamespace(cmd)
 			if err != nil {
@@ -43,23 +48,79 @@ func NewRouteDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			describeRoute, err := client.GetRoute(args[0])
+			route, err := client.GetRoute(args[0])
 			if err != nil {
 				return err
 			}
 
-			printer, err := routeDescribePrintFlags.ToPrinter()
+			if machineReadablePrintFlags.OutputFlagSpecified() {
+				printer, err := machineReadablePrintFlags.ToPrinter()
+				if err != nil {
+					return err
+				}
+				return printer.PrintObj(route, cmd.OutOrStdout())
+			}
+			printDetails, err := cmd.Flags().GetBool("verbose")
 			if err != nil {
 				return err
 			}
-			err = printer.PrintObj(describeRoute, cmd.OutOrStdout())
-			if err != nil {
-				return err
-			}
-			return nil
+			return describe(cmd.OutOrStdout(), route, printDetails)
 		},
 	}
-	commands.AddNamespaceFlags(routeDescribeCommand.Flags(), false)
-	routeDescribePrintFlags.AddFlags(routeDescribeCommand)
-	return routeDescribeCommand
+	flags := command.Flags()
+	commands.AddNamespaceFlags(flags, false)
+	machineReadablePrintFlags.AddFlags(command)
+	flags.BoolP("verbose", "v", false, "More output.")
+	return command
+}
+
+func describe(w io.Writer, route *servingv1.Route, printDetails bool) error {
+	dw := printers.NewPrefixWriter(w)
+	commands.WriteMetadata(dw, &route.ObjectMeta, printDetails)
+	dw.WriteAttribute("URL", route.Status.URL.String())
+	writeService(dw, route, printDetails)
+	dw.WriteLine()
+	writeTraffic(dw, route)
+	dw.WriteLine()
+	commands.WriteConditions(dw, route.Status.Conditions, printDetails)
+	if err := dw.Flush(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func writeService(dw printers.PrefixWriter, route *servingv1.Route, printDetails bool) {
+	svcName := ""
+	for _, owner := range route.ObjectMeta.OwnerReferences {
+		if owner.Kind == "Service" {
+			svcName = owner.Name
+			if printDetails {
+				svcName = fmt.Sprintf("%s (%s)", svcName, owner.APIVersion)
+			}
+		}
+
+		dw.WriteAttribute("Service", svcName)
+	}
+}
+
+func writeTraffic(dw printers.PrefixWriter, route *servingv1.Route) {
+	trafficSection := dw.WriteAttribute("Traffic Targets", "")
+	dw.Flush()
+	for _, target := range route.Status.Traffic {
+		section := trafficSection.WriteColsLn(fmt.Sprintf("%3d%%", *target.Percent), formatTarget(target))
+		if target.Tag != "" {
+			section.WriteAttribute("URL", target.URL.String())
+		}
+	}
+}
+
+func formatTarget(target servingv1.TrafficTarget) string {
+	targetHeader := target.RevisionName
+	if target.LatestRevision != nil && *target.LatestRevision {
+		targetHeader = fmt.Sprintf("@latest (%s)", target.RevisionName)
+	}
+	if target.Tag != "" {
+		targetHeader = fmt.Sprintf("%s #%s", targetHeader, target.Tag)
+	}
+	return targetHeader
 }

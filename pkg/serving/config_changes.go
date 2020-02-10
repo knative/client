@@ -196,18 +196,9 @@ func UpdateAutoscaleWindow(template *servingv1.RevisionTemplateSpec, window stri
 
 // UpdateClusterLocal updates container serving.knative.dev/visibility annotation
 func UpdateClusterLocal(service *servingv1.Service, template *servingv1.RevisionTemplateSpec, clusterLocal bool) error {
-	currentClusterLocal := template.Labels[config.VisibilityLabelKey]
 	if clusterLocal {
-		// NOOP when setting --cluster-local on already private service
-		if currentClusterLocal == config.VisibilityClusterLocal {
-			return nil
-		}
 		return UpdateLabels(service, template, map[string]string{config.VisibilityLabelKey: config.VisibilityClusterLocal}, []string{})
 	} else {
-		// NOOP when setting --no-cluster-local on already public service
-		if currentClusterLocal == "" {
-			return nil
-		}
 		return UpdateLabels(service, template, map[string]string{}, []string{config.VisibilityLabelKey})
 	}
 }

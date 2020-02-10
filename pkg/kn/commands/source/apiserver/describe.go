@@ -32,13 +32,13 @@ func NewAPIServerDescribeCommand(p *commands.KnParams) *cobra.Command {
 
 	apiServerDescribe := &cobra.Command{
 		Use:   "describe NAME",
-		Short: "Describe an ApiServer source.",
+		Short: "Show details of an ApiServer source",
 		Example: `
   # Describe an ApiServer source with name 'k8sevents'
   kn source apiserver describe k8sevents`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
-				return errors.New("requires the name of the source as single argument")
+				return errors.New("'kn source apiserver describe' requires name of the source as single argument")
 			}
 			name := args[0]
 

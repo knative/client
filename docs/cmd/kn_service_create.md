@@ -47,7 +47,7 @@ kn service create NAME --image IMAGE [flags]
 ```
       --annotation stringArray    Service annotation to set. name=value; you may provide this flag any number of times to set multiple annotations. To unset, specify the annotation name followed by a "-" (e.g., name-).
       --arg stringArray           Add argument to the container command. Example: --arg myArg1 --arg --myArg2 --arg myArg3=3. You can use this flag multiple times.
-      --async                     Create service and don't wait for it to become ready.
+      --async                     DEPRECATED: please use --no-wait instead. Create service and don't wait for it to become ready.
       --autoscale-window string   Duration to look back for making auto-scaling decisions. The service is scaled to zero if no request was received in during that time. (eg: 10s)
       --cluster-local             Specify that the service be private. (--no-cluster-local will make the service publicly available
       --cmd string                Specify command to be used as entrypoint instead of default one. Example: --cmd /app/start or --cmd /app/start --arg myArg to pass aditional arguments.
@@ -61,13 +61,14 @@ kn service create NAME --image IMAGE [flags]
   -l, --label stringArray         Service label to set. name=value; you may provide this flag any number of times to set multiple labels. To unset, specify the label name followed by a "-" (e.g., name-).
       --limits-cpu string         The limits on the requested CPU (e.g., 1000m).
       --limits-memory string      The limits on the requested memory (e.g., 1024Mi).
-      --lock-to-digest            keep the running image for the service constant when not explicitly specifying the image. (--no-lock-to-digest pulls the image tag afresh with each new revision) (default true)
+      --lock-to-digest            Keep the running image for the service constant when not explicitly specifying the image. (--no-lock-to-digest pulls the image tag afresh with each new revision) (default true)
       --max-scale int             Maximal number of replicas.
       --min-scale int             Minimal number of replicas.
       --mount stringArray         Mount a ConfigMap (prefix cm: or config-map:), a Secret (prefix secret: or sc:), or an existing Volume (without any prefix) on the specified directory. Example: --mount /mydir=cm:myconfigmap, --mount /mydir=secret:mysecret, or --mount /mydir=myvolume. When a configmap or a secret is specified, a corresponding volume is automatically generated. You can use this flag multiple times. For unmounting a directory, append "-", e.g. --mount /mydir-, which also removes any auto-generated volume.
   -n, --namespace string          Specify the namespace to operate in.
-      --no-cluster-local          do not Specify that the service be private. (--no-cluster-local will make the service publicly available (default true)
-      --no-lock-to-digest         do not keep the running image for the service constant when not explicitly specifying the image. (--no-lock-to-digest pulls the image tag afresh with each new revision)
+      --no-cluster-local          Do not specify that the service be private. (--no-cluster-local will make the service publicly available (default true)
+      --no-lock-to-digest         Do not keep the running image for the service constant when not explicitly specifying the image. (--no-lock-to-digest pulls the image tag afresh with each new revision)
+      --no-wait                   Create service and don't wait for it to become ready.
   -p, --port int32                The port where application listens on.
       --pull-secret string        Image pull secret to set. An empty argument ("") clears the pull secret. The referenced secret must exist in the service's namespace.
       --requests-cpu string       The requested CPU (e.g., 250m).

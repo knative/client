@@ -1,10 +1,10 @@
 ## kn source cronjob describe
 
-Describe a CronJob source.
+Show details of a CronJob source
 
 ### Synopsis
 
-Describe a CronJob source.
+Show details of a CronJob source
 
 ```
 kn source cronjob describe NAME [flags]

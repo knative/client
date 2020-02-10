@@ -1,10 +1,10 @@
 ## kn service describe
 
-Show details for a given service
+Show details of a service
 
 ### Synopsis
 
-Show details for a given service
+Show details of a service
 
 ```
 kn service describe NAME [flags]

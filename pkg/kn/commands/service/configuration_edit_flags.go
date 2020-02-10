@@ -26,6 +26,7 @@ import (
 	servinglib "knative.dev/client/pkg/serving"
 	"knative.dev/client/pkg/util"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
+	"knative.dev/serving/pkg/reconciler/route/config"
 )
 
 type ConfigurationEditFlags struct {
@@ -133,6 +134,7 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	p.markFlagMakesRevision("autoscale-window")
 	flags.AddBothBoolFlagsUnhidden(command.Flags(), &p.ClusterLocal, "cluster-local", "", false,
 		"Specify that the service be private. (--no-cluster-local will make the service publicly available")
+	// Don't mark as changing the revision.
 	command.Flags().IntVar(&p.ConcurrencyTarget, "concurrency-target", 0,
 		"Recommendation for when to scale up based on the concurrent number of incoming request. "+
 			"Defaults to --concurrency-limit when given.")
@@ -154,7 +156,7 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 			"{{.Generation}} for the generation, and {{.Random [n]}} for n random consonants.")
 	p.markFlagMakesRevision("revision-name")
 	flags.AddBothBoolFlagsUnhidden(command.Flags(), &p.LockToDigest, "lock-to-digest", "", true,
-		"keep the running image for the service constant when not explicitly specifying "+
+		"Keep the running image for the service constant when not explicitly specifying "+
 			"the image. (--no-lock-to-digest pulls the image tag afresh with each new revision)")
 	// Don't mark as changing the revision.
 	command.Flags().StringVar(&p.ServiceAccountName,
@@ -251,6 +253,7 @@ func (p *ConfigurationEditFlags) Apply(
 	if p.AnyMutation(cmd) {
 		template.Name = name
 	}
+
 	imageSet := false
 	if cmd.Flags().Changed("image") {
 		err = servinglib.UpdateImage(template, p.Image)
@@ -343,9 +346,34 @@ func (p *ConfigurationEditFlags) Apply(
 	}
 
 	if cmd.Flags().Changed("cluster-local") || cmd.Flags().Changed("no-cluster-local") {
-		err = servinglib.UpdateClusterLocal(service, template, p.ClusterLocal)
-		if err != nil {
-			return err
+		// Moved the check for no chance here as it will be refactored to generic #646 solution
+		currentClusterLocal := template.Labels[config.VisibilityLabelKey]
+		noChange := false
+		if p.ClusterLocal {
+			// NOOP when setting --cluster-local on already private service
+			if currentClusterLocal == config.VisibilityClusterLocal {
+				noChange = true
+			}
+		} else {
+			// NOOP when setting --no-cluster-local on already public service
+			if currentClusterLocal == "" {
+				noChange = true
+			}
+		}
+
+		if noChange == false {
+			// Take care of creating new revision name
+			newRevisionName, err := servinglib.GenerateRevisionName(p.RevisionName, service)
+			if err != nil {
+				return err
+			}
+
+			template.Name = newRevisionName
+
+			err = servinglib.UpdateClusterLocal(service, template, p.ClusterLocal)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
