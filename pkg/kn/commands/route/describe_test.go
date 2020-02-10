@@ -104,7 +104,7 @@ func TestCompletion(t *testing.T) {
 		assert.Assert(t, action.Matches("get", "routes"))
 
 		assert.Check(t, util.ContainsAll(output,
-			"Name", "URL", "Traffic Targets", "Conditions",
+			"Name", "URL", "Service", "Traffic Targets", "Conditions",
 			"foo", "default", "90%", "foo-v2", "#v2", "10%", "@latest", "foo-v3"))
 	})
 

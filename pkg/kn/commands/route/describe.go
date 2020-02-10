@@ -90,15 +90,16 @@ func describe(w io.Writer, route *servingv1.Route, printDetails bool) error {
 }
 
 func writeService(dw printers.PrefixWriter, route *servingv1.Route, printDetails bool) {
+	svcName := ""
 	for _, owner := range route.ObjectMeta.OwnerReferences {
-		if owner.Kind != "Service" {
-			continue
+		if owner.Kind == "Service" {
+			svcName = owner.Name
+			if printDetails {
+				svcName = fmt.Sprintf("%s (%s)", svcName, owner.APIVersion)
+			}
 		}
-		if printDetails {
-			dw.WriteAttribute(owner.Kind, fmt.Sprintf("%s (%s)", owner.Name, owner.APIVersion))
-		} else {
-			dw.WriteAttribute(owner.Kind, owner.Name)
-		}
+
+		dw.WriteAttribute("Service", svcName)
 	}
 }
 
