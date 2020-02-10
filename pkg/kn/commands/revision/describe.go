@@ -43,7 +43,7 @@ func NewRevisionDescribeCommand(p *commands.KnParams) *cobra.Command {
 
 	command := &cobra.Command{
 		Use:   "describe NAME",
-		Short: "Show details of a given Revision",
+		Short: "Show details of a revision",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("'kn revision describe' requires name of the revision as single argument")

@@ -1,10 +1,10 @@
 ## kn revision describe
 
-Show details of a given Revision
+Show details of a revision
 
 ### Synopsis
 
-Show details of a given Revision
+Show details of a revision
 
 ```
 kn revision describe NAME [flags]

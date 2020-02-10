@@ -1,10 +1,10 @@
 ## kn source binding describe
 
-Describe a sink binding.
+Show details of a sink binding
 
 ### Synopsis
 
-Describe a sink binding.
+Show details of a sink binding
 
 ```
 kn source binding describe NAME [flags]

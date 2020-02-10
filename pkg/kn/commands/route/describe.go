@@ -33,7 +33,7 @@ func NewRouteDescribeCommand(p *commands.KnParams) *cobra.Command {
 	machineReadablePrintFlags := genericclioptions.NewPrintFlags("")
 	command := &cobra.Command{
 		Use:   "describe NAME",
-		Short: "Show details of a given Route",
+		Short: "Show details of a route",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("'kn route describe' requires name of the route as single argument")
@@ -64,7 +64,6 @@ func NewRouteDescribeCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-
 			return describe(cmd.OutOrStdout(), route, printDetails)
 		},
 	}
@@ -79,31 +78,28 @@ func describe(w io.Writer, route *servingv1.Route, printDetails bool) error {
 	dw := printers.NewPrefixWriter(w)
 	commands.WriteMetadata(dw, &route.ObjectMeta, printDetails)
 	dw.WriteAttribute("URL", route.Status.URL.String())
-	dw.WriteLine()
-	writeOwnerReferences(dw, route, printDetails)
+	writeService(dw, route, printDetails)
 	dw.WriteLine()
 	writeTraffic(dw, route)
-
 	dw.WriteLine()
 	commands.WriteConditions(dw, route.Status.Conditions, printDetails)
 	if err := dw.Flush(); err != nil {
 		return err
 	}
-
 	return nil
 }
 
-func writeOwnerReferences(dw printers.PrefixWriter, route *servingv1.Route, printDetails bool) {
-	ownerSection := dw.WriteAttribute("Owner References", "")
-	dw.Flush()
+func writeService(dw printers.PrefixWriter, route *servingv1.Route, printDetails bool) {
 	for _, owner := range route.ObjectMeta.OwnerReferences {
+		if owner.Kind != "Service" {
+			continue
+		}
 		if printDetails {
-			ownerSection.WriteAttribute(owner.Kind, fmt.Sprintf("%s (%s)", owner.Name, owner.APIVersion))
+			dw.WriteAttribute(owner.Kind, fmt.Sprintf("%s (%s)", owner.Name, owner.APIVersion))
 		} else {
-			ownerSection.WriteAttribute(owner.Kind, owner.Name)
+			dw.WriteAttribute(owner.Kind, owner.Name)
 		}
 	}
-
 }
 
 func writeTraffic(dw printers.PrefixWriter, route *servingv1.Route) {

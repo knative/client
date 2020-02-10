@@ -1,10 +1,10 @@
 ## kn route describe
 
-Show details of a given Route
+Show details of a route
 
 ### Synopsis
 
-Show details of a given Route
+Show details of a route
 
 ```
 kn route describe NAME [flags]

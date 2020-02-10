@@ -81,7 +81,7 @@ func (test *e2eTest) routeDescribe(t *testing.T, routeName string) {
 	assert.NilError(t, err)
 
 	assert.Check(t, util.ContainsAll(out,
-		routeName, test.kn.namespace, "URL", "Owner", "Service", "Traffic", "Targets", "Conditions"))
+		routeName, test.kn.namespace, "URL", "Service", "Traffic", "Targets", "Conditions"))
 }
 
 func (test *e2eTest) routeDescribeWithPrintFlags(t *testing.T, routeName string) {
