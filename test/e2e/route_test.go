@@ -80,11 +80,8 @@ func (test *e2eTest) routeDescribe(t *testing.T, routeName string) {
 	out, err := test.kn.RunWithOpts([]string{"route", "describe", routeName}, runOpts{})
 	assert.NilError(t, err)
 
-	expectedGVK := `apiVersion: serving.knative.dev/v1
-kind: Route`
-	expectedNamespace := fmt.Sprintf("namespace: %s", test.kn.namespace)
-	expectedServiceLabel := fmt.Sprintf("serving.knative.dev/service: %s", routeName)
-	assert.Check(t, util.ContainsAll(out, expectedGVK, expectedNamespace, expectedServiceLabel))
+	assert.Check(t, util.ContainsAll(out,
+		routeName, test.kn.namespace, "URL", "Service", "Traffic", "Targets", "Conditions"))
 }
 
 func (test *e2eTest) routeDescribeWithPrintFlags(t *testing.T, routeName string) {

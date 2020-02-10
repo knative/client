@@ -31,13 +31,13 @@ func NewTriggerDescribeCommand(p *commands.KnParams) *cobra.Command {
 
 	triggerDescribe := &cobra.Command{
 		Use:   "describe NAME",
-		Short: "Describe a trigger.",
+		Short: "Show details of a trigger",
 		Example: `
   # Describe a trigger with name 'my-trigger'
   kn trigger describe my-trigger`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
-				return errors.New("'trigger describe' requires the name of the trigger as single argument")
+				return errors.New("'kn trigger describe' requires name of the trigger as single argument")
 			}
 			name := args[0]
 

@@ -1,10 +1,10 @@
 ## kn source apiserver describe
 
-Describe an ApiServer source.
+Show details of an ApiServer source
 
 ### Synopsis
 
-Describe an ApiServer source.
+Show details of an ApiServer source
 
 ```
 kn source apiserver describe NAME [flags]

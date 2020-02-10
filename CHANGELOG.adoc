@@ -20,6 +20,10 @@
 |===
 | | Description | PR
 
+| 🎁
+| Add human readable `kn route describe`
+| https://github.com/knative/client/pull/643[#643]
+
 | 🐛
 | Show envFrom when running describe service or revision
 | https://github.com/knative/client/pull/630[#630]

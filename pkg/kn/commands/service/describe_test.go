@@ -466,10 +466,10 @@ func TestServiceDescribeVerbose(t *testing.T) {
 func TestServiceDescribeWithWrongArguments(t *testing.T) {
 	client := knclient.NewMockKnServiceClient(t)
 	_, err := executeServiceCommand(client, "describe")
-	assert.ErrorContains(t, err, "no", "service", "provided")
+	assert.ErrorContains(t, err, "requires", "name", "service", "single", "argument")
 
 	_, err = executeServiceCommand(client, "describe", "foo", "bar")
-	assert.ErrorContains(t, err, "more than one", "service", "provided")
+	assert.ErrorContains(t, err, "requires", "name", "service", "single", "argument")
 }
 
 func TestServiceDescribeMachineReadable(t *testing.T) {

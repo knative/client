@@ -47,7 +47,8 @@ type PrefixWriter interface {
 	WriteColsLn(cols ...string) PrefixWriter
 	// Flush forces indentation to be reset.
 	Flush() error
-
+	// WriteAttribute writes the attr (as a label) with the given value and returns
+	// a PrefixWriter for writing any subattributes.
 	WriteAttribute(attr, value string) PrefixWriter
 }
 

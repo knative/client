@@ -1,10 +1,10 @@
 ## kn trigger describe
 
-Describe a trigger.
+Show details of a trigger
 
 ### Synopsis
 
-Describe a trigger.
+Show details of a trigger
 
 ```
 kn trigger describe NAME [flags]
