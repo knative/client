@@ -195,7 +195,8 @@ func TestServiceUpdateWithMultipleImages(t *testing.T) {
 	orig := newEmptyService()
 	_, _, _, err := fakeServiceUpdate(orig, []string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--image", "gcr.io/bar/foo:baz", "--no-wait"}, false)
-	assert.Error(t, err, "invalid argument \"gcr.io/bar/foo:baz\" for \"--image\" flag: can be provided only once")
+
+	assert.Assert(t, util.ContainsAll(err.Error(), "\"--image\"", "\"gcr.io/bar/foo:baz\"", "flag", "once"))
 }
 
 func TestServiceUpdateCommand(t *testing.T) {

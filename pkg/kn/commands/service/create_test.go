@@ -29,6 +29,7 @@ import (
 
 	"knative.dev/client/pkg/kn/commands"
 	servinglib "knative.dev/client/pkg/serving"
+	"knative.dev/client/pkg/util"
 	"knative.dev/client/pkg/wait"
 
 	corev1 "k8s.io/api/core/v1"
@@ -138,7 +139,8 @@ func TestServiceCreateImage(t *testing.T) {
 func TestServiceCreateWithMultipleImages(t *testing.T) {
 	_, _, _, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--image", "gcr.io/bar/foo:baz", "--no-wait"}, false, false)
-	assert.Error(t, err, "invalid argument \"gcr.io/bar/foo:baz\" for \"--image\" flag: can be provided only once")
+
+	assert.Assert(t, util.ContainsAll(err.Error(), "\"--image\"", "\"gcr.io/bar/foo:baz\"", "flag", "once"))
 }
 
 func TestServiceCreateImageSync(t *testing.T) {
