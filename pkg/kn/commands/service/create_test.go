@@ -135,6 +135,12 @@ func TestServiceCreateImage(t *testing.T) {
 	}
 }
 
+func TestServiceCreateWithMultipleImages(t *testing.T) {
+	_, _, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--image", "gcr.io/bar/foo:baz", "--no-wait"}, false, false)
+	assert.Error(t, err, "invalid argument \"gcr.io/bar/foo:baz\" for \"--image\" flag: can be provided only once")
+}
+
 func TestServiceCreateImageSync(t *testing.T) {
 	action, created, output, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz"}, false)
