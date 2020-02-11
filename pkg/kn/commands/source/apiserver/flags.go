@@ -165,6 +165,7 @@ func APIServerSourceListHandlers(h hprinters.PrintHandler) {
 		{Name: "Name", Type: "string", Description: "Name of the ApiServer source", Priority: 1},
 		{Name: "Resources", Type: "string", Description: "Event resources configured for the ApiServer source", Priority: 1},
 		{Name: "Sink", Type: "string", Description: "Sink of the ApiServer source", Priority: 1},
+		{Name: "Age", Type: "string", Description: "Age of the ApiServer source", Priority: 1},
 		{Name: "Conditions", Type: "string", Description: "Ready state conditions", Priority: 1},
 		{Name: "Ready", Type: "string", Description: "Ready state of the ApiServer source", Priority: 1},
 		{Name: "Reason", Type: "string", Description: "Reason if state is not Ready", Priority: 1},
@@ -180,6 +181,7 @@ func printSource(source *v1alpha1.ApiServerSource, options hprinters.PrintOption
 	}
 
 	name := source.Name
+	age := commands.TranslateTimestampSince(source.CreationTimestamp)
 	conditions := commands.ConditionsValue(source.Status.Conditions)
 	ready := commands.ReadyCondition(source.Status.Conditions)
 	reason := strings.TrimSpace(commands.NonReadyConditionReason(source.Status.Conditions))
@@ -206,7 +208,7 @@ func printSource(source *v1alpha1.ApiServerSource, options hprinters.PrintOption
 		row.Cells = append(row.Cells, source.Namespace)
 	}
 
-	row.Cells = append(row.Cells, name, strings.Join(resources[:], ","), sink, conditions, ready, reason)
+	row.Cells = append(row.Cells, name, strings.Join(resources[:], ","), sink, age, conditions, ready, reason)
 	return []metav1beta1.TableRow{row}, nil
 }
 

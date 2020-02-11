@@ -20,6 +20,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 
 	"knative.dev/client/pkg/kn/commands"
+	"knative.dev/client/pkg/kn/commands/flags"
 	hprinters "knative.dev/client/pkg/printers"
 
 	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
@@ -41,6 +42,7 @@ func BindingListHandlers(h hprinters.PrintHandler) {
 		{Name: "Name", Type: "string", Description: "Name of sink binding", Priority: 1},
 		{Name: "Subject", Type: "string", Description: "Subject part of binding", Priority: 1},
 		{Name: "Sink", Type: "string", Description: "Sink part of binding", Priority: 1},
+		{Name: "Age", Type: "string", Description: "Age of binding", Priority: 1},
 		{Name: "Conditions", Type: "string", Description: "Ready state conditions", Priority: 1},
 		{Name: "Ready", Type: "string", Description: "Ready state of the sink binding", Priority: 1},
 		{Name: "Reason", Type: "string", Description: "Reason if state is not Ready", Priority: 1},
@@ -57,7 +59,8 @@ func printSinkBinding(binding *v1alpha1.SinkBinding, options hprinters.PrintOpti
 
 	name := binding.Name
 	subject := subjectToString(binding.Spec.Subject)
-	sink := sinkToString(binding.Spec.Sink)
+	sink := flags.SinkToString(binding.Spec.Sink)
+	age := commands.TranslateTimestampSince(binding.CreationTimestamp)
 	conditions := commands.ConditionsValue(binding.Status.Conditions)
 	ready := commands.ReadyCondition(binding.Status.Conditions)
 	reason := commands.NonReadyConditionReason(binding.Status.Conditions)
@@ -66,7 +69,7 @@ func printSinkBinding(binding *v1alpha1.SinkBinding, options hprinters.PrintOpti
 		row.Cells = append(row.Cells, binding.Namespace)
 	}
 
-	row.Cells = append(row.Cells, name, subject, sink, conditions, ready, reason)
+	row.Cells = append(row.Cells, name, subject, sink, age, conditions, ready, reason)
 	return []metav1beta1.TableRow{row}, nil
 }
 
