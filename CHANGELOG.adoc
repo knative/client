@@ -45,6 +45,10 @@
 | remove unecessary `sync` parameter in setup call
 | https://github.com/knative/client/pull/656[#656]
 
+| 🐛
+| Fix `--image` flag to only allow single occurence
+| https://github.com/knative/client/pull/646[#646]
+
 ## v0.12.0 (2020-01-29)
 
 [cols="1,10,3", options="header", width="100%"]

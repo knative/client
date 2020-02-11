@@ -30,7 +30,7 @@ import (
 
 type ConfigurationEditFlags struct {
 	// Direct field manipulation
-	Image   string
+	Image   singletonString
 	Env     []string
 	EnvFrom []string
 	Mount   []string
@@ -67,6 +67,25 @@ type ResourceFlags struct {
 	Memory string
 }
 
+// -- singletonString Value
+// Custom implementation of flag.Value interface to prevent multiple value assignment.
+// Useful to enforce single use of flag, e.g. --image.
+type singletonString string
+
+func (s *singletonString) Set(val string) error {
+	if len(*s) > 0 {
+		return errors.New("value is already set")
+	}
+	*s = singletonString(val)
+	return nil
+}
+
+func (s *singletonString) Type() string {
+	return "string"
+}
+
+func (s *singletonString) String() string { return string(*s) }
+
 // markFlagMakesRevision indicates that a flag will create a new revision if you
 // set it.
 func (p *ConfigurationEditFlags) markFlagMakesRevision(f string) {
@@ -75,7 +94,7 @@ func (p *ConfigurationEditFlags) markFlagMakesRevision(f string) {
 
 // addSharedFlags adds the flags common between create & update.
 func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
-	command.Flags().StringVar(&p.Image, "image", "", "Image to run.")
+	command.Flags().VarP(&p.Image, "image", "", "Image to run.")
 	p.markFlagMakesRevision("image")
 	command.Flags().StringArrayVarP(&p.Env, "env", "e", []string{},
 		"Environment variable to set. NAME=value; you may provide this flag "+
@@ -251,7 +270,7 @@ func (p *ConfigurationEditFlags) Apply(
 	}
 	imageSet := false
 	if cmd.Flags().Changed("image") {
-		err = servinglib.UpdateImage(template, p.Image)
+		err = servinglib.UpdateImage(template, p.Image.String())
 		if err != nil {
 			return err
 		}
