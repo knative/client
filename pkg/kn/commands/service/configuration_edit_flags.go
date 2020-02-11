@@ -30,7 +30,7 @@ import (
 
 type ConfigurationEditFlags struct {
 	// Direct field manipulation
-	Image   singletonString
+	Image   uniqueStringArg
 	Env     []string
 	EnvFrom []string
 	Mount   []string
@@ -67,24 +67,24 @@ type ResourceFlags struct {
 	Memory string
 }
 
-// -- singletonString Value
+// -- uniqueStringArg Value
 // Custom implementation of flag.Value interface to prevent multiple value assignment.
-// Useful to enforce single use of flag, e.g. --image.
-type singletonString string
+// Useful to enforce unique use of flags, e.g. --image.
+type uniqueStringArg string
 
-func (s *singletonString) Set(val string) error {
+func (s *uniqueStringArg) Set(val string) error {
 	if len(*s) > 0 {
-		return errors.New("value is already set")
+		return errors.New("can be provided only once")
 	}
-	*s = singletonString(val)
+	*s = uniqueStringArg(val)
 	return nil
 }
 
-func (s *singletonString) Type() string {
+func (s *uniqueStringArg) Type() string {
 	return "string"
 }
 
-func (s *singletonString) String() string { return string(*s) }
+func (s *uniqueStringArg) String() string { return string(*s) }
 
 // markFlagMakesRevision indicates that a flag will create a new revision if you
 // set it.
