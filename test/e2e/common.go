@@ -225,13 +225,29 @@ func runCLIWithOpts(cli string, args []string, opts runOpts, logger Logger) (str
 	err := cmd.Run()
 	if err != nil {
 		err = fmt.Errorf("Execution error: stderr: '%s' error: '%s'", stderr.String(), err)
-
 		if !opts.AllowError {
+			fmt.Println("================[[Error]]=================")
+			fmt.Println(stdout.String())
+			dumpKsvc(args, logger)
 			logger.Fatalf("Failed to successfully execute '%s': %v", cmdCLIDesc(cli, args), err)
 		}
 	}
 
 	return stdout.String(), err
+}
+
+func dumpKsvc(args []string, logger Logger) {
+	if args[0] == "service" {
+		opts := runOpts{AllowError: true}
+		ns := args[len(args)-1]
+		out, err := runCLIWithOpts("kubectl", []string{"-n", ns, "describe", "ksvc", args[2]}, opts, logger)
+		fmt.Println(err)
+		fmt.Println(out)
+		out, err = runCLIWithOpts("kubectl", []string{"-n", ns, "get", "ksvc", args[2], "-oyaml"}, opts, logger)
+		fmt.Println(err)
+		fmt.Println(out)
+		fmt.Println("================[[Error]]=================")
+	}
 }
 
 func cmdCLIDesc(cli string, args []string) string {
