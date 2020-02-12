@@ -19,6 +19,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
 	"knative.dev/eventing/pkg/apis/eventing/v1alpha1"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
@@ -68,43 +69,52 @@ func NewTriggerUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			trigger, err := eventingClient.GetTrigger(name)
-			if err != nil {
-				return err
-			}
-
-			b := client_v1alpha1.NewTriggerBuilderFromExisting(trigger)
-
-			if cmd.Flags().Changed("broker") {
-				return fmt.Errorf(
-					"cannot update trigger '%s' because broker is immutable", name)
-			}
-			if cmd.Flags().Changed("filter") {
-				updated, removed, err := triggerUpdateFlags.GetUpdateFilters()
-				if err != nil {
-					return fmt.Errorf(
-						"cannot update trigger '%s' because %s", name, err)
-				}
-				existing := extractFilters(trigger)
-				b.Filters(existing.Merge(updated).Remove(removed))
-			}
-			if cmd.Flags().Changed("sink") {
-				destination, err := sinkFlags.ResolveSink(dynamicClient, namespace)
+			var retries = 0
+			for {
+				trigger, err := eventingClient.GetTrigger(name)
 				if err != nil {
 					return err
 				}
-				b.Subscriber(&duckv1.Destination{
-					Ref: destination.Ref,
-					URI: destination.URI,
-				})
-			}
-			err = eventingClient.UpdateTrigger(b.Build())
-			if err == nil {
+
+				b := client_v1alpha1.NewTriggerBuilderFromExisting(trigger)
+
+				if cmd.Flags().Changed("broker") {
+					return fmt.Errorf(
+						"cannot update trigger '%s' because broker is immutable", name)
+				}
+				if cmd.Flags().Changed("filter") {
+					updated, removed, err := triggerUpdateFlags.GetUpdateFilters()
+					if err != nil {
+						return fmt.Errorf(
+							"cannot update trigger '%s' because %s", name, err)
+					}
+					existing := extractFilters(trigger)
+					b.Filters(existing.Merge(updated).Remove(removed))
+				}
+				if cmd.Flags().Changed("sink") {
+					destination, err := sinkFlags.ResolveSink(dynamicClient, namespace)
+					if err != nil {
+						return err
+					}
+					b.Subscriber(&duckv1.Destination{
+						Ref: destination.Ref,
+						URI: destination.URI,
+					})
+				}
+				err = eventingClient.UpdateTrigger(b.Build())
+				if err != nil {
+					if apierrors.IsConflict(err) && retries < MaxUpdateRetries {
+						retries++
+						continue
+					}
+					return err
+				}
 				fmt.Fprintf(cmd.OutOrStdout(), "Trigger '%s' updated in namespace '%s'.\n", name, namespace)
+				return nil
 			}
-			return err
 		},
 	}
+
 	commands.AddNamespaceFlags(cmd.Flags(), false)
 	triggerUpdateFlags.Add(cmd)
 	sinkFlags.Add(cmd)
