@@ -194,7 +194,7 @@ func TestServiceUpdateImage(t *testing.T) {
 func TestServiceUpdateWithMultipleImages(t *testing.T) {
 	orig := newEmptyService()
 	_, _, _, err := fakeServiceUpdate(orig, []string{
-		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--image", "gcr.io/bar/foo:baz", "--no-wait"}, false)
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--image", "gcr.io/bar/foo:baz", "--no-wait"})
 
 	assert.Assert(t, util.ContainsAll(err.Error(), "\"--image\"", "\"gcr.io/bar/foo:baz\"", "flag", "once"))
 }
