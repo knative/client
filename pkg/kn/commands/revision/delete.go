@@ -49,7 +49,7 @@ func NewRevisionDeleteCommand(p *commands.KnParams) *cobra.Command {
 				if err != nil {
 					fmt.Fprintf(cmd.OutOrStdout(), "%s.\n", err)
 				} else {
-					fmt.Fprintf(cmd.OutOrStdout(), "Revision '%s' successfully deleted in namespace '%s'.\n", name, namespace)
+					fmt.Fprintf(cmd.OutOrStdout(), "Revision '%s' deleted in namespace '%s'.\n", name, namespace)
 				}
 			}
 			return nil
