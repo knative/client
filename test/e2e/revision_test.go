@@ -99,12 +99,10 @@ func (test *e2eTest) revisionDelete(t *testing.T, revName string) {
 func (test *e2eTest) revisionMultipleDelete(t *testing.T, revisionNames []string) {
 	existRevision1 := revisionNames[0]
 	existRevision2 := revisionNames[1]
-	nonexistRevision := revisionNames[2]
 	out, err := test.kn.RunWithOpts([]string{"revision", "list"}, runOpts{NoNamespace: false})
 	assert.NilError(t, err)
 	assert.Check(t, strings.Contains(out, existRevision1), "Required revision1 does not exist")
 	assert.Check(t, strings.Contains(out, existRevision2), "Required revision2 does not exist")
-	assert.Check(t, !strings.Contains(out, nonexistRevision), "Nonexistent revision does exist")
 
 	out, err = test.kn.RunWithOpts([]string{"revision", "delete", existRevision1, existRevision2, nonexistRevision}, runOpts{NoNamespace: false})
 
