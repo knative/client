@@ -55,10 +55,6 @@ func TestRevision(t *testing.T) {
 		test.revisionDelete(t, revName)
 	})
 
-	// t.Run("delete hello service and return no error", func(t *testing.T) {
-	// 	test.serviceDelete(t, "hello")
-	// })
-
 	t.Run("delete three revisions with one revision a nonexistent", func(t *testing.T) {
 		// increase count to 2 revisions
 		test.serviceUpdate(t, "hello", []string{"--env", "TARGET=kn", "--port", "8888"})
@@ -112,12 +108,17 @@ func (test *e2eTest) revisionMultipleDelete(t *testing.T, revisionNames []string
 
 	out, err = test.kn.RunWithOpts([]string{"revision", "delete", existRevision1, existRevision2, nonexistRevision}, runOpts{NoNamespace: false})
 
-	expectedSuccess1 := fmt.Sprintf(`Revision '%s' successfully deleted in namespace '%s'`, existRevision1, test.kn.namespace)
-	expectedSuccess2 := fmt.Sprintf(`Revision '%s' successfully deleted in namespace '%s'`, existRevision2, test.kn.namespace)
-	expectedErr := fmt.Sprintf(`revisions.serving.knative.dev "%s" not found.`, nonexistRevision)
-	assert.Check(t, strings.Contains(out, expectedSuccess1), "Failed to get 'successfully deleted' first revision message")
-	assert.Check(t, strings.Contains(out, expectedSuccess2), "Failed to get 'successfully deleted' second revision message")
-	assert.Check(t, strings.Contains(out, expectedErr), "Failed to get 'not found' error")
+	// expectedSuccess1 := fmt.Sprintf(`Revision '%s' successfully deleted in namespace '%s'`, existRevision1, test.kn.namespace)
+	// expectedSuccess2 := fmt.Sprintf(`Revision '%s' successfully deleted in namespace '%s'`, existRevision2, test.kn.namespace)
+	// expectedErr := fmt.Sprintf(`revisions.serving.knative.dev "%s" not found.`, nonexistRevision)
+
+	// assert.Check(t, strings.Contains(out, expectedSuccess1), "Failed to get 'successfully deleted' first revision message")
+	// assert.Check(t, strings.Contains(out, expectedSuccess2), "Failed to get 'successfully deleted' second revision message")
+	// assert.Check(t, strings.Contains(out, expectedErr), "Failed to get 'not found' error")
+
+	assert.Check(t, util.ContainsAll(out, "Revision", existRevision1, "successfully", "deleted", "namespace", test.kn.namespace), "Failed to get 'successfully deleted' first revision message")
+	assert.Check(t, util.ContainsAll(out, "Revision", existRevision2, "successfully", "deleted", "namespace", test.kn.namespace), "Failed to get 'successfully deleted' second revision message")
+	assert.Check(t, util.ContainsAll(out, "revisions.serving.knative.dev", nonexistRevision, "not found"), "Failed to get 'not found' error")
 }
 
 func (test *e2eTest) revisionDescribeWithPrintFlags(t *testing.T, revName string) {
