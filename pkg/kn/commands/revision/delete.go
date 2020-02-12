@@ -32,8 +32,8 @@ func NewRevisionDeleteCommand(p *commands.KnParams) *cobra.Command {
   # Delete a revision 'svc1-abcde' in default namespace
   kn revision delete svc1-abcde`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if len(args) != 1 {
-				return errors.New("'revision delete' requires the revision name given as single argument")
+			if len(args) < 1 {
+				return errors.New("'revision delete' requires the revision name(s)")
 			}
 			namespace, err := p.GetNamespace(cmd)
 			if err != nil {
@@ -43,11 +43,15 @@ func NewRevisionDeleteCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			err = client.DeleteRevision(args[0])
-			if err != nil {
-				return err
+
+			for _, name := range args {
+				err = client.DeleteRevision(name)
+				if err != nil {
+					fmt.Fprintf(cmd.OutOrStdout(), "%s.\n", err)
+				} else {
+					fmt.Fprintf(cmd.OutOrStdout(), "Revision '%s' successfully deleted in namespace '%s'.\n", name, namespace)
+				}
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "Revision '%s' successfully deleted in namespace '%s'.\n", args[0], namespace)
 			return nil
 		},
 	}
