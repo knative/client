@@ -33,7 +33,7 @@ func NewRevisionDeleteCommand(p *commands.KnParams) *cobra.Command {
   kn revision delete svc1-abcde`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 1 {
-				return errors.New("'kn revision delete' requires the revision name(s)")
+				return errors.New("'kn revision delete' requires one or more revision name")
 			}
 			namespace, err := p.GetNamespace(cmd)
 			if err != nil {
