@@ -52,9 +52,9 @@ func TestBrokerTrigger(t *testing.T) {
 
 	t.Run("create a trigger, describe and update it", func(t *testing.T) {
 		test.triggerCreate(t, "updtrigger", []string{"a=b"}, "sinksvc0")
-		test.verifyTriggerDescribe(t, "updtrigger", []string{"a=b"}, "default", "sinksvc0")
+		test.verifyTriggerDescribe(t, "updtrigger", []string{"a", "b"}, "default", "sinksvc0")
 		test.triggerUpdate(t, "updtrigger", "type=knative.dev.bar", "sinksvc1")
-		test.verifyTriggerDescribe(t, "updtrigger", []string{"a=b", "type=knative.dev.bar"}, "default", "sinksvc1")
+		test.verifyTriggerDescribe(t, "updtrigger", []string{"a", "b", "type", "knative.dev.bar"}, "default", "sinksvc1")
 	})
 
 	t.Run("create trigger with error return", func(t *testing.T) {
