@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"time"
 
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/fields"
 	"knative.dev/pkg/apis"
 	"knative.dev/serving/pkg/client/clientset/versioned/scheme"
@@ -37,6 +38,9 @@ import (
 	"knative.dev/client/pkg/errors"
 )
 
+// Func signature for an updating function
+type serviceUpdateFunc func(origService *servingv1.Service) (*servingv1.Service, error)
+
 // Kn interface to serving. All methods are relative to the
 // namespace specified during construction
 type KnServingClient interface {
@@ -55,6 +59,9 @@ type KnServingClient interface {
 
 	// Update the given service
 	UpdateService(service *servingv1.Service) error
+
+	// Updater service with retry
+	UpdateServiceWithRetry(name string, updateFunc serviceUpdateFunc, nrRetries int) error
 
 	// Delete a service by name
 	DeleteService(name string) error
@@ -205,6 +212,31 @@ func (cl *knServingClient) UpdateService(service *servingv1.Service) error {
 		return err
 	}
 	return updateServingGvk(service)
+}
+
+// Update the given service with a retry in case of a conflict
+func (cl *knServingClient) UpdateServiceWithRetry(name string, updateFunc serviceUpdateFunc, nrRetries int) error {
+	var retries = 0
+	for {
+		service, err := cl.GetService(name)
+		if err != nil {
+			return err
+		}
+		updatedService, err := updateFunc(service.DeepCopy())
+		if err != nil {
+			return err
+		}
+
+		err = cl.UpdateService(updatedService)
+		if err != nil {
+			// Retry to update when a resource version conflict exists
+			if apierrors.IsConflict(err) && retries < nrRetries {
+				retries++
+				continue
+			}
+			return err
+		}
+	}
 }
 
 // Delete a service by name
