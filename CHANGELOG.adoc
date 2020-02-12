@@ -20,6 +20,10 @@
 |===
 | | Description | PR
 
+| 🧽
+| Support multiple revisions on `kn revision delete`
+| https://github.com/knative/client/pull/657[#657]
+
 | 🎁
 | Add human readable `kn route describe`
 | https://github.com/knative/client/pull/643[#643]
