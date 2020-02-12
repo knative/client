@@ -78,13 +78,10 @@ func NewServiceDescribeCommand(p *commands.KnParams) *cobra.Command {
 
 	command := &cobra.Command{
 		Use:   "describe NAME",
-		Short: "Show details for a given service",
+		Short: "Show details of a service",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if len(args) < 1 {
-				return errors.New("no service name provided")
-			}
-			if len(args) > 1 {
-				return errors.New("more than one service name provided")
+			if len(args) != 1 {
+				return errors.New("'kn service describe' requires name of the service as single argument")
 			}
 			serviceName := args[0]
 
@@ -178,7 +175,7 @@ func writeService(dw printers.PrefixWriter, service *servingv1.Service) {
 }
 
 // Write out revisions associated with this service. By default only active
-// target revisions are printed, but with --all also inactive revisions
+// target revisions are printed, but with --verbose also inactive revisions
 // created by this services are shown
 func writeRevisions(dw printers.PrefixWriter, revisions []*revisionDesc, printDetails bool) {
 	revSection := dw.WriteAttribute("Revisions", "")

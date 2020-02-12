@@ -152,7 +152,7 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	p.markFlagMakesRevision("revision-name")
 
 	flags.AddBothBoolFlagsUnhidden(command.Flags(), &p.LockToDigest, "lock-to-digest", "", true,
-		"keep the running image for the service constant when not explicitly specifying "+
+		"Keep the running image for the service constant when not explicitly specifying "+
 			"the image. (--no-lock-to-digest pulls the image tag afresh with each new revision)")
 	// Don't mark as changing the revision.
 	command.Flags().StringVar(&p.ServiceAccountName,

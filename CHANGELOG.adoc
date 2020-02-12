@@ -20,6 +20,10 @@
 |===
 | | Description | PR
 
+| 🎁
+| Add human readable `kn route describe`
+| https://github.com/knative/client/pull/643[#643]
+
 | 🐛
 | Show envFrom when running describe service or revision
 | https://github.com/knative/client/pull/630[#630]
@@ -31,6 +35,10 @@
 | 🎁
 | Add `--cmd` and `--arg` for customization of container entrypoint
 | https://github.com/knative/client/pull/635[#635]
+
+| 🧽
+| Add `no-wait` instead of `--async` and deprecate it
+https://github.com/knative/client/pull/639[#639]
 
 ## v0.12.0 (2020-01-29)
 

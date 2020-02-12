@@ -32,13 +32,13 @@ import (
 func NewBindingDescribeCommand(p *commands.KnParams) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "describe NAME",
-		Short: "Describe a sink binding.",
+		Short: "Show details of a sink binding",
 		Example: `
   # Describe a sink binding with name 'mysinkbinding'
   kn source binding describe mysinkbinding`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
-				return errors.New("'kn source binding describe' requires the name of the source as single argument")
+				return errors.New("'kn source binding describe' requires name of the sink binding as single argument")
 			}
 			name := args[0]
 
