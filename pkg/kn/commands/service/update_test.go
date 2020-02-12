@@ -43,13 +43,14 @@ var exampleImageByDigest = "gcr.io/foo/bar@sha256:deadbeefdeadbeef"
 var exampleRevisionName = "foo-asdf"
 var exampleRevisionName2 = "foo-xyzzy"
 
-func fakeServiceUpdate(original *servingv1.Service, args []string, sync bool) (
+func fakeServiceUpdate(original *servingv1.Service, args []string) (
 	action clienttesting.Action,
 	updated *servingv1.Service,
 	output string,
 	err error) {
 	var reconciled servingv1.Service
 	knParams := &commands.KnParams{}
+	sync := !noWait(args)
 	cmd, fakeServing, buf := commands.CreateTestKnCommand(NewServiceCommand(knParams), knParams)
 	fakeServing.AddReactor("update", "*",
 		func(a clienttesting.Action) (bool, runtime.Object, error) {
@@ -89,6 +90,7 @@ func fakeServiceUpdate(original *servingv1.Service, args []string, sync bool) (
 			rev.Status.ImageDigest = exampleImageByDigest
 			return true, rev, nil
 		})
+
 	if sync {
 		fakeServing.AddWatchReactor("services",
 			func(a clienttesting.Action) (bool, watch.Interface, error) {
@@ -119,9 +121,7 @@ func fakeServiceUpdate(original *servingv1.Service, args []string, sync bool) (
 func TestServcieUpdateNoFlags(t *testing.T) {
 	orig := newEmptyService()
 
-	action, _, _, err := fakeServiceUpdate(orig, []string{
-		"service", "update", "foo"}, false)
-
+	action, _, _, err := fakeServiceUpdate(orig, []string{"service", "update", "foo"})
 	if action != nil {
 		t.Errorf("Unexpected action if no flag(s) set")
 	}
@@ -146,7 +146,7 @@ func TestServiceUpdateImageSync(t *testing.T) {
 	}
 
 	action, updated, output, err := fakeServiceUpdate(orig, []string{
-		"service", "update", "foo", "--image", "gcr.io/foo/quux:xyzzy", "--namespace", "bar"}, true)
+		"service", "update", "foo", "--image", "gcr.io/foo/quux:xyzzy", "--namespace", "bar"})
 
 	assert.NilError(t, err)
 	assert.Assert(t, action.Matches("update", "services"))
@@ -168,7 +168,7 @@ func TestServiceUpdateImage(t *testing.T) {
 	}
 
 	action, updated, output, err := fakeServiceUpdate(orig, []string{
-		"service", "update", "foo", "--image", "gcr.io/foo/quux:xyzzy", "--namespace", "bar", "--no-wait"}, false)
+		"service", "update", "foo", "--image", "gcr.io/foo/quux:xyzzy", "--namespace", "bar", "--no-wait"})
 
 	if err != nil {
 		t.Fatal(err)
@@ -192,6 +192,14 @@ func TestServiceUpdateImage(t *testing.T) {
 	}
 }
 
+func TestServiceUpdateWithMultipleImages(t *testing.T) {
+	orig := newEmptyService()
+	_, _, _, err := fakeServiceUpdate(orig, []string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--image", "gcr.io/bar/foo:baz", "--no-wait"})
+
+	assert.Assert(t, util.ContainsAll(err.Error(), "\"--image\"", "\"gcr.io/bar/foo:baz\"", "flag", "once"))
+}
+
 func TestServiceUpdateCommand(t *testing.T) {
 	orig := newEmptyService()
 
@@ -200,7 +208,7 @@ func TestServiceUpdateCommand(t *testing.T) {
 	err := servinglib.UpdateContainerCommand(origTemplate, "./start")
 
 	action, updated, _, err := fakeServiceUpdate(orig, []string{
-		"service", "update", "foo", "--cmd", "/app/start", "--no-wait"}, false)
+		"service", "update", "foo", "--cmd", "/app/start", "--no-wait"})
 	assert.NilError(t, err)
 	assert.Assert(t, action.Matches("update", "services"))
 
@@ -217,7 +225,7 @@ func TestServiceUpdateArg(t *testing.T) {
 	assert.NilError(t, err)
 
 	action, updated, _, err := fakeServiceUpdate(orig, []string{
-		"service", "update", "foo", "--arg", "myArg1", "--arg", "--myArg2", "--arg", "--myArg3=3", "--no-wait"}, false)
+		"service", "update", "foo", "--arg", "myArg1", "--arg", "--myArg2", "--arg", "--myArg3=3", "--no-wait"})
 	assert.NilError(t, err)
 	assert.Assert(t, action.Matches("update", "services"))
 
@@ -233,7 +241,7 @@ func TestServiceUpdateRevisionNameExplicit(t *testing.T) {
 
 	// Test user provides prefix
 	action, updated, _, err := fakeServiceUpdate(orig, []string{
-		"service", "update", "foo", "--revision-name", "foo-dogs", "--namespace", "bar", "--no-wait"}, false)
+		"service", "update", "foo", "--revision-name", "foo-dogs", "--namespace", "bar", "--no-wait"})
 	assert.NilError(t, err)
 	if !action.Matches("update", "services") {
 		t.Fatalf("Bad action %v", action)
@@ -251,7 +259,7 @@ func TestServiceUpdateRevisionNameGenerated(t *testing.T) {
 
 	// Test prefix added by command
 	action, updated, _, err := fakeServiceUpdate(orig, []string{
-		"service", "update", "foo", "--image", "gcr.io/foo/quux:xyzzy", "--namespace", "bar", "--no-wait"}, false)
+		"service", "update", "foo", "--image", "gcr.io/foo/quux:xyzzy", "--namespace", "bar", "--no-wait"})
 	assert.NilError(t, err)
 	if !action.Matches("update", "services") {
 		t.Fatalf("Bad action %v", action)
@@ -269,7 +277,7 @@ func TestServiceUpdateRevisionNameCleared(t *testing.T) {
 	template.Name = "foo-asdf"
 
 	action, updated, _, err := fakeServiceUpdate(orig, []string{
-		"service", "update", "foo", "--image", "gcr.io/foo/quux:xyzzy", "--namespace", "bar", "--revision-name=", "--no-wait"}, false)
+		"service", "update", "foo", "--image", "gcr.io/foo/quux:xyzzy", "--namespace", "bar", "--revision-name=", "--no-wait"})
 
 	assert.NilError(t, err)
 	if !action.Matches("update", "services") {
@@ -288,7 +296,7 @@ func TestServiceUpdateRevisionNameNoMutationNoChange(t *testing.T) {
 
 	// Test prefix added by command
 	action, updated, _, err := fakeServiceUpdate(orig, []string{
-		"service", "update", "foo", "--namespace", "bar", "--no-wait"}, false)
+		"service", "update", "foo", "--namespace", "bar", "--no-wait"})
 	assert.NilError(t, err)
 	if !action.Matches("update", "services") {
 		t.Fatalf("Bad action %v", action)
@@ -303,7 +311,7 @@ func TestServiceUpdateMaxMinScale(t *testing.T) {
 
 	action, updated, _, err := fakeServiceUpdate(original, []string{
 		"service", "update", "foo",
-		"--min-scale", "1", "--max-scale", "5", "--concurrency-target", "10", "--concurrency-limit", "100", "--no-wait"}, false)
+		"--min-scale", "1", "--max-scale", "5", "--concurrency-target", "10", "--concurrency-limit", "100", "--no-wait"})
 
 	if err != nil {
 		t.Fatal(err)
@@ -349,7 +357,7 @@ func TestServiceUpdateEnv(t *testing.T) {
 	servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
 
 	action, updated, _, err := fakeServiceUpdate(orig, []string{
-		"service", "update", "foo", "-e", "TARGET=Awesome", "--env", "EXISTING-", "--env=OTHEREXISTING-=whatever", "--no-wait"}, false)
+		"service", "update", "foo", "-e", "TARGET=Awesome", "--env", "EXISTING-", "--env=OTHEREXISTING-=whatever", "--no-wait"})
 
 	if err != nil {
 		t.Fatal(err)
@@ -378,7 +386,7 @@ func TestServiceUpdatePinsToDigestWhenAsked(t *testing.T) {
 	}
 
 	action, updated, _, err := fakeServiceUpdate(orig, []string{
-		"service", "update", "foo", "-e", "TARGET=Awesome", "--lock-to-digest", "--no-wait"}, false)
+		"service", "update", "foo", "-e", "TARGET=Awesome", "--lock-to-digest", "--no-wait"})
 
 	if err != nil {
 		t.Fatal(err)
@@ -401,7 +409,7 @@ func TestServiceUpdatePinsToDigestWhenPreviouslyDidSo(t *testing.T) {
 	}
 
 	action, updated, _, err := fakeServiceUpdate(orig, []string{
-		"service", "update", "foo", "-e", "TARGET=Awesome", "--no-wait"}, false)
+		"service", "update", "foo", "-e", "TARGET=Awesome", "--no-wait"})
 
 	if err != nil {
 		t.Fatal(err)
@@ -421,7 +429,7 @@ func TestServiceUpdateDoesntPinToDigestWhenUnAsked(t *testing.T) {
 	err := servinglib.UpdateImage(&template, "gcr.io/foo/bar:baz")
 
 	action, updated, _, err := fakeServiceUpdate(orig, []string{
-		"service", "update", "foo", "-e", "TARGET=Awesome", "--no-lock-to-digest", "--no-wait"}, false)
+		"service", "update", "foo", "-e", "TARGET=Awesome", "--no-lock-to-digest", "--no-wait"})
 
 	if err != nil {
 		t.Fatal(err)
@@ -447,7 +455,7 @@ func TestServiceUpdateDoesntPinToDigestWhenPreviouslyDidnt(t *testing.T) {
 	}
 
 	action, updated, _, err := fakeServiceUpdate(orig, []string{
-		"service", "update", "foo", "-e", "TARGET=Awesome", "--no-wait"}, false)
+		"service", "update", "foo", "-e", "TARGET=Awesome", "--no-wait"})
 
 	if err != nil {
 		t.Fatal(err)
@@ -466,7 +474,7 @@ func TestServiceUpdateRequestsLimitsCPU(t *testing.T) {
 	service := createMockServiceWithResources(t, "250", "64Mi", "1000m", "1024Mi")
 
 	action, updated, _, err := fakeServiceUpdate(service, []string{
-		"service", "update", "foo", "--requests-cpu", "500m", "--limits-cpu", "1000m", "--no-wait"}, false)
+		"service", "update", "foo", "--requests-cpu", "500m", "--limits-cpu", "1000m", "--no-wait"})
 	if err != nil {
 		t.Fatal(err)
 	} else if !action.Matches("update", "services") {
@@ -504,7 +512,7 @@ func TestServiceUpdateRequestsLimitsMemory(t *testing.T) {
 	service := createMockServiceWithResources(t, "100m", "64Mi", "1000m", "1024Mi")
 
 	action, updated, _, err := fakeServiceUpdate(service, []string{
-		"service", "update", "foo", "--requests-memory", "128Mi", "--limits-memory", "2048Mi", "--no-wait"}, false)
+		"service", "update", "foo", "--requests-memory", "128Mi", "--limits-memory", "2048Mi", "--no-wait"})
 	if err != nil {
 		t.Fatal(err)
 	} else if !action.Matches("update", "services") {
@@ -544,7 +552,7 @@ func TestServiceUpdateRequestsLimitsCPU_and_Memory(t *testing.T) {
 	action, updated, _, err := fakeServiceUpdate(service, []string{
 		"service", "update", "foo",
 		"--requests-cpu", "500m", "--limits-cpu", "2000m",
-		"--requests-memory", "128Mi", "--limits-memory", "2048Mi", "--no-wait"}, false)
+		"--requests-memory", "128Mi", "--limits-memory", "2048Mi", "--no-wait"})
 	if err != nil {
 		t.Fatal(err)
 	} else if !action.Matches("update", "services") {
@@ -588,7 +596,7 @@ func TestServiceUpdateLabelWhenEmpty(t *testing.T) {
 	origContainer.Image = "gcr.io/foo/bar:latest"
 
 	action, updated, _, err := fakeServiceUpdate(original, []string{
-		"service", "update", "foo", "-l", "a=mouse", "--label", "b=cookie", "-l=single", "--no-wait"}, false)
+		"service", "update", "foo", "-l", "a=mouse", "--label", "b=cookie", "-l=single", "--no-wait"})
 
 	if err != nil {
 		t.Fatal(err)
@@ -621,7 +629,7 @@ func TestServiceUpdateLabelExisting(t *testing.T) {
 	originalTemplate.ObjectMeta.Labels = map[string]string{"already": "here", "tobe": "removed"}
 
 	action, updated, _, err := fakeServiceUpdate(original, []string{
-		"service", "update", "foo", "-l", "already=gone", "--label=tobe-", "--label", "b=", "--no-wait"}, false)
+		"service", "update", "foo", "-l", "already=gone", "--label=tobe-", "--label", "b=", "--no-wait"})
 
 	if err != nil {
 		t.Fatal(err)
@@ -648,7 +656,7 @@ func TestServiceUpdateNoClusterLocal(t *testing.T) {
 	originalTemplate.ObjectMeta.Labels = map[string]string{config.VisibilityLabelKey: config.VisibilityClusterLocal}
 
 	action, updated, _, err := fakeServiceUpdate(original, []string{
-		"service", "update", "foo", "--no-cluster-local", "--async"}, false)
+		"service", "update", "foo", "--no-cluster-local", "--no-wait"})
 
 	if err != nil {
 		t.Fatal(err)
@@ -677,7 +685,7 @@ func TestServiceUpdateNoClusterLocalOnPublicService(t *testing.T) {
 	originalTemplate.Name = "public"
 
 	action, updated, _, err := fakeServiceUpdate(original, []string{
-		"service", "update", "foo", "--no-cluster-local", "--async"}, false)
+		"service", "update", "foo", "--no-cluster-local", "--no-wait"})
 
 	if err != nil {
 		t.Fatal(err)
@@ -707,7 +715,7 @@ func TestServiceUpdateNoClusterLocalOnPrivateService(t *testing.T) {
 	originalTemplate.Name = "private"
 
 	action, updated, _, err := fakeServiceUpdate(original, []string{
-		"service", "update", "foo", "--cluster-local", "--async"}, false)
+		"service", "update", "foo", "--cluster-local", "--no-wait"})
 
 	if err != nil {
 		t.Fatal(err)
@@ -766,4 +774,13 @@ func createMockServiceWithResources(t *testing.T, requestCPU, requestMemory, lim
 	}
 
 	return service
+}
+
+func noWait(args []string) bool {
+	for _, arg := range args {
+		if arg == "--no-wait" {
+			return true
+		}
+	}
+	return false
 }
