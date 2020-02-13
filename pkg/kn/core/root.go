@@ -152,6 +152,9 @@ func NewKnCommand(params ...commands.KnParams) *cobra.Command {
 	rootCmd.AddCommand(source.NewSourceCommand(p))
 	rootCmd.AddCommand(trigger.NewTriggerCommand(p))
 
+	// Initialize default `help` cmd early to prevent unknown command errors
+	rootCmd.InitDefaultHelpCmd()
+
 	// Deal with empty and unknown sub command groups
 	EmptyAndUnknownSubCommands(rootCmd)
 
