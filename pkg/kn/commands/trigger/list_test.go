@@ -49,7 +49,7 @@ func TestTriggerList(t *testing.T) {
 	assert.NilError(t, err)
 
 	outputLines := strings.Split(output, "\n")
-	assert.Check(t, util.ContainsAll(outputLines[0], "NAME", "BROKER", "SUBSCRIBER_URI", "READY", "REASON"))
+	assert.Check(t, util.ContainsAll(outputLines[0], "NAME", "BROKER", "SINK", "AGE", "CONDITIONS", "READY", "REASON"))
 	assert.Check(t, util.ContainsAll(outputLines[1], "trigger1", "mybroker1", "mysink"))
 	assert.Check(t, util.ContainsAll(outputLines[2], "trigger2", "mybroker2", "mysink"))
 	assert.Check(t, util.ContainsAll(outputLines[3], "trigger3", "mybroker3", "mysink"))
@@ -90,7 +90,7 @@ func TestTriggerListAllNamespace(t *testing.T) {
 	assert.NilError(t, err)
 
 	outputLines := strings.Split(output, "\n")
-	assert.Check(t, util.ContainsAll(outputLines[0], "NAMESPACE", "NAME", "BROKER", "SUBSCRIBER_URI", "READY", "REASON"))
+	assert.Check(t, util.ContainsAll(outputLines[0], "NAMESPACE", "NAME", "BROKER", "SINK", "AGE", "CONDITIONS", "READY", "REASON"))
 	assert.Check(t, util.ContainsAll(outputLines[1], "default1", "trigger1", "mybroker1", "mysink"))
 	assert.Check(t, util.ContainsAll(outputLines[2], "default2", "trigger2", "mybroker2", "mysink"))
 	assert.Check(t, util.ContainsAll(outputLines[3], "default3", "trigger3", "mybroker3", "mysink"))

@@ -677,12 +677,12 @@ func TestServiceUpdateNoClusterLocal(t *testing.T) {
 	assert.DeepEqual(t, expected, actual)
 }
 
+//TODO: add check for template name not changing when issue #646 solution is merged
 func TestServiceUpdateNoClusterLocalOnPublicService(t *testing.T) {
 	original := newEmptyService()
 	original.ObjectMeta.Labels = map[string]string{}
 	originalTemplate := &original.Spec.Template
 	originalTemplate.ObjectMeta.Labels = map[string]string{}
-	originalTemplate.Name = "public"
 
 	action, updated, _, err := fakeServiceUpdate(original, []string{
 		"service", "update", "foo", "--no-cluster-local", "--no-wait"})
@@ -704,15 +704,14 @@ func TestServiceUpdateNoClusterLocalOnPublicService(t *testing.T) {
 
 	actual = newTemplate.ObjectMeta.Labels
 	assert.DeepEqual(t, expected, actual)
-	assert.Equal(t, newTemplate.Name, "public")
 }
 
+//TODO: add check for template name not changing when issue #646 solution is merged
 func TestServiceUpdateNoClusterLocalOnPrivateService(t *testing.T) {
 	original := newEmptyService()
 	original.ObjectMeta.Labels = map[string]string{config.VisibilityLabelKey: config.VisibilityClusterLocal}
 	originalTemplate := &original.Spec.Template
 	originalTemplate.ObjectMeta.Labels = map[string]string{config.VisibilityLabelKey: config.VisibilityClusterLocal}
-	originalTemplate.Name = "private"
 
 	action, updated, _, err := fakeServiceUpdate(original, []string{
 		"service", "update", "foo", "--cluster-local", "--no-wait"})
@@ -734,7 +733,6 @@ func TestServiceUpdateNoClusterLocalOnPrivateService(t *testing.T) {
 
 	actual = newTemplate.ObjectMeta.Labels
 	assert.DeepEqual(t, expected, actual)
-	assert.Equal(t, newTemplate.Name, "private")
 }
 
 func newEmptyService() *servingv1.Service {

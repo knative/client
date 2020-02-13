@@ -45,6 +45,7 @@ func CronJobSourceListHandlers(h hprinters.PrintHandler) {
 		{Name: "Name", Type: "string", Description: "Name of the CronJob source", Priority: 1},
 		{Name: "Schedule", Type: "string", Description: "Schedule of the CronJob source", Priority: 1},
 		{Name: "Sink", Type: "string", Description: "Sink of the CronJob source", Priority: 1},
+		{Name: "Age", Type: "string", Description: "Age of the CronJob source", Priority: 1},
 		{Name: "Conditions", Type: "string", Description: "Ready state conditions", Priority: 1},
 		{Name: "Ready", Type: "string", Description: "Ready state of the CronJob source", Priority: 1},
 		{Name: "Reason", Type: "string", Description: "Reason if state is not Ready", Priority: 1},
@@ -61,6 +62,7 @@ func printSource(source *v1alpha1.CronJobSource, options hprinters.PrintOptions)
 
 	name := source.Name
 	schedule := source.Spec.Schedule
+	age := commands.TranslateTimestampSince(source.CreationTimestamp)
 	conditions := commands.ConditionsValue(source.Status.Conditions)
 	ready := commands.ReadyCondition(source.Status.Conditions)
 	reason := commands.NonReadyConditionReason(source.Status.Conditions)
@@ -83,7 +85,7 @@ func printSource(source *v1alpha1.CronJobSource, options hprinters.PrintOptions)
 		row.Cells = append(row.Cells, source.Namespace)
 	}
 
-	row.Cells = append(row.Cells, name, schedule, sink, conditions, ready, reason)
+	row.Cells = append(row.Cells, name, schedule, sink, age, conditions, ready, reason)
 	return []metav1beta1.TableRow{row}, nil
 }
 

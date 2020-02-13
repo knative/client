@@ -26,7 +26,6 @@ import (
 	servinglib "knative.dev/client/pkg/serving"
 	"knative.dev/client/pkg/util"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
-	"knative.dev/serving/pkg/reconciler/route/config"
 )
 
 type ConfigurationEditFlags struct {
@@ -130,6 +129,7 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 		"Specify command to be used as entrypoint instead of default one. "+
 			"Example: --cmd /app/start or --cmd /app/start --arg myArg to pass aditional arguments.")
 	p.markFlagMakesRevision("cmd")
+
 	command.Flags().StringArrayVarP(&p.Arg, "arg", "", []string{},
 		"Add argument to the container command. "+
 			"Example: --arg myArg1 --arg --myArg2 --arg myArg3=3. "+
@@ -138,56 +138,74 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 
 	command.Flags().StringVar(&p.RequestsFlags.CPU, "requests-cpu", "", "The requested CPU (e.g., 250m).")
 	p.markFlagMakesRevision("requests-cpu")
+
 	command.Flags().StringVar(&p.RequestsFlags.Memory, "requests-memory", "", "The requested memory (e.g., 64Mi).")
 	p.markFlagMakesRevision("requests-memory")
+
 	command.Flags().StringVar(&p.LimitsFlags.CPU, "limits-cpu", "", "The limits on the requested CPU (e.g., 1000m).")
 	p.markFlagMakesRevision("limits-cpu")
+
 	command.Flags().StringVar(&p.LimitsFlags.Memory, "limits-memory", "",
 		"The limits on the requested memory (e.g., 1024Mi).")
 	p.markFlagMakesRevision("limits-memory")
+
 	command.Flags().IntVar(&p.MinScale, "min-scale", 0, "Minimal number of replicas.")
 	p.markFlagMakesRevision("min-scale")
+
 	command.Flags().IntVar(&p.MaxScale, "max-scale", 0, "Maximal number of replicas.")
 	p.markFlagMakesRevision("max-scale")
+
 	command.Flags().StringVar(&p.AutoscaleWindow, "autoscale-window", "", "Duration to look back for making auto-scaling decisions. The service is scaled to zero if no request was received in during that time. (eg: 10s)")
 	p.markFlagMakesRevision("autoscale-window")
+
 	flags.AddBothBoolFlagsUnhidden(command.Flags(), &p.ClusterLocal, "cluster-local", "", false,
 		"Specify that the service be private. (--no-cluster-local will make the service publicly available")
-	// Don't mark as changing the revision.
+	//TODO: Need to also not change revision when already set (solution to issue #646)
+	p.markFlagMakesRevision("cluster-local")
+	p.markFlagMakesRevision("no-cluster-local")
+
 	command.Flags().IntVar(&p.ConcurrencyTarget, "concurrency-target", 0,
 		"Recommendation for when to scale up based on the concurrent number of incoming request. "+
 			"Defaults to --concurrency-limit when given.")
 	p.markFlagMakesRevision("concurrency-target")
+
 	command.Flags().IntVar(&p.ConcurrencyLimit, "concurrency-limit", 0,
 		"Hard Limit of concurrent requests to be processed by a single replica.")
 	p.markFlagMakesRevision("concurrency-limit")
+
 	command.Flags().Int32VarP(&p.Port, "port", "p", 0, "The port where application listens on.")
 	p.markFlagMakesRevision("port")
+
 	command.Flags().StringArrayVarP(&p.Labels, "label", "l", []string{},
 		"Service label to set. name=value; you may provide this flag "+
 			"any number of times to set multiple labels. "+
 			"To unset, specify the label name followed by a \"-\" (e.g., name-).")
 	p.markFlagMakesRevision("label")
+
 	command.Flags().StringVar(&p.RevisionName, "revision-name", "{{.Service}}-{{.Random 5}}-{{.Generation}}",
 		"The revision name to set. Must start with the service name and a dash as a prefix. "+
 			"Empty revision name will result in the server generating a name for the revision. "+
 			"Accepts golang templates, allowing {{.Service}} for the service name, "+
 			"{{.Generation}} for the generation, and {{.Random [n]}} for n random consonants.")
 	p.markFlagMakesRevision("revision-name")
+
 	flags.AddBothBoolFlagsUnhidden(command.Flags(), &p.LockToDigest, "lock-to-digest", "", true,
 		"Keep the running image for the service constant when not explicitly specifying "+
 			"the image. (--no-lock-to-digest pulls the image tag afresh with each new revision)")
 	// Don't mark as changing the revision.
+
 	command.Flags().StringVar(&p.ServiceAccountName,
 		"service-account",
 		"",
 		"Service account name to set. An empty argument (\"\") clears the service account. The referenced service account must exist in the service's namespace.")
 	p.markFlagMakesRevision("service-account")
+
 	command.Flags().StringArrayVar(&p.Annotations, "annotation", []string{},
 		"Service annotation to set. name=value; you may provide this flag "+
 			"any number of times to set multiple annotations. "+
 			"To unset, specify the annotation name followed by a \"-\" (e.g., name-).")
 	p.markFlagMakesRevision("annotation")
+
 	command.Flags().StringVar(&p.ImagePullSecrets,
 		"pull-secret",
 		"",
@@ -365,34 +383,9 @@ func (p *ConfigurationEditFlags) Apply(
 	}
 
 	if cmd.Flags().Changed("cluster-local") || cmd.Flags().Changed("no-cluster-local") {
-		// Moved the check for no chance here as it will be refactored to generic #646 solution
-		currentClusterLocal := template.Labels[config.VisibilityLabelKey]
-		noChange := false
-		if p.ClusterLocal {
-			// NOOP when setting --cluster-local on already private service
-			if currentClusterLocal == config.VisibilityClusterLocal {
-				noChange = true
-			}
-		} else {
-			// NOOP when setting --no-cluster-local on already public service
-			if currentClusterLocal == "" {
-				noChange = true
-			}
-		}
-
-		if noChange == false {
-			// Take care of creating new revision name
-			newRevisionName, err := servinglib.GenerateRevisionName(p.RevisionName, service)
-			if err != nil {
-				return err
-			}
-
-			template.Name = newRevisionName
-
-			err = servinglib.UpdateClusterLocal(service, template, p.ClusterLocal)
-			if err != nil {
-				return err
-			}
+		err = servinglib.UpdateClusterLocal(service, template, p.ClusterLocal)
+		if err != nil {
+			return err
 		}
 	}
 

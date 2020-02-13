@@ -24,6 +24,8 @@ import (
 
 	"gotest.tools/assert"
 	"knative.dev/client/pkg/util"
+
+	"knative.dev/serving/pkg/reconciler/route/config"
 )
 
 func TestService(t *testing.T) {
@@ -69,33 +71,34 @@ func (test *e2eTest) serviceCreateDuplicate(t *testing.T, serviceName string) {
 }
 
 func (test *e2eTest) serviceCreatePrivate(t *testing.T, serviceName string) {
-	out, err := test.kn.RunWithOpts([]string{"service", "list", serviceName}, runOpts{NoNamespace: false})
-	assert.NilError(t, err)
-	assert.Check(t, strings.Contains(out, serviceName), "The service does not exist yet")
-
-	_, err = test.kn.RunWithOpts([]string{"service", "create", serviceName,
+	out, err := test.kn.RunWithOpts([]string{"service", "create", serviceName,
 		"--image", KnDefaultTestImage, "--cluster-local"}, runOpts{NoNamespace: false, AllowError: true})
 	assert.NilError(t, err)
-
 	assert.Check(t, util.ContainsAllIgnoreCase(out, "service", serviceName, "creating", "namespace", test.kn.namespace, "ready"))
+
+	out, err = test.kn.RunWithOpts([]string{"service", "describe", serviceName, "--verbose"}, runOpts{NoNamespace: false, AllowError: true})
+	assert.NilError(t, err)
+	assert.Check(t, util.ContainsAllIgnoreCase(out, config.VisibilityLabelKey, config.VisibilityClusterLocal))
 }
 
 func (test *e2eTest) serviceCreatePrivateUpdatePublic(t *testing.T, serviceName string) {
-	out, err := test.kn.RunWithOpts([]string{"service", "list", serviceName}, runOpts{NoNamespace: false})
-	assert.NilError(t, err)
-	assert.Check(t, strings.Contains(out, serviceName), "The service does not exist yet")
-
-	_, err = test.kn.RunWithOpts([]string{"service", "create", serviceName,
+	out, err := test.kn.RunWithOpts([]string{"service", "create", serviceName,
 		"--image", KnDefaultTestImage, "--cluster-local"}, runOpts{NoNamespace: false, AllowError: true})
 	assert.NilError(t, err)
-
 	assert.Check(t, util.ContainsAllIgnoreCase(out, "service", serviceName, "creating", "namespace", test.kn.namespace, "ready"))
 
-	_, err = test.kn.RunWithOpts([]string{"service", "update", serviceName,
+	out, err = test.kn.RunWithOpts([]string{"service", "describe", serviceName, "--verbose"}, runOpts{NoNamespace: false, AllowError: true})
+	assert.NilError(t, err)
+	assert.Check(t, util.ContainsAllIgnoreCase(out, config.VisibilityLabelKey, config.VisibilityClusterLocal))
+
+	out, err = test.kn.RunWithOpts([]string{"service", "update", serviceName,
 		"--image", KnDefaultTestImage, "--no-cluster-local"}, runOpts{NoNamespace: false, AllowError: true})
 	assert.NilError(t, err)
-
 	assert.Check(t, util.ContainsAllIgnoreCase(out, "service", serviceName, "updated", "namespace", test.kn.namespace, "ready"))
+
+	out, err = test.kn.RunWithOpts([]string{"service", "describe", serviceName, "--verbose"}, runOpts{NoNamespace: false, AllowError: true})
+	assert.NilError(t, err)
+	assert.Check(t, util.ContainsNone(out, config.VisibilityLabelKey, config.VisibilityClusterLocal))
 }
 
 func (test *e2eTest) serviceDescribeWithPrintFlags(t *testing.T, serviceName string) {

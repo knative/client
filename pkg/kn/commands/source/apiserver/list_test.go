@@ -36,7 +36,7 @@ func TestListAPIServerSource(t *testing.T) {
 
 	out, err := executeAPIServerSourceCommand(apiServerClient, nil, "list")
 	assert.NilError(t, err, "sources should be listed")
-	util.ContainsAll(out, "NAME", "RESOURCES", "SINK", "CONDITIONS", "READY", "REASON")
+	util.ContainsAll(out, "NAME", "RESOURCES", "SINK", "AGE", "CONDITIONS", "READY", "REASON")
 	util.ContainsAll(out, "testsource", "Eventing:v1:false", "mysvc")
 
 	apiServerRecorder.Validate()
@@ -52,7 +52,7 @@ func TestListAPIServerSourceEmpty(t *testing.T) {
 
 	out, err := executeAPIServerSourceCommand(apiServerClient, nil, "list")
 	assert.NilError(t, err, "Sources should be listed")
-	util.ContainsNone(out, "NAME", "RESOURCES", "SINK", "CONDITIONS", "READY", "REASON")
+	util.ContainsNone(out, "NAME", "RESOURCES", "SINK", "AGE", "CONDITIONS", "READY", "REASON")
 	util.ContainsAll(out, "No", "ApiServer", "source", "found")
 
 	apiServerRecorder.Validate()
