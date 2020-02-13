@@ -41,7 +41,8 @@ type waitForReadyConfig struct {
 type WaitForReady interface {
 
 	// Wait on resource the resource with this name until a given timeout
-	// and write event messages for unknown event to the status writer
+	// and write event messages for unknown event to the status writer.
+	// Returns an error (if any) and the overall time it took to wait
 	Wait(name string, timeout time.Duration, msgCallback MessageCallback) (error, time.Duration)
 }
 
@@ -161,9 +162,10 @@ func (w *waitForReadyConfig) waitForReadyCondition(start time.Time, name string,
 						// to a true condition even after the condition went to false. If this is not the case within
 						// this window, then an error is returned.
 						// If there is already a timer running, we just log.
-						if errorTimer != nil {
+						if errorTimer == nil {
+							err := fmt.Errorf("%s: %s", cond.Reason, cond.Message)
 							errorTimer = time.AfterFunc(errorWindow, func() {
-								errChan <- fmt.Errorf("%s: %s", cond.Reason, cond.Message)
+								errChan <- err
 							})
 						}
 					}

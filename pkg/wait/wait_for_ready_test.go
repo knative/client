@@ -30,7 +30,7 @@ import (
 type waitForReadyTestCase struct {
 	events           []watch.Event
 	timeout          time.Duration
-	errorExpected    bool
+	errorText        string
 	messagesExpected []string
 }
 
@@ -54,12 +54,16 @@ func TestAddWaitForReady(t *testing.T) {
 		})
 		close(fakeWatchApi.eventChan)
 
-		if !tc.errorExpected && err != nil {
+		if tc.errorText == "" && err != nil {
 			t.Errorf("%d: Error received %v", i, err)
 			continue
 		}
-		if tc.errorExpected && err == nil {
-			t.Errorf("%d: No error but expected one", i)
+		if tc.errorText != "" {
+			if err == nil {
+				t.Errorf("%d: No error but expected one", i)
+			} else {
+				assert.ErrorContains(t, err, tc.errorText)
+			}
 		}
 
 		// check messages
@@ -75,20 +79,34 @@ func TestAddWaitForReady(t *testing.T) {
 // Test cases which consists of a series of events to send and the expected behaviour.
 func prepareTestCases(name string) []waitForReadyTestCase {
 	return []waitForReadyTestCase{
-		tc(peNormal, name, false),
-		tc(peError, name, true),
-		tc(peWrongGeneration, name, true),
-		tc(peTimeout, name, true),
-		tc(peReadyFalseWithinErrorWindow, name, false),
+		errorTest(name),
+		tc(peNormal, name, time.Second, ""),
+		tc(peWrongGeneration, name, 1*time.Second, "timeout"),
+		tc(peTimeout, name, time.Second, "timeout"),
+		tc(peReadyFalseWithinErrorWindow, name, time.Second, ""),
 	}
 }
 
-func tc(f func(name string) (evts []watch.Event, nrMessages int), name string, isError bool) waitForReadyTestCase {
+func errorTest(name string) waitForReadyTestCase {
+	events := []watch.Event{
+		{watch.Added, CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "", "msg1")},
+		{watch.Modified, CreateTestServiceWithConditions(name, corev1.ConditionFalse, corev1.ConditionTrue, "FakeError", "Test Error")},
+	}
+
+	return waitForReadyTestCase{
+		events:           events,
+		timeout:          3 * time.Second,
+		errorText:        "FakeError",
+		messagesExpected: []string{"msg1", "Test Error"},
+	}
+}
+
+func tc(f func(name string) (evts []watch.Event, nrMessages int), name string, timeout time.Duration, errorTxt string) waitForReadyTestCase {
 	events, nrMsgs := f(name)
 	return waitForReadyTestCase{
 		events,
-		time.Second,
-		isError,
+		timeout,
+		errorTxt,
 		pMessages(nrMsgs),
 	}
 }
@@ -107,14 +125,6 @@ func peNormal(name string) ([]watch.Event, int) {
 		{watch.Added, CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "", messages[0])},
 		{watch.Modified, CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionTrue, "", messages[1])},
 		{watch.Modified, CreateTestServiceWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "", "")},
-	}, len(messages)
-}
-
-func peError(name string) ([]watch.Event, int) {
-	messages := pMessages(1)
-	return []watch.Event{
-		{watch.Added, CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "", messages[0])},
-		{watch.Modified, CreateTestServiceWithConditions(name, corev1.ConditionFalse, corev1.ConditionTrue, "FakeError", "")},
 	}, len(messages)
 }
 
