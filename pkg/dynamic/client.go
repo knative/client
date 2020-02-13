@@ -15,6 +15,10 @@
 package dynamic
 
 import (
+	"fmt"
+	"strings"
+
+	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/labels"
@@ -31,6 +35,16 @@ const (
 	sourcesLabelValue = "true"
 )
 
+// SourceListFilters defines flags used for kn source list to filter sources on types
+type SourceListFilters struct {
+	filters []string
+}
+
+// Add attaches the SourceListFilters flags to given command
+func (s *SourceListFilters) Add(cmd *cobra.Command) {
+	cmd.Flags().StringSliceVarP(&s.filters, "type", "t", nil, "Filter list on given source type. This flag can be given multiple times.")
+}
+
 // KnDynamicClient to client-go Dynamic client. All methods are relative to the
 // namespace specified during construction
 type KnDynamicClient interface {
@@ -42,6 +56,9 @@ type KnDynamicClient interface {
 
 	// ListSourceCRDs returns list of eventing sources CRDs
 	ListSourcesTypes() (*unstructured.UnstructuredList, error)
+
+	// ListSources returns list of available sources COs
+	ListSources(f *SourceListFilters) (*unstructured.UnstructuredList, error)
 
 	// RawClient returns the raw dynamic client interface
 	RawClient() dynamic.Interface
@@ -93,4 +110,87 @@ func (c *knDynamicClient) ListSourcesTypes() (*unstructured.UnstructuredList, er
 
 func (c knDynamicClient) RawClient() dynamic.Interface {
 	return c.client
+}
+
+// ListSources returns list of available sources COs
+func (c *knDynamicClient) ListSources(f *SourceListFilters) (*unstructured.UnstructuredList, error) {
+	var sourceList unstructured.UnstructuredList
+	options := metav1.ListOptions{}
+	sourceTypes, err := c.ListSourcesTypes()
+	if err != nil {
+		return nil, err
+	}
+
+	namespace := c.Namespace()
+	// For each source type available, find out CO
+	for _, source := range sourceTypes.Items {
+		//  only find COs if this source type is given in filter
+		if f != nil && f.filters != nil {
+			// find source kind before hand to fail early
+			sourceKind, err := kindFromUnstructured(&source)
+			if err != nil {
+				return nil, err
+			}
+
+			// if this source is not given in filter flags continue
+			if !sliceContainsIgnoreCase(sourceKind, f.filters) {
+				continue
+			}
+		}
+
+		gvr, err := gvrFromUnstructured(&source)
+		if err != nil {
+			return nil, err
+		}
+
+		sList, err := c.client.Resource(gvr).Namespace(namespace).List(options)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(sList.Items) > 0 {
+			sourceList.Items = append(sourceList.Items, sList.Items...)
+		}
+		sourceList.SetGroupVersionKind(sList.GetObjectKind().GroupVersionKind())
+	}
+	return &sourceList, nil
+}
+
+func gvrFromUnstructured(u *unstructured.Unstructured) (gvr schema.GroupVersionResource, err error) {
+	content := u.UnstructuredContent()
+	group, found, err := unstructured.NestedString(content, "spec", "group")
+	if err != nil || !found {
+		return gvr, fmt.Errorf("can't find source GVR: %v", err)
+	}
+	version, found, err := unstructured.NestedString(content, "spec", "version")
+	if err != nil || !found {
+		return gvr, fmt.Errorf("can't find source GVR: %v", err)
+	}
+	resource, found, err := unstructured.NestedString(content, "spec", "names", "plural")
+	if err != nil || !found {
+		return gvr, fmt.Errorf("can't find source GVR: %v", err)
+	}
+	return schema.GroupVersionResource{
+		Group:    group,
+		Version:  version,
+		Resource: resource,
+	}, nil
+}
+
+func kindFromUnstructured(u *unstructured.Unstructured) (string, error) {
+	content := u.UnstructuredContent()
+	kind, found, err := unstructured.NestedString(content, "spec", "names", "kind")
+	if !found || err != nil {
+		return "", fmt.Errorf("can't find source kind: %v", err)
+	}
+	return kind, nil
+}
+
+func sliceContainsIgnoreCase(s string, slice []string) bool {
+	for _, each := range slice {
+		if strings.EqualFold(s, each) {
+			return true
+		}
+	}
+	return false
 }

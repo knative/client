@@ -20,6 +20,10 @@
 |===
 | | Description | PR
 
+| 🎁
+| Add `kn source list`
+| https://github.com/knative/client/pull/666[#666]
+
 | 🧽
 | Support multiple revisions on `kn revision delete`
 | https://github.com/knative/client/pull/657[#657]

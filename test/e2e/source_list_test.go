@@ -21,6 +21,7 @@ import (
 	"testing"
 
 	"gotest.tools/assert"
+
 	"knative.dev/client/pkg/util"
 )
 
@@ -45,8 +46,34 @@ func TestSourceListTypes(t *testing.T) {
 	assert.Check(t, util.ContainsAll(output, "apiextensions.k8s.io/v1beta1", "CustomResourceDefinition", "CronJob", "ApiServer"))
 }
 
+func TestSourceList(t *testing.T) {
+	t.Parallel()
+	test, err := NewE2eTest()
+	assert.NilError(t, err)
+	defer func() {
+		assert.NilError(t, test.Teardown())
+	}()
+
+	r := NewKnRunResultCollector(t)
+	defer r.DumpIfFailed()
+
+	t.Log("List sources empty case")
+	output := test.sourceList(t, r)
+	assert.Check(t, util.ContainsAll(output, "No", "sources", "found", "namespace"))
+	assert.Check(t, util.ContainsNone(output, "NAME", "TYPE", "RESOURCE", "SINK", "READY"))
+
+	// non empty list case is tested in test/e2e/source_apiserver_test.go where source setup is present
+}
+
 func (test *e2eTest) sourceListTypes(t *testing.T, r *KnRunResultCollector, args ...string) string {
 	cmd := append([]string{"source", "list-types"}, args...)
+	out := test.kn.Run(cmd...)
+	r.AssertNoError(out)
+	return out.Stdout
+}
+
+func (test *e2eTest) sourceList(t *testing.T, r *KnRunResultCollector, args ...string) string {
+	cmd := append([]string{"source", "list"}, args...)
 	out := test.kn.Run(cmd...)
 	r.AssertNoError(out)
 	return out.Stdout
