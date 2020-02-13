@@ -20,6 +20,7 @@ import (
 	metav1beta1 "k8s.io/apimachinery/pkg/apis/meta/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"knative.dev/client/pkg/kn/commands"
+	"knative.dev/client/pkg/kn/commands/flags"
 	hprinters "knative.dev/client/pkg/printers"
 	eventing "knative.dev/eventing/pkg/apis/eventing/v1alpha1"
 )
@@ -27,12 +28,14 @@ import (
 // TriggerListHandlers handles printing human readable table for `kn source list-types` command's output
 func TriggerListHandlers(h hprinters.PrintHandler) {
 	sourceTypesColumnDefinitions := []metav1beta1.TableColumnDefinition{
-		{Name: "Namespace", Type: "string", Description: "Namespace of the trigger", Priority: 0},
-		{Name: "Name", Type: "string", Description: "Name of the trigger", Priority: 1},
-		{Name: "Broker", Type: "string", Description: "Name of the broker", Priority: 1},
-		{Name: "Subscriber_URI", Type: "string", Description: "URI of the subscriber", Priority: 1},
-		{Name: "Ready", Type: "string", Description: "Ready condition status of the trigger", Priority: 1},
-		{Name: "Reason", Type: "string", Description: "Reason for non-ready condition of the trigger", Priority: 1},
+		{Name: "Namespace", Type: "string", Description: "Namespace of the trigger.", Priority: 0},
+		{Name: "Name", Type: "string", Description: "Name of the trigger.", Priority: 1},
+		{Name: "Broker", Type: "string", Description: "Name of the broker.", Priority: 1},
+		{Name: "Sink", Type: "string", Description: "Sink for events, i.e. the subscriber.", Priority: 1},
+		{Name: "Age", Type: "string", Description: "Age of the trigger.", Priority: 1},
+		{Name: "Conditions", Type: "string", Description: "Ready state conditions.", Priority: 1},
+		{Name: "Ready", Type: "string", Description: "Ready condition status of the trigger.", Priority: 1},
+		{Name: "Reason", Type: "string", Description: "Reason for non-ready condition of the trigger.", Priority: 1},
 	}
 	h.TableHandler(sourceTypesColumnDefinitions, printTrigger)
 	h.TableHandler(sourceTypesColumnDefinitions, printTriggerList)
@@ -42,7 +45,9 @@ func TriggerListHandlers(h hprinters.PrintHandler) {
 func printTrigger(trigger *eventing.Trigger, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	name := trigger.Name
 	broker := trigger.Spec.Broker
-	uri := trigger.Status.SubscriberURI
+	sink := flags.SinkToString(trigger.Spec.Subscriber)
+	age := commands.TranslateTimestampSince(trigger.CreationTimestamp)
+	conditions := commands.ConditionsValue(trigger.Status.Conditions)
 	ready := commands.ReadyCondition(trigger.Status.Conditions)
 	reason := commands.NonReadyConditionReason(trigger.Status.Conditions)
 
@@ -57,7 +62,9 @@ func printTrigger(trigger *eventing.Trigger, options hprinters.PrintOptions) ([]
 	row.Cells = append(row.Cells,
 		name,
 		broker,
-		uri,
+		sink,
+		age,
+		conditions,
 		ready,
 		reason)
 	return []metav1beta1.TableRow{row}, nil
