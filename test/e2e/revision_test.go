@@ -108,8 +108,8 @@ func (test *e2eTest) revisionMultipleDelete(t *testing.T, revisionNames []string
 
 	out, err = test.kn.RunWithOpts([]string{"revision", "delete", existRevision1, existRevision2, nonexistRevision}, runOpts{NoNamespace: false})
 
-	assert.Check(t, util.ContainsAll(out, "Revision", existRevision1, "successfully", "deleted", "namespace", test.kn.namespace), "Failed to get 'successfully deleted' first revision message")
-	assert.Check(t, util.ContainsAll(out, "Revision", existRevision2, "successfully", "deleted", "namespace", test.kn.namespace), "Failed to get 'successfully deleted' second revision message")
+	assert.Check(t, util.ContainsAll(out, "Revision", existRevision1, "deleted", "namespace", test.kn.namespace), "Failed to get 'deleted' first revision message")
+	assert.Check(t, util.ContainsAll(out, "Revision", existRevision2, "deleted", "namespace", test.kn.namespace), "Failed to get 'deleted' second revision message")
 	assert.Check(t, util.ContainsAll(out, "revisions.serving.knative.dev", nonexistRevision, "not found"), "Failed to get 'not found' error")
 }
 
