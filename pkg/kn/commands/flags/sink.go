@@ -105,3 +105,18 @@ func parseSink(sink string) (string, string) {
 		return parts[0], parts[1]
 	}
 }
+
+// SinkToString prepares a sink for list output
+func SinkToString(sink duckv1.Destination) string {
+	if sink.Ref != nil {
+		if sink.Ref.Kind == "Service" {
+			return fmt.Sprintf("svc:%s", sink.Ref.Name)
+		} else {
+			return fmt.Sprintf("%s:%s", strings.ToLower(sink.Ref.Kind), sink.Ref.Name)
+		}
+	}
+	if sink.URI != nil {
+		return sink.URI.String()
+	}
+	return ""
+}

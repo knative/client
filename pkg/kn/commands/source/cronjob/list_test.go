@@ -36,7 +36,7 @@ func TestListCronJobSource(t *testing.T) {
 
 	out, err := executeCronJobSourceCommand(cronjobClient, nil, "list")
 	assert.NilError(t, err, "Sources should be listed")
-	util.ContainsAll(out, "NAME", "SCHEDULE", "SINK", "CONDITIONS", "READY", "REASON")
+	util.ContainsAll(out, "NAME", "SCHEDULE", "SINK", "AGE", "CONDITIONS", "READY", "REASON")
 	util.ContainsAll(out, "testsource", "* * * * */2", "mysvc")
 
 	cronJobRecorder.Validate()
@@ -52,7 +52,7 @@ func TestListCronJobSourceEmpty(t *testing.T) {
 
 	out, err := executeCronJobSourceCommand(cronjobClient, nil, "list")
 	assert.NilError(t, err, "Sources should be listed")
-	util.ContainsNone(out, "NAME", "SCHEDULE", "SINK", "CONDITIONS", "READY", "REASON")
+	util.ContainsNone(out, "NAME", "SCHEDULE", "SINK", "AGE", "CONDITIONS", "READY", "REASON")
 	util.ContainsAll(out, "No", "CronJob", "source", "found")
 
 	cronJobRecorder.Validate()

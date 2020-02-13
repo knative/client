@@ -38,7 +38,7 @@ func TestListSimple(t *testing.T) {
 
 	out, err := executeSinkBindingCommand(bindingClient, nil, "list")
 	assert.NilError(t, err, "Sources should be listed")
-	util.ContainsAll(out, "NAME", "SUBJECT", "SINK", "CONDITIONS", "READY", "REASON")
+	util.ContainsAll(out, "NAME", "SUBJECT", "SINK", "AGE", "CONDITIONS", "READY", "REASON")
 	util.ContainsAll(out, "testbinding", "deployment:apps/v1:mydeploy", "mysvc")
 
 	bindingRecorder.Validate()
@@ -53,7 +53,7 @@ func TestListEmpty(t *testing.T) {
 
 	out, err := executeSinkBindingCommand(bindingClient, nil, "list")
 	assert.NilError(t, err, "Sources should be listed")
-	util.ContainsNone(out, "NAME", "SUBJECT", "SINK", "CONDITIONS", "READY", "REASON")
+	util.ContainsNone(out, "NAME", "SUBJECT", "SINK", "AGE", "CONDITIONS", "READY", "REASON")
 	util.ContainsAll(out, "No", "sink binding", "found")
 
 	bindingRecorder.Validate()

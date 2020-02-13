@@ -23,7 +23,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/tools/clientcmd"
 	"knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1"
-	duckv1 "knative.dev/pkg/apis/duck/v1"
 	"knative.dev/pkg/tracker"
 
 	"knative.dev/client/pkg/kn/commands"
@@ -131,23 +130,6 @@ func subjectToString(ref tracker.Reference) string {
 		return ret + ":" + strings.Join(keyValues, ",")
 	}
 	return ret
-}
-
-// sinkToString prepares a sink for list output
-// This is kept here until we have moved everything to duckv1 (currently the other sources
-// are still on duckv1beta1)
-func sinkToString(sink duckv1.Destination) string {
-	if sink.Ref != nil {
-		if sink.Ref.Kind == "Service" {
-			return fmt.Sprintf("svc:%s", sink.Ref.Name)
-		} else {
-			return fmt.Sprintf("%s:%s", sink.Ref.Kind, sink.Ref.Name)
-		}
-	}
-	if sink.URI != nil {
-		return sink.URI.String()
-	}
-	return ""
 }
 
 // updateCeOverrides updates the values of the --ce-override flags if given
