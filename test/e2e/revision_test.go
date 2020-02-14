@@ -38,7 +38,8 @@ func TestRevision(t *testing.T) {
 	})
 
 	t.Run("describe revision from hello service with print flags", func(t *testing.T) {
-		test.revisionDescribeWithPrintFlags(t, "hello")
+		revName := test.findRevision(t, "hello")
+		test.revisionDescribeWithPrintFlags(t, revName)
 	})
 
 	t.Run("update hello service and increase the count of configuration generation", func(t *testing.T) {
@@ -50,7 +51,19 @@ func TestRevision(t *testing.T) {
 	})
 
 	t.Run("delete latest revision from hello service and return no error", func(t *testing.T) {
-		test.revisionDelete(t, "hello")
+		revName := test.findRevision(t, "hello")
+		test.revisionDelete(t, revName)
+	})
+
+	t.Run("delete three revisions with one revision a nonexistent", func(t *testing.T) {
+		// increase count to 2 revisions
+		test.serviceUpdate(t, "hello", []string{"--env", "TARGET=kn", "--port", "8888"})
+
+		existRevision1 := test.findRevisionByGeneration(t, "hello", 1)
+		existRevision2 := test.findRevisionByGeneration(t, "hello", 2)
+		nonexistRevision := "hello-nonexist"
+
+		test.revisionMultipleDelete(t, []string{existRevision1, existRevision2, nonexistRevision})
 	})
 
 	t.Run("delete hello service and return no error", func(t *testing.T) {
@@ -76,18 +89,31 @@ func (test *e2eTest) revisionListWithService(t *testing.T, serviceNames ...strin
 	}
 }
 
-func (test *e2eTest) revisionDelete(t *testing.T, serviceName string) {
-	revName := test.findRevision(t, serviceName)
-
+func (test *e2eTest) revisionDelete(t *testing.T, revName string) {
 	out, err := test.kn.RunWithOpts([]string{"revision", "delete", revName}, runOpts{})
 	assert.NilError(t, err)
 
 	assert.Check(t, util.ContainsAll(out, "Revision", revName, "deleted", "namespace", test.kn.namespace))
 }
 
-func (test *e2eTest) revisionDescribeWithPrintFlags(t *testing.T, serviceName string) {
-	revName := test.findRevision(t, serviceName)
+func (test *e2eTest) revisionMultipleDelete(t *testing.T, revisionNames []string) {
+	existRevision1 := revisionNames[0]
+	existRevision2 := revisionNames[1]
+	nonexistRevision := revisionNames[2]
 
+	out, err := test.kn.RunWithOpts([]string{"revision", "list"}, runOpts{NoNamespace: false})
+	assert.NilError(t, err)
+	assert.Check(t, strings.Contains(out, existRevision1), "Required revision1 does not exist")
+	assert.Check(t, strings.Contains(out, existRevision2), "Required revision2 does not exist")
+
+	out, err = test.kn.RunWithOpts([]string{"revision", "delete", existRevision1, existRevision2, nonexistRevision}, runOpts{NoNamespace: false})
+
+	assert.Check(t, util.ContainsAll(out, "Revision", existRevision1, "deleted", "namespace", test.kn.namespace), "Failed to get 'deleted' first revision message")
+	assert.Check(t, util.ContainsAll(out, "Revision", existRevision2, "deleted", "namespace", test.kn.namespace), "Failed to get 'deleted' second revision message")
+	assert.Check(t, util.ContainsAll(out, "revisions.serving.knative.dev", nonexistRevision, "not found"), "Failed to get 'not found' error")
+}
+
+func (test *e2eTest) revisionDescribeWithPrintFlags(t *testing.T, revName string) {
 	out, err := test.kn.RunWithOpts([]string{"revision", "describe", revName, "-o=name"}, runOpts{})
 	assert.NilError(t, err)
 

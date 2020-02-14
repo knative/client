@@ -20,6 +20,10 @@
 |===
 | | Description | PR
 
+| 🧽
+| Support multiple revisions on `kn revision delete`
+| https://github.com/knative/client/pull/657[#657]
+
 | 🎁
 | Add human readable `kn route describe`
 | https://github.com/knative/client/pull/643[#643]
@@ -48,6 +52,7 @@
 | 🐛
 | Fix `--image` flag to only allow single occurence
 | https://github.com/knative/client/pull/647[#647]
+|===
 
 ## v0.12.0 (2020-01-29)
 

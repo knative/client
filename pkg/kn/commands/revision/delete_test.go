@@ -60,3 +60,22 @@ func TestRevisionDelete(t *testing.T) {
 	}
 	assert.Check(t, util.ContainsAll(output, "Revision", revName, "deleted", "namespace", commands.FakeNamespace))
 }
+
+func TestMultipleRevisionDelete(t *testing.T) {
+	revName1 := "foo-12345"
+	revName2 := "foo-67890"
+	revName3 := "foo-abcde"
+	action, _, output, err := fakeRevisionDelete([]string{"revision", "delete", revName1, revName2, revName3})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	if action == nil {
+		t.Errorf("No action")
+	} else if !action.Matches("delete", "revisions") {
+		t.Errorf("Bad action %v", action)
+	}
+	assert.Check(t, util.ContainsAll(output, "Revision", revName1, "deleted", "namespace", commands.FakeNamespace))
+	assert.Check(t, util.ContainsAll(output, "Revision", revName2, "deleted", "namespace", commands.FakeNamespace))
+	assert.Check(t, util.ContainsAll(output, "Revision", revName3, "deleted", "namespace", commands.FakeNamespace))
+}
