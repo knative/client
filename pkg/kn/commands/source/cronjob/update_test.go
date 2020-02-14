@@ -52,9 +52,10 @@ func TestSimpleUpdate(t *testing.T) {
 		},
 		Status: v1alpha1.CronJobSourceStatus{},
 	}, nil)
-	cronJobRecorder.UpdateCronJobSource(createCronJobSource("testsource", "* * * * */3", "maxwell", "mysvc"), nil)
+	cronJobRecorder.UpdateCronJobSource(createCronJobSource("testsource", "* * * * */3", "maxwell", "mysvc", "mysa", "100m", "128Mi", "200m", "256Mi"), nil)
 
-	out, err := executeCronJobSourceCommand(cronjobClient, nil, "update", "--schedule", "* * * * */3", "testsource")
+	out, err := executeCronJobSourceCommand(cronjobClient, nil, "update", "--schedule", "* * * * */3", "--service-account",
+		"mysa", "--requests-cpu", "100m", "--requests-memory", "128Mi", "--limits-cpu", "200m", "--limits-memory", "256Mi", "testsource")
 	assert.NilError(t, err)
 	util.ContainsAll(out, "updated", "default", "testsource")
 

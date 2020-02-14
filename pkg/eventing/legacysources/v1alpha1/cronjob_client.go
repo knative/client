@@ -158,6 +158,31 @@ func (b *CronJobSourceBuilder) Sink(sink *duckv1beta1.Destination) *CronJobSourc
 	return b
 }
 
+func (b *CronJobSourceBuilder) ServiceAccount(sa string) *CronJobSourceBuilder {
+	b.cronjobSource.Spec.ServiceAccountName = sa
+	return b
+}
+
+func (b *CronJobSourceBuilder) ResourceRequestsCPU(cpu string) *CronJobSourceBuilder {
+	b.cronjobSource.Spec.Resources.Requests.ResourceCPU = cpu
+	return b
+}
+
+func (b *CronJobSourceBuilder) ResourceRequestsMemory(memory string) *CronJobSourceBuilder {
+	b.cronjobSource.Spec.Resources.Requests.ResourceMemory = memory
+	return b
+}
+
+func (b *CronJobSourceBuilder) ResourceLimitsCPU(cpu string) *CronJobSourceBuilder {
+	b.cronjobSource.Spec.Resources.Limits.ResourceCPU = cpu
+	return b
+}
+
+func (b *CronJobSourceBuilder) ResourceLimitsMemory(memory string) *CronJobSourceBuilder {
+	b.cronjobSource.Spec.Resources.Limits.ResourceMemory = memory
+	return b
+}
+
 func (b *CronJobSourceBuilder) Build() *v1alpha1.CronJobSource {
 	return b.cronjobSource
 }

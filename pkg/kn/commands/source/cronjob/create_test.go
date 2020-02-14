@@ -37,9 +37,10 @@ func TestSimpleCreateCronJobSource(t *testing.T) {
 	cronjobClient := clientsourcesv1alpha1.NewMockKnCronJobSourceClient(t)
 
 	cronJobRecorder := cronjobClient.Recorder()
-	cronJobRecorder.CreateCronJobSource(createCronJobSource("testsource", "* * * * */2", "maxwell", "mysvc"), nil)
+	cronJobRecorder.CreateCronJobSource(createCronJobSource("testsource", "* * * * */2", "maxwell", "mysvc", "mysa", "100m", "128Mi", "200m", "256Mi"), nil)
 
-	out, err := executeCronJobSourceCommand(cronjobClient, dynamicClient, "create", "--sink", "svc:mysvc", "--schedule", "* * * * */2", "--data", "maxwell", "testsource")
+	out, err := executeCronJobSourceCommand(cronjobClient, dynamicClient, "create", "--sink", "svc:mysvc", "--schedule", "* * * * */2", "--data", "maxwell",
+		"--service-account", "mysa", "--requests-cpu", "100m", "--requests-memory", "128Mi", "--limits-cpu", "200m", "--limits-memory", "256Mi", "testsource")
 	assert.NilError(t, err, "Source should have been created")
 	util.ContainsAll(out, "created", "default", "testsource")
 
