@@ -252,7 +252,7 @@ func defaultConfigDir() (string, error) {
 	if xdgHome := os.Getenv("XDG_CONFIG_HOME"); xdgHome != "" {
 		return filepath.Join(xdgHome, "kn"), nil
 	}
-	// Fallback to XDF default for both Linux and macOS
+	// Fallback to XDG default for both Linux and macOS
 	// ~/.config/kn
 	return filepath.Join(home, ".config", "kn"), nil
 }
