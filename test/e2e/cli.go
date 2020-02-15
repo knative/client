@@ -83,7 +83,7 @@ func (c *KnRunResultCollector) AssertError(result KnRunResult) {
 // AddDump adds extra dump information to the collector which is printed
 // out if an error occurs
 func (c *KnRunResultCollector) AddDump(kind string, name string, namespace string) {
-	dumpInfo := extractDumpInfo(kind, name, namespace)
+	dumpInfo := extractDumpInfoWithName(kind, name, namespace)
 	if dumpInfo != "" {
 		c.extraDumps = append(c.extraDumps, dumpInfo)
 	}
@@ -174,11 +174,7 @@ func RunKn(namespace string, args []string) KnRunResult {
 	}
 	if err != nil {
 		command := args[0]
-		var name string
-		if len(args) > 2 {
-			name = args[2]
-		}
-		result.DumpInfo = extractDumpInfo(command, name, namespace)
+		result.DumpInfo = extractDumpInfo(command, args, namespace)
 	}
 	return result
 }
@@ -208,27 +204,36 @@ func runCli(cli string, args []string) (string, string, error) {
 	return stdout.String(), stderr.String(), err
 }
 
-type dumpFunc func(name string, namespace string) string
+type dumpFunc func(namespace string, args []string) string
 
 // Dump handler for specific commands ("service", "revision") which should add extra infos
 // Relies on that argv[1] is the command and argv[3] is the name of the object
 var dumpHandlers = map[string]dumpFunc{
-	"service": dumpService,
+	"service":  dumpService,
+	"revision": dumpRevision,
+	"route":    dumpRoute,
+	"trigger":  dumpTrigger,
+	// TODO: "source",
 }
 
-func extractDumpInfo(command, name string, namespace string) string {
+func extractDumpInfoWithName(command string, name string, namespace string) string {
+	return extractDumpInfo(command, []string{command, "", name}, namespace)
+}
+
+func extractDumpInfo(command string, args []string, namespace string) string {
 	dumpHandler := dumpHandlers[command]
 	if dumpHandler != nil {
-		return dumpHandler(name, namespace)
+		return dumpHandler(namespace, args)
 	}
 	return ""
 }
 
-func dumpService(name, namespace string) string {
+func dumpService(namespace string, args []string) string {
 	// For list like operation we don't have a name
-	if name == "" {
+	if len(args) < 3 || args[2] == "" {
 		return ""
 	}
+	name := args[2]
 	var buffer bytes.Buffer
 
 	// Service info
@@ -241,6 +246,28 @@ func dumpService(name, namespace string) string {
 	appendResourceInfoWithNameSelector(&buffer, "revision", name, namespace, "serving.knative.dev/service")
 	// Get all routes for this service
 	appendResourceInfoWithNameSelector(&buffer, "route", name, namespace, "serving.knative.dev/service")
+	return buffer.String()
+}
+
+func dumpRevision(namespace string, args []string) string {
+	return simpleDump("revision", args, namespace)
+}
+
+func dumpRoute(namespace string, args []string) string {
+	return simpleDump("route", args, namespace)
+}
+
+func dumpTrigger(namespace string, args []string) string {
+	return simpleDump("trigger", args, namespace)
+}
+
+func simpleDump(kind string, args []string, namespace string) string {
+	if len(args) < 3 || args[2] == "" {
+		return ""
+	}
+
+	var buffer bytes.Buffer
+	appendResourceInfo(&buffer, kind, args[2], namespace)
 	return buffer.String()
 }
 
@@ -272,7 +299,7 @@ func appendResourceInfoWithNameSelector(buffer *bytes.Buffer, kind string, name 
 }
 
 func appendCLIOutput(buffer *bytes.Buffer, desc string, out string, err error) {
-	buffer.WriteString(fmt.Sprintf("\n==== %s\n", desc))
+	buffer.WriteString(fmt.Sprintf("==== %s\n", desc))
 	if err != nil {
 		buffer.WriteString(fmt.Sprintf("%s: %v\n", "!!!! ERROR", err))
 	}
