@@ -100,6 +100,11 @@ func (c *MockKnServingClient) UpdateService(service *servingv1.Service) error {
 	return mock.ErrorOrNil(call.Result[0])
 }
 
+// Delegate to shared retry method
+func (c *MockKnServingClient) UpdateServiceWithRetry(name string, updateFunc serviceUpdateFunc, maxRetry int) error {
+	return updateServiceWithRetry(c, name, updateFunc, maxRetry)
+}
+
 // Delete a service by name
 func (sr *ServingRecorder) DeleteService(name interface{}, err error) {
 	sr.r.Add("DeleteService", []interface{}{name}, []interface{}{err})

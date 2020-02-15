@@ -25,7 +25,6 @@ import (
 
 	clientserving "knative.dev/client/pkg/serving"
 	clientservingv1 "knative.dev/client/pkg/serving/v1"
-
 	"knative.dev/client/pkg/util"
 )
 
@@ -52,10 +51,7 @@ func TestServiceUpdateEnvMock(t *testing.T) {
 	template.Annotations = map[string]string{clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 
 	r := client.Recorder()
-	r.GetService("foo", nil, errors.NewNotFound(servingv1.Resource("service"), "foo"))
-	r.CreateService(service, nil)
-	r.GetService("foo", service, nil)
-	r.UpdateService(updated, nil)
+	recordServiceUpdateWithSuccess(r, "foo", service, updated)
 
 	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "-e", "a=mouse", "--env", "b=cookie", "--env=empty", "--no-wait", "--revision-name=")
 	assert.NilError(t, err)
@@ -100,10 +96,7 @@ func TestServiceUpdateAnnotationsMock(t *testing.T) {
 	}
 
 	r := client.Recorder()
-	r.GetService(svcName, nil, errors.NewNotFound(servingv1.Resource("service"), svcName))
-	r.CreateService(newService, nil)
-	r.GetService(svcName, newService, nil)
-	r.UpdateService(updatedService, nil)
+	recordServiceUpdateWithSuccess(r, svcName, newService, updatedService)
 
 	output, err := executeServiceCommand(client,
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",
@@ -125,6 +118,13 @@ func TestServiceUpdateAnnotationsMock(t *testing.T) {
 	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
 
 	r.Validate()
+}
+
+func recordServiceUpdateWithSuccess(r *clientservingv1.ServingRecorder, svcName string, newService *servingv1.Service, updatedService *servingv1.Service) {
+	r.GetService(svcName, nil, errors.NewNotFound(servingv1.Resource("service"), svcName))
+	r.CreateService(newService, nil)
+	r.GetService(svcName, newService, nil)
+	r.UpdateService(updatedService, nil)
 }
 
 func TestServiceUpdateEnvFromAddingWithConfigMap(t *testing.T) {
@@ -170,10 +170,7 @@ func TestServiceUpdateEnvFromAddingWithConfigMap(t *testing.T) {
 	}
 
 	r := client.Recorder()
-	r.GetService(svcName, nil, errors.NewNotFound(servingv1.Resource("service"), svcName))
-	r.CreateService(newService, nil)
-	r.GetService(svcName, newService, nil)
-	r.UpdateService(updatedService, nil)
+	recordServiceUpdateWithSuccess(r, svcName, newService, updatedService)
 
 	output, err := executeServiceCommand(client,
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",
@@ -275,10 +272,7 @@ func TestServiceUpdateEnvFromRemovalWithConfigMap(t *testing.T) {
 	template.Spec.Containers[0].EnvFrom = nil
 
 	r := client.Recorder()
-	r.GetService(svcName, nil, errors.NewNotFound(servingv1.Resource("service"), svcName))
-	r.CreateService(newService, nil)
-	r.GetService(svcName, newService, nil)
-	r.UpdateService(updatedService1, nil)
+	recordServiceUpdateWithSuccess(r, svcName, newService, updatedService1)
 	r.GetService(svcName, updatedService1, nil)
 	//r.UpdateService(updatedService2, nil) // since an error happens, update is not triggered here
 	r.GetService(svcName, updatedService2, nil)
@@ -454,10 +448,7 @@ func TestServiceUpdateEnvFromExistingWithConfigMap(t *testing.T) {
 	}
 
 	r := client.Recorder()
-	r.GetService(svcName, nil, errors.NewNotFound(servingv1.Resource("service"), svcName))
-	r.CreateService(newService, nil)
-	r.GetService(svcName, newService, nil)
-	r.UpdateService(updatedService, nil)
+	recordServiceUpdateWithSuccess(r, svcName, newService, updatedService)
 
 	output, err := executeServiceCommand(client,
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",
@@ -523,10 +514,7 @@ func TestServiceUpdateEnvFromAddingWithSecret(t *testing.T) {
 	}
 
 	r := client.Recorder()
-	r.GetService(svcName, nil, errors.NewNotFound(servingv1.Resource("service"), svcName))
-	r.CreateService(newService, nil)
-	r.GetService(svcName, newService, nil)
-	r.UpdateService(updatedService, nil)
+	recordServiceUpdateWithSuccess(r, svcName, newService, updatedService)
 
 	output, err := executeServiceCommand(client,
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",
@@ -733,10 +721,7 @@ func TestServiceUpdateEnvFromExistingWithSecret(t *testing.T) {
 	}
 
 	r := client.Recorder()
-	r.GetService(svcName, nil, errors.NewNotFound(servingv1.Resource("service"), svcName))
-	r.CreateService(newService, nil)
-	r.GetService(svcName, newService, nil)
-	r.UpdateService(updatedService, nil)
+	recordServiceUpdateWithSuccess(r, svcName, newService, updatedService)
 
 	output, err := executeServiceCommand(client,
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",
@@ -835,10 +820,7 @@ func TestServiceUpdateWithAddingVolume(t *testing.T) {
 	}
 
 	r := client.Recorder()
-	r.GetService(svcName, nil, errors.NewNotFound(servingv1.Resource("service"), svcName))
-	r.CreateService(newService, nil)
-	r.GetService(svcName, newService, nil)
-	r.UpdateService(updatedService, nil)
+	recordServiceUpdateWithSuccess(r, svcName, newService, updatedService)
 
 	output, err := executeServiceCommand(client,
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",
@@ -937,10 +919,7 @@ func TestServiceUpdateWithUpdatingVolume(t *testing.T) {
 	}
 
 	r := client.Recorder()
-	r.GetService(svcName, nil, errors.NewNotFound(servingv1.Resource("service"), svcName))
-	r.CreateService(newService, nil)
-	r.GetService(svcName, newService, nil)
-	r.UpdateService(updatedService, nil)
+	recordServiceUpdateWithSuccess(r, svcName, newService, updatedService)
 
 	output, err := executeServiceCommand(client,
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",
@@ -1041,10 +1020,7 @@ func TestServiceUpdateWithRemovingVolume(t *testing.T) {
 	}
 
 	r := client.Recorder()
-	r.GetService(svcName, nil, errors.NewNotFound(servingv1.Resource("service"), svcName))
-	r.CreateService(newService, nil)
-	r.GetService(svcName, newService, nil)
-	r.UpdateService(updatedService, nil)
+	recordServiceUpdateWithSuccess(r, svcName, newService, updatedService)
 
 	output, err := executeServiceCommand(client,
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",
@@ -1119,10 +1095,7 @@ func TestServiceUpdateWithAddingMount(t *testing.T) {
 	}
 
 	r := client.Recorder()
-	r.GetService(svcName, nil, errors.NewNotFound(servingv1.Resource("service"), svcName))
-	r.CreateService(newService, nil)
-	r.GetService(svcName, newService, nil)
-	r.UpdateService(updatedService, nil)
+	recordServiceUpdateWithSuccess(r, svcName, newService, updatedService)
 
 	output, err := executeServiceCommand(client,
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",
@@ -1227,10 +1200,7 @@ func TestServiceUpdateWithUpdatingMount(t *testing.T) {
 	}
 
 	r := client.Recorder()
-	r.GetService(svcName, nil, errors.NewNotFound(servingv1.Resource("service"), svcName))
-	r.CreateService(newService, nil)
-	r.GetService(svcName, newService, nil)
-	r.UpdateService(updatedService, nil)
+	recordServiceUpdateWithSuccess(r, svcName, newService, updatedService)
 
 	output, err := executeServiceCommand(client,
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",
