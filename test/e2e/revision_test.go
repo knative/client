@@ -84,6 +84,9 @@ func (test *e2eTest) revisionListWithService(t *testing.T, r *KnRunResultCollect
 			assert.Check(t, util.ContainsAll(line, revName, svcName, strconv.Itoa(confGen)))
 			confGen--
 		}
+		if t.Failed() {
+			r.AddDump("service", svcName, test.namespace)
+		}
 	}
 }
 

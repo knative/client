@@ -420,6 +420,9 @@ func (test *e2eTest) verifyTargets(t *testing.T, r *KnRunResultCollector, servic
 	assert.NilError(t, err)
 	formattedActualTargets := formatActualTargets(t, actualTargets)
 	assert.DeepEqual(t, expectedTargets, formattedActualTargets)
+	if t.Failed() {
+		r.AddDump("service", serviceName, test.namespace)
+	}
 }
 
 func (test *e2eTest) serviceDescribeWithJsonPath(r *KnRunResultCollector, serviceName, jsonpath string) string {
