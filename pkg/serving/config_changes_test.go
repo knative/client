@@ -331,6 +331,25 @@ func TestUpdateLabelsNew(t *testing.T) {
 		"a": "foo",
 		"b": "bar",
 	}
+	tLabels := labels // revision template labels
+
+	// Only test service-specific labels if we have any
+	if len(ServiceOnlyLabels) != 0 {
+		// Make a copy of the expected labels so we can modify the original
+		// list w/o changing what's expected for the revsion template
+		tLabels = map[string]string{}
+		for k, v := range labels {
+			tLabels[k] = v
+		}
+
+		// Just add a random value from the list to make sure it doesn't show
+		// up in the revision template
+		for k := range ServiceOnlyLabels {
+			labels[k] = "testing"
+			break
+		}
+	}
+
 	err := UpdateLabels(service, template, labels, []string{})
 	assert.NilError(t, err)
 
@@ -340,8 +359,8 @@ func TestUpdateLabelsNew(t *testing.T) {
 	}
 
 	actual = template.ObjectMeta.Labels
-	if !reflect.DeepEqual(labels, actual) {
-		t.Fatalf("Template labels did not match expected %v found %v", labels, actual)
+	if !reflect.DeepEqual(tLabels, actual) {
+		t.Fatalf("Template labels did not match expected %v found %v", tLabels, actual)
 	}
 }
 
