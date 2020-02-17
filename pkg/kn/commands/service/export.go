@@ -86,9 +86,8 @@ func NewServiceExportCommand(p *commands.KnParams) *cobra.Command {
 						return err
 					}
 					return printer.PrintObj(svcList, cmd.OutOrStdout())
-				} else {
-					return printer.PrintObj(exportService(service), cmd.OutOrStdout())
 				}
+				return printer.PrintObj(exportService(service), cmd.OutOrStdout())
 			}
 
 			return nil
