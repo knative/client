@@ -26,25 +26,28 @@ import (
 
 func TestSourceListTypes(t *testing.T) {
 	t.Parallel()
-	test := NewE2eTest(t)
-	test.Setup(t)
-	defer test.Teardown(t)
+	test, err := NewE2eTest()
+	assert.NilError(t, err)
+	defer func() {
+		assert.NilError(t, test.Teardown())
+	}()
 
-	t.Run("List available source types", func(t *testing.T) {
-		output := test.sourceListTypes(t)
-		assert.Check(t, util.ContainsAll(output, "TYPE", "NAME", "DESCRIPTION", "CronJob", "ApiServer"))
-	})
+	r := NewKnRunResultCollector(t)
+	defer r.DumpIfFailed()
 
-	t.Run("List available source types in YAML format", func(t *testing.T) {
-		output := test.sourceListTypes(t, "-oyaml")
-		assert.Check(t, util.ContainsAll(output, "apiextensions.k8s.io/v1beta1", "CustomResourceDefinition", "CronJob", "ApiServer"))
+	t.Log("List available source types")
+	output := test.sourceListTypes(t, r)
+	assert.Check(t, util.ContainsAll(output, "TYPE", "NAME", "DESCRIPTION", "CronJob", "ApiServer"))
 
-	})
+	t.Log("List available source types in YAML format")
+
+	output = test.sourceListTypes(t, r, "-oyaml")
+	assert.Check(t, util.ContainsAll(output, "apiextensions.k8s.io/v1beta1", "CustomResourceDefinition", "CronJob", "ApiServer"))
 }
 
-func (test *e2eTest) sourceListTypes(t *testing.T, args ...string) (out string) {
+func (test *e2eTest) sourceListTypes(t *testing.T, r *KnRunResultCollector, args ...string) string {
 	cmd := append([]string{"source", "list-types"}, args...)
-	out, err := test.kn.RunWithOpts(cmd, runOpts{})
-	assert.NilError(t, err)
-	return
+	out := test.kn.Run(cmd...)
+	r.AssertNoError(out)
+	return out.Stdout
 }
