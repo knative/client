@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
 	"gotest.tools/assert"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -131,41 +130,51 @@ func callServiceExportTest(t *testing.T, expectedService *servingv1.Service) {
 	r.GetService(expectedService.ObjectMeta.Name, expectedService, nil)
 
 	output, err := executeServiceCommand(client, "export", expectedService.ObjectMeta.Name, "-o", "json")
+
 	assert.NilError(t, err)
 
-	expectedService.ObjectMeta.Namespace = ""
-
-	expectedService.Spec.Template.Spec.Containers[0].Resources = v1.ResourceRequirements{}
+	stripExpectedSvcVariables(expectedService)
 
 	actSvc := servingv1.Service{}
 
 	json.Unmarshal([]byte(output), &actSvc)
 
-	if diff := cmp.Diff(expectedService, &actSvc); diff != "" {
-		t.Errorf("mismatch (-want +got):\n%s", diff)
-	}
+	assert.DeepEqual(t, expectedService, &actSvc)
 
 	// Validate that all recorded API methods have been called
 	r.Validate()
 }
 
-func TestServiceExportwithHistory(t *testing.T) {
+func TestServiceExportwithMultipleRevisions(t *testing.T) {
+
+	//case 1 = 2 revisions with traffic split
+	trafficSplitService := createServiceTwoRevsionsWithTraffic("foo", true)
+
+	multiRevs := createTestRevisionList("rev", "foo")
+
+	callServiceExportHistoryTest(t, trafficSplitService, multiRevs)
+
+	//case 2 - same revsions no traffic split
+	noTrafficSplitService := createServiceTwoRevsionsWithTraffic("foo", false)
+
+	callServiceExportHistoryTest(t, noTrafficSplitService, multiRevs)
+}
+
+func callServiceExportHistoryTest(t *testing.T, expectedService *servingv1.Service, revs *servingv1.RevisionList) {
 	// New mock client
 	client := knclient.NewMockKnServiceClient(t)
 
 	// Recording:
 	r := client.Recorder()
 
-	expectedService := createServiceWithTraffic("foo")
-
 	r.GetService(expectedService.ObjectMeta.Name, expectedService, nil)
-
-	revs := createTestRevisionList("rev", "foo")
 
 	r.ListRevisions(mock.Any(), revs, nil)
 
-	output, err := executeServiceCommand(client, "export", "foo", "-r", "-o", "json")
+	output, err := executeServiceCommand(client, "export", expectedService.ObjectMeta.Name, "-r", "-o", "json")
+
 	assert.NilError(t, err)
+
 	actSvcList := servingv1.ServiceList{}
 
 	json.Unmarshal([]byte(output), &actSvcList)
@@ -193,18 +202,15 @@ func validateServiceWithRevisionHistory(t *testing.T, expectedsvc *servingv1.Ser
 	}
 	expectedsvc.Spec.ConfigurationSpec.Template.ObjectMeta.Name = expectedRev.ObjectMeta.Name
 	expectedsvc.Spec.Template.Spec = expectedRev.Spec
-	expectedsvc.ObjectMeta.Namespace = ""
-	expectedsvc.Spec.Template.Spec.Containers[0].Resources = v1.ResourceRequirements{}
-	expectedsvc.Status = servingv1.ServiceStatus{}
-	expectedsvc.ObjectMeta.Annotations = nil
-	expectedsvc.ObjectMeta.CreationTimestamp = metav1.Time{}
+
+	stripExpectedSvcVariables(expectedsvc)
+
 	if !checkTraffic {
 		routeSpec = expectedsvc.Spec.RouteSpec
 		expectedsvc.Spec.RouteSpec = servingv1.RouteSpec{}
 	}
-	if diff := cmp.Diff(expectedsvc, &actualSvc); diff != "" {
-		t.Errorf("mismatch (-want +got):\n%s", diff)
-	}
+	assert.DeepEqual(t, expectedsvc, &actualSvc)
+
 	expectedsvc.Spec.RouteSpec = routeSpec
 }
 
@@ -279,24 +285,38 @@ func createTestRevisionList(revision string, service string) *servingv1.Revision
 	}
 }
 
-func createServiceWithTraffic(svc string) *servingv1.Service {
+func createServiceTwoRevsionsWithTraffic(svc string, trafficSplit bool) *servingv1.Service {
 	expectedService := createTestService(svc, []string{svc + "-rev-1", svc + "-rev-2"}, goodConditions())
 	expectedService.Status.Traffic[0].LatestRevision = ptr.Bool(true)
 	expectedService.Status.Traffic[0].Tag = "latest"
 	expectedService.Status.Traffic[1].Tag = "current"
 
-	var trafficList []servingv1.TrafficTarget
-	traffic1 := servingv1.TrafficTarget{
-		RevisionName: "foo-rev-1",
-		Percent:      ptr.Int64(int64(50)),
+	if trafficSplit {
+		trafficList := []servingv1.TrafficTarget{
+			servingv1.TrafficTarget{
+				RevisionName: "foo-rev-1",
+				Percent:      ptr.Int64(int64(50)),
+			}, servingv1.TrafficTarget{
+				RevisionName: "foo-rev-2",
+				Percent:      ptr.Int64(int64(50)),
+			}}
+		expectedService.Spec.RouteSpec = servingv1.RouteSpec{Traffic: trafficList}
+	} else {
+		trafficList := []servingv1.TrafficTarget{
+			servingv1.TrafficTarget{
+				RevisionName: "foo-rev-2",
+				Percent:      ptr.Int64(int64(50)),
+			}}
+		expectedService.Spec.RouteSpec = servingv1.RouteSpec{Traffic: trafficList}
 	}
-	traffic2 := servingv1.TrafficTarget{
-		RevisionName: "foo-rev-2",
-		Percent:      ptr.Int64(int64(50)),
-	}
-	trafficList = append(trafficList, traffic1)
-	trafficList = append(trafficList, traffic2)
-	expectedService.Spec.RouteSpec = servingv1.RouteSpec{Traffic: trafficList}
 
 	return &expectedService
+}
+
+func stripExpectedSvcVariables(expectedsvc *servingv1.Service) {
+	expectedsvc.ObjectMeta.Namespace = ""
+	expectedsvc.Spec.Template.Spec.Containers[0].Resources = v1.ResourceRequirements{}
+	expectedsvc.Status = servingv1.ServiceStatus{}
+	expectedsvc.ObjectMeta.Annotations = nil
+	expectedsvc.ObjectMeta.CreationTimestamp = metav1.Time{}
 }

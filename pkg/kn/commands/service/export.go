@@ -26,7 +26,7 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 
 	"knative.dev/client/pkg/kn/commands"
-	clientservingv1alpha "knative.dev/client/pkg/serving/v1"
+	clientservingv1 "knative.dev/client/pkg/serving/v1"
 	"knative.dev/serving/pkg/apis/serving"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
@@ -44,7 +44,7 @@ func NewServiceExportCommand(p *commands.KnParams) *cobra.Command {
   # Export a service in yaml format
   kn service export foo -n bar -o yaml
   # Export a service in json format
-  kn service export foo -n bar -o yaml`,
+  kn service export foo -n bar -o json`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("'kn service export' requires name of the service as single argument")
@@ -142,14 +142,14 @@ func constructServicefromRevision(latestSvc *servingv1.Service, revision serving
 	return exportedSvc
 }
 
-func exportServicewithActiveRevisions(latestSvc *servingv1.Service, client clientservingv1alpha.KnServingClient) (*servingv1.ServiceList, error) {
+func exportServicewithActiveRevisions(latestSvc *servingv1.Service, client clientservingv1.KnServingClient) (*servingv1.ServiceList, error) {
 	var exportedSvcItems []servingv1.Service
 
 	//get revisions to export from traffic
 	revsMap := getRevisionstoExport(latestSvc)
 
-	var params []clientservingv1alpha.ListConfig
-	params = append(params, clientservingv1alpha.WithService(latestSvc.ObjectMeta.Name))
+	var params []clientservingv1.ListConfig
+	params = append(params, clientservingv1.WithService(latestSvc.ObjectMeta.Name))
 
 	// Query for list with filters
 	revisionList, err := client.ListRevisions(params...)
@@ -167,7 +167,7 @@ func exportServicewithActiveRevisions(latestSvc *servingv1.Service, client clien
 	}
 
 	//set traffic in the latest revision
-	exportedSvcItems[len(exportedSvcItems)-1] = setTrafficSplit(revsMap, exportedSvcItems[len(exportedSvcItems)-1])
+	exportedSvcItems[len(exportedSvcItems)-1] = setTrafficSplit(latestSvc, revsMap, exportedSvcItems[len(exportedSvcItems)-1])
 
 	typeMeta := metav1.TypeMeta{
 		APIVersion: "v1",
@@ -181,18 +181,18 @@ func exportServicewithActiveRevisions(latestSvc *servingv1.Service, client clien
 	return exportedSvcList, nil
 }
 
-func setTrafficSplit(revMap map[string]*int64, svc servingv1.Service) servingv1.Service {
-	var trafficList []servingv1.TrafficTarget
-	for k, v := range revMap {
-		traffic := servingv1.TrafficTarget{
-			RevisionName: k,
-			Percent:      v,
-		}
-		trafficList = append(trafficList, traffic)
-	}
-	svc.Spec.RouteSpec = servingv1.RouteSpec{Traffic: trafficList}
+func setTrafficSplit(latestSvc *servingv1.Service, revMap map[string]*int64, exportedSvc servingv1.Service) servingv1.Service {
+	// var trafficList []servingv1.TrafficTarget
+	// for k, v := range revMap {
+	// 	traffic := servingv1.TrafficTarget{
+	// 		RevisionName: k,
+	// 		Percent:      v,
+	// 	}
+	// 	trafficList = append(trafficList, traffic)
+	// }
+	exportedSvc.Spec.RouteSpec = latestSvc.Spec.RouteSpec
 
-	return svc
+	return exportedSvc
 }
 
 func getRevisionstoExport(latestSvc *servingv1.Service) map[string]*int64 {
