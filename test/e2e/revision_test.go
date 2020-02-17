@@ -28,7 +28,6 @@ import (
 )
 
 func TestRevision(t *testing.T) {
-	t.Parallel()
 	test, err := NewE2eTest()
 	assert.NilError(t, err)
 	defer func() {
