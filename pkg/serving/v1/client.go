@@ -246,7 +246,7 @@ func updateServiceWithRetry(cl KnServingClient, name string, updateFunc serviceU
 				time.Sleep(time.Second)
 				continue
 			}
-			return errors.Wrap(err, fmt.Sprintf("giving up after %d retries",nrRetries))
+			return errors.Wrap(err, fmt.Sprintf("giving up after %d retries", nrRetries))
 		}
 		return nil
 	}
