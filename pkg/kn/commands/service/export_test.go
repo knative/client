@@ -293,17 +293,17 @@ func createServiceTwoRevsionsWithTraffic(svc string, trafficSplit bool) *serving
 
 	if trafficSplit {
 		trafficList := []servingv1.TrafficTarget{
-			servingv1.TrafficTarget{
+			{
 				RevisionName: "foo-rev-1",
 				Percent:      ptr.Int64(int64(50)),
-			}, servingv1.TrafficTarget{
+			}, {
 				RevisionName: "foo-rev-2",
 				Percent:      ptr.Int64(int64(50)),
 			}}
 		expectedService.Spec.RouteSpec = servingv1.RouteSpec{Traffic: trafficList}
 	} else {
 		trafficList := []servingv1.TrafficTarget{
-			servingv1.TrafficTarget{
+			{
 				RevisionName: "foo-rev-2",
 				Percent:      ptr.Int64(int64(50)),
 			}}
