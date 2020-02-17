@@ -14,29 +14,29 @@ kn service create NAME --image IMAGE [flags]
 
 ```
 
-  # Create a service 'mysvc' using image at dev.local/ns/image:latest
-  kn service create mysvc --image dev.local/ns/image:latest
+  # Create a service 'mysvc' using image at gcr.io/knative-samples/helloworld-go:latest
+  kn service create mysvc --image gcr.io/knative-samples/helloworld-go:latest
 
   # Create a service with multiple environment variables
-  kn service create mysvc --env KEY1=VALUE1 --env KEY2=VALUE2 --image dev.local/ns/image:latest
+  kn service create mysvc --env KEY1=VALUE1 --env KEY2=VALUE2 --image gcr.io/knative-samples/helloworld-go:latest
 
-  # Create or replace a service 's1' with image dev.local/ns/image:v2 using --force flag
+  # Create or replace a service 's1' with gcr.io/knative-samples/helloworld-go:latest using --force flag
   # if service 's1' doesn't exist, it's just a normal create operation
-  kn service create --force s1 --image dev.local/ns/image:v2
+  kn service create --force s1 --image gcr.io/knative-samples/helloworld-go:latest
 
   # Create or replace environment variables of service 's1' using --force flag
-  kn service create --force s1 --env KEY1=NEW_VALUE1 --env NEW_KEY2=NEW_VALUE2 --image dev.local/ns/image:v1
+  kn service create --force s1 --env KEY1=NEW_VALUE1 --env NEW_KEY2=NEW_VALUE2 --image gcr.io/knative-samples/helloworld-go:latest
 
   # Create service 'mysvc' with port 80
-  kn service create mysvc --port 80 --image dev.local/ns/image:latest
+  kn service create mysvc --port 80 --image gcr.io/knative-samples/helloworld-go:latest
 
   # Create or replace default resources of a service 's1' using --force flag
   # (earlier configured resource requests and limits will be replaced with default)
   # (earlier configured environment variables will be cleared too if any)
-  kn service create --force s1 --image dev.local/ns/image:v1
+  kn service create --force s1 --image gcr.io/knative-samples/helloworld-go:latest
 
   # Create a service with annotation
-  kn service create s1 --image dev.local/ns/image:v3 --annotation sidecar.istio.io/inject=false
+  kn service create s1 --image gcr.io/knative-samples/helloworld-go:latest --annotation sidecar.istio.io/inject=false
 ```
 
 ### Options

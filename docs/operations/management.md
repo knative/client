@@ -17,7 +17,7 @@ Examples:
 ```bash
 # Create a new service from an image
 
-kn service create mysvc --env KEY1=VALUE1 --env KEY2=VALUE2 --image dev.local/ns/image:latest
+kn service create mysvc --image gcr.io/knative-samples/helloworld-go:latest
 ```
 
 You are able to also specify the requests and limits of both CPU and memory when creating a service. See [`service create`](../cmd/kn_service_create.md) command reference for additional details.
@@ -42,7 +42,7 @@ Examples:
 ```bash
 # Listing a service's revision
 
-kn revision list --service srvc
+kn revision list --service mysvc
 ```
 
 ## Utilities
