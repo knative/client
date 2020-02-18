@@ -38,7 +38,7 @@ You'll need a `kubectl`-style config file to connect to your cluster.
 
 ## Kn Config
 
-There are a set of configuration parameters you can setup to better customize `kn`. In particular, you can specify where your `kn` plugins are located and how they are found. The `kn` configuration file is meant to capture these configuration options. Let's explore this file's location, and the options you are able to change with it.
+There are a set of configuration parameters you can setup to better customize `kn`. For example, you can specify where your `kn` plugins are located and how they are found, and you can specify the prefix for your addressable `sink` objects. The `kn` configuration file is meant to capture these configuration options. Let's explore this file's location, and the options you are able to change with it.
 
 ### Location
 
@@ -46,18 +46,30 @@ The default location `kn` looks for config is under the home directory of the us
 
 ### Options
 
-There are two options you can specify in the `kn` config file and they are related to how `kn` locates plugins.
+Below are the options you can specify in the `kn` config file.
 
 1. `pluginsDir` which is the same as the persistent flag `--plugins-dir` and specifies the kn plugins directory. It defaults to: `~/.kn/plugins`. By using the persistent flag (when you issue a command) or by specifying the value in the `kn` config, a user can select which directory to find `kn` plugins. It can be any directory that is visible to the user.
 
 2. `lookupPluginsInPath` which is the same as the persistent flag `--lookup-plugins-in-path` and specficies if `kn` should look for plugins anywhere in the specified `PATH` environment variable. This is a boolean configuration option and the default value is `false`.
 
+3. `sink` defines your prefix to refer to Kubernetes addressable resources. To configure a sink prefix, define following in the config file:
+    1. `prefix`: Prefix you want to describe your sink as. `service` or `svc` (`serving.knative.dev/v1`) and `broker` (`eventing.knative.dev/v1alpha1`) are predefined prefixes in `kn`. These predefined prefixes can be overridden by values in configuration file. 
+    2. `group`: The APIGroup of Kubernetes resource.
+    3. `version`: The version of Kubernetes resources.
+    4. `resource`: The plural name of Kubernetes resources (for example: services). 
+
 For example, the following `kn` config will look for `kn` plugins in the user's `PATH` and also execute plugin in `~/.kn/plugins`.
+It also defines a sink prefix `myprefix` which refers to `brokers` in `eventing.knative.dev/v1alpha1`. With this configuration, you can use `myprefix:default` to describe a Broker `default` in `kn` command line.
 
 ```bash
 cat ~/.kn/config.yaml
 lookupPluginsInPath: true
 pluginsdir: ~/.kn/plugins
+sink:
+- prefix: myprefix
+  group: eventing.knative.dev
+  version: v1alpha1
+  resource: brokers
 ```
 ----------------------------------------------------------
 
