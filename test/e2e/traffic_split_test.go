@@ -414,9 +414,6 @@ func (test *e2eTest) verifyTargets(t *testing.T, r *KnRunResultCollector, servic
 	out := test.serviceDescribeWithJsonPath(r, serviceName, targetsJsonPath)
 	assert.Check(t, out != "")
 	actualTargets, err := splitTargets(out, targetsSeparator, len(expectedTargets))
-	if err != nil {
-		r.AddDump("service", serviceName, test.namespace)
-	}
 	assert.NilError(t, err)
 	formattedActualTargets := formatActualTargets(t, actualTargets)
 	assert.DeepEqual(t, expectedTargets, formattedActualTargets)
