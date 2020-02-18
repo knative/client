@@ -167,7 +167,7 @@ func exportServicewithActiveRevisions(latestSvc *servingv1.Service, client clien
 	}
 
 	//set traffic in the latest revision
-	exportedSvcItems[len(exportedSvcItems)-1] = setTrafficSplit(latestSvc, revsMap, exportedSvcItems[len(exportedSvcItems)-1])
+	exportedSvcItems[len(exportedSvcItems)-1] = setTrafficSplit(latestSvc, exportedSvcItems[len(exportedSvcItems)-1])
 
 	typeMeta := metav1.TypeMeta{
 		APIVersion: "v1",
@@ -181,15 +181,8 @@ func exportServicewithActiveRevisions(latestSvc *servingv1.Service, client clien
 	return exportedSvcList, nil
 }
 
-func setTrafficSplit(latestSvc *servingv1.Service, revMap map[string]*int64, exportedSvc servingv1.Service) servingv1.Service {
-	// var trafficList []servingv1.TrafficTarget
-	// for k, v := range revMap {
-	// 	traffic := servingv1.TrafficTarget{
-	// 		RevisionName: k,
-	// 		Percent:      v,
-	// 	}
-	// 	trafficList = append(trafficList, traffic)
-	// }
+func setTrafficSplit(latestSvc *servingv1.Service, exportedSvc servingv1.Service) servingv1.Service {
+
 	exportedSvc.Spec.RouteSpec = latestSvc.Spec.RouteSpec
 
 	return exportedSvc
