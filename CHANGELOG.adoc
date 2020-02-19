@@ -21,6 +21,10 @@
 | | Description | PR
 
 | 🧽
+| Allow configure destination for --log-http
+| https://github.com/knative/client/pull/683[#683]
+
+| 🧽
 | Support multiple revisions on `kn revision delete`
 | https://github.com/knative/client/pull/657[#657]
 
