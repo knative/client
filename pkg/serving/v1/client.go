@@ -75,6 +75,8 @@ type KnServingClient interface {
 	// Return error and how long has been waited
 	WaitForService(name string, timeout time.Duration, msgCallback wait.MessageCallback) (error, time.Duration)
 
+	WaitForEvent(kind, name string, timeout time.Duration, done wait.EventDone) error
+
 	// Get a configuration by name
 	GetConfiguration(name string) (*servingv1.Configuration, error)
 
@@ -269,6 +271,12 @@ func (cl *knServingClient) DeleteService(serviceName string) error {
 func (cl *knServingClient) WaitForService(name string, timeout time.Duration, msgCallback wait.MessageCallback) (error, time.Duration) {
 	waitForReady := wait.NewWaitForReady("service", cl.WatchService, serviceConditionExtractor)
 	return waitForReady.Wait(name, timeout, msgCallback)
+}
+
+func (cl *knServingClient) WaitForEvent(kind, name string, timeout time.Duration, done wait.EventDone) error {
+	waitForEvent := wait.NewWaitForEvent(kind, cl.WatchService, done)
+	err, _ := waitForEvent.Wait(name, timeout, wait.NoopMessageCallback())
+	return err
 }
 
 // Get the configuration for a service

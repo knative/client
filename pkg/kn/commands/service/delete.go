@@ -17,14 +17,18 @@ package service
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/spf13/cobra"
+	"k8s.io/apimachinery/pkg/watch"
 
 	"knative.dev/client/pkg/kn/commands"
 )
 
 // NewServiceDeleteCommand represent 'service delete' command
 func NewServiceDeleteCommand(p *commands.KnParams) *cobra.Command {
+	var waitFlags commands.WaitFlags
+
 	serviceDeleteCommand := &cobra.Command{
 		Use:   "delete NAME",
 		Short: "Delete a service.",
@@ -50,7 +54,19 @@ func NewServiceDeleteCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			for _, name := range args {
+				waitC := make(chan error)
+				defer close(waitC)
+				if !waitFlags.NoWait {
+					go func(s string, c chan error) {
+						err := client.WaitForEvent("service", s, time.Duration(waitFlags.TimeoutInSeconds)*time.Second,
+							func(evt *watch.Event) bool { return evt.Type == watch.Deleted })
+						c <- err
+					}(name, waitC)
+				}
 				err = client.DeleteService(name)
+				if err == nil && !waitFlags.NoWait {
+					err = <-waitC
+				}
 				if err != nil {
 					fmt.Fprintf(cmd.OutOrStdout(), "%s.\n", err)
 				} else {
@@ -61,5 +77,6 @@ func NewServiceDeleteCommand(p *commands.KnParams) *cobra.Command {
 		},
 	}
 	commands.AddNamespaceFlags(serviceDeleteCommand.Flags(), false)
+	waitFlags.AddConditionWaitFlags(serviceDeleteCommand, commands.WaitDefaultTimeout, "Delete", "service")
 	return serviceDeleteCommand
 }

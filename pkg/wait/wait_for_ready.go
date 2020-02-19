@@ -36,9 +36,17 @@ type waitForReadyConfig struct {
 	kind                string
 }
 
+type waitForEvent struct {
+	watchMaker WatchMaker
+	eventDone  EventDone
+	kind       string
+}
+
+type EventDone func(ev *watch.Event) bool
+
 // Interface used for waiting of a resource of a given name to reach a definitive
 // state in its "Ready" condition.
-type WaitForReady interface {
+type Wait interface {
 
 	// Wait on resource the resource with this name until a given timeout
 	// and write event messages for unknown event to the status writer.
@@ -56,11 +64,19 @@ type ConditionsExtractor func(obj runtime.Object) (apis.Conditions, error)
 type MessageCallback func(durationSinceState time.Duration, message string)
 
 // Constructor with resource type specific configuration
-func NewWaitForReady(kind string, watchMaker WatchMaker, extractor ConditionsExtractor) WaitForReady {
+func NewWaitForReady(kind string, watchMaker WatchMaker, extractor ConditionsExtractor) Wait {
 	return &waitForReadyConfig{
 		kind:                kind,
 		watchMaker:          watchMaker,
 		conditionsExtractor: extractor,
+	}
+}
+
+func NewWaitForEvent(kind string, watchMaker WatchMaker, eventDone EventDone) Wait {
+	return &waitForEvent{
+		kind:       kind,
+		watchMaker: watchMaker,
+		eventDone:  eventDone,
 	}
 }
 
@@ -173,6 +189,29 @@ func (w *waitForReadyConfig) waitForReadyCondition(start time.Time, name string,
 						msgCallback(time.Since(start), cond.Message)
 					}
 				}
+			}
+		}
+	}
+}
+
+func (w *waitForEvent) Wait(name string, timeout time.Duration, msgCallback MessageCallback) (error, time.Duration) {
+	watcher, err := w.watchMaker(name, timeout)
+	if err != nil {
+		return err, 0
+	}
+	defer watcher.Stop()
+	start := time.Now()
+	// channel used to transport the error
+	errChan := make(chan error)
+	for {
+		select {
+		case <-time.After(timeout):
+			return nil, time.Since(start)
+		case err = <-errChan:
+			return err, time.Since(start)
+		case event := <-watcher.ResultChan():
+			if w.eventDone(&event) {
+				return nil, time.Since(start)
 			}
 		}
 	}

@@ -21,6 +21,7 @@ import (
 
 	clientservingv1 "knative.dev/client/pkg/serving/v1"
 	"knative.dev/client/pkg/util"
+	"knative.dev/client/pkg/util/mock"
 )
 
 func TestServiceDeleteMock(t *testing.T) {
@@ -31,6 +32,8 @@ func TestServiceDeleteMock(t *testing.T) {
 	r := client.Recorder()
 
 	r.DeleteService("foo", nil)
+	// Wait for delete event
+	r.WaitForEvent("service", "foo", mock.Any(), mock.Any(), nil)
 
 	output, err := executeServiceCommand(client, "delete", "foo")
 	assert.NilError(t, err)
@@ -46,6 +49,10 @@ func TestMultipleServiceDeleteMock(t *testing.T) {
 
 	// Recording:
 	r := client.Recorder()
+	// Wait for delete event
+	r.WaitForEvent("service", "foo", mock.Any(), mock.Any(), nil)
+	r.WaitForEvent("service", "bar", mock.Any(), mock.Any(), nil)
+	r.WaitForEvent("service", "baz", mock.Any(), mock.Any(), nil)
 
 	r.DeleteService("foo", nil)
 	r.DeleteService("bar", nil)

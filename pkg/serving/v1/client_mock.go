@@ -125,6 +125,16 @@ func (c *MockKnServingClient) WaitForService(name string, timeout time.Duration,
 	return mock.ErrorOrNil(call.Result[0]), call.Result[1].(time.Duration)
 }
 
+// Wait for a service to become ready, but not longer than provided timeout
+func (sr *ServingRecorder) WaitForEvent(kind, name interface{}, timeout interface{}, done interface{}, err error) {
+	sr.r.Add("WaitForEvent", []interface{}{kind, name, timeout, done}, []interface{}{err})
+}
+
+func (c *MockKnServingClient) WaitForEvent(kind, name string, timeout time.Duration, done wait.EventDone) error {
+	call := c.recorder.r.VerifyCall("WaitForEvent", kind, name, timeout, done)
+	return mock.ErrorOrNil(call.Result[0])
+}
+
 // Get a revision by name
 func (sr *ServingRecorder) GetRevision(name interface{}, revision *servingv1.Revision, err error) {
 	sr.r.Add("GetRevision", []interface{}{name}, []interface{}{revision, err})
