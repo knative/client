@@ -337,6 +337,18 @@ func UpdateContainerPort(template *servingv1.RevisionTemplateSpec, port int32) e
 	return nil
 }
 
+// UpdateRunAsUser updates container with a given RunAsUser
+func UpdateRunAsUser(template *servingv1.RevisionTemplateSpec, runAsUser int64) error {
+	container, err := ContainerOfRevisionTemplate(template)
+	if err != nil {
+		return err
+	}
+	container.SecurityContext = &corev1.SecurityContext{
+		RunAsUser: &runAsUser,
+	}
+	return nil
+}
+
 // UpdateResources updates resources as requested
 func UpdateResources(template *servingv1.RevisionTemplateSpec, requestsResourceList corev1.ResourceList, limitsResourceList corev1.ResourceList) error {
 	container, err := ContainerOfRevisionTemplate(template)
