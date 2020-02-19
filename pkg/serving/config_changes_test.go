@@ -300,6 +300,10 @@ func checkPortUpdate(t *testing.T, template *servingv1.RevisionTemplateSpec, por
 	}
 }
 
+func checkUserUpdate(t *testing.T, template *servingv1.RevisionTemplateSpec, user *int64) {
+	assert.DeepEqual(t, template.Spec.Containers[0].SecurityContext.RunAsUser, user)
+}
+
 func TestUpdateEnvVarsBoth(t *testing.T) {
 	template, container := getRevisionTemplate()
 	container.Env = []corev1.EnvVar{
@@ -647,6 +651,20 @@ func TestGenerateVolumeName(t *testing.T) {
 		expectedName := appendCheckSum(expected[i], actual[i])
 		assert.Equal(t, actualName, expectedName)
 	}
+}
+
+func TestUpdateRunAsUser(t *testing.T) {
+	template, _ := getRevisionTemplate()
+	err := UpdateRunAsUser(template, int64(1001))
+	assert.NilError(t, err)
+
+	checkUserUpdate(t, template, ptr.Int64(int64(1001)))
+
+	template.Spec.Containers[0].SecurityContext.RunAsUser = ptr.Int64(int64(1002))
+	err = UpdateRunAsUser(template, int64(1002))
+	assert.NilError(t, err)
+
+	checkUserUpdate(t, template, ptr.Int64(int64(1002)))
 }
 
 //
