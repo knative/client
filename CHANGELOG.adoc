@@ -52,11 +52,11 @@
 | 🐛
 | Fix `--image` flag to only allow single occurence
 | https://github.com/knative/client/pull/647[#647]
-|===
 
 | 🎁
 | Add `--run-as-user` flag for specifying the user to run the container
 | https://github.com/knative/client/pull/679[#679]
+|===
 
 ## v0.12.0 (2020-01-29)
 
