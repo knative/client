@@ -86,7 +86,7 @@ In the end, the build results in `kn` binary in your current directory, which ca
 
 **Testing:**
 
-Please follow the [guide](./test) here to test the `knative client`.
+Please follow the [guide](./../test) here to test the `knative client`.
 
 **Notes:**
 
