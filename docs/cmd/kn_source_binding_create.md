@@ -31,9 +31,9 @@ kn source binding create NAME --subject SCHEDULE --sink SINK --ce-override KEY=V
 ### Options inherited from parent commands
 
 ```
-      --config string       kn config file (default is $HOME/.kn/config.yaml)
-      --kubeconfig string   kubectl config file (default is $HOME/.kube/config)
-      --log-http            log http traffic
+      --config string                    kn config file (default is $HOME/.kn/config.yaml)
+      --kubeconfig string                kubectl config file (default is $HOME/.kube/config)
+      --log-http string[="__STDERR__"]   log http traffic to stderr (no argument) or a file (with argument) (default "__NO_LOG__")
 ```
 
 ### SEE ALSO

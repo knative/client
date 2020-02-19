@@ -29,7 +29,7 @@ import (
 type configTestCase struct {
 	clientConfig      clientcmd.ClientConfig
 	expectedErrString string
-	logHttp           bool
+	logHttp           string
 }
 
 var BASIC_KUBECONFIG = `apiVersion: v1
@@ -62,17 +62,17 @@ func TestPrepareConfig(t *testing.T) {
 		{
 			clientcmd.NewDefaultClientConfig(clientcmdapi.Config{}, &clientcmd.ConfigOverrides{}),
 			"no configuration has been provided",
-			false,
+			"__EMTPY__",
 		},
 		{
 			basic,
 			"",
-			false,
+			"__NO_LOG__",
 		},
 		{ // Test that the cast to wrap the http client in a logger works
 			basic,
 			"",
-			true,
+			"",
 		},
 	} {
 		p := &KnParams{
@@ -152,17 +152,17 @@ func TestNewSourcesClient(t *testing.T) {
 		{
 			clientcmd.NewDefaultClientConfig(clientcmdapi.Config{}, &clientcmd.ConfigOverrides{}),
 			"no configuration has been provided",
-			false,
+			"__NO_LOG__",
 		},
 		{
 			basic,
 			"",
-			false,
+			"__NO_LOG__",
 		},
 		{ // Test that the cast to wrap the http client in a logger works
 			basic,
 			"",
-			true,
+			"",
 		},
 	} {
 		p := &KnParams{
@@ -203,17 +203,17 @@ func TestNewDynamicClient(t *testing.T) {
 		{
 			clientcmd.NewDefaultClientConfig(clientcmdapi.Config{}, &clientcmd.ConfigOverrides{}),
 			"no configuration has been provided",
-			false,
+			"__NO_LOG__",
 		},
 		{
 			basic,
 			"",
-			false,
+			"__NO_LOG__",
 		},
 		{ // Test that the cast to wrap the http client in a logger works
 			basic,
 			"",
-			true,
+			"",
 		},
 	} {
 		p := &KnParams{

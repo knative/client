@@ -17,6 +17,7 @@ package commands
 import (
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 
@@ -61,7 +62,7 @@ type KnParams struct {
 	NewDynamicClient  func(namespace string) (clientdynamic.KnDynamicClient, error)
 
 	// General global options
-	LogHTTP bool
+	LogHTTP string
 
 	// Set this if you want to nail down the namespace
 	fixedCurrentNamespace string
@@ -140,10 +141,20 @@ func (params *KnParams) RestConfig() (*rest.Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	if params.LogHTTP {
+	if params.LogHTTP == "__NO_LOG__" {
+		// no http logging
+	} else if params.LogHTTP == "__STDERR__" {
 		// TODO: When we update to the newer version of client-go, replace with
 		// config.Wrap() for future compat.
 		config.WrapTransport = util.NewLoggingTransport
+	} else {
+		config.WrapTransport = func(transport http.RoundTripper) http.RoundTripper {
+			f, err := os.Create(params.LogHTTP)
+			if err != nil {
+				return nil
+			}
+			return util.NewLoggingTransportWithStream(transport, f)
+		}
 	}
 
 	return config, nil

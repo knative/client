@@ -137,7 +137,8 @@ func NewKnCommand(params ...commands.KnParams) *cobra.Command {
 	// Persistent flags
 	rootCmd.PersistentFlags().StringVar(&commands.CfgFile, "config", "", "kn config file (default is $HOME/.kn/config.yaml)")
 	rootCmd.PersistentFlags().StringVar(&p.KubeCfgPath, "kubeconfig", "", "kubectl config file (default is $HOME/.kube/config)")
-	flags.AddBothBoolFlags(rootCmd.PersistentFlags(), &p.LogHTTP, "log-http", "", false, "log http traffic")
+	rootCmd.PersistentFlags().StringVar(&p.LogHTTP, "log-http", "__NO_LOG__", "log http traffic to stderr (no argument) or a file (with argument)")
+	rootCmd.PersistentFlags().Lookup("log-http").NoOptDefVal = "__STDERR__"
 
 	plugin.AddPluginFlags(rootCmd)
 	plugin.BindPluginsFlagToViper(rootCmd)
