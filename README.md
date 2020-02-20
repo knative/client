@@ -33,4 +33,4 @@ We love contributions! Please refer to
 
 For code contributions it as easy as picking an [issue](https://github.com/knative/client/issues) (look out for "kind/good-first-issue"), briefly comment that you would like to work on it, code, code, code and finally submit a [PR](https://github.com/knative/client/pulls) which will trigger the review process.
 
-More details on how to build and test can be found in the [Developer guide](docs/development.md).
+More details on how to build and test can be found in the [Developer guide](docs/DEVELOPMENT.md).
