@@ -17,7 +17,7 @@ kn source list-types [flags]
   # List available eventing source types
   kn source list-types
 
-  # List available eventing source types in JSON format
+  # List available eventing source types in YAML format
   kn source list-types -o yaml
 ```
 

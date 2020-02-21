@@ -32,7 +32,7 @@ func NewListTypesCommand(p *commands.KnParams) *cobra.Command {
   # List available eventing source types
   kn source list-types
 
-  # List available eventing source types in JSON format
+  # List available eventing source types in YAML format
   kn source list-types -o yaml`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			namespace, err := p.GetNamespace(cmd)
