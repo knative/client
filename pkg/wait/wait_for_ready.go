@@ -206,7 +206,7 @@ func (w *waitForEvent) Wait(name string, timeout time.Duration, msgCallback Mess
 	for {
 		select {
 		case <-time.After(timeout):
-			return nil, time.Since(start)
+			return fmt.Errorf("timeout: %s '%s' not ready after %d seconds", w.kind, name, int(timeout/time.Second)), time.Since(start)
 		case err = <-errChan:
 			return err, time.Since(start)
 		case event := <-watcher.ResultChan():

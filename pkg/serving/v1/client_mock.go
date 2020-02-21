@@ -106,12 +106,12 @@ func (c *MockKnServingClient) UpdateServiceWithRetry(name string, updateFunc ser
 }
 
 // Delete a service by name
-func (sr *ServingRecorder) DeleteService(name interface{}, err error) {
-	sr.r.Add("DeleteService", []interface{}{name}, []interface{}{err})
+func (sr *ServingRecorder) DeleteService(name, timeout interface{}, err error) {
+	sr.r.Add("DeleteService", []interface{}{name, timeout}, []interface{}{err})
 }
 
-func (c *MockKnServingClient) DeleteService(name string) error {
-	call := c.recorder.r.VerifyCall("DeleteService", name)
+func (c *MockKnServingClient) DeleteService(name string, timeout time.Duration) error {
+	call := c.recorder.r.VerifyCall("DeleteService", name, timeout)
 	return mock.ErrorOrNil(call.Result[0])
 }
 
@@ -123,16 +123,6 @@ func (sr *ServingRecorder) WaitForService(name interface{}, timeout interface{},
 func (c *MockKnServingClient) WaitForService(name string, timeout time.Duration, msgCallback wait.MessageCallback) (error, time.Duration) {
 	call := c.recorder.r.VerifyCall("WaitForService", name, timeout, msgCallback)
 	return mock.ErrorOrNil(call.Result[0]), call.Result[1].(time.Duration)
-}
-
-// Wait for a service to become ready, but not longer than provided timeout
-func (sr *ServingRecorder) WaitForEvent(kind, name interface{}, timeout interface{}, done interface{}, err error) {
-	sr.r.Add("WaitForEvent", []interface{}{kind, name, timeout, done}, []interface{}{err})
-}
-
-func (c *MockKnServingClient) WaitForEvent(kind, name string, timeout time.Duration, done wait.EventDone) error {
-	call := c.recorder.r.VerifyCall("WaitForEvent", kind, name, timeout, done)
-	return mock.ErrorOrNil(call.Result[0])
 }
 
 // Get a revision by name

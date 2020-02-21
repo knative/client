@@ -20,7 +20,6 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"k8s.io/apimachinery/pkg/watch"
 
 	"knative.dev/client/pkg/kn/commands"
 )
@@ -52,21 +51,12 @@ func NewServiceDeleteCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-
 			for _, name := range args {
-				waitC := make(chan error)
-				defer close(waitC)
+				timeout := time.Duration(0)
 				if !waitFlags.NoWait {
-					go func(s string, c chan error) {
-						err := client.WaitForEvent("service", s, time.Duration(waitFlags.TimeoutInSeconds)*time.Second,
-							func(evt *watch.Event) bool { return evt.Type == watch.Deleted })
-						c <- err
-					}(name, waitC)
+					timeout = time.Duration(waitFlags.TimeoutInSeconds) * time.Second
 				}
-				err = client.DeleteService(name)
-				if err == nil && !waitFlags.NoWait {
-					err = <-waitC
-				}
+				err = client.DeleteService(name, timeout)
 				if err != nil {
 					fmt.Fprintf(cmd.OutOrStdout(), "%s.\n", err)
 				} else {

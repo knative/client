@@ -69,13 +69,13 @@ type KnServingClient interface {
 	UpdateServiceWithRetry(name string, updateFunc serviceUpdateFunc, nrRetries int) error
 
 	// Delete a service by name
-	DeleteService(name string) error
+	DeleteService(name string, timeout time.Duration) error
 
 	// Wait for a service to become ready, but not longer than provided timeout.
 	// Return error and how long has been waited
 	WaitForService(name string, timeout time.Duration, msgCallback wait.MessageCallback) (error, time.Duration)
 
-	WaitForEvent(kind, name string, timeout time.Duration, done wait.EventDone) error
+	// WaitForEvent(kind, name string, timeout time.Duration, done wait.EventDone) error
 
 	// Get a configuration by name
 	GetConfiguration(name string) (*servingv1.Configuration, error)
@@ -255,7 +255,24 @@ func updateServiceWithRetry(cl KnServingClient, name string, updateFunc serviceU
 }
 
 // Delete a service by name
-func (cl *knServingClient) DeleteService(serviceName string) error {
+func (cl *knServingClient) DeleteService(serviceName string, timeout time.Duration) error {
+	if timeout == 0 {
+		return cl.deleteService(serviceName)
+	}
+	waitC := make(chan error)
+	go func(name string, c chan error) {
+		waitForEvent := wait.NewWaitForEvent("service", cl.WatchService, func(evt *watch.Event) bool { return evt.Type == watch.Deleted })
+		err, _ := waitForEvent.Wait(name, timeout, wait.NoopMessageCallback())
+		c <- err
+	}(serviceName, waitC)
+	err := cl.deleteService(serviceName)
+	if err != nil {
+		return err
+	}
+	return <-waitC
+}
+
+func (cl *knServingClient) deleteService(serviceName string) error {
 	err := cl.client.Services(cl.namespace).Delete(
 		serviceName,
 		&v1.DeleteOptions{},
@@ -271,12 +288,6 @@ func (cl *knServingClient) DeleteService(serviceName string) error {
 func (cl *knServingClient) WaitForService(name string, timeout time.Duration, msgCallback wait.MessageCallback) (error, time.Duration) {
 	waitForReady := wait.NewWaitForReady("service", cl.WatchService, serviceConditionExtractor)
 	return waitForReady.Wait(name, timeout, msgCallback)
-}
-
-func (cl *knServingClient) WaitForEvent(kind, name string, timeout time.Duration, done wait.EventDone) error {
-	waitForEvent := wait.NewWaitForEvent(kind, cl.WatchService, done)
-	err, _ := waitForEvent.Wait(name, timeout, wait.NoopMessageCallback())
-	return err
 }
 
 // Get the configuration for a service
