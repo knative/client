@@ -45,8 +45,7 @@
 | https://github.com/knative/client/pull/639[#639]
 
 | 🧽
-| Refactor service `create_test.go` and `update_test.go` to
-| remove unecessary `sync` parameter in setup call
+| Refactor service `create_test.go` and `update_test.go` to remove unecessary `sync` parameter in setup call
 | https://github.com/knative/client/pull/656[#656]
 
 | 🐛
@@ -54,8 +53,7 @@
 | https://github.com/knative/client/pull/647[#647]
 
 | 🧽
-| Add `--wait` and `--no-wait` to service delete operation.
-| Change service delete to wait by default.   
+| Add `--wait` and `--no-wait` to service delete operation. Change service delete to wait by default.   
 | https://github.com/knative/client/pull/682[#682]
 |===
 
