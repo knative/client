@@ -22,7 +22,7 @@ kn revision list [name] [flags]
 
   # List all revisions in JSON output format
   kn revision list -o json
-  
+
   # List revision 'web'
   kn revision list web
 ```

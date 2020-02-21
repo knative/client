@@ -30,7 +30,10 @@ func NewBindingListCommand(p *commands.KnParams) *cobra.Command {
 		Use:   "list",
 		Short: "List sink bindings.",
 		Example: `
-  # List all sink binding in YAML format
+  # List all sink binidngs
+  kn source binding list
+
+  # List all sink bindings in YAML format
   kn source binding list -o yaml`,
 
 		RunE: func(cmd *cobra.Command, args []string) (err error) {

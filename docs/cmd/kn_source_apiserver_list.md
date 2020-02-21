@@ -14,6 +14,9 @@ kn source apiserver list [flags]
 
 ```
 
+  # List all ApiServer sources
+  kn source apiserver list
+
   # List all ApiServer sources in YAML format
   kn source apiserver list -o yaml
 ```

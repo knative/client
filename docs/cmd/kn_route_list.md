@@ -20,7 +20,7 @@ kn route list NAME [flags]
   # List route 'web' in namespace 'dev'
   kn route list web -n dev
 
-  # List all routes in yaml format
+  # List all routes in YAML format
   kn route list -o yaml
 ```
 

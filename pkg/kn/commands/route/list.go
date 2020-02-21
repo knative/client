@@ -40,7 +40,7 @@ func NewRouteListCommand(p *commands.KnParams) *cobra.Command {
   # List route 'web' in namespace 'dev'
   kn route list web -n dev
 
-  # List all routes in yaml format
+  # List all routes in YAML format
   kn route list -o yaml`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
