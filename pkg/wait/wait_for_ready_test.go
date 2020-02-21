@@ -78,21 +78,33 @@ func TestAddWaitForReady(t *testing.T) {
 
 func TestAddWaitForDelete(t *testing.T) {
 	for i, tc := range prepareDeleteTestCases("test-service") {
-		fakeWatchApi := NewFakeWatch(tc.events)
+		fakeWatchAPI := NewFakeWatch(tc.events)
 
 		waitForEvent := NewWaitForEvent(
 			"blub",
 			func(name string, timeout time.Duration) (watch.Interface, error) {
-				return fakeWatchApi, nil
+				return fakeWatchAPI, nil
 			},
 			func(evt *watch.Event) bool { return evt.Type == watch.Deleted })
-		fakeWatchApi.Start()
+		fakeWatchAPI.Start()
 
-		waitForEvent.Wait("foobar", tc.timeout, NoopMessageCallback())
-		close(fakeWatchApi.eventChan)
+		err, _ := waitForEvent.Wait("foobar", tc.timeout, NoopMessageCallback())
+		close(fakeWatchAPI.eventChan)
 
-		if fakeWatchApi.StopCalled != 1 {
-			t.Errorf("%d: Exactly one 'stop' should be called, but got %d", i, fakeWatchApi.StopCalled)
+		if tc.errorText == "" && err != nil {
+			t.Errorf("%d: Error received %v", i, err)
+			continue
+		}
+		if tc.errorText != "" {
+			if err == nil {
+				t.Errorf("%d: No error but expected one", i)
+			} else {
+				assert.ErrorContains(t, err, tc.errorText)
+			}
+		}
+
+		if fakeWatchAPI.StopCalled != 1 {
+			t.Errorf("%d: Exactly one 'stop' should be called, but got %d", i, fakeWatchAPI.StopCalled)
 		}
 
 	}
@@ -112,6 +124,7 @@ func prepareTestCases(name string) []waitForReadyTestCase {
 func prepareDeleteTestCases(name string) []waitForReadyTestCase {
 	return []waitForReadyTestCase{
 		tc(deNormal, name, time.Second, ""),
+		tc(peTimeout, name, 10*time.Second, "timeout"),
 	}
 }
 

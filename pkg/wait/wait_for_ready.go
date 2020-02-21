@@ -43,7 +43,7 @@ type waitForEvent struct {
 	kind       string
 }
 
-// Done marker to stop actual waiting on given event state
+// EventDone is a marker to stop actual waiting on given event state
 type EventDone func(ev *watch.Event) bool
 
 // Interface used for waiting of a resource of a given name to reach a definitive
@@ -137,6 +137,7 @@ func (w *waitForReadyConfig) waitForReadyCondition(start time.Time, name string,
 
 	// channel used to transport the error
 	errChan := make(chan error)
+
 	var errorTimer *time.Timer
 	// Stop error timer if it has been started because of
 	// a ConditionReady has been set to false
@@ -206,9 +207,11 @@ func (w *waitForEvent) Wait(name string, timeout time.Duration, msgCallback Mess
 	start := time.Now()
 	// channel used to transport the error
 	errChan := make(chan error)
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
 	for {
 		select {
-		case <-time.After(timeout):
+		case <-timer.C:
 			return fmt.Errorf("timeout: %s '%s' not ready after %d seconds", w.kind, name, int(timeout/time.Second)), time.Since(start)
 		case err = <-errChan:
 			return err, time.Since(start)
@@ -220,9 +223,6 @@ func (w *waitForEvent) Wait(name string, timeout time.Duration, msgCallback Mess
 	}
 }
 
-// Going over Unstructured to keep that function generally applicable.
-// Alternative implemenentation: Add a func-field to waitForReadyConfig which has to be
-// provided for every resource (like the conditions extractor)
 func isGivenEqualsObservedGeneration(object runtime.Object) (bool, error) {
 	unstructured, err := runtime.DefaultUnstructuredConverter.ToUnstructured(object)
 	if err != nil {

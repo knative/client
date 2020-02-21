@@ -75,8 +75,6 @@ type KnServingClient interface {
 	// Return error and how long has been waited
 	WaitForService(name string, timeout time.Duration, msgCallback wait.MessageCallback) (error, time.Duration)
 
-	// WaitForEvent(kind, name string, timeout time.Duration, done wait.EventDone) error
-
 	// Get a configuration by name
 	GetConfiguration(name string) (*servingv1.Configuration, error)
 
@@ -255,16 +253,18 @@ func updateServiceWithRetry(cl KnServingClient, name string, updateFunc serviceU
 }
 
 // Delete a service by name
+// Param `timeout` represents a duration to wait for a delete op to finish.
+// For `timeout == 0` delete is performed async without any wait.
 func (cl *knServingClient) DeleteService(serviceName string, timeout time.Duration) error {
 	if timeout == 0 {
 		return cl.deleteService(serviceName)
 	}
 	waitC := make(chan error)
-	go func(name string, c chan error) {
+	go func() {
 		waitForEvent := wait.NewWaitForEvent("service", cl.WatchService, func(evt *watch.Event) bool { return evt.Type == watch.Deleted })
-		err, _ := waitForEvent.Wait(name, timeout, wait.NoopMessageCallback())
-		c <- err
-	}(serviceName, waitC)
+		err, _ := waitForEvent.Wait(serviceName, timeout, wait.NoopMessageCallback())
+		waitC <- err
+	}()
 	err := cl.deleteService(serviceName)
 	if err != nil {
 		return err
