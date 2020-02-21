@@ -36,12 +36,14 @@ type waitForReadyConfig struct {
 	kind                string
 }
 
+// Callbacks and configuration used while waiting for event
 type waitForEvent struct {
 	watchMaker WatchMaker
 	eventDone  EventDone
 	kind       string
 }
 
+// Done marker to stop actual waiting on given event state
 type EventDone func(ev *watch.Event) bool
 
 // Interface used for waiting of a resource of a given name to reach a definitive
@@ -194,6 +196,7 @@ func (w *waitForReadyConfig) waitForReadyCondition(start time.Time, name string,
 	}
 }
 
+// Wait until the expected EventDone is satisfied
 func (w *waitForEvent) Wait(name string, timeout time.Duration, msgCallback MessageCallback) (error, time.Duration) {
 	watcher, err := w.watchMaker(name, timeout)
 	if err != nil {
