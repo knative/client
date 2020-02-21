@@ -67,6 +67,6 @@ func NewServiceDeleteCommand(p *commands.KnParams) *cobra.Command {
 		},
 	}
 	commands.AddNamespaceFlags(serviceDeleteCommand.Flags(), false)
-	waitFlags.AddConditionWaitFlags(serviceDeleteCommand, commands.WaitDefaultTimeout, "Delete", "service")
+	waitFlags.AddConditionWaitFlags(serviceDeleteCommand, commands.WaitDefaultTimeout, "Delete", "service", "deleted")
 	return serviceDeleteCommand
 }

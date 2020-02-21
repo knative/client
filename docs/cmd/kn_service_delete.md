@@ -24,11 +24,11 @@ kn service delete NAME [flags]
 ### Options
 
 ```
-      --async              DEPRECATED: please use --no-wait instead. Delete service and don't wait for it to become ready.
+      --async              DEPRECATED: please use --no-wait instead. Delete service and don't wait for it to be deleted.
   -h, --help               help for delete
   -n, --namespace string   Specify the namespace to operate in.
-      --no-wait            Delete service and don't wait for it to become ready.
-      --wait-timeout int   Seconds to wait before giving up on waiting for service to be ready. (default 600)
+      --no-wait            Delete service and don't wait for it to be deleted.
+      --wait-timeout int   Seconds to wait before giving up on waiting for service to be deleted. (default 600)
 ```
 
 ### Options inherited from parent commands
