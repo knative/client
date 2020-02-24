@@ -89,7 +89,7 @@ type KnServingClient interface {
 	ListRevisions(opts ...ListConfig) (*servingv1.RevisionList, error)
 
 	// Delete a revision
-	DeleteRevision(name string) error
+	DeleteRevision(name string, timeout time.Duration) error
 
 	// Get a route by its unique name
 	GetRoute(name string) (*servingv1.Route, error)
@@ -175,6 +175,11 @@ func (cl *knServingClient) GetService(name string) (*servingv1.Service, error) {
 func (cl *knServingClient) WatchService(name string, timeout time.Duration) (watch.Interface, error) {
 	return wait.NewWatcher(cl.client.Services(cl.namespace).Watch,
 		cl.client.RESTClient(), cl.namespace, "services", name, timeout)
+}
+
+func (cl *knServingClient) WatchRevision(name string, timeout time.Duration) (watch.Interface, error) {
+	return wait.NewWatcher(cl.client.Revisions(cl.namespace).Watch,
+		cl.client.RESTClient(), cl.namespace, "revision", name, timeout)
 }
 
 // List services
@@ -370,7 +375,25 @@ func getBaseRevision(cl KnServingClient, service *servingv1.Service) (*servingv1
 }
 
 // Delete a revision by name
-func (cl *knServingClient) DeleteRevision(name string) error {
+func (cl *knServingClient) DeleteRevision(name string, timeout time.Duration) error {
+	if timeout == 0 {
+		return cl.deleteRevision(name)
+	}
+	waitC := make(chan error)
+	go func() {
+		waitForEvent := wait.NewWaitForEvent("revision", cl.WatchRevision, func(evt *watch.Event) bool { return evt.Type == watch.Deleted })
+		err, _ := waitForEvent.Wait(name, timeout, wait.NoopMessageCallback())
+		waitC <- err
+	}()
+	err := cl.deleteRevision(name)
+	if err != nil {
+		return clienterrors.GetError(err)
+	}
+
+	return <-waitC
+}
+
+func (cl *knServingClient) deleteRevision(name string) error {
 	err := cl.client.Revisions(cl.namespace).Delete(name, &v1.DeleteOptions{})
 	if err != nil {
 		return clienterrors.GetError(err)
