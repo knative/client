@@ -32,6 +32,9 @@
 # Serving / Eventing of this specific version.
 
 export DISABLE_MD_LINTING=1
+# TODO: Enable markdown link check as https://github.com/raviqqe/liche/issues/33 is fixed
+export DISABLE_MD_LINK_CHECK=1
+export PRESUBMIT_TEST_FAIL_FAST=1
 
 export GO111MODULE=on
 export KNATIVE_SERVING_VERSION=${KNATIVE_SERVING_VERSION:-latest}
