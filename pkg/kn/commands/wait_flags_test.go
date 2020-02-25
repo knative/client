@@ -42,7 +42,7 @@ func TestAddWaitForReadyDeprecatedFlags(t *testing.T) {
 
 		flags := &WaitFlags{}
 		cmd := cobra.Command{}
-		flags.AddConditionWaitFlags(&cmd, 60, "Create", "service")
+		flags.AddConditionWaitFlags(&cmd, 60, "Create", "service", "ready")
 
 		err := cmd.ParseFlags(tc.args)
 		if err != nil && !tc.isParseErrorExpected {
@@ -76,7 +76,7 @@ func TestAddWaitForReadyFlags(t *testing.T) {
 
 		flags := &WaitFlags{}
 		cmd := cobra.Command{}
-		flags.AddConditionWaitFlags(&cmd, 60, "Create", "service")
+		flags.AddConditionWaitFlags(&cmd, 60, "Create", "service", "ready")
 
 		err := cmd.ParseFlags(tc.args)
 		if err != nil && !tc.isParseErrorExpected {
@@ -101,7 +101,7 @@ func TestAddWaitUsageMessage(t *testing.T) {
 
 	flags := &WaitFlags{}
 	cmd := cobra.Command{}
-	flags.AddConditionWaitFlags(&cmd, 60, "bla", "blub")
+	flags.AddConditionWaitFlags(&cmd, 60, "bla", "blub", "deleted")
 	if !strings.Contains(cmd.UsageString(), "blub") {
 		t.Error("no type returned in usage")
 	}
@@ -110,5 +110,8 @@ func TestAddWaitUsageMessage(t *testing.T) {
 	}
 	if !strings.Contains(cmd.UsageString(), "60") {
 		t.Error("default timeout not contained")
+	}
+	if !strings.Contains(cmd.UsageString(), "deleted") {
+		t.Error("wrong until message")
 	}
 }

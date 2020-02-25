@@ -14,6 +14,9 @@ kn source cronjob list [flags]
 
 ```
 
+  # List all CronJob sources
+  kn source cronjob list
+
   # List all CronJob sources in YAML format
   kn source cronjob list -o yaml
 ```

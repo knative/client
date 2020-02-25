@@ -21,6 +21,7 @@ import (
 
 	clientservingv1 "knative.dev/client/pkg/serving/v1"
 	"knative.dev/client/pkg/util"
+	"knative.dev/client/pkg/util/mock"
 )
 
 func TestServiceDeleteMock(t *testing.T) {
@@ -30,9 +31,26 @@ func TestServiceDeleteMock(t *testing.T) {
 	// Recording:
 	r := client.Recorder()
 
-	r.DeleteService("foo", nil)
+	r.DeleteService("foo", mock.Any(), nil)
 
 	output, err := executeServiceCommand(client, "delete", "foo")
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(output, "deleted", "foo", "default"))
+
+	r.Validate()
+
+}
+
+func TestServiceDeleteMockNoWait(t *testing.T) {
+	// New mock client
+	client := clientservingv1.NewMockKnServiceClient(t)
+
+	// Recording:
+	r := client.Recorder()
+
+	r.DeleteService("foo", mock.Any(), nil)
+
+	output, err := executeServiceCommand(client, "delete", "foo", "--no-wait")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "deleted", "foo", "default"))
 
@@ -46,10 +64,11 @@ func TestMultipleServiceDeleteMock(t *testing.T) {
 
 	// Recording:
 	r := client.Recorder()
+	// Wait for delete event
 
-	r.DeleteService("foo", nil)
-	r.DeleteService("bar", nil)
-	r.DeleteService("baz", nil)
+	r.DeleteService("foo", mock.Any(), nil)
+	r.DeleteService("bar", mock.Any(), nil)
+	r.DeleteService("baz", mock.Any(), nil)
 
 	output, err := executeServiceCommand(client, "delete", "foo", "bar", "baz")
 	assert.NilError(t, err)
