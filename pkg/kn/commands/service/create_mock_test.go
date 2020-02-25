@@ -402,7 +402,7 @@ func TestServiceCreateWithUser(t *testing.T) {
 	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 	r.CreateService(service, nil)
 
-	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "--run-as-user", "1001", "--no-wait", "--revision-name=")
+	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "--user", "1001", "--no-wait", "--revision-name=")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
 

@@ -64,11 +64,11 @@ kn service update NAME [flags]
       --requests-cpu string       The requested CPU (e.g., 250m).
       --requests-memory string    The requested memory (e.g., 64Mi).
       --revision-name string      The revision name to set. Must start with the service name and a dash as a prefix. Empty revision name will result in the server generating a name for the revision. Accepts golang templates, allowing {{.Service}} for the service name, {{.Generation}} for the generation, and {{.Random [n]}} for n random consonants. (default "{{.Service}}-{{.Random 5}}-{{.Generation}}")
-      --run-as-user int           The user ID to run the container (e.g., 1001).
       --service-account string    Service account name to set. An empty argument ("") clears the service account. The referenced service account must exist in the service's namespace.
       --tag strings               Set tag (format: --tag revisionRef=tagName) where revisionRef can be a revision or '@latest' string representing latest ready revision. This flag can be specified multiple times.
       --traffic strings           Set traffic distribution (format: --traffic revisionRef=percent) where revisionRef can be a revision or a tag or '@latest' string representing latest ready revision. This flag can be given multiple times with percent summing up to 100%.
       --untag strings             Untag revision (format: --untag tagName). This flag can be specified multiple times.
+      --user int                  The user ID to run the container (e.g., 1001).
       --volume stringArray        Add a volume from a ConfigMap (prefix cm: or config-map:) or a Secret (prefix secret: or sc:). Example: --volume myvolume=cm:myconfigmap or --volume myvolume=secret:mysecret. You can use this flag multiple times. To unset a ConfigMap/Secret reference, append "-" to the name, e.g. --volume myvolume-.
       --wait-timeout int          Seconds to wait before giving up on waiting for service to be ready. (default 600)
 ```

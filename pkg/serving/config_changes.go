@@ -338,13 +338,13 @@ func UpdateContainerPort(template *servingv1.RevisionTemplateSpec, port int32) e
 }
 
 // UpdateRunAsUser updates container with a given user id
-func UpdateRunAsUser(template *servingv1.RevisionTemplateSpec, runAsUser int64) error {
+func UpdateUser(template *servingv1.RevisionTemplateSpec, user int64) error {
 	container, err := ContainerOfRevisionTemplate(template)
 	if err != nil {
 		return err
 	}
 	container.SecurityContext = &corev1.SecurityContext{
-		RunAsUser: &runAsUser,
+		RunAsUser: &user,
 	}
 	return nil
 }

@@ -1457,7 +1457,7 @@ func TestServiceUpdateUser(t *testing.T) {
 
 	output, err := executeServiceCommand(client,
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",
-		"--run-as-user", "1001",
+		"--user", "1001",
 		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
@@ -1465,7 +1465,7 @@ func TestServiceUpdateUser(t *testing.T) {
 
 	output, err = executeServiceCommand(client,
 		"update", svcName,
-		"--run-as-user", "1002",
+		"--user", "1002",
 		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)

@@ -653,15 +653,15 @@ func TestGenerateVolumeName(t *testing.T) {
 	}
 }
 
-func TestUpdateRunAsUser(t *testing.T) {
+func TestUpdateUser(t *testing.T) {
 	template, _ := getRevisionTemplate()
-	err := UpdateRunAsUser(template, int64(1001))
+	err := UpdateUser(template, int64(1001))
 	assert.NilError(t, err)
 
 	checkUserUpdate(t, template, ptr.Int64(int64(1001)))
 
 	template.Spec.Containers[0].SecurityContext.RunAsUser = ptr.Int64(int64(1002))
-	err = UpdateRunAsUser(template, int64(1002))
+	err = UpdateUser(template, int64(1002))
 	assert.NilError(t, err)
 
 	checkUserUpdate(t, template, ptr.Int64(int64(1002)))
