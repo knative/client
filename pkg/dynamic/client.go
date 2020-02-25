@@ -15,15 +15,14 @@
 package dynamic
 
 import (
-	"fmt"
-	"strings"
-
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
+
+	"knative.dev/client/pkg/util"
 )
 
 const (
@@ -115,82 +114,69 @@ func (c knDynamicClient) RawClient() dynamic.Interface {
 // ListSources returns list of available sources COs
 func (c *knDynamicClient) ListSources(f *SourceListFilters) (*unstructured.UnstructuredList, error) {
 	var sourceList unstructured.UnstructuredList
+	var numberOfsourceTypesFound int
 	options := metav1.ListOptions{}
+
 	sourceTypes, err := c.ListSourcesTypes()
 	if err != nil {
 		return nil, err
 	}
 
 	namespace := c.Namespace()
-	// For each source type available, find out CO
+	// For each source type available, find out each source types objects
 	for _, source := range sourceTypes.Items {
-		//  only find COs if this source type is given in filter
-		if f != nil && f.filters != nil {
-			// find source kind before hand to fail early
-			sourceKind, err := kindFromUnstructured(&source)
-			if err != nil {
-				return nil, err
-			}
-
-			// if this source is not given in filter flags continue
-			if !sliceContainsIgnoreCase(sourceKind, f.filters) {
-				continue
-			}
+		// filter the source types if --type flag is given
+		yes, err := isSourceTypeInFilters(&source, f)
+		if err != nil {
+			return nil, err
 		}
 
+		// dont find the source objects if its not requested by --type flag
+		if !yes {
+			continue
+		}
+
+		// find source's GVR from unstructured source type object
 		gvr, err := gvrFromUnstructured(&source)
 		if err != nil {
 			return nil, err
 		}
 
+		// list objects of source type with this GVR
 		sList, err := c.client.Resource(gvr).Namespace(namespace).List(options)
 		if err != nil {
 			return nil, err
 		}
 
 		if len(sList.Items) > 0 {
+			// keep a track if we found source objects of different types
+			numberOfsourceTypesFound++
 			sourceList.Items = append(sourceList.Items, sList.Items...)
+			sourceList.SetGroupVersionKind(sList.GetObjectKind().GroupVersionKind())
 		}
-		sourceList.SetGroupVersionKind(sList.GetObjectKind().GroupVersionKind())
+	}
+	// Clear the Group and Version for list if there are multiple types of source objects found
+	// Keep the source's GVK if there is only one type of source objects found or requested via --type filter
+	if numberOfsourceTypesFound > 1 {
+		sourceList.SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "", Kind: "List"})
 	}
 	return &sourceList, nil
 }
 
-func gvrFromUnstructured(u *unstructured.Unstructured) (gvr schema.GroupVersionResource, err error) {
-	content := u.UnstructuredContent()
-	group, found, err := unstructured.NestedString(content, "spec", "group")
-	if err != nil || !found {
-		return gvr, fmt.Errorf("can't find source GVR: %v", err)
-	}
-	version, found, err := unstructured.NestedString(content, "spec", "version")
-	if err != nil || !found {
-		return gvr, fmt.Errorf("can't find source GVR: %v", err)
-	}
-	resource, found, err := unstructured.NestedString(content, "spec", "names", "plural")
-	if err != nil || !found {
-		return gvr, fmt.Errorf("can't find source GVR: %v", err)
-	}
-	return schema.GroupVersionResource{
-		Group:    group,
-		Version:  version,
-		Resource: resource,
-	}, nil
-}
+// isSourceTypeInFilters finds given source's type and checks (case insensitive) if its given
+// via --type flag. If --type flag isn't given or empty, it returns true.
+func isSourceTypeInFilters(source *unstructured.Unstructured, f *SourceListFilters) (bool, error) {
+	if f != nil && f.filters != nil {
+		// find source kind before hand to fail early
+		sourceKind, err := kindFromUnstructured(source)
+		if err != nil {
+			return false, err
+		}
 
-func kindFromUnstructured(u *unstructured.Unstructured) (string, error) {
-	content := u.UnstructuredContent()
-	kind, found, err := unstructured.NestedString(content, "spec", "names", "kind")
-	if !found || err != nil {
-		return "", fmt.Errorf("can't find source kind: %v", err)
-	}
-	return kind, nil
-}
-
-func sliceContainsIgnoreCase(s string, slice []string) bool {
-	for _, each := range slice {
-		if strings.EqualFold(s, each) {
-			return true
+		// if this source is not given in filter flags continue
+		if !util.SliceContainsIgnoreCase(f.filters, sourceKind) {
+			return false, nil
 		}
 	}
-	return false
+	return true, nil
 }

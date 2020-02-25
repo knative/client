@@ -128,15 +128,6 @@ func TestKindFromUnstructured(t *testing.T) {
 	assert.Check(t, err != nil)
 }
 
-func TestSliceContainsIgnoreCase(t *testing.T) {
-	assert.Equal(t,
-		sliceContainsIgnoreCase("foo", []string{"FOO", "bar"}),
-		true)
-	assert.Equal(t,
-		sliceContainsIgnoreCase("foo", []string{"BAR", "bar"}),
-		false)
-}
-
 func TestGVRFromUnstructured(t *testing.T) {
 	obj := newSourceCRDObj("foo")
 	obj.Object["spec"] = map[string]interface{}{
@@ -150,6 +141,17 @@ func TestGVRFromUnstructured(t *testing.T) {
 	}
 	_, err = gvrFromUnstructured(obj)
 	assert.Check(t, err != nil)
+
+	obj.Object["spec"] = map[string]interface{}{
+		"group": "sources.knative.dev",
+		"versions": []map[string]interface{}{
+			{
+				"name":   "v1alpha1",
+				"served": "true",
+			},
+		},
+	}
+
 }
 
 // createFakeKnDynamicClient gives you a dynamic client for testing contianing the given objects.

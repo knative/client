@@ -22,16 +22,10 @@ import (
 	"knative.dev/client/pkg/dynamic"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
+	"knative.dev/client/pkg/kn/commands/source/duck"
 )
 
-// NewListCommand defines and processes `kn source list`
-func NewListCommand(p *commands.KnParams) *cobra.Command {
-	filterFlags := &dynamic.SourceListFilters{}
-	listFlags := flags.NewListPrintFlags(ListHandlers)
-	listCommand := &cobra.Command{
-		Use:   "list",
-		Short: "List available sources",
-		Example: `
+var listExample = `
   # List available eventing sources
   kn source list
 
@@ -39,7 +33,16 @@ func NewListCommand(p *commands.KnParams) *cobra.Command {
   kn source list --type=PingSource
 
   # List PingSource and ApiServerSource types sources
-  kn source list --type=PingSource --type=apiserversource`,
+  kn source list --type=PingSource --type=apiserversource`
+
+// NewListCommand defines and processes `kn source list`
+func NewListCommand(p *commands.KnParams) *cobra.Command {
+	filterFlags := &dynamic.SourceListFilters{}
+	listFlags := flags.NewListPrintFlags(ListHandlers)
+	listCommand := &cobra.Command{
+		Use:     "list",
+		Short:   "List available sources",
+		Example: listExample,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			namespace, err := p.GetNamespace(cmd)
 			if err != nil {
@@ -57,7 +60,7 @@ func NewListCommand(p *commands.KnParams) *cobra.Command {
 				fmt.Fprintf(cmd.OutOrStdout(), "No sources found in %s namespace.\n", namespace)
 				return nil
 			}
-			// empty namespace indicates all-namespaces flag is specified
+			// empty namespace indicates all namespaces flag is specified
 			if namespace == "" {
 				listFlags.EnsureWithNamespace()
 			}
@@ -65,7 +68,12 @@ func NewListCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return nil
 			}
-			err = printer.PrintObj(sourceList, cmd.OutOrStdout())
+			if listFlags.GenericPrintFlags.OutputFlagSpecified() {
+				return printer.PrintObj(sourceList, cmd.OutOrStdout())
+			}
+			// Convert the source list to DuckSourceList only if human readable table printing requested
+			sourceDuckList := duck.ToSourceList(sourceList)
+			err = printer.PrintObj(sourceDuckList, cmd.OutOrStdout())
 			if err != nil {
 				return err
 			}
