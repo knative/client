@@ -106,12 +106,12 @@ func (c *MockKnServingClient) UpdateServiceWithRetry(name string, updateFunc ser
 }
 
 // Delete a service by name
-func (sr *ServingRecorder) DeleteService(name interface{}, err error) {
-	sr.r.Add("DeleteService", []interface{}{name}, []interface{}{err})
+func (sr *ServingRecorder) DeleteService(name, timeout interface{}, err error) {
+	sr.r.Add("DeleteService", []interface{}{name, timeout}, []interface{}{err})
 }
 
-func (c *MockKnServingClient) DeleteService(name string) error {
-	call := c.recorder.r.VerifyCall("DeleteService", name)
+func (c *MockKnServingClient) DeleteService(name string, timeout time.Duration) error {
+	call := c.recorder.r.VerifyCall("DeleteService", name, timeout)
 	return mock.ErrorOrNil(call.Result[0])
 }
 

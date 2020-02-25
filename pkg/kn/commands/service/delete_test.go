@@ -17,12 +17,17 @@ package service
 import (
 	"testing"
 
+	"github.com/pkg/errors"
 	"gotest.tools/assert"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/watch"
 	client_testing "k8s.io/client-go/testing"
+	clienttesting "k8s.io/client-go/testing"
 
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/util"
+	"knative.dev/client/pkg/wait"
 )
 
 func fakeServiceDelete(args []string) (action client_testing.Action, name string, output string, err error) {
@@ -34,6 +39,17 @@ func fakeServiceDelete(args []string) (action client_testing.Action, name string
 			action = deleteAction
 			name = deleteAction.GetName()
 			return true, nil, nil
+		})
+	fakeServing.AddWatchReactor("services",
+		func(a client_testing.Action) (bool, watch.Interface, error) {
+			watchAction := a.(clienttesting.WatchAction)
+			_, found := watchAction.GetWatchRestrictions().Fields.RequiresExactMatch("metadata.name")
+			if !found {
+				return true, nil, errors.New("no field selector on metadata.name found")
+			}
+			w := wait.NewFakeWatch(getServiceDeleteEvents("test-service"))
+			w.Start()
+			return true, w, nil
 		})
 	cmd.SetArgs(args)
 	err = cmd.Execute()
@@ -78,4 +94,12 @@ func TestMultipleServiceDelete(t *testing.T) {
 	assert.Check(t, util.ContainsAll(output, "Service", sevName1, "deleted", "namespace", commands.FakeNamespace))
 	assert.Check(t, util.ContainsAll(output, "Service", sevName2, "deleted", "namespace", commands.FakeNamespace))
 	assert.Check(t, util.ContainsAll(output, "Service", sevName3, "deleted", "namespace", commands.FakeNamespace))
+}
+
+func getServiceDeleteEvents(name string) []watch.Event {
+	return []watch.Event{
+		{watch.Added, wait.CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "", "msg1")},
+		{watch.Modified, wait.CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionTrue, "", "msg2")},
+		{watch.Deleted, wait.CreateTestServiceWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "", "")},
+	}
 }

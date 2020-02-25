@@ -179,17 +179,36 @@ func TestDeleteService(t *testing.T) {
 			}
 			return true, nil, errors.NewNotFound(servingv1.Resource("service"), name)
 		})
+	serving.AddWatchReactor("services",
+		func(a clienttesting.Action) (bool, watch.Interface, error) {
+			watchAction := a.(clienttesting.WatchAction)
+			name, found := watchAction.GetWatchRestrictions().Fields.RequiresExactMatch("metadata.name")
+			if !found {
+				return true, nil, errors.NewNotFound(servingv1.Resource("service"), name)
+			}
+			w := wait.NewFakeWatch(getServiceDeleteEvents("test-service"))
+			w.Start()
+			return true, w, nil
+		})
 
 	t.Run("delete existing service returns no error", func(t *testing.T) {
-		err := client.DeleteService(serviceName)
+		err := client.DeleteService(serviceName, time.Duration(10)*time.Second)
 		assert.NilError(t, err)
 	})
 
 	t.Run("trying to delete non-existing service returns error", func(t *testing.T) {
-		err := client.DeleteService(nonExistingServiceName)
+		err := client.DeleteService(nonExistingServiceName, time.Duration(10)*time.Second)
 		assert.ErrorContains(t, err, "not found")
 		assert.ErrorContains(t, err, nonExistingServiceName)
 	})
+}
+
+func getServiceDeleteEvents(name string) []watch.Event {
+	return []watch.Event{
+		{watch.Added, wait.CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "", "msg1")},
+		{watch.Modified, wait.CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionTrue, "", "msg2")},
+		{watch.Deleted, wait.CreateTestServiceWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "", "")},
+	}
 }
 
 func TestGetRevision(t *testing.T) {

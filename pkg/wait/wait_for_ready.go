@@ -36,9 +36,19 @@ type waitForReadyConfig struct {
 	kind                string
 }
 
+// Callbacks and configuration used while waiting for event
+type waitForEvent struct {
+	watchMaker WatchMaker
+	eventDone  EventDone
+	kind       string
+}
+
+// EventDone is a marker to stop actual waiting on given event state
+type EventDone func(ev *watch.Event) bool
+
 // Interface used for waiting of a resource of a given name to reach a definitive
 // state in its "Ready" condition.
-type WaitForReady interface {
+type Wait interface {
 
 	// Wait on resource the resource with this name until a given timeout
 	// and write event messages for unknown event to the status writer.
@@ -56,11 +66,19 @@ type ConditionsExtractor func(obj runtime.Object) (apis.Conditions, error)
 type MessageCallback func(durationSinceState time.Duration, message string)
 
 // Constructor with resource type specific configuration
-func NewWaitForReady(kind string, watchMaker WatchMaker, extractor ConditionsExtractor) WaitForReady {
+func NewWaitForReady(kind string, watchMaker WatchMaker, extractor ConditionsExtractor) Wait {
 	return &waitForReadyConfig{
 		kind:                kind,
 		watchMaker:          watchMaker,
 		conditionsExtractor: extractor,
+	}
+}
+
+func NewWaitForEvent(kind string, watchMaker WatchMaker, eventDone EventDone) Wait {
+	return &waitForEvent{
+		kind:       kind,
+		watchMaker: watchMaker,
+		eventDone:  eventDone,
 	}
 }
 
@@ -119,6 +137,7 @@ func (w *waitForReadyConfig) waitForReadyCondition(start time.Time, name string,
 
 	// channel used to transport the error
 	errChan := make(chan error)
+
 	var errorTimer *time.Timer
 	// Stop error timer if it has been started because of
 	// a ConditionReady has been set to false
@@ -178,9 +197,32 @@ func (w *waitForReadyConfig) waitForReadyCondition(start time.Time, name string,
 	}
 }
 
-// Going over Unstructured to keep that function generally applicable.
-// Alternative implemenentation: Add a func-field to waitForReadyConfig which has to be
-// provided for every resource (like the conditions extractor)
+// Wait until the expected EventDone is satisfied
+func (w *waitForEvent) Wait(name string, timeout time.Duration, msgCallback MessageCallback) (error, time.Duration) {
+	watcher, err := w.watchMaker(name, timeout)
+	if err != nil {
+		return err, 0
+	}
+	defer watcher.Stop()
+	start := time.Now()
+	// channel used to transport the error
+	errChan := make(chan error)
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
+	for {
+		select {
+		case <-timer.C:
+			return fmt.Errorf("timeout: %s '%s' not ready after %d seconds", w.kind, name, int(timeout/time.Second)), time.Since(start)
+		case err = <-errChan:
+			return err, time.Since(start)
+		case event := <-watcher.ResultChan():
+			if w.eventDone(&event) {
+				return nil, time.Since(start)
+			}
+		}
+	}
+}
+
 func isGivenEqualsObservedGeneration(object runtime.Object) (bool, error) {
 	unstructured, err := runtime.DefaultUnstructuredConverter.ToUnstructured(object)
 	if err != nil {
