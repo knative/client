@@ -73,282 +73,329 @@ func formatActualTargets(t *testing.T, actualTargets []string) (formattedTargets
 	return
 }
 
-// TestTrafficSplit runs different e2e tests for service traffic splitting and verifies the traffic targets from service status
+// TestTrafficSplitSuite runs different e2e tests for service traffic splitting and verifies the traffic targets from service status
 func TestTrafficSplit(t *testing.T) {
 	t.Parallel()
-	test := NewE2eTest(t)
-	test.Setup(t)
-	defer test.Teardown(t)
+	test, err := NewE2eTest()
+	assert.NilError(t, err)
+	defer func() {
+		assert.NilError(t, test.Teardown())
+	}()
 
 	serviceBase := "echo"
-	t.Run("tag two revisions as v1 and v2 and give 50-50% share",
+	t.Run("50:50",
 		func(t *testing.T) {
-			serviceName := getServiceNameAndIncrement(serviceBase)
-			test.serviceCreate(t, serviceName)
+			t.Log("tag two revisions as v1 and v2 and give 50-50% share")
+			r := NewKnRunResultCollector(t)
+			defer r.DumpIfFailed()
+
+			serviceName := getNextServiceName(serviceBase)
+			test.serviceCreate(t, r, serviceName)
 
 			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
-			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v1", "--revision-name", rev1})
+			test.serviceUpdateWithOptions(t, r, serviceName, "--env", "TARGET=v1", "--revision-name", rev1)
 
 			rev2 := fmt.Sprintf("%s-rev-2", serviceName)
-			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v2", "--revision-name", rev2})
+			test.serviceUpdateWithOptions(t, r, serviceName, "--env", "TARGET=v2", "--revision-name", rev2)
 
 			tflags := []string{"--tag", fmt.Sprintf("%s=v1,%s=v2", rev1, rev2),
 				"--traffic", "v1=50,v2=50"}
-			test.serviceUpdateWithOptions(t, serviceName, tflags)
+			test.serviceUpdateWithOptions(t, r, serviceName, tflags...)
 
 			// make ordered fields per tflags (tag, revision, percent, latest)
 			expectedTargets := []TargetFields{newTargetFields("v1", rev1, 50, false), newTargetFields("v2", rev2, 50, false)}
-			test.verifyTargets(t, serviceName, expectedTargets)
-			test.serviceDelete(t, serviceName)
+			test.verifyTargets(t, r, serviceName, expectedTargets)
+			test.serviceDelete(t, r, serviceName)
 		},
 	)
-	t.Run("ramp/up down a revision to 20% adjusting other traffic to accommodate",
+	t.Run("20:80",
 		func(t *testing.T) {
-			serviceName := getServiceNameAndIncrement(serviceBase)
-			test.serviceCreate(t, serviceName)
+			t.Log("ramp/up down a revision to 20% adjusting other traffic to accommodate")
+			r := NewKnRunResultCollector(t)
+			defer r.DumpIfFailed()
+
+			serviceName := getNextServiceName(serviceBase)
+			test.serviceCreate(t, r, serviceName)
 
 			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
-			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v1", "--revision-name", rev1})
+			test.serviceUpdateWithOptions(t, r, serviceName, "--env", "TARGET=v1", "--revision-name", rev1)
 
 			rev2 := fmt.Sprintf("%s-rev-2", serviceName)
-			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v2", "--revision-name", rev2})
+			test.serviceUpdateWithOptions(t, r, serviceName, "--env", "TARGET=v2", "--revision-name", rev2)
 
-			tflags := []string{"--traffic", fmt.Sprintf("%s=20,%s=80", rev1, rev2)} // traffic by revision name
-			test.serviceUpdateWithOptions(t, serviceName, tflags)
+			test.serviceUpdateWithOptions(t, r, serviceName, "--traffic", fmt.Sprintf("%s=20,%s=80", rev1, rev2))
 
 			expectedTargets := []TargetFields{newTargetFields("", rev1, 20, false), newTargetFields("", rev2, 80, false)}
-			test.verifyTargets(t, serviceName, expectedTargets)
-			test.serviceDelete(t, serviceName)
+			test.verifyTargets(t, r, serviceName, expectedTargets)
+			test.serviceDelete(t, r, serviceName)
 		},
 	)
-	t.Run("tag a revision as candidate, without otherwise changing any traffic split",
+	t.Run("TagCandidate",
 		func(t *testing.T) {
-			serviceName := getServiceNameAndIncrement(serviceBase)
+			t.Log("tag a revision as candidate, without otherwise changing any traffic split")
+			r := NewKnRunResultCollector(t)
+			defer r.DumpIfFailed()
+
+			serviceName := getNextServiceName(serviceBase)
 			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
-			test.serviceCreateWithOptions(t, serviceName, []string{"--revision-name", rev1})
+			test.serviceCreateWithOptions(t, r, serviceName, "--revision-name", rev1)
 
 			rev2 := fmt.Sprintf("%s-rev-2", serviceName)
-			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v1", "--revision-name", rev2})
+			test.serviceUpdateWithOptions(t, r, serviceName, "--env", "TARGET=v1", "--revision-name", rev2)
 
-			tflags := []string{"--tag", fmt.Sprintf("%s=%s", rev1, "candidate")} // no traffic, append new target with tag in traffic block
-			test.serviceUpdateWithOptions(t, serviceName, tflags)
+			// no traffic, append new target with tag in traffic block
+			test.serviceUpdateWithOptions(t, r, serviceName, "--tag", fmt.Sprintf("%s=%s", rev1, "candidate"))
 
 			expectedTargets := []TargetFields{newTargetFields("", rev2, 100, true), newTargetFields("candidate", rev1, 0, false)}
-			test.verifyTargets(t, serviceName, expectedTargets)
-			test.serviceDelete(t, serviceName)
+			test.verifyTargets(t, r, serviceName, expectedTargets)
+			test.serviceDelete(t, r, serviceName)
 		},
 	)
-	t.Run("tag a revision as candidate, set 2% traffic adjusting other traffic to accommodate",
+	t.Run("TagCandidate:2:98",
 		func(t *testing.T) {
-			serviceName := getServiceNameAndIncrement(serviceBase)
+			t.Log("tag a revision as candidate, set 2% traffic adjusting other traffic to accommodate")
+			r := NewKnRunResultCollector(t)
+			defer r.DumpIfFailed()
+
+			serviceName := getNextServiceName(serviceBase)
 			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
-			test.serviceCreateWithOptions(t, serviceName, []string{"--revision-name", rev1})
+			test.serviceCreateWithOptions(t, r, serviceName, "--revision-name", rev1)
 
 			rev2 := fmt.Sprintf("%s-rev-2", serviceName)
-			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v1", "--revision-name", rev2})
+			test.serviceUpdateWithOptions(t, r, serviceName, "--env", "TARGET=v1", "--revision-name", rev2)
 
-			tflags := []string{"--tag", fmt.Sprintf("%s=%s", rev1, "candidate"),
-				"--traffic", "candidate=2%,@latest=98%"} // traffic by tag name and use % at the end
-			test.serviceUpdateWithOptions(t, serviceName, tflags)
+			// traffic by tag name and use % at the end
+			test.serviceUpdateWithOptions(t, r, serviceName,
+				"--tag", fmt.Sprintf("%s=%s", rev1, "candidate"),
+				"--traffic", "candidate=2%,@latest=98%")
 
 			expectedTargets := []TargetFields{newTargetFields("", rev2, 98, true), newTargetFields("candidate", rev1, 2, false)}
-			test.verifyTargets(t, serviceName, expectedTargets)
-			test.serviceDelete(t, serviceName)
+			test.verifyTargets(t, r, serviceName, expectedTargets)
+			test.serviceDelete(t, r, serviceName)
 		},
 	)
-	t.Run("update tag for a revision from candidate to current, tag current is present on another revision",
+	t.Run("TagCurrent",
 		func(t *testing.T) {
-			serviceName := getServiceNameAndIncrement(serviceBase)
+			t.Log("update tag for a revision from candidate to current, tag current is present on another revision")
+			r := NewKnRunResultCollector(t)
+			defer r.DumpIfFailed()
+
+			serviceName := getNextServiceName(serviceBase)
 			// make available 3 revisions for service first
 			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
-			test.serviceCreateWithOptions(t, serviceName, []string{"--revision-name", rev1})
+			test.serviceCreateWithOptions(t, r, serviceName, "--revision-name", rev1)
 
 			rev2 := fmt.Sprintf("%s-rev-2", serviceName)
-			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v2", "--revision-name", rev2})
+			test.serviceUpdateWithOptions(t, r, serviceName, "--env", "TARGET=v2", "--revision-name", rev2)
 
 			rev3 := fmt.Sprintf("%s-rev-3", serviceName)
-			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v3", "--revision-name", rev3}) //note that this gives 100% traffic to latest revision (rev3)
+			test.serviceUpdateWithOptions(t, r, serviceName, "--env", "TARGET=v3", "--revision-name", rev3) //note that this gives 100% traffic to latest revision (rev3)
 
 			// make existing state: tag current and candidate exist in traffic block
-			tflags := []string{"--tag", fmt.Sprintf("%s=current,%s=candidate", rev1, rev2)}
-			test.serviceUpdateWithOptions(t, serviceName, tflags)
+			test.serviceUpdateWithOptions(t, r, serviceName, "--tag", fmt.Sprintf("%s=current,%s=candidate", rev1, rev2))
 
 			// desired state of tags: update tag of revision (rev2) from candidate to current (which is present on rev1)
-			tflags = []string{"--untag", "current,candidate", "--tag", fmt.Sprintf("%s=current", rev2)} //untag first to update
-			test.serviceUpdateWithOptions(t, serviceName, tflags)
+			//untag first to update
+			test.serviceUpdateWithOptions(t, r, serviceName,
+				"--untag", "current,candidate",
+				"--tag", fmt.Sprintf("%s=current", rev2))
 
 			// there will be 2 targets in existing block 1. @latest, 2.for revision $rev2
 			// target for rev1 is removed as it had no traffic and we untagged it's tag current
 			expectedTargets := []TargetFields{newTargetFields("", rev3, 100, true), newTargetFields("current", rev2, 0, false)}
-			test.verifyTargets(t, serviceName, expectedTargets)
-			test.serviceDelete(t, serviceName)
+			test.verifyTargets(t, r, serviceName, expectedTargets)
+			test.serviceDelete(t, r, serviceName)
 		},
 	)
-	t.Run("update tag from testing to staging for @latest revision",
+	t.Run("TagStagingLatest",
 		func(t *testing.T) {
-			serviceName := getServiceNameAndIncrement(serviceBase)
+			t.Log("update tag from testing to staging for @latest revision")
+			r := NewKnRunResultCollector(t)
+			defer r.DumpIfFailed()
+
+			serviceName := getNextServiceName(serviceBase)
 			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
-			test.serviceCreateWithOptions(t, serviceName, []string{"--revision-name", rev1})
+			test.serviceCreateWithOptions(t, r, serviceName, "--revision-name", rev1)
 
 			// make existing state: tag @latest as testing
-			tflags := []string{"--tag", "@latest=testing"}
-			test.serviceUpdateWithOptions(t, serviceName, tflags)
+			test.serviceUpdateWithOptions(t, r, serviceName, "--tag", "@latest=testing")
 
 			// desired state: change tag from testing to staging
-			tflags = []string{"--untag", "testing", "--tag", "@latest=staging"}
-			test.serviceUpdateWithOptions(t, serviceName, tflags)
+			test.serviceUpdateWithOptions(t, r, serviceName, "--untag", "testing", "--tag", "@latest=staging")
 
 			expectedTargets := []TargetFields{newTargetFields("staging", rev1, 100, true)}
-			test.verifyTargets(t, serviceName, expectedTargets)
-			test.serviceDelete(t, serviceName)
+			test.verifyTargets(t, r, serviceName, expectedTargets)
+			test.serviceDelete(t, r, serviceName)
 		},
 	)
-	t.Run("update tag from testing to staging for a revision (non @latest)",
+	t.Run("TagStagingNonLatest",
 		func(t *testing.T) {
-			serviceName := getServiceNameAndIncrement(serviceBase)
+			t.Log("update tag from testing to staging for a revision (non @latest)")
+			r := NewKnRunResultCollector(t)
+			defer r.DumpIfFailed()
+
+			serviceName := getNextServiceName(serviceBase)
 			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
-			test.serviceCreateWithOptions(t, serviceName, []string{"--revision-name", rev1})
+			test.serviceCreateWithOptions(t, r, serviceName, "--revision-name", rev1)
 
 			rev2 := fmt.Sprintf("%s-rev-2", serviceName)
-			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v2", "--revision-name", rev2})
+			test.serviceUpdateWithOptions(t, r, serviceName, "--env", "TARGET=v2", "--revision-name", rev2)
 
 			// make existing state: tag a revision as testing
-			tflags := []string{"--tag", fmt.Sprintf("%s=testing", rev1)}
-			test.serviceUpdateWithOptions(t, serviceName, tflags)
+			test.serviceUpdateWithOptions(t, r, serviceName, "--tag", fmt.Sprintf("%s=testing", rev1))
 
 			// desired state: change tag from testing to staging
-			tflags = []string{"--untag", "testing", "--tag", fmt.Sprintf("%s=staging", rev1)}
-			test.serviceUpdateWithOptions(t, serviceName, tflags)
+			test.serviceUpdateWithOptions(t, r, serviceName, "--untag", "testing", "--tag", fmt.Sprintf("%s=staging", rev1))
 
 			expectedTargets := []TargetFields{newTargetFields("", rev2, 100, true),
 				newTargetFields("staging", rev1, 0, false)}
-			test.verifyTargets(t, serviceName, expectedTargets)
-			test.serviceDelete(t, serviceName)
+			test.verifyTargets(t, r, serviceName, expectedTargets)
+			test.serviceDelete(t, r, serviceName)
 		},
 	)
 	// test reducing number of targets from traffic blockdd
-	t.Run("remove a revision with tag old from traffic block entirely",
+	t.Run("RemoveTag",
 		func(t *testing.T) {
-			serviceName := getServiceNameAndIncrement(serviceBase)
+			t.Log("remove a revision with tag old from traffic block entirely")
+			r := NewKnRunResultCollector(t)
+			defer r.DumpIfFailed()
+
+			serviceName := getNextServiceName(serviceBase)
 			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
-			test.serviceCreateWithOptions(t, serviceName, []string{"--revision-name", rev1})
+			test.serviceCreateWithOptions(t, r, serviceName, "--revision-name", rev1)
 
 			rev2 := fmt.Sprintf("%s-rev-2", serviceName)
-			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v2", "--revision-name", rev2})
+			test.serviceUpdateWithOptions(t, r, serviceName, "--env", "TARGET=v2", "--revision-name", rev2)
 
 			// existing state: traffic block having a revision with tag old and some traffic
-			tflags := []string{"--tag", fmt.Sprintf("%s=old", rev1),
-				"--traffic", "old=2,@latest=98"}
-			test.serviceUpdateWithOptions(t, serviceName, tflags)
+			test.serviceUpdateWithOptions(t, r, serviceName,
+				"--tag", fmt.Sprintf("%s=old", rev1),
+				"--traffic", "old=2,@latest=98")
 
 			// desired state: remove revision with tag old
-			tflags = []string{"--untag", "old", "--traffic", "@latest=100"}
-			test.serviceUpdateWithOptions(t, serviceName, tflags)
+			test.serviceUpdateWithOptions(t, r, serviceName, "--untag", "old", "--traffic", "@latest=100")
 
 			expectedTargets := []TargetFields{newTargetFields("", rev2, 100, true)}
-			test.verifyTargets(t, serviceName, expectedTargets)
-			test.serviceDelete(t, serviceName)
+			test.verifyTargets(t, r, serviceName, expectedTargets)
+			test.serviceDelete(t, r, serviceName)
 		},
 	)
-	t.Run("tag a revision as stable and current with 50-50% traffic",
+	t.Run("TagStable:50:50",
 		func(t *testing.T) {
-			serviceName := getServiceNameAndIncrement(serviceBase)
+			t.Log("tag a revision as stable and current with 50-50% traffic")
+			r := NewKnRunResultCollector(t)
+			defer r.DumpIfFailed()
+
+			serviceName := getNextServiceName(serviceBase)
 			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
-			test.serviceCreateWithOptions(t, serviceName, []string{"--revision-name", rev1})
+			test.serviceCreateWithOptions(t, r, serviceName, "--revision-name", rev1)
 
 			// existing state: traffic block having two targets
-			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v2"})
+			test.serviceUpdateWithOptions(t, r, serviceName, "--env", "TARGET=v2")
 
 			// desired state: tag non-@latest revision with two tags and 50-50% traffic each
-			tflags := []string{"--tag", fmt.Sprintf("%s=stable,%s=current", rev1, rev1),
-				"--traffic", "stable=50%,current=50%"}
-			test.serviceUpdateWithOptions(t, serviceName, tflags)
+			test.serviceUpdateWithOptions(t, r, serviceName,
+				"--tag", fmt.Sprintf("%s=stable,%s=current", rev1, rev1),
+				"--traffic", "stable=50%,current=50%")
 
 			expectedTargets := []TargetFields{newTargetFields("stable", rev1, 50, false), newTargetFields("current", rev1, 50, false)}
-			test.verifyTargets(t, serviceName, expectedTargets)
-			test.serviceDelete(t, serviceName)
+			test.verifyTargets(t, r, serviceName, expectedTargets)
+			test.serviceDelete(t, r, serviceName)
 		},
 	)
-	t.Run("revert all traffic to latest ready revision of service",
+	t.Run("RevertToLatest",
 		func(t *testing.T) {
-			serviceName := getServiceNameAndIncrement(serviceBase)
+			t.Log("revert all traffic to latest ready revision of service")
+			r := NewKnRunResultCollector(t)
+			defer r.DumpIfFailed()
+
+			serviceName := getNextServiceName(serviceBase)
 			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
-			test.serviceCreateWithOptions(t, serviceName, []string{"--revision-name", rev1})
+			test.serviceCreateWithOptions(t, r, serviceName, "--revision-name", rev1)
 
 			rev2 := fmt.Sprintf("%s-rev-2", serviceName)
-			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v2", "--revision-name", rev2})
+			test.serviceUpdateWithOptions(t, r, serviceName, "--env", "TARGET=v2", "--revision-name", rev2)
 
 			// existing state: latest ready revision not getting any traffic
-			tflags := []string{"--traffic", fmt.Sprintf("%s=100", rev1)}
-			test.serviceUpdateWithOptions(t, serviceName, tflags)
+			test.serviceUpdateWithOptions(t, r, serviceName, "--traffic", fmt.Sprintf("%s=100", rev1))
 
 			// desired state: revert traffic to latest ready revision
-			tflags = []string{"--traffic", "@latest=100"}
-			test.serviceUpdateWithOptions(t, serviceName, tflags)
+			test.serviceUpdateWithOptions(t, r, serviceName, "--traffic", "@latest=100")
 
 			expectedTargets := []TargetFields{newTargetFields("", rev2, 100, true)}
-			test.verifyTargets(t, serviceName, expectedTargets)
-			test.serviceDelete(t, serviceName)
+			test.verifyTargets(t, r, serviceName, expectedTargets)
+			test.serviceDelete(t, r, serviceName)
 		},
 	)
-	t.Run("tag latest ready revision of service as current",
+	t.Run("TagLatestAsCurrent",
 		func(t *testing.T) {
-			serviceName := getServiceNameAndIncrement(serviceBase)
+			t.Log("tag latest ready revision of service as current")
+			r := NewKnRunResultCollector(t)
+			defer r.DumpIfFailed()
+
+			serviceName := getNextServiceName(serviceBase)
 			// existing state: latest revision has no tag
 			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
-			test.serviceCreateWithOptions(t, serviceName, []string{"--revision-name", rev1})
+			test.serviceCreateWithOptions(t, r, serviceName, "--revision-name", rev1)
 
 			// desired state: tag latest ready revision as 'current'
-			tflags := []string{"--tag", "@latest=current"}
-			test.serviceUpdateWithOptions(t, serviceName, tflags)
+			test.serviceUpdateWithOptions(t, r, serviceName, "--tag", "@latest=current")
 
 			expectedTargets := []TargetFields{newTargetFields("current", rev1, 100, true)}
-			test.verifyTargets(t, serviceName, expectedTargets)
-			test.serviceDelete(t, serviceName)
+			test.verifyTargets(t, r, serviceName, expectedTargets)
+			test.serviceDelete(t, r, serviceName)
 		},
 	)
-	t.Run("update tag for a revision as testing and assign all the traffic to it:",
+	t.Run("UpdateTag:100:0",
 		func(t *testing.T) {
-			serviceName := getServiceNameAndIncrement(serviceBase)
+			t.Log("update tag for a revision as testing and assign all the traffic to it")
+			r := NewKnRunResultCollector(t)
+			defer r.DumpIfFailed()
+
+			serviceName := getNextServiceName(serviceBase)
 			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
-			test.serviceCreateWithOptions(t, serviceName, []string{"--revision-name", rev1})
+			test.serviceCreateWithOptions(t, r, serviceName, "--revision-name", rev1)
 
 			rev2 := fmt.Sprintf("%s-rev-2", serviceName)
-			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v2", "--revision-name", rev2})
+			test.serviceUpdateWithOptions(t, r, serviceName, "--env", "TARGET=v2", "--revision-name", rev2)
 
 			// existing state: two revision exists with traffic share and
 			// each revision has tag and traffic portions
-			tflags := []string{"--tag", fmt.Sprintf("@latest=current,%s=candidate", rev1),
-				"--traffic", "current=90,candidate=10"}
-			test.serviceUpdateWithOptions(t, serviceName, tflags)
+			test.serviceUpdateWithOptions(t, r, serviceName,
+				"--tag", fmt.Sprintf("@latest=current,%s=candidate", rev1),
+				"--traffic", "current=90,candidate=10")
 
 			// desired state: update tag for rev1 as testing (from candidate) with 100% traffic
-			tflags = []string{"--untag", "candidate", "--tag", fmt.Sprintf("%s=testing", rev1),
-				"--traffic", "testing=100"}
-			test.serviceUpdateWithOptions(t, serviceName, tflags)
+			test.serviceUpdateWithOptions(t, r, serviceName,
+				"--untag", "candidate", "--tag", fmt.Sprintf("%s=testing", rev1),
+				"--traffic", "testing=100")
 
 			expectedTargets := []TargetFields{newTargetFields("current", rev2, 0, true),
 				newTargetFields("testing", rev1, 100, false)}
-			test.verifyTargets(t, serviceName, expectedTargets)
-			test.serviceDelete(t, serviceName)
+			test.verifyTargets(t, r, serviceName, expectedTargets)
+			test.serviceDelete(t, r, serviceName)
 		},
 	)
-	t.Run("replace latest tag of a revision with old and give latest to another revision",
+	t.Run("TagReplace",
 		func(t *testing.T) {
-			serviceName := getServiceNameAndIncrement(serviceBase)
+			t.Log("replace latest tag of a revision with old and give latest to another revision")
+			r := NewKnRunResultCollector(t)
+			defer r.DumpIfFailed()
+
+			serviceName := getNextServiceName(serviceBase)
 			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
-			test.serviceCreateWithOptions(t, serviceName, []string{"--revision-name", rev1})
+			test.serviceCreateWithOptions(t, r, serviceName, "--revision-name", rev1)
 
 			rev2 := fmt.Sprintf("%s-rev-2", serviceName)
-			test.serviceUpdateWithOptions(t, serviceName, []string{"--env", "TARGET=v2", "--revision-name", rev2})
+			test.serviceUpdateWithOptions(t, r, serviceName, "--env", "TARGET=v2", "--revision-name", rev2)
 
 			// existing state: a revision exist with latest tag
-			tflags := []string{"--tag", fmt.Sprintf("%s=latest", rev1)}
-			test.serviceUpdateWithOptions(t, serviceName, tflags)
+			test.serviceUpdateWithOptions(t, r, serviceName, "--tag", fmt.Sprintf("%s=latest", rev1))
 
 			// desired state of revision tags: rev1=old rev2=latest
-			tflags = []string{"--untag", "latest", "--tag", fmt.Sprintf("%s=old,%s=latest", rev1, rev2)}
-			test.serviceUpdateWithOptions(t, serviceName, tflags)
+			test.serviceUpdateWithOptions(t, r, serviceName,
+				"--untag", "latest",
+				"--tag", fmt.Sprintf("%s=old,%s=latest", rev1, rev2))
 
 			expectedTargets := []TargetFields{newTargetFields("", rev2, 100, true),
 				newTargetFields("old", rev1, 0, false),
@@ -357,32 +404,34 @@ func TestTrafficSplit(t *testing.T) {
 				// In spec of traffic block (not status) either latestReadyRevision:true or revisionName can be given per target
 				newTargetFields("latest", rev2, 0, false)}
 
-			test.verifyTargets(t, serviceName, expectedTargets)
-			test.serviceDelete(t, serviceName)
+			test.verifyTargets(t, r, serviceName, expectedTargets)
+			test.serviceDelete(t, r, serviceName)
 		},
 	)
 }
 
-func (test *e2eTest) verifyTargets(t *testing.T, serviceName string, expectedTargets []TargetFields) {
-	out := test.serviceDescribeWithJsonPath(t, serviceName, targetsJsonPath)
+func (test *e2eTest) verifyTargets(t *testing.T, r *KnRunResultCollector, serviceName string, expectedTargets []TargetFields) {
+	out := test.serviceDescribeWithJsonPath(r, serviceName, targetsJsonPath)
 	assert.Check(t, out != "")
 	actualTargets, err := splitTargets(out, targetsSeparator, len(expectedTargets))
 	assert.NilError(t, err)
 	formattedActualTargets := formatActualTargets(t, actualTargets)
 	assert.DeepEqual(t, expectedTargets, formattedActualTargets)
+	if t.Failed() {
+		r.AddDump("service", serviceName, test.namespace)
+	}
 }
 
-func (test *e2eTest) serviceDescribeWithJsonPath(t *testing.T, serviceName, jsonpath string) string {
-	command := []string{"service", "describe", serviceName, "-o", jsonpath}
-	out, err := test.kn.RunWithOpts(command, runOpts{})
-	assert.NilError(t, err)
-	return out
+func (test *e2eTest) serviceDescribeWithJsonPath(r *KnRunResultCollector, serviceName, jsonpath string) string {
+	out := test.kn.Run("service", "describe", serviceName, "-o", jsonpath)
+	r.AssertNoError(out)
+	return out.Stdout
 }
 
-func (test *e2eTest) serviceUpdateWithOptions(t *testing.T, serviceName string, options []string) {
+func (test *e2eTest) serviceUpdateWithOptions(t *testing.T, r *KnRunResultCollector, serviceName string, options ...string) {
 	command := []string{"service", "update", serviceName}
 	command = append(command, options...)
-	out, err := test.kn.RunWithOpts(command, runOpts{NoNamespace: false})
-	assert.NilError(t, err)
-	assert.Check(t, util.ContainsAllIgnoreCase(out, "Service", serviceName, "updating", "namespace", test.kn.namespace))
+	out := test.kn.Run(command...)
+	r.AssertNoError(out)
+	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "Service", serviceName, "updating", "namespace", test.kn.namespace))
 }

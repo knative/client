@@ -52,6 +52,10 @@
 | Fix `--image` flag to only allow single occurence
 | https://github.com/knative/client/pull/647[#647]
 
+| 🧽
+| Add `--wait` and `--no-wait` to service delete operation. Change service delete to wait by default.   
+| https://github.com/knative/client/pull/682[#682]
+
 | 🎁
 | add kn service export command for exporting a service
 | https://github.com/knative/client/pull/669[#669]

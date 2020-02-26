@@ -18,6 +18,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/pkg/errors"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/fields"
 	"knative.dev/pkg/apis"
 	"knative.dev/serving/pkg/client/clientset/versioned/scheme"
@@ -34,8 +36,12 @@ import (
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 	clientv1 "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1"
 
-	"knative.dev/client/pkg/errors"
+	clienterrors "knative.dev/client/pkg/errors"
 )
+
+// Func signature for an updating function which returns the updated service object
+// or an error
+type serviceUpdateFunc func(origService *servingv1.Service) (*servingv1.Service, error)
 
 // Kn interface to serving. All methods are relative to the
 // namespace specified during construction
@@ -53,11 +59,17 @@ type KnServingClient interface {
 	// Create a new service
 	CreateService(service *servingv1.Service) error
 
-	// Update the given service
+	// UpdateService updates the given service. For a more robust variant with automatic
+	// conflict resolution see UpdateServiceWithRetry
 	UpdateService(service *servingv1.Service) error
 
+	// UpdateServiceWithRetry updates service and retries if there is a version conflict.
+	// The updateFunc receives a deep copy of the existing service and can add update it in
+	// place.
+	UpdateServiceWithRetry(name string, updateFunc serviceUpdateFunc, nrRetries int) error
+
 	// Delete a service by name
-	DeleteService(name string) error
+	DeleteService(name string, timeout time.Duration) error
 
 	// Wait for a service to become ready, but not longer than provided timeout.
 	// Return error and how long has been waited
@@ -151,7 +163,7 @@ func (cl *knServingClient) Namespace() string {
 func (cl *knServingClient) GetService(name string) (*servingv1.Service, error) {
 	service, err := cl.client.Services(cl.namespace).Get(name, v1.GetOptions{})
 	if err != nil {
-		return nil, errors.GetError(err)
+		return nil, clienterrors.GetError(err)
 	}
 	err = updateServingGvk(service)
 	if err != nil {
@@ -169,7 +181,7 @@ func (cl *knServingClient) WatchService(name string, timeout time.Duration) (wat
 func (cl *knServingClient) ListServices(config ...ListConfig) (*servingv1.ServiceList, error) {
 	serviceList, err := cl.client.Services(cl.namespace).List(ListConfigs(config).toListOptions())
 	if err != nil {
-		return nil, errors.GetError(err)
+		return nil, clienterrors.GetError(err)
 	}
 	serviceListNew := serviceList.DeepCopy()
 	err = updateServingGvk(serviceListNew)
@@ -193,7 +205,7 @@ func (cl *knServingClient) ListServices(config ...ListConfig) (*servingv1.Servic
 func (cl *knServingClient) CreateService(service *servingv1.Service) error {
 	_, err := cl.client.Services(cl.namespace).Create(service)
 	if err != nil {
-		return errors.GetError(err)
+		return clienterrors.GetError(err)
 	}
 	return updateServingGvk(service)
 }
@@ -207,14 +219,66 @@ func (cl *knServingClient) UpdateService(service *servingv1.Service) error {
 	return updateServingGvk(service)
 }
 
+// Update the given service with a retry in case of a conflict
+func (cl *knServingClient) UpdateServiceWithRetry(name string, updateFunc serviceUpdateFunc, nrRetries int) error {
+	return updateServiceWithRetry(cl, name, updateFunc, nrRetries)
+}
+
+// Extracted to be usable with the Mocking client
+func updateServiceWithRetry(cl KnServingClient, name string, updateFunc serviceUpdateFunc, nrRetries int) error {
+	var retries = 0
+	for {
+		service, err := cl.GetService(name)
+		if err != nil {
+			return err
+		}
+		updatedService, err := updateFunc(service.DeepCopy())
+		if err != nil {
+			return err
+		}
+
+		err = cl.UpdateService(updatedService)
+		if err != nil {
+			// Retry to update when a resource version conflict exists
+			if apierrors.IsConflict(err) && retries < nrRetries {
+				retries++
+				// Wait a second before doing the retry
+				time.Sleep(time.Second)
+				continue
+			}
+			return errors.Wrap(err, fmt.Sprintf("giving up after %d retries", nrRetries))
+		}
+		return nil
+	}
+}
+
 // Delete a service by name
-func (cl *knServingClient) DeleteService(serviceName string) error {
+// Param `timeout` represents a duration to wait for a delete op to finish.
+// For `timeout == 0` delete is performed async without any wait.
+func (cl *knServingClient) DeleteService(serviceName string, timeout time.Duration) error {
+	if timeout == 0 {
+		return cl.deleteService(serviceName, v1.DeletePropagationBackground)
+	}
+	waitC := make(chan error)
+	go func() {
+		waitForEvent := wait.NewWaitForEvent("service", cl.WatchService, func(evt *watch.Event) bool { return evt.Type == watch.Deleted })
+		err, _ := waitForEvent.Wait(serviceName, timeout, wait.NoopMessageCallback())
+		waitC <- err
+	}()
+	err := cl.deleteService(serviceName, v1.DeletePropagationForeground)
+	if err != nil {
+		return err
+	}
+	return <-waitC
+}
+
+func (cl *knServingClient) deleteService(serviceName string, propagationPolicy v1.DeletionPropagation) error {
 	err := cl.client.Services(cl.namespace).Delete(
 		serviceName,
-		&v1.DeleteOptions{},
+		&v1.DeleteOptions{PropagationPolicy: &propagationPolicy},
 	)
 	if err != nil {
-		return errors.GetError(err)
+		return clienterrors.GetError(err)
 	}
 
 	return nil
@@ -243,7 +307,7 @@ func (cl *knServingClient) GetConfiguration(name string) (*servingv1.Configurati
 func (cl *knServingClient) GetRevision(name string) (*servingv1.Revision, error) {
 	revision, err := cl.client.Revisions(cl.namespace).Get(name, v1.GetOptions{})
 	if err != nil {
-		return nil, errors.GetError(err)
+		return nil, clienterrors.GetError(err)
 	}
 	err = updateServingGvk(revision)
 	if err != nil {
@@ -309,7 +373,7 @@ func getBaseRevision(cl KnServingClient, service *servingv1.Service) (*servingv1
 func (cl *knServingClient) DeleteRevision(name string) error {
 	err := cl.client.Revisions(cl.namespace).Delete(name, &v1.DeleteOptions{})
 	if err != nil {
-		return errors.GetError(err)
+		return clienterrors.GetError(err)
 	}
 
 	return nil
@@ -319,7 +383,7 @@ func (cl *knServingClient) DeleteRevision(name string) error {
 func (cl *knServingClient) ListRevisions(config ...ListConfig) (*servingv1.RevisionList, error) {
 	revisionList, err := cl.client.Revisions(cl.namespace).List(ListConfigs(config).toListOptions())
 	if err != nil {
-		return nil, errors.GetError(err)
+		return nil, clienterrors.GetError(err)
 	}
 	return updateServingGvkForRevisionList(revisionList)
 }

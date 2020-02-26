@@ -25,10 +25,11 @@ import (
 
 func TestVersion(t *testing.T) {
 	t.Parallel()
-	env := buildEnv(t)
-	kn := kn{t, env.Namespace, Logger{}}
 
-	out, _ := kn.RunWithOpts([]string{"version"}, runOpts{NoNamespace: true})
+	r := NewKnRunResultCollector(t)
+	defer r.DumpIfFailed()
 
-	assert.Check(t, util.ContainsAll(out, "Version"))
+	out := kn{}.Run("version")
+	r.AssertNoError(out)
+	assert.Check(t, util.ContainsAll(out.Stdout, "Version"))
 }

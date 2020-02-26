@@ -14,7 +14,10 @@ kn source binding list [flags]
 
 ```
 
-  # List all sink binding in YAML format
+  # List all sink binidngs
+  kn source binding list
+
+  # List all sink bindings in YAML format
   kn source binding list -o yaml
 ```
 
