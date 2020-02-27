@@ -15,7 +15,6 @@
 package dynamic
 
 import (
-	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/labels"
@@ -34,16 +33,6 @@ const (
 	sourcesLabelValue = "true"
 )
 
-// SourceListFilters defines flags used for kn source list to filter sources on types
-type SourceListFilters struct {
-	filters []string
-}
-
-// Add attaches the SourceListFilters flags to given command
-func (s *SourceListFilters) Add(cmd *cobra.Command) {
-	cmd.Flags().StringSliceVarP(&s.filters, "type", "t", nil, "Filter list on given source type. This flag can be given multiple times.")
-}
-
 // KnDynamicClient to client-go Dynamic client. All methods are relative to the
 // namespace specified during construction
 type KnDynamicClient interface {
@@ -56,8 +45,8 @@ type KnDynamicClient interface {
 	// ListSourceCRDs returns list of eventing sources CRDs
 	ListSourcesTypes() (*unstructured.UnstructuredList, error)
 
-	// ListSources returns list of available sources COs
-	ListSources(f *SourceListFilters) (*unstructured.UnstructuredList, error)
+	// ListSources returns list of available source objects
+	ListSources(types ...WithType) (*unstructured.UnstructuredList, error)
 
 	// RawClient returns the raw dynamic client interface
 	RawClient() dynamic.Interface
@@ -111,28 +100,30 @@ func (c knDynamicClient) RawClient() dynamic.Interface {
 	return c.client
 }
 
-// ListSources returns list of available sources COs
-func (c *knDynamicClient) ListSources(f *SourceListFilters) (*unstructured.UnstructuredList, error) {
-	var sourceList unstructured.UnstructuredList
-	var numberOfsourceTypesFound int
-	options := metav1.ListOptions{}
-
+// ListSources returns list of available sources objects
+// Provide the list of source types as for example: WithTypes("pingsource", "apiserversource"...) to list
+// only given types of source objects
+func (c *knDynamicClient) ListSources(types ...WithType) (*unstructured.UnstructuredList, error) {
+	var (
+		sourceList               unstructured.UnstructuredList
+		options                  metav1.ListOptions
+		numberOfsourceTypesFound int
+	)
 	sourceTypes, err := c.ListSourcesTypes()
 	if err != nil {
 		return nil, err
 	}
-
 	namespace := c.Namespace()
+	filters := WithTypes(types).List()
 	// For each source type available, find out each source types objects
 	for _, source := range sourceTypes.Items {
-		// filter the source types if --type flag is given
-		yes, err := isSourceTypeInFilters(&source, f)
+		// find source kind before hand to fail early
+		sourceKind, err := kindFromUnstructured(&source)
 		if err != nil {
 			return nil, err
 		}
 
-		// dont find the source objects if its not requested by --type flag
-		if !yes {
+		if len(filters) > 0 && !util.SliceContainsIgnoreCase(filters, sourceKind) {
 			continue
 		}
 
@@ -161,22 +152,4 @@ func (c *knDynamicClient) ListSources(f *SourceListFilters) (*unstructured.Unstr
 		sourceList.SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "", Kind: "List"})
 	}
 	return &sourceList, nil
-}
-
-// isSourceTypeInFilters finds given source's type and checks (case insensitive) if its given
-// via --type flag. If --type flag isn't given or empty, it returns true.
-func isSourceTypeInFilters(source *unstructured.Unstructured, f *SourceListFilters) (bool, error) {
-	if f != nil && f.filters != nil {
-		// find source kind before hand to fail early
-		sourceKind, err := kindFromUnstructured(source)
-		if err != nil {
-			return false, err
-		}
-
-		// if this source is not given in filter flags continue
-		if !util.SliceContainsIgnoreCase(f.filters, sourceKind) {
-			return false, nil
-		}
-	}
-	return true, nil
 }

@@ -87,71 +87,36 @@ func TestListSourceTypes(t *testing.T) {
 
 func TestListSources(t *testing.T) {
 	t.Run("No GVRs set", func(t *testing.T) {
-		var f *SourceListFilters
 		obj := newSourceCRDObj("foo")
 		client := createFakeKnDynamicClient(testNamespace, obj)
 		assert.Check(t, client.RawClient() != nil)
-		_, err := client.ListSources(f)
+		_, err := client.ListSources()
 		assert.Check(t, err != nil)
-		assert.Check(t, util.ContainsAll(err.Error(), "can't", "find", "GVR"))
+		assert.Check(t, util.ContainsAll(err.Error(), "can't", "find", "source", "kind", "CRD"))
 	})
 
 	t.Run("source list empty", func(t *testing.T) {
-		var f *SourceListFilters
 		client := createFakeKnDynamicClient(testNamespace,
 			newSourceCRDObjWithSpec("pingsources", "sources.knative.dev", "v1alpha1", "PingSource"),
 		)
-		sources, err := client.ListSources(f)
+		sources, err := client.ListSources()
 		assert.NilError(t, err)
 		assert.Equal(t, len(sources.Items), 0)
 	})
 
 	t.Run("source list non empty", func(t *testing.T) {
-		var f *SourceListFilters
 		client := createFakeKnDynamicClient(testNamespace,
 			newSourceCRDObjWithSpec("pingsources", "sources.knative.dev", "v1alpha1", "PingSource"),
+			newSourceCRDObjWithSpec("apiserversources", "sources.knative.dev", "v1alpha1", "ApiServerSource"),
+			newSourceCRDObjWithSpec("cronjobsources", "sources.knative.dev", "v1alpha1", "CronJobSource"),
 			newSourceUnstructuredObj("p1", "sources.knative.dev/v1alpha1", "PingSource"),
+			newSourceUnstructuredObj("a1", "sources.knative.dev/v1alpha1", "ApiServerSource"),
+			newSourceUnstructuredObj("c1", "sources.knative.dev/v1alpha1", "CronJobSource"),
 		)
-		sources, err := client.ListSources(f)
+		sources, err := client.ListSources(WithTypeFilter("pingsource"), WithTypeFilter("ApiServerSource"))
 		assert.NilError(t, err)
-		assert.Equal(t, len(sources.Items), 1)
+		assert.Equal(t, len(sources.Items), 2)
 	})
-}
-
-func TestKindFromUnstructured(t *testing.T) {
-	kind, err := kindFromUnstructured(
-		newSourceCRDObjWithSpec("pingsources", "sources.knative.dev", "v1alpha1", "PingSource"),
-	)
-	assert.NilError(t, err)
-	assert.Equal(t, kind, "PingSource")
-	_, err = kindFromUnstructured(newSourceCRDObj("foo"))
-	assert.Check(t, err != nil)
-}
-
-func TestGVRFromUnstructured(t *testing.T) {
-	obj := newSourceCRDObj("foo")
-	obj.Object["spec"] = map[string]interface{}{
-		"group": "sources.knative.dev",
-	}
-	_, err := gvrFromUnstructured(obj)
-	assert.Check(t, err != nil)
-	obj.Object["spec"] = map[string]interface{}{
-		"group":   "sources.knative.dev",
-		"version": "v1alpha1",
-	}
-	_, err = gvrFromUnstructured(obj)
-	assert.Check(t, err != nil)
-
-	obj.Object["spec"] = map[string]interface{}{
-		"group": "sources.knative.dev",
-		"versions": []map[string]interface{}{
-			{
-				"name":   "v1alpha1",
-				"served": "true",
-			},
-		},
-	}
-
 }
 
 // createFakeKnDynamicClient gives you a dynamic client for testing contianing the given objects.

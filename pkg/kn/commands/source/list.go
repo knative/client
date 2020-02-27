@@ -37,7 +37,7 @@ var listExample = `
 
 // NewListCommand defines and processes `kn source list`
 func NewListCommand(p *commands.KnParams) *cobra.Command {
-	filterFlags := &dynamic.SourceListFilters{}
+	filterFlags := &flags.SourceTypeFilters{}
 	listFlags := flags.NewListPrintFlags(ListHandlers)
 	listCommand := &cobra.Command{
 		Use:     "list",
@@ -52,7 +52,11 @@ func NewListCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			sourceList, err := dynamicClient.ListSources(filterFlags)
+			var filters dynamic.WithTypes
+			for _, filter := range filterFlags.Filters {
+				filters = append(filters, dynamic.WithTypeFilter(filter))
+			}
+			sourceList, err := dynamicClient.ListSources(filters...)
 			if err != nil {
 				return err
 			}
@@ -82,6 +86,6 @@ func NewListCommand(p *commands.KnParams) *cobra.Command {
 	}
 	commands.AddNamespaceFlags(listCommand.Flags(), true)
 	listFlags.AddFlags(listCommand)
-	filterFlags.Add(listCommand)
+	filterFlags.Add(listCommand, "source type")
 	return listCommand
 }

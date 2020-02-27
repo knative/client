@@ -94,7 +94,32 @@ func kindFromUnstructured(u *unstructured.Unstructured) (string, error) {
 	content := u.UnstructuredContent()
 	kind, found, err := unstructured.NestedString(content, "spec", "names", "kind")
 	if !found || err != nil {
-		return "", fmt.Errorf("can't find source kind: %v", err)
+		return "", fmt.Errorf("can't find source kind from source CRD: %v", err)
 	}
 	return kind, nil
+}
+
+// TypesFilter for keeping list of sources types to filter upo
+type TypesFilter []string
+
+// WithType function for easy filtering on source types
+type WithType func(filters *TypesFilter)
+
+// WithTypes for recording the source type filtering function WithType
+type WithTypes []WithType
+
+// WithTypeFilter can be used to filter based on source type name
+func WithTypeFilter(name string) WithType {
+	return func(filters *TypesFilter) {
+		*filters = append(*filters, name)
+	}
+}
+
+// List returns the source type name list recorded via WithTypeFilter
+func (types WithTypes) List() []string {
+	var stypes TypesFilter
+	for _, f := range types {
+		f(&stypes)
+	}
+	return stypes
 }
