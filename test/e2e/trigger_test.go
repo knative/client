@@ -40,6 +40,8 @@ func TestBrokerTrigger(t *testing.T) {
 
 	err = test.lableNamespaceForDefaultBroker(t)
 	assert.NilError(t, err)
+	defer test.unlableNamespaceForDefaultBroker(t)
+
 	test.serviceCreate(t, r, "sinksvc0")
 	test.serviceCreate(t, r, "sinksvc1")
 
@@ -47,6 +49,8 @@ func TestBrokerTrigger(t *testing.T) {
 	test.triggerCreate(t, r, "trigger1", "sinksvc0", []string{"a=b"})
 	test.triggerCreate(t, r, "trigger2", "sinksvc1", []string{"type=knative.dev.bar", "source=cronjob"})
 	test.verifyTriggerList(t, r, "trigger1", "trigger2")
+	test.triggerDelete(t, r, "trigger1")
+	test.triggerDelete(t, r, "trigger2")
 
 	t.Log("create a trigger and delete it")
 	test.triggerCreate(t, r, "deltrigger", "sinksvc0", []string{"a=b"})
@@ -58,9 +62,17 @@ func TestBrokerTrigger(t *testing.T) {
 	test.verifyTriggerDescribe(t, r, "updtrigger", "default", "sinksvc0", []string{"a", "b"})
 	test.triggerUpdate(t, r, "updtrigger", "type=knative.dev.bar", "sinksvc1")
 	test.verifyTriggerDescribe(t, r, "updtrigger", "default", "sinksvc1", []string{"a", "b", "type", "knative.dev.bar"})
+	test.triggerDelete(t, r, "updtrigger")
 
 	t.Log("create trigger with error return")
 	test.triggerCreateMissingSink(t, r, "errtrigger", "notfound")
+}
+
+func (test *e2eTest) unlableNamespaceForDefaultBroker(t *testing.T) {
+	_, err := kubectl{}.Run("label", "namespace", test.kn.namespace, "knative-eventing-injection-")
+	if err != nil {
+		t.Fatalf("Error executing 'kubectl label namespace %s knative-eventing-injection-'. Error: %s", test.kn.namespace, err.Error())
+	}
 }
 
 func (test *e2eTest) lableNamespaceForDefaultBroker(t *testing.T) error {
