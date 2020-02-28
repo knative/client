@@ -26,6 +26,7 @@ import (
 	clientserving "knative.dev/client/pkg/serving"
 	clientservingv1 "knative.dev/client/pkg/serving/v1"
 	"knative.dev/client/pkg/util"
+	"knative.dev/pkg/ptr"
 )
 
 func TestServiceUpdateEnvMock(t *testing.T) {
@@ -1420,6 +1421,51 @@ func TestServiceUpdateWithRemovingMount(t *testing.T) {
 		"--mount", "/mount/config-map-path-1-",
 		"--mount", "/mount/secret-path-2-",
 		"--mount", "/mount/custom-path-",
+		"--no-wait", "--revision-name=",
+	)
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
+
+	r.Validate()
+}
+
+func TestServiceUpdateUser(t *testing.T) {
+	client := clientservingv1.NewMockKnServiceClient(t)
+	svcName := "svc1"
+	newService := getService(svcName)
+	template := &newService.Spec.Template
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.Spec.Containers[0].SecurityContext = &corev1.SecurityContext{
+		RunAsUser: ptr.Int64(int64(1001)),
+	}
+	template.ObjectMeta.Annotations = map[string]string{
+		clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz",
+	}
+
+	updatedService := getService(svcName)
+	template = &updatedService.Spec.Template
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.Spec.Containers[0].SecurityContext = &corev1.SecurityContext{
+		RunAsUser: ptr.Int64(int64(1002)),
+	}
+	template.ObjectMeta.Annotations = map[string]string{
+		clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz",
+	}
+
+	r := client.Recorder()
+	recordServiceUpdateWithSuccess(r, svcName, newService, updatedService)
+
+	output, err := executeServiceCommand(client,
+		"create", svcName, "--image", "gcr.io/foo/bar:baz",
+		"--user", "1001",
+		"--no-wait", "--revision-name=",
+	)
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(output, "created", svcName, "default"))
+
+	output, err = executeServiceCommand(client,
+		"update", svcName,
+		"--user", "1002",
 		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)

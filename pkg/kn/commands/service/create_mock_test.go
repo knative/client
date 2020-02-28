@@ -32,6 +32,7 @@ import (
 	"knative.dev/client/pkg/wait"
 
 	"knative.dev/client/pkg/util"
+	"knative.dev/pkg/ptr"
 )
 
 func TestServiceCreateImageMock(t *testing.T) {
@@ -379,6 +380,29 @@ func TestServiceCreateWithMountSecret(t *testing.T) {
 
 	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz",
 		"--mount", "/mount/path=sc:secret-name", "--no-wait", "--revision-name=")
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
+
+	r.Validate()
+}
+
+func TestServiceCreateWithUser(t *testing.T) {
+	client := knclient.NewMockKnServiceClient(t)
+
+	r := client.Recorder()
+	r.GetService("foo", nil, errors.NewNotFound(servingv1.Resource("service"), "foo"))
+
+	service := getService("foo")
+
+	template := &service.Spec.Template
+	template.Spec.Containers[0].SecurityContext = &corev1.SecurityContext{
+		RunAsUser: ptr.Int64(int64(1001)),
+	}
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
+	r.CreateService(service, nil)
+
+	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "--user", "1001", "--no-wait", "--revision-name=")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
 
