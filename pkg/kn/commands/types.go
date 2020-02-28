@@ -48,6 +48,15 @@ var Cfg Config = Config{
 type Config struct {
 	PluginsDir    string
 	LookupPlugins *bool
+	SinkPrefixes  []SinkPrefixConfig
+}
+
+// SinkPrefixConfig is the struct of sink prefix config in kn config
+type SinkPrefixConfig struct {
+	Prefix   string
+	Resource string
+	Group    string
+	Version  string
 }
 
 // KnParams for creating commands. Useful for inserting mocks for testing.

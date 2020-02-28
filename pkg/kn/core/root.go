@@ -31,6 +31,7 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/completion"
+	cmdflags "knative.dev/client/pkg/kn/commands/flags"
 	"knative.dev/client/pkg/kn/commands/plugin"
 	"knative.dev/client/pkg/kn/commands/revision"
 	"knative.dev/client/pkg/kn/commands/route"
@@ -126,7 +127,10 @@ func NewKnCommand(params ...commands.KnParams) *cobra.Command {
 		SilenceErrors: true,
 
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			initConfigFlags()
+			err := initConfigFlags()
+			if err != nil {
+				return err
+			}
 			return flags.ReconcileBoolFlags(cmd.Flags())
 		},
 	}
@@ -225,7 +229,7 @@ func initConfig() {
 	}
 }
 
-func initConfigFlags() {
+func initConfigFlags() error {
 	if viper.IsSet("plugins-dir") {
 		commands.Cfg.PluginsDir = viper.GetString("plugins-dir")
 	}
@@ -234,6 +238,18 @@ func initConfigFlags() {
 	var aBool bool
 	aBool = viper.GetBool("lookup-plugins")
 	commands.Cfg.LookupPlugins = &aBool
+
+	// set the Cfg.SinkPrefixes from viper if sink is configured
+	if viper.IsSet("sink") {
+		err := viper.UnmarshalKey("sink", &commands.Cfg.SinkPrefixes)
+		if err != nil {
+			return fmt.Errorf("unable to parse sink prefixes configuration in file %s because of %v",
+				viper.ConfigFileUsed(), err)
+		}
+		cmdflags.ConfigSinkPrefixes(commands.Cfg.SinkPrefixes)
+	}
+
+	return nil
 }
 
 func extractKnPluginFlags(args []string) (string, bool, error) {
