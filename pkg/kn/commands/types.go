@@ -40,15 +40,19 @@ var CfgFile string
 
 // Cfg is Kn's configuration values
 var Cfg Config = Config{
-	PluginsDir:    "",
-	LookupPlugins: newBoolP(false),
+	DefaultConfigDir: "~/.config/kn",
+	DefaultPluginDir: "~/.config/kn/plugins",
+	PluginsDir:       "",
+	LookupPlugins:    newBoolP(false),
 }
 
 // Config contains the variables for the Kn config
 type Config struct {
-	PluginsDir    string
-	LookupPlugins *bool
-	SinkPrefixes  []SinkPrefixConfig
+	DefaultConfigDir string
+	DefaultPluginDir string
+	PluginsDir       string
+	LookupPlugins    *bool
+	SinkPrefixes     []SinkPrefixConfig
 }
 
 // SinkPrefixConfig is the struct of sink prefix config in kn config

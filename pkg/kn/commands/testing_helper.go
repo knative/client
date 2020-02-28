@@ -177,16 +177,16 @@ Eventing: Manage event subscriptions and channels. Connect up event sources.`,
 	if params.Output != nil {
 		rootCmd.SetOutput(params.Output)
 	}
-	rootCmd.PersistentFlags().StringVar(&CfgFile, "config", "", "config file (default is $HOME/.kn/config.yaml)")
+	rootCmd.PersistentFlags().StringVar(&CfgFile, "config", "", "config file (default is ~/.config/kn/config.yaml)")
 	rootCmd.PersistentFlags().StringVar(&params.KubeCfgPath, "kubeconfig", "", "kubectl config file (default is $HOME/.kube/config)")
 
-	rootCmd.Flags().StringVar(&Cfg.PluginsDir, "plugins-dir", "~/.kn/plugins", "kn plugins directory")
+	rootCmd.Flags().StringVar(&Cfg.PluginsDir, "plugins-dir", "~/.config/kn/plugins", "kn plugins directory")
 	rootCmd.Flags().BoolVar(Cfg.LookupPlugins, "lookup-plugins", false, "look for kn plugins in $PATH")
 
 	viper.BindPFlag("plugins-dir", rootCmd.Flags().Lookup("plugins-dir"))
 	viper.BindPFlag("lookup-plugins", rootCmd.Flags().Lookup("lookup-plugins"))
 
-	viper.SetDefault("plugins-dir", "~/.kn/plugins")
+	viper.SetDefault("plugins-dir", "~/.config/kn/plugins")
 	viper.SetDefault("lookup-plugins", false)
 
 	rootCmd.AddCommand(subCommand)

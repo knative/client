@@ -19,7 +19,8 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path"
+	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -139,8 +140,9 @@ func NewKnCommand(params ...commands.KnParams) *cobra.Command {
 	}
 
 	// Persistent flags
-	rootCmd.PersistentFlags().StringVar(&commands.CfgFile, "config", "", "kn config file (default is $HOME/.kn/config.yaml)")
-	rootCmd.PersistentFlags().StringVar(&p.KubeCfgPath, "kubeconfig", "", "kubectl config file (default is $HOME/.kube/config)")
+	rootCmd.PersistentFlags().StringVar(&commands.CfgFile, "config", "", "kn config file (default is "+
+		filepath.Join(commands.Cfg.DefaultConfigDir, "config.yaml")+")")
+	rootCmd.PersistentFlags().StringVar(&p.KubeCfgPath, "kubeconfig", "", "kubectl config file (default is ~/.kube/config)")
 	flags.AddBothBoolFlags(rootCmd.PersistentFlags(), &p.LogHTTP, "log-http", "", false, "log http traffic")
 
 	plugin.AddPluginFlags(rootCmd)
@@ -208,15 +210,13 @@ func initConfig() {
 		// Use config file from the flag.
 		viper.SetConfigFile(commands.CfgFile)
 	} else {
-		// Find home directory.
-		home, err := homedir.Dir()
+		configDir, err := defaultConfigDir()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "%v\n", err)
-			os.Exit(1)
+			// Deprecated path warning message & continue
+			fmt.Fprintf(os.Stderr, "\n%v\n\n", err)
 		}
-
 		// Search config in home directory with name ".kn" (without extension)
-		viper.AddConfigPath(path.Join(home, ".kn"))
+		viper.AddConfigPath(configDir)
 		viper.SetConfigName("config")
 	}
 
@@ -227,6 +227,42 @@ func initConfig() {
 	if err == nil {
 		fmt.Fprintln(os.Stderr, "Using kn config file:", viper.ConfigFileUsed())
 	}
+}
+
+func defaultConfigDir() (string, error) {
+	home, err := homedir.Dir()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(1)
+	}
+	// Check the deprecated path first and fallback to it, add warning to error message
+	if configHome := filepath.Join(home, ".kn"); dirExists(configHome) {
+		migrationPath := filepath.Join(home, ".config", "kn")
+		if runtime.GOOS == "windows" {
+			migrationPath = filepath.Join(os.Getenv("APPDATA"), "kn")
+		}
+		return configHome, fmt.Errorf("WARNING: deprecated kn config directory detected. "+
+			"Please move your configuration to: %s", migrationPath)
+	}
+	// Respect %APPDATA% on MS Windows
+	// C:\Documents and Settings\username\Application Data
+	if runtime.GOOS == "windows" {
+		return filepath.Join(os.Getenv("APPDATA"), "kn"), nil
+	}
+	// Respect XDG_CONFIG_HOME if set
+	if xdgHome := os.Getenv("XDG_CONFIG_HOME"); xdgHome != "" {
+		return filepath.Join(xdgHome, "kn"), nil
+	}
+	// Fallback to XDG default for both Linux and macOS
+	// ~/.config/kn
+	return filepath.Join(home, ".config", "kn"), nil
+}
+
+func dirExists(path string) bool {
+	if _, err := os.Stat(path); !os.IsNotExist(err) {
+		return true
+	}
+	return false
 }
 
 func initConfigFlags() error {
@@ -253,7 +289,14 @@ func initConfigFlags() error {
 }
 
 func extractKnPluginFlags(args []string) (string, bool, error) {
-	pluginsDir := "~/.kn/plugins"
+	// Deprecated default path, fallback to it when exist
+	home, _ := homedir.Dir()
+	pluginsDir := filepath.Join(home, ".kn", "plugins")
+	if !dirExists(pluginsDir) {
+		configDir, _ := defaultConfigDir()
+		pluginsDir = filepath.Join(configDir, "plugins")
+	}
+
 	lookupPluginsInPath := false
 
 	dirFlag := "--plugins-dir"

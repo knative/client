@@ -42,13 +42,13 @@ There are a set of configuration parameters you can setup to better customize `k
 
 ### Location
 
-The default location `kn` looks for config is under the home directory of the user at `$HOME/.kn/config.yaml`. It is not created for you as part of the `kn` installation. You can create this file elsewhere and use the `--config` flag to specify its path.
+The default location `kn` looks for config is under the home directory of the user at `$HOME/.config/kn/config.yaml`. It is not created for you as part of the `kn` installation. You can create this file elsewhere and use the `--config` flag to specify its path.
 
 ### Options
 
 Below are the options you can specify in the `kn` config file.
 
-1. `pluginsDir` which is the same as the persistent flag `--plugins-dir` and specifies the kn plugins directory. It defaults to: `~/.kn/plugins`. By using the persistent flag (when you issue a command) or by specifying the value in the `kn` config, a user can select which directory to find `kn` plugins. It can be any directory that is visible to the user.
+1. `pluginsDir` which is the same as the persistent flag `--plugins-dir` and specifies the kn plugins directory. It defaults to: `~/.config/kn/plugins`. By using the persistent flag (when you issue a command) or by specifying the value in the `kn` config, a user can select which directory to find `kn` plugins. It can be any directory that is visible to the user.
 
 2. `lookupPluginsInPath` which is the same as the persistent flag `--lookup-plugins-in-path` and specficies if `kn` should look for plugins anywhere in the specified `PATH` environment variable. This is a boolean configuration option and the default value is `false`.
 
@@ -58,13 +58,13 @@ Below are the options you can specify in the `kn` config file.
     3. `version`: The version of Kubernetes resources.
     4. `resource`: The plural name of Kubernetes resources (for example: services). 
 
-For example, the following `kn` config will look for `kn` plugins in the user's `PATH` and also execute plugin in `~/.kn/plugins`.
+For example, the following `kn` config will look for `kn` plugins in the user's `PATH` and also execute plugin in `~/kn/.config/plugins`.
 It also defines a sink prefix `myprefix` which refers to `brokers` in `eventing.knative.dev/v1alpha1`. With this configuration, you can use `myprefix:default` to describe a Broker `default` in `kn` command line.
 
 ```bash
-cat ~/.kn/config.yaml
+cat ~/.config/kn/config.yaml
 lookupPluginsInPath: true
-pluginsdir: ~/.kn/plugins
+pluginsdir: ~/.config/kn/plugins
 sink:
 - prefix: myprefix
   group: eventing.knative.dev
