@@ -45,26 +45,24 @@ func TestRevision(t *testing.T) {
 	revName := test.findRevision(t, r, "hello")
 	test.revisionDescribeWithPrintFlags(t, r, revName)
 
-	t.Log("update hello service and increase the count of configuration generation")
+	t.Log("update hello service and increase revision count to 2")
 	test.serviceUpdate(t, r, "hello", "--env", "TARGET=kn", "--port", "8888")
 
 	t.Log("show a list of revisions sorted by the count of configuration generation")
 	test.revisionListWithService(t, r, "hello")
 
-	t.Log("delete latest revision from hello service and return no error")
-	revName = test.findRevision(t, r, "hello")
-	test.revisionDelete(t, r, revName)
-
-	t.Log("delete three revisions with one revision a nonexistent")
-
-	// increase count to 2 revisions
+	t.Log("update hello service and increase revision count to 3")
 	test.serviceUpdate(t, r, "hello", "--env", "TARGET=kn", "--port", "8888")
 
+	t.Log("delete three revisions with one revision a nonexistent")
 	existRevision1 := test.findRevisionByGeneration(t, r, "hello", 1)
 	existRevision2 := test.findRevisionByGeneration(t, r, "hello", 2)
 	nonexistRevision := "hello-nonexist"
-
 	test.revisionMultipleDelete(t, r, existRevision1, existRevision2, nonexistRevision)
+
+	t.Log("delete latest revision from hello service and return no error")
+	revName = test.findRevision(t, r, "hello")
+	test.revisionDelete(t, r, revName)
 
 	t.Log("delete hello service and return no error")
 	test.serviceDelete(t, r, "hello")
