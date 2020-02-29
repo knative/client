@@ -15,14 +15,19 @@
 package revision
 
 import (
+	"errors"
 	"testing"
 
 	"gotest.tools/assert"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/watch"
 	clienttesting "k8s.io/client-go/testing"
 
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/util"
+	"knative.dev/client/pkg/wait"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
 func fakeRevisionDelete(args []string) (action clienttesting.Action, name string, output string, err error) {
@@ -34,6 +39,17 @@ func fakeRevisionDelete(args []string) (action clienttesting.Action, name string
 			action = deleteAction
 			name = deleteAction.GetName()
 			return true, nil, nil
+		})
+	fakeServing.AddWatchReactor("revisions",
+		func(a clienttesting.Action) (bool, watch.Interface, error) {
+			watchAction := a.(clienttesting.WatchAction)
+			_, found := watchAction.GetWatchRestrictions().Fields.RequiresExactMatch("metadata.name")
+			if !found {
+				return true, nil, errors.New("no field selector on metadata.name found")
+			}
+			w := wait.NewFakeWatch(getRevisionDeleteEvents("test-revision"))
+			w.Start()
+			return true, w, nil
 		})
 	cmd.SetArgs(args)
 	err = cmd.Execute()
@@ -78,4 +94,11 @@ func TestMultipleRevisionDelete(t *testing.T) {
 	assert.Check(t, util.ContainsAll(output, "Revision", revName1, "deleted", "namespace", commands.FakeNamespace))
 	assert.Check(t, util.ContainsAll(output, "Revision", revName2, "deleted", "namespace", commands.FakeNamespace))
 	assert.Check(t, util.ContainsAll(output, "Revision", revName3, "deleted", "namespace", commands.FakeNamespace))
+}
+
+func getRevisionDeleteEvents(name string) []watch.Event {
+	return []watch.Event{
+		{watch.Added, &servingv1.Revision{ObjectMeta: metav1.ObjectMeta{Name: name}}},
+		{watch.Deleted, &servingv1.Revision{ObjectMeta: metav1.ObjectMeta{Name: name}}},
+	}
 }
