@@ -16,6 +16,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 
 	"sort"
 	"strconv"
@@ -74,23 +75,19 @@ func NewServiceExportCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			// Print out machine readable output if requested
-			if machineReadablePrintFlags.OutputFlagSpecified() {
-				printer, err := machineReadablePrintFlags.ToPrinter()
-				if err != nil {
-					return err
-				}
-				if history {
-					svcList, err := exportServicewithActiveRevisions(service, client)
-					if err != nil {
-						return err
-					}
-					return printer.PrintObj(svcList, cmd.OutOrStdout())
-				}
-				return printer.PrintObj(exportService(service), cmd.OutOrStdout())
+			printer, err := machineReadablePrintFlags.ToPrinter()
+			if err != nil {
+				return err
 			}
 
-			return nil
+			if history {
+				if svcList, err := exportServicewithActiveRevisions(service, client); err != nil {
+					return err
+				} else {
+					return printer.PrintObj(svcList, cmd.OutOrStdout())
+				}
+			}
+			return printer.PrintObj(exportService(service), cmd.OutOrStdout())
 		},
 	}
 	flags := command.Flags()
@@ -100,11 +97,7 @@ func NewServiceExportCommand(p *commands.KnParams) *cobra.Command {
 	return command
 }
 
-func exportService(latestService *servingv1.Service) *servingv1.Service {
-	return constructServiceTemplate(latestService)
-}
-
-func constructServiceTemplate(latestSvc *servingv1.Service) *servingv1.Service {
+func exportService(latestSvc *servingv1.Service) *servingv1.Service {
 
 	exportedSvc := servingv1.Service{
 		ObjectMeta: metav1.ObjectMeta{
@@ -156,12 +149,16 @@ func exportServicewithActiveRevisions(latestSvc *servingv1.Service, client clien
 	if err != nil {
 		return nil, err
 	}
+	if len(revisionList.Items) == 0 {
+		return nil, fmt.Errorf("No revisions found for the service %s", latestSvc.ObjectMeta.Name)
+	}
 
+	// sort revisions to main the order of generations
 	sortRevisions(revisionList)
 
 	for _, revision := range revisionList.Items {
 		//construct service only for active revisions
-		if revsMap[revision.ObjectMeta.Name] != nil {
+		if revsMap[revision.ObjectMeta.Name] {
 			exportedSvcItems = append(exportedSvcItems, constructServicefromRevision(latestSvc, revision))
 		}
 	}
@@ -188,15 +185,15 @@ func setTrafficSplit(latestSvc *servingv1.Service, exportedSvc servingv1.Service
 	return exportedSvc
 }
 
-func getRevisionstoExport(latestSvc *servingv1.Service) map[string]*int64 {
+func getRevisionstoExport(latestSvc *servingv1.Service) map[string]bool {
 	trafficList := latestSvc.Spec.RouteSpec.Traffic
-	revsMap := make(map[string]*int64)
+	revsMap := make(map[string]bool)
 
 	for _, traffic := range trafficList {
 		if traffic.RevisionName == "" {
-			revsMap[latestSvc.Spec.ConfigurationSpec.Template.ObjectMeta.Name] = traffic.Percent
+			revsMap[latestSvc.Spec.ConfigurationSpec.Template.ObjectMeta.Name] = true
 		} else {
-			revsMap[traffic.RevisionName] = traffic.Percent
+			revsMap[traffic.RevisionName] = true
 		}
 	}
 	return revsMap

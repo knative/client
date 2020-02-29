@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"testing"
 
+	"gopkg.in/yaml.v2"
 	"gotest.tools/assert"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -31,7 +32,6 @@ import (
 )
 
 func TestServiceExport(t *testing.T) {
-
 	var svcs []*servingv1.Service
 	typeMeta := metav1.TypeMeta{
 		Kind:       "service",
@@ -120,6 +120,38 @@ func TestServiceExport(t *testing.T) {
 
 }
 
+func TestServiceExportYaml(t *testing.T) {
+	typeMeta := metav1.TypeMeta{
+		Kind:       "service",
+		APIVersion: "serving.knative.dev/v1",
+	}
+
+	expService := getService("foo")
+	expService.TypeMeta = typeMeta
+	client := knclient.NewMockKnServiceClient(t)
+	r := client.Recorder()
+	r.GetService(expService.ObjectMeta.Name, expService, nil)
+
+	output, err := executeServiceCommand(client, "export", expService.ObjectMeta.Name, "-o", "yaml")
+	assert.NilError(t, err)
+
+	var actSvc map[string]interface{}
+
+	err = yaml.Unmarshal([]byte(output), &actSvc)
+
+	assert.NilError(t, err)
+
+	metaData := (actSvc["metadata"]).(map[interface{}]interface{})
+
+	actSvcName := fmt.Sprintf("%v", metaData["name"])
+
+	assert.DeepEqual(t, expService.ObjectMeta.Name, actSvcName)
+
+	// Validate that all recorded API methods have been called
+	r.Validate()
+
+}
+
 func callServiceExportTest(t *testing.T, expectedService *servingv1.Service) {
 	// New mock client
 	client := knclient.NewMockKnServiceClient(t)
@@ -146,7 +178,6 @@ func callServiceExportTest(t *testing.T, expectedService *servingv1.Service) {
 }
 
 func TestServiceExportwithMultipleRevisions(t *testing.T) {
-
 	//case 1 = 2 revisions with traffic split
 	trafficSplitService := createServiceTwoRevsionsWithTraffic("foo", true)
 
@@ -154,7 +185,7 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 
 	callServiceExportHistoryTest(t, trafficSplitService, multiRevs)
 
-	//case 2 - same revsions no traffic split
+	//case 2 - same revisions no traffic split
 	noTrafficSplitService := createServiceTwoRevsionsWithTraffic("foo", false)
 
 	callServiceExportHistoryTest(t, noTrafficSplitService, multiRevs)
