@@ -15,7 +15,6 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.4.0
 	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413
-	gopkg.in/yaml.v2 v2.2.4
 	gotest.tools v2.2.0+incompatible
 	k8s.io/api v0.17.0
 	k8s.io/apimachinery v0.17.0
