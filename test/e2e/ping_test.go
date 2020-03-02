@@ -57,6 +57,11 @@ func TestSourcePing(t *testing.T) {
 	out, err := test.getResourceFieldsWithJSONPath("pingsource", "testpingsource2", jpSinkRefNameInSpec)
 	assert.NilError(t, err)
 	assert.Equal(t, out, "testsvc1")
+
+	t.Log("verify Ping source description")
+	mymsg := "This is a message from Ping."
+	test.pingSourceCreate(t, r, "testpingsource3", "*/1 * * * *", mymsg, "svc:testsvc1")
+	test.verifyPingSourceDescribe(t, r, "testpingsource3", "*/1 * * * *", mymsg, "testsvc1")
 }
 
 func (test *e2eTest) pingSourceCreate(t *testing.T, r *KnRunResultCollector, sourceName string, schedule string, data string, sink string) {
@@ -101,8 +106,8 @@ func (test *e2eTest) pingSourceUpdateResources(t *testing.T, r *KnRunResultColle
 	r.AssertNoError(out)
 }
 
-func (test *e2eTest) verifyPingSourceDescribe(t *testing.T, r *KnRunResultCollector, sourceName string, schedule string, data string, sink string, sa string, requestcpu string, requestmm string, limitcpu string, limitmm string) {
+func (test *e2eTest) verifyPingSourceDescribe(t *testing.T, r *KnRunResultCollector, sourceName string, schedule string, data string, sink string) {
 	out := test.kn.Run("source", "ping", "describe", sourceName)
-	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, sourceName, schedule, data, sink, sa, requestcpu, requestmm, limitcpu, limitmm))
+	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, sourceName, schedule, data, sink))
 	r.AssertNoError(out)
 }
