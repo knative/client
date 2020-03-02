@@ -18,7 +18,10 @@
 package e2e
 
 import (
+	"fmt"
+	"strings"
 	"testing"
+	"time"
 
 	"gotest.tools/assert"
 
@@ -56,7 +59,57 @@ func TestSourceCronJob(t *testing.T) {
 	jpSinkRefNameInSpec := "jsonpath={.spec.sink.ref.name}"
 	out, err := test.getResourceFieldsWithJSONPath("cronjobsource", "testcronjobsource2", jpSinkRefNameInSpec)
 	assert.NilError(t, err)
-	assert.Equal(t, out, "testsvc1")
+	//assert.Equal(t, out, "testsvc1")
+	assert.Check(t, util.ContainsAllIgnoreCase(out, "testsvc1"))
+
+	t.Log("verify event messages from cronjob source")
+	mymsg := "This is a message from cronjob."
+	test.serviceCreateEventDisplay(t, r, "displaysvc")
+	test.cronJobSourceCreate(t, r, "testcronjobsource3", "*/1 * * * *", mymsg, "svc:displaysvc")
+	results := test.kn.Run("source", "cronjob", "describe", "testcronjobsource3")
+	r.AssertNoError(results)
+	out, err = kubectl{test.kn.namespace}.Run("get", "pod", "-l", "sources.eventing.knative.dev/cronJobSource=testcronjobsource3", "-o", "yaml")
+	t.Log(out)
+	err = test.verifyEventDisplayLogs(t, "displaysvc", "This is a message from cronjob")
+	assert.NilError(t, err)
+}
+
+func (test *e2eTest) verifyEventDisplayLogs(t *testing.T, svcname string, message string) error {
+	var (
+		retries int
+		err     error
+		out     string
+	)
+
+	selectorStr := fmt.Sprintf("serving.knative.dev/service=%s", svcname)
+	for retries < 5 {
+		out, err = kubectl{test.kn.namespace}.Run("logs", "-l", selectorStr, "-c", "user-container")
+		if err != nil {
+			t.Logf("error happens at kubectl logs -l %s -c -n %s: %v", selectorStr, test.kn.namespace, err)
+		} else if err == nil && strings.Contains(out, message) {
+			break
+		} else {
+			t.Logf("return from kubectl logs -l %s -n %s: %s", selectorStr, test.kn.namespace, out)
+			out, err = kubectl{test.kn.namespace}.Run("get", "pods")
+			t.Log(out)
+			out, err = kubectl{test.kn.namespace}.Run("logs", "-l", "sources.eventing.knative.dev/cronJobSource=testcronjobsource3")
+			t.Log(out)
+		}
+		retries++
+		time.Sleep(2 * time.Minute)
+	}
+
+	if retries == 5 {
+		return fmt.Errorf("Expected log incorrect after retry 5 times. Expecting to include:\n%s\n Instead found:\n%s\n", message, out)
+	} else {
+		return nil
+	}
+}
+
+func (test *e2eTest) serviceCreateEventDisplay(t *testing.T, r *KnRunResultCollector, serviceName string) {
+	out := test.kn.Run("service", "create", serviceName, "--image", EventDisplayImage)
+	r.AssertNoError(out)
+	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "service", serviceName, "creating", "namespace", test.kn.namespace, "ready"))
 }
 
 func (test *e2eTest) cronJobSourceCreate(t *testing.T, r *KnRunResultCollector, sourceName string, schedule string, data string, sink string) {
