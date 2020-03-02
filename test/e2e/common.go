@@ -29,6 +29,7 @@ import (
 
 const (
 	KnDefaultTestImage string        = "gcr.io/knative-samples/helloworld-go"
+	EventDisplayImage  string        = "gcr.io/knative-releases/github.com/knative/eventing-contrib/cmd/event_display"
 	MaxRetries         int           = 10
 	RetrySleepDuration time.Duration = 5 * time.Second
 )

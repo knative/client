@@ -18,7 +18,10 @@
 package e2e
 
 import (
+	"fmt"
+	"strings"
 	"testing"
+	"time"
 
 	"gotest.tools/assert"
 
@@ -35,6 +38,10 @@ func TestSourcePing(t *testing.T) {
 
 	r := NewKnRunResultCollector(t)
 	defer r.DumpIfFailed()
+
+	err = test.lableNamespaceForDefaultBroker(t)
+	assert.NilError(t, err)
+	defer test.unlableNamespaceForDefaultBroker(t)
 
 	t.Log("Creating a testservice")
 	test.serviceCreate(t, r, "testsvc0")
@@ -57,6 +64,58 @@ func TestSourcePing(t *testing.T) {
 	out, err := test.getResourceFieldsWithJSONPath("pingsource", "testpingsource2", jpSinkRefNameInSpec)
 	assert.NilError(t, err)
 	assert.Equal(t, out, "testsvc1")
+
+	t.Log("verify event messages from Ping source")
+	mymsg := "This is a message from Ping."
+	test.serviceCreateEventDisplay(t, r, "displaysvc")
+	jpSvcUrlInStatus := "jsonpath={.status.url}"
+	out, err = test.getResourceFieldsWithJSONPath("kservice", "displaysvc", jpSvcUrlInStatus)
+	t.Logf("target url is: %s", out)
+	test.pingSourceCreate(t, r, "testpingsource3", "*/1 * * * *", mymsg, out)
+	// results := test.kn.Run("source", "ping", "describe", "testpingsource3")
+	// r.AssertNoError(results)
+	// out, err = kubectl{test.kn.namespace}.Run("get", "pod", "-l", "sources.knative.dev/pingSource=testpingsource3", "-o", "yaml")
+	// t.Log(out)
+	err = test.verifyEventDisplayLogs(t, "displaysvc", mymsg)
+	assert.NilError(t, err)
+}
+
+func (test *e2eTest) verifyEventDisplayLogs(t *testing.T, svcname string, message string) error {
+	var (
+		retries int
+		err     error
+		out     string
+	)
+
+	selectorStr := fmt.Sprintf("serving.knative.dev/service=%s", svcname)
+	for retries < 5 {
+		out, err = kubectl{test.kn.namespace}.Run("logs", "-l", selectorStr, "-c", "user-container")
+		if err != nil {
+			t.Logf("error happens at kubectl logs -l %s -c -n %s: %v", selectorStr, test.kn.namespace, err)
+		} else if err == nil && strings.Contains(out, message) {
+			break
+		} else {
+			t.Logf("return from kubectl logs -l %s -n %s: %s", selectorStr, test.kn.namespace, out)
+			out, err = kubectl{test.kn.namespace}.Run("get", "pods")
+			t.Log(out)
+			out, err = kubectl{test.kn.namespace}.Run("logs", "-l", "sources.knative.dev/pingSource=testpingsource3")
+			t.Log(out)
+		}
+		retries++
+		time.Sleep(2 * time.Minute)
+	}
+
+	if retries == 5 {
+		return fmt.Errorf("Expected log incorrect after retry 5 times. Expecting to include:\n%s\n Instead found:\n%s\n", message, out)
+	} else {
+		return nil
+	}
+}
+
+func (test *e2eTest) serviceCreateEventDisplay(t *testing.T, r *KnRunResultCollector, serviceName string) {
+	out := test.kn.Run("service", "create", serviceName, "--image", EventDisplayImage)
+	r.AssertNoError(out)
+	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "service", serviceName, "creating", "namespace", test.kn.namespace, "ready"))
 }
 
 func (test *e2eTest) pingSourceCreate(t *testing.T, r *KnRunResultCollector, sourceName string, schedule string, data string, sink string) {

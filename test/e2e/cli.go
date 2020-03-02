@@ -160,7 +160,7 @@ type KnRunResult struct {
 	ErrorExpected bool
 }
 
-// RunKubectl runs "kk" in a given namespace
+// RunKn runs "kn" in a given namespace
 func RunKn(namespace string, args []string) KnRunResult {
 	if namespace != "" {
 		args = append(args, "--namespace", namespace)
@@ -189,6 +189,7 @@ func RunKubectl(namespace string, args ...string) (string, error) {
 		args = append(args, "--namespace", namespace)
 	}
 	stdout, stderr, err := runCli("kubectl", args)
+	//out := fmt.Sprintf("$kubectl %s \n %s", args, stdout)
 	if err != nil {
 		return stdout, errors.Wrap(err, fmt.Sprintf("stderr: %s", stderr))
 	}
