@@ -189,7 +189,8 @@ func (w *waitForReadyConfig) waitForReadyCondition(start time.Time, name string,
 						}
 					}
 					if cond.Message != "" {
-						msgCallback(time.Since(start), cond.Message)
+						gen, _ := extractGivenGeneration(event.Object)
+						msgCallback(time.Since(start), fmt.Sprintf("%s (%v)", cond.Message, gen))
 					}
 				}
 			}
@@ -224,26 +225,42 @@ func (w *waitForEvent) Wait(name string, timeout time.Duration, msgCallback Mess
 }
 
 func isGivenEqualsObservedGeneration(object runtime.Object) (bool, error) {
-	unstructured, err := runtime.DefaultUnstructuredConverter.ToUnstructured(object)
+	givenGeneration, err := extractGivenGeneration(object)
 	if err != nil {
 		return false, err
 	}
-	meta, ok := unstructured["metadata"].(map[string]interface{})
-	if !ok {
-		return false, fmt.Errorf("cannot extract metadata from %v", object)
+	observedGeneration, err := observedGeneration(object)
+	if err != nil {
+		return false, err
+	}
+
+	return givenGeneration == observedGeneration, nil
+}
+
+func observedGeneration(object runtime.Object) (interface{}, error) {
+	unstructured, err := runtime.DefaultUnstructuredConverter.ToUnstructured(object)
+	if err != nil {
+		return nil, err
 	}
 	status, ok := unstructured["status"].(map[string]interface{})
 	if !ok {
-		return false, fmt.Errorf("cannot extract status from %v", object)
+		return nil, fmt.Errorf("cannot extract status from %v", object)
 	}
-	observedGeneration, ok := status["observedGeneration"]
+	return status["observedGeneration"], nil
+}
+
+func extractGivenGeneration(object runtime.Object) (interface{}, error) {
+	unstructured, err := runtime.DefaultUnstructuredConverter.ToUnstructured(object)
+	if err != nil {
+		return nil, err
+	}
+	meta, ok := unstructured["metadata"].(map[string]interface{})
 	if !ok {
-		// Can be the case if not status has been attached yet
-		return false, nil
+		return nil, fmt.Errorf("cannot extract metadata from %v", object)
 	}
 	givenGeneration, ok := meta["generation"]
 	if !ok {
-		return false, fmt.Errorf("no field 'generation' in metadata of %v", object)
+		return nil, fmt.Errorf("no field 'generation' in metadata of %v", object)
 	}
-	return givenGeneration == observedGeneration, nil
+	return givenGeneration, nil
 }
