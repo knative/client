@@ -35,13 +35,13 @@ func NewCronJobCreateCommand(p *commands.KnParams) *cobra.Command {
 		Short: "Create a CronJob source.",
 		Example: `
   # Create a crontab scheduler 'my-cron-trigger' which fires every minute and sends 'ping' to service 'mysvc' as a cloudevent
-  kn source cronjob create my-cron-trigger --schedule "* * * * */1" --data "ping" --sink svc:mysvc
+  kn source cronjob create my-cron-trigger --schedule "* * * * *" --data "ping" --sink svc:mysvc
   
   # Create a crontab scheduler 'my-cron-trigger' with ServiceAccount name
-  kn source cronjob create my-cron-trigger1 --schedule "* * * * */1" --data "ping" --sink svc:event-display --service-account myaccount
+  kn source cronjob create my-cron-trigger --schedule "* * * * *" --data "ping" --sink svc:event-display --service-account myaccount
 
   # Create a crontab scheduler 'my-cron-trigger' with requested resources
-  kn source cronjob create my-cron-trigger1 --schedule "* * * * */1" --data "ping" --sink svc:event-display --requests-cpu 100m --requests-memory 128Mi`,
+  kn source cronjob create my-cron-trigger --schedule "* * * * *" --data "ping" --sink svc:event-display --requests-cpu 100m --requests-memory 128Mi`,
 
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {

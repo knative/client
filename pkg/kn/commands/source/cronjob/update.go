@@ -35,7 +35,7 @@ func NewCronJobUpdateCommand(p *commands.KnParams) *cobra.Command {
 		Short: "Update a CronJob source.",
 		Example: `
   # Update the schedule of a crontab source 'my-cron-trigger' to fire every minute
-  kn source cronjob update my-cron-trigger --schedule "* * * * */1"`,
+  kn source cronjob update my-cron-trigger --schedule "* * * * *"`,
 
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {

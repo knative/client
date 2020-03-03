@@ -39,7 +39,7 @@ type cronJobUpdateFlags struct {
 }
 
 func (c *cronJobUpdateFlags) addCronJobFlags(cmd *cobra.Command) {
-	cmd.Flags().StringVar(&c.schedule, "schedule", "", "Schedule specification in crontab format (e.g. '* * * * */2' for every two minutes")
+	cmd.Flags().StringVar(&c.schedule, "schedule", "", "Schedule specification in crontab format (e.g. '*/2 * * * *' for every two minutes")
 	cmd.Flags().StringVarP(&c.data, "data", "d", "", "String data to send")
 	cmd.Flags().StringVar(&c.resourceRequestsCPU, "requests-cpu", "", "The requested CPU (e.g., 250m).")
 	cmd.Flags().StringVar(&c.resourceRequestsMemory, "requests-memory", "", "The requested memory (e.g., 64Mi).")
