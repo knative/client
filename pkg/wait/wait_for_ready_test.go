@@ -66,7 +66,7 @@ func TestAddWaitForReady(t *testing.T) {
 		}
 
 		// check messages
-//		assert.Assert(t, cmp.DeepEqual(tc.messagesExpected, msgs), "%d: Messages expected to be equal", i)
+		//		assert.Assert(t, cmp.DeepEqual(tc.messagesExpected, msgs), "%d: Messages expected to be equal", i)
 
 		if fakeWatchApi.StopCalled != 1 {
 			t.Errorf("%d: Exactly one 'stop' should be called, but got %d", i, fakeWatchApi.StopCalled)
