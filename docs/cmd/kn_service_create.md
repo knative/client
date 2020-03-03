@@ -44,7 +44,7 @@ kn service create NAME --image IMAGE [flags]
 ```
       --annotation stringArray    Service annotation to set. name=value; you may provide this flag any number of times to set multiple annotations. To unset, specify the annotation name followed by a "-" (e.g., name-).
       --arg stringArray           Add argument to the container command. Example: --arg myArg1 --arg --myArg2 --arg myArg3=3. You can use this flag multiple times.
-      --async                     DEPRECATED: please use --no-wait instead. Create service and don't wait for it to become ready.
+      --async                     DEPRECATED: please use --no-wait instead. Create service and don't wait for it to be ready.
       --autoscale-window string   Duration to look back for making auto-scaling decisions. The service is scaled to zero if no request was received in during that time. (eg: 10s)
       --cmd string                Specify command to be used as entrypoint instead of default one. Example: --cmd /app/start or --cmd /app/start --arg myArg to pass aditional arguments.
       --concurrency-limit int     Hard Limit of concurrent requests to be processed by a single replica.
@@ -63,13 +63,14 @@ kn service create NAME --image IMAGE [flags]
       --mount stringArray         Mount a ConfigMap (prefix cm: or config-map:), a Secret (prefix secret: or sc:), or an existing Volume (without any prefix) on the specified directory. Example: --mount /mydir=cm:myconfigmap, --mount /mydir=secret:mysecret, or --mount /mydir=myvolume. When a configmap or a secret is specified, a corresponding volume is automatically generated. You can use this flag multiple times. For unmounting a directory, append "-", e.g. --mount /mydir-, which also removes any auto-generated volume.
   -n, --namespace string          Specify the namespace to operate in.
       --no-lock-to-digest         Do not keep the running image for the service constant when not explicitly specifying the image. (--no-lock-to-digest pulls the image tag afresh with each new revision)
-      --no-wait                   Create service and don't wait for it to become ready.
+      --no-wait                   Create service and don't wait for it to be ready.
   -p, --port int32                The port where application listens on.
       --pull-secret string        Image pull secret to set. An empty argument ("") clears the pull secret. The referenced secret must exist in the service's namespace.
       --requests-cpu string       The requested CPU (e.g., 250m).
       --requests-memory string    The requested memory (e.g., 64Mi).
       --revision-name string      The revision name to set. Must start with the service name and a dash as a prefix. Empty revision name will result in the server generating a name for the revision. Accepts golang templates, allowing {{.Service}} for the service name, {{.Generation}} for the generation, and {{.Random [n]}} for n random consonants. (default "{{.Service}}-{{.Random 5}}-{{.Generation}}")
       --service-account string    Service account name to set. An empty argument ("") clears the service account. The referenced service account must exist in the service's namespace.
+      --user int                  The user ID to run the container (e.g., 1001).
       --volume stringArray        Add a volume from a ConfigMap (prefix cm: or config-map:) or a Secret (prefix secret: or sc:). Example: --volume myvolume=cm:myconfigmap or --volume myvolume=secret:mysecret. You can use this flag multiple times. To unset a ConfigMap/Secret reference, append "-" to the name, e.g. --volume myvolume-.
       --wait-timeout int          Seconds to wait before giving up on waiting for service to be ready. (default 600)
 ```
@@ -77,8 +78,8 @@ kn service create NAME --image IMAGE [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string       kn config file (default is $HOME/.kn/config.yaml)
-      --kubeconfig string   kubectl config file (default is $HOME/.kube/config)
+      --config string       kn config file (default is ~/.config/kn/config.yaml)
+      --kubeconfig string   kubectl config file (default is ~/.kube/config)
       --log-http            log http traffic
 ```
 

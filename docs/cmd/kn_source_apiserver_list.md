@@ -14,6 +14,9 @@ kn source apiserver list [flags]
 
 ```
 
+  # List all ApiServer sources
+  kn source apiserver list
+
   # List all ApiServer sources in YAML format
   kn source apiserver list -o yaml
 ```
@@ -33,8 +36,8 @@ kn source apiserver list [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string       kn config file (default is $HOME/.kn/config.yaml)
-      --kubeconfig string   kubectl config file (default is $HOME/.kube/config)
+      --config string       kn config file (default is ~/.config/kn/config.yaml)
+      --kubeconfig string   kubectl config file (default is ~/.kube/config)
       --log-http            log http traffic
 ```
 

@@ -30,6 +30,9 @@ func NewCronJobListCommand(p *commands.KnParams) *cobra.Command {
 		Use:   "list",
 		Short: "List CronJob sources.",
 		Example: `
+  # List all CronJob sources
+  kn source cronjob list
+
   # List all CronJob sources in YAML format
   kn source cronjob list -o yaml`,
 

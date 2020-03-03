@@ -52,6 +52,7 @@ type ConfigurationEditFlags struct {
 	ServiceAccountName         string
 	ImagePullSecrets           string
 	Annotations                []string
+	User                       int64
 
 	// Preferences about how to do the action.
 	LockToDigest         bool
@@ -189,6 +190,8 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 		"",
 		"Image pull secret to set. An empty argument (\"\") clears the pull secret. The referenced secret must exist in the service's namespace.")
 	p.markFlagMakesRevision("pull-secret")
+	command.Flags().Int64VarP(&p.User, "user", "", 0, "The user ID to run the container (e.g., 1001).")
+	p.markFlagMakesRevision("user")
 }
 
 // AddUpdateFlags adds the flags specific to update.
@@ -394,6 +397,10 @@ func (p *ConfigurationEditFlags) Apply(
 
 	if cmd.Flags().Changed("pull-secret") {
 		servinglib.UpdateImagePullSecrets(template, p.ImagePullSecrets)
+	}
+
+	if cmd.Flags().Changed("user") {
+		servinglib.UpdateUser(template, p.User)
 	}
 
 	return nil

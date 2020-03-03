@@ -91,6 +91,12 @@ func TestServiceOptions(t *testing.T) {
 	test.validateContainerField(t, r, "svc5", "args", "[myArg1 --myArg2]")
 	test.serviceUpdate(t, r, "svc5", "--arg", "myArg1")
 	test.validateContainerField(t, r, "svc5", "args", "[myArg1]")
+
+	t.Log("create, update and validate service with user defined")
+	test.serviceCreateWithOptions(t, r, "svc6", "--user", "1001")
+	test.validateContainerField(t, r, "svc6", "securityContext.runAsUser", "1001")
+	test.serviceUpdate(t, r, "svc6", "--user", "1002")
+	test.validateContainerField(t, r, "svc6", "securityContext.runAsUser", "1002")
 }
 
 func (test *e2eTest) serviceCreateWithOptions(t *testing.T, r *KnRunResultCollector, serviceName string, options ...string) {

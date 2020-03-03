@@ -17,6 +17,7 @@ package revision
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -25,6 +26,8 @@ import (
 
 // NewRevisionDeleteCommand represent 'revision delete' command
 func NewRevisionDeleteCommand(p *commands.KnParams) *cobra.Command {
+	var waitFlags commands.WaitFlags
+
 	RevisionDeleteCommand := &cobra.Command{
 		Use:   "delete NAME",
 		Short: "Delete a revision.",
@@ -45,7 +48,11 @@ func NewRevisionDeleteCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			for _, name := range args {
-				err = client.DeleteRevision(name)
+				timeout := time.Duration(0)
+				if !waitFlags.NoWait {
+					timeout = time.Duration(waitFlags.TimeoutInSeconds) * time.Second
+				}
+				err = client.DeleteRevision(name, timeout)
 				if err != nil {
 					fmt.Fprintf(cmd.OutOrStdout(), "%s.\n", err)
 				} else {
@@ -56,5 +63,6 @@ func NewRevisionDeleteCommand(p *commands.KnParams) *cobra.Command {
 		},
 	}
 	commands.AddNamespaceFlags(RevisionDeleteCommand.Flags(), false)
+	waitFlags.AddConditionWaitFlags(RevisionDeleteCommand, commands.WaitDefaultTimeout, "Delete", "revision", "deleted")
 	return RevisionDeleteCommand
 }

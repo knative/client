@@ -76,6 +76,40 @@ func TestAddWaitForReady(t *testing.T) {
 	}
 }
 
+func TestAddWaitForDelete(t *testing.T) {
+	for i, tc := range prepareDeleteTestCases("test-service") {
+		fakeWatchAPI := NewFakeWatch(tc.events)
+
+		waitForEvent := NewWaitForEvent(
+			"blub",
+			func(name string, timeout time.Duration) (watch.Interface, error) {
+				return fakeWatchAPI, nil
+			},
+			func(evt *watch.Event) bool { return evt.Type == watch.Deleted })
+		fakeWatchAPI.Start()
+
+		err, _ := waitForEvent.Wait("foobar", tc.timeout, NoopMessageCallback())
+		close(fakeWatchAPI.eventChan)
+
+		if tc.errorText == "" && err != nil {
+			t.Errorf("%d: Error received %v", i, err)
+			continue
+		}
+		if tc.errorText != "" {
+			if err == nil {
+				t.Errorf("%d: No error but expected one", i)
+			} else {
+				assert.ErrorContains(t, err, tc.errorText)
+			}
+		}
+
+		if fakeWatchAPI.StopCalled != 1 {
+			t.Errorf("%d: Exactly one 'stop' should be called, but got %d", i, fakeWatchAPI.StopCalled)
+		}
+
+	}
+}
+
 // Test cases which consists of a series of events to send and the expected behaviour.
 func prepareTestCases(name string) []waitForReadyTestCase {
 	return []waitForReadyTestCase{
@@ -84,6 +118,13 @@ func prepareTestCases(name string) []waitForReadyTestCase {
 		tc(peWrongGeneration, name, 1*time.Second, "timeout"),
 		tc(peTimeout, name, time.Second, "timeout"),
 		tc(peReadyFalseWithinErrorWindow, name, time.Second, ""),
+	}
+}
+
+func prepareDeleteTestCases(name string) []waitForReadyTestCase {
+	return []waitForReadyTestCase{
+		tc(deNormal, name, time.Second, ""),
+		tc(peTimeout, name, 10*time.Second, "timeout"),
 	}
 }
 
@@ -148,5 +189,14 @@ func peReadyFalseWithinErrorWindow(name string) ([]watch.Event, int) {
 	return []watch.Event{
 		{watch.Added, CreateTestServiceWithConditions(name, corev1.ConditionFalse, corev1.ConditionFalse, "Route not ready", messages[0])},
 		{watch.Modified, CreateTestServiceWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "Route ready", "")},
+	}, len(messages)
+}
+
+func deNormal(name string) ([]watch.Event, int) {
+	messages := pMessages(2)
+	return []watch.Event{
+		{watch.Added, CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "", messages[0])},
+		{watch.Modified, CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionTrue, "", messages[1])},
+		{watch.Deleted, CreateTestServiceWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "", "")},
 	}, len(messages)
 }

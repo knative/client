@@ -20,7 +20,7 @@ kn route list NAME [flags]
   # List route 'web' in namespace 'dev'
   kn route list web -n dev
 
-  # List all routes in yaml format
+  # List all routes in YAML format
   kn route list -o yaml
 ```
 
@@ -39,8 +39,8 @@ kn route list NAME [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string       kn config file (default is $HOME/.kn/config.yaml)
-      --kubeconfig string   kubectl config file (default is $HOME/.kube/config)
+      --config string       kn config file (default is ~/.config/kn/config.yaml)
+      --kubeconfig string   kubectl config file (default is ~/.kube/config)
       --log-http            log http traffic
 ```
 

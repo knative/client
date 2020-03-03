@@ -38,10 +38,10 @@ Available Commands:
 Flags:
   -h, --help                     help for plugin
       --lookup-plugins           look for kn plugins in $PATH
-      --plugins-dir string       kn plugins directory (default "~/.kn/plugins")
+      --plugins-dir string       kn plugins directory (default "~/.config/kn/plugins")
 
 Global Flags:
-      --config string       kn config file (default is $HOME/.kn/config.yaml)
+      --config string       kn config file (default is $HOME/.config/kn/config.yaml)
       --kubeconfig string   kubectl config file (default is $HOME/.kube/config)
 
 Use "kn plugin [command] --help" for more information about a command.`

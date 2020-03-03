@@ -40,7 +40,7 @@ kn service update NAME [flags]
 ```
       --annotation stringArray    Service annotation to set. name=value; you may provide this flag any number of times to set multiple annotations. To unset, specify the annotation name followed by a "-" (e.g., name-).
       --arg stringArray           Add argument to the container command. Example: --arg myArg1 --arg --myArg2 --arg myArg3=3. You can use this flag multiple times.
-      --async                     DEPRECATED: please use --no-wait instead. Update service and don't wait for it to become ready.
+      --async                     DEPRECATED: please use --no-wait instead. Update service and don't wait for it to be ready.
       --autoscale-window string   Duration to look back for making auto-scaling decisions. The service is scaled to zero if no request was received in during that time. (eg: 10s)
       --cmd string                Specify command to be used as entrypoint instead of default one. Example: --cmd /app/start or --cmd /app/start --arg myArg to pass aditional arguments.
       --concurrency-limit int     Hard Limit of concurrent requests to be processed by a single replica.
@@ -58,7 +58,7 @@ kn service update NAME [flags]
       --mount stringArray         Mount a ConfigMap (prefix cm: or config-map:), a Secret (prefix secret: or sc:), or an existing Volume (without any prefix) on the specified directory. Example: --mount /mydir=cm:myconfigmap, --mount /mydir=secret:mysecret, or --mount /mydir=myvolume. When a configmap or a secret is specified, a corresponding volume is automatically generated. You can use this flag multiple times. For unmounting a directory, append "-", e.g. --mount /mydir-, which also removes any auto-generated volume.
   -n, --namespace string          Specify the namespace to operate in.
       --no-lock-to-digest         Do not keep the running image for the service constant when not explicitly specifying the image. (--no-lock-to-digest pulls the image tag afresh with each new revision)
-      --no-wait                   Update service and don't wait for it to become ready.
+      --no-wait                   Update service and don't wait for it to be ready.
   -p, --port int32                The port where application listens on.
       --pull-secret string        Image pull secret to set. An empty argument ("") clears the pull secret. The referenced secret must exist in the service's namespace.
       --requests-cpu string       The requested CPU (e.g., 250m).
@@ -68,6 +68,7 @@ kn service update NAME [flags]
       --tag strings               Set tag (format: --tag revisionRef=tagName) where revisionRef can be a revision or '@latest' string representing latest ready revision. This flag can be specified multiple times.
       --traffic strings           Set traffic distribution (format: --traffic revisionRef=percent) where revisionRef can be a revision or a tag or '@latest' string representing latest ready revision. This flag can be given multiple times with percent summing up to 100%.
       --untag strings             Untag revision (format: --untag tagName). This flag can be specified multiple times.
+      --user int                  The user ID to run the container (e.g., 1001).
       --volume stringArray        Add a volume from a ConfigMap (prefix cm: or config-map:) or a Secret (prefix secret: or sc:). Example: --volume myvolume=cm:myconfigmap or --volume myvolume=secret:mysecret. You can use this flag multiple times. To unset a ConfigMap/Secret reference, append "-" to the name, e.g. --volume myvolume-.
       --wait-timeout int          Seconds to wait before giving up on waiting for service to be ready. (default 600)
 ```
@@ -75,8 +76,8 @@ kn service update NAME [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string       kn config file (default is $HOME/.kn/config.yaml)
-      --kubeconfig string   kubectl config file (default is $HOME/.kube/config)
+      --config string       kn config file (default is ~/.config/kn/config.yaml)
+      --kubeconfig string   kubectl config file (default is ~/.kube/config)
       --log-http            log http traffic
 ```
 
