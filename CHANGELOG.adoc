@@ -1,18 +1,16 @@
 # Changelog
 
-// Template:
-////
-[cols="1,10,3", options="header", width="100%"]
-|===
-| | Description | PR
+// Asciidoc template for a single table row. Copy the lines
+// within //// ... //// over into the current, unreleased version
+// table, select the proper icon (see legend at the bottom of this documents)
+// and adapt the link to point to your pull request. Please dont forget
+// the empty line separators.
 
-| 🎁🐛🧽🗑️
+////
+| 🎁🐛✨🐣🗑️
 |
 | https://github.com/knative/client/pull/[#]
-
-|===
 ////
-
 
 ## v0.13.0 (unreleased)
 
@@ -20,11 +18,11 @@
 |===
 | | Description | PR
 
-| 🧽
+| ✨
 | Allow configuration sink prefixes
 | https://github.com/knative/client/pull/571[#571]
 
-| 🧽
+| ✨
 | Support multiple revisions on `kn revision delete`
 | https://github.com/knative/client/pull/657[#657]
 
@@ -44,11 +42,11 @@
 | Add `--cmd` and `--arg` for customization of container entrypoint
 | https://github.com/knative/client/pull/635[#635]
 
-| 🧽
+| ✨
 | Add `no-wait` instead of `--async` and deprecate it
 | https://github.com/knative/client/pull/639[#639]
 
-| 🧽
+| ✨
 | Refactor service `create_test.go` and `update_test.go` to remove unecessary `sync` parameter in setup call
 | https://github.com/knative/client/pull/656[#656]
 
@@ -56,8 +54,8 @@
 | Fix `--image` flag to only allow single occurence
 | https://github.com/knative/client/pull/647[#647]
 
-| 🧽
-| Add `--wait` and `--no-wait` to service delete operation. Change service delete to wait by default.   
+| ✨
+| Add `--wait` and `--no-wait` to service delete operation. Change service delete to wait by default.
 | https://github.com/knative/client/pull/682[#682]
 
 | 🎁
@@ -79,7 +77,7 @@
 | Update to Knative eventing v0.12.0
 | https://github.com/knative/client/pull/621[#621]
 
-| 🧽️
+| ✨️
 | Update to Knative serving v0.12.0
 | https://github.com/knative/client/pull/618[#618]
 
@@ -87,7 +85,7 @@
 | Add `--pull-secret` for specifying pull secrets
 | https://github.com/knative/client/pull/617[#617]
 
-| 🧽
+| ✨
 | Improve error handling when no command is given
 | https://github.com/knative/client/pull/615[#615]
 
@@ -95,7 +93,7 @@
 | Add `--autoscale-window` for service commands
 | https://github.com/knative/client/pull/614[#614]
 
-| 🧽
+| ✨
 | Add checks for namespace creation instead of waiting
 | https://github.com/knative/client/pull/611[#611]
 
@@ -156,15 +154,15 @@
 | Add `kn source apiserver create/delete/update/describe` for managing ApiServer sources
 | https://github.com/knative/client/pull/556[#556]
 
-| 🧽
+| ✨
 | Update to Knative eventing dependency to 0.11.0
 | https://github.com/knative/client/pull/546[#546]
 
-| 🧽
+| ✨
 | Update to Knative serving dependency to 0.11.0
 | https://github.com/knative/client/pull/545[#545]
 
-| 🧽
+| ✨
 | Move cluster URL to `--verbose` for `service describe`
 | https://github.com/knative/client/pull/543[#543]
 
@@ -192,15 +190,15 @@
 | Add CI tests for using Kn with Tekton
 | https://github.com/knative/client/pull/528[#528]
 
-| 🧽
+| ✨
 | Update version information for eventing dependencies
 | https://github.com/knative/client/pull/495[#495]
 
-| 🧽
+| ✨
 | Support multiple NAMEs on kn service delete
 | https://github.com/knative/client/pull/492[#492]
 
-| 🧽
+| ✨
 | Add polling fallback for watching on service readiness
 | https://github.com/knative/client/pull/491[#491]
 
@@ -215,7 +213,7 @@
 |===
 | | Description | PR
 
-| 🧽
+| ✨
 | Update Knative serving dependency to 0.10.0
 | https://github.com/knative/client/pull/474[#474]
 
@@ -242,11 +240,11 @@
 |===
 | | Description | PR
 
-| 🧽
+| ✨
 | Update to Knative serving dependency to 0.9.0
 | https://github.com/knative/client/pull/458[#458]
 
-| 🧽
+| ✨
 | Add revision information to service list
 | https://github.com/knative/client/pull/441[#441]
 
@@ -258,11 +256,11 @@
 | Update build.sh -w to add a message when compilation succeeded
 | https://github.com/knative/client/pull/432[#432]
 
-| 🧽
+| ✨
 | Add more progress information during service create/update
 | https://github.com/knative/client/pull/431[#431]
 
-| 🧽
+| ✨
 | Change plugins configuration name to use `-` (dash) instead of camel case
 | https://github.com/knative/client/pull/428[#428]
 
@@ -270,11 +268,11 @@
 | Add `--annotation` flag for service create and update
 | https://github.com/knative/client/pull/422[#422]
 
-| 🧽
+| ✨
 | Restructure documentation
 | https://github.com/knative/client/pull/421[#421]
 
-| 🧽
+| ✨
 | Refine `route list` output
 | https://github.com/knative/client/pull/407[#407]
 
@@ -290,11 +288,11 @@
 | Retain the request body when logging HTTP
 | https://github.com/knative/client/pull/378[#378]
 
-| 🧽
+| ✨
 | Adds support for building cross platform binaries
 | https://github.com/knative/client/pull/371[#371]
 
-| 🧽
+| ✨
 | Update `version` command shows supported Serving and API versions
 | https://github.com/knative/client/pull/370[#370]
 
@@ -314,7 +312,7 @@
 | Wrap help messages to terminal size
 | https://github.com/knative/client/pull/351[#351]
 
-| 🧽
+| ✨
 | Change bool flags to the paired `--foo` and `--no-foo` format
 | https://github.com/knative/client/pull/346[#346]
 
@@ -354,7 +352,7 @@
 | Report an error if no flag(s) set in service update
 | https://github.com/knative/client/pull/318[#318]
 
-| 🧽
+| ✨
 | Improve create service error message
 | https://github.com/knative/client/pull/312[#312]
 
@@ -417,7 +415,7 @@
 | Dynamically set GroupVersionKind via schema lookup
 | https://github.com/knative/client/pull/134[#134]
 
-| 🧽
+| ✨
 | Introduce a `KnClient` interface
 | https://github.com/knative/client/pull/134[#134]
 
@@ -429,7 +427,7 @@
 | Add `kn route list`
 | https://github.com/knative/client/pull/202[#202]
 
-| 🧽
+| ✨
 | Improved error message when no command is given
 | https://github.com/knative/client/pull/218[#218]
 
@@ -453,7 +451,7 @@
 | Add goimport to `build.sh`
 | https://github.com/knative/client/pull/186[#186]
 
-| 🧽
+| ✨
 | Wait for service to become ready with `kn service create`
 | https://github.com/knative/client/pull/156[#156]
 
@@ -461,19 +459,19 @@
 | Add shell based smoke tests
 | https://github.com/knative/client/pull/183[#183]
 
-| 🧽
+| ✨
 | Use current namespace from `.kube/config` as default
 | https://github.com/knative/client/pull/172[#172]
 
-| 🧽
+| ✨
 | Add `--force` to `kn service create` for replacing existing service
 | https://github.com/knative/client/pull/79[#79]
 
-| 🧽
+| ✨
 | Add `kn revision list --service <srv>`
 | https://github.com/knative/client/pull/194[#194]
 
-| 🧽
+| ✨
 | Add success message to `kn service update`
 | https://github.com/knative/client/pull/169[#169]
 
@@ -485,15 +483,15 @@
 | Add Golang based E2E tests
 | https://github.com/knative/client/pull/121[#121]
 
-| 🧽
+| ✨
 | Rename `kn revision get` to `kn revision list`
 | https://github.com/knative/client/pull/180[#180]
 
-| 🧽
+| ✨
 | Rename `kn service get` to `kn service list`
 | https://github.com/knative/client/pull/179[#179]
 
-| 🧽
+| ✨
 | Refactoring to use sub-packages
 | https://github.com/knative/client/pull/66[#66]
 
@@ -501,7 +499,7 @@
 | Add `--test`, `--fast`, `--update` to `build.sh`
 | https://github.com/knative/client/pull/149[#149]
 
-| 🧽️
+| ✨️
 | Update to Knative serving 0.6.0
 | https://github.com/knative/client/pull/129[#129]
 
@@ -545,7 +543,7 @@
 |===
 
 '''
-_Legend_ :  🎁 Feature - 🐛 Fix - 🧽 Update - 🗑️ Remove
+_Legend_ :  🎁 Feature - 🐛 Fix - ✨ Update - 🐣 Refactoring - 🗑️ Remove
 
 ////
 ---------------------------------------------
@@ -554,4 +552,17 @@ Ignore PRs:
 12
 45
 ---------------------------------------------
+////
+
+// Asciidoc Template for a new release table. Add this after creating a release
+// to collect new changelog entries
+////
+
+## v0.XX.0 (unreleased)
+
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+|===
 ////
