@@ -267,7 +267,7 @@ func (cl *knServingClient) DeleteService(serviceName string, timeout time.Durati
 	waitC := make(chan error)
 	go func() {
 		waitForEvent := wait.NewWaitForEvent("service", cl.WatchService, func(evt *watch.Event) bool { return evt.Type == watch.Deleted })
-		err, _ := waitForEvent.Wait(serviceName, timeout, wait.NoopMessageCallback())
+		err, _ := waitForEvent.Wait(serviceName, wait.Options{Timeout: &timeout}, wait.NoopMessageCallback())
 		waitC <- err
 	}()
 	err := cl.deleteService(serviceName, v1.DeletePropagationForeground)
@@ -292,7 +292,7 @@ func (cl *knServingClient) deleteService(serviceName string, propagationPolicy v
 // Wait for a service to become ready, but not longer than provided timeout
 func (cl *knServingClient) WaitForService(name string, timeout time.Duration, msgCallback wait.MessageCallback) (error, time.Duration) {
 	waitForReady := wait.NewWaitForReady("service", cl.WatchService, serviceConditionExtractor)
-	return waitForReady.Wait(name, timeout, msgCallback)
+	return waitForReady.Wait(name, wait.Options{Timeout: &timeout}, msgCallback)
 }
 
 // Get the configuration for a service
@@ -382,7 +382,7 @@ func (cl *knServingClient) DeleteRevision(name string, timeout time.Duration) er
 	waitC := make(chan error)
 	go func() {
 		waitForEvent := wait.NewWaitForEvent("revision", cl.WatchRevision, func(evt *watch.Event) bool { return evt.Type == watch.Deleted })
-		err, _ := waitForEvent.Wait(name, timeout, wait.NoopMessageCallback())
+		err, _ := waitForEvent.Wait(name, wait.Options{Timeout: &timeout}, wait.NoopMessageCallback())
 		waitC <- err
 	}()
 	err := cl.deleteRevision(name)
