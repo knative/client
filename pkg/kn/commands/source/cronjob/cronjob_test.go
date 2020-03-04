@@ -82,9 +82,18 @@ func cleanupCronJobMockClient() {
 	cronJobSourceClientFactory = nil
 }
 
-func createCronJobSource(name, schedule, data, service string) *v1alpha1.CronJobSource {
+func createCronJobSource(name, schedule, data, service string, sa string, requestcpu string, requestmm string, limitcpu string, limitmm string) *v1alpha1.CronJobSource {
 	sink := &v1beta1.Destination{
 		Ref: &corev1.ObjectReference{Name: service, Kind: "Service", APIVersion: "serving.knative.dev/v1", Namespace: "default"},
 	}
-	return source_client_v1alpha1.NewCronJobSourceBuilder(name).Schedule(schedule).Data(data).Sink(sink).Build()
+	return source_client_v1alpha1.NewCronJobSourceBuilder(name).
+		Schedule(schedule).
+		Data(data).
+		Sink(sink).
+		ResourceRequestsCPU(requestcpu).
+		ResourceRequestsMemory(requestmm).
+		ResourceLimitsCPU(limitcpu).
+		ResourceLimitsMemory(limitmm).
+		ServiceAccount(sa).
+		Build()
 }

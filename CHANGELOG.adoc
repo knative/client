@@ -19,6 +19,10 @@
 | | Description | PR
 
 | ✨
+| Add serviceaccount and resources config to cronjob source handling
+| https://github.com/knative/client/issues/564[#564]
+
+| ✨
 | Allow configuration sink prefixes
 | https://github.com/knative/client/pull/571[#571]
 

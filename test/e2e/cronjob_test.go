@@ -57,6 +57,12 @@ func TestSourceCronJob(t *testing.T) {
 	out, err := test.getResourceFieldsWithJSONPath("cronjobsource", "testcronjobsource2", jpSinkRefNameInSpec)
 	assert.NilError(t, err)
 	assert.Equal(t, out, "testsvc1")
+
+	t.Log("create cronJob source with service account and resources")
+	test.cronJobSourceCreateWithResources(t, r, "testcronjobsource3", "* * * * */1", "ping", "svc:testsvc0", "default", "100m", "128Mi", "200m", "256Mi")
+	test.verifyCronJobSourceDescribe(t, r, "testcronjobsource3", "* * * * */1", "ping", "testsvc0", "default", "100m", "128Mi", "200m", "256Mi")
+	test.cronJobSourceUpdateResources(t, r, "testcronjobsource3", "101m", "129Mi", "201m", "257Mi")
+	test.verifyCronJobSourceDescribe(t, r, "testcronjobsource3", "* * * * */1", "ping", "testsvc0", "default", "101m", "129Mi", "201m", "257Mi")
 }
 
 func (test *e2eTest) cronJobSourceCreate(t *testing.T, r *KnRunResultCollector, sourceName string, schedule string, data string, sink string) {
@@ -83,5 +89,26 @@ func (test *e2eTest) cronJobSourceCreateMissingSink(t *testing.T, r *KnRunResult
 func (test *e2eTest) cronJobSourceUpdateSink(t *testing.T, r *KnRunResultCollector, sourceName string, sink string) {
 	out := test.kn.Run("source", "cronjob", "update", sourceName, "--sink", sink)
 	assert.Check(t, util.ContainsAll(out.Stdout, sourceName, "updated", "namespace", test.kn.namespace))
+	r.AssertNoError(out)
+}
+
+func (test *e2eTest) cronJobSourceCreateWithResources(t *testing.T, r *KnRunResultCollector, sourceName string, schedule string, data string, sink string, sa string, requestcpu string, requestmm string, limitcpu string, limitmm string) {
+	out := test.kn.Run("source", "cronjob", "create", sourceName,
+		"--schedule", schedule, "--data", data, "--sink", sink, "--service-account", sa,
+		"--requests-cpu", requestcpu, "--requests-memory", requestmm, "--limits-cpu", limitcpu, "--limits-memory", limitmm)
+	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "cronjob", "source", sourceName, "created", "namespace", test.kn.namespace))
+	r.AssertNoError(out)
+}
+
+func (test *e2eTest) cronJobSourceUpdateResources(t *testing.T, r *KnRunResultCollector, sourceName string, requestcpu string, requestmm string, limitcpu string, limitmm string) {
+	out := test.kn.Run("source", "cronjob", "update", sourceName,
+		"--requests-cpu", requestcpu, "--requests-memory", requestmm, "--limits-cpu", limitcpu, "--limits-memory", limitmm)
+	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, sourceName, "updated", "namespace", test.kn.namespace))
+	r.AssertNoError(out)
+}
+
+func (test *e2eTest) verifyCronJobSourceDescribe(t *testing.T, r *KnRunResultCollector, sourceName string, schedule string, data string, sink string, sa string, requestcpu string, requestmm string, limitcpu string, limitmm string) {
+	out := test.kn.Run("source", "cronjob", "describe", sourceName)
+	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, sourceName, schedule, data, sink, sa, requestcpu, requestmm, limitcpu, limitmm))
 	r.AssertNoError(out)
 }

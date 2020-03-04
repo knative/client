@@ -29,13 +29,24 @@ import (
 )
 
 type cronJobUpdateFlags struct {
-	schedule string
-	data     string
+	schedule               string
+	data                   string
+	resourceRequestsCPU    string
+	resourceRequestsMemory string
+	resourceLimitsCPU      string
+	resourceLimitsMemory   string
+	serviceAccountName     string
 }
 
 func (c *cronJobUpdateFlags) addCronJobFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&c.schedule, "schedule", "", "Schedule specification in crontab format (e.g. '* * * * */2' for every two minutes")
 	cmd.Flags().StringVarP(&c.data, "data", "d", "", "String data to send")
+	cmd.Flags().StringVar(&c.resourceRequestsCPU, "requests-cpu", "", "The requested CPU (e.g., 250m).")
+	cmd.Flags().StringVar(&c.resourceRequestsMemory, "requests-memory", "", "The requested memory (e.g., 64Mi).")
+	cmd.Flags().StringVar(&c.resourceLimitsCPU, "limits-cpu", "", "The limits on the requested CPU (e.g., 1000m).")
+	cmd.Flags().StringVar(&c.resourceLimitsMemory, "limits-memory", "",
+		"The limits on the requested memory (e.g., 1024Mi).")
+	cmd.Flags().StringVar(&c.serviceAccountName, "service-account", "", "Name of the service account to use to run this source")
 }
 
 // CronJobListHandlers handles printing human readable table for `kn source cronjob list` command's output
