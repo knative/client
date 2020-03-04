@@ -14,7 +14,10 @@ kn source binding list [flags]
 
 ```
 
-  # List all sink binding in YAML format
+  # List all sink binidngs
+  kn source binding list
+
+  # List all sink bindings in YAML format
   kn source binding list -o yaml
 ```
 
@@ -33,8 +36,8 @@ kn source binding list [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string       kn config file (default is $HOME/.kn/config.yaml)
-      --kubeconfig string   kubectl config file (default is $HOME/.kube/config)
+      --config string       kn config file (default is ~/.config/kn/config.yaml)
+      --kubeconfig string   kubectl config file (default is ~/.kube/config)
       --log-http            log http traffic
 ```
 

@@ -28,73 +28,70 @@ import (
 
 func TestRoute(t *testing.T) {
 	t.Parallel()
-	test := NewE2eTest(t)
-	test.Setup(t)
-	defer test.Teardown(t)
+	test, err := NewE2eTest()
+	assert.NilError(t, err)
+	defer func() {
+		assert.NilError(t, test.Teardown())
+	}()
 
-	t.Run("create hello service and return no error", func(t *testing.T) {
-		test.serviceCreate(t, "hello")
-	})
+	r := NewKnRunResultCollector(t)
+	defer r.DumpIfFailed()
 
-	t.Run("return a list of routes", func(t *testing.T) {
-		test.routeList(t)
-	})
+	t.Log("create hello service and return no error")
+	test.serviceCreate(t, r, "hello")
 
-	t.Run("return a list of routes associated with hello service", func(t *testing.T) {
-		test.routeListWithArgument(t, "hello")
-	})
+	t.Log("return a list of routes")
+	test.routeList(t, r)
 
-	t.Run("return a list of routes associated with hello service with print flags", func(t *testing.T) {
-		test.routeListWithPrintFlags(t, "hello")
-	})
+	t.Log("return a list of routes associated with hello service")
+	test.routeListWithArgument(t, r, "hello")
 
-	t.Run("describe route from hello service", func(t *testing.T) {
-		test.routeDescribe(t, "hello")
-	})
+	t.Log("return a list of routes associated with hello service with print flags")
+	test.routeListWithPrintFlags(t, r, "hello")
 
-	t.Run("describe route from hello service with print flags", func(t *testing.T) {
-		test.routeDescribeWithPrintFlags(t, "hello")
-	})
+	t.Log("describe route from hello service")
+	test.routeDescribe(t, r, "hello")
 
-	t.Run("delete hello service and return no error", func(t *testing.T) {
-		test.serviceDelete(t, "hello")
-	})
+	t.Log("describe route from hello service with print flags")
+	test.routeDescribeWithPrintFlags(t, r, "hello")
+
+	t.Log("delete hello service and return no error")
+	test.serviceDelete(t, r, "hello")
 }
 
-func (test *e2eTest) routeList(t *testing.T) {
-	out, err := test.kn.RunWithOpts([]string{"route", "list"}, runOpts{})
-	assert.NilError(t, err)
+func (test *e2eTest) routeList(t *testing.T, r *KnRunResultCollector) {
+	out := test.kn.Run("route", "list")
 
 	expectedHeaders := []string{"NAME", "URL", "READY"}
-	assert.Check(t, util.ContainsAll(out, expectedHeaders...))
+	assert.Check(t, util.ContainsAll(out.Stdout, expectedHeaders...))
+	r.AssertNoError(out)
 }
 
-func (test *e2eTest) routeListWithArgument(t *testing.T, routeName string) {
-	out, err := test.kn.RunWithOpts([]string{"route", "list", routeName}, runOpts{})
-	assert.NilError(t, err)
+func (test *e2eTest) routeListWithArgument(t *testing.T, r *KnRunResultCollector, routeName string) {
+	out := test.kn.Run("route", "list", routeName)
 
-	assert.Check(t, util.ContainsAll(out, routeName))
+	assert.Check(t, util.ContainsAll(out.Stdout, routeName))
+	r.AssertNoError(out)
 }
 
-func (test *e2eTest) routeDescribe(t *testing.T, routeName string) {
-	out, err := test.kn.RunWithOpts([]string{"route", "describe", routeName}, runOpts{})
-	assert.NilError(t, err)
+func (test *e2eTest) routeDescribe(t *testing.T, r *KnRunResultCollector, routeName string) {
+	out := test.kn.Run("route", "describe", routeName)
 
-	assert.Check(t, util.ContainsAll(out,
+	assert.Check(t, util.ContainsAll(out.Stdout,
 		routeName, test.kn.namespace, "URL", "Service", "Traffic", "Targets", "Conditions"))
+	r.AssertNoError(out)
 }
 
-func (test *e2eTest) routeDescribeWithPrintFlags(t *testing.T, routeName string) {
-	out, err := test.kn.RunWithOpts([]string{"route", "describe", routeName, "-o=name"}, runOpts{})
-	assert.NilError(t, err)
+func (test *e2eTest) routeDescribeWithPrintFlags(t *testing.T, r *KnRunResultCollector, routeName string) {
+	out := test.kn.Run("route", "describe", routeName, "-o=name")
 
 	expectedName := fmt.Sprintf("route.serving.knative.dev/%s", routeName)
-	assert.Equal(t, strings.TrimSpace(out), expectedName)
+	assert.Equal(t, strings.TrimSpace(out.Stdout), expectedName)
+	r.AssertNoError(out)
 }
 
-func (test *e2eTest) routeListWithPrintFlags(t *testing.T, names ...string) {
-	out, err := test.kn.RunWithOpts([]string{"route", "list", "-o=jsonpath={.items[*].metadata.name}"}, runOpts{})
-	assert.NilError(t, err)
-
-	assert.Check(t, util.ContainsAll(out, names...))
+func (test *e2eTest) routeListWithPrintFlags(t *testing.T, r *KnRunResultCollector, names ...string) {
+	out := test.kn.Run("route", "list", "-o=jsonpath={.items[*].metadata.name}")
+	assert.Check(t, util.ContainsAll(out.Stdout, names...))
+	r.AssertNoError(out)
 }

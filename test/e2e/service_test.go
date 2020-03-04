@@ -24,114 +24,108 @@ import (
 
 	"gotest.tools/assert"
 	"knative.dev/client/pkg/util"
-
 	"knative.dev/serving/pkg/reconciler/route/config"
 )
 
 func TestService(t *testing.T) {
 	t.Parallel()
-	test := NewE2eTest(t)
-	test.Setup(t)
-	defer test.Teardown(t)
+	test, err := NewE2eTest()
+	assert.NilError(t, err)
+	defer func() {
+		assert.NilError(t, test.Teardown())
+	}()
 
-	t.Run("create hello service duplicate and get service already exists error", func(t *testing.T) {
-		test.serviceCreate(t, "hello")
-		test.serviceCreateDuplicate(t, "hello")
-	})
+	r := NewKnRunResultCollector(t)
+	defer r.DumpIfFailed()
 
-	t.Run("create private service and change test change pf visibility", func(t *testing.T) {
-		test.serviceCreatePrivate(t, "hello-private")
-		test.serviceCreatePrivateUpdatePublic(t, "hello-private-public")
-	})
+	t.Log("create hello service duplicate and get service already exists error")
+	test.serviceCreate(t, r, "hello")
+	test.serviceCreatePrivate(t, r, "hello")
+	test.serviceCreateDuplicate(t, r, "hello")
 
-	t.Run("return valid info about hello service with print flags", func(t *testing.T) {
-		test.serviceDescribeWithPrintFlags(t, "hello")
-	})
+	t.Log("return valid info about hello service with print flags")
+	test.serviceDescribeWithPrintFlags(t, r, "hello")
 
-	t.Run("delete hello service repeatedly and get an error", func(t *testing.T) {
-		test.serviceDelete(t, "hello")
-		test.serviceDeleteNonexistent(t, "hello")
-	})
+	t.Log("delete hello service repeatedly and get an error")
+	test.serviceDelete(t, r, "hello")
+	test.serviceDeleteNonexistent(t, r, "hello")
 
-	t.Run("delete two services with a service nonexistent", func(t *testing.T) {
-		test.serviceCreate(t, "hello")
-		test.serviceMultipleDelete(t, []string{"hello123", "hello"})
-	})
+	t.Log("delete two services with a service nonexistent")
+	test.serviceCreate(t, r, "hello")
+
+	test.serviceMultipleDelete(t, r, "hello", "bla123")
 }
 
-func (test *e2eTest) serviceCreateDuplicate(t *testing.T, serviceName string) {
-	out, err := test.kn.RunWithOpts([]string{"service", "list", serviceName}, runOpts{NoNamespace: false})
-	assert.NilError(t, err)
-	assert.Check(t, strings.Contains(out, serviceName), "The service does not exist yet")
+func (test *e2eTest) serviceCreatePrivate(t *testing.T, r *KnRunResultCollector, serviceName string) {
+	out := test.kn.Run("service", "create", serviceName,
+		"--image", KnDefaultTestImage, "--cluster-local")
+	r.AssertNoError(out)
+	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "service", serviceName, "creating", "namespace", test.kn.namespace, "ready"))
 
-	_, err = test.kn.RunWithOpts([]string{"service", "create", serviceName,
-		"--image", KnDefaultTestImage}, runOpts{NoNamespace: false, AllowError: true})
-
-	assert.ErrorContains(t, err, "the service already exists")
+	out = test.kn.Run("service", "describe", serviceName, "--verbose")
+	r.AssertNoError(out)
+	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, config.VisibilityLabelKey, config.VisibilityClusterLocal))
 }
 
-func (test *e2eTest) serviceCreatePrivate(t *testing.T, serviceName string) {
-	out, err := test.kn.RunWithOpts([]string{"service", "create", serviceName,
-		"--image", KnDefaultTestImage, "--cluster-local"}, runOpts{NoNamespace: false, AllowError: true})
-	assert.NilError(t, err)
-	assert.Check(t, util.ContainsAllIgnoreCase(out, "service", serviceName, "creating", "namespace", test.kn.namespace, "ready"))
+func (test *e2eTest) serviceCreatePrivateUpdatePublic(t *testing.T, r *KnRunResultCollector, serviceName string) {
+	out := test.kn.Run("service", "create", serviceName,
+		"--image", KnDefaultTestImage, "--cluster-local")
+	r.AssertNoError(out)
+	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "service", serviceName, "creating", "namespace", test.kn.namespace, "ready"))
 
-	out, err = test.kn.RunWithOpts([]string{"service", "describe", serviceName, "--verbose"}, runOpts{NoNamespace: false, AllowError: true})
-	assert.NilError(t, err)
-	assert.Check(t, util.ContainsAllIgnoreCase(out, config.VisibilityLabelKey, config.VisibilityClusterLocal))
+	out = test.kn.Run("service", "describe", serviceName, "--verbose")
+	r.AssertNoError(out)
+	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, config.VisibilityLabelKey, config.VisibilityClusterLocal))
+
+	out = test.kn.Run("service", "update", serviceName,
+		"--image", KnDefaultTestImage, "--no-cluster-local")
+	r.AssertNoError(out)
+	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "service", serviceName, "updated", "namespace", test.kn.namespace, "ready"))
+
+	out = test.kn.Run("service", "describe", serviceName, "--verbose")
+	r.AssertNoError(out)
+	assert.Check(t, util.ContainsNone(out.Stdout, config.VisibilityLabelKey, config.VisibilityClusterLocal))
 }
 
-func (test *e2eTest) serviceCreatePrivateUpdatePublic(t *testing.T, serviceName string) {
-	out, err := test.kn.RunWithOpts([]string{"service", "create", serviceName,
-		"--image", KnDefaultTestImage, "--cluster-local"}, runOpts{NoNamespace: false, AllowError: true})
-	assert.NilError(t, err)
-	assert.Check(t, util.ContainsAllIgnoreCase(out, "service", serviceName, "creating", "namespace", test.kn.namespace, "ready"))
+func (test *e2eTest) serviceCreateDuplicate(t *testing.T, r *KnRunResultCollector, serviceName string) {
+	out := test.kn.Run("service", "list", serviceName)
+	r.AssertNoError(out)
+	assert.Check(t, strings.Contains(out.Stdout, serviceName), "The service does not exist yet")
 
-	out, err = test.kn.RunWithOpts([]string{"service", "describe", serviceName, "--verbose"}, runOpts{NoNamespace: false, AllowError: true})
-	assert.NilError(t, err)
-	assert.Check(t, util.ContainsAllIgnoreCase(out, config.VisibilityLabelKey, config.VisibilityClusterLocal))
-
-	out, err = test.kn.RunWithOpts([]string{"service", "update", serviceName,
-		"--image", KnDefaultTestImage, "--no-cluster-local"}, runOpts{NoNamespace: false, AllowError: true})
-	assert.NilError(t, err)
-	assert.Check(t, util.ContainsAllIgnoreCase(out, "service", serviceName, "updated", "namespace", test.kn.namespace, "ready"))
-
-	out, err = test.kn.RunWithOpts([]string{"service", "describe", serviceName, "--verbose"}, runOpts{NoNamespace: false, AllowError: true})
-	assert.NilError(t, err)
-	assert.Check(t, util.ContainsNone(out, config.VisibilityLabelKey, config.VisibilityClusterLocal))
+	out = test.kn.Run("service", "create", serviceName, "--image", KnDefaultTestImage)
+	r.AssertError(out)
+	assert.Check(t, util.ContainsAll(out.Stderr, "the service already exists"))
 }
 
-func (test *e2eTest) serviceDescribeWithPrintFlags(t *testing.T, serviceName string) {
-	out, err := test.kn.RunWithOpts([]string{"service", "describe", serviceName, "-o=name"}, runOpts{})
-	assert.NilError(t, err)
+func (test *e2eTest) serviceDescribeWithPrintFlags(t *testing.T, r *KnRunResultCollector, serviceName string) {
+	out := test.kn.Run("service", "describe", serviceName, "-o=name")
+	r.AssertNoError(out)
 
 	expectedName := fmt.Sprintf("service.serving.knative.dev/%s", serviceName)
-	assert.Equal(t, strings.TrimSpace(out), expectedName)
+	assert.Equal(t, strings.TrimSpace(out.Stdout), expectedName)
 }
 
-func (test *e2eTest) serviceDeleteNonexistent(t *testing.T, serviceName string) {
-	out, err := test.kn.RunWithOpts([]string{"service", "list", serviceName}, runOpts{NoNamespace: false})
-	assert.NilError(t, err)
-	assert.Check(t, !strings.Contains(out, serviceName), "The service exists")
+func (test *e2eTest) serviceDeleteNonexistent(t *testing.T, r *KnRunResultCollector, serviceName string) {
+	out := test.kn.Run("service", "list", serviceName)
+	r.AssertNoError(out)
+	assert.Check(t, !strings.Contains(out.Stdout, serviceName), "The service exists")
 
-	out, err = test.kn.RunWithOpts([]string{"service", "delete", serviceName}, runOpts{NoNamespace: false, AllowError: true})
-
-	expectedErr := fmt.Sprintf(`services.serving.knative.dev "%s" not found`, serviceName)
-	assert.Check(t, strings.Contains(out, expectedErr), "Failed to get 'not found' error")
+	out = test.kn.Run("service", "delete", serviceName)
+	r.AssertNoError(out)
+	assert.Check(t, util.ContainsAll(out.Stdout, "hello", "not found"), "Failed to get 'not found' error")
 }
 
-func (test *e2eTest) serviceMultipleDelete(t *testing.T, serviceName []string) {
-	existService := serviceName[1]
-	nonexistService := serviceName[0]
-	out, err := test.kn.RunWithOpts([]string{"service", "list"}, runOpts{NoNamespace: false})
-	assert.NilError(t, err)
-	assert.Check(t, strings.Contains(out, existService), "The service not exists")
-	assert.Check(t, !strings.Contains(out, nonexistService), "The service exists")
+func (test *e2eTest) serviceMultipleDelete(t *testing.T, r *KnRunResultCollector, existService, nonexistService string) {
+	out := test.kn.Run("service", "list")
+	r.AssertNoError(out)
+	assert.Check(t, strings.Contains(out.Stdout, existService), "The service ", existService, " does not exist (but is expected to exist)")
+	assert.Check(t, !strings.Contains(out.Stdout, nonexistService), "The service", nonexistService, " exists (but is supposed to be not)")
 
-	out, err = test.kn.RunWithOpts([]string{"service", "delete", serviceName[0], serviceName[1]}, runOpts{NoNamespace: false, AllowError: true})
+	out = test.kn.Run("service", "delete", existService, nonexistService)
+	r.AssertNoError(out)
 
 	expectedSuccess := fmt.Sprintf(`Service '%s' successfully deleted in namespace '%s'.`, existService, test.kn.namespace)
 	expectedErr := fmt.Sprintf(`services.serving.knative.dev "%s" not found`, nonexistService)
-	assert.Check(t, strings.Contains(out, expectedSuccess), "Failed to get 'successfully deleted' message")
-	assert.Check(t, strings.Contains(out, expectedErr), "Failed to get 'not found' error")
+	assert.Check(t, strings.Contains(out.Stdout, expectedSuccess), "Failed to get 'successfully deleted' message")
+	assert.Check(t, strings.Contains(out.Stdout, expectedErr), "Failed to get 'not found' error")
 }

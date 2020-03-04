@@ -17,6 +17,7 @@ package revision
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -25,6 +26,8 @@ import (
 
 // NewRevisionDeleteCommand represent 'revision delete' command
 func NewRevisionDeleteCommand(p *commands.KnParams) *cobra.Command {
+	var waitFlags commands.WaitFlags
+
 	RevisionDeleteCommand := &cobra.Command{
 		Use:   "delete NAME",
 		Short: "Delete a revision.",
@@ -32,8 +35,8 @@ func NewRevisionDeleteCommand(p *commands.KnParams) *cobra.Command {
   # Delete a revision 'svc1-abcde' in default namespace
   kn revision delete svc1-abcde`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if len(args) != 1 {
-				return errors.New("'revision delete' requires the revision name given as single argument")
+			if len(args) < 1 {
+				return errors.New("'kn revision delete' requires one or more revision name")
 			}
 			namespace, err := p.GetNamespace(cmd)
 			if err != nil {
@@ -43,14 +46,23 @@ func NewRevisionDeleteCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			err = client.DeleteRevision(args[0])
-			if err != nil {
-				return err
+
+			for _, name := range args {
+				timeout := time.Duration(0)
+				if !waitFlags.NoWait {
+					timeout = time.Duration(waitFlags.TimeoutInSeconds) * time.Second
+				}
+				err = client.DeleteRevision(name, timeout)
+				if err != nil {
+					fmt.Fprintf(cmd.OutOrStdout(), "%s.\n", err)
+				} else {
+					fmt.Fprintf(cmd.OutOrStdout(), "Revision '%s' deleted in namespace '%s'.\n", name, namespace)
+				}
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "Revision '%s' successfully deleted in namespace '%s'.\n", args[0], namespace)
 			return nil
 		},
 	}
 	commands.AddNamespaceFlags(RevisionDeleteCommand.Flags(), false)
+	waitFlags.AddConditionWaitFlags(RevisionDeleteCommand, commands.WaitDefaultTimeout, "Delete", "revision", "deleted")
 	return RevisionDeleteCommand
 }

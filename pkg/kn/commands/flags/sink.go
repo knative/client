@@ -25,6 +25,7 @@ import (
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 
 	clientdynamic "knative.dev/client/pkg/dynamic"
+	"knative.dev/client/pkg/kn/commands"
 )
 
 type SinkFlags struct {
@@ -53,6 +54,17 @@ var SinkPrefixes = map[string]schema.GroupVersionResource{
 		Group:    "serving.knative.dev",
 		Version:  "v1",
 	},
+}
+
+func ConfigSinkPrefixes(prefixes []commands.SinkPrefixConfig) {
+	for _, p := range prefixes {
+		//user configration might override the default configuration
+		SinkPrefixes[p.Prefix] = schema.GroupVersionResource{
+			Resource: p.Resource,
+			Group:    p.Group,
+			Version:  p.Version,
+		}
+	}
 }
 
 // ResolveSink returns the Destination referred to by the flags in the acceptor.

@@ -300,6 +300,10 @@ func checkPortUpdate(t *testing.T, template *servingv1.RevisionTemplateSpec, por
 	}
 }
 
+func checkUserUpdate(t *testing.T, template *servingv1.RevisionTemplateSpec, user *int64) {
+	assert.DeepEqual(t, template.Spec.Containers[0].SecurityContext.RunAsUser, user)
+}
+
 func TestUpdateEnvVarsBoth(t *testing.T) {
 	template, container := getRevisionTemplate()
 	container.Env = []corev1.EnvVar{
@@ -331,6 +335,25 @@ func TestUpdateLabelsNew(t *testing.T) {
 		"a": "foo",
 		"b": "bar",
 	}
+	tLabels := labels // revision template labels
+
+	// Only test service-specific labels if we have any
+	if len(ServiceOnlyLabels) != 0 {
+		// Make a copy of the expected labels so we can modify the original
+		// list w/o changing what's expected for the revsion template
+		tLabels = map[string]string{}
+		for k, v := range labels {
+			tLabels[k] = v
+		}
+
+		// Just add a random value from the list to make sure it doesn't show
+		// up in the revision template
+		for k := range ServiceOnlyLabels {
+			labels[k] = "testing"
+			break
+		}
+	}
+
 	err := UpdateLabels(service, template, labels, []string{})
 	assert.NilError(t, err)
 
@@ -340,8 +363,8 @@ func TestUpdateLabelsNew(t *testing.T) {
 	}
 
 	actual = template.ObjectMeta.Labels
-	if !reflect.DeepEqual(labels, actual) {
-		t.Fatalf("Template labels did not match expected %v found %v", labels, actual)
+	if !reflect.DeepEqual(tLabels, actual) {
+		t.Fatalf("Template labels did not match expected %v found %v", tLabels, actual)
 	}
 }
 
@@ -628,6 +651,20 @@ func TestGenerateVolumeName(t *testing.T) {
 		expectedName := appendCheckSum(expected[i], actual[i])
 		assert.Equal(t, actualName, expectedName)
 	}
+}
+
+func TestUpdateUser(t *testing.T) {
+	template, _ := getRevisionTemplate()
+	err := UpdateUser(template, int64(1001))
+	assert.NilError(t, err)
+
+	checkUserUpdate(t, template, ptr.Int64(int64(1001)))
+
+	template.Spec.Containers[0].SecurityContext.RunAsUser = ptr.Int64(int64(1002))
+	err = UpdateUser(template, int64(1002))
+	assert.NilError(t, err)
+
+	checkUserUpdate(t, template, ptr.Int64(int64(1002)))
 }
 
 //

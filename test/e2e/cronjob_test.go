@@ -21,61 +21,67 @@ import (
 	"testing"
 
 	"gotest.tools/assert"
+
 	"knative.dev/client/pkg/util"
 )
 
 func TestSourceCronJob(t *testing.T) {
 	t.Parallel()
-	test := NewE2eTest(t)
-	test.Setup(t)
-	defer test.Teardown(t)
-
-	test.serviceCreate(t, "testsvc0")
-
-	t.Run("create cronJob sources with a sink to a service", func(t *testing.T) {
-		test.cronJobSourceCreate(t, "testcronjobsource0", "* * * * */1", "ping", "svc:testsvc0")
-	})
-
-	t.Run("delete cronJob sources", func(t *testing.T) {
-		test.cronJobSourceDelete(t, "testcronjobsource0")
-	})
-
-	t.Run("create cronJob source with a missing sink service", func(t *testing.T) {
-		test.cronJobSourceCreateMissingSink(t, "testcronjobsource1", "* * * * */1", "ping", "svc:unknown")
-	})
-
-	t.Run("update cronJob source sink service", func(t *testing.T) {
-		test.cronJobSourceCreate(t, "testcronjobsource2", "* * * * */1", "ping", "svc:testsvc0")
-		test.serviceCreate(t, "testsvc1")
-		test.cronJobSourceUpdateSink(t, "testcronjobsource2", "svc:testsvc1")
-		jpSinkRefNameInSpec := "jsonpath={.spec.sink.ref.name}"
-		out, err := test.getResourceFieldsWithJSONPath(t, "cronjobsource", "testcronjobsource2", jpSinkRefNameInSpec)
-		assert.NilError(t, err)
-		assert.Equal(t, out, "testsvc1")
-	})
-}
-
-func (test *e2eTest) cronJobSourceCreate(t *testing.T, sourceName string, schedule string, data string, sink string) {
-	out, err := test.kn.RunWithOpts([]string{"source", "cronjob", "create", sourceName,
-		"--schedule", schedule, "--data", data, "--sink", sink}, runOpts{NoNamespace: false})
+	test, err := NewE2eTest()
 	assert.NilError(t, err)
-	assert.Check(t, util.ContainsAllIgnoreCase(out, "cronjob", "source", sourceName, "created", "namespace", test.kn.namespace))
-}
+	defer func() {
+		assert.NilError(t, test.Teardown())
+	}()
 
-func (test *e2eTest) cronJobSourceDelete(t *testing.T, sourceName string) {
-	out, err := test.kn.RunWithOpts([]string{"source", "cronjob", "delete", sourceName}, runOpts{NoNamespace: false})
+	r := NewKnRunResultCollector(t)
+	defer r.DumpIfFailed()
+
+	t.Log("Creating a testservice")
+	test.serviceCreate(t, r, "testsvc0")
+
+	t.Log("create cronJob sources with a sink to a service")
+
+	test.cronJobSourceCreate(t, r, "testcronjobsource0", "* * * * */1", "ping", "svc:testsvc0")
+
+	t.Log("delete cronJob sources")
+	test.cronJobSourceDelete(t, r, "testcronjobsource0")
+
+	t.Log("create cronJob source with a missing sink service")
+	test.cronJobSourceCreateMissingSink(t, r, "testcronjobsource1", "* * * * */1", "ping", "svc:unknown")
+
+	t.Log("update cronJob source sink service")
+	test.cronJobSourceCreate(t, r, "testcronjobsource2", "* * * * */1", "ping", "svc:testsvc0")
+	test.serviceCreate(t, r, "testsvc1")
+	test.cronJobSourceUpdateSink(t, r, "testcronjobsource2", "svc:testsvc1")
+	jpSinkRefNameInSpec := "jsonpath={.spec.sink.ref.name}"
+	out, err := test.getResourceFieldsWithJSONPath("cronjobsource", "testcronjobsource2", jpSinkRefNameInSpec)
 	assert.NilError(t, err)
-	assert.Check(t, util.ContainsAllIgnoreCase(out, "cronjob", "source", sourceName, "deleted", "namespace", test.kn.namespace))
+	assert.Equal(t, out, "testsvc1")
 }
 
-func (test *e2eTest) cronJobSourceCreateMissingSink(t *testing.T, sourceName string, schedule string, data string, sink string) {
-	_, err := test.kn.RunWithOpts([]string{"source", "cronjob", "create", sourceName,
-		"--schedule", schedule, "--data", data, "--sink", sink}, runOpts{NoNamespace: false, AllowError: true})
-	assert.ErrorContains(t, err, "services.serving.knative.dev", "not found")
+func (test *e2eTest) cronJobSourceCreate(t *testing.T, r *KnRunResultCollector, sourceName string, schedule string, data string, sink string) {
+	out := test.kn.Run("source", "cronjob", "create", sourceName,
+		"--schedule", schedule, "--data", data, "--sink", sink)
+	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "cronjob", "source", sourceName, "created", "namespace", test.kn.namespace))
+	r.AssertNoError(out)
 }
 
-func (test *e2eTest) cronJobSourceUpdateSink(t *testing.T, sourceName string, sink string) {
-	out, err := test.kn.RunWithOpts([]string{"source", "cronjob", "update", sourceName, "--sink", sink}, runOpts{})
-	assert.NilError(t, err)
-	assert.Check(t, util.ContainsAll(out, sourceName, "updated", "namespace", test.kn.namespace))
+func (test *e2eTest) cronJobSourceDelete(t *testing.T, r *KnRunResultCollector, sourceName string) {
+	out := test.kn.Run("source", "cronjob", "delete", sourceName)
+	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "cronjob", "source", sourceName, "deleted", "namespace", test.kn.namespace))
+	r.AssertNoError(out)
+
+}
+
+func (test *e2eTest) cronJobSourceCreateMissingSink(t *testing.T, r *KnRunResultCollector, sourceName string, schedule string, data string, sink string) {
+	out := test.kn.Run("source", "cronjob", "create", sourceName,
+		"--schedule", schedule, "--data", data, "--sink", sink)
+	assert.Check(t, util.ContainsAll(out.Stderr, "services.serving.knative.dev", "not found"))
+	r.AssertError(out)
+}
+
+func (test *e2eTest) cronJobSourceUpdateSink(t *testing.T, r *KnRunResultCollector, sourceName string, sink string) {
+	out := test.kn.Run("source", "cronjob", "update", sourceName, "--sink", sink)
+	assert.Check(t, util.ContainsAll(out.Stdout, sourceName, "updated", "namespace", test.kn.namespace))
+	r.AssertNoError(out)
 }

@@ -34,53 +34,55 @@ const (
 )
 
 func TestTektonPipeline(t *testing.T) {
-	test := NewE2eTest(t)
-	test.Setup(t)
+	test, err := NewE2eTest()
+	assert.NilError(t, err)
+	defer func() {
+		assert.NilError(t, test.Teardown())
+	}()
 
-	kubectl := kubectl{t, Logger{}}
+	kubectl := kubectl{test.namespace}
 	basedir := currentDir(t) + "/../resources/tekton"
 
 	// create secret for the kn-deployer-account service account
-	_, err := kubectl.RunWithOpts([]string{"create", "-n", test.env.Namespace, "secret",
+	_, err = kubectl.Run("create", "-n", test.namespace, "secret",
 		"generic", "container-registry",
-		"--from-file=.dockerconfigjson=" + Flags.DockerConfigJSON,
-		"--type=kubernetes.io/dockerconfigjson"}, runOpts{})
+		"--from-file=.dockerconfigjson="+Flags.DockerConfigJSON,
+		"--type=kubernetes.io/dockerconfigjson")
 	assert.NilError(t, err)
 
-	_, err = kubectl.RunWithOpts([]string{"apply", "-n", test.env.Namespace, "-f", basedir + "/kn-deployer-rbac.yaml"}, runOpts{})
+	_, err = kubectl.Run("apply", "-f", basedir+"/kn-deployer-rbac.yaml")
 	assert.NilError(t, err)
 
-	_, err = kubectl.RunWithOpts([]string{"apply", "-n", test.env.Namespace, "-f", basedir + "/buildah.yaml"}, runOpts{})
+	_, err = kubectl.Run("apply", "-f", basedir+"/buildah.yaml")
 	assert.NilError(t, err)
 
-	_, err = kubectl.RunWithOpts([]string{"apply", "-n", test.env.Namespace, "-f", "https://raw.githubusercontent.com/tektoncd/catalog/master/kn/kn.yaml"}, runOpts{})
+	_, err = kubectl.Run("apply", "-f", "https://raw.githubusercontent.com/tektoncd/catalog/master/kn/kn.yaml")
 	assert.NilError(t, err)
 
-	_, err = kubectl.RunWithOpts([]string{"apply", "-n", test.env.Namespace, "-f", basedir + "/kn-pipeline.yaml"}, runOpts{})
+	_, err = kubectl.Run("apply", "-f", basedir+"/kn-pipeline.yaml")
 	assert.NilError(t, err)
 
-	_, err = kubectl.RunWithOpts([]string{"apply", "-n", test.env.Namespace, "-f", basedir + "/kn-pipeline-resource.yaml"}, runOpts{})
+	_, err = kubectl.Run("apply", "-f", basedir+"/kn-pipeline-resource.yaml")
 	assert.NilError(t, err)
 
-	_, err = kubectl.RunWithOpts([]string{"create", "-n", test.env.Namespace, "-f", basedir + "/kn-pipeline-run.yaml"}, runOpts{})
+	_, err = kubectl.Run("create", "-f", basedir+"/kn-pipeline-run.yaml")
 	assert.NilError(t, err)
 
-	err = waitForPipelineSuccess(t, kubectl, test.env.Namespace)
+	err = waitForPipelineSuccess(kubectl)
 	assert.NilError(t, err)
+
+	r := NewKnRunResultCollector(t)
 
 	const serviceName = "hello"
-	out, err := test.kn.RunWithOpts([]string{"service", "describe", serviceName}, runOpts{NoNamespace: false})
-	assert.NilError(t, err)
-	assert.Assert(t, util.ContainsAll(out, serviceName, test.kn.namespace))
-	assert.Assert(t, util.ContainsAll(out, "Conditions", "ConfigurationsReady", "Ready", "RoutesReady"))
-
-	// tear down only if the test passes, we want to keep the pods otherwise
-	test.Teardown(t)
+	out := test.kn.Run("service", "describe", serviceName)
+	r.AssertNoError(out)
+	assert.Assert(t, util.ContainsAll(out.Stdout, serviceName, test.kn.namespace))
+	assert.Assert(t, util.ContainsAll(out.Stdout, "Conditions", "ConfigurationsReady", "Ready", "RoutesReady"))
 }
 
-func waitForPipelineSuccess(t *testing.T, k kubectl, namespace string) error {
+func waitForPipelineSuccess(k kubectl) error {
 	return wait.PollImmediate(Interval, Timeout, func() (bool, error) {
-		out, err := k.RunWithOpts([]string{"get", "pipelinerun", "-n", namespace, "-o=jsonpath='{.items[0].status.conditions[?(@.type==\"Succeeded\")].status}'"}, runOpts{})
+		out, err := k.Run("get", "pipelinerun", "-o=jsonpath='{.items[0].status.conditions[?(@.type==\"Succeeded\")].status}'")
 		return strings.Contains(out, "True"), err
 	})
 }

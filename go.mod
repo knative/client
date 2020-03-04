@@ -3,8 +3,8 @@ module knative.dev/client
 require (
 	contrib.go.opencensus.io/exporter/ocagent v0.6.0 // indirect
 	contrib.go.opencensus.io/exporter/prometheus v0.1.0 // indirect
-	contrib.go.opencensus.io/exporter/stackdriver v0.12.9 // indirect
-	github.com/google/go-containerregistry v0.0.0-20200131185320-aec8da010de2 // indirect
+	contrib.go.opencensus.io/exporter/stackdriver v0.13.0 // indirect
+	github.com/google/go-containerregistry v0.0.0-20200212224832-c629a66d7231 // indirect
 	github.com/magiconair/properties v1.8.0
 	github.com/mattbaird/jsonpatch v0.0.0-20171005235357-81af80346b1a // indirect
 	github.com/mitchellh/go-homedir v1.1.0
@@ -23,7 +23,7 @@ require (
 	knative.dev/eventing v0.12.1-0.20200206203632-b0a7d8a77cc7
 	knative.dev/pkg v0.0.0-20200206191432-9072f494c940
 	knative.dev/serving v0.12.1-0.20200206201132-525b15d87dc1
-	knative.dev/test-infra v0.0.0-20200206203333-08d3515c0e1f
+	knative.dev/test-infra v0.0.0-20200229011351-4dac123b9a3d
 	sigs.k8s.io/yaml v1.1.0
 )
 

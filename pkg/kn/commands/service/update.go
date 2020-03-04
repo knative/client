@@ -19,7 +19,6 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
 	"knative.dev/client/pkg/kn/commands/flags"
 	"knative.dev/client/pkg/kn/traffic"
@@ -74,15 +73,12 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			var retries = 0
-			for {
-				name := args[0]
-				service, err := client.GetService(name)
-				if err != nil {
-					return err
-				}
-				service = service.DeepCopy()
-				latestRevisionBeforeUpdate := service.Status.LatestReadyRevisionName
+			// Use to store the latest revision name
+			var latestRevisionBeforeUpdate string
+			name := args[0]
+
+			updateFunc := func(service *servingv1.Service) (*servingv1.Service, error) {
+				latestRevisionBeforeUpdate = service.Status.LatestReadyRevisionName
 				var baseRevision *servingv1.Revision
 				if !cmd.Flags().Changed("image") && editFlags.LockToDigest {
 					baseRevision, err = client.GetBaseRevision(service)
@@ -92,48 +88,46 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 				}
 				err = editFlags.Apply(service, baseRevision, cmd)
 				if err != nil {
-					return err
+					return nil, err
 				}
 
 				if trafficFlags.Changed(cmd) {
 					traffic, err := traffic.Compute(cmd, service.Spec.Traffic, &trafficFlags)
 					if err != nil {
-						return err
+						return nil, err
 					}
 
 					service.Spec.Traffic = traffic
 				}
+				return service, nil
+			}
 
-				err = client.UpdateService(service)
+			// Do the actual update with retry in case of conflicts
+			err = client.UpdateServiceWithRetry(name, updateFunc, MaxUpdateRetries)
+			if err != nil {
+				return err
+			}
+
+			out := cmd.OutOrStdout()
+			//TODO: deprecated condition should be once --async is gone
+			if !waitFlags.Async && !waitFlags.NoWait {
+				fmt.Fprintf(out, "Updating Service '%s' in namespace '%s':\n", args[0], namespace)
+				fmt.Fprintln(out, "")
+				err := waitForService(client, name, out, waitFlags.TimeoutInSeconds)
 				if err != nil {
-					// Retry to update when a resource version conflict exists
-					if apierrors.IsConflict(err) && retries < MaxUpdateRetries {
-						retries++
-						continue
-					}
 					return err
 				}
-
-				out := cmd.OutOrStdout()
-				//TODO: deprecated condition should be once --async is gone
-				if !waitFlags.Async && !waitFlags.NoWait {
-					fmt.Fprintf(out, "Updating Service '%s' in namespace '%s':\n", args[0], namespace)
-					fmt.Fprintln(out, "")
-					err := waitForService(client, name, out, waitFlags.TimeoutInSeconds)
-					if err != nil {
-						return err
-					}
-					fmt.Fprintln(out, "")
-					return showUrl(client, name, latestRevisionBeforeUpdate, "updated", out)
-				} else {
-					if waitFlags.Async {
-						fmt.Fprintf(out, "\nWARNING: flag --async is deprecated and going to be removed in future release, please use --no-wait instead.\n\n")
-					}
-					fmt.Fprintf(out, "Service '%s' updated in namespace '%s'.\n", args[0], namespace)
+				fmt.Fprintln(out, "")
+				return showUrl(client, name, latestRevisionBeforeUpdate, "updated", out)
+			} else {
+				if waitFlags.Async {
+					fmt.Fprintf(out, "\nWARNING: flag --async is deprecated and going to be removed in future release, please use --no-wait instead.\n\n")
 				}
-
-				return nil
+				fmt.Fprintf(out, "Service '%s' updated in namespace '%s'.\n", args[0], namespace)
 			}
+
+			return nil
+
 		},
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return preCheck(cmd, args)
@@ -142,7 +136,7 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 
 	commands.AddNamespaceFlags(serviceUpdateCommand.Flags(), false)
 	editFlags.AddUpdateFlags(serviceUpdateCommand)
-	waitFlags.AddConditionWaitFlags(serviceUpdateCommand, commands.WaitDefaultTimeout, "Update", "service")
+	waitFlags.AddConditionWaitFlags(serviceUpdateCommand, commands.WaitDefaultTimeout, "Update", "service", "ready")
 	trafficFlags.Add(serviceUpdateCommand)
 	return serviceUpdateCommand
 }

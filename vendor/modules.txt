@@ -8,7 +8,7 @@ cloud.google.com/go/trace/apiv2
 contrib.go.opencensus.io/exporter/ocagent
 # contrib.go.opencensus.io/exporter/prometheus v0.1.0
 contrib.go.opencensus.io/exporter/prometheus
-# contrib.go.opencensus.io/exporter/stackdriver v0.12.9
+# contrib.go.opencensus.io/exporter/stackdriver v0.13.0
 contrib.go.opencensus.io/exporter/stackdriver
 contrib.go.opencensus.io/exporter/stackdriver/monitoredresource
 # github.com/PuerkitoBio/purell v1.1.1
@@ -106,7 +106,7 @@ github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/flags
 github.com/google/go-cmp/cmp/internal/function
 github.com/google/go-cmp/cmp/internal/value
-# github.com/google/go-containerregistry v0.0.0-20200131185320-aec8da010de2
+# github.com/google/go-containerregistry v0.0.0-20200212224832-c629a66d7231
 github.com/google/go-containerregistry/pkg/name
 # github.com/google/gofuzz v1.0.0
 github.com/google/gofuzz
@@ -714,7 +714,7 @@ knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1/fake
 knative.dev/serving/pkg/gc
 knative.dev/serving/pkg/network
 knative.dev/serving/pkg/reconciler/route/config
-# knative.dev/test-infra v0.0.0-20200206203333-08d3515c0e1f
+# knative.dev/test-infra v0.0.0-20200229011351-4dac123b9a3d
 knative.dev/test-infra/scripts
 # sigs.k8s.io/kustomize v2.0.3+incompatible
 sigs.k8s.io/kustomize/pkg/commands/build

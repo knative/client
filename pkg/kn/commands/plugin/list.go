@@ -42,7 +42,7 @@ func NewPluginListCommand(p *commands.KnParams) *cobra.Command {
 Available plugins are those that are:
 - executable
 - begin with "kn-"
-- Kn's plugin directory ~/.kn/plugins
+- Kn's plugin directory ` + commands.Cfg.DefaultPluginDir + `
 - Anywhere in the execution $PATH (if lookupInPath config variable is enabled)`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return listPlugins(cmd, plFlags)
