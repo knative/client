@@ -35,8 +35,13 @@ export DISABLE_MD_LINTING=1
 export PRESUBMIT_TEST_FAIL_FAST=1
 
 export GO111MODULE=on
+
 export KNATIVE_SERVING_VERSION=${KNATIVE_SERVING_VERSION:-latest}
-export KNATIVE_EVENTING_VERSION=${KNATIVE_EVENTING_VERSION:-latest}
+# Temporarily disable testing against eventing master, until we went away from
+# the legacy sources
+# export KNATIVE_EVENTING_VERSION=${KNATIVE_EVENTING_VERSION:-latest}
+export KNATIVE_EVENTING_VERSION=${KNATIVE_EVENTING_VERSION:-0.12.0}
+
 source $(dirname $0)/../vendor/knative.dev/test-infra/scripts/presubmit-tests.sh
 
 # Run cross platform build to ensure kn compiles for Linux, macOS and Windows
