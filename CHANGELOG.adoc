@@ -19,6 +19,10 @@
 | | Description | PR
 
 | ✨
+| Add option for adding labels only to service and/or template
+| https://github.com/knative/client/issues/675[#675]
+
+| ✨
 | Add serviceaccount and resources config to cronjob source handling
 | https://github.com/knative/client/issues/564[#564]
 
