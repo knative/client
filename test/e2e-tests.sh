@@ -62,14 +62,15 @@ smoke_test() {
   # Test namespace
   ns="kne2esmoketests"
 
+  set -x
+
   kubectl create ns $ns || fail_test
   trap "kubectl delete ns $ns" EXIT
 
   sleep 4 # Wait for the namespace to get initialized by kube-controller-manager
 
-  #TODO: deprecated tests remove once --async is gone
   ./kn service create svc1 --no-wait --image gcr.io/knative-samples/helloworld-go -e TARGET=Knative -n $ns || fail_test
-  ./kn service create svc2 --no-wait --image gcr.io/knative-samples/helloworld-go -e TARGET=Knative -$ns || fail_test
+  ./kn service create svc2 --no-wait --image gcr.io/knative-samples/helloworld-go -e TARGET=Knative -n $ns || fail_test
   ./kn service create hello --image gcr.io/knative-samples/helloworld-go -e TARGET=Knative -n $ns || fail_test
   ./kn service list hello -n $ns || fail_test
   ./kn service update hello --env TARGET=kn -n $ns || fail_test
