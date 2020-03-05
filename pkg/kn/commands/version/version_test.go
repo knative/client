@@ -36,10 +36,10 @@ Build Date:   {{.BuildDate}}
 Git Revision: {{.GitRevision}}
 Supported APIs:
 * Serving
-  - serving.knative.dev/v1 (knative-serving v0.12.1-0.20200206201132-525b15d87dc1)
+  - serving.knative.dev/v1 (knative-serving v0.13.0)
 * Eventing
-  - sources.eventing.knative.dev/v1alpha1 (knative-eventing v0.12.1-0.20200206203632-b0a7d8a77cc7)
-  - eventing.knative.dev/v1alpha1 (knative-eventing v0.12.1-0.20200206203632-b0a7d8a77cc7)
+  - sources.eventing.knative.dev/v1alpha1 (knative-eventing v0.13.0)
+  - eventing.knative.dev/v1alpha1 (knative-eventing v0.13.0)
 `
 
 const (
