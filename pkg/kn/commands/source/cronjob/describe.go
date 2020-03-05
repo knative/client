@@ -106,4 +106,12 @@ func writeCronJobSource(dw printers.PrefixWriter, source *v1alpha1.CronJobSource
 	commands.WriteMetadata(dw, &source.ObjectMeta, printDetails)
 	dw.WriteAttribute("Schedule", source.Spec.Schedule)
 	dw.WriteAttribute("Data", source.Spec.Data)
+	dw.WriteAttribute("ServiceAccountName", source.Spec.ServiceAccountName)
+	subWriter1 := dw.WriteAttribute("Resources", "")
+	subWriter2 := subWriter1.WriteAttribute("Requests", "")
+	subWriter2.WriteAttribute("CPU", source.Spec.Resources.Requests.ResourceCPU)
+	subWriter2.WriteAttribute("Memory", source.Spec.Resources.Requests.ResourceMemory)
+	subWriter2 = subWriter1.WriteAttribute("Limits", "")
+	subWriter2.WriteAttribute("CPU", source.Spec.Resources.Limits.ResourceCPU)
+	subWriter2.WriteAttribute("Memory", source.Spec.Resources.Limits.ResourceMemory)
 }

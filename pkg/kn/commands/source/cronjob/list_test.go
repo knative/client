@@ -28,7 +28,7 @@ func TestListCronJobSource(t *testing.T) {
 	cronjobClient := knsource_v1alpha1.NewMockKnCronJobSourceClient(t)
 
 	cronJobRecorder := cronjobClient.Recorder()
-	cJSource := createCronJobSource("testsource", "* * * * */2", "maxwell", "mysvc")
+	cJSource := createCronJobSource("testsource", "* * * * */2", "maxwell", "mysvc", "mysa", "100m", "128Mi", "200m", "256Mi")
 	cJSourceList := v1alpha1.CronJobSourceList{}
 	cJSourceList.Items = []v1alpha1.CronJobSource{*cJSource}
 

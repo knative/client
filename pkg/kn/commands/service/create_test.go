@@ -546,7 +546,7 @@ func TestServiceCreateWithServiceAccountName(t *testing.T) {
 func TestServiceCreateWithClusterLocal(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
-		"--cluster-local", "--no-wait"}, false)
+		"--cluster-local"}, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -554,9 +554,9 @@ func TestServiceCreateWithClusterLocal(t *testing.T) {
 		t.Fatalf("Bad action %v", action)
 	}
 
-	template := &created.Spec.Template
+	labels := created.ObjectMeta.Labels
 
-	labelValue, present := template.Labels[config.VisibilityLabelKey]
+	labelValue, present := labels[config.VisibilityLabelKey]
 	assert.Assert(t, present)
 
 	if labelValue != config.VisibilityClusterLocal {
