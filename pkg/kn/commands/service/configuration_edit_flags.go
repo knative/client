@@ -47,6 +47,8 @@ type ConfigurationEditFlags struct {
 	AutoscaleWindow            string
 	Port                       int32
 	Labels                     []string
+	LabelService               []string
+	LabelRevision              []string
 	NamePrefix                 string
 	RevisionName               string
 	ServiceAccountName         string
@@ -160,10 +162,20 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	command.Flags().Int32VarP(&p.Port, "port", "p", 0, "The port where application listens on.")
 	p.markFlagMakesRevision("port")
 	command.Flags().StringArrayVarP(&p.Labels, "label", "l", []string{},
-		"Service label to set. name=value; you may provide this flag "+
+		"Labels to set for both Service and Revision. name=value; you may provide this flag "+
 			"any number of times to set multiple labels. "+
 			"To unset, specify the label name followed by a \"-\" (e.g., name-).")
 	p.markFlagMakesRevision("label")
+	command.Flags().StringArrayVarP(&p.LabelService, "label-service", "s", []string{},
+		"Service label to set. name=value; you may provide this flag "+
+			"any number of times to set multiple labels. "+
+			"To unset, specify the label name followed by a \"-\" (e.g., name-).")
+	p.markFlagMakesRevision("label-service")
+	command.Flags().StringArrayVarP(&p.LabelRevision, "label-revision", "r", []string{},
+		"Revision label to set. name=value; you may provide this flag "+
+			"any number of times to set multiple labels. "+
+			"To unset, specify the label name followed by a \"-\" (e.g., name-).")
+	p.markFlagMakesRevision("label-revision")
 	command.Flags().StringVar(&p.RevisionName, "revision-name", "{{.Service}}-{{.Random 5}}-{{.Generation}}",
 		"The revision name to set. Must start with the service name and a dash as a prefix. "+
 			"Empty revision name will result in the server generating a name for the revision. "+
@@ -362,14 +374,33 @@ func (p *ConfigurationEditFlags) Apply(
 		}
 	}
 
-	if cmd.Flags().Changed("label") {
-		labelsMap, err := util.MapFromArrayAllowingSingles(p.Labels, "=")
+	if cmd.Flags().Changed("label") || cmd.Flags().Changed("label-service") || cmd.Flags().Changed("label-revision") {
+		serviceMap := make(util.StringMap)
+		revisionMap := make(util.StringMap)
+
+		labelsAllMap, err := util.MapFromArrayAllowingSingles(p.Labels, "=")
 		if err != nil {
 			return errors.Wrap(err, "Invalid --label")
 		}
+		serviceMap.Merge(labelsAllMap)
+		revisionMap.Merge(labelsAllMap)
 
-		labelsToRemove := util.ParseMinusSuffix(labelsMap)
-		err = servinglib.UpdateLabels(service, template, labelsMap, labelsToRemove)
+		labelServiceMap, err := util.MapFromArrayAllowingSingles(p.LabelService, "=")
+		if err != nil {
+			return errors.Wrap(err, "Invalid --label-service")
+		}
+		serviceMap.Merge(labelServiceMap)
+
+		labelRevMap, err := util.MapFromArrayAllowingSingles(p.LabelRevision, "=")
+		if err != nil {
+			return errors.Wrap(err, "Invalid --label-revision")
+		}
+		revisionMap.Merge(labelRevMap)
+
+		serviceLabelsToRemove := util.ParseMinusSuffix(serviceMap)
+		revisionLabelsToRemove := util.ParseMinusSuffix(revisionMap)
+
+		err = servinglib.UpdateLabels(service, template, serviceMap, revisionMap, serviceLabelsToRemove, revisionLabelsToRemove)
 		if err != nil {
 			return err
 		}

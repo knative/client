@@ -374,31 +374,34 @@ func UpdateResources(template *servingv1.RevisionTemplateSpec, requestsResourceL
 	return nil
 }
 
-// ServiceOnlyLabels should only appear on the Service and NOT on the
-// Revision template
-var ServiceOnlyLabels = map[string]struct{}{
-	serving.GroupName + "/visibility": {},
-}
+// // ServiceOnlyLabels should only appear on the Service and NOT on the
+// // Revision template
+// var ServiceOnlyLabels = map[string]struct{}{
+// 	serving.GroupName + "/visibility": {},
+// }
 
 // UpdateLabels updates the labels identically on a service and template.
 // Does not overwrite the entire Labels field, only makes the requested updates
-func UpdateLabels(service *servingv1.Service, template *servingv1.RevisionTemplateSpec, toUpdate map[string]string, toRemove []string) error {
+func UpdateLabels(service *servingv1.Service, template *servingv1.RevisionTemplateSpec,
+	toUpdateServiceLabel map[string]string, toUpdateRevisionLabel map[string]string,
+	toRemoveServiceLabel []string, toRemoveRevisionLabel []string) error {
+
 	if service.ObjectMeta.Labels == nil {
 		service.ObjectMeta.Labels = make(map[string]string)
 	}
 	if template.ObjectMeta.Labels == nil {
 		template.ObjectMeta.Labels = make(map[string]string)
 	}
-	for key, value := range toUpdate {
+	for key, value := range toUpdateServiceLabel {
 		service.ObjectMeta.Labels[key] = value
-
-		// Only add it to the template if it's not in our ServiceOnly list
-		if _, ok := ServiceOnlyLabels[key]; !ok {
-			template.ObjectMeta.Labels[key] = value
-		}
 	}
-	for _, key := range toRemove {
+	for key, value := range toUpdateRevisionLabel {
+		template.ObjectMeta.Labels[key] = value
+	}
+	for _, key := range toRemoveServiceLabel {
 		delete(service.ObjectMeta.Labels, key)
+	}
+	for _, key := range toRemoveRevisionLabel {
 		delete(template.ObjectMeta.Labels, key)
 	}
 	return nil
