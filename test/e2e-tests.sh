@@ -44,7 +44,7 @@ run() {
   eval smoke_test || fail_test
 
   # Integration test
-  eval e2e_test || fail_test
+  eval integration_test || fail_test
 
   success
 }
