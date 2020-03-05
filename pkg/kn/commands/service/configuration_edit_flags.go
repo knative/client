@@ -166,15 +166,17 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 			"any number of times to set multiple labels. "+
 			"To unset, specify the label name followed by a \"-\" (e.g., name-).")
 	p.markFlagMakesRevision("label")
-	command.Flags().StringArrayVarP(&p.LabelService, "label-service", "s", []string{},
+	command.Flags().StringArrayVarP(&p.LabelService, "label-service", "", []string{},
 		"Service label to set. name=value; you may provide this flag "+
 			"any number of times to set multiple labels. "+
-			"To unset, specify the label name followed by a \"-\" (e.g., name-).")
+			"To unset, specify the label name followed by a \"-\" (e.g., name-). This flag takes "+
+			"precedence over \"label\" flag.")
 	p.markFlagMakesRevision("label-service")
-	command.Flags().StringArrayVarP(&p.LabelRevision, "label-revision", "r", []string{},
+	command.Flags().StringArrayVarP(&p.LabelRevision, "label-revision", "", []string{},
 		"Revision label to set. name=value; you may provide this flag "+
 			"any number of times to set multiple labels. "+
-			"To unset, specify the label name followed by a \"-\" (e.g., name-).")
+			"To unset, specify the label name followed by a \"-\" (e.g., name-). This flag takes "+
+			"precedence over \"label\" flag.")
 	p.markFlagMakesRevision("label-revision")
 	command.Flags().StringVar(&p.RevisionName, "revision-name", "{{.Service}}-{{.Random 5}}-{{.Generation}}",
 		"The revision name to set. Must start with the service name and a dash as a prefix. "+
