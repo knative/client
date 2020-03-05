@@ -25,10 +25,6 @@ import (
 	"knative.dev/pkg/apis"
 )
 
-// Window for how long a ReadyCondition == false has to stay
-// for being considered as an error
-var ErrorWindow = 2 * time.Second
-
 // Callbacks and configuration used while waiting
 type waitForReadyConfig struct {
 	watchMaker          WatchMaker
@@ -50,10 +46,19 @@ type EventDone func(ev *watch.Event) bool
 // state in its "Ready" condition.
 type Wait interface {
 
-	// Wait on resource the resource with this name until a given timeout
+	// Wait on resource the resource with this name
 	// and write event messages for unknown event to the status writer.
 	// Returns an error (if any) and the overall time it took to wait
-	Wait(name string, timeout time.Duration, msgCallback MessageCallback) (error, time.Duration)
+	Wait(name string, options Options, msgCallback MessageCallback) (error, time.Duration)
+}
+
+type Options struct {
+	// Window for how long a ReadyCondition == false has to stay
+	// for being considered as an error (useful for flaky reconciliation
+	ErrorWindow *time.Duration
+
+	// Timeout for how long to wait at maximum
+	Timeout *time.Duration
 }
 
 // Create watch which is used when waiting for Ready condition
@@ -65,7 +70,7 @@ type ConditionsExtractor func(obj runtime.Object) (apis.Conditions, error)
 // Callback for event messages
 type MessageCallback func(durationSinceState time.Duration, message string)
 
-// Constructor with resource type specific configuration
+// NewWaitForReady waits until the condition is set to Ready == True
 func NewWaitForReady(kind string, watchMaker WatchMaker, extractor ConditionsExtractor) Wait {
 	return &waitForReadyConfig{
 		kind:                kind,
@@ -74,6 +79,8 @@ func NewWaitForReady(kind string, watchMaker WatchMaker, extractor ConditionsExt
 	}
 }
 
+// NewWaitForEvent creates a Wait object which waits until a specific event (i.e. when
+// the EventDone function returns true)
 func NewWaitForEvent(kind string, watchMaker WatchMaker, eventDone EventDone) Wait {
 	return &waitForEvent{
 		kind:       kind,
@@ -82,7 +89,7 @@ func NewWaitForEvent(kind string, watchMaker WatchMaker, eventDone EventDone) Wa
 	}
 }
 
-// A simple message callback which prints out messages line by line
+// SimpleMessageCallback returns a callback which prints out a simple event message to a given writer
 func SimpleMessageCallback(out io.Writer) MessageCallback {
 	oldMessage := ""
 	return func(duration time.Duration, message string) {
@@ -95,7 +102,7 @@ func SimpleMessageCallback(out io.Writer) MessageCallback {
 	}
 }
 
-// Noop-callback
+// NoopMessageCallback is callback which does nothing
 func NoopMessageCallback() MessageCallback {
 	return func(durationSinceState time.Duration, message string) {}
 }
@@ -105,12 +112,13 @@ func NoopMessageCallback() MessageCallback {
 // (e.g. "service"), `timeout` is a timeout after which the watch should be cancelled if no
 // target state has been entered yet and `out` is used for printing out status messages
 // msgCallback gets called for every event with an 'Ready' condition == UNKNOWN with the event's message.
-func (w *waitForReadyConfig) Wait(name string, timeout time.Duration, msgCallback MessageCallback) (error, time.Duration) {
+func (w *waitForReadyConfig) Wait(name string, options Options, msgCallback MessageCallback) (error, time.Duration) {
 
+	timeout := options.timeoutWithDefault()
 	floatingTimeout := timeout
 	for {
 		start := time.Now()
-		retry, timeoutReached, err := w.waitForReadyCondition(start, name, floatingTimeout, ErrorWindow, msgCallback)
+		retry, timeoutReached, err := w.waitForReadyCondition(start, name, floatingTimeout, options.errorWindowWithDefault(), msgCallback)
 		if err != nil {
 			return err, time.Since(start)
 		}
@@ -158,8 +166,22 @@ func (w *waitForReadyConfig) waitForReadyCondition(start time.Time, name string,
 				return true, false, nil
 			}
 
+			// Skip event if its not a MODIFIED event, as only MODIFIED events update the condition
+			// we are looking for.
+			// This will filter out all synthetic ADDED events that created bt the API server for
+			// the initial state. See https://kubernetes.io/docs/reference/using-api/api-concepts/#the-resourceversion-parameter
+			// for details:
+			// "Get State and Start at Most Recent: Start a watch at the most recent resource version,
+			//  which must be consistent (i.e. served from etcd via a quorum read). To establish initial state,
+			//  the watch begins with synthetic “Added” events of all resources instances that exist at the starting
+			//  resource version. All following watch events are for all changes that occurred after the resource
+			//  version the watch started at."
+			if event.Type != watch.Modified {
+				continue
+			}
+
 			// Skip event if generations has not yet been consolidated
-			inSync, err := isGivenEqualsObservedGeneration(event.Object)
+			inSync, err := generationCheck(event.Object)
 			if err != nil {
 				return false, false, err
 			}
@@ -198,7 +220,8 @@ func (w *waitForReadyConfig) waitForReadyCondition(start time.Time, name string,
 }
 
 // Wait until the expected EventDone is satisfied
-func (w *waitForEvent) Wait(name string, timeout time.Duration, msgCallback MessageCallback) (error, time.Duration) {
+func (w *waitForEvent) Wait(name string, options Options, msgCallback MessageCallback) (error, time.Duration) {
+	timeout := options.timeoutWithDefault()
 	watcher, err := w.watchMaker(name, timeout)
 	if err != nil {
 		return err, 0
@@ -223,7 +246,7 @@ func (w *waitForEvent) Wait(name string, timeout time.Duration, msgCallback Mess
 	}
 }
 
-func isGivenEqualsObservedGeneration(object runtime.Object) (bool, error) {
+func generationCheck(object runtime.Object) (bool, error) {
 	unstructured, err := runtime.DefaultUnstructuredConverter.ToUnstructured(object)
 	if err != nil {
 		return false, err
@@ -246,4 +269,18 @@ func isGivenEqualsObservedGeneration(object runtime.Object) (bool, error) {
 		return false, fmt.Errorf("no field 'generation' in metadata of %v", object)
 	}
 	return givenGeneration == observedGeneration, nil
+}
+
+func (o Options) timeoutWithDefault() time.Duration {
+	if o.Timeout != nil {
+		return *o.Timeout
+	}
+	return 60 * time.Second
+}
+
+func (o Options) errorWindowWithDefault() time.Duration {
+	if o.ErrorWindow != nil {
+		return *o.ErrorWindow
+	}
+	return 2 * time.Second
 }

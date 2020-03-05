@@ -76,6 +76,21 @@ func NewCronJobUpdateCommand(p *commands.KnParams) *cobra.Command {
 				}
 				b.Sink(toDuckV1Beta1(destination))
 			}
+			if cmd.Flags().Changed("requests-cpu") {
+				b.ResourceRequestsCPU(cronUpdateFlags.resourceRequestsCPU)
+			}
+			if cmd.Flags().Changed("requests-memory") {
+				b.ResourceRequestsMemory(cronUpdateFlags.resourceRequestsMemory)
+			}
+			if cmd.Flags().Changed("limits-cpu") {
+				b.ResourceLimitsCPU(cronUpdateFlags.resourceLimitsCPU)
+			}
+			if cmd.Flags().Changed("limits-memory") {
+				b.ResourceLimitsMemory(cronUpdateFlags.resourceLimitsMemory)
+			}
+			if cmd.Flags().Changed("service-account") {
+				b.ServiceAccount(cronUpdateFlags.serviceAccountName)
+			}
 			err = cronSourceClient.UpdateCronJobSource(b.Build())
 			if err == nil {
 				fmt.Fprintf(cmd.OutOrStdout(), "CronJob source '%s' updated in namespace '%s'.\n", name, cronSourceClient.Namespace())

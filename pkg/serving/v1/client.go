@@ -89,7 +89,7 @@ type KnServingClient interface {
 	ListRevisions(opts ...ListConfig) (*servingv1.RevisionList, error)
 
 	// Delete a revision
-	DeleteRevision(name string) error
+	DeleteRevision(name string, timeout time.Duration) error
 
 	// Get a route by its unique name
 	GetRoute(name string) (*servingv1.Route, error)
@@ -177,6 +177,11 @@ func (cl *knServingClient) WatchService(name string, timeout time.Duration) (wat
 		cl.client.RESTClient(), cl.namespace, "services", name, timeout)
 }
 
+func (cl *knServingClient) WatchRevision(name string, timeout time.Duration) (watch.Interface, error) {
+	return wait.NewWatcher(cl.client.Revisions(cl.namespace).Watch,
+		cl.client.RESTClient(), cl.namespace, "revision", name, timeout)
+}
+
 // List services
 func (cl *knServingClient) ListServices(config ...ListConfig) (*servingv1.ServiceList, error) {
 	serviceList, err := cl.client.Services(cl.namespace).List(ListConfigs(config).toListOptions())
@@ -262,7 +267,7 @@ func (cl *knServingClient) DeleteService(serviceName string, timeout time.Durati
 	waitC := make(chan error)
 	go func() {
 		waitForEvent := wait.NewWaitForEvent("service", cl.WatchService, func(evt *watch.Event) bool { return evt.Type == watch.Deleted })
-		err, _ := waitForEvent.Wait(serviceName, timeout, wait.NoopMessageCallback())
+		err, _ := waitForEvent.Wait(serviceName, wait.Options{Timeout: &timeout}, wait.NoopMessageCallback())
 		waitC <- err
 	}()
 	err := cl.deleteService(serviceName, v1.DeletePropagationForeground)
@@ -287,7 +292,7 @@ func (cl *knServingClient) deleteService(serviceName string, propagationPolicy v
 // Wait for a service to become ready, but not longer than provided timeout
 func (cl *knServingClient) WaitForService(name string, timeout time.Duration, msgCallback wait.MessageCallback) (error, time.Duration) {
 	waitForReady := wait.NewWaitForReady("service", cl.WatchService, serviceConditionExtractor)
-	return waitForReady.Wait(name, timeout, msgCallback)
+	return waitForReady.Wait(name, wait.Options{Timeout: &timeout}, msgCallback)
 }
 
 // Get the configuration for a service
@@ -370,7 +375,25 @@ func getBaseRevision(cl KnServingClient, service *servingv1.Service) (*servingv1
 }
 
 // Delete a revision by name
-func (cl *knServingClient) DeleteRevision(name string) error {
+func (cl *knServingClient) DeleteRevision(name string, timeout time.Duration) error {
+	if timeout == 0 {
+		return cl.deleteRevision(name)
+	}
+	waitC := make(chan error)
+	go func() {
+		waitForEvent := wait.NewWaitForEvent("revision", cl.WatchRevision, func(evt *watch.Event) bool { return evt.Type == watch.Deleted })
+		err, _ := waitForEvent.Wait(name, wait.Options{Timeout: &timeout}, wait.NoopMessageCallback())
+		waitC <- err
+	}()
+	err := cl.deleteRevision(name)
+	if err != nil {
+		return clienterrors.GetError(err)
+	}
+
+	return <-waitC
+}
+
+func (cl *knServingClient) deleteRevision(name string) error {
 	err := cl.client.Revisions(cl.namespace).Delete(name, &v1.DeleteOptions{})
 	if err != nil {
 		return clienterrors.GetError(err)

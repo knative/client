@@ -35,7 +35,13 @@ func NewCronJobCreateCommand(p *commands.KnParams) *cobra.Command {
 		Short: "Create a CronJob source.",
 		Example: `
   # Create a crontab scheduler 'my-cron-trigger' which fires every minute and sends 'ping' to service 'mysvc' as a cloudevent
-  kn source cronjob create my-cron-trigger --schedule "* * * * */1" --data "ping" --sink svc:mysvc`,
+  kn source cronjob create my-cron-trigger --schedule "* * * * */1" --data "ping" --sink svc:mysvc
+  
+  # Create a crontab scheduler 'my-cron-trigger' with ServiceAccount name
+  kn source cronjob create my-cron-trigger1 --schedule "* * * * */1" --data "ping" --sink svc:event-display --service-account myaccount
+
+  # Create a crontab scheduler 'my-cron-trigger' with requested resources
+  kn source cronjob create my-cron-trigger1 --schedule "* * * * */1" --data "ping" --sink svc:event-display --requests-cpu 100m --requests-memory 128Mi`,
 
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
@@ -68,6 +74,11 @@ func NewCronJobCreateCommand(p *commands.KnParams) *cobra.Command {
 					Schedule(cronUpdateFlags.schedule).
 					Data(cronUpdateFlags.data).
 					Sink(toDuckV1Beta1(destination)).
+					ResourceRequestsCPU(cronUpdateFlags.resourceRequestsCPU).
+					ResourceRequestsMemory(cronUpdateFlags.resourceRequestsMemory).
+					ResourceLimitsCPU(cronUpdateFlags.resourceLimitsCPU).
+					ResourceLimitsMemory(cronUpdateFlags.resourceLimitsMemory).
+					ServiceAccount(cronUpdateFlags.serviceAccountName).
 					Build())
 			if err == nil {
 				fmt.Fprintf(cmd.OutOrStdout(), "CronJob source '%s' created in namespace '%s'.\n", args[0], cronSourceClient.Namespace())

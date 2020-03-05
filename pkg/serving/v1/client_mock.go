@@ -146,12 +146,12 @@ func (c *MockKnServingClient) ListRevisions(opts ...ListConfig) (*servingv1.Revi
 }
 
 // Delete a revision
-func (sr *ServingRecorder) DeleteRevision(name interface{}, err error) {
-	sr.r.Add("DeleteRevision", []interface{}{name}, []interface{}{err})
+func (sr *ServingRecorder) DeleteRevision(name, timeout interface{}, err error) {
+	sr.r.Add("DeleteRevision", []interface{}{name, timeout}, []interface{}{err})
 }
 
-func (c *MockKnServingClient) DeleteRevision(name string) error {
-	call := c.recorder.r.VerifyCall("DeleteRevision", name)
+func (c *MockKnServingClient) DeleteRevision(name string, timeout time.Duration) error {
+	call := c.recorder.r.VerifyCall("DeleteRevision", name, timeout)
 	return mock.ErrorOrNil(call.Result[0])
 }
 

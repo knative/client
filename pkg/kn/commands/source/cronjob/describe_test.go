@@ -37,6 +37,7 @@ func TestSimpleDescribe(t *testing.T) {
 	out, err := executeCronJobSourceCommand(cronjobClient, nil, "describe", "testsource")
 	assert.NilError(t, err)
 	util.ContainsAll(out, "1 2 3 4 5", "honeymoon", "myservicenamespace", "mysvc", "Service", "testsource")
+	util.ContainsAll(out, "myaccount", "100m", "128Mi", "200m", "256Mi")
 
 	cronJobRecorder.Validate()
 
@@ -70,6 +71,17 @@ func getCronJobSource() *v1alpha1.CronJobSource {
 					Kind:      "Service",
 					Namespace: "myservicenamespace",
 					Name:      "mysvc",
+				},
+			},
+			ServiceAccountName: "myaccount",
+			Resources: v1alpha1.CronJobResourceSpec{
+				Requests: v1alpha1.CronJobRequestsSpec{
+					ResourceCPU:    "100m",
+					ResourceMemory: "128Mi",
+				},
+				Limits: v1alpha1.CronJobLimitsSpec{
+					ResourceCPU:    "200m",
+					ResourceMemory: "256Mi",
 				},
 			},
 		},
