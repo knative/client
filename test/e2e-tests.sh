@@ -53,7 +53,6 @@ integration_test() {
   header "Running tests for Knative Serving $KNATIVE_SERVING_VERSION and Eventing $KNATIVE_EVENTING_VERSION"
 
   go_test_e2e -timeout=45m ./test/e2e || fail_test
-  success
 }
 
 smoke_test() {
@@ -88,7 +87,6 @@ smoke_test() {
   ./kn service list -n $ns | grep -q svc1 || fail_test
   ./kn service delete svc1 -n $ns || fail_test
   ./kn source list-types || fail_test
-  success
 }
 
 # Fire up
