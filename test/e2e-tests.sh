@@ -59,30 +59,33 @@ integration_test() {
 smoke_test() {
   header "Running smoke tests"
 
-  kubectl create ns $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
-  trap "kubectl delete ns $KN_E2E_SMOKE_TESTS_NAMESPACE" EXIT
+  # Test namespace
+  ns="kne2esmoketests"
+
+  kubectl create ns $ns || fail_test
+  trap "kubectl delete ns $ns" EXIT
 
   sleep 4 # Wait for the namespace to get initialized by kube-controller-manager
 
   #TODO: deprecated tests remove once --async is gone
-  ./kn service create svc1 --no-wait --image gcr.io/knative-samples/helloworld-go -e TARGET=Knative -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
-  ./kn service create svc2 --no-wait --image gcr.io/knative-samples/helloworld-go -e TARGET=Knative -$KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
-  ./kn service create hello --image gcr.io/knative-samples/helloworld-go -e TARGET=Knative -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
-  ./kn service list hello -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
-  ./kn service update hello --env TARGET=kn -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
-  ./kn revision list hello -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
-  ./kn service list -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
-  ./kn service create hello --force --image gcr.io/knative-samples/helloworld-go -e TARGET=Awesome -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
-  ./kn service create foo --force --image gcr.io/knative-samples/helloworld-go -e TARGET=foo -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
-  ./kn revision list -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
-  ./kn service list -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
-  ./kn service describe hello -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
-  ./kn service describe svc1 -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
-  ./kn route list -n $KN_E2E_SMOKE_TESTS_NAMESPACE  || fail_test
-  ./kn service delete hello -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
-  ./kn service delete foo -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
-  ./kn service list -n $KN_E2E_SMOKE_TESTS_NAMESPACE | grep -q svc1 || fail_test
-  ./kn service delete svc1 -n $KN_E2E_SMOKE_TESTS_NAMESPACE || fail_test
+  ./kn service create svc1 --no-wait --image gcr.io/knative-samples/helloworld-go -e TARGET=Knative -n $ns || fail_test
+  ./kn service create svc2 --no-wait --image gcr.io/knative-samples/helloworld-go -e TARGET=Knative -$ns || fail_test
+  ./kn service create hello --image gcr.io/knative-samples/helloworld-go -e TARGET=Knative -n $ns || fail_test
+  ./kn service list hello -n $ns || fail_test
+  ./kn service update hello --env TARGET=kn -n $ns || fail_test
+  ./kn revision list hello -n $ns || fail_test
+  ./kn service list -n $ns || fail_test
+  ./kn service create hello --force --image gcr.io/knative-samples/helloworld-go -e TARGET=Awesome -n $ns || fail_test
+  ./kn service create foo --force --image gcr.io/knative-samples/helloworld-go -e TARGET=foo -n $ns || fail_test
+  ./kn revision list -n $ns || fail_test
+  ./kn service list -n $ns || fail_test
+  ./kn service describe hello -n $ns || fail_test
+  ./kn service describe svc1 -n $ns || fail_test
+  ./kn route list -n $ns  || fail_test
+  ./kn service delete hello -n $ns || fail_test
+  ./kn service delete foo -n $ns || fail_test
+  ./kn service list -n $ns | grep -q svc1 || fail_test
+  ./kn service delete svc1 -n $ns || fail_test
   ./kn source list-types || fail_test
   success
 }
