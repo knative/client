@@ -59,7 +59,7 @@ func (c *MockKnEventingClient) Namespace() string {
 	return c.recorder.r.Namespace()
 }
 
-// CreateTrigger records a call for CreateCronJobSource with the expected error
+// CreateTrigger records a call for CreatePingSource with the expected error
 func (sr *EventingRecorder) CreateTrigger(trigger interface{}, err error) {
 	sr.r.Add("CreateTrigger", []interface{}{trigger}, []interface{}{err})
 }

@@ -20,9 +20,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"knative.dev/client/pkg/eventing/legacysources/v1alpha1"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
+	clientv1alpha1 "knative.dev/client/pkg/sources/v1alpha1"
 )
 
 // NewAPIServerUpdateCommand for managing source update
@@ -64,7 +64,7 @@ func NewAPIServerUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			b := v1alpha1.NewAPIServerSourceBuilderFromExisting(source)
+			b := clientv1alpha1.NewAPIServerSourceBuilderFromExisting(source)
 			if cmd.Flags().Changed("service-account") {
 				b.ServiceAccount(apiServerUpdateFlags.ServiceAccountName)
 			}

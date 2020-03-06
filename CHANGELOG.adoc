@@ -22,8 +22,12 @@
 | Add --cluster-local and --no-cluster-local flags
 | https://github.com/knative/client/pull/629[#629]
 
+| 🐣
+| Replaced `kn source cron` with `kn source ping`. `--schedule` is not mandatory anymore and defaults to "* * * * *" (every minute)
+| https://github.com/knative/client/issues/564[#564]
+
 | ✨
-| Add serviceaccount and resources config to cronjob source handling
+| Update to Knative serving 0.13.0 and Knative eventing 0.13.1
 | https://github.com/knative/client/issues/564[#564]
 
 | ✨

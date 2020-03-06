@@ -174,6 +174,10 @@ func RunKn(namespace string, args []string) KnRunResult {
 	}
 	if err != nil {
 		command := args[0]
+		if command == "source" && len(args) > 1 {
+			command = "source " + args[1]
+			args = args[1:]
+		}
 		result.DumpInfo = extractDumpInfo(command, args, namespace)
 	}
 	return result
@@ -209,11 +213,11 @@ type dumpFunc func(namespace string, args []string) string
 // Dump handler for specific commands ("service", "revision") which should add extra infos
 // Relies on that argv[1] is the command and argv[3] is the name of the object
 var dumpHandlers = map[string]dumpFunc{
-	"service":  dumpService,
-	"revision": dumpRevision,
-	"route":    dumpRoute,
-	"trigger":  dumpTrigger,
-	// TODO: "source",
+	"service":          dumpService,
+	"revision":         dumpRevision,
+	"route":            dumpRoute,
+	"trigger":          dumpTrigger,
+	"source apiserver": dumpApiServerSource,
 }
 
 func extractDumpInfoWithName(command string, name string, namespace string) string {
@@ -255,6 +259,10 @@ func dumpRevision(namespace string, args []string) string {
 
 func dumpRoute(namespace string, args []string) string {
 	return simpleDump("route", args, namespace)
+}
+
+func dumpApiServerSource(namespace string, args []string) string {
+	return simpleDump("apiserversource", args, namespace)
 }
 
 func dumpTrigger(namespace string, args []string) string {

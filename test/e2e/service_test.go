@@ -24,7 +24,7 @@ import (
 
 	"gotest.tools/assert"
 	"knative.dev/client/pkg/util"
-	"knative.dev/serving/pkg/reconciler/route/config"
+	"knative.dev/serving/pkg/apis/serving"
 )
 
 func TestService(t *testing.T) {
@@ -64,7 +64,7 @@ func (test *e2eTest) serviceCreatePrivate(t *testing.T, r *KnRunResultCollector,
 
 	out = test.kn.Run("service", "describe", serviceName, "--verbose")
 	r.AssertNoError(out)
-	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, config.VisibilityLabelKey, config.VisibilityClusterLocal))
+	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, serving.VisibilityLabelKey, serving.VisibilityClusterLocal))
 }
 
 func (test *e2eTest) serviceCreatePrivateUpdatePublic(t *testing.T, r *KnRunResultCollector, serviceName string) {
@@ -75,7 +75,7 @@ func (test *e2eTest) serviceCreatePrivateUpdatePublic(t *testing.T, r *KnRunResu
 
 	out = test.kn.Run("service", "describe", serviceName, "--verbose")
 	r.AssertNoError(out)
-	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, config.VisibilityLabelKey, config.VisibilityClusterLocal))
+	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, serving.VisibilityLabelKey, serving.VisibilityClusterLocal))
 
 	out = test.kn.Run("service", "update", serviceName,
 		"--image", KnDefaultTestImage, "--no-cluster-local")
@@ -84,7 +84,7 @@ func (test *e2eTest) serviceCreatePrivateUpdatePublic(t *testing.T, r *KnRunResu
 
 	out = test.kn.Run("service", "describe", serviceName, "--verbose")
 	r.AssertNoError(out)
-	assert.Check(t, util.ContainsNone(out.Stdout, config.VisibilityLabelKey, config.VisibilityClusterLocal))
+	assert.Check(t, util.ContainsNone(out.Stdout, serving.VisibilityLabelKey, serving.VisibilityClusterLocal))
 }
 
 func (test *e2eTest) serviceCreateDuplicate(t *testing.T, r *KnRunResultCollector, serviceName string) {
