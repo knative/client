@@ -57,12 +57,6 @@ func TestSourcePing(t *testing.T) {
 	out, err := test.getResourceFieldsWithJSONPath("pingsource", "testpingsource2", jpSinkRefNameInSpec)
 	assert.NilError(t, err)
 	assert.Equal(t, out, "testsvc1")
-
-	t.Log("create Ping source with service account and resources")
-	test.pingSourceCreateWithResources(t, r, "testpingsource3", "* * * * */1", "ping", "svc:testsvc0", "default", "100m", "128Mi", "200m", "256Mi")
-	test.verifyPingSourceDescribe(t, r, "testpingsource3", "* * * * */1", "ping", "testsvc0", "default", "100m", "128Mi", "200m", "256Mi")
-	test.pingSourceUpdateResources(t, r, "testpingsource3", "101m", "129Mi", "201m", "257Mi")
-	test.verifyPingSourceDescribe(t, r, "testpingsource3", "* * * * */1", "ping", "testsvc0", "default", "101m", "129Mi", "201m", "257Mi")
 }
 
 func (test *e2eTest) pingSourceCreate(t *testing.T, r *KnRunResultCollector, sourceName string, schedule string, data string, sink string) {
