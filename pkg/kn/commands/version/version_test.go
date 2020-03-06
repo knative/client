@@ -38,8 +38,9 @@ Supported APIs:
 * Serving
   - serving.knative.dev/v1 (knative-serving v0.13.0)
 * Eventing
-  - sources.eventing.knative.dev/v1alpha1 (knative-eventing v0.13.0)
-  - eventing.knative.dev/v1alpha1 (knative-eventing v0.13.0)
+  - sources.eventing.knative.dev/v1alpha1 (knative-eventing v0.13.1)
+  - sources.eventing.knative.dev/v1alpha2 (knative-eventing v0.13.1)
+  - eventing.knative.dev/v1alpha1 (knative-eventing v0.13.1)
 `
 
 const (
