@@ -22,11 +22,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/tools/clientcmd"
-	"knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1"
+	v1alpha2 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha2"
 	"knative.dev/pkg/tracker"
 
 	"knative.dev/client/pkg/kn/commands"
-	clientsourcesv1alpha1 "knative.dev/client/pkg/sources/v1alpha1"
+	clientsourcesv1alpha1 "knative.dev/client/pkg/sources/v1alpha2"
 	"knative.dev/client/pkg/util"
 )
 
@@ -67,7 +67,7 @@ func newSinkBindingClient(p *commands.KnParams, cmd *cobra.Command) (clientsourc
 		return nil, err
 	}
 
-	client, err := v1alpha1.NewForConfig(clientConfig)
+	client, err := v1alpha2.NewForConfig(clientConfig)
 	if err != nil {
 		return nil, err
 	}

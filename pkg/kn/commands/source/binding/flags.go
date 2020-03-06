@@ -23,7 +23,7 @@ import (
 	"knative.dev/client/pkg/kn/commands/flags"
 	hprinters "knative.dev/client/pkg/printers"
 
-	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
+	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
 )
 
 type bindingUpdateFlags struct {
@@ -52,7 +52,7 @@ func BindingListHandlers(h hprinters.PrintHandler) {
 }
 
 // printSinkBinding populates a single row of source sink binding list table
-func printSinkBinding(binding *v1alpha1.SinkBinding, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+func printSinkBinding(binding *v1alpha2.SinkBinding, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	row := metav1beta1.TableRow{
 		Object: runtime.RawExtension{Object: binding},
 	}
@@ -73,7 +73,7 @@ func printSinkBinding(binding *v1alpha1.SinkBinding, options hprinters.PrintOpti
 	return []metav1beta1.TableRow{row}, nil
 }
 
-func printSinkBindingList(sinkBindingList *v1alpha1.SinkBindingList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+func printSinkBindingList(sinkBindingList *v1alpha2.SinkBindingList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 
 	rows := make([]metav1beta1.TableRow, 0, len(sinkBindingList.Items))
 	for _, binding := range sinkBindingList.Items {

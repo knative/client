@@ -23,11 +23,11 @@ import (
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	dynamicfake "knative.dev/client/pkg/dynamic/fake"
-	clientsourcesv1alpha1 "knative.dev/client/pkg/sources/v1alpha1"
+	clientsourcesv1alpha1 "knative.dev/client/pkg/sources/v1alpha2"
 	"knative.dev/client/pkg/util"
 )
 
-func TestSimpleUpdate(t *testing.T) {
+func TestSimpleBindingUpdate(t *testing.T) {
 	sinkBindingClient := clientsourcesv1alpha1.NewMockKnSinkBindingClient(t)
 
 	mysvc := createService("myscv")
