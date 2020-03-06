@@ -87,6 +87,8 @@ smoke_test() {
   ./kn service list -n $ns | grep -q svc1 || fail_test
   ./kn service delete svc1 -n $ns || fail_test
   ./kn source list-types || fail_test
+
+  set +x
 }
 
 # Fire up
