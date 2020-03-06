@@ -15,26 +15,26 @@
 package v1alpha1
 
 import (
-	client_v1alpha1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1"
+	clientv1alpha1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1"
 )
 
 // KnSinkBindingClient to Eventing Sources. All methods are relative to the
 // namespace specified during construction
 type KnSourcesClient interface {
-	// Get client for sink binding sources
-	SinkBindingClient() KnSinkBindingClient
+	// Get client for ApiServer sources
+	APIServerSourcesClient() KnAPIServerSourcesClient
 }
 
 // sourcesClient is a combination of Sources client interface and namespace
 // Temporarily help to add sources dependencies
 // May be changed when adding real sources features
 type sourcesClient struct {
-	client    client_v1alpha1.SourcesV1alpha1Interface
+	client    clientv1alpha1.SourcesV1alpha1Interface
 	namespace string
 }
 
 // NewKnSourcesClient for managing all eventing built-in sources
-func NewKnSourcesClient(client client_v1alpha1.SourcesV1alpha1Interface, namespace string) KnSourcesClient {
+func NewKnSourcesClient(client clientv1alpha1.SourcesV1alpha1Interface, namespace string) KnSourcesClient {
 	return &sourcesClient{
 		client:    client,
 		namespace: namespace,
@@ -42,6 +42,6 @@ func NewKnSourcesClient(client client_v1alpha1.SourcesV1alpha1Interface, namespa
 }
 
 // ApiServerSourcesClient for dealing with ApiServer sources
-func (c *sourcesClient) SinkBindingClient() KnSinkBindingClient {
-	return newKnSinkBindingClient(c.client.SinkBindings(c.namespace), c.namespace)
+func (c *sourcesClient) APIServerSourcesClient() KnAPIServerSourcesClient {
+	return newKnAPIServerSourcesClient(c.client.ApiServerSources(c.namespace), c.namespace)
 }

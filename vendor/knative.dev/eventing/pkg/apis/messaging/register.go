@@ -16,6 +16,29 @@ limitations under the License.
 
 package messaging
 
+import "k8s.io/apimachinery/pkg/runtime/schema"
+
 const (
 	GroupName = "messaging.knative.dev"
+	// SubscribableDuckVersionAnnotation is the annotation we use to declare
+	// which Subscribable duck version type we conform to.
+	SubscribableDuckVersionAnnotation = "messaging.knative.dev/subscribable"
+)
+
+var (
+	// SubscriptionssResource represents a Knative Subscription
+	SubscriptionsResource = schema.GroupResource{
+		Group:    GroupName,
+		Resource: "subscriptions",
+	}
+	// ChannelsResource represents a Knative Channel
+	ChannelsResource = schema.GroupResource{
+		Group:    GroupName,
+		Resource: "channels",
+	}
+	// InMemoryChannelsResource represents a Knative Channel
+	InMemoryChannelsResource = schema.GroupResource{
+		Group:    GroupName,
+		Resource: "inmemorychannels",
+	}
 )

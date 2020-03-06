@@ -25,10 +25,11 @@ import (
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 	"knative.dev/pkg/kmeta"
 
-	eventingduckv1alpha1 "knative.dev/eventing/pkg/apis/duck/v1alpha1"
+	eventingduckv1beta1 "knative.dev/eventing/pkg/apis/duck/v1beta1"
 )
 
 // +genclient
+// +genreconciler
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +k8s:defaulter-gen=true
 
@@ -112,7 +113,7 @@ type SubscriptionSpec struct {
 
 	// Delivery configuration
 	// +optional
-	Delivery *eventingduckv1alpha1.DeliverySpec `json:"delivery,omitempty"`
+	Delivery *eventingduckv1beta1.DeliverySpec `json:"delivery,omitempty"`
 }
 
 // SubscriptionStatus (computed) for a subscription

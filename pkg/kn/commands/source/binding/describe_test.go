@@ -21,17 +21,17 @@ import (
 
 	"gotest.tools/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	v1alpha14 "knative.dev/eventing/pkg/apis/sources/v1alpha1"
+	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 	"knative.dev/pkg/apis/duck/v1alpha1"
 	"knative.dev/pkg/tracker"
 
-	v1alpha13 "knative.dev/client/pkg/sources/v1alpha1"
+	clientv1alpha2 "knative.dev/client/pkg/sources/v1alpha2"
 	"knative.dev/client/pkg/util"
 )
 
 func TestSimpleDescribeWitName(t *testing.T) {
-	bindingClient := v1alpha13.NewMockKnSinkBindingClient(t, "mynamespace")
+	bindingClient := clientv1alpha2.NewMockKnSinkBindingClient(t, "mynamespace")
 
 	bindingRecorder := bindingClient.Recorder()
 	bindingRecorder.GetSinkBinding("mybinding", getSinkBindingSource("myapp", map[string]string{"foo": "bar"}), nil)
@@ -44,7 +44,7 @@ func TestSimpleDescribeWitName(t *testing.T) {
 }
 
 func TestSimpleDescribeWithSelector(t *testing.T) {
-	bindingClient := v1alpha13.NewMockKnSinkBindingClient(t, "mynamespace")
+	bindingClient := clientv1alpha2.NewMockKnSinkBindingClient(t, "mynamespace")
 
 	bindingRecorder := bindingClient.Recorder()
 	bindingRecorder.GetSinkBinding("mybinding", getSinkBindingSource("app=myapp,type=test", nil), nil)
@@ -57,7 +57,7 @@ func TestSimpleDescribeWithSelector(t *testing.T) {
 }
 
 func TestDescribeError(t *testing.T) {
-	bindingClient := v1alpha13.NewMockKnSinkBindingClient(t, "mynamespace")
+	bindingClient := clientv1alpha2.NewMockKnSinkBindingClient(t, "mynamespace")
 
 	bindingRecorder := bindingClient.Recorder()
 	bindingRecorder.GetSinkBinding("mybinding", nil, errors.New("no sink binding mybinding found"))
@@ -69,13 +69,13 @@ func TestDescribeError(t *testing.T) {
 	bindingRecorder.Validate()
 }
 
-func getSinkBindingSource(nameOrSelector string, ceOverrides map[string]string) *v1alpha14.SinkBinding {
-	binding := &v1alpha14.SinkBinding{
+func getSinkBindingSource(nameOrSelector string, ceOverrides map[string]string) *v1alpha2.SinkBinding {
+	binding := &v1alpha2.SinkBinding{
 		TypeMeta: v1.TypeMeta{},
 		ObjectMeta: v1.ObjectMeta{
 			Name: "mysinkbinding",
 		},
-		Spec: v1alpha14.SinkBindingSpec{
+		Spec: v1alpha2.SinkBindingSpec{
 			SourceSpec: duckv1.SourceSpec{
 				Sink: duckv1.Destination{
 					Ref: &duckv1.KReference{
@@ -93,7 +93,7 @@ func getSinkBindingSource(nameOrSelector string, ceOverrides map[string]string) 
 				},
 			},
 		},
-		Status: v1alpha14.SinkBindingStatus{},
+		Status: v1alpha2.SinkBindingStatus{},
 	}
 
 	if strings.Contains(nameOrSelector, "=") {

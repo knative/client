@@ -20,7 +20,7 @@
 # and container registry, you must set the $CONTAINER_REGISTRY and $DOCKER_CONFIG_JSON
 # environment variables and login to your registry of choice.
 
-source $(dirname $0)/e2e-common.sh
+source $(dirname $0)/common.sh
 
 # Add local dir to have access to built kn
 export PATH=$PATH:${REPO_ROOT_DIR}
