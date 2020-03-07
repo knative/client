@@ -32,7 +32,6 @@ FLOATING_DEPS=(
   "knative.dev/pkg@${VERSION}"
   "knative.dev/serving@${VERSION}"
   "knative.dev/eventing@${VERSION}"
-  "knative.dev/eventing-contrib@${VERSION}"
 )
 
 # Parse flags to determine any we should pass to dep.
