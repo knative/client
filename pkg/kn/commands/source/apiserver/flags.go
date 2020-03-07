@@ -23,10 +23,12 @@ import (
 
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/runtime"
+	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
+
 	"knative.dev/client/pkg/kn/commands"
-	"knative.dev/eventing/pkg/apis/legacysources/v1alpha1"
 
 	metav1beta1 "k8s.io/apimachinery/pkg/apis/meta/v1beta1"
+
 	hprinters "knative.dev/client/pkg/printers"
 	"knative.dev/client/pkg/util"
 )

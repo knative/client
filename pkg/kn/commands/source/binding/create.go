@@ -22,7 +22,7 @@ import (
 
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
-	v1alpha12 "knative.dev/client/pkg/sources/v1alpha1"
+	v1alpha12 "knative.dev/client/pkg/sources/v1alpha2"
 )
 
 // NewBindingCreateCommand is for creating sink bindings

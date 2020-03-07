@@ -245,7 +245,7 @@ func defaultConfigDir() (string, error) {
 			"Please move your configuration to: %s", migrationPath)
 	}
 	// Respect %APPDATA% on MS Windows
-	// C:\Documents and Settings\username\Application Data
+	// C:\Documents and Settings\username\Application JsonData
 	if runtime.GOOS == "windows" {
 		return filepath.Join(os.Getenv("APPDATA"), "kn"), nil
 	}

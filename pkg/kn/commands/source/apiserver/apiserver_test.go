@@ -19,12 +19,13 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/clientcmd"
-	kn_dynamic "knative.dev/client/pkg/dynamic"
-	"knative.dev/eventing/pkg/apis/legacysources/v1alpha1"
+	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
 	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
 
-	knsource_v1alpha1 "knative.dev/client/pkg/eventing/legacysources/v1alpha1"
+	kndynamic "knative.dev/client/pkg/dynamic"
+
 	"knative.dev/client/pkg/kn/commands"
+	clientv1alpha1 "knative.dev/client/pkg/sources/v1alpha1"
 )
 
 const testNamespace = "default"
@@ -55,13 +56,13 @@ current-context: x
 	}
 }
 
-func executeAPIServerSourceCommand(apiServerSourceClient knsource_v1alpha1.KnAPIServerSourcesClient, dynamicClient kn_dynamic.KnDynamicClient, args ...string) (string, error) {
+func executeAPIServerSourceCommand(apiServerSourceClient clientv1alpha1.KnAPIServerSourcesClient, dynamicClient kndynamic.KnDynamicClient, args ...string) (string, error) {
 	knParams := &commands.KnParams{}
 	knParams.ClientConfig = blankConfig
 
 	output := new(bytes.Buffer)
 	knParams.Output = output
-	knParams.NewDynamicClient = func(namespace string) (kn_dynamic.KnDynamicClient, error) {
+	knParams.NewDynamicClient = func(namespace string) (kndynamic.KnDynamicClient, error) {
 		return dynamicClient, nil
 	}
 
@@ -69,7 +70,7 @@ func executeAPIServerSourceCommand(apiServerSourceClient knsource_v1alpha1.KnAPI
 	cmd.SetArgs(args)
 	cmd.SetOutput(output)
 
-	apiServerSourceClientFactory = func(config clientcmd.ClientConfig, namespace string) (knsource_v1alpha1.KnAPIServerSourcesClient, error) {
+	apiServerSourceClientFactory = func(config clientcmd.ClientConfig, namespace string) (clientv1alpha1.KnAPIServerSourcesClient, error) {
 		return apiServerSourceClient, nil
 	}
 	defer cleanupAPIServerMockClient()
@@ -98,7 +99,7 @@ func createAPIServerSource(name, resourceKind, resourceVersion, serviceAccount, 
 			Namespace:  "default",
 		}}
 
-	return knsource_v1alpha1.NewAPIServerSourceBuilder(name).
+	return clientv1alpha1.NewAPIServerSourceBuilder(name).
 		Resources(resources).
 		ServiceAccount(serviceAccount).
 		Mode(mode).

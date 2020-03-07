@@ -19,12 +19,12 @@ import (
 
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/tools/clientcmd"
-	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
+	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
 	v1 "knative.dev/pkg/apis/duck/v1"
 
-	kn_dynamic "knative.dev/client/pkg/dynamic"
+	kndynamic "knative.dev/client/pkg/dynamic"
 	"knative.dev/client/pkg/kn/commands"
-	cl_sources_v1alpha1 "knative.dev/client/pkg/sources/v1alpha1"
+	clientv1alpha2 "knative.dev/client/pkg/sources/v1alpha2"
 )
 
 // Helper methods
@@ -57,13 +57,13 @@ current-context: x
 	}
 }
 
-func executeSinkBindingCommand(sinkBindingClient cl_sources_v1alpha1.KnSinkBindingClient, dynamicClient kn_dynamic.KnDynamicClient, args ...string) (string, error) {
+func executeSinkBindingCommand(sinkBindingClient clientv1alpha2.KnSinkBindingClient, dynamicClient kndynamic.KnDynamicClient, args ...string) (string, error) {
 	knParams := &commands.KnParams{}
 	knParams.ClientConfig = blankConfig
 
 	output := new(bytes.Buffer)
 	knParams.Output = output
-	knParams.NewDynamicClient = func(namespace string) (kn_dynamic.KnDynamicClient, error) {
+	knParams.NewDynamicClient = func(namespace string) (kndynamic.KnDynamicClient, error) {
 		return dynamicClient, nil
 	}
 
@@ -71,7 +71,7 @@ func executeSinkBindingCommand(sinkBindingClient cl_sources_v1alpha1.KnSinkBindi
 	cmd.SetArgs(args)
 	cmd.SetOutput(output)
 
-	sinkBindingClientFactory = func(config clientcmd.ClientConfig, namespace string) (cl_sources_v1alpha1.KnSinkBindingClient, error) {
+	sinkBindingClientFactory = func(config clientcmd.ClientConfig, namespace string) (clientv1alpha2.KnSinkBindingClient, error) {
 		return sinkBindingClient, nil
 	}
 	defer cleanupSinkBindingClient()
@@ -85,9 +85,9 @@ func cleanupSinkBindingClient() {
 	sinkBindingClientFactory = nil
 }
 
-func createSinkBinding(name, service string, subjectGvk schema.GroupVersionKind, subjectName string, ceOverrides map[string]string) *v1alpha1.SinkBinding {
+func createSinkBinding(name, service string, subjectGvk schema.GroupVersionKind, subjectName string, ceOverrides map[string]string) *v1alpha2.SinkBinding {
 	sink := createServiceSink(service)
-	builder := cl_sources_v1alpha1.NewSinkBindingBuilder(name).
+	builder := clientv1alpha2.NewSinkBindingBuilder(name).
 		Namespace("default").
 		Sink(&sink).
 		SubjectGVK(&subjectGvk).

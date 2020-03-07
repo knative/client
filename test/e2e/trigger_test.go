@@ -47,7 +47,7 @@ func TestBrokerTrigger(t *testing.T) {
 
 	t.Log("create triggers and list them")
 	test.triggerCreate(t, r, "trigger1", "sinksvc0", []string{"a=b"})
-	test.triggerCreate(t, r, "trigger2", "sinksvc1", []string{"type=knative.dev.bar", "source=cronjob"})
+	test.triggerCreate(t, r, "trigger2", "sinksvc1", []string{"type=knative.dev.bar", "source=ping"})
 	test.verifyTriggerList(t, r, "trigger1", "trigger2")
 	test.triggerDelete(t, r, "trigger1")
 	test.triggerDelete(t, r, "trigger2")
