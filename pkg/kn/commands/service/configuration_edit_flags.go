@@ -20,8 +20,11 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"knative.dev/client/pkg/kn/flags"
 	servinglib "knative.dev/client/pkg/serving"
 	"knative.dev/client/pkg/util"
@@ -377,33 +380,20 @@ func (p *ConfigurationEditFlags) Apply(
 	}
 
 	if cmd.Flags().Changed("label") || cmd.Flags().Changed("label-service") || cmd.Flags().Changed("label-revision") {
-		serviceMap := make(util.StringMap)
-		revisionMap := make(util.StringMap)
-
 		labelsAllMap, err := util.MapFromArrayAllowingSingles(p.Labels, "=")
 		if err != nil {
 			return errors.Wrap(err, "Invalid --label")
 		}
-		serviceMap.Merge(labelsAllMap)
-		revisionMap.Merge(labelsAllMap)
 
-		labelServiceMap, err := util.MapFromArrayAllowingSingles(p.LabelsService, "=")
+		err = p.updateLabels(service.ObjectMeta, p.LabelsService, labelsAllMap)
 		if err != nil {
 			return errors.Wrap(err, "Invalid --label-service")
 		}
-		serviceMap.Merge(labelServiceMap)
 
-		labelRevMap, err := util.MapFromArrayAllowingSingles(p.LabelsRevision, "=")
+		err = p.updateLabels(template.ObjectMeta, p.LabelsRevision, labelsAllMap)
 		if err != nil {
 			return errors.Wrap(err, "Invalid --label-revision")
 		}
-		revisionMap.Merge(labelRevMap)
-
-		serviceLabelsToRemove := util.ParseMinusSuffix(serviceMap)
-		revisionLabelsToRemove := util.ParseMinusSuffix(revisionMap)
-
-		service.ObjectMeta.Labels = servinglib.UpdateLabels(service.ObjectMeta.Labels, serviceMap, serviceLabelsToRemove)
-		template.ObjectMeta.Labels = servinglib.UpdateLabels(template.ObjectMeta.Labels, revisionMap, revisionLabelsToRemove)
 	}
 
 	if cmd.Flags().Changed("annotation") {
@@ -433,6 +423,20 @@ func (p *ConfigurationEditFlags) Apply(
 	if cmd.Flags().Changed("user") {
 		servinglib.UpdateUser(template, p.User)
 	}
+
+	return nil
+}
+
+func (p *ConfigurationEditFlags) updateLabels(obj metav1.ObjectMeta, flagLabels []string, labelsAllMap map[string]string) error {
+	labelFlagMap, err := util.MapFromArrayAllowingSingles(flagLabels, "=")
+	if err != nil {
+		return errors.Wrap(err, "Unable to parse label flags")
+	}
+	labelsMap := make(util.StringMap)
+	labelsMap.Merge(labelsAllMap)
+	labelsMap.Merge(labelFlagMap)
+	revisionLabelsToRemove := util.ParseMinusSuffix(labelsMap)
+	obj.Labels = servinglib.UpdateLabels(obj.Labels, labelsMap, revisionLabelsToRemove)
 
 	return nil
 }
