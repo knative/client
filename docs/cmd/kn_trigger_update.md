@@ -17,12 +17,12 @@ kn trigger update NAME --filter KEY=VALUE --sink SINK [flags]
   # Update the filter which key is 'type' to value 'knative.dev.bar' in a trigger 'mytrigger'
   kn trigger update mytrigger --filter type=knative.dev.bar
 
-  # Remove the filter which key is 'type' from a trigger 'mytrigger' 
+  # Remove the filter which key is 'type' from a trigger 'mytrigger'
   kn trigger update mytrigger --filter type-
 
   # Update the sink of a trigger 'mytrigger' to 'svc:new-service'
   kn trigger update mytrigger --sink svc:new-service
-  
+
 ```
 
 ### Options
@@ -45,5 +45,4 @@ kn trigger update NAME --filter KEY=VALUE --sink SINK [flags]
 
 ### SEE ALSO
 
-* [kn trigger](kn_trigger.md)	 - Trigger command group
-
+- [kn trigger](kn_trigger.md) - Trigger command group
