@@ -59,8 +59,8 @@ func TestSourceApiServer(t *testing.T) {
 	t.Log("list sources")
 	output := test.sourceList(t, r)
 	assert.Check(t, util.ContainsAll(output, "NAME", "TYPE", "RESOURCE", "SINK", "READY"))
-	assert.Check(t, util.ContainsAll(output, "testapisource0", "ApiServerSource", "apiserversources.sources.eventing.knative.dev", "svc:testsvc0"))
-	assert.Check(t, util.ContainsAll(output, "testapisource1", "ApiServerSource", "apiserversources.sources.eventing.knative.dev", "svc:testsvc0"))
+	assert.Check(t, util.ContainsAll(output, "testapisource0", "ApiServerSource", "apiserversources.sources.knative.dev", "svc:testsvc0"))
+	assert.Check(t, util.ContainsAll(output, "testapisource1", "ApiServerSource", "apiserversources.sources.knative.dev", "svc:testsvc0"))
 
 	t.Log("list sources in YAML format")
 	output = test.sourceList(t, r, "-oyaml")
