@@ -16,31 +16,27 @@ package version
 
 import (
 	"bytes"
+	"encoding/json"
 	"testing"
 	"text/template"
 
-	"knative.dev/client/pkg/kn/commands"
-
 	"github.com/spf13/cobra"
 	"gotest.tools/assert"
-)
+	"sigs.k8s.io/yaml"
 
-type versionOutput struct {
-	Version     string
-	BuildDate   string
-	GitRevision string
-}
+	"knative.dev/client/pkg/kn/commands"
+)
 
 var versionOutputTemplate = `Version:      {{.Version}}
 Build Date:   {{.BuildDate}}
 Git Revision: {{.GitRevision}}
 Supported APIs:
 * Serving
-  - serving.knative.dev/v1 (knative-serving v0.13.0)
+  - {{ index .SupportedAPIs.serving 0}}
 * Eventing
-  - sources.eventing.knative.dev/v1alpha1 (knative-eventing v0.13.1)
-  - sources.eventing.knative.dev/v1alpha2 (knative-eventing v0.13.1)
-  - eventing.knative.dev/v1alpha1 (knative-eventing v0.13.1)
+  - {{ index .SupportedAPIs.eventing 0}}
+  - {{ index .SupportedAPIs.eventing 1}}
+  - {{ index .SupportedAPIs.eventing 2}}
 `
 
 const (
@@ -51,53 +47,79 @@ const (
 
 func TestVersion(t *testing.T) {
 	var (
-		versionCmd            *cobra.Command
-		knParams              *commands.KnParams
-		expectedVersionOutput string
-		output                *bytes.Buffer
+		versionCmd     *cobra.Command
+		knParams       *commands.KnParams
+		expectedOutput string
+		knVersionObj   knVersion
+		output         *bytes.Buffer
 	)
 
 	setup := func() {
 		Version = fakeVersion
 		BuildDate = fakeBuildDate
 		GitRevision = fakeGitRevision
-
-		expectedVersionOutput = genVersionOuput(t, versionOutputTemplate,
-			versionOutput{
-				fakeVersion,
-				fakeBuildDate,
-				fakeGitRevision})
-
+		knVersionObj = knVersion{fakeVersion, fakeBuildDate, fakeGitRevision, apiVersions}
+		expectedOutput = genVersionOuput(t, knVersionObj)
 		knParams = &commands.KnParams{}
 		versionCmd = NewVersionCommand(knParams)
 		output = new(bytes.Buffer)
 		versionCmd.SetOutput(output)
 	}
 
+	runVersionCmd := func(args []string) error {
+		setup()
+		versionCmd.SetArgs(args)
+		return versionCmd.Execute()
+	}
+
 	t.Run("creates a VersionCommand", func(t *testing.T) {
 		setup()
-
 		assert.Equal(t, versionCmd.Use, "version")
 		assert.Equal(t, versionCmd.Short, "Prints the client version")
-		assert.Assert(t, versionCmd.Run != nil)
+		assert.Assert(t, versionCmd.RunE != nil)
 	})
 
 	t.Run("prints version, build date, git revision, supported APIs", func(t *testing.T) {
-		setup()
+		err := runVersionCmd([]string{})
+		assert.NilError(t, err)
+		assert.Equal(t, output.String(), expectedOutput)
+	})
 
-		versionCmd.Run(versionCmd, []string{})
-		assert.Equal(t, output.String(), expectedVersionOutput)
+	t.Run("print version command with machine readable output", func(t *testing.T) {
+		t.Run("json", func(t *testing.T) {
+			err := runVersionCmd([]string{"-oJSON"})
+			assert.NilError(t, err)
+			in := knVersion{}
+			err = json.Unmarshal(output.Bytes(), &in)
+			assert.NilError(t, err)
+			assert.DeepEqual(t, in, knVersionObj)
+		})
+
+		t.Run("yaml", func(t *testing.T) {
+			err := runVersionCmd([]string{"-oyaml"})
+			assert.NilError(t, err)
+			jsonData, err := yaml.YAMLToJSON(output.Bytes())
+			assert.NilError(t, err)
+			in := knVersion{}
+			err = json.Unmarshal(jsonData, &in)
+			assert.NilError(t, err)
+			assert.DeepEqual(t, in, knVersionObj)
+		})
+
+		t.Run("invalid format", func(t *testing.T) {
+			err := runVersionCmd([]string{"-o", "jsonpath"})
+			assert.Assert(t, err != nil)
+			assert.ErrorContains(t, err, "Invalid", "output", "flag", "choose", "among")
+		})
 	})
 
 }
 
-func genVersionOuput(t *testing.T, templ string, vOutput versionOutput) string {
+func genVersionOuput(t *testing.T, obj knVersion) string {
 	tmpl, err := template.New("versionOutput").Parse(versionOutputTemplate)
 	assert.NilError(t, err)
-
 	buf := bytes.Buffer{}
-	err = tmpl.Execute(&buf, vOutput)
+	err = tmpl.Execute(&buf, obj)
 	assert.NilError(t, err)
-
 	return buf.String()
 }
