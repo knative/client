@@ -4,13 +4,13 @@ Output shell completion code
 
 ### Synopsis
 
-
-This command prints shell completion code which needs to be evaluated
-to provide interactive completion
+This command prints shell completion code which needs to be evaluated to provide
+interactive completion
 
 Supported Shells:
- - bash
- - zsh
+
+- bash
+- zsh
 
 ```
 kn completion [SHELL] [flags]
@@ -43,5 +43,4 @@ kn completion [SHELL] [flags]
 
 ### SEE ALSO
 
-* [kn](kn.md)	 - Knative client
-
+- [kn](kn.md) - Knative client

@@ -6,8 +6,8 @@ Knative client
 
 Manage your Knative building blocks:
 
-* Serving: Manage your services and release new software to them.
-* Eventing: Manage event subscriptions and channels. Connect up event sources.
+- Serving: Manage your services and release new software to them.
+- Eventing: Manage event subscriptions and channels. Connect up event sources.
 
 ### Options
 
@@ -22,12 +22,11 @@ Manage your Knative building blocks:
 
 ### SEE ALSO
 
-* [kn completion](kn_completion.md)	 - Output shell completion code
-* [kn plugin](kn_plugin.md)	 - Plugin command group
-* [kn revision](kn_revision.md)	 - Revision command group
-* [kn route](kn_route.md)	 - Route command group
-* [kn service](kn_service.md)	 - Service command group
-* [kn source](kn_source.md)	 - Event source command group
-* [kn trigger](kn_trigger.md)	 - Trigger command group
-* [kn version](kn_version.md)	 - Prints the client version
-
+- [kn completion](kn_completion.md) - Output shell completion code
+- [kn plugin](kn_plugin.md) - Plugin command group
+- [kn revision](kn_revision.md) - Revision command group
+- [kn route](kn_route.md) - Route command group
+- [kn service](kn_service.md) - Service command group
+- [kn source](kn_source.md) - Event source command group
+- [kn trigger](kn_trigger.md) - Trigger command group
+- [kn version](kn_version.md) - Prints the client version

@@ -35,5 +35,4 @@ kn source binding delete NAME [flags]
 
 ### SEE ALSO
 
-* [kn source binding](kn_source_binding.md)	 - Sink binding command group
-
+- [kn source binding](kn_source_binding.md) - Sink binding command group

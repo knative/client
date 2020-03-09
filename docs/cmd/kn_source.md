@@ -26,9 +26,9 @@ kn source [flags]
 
 ### SEE ALSO
 
-* [kn](kn.md)	 - Knative client
-* [kn source apiserver](kn_source_apiserver.md)	 - Kubernetes API Server Event Source command group
-* [kn source binding](kn_source_binding.md)	 - Sink binding command group
-* [kn source list-types](kn_source_list-types.md)	 - List available source types
-* [kn source ping](kn_source_ping.md)	 - Ping source command group
-
+- [kn](kn.md) - Knative client
+- [kn source apiserver](kn_source_apiserver.md) - Kubernetes API Server Event
+  Source command group
+- [kn source binding](kn_source_binding.md) - Sink binding command group
+- [kn source list-types](kn_source_list-types.md) - List available source types
+- [kn source ping](kn_source_ping.md) - Ping source command group

@@ -43,5 +43,4 @@ kn trigger list [name] [flags]
 
 ### SEE ALSO
 
-* [kn trigger](kn_trigger.md)	 - Trigger command group
-
+- [kn trigger](kn_trigger.md) - Trigger command group

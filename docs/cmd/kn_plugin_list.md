@@ -7,10 +7,11 @@ List plugins
 List all installed plugins.
 
 Available plugins are those that are:
+
 - executable
 - begin with "kn-"
 - Kn's plugin directory ~/.config/kn/plugins
-- Anywhere in the execution $PATH (if lookupInPath config variable is enabled)
+- Anywhere in the execution \$PATH (if lookupInPath config variable is enabled)
 
 ```
 kn plugin list [flags]
@@ -36,5 +37,4 @@ kn plugin list [flags]
 
 ### SEE ALSO
 
-* [kn plugin](kn_plugin.md)	 - Plugin command group
-
+- [kn plugin](kn_plugin.md) - Plugin command group
