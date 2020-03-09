@@ -38,5 +38,4 @@ kn revision delete NAME [flags]
 
 ### SEE ALSO
 
-* [kn revision](kn_revision.md)	 - Revision command group
-
+- [kn revision](kn_revision.md) - Revision command group

@@ -26,7 +26,6 @@ kn route [flags]
 
 ### SEE ALSO
 
-* [kn](kn.md)	 - Knative client
-* [kn route describe](kn_route_describe.md)	 - Show details of a route
-* [kn route list](kn_route_list.md)	 - List available routes.
-
+- [kn](kn.md) - Knative client
+- [kn route describe](kn_route_describe.md) - Show details of a route
+- [kn route list](kn_route_list.md) - List available routes.
