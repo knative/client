@@ -36,5 +36,5 @@ kn source apiserver describe NAME [flags]
 
 ### SEE ALSO
 
-- [kn source apiserver](kn_source_apiserver.md) - Kubernetes API Server Event
-  Source command group
+* [kn source apiserver](kn_source_apiserver.md)	 - Kubernetes API Server Event Source command group
+

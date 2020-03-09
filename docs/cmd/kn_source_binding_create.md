@@ -38,4 +38,5 @@ kn source binding create NAME --subject SCHEDULE --sink SINK --ce-override KEY=V
 
 ### SEE ALSO
 
-- [kn source binding](kn_source_binding.md) - Sink binding command group
+* [kn source binding](kn_source_binding.md)	 - Sink binding command group
+
