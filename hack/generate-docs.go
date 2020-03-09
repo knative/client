@@ -59,7 +59,7 @@ func emptyString(filename string) string {
 func addFrontMatter(fileName string) string {
 	// Convert to a title
 	title := filepath.Base(fileName)
-	title = title[0:len(title) - len(filepath.Ext(title))]
+	title = title[0 : len(title)-len(filepath.Ext(title))]
 	title = strings.ReplaceAll(title, "_", " ")
 	ret := `
 ---
