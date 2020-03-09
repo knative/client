@@ -38,12 +38,12 @@ func TestSourceListTypes(t *testing.T) {
 
 	t.Log("List available source types")
 	output := test.sourceListTypes(t, r)
-	assert.Check(t, util.ContainsAll(output, "TYPE", "NAME", "DESCRIPTION", "CronJob", "ApiServer"))
+	assert.Check(t, util.ContainsAll(output, "TYPE", "NAME", "DESCRIPTION", "Ping", "ApiServer"))
 
 	t.Log("List available source types in YAML format")
 
 	output = test.sourceListTypes(t, r, "-oyaml")
-	assert.Check(t, util.ContainsAll(output, "apiextensions.k8s.io/v1beta1", "CustomResourceDefinition", "CronJob", "ApiServer"))
+	assert.Check(t, util.ContainsAll(output, "apiextensions.k8s.io/v1beta1", "CustomResourceDefinition", "Ping", "ApiServer"))
 }
 
 func TestSourceList(t *testing.T) {

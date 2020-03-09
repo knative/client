@@ -22,7 +22,7 @@ import (
 	"github.com/spf13/cobra"
 	"gotest.tools/assert"
 	dynamicfake "k8s.io/client-go/dynamic/fake"
-	sourcesv1alpha1fake "knative.dev/eventing/pkg/legacyclient/clientset/versioned/typed/legacysources/v1alpha1/fake"
+	sourcesv1alpha2fake "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha2/fake"
 	servingv1fake "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1/fake"
 )
 
@@ -60,7 +60,7 @@ func TestCreateTestKnCommand(t *testing.T) {
 func TestCreateSourcesTestKnCommand(t *testing.T) {
 	var (
 		knCmd   *cobra.Command
-		sources *sourcesv1alpha1fake.FakeSourcesV1alpha1
+		sources *sourcesv1alpha2fake.FakeSourcesV1alpha2
 		buffer  *bytes.Buffer
 	)
 

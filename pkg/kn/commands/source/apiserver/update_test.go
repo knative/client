@@ -23,7 +23,7 @@ import (
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	dynamicfake "knative.dev/client/pkg/dynamic/fake"
-	clientsourcesv1alpha1 "knative.dev/client/pkg/eventing/legacysources/v1alpha1"
+	clientsourcesv1alpha1 "knative.dev/client/pkg/sources/v1alpha1"
 	"knative.dev/client/pkg/util"
 )
 

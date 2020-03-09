@@ -20,9 +20,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"knative.dev/client/pkg/eventing/legacysources/v1alpha1"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
+	"knative.dev/client/pkg/sources/v1alpha1"
 )
 
 // NewAPIServerCreateCommand for creating source

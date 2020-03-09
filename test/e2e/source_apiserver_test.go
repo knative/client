@@ -78,7 +78,7 @@ func TestSourceApiServer(t *testing.T) {
 	test.serviceCreate(t, r, "testsvc1")
 	test.apiServerSourceUpdateSink(t, r, "testapisource3", "svc:testsvc1")
 	jpSinkRefNameInSpec := "jsonpath={.spec.sink.ref.name}"
-	out, err := test.getResourceFieldsWithJSONPath("apiserversource", "testapisource3", jpSinkRefNameInSpec)
+	out, err := test.getResourceFieldsWithJSONPath("apiserversource.sources.knative.dev", "testapisource3", jpSinkRefNameInSpec)
 	assert.NilError(t, err)
 	assert.Equal(t, out, "testsvc1")
 	// TODO(navidshaikh): Verify the source's status with synchronous create/update

@@ -18,19 +18,19 @@ import (
 	"testing"
 
 	"gotest.tools/assert"
-	v1alpha1 "knative.dev/eventing/pkg/apis/sources/v1alpha1"
+	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
 
-	client_sources_v1alpha1 "knative.dev/client/pkg/sources/v1alpha1"
+	clientv1alpha2 "knative.dev/client/pkg/sources/v1alpha2"
 	"knative.dev/client/pkg/util"
 )
 
-func TestListSimple(t *testing.T) {
-	bindingClient := client_sources_v1alpha1.NewMockKnSinkBindingClient(t)
+func TestListBindingSimple(t *testing.T) {
+	bindingClient := clientv1alpha2.NewMockKnSinkBindingClient(t)
 
 	bindingRecorder := bindingClient.Recorder()
 	binding := createSinkBinding("testbinding", "mysvc", deploymentGvk, "mydeploy", nil)
-	bindingList := v1alpha1.SinkBindingList{
-		Items: []v1alpha1.SinkBinding{
+	bindingList := v1alpha2.SinkBindingList{
+		Items: []v1alpha2.SinkBinding{
 			*binding,
 		},
 	}
@@ -44,11 +44,11 @@ func TestListSimple(t *testing.T) {
 	bindingRecorder.Validate()
 }
 
-func TestListEmpty(t *testing.T) {
-	bindingClient := client_sources_v1alpha1.NewMockKnSinkBindingClient(t)
+func TestListBindingEmpty(t *testing.T) {
+	bindingClient := clientv1alpha2.NewMockKnSinkBindingClient(t)
 
 	bindingRecorder := bindingClient.Recorder()
-	bindingList := v1alpha1.SinkBindingList{}
+	bindingList := v1alpha2.SinkBindingList{}
 	bindingRecorder.ListSinkBindings(&bindingList, nil)
 
 	out, err := executeSinkBindingCommand(bindingClient, nil, "list")

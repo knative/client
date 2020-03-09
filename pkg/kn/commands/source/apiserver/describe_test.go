@@ -20,12 +20,12 @@ import (
 
 	"gotest.tools/assert"
 
-	knsource_v1alpha1 "knative.dev/client/pkg/eventing/legacysources/v1alpha1"
+	clientv1alpha1 "knative.dev/client/pkg/sources/v1alpha1"
 	"knative.dev/client/pkg/util"
 )
 
 func TestSimpleDescribe(t *testing.T) {
-	apiServerClient := knsource_v1alpha1.NewMockKnAPIServerSourceClient(t, "mynamespace")
+	apiServerClient := clientv1alpha1.NewMockKnAPIServerSourceClient(t, "mynamespace")
 
 	apiServerRecorder := apiServerClient.Recorder()
 	sampleSource := createAPIServerSource("testsource", "Event", "v1", "testsa", "Ref", "testsvc", false)
@@ -39,7 +39,7 @@ func TestSimpleDescribe(t *testing.T) {
 }
 
 func TestDescribeError(t *testing.T) {
-	apiServerClient := knsource_v1alpha1.NewMockKnAPIServerSourceClient(t, "mynamespace")
+	apiServerClient := clientv1alpha1.NewMockKnAPIServerSourceClient(t, "mynamespace")
 
 	apiServerRecorder := apiServerClient.Recorder()
 	apiServerRecorder.GetAPIServerSource("testsource", nil, errors.New("no apiserver source testsource"))

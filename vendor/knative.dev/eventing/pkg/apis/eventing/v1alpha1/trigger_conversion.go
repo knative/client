@@ -24,9 +24,9 @@ import (
 	"knative.dev/pkg/apis"
 )
 
-// ConvertUp implements apis.Convertible.
+// ConvertTo implements apis.Convertible.
 // Converts source (from v1alpha1.Trigger) into v1beta1.Trigger
-func (source *Trigger) ConvertUp(ctx context.Context, obj apis.Convertible) error {
+func (source *Trigger) ConvertTo(ctx context.Context, obj apis.Convertible) error {
 	switch sink := obj.(type) {
 	case *v1beta1.Trigger:
 		sink.ObjectMeta = source.ObjectMeta
@@ -34,14 +34,19 @@ func (source *Trigger) ConvertUp(ctx context.Context, obj apis.Convertible) erro
 		sink.Spec.Subscriber = source.Spec.Subscriber
 		if source.Spec.Filter != nil {
 			sink.Spec.Filter = &v1beta1.TriggerFilter{
-				Attributes: make(v1beta1.TriggerFilterAttributes, 0),
 			}
 			if source.Spec.Filter.Attributes != nil {
+				sink.Spec.Filter = &v1beta1.TriggerFilter{
+					Attributes: make(v1beta1.TriggerFilterAttributes, len(*source.Spec.Filter.Attributes)),
+				}
 				for k, v := range *source.Spec.Filter.Attributes {
 					sink.Spec.Filter.Attributes[k] = v
 				}
 			}
 			if source.Spec.Filter.DeprecatedSourceAndType != nil {
+				sink.Spec.Filter = &v1beta1.TriggerFilter{
+					Attributes: make(v1beta1.TriggerFilterAttributes, 2),
+				}
 				sink.Spec.Filter.Attributes["source"] = source.Spec.Filter.DeprecatedSourceAndType.Source
 				sink.Spec.Filter.Attributes["type"] = source.Spec.Filter.DeprecatedSourceAndType.Type
 			}
@@ -55,15 +60,15 @@ func (source *Trigger) ConvertUp(ctx context.Context, obj apis.Convertible) erro
 	}
 }
 
-// ConvertDown implements apis.Convertible.
+// ConvertFrom implements apis.Convertible.
 // Converts obj from v1beta1.Trigger into v1alpha1.Trigger
-func (sink *Trigger) ConvertDown(ctx context.Context, obj apis.Convertible) error {
+func (sink *Trigger) ConvertFrom(ctx context.Context, obj apis.Convertible) error {
 	switch source := obj.(type) {
 	case *v1beta1.Trigger:
 		sink.ObjectMeta = source.ObjectMeta
 		sink.Spec.Broker = source.Spec.Broker
 		sink.Spec.Subscriber = source.Spec.Subscriber
-		if source.Spec.Filter != nil {
+		if source.Spec.Filter != nil && source.Spec.Filter.Attributes != nil {
 			attributes := TriggerFilterAttributes{}
 			for k, v := range source.Spec.Filter.Attributes {
 				attributes[k] = v

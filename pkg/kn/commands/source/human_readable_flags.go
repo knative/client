@@ -28,8 +28,6 @@ import (
 
 var sourceTypeDescription = map[string]string{
 	"ApiServerSource": "Watch and send Kubernetes API events to a sink",
-	"ContainerSource": "Connect a custom container image to a sink",
-	"CronJobSource":   "Send periodically constant data to a sink",
 	"SinkBinding":     "Binding for connecting a PodSpecable to a sink",
 	"PingSource":      "Send periodically ping events to a sink",
 }
