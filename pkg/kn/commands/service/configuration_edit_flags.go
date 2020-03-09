@@ -47,8 +47,8 @@ type ConfigurationEditFlags struct {
 	AutoscaleWindow            string
 	Port                       int32
 	Labels                     []string
-	LabelService               []string
-	LabelRevision              []string
+	LabelsService              []string
+	LabelsRevision             []string
 	NamePrefix                 string
 	RevisionName               string
 	ServiceAccountName         string
@@ -166,13 +166,13 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 			"any number of times to set multiple labels. "+
 			"To unset, specify the label name followed by a \"-\" (e.g., name-).")
 	p.markFlagMakesRevision("label")
-	command.Flags().StringArrayVarP(&p.LabelService, "label-service", "", []string{},
+	command.Flags().StringArrayVarP(&p.LabelsService, "label-service", "", []string{},
 		"Service label to set. name=value; you may provide this flag "+
 			"any number of times to set multiple labels. "+
 			"To unset, specify the label name followed by a \"-\" (e.g., name-). This flag takes "+
 			"precedence over \"label\" flag.")
 	p.markFlagMakesRevision("label-service")
-	command.Flags().StringArrayVarP(&p.LabelRevision, "label-revision", "", []string{},
+	command.Flags().StringArrayVarP(&p.LabelsRevision, "label-revision", "", []string{},
 		"Revision label to set. name=value; you may provide this flag "+
 			"any number of times to set multiple labels. "+
 			"To unset, specify the label name followed by a \"-\" (e.g., name-). This flag takes "+
@@ -387,13 +387,13 @@ func (p *ConfigurationEditFlags) Apply(
 		serviceMap.Merge(labelsAllMap)
 		revisionMap.Merge(labelsAllMap)
 
-		labelServiceMap, err := util.MapFromArrayAllowingSingles(p.LabelService, "=")
+		labelServiceMap, err := util.MapFromArrayAllowingSingles(p.LabelsService, "=")
 		if err != nil {
 			return errors.Wrap(err, "Invalid --label-service")
 		}
 		serviceMap.Merge(labelServiceMap)
 
-		labelRevMap, err := util.MapFromArrayAllowingSingles(p.LabelRevision, "=")
+		labelRevMap, err := util.MapFromArrayAllowingSingles(p.LabelsRevision, "=")
 		if err != nil {
 			return errors.Wrap(err, "Invalid --label-revision")
 		}
@@ -402,10 +402,8 @@ func (p *ConfigurationEditFlags) Apply(
 		serviceLabelsToRemove := util.ParseMinusSuffix(serviceMap)
 		revisionLabelsToRemove := util.ParseMinusSuffix(revisionMap)
 
-		err = servinglib.UpdateLabels(service, template, serviceMap, revisionMap, serviceLabelsToRemove, revisionLabelsToRemove)
-		if err != nil {
-			return err
-		}
+		service.ObjectMeta.Labels = servinglib.UpdateLabels(service.ObjectMeta.Labels, serviceMap, serviceLabelsToRemove)
+		template.ObjectMeta.Labels = servinglib.UpdateLabels(template.ObjectMeta.Labels, revisionMap, revisionLabelsToRemove)
 	}
 
 	if cmd.Flags().Changed("annotation") {

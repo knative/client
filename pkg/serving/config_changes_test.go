@@ -336,8 +336,8 @@ func TestUpdateLabelsNew(t *testing.T) {
 		"b": "bar",
 	}
 
-	err := UpdateLabels(service, template, labels, labels, []string{}, []string{})
-	assert.NilError(t, err)
+	service.ObjectMeta.Labels = UpdateLabels(service.ObjectMeta.Labels, labels, []string{})
+	template.ObjectMeta.Labels = UpdateLabels(template.ObjectMeta.Labels, labels, []string{})
 
 	actual := service.ObjectMeta.Labels
 	if !reflect.DeepEqual(labels, actual) {
@@ -366,8 +366,10 @@ func TestUpdateLabelsExisting(t *testing.T) {
 		"d": "",
 		"r": "poo",
 	}
-	err := UpdateLabels(service, template, labels, tlabels, []string{}, []string{})
-	assert.NilError(t, err)
+
+	service.ObjectMeta.Labels = UpdateLabels(service.ObjectMeta.Labels, labels, []string{})
+	template.ObjectMeta.Labels = UpdateLabels(template.ObjectMeta.Labels, tlabels, []string{})
+
 	expectedServiceLabel := map[string]string{
 		"a": "notfoo",
 		"b": "bar",
@@ -395,8 +397,9 @@ func TestUpdateLabelsRemoveExisting(t *testing.T) {
 	template.ObjectMeta.Labels = map[string]string{"a": "foo", "b": "bar"}
 
 	remove := []string{"b"}
-	err := UpdateLabels(service, template, map[string]string{}, map[string]string{}, remove, remove)
-	assert.NilError(t, err)
+	service.ObjectMeta.Labels = UpdateLabels(service.ObjectMeta.Labels, map[string]string{}, remove)
+	template.ObjectMeta.Labels = UpdateLabels(template.ObjectMeta.Labels, map[string]string{}, remove)
+
 	expected := map[string]string{
 		"a": "foo",
 	}
