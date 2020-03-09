@@ -100,7 +100,7 @@ func TestListSourceTypes(t *testing.T) {
 	})
 }
 
-// createFakeKnDynamicClient gives you a dynamic client for testing contianing the given objects.
+// createFakeKnDynamicClient gives you a dynamic client for testing containing the given objects.
 // See also the one in the fake package. Duplicated here to avoid a dependency loop.
 func createFakeKnDynamicClient(testNamespace string, objects ...runtime.Object) KnDynamicClient {
 	scheme := runtime.NewScheme()
