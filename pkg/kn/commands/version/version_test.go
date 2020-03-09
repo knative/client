@@ -31,12 +31,10 @@ var versionOutputTemplate = `Version:      {{.Version}}
 Build Date:   {{.BuildDate}}
 Git Revision: {{.GitRevision}}
 Supported APIs:
-* Serving
-  - {{ index .SupportedAPIs.serving 0}}
-* Eventing
-  - {{ index .SupportedAPIs.eventing 0}}
-  - {{ index .SupportedAPIs.eventing 1}}
-  - {{ index .SupportedAPIs.eventing 2}}
+* Serving{{range $apis := .SupportedAPIs.serving }}
+  - {{$apis}}{{end}}
+* Eventing{{range $apis := .SupportedAPIs.eventing }}
+  - {{$apis}}{{end}}
 `
 
 const (
