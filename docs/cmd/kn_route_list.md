@@ -46,4 +46,5 @@ kn route list NAME [flags]
 
 ### SEE ALSO
 
-- [kn route](kn_route.md) - Route command group
+* [kn route](kn_route.md)	 - Route command group
+

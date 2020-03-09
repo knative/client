@@ -36,4 +36,5 @@ kn source ping describe NAME [flags]
 
 ### SEE ALSO
 
-- [kn source ping](kn_source_ping.md) - Ping source command group
+* [kn source ping](kn_source_ping.md)	 - Ping source command group
+

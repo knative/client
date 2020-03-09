@@ -26,4 +26,5 @@ kn version [flags]
 
 ### SEE ALSO
 
-- [kn](kn.md) - Knative client
+* [kn](kn.md)	 - Knative client
+
