@@ -13,7 +13,8 @@ kn version [flags]
 ### Options
 
 ```
-  -h, --help   help for version
+  -h, --help            help for version
+  -o, --output string   Output format. One of: json|yaml.
 ```
 
 ### Options inherited from parent commands
