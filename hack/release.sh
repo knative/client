@@ -36,7 +36,7 @@ function build_release() {
   echo "🚧 🎠 Building for Windows"
   GOOS=windows GOARCH=amd64 go build -mod=vendor -ldflags "${ld_flags}" -o ./kn-windows-amd64.exe ./cmd/...
   echo "🚧 🐳 Building the container image"
-  ko resolve ${KO_FLAGS} -f config/ > kn-image-location.yaml
+  ko resolve --strict ${KO_FLAGS} -f config/ > kn-image-location.yaml
   ARTIFACTS_TO_PUBLISH="kn-darwin-amd64 kn-linux-amd64 kn-windows-amd64.exe kn-image-location.yaml"
   if type sha256sum >/dev/null 2>&1; then
     echo "🧮     Checksum:"

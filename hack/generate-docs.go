@@ -16,7 +16,11 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
 
 	"github.com/spf13/cobra/doc"
 	"knative.dev/client/pkg/kn/core"
@@ -29,9 +33,45 @@ func main() {
 	if len(os.Args) > 1 {
 		dir = os.Args[1]
 	}
-	err := doc.GenMarkdownTree(rootCmd, dir+"/docs/cmd/")
+	var withFrontMatter bool
+	var err error
+	if len(os.Args) > 2 {
+		withFrontMatter, err = strconv.ParseBool(os.Args[2])
+		if err != nil {
+			log.Panicf("Invalid argument %s, has to be boolean to switch on/off generation of frontmatter", os.Args[2])
+		}
+	}
+	prependFunc := emptyString
+	if withFrontMatter {
+		prependFunc = addFrontMatter
+	}
+	err = doc.GenMarkdownTreeCustom(rootCmd, dir+"/docs/cmd/", prependFunc, identity)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
+}
+
+func emptyString(filename string) string {
+	return ""
+}
+
+func addFrontMatter(fileName string) string {
+	// Convert to a title
+	title := filepath.Base(fileName)
+	title = title[0 : len(title)-len(filepath.Ext(title))]
+	title = strings.ReplaceAll(title, "_", " ")
+	ret := `
+---
+title: "%s"
+#linkTitle: "OPTIONAL_ALTERNATE_NAV_TITLE"
+weight: 5
+type: "docs"
+---
+`
+	return fmt.Sprintf(ret, title)
+}
+
+func identity(s string) string {
+	return s
 }
