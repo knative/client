@@ -38,4 +38,5 @@ kn source ping update NAME --schedule SCHEDULE --sink SERVICE --data DATA [flags
 
 ### SEE ALSO
 
-- [kn source ping](kn_source_ping.md) - Ping source command group
+* [kn source ping](kn_source_ping.md)	 - Ping source command group
+

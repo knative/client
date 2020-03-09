@@ -38,4 +38,5 @@ kn trigger create NAME --broker BROKER --filter KEY=VALUE --sink SINK [flags]
 
 ### SEE ALSO
 
-- [kn trigger](kn_trigger.md) - Trigger command group
+* [kn trigger](kn_trigger.md)	 - Trigger command group
+
