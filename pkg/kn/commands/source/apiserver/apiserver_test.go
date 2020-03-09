@@ -33,7 +33,7 @@ const testNamespace = "default"
 // Helper methods
 var blankConfig clientcmd.ClientConfig
 
-// TOOD: Remove that blankConfig hack for tests in favor of overwriting GetConfig()
+// TODO: Remove that blankConfig hack for tests in favor of overwriting GetConfig()
 func init() {
 	var err error
 	blankConfig, err = clientcmd.NewClientConfigFromBytes([]byte(`kind: Config

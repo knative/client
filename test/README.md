@@ -18,13 +18,15 @@ which need [`-tags=e2e`](#running-end-to-end-tests) to be enabled._
 
 ## Running e2e tests locally
 
-To run [the e2e tests](./e2e) , you need to have a 
+To run [the e2e tests](./e2e) , you need to have a
 
-1. [Running knative environment.](./../DEVELOPMENT.md#create-a-cluster)
-2. `kn` binary in the $PATH.
-3. Please Make sure that you are able to connect to the cluster by following the [guide here](./../docs#connecting-to-your-cluster)
+1. [Running knative environment.](../docs/DEVELOPMENT.md#create-a-cluster)
+2. `kn` binary in the \$PATH.
+3. Please Make sure that you are able to connect to the cluster by following the
+   [guide here](./../docs#connecting-to-your-cluster)
 
-Before running the e2e tests please make sure you dont have any namespaces with the name starting with `kne2etests`
+Before running the e2e tests please make sure you dont have any namespaces with
+the name starting with `kne2etests`
 
 Run all e2e tests:
 

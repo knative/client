@@ -1,8 +1,11 @@
 # Basic Workflow
 
-In this basic worflow we show the CRUD (create, read, update, delete) operations on a service. We use a well known [simple Hello World service](https://github.com/knative/docs/tree/master/docs/serving/samples/hello-world/helloworld-go) that reads the environment variable `TARGET` and prints it as output.
+In this basic worflow we show the CRUD (create, read, update, delete) operations
+on a service. We use a well known
+[simple Hello World service](https://github.com/knative/docs/tree/master/docs/serving/samples/hello-world/helloworld-go)
+that reads the environment variable `TARGET` and prints it as output.
 
-* **Create a service in the `default` namespace from an image**
+- **Create a service in the `default` namespace from an image**
 
 ```bash
 kn service create hello --image gcr.io/knative-samples/helloworld-go --env TARGET=Knative
@@ -19,7 +22,7 @@ Service 'hello' created with latest revision 'hello-bxshg-1' and URL:
 http://hello.default.apps-crc.testing
 ```
 
-* **List a service**
+- **List a service**
 
 ```bash
 kn service list
@@ -27,7 +30,7 @@ NAME    URL                                LATEST          AGE     CONDITIONS   
 hello   http://hello.default.example.com   hello-dskww-1   2m42s   3 OK / 3     True
 ```
 
-* **Curl service endpoint**
+- **Curl service endpoint**
 
 ```bash
 curl '-sS' '-H' 'Host: hello.default.example.com' 'http://xxx.xx.xxx.xx   '
@@ -36,7 +39,7 @@ Hello Knative!
 
 Where `http://xxx.xx.xxx.xx` is your Knative installation ingress.
 
-* **Update a service**
+- **Update a service**
 
 ```bash
 kn service update hello --env TARGET=Kn
@@ -53,7 +56,7 @@ http://hello.default.example.com
 
 The service's environment variable `TARGET` is now set to `Kn`.
 
-* **Describe a service**
+- **Describe a service**
 
 ```bash
 kn service describe hello
@@ -74,14 +77,15 @@ Conditions:
   ++ RoutesReady            46s
 ```
 
-* **Delete a service**
+- **Delete a service**
 
 ```bash
 kn service delete hello
 Service 'hello' successfully deleted in namespace 'default'.
 ```
 
-You can then verify that the 'hello' service is deleted by trying to `list` it again.
+You can then verify that the 'hello' service is deleted by trying to `list` it
+again.
 
 ```bash
 kn service list hello

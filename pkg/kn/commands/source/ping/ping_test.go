@@ -29,7 +29,7 @@ import (
 // Helper methods
 var blankConfig clientcmd.ClientConfig
 
-// TOOD: Remove that blankConfig hack for tests in favor of overwriting GetConfig()
+// TODO: Remove that blankConfig hack for tests in favor of overwriting GetConfig()
 // Remove also in service_test.go
 func init() {
 	var err error

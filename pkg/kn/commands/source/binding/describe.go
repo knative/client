@@ -141,6 +141,6 @@ func writeSubject(dw printers.PrefixWriter, namespace string, subject *tracker.R
 				matchDw.WriteAttribute(k, selector.MatchLabels[k])
 			}
 		}
-		// TOOD: Print out selector.MatchExpressions
+		// TODO: Print out selector.MatchExpressions
 	}
 }
