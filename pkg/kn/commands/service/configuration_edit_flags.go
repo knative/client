@@ -20,8 +20,11 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"knative.dev/client/pkg/kn/flags"
 	servinglib "knative.dev/client/pkg/serving"
 	"knative.dev/client/pkg/util"
@@ -47,6 +50,8 @@ type ConfigurationEditFlags struct {
 	AutoscaleWindow            string
 	Port                       int32
 	Labels                     []string
+	LabelsService              []string
+	LabelsRevision             []string
 	NamePrefix                 string
 	RevisionName               string
 	ServiceAccountName         string
@@ -160,10 +165,22 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	command.Flags().Int32VarP(&p.Port, "port", "p", 0, "The port where application listens on.")
 	p.markFlagMakesRevision("port")
 	command.Flags().StringArrayVarP(&p.Labels, "label", "l", []string{},
-		"Service label to set. name=value; you may provide this flag "+
+		"Labels to set for both Service and Revision. name=value; you may provide this flag "+
 			"any number of times to set multiple labels. "+
 			"To unset, specify the label name followed by a \"-\" (e.g., name-).")
 	p.markFlagMakesRevision("label")
+	command.Flags().StringArrayVarP(&p.LabelsService, "label-service", "", []string{},
+		"Service label to set. name=value; you may provide this flag "+
+			"any number of times to set multiple labels. "+
+			"To unset, specify the label name followed by a \"-\" (e.g., name-). This flag takes "+
+			"precedence over \"label\" flag.")
+	p.markFlagMakesRevision("label-service")
+	command.Flags().StringArrayVarP(&p.LabelsRevision, "label-revision", "", []string{},
+		"Revision label to set. name=value; you may provide this flag "+
+			"any number of times to set multiple labels. "+
+			"To unset, specify the label name followed by a \"-\" (e.g., name-). This flag takes "+
+			"precedence over \"label\" flag.")
+	p.markFlagMakesRevision("label-revision")
 	command.Flags().StringVar(&p.RevisionName, "revision-name", "{{.Service}}-{{.Random 5}}-{{.Generation}}",
 		"The revision name to set. Must start with the service name and a dash as a prefix. "+
 			"Empty revision name will result in the server generating a name for the revision. "+
@@ -362,16 +379,20 @@ func (p *ConfigurationEditFlags) Apply(
 		}
 	}
 
-	if cmd.Flags().Changed("label") {
-		labelsMap, err := util.MapFromArrayAllowingSingles(p.Labels, "=")
+	if cmd.Flags().Changed("label") || cmd.Flags().Changed("label-service") || cmd.Flags().Changed("label-revision") {
+		labelsAllMap, err := util.MapFromArrayAllowingSingles(p.Labels, "=")
 		if err != nil {
 			return errors.Wrap(err, "Invalid --label")
 		}
 
-		labelsToRemove := util.ParseMinusSuffix(labelsMap)
-		err = servinglib.UpdateLabels(service, template, labelsMap, labelsToRemove)
+		err = p.updateLabels(&service.ObjectMeta, p.LabelsService, labelsAllMap)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "Invalid --label-service")
+		}
+
+		err = p.updateLabels(&template.ObjectMeta, p.LabelsRevision, labelsAllMap)
+		if err != nil {
+			return errors.Wrap(err, "Invalid --label-revision")
 		}
 	}
 
@@ -402,6 +423,20 @@ func (p *ConfigurationEditFlags) Apply(
 	if cmd.Flags().Changed("user") {
 		servinglib.UpdateUser(template, p.User)
 	}
+
+	return nil
+}
+
+func (p *ConfigurationEditFlags) updateLabels(obj *metav1.ObjectMeta, flagLabels []string, labelsAllMap map[string]string) error {
+	labelFlagMap, err := util.MapFromArrayAllowingSingles(flagLabels, "=")
+	if err != nil {
+		return errors.Wrap(err, "Unable to parse label flags")
+	}
+	labelsMap := make(util.StringMap)
+	labelsMap.Merge(labelsAllMap)
+	labelsMap.Merge(labelFlagMap)
+	revisionLabelsToRemove := util.ParseMinusSuffix(labelsMap)
+	obj.Labels = servinglib.UpdateLabels(obj.Labels, labelsMap, revisionLabelsToRemove)
 
 	return nil
 }
