@@ -31,7 +31,7 @@ the name starting with `kne2etests`
 Run all e2e tests:
 
 ```bash
-$ test/e2e-tests-local.sh
+$ test/local-e2e-tests.sh
 ```
 
 ### Running e2e tests selectively
@@ -39,13 +39,13 @@ $ test/e2e-tests-local.sh
 To run only serving specific e2e tests locally, use
 
 ```bash
-E2E_TAGS="serving" test/e2e-tests-local.sh
+E2E_TAGS="serving" test/local-e2e-tests.sh
 ```
 
 To run only eventing specific e2e tests locally, use
 
 ```bash
-E2E_TAGS="eventing" test/e2e-tests-local.sh
+E2E_TAGS="eventing" test/local-e2e-tests.sh
 ```
 
 ### Running a single test case
@@ -53,7 +53,7 @@ E2E_TAGS="eventing" test/e2e-tests-local.sh
 To run one e2e test case, e.g. TestBasicWorkflow
 
 ```bash
-test/e2e-tests-local.sh -run ^TestBasicWorkflow$
+test/local-e2e-tests.sh -run ^TestBasicWorkflow$
 ```
 
 ### Running tests in short mode
@@ -64,5 +64,5 @@ mode, use
 [the `-short` flag with `go test`](https://golang.org/cmd/go/#hdr-Testing_flags)
 
 ```bash
-test/e2e-tests-local.sh -short
+test/local-e2e-tests.sh -short
 ```

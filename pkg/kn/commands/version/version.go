@@ -15,11 +15,13 @@
 package version
 
 import (
+	"encoding/json"
 	"fmt"
 
-	"knative.dev/client/pkg/kn/commands"
-
 	"github.com/spf13/cobra"
+	"sigs.k8s.io/yaml"
+
+	"knative.dev/client/pkg/kn/commands"
 )
 
 var Version string
@@ -38,12 +40,22 @@ var apiVersions = map[string][]string{
 	},
 }
 
+type knVersion struct {
+	Version       string
+	BuildDate     string
+	GitRevision   string
+	SupportedAPIs map[string][]string
+}
+
 // NewVersionCommand implements 'kn version' command
 func NewVersionCommand(p *commands.KnParams) *cobra.Command {
 	versionCmd := &cobra.Command{
 		Use:   "version",
 		Short: "Prints the client version",
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if cmd.Flags().Changed("output") {
+				return printVersionMachineReadable(cmd)
+			}
 			out := cmd.OutOrStdout()
 			fmt.Fprintf(out, "Version:      %s\n", Version)
 			fmt.Fprintf(out, "Build Date:   %s\n", BuildDate)
@@ -57,7 +69,37 @@ func NewVersionCommand(p *commands.KnParams) *cobra.Command {
 			for _, api := range apiVersions["eventing"] {
 				fmt.Fprintf(out, "  - %s\n", api)
 			}
+			return nil
 		},
 	}
+	versionCmd.Flags().StringP(
+		"output",
+		"o",
+		"",
+		"Output format. One of: json|yaml.",
+	)
 	return versionCmd
+}
+
+func printVersionMachineReadable(cmd *cobra.Command) error {
+	out := cmd.OutOrStdout()
+	v := knVersion{Version, BuildDate, GitRevision, apiVersions}
+	format := cmd.Flag("output").Value.String()
+	switch format {
+	case "JSON", "json":
+		b, err := json.MarshalIndent(v, "", "\t")
+		if err != nil {
+			return err
+		}
+		fmt.Fprint(out, string(b))
+	case "YAML", "yaml":
+		b, err := yaml.Marshal(v)
+		if err != nil {
+			return err
+		}
+		fmt.Fprint(out, string(b))
+	default:
+		return fmt.Errorf("Invalid value for output flag, choose one among 'json' or 'yaml'.")
+	}
+	return nil
 }
