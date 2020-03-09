@@ -385,12 +385,12 @@ func (p *ConfigurationEditFlags) Apply(
 			return errors.Wrap(err, "Invalid --label")
 		}
 
-		err = p.updateLabels(service.ObjectMeta, p.LabelsService, labelsAllMap)
+		err = p.updateLabels(&service.ObjectMeta, p.LabelsService, labelsAllMap)
 		if err != nil {
 			return errors.Wrap(err, "Invalid --label-service")
 		}
 
-		err = p.updateLabels(template.ObjectMeta, p.LabelsRevision, labelsAllMap)
+		err = p.updateLabels(&template.ObjectMeta, p.LabelsRevision, labelsAllMap)
 		if err != nil {
 			return errors.Wrap(err, "Invalid --label-revision")
 		}
@@ -427,7 +427,7 @@ func (p *ConfigurationEditFlags) Apply(
 	return nil
 }
 
-func (p *ConfigurationEditFlags) updateLabels(obj metav1.ObjectMeta, flagLabels []string, labelsAllMap map[string]string) error {
+func (p *ConfigurationEditFlags) updateLabels(obj *metav1.ObjectMeta, flagLabels []string, labelsAllMap map[string]string) error {
 	labelFlagMap, err := util.MapFromArrayAllowingSingles(flagLabels, "=")
 	if err != nil {
 		return errors.Wrap(err, "Unable to parse label flags")
