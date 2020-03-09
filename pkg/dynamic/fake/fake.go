@@ -25,7 +25,7 @@ import (
 	"knative.dev/client/pkg/dynamic"
 )
 
-// CreateFakeKnDynamicClient gives you a dynamic client for testing contianing the given objects.
+// CreateFakeKnDynamicClient gives you a dynamic client for testing containing the given objects.
 func CreateFakeKnDynamicClient(testNamespace string, objects ...runtime.Object) dynamic.KnDynamicClient {
 	scheme := runtime.NewScheme()
 	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "serving.knative.dev", Version: "v1", Kind: "Service"}, &servingv1.Service{})
