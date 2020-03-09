@@ -11,7 +11,6 @@ It allows you to create Knative resources interactively from the command line or
 * A thin client-specific API in golang which helps in tasks like synchronously waiting on Knative service write operations.
 * An easy integration of Knative into Tekton Pipelines by using [`kn` in a Tekton `Task`](https://github.com/tektoncd/catalog/tree/master/kn).
 
-
 This client uses the [Knative Serving](https://github.com/knative/docs/blob/master/docs/serving/spec/knative-api-specification-1.0.md) and [Knative Eventing](https://github.com/knative/eventing/tree/master/docs/spec) API exclusively so that it will work with any Knative installation, even those that are not Kubernetes based.
 It does not help in *installing* Knative itself though.
 Please refer to the various [Knative installation options](https://knative.dev/docs/install/) for how to install Knative with its prerequisites.
