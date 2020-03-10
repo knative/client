@@ -77,7 +77,7 @@ func NewTriggerCreateCommand(p *commands.KnParams) *cobra.Command {
 			triggerBuilder := client_v1alpha1.
 				NewTriggerBuilder(name).
 				Namespace(namespace).
-				Broker(triggerUpdateFlags.Broker).
+				Broker(triggerUpdateFlags.Broker, triggerUpdateFlags.InjectBroker).
 				Filters(filters).
 				Subscriber(&duckv1.Destination{
 					Ref: objectRef.Ref,

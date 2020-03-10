@@ -161,8 +161,12 @@ func (b *TriggerBuilder) Subscriber(subscriber *duckv1.Destination) *TriggerBuil
 }
 
 // Broker to set the broker of trigger object
-func (b *TriggerBuilder) Broker(broker string) *TriggerBuilder {
+func (b *TriggerBuilder) Broker(broker string, inject bool) *TriggerBuilder {
 	b.trigger.Spec.Broker = broker
+	if inject {
+		meta_v1.SetMetaDataAnnotation(&b.trigger.ObjectMeta, "knative-eventing-injection", "enabled")
+	}
+
 	return b
 }
 

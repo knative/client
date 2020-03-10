@@ -159,7 +159,7 @@ func TestTriggerBuilder(t *testing.T) {
 func newTrigger(name string) *v1alpha1.Trigger {
 	return NewTriggerBuilder(name).
 		Namespace(testNamespace).
-		Broker("default").
+		Broker("default", false).
 		Filters(map[string]string{"type": "foo"}).
 		Build()
 }
