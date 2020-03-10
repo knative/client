@@ -24,6 +24,7 @@ import (
 
 	"github.com/pkg/errors"
 	"gotest.tools/assert"
+
 	"knative.dev/client/pkg/util"
 )
 
@@ -54,6 +55,16 @@ func TestSourceApiServer(t *testing.T) {
 	t.Log("create apiserver sources with a sink to a service")
 	test.apiServerSourceCreate(t, r, "testapisource0", "Event:v1:true", "testsa", "svc:testsvc0")
 	test.apiServerSourceCreate(t, r, "testapisource1", "Event:v1", "testsa", "svc:testsvc0")
+
+	t.Log("list sources")
+	output := test.sourceList(t, r)
+	assert.Check(t, util.ContainsAll(output, "NAME", "TYPE", "RESOURCE", "SINK", "READY"))
+	assert.Check(t, util.ContainsAll(output, "testapisource0", "ApiServerSource", "apiserversources.sources.knative.dev", "svc:testsvc0"))
+	assert.Check(t, util.ContainsAll(output, "testapisource1", "ApiServerSource", "apiserversources.sources.knative.dev", "svc:testsvc0"))
+
+	t.Log("list sources in YAML format")
+	output = test.sourceList(t, r, "-oyaml")
+	assert.Check(t, util.ContainsAll(output, "testapisource1", "ApiServerSource", "Service", "testsvc0"))
 
 	t.Log("delete apiserver sources")
 	test.apiServerSourceDelete(t, r, "testapisource0")

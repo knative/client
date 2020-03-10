@@ -19,6 +19,10 @@
 | | Description | PR
 
 | 🎁
+| Add `kn source list`
+| https://github.com/knative/client/pull/666[#666]
+
+| 🎁
 | Add JSON/YAML output format for version command
 | https://github.com/knative/client/pull/709[#709]
 

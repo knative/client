@@ -18,11 +18,12 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
 )
 
-// NewListTypesCommand defines and processes `kn source list-types` command operations
+// NewListTypesCommand defines and processes `kn source list-types`
 func NewListTypesCommand(p *commands.KnParams) *cobra.Command {
 	listTypesFlags := flags.NewListPrintFlags(ListTypesHandlers)
 	listTypesCommand := &cobra.Command{
