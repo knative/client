@@ -84,6 +84,11 @@ func createTrigger(namespace string, name string, filters map[string]string, bro
 		Build()
 }
 
+func createTriggerWithInject(namespace string, name string, filters map[string]string, broker string, svcname string) *v1alpha1.Trigger {
+	t := createTrigger(namespace, name, filters, broker, svcname)
+	return eventc_v1alpha1.NewTriggerBuilderFromExisting(t).InjectBroker(true).Build()
+}
+
 func createTriggerWithStatus(namespace string, name string, filters map[string]string, broker string, svcname string) *v1alpha1.Trigger {
 	wanted := createTrigger(namespace, name, filters, broker, svcname)
 	wanted.Status = v1alpha1.TriggerStatus{

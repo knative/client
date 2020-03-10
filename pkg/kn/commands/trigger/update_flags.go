@@ -23,8 +23,9 @@ import (
 
 // TriggerUpdateFlags are flags for create and update a trigger
 type TriggerUpdateFlags struct {
-	Broker  string
-	Filters []string
+	Broker       string
+	InjectBroker bool
+	Filters      []string
 }
 
 // GetFilters to return a map type of filters
@@ -49,5 +50,6 @@ func (f *TriggerUpdateFlags) GetUpdateFilters() (map[string]string, []string, er
 //Add is to set parameters
 func (f *TriggerUpdateFlags) Add(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&f.Broker, "broker", "default", "Name of the Broker which the trigger associates with.")
+	cmd.Flags().BoolVar(&f.InjectBroker, "inject-broker", false, "Create new broker with name default through common annotation")
 	cmd.Flags().StringSliceVar(&f.Filters, "filter", nil, "Key-value pair for exact CloudEvent attribute matching against incoming events, e.g type=dev.knative.foo")
 }

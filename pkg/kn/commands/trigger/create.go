@@ -83,6 +83,15 @@ func NewTriggerCreateCommand(p *commands.KnParams) *cobra.Command {
 					Ref: objectRef.Ref,
 					URI: objectRef.URI,
 				})
+			// add inject annotation only if flag broker name is `default`
+			if triggerUpdateFlags.InjectBroker {
+				if triggerUpdateFlags.Broker == "default" {
+					triggerBuilder.InjectBroker(true)
+				} else {
+					return fmt.Errorf("cannot create trigger '%s' in namespace '%s' "+
+						"because broker name must be 'default' if '--inject-broker' flag is used", name, namespace)
+				}
+			}
 
 			err = eventingClient.CreateTrigger(triggerBuilder.Build())
 			if err != nil {
