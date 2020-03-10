@@ -18,11 +18,16 @@
 package e2e
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
+	"strconv"
+	"strings"
 	"testing"
 
 	"gotest.tools/assert"
 	"knative.dev/client/pkg/util"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
 func TestServiceOptions(t *testing.T) {
@@ -93,10 +98,15 @@ func TestServiceOptions(t *testing.T) {
 	test.validateContainerField(t, r, "svc5", "args", "[myArg1]")
 
 	t.Log("create, update and validate service with user defined")
-	test.serviceCreateWithOptions(t, r, "svc6", "--user", "1001")
-	test.validateContainerField(t, r, "svc6", "securityContext.runAsUser", "1001")
-	test.serviceUpdate(t, r, "svc6", "--user", "1002")
-	test.validateContainerField(t, r, "svc6", "securityContext.runAsUser", "1002")
+	var uid int64 = 1000
+	if uids, ok := os.LookupEnv("TEST_RUN_AS_UID"); ok {
+		uid, err = strconv.ParseInt(uids, 10, 64)
+		assert.NilError(t, err)
+	}
+	test.serviceCreateWithOptions(t, r, "svc6", "--user", strconv.FormatInt(uid, 10))
+	test.validateUserId(t, r, "svc6", uid)
+	test.serviceUpdate(t, r, "svc6", "--user", strconv.FormatInt(uid+1, 10))
+	test.validateUserId(t, r, "svc6", uid+1)
 }
 
 func (test *e2eTest) serviceCreateWithOptions(t *testing.T, r *KnRunResultCollector, serviceName string, options ...string) {
@@ -162,4 +172,14 @@ func (test *e2eTest) validateContainerField(t *testing.T, r *KnRunResultCollecto
 	out := test.kn.Run("service", "list", serviceName, "-o", jsonpath)
 	assert.Equal(t, out.Stdout, expected)
 	r.AssertNoError(out)
+}
+
+func (test *e2eTest) validateUserId(t *testing.T, r *KnRunResultCollector, serviceName string, uid int64) {
+	out := test.kn.Run("service", "describe", serviceName, "-ojson")
+	data := json.NewDecoder(strings.NewReader(out.Stdout))
+	data.UseNumber()
+	var service servingv1.Service
+	err := data.Decode(&service)
+	assert.NilError(t, err)
+	assert.Equal(t, *service.Spec.Template.Spec.Containers[0].SecurityContext.RunAsUser, uid)
 }
