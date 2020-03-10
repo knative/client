@@ -70,7 +70,7 @@ func NewServiceExportCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			history, err := cmd.Flags().GetBool("history")
+			withRevisions, err := cmd.Flags().GetBool("with-revisions")
 			if err != nil {
 				return err
 			}
@@ -80,8 +80,8 @@ func NewServiceExportCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			if history {
-				if svcList, err := exportServicewithActiveRevisions(service, client); err != nil {
+			if withRevisions {
+				if svcList, err := exportServiceWithActiveRevisions(service, client); err != nil {
 					return err
 				} else {
 					return printer.PrintObj(svcList, cmd.OutOrStdout())
@@ -92,7 +92,7 @@ func NewServiceExportCommand(p *commands.KnParams) *cobra.Command {
 	}
 	flags := command.Flags()
 	commands.AddNamespaceFlags(flags, false)
-	flags.BoolP("history", "r", false, "Export all active revisions")
+	flags.Bool("with-revisions", false, "Export all routed revisions (experimental)")
 	machineReadablePrintFlags.AddFlags(command)
 	return command
 }
@@ -135,22 +135,19 @@ func constructServicefromRevision(latestSvc *servingv1.Service, revision serving
 	return exportedSvc
 }
 
-func exportServicewithActiveRevisions(latestSvc *servingv1.Service, client clientservingv1.KnServingClient) (*servingv1.ServiceList, error) {
+func exportServiceWithActiveRevisions(latestSvc *servingv1.Service, client clientservingv1.KnServingClient) (*servingv1.ServiceList, error) {
 	var exportedSvcItems []servingv1.Service
 
 	//get revisions to export from traffic
 	revsMap := getRevisionstoExport(latestSvc)
 
-	var params []clientservingv1.ListConfig
-	params = append(params, clientservingv1.WithService(latestSvc.ObjectMeta.Name))
-
 	// Query for list with filters
-	revisionList, err := client.ListRevisions(params...)
+	revisionList, err := client.ListRevisions(clientservingv1.WithService(latestSvc.ObjectMeta.Name))
 	if err != nil {
 		return nil, err
 	}
 	if len(revisionList.Items) == 0 {
-		return nil, fmt.Errorf("No revisions found for the service %s", latestSvc.ObjectMeta.Name)
+		return nil, fmt.Errorf("no revisions found for the service %s", latestSvc.ObjectMeta.Name)
 	}
 
 	// sort revisions to main the order of generations
@@ -161,6 +158,10 @@ func exportServicewithActiveRevisions(latestSvc *servingv1.Service, client clien
 		if revsMap[revision.ObjectMeta.Name] {
 			exportedSvcItems = append(exportedSvcItems, constructServicefromRevision(latestSvc, revision))
 		}
+	}
+
+	if len(exportedSvcItems) == 0 {
+		return nil, fmt.Errorf("no revisions found for service %s", latestSvc.ObjectMeta.Name)
 	}
 
 	//set traffic in the latest revision
@@ -181,7 +182,6 @@ func exportServicewithActiveRevisions(latestSvc *servingv1.Service, client clien
 func setTrafficSplit(latestSvc *servingv1.Service, exportedSvc servingv1.Service) servingv1.Service {
 
 	exportedSvc.Spec.RouteSpec = latestSvc.Spec.RouteSpec
-
 	return exportedSvc
 }
 
