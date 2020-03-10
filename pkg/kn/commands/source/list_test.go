@@ -38,18 +38,15 @@ const (
 )
 
 // sourceFakeCmd takes cmd to be executed using dynamic client
-// pass the objects to be registed to dynamic clients
+// pass the objects to be registered to dynamic client
 func sourceFakeCmd(args []string, objects ...runtime.Object) (output []string, err error) {
 	knParams := &commands.KnParams{}
-	// not using the fake dynamic client returned here
 	cmd, _, buf := commands.CreateDynamicTestKnCommand(NewSourceCommand(knParams), knParams, objects...)
-
 	cmd.SetArgs(args)
 	err = cmd.Execute()
 	if err != nil {
 		return
 	}
-
 	output = strings.Split(buf.String(), "\n")
 	return
 }
@@ -91,7 +88,6 @@ func TestSourceList(t *testing.T) {
 	assert.Check(t, util.ContainsAll(output[2], "c1", "CronJobSource", "cronjobsources.sources.eventing.knative.dev", "svc:foo", "<unknown>"))
 	assert.Check(t, util.ContainsAll(output[3], "p1", "PingSource", "pingsources.sources.knative.dev", "svc:foo", "<unknown>"))
 	assert.Check(t, util.ContainsAll(output[4], "s1", "SinkBinding", "sinkbindings.sources.knative.dev", "svc:foo", "<unknown>"))
-
 }
 
 func TestSourceListNoHeaders(t *testing.T) {
@@ -115,7 +111,6 @@ func newSourceCRDObjWithSpec(name, group, version, kind string) *unstructured.Un
 			},
 		},
 	}
-
 	obj.Object["spec"] = map[string]interface{}{
 		"group":   group,
 		"version": version,
