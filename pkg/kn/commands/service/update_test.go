@@ -667,22 +667,12 @@ func TestServiceUpdateNoClusterLocal(t *testing.T) {
 	expected := map[string]string{}
 	actual := updated.ObjectMeta.Labels
 	assert.DeepEqual(t, expected, actual)
-
-	newTemplate := updated.Spec.Template
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	actual = newTemplate.ObjectMeta.Labels
-	assert.DeepEqual(t, expected, actual)
 }
 
 //TODO: add check for template name not changing when issue #646 solution is merged
 func TestServiceUpdateNoClusterLocalOnPublicService(t *testing.T) {
 	original := newEmptyService()
 	original.ObjectMeta.Labels = map[string]string{}
-	originalTemplate := &original.Spec.Template
-	originalTemplate.ObjectMeta.Labels = map[string]string{}
 
 	action, updated, _, err := fakeServiceUpdate(original, []string{
 		"service", "update", "foo", "--no-cluster-local", "--no-wait"})
@@ -695,14 +685,6 @@ func TestServiceUpdateNoClusterLocalOnPublicService(t *testing.T) {
 
 	expected := map[string]string{}
 	actual := updated.ObjectMeta.Labels
-	assert.DeepEqual(t, expected, actual)
-
-	newTemplate := updated.Spec.Template
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	actual = newTemplate.ObjectMeta.Labels
 	assert.DeepEqual(t, expected, actual)
 }
 

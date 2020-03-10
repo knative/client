@@ -27,29 +27,39 @@ func isCRDError(status api_errors.APIStatus) bool {
 			return true
 		}
 	}
-
 	return false
+}
+
+func isNoRouteToHostError(err error) bool {
+	return strings.Contains(err.Error(), "no route to host") || strings.Contains(err.Error(), "i/o timeout")
+}
+
+func isEmptyConfigError(err error) bool {
+	return strings.Contains(err.Error(), "no configuration has been provided")
 }
 
 //Retrieves a custom error struct based on the original error APIStatus struct
 //Returns the original error struct in case it can't identify the kind of APIStatus error
 func GetError(err error) error {
-	apiStatus, ok := err.(api_errors.APIStatus)
-	if !ok {
+	switch {
+	case isEmptyConfigError(err):
+		return newNoKubeConfig(err.Error())
+	case isNoRouteToHostError(err):
+		return newNoRouteToHost(err.Error())
+	default:
+		apiStatus, ok := err.(api_errors.APIStatus)
+		if !ok {
+			return err
+		}
+		if apiStatus.Status().Details == nil {
+			return err
+		}
+		var knerr *KNError
+		if isCRDError(apiStatus) {
+			knerr = newInvalidCRD(apiStatus.Status().Details.Group)
+			knerr.Status = apiStatus
+			return knerr
+		}
 		return err
 	}
-
-	if apiStatus.Status().Details == nil {
-		return err
-	}
-
-	var knerr *KNError
-
-	if isCRDError(apiStatus) {
-		knerr = newInvalidCRD(apiStatus.Status().Details.Group)
-		knerr.Status = apiStatus
-		return knerr
-	}
-
-	return err
 }

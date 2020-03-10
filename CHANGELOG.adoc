@@ -18,6 +18,14 @@
 |===
 | | Description | PR
 
+| 🐛
+| Improve reporting for missing kubeconfig and error connecting to the cluster
+| https://github.com/knative/client/pull/725[#725]
+
+| 🎁
+| Add `kn source list`
+| https://github.com/knative/client/pull/666[#666]
+
 | 🎁
 | Add --cluster-local and --no-cluster-local flags
 | https://github.com/knative/client/pull/629[#629]
@@ -29,6 +37,10 @@
 | 🐣
 | Replaced `kn source cron` with `kn source ping`. `--schedule` is not mandatory anymore and defaults to "* * * * *" (every minute)
 | https://github.com/knative/client/issues/564[#564]
+
+| ✨
+| Add option for adding labels only to service and/or template
+| https://github.com/knative/client/issues/675[#675]
 
 | ✨
 | Update to Knative serving 0.13.0 and Knative eventing 0.13.1
@@ -77,6 +89,10 @@
 | 🎁
 | Add `--user` flag for specifying the user id to run the container
 | https://github.com/knative/client/pull/679[#679]
+
+| 🎁
+| add kn service export command for exporting a service
+| https://github.com/knative/client/pull/669[#669]
 |===
 
 ## v0.12.0 (2020-01-29)

@@ -38,10 +38,10 @@ func TestService(t *testing.T) {
 	r := NewKnRunResultCollector(t)
 	defer r.DumpIfFailed()
 
-	t.Log("create hello service duplicate and get service already exists error")
+	t.Log("create hello service, delete, and try to create duplicate and get service already exists error")
 	test.serviceCreate(t, r, "hello")
-	test.serviceCreatePrivate(t, r, "hello")
-	test.serviceCreateDuplicate(t, r, "hello")
+	test.serviceCreatePrivate(t, r, "hello-private")
+	test.serviceCreateDuplicate(t, r, "hello-private")
 
 	t.Log("return valid info about hello service with print flags")
 	test.serviceDescribeWithPrintFlags(t, r, "hello")
@@ -52,8 +52,10 @@ func TestService(t *testing.T) {
 
 	t.Log("delete two services with a service nonexistent")
 	test.serviceCreate(t, r, "hello")
-
 	test.serviceMultipleDelete(t, r, "hello", "bla123")
+
+	t.Log("create service private and make public")
+	test.serviceCreatePrivateUpdatePublic(t, r, "hello-private-public")
 }
 
 func (test *e2eTest) serviceCreatePrivate(t *testing.T, r *KnRunResultCollector, serviceName string) {

@@ -1,4 +1,4 @@
-// Copyright © 2019 The Knative Authors
+// Copyright © 2020 The Knative Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,22 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package errors
+package flags
 
 import (
 	"testing"
 
+	"github.com/spf13/cobra"
 	"gotest.tools/assert"
 )
 
-func TestNewInvalidCRD(t *testing.T) {
-	err := newInvalidCRD("serving.knative.dev")
-	assert.Error(t, err, "no Knative serving API found on the backend, please verify the installation")
-
-	err = newInvalidCRD("eventing")
-	assert.Error(t, err, "no Knative eventing API found on the backend, please verify the installation")
-
-	err = newInvalidCRD("")
-	assert.Error(t, err, "no Knative  API found on the backend, please verify the installation")
-
+func TestSourceListFlags(t *testing.T) {
+	filters := &SourceTypeFilters{}
+	cmd := &cobra.Command{}
+	filters.Add(cmd, "foo")
+	assert.Check(t, cmd.Flag("type") != nil)
 }

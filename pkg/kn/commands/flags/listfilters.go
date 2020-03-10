@@ -1,4 +1,4 @@
-// Copyright © 2019 The Knative Authors
+// Copyright © 2020 The Knative Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,22 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package errors
+package flags
 
 import (
-	"testing"
+	"fmt"
 
-	"gotest.tools/assert"
+	"github.com/spf13/cobra"
 )
 
-func TestNewInvalidCRD(t *testing.T) {
-	err := newInvalidCRD("serving.knative.dev")
-	assert.Error(t, err, "no Knative serving API found on the backend, please verify the installation")
+// SourceTypeFilters defines flags used for kn source list to filter sources on types
+type SourceTypeFilters struct {
+	Filters []string
+}
 
-	err = newInvalidCRD("eventing")
-	assert.Error(t, err, "no Knative eventing API found on the backend, please verify the installation")
-
-	err = newInvalidCRD("")
-	assert.Error(t, err, "no Knative  API found on the backend, please verify the installation")
-
+// Add attaches the SourceTypeFilters flags to given command
+func (s *SourceTypeFilters) Add(cmd *cobra.Command, what string) {
+	usage := fmt.Sprintf("Filter list on given %s. This flag can be given multiple times.", what)
+	cmd.Flags().StringSliceVarP(&s.Filters, "type", "t", nil, usage)
 }

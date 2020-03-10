@@ -22,7 +22,8 @@ import (
 	metav1beta1 "k8s.io/apimachinery/pkg/apis/meta/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	hprinters "knative.dev/client/pkg/printers"
+	clientduck "knative.dev/client/pkg/kn/commands/source/duck"
+	"knative.dev/client/pkg/printers"
 )
 
 var sourceTypeDescription = map[string]string{
@@ -31,12 +32,8 @@ var sourceTypeDescription = map[string]string{
 	"PingSource":      "Send periodically ping events to a sink",
 }
 
-func getSourceTypeDescription(kind string) string {
-	return sourceTypeDescription[kind]
-}
-
-// ListTypesHandlers handles printing human readable table for `kn source list-types` command's output
-func ListTypesHandlers(h hprinters.PrintHandler) {
+// ListTypesHandlers handles printing human readable table for `kn source list-types`
+func ListTypesHandlers(h printers.PrintHandler) {
 	sourceTypesColumnDefinitions := []metav1beta1.TableColumnDefinition{
 		{Name: "Type", Type: "string", Description: "Kind / Type of the source type", Priority: 1},
 		{Name: "Name", Type: "string", Description: "Name of the source type", Priority: 1},
@@ -46,8 +43,21 @@ func ListTypesHandlers(h hprinters.PrintHandler) {
 	h.TableHandler(sourceTypesColumnDefinitions, printSourceTypesList)
 }
 
+// ListHandlers handles printing human readable table for `kn source list`
+func ListHandlers(h printers.PrintHandler) {
+	sourceListColumnDefinitions := []metav1beta1.TableColumnDefinition{
+		{Name: "Name", Type: "string", Description: "Name of the created source", Priority: 1},
+		{Name: "Type", Type: "string", Description: "Type of the source", Priority: 1},
+		{Name: "Resource", Type: "string", Description: "Source type name", Priority: 1},
+		{Name: "Sink", Type: "string", Description: "Sink of the source", Priority: 1},
+		{Name: "Ready", Type: "string", Description: "Ready condition status", Priority: 1},
+	}
+	h.TableHandler(sourceListColumnDefinitions, printSource)
+	h.TableHandler(sourceListColumnDefinitions, printSourceList)
+}
+
 // printSourceTypes populates a single row of source types list table
-func printSourceTypes(sourceType unstructured.Unstructured, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+func printSourceTypes(sourceType unstructured.Unstructured, options printers.PrintOptions) ([]metav1beta1.TableRow, error) {
 	name := sourceType.GetName()
 	content := sourceType.UnstructuredContent()
 	kind, found, err := unstructured.NestedString(content, "spec", "names", "kind")
@@ -62,12 +72,12 @@ func printSourceTypes(sourceType unstructured.Unstructured, options hprinters.Pr
 	row := metav1beta1.TableRow{
 		Object: runtime.RawExtension{Object: &sourceType},
 	}
-	row.Cells = append(row.Cells, kind, name, getSourceTypeDescription(kind))
+	row.Cells = append(row.Cells, kind, name, sourceTypeDescription[kind])
 	return []metav1beta1.TableRow{row}, nil
 }
 
 // printSourceTypesList populates the source types list table rows
-func printSourceTypesList(sourceTypesList *unstructured.UnstructuredList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+func printSourceTypesList(sourceTypesList *unstructured.UnstructuredList, options printers.PrintOptions) ([]metav1beta1.TableRow, error) {
 	rows := make([]metav1beta1.TableRow, 0, len(sourceTypesList.Items))
 
 	sort.SliceStable(sourceTypesList.Items, func(i, j int) bool {
@@ -75,6 +85,44 @@ func printSourceTypesList(sourceTypesList *unstructured.UnstructuredList, option
 	})
 	for _, item := range sourceTypesList.Items {
 		row, err := printSourceTypes(item, options)
+		if err != nil {
+			return nil, err
+		}
+
+		rows = append(rows, row...)
+	}
+	return rows, nil
+}
+
+// printSource populates a single row of source list table
+func printSource(source *clientduck.Source, options printers.PrintOptions) ([]metav1beta1.TableRow, error) {
+	row := metav1beta1.TableRow{
+		Object: runtime.RawExtension{Object: source},
+	}
+
+	if options.AllNamespaces {
+		row.Cells = append(row.Cells, source.GetNamespace())
+	}
+
+	row.Cells = append(row.Cells,
+		source.Name,
+		source.SourceKind,
+		source.Resource,
+		source.Sink,
+		source.Ready,
+	)
+	return []metav1beta1.TableRow{row}, nil
+}
+
+// printSourceList populates the source list table rows
+func printSourceList(sourceList *clientduck.SourceList, options printers.PrintOptions) ([]metav1beta1.TableRow, error) {
+	rows := make([]metav1beta1.TableRow, 0, len(sourceList.Items))
+
+	sort.SliceStable(sourceList.Items, func(i, j int) bool {
+		return sourceList.Items[i].Name < sourceList.Items[j].Name
+	})
+	for _, source := range sourceList.Items {
+		row, err := printSource(&source, options)
 		if err != nil {
 			return nil, err
 		}

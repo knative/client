@@ -73,3 +73,13 @@ func ContainsNone(target string, substrings ...string) cmp.Comparison {
 		return cmp.ResultSuccess
 	}
 }
+
+// SliceContainsIgnoreCase checks (case insensitive) if given target string is present in slice
+func SliceContainsIgnoreCase(slice []string, target string) bool {
+	for _, each := range slice {
+		if strings.EqualFold(target, each) {
+			return true
+		}
+	}
+	return false
+}

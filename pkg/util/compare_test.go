@@ -20,6 +20,7 @@ import (
 	"strings"
 	"testing"
 
+	"gotest.tools/assert"
 	"gotest.tools/assert/cmp"
 )
 
@@ -145,4 +146,13 @@ func TestContainsNone(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestSliceContainsIgnoreCase(t *testing.T) {
+	assert.Equal(t,
+		SliceContainsIgnoreCase([]string{"FOO", "bar"}, "foo"),
+		true)
+	assert.Equal(t,
+		SliceContainsIgnoreCase([]string{"BAR", "bar"}, "foo"),
+		false)
 }
