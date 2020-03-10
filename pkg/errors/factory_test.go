@@ -15,6 +15,7 @@
 package errors
 
 import (
+	"errors"
 	"testing"
 
 	"gotest.tools/assert"
@@ -23,7 +24,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
-func TestBuild(t *testing.T) {
+func TestKnErrorsStatusErrors(t *testing.T) {
 	cases := []struct {
 		Name        string
 		Schema      schema.GroupResource
@@ -47,7 +48,7 @@ func TestBuild(t *testing.T) {
 				}
 				return statusError
 			},
-			ExpectedMsg: "no Knative serving API found on the backend. Please verify the installation.",
+			ExpectedMsg: "no Knative serving API found on the backend, please verify the installation",
 			Validate: func(t *testing.T, err error, msg string) {
 				assert.Error(t, err, msg)
 			},
@@ -89,6 +90,43 @@ func TestBuild(t *testing.T) {
 			statusError := tc.StatusError(tc.Schema)
 			err := GetError(statusError)
 			tc.Validate(t, err, tc.ExpectedMsg)
+		})
+	}
+}
+
+func TestKnErrors(t *testing.T) {
+	cases := []struct {
+		Name        string
+		Error       error
+		ExpectedMsg string
+	}{
+		{
+			Name:        "no kubeconfig provided",
+			Error:       errors.New("invalid configuration: no configuration has been provided"),
+			ExpectedMsg: "no kubeconfig has been provided, please use a valid configuration to connect to the cluster",
+		},
+		{
+			Name:        "i/o timeout",
+			Error:       errors.New("Get https://api.example.com:27435/apis/foo/bar: dial tcp 192.168.1.1:27435: i/o timeout"),
+			ExpectedMsg: "error connecting to the cluster, please verify connection at: 192.168.1.1:27435: i/o timeout",
+		},
+		{
+			Name:        "no route to host",
+			Error:       errors.New("Get https://192.168.39.141:8443/apis/foo/bar: dial tcp 192.168.39.141:8443: connect: no route to host"),
+			ExpectedMsg: "error connecting to the cluster, please verify connection at: 192.168.39.141:8443: connect: no route to host",
+		},
+		{
+			Name:        "no route to host without dial tcp string",
+			Error:       errors.New("no route to host 192.168.1.1"),
+			ExpectedMsg: "error connecting to the cluster: no route to host 192.168.1.1",
+		},
+	}
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.Name, func(t *testing.T) {
+			t.Parallel()
+			err := GetError(tc.Error)
+			assert.Error(t, err, tc.ExpectedMsg)
 		})
 	}
 }
