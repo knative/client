@@ -81,6 +81,10 @@
 | 🎁
 | Add `--user` flag for specifying the user id to run the container
 | https://github.com/knative/client/pull/679[#679]
+
+| 🎁
+| add kn service export command for exporting a service
+| https://github.com/knative/client/pull/669[#669]
 |===
 
 ## v0.12.0 (2020-01-29)
