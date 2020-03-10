@@ -85,6 +85,10 @@
 | 🎁
 | add kn service export command for exporting a service
 | https://github.com/knative/client/pull/669[#669]
+
+| 🎁
+| Add flag --inject-broker to trigger create command
+| https://github.com/knative/client/pull/726[#726]
 |===
 
 ## v0.12.0 (2020-01-29)
