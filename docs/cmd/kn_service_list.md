@@ -14,6 +14,7 @@ kn service list [name] [flags]
 
 ```
 
+
   # List all services
   kn service list
 
@@ -46,4 +47,5 @@ kn service list [name] [flags]
 
 ### SEE ALSO
 
-- [kn service](kn_service.md) - Service command group
+* [kn service](kn_service.md)	 - Service command group
+

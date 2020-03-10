@@ -34,6 +34,7 @@ func NewServiceListCommand(p *commands.KnParams) *cobra.Command {
 		Use:   "list [name]",
 		Short: "List available services.",
 		Example: `
+
   # List all services
   kn service list
 
