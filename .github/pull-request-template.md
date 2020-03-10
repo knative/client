@@ -1,5 +1,5 @@
 
-## Desciption
+## Description
 
 <!-- Please add a short summary about what the pull request is going to bring on the table -->
 
