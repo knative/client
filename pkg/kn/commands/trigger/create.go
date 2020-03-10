@@ -77,12 +77,16 @@ func NewTriggerCreateCommand(p *commands.KnParams) *cobra.Command {
 			triggerBuilder := client_v1alpha1.
 				NewTriggerBuilder(name).
 				Namespace(namespace).
-				Broker(triggerUpdateFlags.Broker, triggerUpdateFlags.InjectBroker).
+				Broker(triggerUpdateFlags.Broker).
 				Filters(filters).
 				Subscriber(&duckv1.Destination{
 					Ref: objectRef.Ref,
 					URI: objectRef.URI,
 				})
+			// add inject annotation only condition are satisfied
+			if triggerUpdateFlags.Broker == "default" && triggerUpdateFlags.InjectBroker {
+				triggerBuilder.InjectBroker()
+			}
 
 			err = eventingClient.CreateTrigger(triggerBuilder.Build())
 			if err != nil {

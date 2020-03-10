@@ -154,12 +154,24 @@ func TestTriggerBuilder(t *testing.T) {
 		}
 		assert.DeepEqual(t, expected, b.Build().Spec.Filter)
 	})
+
+	t.Run("add inject annotation", func(t *testing.T) {
+		b := NewTriggerBuilder("broker-trigger")
+		b.InjectBroker()
+		expected := &metav1.ObjectMeta{
+			Annotations: map[string]string{
+				v1alpha1.InjectionAnnotation: "enabled",
+			},
+		}
+		assert.DeepEqual(t, expected.Annotations, b.Build().ObjectMeta.Annotations)
+
+	})
 }
 
 func newTrigger(name string) *v1alpha1.Trigger {
 	return NewTriggerBuilder(name).
 		Namespace(testNamespace).
-		Broker("default", false).
+		Broker("default").
 		Filters(map[string]string{"type": "foo"}).
 		Build()
 }

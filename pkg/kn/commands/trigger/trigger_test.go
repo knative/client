@@ -78,10 +78,15 @@ func executeTriggerCommand(triggerClient eventc_v1alpha1.KnEventingClient, dynam
 func createTrigger(namespace string, name string, filters map[string]string, broker string, svcname string) *v1alpha1.Trigger {
 	return eventc_v1alpha1.NewTriggerBuilder(name).
 		Namespace(namespace).
-		Broker(broker, false).
+		Broker(broker).
 		Filters(filters).
 		Subscriber(createServiceSink(svcname)).
 		Build()
+}
+
+func createTriggerWithInject(namespace string, name string, filters map[string]string, broker string, svcname string) *v1alpha1.Trigger {
+	t := createTrigger(namespace, name, filters, broker, svcname)
+	return eventc_v1alpha1.NewTriggerBuilderFromExisting(t).InjectBroker().Build()
 }
 
 func createTriggerWithStatus(namespace string, name string, filters map[string]string, broker string, svcname string) *v1alpha1.Trigger {
