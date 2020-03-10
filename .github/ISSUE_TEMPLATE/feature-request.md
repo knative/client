@@ -14,7 +14,7 @@ assignees: ''
 
 ### Use case
 
-<!-- Please add a concrete use case to demonstrate how suhc a feature would add value for the user. If you don't have a use case for your feature, please remove this section (however providing a good use case increases the likelihood to be picked up) -->
+<!-- Please add a concrete use case to demonstrate how such a feature would add value for the user. If you don't have a use case for your feature, please remove this section (however providing a good use case increases the likelihood to be picked up) -->
 
 ### UI Example
 
