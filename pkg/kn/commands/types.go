@@ -31,6 +31,7 @@ import (
 	"knative.dev/client/pkg/util"
 
 	clientdynamic "knative.dev/client/pkg/dynamic"
+	knerrors "knative.dev/client/pkg/errors"
 	clienteventingv1alpha1 "knative.dev/client/pkg/eventing/v1alpha1"
 	clientservingv1 "knative.dev/client/pkg/serving/v1"
 )
@@ -145,13 +146,13 @@ func (params *KnParams) RestConfig() (*rest.Config, error) {
 	if params.ClientConfig == nil {
 		params.ClientConfig, err = params.GetClientConfig()
 		if err != nil {
-			return nil, err
+			return nil, knerrors.GetError(err)
 		}
 	}
 
 	config, err := params.ClientConfig.ClientConfig()
 	if err != nil {
-		return nil, err
+		return nil, knerrors.GetError(err)
 	}
 	if params.LogHTTP {
 		// TODO: When we update to the newer version of client-go, replace with

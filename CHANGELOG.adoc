@@ -18,6 +18,10 @@
 |===
 | | Description | PR
 
+| 🐛
+| Improve reporting for missing kubeconfig and error connecting to the cluster
+| https://github.com/knative/client/pull/725[#725]
+
 | 🎁
 | Add `kn source list`
 | https://github.com/knative/client/pull/666[#666]
