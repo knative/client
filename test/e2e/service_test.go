@@ -23,8 +23,8 @@ import (
 	"testing"
 
 	"gotest.tools/assert"
-
 	"knative.dev/client/pkg/util"
+	"knative.dev/serving/pkg/apis/serving"
 )
 
 func TestService(t *testing.T) {
@@ -38,9 +38,10 @@ func TestService(t *testing.T) {
 	r := NewKnRunResultCollector(t)
 	defer r.DumpIfFailed()
 
-	t.Log("create hello service duplicate and get service already exists error")
+	t.Log("create hello service, delete, and try to create duplicate and get service already exists error")
 	test.serviceCreate(t, r, "hello")
-	test.serviceCreateDuplicate(t, r, "hello")
+	test.serviceCreatePrivate(t, r, "hello-private")
+	test.serviceCreateDuplicate(t, r, "hello-private")
 
 	t.Log("return valid info about hello service with print flags")
 	test.serviceDescribeWithPrintFlags(t, r, "hello")
@@ -51,18 +52,49 @@ func TestService(t *testing.T) {
 
 	t.Log("delete two services with a service nonexistent")
 	test.serviceCreate(t, r, "hello")
-
 	test.serviceMultipleDelete(t, r, "hello", "bla123")
+
+	t.Log("create service private and make public")
+	test.serviceCreatePrivateUpdatePublic(t, r, "hello-private-public")
+}
+
+func (test *e2eTest) serviceCreatePrivate(t *testing.T, r *KnRunResultCollector, serviceName string) {
+	out := test.kn.Run("service", "create", serviceName,
+		"--image", KnDefaultTestImage, "--cluster-local")
+	r.AssertNoError(out)
+	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "service", serviceName, "creating", "namespace", test.kn.namespace, "ready"))
+
+	out = test.kn.Run("service", "describe", serviceName, "--verbose")
+	r.AssertNoError(out)
+	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, serving.VisibilityLabelKey, serving.VisibilityClusterLocal))
+}
+
+func (test *e2eTest) serviceCreatePrivateUpdatePublic(t *testing.T, r *KnRunResultCollector, serviceName string) {
+	out := test.kn.Run("service", "create", serviceName,
+		"--image", KnDefaultTestImage, "--cluster-local")
+	r.AssertNoError(out)
+	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "service", serviceName, "creating", "namespace", test.kn.namespace, "ready"))
+
+	out = test.kn.Run("service", "describe", serviceName, "--verbose")
+	r.AssertNoError(out)
+	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, serving.VisibilityLabelKey, serving.VisibilityClusterLocal))
+
+	out = test.kn.Run("service", "update", serviceName,
+		"--image", KnDefaultTestImage, "--no-cluster-local")
+	r.AssertNoError(out)
+	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "service", serviceName, "updated", "namespace", test.kn.namespace, "ready"))
+
+	out = test.kn.Run("service", "describe", serviceName, "--verbose")
+	r.AssertNoError(out)
+	assert.Check(t, util.ContainsNone(out.Stdout, serving.VisibilityLabelKey, serving.VisibilityClusterLocal))
 }
 
 func (test *e2eTest) serviceCreateDuplicate(t *testing.T, r *KnRunResultCollector, serviceName string) {
 	out := test.kn.Run("service", "list", serviceName)
-	out.ErrorExpected = true
 	r.AssertNoError(out)
 	assert.Check(t, strings.Contains(out.Stdout, serviceName), "The service does not exist yet")
 
 	out = test.kn.Run("service", "create", serviceName, "--image", KnDefaultTestImage)
-	out.ErrorExpected = true
 	r.AssertError(out)
 	assert.Check(t, util.ContainsAll(out.Stderr, "the service already exists"))
 }

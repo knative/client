@@ -27,6 +27,10 @@
 | https://github.com/knative/client/pull/666[#666]
 
 | 🎁
+| Add --cluster-local and --no-cluster-local flags
+| https://github.com/knative/client/pull/629[#629]
+
+| 🎁
 | Add JSON/YAML output format for version command
 | https://github.com/knative/client/pull/709[#709]
 

@@ -28,6 +28,7 @@ import (
 	"knative.dev/client/pkg/kn/flags"
 	servinglib "knative.dev/client/pkg/serving"
 	"knative.dev/client/pkg/util"
+	"knative.dev/serving/pkg/apis/serving"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
@@ -57,6 +58,7 @@ type ConfigurationEditFlags struct {
 	ServiceAccountName         string
 	ImagePullSecrets           string
 	Annotations                []string
+	ClusterLocal               bool
 	User                       int64
 
 	// Preferences about how to do the action.
@@ -134,6 +136,7 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 		"Specify command to be used as entrypoint instead of default one. "+
 			"Example: --cmd /app/start or --cmd /app/start --arg myArg to pass aditional arguments.")
 	p.markFlagMakesRevision("cmd")
+
 	command.Flags().StringArrayVarP(&p.Arg, "arg", "", []string{},
 		"Add argument to the container command. "+
 			"Example: --arg myArg1 --arg --myArg2 --arg myArg3=3. "+
@@ -142,33 +145,50 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 
 	command.Flags().StringVar(&p.RequestsFlags.CPU, "requests-cpu", "", "The requested CPU (e.g., 250m).")
 	p.markFlagMakesRevision("requests-cpu")
+
 	command.Flags().StringVar(&p.RequestsFlags.Memory, "requests-memory", "", "The requested memory (e.g., 64Mi).")
 	p.markFlagMakesRevision("requests-memory")
+
 	command.Flags().StringVar(&p.LimitsFlags.CPU, "limits-cpu", "", "The limits on the requested CPU (e.g., 1000m).")
 	p.markFlagMakesRevision("limits-cpu")
+
 	command.Flags().StringVar(&p.LimitsFlags.Memory, "limits-memory", "",
 		"The limits on the requested memory (e.g., 1024Mi).")
 	p.markFlagMakesRevision("limits-memory")
+
 	command.Flags().IntVar(&p.MinScale, "min-scale", 0, "Minimal number of replicas.")
 	p.markFlagMakesRevision("min-scale")
+
 	command.Flags().IntVar(&p.MaxScale, "max-scale", 0, "Maximal number of replicas.")
 	p.markFlagMakesRevision("max-scale")
+
 	command.Flags().StringVar(&p.AutoscaleWindow, "autoscale-window", "", "Duration to look back for making auto-scaling decisions. The service is scaled to zero if no request was received in during that time. (eg: 10s)")
 	p.markFlagMakesRevision("autoscale-window")
+
+	flags.AddBothBoolFlagsUnhidden(command.Flags(), &p.ClusterLocal, "cluster-local", "", false,
+		"Specify that the service be private. (--no-cluster-local will make the service publicly available")
+	//TODO: Need to also not change revision when already set (solution to issue #646)
+	p.markFlagMakesRevision("cluster-local")
+	p.markFlagMakesRevision("no-cluster-local")
+
 	command.Flags().IntVar(&p.ConcurrencyTarget, "concurrency-target", 0,
 		"Recommendation for when to scale up based on the concurrent number of incoming request. "+
 			"Defaults to --concurrency-limit when given.")
 	p.markFlagMakesRevision("concurrency-target")
+
 	command.Flags().IntVar(&p.ConcurrencyLimit, "concurrency-limit", 0,
 		"Hard Limit of concurrent requests to be processed by a single replica.")
 	p.markFlagMakesRevision("concurrency-limit")
+
 	command.Flags().Int32VarP(&p.Port, "port", "p", 0, "The port where application listens on.")
 	p.markFlagMakesRevision("port")
+
 	command.Flags().StringArrayVarP(&p.Labels, "label", "l", []string{},
 		"Labels to set for both Service and Revision. name=value; you may provide this flag "+
 			"any number of times to set multiple labels. "+
 			"To unset, specify the label name followed by a \"-\" (e.g., name-).")
 	p.markFlagMakesRevision("label")
+
 	command.Flags().StringArrayVarP(&p.LabelsService, "label-service", "", []string{},
 		"Service label to set. name=value; you may provide this flag "+
 			"any number of times to set multiple labels. "+
@@ -181,6 +201,7 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 			"To unset, specify the label name followed by a \"-\" (e.g., name-). This flag takes "+
 			"precedence over \"label\" flag.")
 	p.markFlagMakesRevision("label-revision")
+
 	command.Flags().StringVar(&p.RevisionName, "revision-name", "{{.Service}}-{{.Random 5}}-{{.Generation}}",
 		"The revision name to set. Must start with the service name and a dash as a prefix. "+
 			"Empty revision name will result in the server generating a name for the revision. "+
@@ -192,16 +213,19 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 		"Keep the running image for the service constant when not explicitly specifying "+
 			"the image. (--no-lock-to-digest pulls the image tag afresh with each new revision)")
 	// Don't mark as changing the revision.
+
 	command.Flags().StringVar(&p.ServiceAccountName,
 		"service-account",
 		"",
 		"Service account name to set. An empty argument (\"\") clears the service account. The referenced service account must exist in the service's namespace.")
 	p.markFlagMakesRevision("service-account")
+
 	command.Flags().StringArrayVar(&p.Annotations, "annotation", []string{},
 		"Service annotation to set. name=value; you may provide this flag "+
 			"any number of times to set multiple annotations. "+
 			"To unset, specify the annotation name followed by a \"-\" (e.g., name-).")
 	p.markFlagMakesRevision("annotation")
+
 	command.Flags().StringVar(&p.ImagePullSecrets,
 		"pull-secret",
 		"",
@@ -288,6 +312,7 @@ func (p *ConfigurationEditFlags) Apply(
 	if p.AnyMutation(cmd) {
 		template.Name = name
 	}
+
 	imageSet := false
 	if cmd.Flags().Changed("image") {
 		err = servinglib.UpdateImage(template, p.Image.String())
@@ -376,6 +401,16 @@ func (p *ConfigurationEditFlags) Apply(
 		err = servinglib.UpdateConcurrencyLimit(template, int64(p.ConcurrencyLimit))
 		if err != nil {
 			return err
+		}
+	}
+
+	if cmd.Flags().Changed("cluster-local") || cmd.Flags().Changed("no-cluster-local") {
+		if p.ClusterLocal {
+			labels := servinglib.UpdateLabels(service.ObjectMeta.Labels, map[string]string{serving.VisibilityLabelKey: serving.VisibilityClusterLocal}, []string{})
+			service.ObjectMeta.Labels = labels // In case service.ObjectMeta.Labels was nil
+		} else {
+			labels := servinglib.UpdateLabels(service.ObjectMeta.Labels, map[string]string{}, []string{serving.VisibilityLabelKey})
+			service.ObjectMeta.Labels = labels // In case service.ObjectMeta.Labels was nil
 		}
 	}
 

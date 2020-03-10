@@ -35,6 +35,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	clienttesting "k8s.io/client-go/testing"
+	"knative.dev/serving/pkg/apis/serving"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
@@ -645,6 +646,74 @@ func TestServiceUpdateLabelExisting(t *testing.T) {
 
 	template := updated.Spec.Template
 	actual = template.ObjectMeta.Labels
+	assert.DeepEqual(t, expected, actual)
+}
+
+func TestServiceUpdateNoClusterLocal(t *testing.T) {
+	original := newEmptyService()
+	original.ObjectMeta.Labels = map[string]string{serving.VisibilityLabelKey: serving.VisibilityClusterLocal}
+	originalTemplate := &original.Spec.Template
+	originalTemplate.ObjectMeta.Labels = map[string]string{serving.VisibilityLabelKey: serving.VisibilityClusterLocal}
+
+	action, updated, _, err := fakeServiceUpdate(original, []string{
+		"service", "update", "foo", "--no-cluster-local", "--no-wait"})
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	expected := map[string]string{}
+	actual := updated.ObjectMeta.Labels
+	assert.DeepEqual(t, expected, actual)
+}
+
+//TODO: add check for template name not changing when issue #646 solution is merged
+func TestServiceUpdateNoClusterLocalOnPublicService(t *testing.T) {
+	original := newEmptyService()
+	original.ObjectMeta.Labels = map[string]string{}
+
+	action, updated, _, err := fakeServiceUpdate(original, []string{
+		"service", "update", "foo", "--no-cluster-local", "--no-wait"})
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	expected := map[string]string{}
+	actual := updated.ObjectMeta.Labels
+	assert.DeepEqual(t, expected, actual)
+}
+
+//TODO: add check for template name not changing when issue #646 solution is merged
+func TestServiceUpdateNoClusterLocalOnPrivateService(t *testing.T) {
+	original := newEmptyService()
+	original.ObjectMeta.Labels = map[string]string{serving.VisibilityLabelKey: serving.VisibilityClusterLocal}
+	originalTemplate := &original.Spec.Template
+	originalTemplate.ObjectMeta.Labels = map[string]string{serving.VisibilityLabelKey: serving.VisibilityClusterLocal}
+
+	action, updated, _, err := fakeServiceUpdate(original, []string{
+		"service", "update", "foo", "--cluster-local", "--no-wait"})
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	expected := map[string]string{serving.VisibilityLabelKey: serving.VisibilityClusterLocal}
+	actual := updated.ObjectMeta.Labels
+	assert.DeepEqual(t, expected, actual)
+
+	newTemplate := updated.Spec.Template
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	actual = newTemplate.ObjectMeta.Labels
 	assert.DeepEqual(t, expected, actual)
 }
 

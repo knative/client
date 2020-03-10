@@ -22,7 +22,6 @@ import (
 	"testing"
 
 	"gotest.tools/assert"
-
 	api_errors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/watch"
@@ -36,6 +35,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/runtime"
 	clienttesting "k8s.io/client-go/testing"
+	"knative.dev/serving/pkg/apis/serving"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
@@ -379,9 +379,6 @@ func TestServiceCreateMaxMinScale(t *testing.T) {
 	}
 
 	template := &created.Spec.Template
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	actualAnnos := template.Annotations
 	expectedAnnos := []string{
@@ -543,5 +540,26 @@ func TestServiceCreateWithServiceAccountName(t *testing.T) {
 		t.Fatal(err)
 	} else if template.Spec.ServiceAccountName != "foo-bar-account" {
 		t.Fatalf("wrong service account name:%v", template.Spec.ServiceAccountName)
+	}
+}
+
+func TestServiceCreateWithClusterLocal(t *testing.T) {
+	action, created, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
+		"--cluster-local"}, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("create", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	labels := created.ObjectMeta.Labels
+
+	labelValue, present := labels[serving.VisibilityLabelKey]
+	assert.Assert(t, present)
+
+	if labelValue != serving.VisibilityClusterLocal {
+		t.Fatalf("Incorrect VisibilityClusterLocal value '%s'", labelValue)
 	}
 }

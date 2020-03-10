@@ -56,7 +56,10 @@ var create_example = `
   kn service create --force s1 --image dev.local/ns/image:v1
 
   # Create a service with annotation
-  kn service create s1 --image dev.local/ns/image:v3 --annotation sidecar.istio.io/inject=false`
+  kn service create s1 --image dev.local/ns/image:v3 --annotation sidecar.istio.io/inject=false
+
+  # Create a private service (that is a service with no external endpoint)
+  kn service create s1 --image dev.local/ns/image:v3 --cluster-local`
 
 func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 	var editFlags ConfigurationEditFlags
