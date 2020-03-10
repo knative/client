@@ -83,7 +83,7 @@ func NewTriggerCreateCommand(p *commands.KnParams) *cobra.Command {
 					Ref: objectRef.Ref,
 					URI: objectRef.URI,
 				})
-			// add inject annotation only condition are satisfied
+			// add inject annotation only if flag is present and broker name is `default`
 			if triggerUpdateFlags.Broker == "default" && triggerUpdateFlags.InjectBroker {
 				triggerBuilder.InjectBroker()
 			}
