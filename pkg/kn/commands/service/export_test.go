@@ -171,7 +171,7 @@ func callServiceExportHistoryTest(t *testing.T, expectedService *servingv1.Servi
 
 	r.ListRevisions(mock.Any(), revs, nil)
 
-	output, err := executeServiceCommand(client, "export", expectedService.ObjectMeta.Name, "-r", "-o", "json")
+	output, err := executeServiceCommand(client, "export", expectedService.ObjectMeta.Name, "--with-revisions", "-o", "json")
 
 	assert.NilError(t, err)
 
