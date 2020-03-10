@@ -168,9 +168,14 @@ func (b *TriggerBuilder) Broker(broker string) *TriggerBuilder {
 }
 
 // InjectBroker to add annotation to setup default broker
-func (b *TriggerBuilder) InjectBroker() *TriggerBuilder {
-	meta_v1.SetMetaDataAnnotation(&b.trigger.ObjectMeta, v1alpha1.InjectionAnnotation, "enabled")
-
+func (b *TriggerBuilder) InjectBroker(inject bool) *TriggerBuilder {
+	if inject {
+		meta_v1.SetMetaDataAnnotation(&b.trigger.ObjectMeta, v1alpha1.InjectionAnnotation, "enabled")
+	} else {
+		if meta_v1.HasAnnotation(b.trigger.ObjectMeta, v1alpha1.InjectionAnnotation) {
+			delete(b.trigger.ObjectMeta.Annotations, v1alpha1.InjectionAnnotation)
+		}
+	}
 	return b
 }
 

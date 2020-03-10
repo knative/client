@@ -67,6 +67,18 @@ func TestTriggerWithInjectCreate(t *testing.T) {
 	eventingRecorder.Validate()
 }
 
+func TestTriggetWithInjecError(t *testing.T) {
+	eventingClient := clienteventingv1alpha1.NewMockKnEventingClient(t)
+	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default", &servingv1.Service{
+		TypeMeta:   metav1.TypeMeta{Kind: "Service", APIVersion: "serving.knative.dev/v1"},
+		ObjectMeta: metav1.ObjectMeta{Name: "mysvc", Namespace: "default"},
+	})
+
+	_, err := executeTriggerCommand(eventingClient, dynamicClient, "create", triggerName, "--broker", "mybroker", "--inject-broker",
+		"--filter", "type=dev.knative.foo", "--sink", "svc:mysvc")
+	assert.ErrorContains(t, err, "broker", "name", "'default'", "--inject-broker", "flag")
+}
+
 func TestSinkNotFoundError(t *testing.T) {
 	eventingClient := clienteventingv1alpha1.NewMockKnEventingClient(t)
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default")

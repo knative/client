@@ -46,6 +46,12 @@ func TestInjectBrokerTrigger(t *testing.T) {
 	test.verifyTriggerList(t, r, "trigger1", "trigger2")
 	test.triggerDelete(t, r, "trigger1")
 	test.triggerDelete(t, r, "trigger2")
+
+	t.Log("create trigger with error")
+	out := test.kn.Run("trigger", "create", "errorTrigger", "--broker", "mybroker", "--inject-broker",
+		"--sink", "svc:sinksvc0", "--filter", "a=b")
+	r.AssertError(out)
+	assert.Check(t, util.ContainsAllIgnoreCase(out.Stderr, "broker", "name", "'default'", "--inject-broker", "flag"))
 }
 
 func (test *e2eTest) triggerCreateWithInject(t *testing.T, r *KnRunResultCollector, name string, sinksvc string, filters []string) {
