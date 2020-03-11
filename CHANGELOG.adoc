@@ -12,91 +12,123 @@
 | https://github.com/knative/client/pull/[#]
 ////
 
-## v0.13.0 (unreleased)
+## v0.13.0 (2020-03-10)
 
 [cols="1,10,3", options="header", width="100%"]
 |===
 | | Description | PR
 
+| 🎁
+| Add a flag `--inject-broker` to `kn trigger create`
+| https://github.com/knative/client/pull/726[#726]
+
 | 🐛
-| Improve reporting for missing kubeconfig and error connecting to the cluster
+| Improve reporting for missing `kubeconfig` and error connecting to the cluster
 | https://github.com/knative/client/pull/725[#725]
+
+| 🎁
+| Add JSON/YAML output format for `kn version`
+| https://github.com/knative/client/pull/709[#709]
+
+| 🐣
+| Replace `kn source cron` with `kn source ping`. `--schedule` is not mandatory anymore and defaults to "* * * * *" (every minute)
+| https://github.com/knative/client/issues/705[#705]
+
+| ✨
+| Update to Knative serving 0.13.0 and Knative eventing 0.13.1
+| https://github.com/knative/client/issues/705[#705]
+
+| 🎁
+| Add `--label-service` and `--label-revision` to specify where to put labels for `kn service`
+| https://github.com/knative/client/pull/703[#703]
+
+| 🐛
+| Fix wait on `Ready` condition by filtering out synthetic events
+| https://github.com/knative/client/pull/701[#701]
+
+| ✨
+| Add `--wait` and `--no-wait` to `kn service delete` and change synchronous deletion
+| https://github.com/knative/client/pull/682[#682]
+
+| 🎁
+| Add `--user` flag to `kn service` for specifying the user id to run the container
+| https://github.com/knative/client/pull/679[#679]
+
+| 🎁
+| Add configuration of sink prefixes for `kn source`
+| https://github.com/knative/client/pull/676[#676]
+
+| 🎁
+| Add `kn service export` for exporting a service
+| https://github.com/knative/client/pull/669[#669]
+
+| 🎁
+| Adopt to XDG specification to `XDG_CONFIG_HOME` for default config location
+| https://github.com/knative/client/pull/668[#668]
+
+| ✨
+| Add better error tracking for E2E tests
+| https://github.com/knative/client/pull/667[#667]
 
 | 🎁
 | Add `kn source list`
 | https://github.com/knative/client/pull/666[#666]
 
-| 🎁
-| Add --cluster-local and --no-cluster-local flags
-| https://github.com/knative/client/pull/629[#629]
-
-| 🎁
-| Add JSON/YAML output format for version command
-| https://github.com/knative/client/pull/709[#709]
-
-| 🐣
-| Replaced `kn source cron` with `kn source ping`. `--schedule` is not mandatory anymore and defaults to "* * * * *" (every minute)
-| https://github.com/knative/client/issues/564[#564]
+| ✨
+| Improve help message when no command is given
+| https://github.com/knative/client/pull/664[#664]
 
 | ✨
-| Add option for adding labels only to service and/or template
-| https://github.com/knative/client/issues/675[#675]
-
-| ✨
-| Update to Knative serving 0.13.0 and Knative eventing 0.13.1
-| https://github.com/knative/client/issues/564[#564]
-
-| ✨
-| Allow configuration sink prefixes
-| https://github.com/knative/client/pull/571[#571]
+| Update list headers for `kn trigger` and `kn source`
+| https://github.com/knative/client/pull/658[#658]
 
 | ✨
 | Support multiple revisions on `kn revision delete`
 | https://github.com/knative/client/pull/657[#657]
 
+| 🐛
+| Fix `--image` flag to only allow single occurrence in `kn service`
+| https://github.com/knative/client/pull/647[#647]
+
 | 🎁
-| Add human readable `kn route describe`
+| Add E2E test for `kn trigger`
+| https://github.com/knative/client/pull/645[#645]
+
+| 🎁
+| Add error window when waiting for `Ready` condition to become `true`
+| https://github.com/knative/client/pull/644[#644]
+
+| 🎁
+| Add human-readable `kn route describe`
 | https://github.com/knative/client/pull/643[#643]
 
+| ✨
+| Update API to use `serving.knative.dev/v1`
+| https://github.com/knative/client/pull/640[#640]
+
+| ✨
+| Add `no-wait` instead of `--async` and add a deprecation warning
+| https://github.com/knative/client/pull/639[#639]
+
+| 🎁
+| Add E2E test for `cmd` and `arg` option for `kn service`
+| https://github.com/knative/client/pull/637[#637]
+
+| 🎁
+| Add `--cmd` and `--arg` for customization of the container entry point
+| https://github.com/knative/client/pull/635[#635]
+
+| 🎁
+| Add E2E test for `kn source binding`
+| https://github.com/knative/client/pull/634[#634]
+
 | 🐛
-| Show envFrom when running describe service or revision
+| Show `envFrom` in `kn service describe`
 | https://github.com/knative/client/pull/630[#630]
 
 | 🎁
-| Add E2E test for `kn source binding` commands
-| https://github.com/knative/client/pull/634[#634]
-
-| 🎁
-| Add `--cmd` and `--arg` for customization of container entrypoint
-| https://github.com/knative/client/pull/635[#635]
-
-| ✨
-| Add `no-wait` instead of `--async` and deprecate it
-| https://github.com/knative/client/pull/639[#639]
-
-| ✨
-| Refactor service `create_test.go` and `update_test.go` to remove unecessary `sync` parameter in setup call
-| https://github.com/knative/client/pull/656[#656]
-
-| 🐛
-| Fix `--image` flag to only allow single occurence
-| https://github.com/knative/client/pull/647[#647]
-
-| ✨
-| Add `--wait` and `--no-wait` to service delete operation. Change service delete to wait by default.
-| https://github.com/knative/client/pull/682[#682]
-
-| 🎁
-| Add `--user` flag for specifying the user id to run the container
-| https://github.com/knative/client/pull/679[#679]
-
-| 🎁
-| add kn service export command for exporting a service
-| https://github.com/knative/client/pull/669[#669]
-
-| 🎁
-| Add flag --inject-broker to trigger create command
-| https://github.com/knative/client/pull/726[#726]
+| Add `--cluster-local` and `--no-cluster-local` flags for `kn service`
+| https://github.com/knative/client/pull/629[#629]
 |===
 
 ## v0.12.0 (2020-01-29)
@@ -156,7 +188,6 @@
 | 🎁
 | Add traffic and tag information to `kn revision list`
 | https://github.com/knative/client/pull/581[#581]
-
 
 | 🐛️
 | Fix duplicate key check in trigger filter option
