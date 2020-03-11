@@ -31,7 +31,7 @@
 | https://github.com/knative/client/pull/709[#709]
 
 | 🐣
-| Replace `kn source cron` with `kn source ping`. `--schedule` is not mandatory anymore and defaults to "* * * * *" (every minute)
+| Replace `kn source cronjob` with `kn source ping`. `--schedule` is not mandatory anymore and defaults to "* * * * *" (every minute)
 | https://github.com/knative/client/issues/705[#705]
 
 | ✨
