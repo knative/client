@@ -42,7 +42,7 @@ kn service update NAME [flags]
       --arg stringArray              Add argument to the container command. Example: --arg myArg1 --arg --myArg2 --arg myArg3=3. You can use this flag multiple times.
       --async                        DEPRECATED: please use --no-wait instead. Update service and don't wait for it to be ready.
       --autoscale-window string      Duration to look back for making auto-scaling decisions. The service is scaled to zero if no request was received in during that time. (eg: 10s)
-      --cluster-local                Specify that the service be private. (--no-cluster-local will make the service publicly available
+      --cluster-local                Specify that the service be private. (--no-cluster-local will make the service publicly available)
       --cmd string                   Specify command to be used as entrypoint instead of default one. Example: --cmd /app/start or --cmd /app/start --arg myArg to pass aditional arguments.
       --concurrency-limit int        Hard Limit of concurrent requests to be processed by a single replica.
       --concurrency-target int       Recommendation for when to scale up based on the concurrent number of incoming request. Defaults to --concurrency-limit when given.
@@ -60,7 +60,7 @@ kn service update NAME [flags]
       --min-scale int                Minimal number of replicas.
       --mount stringArray            Mount a ConfigMap (prefix cm: or config-map:), a Secret (prefix secret: or sc:), or an existing Volume (without any prefix) on the specified directory. Example: --mount /mydir=cm:myconfigmap, --mount /mydir=secret:mysecret, or --mount /mydir=myvolume. When a configmap or a secret is specified, a corresponding volume is automatically generated. You can use this flag multiple times. For unmounting a directory, append "-", e.g. --mount /mydir-, which also removes any auto-generated volume.
   -n, --namespace string             Specify the namespace to operate in.
-      --no-cluster-local             Do not specify that the service be private. (--no-cluster-local will make the service publicly available (default true)
+      --no-cluster-local             Do not specify that the service be private. (--no-cluster-local will make the service publicly available) (default true)
       --no-lock-to-digest            Do not keep the running image for the service constant when not explicitly specifying the image. (--no-lock-to-digest pulls the image tag afresh with each new revision)
       --no-wait                      Update service and don't wait for it to be ready.
   -p, --port int32                   The port where application listens on.

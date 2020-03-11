@@ -166,7 +166,7 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	p.markFlagMakesRevision("autoscale-window")
 
 	flags.AddBothBoolFlagsUnhidden(command.Flags(), &p.ClusterLocal, "cluster-local", "", false,
-		"Specify that the service be private. (--no-cluster-local will make the service publicly available")
+		"Specify that the service be private. (--no-cluster-local will make the service publicly available)")
 	//TODO: Need to also not change revision when already set (solution to issue #646)
 	p.markFlagMakesRevision("cluster-local")
 	p.markFlagMakesRevision("no-cluster-local")
