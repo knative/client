@@ -160,7 +160,7 @@ type KnRunResult struct {
 	ErrorExpected bool
 }
 
-// RunKubectl runs "kk" in a given namespace
+// RunKn runs "kn" in a given namespace
 func RunKn(namespace string, args []string) KnRunResult {
 	if namespace != "" {
 		args = append(args, "--namespace", namespace)
