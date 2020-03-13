@@ -72,9 +72,9 @@ func (test *e2eTest) serviceExport(t *testing.T, r *KnRunResultCollector, servic
 
 func validateExportedService(t *testing.T, out string, expService servingv1.Service) {
 	actSvcJSON := servingv1.Service{}
-	err := json.Unmarshal([]byte(out), &actSvcJson)
+	err := json.Unmarshal([]byte(out), &actSvcJSON)
 	assert.NilError(t, err)
-	assert.DeepEqual(t, &expService, &actSvcJson)
+	assert.DeepEqual(t, &expService, &actSvcJSON)
 }
 
 func (test *e2eTest) serviceExportWithRevisions(t *testing.T, r *KnRunResultCollector, serviceName string, expServiceList servingv1.ServiceList, options ...string) {
