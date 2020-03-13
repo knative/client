@@ -19,8 +19,9 @@ package e2e
 
 import (
 	"encoding/json"
-	"gotest.tools/assert"
 	"testing"
+
+	"gotest.tools/assert"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
