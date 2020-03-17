@@ -17,6 +17,7 @@ package service
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"testing"
 
 	"gotest.tools/assert"
@@ -32,186 +33,95 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+type expectedServiceOption func(*servingv1.Service)
+type expectedRevisionOption func(*servingv1.Revision)
+
 func TestServiceExport(t *testing.T) {
-	var svcs []*servingv1.Service
-	typeMeta := metav1.TypeMeta{
-		Kind:       "service",
-		APIVersion: "serving.knative.dev/v1",
-	}
 
-	// case 1 - plain svc
-	plainService := getService("foo")
-	svcs = append(svcs, plainService)
-
-	// case 2 - svc with env variables
-	envSvc := getService("foo")
-	envVars := []v1.EnvVar{
-		{Name: "a", Value: "mouse"},
-		{Name: "b", Value: "cookie"},
-		{Name: "empty", Value: ""},
+	svcs := []*servingv1.Service{
+		getServiceWithOptions(getService("foo"), withContainer()),
+		getServiceWithOptions(getService("foo"), withContainer(), withEnv([]v1.EnvVar{{Name: "a", Value: "mouse"}})),
+		getServiceWithOptions(getService("foo"), withContainer(), withLabels(map[string]string{"a": "mouse", "b": "cookie", "empty": ""})),
+		getServiceWithOptions(getService("foo"), withContainer(), withEnvFrom([]string{"cm-name"})),
+		getServiceWithOptions(getService("foo"), withContainer(), withVolumeandSecrets("volName", "secretName")),
 	}
-	template := &envSvc.Spec.Template
-	template.Spec.Containers[0].Env = envVars
-	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
-	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
-	svcs = append(svcs, envSvc)
-
-	//case 3 - svc with labels
-	labelService := getService("foo")
-	expected := map[string]string{
-		"a":     "mouse",
-		"b":     "cookie",
-		"empty": "",
-	}
-	labelService.Labels = expected
-	labelService.Spec.Template.Annotations = map[string]string{
-		servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz",
-	}
-	template = &labelService.Spec.Template
-	template.ObjectMeta.Labels = expected
-	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
-	svcs = append(svcs, labelService)
-
-	//case 4 - config map
-	CMservice := getService("foo")
-	template = &CMservice.Spec.Template
-	template.Spec.Containers[0].EnvFrom = []v1.EnvFromSource{
-		{
-			ConfigMapRef: &v1.ConfigMapEnvSource{
-				LocalObjectReference: v1.LocalObjectReference{
-					Name: "config-map-name",
-				},
-			},
-		},
-	}
-	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
-	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
-	svcs = append(svcs, CMservice)
-
-	//case 5 - volume mount and secrets
-	Volservice := getService("foo")
-	template = &Volservice.Spec.Template
-	template.Spec.Volumes = []v1.Volume{
-		{
-			Name: "volume-name",
-			VolumeSource: v1.VolumeSource{
-				Secret: &v1.SecretVolumeSource{
-					SecretName: "secret-name",
-				},
-			},
-		},
-	}
-
-	template.Spec.Containers[0].VolumeMounts = []v1.VolumeMount{
-		{
-			Name:      "volume-name",
-			MountPath: "/mount/path",
-			ReadOnly:  true,
-		},
-	}
-	svcs = append(svcs, Volservice)
-
-	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
-	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
 
 	for _, svc := range svcs {
-		svc.TypeMeta = typeMeta
 		callServiceExportTest(t, svc)
 	}
-
 }
 
 func callServiceExportTest(t *testing.T, expectedService *servingv1.Service) {
 	// New mock client
 	client := knclient.NewMockKnServiceClient(t)
-
 	// Recording:
 	r := client.Recorder()
-
 	r.GetService(expectedService.ObjectMeta.Name, expectedService, nil)
 
 	output, err := executeServiceCommand(client, "export", expectedService.ObjectMeta.Name, "-o", "yaml")
-
 	assert.NilError(t, err)
 
-	expectedService.ObjectMeta.Namespace = ""
-
-	expSvcYaml, err := yaml.Marshal(expectedService)
-
+	actSvc := servingv1.Service{}
+	err = yaml.Unmarshal([]byte(output), &actSvc)
 	assert.NilError(t, err)
-
-	assert.Equal(t, string(expSvcYaml), output)
-
+	stripExpectedSvcVariables(expectedService)
+	assert.DeepEqual(t, expectedService, &actSvc)
 	// Validate that all recorded API methods have been called
 	r.Validate()
 }
 
 func TestServiceExportwithMultipleRevisions(t *testing.T) {
-	//case 1 = 2 revisions with traffic split
-	trafficSplitService := createServiceTwoRevsionsWithTraffic("foo", true)
+	//case 1 - 2 revisions with traffic split
+	expSvc1 := getServiceWithOptions(getService("foo"), withContainer(), withServiceRevisionName("foo-rev-1"))
+	stripExpectedSvcVariables(expSvc1)
+	expSvc2 := getServiceWithOptions(getService("foo"), withContainer(), withTrafficSplit([]string{"foo-rev-1", "foo-rev-2"}, []int{50, 50}, []string{"latest", "current"}), withServiceRevisionName("foo-rev-2"))
+	stripExpectedSvcVariables(expSvc2)
+	latestSvc := getServiceWithOptions(getService("foo"), withContainer(), withTrafficSplit([]string{"foo-rev-1", "foo-rev-2"}, []int{50, 50}, []string{"latest", "current"}))
 
-	multiRevs := createTestRevisionList("rev", "foo")
+	expSvcList := servingv1.ServiceList{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "List",
+		},
+		Items: []servingv1.Service{*expSvc1, *expSvc2},
+	}
 
-	callServiceExportHistoryTest(t, trafficSplitService, multiRevs)
+	multiRevs := getRevisionList("rev", "foo")
 
-	//case 2 - same revisions no traffic split
-	noTrafficSplitService := createServiceTwoRevsionsWithTraffic("foo", false)
+	callServiceExportHistoryTest(t, latestSvc, multiRevs, &expSvcList)
 
-	callServiceExportHistoryTest(t, noTrafficSplitService, multiRevs)
+	// case 2 - same revisions no traffic split
+	expSvc2 = getServiceWithOptions(getService("foo"), withContainer(), withServiceRevisionName("foo-rev-2"))
+	stripExpectedSvcVariables(expSvc2)
+	expSvcList = servingv1.ServiceList{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "List",
+		},
+		Items: []servingv1.Service{*expSvc2},
+	}
+	latestSvc = getServiceWithOptions(getService("foo"), withContainer(), withTrafficSplit([]string{"foo-rev-2"}, []int{100}, []string{"latest"}))
+	callServiceExportHistoryTest(t, latestSvc, multiRevs, &expSvcList)
 }
 
-func callServiceExportHistoryTest(t *testing.T, expectedService *servingv1.Service, revs *servingv1.RevisionList) {
+func callServiceExportHistoryTest(t *testing.T, latestSvc *servingv1.Service, revs *servingv1.RevisionList, expSvcList *servingv1.ServiceList) {
 	// New mock client
 	client := knclient.NewMockKnServiceClient(t)
-
 	// Recording:
 	r := client.Recorder()
 
-	r.GetService(expectedService.ObjectMeta.Name, expectedService, nil)
-
+	r.GetService(latestSvc.ObjectMeta.Name, latestSvc, nil)
 	r.ListRevisions(mock.Any(), revs, nil)
 
-	output, err := executeServiceCommand(client, "export", expectedService.ObjectMeta.Name, "--with-revisions", "-o", "json")
-
+	output, err := executeServiceCommand(client, "export", latestSvc.ObjectMeta.Name, "--with-revisions", "-o", "json")
 	assert.NilError(t, err)
 
 	actSvcList := servingv1.ServiceList{}
-
-	json.Unmarshal([]byte(output), &actSvcList)
-
-	for i, actSvc := range actSvcList.Items {
-		var checkTraffic bool
-		if i == (len(actSvcList.Items) - 1) {
-			checkTraffic = true
-		}
-		validateServiceWithRevisionHistory(t, expectedService, revs, actSvc, checkTraffic)
-	}
-
+	err = json.Unmarshal([]byte(output), &actSvcList)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, expSvcList, &actSvcList)
 	// Validate that all recorded API methods have been called
 	r.Validate()
-}
-
-func validateServiceWithRevisionHistory(t *testing.T, expectedsvc *servingv1.Service, expectedRevList *servingv1.RevisionList, actualSvc servingv1.Service, checkTraffic bool) {
-	var expectedRev servingv1.Revision
-	var routeSpec servingv1.RouteSpec
-	for _, rev := range expectedRevList.Items {
-		if actualSvc.Spec.ConfigurationSpec.Template.ObjectMeta.Name == rev.ObjectMeta.Name {
-			expectedRev = rev
-			break
-		}
-	}
-	expectedsvc.Spec.ConfigurationSpec.Template.ObjectMeta.Name = expectedRev.ObjectMeta.Name
-	expectedsvc.Spec.Template.Spec = expectedRev.Spec
-
-	stripExpectedSvcVariables(expectedsvc)
-
-	if !checkTraffic {
-		routeSpec = expectedsvc.Spec.RouteSpec
-		expectedsvc.Spec.RouteSpec = servingv1.RouteSpec{}
-	}
-	assert.DeepEqual(t, expectedsvc, &actualSvc)
-
-	expectedsvc.Spec.RouteSpec = routeSpec
 }
 
 func TestServiceExportError(t *testing.T) {
@@ -225,92 +135,26 @@ func TestServiceExportError(t *testing.T) {
 	assert.Error(t, err, "'kn service export' requires output format")
 }
 
-func createTestRevisionList(revision string, service string) *servingv1.RevisionList {
-	labels1 := make(map[string]string)
-	labels1[apiserving.ConfigurationGenerationLabelKey] = "1"
-	labels1[apiserving.ServiceLabelKey] = service
+func getRevisionList(revision string, service string) *servingv1.RevisionList {
+	rev1 := getRevisionWithOptions(
+		service,
+		withRevisionGeneration("1"),
+		withRevisionName(fmt.Sprintf("%s-%s-%d", service, revision, 1)),
+	)
 
-	labels2 := make(map[string]string)
-	labels2[apiserving.ConfigurationGenerationLabelKey] = "2"
-	labels2[apiserving.ServiceLabelKey] = service
-
-	rev1 := servingv1.Revision{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "Revision",
-			APIVersion: "serving.knative.dev/v1",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:       fmt.Sprintf("%s-%s-%d", service, revision, 1),
-			Namespace:  "default",
-			Generation: int64(1),
-			Labels:     labels1,
-		},
-		Spec: servingv1.RevisionSpec{
-			PodSpec: v1.PodSpec{
-				Containers: []v1.Container{
-					{
-						Image: "gcr.io/test/image:v1",
-						Env: []v1.EnvVar{
-							{Name: "env1", Value: "eval1"},
-							{Name: "env2", Value: "eval2"},
-						},
-						EnvFrom: []v1.EnvFromSource{
-							{ConfigMapRef: &v1.ConfigMapEnvSource{LocalObjectReference: v1.LocalObjectReference{Name: "test1"}}},
-							{ConfigMapRef: &v1.ConfigMapEnvSource{LocalObjectReference: v1.LocalObjectReference{Name: "test2"}}},
-						},
-						Ports: []v1.ContainerPort{
-							{ContainerPort: 8080},
-						},
-					},
-				},
-			},
-		},
-	}
-
-	rev2 := rev1
-
-	rev2.Spec.PodSpec.Containers[0].Image = "gcr.io/test/image:v2"
-	rev2.ObjectMeta.Labels = labels2
-	rev2.ObjectMeta.Generation = int64(2)
-	rev2.ObjectMeta.Name = fmt.Sprintf("%s-%s-%d", service, revision, 2)
-
-	typeMeta := metav1.TypeMeta{
-		APIVersion: "v1",
-		Kind:       "List",
-	}
+	rev2 := getRevisionWithOptions(
+		service,
+		withRevisionGeneration("2"),
+		withRevisionName(fmt.Sprintf("%s-%s-%d", service, revision, 2)),
+	)
 
 	return &servingv1.RevisionList{
-		TypeMeta: typeMeta,
-		Items:    []servingv1.Revision{rev1, rev2},
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "List",
+		},
+		Items: []servingv1.Revision{rev1, rev2},
 	}
-}
-
-func createServiceTwoRevsionsWithTraffic(svc string, trafficSplit bool) *servingv1.Service {
-	expectedService := createTestService(svc, []string{svc + "-rev-1", svc + "-rev-2"}, goodConditions())
-	expectedService.Status.Traffic[0].LatestRevision = ptr.Bool(true)
-	expectedService.Status.Traffic[0].Tag = "latest"
-	expectedService.Status.Traffic[1].Tag = "current"
-
-	if trafficSplit {
-		trafficList := []servingv1.TrafficTarget{
-			{
-				RevisionName: "foo-rev-1",
-				Percent:      ptr.Int64(int64(50)),
-			}, {
-				RevisionName: "foo-rev-2",
-				Percent:      ptr.Int64(int64(50)),
-			}}
-		expectedService.Spec.RouteSpec = servingv1.RouteSpec{Traffic: trafficList}
-	} else {
-		trafficList := []servingv1.TrafficTarget{
-			{
-				RevisionName: "foo-rev-2",
-				Percent:      ptr.Int64(int64(50)),
-			}}
-		expectedService.Spec.RouteSpec = servingv1.RouteSpec{Traffic: trafficList}
-	}
-
-	return &expectedService
 }
 
 func stripExpectedSvcVariables(expectedsvc *servingv1.Service) {
@@ -319,4 +163,148 @@ func stripExpectedSvcVariables(expectedsvc *servingv1.Service) {
 	expectedsvc.Status = servingv1.ServiceStatus{}
 	expectedsvc.ObjectMeta.Annotations = nil
 	expectedsvc.ObjectMeta.CreationTimestamp = metav1.Time{}
+}
+
+func getRevisionWithOptions(service string, options ...expectedRevisionOption) servingv1.Revision {
+	rev := servingv1.Revision{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Revision",
+			APIVersion: "serving.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: "default",
+			Labels: map[string]string{
+				apiserving.ServiceLabelKey: service,
+			},
+		},
+		Spec: servingv1.RevisionSpec{
+			PodSpec: v1.PodSpec{
+				Containers: []v1.Container{
+					{
+						Image: "gcr.io/foo/bar:baz",
+					},
+				},
+			},
+		},
+	}
+	for _, fn := range options {
+		fn(&rev)
+	}
+	return rev
+}
+
+func getServiceWithOptions(svc *servingv1.Service, options ...expectedServiceOption) *servingv1.Service {
+	svc.TypeMeta = metav1.TypeMeta{
+		Kind:       "service",
+		APIVersion: "serving.knative.dev/v1",
+	}
+
+	for _, fn := range options {
+		fn(svc)
+	}
+
+	return svc
+}
+
+func withLabels(labels map[string]string) expectedServiceOption {
+	return func(svc *servingv1.Service) {
+		svc.Spec.ConfigurationSpec.Template.ObjectMeta.Labels = labels
+	}
+}
+
+func withEnvFrom(cmNames []string) expectedServiceOption {
+	return func(svc *servingv1.Service) {
+		var list []v1.EnvFromSource
+		for _, cmName := range cmNames {
+			list = append(list, v1.EnvFromSource{
+				ConfigMapRef: &v1.ConfigMapEnvSource{
+					LocalObjectReference: v1.LocalObjectReference{
+						Name: cmName,
+					},
+				},
+			})
+		}
+		svc.Spec.ConfigurationSpec.Template.Spec.PodSpec.Containers[0].EnvFrom = list
+	}
+}
+
+func withEnv(env []v1.EnvVar) expectedServiceOption {
+	return func(svc *servingv1.Service) {
+		svc.Spec.ConfigurationSpec.Template.Spec.PodSpec.Containers[0].Env = env
+	}
+}
+
+func withContainer() expectedServiceOption {
+	return func(svc *servingv1.Service) {
+		svc.Spec.ConfigurationSpec.Template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+		svc.Spec.ConfigurationSpec.Template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
+
+	}
+}
+
+func withVolumeandSecrets(volName string, secretName string) expectedServiceOption {
+	return func(svc *servingv1.Service) {
+		template := &svc.Spec.Template
+		template.Spec.Volumes = []v1.Volume{
+			{
+				Name: volName,
+				VolumeSource: v1.VolumeSource{
+					Secret: &v1.SecretVolumeSource{
+						SecretName: secretName,
+					},
+				},
+			},
+		}
+
+		template.Spec.Containers[0].VolumeMounts = []v1.VolumeMount{
+			{
+				Name:      volName,
+				MountPath: "/mount/path",
+				ReadOnly:  true,
+			},
+		}
+	}
+}
+
+func withRevisionGeneration(gen string) expectedRevisionOption {
+	return func(rev *servingv1.Revision) {
+		i, _ := strconv.Atoi(gen)
+		rev.ObjectMeta.Generation = int64(i)
+		rev.ObjectMeta.Labels[apiserving.ConfigurationGenerationLabelKey] = gen
+	}
+}
+
+func withRevisionName(name string) expectedRevisionOption {
+	return func(rev *servingv1.Revision) {
+		rev.ObjectMeta.Name = name
+	}
+}
+
+func withServiceRevisionName(name string) expectedServiceOption {
+	return func(svc *servingv1.Service) {
+		svc.Spec.ConfigurationSpec.Template.ObjectMeta.Name = name
+	}
+}
+
+func withTrafficSplit(revisions []string, percentages []int, tags []string) expectedServiceOption {
+	return func(svc *servingv1.Service) {
+		var trafficTargets []servingv1.TrafficTarget
+		for i, rev := range revisions {
+			trafficTargets = append(trafficTargets, servingv1.TrafficTarget{
+				Percent: ptr.Int64(int64(percentages[i])),
+			})
+			if tags[i] != "" {
+				trafficTargets[i].Tag = tags[i]
+			}
+			if rev == "latest" {
+				trafficTargets[i].LatestRevision = ptr.Bool(true)
+			} else {
+				trafficTargets[i].RevisionName = rev
+				trafficTargets[i].LatestRevision = ptr.Bool(false)
+			}
+		}
+		svc.Spec.RouteSpec = servingv1.RouteSpec{
+			Traffic: trafficTargets,
+		}
+	}
 }
