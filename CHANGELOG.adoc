@@ -19,8 +19,12 @@
 | | Description | PR
 
 | 🐛
+| Fix filter delete for trigger update command
+| https://github.com/knative/client/pull/746[#746]
+
+| 🐛
 | Fix trigger create --filter flag to be optional
-| https://github.com/knative/client/pull/735[#745]
+| https://github.com/knative/client/pull/745[#745]
 
 ## v0.13.0 (2020-03-11)
 
