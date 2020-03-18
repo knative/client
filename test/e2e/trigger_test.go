@@ -46,7 +46,7 @@ func TestBrokerTrigger(t *testing.T) {
 	test.serviceCreate(t, r, "sinksvc1")
 
 	t.Log("create triggers and list them")
-	test.triggerCreate(t, r, "trigger1", "sinksvc0", []string{"a=b"})
+	test.triggerCreate(t, r, "trigger1", "sinksvc0", nil)
 	test.triggerCreate(t, r, "trigger2", "sinksvc1", []string{"type=knative.dev.bar", "source=ping"})
 	test.verifyTriggerList(t, r, "trigger1", "trigger2")
 	test.triggerDelete(t, r, "trigger1")
@@ -93,8 +93,10 @@ func (test *e2eTest) lableNamespaceForDefaultBroker(t *testing.T) error {
 
 func (test *e2eTest) triggerCreate(t *testing.T, r *KnRunResultCollector, name string, sinksvc string, filters []string) {
 	args := []string{"trigger", "create", name, "--broker", "default", "--sink", "svc:" + sinksvc}
-	for _, v := range filters {
-		args = append(args, "--filter", v)
+	if len(filters) > 0 {
+		for _, v := range filters {
+			args = append(args, "--filter", v)
+		}
 	}
 	out := test.kn.Run(args...)
 	r.AssertNoError(out)

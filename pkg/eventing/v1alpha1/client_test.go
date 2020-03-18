@@ -155,6 +155,17 @@ func TestTriggerBuilder(t *testing.T) {
 		assert.DeepEqual(t, expected, b.Build().Spec.Filter)
 	})
 
+	t.Run("update filters to remove filters", func(t *testing.T) {
+		b := NewTriggerBuilderFromExisting(a.Build())
+		assert.DeepEqual(t, b.Build(), a.Build())
+		b.Filters(nil)
+		expected := &v1alpha1.TriggerFilter{}
+		assert.DeepEqual(t, expected, b.Build().Spec.Filter)
+
+		b.Filters((make(map[string]string)))
+		assert.DeepEqual(t, expected, b.Build().Spec.Filter)
+	})
+
 	t.Run("add and remove inject annotation", func(t *testing.T) {
 		b := NewTriggerBuilder("broker-trigger")
 		b.InjectBroker(true)

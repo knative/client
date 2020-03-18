@@ -112,8 +112,10 @@ func writeSink(dw printers.PrefixWriter, sink *duckv1.Destination) {
 func writeTrigger(dw printers.PrefixWriter, trigger *v1alpha1.Trigger, printDetails bool) {
 	commands.WriteMetadata(dw, &trigger.ObjectMeta, printDetails)
 	dw.WriteAttribute("Broker", trigger.Spec.Broker)
-	subWriter := dw.WriteAttribute("Filter", "")
-	for key, value := range *trigger.Spec.Filter.Attributes {
-		subWriter.WriteAttribute(key, value)
+	if trigger.Spec.Filter != nil && trigger.Spec.Filter.Attributes != nil {
+		subWriter := dw.WriteAttribute("Filter", "")
+		for key, value := range *trigger.Spec.Filter.Attributes {
+			subWriter.WriteAttribute(key, value)
+		}
 	}
 }
