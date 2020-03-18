@@ -57,6 +57,15 @@ func TestBrokerTrigger(t *testing.T) {
 	test.triggerDelete(t, r, "deltrigger")
 	test.verifyTriggerNotfound(t, r, "deltrigger")
 
+	t.Log("create a trigger with filters and remove them one by one")
+	test.triggerCreate(t, r, "filtertrigger", "sinksvc0", []string{"foo=bar", "source=ping"})
+	test.verifyTriggerDescribe(t, r, "filtertrigger", "default", "sinksvc0", []string{"foo", "bar", "source", "ping"})
+	test.triggerUpdate(t, r, "filtertrigger", "foo-", "sinksvc0")
+	test.verifyTriggerDescribe(t, r, "filtertrigger", "default", "sinksvc0", []string{"source", "ping"})
+	test.triggerUpdate(t, r, "filtertrigger", "source-", "sinksvc0")
+	test.verifyTriggerDescribe(t, r, "filtertrigger", "default", "sinksvc0", nil)
+	test.triggerDelete(t, r, "filtertrigger")
+
 	t.Log("create a trigger, describe and update it")
 	test.triggerCreate(t, r, "updtrigger", "sinksvc0", []string{"a=b"})
 	test.verifyTriggerDescribe(t, r, "updtrigger", "default", "sinksvc0", []string{"a", "b"})
@@ -130,7 +139,11 @@ func (test *e2eTest) verifyTriggerList(t *testing.T, r *KnRunResultCollector, tr
 func (test *e2eTest) verifyTriggerDescribe(t *testing.T, r *KnRunResultCollector, name string, broker string, sink string, filters []string) {
 	out := test.kn.Run("trigger", "describe", name)
 	r.AssertNoError(out)
-	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, filters...))
+	if len(filters) > 0 {
+		assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, filters...))
+	} else {
+		assert.Check(t, util.ContainsNone(out.Stdout, "Filter"))
+	}
 	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, name, broker, sink))
 }
 
