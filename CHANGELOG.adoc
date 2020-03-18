@@ -12,6 +12,16 @@
 | https://github.com/knative/client/pull/[#]
 ////
 
+## v0.14.0 (unreleased)
+
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🐛
+| Fix trigger create --filter flag to be optional
+| https://github.com/knative/client/pull/735[#745]
+
 ## v0.13.0 (2020-03-11)
 
 [cols="1,10,3", options="header", width="100%"]
