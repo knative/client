@@ -65,7 +65,7 @@ func NewAPIServerCreateCommand(p *commands.KnParams) *cobra.Command {
 			b := v1alpha1.NewAPIServerSourceBuilder(name).
 				ServiceAccount(updateFlags.ServiceAccountName).
 				Mode(updateFlags.Mode).
-				Sink(toDuckV1Beta1(objectRef))
+				Sink(flags.SinkToDuckV1Beta1(objectRef))
 
 			resources, err := updateFlags.getAPIServerResourceArray()
 			if err != nil {
@@ -90,7 +90,7 @@ func NewAPIServerCreateCommand(p *commands.KnParams) *cobra.Command {
 	}
 	commands.AddNamespaceFlags(cmd.Flags(), false)
 	updateFlags.Add(cmd)
-	sinkFlags.Add(cmd)
+	sinkFlags.Add(cmd.Flags())
 	cmd.MarkFlagRequired("resource")
 	cmd.MarkFlagRequired("sink")
 	return cmd

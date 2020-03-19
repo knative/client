@@ -95,7 +95,7 @@ func NewBindingUpdateCommand(p *commands.KnParams) *cobra.Command {
 	}
 	commands.AddNamespaceFlags(cmd.Flags(), false)
 	bindingFlags.addBindingFlags(cmd)
-	sinkFlags.Add(cmd)
+	sinkFlags.Add(cmd.Flags())
 
 	return cmd
 }

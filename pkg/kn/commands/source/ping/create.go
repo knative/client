@@ -77,7 +77,7 @@ func NewPingCreateCommand(p *commands.KnParams) *cobra.Command {
 	}
 	commands.AddNamespaceFlags(cmd.Flags(), false)
 	pingUpdateFlags.addPingFlags(cmd)
-	sinkFlags.Add(cmd)
+	sinkFlags.Add(cmd.Flags())
 	cmd.MarkFlagRequired("sink")
 
 	return cmd

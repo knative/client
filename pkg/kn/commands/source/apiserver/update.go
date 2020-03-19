@@ -86,7 +86,7 @@ func NewAPIServerUpdateCommand(p *commands.KnParams) *cobra.Command {
 				if err != nil {
 					return err
 				}
-				b.Sink(toDuckV1Beta1(objectRef))
+				b.Sink(flags.SinkToDuckV1Beta1(objectRef))
 			}
 
 			err = sourcesClient.UpdateAPIServerSource(b.Build())
@@ -99,6 +99,6 @@ func NewAPIServerUpdateCommand(p *commands.KnParams) *cobra.Command {
 	}
 	commands.AddNamespaceFlags(cmd.Flags(), false)
 	apiServerUpdateFlags.Add(cmd)
-	sinkFlags.Add(cmd)
+	sinkFlags.Add(cmd.Flags())
 	return cmd
 }

@@ -85,7 +85,7 @@ func NewPingUpdateCommand(p *commands.KnParams) *cobra.Command {
 	}
 	commands.AddNamespaceFlags(cmd.Flags(), false)
 	pingUpdateFlags.addPingFlags(cmd)
-	sinkFlags.Add(cmd)
+	sinkFlags.Add(cmd.Flags())
 
 	return cmd
 }

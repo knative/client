@@ -16,10 +16,7 @@ package apiserver
 
 import (
 	"github.com/spf13/cobra"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/clientcmd"
-	v1 "knative.dev/pkg/apis/duck/v1"
-	"knative.dev/pkg/apis/duck/v1beta1"
 
 	clientv1alpha1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1"
 
@@ -68,17 +65,4 @@ func newAPIServerSourceClient(p *commands.KnParams, cmd *cobra.Command) (v1alpha
 	}
 
 	return v1alpha1.NewKnSourcesClient(client, namespace).APIServerSourcesClient(), nil
-}
-
-func toDuckV1Beta1(destination *v1.Destination) *v1beta1.Destination {
-	r := destination.Ref
-	return &v1beta1.Destination{
-		Ref: &corev1.ObjectReference{
-			Kind:       r.Kind,
-			Namespace:  r.Namespace,
-			Name:       r.Name,
-			APIVersion: r.APIVersion,
-		},
-		URI: destination.URI,
-	}
 }
