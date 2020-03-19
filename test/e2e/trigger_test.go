@@ -38,9 +38,9 @@ func TestBrokerTrigger(t *testing.T) {
 	r := NewKnRunResultCollector(t)
 	defer r.DumpIfFailed()
 
-	err = test.lableNamespaceForDefaultBroker(t)
+	err = test.labelNamespaceForDefaultBroker(t)
 	assert.NilError(t, err)
-	defer test.unlableNamespaceForDefaultBroker(t)
+	defer test.unlabelNamespaceForDefaultBroker(t)
 
 	test.serviceCreate(t, r, "sinksvc0")
 	test.serviceCreate(t, r, "sinksvc1")
@@ -77,14 +77,14 @@ func TestBrokerTrigger(t *testing.T) {
 	test.triggerCreateMissingSink(t, r, "errtrigger", "notfound")
 }
 
-func (test *e2eTest) unlableNamespaceForDefaultBroker(t *testing.T) {
+func (test *e2eTest) unlabelNamespaceForDefaultBroker(t *testing.T) {
 	_, err := kubectl{}.Run("label", "namespace", test.kn.namespace, "knative-eventing-injection-")
 	if err != nil {
 		t.Fatalf("Error executing 'kubectl label namespace %s knative-eventing-injection-'. Error: %s", test.kn.namespace, err.Error())
 	}
 }
 
-func (test *e2eTest) lableNamespaceForDefaultBroker(t *testing.T) error {
+func (test *e2eTest) labelNamespaceForDefaultBroker(t *testing.T) error {
 	_, err := kubectl{}.Run("label", "namespace", test.kn.namespace, "knative-eventing-injection=enabled")
 	if err != nil {
 		t.Fatalf("Error executing 'kubectl label namespace %s knative-eventing-injection=enabled'. Error: %s", test.kn.namespace, err.Error())
