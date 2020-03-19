@@ -12,7 +12,7 @@
 | https://github.com/knative/client/pull/[#]
 ////
 
-## v0.14.0 (unreleased)
+## v0.13.1 (unreleased)
 
 [cols="1,10,3", options="header", width="100%"]
 |===
