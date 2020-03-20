@@ -19,6 +19,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"gotest.tools/assert"
@@ -45,6 +46,9 @@ func TestPluginHandler(t *testing.T) {
 
 	beforeEach := func(t *testing.T) {
 		pluginName = "fake"
+		if runtime.GOOS == "windows" {
+			pluginName += ".bat"
+		}
 		pluginPath = CreateTestPluginInPath(t, "kn-"+pluginName, KnTestPluginScript, FileModeExecutable, tmpPathDir)
 		assert.Assert(t, pluginPath != "")
 
@@ -133,6 +137,14 @@ func TestPluginHandler(t *testing.T) {
 			bogusPath := filepath.Join(filepath.Dir(pluginPath), "kn-bogus-plugin-name")
 			err = pluginHandler.Execute(bogusPath, []string{bogusPath}, os.Environ())
 			assert.Assert(t, err != nil, fmt.Sprintf("bogus plugin in path %s unexpectedly executed OK", bogusPath))
+		})
+		t.Run("executing fake plugin successfully", func(t *testing.T) {
+			setup(t)
+			defer cleanup(t)
+			beforeEach(t)
+
+			err = pluginHandler.Execute(pluginPath, []string{}, os.Environ())
+			assert.Assert(t, err == nil, fmt.Sprintf("fail to execute fake plugin in path %s ", pluginPath))
 		})
 	})
 
