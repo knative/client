@@ -18,7 +18,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	"github.com/spf13/cobra"
@@ -58,13 +57,9 @@ func CreateTestPlugin(t *testing.T, name, script string, fileMode os.FileMode) s
 // CreateTestPluginInPath with name, path, script, and fileMode and return the tmp random path
 func CreateTestPluginInPath(t *testing.T, name, script string, fileMode os.FileMode, path string) string {
 	fullPath := filepath.Join(path, name)
-	if runtime.GOOS == "windows" {
-		fullPath += ".bat"
-	}
 	err := ioutil.WriteFile(fullPath, []byte(script), fileMode)
 	assert.NilError(t, err)
-
-	return filepath.Join(path, name)
+	return fullPath
 }
 
 // DeleteTestPlugin with path
