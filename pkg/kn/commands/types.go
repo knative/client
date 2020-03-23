@@ -19,6 +19,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
@@ -41,8 +42,8 @@ var CfgFile string
 
 // Cfg is Kn's configuration values
 var Cfg Config = Config{
-	DefaultConfigDir: "~/.config/kn",
-	DefaultPluginDir: "~/.config/kn/plugins",
+	DefaultConfigDir: newDefaultConfigPath(""),
+	DefaultPluginDir: newDefaultConfigPath("plugins"),
 	PluginsDir:       "",
 	LookupPlugins:    newBoolP(false),
 }
@@ -194,4 +195,12 @@ func (params *KnParams) GetClientConfig() (clientcmd.ClientConfig, error) {
 func newBoolP(b bool) *bool {
 	aBool := b
 	return &aBool
+}
+
+// Returns default config path based on target OS
+func newDefaultConfigPath(subDir string) string {
+	if runtime.GOOS == "windows" {
+		return filepath.Join(os.Getenv("APPDATA"), "kn", subDir)
+	}
+	return filepath.Join("~", ".config", "kn", subDir)
 }
