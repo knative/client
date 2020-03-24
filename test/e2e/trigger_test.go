@@ -46,7 +46,7 @@ func TestBrokerTrigger(t *testing.T) {
 	test.serviceCreate(t, r, "sinksvc1")
 
 	t.Log("create triggers and list them")
-	test.triggerCreate(t, r, "trigger1", "sinksvc0", []string{"a=b"})
+	test.triggerCreate(t, r, "trigger1", "sinksvc0", nil)
 	test.triggerCreate(t, r, "trigger2", "sinksvc1", []string{"type=knative.dev.bar", "source=ping"})
 	test.verifyTriggerList(t, r, "trigger1", "trigger2")
 	test.triggerDelete(t, r, "trigger1")
@@ -56,6 +56,15 @@ func TestBrokerTrigger(t *testing.T) {
 	test.triggerCreate(t, r, "deltrigger", "sinksvc0", []string{"a=b"})
 	test.triggerDelete(t, r, "deltrigger")
 	test.verifyTriggerNotfound(t, r, "deltrigger")
+
+	t.Log("create a trigger with filters and remove them one by one")
+	test.triggerCreate(t, r, "filtertrigger", "sinksvc0", []string{"foo=bar", "source=ping"})
+	test.verifyTriggerDescribe(t, r, "filtertrigger", "default", "sinksvc0", []string{"foo", "bar", "source", "ping"})
+	test.triggerUpdate(t, r, "filtertrigger", "foo-", "sinksvc0")
+	test.verifyTriggerDescribe(t, r, "filtertrigger", "default", "sinksvc0", []string{"source", "ping"})
+	test.triggerUpdate(t, r, "filtertrigger", "source-", "sinksvc0")
+	test.verifyTriggerDescribe(t, r, "filtertrigger", "default", "sinksvc0", nil)
+	test.triggerDelete(t, r, "filtertrigger")
 
 	t.Log("create a trigger, describe and update it")
 	test.triggerCreate(t, r, "updtrigger", "sinksvc0", []string{"a=b"})
@@ -93,8 +102,10 @@ func (test *e2eTest) lableNamespaceForDefaultBroker(t *testing.T) error {
 
 func (test *e2eTest) triggerCreate(t *testing.T, r *KnRunResultCollector, name string, sinksvc string, filters []string) {
 	args := []string{"trigger", "create", name, "--broker", "default", "--sink", "svc:" + sinksvc}
-	for _, v := range filters {
-		args = append(args, "--filter", v)
+	if len(filters) > 0 {
+		for _, v := range filters {
+			args = append(args, "--filter", v)
+		}
 	}
 	out := test.kn.Run(args...)
 	r.AssertNoError(out)
@@ -128,7 +139,11 @@ func (test *e2eTest) verifyTriggerList(t *testing.T, r *KnRunResultCollector, tr
 func (test *e2eTest) verifyTriggerDescribe(t *testing.T, r *KnRunResultCollector, name string, broker string, sink string, filters []string) {
 	out := test.kn.Run("trigger", "describe", name)
 	r.AssertNoError(out)
-	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, filters...))
+	if len(filters) > 0 {
+		assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, filters...))
+	} else {
+		assert.Check(t, util.ContainsNone(out.Stdout, "Filter"))
+	}
 	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, name, broker, sink))
 }
 

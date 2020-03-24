@@ -33,10 +33,13 @@ func NewTriggerCreateCommand(p *commands.KnParams) *cobra.Command {
 	var sinkFlags flags.SinkFlags
 
 	cmd := &cobra.Command{
-		Use:   "create NAME --broker BROKER --filter KEY=VALUE --sink SINK",
+		Use:   "create NAME --broker BROKER --sink SINK",
 		Short: "Create a trigger",
 		Example: `
-  # Create a trigger 'mytrigger' to declare a subscription to events with attribute 'type=dev.knative.foo' from default broker. The subscriber is service 'mysvc'
+  # Create a trigger 'mytrigger' to declare a subscription to events from default broker. The subscriber is service 'mysvc'
+  kn trigger create mytrigger --broker default --sink svc:mysvc
+
+  # Create a trigger to filter events with attribute 'type=dev.knative.foo'
   kn trigger create mytrigger --broker default --filter type=dev.knative.foo --sink svc:mysvc`,
 
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
