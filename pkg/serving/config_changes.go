@@ -26,11 +26,11 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
-	"knative.dev/client/pkg/util"
 	"knative.dev/pkg/ptr"
 	"knative.dev/serving/pkg/apis/autoscaling"
-	"knative.dev/serving/pkg/apis/serving"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
+
+	"knative.dev/client/pkg/util"
 )
 
 // VolumeSourceType is a type standing for enumeration of ConfigMap and Secret
@@ -200,11 +200,9 @@ func UpdateConcurrencyTarget(template *servingv1.RevisionTemplateSpec, target in
 
 // UpdateConcurrencyLimit updates container concurrency limit
 func UpdateConcurrencyLimit(template *servingv1.RevisionTemplateSpec, limit int64) error {
-	err := serving.ValidateContainerConcurrency(ptr.Int64(limit)).ViaField("spec.containerConcurrency")
-	if err != nil {
-		return fmt.Errorf("invalid 'concurrency-limit' value: %s", err)
+	if limit < 0 {
+		return fmt.Errorf("invalid concurrency-limit %d (must not be less than 0)", limit)
 	}
-
 	template.Spec.ContainerConcurrency = ptr.Int64(limit)
 	return nil
 }
