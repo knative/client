@@ -18,6 +18,14 @@
 |===
 | | Description | PR
 
+|===
+
+## v0.13.1 (2020-03-25)
+
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
 | 🐛
 | Fix filter delete for trigger update command
 | https://github.com/knative/client/pull/746[#746]
@@ -33,6 +41,7 @@
 | 🐛
 | Fix default config path on Windows
 | https://github.com/knative/client/pull/751[#751]
+|===
 
 ## v0.13.0 (2020-03-11)
 
