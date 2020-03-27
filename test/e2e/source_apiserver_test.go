@@ -38,7 +38,7 @@ const (
 
 func TestSourceApiServer(t *testing.T) {
 	t.Parallel()
-	it, err := integration.NewIntegrationTest()
+	it, err := integration.NewKnTest()
 	assert.NilError(t, err)
 	defer func() {
 		err1 := tearDownForSourceApiServer(t, it)
@@ -85,25 +85,25 @@ func TestSourceApiServer(t *testing.T) {
 	// TODO(navidshaikh): Verify the source's status with synchronous create/update
 }
 
-func apiServerSourceCreate(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, sourceName string, resources string, sa string, sink string) {
+func apiServerSourceCreate(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, sourceName string, resources string, sa string, sink string) {
 	out := it.Kn().Run("source", "apiserver", "create", sourceName, "--resource", resources, "--service-account", sa, "--sink", sink)
 	r.AssertNoError(out)
 	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "apiserver", "source", sourceName, "created", "namespace", it.Kn().Namespace()))
 }
 
-func apiServerSourceCreateMissingSink(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, sourceName string, resources string, sa string, sink string) {
+func apiServerSourceCreateMissingSink(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, sourceName string, resources string, sa string, sink string) {
 	out := it.Kn().Run("source", "apiserver", "create", sourceName, "--resource", resources, "--service-account", sa, "--sink", sink)
 	r.AssertError(out)
 	assert.Check(t, util.ContainsAll(out.Stderr, "services.serving.knative.dev", "not found"))
 }
 
-func apiServerSourceDelete(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, sourceName string) {
+func apiServerSourceDelete(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, sourceName string) {
 	out := it.Kn().Run("source", "apiserver", "delete", sourceName)
 	r.AssertNoError(out)
 	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "apiserver", "source", sourceName, "deleted", "namespace", it.Kn().Namespace()))
 }
 
-func setupForSourceApiServer(t *testing.T, it *integration.Test) {
+func setupForSourceApiServer(t *testing.T, it *integration.KnTest) {
 	_, err := integration.NewKubectl(it.Kn().Namespace()).Run("create", "serviceaccount", testServiceAccount)
 	assert.NilError(t, err)
 
@@ -119,7 +119,7 @@ func setupForSourceApiServer(t *testing.T, it *integration.Test) {
 	assert.NilError(t, err)
 }
 
-func tearDownForSourceApiServer(t *testing.T, it *integration.Test) error {
+func tearDownForSourceApiServer(t *testing.T, it *integration.KnTest) error {
 	saCmd := []string{"delete", "serviceaccount", testServiceAccount}
 	_, err := integration.NewKubectl(it.Kn().Namespace()).Run(saCmd...)
 	if err != nil {
@@ -140,13 +140,13 @@ func tearDownForSourceApiServer(t *testing.T, it *integration.Test) error {
 	return nil
 }
 
-func apiServerSourceUpdateSink(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, sourceName string, sink string) {
+func apiServerSourceUpdateSink(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, sourceName string, sink string) {
 	out := it.Kn().Run("source", "apiserver", "update", sourceName, "--sink", sink)
 	r.AssertNoError(out)
 	assert.Check(t, util.ContainsAll(out.Stdout, sourceName, "updated", "namespace", it.Kn().Namespace()))
 }
 
-func getResourceFieldsWithJSONPath(t *testing.T, it *integration.Test, resource, name, jsonpath string) (string, error) {
+func getResourceFieldsWithJSONPath(t *testing.T, it *integration.KnTest, resource, name, jsonpath string) (string, error) {
 	out, err := integration.NewKubectl(it.Kn().Namespace()).Run("get", resource, name, "-o", jsonpath, "-n", it.Kn().Namespace())
 	if err != nil {
 		return "", err

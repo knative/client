@@ -28,6 +28,7 @@ const (
 	seperatorLight = "╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍"
 )
 
+// Kn type
 type Kn struct {
 	namespace string
 }
@@ -37,7 +38,7 @@ func NewKn() Kn {
 	return Kn{}
 }
 
-// Run the 'kn' CLI with args and opts
+// Run the 'kn' CLI with args
 func (k Kn) Run(args ...string) KnRunResult {
 	return RunKn(k.namespace, args)
 }
@@ -47,24 +48,24 @@ func (k Kn) Namespace() string {
 	return k.namespace
 }
 
-// Helper methods for calling out to the test cluster
+// Kubectl type
 type Kubectl struct {
 	namespace string
 }
 
-// New Kn object
+// New Kubectl object
 func NewKubectl(namespace string) Kubectl {
 	return Kubectl{
 		namespace: namespace,
 	}
 }
 
-// Run the 'kubectl' CLI with args and opts
+// Run the 'kubectl' CLI with args
 func (k Kubectl) Run(args ...string) (string, error) {
 	return RunKubectl(k.namespace, args...)
 }
 
-// Namespace that this Kn instance uses
+// Namespace that this Kubectl instance uses
 func (k Kubectl) Namespace() string {
 	return k.namespace
 }

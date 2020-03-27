@@ -31,7 +31,7 @@ import (
 
 func TestRevision(t *testing.T) {
 	t.Parallel()
-	it, err := integration.NewIntegrationTest()
+	it, err := integration.NewKnTest()
 	assert.NilError(t, err)
 	defer func() {
 		assert.NilError(t, it.Teardown())
@@ -70,7 +70,7 @@ func TestRevision(t *testing.T) {
 	serviceDelete(t, it, r, "hello")
 }
 
-func revisionListWithService(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, serviceNames ...string) {
+func revisionListWithService(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceNames ...string) {
 	for _, svcName := range serviceNames {
 		confGen := findConfigurationGeneration(t, it, r, svcName)
 		out := it.Kn().Run("revision", "list", "-s", svcName)
@@ -90,13 +90,13 @@ func revisionListWithService(t *testing.T, it *integration.Test, r *integration.
 	}
 }
 
-func revisionDelete(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, revName string) {
+func revisionDelete(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, revName string) {
 	out := it.Kn().Run("revision", "delete", revName)
 	assert.Check(t, util.ContainsAll(out.Stdout, "Revision", revName, "deleted", "namespace", it.Kn().Namespace()))
 	r.AssertNoError(out)
 }
 
-func revisionMultipleDelete(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, existRevision1, existRevision2, nonexistRevision string) {
+func revisionMultipleDelete(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, existRevision1, existRevision2, nonexistRevision string) {
 	out := it.Kn().Run("revision", "list")
 	r.AssertNoError(out)
 	assert.Check(t, strings.Contains(out.Stdout, existRevision1), "Required revision1 does not exist")
@@ -110,14 +110,14 @@ func revisionMultipleDelete(t *testing.T, it *integration.Test, r *integration.K
 	assert.Check(t, util.ContainsAll(out.Stdout, "revisions.serving.knative.dev", nonexistRevision, "not found"), "Failed to get 'not found' error")
 }
 
-func revisionDescribeWithPrintFlags(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, revName string) {
+func revisionDescribeWithPrintFlags(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, revName string) {
 	out := it.Kn().Run("revision", "describe", revName, "-o=name")
 	r.AssertNoError(out)
 	expectedName := fmt.Sprintf("revision.serving.knative.dev/%s", revName)
 	assert.Equal(t, strings.TrimSpace(out.Stdout), expectedName)
 }
 
-func findRevision(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, serviceName string) string {
+func findRevision(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName string) string {
 	out := it.Kn().Run("revision", "list", "-s", serviceName, "-o=jsonpath={.items[0].metadata.name}")
 	r.AssertNoError(out)
 	if strings.Contains(out.Stdout, "No resources") {
@@ -126,7 +126,7 @@ func findRevision(t *testing.T, it *integration.Test, r *integration.KnRunResult
 	return out.Stdout
 }
 
-func findRevisionByGeneration(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, serviceName string, generation int) string {
+func findRevisionByGeneration(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName string, generation int) string {
 	maxGen := findConfigurationGeneration(t, it, r, serviceName)
 	out := it.Kn().Run("revision", "list", "-s", serviceName,
 		fmt.Sprintf("-o=jsonpath={.items[%d].metadata.name}", maxGen-generation))
@@ -137,7 +137,7 @@ func findRevisionByGeneration(t *testing.T, it *integration.Test, r *integration
 	return out.Stdout
 }
 
-func findConfigurationGeneration(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, serviceName string) int {
+func findConfigurationGeneration(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName string) int {
 	out := it.Kn().Run("revision", "list", "-s", serviceName, "-o=jsonpath={.items[0].metadata.labels.serving\\.knative\\.dev/configurationGeneration}")
 	r.AssertNoError(out)
 	if out.Stdout == "" {

@@ -61,7 +61,7 @@ func splitTargets(s, separator string, partsCount int) ([]string, error) {
 
 // formatActualTargets takes the traffic targets string received after jsonpath operation and converts
 // them into []TargetFields for comparison
-func formatActualTargets(t *testing.T, it *integration.Test, actualTargets []string) (formattedTargets []TargetFields) {
+func formatActualTargets(t *testing.T, it *integration.KnTest, actualTargets []string) (formattedTargets []TargetFields) {
 	for _, each := range actualTargets {
 		each := strings.TrimSuffix(each, targetFieldsSeparator)
 		fields, err := splitTargets(each, targetFieldsSeparator, targetFieldsLength)
@@ -78,7 +78,7 @@ func formatActualTargets(t *testing.T, it *integration.Test, actualTargets []str
 // TestTrafficSplitSuite runs different e2e tests for service traffic splitting and verifies the traffic targets from service status
 func TestTrafficSplit(t *testing.T) {
 	t.Parallel()
-	it, err := integration.NewIntegrationTest()
+	it, err := integration.NewKnTest()
 	assert.NilError(t, err)
 	defer func() {
 		assert.NilError(t, it.Teardown())
@@ -412,7 +412,7 @@ func TestTrafficSplit(t *testing.T) {
 	)
 }
 
-func verifyTargets(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, serviceName string, expectedTargets []TargetFields) {
+func verifyTargets(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName string, expectedTargets []TargetFields) {
 	out := serviceDescribeWithJsonPath(t, it, r, serviceName, targetsJsonPath)
 	assert.Check(t, out != "")
 	actualTargets, err := splitTargets(out, targetsSeparator, len(expectedTargets))
@@ -424,13 +424,13 @@ func verifyTargets(t *testing.T, it *integration.Test, r *integration.KnRunResul
 	}
 }
 
-func serviceDescribeWithJsonPath(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, serviceName, jsonpath string) string {
+func serviceDescribeWithJsonPath(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName, jsonpath string) string {
 	out := it.Kn().Run("service", "describe", serviceName, "-o", jsonpath)
 	r.AssertNoError(out)
 	return out.Stdout
 }
 
-func serviceUpdateWithOptions(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, serviceName string, options ...string) {
+func serviceUpdateWithOptions(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName string, options ...string) {
 	command := []string{"service", "update", serviceName}
 	command = append(command, options...)
 	out := it.Kn().Run(command...)

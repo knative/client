@@ -31,7 +31,7 @@ import (
 
 func TestService(t *testing.T) {
 	t.Parallel()
-	it, err := integration.NewIntegrationTest()
+	it, err := integration.NewKnTest()
 	assert.NilError(t, err)
 	defer func() {
 		assert.NilError(t, it.Teardown())
@@ -60,7 +60,7 @@ func TestService(t *testing.T) {
 	serviceCreatePrivateUpdatePublic(t, it, r, "hello-private-public")
 }
 
-func serviceCreatePrivate(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, serviceName string) {
+func serviceCreatePrivate(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName string) {
 	out := it.Kn().Run("service", "create", serviceName,
 		"--image", integration.KnDefaultTestImage, "--cluster-local")
 	r.AssertNoError(out)
@@ -71,7 +71,7 @@ func serviceCreatePrivate(t *testing.T, it *integration.Test, r *integration.KnR
 	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, serving.VisibilityLabelKey, serving.VisibilityClusterLocal))
 }
 
-func serviceCreatePrivateUpdatePublic(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, serviceName string) {
+func serviceCreatePrivateUpdatePublic(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName string) {
 	out := it.Kn().Run("service", "create", serviceName,
 		"--image", integration.KnDefaultTestImage, "--cluster-local")
 	r.AssertNoError(out)
@@ -91,7 +91,7 @@ func serviceCreatePrivateUpdatePublic(t *testing.T, it *integration.Test, r *int
 	assert.Check(t, util.ContainsNone(out.Stdout, serving.VisibilityLabelKey, serving.VisibilityClusterLocal))
 }
 
-func serviceCreateDuplicate(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, serviceName string) {
+func serviceCreateDuplicate(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName string) {
 	out := it.Kn().Run("service", "list", serviceName)
 	r.AssertNoError(out)
 	assert.Check(t, strings.Contains(out.Stdout, serviceName), "The service does not exist yet")
@@ -101,7 +101,7 @@ func serviceCreateDuplicate(t *testing.T, it *integration.Test, r *integration.K
 	assert.Check(t, util.ContainsAll(out.Stderr, "the service already exists"))
 }
 
-func serviceDescribeWithPrintFlags(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, serviceName string) {
+func serviceDescribeWithPrintFlags(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName string) {
 	out := it.Kn().Run("service", "describe", serviceName, "-o=name")
 	r.AssertNoError(out)
 
@@ -109,7 +109,7 @@ func serviceDescribeWithPrintFlags(t *testing.T, it *integration.Test, r *integr
 	assert.Equal(t, strings.TrimSpace(out.Stdout), expectedName)
 }
 
-func serviceDeleteNonexistent(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, serviceName string) {
+func serviceDeleteNonexistent(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName string) {
 	out := it.Kn().Run("service", "list", serviceName)
 	r.AssertNoError(out)
 	assert.Check(t, !strings.Contains(out.Stdout, serviceName), "The service exists")
@@ -119,7 +119,7 @@ func serviceDeleteNonexistent(t *testing.T, it *integration.Test, r *integration
 	assert.Check(t, util.ContainsAll(out.Stdout, "hello", "not found"), "Failed to get 'not found' error")
 }
 
-func serviceMultipleDelete(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, existService, nonexistService string) {
+func serviceMultipleDelete(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, existService, nonexistService string) {
 	out := it.Kn().Run("service", "list")
 	r.AssertNoError(out)
 	assert.Check(t, strings.Contains(out.Stdout, existService), "The service ", existService, " does not exist (but is expected to exist)")

@@ -29,7 +29,7 @@ import (
 
 func TestBasicWorkflow(t *testing.T) {
 	t.Parallel()
-	it, err := integration.NewIntegrationTest()
+	it, err := integration.NewKnTest()
 	assert.NilError(t, err)
 	defer func() {
 		assert.NilError(t, it.Teardown())
@@ -85,25 +85,25 @@ func TestWrongCommand(t *testing.T) {
 
 // ==========================================================================
 
-func serviceListEmpty(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector) {
+func serviceListEmpty(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector) {
 	out := it.Kn().Run("service", "list")
 	r.AssertNoError(out)
 	assert.Check(t, util.ContainsAll(out.Stdout, "No services found."))
 }
 
-func serviceCreate(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, serviceName string) {
+func serviceCreate(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName string) {
 	out := it.Kn().Run("service", "create", serviceName, "--image", integration.KnDefaultTestImage)
 	r.AssertNoError(out)
 	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "service", serviceName, "creating", "namespace", it.Kn().Namespace(), "ready"))
 }
 
-func serviceList(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, serviceName string) {
+func serviceList(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName string) {
 	out := it.Kn().Run("service", "list", serviceName)
 	r.AssertNoError(out)
 	assert.Check(t, util.ContainsAll(out.Stdout, serviceName))
 }
 
-func serviceDescribe(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, serviceName string) {
+func serviceDescribe(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName string) {
 	out := it.Kn().Run("service", "describe", serviceName)
 	r.AssertNoError(out)
 	assert.Assert(t, util.ContainsAll(out.Stdout, serviceName, it.Kn().Namespace(), integration.KnDefaultTestImage))
@@ -111,7 +111,7 @@ func serviceDescribe(t *testing.T, it *integration.Test, r *integration.KnRunRes
 	assert.Assert(t, util.ContainsAll(out.Stdout, "Name", "Namespace", "URL", "Age", "Revisions"))
 }
 
-func serviceUpdate(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, serviceName string, args ...string) {
+func serviceUpdate(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName string, args ...string) {
 	fullArgs := append([]string{}, "service", "update", serviceName)
 	fullArgs = append(fullArgs, args...)
 	out := it.Kn().Run(fullArgs...)
@@ -119,13 +119,13 @@ func serviceUpdate(t *testing.T, it *integration.Test, r *integration.KnRunResul
 	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "updating", "service", serviceName, "ready"))
 }
 
-func serviceDelete(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, serviceName string) {
+func serviceDelete(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName string) {
 	out := it.Kn().Run("service", "delete", serviceName)
 	r.AssertNoError(out)
 	assert.Check(t, util.ContainsAll(out.Stdout, "Service", serviceName, "successfully deleted in namespace", it.Kn().Namespace()))
 }
 
-func revisionListForService(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, serviceName string) {
+func revisionListForService(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName string) {
 	out := it.Kn().Run("revision", "list", "-s", serviceName)
 	r.AssertNoError(out)
 	outputLines := strings.Split(out.Stdout, "\n")
@@ -137,7 +137,7 @@ func revisionListForService(t *testing.T, it *integration.Test, r *integration.K
 	}
 }
 
-func revisionDescribe(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, serviceName string) {
+func revisionDescribe(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName string) {
 	revName := findRevision(t, it, r, serviceName)
 
 	out := it.Kn().Run("revision", "describe", revName)

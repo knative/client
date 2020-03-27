@@ -38,24 +38,14 @@ var serviceMutex sync.Mutex
 var serviceCount int
 var namespaceCount int
 
-// IntegrationTest struct
-type Test struct {
+// KnTest type
+type KnTest struct {
 	namespace string
 	kn        Kn
 }
 
-// Teardown clean up
-func (test *Test) Teardown() error {
-	return DeleteNamespace(test.namespace)
-}
-
-// Teardown clean up
-func (test *Test) Kn() Kn {
-	return test.kn
-}
-
 // NewIntegrationTest creates a new ItegrationTest object
-func NewIntegrationTest() (*Test, error) {
+func NewKnTest() (*KnTest, error) {
 	ns := NextNamespace()
 
 	err := CreateNamespace(ns)
@@ -67,11 +57,28 @@ func NewIntegrationTest() (*Test, error) {
 		return nil, err
 	}
 
-	return &Test{
+	return &KnTest{
 		namespace: ns,
 		kn:        Kn{ns},
 	}, nil
 }
+
+// Teardown clean up
+func (test *KnTest) Teardown() error {
+	return DeleteNamespace(test.namespace)
+}
+
+// Teardown clean up
+func (test *KnTest) Kn() Kn {
+	return test.kn
+}
+
+// Namespace used by the test
+func (test *KnTest) Namespace() string {
+	return test.namespace
+}
+
+// Public functions
 
 // NextNamespace return the next unique namespace
 func NextNamespace() string {
@@ -156,6 +163,14 @@ func WaitForNamespaceCreated(namespace string) error {
 	return nil
 }
 
+func CurrentDir(t *testing.T) string {
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Fatal("Unable to read current dir:", err)
+	}
+	return dir
+}
+
 // Private functions
 
 func checkNamespace(namespace string, created bool, maxRetries int) bool {
@@ -205,12 +220,4 @@ func matchRegexp(matchingRegexp, actual string) (bool, error) {
 		return false, errors.Wrap(err, fmt.Sprintf("failed to match regexp '%s'", matchingRegexp))
 	}
 	return matched, nil
-}
-
-func currentDir(t *testing.T) string {
-	dir, err := os.Getwd()
-	if err != nil {
-		t.Fatal("Unable to read current dir:", err)
-	}
-	return dir
 }

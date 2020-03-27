@@ -28,7 +28,7 @@ import (
 
 func TestInjectBrokerTrigger(t *testing.T) {
 	t.Parallel()
-	it, err := integration.NewIntegrationTest()
+	it, err := integration.NewKnTest()
 	assert.NilError(t, err)
 	defer func() {
 		assert.NilError(t, it.Teardown())
@@ -56,7 +56,7 @@ func TestInjectBrokerTrigger(t *testing.T) {
 	assert.Check(t, util.ContainsAllIgnoreCase(out.Stderr, "broker", "name", "'default'", "--inject-broker", "flag"))
 }
 
-func triggerCreateWithInject(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, name string, sinksvc string, filters []string) {
+func triggerCreateWithInject(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, name string, sinksvc string, filters []string) {
 	args := []string{"trigger", "create", name, "--broker", "default", "--inject-broker", "--sink", "svc:" + sinksvc}
 	for _, v := range filters {
 		args = append(args, "--filter", v)

@@ -36,19 +36,19 @@ const (
 )
 
 func TestTektonPipeline(t *testing.T) {
-	test, err := integration.NewE2eTest()
+	it, err := integration.NewKnTest()
 	assert.NilError(t, err)
 	defer func() {
-		assert.NilError(t, test.Teardown())
+		assert.NilError(t, it.Teardown())
 	}()
 
-	kubectl := Kubectl{test.namespace}
-	basedir := currentDir(t) + "/../resources/tekton"
+	kubectl := integration.NewKubectl(it.Namespace())
+	basedir := integration.CurrentDir(t) + "/../resources/tekton"
 
 	// create secret for the kn-deployer-account service account
-	_, err = kubectl.Run("create", "-n", test.namespace, "secret",
+	_, err = kubectl.Run("create", "-n", it.Namespace(), "secret",
 		"generic", "container-registry",
-		"--from-file=.dockerconfigjson="+Flags.DockerConfigJSON,
+		"--from-file=.dockerconfigjson="+integration.Flags.DockerConfigJSON,
 		"--type=kubernetes.io/dockerconfigjson")
 	assert.NilError(t, err)
 
@@ -73,18 +73,18 @@ func TestTektonPipeline(t *testing.T) {
 	err = waitForPipelineSuccess(kubectl)
 	assert.NilError(t, err)
 
-	r := NewKnRunResultCollector(t)
+	r := integration.NewKnRunResultCollector(t)
 
 	const serviceName = "hello"
-	out := test.Kn.Run("service", "describe", serviceName)
+	out := it.Kn().Run("service", "describe", serviceName)
 	r.AssertNoError(out)
-	assert.Assert(t, util.ContainsAll(out.Stdout, serviceName, test.Kn.Namespace()))
+	assert.Assert(t, util.ContainsAll(out.Stdout, serviceName, it.Kn().Namespace()))
 	assert.Assert(t, util.ContainsAll(out.Stdout, "Conditions", "ConfigurationsReady", "Ready", "RoutesReady"))
 }
 
-func waitForPipelineSuccess(k kubectl) error {
+func waitForPipelineSuccess(k integration.Kubectl) error {
 	return wait.PollImmediate(Interval, Timeout, func() (bool, error) {
-		out, err := K.Run("get", "pipelinerun", "-o=jsonpath='{.items[0].status.conditions[?(@.type==\"Succeeded\")].status}'")
+		out, err := k.Run("get", "pipelinerun", "-o=jsonpath='{.items[0].status.conditions[?(@.type==\"Succeeded\")].status}'")
 		return strings.Contains(out, "True"), err
 	})
 }

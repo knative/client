@@ -35,7 +35,7 @@ import (
 
 func TestServiceOptions(t *testing.T) {
 	t.Parallel()
-	it, err := integration.NewIntegrationTest()
+	it, err := integration.NewKnTest()
 	assert.NilError(t, err)
 	defer func() {
 		assert.NilError(t, it.Teardown())
@@ -57,7 +57,7 @@ func TestServiceOptions(t *testing.T) {
 	t.Log("update concurrency options with invalid values for service")
 	out := it.Kn().Run("service", "update", "svc1", "--concurrency-limit", "-1", "--concurrency-target", "0")
 	r.AssertError(out)
-	assert.Check(t, it, util.ContainsAll(out.Stderr, "invalid"))
+	assert.Check(t, util.ContainsAll(out.Stderr, "invalid"))
 
 	t.Log("returns steady concurrency options for service")
 	validateServiceConcurrencyLimit(t, it, r, "svc1", "300")
@@ -112,77 +112,77 @@ func TestServiceOptions(t *testing.T) {
 	validateUserId(t, it, r, "svc6", uid+1)
 }
 
-func serviceCreateWithOptions(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, serviceName string, options ...string) {
+func serviceCreateWithOptions(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName string, options ...string) {
 	command := []string{"service", "create", serviceName, "--image", integration.KnDefaultTestImage}
 	command = append(command, options...)
 	out := it.Kn().Run(command...)
-	assert.Check(t, it, util.ContainsAll(out.Stdout, "service", serviceName, "Creating", "namespace", it.Kn().Namespace(), "Ready"))
+	assert.Check(t, util.ContainsAll(out.Stdout, "service", serviceName, "Creating", "namespace", it.Kn().Namespace(), "Ready"))
 	r.AssertNoError(out)
 }
 
-func validateServiceConcurrencyLimit(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, serviceName, concurrencyLimit string) {
+func validateServiceConcurrencyLimit(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName, concurrencyLimit string) {
 	jsonpath := "jsonpath={.items[0].spec.template.spec.containerConcurrency}"
 	out := it.Kn().Run("service", "list", serviceName, "-o", jsonpath)
-	assert.Equal(t, it, out.Stdout, concurrencyLimit)
+	assert.Equal(t, out.Stdout, concurrencyLimit)
 	r.AssertNoError(out)
 }
 
-func validateServiceConcurrencyTarget(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, serviceName, concurrencyTarget string) {
+func validateServiceConcurrencyTarget(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName, concurrencyTarget string) {
 	jsonpath := "jsonpath={.items[0].spec.template.metadata.annotations.autoscaling\\.knative\\.dev/target}"
 	out := it.Kn().Run("service", "list", serviceName, "-o", jsonpath)
-	assert.Equal(t, it, out.Stdout, concurrencyTarget)
+	assert.Equal(t, out.Stdout, concurrencyTarget)
 	r.AssertNoError(out)
 }
 
-func validateAutoscaleWindow(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, serviceName, window string) {
+func validateAutoscaleWindow(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName, window string) {
 	jsonpath := "jsonpath={.items[0].spec.template.metadata.annotations.autoscaling\\.knative\\.dev/window}"
 	out := it.Kn().Run("service", "list", serviceName, "-o", jsonpath)
-	assert.Equal(t, it, out.Stdout, window)
+	assert.Equal(t, out.Stdout, window)
 	r.AssertNoError(out)
 }
 
-func validateServiceMinScale(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, serviceName, minScale string) {
+func validateServiceMinScale(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName, minScale string) {
 	jsonpath := "jsonpath={.items[0].spec.template.metadata.annotations.autoscaling\\.knative\\.dev/minScale}"
 	out := it.Kn().Run("service", "list", serviceName, "-o", jsonpath)
-	assert.Equal(t, it, out.Stdout, minScale)
+	assert.Equal(t, out.Stdout, minScale)
 	r.AssertNoError(out)
 }
 
-func validateServiceMaxScale(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, serviceName, maxScale string) {
+func validateServiceMaxScale(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName, maxScale string) {
 	jsonpath := "jsonpath={.items[0].spec.template.metadata.annotations.autoscaling\\.knative\\.dev/maxScale}"
 	out := it.Kn().Run("service", "list", serviceName, "-o", jsonpath)
-	assert.Equal(t, it, out.Stdout, maxScale)
+	assert.Equal(t, out.Stdout, maxScale)
 	r.AssertNoError(out)
 }
 
-func validateServiceAnnotations(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, serviceName string, annotations map[string]string) {
+func validateServiceAnnotations(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName string, annotations map[string]string) {
 	metadataAnnotationsJsonpathFormat := "jsonpath={.metadata.annotations.%s}"
 	templateAnnotationsJsonpathFormat := "jsonpath={.spec.template.metadata.annotations.%s}"
 
 	for k, v := range annotations {
-		out := it.Kn().Run("service", "describe", serviceName, "-o", fmt.Sprintf(metadataAnnotationsJsonpathFormat, it, k))
-		assert.Equal(t, it, v, out.Stdout)
+		out := it.Kn().Run("service", "describe", serviceName, "-o", fmt.Sprintf(metadataAnnotationsJsonpathFormat, k))
+		assert.Equal(t, v, out.Stdout)
 		r.AssertNoError(out)
 
-		out = it.Kn().Run("service", "describe", serviceName, "-o", fmt.Sprintf(templateAnnotationsJsonpathFormat, it, k))
-		assert.Equal(t, it, v, out.Stdout)
+		out = it.Kn().Run("service", "describe", serviceName, "-o", fmt.Sprintf(templateAnnotationsJsonpathFormat, k))
+		assert.Equal(t, v, out.Stdout)
 		r.AssertNoError(out)
 	}
 }
 
-func validateContainerField(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, serviceName, field, expected string) {
+func validateContainerField(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName, field, expected string) {
 	jsonpath := fmt.Sprintf("jsonpath={.items[0].spec.template.spec.containers[0].%s}", field)
 	out := it.Kn().Run("service", "list", serviceName, "-o", jsonpath)
-	assert.Equal(t, it, out.Stdout, expected)
+	assert.Equal(t, out.Stdout, expected)
 	r.AssertNoError(out)
 }
 
-func validateUserId(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, serviceName string, uid int64) {
+func validateUserId(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName string, uid int64) {
 	out := it.Kn().Run("service", "describe", serviceName, "-ojson")
 	data := json.NewDecoder(strings.NewReader(out.Stdout))
 	data.UseNumber()
 	var service servingv1.Service
 	err := data.Decode(&service)
 	assert.NilError(t, err)
-	assert.Equal(t, it, *service.Spec.Template.Spec.Containers[0].SecurityContext.RunAsUser, uid)
+	assert.Equal(t, *service.Spec.Template.Spec.Containers[0].SecurityContext.RunAsUser, uid)
 }
