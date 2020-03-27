@@ -12,6 +12,16 @@
 | https://github.com/knative/client/pull/[#]
 ////
 
+## v0.14.0 (2020-XX-XX)
+
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🐣
+| Refactor `e2e` common code into `lib\test\integration`
+| https://github.com/knative/client/pull/764[#764]
+
 ## v0.13.0 (2020-03-11)
 
 [cols="1,10,3", options="header", width="100%"]

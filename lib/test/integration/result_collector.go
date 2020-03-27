@@ -1,0 +1,137 @@
+// Copyright 2019 The Knative Authors
+
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+
+//     http://www.apache.org/licenses/LICENSE-2.0
+
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package integration
+
+import (
+	"bytes"
+	"fmt"
+	"io"
+	"strings"
+	"testing"
+)
+
+// Result of a "kn" call
+type KnRunResult struct {
+	// Command line called
+	CmdLine string
+	// Standard output of command
+	Stdout string
+	// Standard error of command
+	Stderr string
+	// And extra dump informations in case of an unexpected error
+	DumpInfo string
+	// Error occurred during execution
+	Error error
+	// Was an error expected ?
+	ErrorExpected bool
+}
+
+// KnRunResultCollector collects Kn run's results
+type KnRunResultCollector struct {
+	results    []KnRunResult
+	extraDumps []string
+	t          *testing.T
+}
+
+// NewKnRunResultCollector returns a new KnRunResultCollector
+func NewKnRunResultCollector(t *testing.T) *KnRunResultCollector {
+	return &KnRunResultCollector{
+		results:    []KnRunResult{},
+		t:          t,
+		extraDumps: []string{},
+	}
+}
+
+// AssertError helper to assert no error on result
+func (c *KnRunResultCollector) AssertNoError(result KnRunResult) {
+	c.results = append(c.results, result)
+	if result.Error != nil {
+		c.t.Logf("ERROR: %v", result.Stderr)
+		c.t.FailNow()
+	}
+}
+
+// AssertError helper to assert error on result
+func (c *KnRunResultCollector) AssertError(result KnRunResult) {
+	c.results = append(c.results, result)
+	if result.Error == nil {
+		c.t.Log("ERROR: Error expected but no error happened")
+		c.t.FailNow()
+	}
+}
+
+// AddDump adds extra dump information to the collector which is printed
+// out if an error occurs
+func (c *KnRunResultCollector) AddDump(kind string, name string, namespace string) {
+	dumpInfo := extractDumpInfoWithName(kind, name, namespace)
+	if dumpInfo != "" {
+		c.extraDumps = append(c.extraDumps, dumpInfo)
+	}
+}
+
+// DumpIfFailed logs if collector failed
+func (c *KnRunResultCollector) DumpIfFailed() {
+	if c.t.Failed() {
+		c.t.Log(c.errorDetails())
+	}
+}
+
+// Private
+
+func (c *KnRunResultCollector) errorDetails() string {
+	var out = bytes.Buffer{}
+	fmt.Fprintln(&out, "=== FAIL: =======================[[ERROR]]========================")
+	c.printCommands(&out)
+	var dumpInfos []string
+	if len(c.results) > 0 {
+		dumpInfo := c.results[len(c.results)-1].DumpInfo
+		if dumpInfo != "" {
+			dumpInfos = append(dumpInfos, dumpInfo)
+		}
+	}
+	dumpInfos = append(dumpInfos, c.extraDumps...)
+	for _, d := range dumpInfos {
+		fmt.Fprintln(&out, "--------------------------[[DUMP]]-------------------------------")
+		fmt.Fprintf(&out, d)
+	}
+
+	fmt.Fprintln(&out, "=================================================================")
+	return out.String()
+}
+
+func (c *KnRunResultCollector) printCommands(out io.Writer) {
+	for i, result := range c.results {
+		c.printCommand(out, result)
+		if i < len(c.results)-1 {
+			fmt.Fprintf(out, "┣━%s\n", seperatorHeavy)
+		}
+	}
+}
+
+func (c *KnRunResultCollector) printCommand(out io.Writer, result KnRunResult) {
+	fmt.Fprintf(out, "🦆 %s\n", result.CmdLine)
+	for _, l := range strings.Split(result.Stdout, "\n") {
+		fmt.Fprintf(out, "┃ %s\n", l)
+	}
+	if result.Stderr != "" {
+		errorPrefix := "🔥"
+		if result.ErrorExpected {
+			errorPrefix = "︙"
+		}
+		for _, l := range strings.Split(result.Stderr, "\n") {
+			fmt.Fprintf(out, "%s %s\n", errorPrefix, l)
+		}
+	}
+}
