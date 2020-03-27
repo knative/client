@@ -23,60 +23,61 @@ import (
 
 	"gotest.tools/assert"
 
+	"knative.dev/client/lib/test/integration"
 	"knative.dev/client/pkg/util"
 )
 
 func TestBasicWorkflow(t *testing.T) {
 	t.Parallel()
-	test, err := NewE2eTest()
+	it, err := integration.NewIntegrationTest()
 	assert.NilError(t, err)
 	defer func() {
-		assert.NilError(t, test.Teardown())
+		assert.NilError(t, it.Teardown())
 	}()
 
-	r := NewKnRunResultCollector(t)
+	r := integration.NewKnRunResultCollector(t)
 	defer r.DumpIfFailed()
 
 	t.Log("returns no service before running tests")
-	test.serviceListEmpty(t, r)
+	serviceListEmpty(t, it, r)
 
 	t.Log("create hello service and return no error")
-	test.serviceCreate(t, r, "hello")
+	serviceCreate(t, it, r, "hello")
 
 	t.Log("return valid info about hello service")
-	test.serviceList(t, r, "hello")
-	test.serviceDescribe(t, r, "hello")
+	serviceList(t, it, r, "hello")
+	serviceDescribe(t, it, r, "hello")
 
 	t.Log("update hello service's configuration and return no error")
-	test.serviceUpdate(t, r, "hello", "--env", "TARGET=kn", "--port", "8888")
+	serviceUpdate(t, it, r, "hello", "--env", "TARGET=kn", "--port", "8888")
 
 	t.Log("create another service and return no error")
-	test.serviceCreate(t, r, "svc2")
+	serviceCreate(t, it, r, "svc2")
 
 	t.Log("return a list of revisions associated with hello and svc2 services")
-	test.revisionListForService(t, r, "hello")
-	test.revisionListForService(t, r, "svc2")
+	revisionListForService(t, it, r, "hello")
+	revisionListForService(t, it, r, "svc2")
 
 	t.Log("describe revision from hello service")
-	test.revisionDescribe(t, r, "hello")
+	revisionDescribe(t, it, r, "hello")
 
 	t.Log("delete hello and svc2 services and return no error")
-	test.serviceDelete(t, r, "hello")
-	test.serviceDelete(t, r, "svc2")
+	serviceDelete(t, it, r, "hello")
+	serviceDelete(t, it, r, "svc2")
 
 	t.Log("return no service after completing tests")
-	test.serviceListEmpty(t, r)
+	serviceListEmpty(t, it, r)
 }
 
 func TestWrongCommand(t *testing.T) {
-	r := NewKnRunResultCollector(t)
+	r := integration.NewKnRunResultCollector(t)
 	defer r.DumpIfFailed()
 
-	out := kn{}.Run("source", "apiserver", "noverb", "--tag=0.13")
+	out := integration.Kn{}.Run("source", "apiserver", "noverb", "--tag=0.13")
 	assert.Check(t, util.ContainsAll(out.Stderr, "Error", "unknown subcommand", "noverb"))
 	r.AssertError(out)
 
-	out = kn{}.Run("rev")
+	out = integration.Kn{}.Run("rev")
 	assert.Check(t, util.ContainsAll(out.Stderr, "Error", "unknown command", "rev"))
 	r.AssertError(out)
 
@@ -84,48 +85,48 @@ func TestWrongCommand(t *testing.T) {
 
 // ==========================================================================
 
-func (test *e2eTest) serviceListEmpty(t *testing.T, r *KnRunResultCollector) {
-	out := test.kn.Run("service", "list")
+func serviceListEmpty(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector) {
+	out := it.Kn().Run("service", "list")
 	r.AssertNoError(out)
 	assert.Check(t, util.ContainsAll(out.Stdout, "No services found."))
 }
 
-func (test *e2eTest) serviceCreate(t *testing.T, r *KnRunResultCollector, serviceName string) {
-	out := test.kn.Run("service", "create", serviceName, "--image", KnDefaultTestImage)
+func serviceCreate(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, serviceName string) {
+	out := it.Kn().Run("service", "create", serviceName, "--image", integration.KnDefaultTestImage)
 	r.AssertNoError(out)
-	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "service", serviceName, "creating", "namespace", test.kn.namespace, "ready"))
+	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "service", serviceName, "creating", "namespace", it.Kn().Namespace(), "ready"))
 }
 
-func (test *e2eTest) serviceList(t *testing.T, r *KnRunResultCollector, serviceName string) {
-	out := test.kn.Run("service", "list", serviceName)
+func serviceList(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, serviceName string) {
+	out := it.Kn().Run("service", "list", serviceName)
 	r.AssertNoError(out)
 	assert.Check(t, util.ContainsAll(out.Stdout, serviceName))
 }
 
-func (test *e2eTest) serviceDescribe(t *testing.T, r *KnRunResultCollector, serviceName string) {
-	out := test.kn.Run("service", "describe", serviceName)
+func serviceDescribe(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, serviceName string) {
+	out := it.Kn().Run("service", "describe", serviceName)
 	r.AssertNoError(out)
-	assert.Assert(t, util.ContainsAll(out.Stdout, serviceName, test.kn.namespace, KnDefaultTestImage))
+	assert.Assert(t, util.ContainsAll(out.Stdout, serviceName, it.Kn().Namespace(), integration.KnDefaultTestImage))
 	assert.Assert(t, util.ContainsAll(out.Stdout, "Conditions", "ConfigurationsReady", "Ready", "RoutesReady"))
 	assert.Assert(t, util.ContainsAll(out.Stdout, "Name", "Namespace", "URL", "Age", "Revisions"))
 }
 
-func (test *e2eTest) serviceUpdate(t *testing.T, r *KnRunResultCollector, serviceName string, args ...string) {
+func serviceUpdate(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, serviceName string, args ...string) {
 	fullArgs := append([]string{}, "service", "update", serviceName)
 	fullArgs = append(fullArgs, args...)
-	out := test.kn.Run(fullArgs...)
+	out := it.Kn().Run(fullArgs...)
 	r.AssertNoError(out)
 	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "updating", "service", serviceName, "ready"))
 }
 
-func (test *e2eTest) serviceDelete(t *testing.T, r *KnRunResultCollector, serviceName string) {
-	out := test.kn.Run("service", "delete", serviceName)
+func serviceDelete(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, serviceName string) {
+	out := it.Kn().Run("service", "delete", serviceName)
 	r.AssertNoError(out)
-	assert.Check(t, util.ContainsAll(out.Stdout, "Service", serviceName, "successfully deleted in namespace", test.kn.namespace))
+	assert.Check(t, util.ContainsAll(out.Stdout, "Service", serviceName, "successfully deleted in namespace", it.Kn().Namespace()))
 }
 
-func (test *e2eTest) revisionListForService(t *testing.T, r *KnRunResultCollector, serviceName string) {
-	out := test.kn.Run("revision", "list", "-s", serviceName)
+func revisionListForService(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, serviceName string) {
+	out := it.Kn().Run("revision", "list", "-s", serviceName)
 	r.AssertNoError(out)
 	outputLines := strings.Split(out.Stdout, "\n")
 	// Ignore the last line because it is an empty string caused by splitting a line break
@@ -136,10 +137,10 @@ func (test *e2eTest) revisionListForService(t *testing.T, r *KnRunResultCollecto
 	}
 }
 
-func (test *e2eTest) revisionDescribe(t *testing.T, r *KnRunResultCollector, serviceName string) {
-	revName := test.findRevision(t, r, serviceName)
+func revisionDescribe(t *testing.T, it *integration.Test, r *integration.KnRunResultCollector, serviceName string) {
+	revName := findRevision(t, it, r, serviceName)
 
-	out := test.kn.Run("revision", "describe", revName)
+	out := it.Kn().Run("revision", "describe", revName)
 	r.AssertNoError(out)
-	assert.Check(t, util.ContainsAll(out.Stdout, revName, test.kn.namespace, serviceName, "++ Ready", "TARGET=kn"))
+	assert.Check(t, util.ContainsAll(out.Stdout, revName, it.Kn().Namespace(), serviceName, "++ Ready", "TARGET=kn"))
 }

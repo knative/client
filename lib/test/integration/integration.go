@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package e2e
+package integration
 
 import (
 	"fmt"
@@ -38,38 +38,52 @@ var serviceMutex sync.Mutex
 var serviceCount int
 var namespaceCount int
 
-type e2eTest struct {
+// IntegrationTest struct
+type Test struct {
 	namespace string
-	kn        kn
+	kn        Kn
 }
 
-func NewE2eTest() (*e2eTest, error) {
-	ns := nextNamespace()
+// Teardown clean up
+func (test *Test) Teardown() error {
+	return DeleteNamespace(test.namespace)
+}
 
-	err := createNamespace(ns)
+// Teardown clean up
+func (test *Test) Kn() Kn {
+	return test.kn
+}
+
+// NewIntegrationTest creates a new ItegrationTest object
+func NewIntegrationTest() (*Test, error) {
+	ns := NextNamespace()
+
+	err := CreateNamespace(ns)
 	if err != nil {
 		return nil, err
 	}
-	err = waitForNamespaceCreated(ns)
+	err = WaitForNamespaceCreated(ns)
 	if err != nil {
 		return nil, err
 	}
 
-	return &e2eTest{
+	return &Test{
 		namespace: ns,
-		kn:        kn{ns},
+		kn:        Kn{ns},
 	}, nil
 }
 
-func nextNamespace() string {
+// NextNamespace return the next unique namespace
+func NextNamespace() string {
 	ns := os.Getenv("KN_E2E_NAMESPACE")
 	if ns == "" {
 		ns = "kne2etests"
 	}
-	return fmt.Sprintf("%s%d", ns, getNextNamespaceId())
+	return fmt.Sprintf("%s%d", ns, GetNextNamespaceId())
 }
 
-func getNextNamespaceId() int {
+// GetNextNamespaceId return the next unique ID for the next namespace
+func GetNextNamespaceId() int {
 	nsMutex.Lock()
 	defer nsMutex.Unlock()
 	current := namespaceCount
@@ -77,7 +91,8 @@ func getNextNamespaceId() int {
 	return current
 }
 
-func getNextServiceName(base string) string {
+// GetNextServiceName return the name for the next namespace
+func GetNextServiceName(base string) string {
 	serviceMutex.Lock()
 	defer serviceMutex.Unlock()
 	current := serviceCount
@@ -85,13 +100,8 @@ func getNextServiceName(base string) string {
 	return base + strconv.Itoa(current)
 }
 
-// Teardown clean up
-func (test *e2eTest) Teardown() error {
-	return deleteNamespace(test.namespace)
-}
-
-// createNamespace creates and tests a namesspace creation invoking kubectl
-func createNamespace(namespace string) error {
+// CreateNamespace creates and tests a namesspace creation invoking kubectl
+func CreateNamespace(namespace string) error {
 	expectedOutputRegexp := fmt.Sprintf("namespace?.+%s.+created", namespace)
 	out, err := createNamespaceWithRetry(namespace, MaxRetries)
 	if err != nil {
@@ -109,9 +119,9 @@ func createNamespace(namespace string) error {
 	return nil
 }
 
-// createNamespace deletes and tests a namesspace deletion invoking kubectl
-func deleteNamespace(namespace string) error {
-	kubectl := kubectl{namespace}
+// DeleteNamespace deletes and tests a namesspace deletion invoking kubectl
+func DeleteNamespace(namespace string) error {
+	kubectl := Kubectl{namespace}
 	out, err := kubectl.Run("delete", "namespace", namespace)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("Cannot delete namespace %s", namespace))
@@ -129,7 +139,7 @@ func deleteNamespace(namespace string) error {
 }
 
 // WaitForNamespaceDeleted wait until namespace is deleted
-func waitForNamespaceDeleted(namespace string) error {
+func WaitForNamespaceDeleted(namespace string) error {
 	deleted := checkNamespace(namespace, false, MaxRetries)
 	if !deleted {
 		return fmt.Errorf("error deleting namespace %s, timed out after %d retries", namespace, MaxRetries)
@@ -138,7 +148,7 @@ func waitForNamespaceDeleted(namespace string) error {
 }
 
 // WaitForNamespaceCreated wait until namespace is created
-func waitForNamespaceCreated(namespace string) error {
+func WaitForNamespaceCreated(namespace string) error {
 	created := checkNamespace(namespace, true, MaxRetries)
 	if !created {
 		return fmt.Errorf("error creating namespace %s, timed out after %d retries", namespace, MaxRetries)
@@ -147,10 +157,11 @@ func waitForNamespaceCreated(namespace string) error {
 }
 
 // Private functions
+
 func checkNamespace(namespace string, created bool, maxRetries int) bool {
 	retries := 0
 	for retries < MaxRetries {
-		output, _ := kubectl{}.Run("get", "namespace")
+		output, _ := Kubectl{}.Run("get", "namespace")
 
 		// check for namespace deleted
 		if !created && !strings.Contains(output, namespace) {
@@ -177,7 +188,7 @@ func createNamespaceWithRetry(namespace string, maxRetries int) (string, error) 
 	)
 
 	for retries < maxRetries {
-		out, err = kubectl{}.Run("create", "namespace", namespace)
+		out, err = Kubectl{}.Run("create", "namespace", namespace)
 		if err == nil {
 			return out, nil
 		}

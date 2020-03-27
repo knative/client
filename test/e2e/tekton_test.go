@@ -23,6 +23,8 @@ import (
 
 	"gotest.tools/assert"
 	"k8s.io/apimachinery/pkg/util/wait"
+
+	"knative.dev/client/lib/test/integration"
 	"knative.dev/client/pkg/util"
 )
 
@@ -34,13 +36,13 @@ const (
 )
 
 func TestTektonPipeline(t *testing.T) {
-	test, err := NewE2eTest()
+	test, err := integration.NewE2eTest()
 	assert.NilError(t, err)
 	defer func() {
 		assert.NilError(t, test.Teardown())
 	}()
 
-	kubectl := kubectl{test.namespace}
+	kubectl := Kubectl{test.namespace}
 	basedir := currentDir(t) + "/../resources/tekton"
 
 	// create secret for the kn-deployer-account service account
@@ -74,15 +76,15 @@ func TestTektonPipeline(t *testing.T) {
 	r := NewKnRunResultCollector(t)
 
 	const serviceName = "hello"
-	out := test.kn.Run("service", "describe", serviceName)
+	out := test.Kn.Run("service", "describe", serviceName)
 	r.AssertNoError(out)
-	assert.Assert(t, util.ContainsAll(out.Stdout, serviceName, test.kn.namespace))
+	assert.Assert(t, util.ContainsAll(out.Stdout, serviceName, test.Kn.Namespace()))
 	assert.Assert(t, util.ContainsAll(out.Stdout, "Conditions", "ConfigurationsReady", "Ready", "RoutesReady"))
 }
 
 func waitForPipelineSuccess(k kubectl) error {
 	return wait.PollImmediate(Interval, Timeout, func() (bool, error) {
-		out, err := k.Run("get", "pipelinerun", "-o=jsonpath='{.items[0].status.conditions[?(@.type==\"Succeeded\")].status}'")
+		out, err := K.Run("get", "pipelinerun", "-o=jsonpath='{.items[0].status.conditions[?(@.type==\"Succeeded\")].status}'")
 		return strings.Contains(out, "True"), err
 	})
 }
