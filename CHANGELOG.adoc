@@ -12,15 +12,39 @@
 | https://github.com/knative/client/pull/[#]
 ////
 
-## v0.14.0 (2020-XX-XX)
+## v0.14.0 (unreleased)
+
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+|===
+
+| 🐣
+| Refactor `e2e` common code into `lib\test\integration`
+| https://github.com/knative/client/pull/764[#764]
+
+## v0.13.1 (2020-03-25)
 
 [cols="1,10,3", options="header", width="100%"]
 |===
 | | Description | PR
 
-| 🐣
-| Refactor `e2e` common code into `lib\test\integration`
-| https://github.com/knative/client/pull/764[#764]
+| 🐛
+| Fix filter delete for trigger update command
+| https://github.com/knative/client/pull/746[#746]
+
+| 🐛
+| Fix trigger create --filter flag to be optional
+| https://github.com/knative/client/pull/745[#745]
+
+| 🐛
+| Fix plugin execution for Windows.
+| https://github.com/knative/client/pull/738[#738]
+
+| 🐛
+| Fix default config path on Windows
+| https://github.com/knative/client/pull/751[#751]
+|===
 
 ## v0.13.0 (2020-03-11)
 

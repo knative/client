@@ -27,7 +27,7 @@ import (
 
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
-	clientservingv1alpha "knative.dev/client/pkg/serving/v1"
+	clientservingv1 "knative.dev/client/pkg/serving/v1"
 )
 
 // Service name filter, used with "-s"
@@ -64,7 +64,7 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			// Create list filters
-			var params []clientservingv1alpha.ListConfig
+			var params []clientservingv1.ListConfig
 			params, err = appendServiceFilter(params, client, cmd)
 			if err != nil {
 				return err
@@ -119,7 +119,7 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 }
 
 // If a service option is given append a filter to the list of filters
-func appendServiceFilter(lConfig []clientservingv1alpha.ListConfig, client clientservingv1alpha.KnServingClient, cmd *cobra.Command) ([]clientservingv1alpha.ListConfig, error) {
+func appendServiceFilter(lConfig []clientservingv1.ListConfig, client clientservingv1.KnServingClient, cmd *cobra.Command) ([]clientservingv1.ListConfig, error) {
 	if !cmd.Flags().Changed("service") {
 		return lConfig, nil
 	}
@@ -131,11 +131,11 @@ func appendServiceFilter(lConfig []clientservingv1alpha.ListConfig, client clien
 	if err != nil {
 		return nil, err
 	}
-	return append(lConfig, clientservingv1alpha.WithService(serviceName)), nil
+	return append(lConfig, clientservingv1.WithService(serviceName)), nil
 }
 
 // If an additional name is given append this as a revision name filter to the given list
-func appendRevisionNameFilter(lConfigs []clientservingv1alpha.ListConfig, client clientservingv1alpha.KnServingClient, args []string) ([]clientservingv1alpha.ListConfig, error) {
+func appendRevisionNameFilter(lConfigs []clientservingv1.ListConfig, client clientservingv1.KnServingClient, args []string) ([]clientservingv1.ListConfig, error) {
 
 	switch len(args) {
 	case 0:
@@ -143,7 +143,7 @@ func appendRevisionNameFilter(lConfigs []clientservingv1alpha.ListConfig, client
 		return lConfigs, nil
 	case 1:
 		// Exactly one name given
-		return append(lConfigs, clientservingv1alpha.WithName(args[0])), nil
+		return append(lConfigs, clientservingv1.WithName(args[0])), nil
 	default:
 		return nil, fmt.Errorf("'kn revision list' accepts maximum 1 argument, not %d arguments as given", len(args))
 	}
@@ -195,7 +195,7 @@ func revisionListSortFunc(revisionList *servingv1.RevisionList) func(i int, j in
 }
 
 // Service factory function for a namespace
-type serviceFactoryFunc func(namespace string) (clientservingv1alpha.KnServingClient, error)
+type serviceFactoryFunc func(namespace string) (clientservingv1.KnServingClient, error)
 
 // A function which looks up a service by name
 type serviceGetFunc func(namespace, serviceName string) (*servingv1.Service, error)
@@ -231,7 +231,7 @@ func serviceLookup(serviceFactory serviceFactoryFunc) serviceGetFunc {
 
 	// Two caches: For service & clients (clients might not be necessary though)
 	serviceCache := make(map[string]*servingv1.Service)
-	clientCache := make(map[string]clientservingv1alpha.KnServingClient)
+	clientCache := make(map[string]clientservingv1.KnServingClient)
 
 	return func(namespace, serviceName string) (*servingv1.Service, error) {
 		if service, exists := serviceCache[serviceName]; exists {

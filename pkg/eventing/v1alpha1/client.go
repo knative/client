@@ -180,18 +180,18 @@ func (b *TriggerBuilder) InjectBroker(inject bool) *TriggerBuilder {
 }
 
 func (b *TriggerBuilder) Filters(filters map[string]string) *TriggerBuilder {
+	if len(filters) == 0 {
+		b.trigger.Spec.Filter = &v1alpha1.TriggerFilter{}
+		return b
+	}
 	filter := b.trigger.Spec.Filter
 	if filter == nil {
 		filter = &v1alpha1.TriggerFilter{}
 		b.trigger.Spec.Filter = filter
 	}
-	attributes := filter.Attributes
-	if attributes == nil {
-		attributes = &v1alpha1.TriggerFilterAttributes{}
-		filter.Attributes = attributes
-	}
+	filter.Attributes = &v1alpha1.TriggerFilterAttributes{}
 	for k, v := range filters {
-		(*attributes)[k] = v
+		(*filter.Attributes)[k] = v
 	}
 	return b
 }

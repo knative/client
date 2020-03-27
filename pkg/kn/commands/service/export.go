@@ -40,7 +40,7 @@ func NewServiceExportCommand(p *commands.KnParams) *cobra.Command {
 
 	command := &cobra.Command{
 		Use:   "export NAME",
-		Short: "export a service",
+		Short: "Export a service.",
 		Example: `
   # Export a service in yaml format
   kn service export foo -n bar -o yaml
@@ -125,7 +125,7 @@ func constructServicefromRevision(latestSvc *servingv1.Service, revision serving
 		TypeMeta: latestSvc.TypeMeta,
 	}
 
-	exportedSvc.Spec.Template = servingv1.RevisionTemplateSpec{
+	exportedSvc.Spec.ConfigurationSpec.Template = servingv1.RevisionTemplateSpec{
 		Spec:       revision.Spec,
 		ObjectMeta: latestSvc.Spec.ConfigurationSpec.Template.ObjectMeta,
 	}
@@ -164,8 +164,10 @@ func exportServiceWithActiveRevisions(latestSvc *servingv1.Service, client clien
 		return nil, fmt.Errorf("no revisions found for service %s", latestSvc.ObjectMeta.Name)
 	}
 
-	//set traffic in the latest revision
-	exportedSvcItems[len(exportedSvcItems)-1] = setTrafficSplit(latestSvc, exportedSvcItems[len(exportedSvcItems)-1])
+	//set traffic in the latest revision on if there is traffic split
+	if len(latestSvc.Spec.RouteSpec.Traffic) > 1 {
+		exportedSvcItems[len(exportedSvcItems)-1] = setTrafficSplit(latestSvc, exportedSvcItems[len(exportedSvcItems)-1])
+	}
 
 	typeMeta := metav1.TypeMeta{
 		APIVersion: "v1",

@@ -1,10 +1,10 @@
 ## kn service export
 
-export a service
+Export a service.
 
 ### Synopsis
 
-export a service
+Export a service.
 
 ```
 kn service export NAME [flags]
