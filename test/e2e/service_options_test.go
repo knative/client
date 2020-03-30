@@ -111,6 +111,10 @@ func TestServiceOptions(t *testing.T) {
 	validateUserID(r, "svc6", uid)
 	serviceUpdate(r, "svc6", "--user", strconv.FormatInt(uid+1, 10))
 	validateUserID(r, "svc6", uid+1)
+
+	t.Log("create and validate service and revision labels")
+	serviceCreateWithOptions(r, "svc7", "--label-service", "svc=helloworld-svc", "--label-revision", "rev=helloworld-rev")
+	validateLabels(r, "svc7", map[string]string{"svc": "helloworld-svc"}, map[string]string{"rev": "helloworld-rev"})
 }
 
 func serviceCreateWithOptions(r *test.KnRunResultCollector, serviceName string, options ...string) {
@@ -168,6 +172,23 @@ func validateServiceAnnotations(r *test.KnRunResultCollector, serviceName string
 		out = r.KnTest().Kn().Run("service", "describe", serviceName, "-o", fmt.Sprintf(templateAnnotationsJsonpathFormat, k))
 		assert.Equal(r.T(), v, out.Stdout)
 		r.AssertNoError(out)
+	}
+}
+
+func validateLabels(r *test.KnRunResultCollector, serviceName string, expectedServiceLabels, expectedRevisionLabels map[string]string) {
+	out := r.KnTest().Kn().Run("service", "describe", serviceName, "-ojson")
+	data := json.NewDecoder(strings.NewReader(out.Stdout))
+	var service servingv1.Service
+	err := data.Decode(&service)
+	assert.NilError(r.T(), err)
+
+	gotRevisionLabels := service.Spec.Template.ObjectMeta.GetLabels()
+	for k, v := range expectedRevisionLabels {
+		assert.Equal(r.T(), gotRevisionLabels[k], v)
+	}
+	gotServiceLabels := service.ObjectMeta.GetLabels()
+	for k, v := range expectedServiceLabels {
+		assert.Equal(r.T(), gotServiceLabels[k], v)
 	}
 }
 
