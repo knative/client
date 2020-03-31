@@ -23,7 +23,7 @@ import (
 
 	"gotest.tools/assert"
 
-	"knative.dev/client/lib/test/integration"
+	"knative.dev/client/lib/test"
 	"knative.dev/client/pkg/util"
 )
 
@@ -59,13 +59,13 @@ func (tc *sinkprefixTestConfig) teardown() {
 
 func TestSinkPrefixConfig(t *testing.T) {
 	t.Parallel()
-	it, err := integration.NewKnTest()
+	it, err := test.NewKnTest()
 	assert.NilError(t, err)
 	defer func() {
 		assert.NilError(t, it.Teardown())
 	}()
 
-	r := integration.NewKnRunResultCollector(t)
+	r := test.NewKnRunResultCollector(t)
 	defer r.DumpIfFailed()
 
 	tc := sinkprefixTestConfig{}
@@ -86,7 +86,7 @@ func TestSinkPrefixConfig(t *testing.T) {
 	pingSourceDelete(t, it, r, "testpingsource0")
 }
 
-func pingSourceCreateWithConfig(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, sourceName string, schedule string, data string, sink string, config string) {
+func pingSourceCreateWithConfig(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, sourceName string, schedule string, data string, sink string, config string) {
 	out := it.Kn().Run("source", "ping", "create", sourceName,
 		"--schedule", schedule, "--data", data, "--sink", sink, "--config", config)
 	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "ping", "source", sourceName, "created", "namespace", it.Kn().Namespace()))

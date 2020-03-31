@@ -25,7 +25,7 @@ import (
 	"github.com/pkg/errors"
 	"gotest.tools/assert"
 
-	"knative.dev/client/lib/test/integration"
+	"knative.dev/client/lib/test"
 	"knative.dev/client/pkg/util"
 )
 
@@ -38,7 +38,7 @@ const (
 
 func TestSourceApiServer(t *testing.T) {
 	t.Parallel()
-	it, err := integration.NewKnTest()
+	it, err := test.NewKnTest()
 	assert.NilError(t, err)
 	defer func() {
 		err1 := tearDownForSourceApiServer(t, it)
@@ -47,7 +47,7 @@ func TestSourceApiServer(t *testing.T) {
 		assert.NilError(t, err2)
 	}()
 
-	r := integration.NewKnRunResultCollector(t)
+	r := test.NewKnRunResultCollector(t)
 	defer r.DumpIfFailed()
 
 	setupForSourceApiServer(t, it)
@@ -85,32 +85,32 @@ func TestSourceApiServer(t *testing.T) {
 	// TODO(navidshaikh): Verify the source's status with synchronous create/update
 }
 
-func apiServerSourceCreate(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, sourceName string, resources string, sa string, sink string) {
+func apiServerSourceCreate(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, sourceName string, resources string, sa string, sink string) {
 	out := it.Kn().Run("source", "apiserver", "create", sourceName, "--resource", resources, "--service-account", sa, "--sink", sink)
 	r.AssertNoError(out)
 	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "apiserver", "source", sourceName, "created", "namespace", it.Kn().Namespace()))
 }
 
-func apiServerSourceCreateMissingSink(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, sourceName string, resources string, sa string, sink string) {
+func apiServerSourceCreateMissingSink(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, sourceName string, resources string, sa string, sink string) {
 	out := it.Kn().Run("source", "apiserver", "create", sourceName, "--resource", resources, "--service-account", sa, "--sink", sink)
 	r.AssertError(out)
 	assert.Check(t, util.ContainsAll(out.Stderr, "services.serving.knative.dev", "not found"))
 }
 
-func apiServerSourceDelete(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, sourceName string) {
+func apiServerSourceDelete(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, sourceName string) {
 	out := it.Kn().Run("source", "apiserver", "delete", sourceName)
 	r.AssertNoError(out)
 	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "apiserver", "source", sourceName, "deleted", "namespace", it.Kn().Namespace()))
 }
 
-func setupForSourceApiServer(t *testing.T, it *integration.KnTest) {
-	_, err := integration.NewKubectl(it.Kn().Namespace()).Run("create", "serviceaccount", testServiceAccount)
+func setupForSourceApiServer(t *testing.T, it *test.KnTest) {
+	_, err := test.NewKubectl(it.Kn().Namespace()).Run("create", "serviceaccount", testServiceAccount)
 	assert.NilError(t, err)
 
-	_, err = integration.Kubectl{}.Run("create", "clusterrole", clusterRolePrefix+it.Kn().Namespace(), "--verb=get,list,watch", "--resource=events,namespaces")
+	_, err = test.Kubectl{}.Run("create", "clusterrole", clusterRolePrefix+it.Kn().Namespace(), "--verb=get,list,watch", "--resource=events,namespaces")
 	assert.NilError(t, err)
 
-	_, err = integration.Kubectl{}.Run(
+	_, err = test.Kubectl{}.Run(
 		"create",
 		"clusterrolebinding",
 		clusterRoleBindingPrefix+it.Kn().Namespace(),
@@ -119,35 +119,35 @@ func setupForSourceApiServer(t *testing.T, it *integration.KnTest) {
 	assert.NilError(t, err)
 }
 
-func tearDownForSourceApiServer(t *testing.T, it *integration.KnTest) error {
+func tearDownForSourceApiServer(t *testing.T, it *test.KnTest) error {
 	saCmd := []string{"delete", "serviceaccount", testServiceAccount}
-	_, err := integration.NewKubectl(it.Kn().Namespace()).Run(saCmd...)
+	_, err := test.NewKubectl(it.Kn().Namespace()).Run(saCmd...)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("Error executing '%s'", strings.Join(saCmd, " ")))
 	}
 
 	crCmd := []string{"delete", "clusterrole", clusterRolePrefix + it.Kn().Namespace()}
-	_, err = integration.Kubectl{}.Run(crCmd...)
+	_, err = test.Kubectl{}.Run(crCmd...)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("Error executing '%s'", strings.Join(saCmd, " ")))
 	}
 
 	crbCmd := []string{"delete", "clusterrolebinding", clusterRoleBindingPrefix + it.Kn().Namespace()}
-	_, err = integration.Kubectl{}.Run(crbCmd...)
+	_, err = test.Kubectl{}.Run(crbCmd...)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("Error executing '%s'", strings.Join(saCmd, " ")))
 	}
 	return nil
 }
 
-func apiServerSourceUpdateSink(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, sourceName string, sink string) {
+func apiServerSourceUpdateSink(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, sourceName string, sink string) {
 	out := it.Kn().Run("source", "apiserver", "update", sourceName, "--sink", sink)
 	r.AssertNoError(out)
 	assert.Check(t, util.ContainsAll(out.Stdout, sourceName, "updated", "namespace", it.Kn().Namespace()))
 }
 
-func getResourceFieldsWithJSONPath(t *testing.T, it *integration.KnTest, resource, name, jsonpath string) (string, error) {
-	out, err := integration.NewKubectl(it.Kn().Namespace()).Run("get", resource, name, "-o", jsonpath, "-n", it.Kn().Namespace())
+func getResourceFieldsWithJSONPath(t *testing.T, it *test.KnTest, resource, name, jsonpath string) (string, error) {
+	out, err := test.NewKubectl(it.Kn().Namespace()).Run("get", resource, name, "-o", jsonpath, "-n", it.Kn().Namespace())
 	if err != nil {
 		return "", err
 	}

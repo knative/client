@@ -25,7 +25,7 @@ import (
 
 	"gotest.tools/assert"
 
-	"knative.dev/client/lib/test/integration"
+	"knative.dev/client/lib/test"
 	"knative.dev/client/pkg/util"
 )
 
@@ -61,7 +61,7 @@ func splitTargets(s, separator string, partsCount int) ([]string, error) {
 
 // formatActualTargets takes the traffic targets string received after jsonpath operation and converts
 // them into []TargetFields for comparison
-func formatActualTargets(t *testing.T, it *integration.KnTest, actualTargets []string) (formattedTargets []TargetFields) {
+func formatActualTargets(t *testing.T, it *test.KnTest, actualTargets []string) (formattedTargets []TargetFields) {
 	for _, each := range actualTargets {
 		each := strings.TrimSuffix(each, targetFieldsSeparator)
 		fields, err := splitTargets(each, targetFieldsSeparator, targetFieldsLength)
@@ -78,7 +78,7 @@ func formatActualTargets(t *testing.T, it *integration.KnTest, actualTargets []s
 // TestTrafficSplitSuite runs different e2e tests for service traffic splitting and verifies the traffic targets from service status
 func TestTrafficSplit(t *testing.T) {
 	t.Parallel()
-	it, err := integration.NewKnTest()
+	it, err := test.NewKnTest()
 	assert.NilError(t, err)
 	defer func() {
 		assert.NilError(t, it.Teardown())
@@ -88,10 +88,10 @@ func TestTrafficSplit(t *testing.T) {
 	t.Run("50:50",
 		func(t *testing.T) {
 			t.Log("tag two revisions as v1 and v2 and give 50-50% share")
-			r := integration.NewKnRunResultCollector(t)
+			r := test.NewKnRunResultCollector(t)
 			defer r.DumpIfFailed()
 
-			serviceName := integration.GetNextServiceName(serviceBase)
+			serviceName := test.GetNextServiceName(serviceBase)
 			serviceCreate(t, it, r, serviceName)
 
 			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
@@ -113,10 +113,10 @@ func TestTrafficSplit(t *testing.T) {
 	t.Run("20:80",
 		func(t *testing.T) {
 			t.Log("ramp/up down a revision to 20% adjusting other traffic to accommodate")
-			r := integration.NewKnRunResultCollector(t)
+			r := test.NewKnRunResultCollector(t)
 			defer r.DumpIfFailed()
 
-			serviceName := integration.GetNextServiceName(serviceBase)
+			serviceName := test.GetNextServiceName(serviceBase)
 			serviceCreate(t, it, r, serviceName)
 
 			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
@@ -135,10 +135,10 @@ func TestTrafficSplit(t *testing.T) {
 	t.Run("TagCandidate",
 		func(t *testing.T) {
 			t.Log("tag a revision as candidate, without otherwise changing any traffic split")
-			r := integration.NewKnRunResultCollector(t)
+			r := test.NewKnRunResultCollector(t)
 			defer r.DumpIfFailed()
 
-			serviceName := integration.GetNextServiceName(serviceBase)
+			serviceName := test.GetNextServiceName(serviceBase)
 			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
 			serviceCreateWithOptions(t, it, r, serviceName, "--revision-name", rev1)
 
@@ -156,10 +156,10 @@ func TestTrafficSplit(t *testing.T) {
 	t.Run("TagCandidate:2:98",
 		func(t *testing.T) {
 			t.Log("tag a revision as candidate, set 2% traffic adjusting other traffic to accommodate")
-			r := integration.NewKnRunResultCollector(t)
+			r := test.NewKnRunResultCollector(t)
 			defer r.DumpIfFailed()
 
-			serviceName := integration.GetNextServiceName(serviceBase)
+			serviceName := test.GetNextServiceName(serviceBase)
 			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
 			serviceCreateWithOptions(t, it, r, serviceName, "--revision-name", rev1)
 
@@ -179,10 +179,10 @@ func TestTrafficSplit(t *testing.T) {
 	t.Run("TagCurrent",
 		func(t *testing.T) {
 			t.Log("update tag for a revision from candidate to current, tag current is present on another revision")
-			r := integration.NewKnRunResultCollector(t)
+			r := test.NewKnRunResultCollector(t)
 			defer r.DumpIfFailed()
 
-			serviceName := integration.GetNextServiceName(serviceBase)
+			serviceName := test.GetNextServiceName(serviceBase)
 			// make available 3 revisions for service first
 			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
 			serviceCreateWithOptions(t, it, r, serviceName, "--revision-name", rev1)
@@ -212,10 +212,10 @@ func TestTrafficSplit(t *testing.T) {
 	t.Run("TagStagingLatest",
 		func(t *testing.T) {
 			t.Log("update tag from testing to staging for @latest revision")
-			r := integration.NewKnRunResultCollector(t)
+			r := test.NewKnRunResultCollector(t)
 			defer r.DumpIfFailed()
 
-			serviceName := integration.GetNextServiceName(serviceBase)
+			serviceName := test.GetNextServiceName(serviceBase)
 			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
 			serviceCreateWithOptions(t, it, r, serviceName, "--revision-name", rev1)
 
@@ -233,10 +233,10 @@ func TestTrafficSplit(t *testing.T) {
 	t.Run("TagStagingNonLatest",
 		func(t *testing.T) {
 			t.Log("update tag from testing to staging for a revision (non @latest)")
-			r := integration.NewKnRunResultCollector(t)
+			r := test.NewKnRunResultCollector(t)
 			defer r.DumpIfFailed()
 
-			serviceName := integration.GetNextServiceName(serviceBase)
+			serviceName := test.GetNextServiceName(serviceBase)
 			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
 			serviceCreateWithOptions(t, it, r, serviceName, "--revision-name", rev1)
 
@@ -259,10 +259,10 @@ func TestTrafficSplit(t *testing.T) {
 	t.Run("RemoveTag",
 		func(t *testing.T) {
 			t.Log("remove a revision with tag old from traffic block entirely")
-			r := integration.NewKnRunResultCollector(t)
+			r := test.NewKnRunResultCollector(t)
 			defer r.DumpIfFailed()
 
-			serviceName := integration.GetNextServiceName(serviceBase)
+			serviceName := test.GetNextServiceName(serviceBase)
 			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
 			serviceCreateWithOptions(t, it, r, serviceName, "--revision-name", rev1)
 
@@ -285,10 +285,10 @@ func TestTrafficSplit(t *testing.T) {
 	t.Run("TagStable:50:50",
 		func(t *testing.T) {
 			t.Log("tag a revision as stable and current with 50-50% traffic")
-			r := integration.NewKnRunResultCollector(t)
+			r := test.NewKnRunResultCollector(t)
 			defer r.DumpIfFailed()
 
-			serviceName := integration.GetNextServiceName(serviceBase)
+			serviceName := test.GetNextServiceName(serviceBase)
 			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
 			serviceCreateWithOptions(t, it, r, serviceName, "--revision-name", rev1)
 
@@ -308,10 +308,10 @@ func TestTrafficSplit(t *testing.T) {
 	t.Run("RevertToLatest",
 		func(t *testing.T) {
 			t.Log("revert all traffic to latest ready revision of service")
-			r := integration.NewKnRunResultCollector(t)
+			r := test.NewKnRunResultCollector(t)
 			defer r.DumpIfFailed()
 
-			serviceName := integration.GetNextServiceName(serviceBase)
+			serviceName := test.GetNextServiceName(serviceBase)
 			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
 			serviceCreateWithOptions(t, it, r, serviceName, "--revision-name", rev1)
 
@@ -332,10 +332,10 @@ func TestTrafficSplit(t *testing.T) {
 	t.Run("TagLatestAsCurrent",
 		func(t *testing.T) {
 			t.Log("tag latest ready revision of service as current")
-			r := integration.NewKnRunResultCollector(t)
+			r := test.NewKnRunResultCollector(t)
 			defer r.DumpIfFailed()
 
-			serviceName := integration.GetNextServiceName(serviceBase)
+			serviceName := test.GetNextServiceName(serviceBase)
 			// existing state: latest revision has no tag
 			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
 			serviceCreateWithOptions(t, it, r, serviceName, "--revision-name", rev1)
@@ -351,10 +351,10 @@ func TestTrafficSplit(t *testing.T) {
 	t.Run("UpdateTag:100:0",
 		func(t *testing.T) {
 			t.Log("update tag for a revision as testing and assign all the traffic to it")
-			r := integration.NewKnRunResultCollector(t)
+			r := test.NewKnRunResultCollector(t)
 			defer r.DumpIfFailed()
 
-			serviceName := integration.GetNextServiceName(serviceBase)
+			serviceName := test.GetNextServiceName(serviceBase)
 			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
 			serviceCreateWithOptions(t, it, r, serviceName, "--revision-name", rev1)
 
@@ -381,10 +381,10 @@ func TestTrafficSplit(t *testing.T) {
 	t.Run("TagReplace",
 		func(t *testing.T) {
 			t.Log("replace latest tag of a revision with old and give latest to another revision")
-			r := integration.NewKnRunResultCollector(t)
+			r := test.NewKnRunResultCollector(t)
 			defer r.DumpIfFailed()
 
-			serviceName := integration.GetNextServiceName(serviceBase)
+			serviceName := test.GetNextServiceName(serviceBase)
 			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
 			serviceCreateWithOptions(t, it, r, serviceName, "--revision-name", rev1)
 
@@ -412,7 +412,7 @@ func TestTrafficSplit(t *testing.T) {
 	)
 }
 
-func verifyTargets(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName string, expectedTargets []TargetFields) {
+func verifyTargets(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName string, expectedTargets []TargetFields) {
 	out := serviceDescribeWithJsonPath(t, it, r, serviceName, targetsJsonPath)
 	assert.Check(t, out != "")
 	actualTargets, err := splitTargets(out, targetsSeparator, len(expectedTargets))
@@ -424,13 +424,13 @@ func verifyTargets(t *testing.T, it *integration.KnTest, r *integration.KnRunRes
 	}
 }
 
-func serviceDescribeWithJsonPath(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName, jsonpath string) string {
+func serviceDescribeWithJsonPath(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName, jsonpath string) string {
 	out := it.Kn().Run("service", "describe", serviceName, "-o", jsonpath)
 	r.AssertNoError(out)
 	return out.Stdout
 }
 
-func serviceUpdateWithOptions(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName string, options ...string) {
+func serviceUpdateWithOptions(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName string, options ...string) {
 	command := []string{"service", "update", serviceName}
 	command = append(command, options...)
 	out := it.Kn().Run(command...)

@@ -23,19 +23,19 @@ import (
 
 	"gotest.tools/assert"
 
-	"knative.dev/client/lib/test/integration"
+	"knative.dev/client/lib/test"
 	"knative.dev/client/pkg/util"
 )
 
 func TestBasicWorkflow(t *testing.T) {
 	t.Parallel()
-	it, err := integration.NewKnTest()
+	it, err := test.NewKnTest()
 	assert.NilError(t, err)
 	defer func() {
 		assert.NilError(t, it.Teardown())
 	}()
 
-	r := integration.NewKnRunResultCollector(t)
+	r := test.NewKnRunResultCollector(t)
 	defer r.DumpIfFailed()
 
 	t.Log("returns no service before running tests")
@@ -70,14 +70,14 @@ func TestBasicWorkflow(t *testing.T) {
 }
 
 func TestWrongCommand(t *testing.T) {
-	r := integration.NewKnRunResultCollector(t)
+	r := test.NewKnRunResultCollector(t)
 	defer r.DumpIfFailed()
 
-	out := integration.Kn{}.Run("source", "apiserver", "noverb", "--tag=0.13")
+	out := test.Kn{}.Run("source", "apiserver", "noverb", "--tag=0.13")
 	assert.Check(t, util.ContainsAll(out.Stderr, "Error", "unknown subcommand", "noverb"))
 	r.AssertError(out)
 
-	out = integration.Kn{}.Run("rev")
+	out = test.Kn{}.Run("rev")
 	assert.Check(t, util.ContainsAll(out.Stderr, "Error", "unknown command", "rev"))
 	r.AssertError(out)
 
@@ -85,33 +85,33 @@ func TestWrongCommand(t *testing.T) {
 
 // ==========================================================================
 
-func serviceListEmpty(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector) {
+func serviceListEmpty(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector) {
 	out := it.Kn().Run("service", "list")
 	r.AssertNoError(out)
 	assert.Check(t, util.ContainsAll(out.Stdout, "No services found."))
 }
 
-func serviceCreate(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName string) {
-	out := it.Kn().Run("service", "create", serviceName, "--image", integration.KnDefaultTestImage)
+func serviceCreate(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName string) {
+	out := it.Kn().Run("service", "create", serviceName, "--image", test.KnDefaultTestImage)
 	r.AssertNoError(out)
 	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "service", serviceName, "creating", "namespace", it.Kn().Namespace(), "ready"))
 }
 
-func serviceList(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName string) {
+func serviceList(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName string) {
 	out := it.Kn().Run("service", "list", serviceName)
 	r.AssertNoError(out)
 	assert.Check(t, util.ContainsAll(out.Stdout, serviceName))
 }
 
-func serviceDescribe(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName string) {
+func serviceDescribe(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName string) {
 	out := it.Kn().Run("service", "describe", serviceName)
 	r.AssertNoError(out)
-	assert.Assert(t, util.ContainsAll(out.Stdout, serviceName, it.Kn().Namespace(), integration.KnDefaultTestImage))
+	assert.Assert(t, util.ContainsAll(out.Stdout, serviceName, it.Kn().Namespace(), test.KnDefaultTestImage))
 	assert.Assert(t, util.ContainsAll(out.Stdout, "Conditions", "ConfigurationsReady", "Ready", "RoutesReady"))
 	assert.Assert(t, util.ContainsAll(out.Stdout, "Name", "Namespace", "URL", "Age", "Revisions"))
 }
 
-func serviceUpdate(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName string, args ...string) {
+func serviceUpdate(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName string, args ...string) {
 	fullArgs := append([]string{}, "service", "update", serviceName)
 	fullArgs = append(fullArgs, args...)
 	out := it.Kn().Run(fullArgs...)
@@ -119,13 +119,13 @@ func serviceUpdate(t *testing.T, it *integration.KnTest, r *integration.KnRunRes
 	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "updating", "service", serviceName, "ready"))
 }
 
-func serviceDelete(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName string) {
+func serviceDelete(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName string) {
 	out := it.Kn().Run("service", "delete", serviceName)
 	r.AssertNoError(out)
 	assert.Check(t, util.ContainsAll(out.Stdout, "Service", serviceName, "successfully deleted in namespace", it.Kn().Namespace()))
 }
 
-func revisionListForService(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName string) {
+func revisionListForService(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName string) {
 	out := it.Kn().Run("revision", "list", "-s", serviceName)
 	r.AssertNoError(out)
 	outputLines := strings.Split(out.Stdout, "\n")
@@ -137,7 +137,7 @@ func revisionListForService(t *testing.T, it *integration.KnTest, r *integration
 	}
 }
 
-func revisionDescribe(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName string) {
+func revisionDescribe(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName string) {
 	revName := findRevision(t, it, r, serviceName)
 
 	out := it.Kn().Run("revision", "describe", revName)

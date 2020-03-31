@@ -22,19 +22,19 @@ import (
 
 	"gotest.tools/assert"
 
-	"knative.dev/client/lib/test/integration"
+	"knative.dev/client/lib/test"
 	"knative.dev/client/pkg/util"
 )
 
 func TestSourceListTypes(t *testing.T) {
 	t.Parallel()
-	it, err := integration.NewKnTest()
+	it, err := test.NewKnTest()
 	assert.NilError(t, err)
 	defer func() {
 		assert.NilError(t, it.Teardown())
 	}()
 
-	r := integration.NewKnRunResultCollector(t)
+	r := test.NewKnRunResultCollector(t)
 	defer r.DumpIfFailed()
 
 	t.Log("List available source types")
@@ -49,13 +49,13 @@ func TestSourceListTypes(t *testing.T) {
 
 func TestSourceList(t *testing.T) {
 	t.Parallel()
-	it, err := integration.NewKnTest()
+	it, err := test.NewKnTest()
 	assert.NilError(t, err)
 	defer func() {
 		assert.NilError(t, it.Teardown())
 	}()
 
-	r := integration.NewKnRunResultCollector(t)
+	r := test.NewKnRunResultCollector(t)
 	defer r.DumpIfFailed()
 
 	t.Log("List sources empty case")
@@ -66,14 +66,14 @@ func TestSourceList(t *testing.T) {
 	// non empty list case is tested in test/e2e/source_apiserver_it.go where source setup is present
 }
 
-func sourceListTypes(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, args ...string) string {
+func sourceListTypes(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, args ...string) string {
 	cmd := append([]string{"source", "list-types"}, args...)
 	out := it.Kn().Run(cmd...)
 	r.AssertNoError(out)
 	return out.Stdout
 }
 
-func sourceList(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, args ...string) string {
+func sourceList(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, args ...string) string {
 	cmd := append([]string{"source", "list"}, args...)
 	out := it.Kn().Run(cmd...)
 	r.AssertNoError(out)

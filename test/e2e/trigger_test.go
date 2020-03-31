@@ -25,19 +25,19 @@ import (
 	"gotest.tools/assert"
 	"k8s.io/apimachinery/pkg/util/wait"
 
-	"knative.dev/client/lib/test/integration"
+	"knative.dev/client/lib/test"
 	"knative.dev/client/pkg/util"
 )
 
 func TestBrokerTrigger(t *testing.T) {
 	t.Parallel()
-	it, err := integration.NewKnTest()
+	it, err := test.NewKnTest()
 	assert.NilError(t, err)
 	defer func() {
 		assert.NilError(t, it.Teardown())
 	}()
 
-	r := integration.NewKnRunResultCollector(t)
+	r := test.NewKnRunResultCollector(t)
 	defer r.DumpIfFailed()
 
 	err = lableNamespaceForDefaultBroker(t, it)
@@ -81,22 +81,22 @@ func TestBrokerTrigger(t *testing.T) {
 
 // Private functions
 
-func unlableNamespaceForDefaultBroker(t *testing.T, it *integration.KnTest) {
-	_, err := integration.Kubectl{}.Run("label", "namespace", it.Kn().Namespace(), "knative-eventing-injection-")
+func unlableNamespaceForDefaultBroker(t *testing.T, it *test.KnTest) {
+	_, err := test.Kubectl{}.Run("label", "namespace", it.Kn().Namespace(), "knative-eventing-injection-")
 	if err != nil {
 		t.Fatalf("Error executing 'kubectl label namespace %s knative-eventing-injection-'. Error: %s", it.Kn().Namespace(), err.Error())
 	}
 }
 
-func lableNamespaceForDefaultBroker(t *testing.T, it *integration.KnTest) error {
-	_, err := integration.Kubectl{}.Run("label", "namespace", it.Kn().Namespace(), "knative-eventing-injection=enabled")
+func lableNamespaceForDefaultBroker(t *testing.T, it *test.KnTest) error {
+	_, err := test.Kubectl{}.Run("label", "namespace", it.Kn().Namespace(), "knative-eventing-injection=enabled")
 
 	if err != nil {
 		t.Fatalf("Error executing 'kubectl label namespace %s knative-eventing-injection=enabled'. Error: %s", it.Kn().Namespace(), err.Error())
 	}
 
 	return wait.PollImmediate(10*time.Second, 5*time.Minute, func() (bool, error) {
-		out, err := integration.NewKubectl(it.Kn().Namespace()).Run("get", "broker", "-o=jsonpath='{.items[0].status.conditions[?(@.type==\"Ready\")].status}'")
+		out, err := test.NewKubectl(it.Kn().Namespace()).Run("get", "broker", "-o=jsonpath='{.items[0].status.conditions[?(@.type==\"Ready\")].status}'")
 		if err != nil {
 			return false, nil
 		} else {
@@ -105,7 +105,7 @@ func lableNamespaceForDefaultBroker(t *testing.T, it *integration.KnTest) error 
 	})
 }
 
-func triggerCreate(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, name string, sinksvc string, filters []string) {
+func triggerCreate(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, name string, sinksvc string, filters []string) {
 	args := []string{"trigger", "create", name, "--broker", "default", "--sink", "svc:" + sinksvc}
 	if len(filters) > 0 {
 		for _, v := range filters {
@@ -117,31 +117,31 @@ func triggerCreate(t *testing.T, it *integration.KnTest, r *integration.KnRunRes
 	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "Trigger", name, "created", "namespace", it.Kn().Namespace()))
 }
 
-func triggerCreateMissingSink(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, name string, sinksvc string) {
+func triggerCreateMissingSink(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, name string, sinksvc string) {
 	out := it.Kn().Run("trigger", "create", name, "--broker", "default", "--sink", "svc:"+sinksvc)
 	r.AssertError(out)
 	assert.Check(t, util.ContainsAll(out.Stderr, "services.serving.knative.dev", "not found"))
 }
 
-func triggerDelete(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, name string) {
+func triggerDelete(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, name string) {
 	out := it.Kn().Run("trigger", "delete", name)
 	r.AssertNoError(out)
 	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "Trigger", name, "deleted", "namespace", it.Kn().Namespace()))
 }
 
-func triggerUpdate(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, name string, filter string, sinksvc string) {
+func triggerUpdate(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, name string, filter string, sinksvc string) {
 	out := it.Kn().Run("trigger", "update", name, "--filter", filter, "--sink", "svc:"+sinksvc)
 	r.AssertNoError(out)
 	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "Trigger", name, "updated", "namespace", it.Kn().Namespace()))
 }
 
-func verifyTriggerList(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, triggers ...string) {
+func verifyTriggerList(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, triggers ...string) {
 	out := it.Kn().Run("trigger", "list")
 	r.AssertNoError(out)
 	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, triggers...))
 }
 
-func verifyTriggerDescribe(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, name string, broker string, sink string, filters []string) {
+func verifyTriggerDescribe(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, name string, broker string, sink string, filters []string) {
 	out := it.Kn().Run("trigger", "describe", name)
 	r.AssertNoError(out)
 	if len(filters) > 0 {
@@ -152,7 +152,7 @@ func verifyTriggerDescribe(t *testing.T, it *integration.KnTest, r *integration.
 	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, name, broker, sink))
 }
 
-func verifyTriggerNotfound(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, name string) {
+func verifyTriggerNotfound(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, name string) {
 	out := it.Kn().Run("trigger", "describe", name)
 	r.AssertError(out)
 	assert.Check(t, util.ContainsAll(out.Stderr, name, "not found"))

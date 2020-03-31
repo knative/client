@@ -24,19 +24,19 @@ import (
 
 	"gotest.tools/assert"
 
-	"knative.dev/client/lib/test/integration"
+	"knative.dev/client/lib/test"
 	"knative.dev/client/pkg/util"
 )
 
 func TestRoute(t *testing.T) {
 	t.Parallel()
-	it, err := integration.NewKnTest()
+	it, err := test.NewKnTest()
 	assert.NilError(t, err)
 	defer func() {
 		assert.NilError(t, it.Teardown())
 	}()
 
-	r := integration.NewKnRunResultCollector(t)
+	r := test.NewKnRunResultCollector(t)
 	defer r.DumpIfFailed()
 
 	t.Log("create hello service and return no error")
@@ -61,7 +61,7 @@ func TestRoute(t *testing.T) {
 	serviceDelete(t, it, r, "hello")
 }
 
-func routeList(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector) {
+func routeList(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector) {
 	out := it.Kn().Run("route", "list")
 
 	expectedHeaders := []string{"NAME", "URL", "READY"}
@@ -69,14 +69,14 @@ func routeList(t *testing.T, it *integration.KnTest, r *integration.KnRunResultC
 	r.AssertNoError(out)
 }
 
-func routeListWithArgument(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, routeName string) {
+func routeListWithArgument(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, routeName string) {
 	out := it.Kn().Run("route", "list", routeName)
 
 	assert.Check(t, util.ContainsAll(out.Stdout, routeName))
 	r.AssertNoError(out)
 }
 
-func routeDescribe(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, routeName string) {
+func routeDescribe(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, routeName string) {
 	out := it.Kn().Run("route", "describe", routeName)
 
 	assert.Check(t, util.ContainsAll(out.Stdout,
@@ -84,7 +84,7 @@ func routeDescribe(t *testing.T, it *integration.KnTest, r *integration.KnRunRes
 	r.AssertNoError(out)
 }
 
-func routeDescribeWithPrintFlags(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, routeName string) {
+func routeDescribeWithPrintFlags(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, routeName string) {
 	out := it.Kn().Run("route", "describe", routeName, "-o=name")
 
 	expectedName := fmt.Sprintf("route.serving.knative.dev/%s", routeName)
@@ -92,7 +92,7 @@ func routeDescribeWithPrintFlags(t *testing.T, it *integration.KnTest, r *integr
 	r.AssertNoError(out)
 }
 
-func routeListWithPrintFlags(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, names ...string) {
+func routeListWithPrintFlags(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, names ...string) {
 	out := it.Kn().Run("route", "list", "-o=jsonpath={.items[*].metadata.name}")
 	assert.Check(t, util.ContainsAll(out.Stdout, names...))
 	r.AssertNoError(out)

@@ -22,19 +22,19 @@ import (
 
 	"gotest.tools/assert"
 
-	"knative.dev/client/lib/test/integration"
+	"knative.dev/client/lib/test"
 	"knative.dev/client/pkg/util"
 )
 
 func TestInjectBrokerTrigger(t *testing.T) {
 	t.Parallel()
-	it, err := integration.NewKnTest()
+	it, err := test.NewKnTest()
 	assert.NilError(t, err)
 	defer func() {
 		assert.NilError(t, it.Teardown())
 	}()
 
-	r := integration.NewKnRunResultCollector(t)
+	r := test.NewKnRunResultCollector(t)
 	defer r.DumpIfFailed()
 
 	assert.NilError(t, err)
@@ -56,7 +56,7 @@ func TestInjectBrokerTrigger(t *testing.T) {
 	assert.Check(t, util.ContainsAllIgnoreCase(out.Stderr, "broker", "name", "'default'", "--inject-broker", "flag"))
 }
 
-func triggerCreateWithInject(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, name string, sinksvc string, filters []string) {
+func triggerCreateWithInject(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, name string, sinksvc string, filters []string) {
 	args := []string{"trigger", "create", name, "--broker", "default", "--inject-broker", "--sink", "svc:" + sinksvc}
 	for _, v := range filters {
 		args = append(args, "--filter", v)

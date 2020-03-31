@@ -27,7 +27,7 @@ import (
 	"knative.dev/pkg/ptr"
 	"sigs.k8s.io/yaml"
 
-	"knative.dev/client/lib/test/integration"
+	"knative.dev/client/lib/test"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -38,13 +38,13 @@ type expectedServiceOption func(*servingv1.Service)
 
 func TestServiceExportImportApply(t *testing.T) {
 	t.Parallel()
-	it, err := integration.NewKnTest()
+	it, err := test.NewKnTest()
 	assert.NilError(t, err)
 	defer func() {
 		assert.NilError(t, it.Teardown())
 	}()
 
-	r := integration.NewKnRunResultCollector(t)
+	r := test.NewKnRunResultCollector(t)
 	defer r.DumpIfFailed()
 
 	t.Log("create service with byo revision")
@@ -70,7 +70,7 @@ func TestServiceExportImportApply(t *testing.T) {
 
 // Private methods
 
-func serviceExport(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName string, expService servingv1.Service, options ...string) {
+func serviceExport(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName string, expService servingv1.Service, options ...string) {
 	command := []string{"service", "export", serviceName}
 	command = append(command, options...)
 	out := it.Kn().Run(command...)
@@ -78,7 +78,7 @@ func serviceExport(t *testing.T, it *integration.KnTest, r *integration.KnRunRes
 	r.AssertNoError(out)
 }
 
-func serviceExportWithRevisions(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName string, expServiceList servingv1.ServiceList, options ...string) {
+func serviceExportWithRevisions(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName string, expServiceList servingv1.ServiceList, options ...string) {
 	command := []string{"service", "export", serviceName}
 	command = append(command, options...)
 	out := it.Kn().Run(command...)
@@ -88,14 +88,14 @@ func serviceExportWithRevisions(t *testing.T, it *integration.KnTest, r *integra
 
 // Private functions
 
-func validateExportedService(t *testing.T, it *integration.KnTest, out string, expService servingv1.Service) {
+func validateExportedService(t *testing.T, it *test.KnTest, out string, expService servingv1.Service) {
 	actSvcJSON := servingv1.Service{}
 	err := json.Unmarshal([]byte(out), &actSvcJSON)
 	assert.NilError(t, err)
 	assert.DeepEqual(t, &expService, &actSvcJSON)
 }
 
-func validateExportedServiceList(t *testing.T, it *integration.KnTest, out string, expServiceList servingv1.ServiceList) {
+func validateExportedServiceList(t *testing.T, it *test.KnTest, out string, expServiceList servingv1.ServiceList) {
 	actYaml := servingv1.ServiceList{}
 	err := yaml.Unmarshal([]byte(out), &actYaml)
 	assert.NilError(t, err)
@@ -114,7 +114,7 @@ func getSvc(options ...expectedServiceOption) servingv1.Service {
 							Containers: []corev1.Container{
 								{
 									Name:      "user-container",
-									Image:     integration.KnDefaultTestImage,
+									Image:     test.KnDefaultTestImage,
 									Resources: corev1.ResourceRequirements{},
 									ReadinessProbe: &corev1.Probe{
 										SuccessThreshold: int32(1),

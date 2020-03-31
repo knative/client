@@ -27,7 +27,7 @@ import (
 
 	"gotest.tools/assert"
 
-	"knative.dev/client/lib/test/integration"
+	"knative.dev/client/lib/test"
 	"knative.dev/client/pkg/util"
 
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
@@ -35,13 +35,13 @@ import (
 
 func TestServiceOptions(t *testing.T) {
 	t.Parallel()
-	it, err := integration.NewKnTest()
+	it, err := test.NewKnTest()
 	assert.NilError(t, err)
 	defer func() {
 		assert.NilError(t, it.Teardown())
 	}()
 
-	r := integration.NewKnRunResultCollector(t)
+	r := test.NewKnRunResultCollector(t)
 
 	t.Log("create and validate service with concurrency options")
 	defer r.DumpIfFailed()
@@ -112,50 +112,50 @@ func TestServiceOptions(t *testing.T) {
 	validateUserId(t, it, r, "svc6", uid+1)
 }
 
-func serviceCreateWithOptions(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName string, options ...string) {
-	command := []string{"service", "create", serviceName, "--image", integration.KnDefaultTestImage}
+func serviceCreateWithOptions(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName string, options ...string) {
+	command := []string{"service", "create", serviceName, "--image", test.KnDefaultTestImage}
 	command = append(command, options...)
 	out := it.Kn().Run(command...)
 	assert.Check(t, util.ContainsAll(out.Stdout, "service", serviceName, "Creating", "namespace", it.Kn().Namespace(), "Ready"))
 	r.AssertNoError(out)
 }
 
-func validateServiceConcurrencyLimit(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName, concurrencyLimit string) {
+func validateServiceConcurrencyLimit(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName, concurrencyLimit string) {
 	jsonpath := "jsonpath={.items[0].spec.template.spec.containerConcurrency}"
 	out := it.Kn().Run("service", "list", serviceName, "-o", jsonpath)
 	assert.Equal(t, out.Stdout, concurrencyLimit)
 	r.AssertNoError(out)
 }
 
-func validateServiceConcurrencyTarget(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName, concurrencyTarget string) {
+func validateServiceConcurrencyTarget(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName, concurrencyTarget string) {
 	jsonpath := "jsonpath={.items[0].spec.template.metadata.annotations.autoscaling\\.knative\\.dev/target}"
 	out := it.Kn().Run("service", "list", serviceName, "-o", jsonpath)
 	assert.Equal(t, out.Stdout, concurrencyTarget)
 	r.AssertNoError(out)
 }
 
-func validateAutoscaleWindow(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName, window string) {
+func validateAutoscaleWindow(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName, window string) {
 	jsonpath := "jsonpath={.items[0].spec.template.metadata.annotations.autoscaling\\.knative\\.dev/window}"
 	out := it.Kn().Run("service", "list", serviceName, "-o", jsonpath)
 	assert.Equal(t, out.Stdout, window)
 	r.AssertNoError(out)
 }
 
-func validateServiceMinScale(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName, minScale string) {
+func validateServiceMinScale(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName, minScale string) {
 	jsonpath := "jsonpath={.items[0].spec.template.metadata.annotations.autoscaling\\.knative\\.dev/minScale}"
 	out := it.Kn().Run("service", "list", serviceName, "-o", jsonpath)
 	assert.Equal(t, out.Stdout, minScale)
 	r.AssertNoError(out)
 }
 
-func validateServiceMaxScale(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName, maxScale string) {
+func validateServiceMaxScale(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName, maxScale string) {
 	jsonpath := "jsonpath={.items[0].spec.template.metadata.annotations.autoscaling\\.knative\\.dev/maxScale}"
 	out := it.Kn().Run("service", "list", serviceName, "-o", jsonpath)
 	assert.Equal(t, out.Stdout, maxScale)
 	r.AssertNoError(out)
 }
 
-func validateServiceAnnotations(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName string, annotations map[string]string) {
+func validateServiceAnnotations(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName string, annotations map[string]string) {
 	metadataAnnotationsJsonpathFormat := "jsonpath={.metadata.annotations.%s}"
 	templateAnnotationsJsonpathFormat := "jsonpath={.spec.template.metadata.annotations.%s}"
 
@@ -170,14 +170,14 @@ func validateServiceAnnotations(t *testing.T, it *integration.KnTest, r *integra
 	}
 }
 
-func validateContainerField(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName, field, expected string) {
+func validateContainerField(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName, field, expected string) {
 	jsonpath := fmt.Sprintf("jsonpath={.items[0].spec.template.spec.containers[0].%s}", field)
 	out := it.Kn().Run("service", "list", serviceName, "-o", jsonpath)
 	assert.Equal(t, out.Stdout, expected)
 	r.AssertNoError(out)
 }
 
-func validateUserId(t *testing.T, it *integration.KnTest, r *integration.KnRunResultCollector, serviceName string, uid int64) {
+func validateUserId(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName string, uid int64) {
 	out := it.Kn().Run("service", "describe", serviceName, "-ojson")
 	data := json.NewDecoder(strings.NewReader(out.Stdout))
 	data.UseNumber()
