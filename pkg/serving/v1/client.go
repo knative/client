@@ -262,7 +262,7 @@ func updateServiceWithRetry(cl KnServingClient, name string, updateFunc serviceU
 // For `timeout == 0` delete is performed async without any wait.
 func (cl *knServingClient) DeleteService(serviceName string, timeout time.Duration) error {
 	if timeout == 0 {
-		return cl.deleteService(serviceName, v1.DeletePropagationBackground)
+		return cl.deleteService(serviceName)
 	}
 	waitC := make(chan error)
 	go func() {
@@ -270,17 +270,17 @@ func (cl *knServingClient) DeleteService(serviceName string, timeout time.Durati
 		err, _ := waitForEvent.Wait(serviceName, wait.Options{Timeout: &timeout}, wait.NoopMessageCallback())
 		waitC <- err
 	}()
-	err := cl.deleteService(serviceName, v1.DeletePropagationForeground)
+	err := cl.deleteService(serviceName)
 	if err != nil {
 		return err
 	}
 	return <-waitC
 }
 
-func (cl *knServingClient) deleteService(serviceName string, propagationPolicy v1.DeletionPropagation) error {
+func (cl *knServingClient) deleteService(serviceName string) error {
 	err := cl.client.Services(cl.namespace).Delete(
 		serviceName,
-		&v1.DeleteOptions{PropagationPolicy: &propagationPolicy},
+		&v1.DeleteOptions{},
 	)
 	if err != nil {
 		return clienterrors.GetError(err)
