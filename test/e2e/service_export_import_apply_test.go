@@ -44,45 +44,45 @@ func TestServiceExportImportApply(t *testing.T) {
 		assert.NilError(t, it.Teardown())
 	}()
 
-	r := test.NewKnRunResultCollector(t)
+	r := test.NewKnRunResultCollector(t, it)
 	defer r.DumpIfFailed()
 
 	t.Log("create service with byo revision")
-	serviceCreateWithOptions(t, it, r, "hello", "--revision-name", "rev1")
+	serviceCreateWithOptions(r, "hello", "--revision-name", "rev1")
 
 	t.Log("export service and compare")
-	serviceExport(t, it, r, "hello", getSvc(withName("hello"), withRevisionName("hello-rev1"), withAnnotations()), "-o", "json")
+	serviceExport(r, "hello", getSvc(withName("hello"), withRevisionName("hello-rev1"), withAnnotations()), "-o", "json")
 
 	t.Log("update service - add env variable")
-	serviceUpdateWithOptions(t, it, r, "hello", "--env", "key1=val1", "--revision-name", "rev2", "--no-lock-to-digest")
-	serviceExport(t, it, r, "hello", getSvc(withName("hello"), withRevisionName("hello-rev2"), withEnv("key1", "val1")), "-o", "json")
-	serviceExportWithRevisions(t, it, r, "hello", getSvcListWithOneRevision(), "--with-revisions", "-o", "yaml")
+	serviceUpdateWithOptions(r, "hello", "--env", "key1=val1", "--revision-name", "rev2", "--no-lock-to-digest")
+	serviceExport(r, "hello", getSvc(withName("hello"), withRevisionName("hello-rev2"), withEnv("key1", "val1")), "-o", "json")
+	serviceExportWithRevisions(r, "hello", getSvcListWithOneRevision(), "--with-revisions", "-o", "yaml")
 
 	t.Log("update service with tag and split traffic")
-	serviceUpdateWithOptions(t, it, r, "hello", "--tag", "hello-rev1=candidate", "--traffic", "candidate=2%,@latest=98%")
-	serviceExportWithRevisions(t, it, r, "hello", getSvcListWithTags(), "--with-revisions", "-o", "yaml")
+	serviceUpdateWithOptions(r, "hello", "--tag", "hello-rev1=candidate", "--traffic", "candidate=2%,@latest=98%")
+	serviceExportWithRevisions(r, "hello", getSvcListWithTags(), "--with-revisions", "-o", "yaml")
 
 	t.Log("update service - untag, add env variable and traffic split")
-	serviceUpdateWithOptions(t, it, r, "hello", "--untag", "candidate")
-	serviceUpdateWithOptions(t, it, r, "hello", "--env", "key2=val2", "--revision-name", "rev3", "--traffic", "hello-rev1=30,hello-rev2=30,hello-rev3=40")
-	serviceExportWithRevisions(t, it, r, "hello", getSvcListWOTags(), "--with-revisions", "-o", "yaml")
+	serviceUpdateWithOptions(r, "hello", "--untag", "candidate")
+	serviceUpdateWithOptions(r, "hello", "--env", "key2=val2", "--revision-name", "rev3", "--traffic", "hello-rev1=30,hello-rev2=30,hello-rev3=40")
+	serviceExportWithRevisions(r, "hello", getSvcListWOTags(), "--with-revisions", "-o", "yaml")
 }
 
 // Private methods
 
-func serviceExport(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName string, expService servingv1.Service, options ...string) {
+func serviceExport(r *test.KnRunResultCollector, serviceName string, expService servingv1.Service, options ...string) {
 	command := []string{"service", "export", serviceName}
 	command = append(command, options...)
-	out := it.Kn().Run(command...)
-	validateExportedService(t, it, out.Stdout, expService)
+	out := r.KnTest().Kn().Run(command...)
+	validateExportedService(r.T(), r.KnTest(), out.Stdout, expService)
 	r.AssertNoError(out)
 }
 
-func serviceExportWithRevisions(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName string, expServiceList servingv1.ServiceList, options ...string) {
+func serviceExportWithRevisions(r *test.KnRunResultCollector, serviceName string, expServiceList servingv1.ServiceList, options ...string) {
 	command := []string{"service", "export", serviceName}
 	command = append(command, options...)
-	out := it.Kn().Run(command...)
-	validateExportedServiceList(t, it, out.Stdout, expServiceList)
+	out := r.KnTest().Kn().Run(command...)
+	validateExportedServiceList(r.T(), r.KnTest(), out.Stdout, expServiceList)
 	r.AssertNoError(out)
 }
 

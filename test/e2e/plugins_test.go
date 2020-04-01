@@ -96,26 +96,31 @@ func TestPluginWithoutLookup(t *testing.T) {
 	pc, oldPath := setupPluginTestConfigWithNewPath(t)
 	defer tearDownWithPath(pc, oldPath)
 
-	r := test.NewKnRunResultCollector(t)
+	it, err := test.NewKnTest()
+	assert.NilError(t, err)
+
+	r := test.NewKnRunResultCollector(t, it)
 	defer r.DumpIfFailed()
 
 	knFlags := []string{fmt.Sprintf("--plugins-dir=%s", pc.knPluginsDir), "--lookup-plugins=false"}
 
 	t.Log("list plugin in --plugins-dir")
-	listPlugin(t, r, knFlags, []string{pc.knPluginPath}, []string{})
+	listPlugin(r, knFlags, []string{pc.knPluginPath}, []string{})
 
 	t.Log("execute plugin in --plugins-dir")
-	runPlugin(t, r, knFlags, "helloe2e", []string{"e2e", "test"}, []string{"Hello Knative, I'm a Kn plugin", "I received arguments: e2e"})
+	runPlugin(r, knFlags, "helloe2e", []string{"e2e", "test"}, []string{"Hello Knative, I'm a Kn plugin", "I received arguments: e2e"})
 
 	t.Log("does not list any other plugin in $PATH")
-	listPlugin(t, r, knFlags, []string{pc.knPluginPath}, []string{pc.knPluginPath2})
+	listPlugin(r, knFlags, []string{pc.knPluginPath}, []string{pc.knPluginPath2})
 
 	t.Log("with --lookup-plugins is true")
 }
 
 func TestPluginWithLookup(t *testing.T) {
+	it, err := test.NewKnTest()
+	assert.NilError(t, err)
 
-	r := test.NewKnRunResultCollector(t)
+	r := test.NewKnRunResultCollector(t, it)
 	defer r.DumpIfFailed()
 
 	pc := pluginTestConfig{}
@@ -125,28 +130,33 @@ func TestPluginWithLookup(t *testing.T) {
 	knFlags := []string{fmt.Sprintf("--plugins-dir=%s", pc.knPluginsDir), "--lookup-plugins=true"}
 
 	t.Log("list plugin in --plugins-dir")
-	listPlugin(t, r, knFlags, []string{pc.knPluginPath}, []string{pc.knPluginPath2})
+	listPlugin(r, knFlags, []string{pc.knPluginPath}, []string{pc.knPluginPath2})
 
 	t.Log("execute plugin in --plugins-dir")
-	runPlugin(t, r, knFlags, "helloe2e", []string{}, []string{"Hello Knative, I'm a Kn plugin"})
+	runPlugin(r, knFlags, "helloe2e", []string{}, []string{"Hello Knative, I'm a Kn plugin"})
 }
 
 func TestListPluginInPath(t *testing.T) {
+	it, err := test.NewKnTest()
+	assert.NilError(t, err)
 
-	r := test.NewKnRunResultCollector(t)
+	r := test.NewKnRunResultCollector(t, it)
 
 	pc, oldPath := setupPluginTestConfigWithNewPath(t)
 	defer tearDownWithPath(pc, oldPath)
 
 	t.Log("list plugin in $PATH")
 	knFlags := []string{fmt.Sprintf("--plugins-dir=%s", pc.knPluginsDir), "--lookup-plugins=true"}
-	listPlugin(t, r, knFlags, []string{pc.knPluginPath, pc.knPluginPath2}, []string{})
+	listPlugin(r, knFlags, []string{pc.knPluginPath, pc.knPluginPath2}, []string{})
 
 	r.DumpIfFailed()
 }
 
 func TestExecutePluginInPath(t *testing.T) {
-	r := test.NewKnRunResultCollector(t)
+	it, err := test.NewKnTest()
+	assert.NilError(t, err)
+
+	r := test.NewKnRunResultCollector(t, it)
 	defer r.DumpIfFailed()
 
 	pc, oldPath := setupPluginTestConfigWithNewPath(t)
@@ -154,7 +164,7 @@ func TestExecutePluginInPath(t *testing.T) {
 
 	t.Log("execute plugin in $PATH")
 	knFlags := []string{fmt.Sprintf("--plugins-dir=%s", pc.knPluginsDir), "--lookup-plugins=true"}
-	runPlugin(t, r, knFlags, "hello2e2e", []string{}, []string{"Hello Knative, I'm a Kn plugin"})
+	runPlugin(r, knFlags, "hello2e2e", []string{}, []string{"Hello Knative, I'm a Kn plugin"})
 }
 
 func setupPluginTestConfigWithNewPath(t *testing.T) (pluginTestConfig, string) {
@@ -172,16 +182,16 @@ func tearDownWithPath(pc pluginTestConfig, oldPath string) {
 
 // Private
 
-func listPlugin(t *testing.T, r *test.KnRunResultCollector, knFlags []string, expectedPlugins []string, unexpectedPlugins []string) {
+func listPlugin(r *test.KnRunResultCollector, knFlags []string, expectedPlugins []string, unexpectedPlugins []string) {
 	knArgs := append(knFlags, "plugin", "list")
 
 	out := test.Kn{}.Run(knArgs...)
 	r.AssertNoError(out)
-	assert.Check(t, util.ContainsAll(out.Stdout, expectedPlugins...))
-	assert.Check(t, util.ContainsNone(out.Stdout, unexpectedPlugins...))
+	assert.Check(r.T(), util.ContainsAll(out.Stdout, expectedPlugins...))
+	assert.Check(r.T(), util.ContainsNone(out.Stdout, unexpectedPlugins...))
 }
 
-func runPlugin(t *testing.T, r *test.KnRunResultCollector, knFlags []string, pluginName string, args []string, expectedOutput []string) {
+func runPlugin(r *test.KnRunResultCollector, knFlags []string, pluginName string, args []string, expectedOutput []string) {
 	knArgs := append([]string{}, knFlags...)
 	knArgs = append(knArgs, pluginName)
 	knArgs = append(knArgs, args...)
@@ -189,6 +199,6 @@ func runPlugin(t *testing.T, r *test.KnRunResultCollector, knFlags []string, plu
 	out := test.Kn{}.Run(knArgs...)
 	r.AssertNoError(out)
 	for _, output := range expectedOutput {
-		assert.Check(t, util.ContainsAll(out.Stdout, output))
+		assert.Check(r.T(), util.ContainsAll(out.Stdout, output))
 	}
 }

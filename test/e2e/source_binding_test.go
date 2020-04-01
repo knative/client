@@ -34,41 +34,41 @@ func TestSourceBinding(t *testing.T) {
 		assert.NilError(t, it.Teardown())
 	}()
 
-	r := test.NewKnRunResultCollector(t)
+	r := test.NewKnRunResultCollector(t, it)
 	defer r.DumpIfFailed()
 
-	serviceCreate(t, it, r, "testsvc0")
+	serviceCreate(r, "testsvc0")
 
 	t.Log("create source binding")
-	sourceBindingCreate(t, it, r, "my-binding0", "Deployment:apps/v1:myapp", "svc:testsvc0")
+	sourceBindingCreate(r, "my-binding0", "Deployment:apps/v1:myapp", "svc:testsvc0")
 
 	t.Log("delete source binding")
-	sourceBindingDelete(t, it, r, "my-binding0")
+	sourceBindingDelete(r, "my-binding0")
 
 	t.Log("update source binding")
-	sourceBindingCreate(t, it, r, "my-binding1", "Deployment:apps/v1:myapp", "svc:testsvc0")
-	serviceCreate(t, it, r, "testsvc1")
-	sourceBindingUpdate(t, it, r, "my-binding1", "Deployment:apps/v1:myapp", "svc:testsvc1")
+	sourceBindingCreate(r, "my-binding1", "Deployment:apps/v1:myapp", "svc:testsvc0")
+	serviceCreate(r, "testsvc1")
+	sourceBindingUpdate(r, "my-binding1", "Deployment:apps/v1:myapp", "svc:testsvc1")
 	jpSinkRefNameInSpec := "jsonpath={.spec.sink.ref.name}"
 	out, err := getResourceFieldsWithJSONPath(t, it, "sinkbindings.sources.knative.dev", "my-binding1", jpSinkRefNameInSpec)
 	assert.NilError(t, err)
 	assert.Equal(t, out, "testsvc1")
 }
 
-func sourceBindingCreate(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, bindingName string, subject string, sink string) {
-	out := it.Kn().Run("source", "binding", "create", bindingName, "--subject", subject, "--sink", sink)
+func sourceBindingCreate(r *test.KnRunResultCollector, bindingName string, subject string, sink string) {
+	out := r.KnTest().Kn().Run("source", "binding", "create", bindingName, "--subject", subject, "--sink", sink)
 	r.AssertNoError(out)
-	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "Sink", "binding", bindingName, "created", "namespace", it.Kn().Namespace()))
+	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "Sink", "binding", bindingName, "created", "namespace", r.KnTest().Kn().Namespace()))
 }
 
-func sourceBindingDelete(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, bindingName string) {
-	out := it.Kn().Run("source", "binding", "delete", bindingName)
+func sourceBindingDelete(r *test.KnRunResultCollector, bindingName string) {
+	out := r.KnTest().Kn().Run("source", "binding", "delete", bindingName)
 	r.AssertNoError(out)
-	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "Sink", "binding", bindingName, "deleted", "namespace", it.Kn().Namespace()))
+	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "Sink", "binding", bindingName, "deleted", "namespace", r.KnTest().Kn().Namespace()))
 }
 
-func sourceBindingUpdate(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, bindingName string, subject string, sink string) {
-	out := it.Kn().Run("source", "binding", "update", bindingName, "--subject", subject, "--sink", sink)
+func sourceBindingUpdate(r *test.KnRunResultCollector, bindingName string, subject string, sink string) {
+	out := r.KnTest().Kn().Run("source", "binding", "update", bindingName, "--subject", subject, "--sink", sink)
 	r.AssertNoError(out)
-	assert.Check(t, util.ContainsAll(out.Stdout, bindingName, "updated", "namespace", it.Kn().Namespace()))
+	assert.Check(r.T(), util.ContainsAll(out.Stdout, bindingName, "updated", "namespace", r.KnTest().Kn().Namespace()))
 }
