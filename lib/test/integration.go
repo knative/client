@@ -44,7 +44,7 @@ type KnTest struct {
 	kn        Kn
 }
 
-// NewIntegrationTest creates a new ItegrationTest object
+// NewKnTest creates a new KnTest object
 func NewKnTest() (*KnTest, error) {
 	ns := NextNamespace()
 
@@ -68,7 +68,7 @@ func (test *KnTest) Teardown() error {
 	return DeleteNamespace(test.namespace)
 }
 
-// Teardown clean up
+// Kn object used by this KnTest
 func (test *KnTest) Kn() Kn {
 	return test.kn
 }

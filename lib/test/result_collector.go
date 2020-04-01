@@ -49,12 +49,12 @@ type KnRunResultCollector struct {
 func NewKnRunResultCollector(t *testing.T) *KnRunResultCollector {
 	return &KnRunResultCollector{
 		results:    []KnRunResult{},
-		t:          t,
 		extraDumps: []string{},
+		t:          t,
 	}
 }
 
-// AssertError helper to assert no error on result
+// AssertNoError helper to assert no error on result
 func (c *KnRunResultCollector) AssertNoError(result KnRunResult) {
 	c.results = append(c.results, result)
 	if result.Error != nil {

@@ -33,7 +33,7 @@ type Kn struct {
 	namespace string
 }
 
-// New Kn object
+// NewKn object
 func NewKn() Kn {
 	return Kn{}
 }
