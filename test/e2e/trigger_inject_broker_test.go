@@ -21,45 +21,47 @@ import (
 	"testing"
 
 	"gotest.tools/assert"
+
+	"knative.dev/client/lib/test"
 	"knative.dev/client/pkg/util"
 )
 
 func TestInjectBrokerTrigger(t *testing.T) {
 	t.Parallel()
-	test, err := NewE2eTest()
+	it, err := test.NewKnTest()
 	assert.NilError(t, err)
 	defer func() {
-		assert.NilError(t, test.Teardown())
+		assert.NilError(t, it.Teardown())
 	}()
 
-	r := NewKnRunResultCollector(t)
+	r := test.NewKnRunResultCollector(t)
 	defer r.DumpIfFailed()
 
 	assert.NilError(t, err)
 
-	test.serviceCreate(t, r, "sinksvc0")
-	test.serviceCreate(t, r, "sinksvc1")
+	serviceCreate(t, it, r, "sinksvc0")
+	serviceCreate(t, it, r, "sinksvc1")
 
 	t.Log("create triggers and list them")
-	test.triggerCreateWithInject(t, r, "trigger1", "sinksvc0", []string{"a=b"})
-	test.triggerCreateWithInject(t, r, "trigger2", "sinksvc1", []string{"type=knative.dev.bar", "source=ping"})
-	test.verifyTriggerList(t, r, "trigger1", "trigger2")
-	test.triggerDelete(t, r, "trigger1")
-	test.triggerDelete(t, r, "trigger2")
+	triggerCreateWithInject(t, it, r, "trigger1", "sinksvc0", []string{"a=b"})
+	triggerCreateWithInject(t, it, r, "trigger2", "sinksvc1", []string{"type=knative.dev.bar", "source=ping"})
+	verifyTriggerList(t, it, r, "trigger1", "trigger2")
+	triggerDelete(t, it, r, "trigger1")
+	triggerDelete(t, it, r, "trigger2")
 
 	t.Log("create trigger with error")
-	out := test.kn.Run("trigger", "create", "errorTrigger", "--broker", "mybroker", "--inject-broker",
+	out := it.Kn().Run("trigger", "create", "errorTrigger", "--broker", "mybroker", "--inject-broker",
 		"--sink", "svc:sinksvc0", "--filter", "a=b")
 	r.AssertError(out)
 	assert.Check(t, util.ContainsAllIgnoreCase(out.Stderr, "broker", "name", "'default'", "--inject-broker", "flag"))
 }
 
-func (test *e2eTest) triggerCreateWithInject(t *testing.T, r *KnRunResultCollector, name string, sinksvc string, filters []string) {
+func triggerCreateWithInject(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, name string, sinksvc string, filters []string) {
 	args := []string{"trigger", "create", name, "--broker", "default", "--inject-broker", "--sink", "svc:" + sinksvc}
 	for _, v := range filters {
 		args = append(args, "--filter", v)
 	}
-	out := test.kn.Run(args...)
+	out := it.Kn().Run(args...)
 	r.AssertNoError(out)
-	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "Trigger", name, "created", "namespace", test.kn.namespace))
+	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "Trigger", name, "created", "namespace", it.Kn().Namespace()))
 }

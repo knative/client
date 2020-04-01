@@ -20,16 +20,18 @@ import (
 	"testing"
 
 	"gotest.tools/assert"
+
+	"knative.dev/client/lib/test"
 	"knative.dev/client/pkg/util"
 )
 
 func TestVersion(t *testing.T) {
 	t.Parallel()
 
-	r := NewKnRunResultCollector(t)
+	r := test.NewKnRunResultCollector(t)
 	defer r.DumpIfFailed()
 
-	out := kn{}.Run("version")
+	out := test.Kn{}.Run("version")
 	r.AssertNoError(out)
 	assert.Check(t, util.ContainsAll(out.Stdout, "Version"))
 }

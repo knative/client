@@ -23,12 +23,14 @@ import (
 
 	"gotest.tools/assert"
 
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"knative.dev/pkg/ptr"
 	"sigs.k8s.io/yaml"
 
+	"knative.dev/client/lib/test"
+
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
@@ -36,60 +38,64 @@ type expectedServiceOption func(*servingv1.Service)
 
 func TestServiceExportImportApply(t *testing.T) {
 	t.Parallel()
-	test, err := NewE2eTest()
+	it, err := test.NewKnTest()
 	assert.NilError(t, err)
 	defer func() {
-		assert.NilError(t, test.Teardown())
+		assert.NilError(t, it.Teardown())
 	}()
 
-	r := NewKnRunResultCollector(t)
+	r := test.NewKnRunResultCollector(t)
 	defer r.DumpIfFailed()
 
 	t.Log("create service with byo revision")
-	test.serviceCreateWithOptions(t, r, "hello", "--revision-name", "rev1")
+	serviceCreateWithOptions(t, it, r, "hello", "--revision-name", "rev1")
 
 	t.Log("export service and compare")
-	test.serviceExport(t, r, "hello", getSvc(withName("hello"), withRevisionName("hello-rev1"), withAnnotations()), "-o", "json")
+	serviceExport(t, it, r, "hello", getSvc(withName("hello"), withRevisionName("hello-rev1"), withAnnotations()), "-o", "json")
 
 	t.Log("update service - add env variable")
-	test.serviceUpdateWithOptions(t, r, "hello", "--env", "key1=val1", "--revision-name", "rev2", "--no-lock-to-digest")
-	test.serviceExport(t, r, "hello", getSvc(withName("hello"), withRevisionName("hello-rev2"), withEnv("key1", "val1")), "-o", "json")
-	test.serviceExportWithRevisions(t, r, "hello", getSvcListWithOneRevision(), "--with-revisions", "-o", "yaml")
+	serviceUpdateWithOptions(t, it, r, "hello", "--env", "key1=val1", "--revision-name", "rev2", "--no-lock-to-digest")
+	serviceExport(t, it, r, "hello", getSvc(withName("hello"), withRevisionName("hello-rev2"), withEnv("key1", "val1")), "-o", "json")
+	serviceExportWithRevisions(t, it, r, "hello", getSvcListWithOneRevision(), "--with-revisions", "-o", "yaml")
 
 	t.Log("update service with tag and split traffic")
-	test.serviceUpdateWithOptions(t, r, "hello", "--tag", "hello-rev1=candidate", "--traffic", "candidate=2%,@latest=98%")
-	test.serviceExportWithRevisions(t, r, "hello", getSvcListWithTags(), "--with-revisions", "-o", "yaml")
+	serviceUpdateWithOptions(t, it, r, "hello", "--tag", "hello-rev1=candidate", "--traffic", "candidate=2%,@latest=98%")
+	serviceExportWithRevisions(t, it, r, "hello", getSvcListWithTags(), "--with-revisions", "-o", "yaml")
 
 	t.Log("update service - untag, add env variable and traffic split")
-	test.serviceUpdateWithOptions(t, r, "hello", "--untag", "candidate")
-	test.serviceUpdateWithOptions(t, r, "hello", "--env", "key2=val2", "--revision-name", "rev3", "--traffic", "hello-rev1=30,hello-rev2=30,hello-rev3=40")
-	test.serviceExportWithRevisions(t, r, "hello", getSvcListWOTags(), "--with-revisions", "-o", "yaml")
+	serviceUpdateWithOptions(t, it, r, "hello", "--untag", "candidate")
+	serviceUpdateWithOptions(t, it, r, "hello", "--env", "key2=val2", "--revision-name", "rev3", "--traffic", "hello-rev1=30,hello-rev2=30,hello-rev3=40")
+	serviceExportWithRevisions(t, it, r, "hello", getSvcListWOTags(), "--with-revisions", "-o", "yaml")
 }
 
-func (test *e2eTest) serviceExport(t *testing.T, r *KnRunResultCollector, serviceName string, expService servingv1.Service, options ...string) {
+// Private methods
+
+func serviceExport(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName string, expService servingv1.Service, options ...string) {
 	command := []string{"service", "export", serviceName}
 	command = append(command, options...)
-	out := test.kn.Run(command...)
-	validateExportedService(t, out.Stdout, expService)
+	out := it.Kn().Run(command...)
+	validateExportedService(t, it, out.Stdout, expService)
 	r.AssertNoError(out)
 }
 
-func validateExportedService(t *testing.T, out string, expService servingv1.Service) {
+func serviceExportWithRevisions(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName string, expServiceList servingv1.ServiceList, options ...string) {
+	command := []string{"service", "export", serviceName}
+	command = append(command, options...)
+	out := it.Kn().Run(command...)
+	validateExportedServiceList(t, it, out.Stdout, expServiceList)
+	r.AssertNoError(out)
+}
+
+// Private functions
+
+func validateExportedService(t *testing.T, it *test.KnTest, out string, expService servingv1.Service) {
 	actSvcJSON := servingv1.Service{}
 	err := json.Unmarshal([]byte(out), &actSvcJSON)
 	assert.NilError(t, err)
 	assert.DeepEqual(t, &expService, &actSvcJSON)
 }
 
-func (test *e2eTest) serviceExportWithRevisions(t *testing.T, r *KnRunResultCollector, serviceName string, expServiceList servingv1.ServiceList, options ...string) {
-	command := []string{"service", "export", serviceName}
-	command = append(command, options...)
-	out := test.kn.Run(command...)
-	validateExportedServiceList(t, out.Stdout, expServiceList)
-	r.AssertNoError(out)
-}
-
-func validateExportedServiceList(t *testing.T, out string, expServiceList servingv1.ServiceList) {
+func validateExportedServiceList(t *testing.T, it *test.KnTest, out string, expServiceList servingv1.ServiceList) {
 	actYaml := servingv1.ServiceList{}
 	err := yaml.Unmarshal([]byte(out), &actYaml)
 	assert.NilError(t, err)
@@ -108,7 +114,7 @@ func getSvc(options ...expectedServiceOption) servingv1.Service {
 							Containers: []corev1.Container{
 								{
 									Name:      "user-container",
-									Image:     KnDefaultTestImage,
+									Image:     test.KnDefaultTestImage,
 									Resources: corev1.ResourceRequirements{},
 									ReadinessProbe: &corev1.Probe{
 										SuccessThreshold: int32(1),

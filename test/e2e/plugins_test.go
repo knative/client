@@ -25,6 +25,7 @@ import (
 
 	"gotest.tools/assert"
 
+	"knative.dev/client/lib/test"
 	"knative.dev/client/pkg/util"
 )
 
@@ -95,7 +96,7 @@ func TestPluginWithoutLookup(t *testing.T) {
 	pc, oldPath := setupPluginTestConfigWithNewPath(t)
 	defer tearDownWithPath(pc, oldPath)
 
-	r := NewKnRunResultCollector(t)
+	r := test.NewKnRunResultCollector(t)
 	defer r.DumpIfFailed()
 
 	knFlags := []string{fmt.Sprintf("--plugins-dir=%s", pc.knPluginsDir), "--lookup-plugins=false"}
@@ -114,7 +115,7 @@ func TestPluginWithoutLookup(t *testing.T) {
 
 func TestPluginWithLookup(t *testing.T) {
 
-	r := NewKnRunResultCollector(t)
+	r := test.NewKnRunResultCollector(t)
 	defer r.DumpIfFailed()
 
 	pc := pluginTestConfig{}
@@ -132,7 +133,7 @@ func TestPluginWithLookup(t *testing.T) {
 
 func TestListPluginInPath(t *testing.T) {
 
-	r := NewKnRunResultCollector(t)
+	r := test.NewKnRunResultCollector(t)
 
 	pc, oldPath := setupPluginTestConfigWithNewPath(t)
 	defer tearDownWithPath(pc, oldPath)
@@ -145,7 +146,7 @@ func TestListPluginInPath(t *testing.T) {
 }
 
 func TestExecutePluginInPath(t *testing.T) {
-	r := NewKnRunResultCollector(t)
+	r := test.NewKnRunResultCollector(t)
 	defer r.DumpIfFailed()
 
 	pc, oldPath := setupPluginTestConfigWithNewPath(t)
@@ -171,21 +172,21 @@ func tearDownWithPath(pc pluginTestConfig, oldPath string) {
 
 // Private
 
-func listPlugin(t *testing.T, r *KnRunResultCollector, knFlags []string, expectedPlugins []string, unexpectedPlugins []string) {
+func listPlugin(t *testing.T, r *test.KnRunResultCollector, knFlags []string, expectedPlugins []string, unexpectedPlugins []string) {
 	knArgs := append(knFlags, "plugin", "list")
 
-	out := kn{}.Run(knArgs...)
+	out := test.Kn{}.Run(knArgs...)
 	r.AssertNoError(out)
 	assert.Check(t, util.ContainsAll(out.Stdout, expectedPlugins...))
 	assert.Check(t, util.ContainsNone(out.Stdout, unexpectedPlugins...))
 }
 
-func runPlugin(t *testing.T, r *KnRunResultCollector, knFlags []string, pluginName string, args []string, expectedOutput []string) {
+func runPlugin(t *testing.T, r *test.KnRunResultCollector, knFlags []string, pluginName string, args []string, expectedOutput []string) {
 	knArgs := append([]string{}, knFlags...)
 	knArgs = append(knArgs, pluginName)
 	knArgs = append(knArgs, args...)
 
-	out := kn{}.Run(knArgs...)
+	out := test.Kn{}.Run(knArgs...)
 	r.AssertNoError(out)
 	for _, output := range expectedOutput {
 		assert.Check(t, util.ContainsAll(out.Stdout, output))
