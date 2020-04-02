@@ -24,6 +24,7 @@ import (
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
 	clientservingv1 "knative.dev/client/pkg/serving/v1"
+	"knative.dev/client/pkg/util"
 )
 
 // NewServiceListCommand represents 'kn service list' command
@@ -81,11 +82,15 @@ func NewServiceListCommand(p *commands.KnParams) *cobra.Command {
 				return a.ObjectMeta.Name < b.ObjectMeta.Name
 			})
 
-			err = printer.PrintObj(serviceList, cmd.OutOrStdout())
-			if err != nil {
-				return err
+			if serviceListFlags.GenericPrintFlags.OutputFlagSpecified() {
+				unstructedList, err := util.ToUnstructuredList(serviceList)
+				if err != nil {
+					return err
+				}
+				return printer.PrintObj(unstructedList, cmd.OutOrStdout())
 			}
-			return nil
+
+			return printer.PrintObj(serviceList, cmd.OutOrStdout())
 		},
 	}
 	commands.AddNamespaceFlags(serviceListCommand.Flags(), true)
