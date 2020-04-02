@@ -34,7 +34,7 @@ func TestVersion(t *testing.T) {
 	r := test.NewKnRunResultCollector(t, it)
 	defer r.DumpIfFailed()
 
-	out := it.Kn().Run("version")
+	out := r.KnTest().Kn().RunNoNamespace("version")
 	r.AssertNoError(out)
 	assert.Check(t, util.ContainsAll(out.Stdout, "Version"))
 }

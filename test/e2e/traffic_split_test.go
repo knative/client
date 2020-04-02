@@ -413,7 +413,7 @@ func TestTrafficSplit(t *testing.T) {
 }
 
 func verifyTargets(r *test.KnRunResultCollector, serviceName string, expectedTargets []TargetFields) {
-	out := serviceDescribeWithJsonPath(r, serviceName, targetsJsonPath)
+	out := serviceDescribeWithJSONPath(r, serviceName, targetsJsonPath)
 	assert.Check(r.T(), out != "")
 	actualTargets, err := splitTargets(out, targetsSeparator, len(expectedTargets))
 	assert.NilError(r.T(), err)
@@ -424,7 +424,7 @@ func verifyTargets(r *test.KnRunResultCollector, serviceName string, expectedTar
 	}
 }
 
-func serviceDescribeWithJsonPath(r *test.KnRunResultCollector, serviceName, jsonpath string) string {
+func serviceDescribeWithJSONPath(r *test.KnRunResultCollector, serviceName, jsonpath string) string {
 	out := r.KnTest().Kn().Run("service", "describe", serviceName, "-o", jsonpath)
 	r.AssertNoError(out)
 	return out.Stdout

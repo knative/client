@@ -106,10 +106,11 @@ func TestServiceOptions(t *testing.T) {
 		uid, err = strconv.ParseInt(uids, 10, 64)
 		assert.NilError(t, err)
 	}
+
 	serviceCreateWithOptions(r, "svc6", "--user", strconv.FormatInt(uid, 10))
-	validateUserId(r, "svc6", uid)
+	validateUserID(r, "svc6", uid)
 	serviceUpdate(r, "svc6", "--user", strconv.FormatInt(uid+1, 10))
-	validateUserId(r, "svc6", uid+1)
+	validateUserID(r, "svc6", uid+1)
 }
 
 func serviceCreateWithOptions(r *test.KnRunResultCollector, serviceName string, options ...string) {
@@ -177,7 +178,7 @@ func validateContainerField(r *test.KnRunResultCollector, serviceName, field, ex
 	r.AssertNoError(out)
 }
 
-func validateUserId(r *test.KnRunResultCollector, serviceName string, uid int64) {
+func validateUserID(r *test.KnRunResultCollector, serviceName string, uid int64) {
 	out := r.KnTest().Kn().Run("service", "describe", serviceName, "-ojson")
 	data := json.NewDecoder(strings.NewReader(out.Stdout))
 	data.UseNumber()

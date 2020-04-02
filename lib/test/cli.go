@@ -33,9 +33,14 @@ type Kn struct {
 	namespace string
 }
 
-// New Kn object
+// NewKn object
 func NewKn() Kn {
 	return Kn{}
+}
+
+// RunNoNamespace the 'kn' CLI with args but no namespace
+func (k Kn) RunNoNamespace(args ...string) KnRunResult {
+	return RunKn("", args)
 }
 
 // Run the 'kn' CLI with args
