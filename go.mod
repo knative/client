@@ -20,10 +20,10 @@ require (
 	k8s.io/apimachinery v0.17.0
 	k8s.io/cli-runtime v0.17.0
 	k8s.io/client-go v0.17.0
-	knative.dev/eventing v0.13.4
-	knative.dev/pkg v0.0.0-20200323231609-0840da9555a3
-	knative.dev/serving v0.13.1-0.20200324164309-ce10070bb7ef
-	knative.dev/test-infra v0.0.0-20200324183109-d81c66eea4e6
+	knative.dev/eventing v0.13.5
+	knative.dev/pkg v0.0.0-20200401184317-55250e6aab62
+	knative.dev/serving v0.13.1-0.20200402064017-bed443c6dcec
+	knative.dev/test-infra v0.0.0-20200401140617-163337c1d67d
 	sigs.k8s.io/yaml v1.1.0
 )
 
