@@ -41,7 +41,7 @@ func TestSourceApiServer(t *testing.T) {
 	it, err := test.NewKnTest()
 	assert.NilError(t, err)
 	defer func() {
-		err1 := tearDownForSourceApiServer(t, it)
+		err1 := tearDownForSourceAPIServer(t, it)
 		err2 := it.Teardown()
 		assert.NilError(t, err1)
 		assert.NilError(t, err2)
@@ -50,7 +50,7 @@ func TestSourceApiServer(t *testing.T) {
 	r := test.NewKnRunResultCollector(t)
 	defer r.DumpIfFailed()
 
-	setupForSourceApiServer(t, it)
+	setupForSourceAPIServer(t, it)
 	serviceCreate(t, it, r, "testsvc0")
 
 	t.Log("create apiserver sources with a sink to a service")
@@ -103,7 +103,7 @@ func apiServerSourceDelete(t *testing.T, it *test.KnTest, r *test.KnRunResultCol
 	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "apiserver", "source", sourceName, "deleted", "namespace", it.Kn().Namespace()))
 }
 
-func setupForSourceApiServer(t *testing.T, it *test.KnTest) {
+func setupForSourceAPIServer(t *testing.T, it *test.KnTest) {
 	_, err := test.NewKubectl(it.Kn().Namespace()).Run("create", "serviceaccount", testServiceAccount)
 	assert.NilError(t, err)
 
@@ -119,7 +119,7 @@ func setupForSourceApiServer(t *testing.T, it *test.KnTest) {
 	assert.NilError(t, err)
 }
 
-func tearDownForSourceApiServer(t *testing.T, it *test.KnTest) error {
+func tearDownForSourceAPIServer(t *testing.T, it *test.KnTest) error {
 	saCmd := []string{"delete", "serviceaccount", testServiceAccount}
 	_, err := test.NewKubectl(it.Kn().Namespace()).Run(saCmd...)
 	if err != nil {

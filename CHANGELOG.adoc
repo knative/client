@@ -20,7 +20,7 @@
 |===
 
 | 🐣
-| Refactor `e2e` common code into `lib/test/integration`
+| Refactor `e2e` common code into `lib/test`
 | https://github.com/knative/client/pull/765[#765]
 
 ## v0.13.1 (2020-03-25)
