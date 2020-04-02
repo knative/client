@@ -76,6 +76,16 @@ func (h *DefaultPluginHandler) Lookup(name string) (string, bool) {
 			return pluginDirPluginPath, true
 		}
 
+		// Try to match well-known file extensions on Windows
+		if runtime.GOOS == "windows" {
+			for _, ext := range []string{".bat", ".cmd", ".com", ".exe", ".ps1"} {
+				pathWithExt := pluginDirPluginPath + ext
+				if _, err = os.Stat(pathWithExt); !os.IsNotExist(err) {
+					return pathWithExt, true
+				}
+			}
+		}
+
 		// No plugins found in pluginsDir, try in PATH of that's an option
 		if h.LookupPluginsInPath {
 			pluginPath, err = exec.LookPath(pluginPath)
