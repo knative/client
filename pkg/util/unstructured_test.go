@@ -41,6 +41,13 @@ func TestToUnstructuredList(t *testing.T) {
 	unstructedList, err := ToUnstructuredList(&serviceList)
 	assert.NilError(t, err)
 	assert.DeepEqual(t, unstructedList, expectedList)
+
+	service1 := createService("s3")
+	expectedList = &unstructured.UnstructuredList{}
+	expectedList.Items = []unstructured.Unstructured{createUnstructured("s3")}
+	unstructedList, err = ToUnstructuredList(&service1)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, unstructedList, expectedList)
 }
 
 func createService(name string) servingv1.Service {
