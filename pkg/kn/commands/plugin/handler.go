@@ -80,7 +80,8 @@ func (h *DefaultPluginHandler) Lookup(name string) (string, bool) {
 		if runtime.GOOS == "windows" {
 			for _, ext := range []string{".bat", ".cmd", ".com", ".exe", ".ps1"} {
 				pathWithExt := pluginDirPluginPath + ext
-				if _, err = os.Stat(pathWithExt); !os.IsNotExist(err) {
+				_, err = os.Stat(pathWithExt)
+				if err == nil {
 					return pathWithExt, true
 				}
 			}
