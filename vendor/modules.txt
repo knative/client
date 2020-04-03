@@ -465,7 +465,7 @@ k8s.io/kube-openapi/pkg/util/proto
 k8s.io/utils/buffer
 k8s.io/utils/integer
 k8s.io/utils/trace
-# knative.dev/eventing v0.13.4
+# knative.dev/eventing v0.13.5
 knative.dev/eventing/pkg/apis/config
 knative.dev/eventing/pkg/apis/configs
 knative.dev/eventing/pkg/apis/configs/v1alpha1
@@ -497,7 +497,7 @@ knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha2/fake
 knative.dev/eventing/pkg/legacyclient/clientset/versioned/scheme
 knative.dev/eventing/pkg/legacyclient/clientset/versioned/typed/legacysources/v1alpha1
 knative.dev/eventing/pkg/logging
-# knative.dev/pkg v0.0.0-20200323231609-0840da9555a3
+# knative.dev/pkg v0.0.0-20200402224918-0cf29f826c40
 knative.dev/pkg/apis
 knative.dev/pkg/apis/duck
 knative.dev/pkg/apis/duck/v1
@@ -513,7 +513,7 @@ knative.dev/pkg/logging/logkey
 knative.dev/pkg/profiling
 knative.dev/pkg/ptr
 knative.dev/pkg/tracker
-# knative.dev/serving v0.13.1-0.20200324164309-ce10070bb7ef
+# knative.dev/serving v0.13.1-0.20200403065318-dc98e1cd54aa
 knative.dev/serving/pkg/apis/autoscaling
 knative.dev/serving/pkg/apis/autoscaling/v1alpha1
 knative.dev/serving/pkg/apis/config
@@ -527,7 +527,7 @@ knative.dev/serving/pkg/autoscaler/config
 knative.dev/serving/pkg/client/clientset/versioned/scheme
 knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1
 knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1/fake
-# knative.dev/test-infra v0.0.0-20200324183109-d81c66eea4e6
+# knative.dev/test-infra v0.0.0-20200402234318-01c151837ed8
 knative.dev/test-infra/scripts
 # sigs.k8s.io/kustomize v2.0.3+incompatible
 sigs.k8s.io/kustomize/pkg/commands/build
