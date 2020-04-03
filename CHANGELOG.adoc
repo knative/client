@@ -26,6 +26,10 @@
 | Fix plugin lookup with file ext on Windows
 | https://github.com/knative/client/pull/774[#774]
 
+| 🐛
+| correct error message when updating service
+| https://github.com/knative/client/pull/778[#778]
+
 |===
 
 ## v0.13.1 (2020-03-25)
