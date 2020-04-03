@@ -42,8 +42,15 @@ type WaitFlags struct {
 func (p *WaitFlags) AddConditionWaitFlags(command *cobra.Command, waitTimeoutDefault int, action, what, until string) {
 	waitUsage := fmt.Sprintf("%s %s and don't wait for it to be %s.", action, what, until)
 	//TODO: deprecated flag should be removed in next release
+
+	// Special-case 'delete' command so it comes back to the user immediately
+	noWaitDefault := false
+	if action == "Delete" {
+		noWaitDefault = true
+	}
+
 	command.Flags().BoolVar(&p.Async, "async", false, "DEPRECATED: please use --no-wait instead. "+waitUsage)
-	command.Flags().BoolVar(&p.NoWait, "no-wait", false, waitUsage)
+	command.Flags().BoolVar(&p.NoWait, "no-wait", noWaitDefault, waitUsage)
 
 	timeoutUsage := fmt.Sprintf("Seconds to wait before giving up on waiting for %s to be %s.", what, until)
 	command.Flags().IntVar(&p.TimeoutInSeconds, "wait-timeout", waitTimeoutDefault, timeoutUsage)
