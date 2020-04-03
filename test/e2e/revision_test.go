@@ -58,9 +58,7 @@ func TestRevision(t *testing.T) {
 	revisionDelete(t, it, r, revName)
 
 	t.Log("delete three revisions with one revision a nonexistent")
-
 	serviceUpdate(t, it, r, "hello", "--env", "TARGET=kn", "--port", "8888")
-
 	existRevision1 := findRevisionByGeneration(t, it, r, "hello", 1)
 	existRevision2 := findRevisionByGeneration(t, it, r, "hello", 2)
 	nonexistRevision := "hello-nonexist"
