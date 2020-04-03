@@ -60,6 +60,7 @@ func NewDefaultPluginHandler(validPrefixes []string, pluginsDir string, lookupPl
 }
 
 // Lookup implements PluginHandler
+// TODO: The current error handling is not optimal, and some errors may be lost. We should refactor the code in the future.
 func (h *DefaultPluginHandler) Lookup(name string) (string, bool) {
 	for _, prefix := range h.ValidPrefixes {
 		pluginPath := fmt.Sprintf("%s-%s", prefix, name)
@@ -72,7 +73,7 @@ func (h *DefaultPluginHandler) Lookup(name string) (string, bool) {
 
 		pluginDirPluginPath := filepath.Join(pluginDir, pluginPath)
 		_, err = os.Stat(pluginDirPluginPath)
-		if !os.IsNotExist(err) {
+		if err == nil {
 			return pluginDirPluginPath, true
 		}
 
