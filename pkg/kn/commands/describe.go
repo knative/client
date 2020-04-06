@@ -158,7 +158,6 @@ func sortConditions(conditions []apis.Condition) []apis.Condition {
 		default:
 			return false
 		}
-		return false
 	})
 	return ret
 }
