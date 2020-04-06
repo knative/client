@@ -27,7 +27,7 @@
 | https://github.com/knative/client/pull/774[#774]
 
 | 🐛
-| correct error message when updating service
+| Correct error message when updating service
 | https://github.com/knative/client/pull/778[#778]
 
 |===
