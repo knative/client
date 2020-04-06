@@ -62,7 +62,7 @@ func NewKnEventingClient(client client_v1alpha1.EventingV1alpha1Interface, names
 
 //CreateTrigger is used to create an instance of trigger
 func (c *knEventingClient) CreateTrigger(trigger *v1alpha1.Trigger) error {
-	trigger, err := c.client.Triggers(c.namespace).Create(trigger)
+	_, err := c.client.Triggers(c.namespace).Create(trigger)
 	if err != nil {
 		return kn_errors.GetError(err)
 	}
@@ -112,7 +112,7 @@ func (c *knEventingClient) ListTriggers() (*v1alpha1.TriggerList, error) {
 
 //CreateTrigger is used to create an instance of trigger
 func (c *knEventingClient) UpdateTrigger(trigger *v1alpha1.Trigger) error {
-	trigger, err := c.client.Triggers(c.namespace).Update(trigger)
+	_, err := c.client.Triggers(c.namespace).Update(trigger)
 	if err != nil {
 		return kn_errors.GetError(err)
 	}
