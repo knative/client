@@ -38,7 +38,7 @@ kn service update NAME [flags]
 ### Options
 
 ```
-      --annotation stringArray        Service annotation to set. name=value; you may provide this flag any number of times to set multiple annotations. To unset, specify the annotation name followed by a "-" (e.g., name-).
+  -a, --annotation stringArray        Service annotation to set. name=value; you may provide this flag any number of times to set multiple annotations. To unset, specify the annotation name followed by a "-" (e.g., name-).
       --arg stringArray               Add argument to the container command. Example: --arg myArg1 --arg --myArg2 --arg myArg3=3. You can use this flag multiple times.
       --async                         DEPRECATED: please use --no-wait instead. Update service and don't wait for it to be ready.
       --autoscale-window string       Duration to look back for making auto-scaling decisions. The service is scaled to zero if no request was received in during that time. (eg: 10s)

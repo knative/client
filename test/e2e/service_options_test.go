@@ -87,6 +87,13 @@ func TestServiceOptions(t *testing.T) {
 	validateServiceAnnotations(r, "svc3", map[string]string{"alpha": "direwolf", "brave": ""})
 	serviceDelete(r, "svc3")
 
+	t.Log("create, update and validate service with annotations but -a")
+	serviceCreateWithOptions(r, "svc3a", "-a", "alpha=wolf", "-a", "brave=horse")
+	validateServiceAnnotations(r, "svc3a", map[string]string{"alpha": "wolf", "brave": "horse"})
+	serviceUpdate(r, "svc3a", "-a", "alpha=direwolf", "-a", "brave-")
+	validateServiceAnnotations(r, "svc3a", map[string]string{"alpha": "direwolf", "brave": ""})
+	serviceDelete(r, "svc3a")
+
 	t.Log("create, update and validate service with autoscale window option")
 	serviceCreateWithOptions(r, "svc4", "--autoscale-window", "1m")
 	validateAutoscaleWindow(r, "svc4", "1m")
