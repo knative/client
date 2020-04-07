@@ -66,7 +66,7 @@ func newKnSinkBindingClient(client clientv1alpha2.SinkBindingInterface, namespac
 
 //CreateSinkBinding is used to create an instance of binding
 func (c *knBindingClient) CreateSinkBinding(binding *v1alpha2.SinkBinding) error {
-	binding, err := c.client.Create(binding)
+	_, err := c.client.Create(binding)
 	if err != nil {
 		return knerrors.GetError(err)
 	}
@@ -116,7 +116,7 @@ func (c *knBindingClient) ListSinkBindings() (*v1alpha2.SinkBindingList, error) 
 
 //CreateSinkBinding is used to create an instance of binding
 func (c *knBindingClient) UpdateSinkBinding(binding *v1alpha2.SinkBinding) error {
-	binding, err := c.client.Update(binding)
+	_, err := c.client.Update(binding)
 	if err != nil {
 		return knerrors.GetError(err)
 	}

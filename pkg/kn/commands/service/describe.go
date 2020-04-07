@@ -81,7 +81,7 @@ func NewServiceDescribeCommand(p *commands.KnParams) *cobra.Command {
 		Short: "Show details of a service",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
-				return errors.New("'kn service describe' requires name of the service as single argument")
+				return errors.New("'service describe' requires the service name given as single argument")
 			}
 			serviceName := args[0]
 

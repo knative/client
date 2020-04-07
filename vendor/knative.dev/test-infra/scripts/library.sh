@@ -487,9 +487,10 @@ function run_go_tool() {
     if [[ ${action} == "get" && $(pwd) == "${REPO_ROOT_DIR}" ]]; then
       local temp_dir="$(mktemp -d)"
       local install_failed=0
-      pushd "${temp_dir}"
+      # Swallow the output as we are returning the stdout in the end.
+      pushd "${temp_dir}" > /dev/null 2>&1
       go ${action} $1 || install_failed=1
-      popd
+      popd > /dev/null 2>&1
       (( install_failed )) && return ${install_failed}
     else
       go ${action} $1
