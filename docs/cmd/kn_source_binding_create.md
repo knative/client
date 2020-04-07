@@ -7,7 +7,7 @@ Create a sink binding.
 Create a sink binding.
 
 ```
-kn source binding create NAME --subject SCHEDULE --sink SINK --ce-override KEY=VALUE [flags]
+kn source binding create NAME --subject SUBJECT --sink SINK --ce-override KEY=VALUE [flags]
 ```
 
 ### Examples
