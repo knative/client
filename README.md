@@ -1,5 +1,11 @@
 # Kn
 
+[![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white)](https://pkg.go.dev/knative.dev/client)
+[![Go Report Card](https://goreportcard.com/badge/knative/client)](https://goreportcard.com/report/knative/client)
+[![Releases](https://img.shields.io/github/release-pre/knative/client.svg)](https://github.com/knative/client/releases)
+[![LICENSE](https://img.shields.io/github/license/knative/client.svg)](https://github.com/knative/client/blob/master/LICENSE)
+[![Slack Status](https://img.shields.io/badge/slack-join_chat-white.svg?logo=slack&style=social)](https://knative.slack.com)
+
 The Knative client `kn` is your door to the [Knative](https://knative.dev)
 world. It allows you to create Knative resources interactively from the command
 line or from within Shell scripts.
