@@ -49,7 +49,7 @@ func TestBasicWorkflow(t *testing.T) {
 	serviceDescribe(r, "hello")
 
 	t.Log("return list --output name about hello service")
-	serviceListOutput(t, it, r, "hello")
+	serviceListOutput(r, "hello")
 
 	t.Log("update hello service's configuration and return no error")
 	serviceUpdate(r, "hello", "--env", "TARGET=kn", "--port", "8888")
@@ -116,7 +116,7 @@ func serviceDescribe(r *test.KnRunResultCollector, serviceName string) {
 	assert.Assert(r.T(), util.ContainsAll(out.Stdout, "Name", "Namespace", "URL", "Age", "Revisions"))
 }
 
-func serviceListOutput(r *test.KnRunResultCollector, r *test.KnRunResultCollector, serviceName string) {
+func serviceListOutput(r *test.KnRunResultCollector, serviceName string) {
 	out := r.KnTest().Kn().Run("service", "list", serviceName, "--output", "name")
 	r.AssertNoError(out)
 	assert.Check(r.T(), util.ContainsAll(out.Stdout, serviceName, "service.serving.knative.dev"))

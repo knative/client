@@ -41,6 +41,10 @@ func NewTablePrinter(options PrintOptions) *HumanReadablePrinter {
 
 // PrintObj prints the obj in a human-friendly format according to the type of the obj.
 func (h *HumanReadablePrinter) PrintObj(obj runtime.Object, output io.Writer) error {
+	if obj == nil {
+		return nil
+	}
+
 	w, found := output.(*tabwriter.Writer)
 	if !found {
 		w = NewTabWriter(output)

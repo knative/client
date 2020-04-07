@@ -15,11 +15,15 @@
 package flags
 
 import (
+	"io"
+
 	"github.com/spf13/cobra"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 
 	"knative.dev/client/pkg/kn/commands"
 	hprinters "knative.dev/client/pkg/printers"
+	"knative.dev/client/pkg/util"
 )
 
 // ListFlags composes common printer flag structs
@@ -54,6 +58,24 @@ func (f *ListPrintFlags) ToPrinter() (hprinters.ResourcePrinter, error) {
 		return nil, err
 	}
 	return p, nil
+}
+
+// Print is to print an Object to a Writer
+func (f *ListPrintFlags) Print(obj runtime.Object, w io.Writer) error {
+	printer, err := f.ToPrinter()
+	if err != nil {
+		return err
+	}
+
+	if f.GenericPrintFlags.OutputFlagSpecified() {
+		unstructuredList, err := util.ToUnstructuredList(obj)
+		if err != nil {
+			return err
+		}
+		return printer.PrintObj(unstructuredList, w)
+	}
+
+	return printer.PrintObj(obj, w)
 }
 
 // AddFlags receives a *cobra.Command reference and binds
