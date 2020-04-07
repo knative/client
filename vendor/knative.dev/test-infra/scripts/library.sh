@@ -480,7 +480,7 @@ function start_latest_knative_eventing() {
 function run_go_tool() {
   local tool=$2
   if [[ -z "$(which ${tool})" ]]; then
-    local action=get
+    local action="get -u"
     [[ $1 =~ ^[\./].* ]] && action=install
     # Avoid running `go get` from root dir of the repository, as it can change go.sum and go.mod files.
     # See discussions in https://github.com/golang/go/issues/27643.
