@@ -195,9 +195,17 @@ func TestServiceUpdateImage(t *testing.T) {
 func TestServiceUpdateWithMultipleImages(t *testing.T) {
 	orig := newEmptyService()
 	_, _, _, err := fakeServiceUpdate(orig, []string{
-		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--image", "gcr.io/bar/foo:baz", "--no-wait"})
+		"service", "update", "foo", "--image", "gcr.io/foo/bar:baz", "--image", "gcr.io/bar/foo:baz", "--no-wait"})
 
 	assert.Assert(t, util.ContainsAll(err.Error(), "\"--image\"", "\"gcr.io/bar/foo:baz\"", "flag", "once"))
+}
+
+func TestServiceUpdateWithMultipleNames(t *testing.T) {
+	orig := newEmptyService()
+	_, _, _, err := fakeServiceUpdate(orig, []string{
+		"service", "update", "foo", "foo1", "--image", "gcr.io/foo/bar:baz", "--no-wait"})
+
+	assert.Assert(t, util.ContainsAll(err.Error(), "'service update' requires the service name given as single argument"))
 }
 
 func TestServiceUpdateCommand(t *testing.T) {

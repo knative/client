@@ -60,7 +60,7 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 		Example: updateExample,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
-				return errors.New("requires the service name")
+				return errors.New("'service update' requires the service name given as single argument")
 			}
 
 			namespace, err := p.GetNamespace(cmd)

@@ -143,6 +143,13 @@ func TestServiceCreateWithMultipleImages(t *testing.T) {
 	assert.Assert(t, util.ContainsAll(err.Error(), "\"--image\"", "\"gcr.io/bar/foo:baz\"", "flag", "once"))
 }
 
+func TestServiceCreateWithMultipleNames(t *testing.T) {
+	_, _, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "foo1", "--image", "gcr.io/foo/bar:baz", "--no-wait"}, false)
+
+	assert.Assert(t, util.ContainsAll(err.Error(), "'service create' requires the service name given as single argument"))
+}
+
 func TestServiceCreateImageSync(t *testing.T) {
 	action, created, output, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz"}, false)

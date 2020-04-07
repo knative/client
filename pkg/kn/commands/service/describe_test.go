@@ -75,6 +75,16 @@ func TestServiceDescribeBasic(t *testing.T) {
 	r.Validate()
 }
 
+func TestServiceDescribeWithMultipleNames(t *testing.T) {
+	client := knclient.NewMockKnServiceClient(t)
+	r := client.Recorder()
+	createTestService("foo", []string{"rev1"}, goodConditions())
+	_, err := executeServiceCommand(client, "describe", "foo", "foo1")
+
+	assert.Assert(t, util.ContainsAll(err.Error(), "'service describe' requires the service name given as single argument"))
+	r.Validate()
+}
+
 func TestServiceDescribeSad(t *testing.T) {
 	client := knclient.NewMockKnServiceClient(t)
 	r := client.Recorder()
