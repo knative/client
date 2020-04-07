@@ -40,7 +40,7 @@ func NewServiceDeleteCommand(p *commands.KnParams) *cobra.Command {
 
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 1 {
-				return errors.New("requires the service name")
+				return errors.New("'service delete' requires the service name(s)")
 			}
 
 			namespace, err := p.GetNamespace(cmd)
