@@ -30,6 +30,9 @@ func TestVersion(t *testing.T) {
 
 	it, err := test.NewKnTest()
 	assert.NilError(t, err)
+	defer func() {
+		assert.NilError(t, it.Teardown())
+	}()
 
 	r := test.NewKnRunResultCollector(t, it)
 	defer r.DumpIfFailed()
