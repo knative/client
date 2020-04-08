@@ -377,6 +377,7 @@ func TestServiceCreateMaxMinScale(t *testing.T) {
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
 		"--min-scale", "1", "--max-scale", "5",
 		"--concurrency-target", "10", "--concurrency-limit", "100",
+		"--concurrency-utilization", "50",
 		"--no-wait"}, false)
 
 	if err != nil {
@@ -392,6 +393,7 @@ func TestServiceCreateMaxMinScale(t *testing.T) {
 		"autoscaling.knative.dev/minScale", "1",
 		"autoscaling.knative.dev/maxScale", "5",
 		"autoscaling.knative.dev/target", "10",
+		"autoscaling.knative.dev/targetUtilizationPercentage", "50",
 	}
 
 	for i := 0; i < len(expectedAnnos); i += 2 {

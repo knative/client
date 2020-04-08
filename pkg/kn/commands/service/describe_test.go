@@ -253,13 +253,13 @@ func TestServiceDescribeScaling(t *testing.T) {
 
 	for _, data := range []struct {
 		minScale, maxScale, limit, target string
-		scaleOut                          string
+		scaleOut, utilization             string
 	}{
-		{"", "", "", "", ""},
-		{"", "10", "", "", "0 ... 10"},
-		{"10", "", "", "", "10 ... ∞"},
-		{"5", "20", "10", "", "5 ... 20"},
-		{"", "", "20", "30", ""},
+		{"", "", "", "", "", ""},
+		{"", "10", "", "", "0 ... 10", ""},
+		{"10", "", "", "", "10 ... ∞", ""},
+		{"5", "20", "10", "", "5 ... 20", ""},
+		{"", "", "20", "30", "", "50"},
 	} {
 		// New mock client
 		client := knclient.NewMockKnServiceClient(t)
@@ -273,7 +273,7 @@ func TestServiceDescribeScaling(t *testing.T) {
 		// Get service & revision
 		r.GetService("foo", &expectedService, nil)
 		rev1 := createTestRevision("rev1", 1)
-		addScaling(&rev1, data.minScale, data.maxScale, data.target, data.limit)
+		addScaling(&rev1, data.minScale, data.maxScale, data.target, data.limit, data.utilization)
 		r.GetRevision("rev1", &rev1, nil)
 
 		revList := servingv1.RevisionList{
@@ -580,7 +580,7 @@ func createTestServiceWithServiceAccount(name string, revisionNames []string, se
 	return service
 }
 
-func addScaling(revision *servingv1.Revision, minScale, maxScale, concurrencyTarget, concurrencyLimit string) {
+func addScaling(revision *servingv1.Revision, minScale, maxScale, concurrencyTarget, concurrencyLimit, utilization string) {
 	annos := make(map[string]string)
 	if minScale != "" {
 		annos[autoscaling.MinScaleAnnotationKey] = minScale
@@ -590,6 +590,9 @@ func addScaling(revision *servingv1.Revision, minScale, maxScale, concurrencyTar
 	}
 	if concurrencyTarget != "" {
 		annos[autoscaling.TargetAnnotationKey] = concurrencyTarget
+	}
+	if utilization != "" {
+		annos[autoscaling.TargetUtilizationPercentageKey] = utilization
 	}
 	revision.Annotations = annos
 	if concurrencyLimit != "" {

@@ -131,7 +131,8 @@ func WriteConcurrencyOptions(dw printers.PrefixWriter, revision *servingv1.Revis
 	target := clientserving.ConcurrencyTarget(&revision.ObjectMeta)
 	limit := revision.Spec.ContainerConcurrency
 	autoscaleWindow := clientserving.AutoscaleWindow(&revision.ObjectMeta)
-	if target != nil || limit != nil && *limit != 0 || autoscaleWindow != "" {
+	concurrencyUtilization := clientserving.ConcurrencyTargetUtilization(&revision.ObjectMeta)
+	if target != nil || limit != nil && *limit != 0 || autoscaleWindow != "" || concurrencyUtilization != nil {
 		section := dw.WriteAttribute("Concurrency", "")
 		if limit != nil && *limit != 0 {
 			section.WriteAttribute("Limit", strconv.FormatInt(int64(*limit), 10))
@@ -141,6 +142,9 @@ func WriteConcurrencyOptions(dw printers.PrefixWriter, revision *servingv1.Revis
 		}
 		if autoscaleWindow != "" {
 			section.WriteAttribute("Window", autoscaleWindow)
+		}
+		if concurrencyUtilization != nil {
+			section.WriteAttribute("TargetUtilization", strconv.Itoa(*concurrencyUtilization))
 		}
 	}
 

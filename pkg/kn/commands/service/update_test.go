@@ -319,7 +319,7 @@ func TestServiceUpdateMaxMinScale(t *testing.T) {
 
 	action, updated, _, err := fakeServiceUpdate(original, []string{
 		"service", "update", "foo",
-		"--min-scale", "1", "--max-scale", "5", "--concurrency-target", "10", "--concurrency-limit", "100", "--no-wait"})
+		"--min-scale", "1", "--max-scale", "5", "--concurrency-target", "10", "--concurrency-limit", "100", "--concurrency-utilization", "50", "--no-wait"})
 
 	if err != nil {
 		t.Fatal(err)
@@ -337,6 +337,7 @@ func TestServiceUpdateMaxMinScale(t *testing.T) {
 		"autoscaling.knative.dev/minScale", "1",
 		"autoscaling.knative.dev/maxScale", "5",
 		"autoscaling.knative.dev/target", "10",
+		"autoscaling.knative.dev/targetUtilizationPercentage", "50",
 	}
 
 	for i := 0; i < len(expectedAnnos); i += 2 {
