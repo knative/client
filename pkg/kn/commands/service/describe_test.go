@@ -432,11 +432,15 @@ func TestServiceDescribeVerbose(t *testing.T) {
 	r := client.Recorder()
 
 	// Prepare service
-	expectedService := createTestService("foo", []string{"rev1", "rev2"}, goodConditions())
+	expectedService := createTestService("foo", []string{"rev1", "rev2", "rev3"}, goodConditions())
+	expectedService.Status.Traffic = expectedService.Status.Traffic[2:]
+	expectedService.Status.Traffic[0].LatestRevision = ptr.Bool(true)
+	expectedService.Status.Traffic[0].Percent = ptr.Int64(int64(100))
 	r.GetService("foo", &expectedService, nil)
 
 	rev1 := createTestRevision("rev1", 1)
 	rev2 := createTestRevision("rev2", 2)
+	rev3 := createTestRevision("rev3", 3)
 
 	revList := servingv1.RevisionList{
 		TypeMeta: metav1.TypeMeta{
@@ -444,7 +448,7 @@ func TestServiceDescribeVerbose(t *testing.T) {
 			APIVersion: "serving.knative.dev/v1",
 		},
 		Items: []servingv1.Revision{
-			rev1, rev2,
+			rev1, rev2, rev3,
 		},
 	}
 
@@ -452,8 +456,7 @@ func TestServiceDescribeVerbose(t *testing.T) {
 	r.ListRevisions(knclient.HasLabelSelector(api_serving.ServiceLabelKey, "foo"), &revList, nil)
 
 	// Fetch the revisions
-	r.GetRevision("rev1", &rev1, nil)
-	r.GetRevision("rev2", &rev2, nil)
+	r.GetRevision("rev3", &rev3, nil)
 
 	// Testing:
 	output, err := executeServiceCommand(client, "describe", "foo", "--verbose")
@@ -462,12 +465,16 @@ func TestServiceDescribeVerbose(t *testing.T) {
 	validateServiceOutput(t, "foo", output)
 
 	assert.Assert(t, cmp.Regexp("Cluster:\\s+https://foo.default.svc.cluster.local", output))
-	assert.Assert(t, util.ContainsAll(output, "Image", "Name", "gcr.io/test/image (at 123456)", "50%", "(0s)"))
+	assert.Assert(t, util.ContainsAll(output, "Image", "Name", "gcr.io/test/image (at 123456)", "100%", "(0s)"))
 	assert.Assert(t, util.ContainsAll(output, "Env:", "env1=eval1\n", "env2=eval2\n"))
 	assert.Assert(t, util.ContainsAll(output, "EnvFrom:", "cm:test1\n", "cm:test2\n"))
 	assert.Assert(t, util.ContainsAll(output, "Annotations:", "anno1=aval1\n", "anno2=aval2\n"))
 	assert.Assert(t, util.ContainsAll(output, "Labels:", "label1=lval1\n", "label2=lval2\n"))
 	assert.Assert(t, util.ContainsAll(output, "[1]", "[2]"))
+	assert.Assert(t, util.ContainsAll(output, "rev1", "rev2", "rev3"))
+	assert.Equal(t, strings.Count(output, "rev3"), 1)
+	assert.Equal(t, strings.Count(output, "rev2"), 1)
+	assert.Equal(t, strings.Count(output, "rev1"), 1)
 
 	// Validate that all recorded API methods have been called
 	r.Validate()
