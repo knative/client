@@ -37,46 +37,46 @@ func TestBrokerTrigger(t *testing.T) {
 		assert.NilError(t, it.Teardown())
 	}()
 
-	r := test.NewKnRunResultCollector(t)
+	r := test.NewKnRunResultCollector(t, it)
 	defer r.DumpIfFailed()
 
 	err = lableNamespaceForDefaultBroker(t, it)
 	assert.NilError(t, err)
 	defer unlableNamespaceForDefaultBroker(t, it)
 
-	serviceCreate(t, it, r, "sinksvc0")
-	serviceCreate(t, it, r, "sinksvc1")
+	serviceCreate(r, "sinksvc0")
+	serviceCreate(r, "sinksvc1")
 
 	t.Log("create triggers and list them")
-	triggerCreate(t, it, r, "trigger1", "sinksvc0", []string{"a=b"})
-	triggerCreate(t, it, r, "trigger2", "sinksvc1", []string{"type=knative.dev.bar", "source=ping"})
-	verifyTriggerList(t, it, r, "trigger1", "trigger2")
-	triggerDelete(t, it, r, "trigger1")
-	triggerDelete(t, it, r, "trigger2")
+	triggerCreate(r, "trigger1", "sinksvc0", []string{"a=b"})
+	triggerCreate(r, "trigger2", "sinksvc1", []string{"type=knative.dev.bar", "source=ping"})
+	verifyTriggerList(r, "trigger1", "trigger2")
+	triggerDelete(r, "trigger1")
+	triggerDelete(r, "trigger2")
 
 	t.Log("create a trigger and delete it")
-	triggerCreate(t, it, r, "deltrigger", "sinksvc0", []string{"a=b"})
-	triggerDelete(t, it, r, "deltrigger")
-	verifyTriggerNotfound(t, it, r, "deltrigger")
+	triggerCreate(r, "deltrigger", "sinksvc0", []string{"a=b"})
+	triggerDelete(r, "deltrigger")
+	verifyTriggerNotfound(r, "deltrigger")
 
 	t.Log("create a trigger with filters and remove them one by one")
-	triggerCreate(t, it, r, "filtertrigger", "sinksvc0", []string{"foo=bar", "source=ping"})
-	verifyTriggerDescribe(t, it, r, "filtertrigger", "default", "sinksvc0", []string{"foo", "bar", "source", "ping"})
-	triggerUpdate(t, it, r, "filtertrigger", "foo-", "sinksvc0")
-	verifyTriggerDescribe(t, it, r, "filtertrigger", "default", "sinksvc0", []string{"source", "ping"})
-	triggerUpdate(t, it, r, "filtertrigger", "source-", "sinksvc0")
-	verifyTriggerDescribe(t, it, r, "filtertrigger", "default", "sinksvc0", nil)
-	triggerDelete(t, it, r, "filtertrigger")
+	triggerCreate(r, "filtertrigger", "sinksvc0", []string{"foo=bar", "source=ping"})
+	verifyTriggerDescribe(r, "filtertrigger", "default", "sinksvc0", []string{"foo", "bar", "source", "ping"})
+	triggerUpdate(r, "filtertrigger", "foo-", "sinksvc0")
+	verifyTriggerDescribe(r, "filtertrigger", "default", "sinksvc0", []string{"source", "ping"})
+	triggerUpdate(r, "filtertrigger", "source-", "sinksvc0")
+	verifyTriggerDescribe(r, "filtertrigger", "default", "sinksvc0", nil)
+	triggerDelete(r, "filtertrigger")
 
 	t.Log("create a trigger, describe and update it")
-	triggerCreate(t, it, r, "updtrigger", "sinksvc0", []string{"a=b"})
-	verifyTriggerDescribe(t, it, r, "updtrigger", "default", "sinksvc0", []string{"a", "b"})
-	triggerUpdate(t, it, r, "updtrigger", "type=knative.dev.bar", "sinksvc1")
-	verifyTriggerDescribe(t, it, r, "updtrigger", "default", "sinksvc1", []string{"a", "b", "type", "knative.dev.bar"})
-	triggerDelete(t, it, r, "updtrigger")
+	triggerCreate(r, "updtrigger", "sinksvc0", []string{"a=b"})
+	verifyTriggerDescribe(r, "updtrigger", "default", "sinksvc0", []string{"a", "b"})
+	triggerUpdate(r, "updtrigger", "type=knative.dev.bar", "sinksvc1")
+	verifyTriggerDescribe(r, "updtrigger", "default", "sinksvc1", []string{"a", "b", "type", "knative.dev.bar"})
+	triggerDelete(r, "updtrigger")
 
 	t.Log("create trigger with error return")
-	triggerCreateMissingSink(t, it, r, "errtrigger", "notfound")
+	triggerCreateMissingSink(r, "errtrigger", "notfound")
 }
 
 // Private functions
@@ -105,55 +105,55 @@ func lableNamespaceForDefaultBroker(t *testing.T, it *test.KnTest) error {
 	})
 }
 
-func triggerCreate(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, name string, sinksvc string, filters []string) {
+func triggerCreate(r *test.KnRunResultCollector, name string, sinksvc string, filters []string) {
 	args := []string{"trigger", "create", name, "--broker", "default", "--sink", "svc:" + sinksvc}
 	if len(filters) > 0 {
 		for _, v := range filters {
 			args = append(args, "--filter", v)
 		}
 	}
-	out := it.Kn().Run(args...)
+	out := r.KnTest().Kn().Run(args...)
 	r.AssertNoError(out)
-	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "Trigger", name, "created", "namespace", it.Kn().Namespace()))
+	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "Trigger", name, "created", "namespace", r.KnTest().Kn().Namespace()))
 }
 
-func triggerCreateMissingSink(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, name string, sinksvc string) {
-	out := it.Kn().Run("trigger", "create", name, "--broker", "default", "--sink", "svc:"+sinksvc)
+func triggerCreateMissingSink(r *test.KnRunResultCollector, name string, sinksvc string) {
+	out := r.KnTest().Kn().Run("trigger", "create", name, "--broker", "default", "--sink", "svc:"+sinksvc)
 	r.AssertError(out)
-	assert.Check(t, util.ContainsAll(out.Stderr, "services.serving.knative.dev", "not found"))
+	assert.Check(r.T(), util.ContainsAll(out.Stderr, "services.serving.knative.dev", "not found"))
 }
 
-func triggerDelete(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, name string) {
-	out := it.Kn().Run("trigger", "delete", name)
+func triggerDelete(r *test.KnRunResultCollector, name string) {
+	out := r.KnTest().Kn().Run("trigger", "delete", name)
 	r.AssertNoError(out)
-	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "Trigger", name, "deleted", "namespace", it.Kn().Namespace()))
+	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "Trigger", name, "deleted", "namespace", r.KnTest().Kn().Namespace()))
 }
 
-func triggerUpdate(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, name string, filter string, sinksvc string) {
-	out := it.Kn().Run("trigger", "update", name, "--filter", filter, "--sink", "svc:"+sinksvc)
+func triggerUpdate(r *test.KnRunResultCollector, name string, filter string, sinksvc string) {
+	out := r.KnTest().Kn().Run("trigger", "update", name, "--filter", filter, "--sink", "svc:"+sinksvc)
 	r.AssertNoError(out)
-	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "Trigger", name, "updated", "namespace", it.Kn().Namespace()))
+	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "Trigger", name, "updated", "namespace", r.KnTest().Kn().Namespace()))
 }
 
-func verifyTriggerList(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, triggers ...string) {
-	out := it.Kn().Run("trigger", "list")
+func verifyTriggerList(r *test.KnRunResultCollector, triggers ...string) {
+	out := r.KnTest().Kn().Run("trigger", "list")
 	r.AssertNoError(out)
-	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, triggers...))
+	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, triggers...))
 }
 
-func verifyTriggerDescribe(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, name string, broker string, sink string, filters []string) {
-	out := it.Kn().Run("trigger", "describe", name)
+func verifyTriggerDescribe(r *test.KnRunResultCollector, name string, broker string, sink string, filters []string) {
+	out := r.KnTest().Kn().Run("trigger", "describe", name)
 	r.AssertNoError(out)
 	if len(filters) > 0 {
-		assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, filters...))
+		assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, filters...))
 	} else {
-		assert.Check(t, util.ContainsNone(out.Stdout, "Filter"))
+		assert.Check(r.T(), util.ContainsNone(out.Stdout, "Filter"))
 	}
-	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, name, broker, sink))
+	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, name, broker, sink))
 }
 
-func verifyTriggerNotfound(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, name string) {
-	out := it.Kn().Run("trigger", "describe", name)
+func verifyTriggerNotfound(r *test.KnRunResultCollector, name string) {
+	out := r.KnTest().Kn().Run("trigger", "describe", name)
 	r.AssertError(out)
-	assert.Check(t, util.ContainsAll(out.Stderr, name, "not found"))
+	assert.Check(r.T(), util.ContainsAll(out.Stderr, name, "not found"))
 }

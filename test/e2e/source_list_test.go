@@ -34,16 +34,16 @@ func TestSourceListTypes(t *testing.T) {
 		assert.NilError(t, it.Teardown())
 	}()
 
-	r := test.NewKnRunResultCollector(t)
+	r := test.NewKnRunResultCollector(t, it)
 	defer r.DumpIfFailed()
 
 	t.Log("List available source types")
-	output := sourceListTypes(t, it, r)
+	output := sourceListTypes(r)
 	assert.Check(t, util.ContainsAll(output, "TYPE", "NAME", "DESCRIPTION", "Ping", "ApiServer"))
 
 	t.Log("List available source types in YAML format")
 
-	output = sourceListTypes(t, it, r, "-oyaml")
+	output = sourceListTypes(r, "-oyaml")
 	assert.Check(t, util.ContainsAll(output, "apiextensions.k8s.io/v1beta1", "CustomResourceDefinition", "Ping", "ApiServer"))
 }
 
@@ -55,27 +55,27 @@ func TestSourceList(t *testing.T) {
 		assert.NilError(t, it.Teardown())
 	}()
 
-	r := test.NewKnRunResultCollector(t)
+	r := test.NewKnRunResultCollector(t, it)
 	defer r.DumpIfFailed()
 
 	t.Log("List sources empty case")
-	output := sourceList(t, it, r)
+	output := sourceList(r)
 	assert.Check(t, util.ContainsAll(output, "No", "sources", "found", "namespace"))
 	assert.Check(t, util.ContainsNone(output, "NAME", "TYPE", "RESOURCE", "SINK", "READY"))
 
 	// non empty list case is tested in test/e2e/source_apiserver_it.go where source setup is present
 }
 
-func sourceListTypes(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, args ...string) string {
+func sourceListTypes(r *test.KnRunResultCollector, args ...string) string {
 	cmd := append([]string{"source", "list-types"}, args...)
-	out := it.Kn().Run(cmd...)
+	out := r.KnTest().Kn().Run(cmd...)
 	r.AssertNoError(out)
 	return out.Stdout
 }
 
-func sourceList(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, args ...string) string {
+func sourceList(r *test.KnRunResultCollector, args ...string) string {
 	cmd := append([]string{"source", "list"}, args...)
-	out := it.Kn().Run(cmd...)
+	out := r.KnTest().Kn().Run(cmd...)
 	r.AssertNoError(out)
 	return out.Stdout
 }

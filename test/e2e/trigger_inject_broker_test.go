@@ -34,20 +34,20 @@ func TestInjectBrokerTrigger(t *testing.T) {
 		assert.NilError(t, it.Teardown())
 	}()
 
-	r := test.NewKnRunResultCollector(t)
+	r := test.NewKnRunResultCollector(t, it)
 	defer r.DumpIfFailed()
 
 	assert.NilError(t, err)
 
-	serviceCreate(t, it, r, "sinksvc0")
-	serviceCreate(t, it, r, "sinksvc1")
+	serviceCreate(r, "sinksvc0")
+	serviceCreate(r, "sinksvc1")
 
 	t.Log("create triggers and list them")
-	triggerCreateWithInject(t, it, r, "trigger1", "sinksvc0", []string{"a=b"})
-	triggerCreateWithInject(t, it, r, "trigger2", "sinksvc1", []string{"type=knative.dev.bar", "source=ping"})
-	verifyTriggerList(t, it, r, "trigger1", "trigger2")
-	triggerDelete(t, it, r, "trigger1")
-	triggerDelete(t, it, r, "trigger2")
+	triggerCreateWithInject(r, "trigger1", "sinksvc0", []string{"a=b"})
+	triggerCreateWithInject(r, "trigger2", "sinksvc1", []string{"type=knative.dev.bar", "source=ping"})
+	verifyTriggerList(r, "trigger1", "trigger2")
+	triggerDelete(r, "trigger1")
+	triggerDelete(r, "trigger2")
 
 	t.Log("create trigger with error")
 	out := it.Kn().Run("trigger", "create", "errorTrigger", "--broker", "mybroker", "--inject-broker",
@@ -56,12 +56,12 @@ func TestInjectBrokerTrigger(t *testing.T) {
 	assert.Check(t, util.ContainsAllIgnoreCase(out.Stderr, "broker", "name", "'default'", "--inject-broker", "flag"))
 }
 
-func triggerCreateWithInject(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, name string, sinksvc string, filters []string) {
+func triggerCreateWithInject(r *test.KnRunResultCollector, name string, sinksvc string, filters []string) {
 	args := []string{"trigger", "create", name, "--broker", "default", "--inject-broker", "--sink", "svc:" + sinksvc}
 	for _, v := range filters {
 		args = append(args, "--filter", v)
 	}
-	out := it.Kn().Run(args...)
+	out := r.KnTest().Kn().Run(args...)
 	r.AssertNoError(out)
-	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "Trigger", name, "created", "namespace", it.Kn().Namespace()))
+	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "Trigger", name, "created", "namespace", r.KnTest().Kn().Namespace()))
 }

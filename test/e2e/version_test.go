@@ -28,10 +28,16 @@ import (
 func TestVersion(t *testing.T) {
 	t.Parallel()
 
-	r := test.NewKnRunResultCollector(t)
+	it, err := test.NewKnTest()
+	assert.NilError(t, err)
+	defer func() {
+		assert.NilError(t, it.Teardown())
+	}()
+
+	r := test.NewKnRunResultCollector(t, it)
 	defer r.DumpIfFailed()
 
-	out := test.Kn{}.Run("version")
+	out := r.KnTest().Kn().RunNoNamespace("version")
 	r.AssertNoError(out)
 	assert.Check(t, util.ContainsAll(out.Stdout, "Version"))
 }

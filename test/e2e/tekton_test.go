@@ -73,7 +73,7 @@ func TestTektonPipeline(t *testing.T) {
 	err = waitForPipelineSuccess(kubectl)
 	assert.NilError(t, err)
 
-	r := test.NewKnRunResultCollector(t)
+	r := test.NewKnRunResultCollector(t, it)
 
 	const serviceName = "hello"
 	out := it.Kn().Run("service", "describe", serviceName)

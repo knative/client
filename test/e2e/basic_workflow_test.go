@@ -35,42 +35,44 @@ func TestBasicWorkflow(t *testing.T) {
 		assert.NilError(t, it.Teardown())
 	}()
 
-	r := test.NewKnRunResultCollector(t)
+	r := test.NewKnRunResultCollector(t, it)
 	defer r.DumpIfFailed()
 
 	t.Log("returns no service before running tests")
-	serviceListEmpty(t, it, r)
+	serviceListEmpty(r)
 
 	t.Log("create hello service and return no error")
-	serviceCreate(t, it, r, "hello")
+	serviceCreate(r, "hello")
 
 	t.Log("return valid info about hello service")
-	serviceList(t, it, r, "hello")
-	serviceDescribe(t, it, r, "hello")
+	serviceList(r, "hello")
+	serviceDescribe(r, "hello")
 
 	t.Log("update hello service's configuration and return no error")
-	serviceUpdate(t, it, r, "hello", "--env", "TARGET=kn", "--port", "8888")
+	serviceUpdate(r, "hello", "--env", "TARGET=kn", "--port", "8888")
 
 	t.Log("create another service and return no error")
-	serviceCreate(t, it, r, "svc2")
+	serviceCreate(r, "svc2")
 
 	t.Log("return a list of revisions associated with hello and svc2 services")
-	revisionListForService(t, it, r, "hello")
-	revisionListForService(t, it, r, "svc2")
+	revisionListForService(r, "hello")
+	revisionListForService(r, "svc2")
 
 	t.Log("describe revision from hello service")
-	revisionDescribe(t, it, r, "hello")
+	revisionDescribe(r, "hello")
 
 	t.Log("delete hello and svc2 services and return no error")
-	serviceDelete(t, it, r, "hello")
-	serviceDelete(t, it, r, "svc2")
+	serviceDelete(r, "hello")
+	serviceDelete(r, "svc2")
 
 	t.Log("return no service after completing tests")
-	serviceListEmpty(t, it, r)
+	serviceListEmpty(r)
 }
 
 func TestWrongCommand(t *testing.T) {
-	r := test.NewKnRunResultCollector(t)
+	it, err := test.NewKnTest()
+	assert.NilError(t, err)
+	r := test.NewKnRunResultCollector(t, it)
 	defer r.DumpIfFailed()
 
 	out := test.Kn{}.Run("source", "apiserver", "noverb", "--tag=0.13")
@@ -85,62 +87,62 @@ func TestWrongCommand(t *testing.T) {
 
 // ==========================================================================
 
-func serviceListEmpty(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector) {
-	out := it.Kn().Run("service", "list")
+func serviceListEmpty(r *test.KnRunResultCollector) {
+	out := r.KnTest().Kn().Run("service", "list")
 	r.AssertNoError(out)
-	assert.Check(t, util.ContainsAll(out.Stdout, "No services found."))
+	assert.Check(r.T(), util.ContainsAll(out.Stdout, "No services found."))
 }
 
-func serviceCreate(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName string) {
-	out := it.Kn().Run("service", "create", serviceName, "--image", test.KnDefaultTestImage)
+func serviceCreate(r *test.KnRunResultCollector, serviceName string) {
+	out := r.KnTest().Kn().Run("service", "create", serviceName, "--image", test.KnDefaultTestImage)
 	r.AssertNoError(out)
-	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "service", serviceName, "creating", "namespace", it.Kn().Namespace(), "ready"))
+	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "service", serviceName, "creating", "namespace", r.KnTest().Kn().Namespace(), "ready"))
 }
 
-func serviceList(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName string) {
-	out := it.Kn().Run("service", "list", serviceName)
+func serviceList(r *test.KnRunResultCollector, serviceName string) {
+	out := r.KnTest().Kn().Run("service", "list", serviceName)
 	r.AssertNoError(out)
-	assert.Check(t, util.ContainsAll(out.Stdout, serviceName))
+	assert.Check(r.T(), util.ContainsAll(out.Stdout, serviceName))
 }
 
-func serviceDescribe(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName string) {
-	out := it.Kn().Run("service", "describe", serviceName)
+func serviceDescribe(r *test.KnRunResultCollector, serviceName string) {
+	out := r.KnTest().Kn().Run("service", "describe", serviceName)
 	r.AssertNoError(out)
-	assert.Assert(t, util.ContainsAll(out.Stdout, serviceName, it.Kn().Namespace(), test.KnDefaultTestImage))
-	assert.Assert(t, util.ContainsAll(out.Stdout, "Conditions", "ConfigurationsReady", "Ready", "RoutesReady"))
-	assert.Assert(t, util.ContainsAll(out.Stdout, "Name", "Namespace", "URL", "Age", "Revisions"))
+	assert.Assert(r.T(), util.ContainsAll(out.Stdout, serviceName, r.KnTest().Kn().Namespace(), test.KnDefaultTestImage))
+	assert.Assert(r.T(), util.ContainsAll(out.Stdout, "Conditions", "ConfigurationsReady", "Ready", "RoutesReady"))
+	assert.Assert(r.T(), util.ContainsAll(out.Stdout, "Name", "Namespace", "URL", "Age", "Revisions"))
 }
 
-func serviceUpdate(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName string, args ...string) {
+func serviceUpdate(r *test.KnRunResultCollector, serviceName string, args ...string) {
 	fullArgs := append([]string{}, "service", "update", serviceName)
 	fullArgs = append(fullArgs, args...)
-	out := it.Kn().Run(fullArgs...)
+	out := r.KnTest().Kn().Run(fullArgs...)
 	r.AssertNoError(out)
-	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "updating", "service", serviceName, "ready"))
+	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "updating", "service", serviceName, "ready"))
 }
 
-func serviceDelete(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName string) {
-	out := it.Kn().Run("service", "delete", serviceName)
+func serviceDelete(r *test.KnRunResultCollector, serviceName string) {
+	out := r.KnTest().Kn().Run("service", "delete", serviceName)
 	r.AssertNoError(out)
-	assert.Check(t, util.ContainsAll(out.Stdout, "Service", serviceName, "successfully deleted in namespace", it.Kn().Namespace()))
+	assert.Check(r.T(), util.ContainsAll(out.Stdout, "Service", serviceName, "successfully deleted in namespace", r.KnTest().Kn().Namespace()))
 }
 
-func revisionListForService(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName string) {
-	out := it.Kn().Run("revision", "list", "-s", serviceName)
+func revisionListForService(r *test.KnRunResultCollector, serviceName string) {
+	out := r.KnTest().Kn().Run("revision", "list", "-s", serviceName)
 	r.AssertNoError(out)
 	outputLines := strings.Split(out.Stdout, "\n")
 	// Ignore the last line because it is an empty string caused by splitting a line break
 	// at the end of the output string
 	for _, line := range outputLines[1 : len(outputLines)-1] {
 		// The last item is the revision status, which should be ready
-		assert.Check(t, util.ContainsAll(line, " "+serviceName+" ", "True"))
+		assert.Check(r.T(), util.ContainsAll(line, " "+serviceName+" ", "True"))
 	}
 }
 
-func revisionDescribe(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName string) {
-	revName := findRevision(t, it, r, serviceName)
+func revisionDescribe(r *test.KnRunResultCollector, serviceName string) {
+	revName := findRevision(r, serviceName)
 
-	out := it.Kn().Run("revision", "describe", revName)
+	out := r.KnTest().Kn().Run("revision", "describe", revName)
 	r.AssertNoError(out)
-	assert.Check(t, util.ContainsAll(out.Stdout, revName, it.Kn().Namespace(), serviceName, "++ Ready", "TARGET=kn"))
+	assert.Check(r.T(), util.ContainsAll(out.Stdout, revName, r.KnTest().Kn().Namespace(), serviceName, "++ Ready", "TARGET=kn"))
 }

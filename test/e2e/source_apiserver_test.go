@@ -47,37 +47,37 @@ func TestSourceApiServer(t *testing.T) {
 		assert.NilError(t, err2)
 	}()
 
-	r := test.NewKnRunResultCollector(t)
+	r := test.NewKnRunResultCollector(t, it)
 	defer r.DumpIfFailed()
 
 	setupForSourceAPIServer(t, it)
-	serviceCreate(t, it, r, "testsvc0")
+	serviceCreate(r, "testsvc0")
 
 	t.Log("create apiserver sources with a sink to a service")
-	apiServerSourceCreate(t, it, r, "testapisource0", "Event:v1:true", "testsa", "svc:testsvc0")
-	apiServerSourceCreate(t, it, r, "testapisource1", "Event:v1", "testsa", "svc:testsvc0")
+	apiServerSourceCreate(r, "testapisource0", "Event:v1:true", "testsa", "svc:testsvc0")
+	apiServerSourceCreate(r, "testapisource1", "Event:v1", "testsa", "svc:testsvc0")
 
 	t.Log("list sources")
-	output := sourceList(t, it, r)
+	output := sourceList(r)
 	assert.Check(t, util.ContainsAll(output, "NAME", "TYPE", "RESOURCE", "SINK", "READY"))
 	assert.Check(t, util.ContainsAll(output, "testapisource0", "ApiServerSource", "apiserversources.sources.knative.dev", "svc:testsvc0"))
 	assert.Check(t, util.ContainsAll(output, "testapisource1", "ApiServerSource", "apiserversources.sources.knative.dev", "svc:testsvc0"))
 
 	t.Log("list sources in YAML format")
-	output = sourceList(t, it, r, "-oyaml")
+	output = sourceList(r, "-oyaml")
 	assert.Check(t, util.ContainsAll(output, "testapisource1", "ApiServerSource", "Service", "testsvc0"))
 
 	t.Log("delete apiserver sources")
-	apiServerSourceDelete(t, it, r, "testapisource0")
-	apiServerSourceDelete(t, it, r, "testapisource1")
+	apiServerSourceDelete(r, "testapisource0")
+	apiServerSourceDelete(r, "testapisource1")
 
 	t.Log("create apiserver source with a missing sink service")
-	apiServerSourceCreateMissingSink(t, it, r, "testapisource2", "Event:v1:true", "testsa", "svc:unknown")
+	apiServerSourceCreateMissingSink(r, "testapisource2", "Event:v1:true", "testsa", "svc:unknown")
 
 	t.Log("update apiserver source sink service")
-	apiServerSourceCreate(t, it, r, "testapisource3", "Event:v1:true", "testsa", "svc:testsvc0")
-	serviceCreate(t, it, r, "testsvc1")
-	apiServerSourceUpdateSink(t, it, r, "testapisource3", "svc:testsvc1")
+	apiServerSourceCreate(r, "testapisource3", "Event:v1:true", "testsa", "svc:testsvc0")
+	serviceCreate(r, "testsvc1")
+	apiServerSourceUpdateSink(r, "testapisource3", "svc:testsvc1")
 	jpSinkRefNameInSpec := "jsonpath={.spec.sink.ref.name}"
 	out, err := getResourceFieldsWithJSONPath(t, it, "apiserversource.sources.knative.dev", "testapisource3", jpSinkRefNameInSpec)
 	assert.NilError(t, err)
@@ -85,22 +85,22 @@ func TestSourceApiServer(t *testing.T) {
 	// TODO(navidshaikh): Verify the source's status with synchronous create/update
 }
 
-func apiServerSourceCreate(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, sourceName string, resources string, sa string, sink string) {
-	out := it.Kn().Run("source", "apiserver", "create", sourceName, "--resource", resources, "--service-account", sa, "--sink", sink)
+func apiServerSourceCreate(r *test.KnRunResultCollector, sourceName string, resources string, sa string, sink string) {
+	out := r.KnTest().Kn().Run("source", "apiserver", "create", sourceName, "--resource", resources, "--service-account", sa, "--sink", sink)
 	r.AssertNoError(out)
-	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "apiserver", "source", sourceName, "created", "namespace", it.Kn().Namespace()))
+	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "apiserver", "source", sourceName, "created", "namespace", r.KnTest().Kn().Namespace()))
 }
 
-func apiServerSourceCreateMissingSink(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, sourceName string, resources string, sa string, sink string) {
-	out := it.Kn().Run("source", "apiserver", "create", sourceName, "--resource", resources, "--service-account", sa, "--sink", sink)
+func apiServerSourceCreateMissingSink(r *test.KnRunResultCollector, sourceName string, resources string, sa string, sink string) {
+	out := r.KnTest().Kn().Run("source", "apiserver", "create", sourceName, "--resource", resources, "--service-account", sa, "--sink", sink)
 	r.AssertError(out)
-	assert.Check(t, util.ContainsAll(out.Stderr, "services.serving.knative.dev", "not found"))
+	assert.Check(r.T(), util.ContainsAll(out.Stderr, "services.serving.knative.dev", "not found"))
 }
 
-func apiServerSourceDelete(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, sourceName string) {
-	out := it.Kn().Run("source", "apiserver", "delete", sourceName)
+func apiServerSourceDelete(r *test.KnRunResultCollector, sourceName string) {
+	out := r.KnTest().Kn().Run("source", "apiserver", "delete", sourceName)
 	r.AssertNoError(out)
-	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "apiserver", "source", sourceName, "deleted", "namespace", it.Kn().Namespace()))
+	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "apiserver", "source", sourceName, "deleted", "namespace", r.KnTest().Kn().Namespace()))
 }
 
 func setupForSourceAPIServer(t *testing.T, it *test.KnTest) {
@@ -140,10 +140,10 @@ func tearDownForSourceAPIServer(t *testing.T, it *test.KnTest) error {
 	return nil
 }
 
-func apiServerSourceUpdateSink(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, sourceName string, sink string) {
-	out := it.Kn().Run("source", "apiserver", "update", sourceName, "--sink", sink)
+func apiServerSourceUpdateSink(r *test.KnRunResultCollector, sourceName string, sink string) {
+	out := r.KnTest().Kn().Run("source", "apiserver", "update", sourceName, "--sink", sink)
 	r.AssertNoError(out)
-	assert.Check(t, util.ContainsAll(out.Stdout, sourceName, "updated", "namespace", it.Kn().Namespace()))
+	assert.Check(r.T(), util.ContainsAll(out.Stdout, sourceName, "updated", "namespace", r.KnTest().Kn().Namespace()))
 }
 
 func getResourceFieldsWithJSONPath(t *testing.T, it *test.KnTest, resource, name, jsonpath string) (string, error) {

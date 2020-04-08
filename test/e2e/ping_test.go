@@ -34,26 +34,26 @@ func TestSourcePing(t *testing.T) {
 		assert.NilError(t, it.Teardown())
 	}()
 
-	r := test.NewKnRunResultCollector(t)
+	r := test.NewKnRunResultCollector(t, it)
 	defer r.DumpIfFailed()
 
 	t.Log("Creating a testservice")
-	serviceCreate(t, it, r, "testsvc0")
+	serviceCreate(r, "testsvc0")
 
 	t.Log("create Ping sources with a sink to a service")
 
-	pingSourceCreate(t, it, r, "testpingsource0", "* * * * */1", "ping", "svc:testsvc0")
+	pingSourceCreate(r, "testpingsource0", "* * * * */1", "ping", "svc:testsvc0")
 
 	t.Log("delete Ping sources")
-	pingSourceDelete(t, it, r, "testpingsource0")
+	pingSourceDelete(r, "testpingsource0")
 
 	t.Log("create Ping source with a missing sink service")
-	pingSourceCreateMissingSink(t, it, r, "testpingsource1", "* * * * */1", "ping", "svc:unknown")
+	pingSourceCreateMissingSink(r, "testpingsource1", "* * * * */1", "ping", "svc:unknown")
 
 	t.Log("update Ping source sink service")
-	pingSourceCreate(t, it, r, "testpingsource2", "* * * * */1", "ping", "svc:testsvc0")
-	serviceCreate(t, it, r, "testsvc1")
-	pingSourceUpdateSink(t, it, r, "testpingsource2", "svc:testsvc1")
+	pingSourceCreate(r, "testpingsource2", "* * * * */1", "ping", "svc:testsvc0")
+	serviceCreate(r, "testsvc1")
+	pingSourceUpdateSink(r, "testpingsource2", "svc:testsvc1")
 	jpSinkRefNameInSpec := "jsonpath={.spec.sink.ref.name}"
 	out, err := getResourceFieldsWithJSONPath(t, it, "pingsource", "testpingsource2", jpSinkRefNameInSpec)
 	assert.NilError(t, err)
@@ -61,54 +61,54 @@ func TestSourcePing(t *testing.T) {
 
 	t.Log("verify Ping source description")
 	mymsg := "This is a message from Ping."
-	pingSourceCreate(t, it, r, "testpingsource3", "*/1 * * * *", mymsg, "svc:testsvc1")
-	verifyPingSourceDescribe(t, it, r, "testpingsource3", "*/1 * * * *", mymsg, "testsvc1")
+	pingSourceCreate(r, "testpingsource3", "*/1 * * * *", mymsg, "svc:testsvc1")
+	verifyPingSourceDescribe(r, "testpingsource3", "*/1 * * * *", mymsg, "testsvc1")
 }
 
-func pingSourceCreate(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, sourceName string, schedule string, data string, sink string) {
-	out := it.Kn().Run("source", "ping", "create", sourceName,
+func pingSourceCreate(r *test.KnRunResultCollector, sourceName string, schedule string, data string, sink string) {
+	out := r.KnTest().Kn().Run("source", "ping", "create", sourceName,
 		"--schedule", schedule, "--data", data, "--sink", sink)
-	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "ping", "source", sourceName, "created", "namespace", it.Kn().Namespace()))
+	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "ping", "source", sourceName, "created", "namespace", r.KnTest().Kn().Namespace()))
 	r.AssertNoError(out)
 }
 
-func pingSourceDelete(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, sourceName string) {
-	out := it.Kn().Run("source", "ping", "delete", sourceName)
-	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "ping", "source", sourceName, "deleted", "namespace", it.Kn().Namespace()))
+func pingSourceDelete(r *test.KnRunResultCollector, sourceName string) {
+	out := r.KnTest().Kn().Run("source", "ping", "delete", sourceName)
+	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "ping", "source", sourceName, "deleted", "namespace", r.KnTest().Kn().Namespace()))
 	r.AssertNoError(out)
 
 }
 
-func pingSourceCreateMissingSink(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, sourceName string, schedule string, data string, sink string) {
-	out := it.Kn().Run("source", "ping", "create", sourceName,
+func pingSourceCreateMissingSink(r *test.KnRunResultCollector, sourceName string, schedule string, data string, sink string) {
+	out := r.KnTest().Kn().Run("source", "ping", "create", sourceName,
 		"--schedule", schedule, "--data", data, "--sink", sink)
-	assert.Check(t, util.ContainsAll(out.Stderr, "services.serving.knative.dev", "not found"))
+	assert.Check(r.T(), util.ContainsAll(out.Stderr, "services.serving.knative.dev", "not found"))
 	r.AssertError(out)
 }
 
-func pingSourceUpdateSink(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, sourceName string, sink string) {
-	out := it.Kn().Run("source", "ping", "update", sourceName, "--sink", sink)
-	assert.Check(t, util.ContainsAll(out.Stdout, sourceName, "updated", "namespace", it.Kn().Namespace()))
+func pingSourceUpdateSink(r *test.KnRunResultCollector, sourceName string, sink string) {
+	out := r.KnTest().Kn().Run("source", "ping", "update", sourceName, "--sink", sink)
+	assert.Check(r.T(), util.ContainsAll(out.Stdout, sourceName, "updated", "namespace", r.KnTest().Kn().Namespace()))
 	r.AssertNoError(out)
 }
 
-func pingSourceCreateWithResources(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, sourceName string, schedule string, data string, sink string, sa string, requestcpu string, requestmm string, limitcpu string, limitmm string) {
-	out := it.Kn().Run("source", "ping", "create", sourceName,
+func pingSourceCreateWithResources(r *test.KnRunResultCollector, sourceName string, schedule string, data string, sink string, sa string, requestcpu string, requestmm string, limitcpu string, limitmm string) {
+	out := r.KnTest().Kn().Run("source", "ping", "create", sourceName,
 		"--schedule", schedule, "--data", data, "--sink", sink, "--service-account", sa,
 		"--requests-cpu", requestcpu, "--requests-memory", requestmm, "--limits-cpu", limitcpu, "--limits-memory", limitmm)
-	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "ping", "source", sourceName, "created", "namespace", it.Kn().Namespace()))
+	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "ping", "source", sourceName, "created", "namespace", r.KnTest().Kn().Namespace()))
 	r.AssertNoError(out)
 }
 
-func pingSourceUpdateResources(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, sourceName string, requestcpu string, requestmm string, limitcpu string, limitmm string) {
-	out := it.Kn().Run("source", "ping", "update", sourceName,
+func pingSourceUpdateResources(r *test.KnRunResultCollector, sourceName string, requestcpu string, requestmm string, limitcpu string, limitmm string) {
+	out := r.KnTest().Kn().Run("source", "ping", "update", sourceName,
 		"--requests-cpu", requestcpu, "--requests-memory", requestmm, "--limits-cpu", limitcpu, "--limits-memory", limitmm)
-	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, sourceName, "updated", "namespace", it.Kn().Namespace()))
+	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, sourceName, "updated", "namespace", r.KnTest().Kn().Namespace()))
 	r.AssertNoError(out)
 }
 
-func verifyPingSourceDescribe(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, sourceName string, schedule string, data string, sink string) {
-	out := it.Kn().Run("source", "ping", "describe", sourceName)
-	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, sourceName, schedule, data, sink))
+func verifyPingSourceDescribe(r *test.KnRunResultCollector, sourceName string, schedule string, data string, sink string) {
+	out := r.KnTest().Kn().Run("source", "ping", "describe", sourceName)
+	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, sourceName, schedule, data, sink))
 	r.AssertNoError(out)
 }

@@ -37,115 +37,115 @@ func TestRevision(t *testing.T) {
 		assert.NilError(t, it.Teardown())
 	}()
 
-	r := test.NewKnRunResultCollector(t)
+	r := test.NewKnRunResultCollector(t, it)
 	defer r.DumpIfFailed()
 
 	t.Log("create hello service and return no error")
-	serviceCreate(t, it, r, "hello")
+	serviceCreate(r, "hello")
 
 	t.Log("describe revision from hello service with print flags")
-	revName := findRevision(t, it, r, "hello")
-	revisionDescribeWithPrintFlags(t, it, r, revName)
+	revName := findRevision(r, "hello")
+	revisionDescribeWithPrintFlags(r, revName)
 
 	t.Log("update hello service and increase revision count to 2")
-	serviceUpdate(t, it, r, "hello", "--env", "TARGET=kn", "--port", "8888")
+	serviceUpdate(r, "hello", "--env", "TARGET=kn", "--port", "8888")
 
 	t.Log("show a list of revisions sorted by the count of configuration generation")
-	revisionListWithService(t, it, r, "hello")
+	revisionListWithService(r, "hello")
 
 	t.Log("update hello service and increase revision count to 3")
-	serviceUpdate(t, it, r, "hello", "--env", "TARGET=kn", "--port", "8888")
+	serviceUpdate(r, "hello", "--env", "TARGET=kn", "--port", "8888")
 
 	t.Log("delete three revisions with one revision a nonexistent")
-	existRevision1 := findRevisionByGeneration(t, it, r, "hello", 1)
-	existRevision2 := findRevisionByGeneration(t, it, r, "hello", 2)
+	existRevision1 := findRevisionByGeneration(r, "hello", 1)
+	existRevision2 := findRevisionByGeneration(r, "hello", 2)
 	nonexistRevision := "hello-nonexist"
-	revisionMultipleDelete(t, it, r, existRevision1, existRevision2, nonexistRevision)
+	revisionMultipleDelete(r, existRevision1, existRevision2, nonexistRevision)
 
 	t.Log("delete latest revision from hello service and return no error")
-	revName = findRevision(t, it, r, "hello")
-	revisionDelete(t, it, r, revName)
+	revName = findRevision(r, "hello")
+	revisionDelete(r, revName)
 
 	t.Log("delete hello service and return no error")
-	serviceDelete(t, it, r, "hello")
+	serviceDelete(r, "hello")
 }
 
-func revisionListWithService(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceNames ...string) {
+func revisionListWithService(r *test.KnRunResultCollector, serviceNames ...string) {
 	for _, svcName := range serviceNames {
-		confGen := findConfigurationGeneration(t, it, r, svcName)
-		out := it.Kn().Run("revision", "list", "-s", svcName)
+		confGen := findConfigurationGeneration(r, svcName)
+		out := r.KnTest().Kn().Run("revision", "list", "-s", svcName)
 		r.AssertNoError(out)
 
 		outputLines := strings.Split(out.Stdout, "\n")
 		// Ignore the last line because it is an empty string caused by splitting a line break
 		// at the end of the output string
 		for _, line := range outputLines[1 : len(outputLines)-1] {
-			revName := findRevisionByGeneration(t, it, r, svcName, confGen)
-			assert.Check(t, util.ContainsAll(line, revName, svcName, strconv.Itoa(confGen)))
+			revName := findRevisionByGeneration(r, svcName, confGen)
+			assert.Check(r.T(), util.ContainsAll(line, revName, svcName, strconv.Itoa(confGen)))
 			confGen--
 		}
-		if t.Failed() {
-			r.AddDump("service", svcName, it.Kn().Namespace())
+		if r.T().Failed() {
+			r.AddDump("service", svcName, r.KnTest().Kn().Namespace())
 		}
 	}
 }
 
-func revisionDelete(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, revName string) {
-	out := it.Kn().Run("revision", "delete", revName)
-	assert.Check(t, util.ContainsAll(out.Stdout, "Revision", revName, "deleted", "namespace", it.Kn().Namespace()))
+func revisionDelete(r *test.KnRunResultCollector, revName string) {
+	out := r.KnTest().Kn().Run("revision", "delete", revName)
+	assert.Check(r.T(), util.ContainsAll(out.Stdout, "Revision", revName, "deleted", "namespace", r.KnTest().Kn().Namespace()))
 	r.AssertNoError(out)
 }
 
-func revisionMultipleDelete(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, existRevision1, existRevision2, nonexistRevision string) {
-	out := it.Kn().Run("revision", "list")
+func revisionMultipleDelete(r *test.KnRunResultCollector, existRevision1, existRevision2, nonexistRevision string) {
+	out := r.KnTest().Kn().Run("revision", "list")
 	r.AssertNoError(out)
-	assert.Check(t, strings.Contains(out.Stdout, existRevision1), "Required revision1 does not exist")
-	assert.Check(t, strings.Contains(out.Stdout, existRevision2), "Required revision2 does not exist")
+	assert.Check(r.T(), strings.Contains(out.Stdout, existRevision1), "Required revision1 does not exist")
+	assert.Check(r.T(), strings.Contains(out.Stdout, existRevision2), "Required revision2 does not exist")
 
-	out = it.Kn().Run("revision", "delete", existRevision1, existRevision2, nonexistRevision)
+	out = r.KnTest().Kn().Run("revision", "delete", existRevision1, existRevision2, nonexistRevision)
 	r.AssertNoError(out)
 
-	assert.Check(t, util.ContainsAll(out.Stdout, "Revision", existRevision1, "deleted", "namespace", it.Kn().Namespace()), "Failed to get 'deleted' first revision message")
-	assert.Check(t, util.ContainsAll(out.Stdout, "Revision", existRevision2, "deleted", "namespace", it.Kn().Namespace()), "Failed to get 'deleted' second revision message")
-	assert.Check(t, util.ContainsAll(out.Stdout, "revisions.serving.knative.dev", nonexistRevision, "not found"), "Failed to get 'not found' error")
+	assert.Check(r.T(), util.ContainsAll(out.Stdout, "Revision", existRevision1, "deleted", "namespace", r.KnTest().Kn().Namespace()), "Failed to get 'deleted' first revision message")
+	assert.Check(r.T(), util.ContainsAll(out.Stdout, "Revision", existRevision2, "deleted", "namespace", r.KnTest().Kn().Namespace()), "Failed to get 'deleted' second revision message")
+	assert.Check(r.T(), util.ContainsAll(out.Stdout, "revisions.serving.knative.dev", nonexistRevision, "not found"), "Failed to get 'not found' error")
 }
 
-func revisionDescribeWithPrintFlags(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, revName string) {
-	out := it.Kn().Run("revision", "describe", revName, "-o=name")
+func revisionDescribeWithPrintFlags(r *test.KnRunResultCollector, revName string) {
+	out := r.KnTest().Kn().Run("revision", "describe", revName, "-o=name")
 	r.AssertNoError(out)
 	expectedName := fmt.Sprintf("revision.serving.knative.dev/%s", revName)
-	assert.Equal(t, strings.TrimSpace(out.Stdout), expectedName)
+	assert.Equal(r.T(), strings.TrimSpace(out.Stdout), expectedName)
 }
 
-func findRevision(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName string) string {
-	out := it.Kn().Run("revision", "list", "-s", serviceName, "-o=jsonpath={.items[0].metadata.name}")
+func findRevision(r *test.KnRunResultCollector, serviceName string) string {
+	out := r.KnTest().Kn().Run("revision", "list", "-s", serviceName, "-o=jsonpath={.items[0].metadata.name}")
 	r.AssertNoError(out)
 	if strings.Contains(out.Stdout, "No resources") {
-		t.Errorf("Could not find revision name.")
+		r.T().Errorf("Could not find revision name.")
 	}
 	return out.Stdout
 }
 
-func findRevisionByGeneration(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName string, generation int) string {
-	maxGen := findConfigurationGeneration(t, it, r, serviceName)
-	out := it.Kn().Run("revision", "list", "-s", serviceName,
+func findRevisionByGeneration(r *test.KnRunResultCollector, serviceName string, generation int) string {
+	maxGen := findConfigurationGeneration(r, serviceName)
+	out := r.KnTest().Kn().Run("revision", "list", "-s", serviceName,
 		fmt.Sprintf("-o=jsonpath={.items[%d].metadata.name}", maxGen-generation))
 	r.AssertNoError(out)
 	if strings.Contains(out.Stdout, "No resources found.") {
-		t.Errorf("Could not find revision name.")
+		r.T().Errorf("Could not find revision name.")
 	}
 	return out.Stdout
 }
 
-func findConfigurationGeneration(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName string) int {
-	out := it.Kn().Run("revision", "list", "-s", serviceName, "-o=jsonpath={.items[0].metadata.labels.serving\\.knative\\.dev/configurationGeneration}")
+func findConfigurationGeneration(r *test.KnRunResultCollector, serviceName string) int {
+	out := r.KnTest().Kn().Run("revision", "list", "-s", serviceName, "-o=jsonpath={.items[0].metadata.labels.serving\\.knative\\.dev/configurationGeneration}")
 	r.AssertNoError(out)
 	if out.Stdout == "" {
-		t.Errorf("Could not find configuration generation.")
+		r.T().Errorf("Could not find configuration generation.")
 	}
 	confGen, err := strconv.Atoi(out.Stdout)
 	if err != nil {
-		t.Errorf("Invalid type of configuration generation: %s", err)
+		r.T().Errorf("Invalid type of configuration generation: %s", err)
 	}
 
 	return confGen

@@ -42,16 +42,30 @@ type KnRunResult struct {
 type KnRunResultCollector struct {
 	results    []KnRunResult
 	extraDumps []string
-	t          *testing.T
+
+	t      *testing.T
+	knTest *KnTest
 }
 
 // NewKnRunResultCollector returns a new KnRunResultCollector
-func NewKnRunResultCollector(t *testing.T) *KnRunResultCollector {
+func NewKnRunResultCollector(t *testing.T, knTest *KnTest) *KnRunResultCollector {
 	return &KnRunResultCollector{
 		results:    []KnRunResult{},
 		extraDumps: []string{},
-		t:          t,
+
+		t:      t,
+		knTest: knTest,
 	}
+}
+
+// T returns the *testing.T object
+func (c *KnRunResultCollector) T() *testing.T {
+	return c.t
+}
+
+// KnTest returns the KnTest object
+func (c *KnRunResultCollector) KnTest() *KnTest {
+	return c.knTest
 }
 
 // AssertNoError helper to assert no error on result

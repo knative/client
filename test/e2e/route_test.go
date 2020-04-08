@@ -36,64 +36,64 @@ func TestRoute(t *testing.T) {
 		assert.NilError(t, it.Teardown())
 	}()
 
-	r := test.NewKnRunResultCollector(t)
+	r := test.NewKnRunResultCollector(t, it)
 	defer r.DumpIfFailed()
 
 	t.Log("create hello service and return no error")
-	serviceCreate(t, it, r, "hello")
+	serviceCreate(r, "hello")
 
 	t.Log("return a list of routes")
-	routeList(t, it, r)
+	routeList(r)
 
 	t.Log("return a list of routes associated with hello service")
-	routeListWithArgument(t, it, r, "hello")
+	routeListWithArgument(r, "hello")
 
 	t.Log("return a list of routes associated with hello service with print flags")
-	routeListWithPrintFlags(t, it, r, "hello")
+	routeListWithPrintFlags(r, "hello")
 
 	t.Log("describe route from hello service")
-	routeDescribe(t, it, r, "hello")
+	routeDescribe(r, "hello")
 
 	t.Log("describe route from hello service with print flags")
-	routeDescribeWithPrintFlags(t, it, r, "hello")
+	routeDescribeWithPrintFlags(r, "hello")
 
 	t.Log("delete hello service and return no error")
-	serviceDelete(t, it, r, "hello")
+	serviceDelete(r, "hello")
 }
 
-func routeList(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector) {
-	out := it.Kn().Run("route", "list")
+func routeList(r *test.KnRunResultCollector) {
+	out := r.KnTest().Kn().Run("route", "list")
 
 	expectedHeaders := []string{"NAME", "URL", "READY"}
-	assert.Check(t, util.ContainsAll(out.Stdout, expectedHeaders...))
+	assert.Check(r.T(), util.ContainsAll(out.Stdout, expectedHeaders...))
 	r.AssertNoError(out)
 }
 
-func routeListWithArgument(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, routeName string) {
-	out := it.Kn().Run("route", "list", routeName)
+func routeListWithArgument(r *test.KnRunResultCollector, routeName string) {
+	out := r.KnTest().Kn().Run("route", "list", routeName)
 
-	assert.Check(t, util.ContainsAll(out.Stdout, routeName))
+	assert.Check(r.T(), util.ContainsAll(out.Stdout, routeName))
 	r.AssertNoError(out)
 }
 
-func routeDescribe(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, routeName string) {
-	out := it.Kn().Run("route", "describe", routeName)
+func routeDescribe(r *test.KnRunResultCollector, routeName string) {
+	out := r.KnTest().Kn().Run("route", "describe", routeName)
 
-	assert.Check(t, util.ContainsAll(out.Stdout,
-		routeName, it.Kn().Namespace(), "URL", "Service", "Traffic", "Targets", "Conditions"))
+	assert.Check(r.T(), util.ContainsAll(out.Stdout,
+		routeName, r.KnTest().Kn().Namespace(), "URL", "Service", "Traffic", "Targets", "Conditions"))
 	r.AssertNoError(out)
 }
 
-func routeDescribeWithPrintFlags(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, routeName string) {
-	out := it.Kn().Run("route", "describe", routeName, "-o=name")
+func routeDescribeWithPrintFlags(r *test.KnRunResultCollector, routeName string) {
+	out := r.KnTest().Kn().Run("route", "describe", routeName, "-o=name")
 
 	expectedName := fmt.Sprintf("route.serving.knative.dev/%s", routeName)
-	assert.Equal(t, strings.TrimSpace(out.Stdout), expectedName)
+	assert.Equal(r.T(), strings.TrimSpace(out.Stdout), expectedName)
 	r.AssertNoError(out)
 }
 
-func routeListWithPrintFlags(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, names ...string) {
-	out := it.Kn().Run("route", "list", "-o=jsonpath={.items[*].metadata.name}")
-	assert.Check(t, util.ContainsAll(out.Stdout, names...))
+func routeListWithPrintFlags(r *test.KnRunResultCollector, names ...string) {
+	out := r.KnTest().Kn().Run("route", "list", "-o=jsonpath={.items[*].metadata.name}")
+	assert.Check(r.T(), util.ContainsAll(out.Stdout, names...))
 	r.AssertNoError(out)
 }

@@ -65,7 +65,7 @@ func TestSinkPrefixConfig(t *testing.T) {
 		assert.NilError(t, it.Teardown())
 	}()
 
-	r := test.NewKnRunResultCollector(t)
+	r := test.NewKnRunResultCollector(t, it)
 	defer r.DumpIfFailed()
 
 	tc := sinkprefixTestConfig{}
@@ -73,9 +73,9 @@ func TestSinkPrefixConfig(t *testing.T) {
 	defer tc.teardown()
 
 	t.Log("Creating a testservice")
-	serviceCreate(t, it, r, "testsvc0")
+	serviceCreate(r, "testsvc0")
 	t.Log("create Ping sources with a sink to hello:testsvc0")
-	pingSourceCreateWithConfig(t, it, r, "testpingsource0", "* * * * */1", "ping", "hello:testsvc0", tc.knConfigPath)
+	pingSourceCreateWithConfig(r, "testpingsource0", "* * * * */1", "ping", "hello:testsvc0", tc.knConfigPath)
 
 	jpSinkRefNameInSpec := "jsonpath={.spec.sink.ref.name}"
 	out, err := getResourceFieldsWithJSONPath(t, it, "pingsource", "testpingsource0", jpSinkRefNameInSpec)
@@ -83,12 +83,12 @@ func TestSinkPrefixConfig(t *testing.T) {
 	assert.Equal(t, out, "testsvc0")
 
 	t.Log("delete Ping sources")
-	pingSourceDelete(t, it, r, "testpingsource0")
+	pingSourceDelete(r, "testpingsource0")
 }
 
-func pingSourceCreateWithConfig(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, sourceName string, schedule string, data string, sink string, config string) {
-	out := it.Kn().Run("source", "ping", "create", sourceName,
+func pingSourceCreateWithConfig(r *test.KnRunResultCollector, sourceName string, schedule string, data string, sink string, config string) {
+	out := r.KnTest().Kn().Run("source", "ping", "create", sourceName,
 		"--schedule", schedule, "--data", data, "--sink", sink, "--config", config)
-	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "ping", "source", sourceName, "created", "namespace", it.Kn().Namespace()))
+	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "ping", "source", sourceName, "created", "namespace", r.KnTest().Kn().Namespace()))
 	r.AssertNoError(out)
 }

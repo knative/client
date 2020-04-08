@@ -38,6 +38,11 @@ func NewKn() Kn {
 	return Kn{}
 }
 
+// RunNoNamespace the 'kn' CLI with args but no namespace
+func (k Kn) RunNoNamespace(args ...string) KnRunResult {
+	return RunKn("", args)
+}
+
 // Run the 'kn' CLI with args
 func (k Kn) Run(args ...string) KnRunResult {
 	return RunKn(k.namespace, args)
