@@ -183,13 +183,10 @@ func validateLabels(r *test.KnRunResultCollector, serviceName string, expectedSe
 	assert.NilError(r.T(), err)
 
 	gotRevisionLabels := service.Spec.Template.ObjectMeta.GetLabels()
-	for k, v := range expectedRevisionLabels {
-		assert.Equal(r.T(), gotRevisionLabels[k], v)
-	}
+	assert.DeepEqual(r.T(), gotRevisionLabels, expectedRevisionLabels)
+
 	gotServiceLabels := service.ObjectMeta.GetLabels()
-	for k, v := range expectedServiceLabels {
-		assert.Equal(r.T(), gotServiceLabels[k], v)
-	}
+	assert.DeepEqual(r.T(), gotServiceLabels, expectedServiceLabels)
 }
 
 func validateContainerField(r *test.KnRunResultCollector, serviceName, field, expected string) {
