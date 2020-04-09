@@ -198,6 +198,11 @@ func UpdateConcurrencyTarget(template *servingv1.RevisionTemplateSpec, target in
 	return UpdateRevisionTemplateAnnotation(template, autoscaling.TargetAnnotationKey, strconv.Itoa(target))
 }
 
+// UpdateConcurrencyUtilization updates container target utilization percentage annotation
+func UpdateConcurrencyUtilization(template *servingv1.RevisionTemplateSpec, target int) error {
+	return UpdateRevisionTemplateAnnotation(template, autoscaling.TargetUtilizationPercentageKey, strconv.Itoa(target))
+}
+
 // UpdateConcurrencyLimit updates container concurrency limit
 func UpdateConcurrencyLimit(template *servingv1.RevisionTemplateSpec, limit int64) error {
 	err := serving.ValidateContainerConcurrency(ptr.Int64(limit)).ViaField("spec.containerConcurrency")

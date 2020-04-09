@@ -18,6 +18,10 @@
 |===
 | | Description | PR
 
+| 🎁
+| Add concurrency-utilization option for `service create` and `service update` (`--concurrency-utilization`)
+| https://github.com/knative/client/pull/788[#788]
+
 | 🐣
 | Refactor `e2e` common code into `lib/test`
 | https://github.com/knative/client/pull/765[#765]

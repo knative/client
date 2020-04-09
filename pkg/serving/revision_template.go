@@ -63,6 +63,11 @@ func ConcurrencyTarget(m *metav1.ObjectMeta) *int {
 	return ret
 }
 
+func ConcurrencyTargetUtilization(m *metav1.ObjectMeta) *int {
+	ret, _ := annotationAsInt(m, autoscaling.TargetUtilizationPercentageKey)
+	return ret
+}
+
 func AutoscaleWindow(m *metav1.ObjectMeta) string {
 	return m.Annotations[autoscaling.WindowAnnotationKey]
 }

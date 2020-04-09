@@ -46,9 +46,10 @@ func TestServiceOptions(t *testing.T) {
 	t.Log("create and validate service with concurrency options")
 	defer r.DumpIfFailed()
 
-	serviceCreateWithOptions(t, it, r, "svc1", "--concurrency-limit", "250", "--concurrency-target", "300")
+	serviceCreateWithOptions(t, it, r, "svc1", "--concurrency-limit", "250", "--concurrency-target", "300", "--concurrency-utilization", "50")
 	validateServiceConcurrencyTarget(t, it, r, "svc1", "300")
 	validateServiceConcurrencyLimit(t, it, r, "svc1", "250")
+	validateServiceConcurrencyUtilization(t, it, r, "svc1", "50")
 
 	t.Log("update and validate service with concurrency limit")
 	serviceUpdate(t, it, r, "svc1", "--concurrency-limit", "300")
@@ -62,6 +63,7 @@ func TestServiceOptions(t *testing.T) {
 	t.Log("returns steady concurrency options for service")
 	validateServiceConcurrencyLimit(t, it, r, "svc1", "300")
 	validateServiceConcurrencyTarget(t, it, r, "svc1", "300")
+	validateServiceConcurrencyUtilization(t, it, r, "svc1", "50")
 
 	t.Log("delete service")
 	serviceDelete(t, it, r, "svc1")
@@ -131,6 +133,13 @@ func validateServiceConcurrencyTarget(t *testing.T, it *test.KnTest, r *test.KnR
 	jsonpath := "jsonpath={.items[0].spec.template.metadata.annotations.autoscaling\\.knative\\.dev/target}"
 	out := it.Kn().Run("service", "list", serviceName, "-o", jsonpath)
 	assert.Equal(t, out.Stdout, concurrencyTarget)
+	r.AssertNoError(out)
+}
+
+func validateServiceConcurrencyUtilization(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName, concurrencyUtilization string) {
+	jsonpath := "jsonpath={.items[0].spec.template.metadata.annotations.autoscaling\\.knative\\.dev/targetUtilizationPercentage}"
+	out := it.Kn().Run("service", "list", serviceName, "-o", jsonpath)
+	assert.Equal(t, out.Stdout, concurrencyUtilization)
 	r.AssertNoError(out)
 }
 
