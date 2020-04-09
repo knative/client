@@ -33,7 +33,7 @@ import (
 
 func TestUpdateAutoscalingAnnotations(t *testing.T) {
 	template := &servingv1.RevisionTemplateSpec{}
-	updateConcurrencyConfiguration(template, 10, 100, 1000, 1000)
+	updateConcurrencyConfiguration(template, 10, 100, 1000, 1000, 50)
 	annos := template.Annotations
 	if annos[autoscaling.MinScaleAnnotationKey] != "10" {
 		t.Error("minScale failed")
@@ -51,9 +51,9 @@ func TestUpdateAutoscalingAnnotations(t *testing.T) {
 
 func TestUpdateInvalidAutoscalingAnnotations(t *testing.T) {
 	template := &servingv1.RevisionTemplateSpec{}
-	updateConcurrencyConfiguration(template, 10, 100, 1000, 1000)
+	updateConcurrencyConfiguration(template, 10, 100, 1000, 1000, 50)
 	// Update with invalid concurrency options
-	updateConcurrencyConfiguration(template, -1, -1, 0, -1)
+	updateConcurrencyConfiguration(template, -1, -1, 0, -1, 200)
 	annos := template.Annotations
 	if annos[autoscaling.MinScaleAnnotationKey] != "10" {
 		t.Error("minScale failed")
@@ -63,6 +63,9 @@ func TestUpdateInvalidAutoscalingAnnotations(t *testing.T) {
 	}
 	if annos[autoscaling.TargetAnnotationKey] != "1000" {
 		t.Error("target failed")
+	}
+	if annos[autoscaling.TargetUtilizationPercentageKey] != "50" {
+		t.Error("concurrency utilization failed")
 	}
 	if *template.Spec.ContainerConcurrency != 1000 {
 		t.Error("limit failed")
@@ -723,9 +726,10 @@ func checkContainerConcurrency(t *testing.T, template *servingv1.RevisionTemplat
 	}
 }
 
-func updateConcurrencyConfiguration(template *servingv1.RevisionTemplateSpec, minScale int, maxScale int, target int, limit int) {
+func updateConcurrencyConfiguration(template *servingv1.RevisionTemplateSpec, minScale, maxScale, target, limit, utilization int) {
 	UpdateMinScale(template, minScale)
 	UpdateMaxScale(template, maxScale)
 	UpdateConcurrencyTarget(template, target)
 	UpdateConcurrencyLimit(template, int64(limit))
+	UpdateConcurrencyUtilization(template, utilization)
 }
