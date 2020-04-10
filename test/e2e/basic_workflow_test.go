@@ -131,7 +131,7 @@ func serviceUpdate(r *test.KnRunResultCollector, serviceName string, args ...str
 }
 
 func serviceDelete(r *test.KnRunResultCollector, serviceName string) {
-	out := r.KnTest().Kn().Run("service", "delete", serviceName)
+	out := r.KnTest().Kn().Run("service", "delete", "--no-wait=false", serviceName)
 	r.AssertNoError(out)
 	assert.Check(r.T(), util.ContainsAll(out.Stdout, "Service", serviceName, "successfully deleted in namespace", r.KnTest().Kn().Namespace()))
 }
