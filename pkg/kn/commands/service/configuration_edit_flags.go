@@ -225,7 +225,7 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 		"Service account name to set. An empty argument (\"\") clears the service account. The referenced service account must exist in the service's namespace.")
 	p.markFlagMakesRevision("service-account")
 
-	command.Flags().StringArrayVar(&p.Annotations, "annotation", []string{},
+	command.Flags().StringArrayVarP(&p.Annotations, "annotation", "a", []string{},
 		"Service annotation to set. name=value; you may provide this flag "+
 			"any number of times to set multiple annotations. "+
 			"To unset, specify the annotation name followed by a \"-\" (e.g., name-).")
