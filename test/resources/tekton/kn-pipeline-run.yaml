@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-apiVersion: tekton.dev/v1alpha1
+apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
   generateName: buildah-build-kn-create-
@@ -19,14 +19,19 @@ spec:
   serviceAccountName: kn-deployer-account
   pipelineRef:
     name: buildah-build-kn-create
-  resources:
+  workspaces:
     - name: source
-      resourceRef:
-        name: buildah-build-kn-create-source
+      persistentvolumeclaim:
+        claimName: clone-source-pvc
+  resources:
     - name: image
       resourceRef:
         name: buildah-build-kn-create-image
   params:
+    - name: IMAGE_FORMAT
+      value: "docker"
+    - name: GIT_URL
+      value: "https://github.com/knative/client"
     - name: ARGS
       value:
         - "service"

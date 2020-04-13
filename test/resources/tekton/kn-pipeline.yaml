@@ -11,38 +11,61 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-apiVersion: tekton.dev/v1alpha1
+apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
   name: buildah-build-kn-create
 spec:
-  resources:
+  workspaces:
   - name: source
-    type: git
+  resources:
   - name: image
     type: image
   params:
+  - name: GIT_URL
+    type: string
+    description: Git URL to clone
+  - name: IMAGE_FORMAT
+    type: string
+    description: Built image format
   - name: ARGS
     type: array
     description: Arguments to pass to kn CLI
     default:
       - "help"
   tasks:
+  - name: clone-repository
+    taskRef:
+      name: git-clone
+    workspaces:
+    - name: output
+      workspace: source
+    params:
+    - name: url
+      value: $(params.GIT_URL)
+    - name: subdirectory
+      value: ""
+    - name: deleteExisting
+      value: "true"
   - name: buildah-build
     taskRef:
       name: buildah
+    runAfter:
+      - clone-repository
+    workspaces:
+    - name: source
+      workspace: source
     resources:
-      inputs:
-        - name: source
-          resource: source
       outputs:
         - name: image
           resource: image
     params:
-    - name: DOCKERFILE
-      value: ./test/test_images/helloworld/Dockerfile
     - name: BUILDER_IMAGE
       value: "quay.io/buildah/stable:latest"
+    - name: DOCKERFILE
+      value: ./test/test_images/helloworld/Dockerfile
+    - name: FORMAT
+      value: $(params.IMAGE_FORMAT)
   - name: kn-service-create
     taskRef:
       name: kn

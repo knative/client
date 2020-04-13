@@ -11,15 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-apiVersion: tekton.dev/v1alpha1
-kind: PipelineResource
-metadata:
-  name: buildah-build-kn-create-source
-spec:
-  type: git
-  params:
-    - name: url
-      value: "https://github.com/knative/client"
 ---
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
@@ -30,3 +21,14 @@ spec:
   params:
     - name: url
       value: "${CONTAINER_REGISTRY}/helloworld:tkn"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: clone-source-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Mi
