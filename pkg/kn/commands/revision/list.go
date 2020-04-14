@@ -103,12 +103,7 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 			sortRevisions(revisionList)
 
 			// Print out infos via printer framework
-			printer, err := revisionListFlags.ToPrinter()
-			if err != nil {
-				return err
-			}
-
-			return printer.PrintObj(revisionList, cmd.OutOrStdout())
+			return revisionListFlags.Print(revisionList, cmd.OutOrStdout())
 		},
 	}
 	commands.AddNamespaceFlags(revisionListCommand.Flags(), true)

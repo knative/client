@@ -58,12 +58,7 @@ func NewBindingListCommand(p *commands.KnParams) *cobra.Command {
 				listFlags.EnsureWithNamespace()
 			}
 
-			printer, err := listFlags.ToPrinter()
-			if err != nil {
-				return nil
-			}
-
-			err = printer.PrintObj(sourceList, cmd.OutOrStdout())
+			err = listFlags.Print(sourceList, cmd.OutOrStdout())
 			if err != nil {
 				return err
 			}

@@ -59,12 +59,7 @@ func NewTriggerListCommand(p *commands.KnParams) *cobra.Command {
 				triggerListFlags.EnsureWithNamespace()
 			}
 
-			printer, err := triggerListFlags.ToPrinter()
-			if err != nil {
-				return err
-			}
-
-			err = printer.PrintObj(triggerList, cmd.OutOrStdout())
+			err = triggerListFlags.Print(triggerList, cmd.OutOrStdout())
 			if err != nil {
 				return err
 			}
