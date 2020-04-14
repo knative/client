@@ -92,4 +92,7 @@ smoke_test() {
 }
 
 # Fire up
-run $@
+# run $@
+
+header "Running tekton e2e tests"
+bash -x $(dirname $0)/tekton-tests.sh
