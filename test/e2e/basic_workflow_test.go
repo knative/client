@@ -48,6 +48,9 @@ func TestBasicWorkflow(t *testing.T) {
 	serviceList(t, it, r, "hello")
 	serviceDescribe(t, it, r, "hello")
 
+	t.Log("return list --output name about hello service")
+	serviceListOutput(t, it, r, "hello")
+
 	t.Log("update hello service's configuration and return no error")
 	serviceUpdate(t, it, r, "hello", "--env", "TARGET=kn", "--port", "8888")
 
@@ -109,6 +112,12 @@ func serviceDescribe(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector
 	assert.Assert(t, util.ContainsAll(out.Stdout, serviceName, it.Kn().Namespace(), test.KnDefaultTestImage))
 	assert.Assert(t, util.ContainsAll(out.Stdout, "Conditions", "ConfigurationsReady", "Ready", "RoutesReady"))
 	assert.Assert(t, util.ContainsAll(out.Stdout, "Name", "Namespace", "URL", "Age", "Revisions"))
+}
+
+func serviceListOutput(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName string) {
+	out := it.Kn().Run("service", "list", serviceName, "--output", "name")
+	r.AssertNoError(out)
+	assert.Check(t, util.ContainsAll(out.Stdout, serviceName, "service.serving.knative.dev"))
 }
 
 func serviceUpdate(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName string, args ...string) {
