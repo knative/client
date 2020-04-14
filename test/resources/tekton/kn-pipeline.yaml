@@ -27,6 +27,9 @@ spec:
     description: Arguments to pass to kn CLI
     default:
       - "help"
+  - name: IMAGE_FORMAT
+    type: string
+    description: Image format to build and push to registry
   tasks:
   - name: buildah-build
     taskRef:
@@ -43,6 +46,8 @@ spec:
       value: ./test/test_images/helloworld/Dockerfile
     - name: BUILDER_IMAGE
       value: "quay.io/buildah/stable:latest"
+    - name: FORMAT
+      value: "$(params.IMAGE_FORMAT)"
   - name: kn-service-create
     taskRef:
       name: kn

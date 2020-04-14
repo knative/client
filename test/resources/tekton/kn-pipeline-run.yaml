@@ -27,6 +27,8 @@ spec:
       resourceRef:
         name: buildah-build-kn-create-image
   params:
+    - name: IMAGE_FORMAT
+      value: "docker"
     - name: ARGS
       value:
         - "service"
