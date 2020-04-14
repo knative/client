@@ -69,22 +69,17 @@ func ReconcileBoolFlags(f *pflag.FlagSet) error {
 			return
 		}
 
-		// handle DEPRECATD flags
-		if strings.HasPrefix(flag.Usage, deprecatedPrefix) {
-			if flag.Changed {
-				// handle async flag
-				if flag.Name == "async" {
-					if f.Lookup("wait").Changed || f.Lookup("no-wait").Changed {
-						err = fmt.Errorf("only one of (DEPRECATED) --%s, --wait and --no-wait may be specified", flag.Name)
-						return
-					}
-					err = checkExplicitFalse(flag, "wait")
-					if err != nil {
-						return
-					}
-					f.Lookup("no-wait").Value.Set("true")
-				}
+		// handle async flag
+		if flag.Name == "async" && flag.Changed {
+			if f.Lookup("wait").Changed || f.Lookup("no-wait").Changed {
+				err = fmt.Errorf("only one of (DEPRECATED) --async, --wait and --no-wait may be specified")
+				return
 			}
+			err = checkExplicitFalse(flag, "wait")
+			if err != nil {
+				return
+			}
+			f.Lookup("no-wait").Value.Set("true")
 		}
 
 		// Walk the "no-" versions of the flags. Make sure we didn't set
