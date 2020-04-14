@@ -29,6 +29,13 @@ type boolPairTestCase struct {
 	expectedErrText string
 }
 
+type boolPairTestCaseDeprecated struct {
+	waitDefaultVal  bool
+	flags           []string
+	expectedResult  bool
+	expectedErrText string
+}
+
 func TestBooleanPair(t *testing.T) {
 	cases := []*boolPairTestCase{
 		{"foo", true, []string{}, true, ""},
@@ -60,6 +67,30 @@ func TestBooleanPair(t *testing.T) {
 		f := &pflag.FlagSet{}
 		var result bool
 		AddBothBoolFlags(f, &result, c.name, "", c.defaultVal, "set "+c.name)
+		f.Parse(c.flags)
+		err := ReconcileBoolFlags(f)
+		if c.expectedErrText != "" {
+			assert.ErrorContains(t, err, c.expectedErrText)
+		} else {
+			assert.Equal(t, result, c.expectedResult)
+		}
+	}
+}
+
+func TestBooleanPairWithDeprecatedSyncFlag(t *testing.T) {
+	cases := []*boolPairTestCaseDeprecated{
+		{true, []string{}, false, ""},
+		{true, []string{"--async"}, true, ""},
+		{true, []string{"--async", "--no-wait"}, false, "only one of (DEPRECATED) --async, --wait and --no-wait may be specified"},
+		// delete operation
+		{false, []string{""}, true, ""},
+		{false, []string{"--async=false"}, false, "use --wait instead of providing \"false\" to --async"},
+	}
+	for _, c := range cases {
+		var result, wait bool
+		f := &pflag.FlagSet{}
+		AddBothBoolFlags(f, &wait, "wait", "", c.waitDefaultVal, "set wait")
+		f.BoolVar(&result, "async", !c.waitDefaultVal, "DEPRECATED: set async")
 		f.Parse(c.flags)
 		err := ReconcileBoolFlags(f)
 		if c.expectedErrText != "" {
