@@ -51,6 +51,7 @@ func TestBrokerTrigger(t *testing.T) {
 	triggerCreate(r, "trigger1", "sinksvc0", []string{"a=b"})
 	triggerCreate(r, "trigger2", "sinksvc1", []string{"type=knative.dev.bar", "source=ping"})
 	verifyTriggerList(r, "trigger1", "trigger2")
+	verifyTriggerListOutputName(r, "trigger1", "trigger2")
 	triggerDelete(r, "trigger1")
 	triggerDelete(r, "trigger2")
 
@@ -137,6 +138,12 @@ func triggerUpdate(r *test.KnRunResultCollector, name string, filter string, sin
 
 func verifyTriggerList(r *test.KnRunResultCollector, triggers ...string) {
 	out := r.KnTest().Kn().Run("trigger", "list")
+	r.AssertNoError(out)
+	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, triggers...))
+}
+
+func verifyTriggerListOutputName(r *test.KnRunResultCollector, triggers ...string) {
+	out := r.KnTest().Kn().Run("trigger", "list", "--output", "name")
 	r.AssertNoError(out)
 	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, triggers...))
 }

@@ -48,6 +48,9 @@ func TestRoute(t *testing.T) {
 	t.Log("return a list of routes associated with hello service")
 	routeListWithArgument(r, "hello")
 
+	t.Log("return a list of routes associated with hello service with -oname flag")
+	routeListOutputName(r, "hello")
+
 	t.Log("return a list of routes associated with hello service with print flags")
 	routeListWithPrintFlags(r, "hello")
 
@@ -67,6 +70,12 @@ func routeList(r *test.KnRunResultCollector) {
 	expectedHeaders := []string{"NAME", "URL", "READY"}
 	assert.Check(r.T(), util.ContainsAll(out.Stdout, expectedHeaders...))
 	r.AssertNoError(out)
+}
+
+func routeListOutputName(r *test.KnRunResultCollector, routeName string) {
+	out := r.KnTest().Kn().Run("route", "list", "--output", "name")
+	r.AssertNoError(out)
+	assert.Check(r.T(), util.ContainsAll(out.Stdout, routeName, "route.serving.knative.dev"))
 }
 
 func routeListWithArgument(r *test.KnRunResultCollector, routeName string) {
