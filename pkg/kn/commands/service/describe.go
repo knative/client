@@ -267,7 +267,7 @@ func getRevisionDescriptions(client clientservingv1.KnServingClient, service *se
 			return nil, fmt.Errorf("cannot extract revision from service %s: %v", service.Name, err)
 		}
 		revisionsSeen.Insert(revision.Name)
-		desc, err := newRevisionDesc(revision, &target, service)
+		desc, err := newRevisionDesc(*revision, &target, service)
 		if err != nil {
 			return nil, err
 		}
@@ -302,7 +302,7 @@ func completeWithLatestRevisions(client clientservingv1.KnServingClient, service
 		if err != nil {
 			return nil, err
 		}
-		newDesc, err := newRevisionDesc(rev, nil, service)
+		newDesc, err := newRevisionDesc(*rev, nil, service)
 		if err != nil {
 			return nil, err
 		}
@@ -321,7 +321,7 @@ func completeWithUntargetedRevisions(client clientservingv1.KnServingClient, ser
 			continue
 		}
 		revisionsSeen.Insert(revision.Name)
-		newDesc, err := newRevisionDesc(&revision, nil, service)
+		newDesc, err := newRevisionDesc(revision, nil, service)
 		if err != nil {
 			return nil, err
 		}
@@ -331,13 +331,13 @@ func completeWithUntargetedRevisions(client clientservingv1.KnServingClient, ser
 	return descs, nil
 }
 
-func newRevisionDesc(revision *servingv1.Revision, target *servingv1.TrafficTarget, service *servingv1.Service) (*revisionDesc, error) {
+func newRevisionDesc(revision servingv1.Revision, target *servingv1.TrafficTarget, service *servingv1.Service) (*revisionDesc, error) {
 	generation, err := strconv.ParseInt(revision.Labels[serving.ConfigurationGenerationLabelKey], 0, 0)
 	if err != nil {
 		return nil, fmt.Errorf("cannot extract configuration generation for revision %s: %v", revision.Name, err)
 	}
 	revisionDesc := revisionDesc{
-		revision:                revision,
+		revision:                &revision,
 		configurationGeneration: int(generation),
 		latestCreated:           revision.Name == service.Status.LatestCreatedRevisionName,
 		latestReady:             revision.Name == service.Status.LatestReadyRevisionName,

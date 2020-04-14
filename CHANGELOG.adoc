@@ -18,6 +18,10 @@
 |===
 | | Description | PR
 
+| 🐛
+| Service describe command shows repetitive revisions
+| https://github.com/knative/client/pull/790[#790]
+
 | 🎁
 | Add concurrency-utilization option for `service create` and `service update` (`--concurrency-utilization`)
 | https://github.com/knative/client/pull/788[#788]
