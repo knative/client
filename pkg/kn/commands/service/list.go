@@ -65,11 +65,6 @@ func NewServiceListCommand(p *commands.KnParams) *cobra.Command {
 				serviceListFlags.EnsureWithNamespace()
 			}
 
-			printer, err := serviceListFlags.ToPrinter()
-			if err != nil {
-				return err
-			}
-
 			// Sort serviceList by namespace and name (in this order)
 			sort.SliceStable(serviceList.Items, func(i, j int) bool {
 				a := serviceList.Items[i]
@@ -81,11 +76,7 @@ func NewServiceListCommand(p *commands.KnParams) *cobra.Command {
 				return a.ObjectMeta.Name < b.ObjectMeta.Name
 			})
 
-			err = printer.PrintObj(serviceList, cmd.OutOrStdout())
-			if err != nil {
-				return err
-			}
-			return nil
+			return serviceListFlags.Print(serviceList, cmd.OutOrStdout())
 		},
 	}
 	commands.AddNamespaceFlags(serviceListCommand.Flags(), true)
