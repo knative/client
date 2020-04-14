@@ -47,7 +47,7 @@ kn service create NAME --image IMAGE [flags]
 ```
   -a, --annotation stringArray        Service annotation to set. name=value; you may provide this flag any number of times to set multiple annotations. To unset, specify the annotation name followed by a "-" (e.g., name-).
       --arg stringArray               Add argument to the container command. Example: --arg myArg1 --arg --myArg2 --arg myArg3=3. You can use this flag multiple times.
-      --async                         DEPRECATED: please use --no-wait instead. Create service and don't wait for it to be ready.
+      --async                         DEPRECATED: please use --no-wait instead. Do not wait for 'service create' operation to be completed.
       --autoscale-window string       Duration to look back for making auto-scaling decisions. The service is scaled to zero if no request was received in during that time. (eg: 10s)
       --cluster-local                 Specify that the service be private. (--no-cluster-local will make the service publicly available)
       --cmd string                    Specify command to be used as entrypoint instead of default one. Example: --cmd /app/start or --cmd /app/start --arg myArg to pass aditional arguments.
@@ -71,7 +71,7 @@ kn service create NAME --image IMAGE [flags]
   -n, --namespace string              Specify the namespace to operate in.
       --no-cluster-local              Do not specify that the service be private. (--no-cluster-local will make the service publicly available) (default true)
       --no-lock-to-digest             Do not keep the running image for the service constant when not explicitly specifying the image. (--no-lock-to-digest pulls the image tag afresh with each new revision)
-      --no-wait                       Create service and don't wait for it to be ready.
+      --no-wait                       Do not wait for 'service create' operation to be completed.
   -p, --port int32                    The port where application listens on.
       --pull-secret string            Image pull secret to set. An empty argument ("") clears the pull secret. The referenced secret must exist in the service's namespace.
       --requests-cpu string           The requested CPU (e.g., 250m).
@@ -80,6 +80,7 @@ kn service create NAME --image IMAGE [flags]
       --service-account string        Service account name to set. An empty argument ("") clears the service account. The referenced service account must exist in the service's namespace.
       --user int                      The user ID to run the container (e.g., 1001).
       --volume stringArray            Add a volume from a ConfigMap (prefix cm: or config-map:) or a Secret (prefix secret: or sc:). Example: --volume myvolume=cm:myconfigmap or --volume myvolume=secret:mysecret. You can use this flag multiple times. To unset a ConfigMap/Secret reference, append "-" to the name, e.g. --volume myvolume-.
+      --wait                          Wait for 'service create' operation to be completed. (default true)
       --wait-timeout int              Seconds to wait before giving up on waiting for service to be ready. (default 600)
 ```
 

@@ -15,34 +15,37 @@
 package commands
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
+	knflags "knative.dev/client/pkg/kn/flags"
+
 	"github.com/spf13/cobra"
+	"gotest.tools/assert"
 )
 
 type waitTestCase struct {
 	args                 []string
 	timeoutExpected      int
-	isNoWaitExpected     bool
+	isWaitExpected       bool
 	isParseErrorExpected bool
 }
 
 //TODO: deprecated test should be removed with --async flag
 func TestAddWaitForReadyDeprecatedFlags(t *testing.T) {
-
 	for i, tc := range []waitTestCase{
-		{[]string{"--async"}, 60, true, false},
-		{[]string{}, 60, false, false},
-		{[]string{"--wait-timeout=120"}, 120, false, false},
+		{[]string{"--async"}, 60, false, false},
+		{[]string{}, 60, true, false},
+		{[]string{"--wait-timeout=120"}, 120, true, false},
 		// Can't be easily prevented, the timeout is just ignored in this case:
-		{[]string{"--async", "--wait-timeout=120"}, 120, true, false},
+		{[]string{"--async", "--wait-timeout=120"}, 120, false, false},
 		{[]string{"--wait-timeout=bla"}, 0, true, true},
 	} {
 
 		flags := &WaitFlags{}
 		cmd := cobra.Command{}
-		flags.AddConditionWaitFlags(&cmd, 60, "Create", "service", "ready")
+		flags.AddConditionWaitFlags(&cmd, 60, "create", "service", "ready")
 
 		err := cmd.ParseFlags(tc.args)
 		if err != nil && !tc.isParseErrorExpected {
@@ -54,8 +57,13 @@ func TestAddWaitForReadyDeprecatedFlags(t *testing.T) {
 		if tc.isParseErrorExpected {
 			continue
 		}
-		if flags.Async != tc.isNoWaitExpected {
-			t.Errorf("%d: wrong async mode detected: %t (expected) != %t (actual)", i, tc.isNoWaitExpected, flags.Async)
+
+		//  reconcile to ensure wait, no-wait and async behaves as expected
+		err = knflags.ReconcileBoolFlags(cmd.Flags())
+		assert.NilError(t, err)
+
+		if flags.Async == tc.isWaitExpected {
+			t.Errorf("%d: wrong async mode detected: %t (expected) != %t (actual)", i, tc.isWaitExpected, flags.Async)
 		}
 		if flags.TimeoutInSeconds != tc.timeoutExpected {
 			t.Errorf("%d: Invalid timeout set. %d (expected) != %d (actual)", i, tc.timeoutExpected, flags.TimeoutInSeconds)
@@ -64,19 +72,17 @@ func TestAddWaitForReadyDeprecatedFlags(t *testing.T) {
 }
 
 func TestAddWaitForReadyFlags(t *testing.T) {
-
 	for i, tc := range []waitTestCase{
-		{[]string{"--no-wait"}, 60, true, false},
-		{[]string{}, 60, false, false},
-		{[]string{"--wait-timeout=120"}, 120, false, false},
+		{[]string{}, 60, true, false},
+		{[]string{"--wait-timeout=120"}, 120, true, false},
 		// Can't be easily prevented, the timeout is just ignored in this case:
-		{[]string{"--no-wait", "--wait-timeout=120"}, 120, true, false},
+		{[]string{"--no-wait", "--wait-timeout=120"}, 120, false, false},
 		{[]string{"--wait-timeout=bla"}, 0, true, true},
 	} {
 
 		flags := &WaitFlags{}
 		cmd := cobra.Command{}
-		flags.AddConditionWaitFlags(&cmd, 60, "Create", "service", "ready")
+		flags.AddConditionWaitFlags(&cmd, 60, "create", "service", "ready")
 
 		err := cmd.ParseFlags(tc.args)
 		if err != nil && !tc.isParseErrorExpected {
@@ -88,8 +94,14 @@ func TestAddWaitForReadyFlags(t *testing.T) {
 		if tc.isParseErrorExpected {
 			continue
 		}
-		if flags.NoWait != tc.isNoWaitExpected {
-			t.Errorf("%d: wrong wait mode detected: %t (expected) != %t (actual)", i, tc.isNoWaitExpected, flags.NoWait)
+
+		//  reconcile to ensure wait, no-wait and async behaves as expected
+		err = knflags.ReconcileBoolFlags(cmd.Flags())
+		assert.NilError(t, err)
+		fmt.Println("wait value")
+		fmt.Println(flags.Wait)
+		if flags.Wait != tc.isWaitExpected {
+			t.Errorf("%d: wrong wait mode detected: %t (expected) != %t (actual)", i, tc.isWaitExpected, flags.Wait)
 		}
 		if flags.TimeoutInSeconds != tc.timeoutExpected {
 			t.Errorf("%d: Invalid timeout set. %d (expected) != %d (actual)", i, tc.timeoutExpected, flags.TimeoutInSeconds)
@@ -105,7 +117,7 @@ func TestAddWaitUsageMessage(t *testing.T) {
 	if !strings.Contains(cmd.UsageString(), "blub") {
 		t.Error("no type returned in usage")
 	}
-	if !strings.Contains(cmd.UsageString(), "don't wait") {
+	if !strings.Contains(cmd.UsageString(), "Do not wait") {
 		t.Error("wrong usage message")
 	}
 	if !strings.Contains(cmd.UsageString(), "60") {
@@ -119,8 +131,8 @@ func TestAddWaitUsageMessage(t *testing.T) {
 func TestAddWaitUsageDelete(t *testing.T) {
 	flags := &WaitFlags{}
 	cmd := cobra.Command{}
-	flags.AddConditionWaitFlags(&cmd, 60, "Delete", "blub", "deleted")
-	if !strings.Contains(cmd.UsageString(), "deleted. (default true)") {
+	flags.AddConditionWaitFlags(&cmd, 60, "delete", "blub", "deleted")
+	if !strings.Contains(cmd.UsageString(), "completed. (default true)") {
 		t.Error("Delete has wrong default value for --no-wait")
 	}
 }

@@ -49,7 +49,7 @@ func NewRevisionDeleteCommand(p *commands.KnParams) *cobra.Command {
 
 			for _, name := range args {
 				timeout := time.Duration(0)
-				if !waitFlags.NoWait {
+				if waitFlags.Wait {
 					timeout = time.Duration(waitFlags.TimeoutInSeconds) * time.Second
 				}
 				err = client.DeleteRevision(name, timeout)
@@ -63,6 +63,6 @@ func NewRevisionDeleteCommand(p *commands.KnParams) *cobra.Command {
 		},
 	}
 	commands.AddNamespaceFlags(RevisionDeleteCommand.Flags(), false)
-	waitFlags.AddConditionWaitFlags(RevisionDeleteCommand, commands.WaitDefaultTimeout, "Delete", "revision", "deleted")
+	waitFlags.AddConditionWaitFlags(RevisionDeleteCommand, commands.WaitDefaultTimeout, "delete", "revision", "deleted")
 	return RevisionDeleteCommand
 }
