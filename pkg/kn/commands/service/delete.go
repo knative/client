@@ -53,7 +53,7 @@ func NewServiceDeleteCommand(p *commands.KnParams) *cobra.Command {
 			}
 			for _, name := range args {
 				timeout := time.Duration(0)
-				if !waitFlags.NoWait {
+				if waitFlags.Wait {
 					timeout = time.Duration(waitFlags.TimeoutInSeconds) * time.Second
 				}
 				err = client.DeleteService(name, timeout)
@@ -67,6 +67,6 @@ func NewServiceDeleteCommand(p *commands.KnParams) *cobra.Command {
 		},
 	}
 	commands.AddNamespaceFlags(serviceDeleteCommand.Flags(), false)
-	waitFlags.AddConditionWaitFlags(serviceDeleteCommand, commands.WaitDefaultTimeout, "Delete", "service", "deleted")
+	waitFlags.AddConditionWaitFlags(serviceDeleteCommand, commands.WaitDefaultTimeout, "delete", "service", "deleted")
 	return serviceDeleteCommand
 }
