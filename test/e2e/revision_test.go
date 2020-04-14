@@ -71,7 +71,7 @@ func TestRevision(t *testing.T) {
 	serviceDelete(t, it, r, "hello")
 }
 
-func revisionListOutputName(t *testing.T, it *test.KnTest,r *test.KnRunResultCollector, revisionName string) {
+func revisionListOutputName(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, revisionName string) {
 	out := it.Kn().Run("revision", "list", "--output", "name")
 	r.AssertNoError(out)
 	assert.Check(t, util.ContainsAll(out.Stdout, revisionName, "revision.serving.knative.dev"))
