@@ -41,6 +41,7 @@ func TestSourceBinding(t *testing.T) {
 
 	t.Log("create source binding")
 	sourceBindingCreate(t, it, r, "my-binding0", "Deployment:apps/v1:myapp", "svc:testsvc0")
+	sourceBindingListOutputName(t, it, r, "my-binding0")
 
 	t.Log("delete source binding")
 	sourceBindingDelete(t, it, r, "my-binding0")
@@ -71,4 +72,10 @@ func sourceBindingUpdate(t *testing.T, it *test.KnTest, r *test.KnRunResultColle
 	out := it.Kn().Run("source", "binding", "update", bindingName, "--subject", subject, "--sink", sink)
 	r.AssertNoError(out)
 	assert.Check(t, util.ContainsAll(out.Stdout, bindingName, "updated", "namespace", it.Kn().Namespace()))
+}
+
+func sourceBindingListOutputName(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, bindingName string) {
+	out := it.Kn().Run("source", "binding", "list", "--output", "name")
+	r.AssertNoError(out)
+	assert.Check(t, util.ContainsAll(out.Stdout, bindingName))
 }

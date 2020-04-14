@@ -45,6 +45,7 @@ func TestRevision(t *testing.T) {
 
 	t.Log("describe revision from hello service with print flags")
 	revName := findRevision(t, it, r, "hello")
+	revisionListOutputName(t, it, r, revName)
 	revisionDescribeWithPrintFlags(t, it, r, revName)
 
 	t.Log("update hello service and increase revision count to 2")
@@ -68,6 +69,12 @@ func TestRevision(t *testing.T) {
 
 	t.Log("delete hello service and return no error")
 	serviceDelete(t, it, r, "hello")
+}
+
+func revisionListOutputName(t *testing.T, it *test.KnTest,r *test.KnRunResultCollector, revisionName string) {
+	out := it.Kn().Run("revision", "list", "--output", "name")
+	r.AssertNoError(out)
+	assert.Check(t, util.ContainsAll(out.Stdout, revisionName, "revision.serving.knative.dev"))
 }
 
 func revisionListWithService(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceNames ...string) {

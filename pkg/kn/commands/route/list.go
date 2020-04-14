@@ -69,11 +69,7 @@ func NewRouteListCommand(p *commands.KnParams) *cobra.Command {
 				fmt.Fprintf(cmd.OutOrStdout(), "No routes found.\n")
 				return nil
 			}
-			printer, err := routeListFlags.ToPrinter()
-			if err != nil {
-				return err
-			}
-			err = printer.PrintObj(routeList, cmd.OutOrStdout())
+			err = routeListFlags.Print(routeList, cmd.OutOrStdout())
 			if err != nil {
 				return err
 			}

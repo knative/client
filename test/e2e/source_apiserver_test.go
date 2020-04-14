@@ -56,6 +56,7 @@ func TestSourceApiServer(t *testing.T) {
 	t.Log("create apiserver sources with a sink to a service")
 	apiServerSourceCreate(t, it, r, "testapisource0", "Event:v1:true", "testsa", "svc:testsvc0")
 	apiServerSourceCreate(t, it, r, "testapisource1", "Event:v1", "testsa", "svc:testsvc0")
+	apiServerSourceListOutputName(t, it, r, "testapisource0", "testapisource1")
 
 	t.Log("list sources")
 	output := sourceList(t, it, r)
@@ -89,6 +90,12 @@ func apiServerSourceCreate(t *testing.T, it *test.KnTest, r *test.KnRunResultCol
 	out := it.Kn().Run("source", "apiserver", "create", sourceName, "--resource", resources, "--service-account", sa, "--sink", sink)
 	r.AssertNoError(out)
 	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "apiserver", "source", sourceName, "created", "namespace", it.Kn().Namespace()))
+}
+
+func apiServerSourceListOutputName(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, apiserverSources ...string) {
+	out := it.Kn().Run("source", "apiserver", "list", "--output", "name")
+	r.AssertNoError(out)
+	assert.Check(t, util.ContainsAll(out.Stdout, apiserverSources...))
 }
 
 func apiServerSourceCreateMissingSink(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, sourceName string, resources string, sa string, sink string) {

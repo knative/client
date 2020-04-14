@@ -43,6 +43,7 @@ func TestSourcePing(t *testing.T) {
 	t.Log("create Ping sources with a sink to a service")
 
 	pingSourceCreate(t, it, r, "testpingsource0", "* * * * */1", "ping", "svc:testsvc0")
+	pingSourceListOutputName(t, it, r, "testpingsource0")
 
 	t.Log("delete Ping sources")
 	pingSourceDelete(t, it, r, "testpingsource0")
@@ -76,7 +77,12 @@ func pingSourceDelete(t *testing.T, it *test.KnTest, r *test.KnRunResultCollecto
 	out := it.Kn().Run("source", "ping", "delete", sourceName)
 	assert.Check(t, util.ContainsAllIgnoreCase(out.Stdout, "ping", "source", sourceName, "deleted", "namespace", it.Kn().Namespace()))
 	r.AssertNoError(out)
+}
 
+func pingSourceListOutputName(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, pingSource string) {
+	out := it.Kn().Run("source", "ping", "list", "--output", "name")
+	r.AssertNoError(out)
+	assert.Check(t, util.ContainsAll(out.Stdout, pingSource))
 }
 
 func pingSourceCreateMissingSink(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, sourceName string, schedule string, data string, sink string) {
