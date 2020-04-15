@@ -23,75 +23,86 @@ import (
 	"testing"
 
 	"gotest.tools/assert"
+
+	"knative.dev/client/lib/test"
 	"knative.dev/client/pkg/util"
 )
 
 func TestRoute(t *testing.T) {
 	t.Parallel()
-	test, err := NewE2eTest()
+	it, err := test.NewKnTest()
 	assert.NilError(t, err)
 	defer func() {
-		assert.NilError(t, test.Teardown())
+		assert.NilError(t, it.Teardown())
 	}()
 
-	r := NewKnRunResultCollector(t)
+	r := test.NewKnRunResultCollector(t)
 	defer r.DumpIfFailed()
 
 	t.Log("create hello service and return no error")
-	test.serviceCreate(t, r, "hello")
+	serviceCreate(t, it, r, "hello")
 
 	t.Log("return a list of routes")
-	test.routeList(t, r)
+	routeList(t, it, r)
 
 	t.Log("return a list of routes associated with hello service")
-	test.routeListWithArgument(t, r, "hello")
+	routeListWithArgument(t, it, r, "hello")
+
+	t.Log("return a list of routes associated with hello service with -oname flag")
+	routeListOutputName(t, it, r, "hello")
 
 	t.Log("return a list of routes associated with hello service with print flags")
-	test.routeListWithPrintFlags(t, r, "hello")
+	routeListWithPrintFlags(t, it, r, "hello")
 
 	t.Log("describe route from hello service")
-	test.routeDescribe(t, r, "hello")
+	routeDescribe(t, it, r, "hello")
 
 	t.Log("describe route from hello service with print flags")
-	test.routeDescribeWithPrintFlags(t, r, "hello")
+	routeDescribeWithPrintFlags(t, it, r, "hello")
 
 	t.Log("delete hello service and return no error")
-	test.serviceDelete(t, r, "hello")
+	serviceDelete(t, it, r, "hello")
 }
 
-func (test *e2eTest) routeList(t *testing.T, r *KnRunResultCollector) {
-	out := test.kn.Run("route", "list")
+func routeList(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector) {
+	out := it.Kn().Run("route", "list")
 
 	expectedHeaders := []string{"NAME", "URL", "READY"}
 	assert.Check(t, util.ContainsAll(out.Stdout, expectedHeaders...))
 	r.AssertNoError(out)
 }
 
-func (test *e2eTest) routeListWithArgument(t *testing.T, r *KnRunResultCollector, routeName string) {
-	out := test.kn.Run("route", "list", routeName)
+func routeListOutputName(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, routeName string) {
+	out := it.Kn().Run("route", "list", "--output", "name")
+	r.AssertNoError(out)
+	assert.Check(t, util.ContainsAll(out.Stdout, routeName, "route.serving.knative.dev"))
+}
+
+func routeListWithArgument(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, routeName string) {
+	out := it.Kn().Run("route", "list", routeName)
 
 	assert.Check(t, util.ContainsAll(out.Stdout, routeName))
 	r.AssertNoError(out)
 }
 
-func (test *e2eTest) routeDescribe(t *testing.T, r *KnRunResultCollector, routeName string) {
-	out := test.kn.Run("route", "describe", routeName)
+func routeDescribe(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, routeName string) {
+	out := it.Kn().Run("route", "describe", routeName)
 
 	assert.Check(t, util.ContainsAll(out.Stdout,
-		routeName, test.kn.namespace, "URL", "Service", "Traffic", "Targets", "Conditions"))
+		routeName, it.Kn().Namespace(), "URL", "Service", "Traffic", "Targets", "Conditions"))
 	r.AssertNoError(out)
 }
 
-func (test *e2eTest) routeDescribeWithPrintFlags(t *testing.T, r *KnRunResultCollector, routeName string) {
-	out := test.kn.Run("route", "describe", routeName, "-o=name")
+func routeDescribeWithPrintFlags(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, routeName string) {
+	out := it.Kn().Run("route", "describe", routeName, "-o=name")
 
 	expectedName := fmt.Sprintf("route.serving.knative.dev/%s", routeName)
 	assert.Equal(t, strings.TrimSpace(out.Stdout), expectedName)
 	r.AssertNoError(out)
 }
 
-func (test *e2eTest) routeListWithPrintFlags(t *testing.T, r *KnRunResultCollector, names ...string) {
-	out := test.kn.Run("route", "list", "-o=jsonpath={.items[*].metadata.name}")
+func routeListWithPrintFlags(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, names ...string) {
+	out := it.Kn().Run("route", "list", "-o=jsonpath={.items[*].metadata.name}")
 	assert.Check(t, util.ContainsAll(out.Stdout, names...))
 	r.AssertNoError(out)
 }

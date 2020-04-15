@@ -60,6 +60,7 @@ func NewDefaultPluginHandler(validPrefixes []string, pluginsDir string, lookupPl
 }
 
 // Lookup implements PluginHandler
+// TODO: The current error handling is not optimal, and some errors may be lost. We should refactor the code in the future.
 func (h *DefaultPluginHandler) Lookup(name string) (string, bool) {
 	for _, prefix := range h.ValidPrefixes {
 		pluginPath := fmt.Sprintf("%s-%s", prefix, name)
@@ -72,8 +73,19 @@ func (h *DefaultPluginHandler) Lookup(name string) (string, bool) {
 
 		pluginDirPluginPath := filepath.Join(pluginDir, pluginPath)
 		_, err = os.Stat(pluginDirPluginPath)
-		if !os.IsNotExist(err) {
+		if err == nil {
 			return pluginDirPluginPath, true
+		}
+
+		// Try to match well-known file extensions on Windows
+		if runtime.GOOS == "windows" {
+			for _, ext := range []string{".bat", ".cmd", ".com", ".exe", ".ps1"} {
+				pathWithExt := pluginDirPluginPath + ext
+				_, err = os.Stat(pathWithExt)
+				if err == nil {
+					return pathWithExt, true
+				}
+			}
 		}
 
 		// No plugins found in pluginsDir, try in PATH of that's an option

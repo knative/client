@@ -21,10 +21,11 @@ kn revision delete NAME [flags]
 ### Options
 
 ```
-      --async              DEPRECATED: please use --no-wait instead. Delete revision and don't wait for it to be deleted.
+      --async              DEPRECATED: please use --no-wait instead. Do not wait for 'revision delete' operation to be completed. (default true)
   -h, --help               help for delete
   -n, --namespace string   Specify the namespace to operate in.
-      --no-wait            Delete revision and don't wait for it to be deleted.
+      --no-wait            Do not wait for 'revision delete' operation to be completed. (default true)
+      --wait               Wait for 'revision delete' operation to be completed.
       --wait-timeout int   Seconds to wait before giving up on waiting for revision to be deleted. (default 600)
 ```
 

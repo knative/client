@@ -18,6 +18,8 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+
+	knflags "knative.dev/client/pkg/kn/flags"
 )
 
 // Default time out to use when waiting for reconciliation. It is deliberately very long as it is expected that
@@ -29,9 +31,8 @@ const WaitDefaultTimeout = 600
 type WaitFlags struct {
 	// Timeout in seconds for how long to wait for a command to return
 	TimeoutInSeconds int
-
-	// If set then just apply resources and don't wait
-	NoWait bool
+	// If set then apply resources and wait for completion
+	Wait bool
 	//TODO: deprecated variable should be removed with --async flag
 	Async bool
 }
@@ -40,11 +41,16 @@ type WaitFlags struct {
 // resources. Set `waitDefault` argument if the default behaviour is synchronous.
 // Use `what` for describing what is waited for.
 func (p *WaitFlags) AddConditionWaitFlags(command *cobra.Command, waitTimeoutDefault int, action, what, until string) {
-	waitUsage := fmt.Sprintf("%s %s and don't wait for it to be %s.", action, what, until)
-	//TODO: deprecated flag should be removed in next release
-	command.Flags().BoolVar(&p.Async, "async", false, "DEPRECATED: please use --no-wait instead. "+waitUsage)
-	command.Flags().BoolVar(&p.NoWait, "no-wait", false, waitUsage)
+	waitUsage := fmt.Sprintf("Wait for '%s %s' operation to be completed.", what, action)
+	waitDefault := true
+	// Special-case 'delete' command so it comes back to the user immediately
+	if action == "delete" {
+		waitDefault = false
+	}
 
+	//TODO: deprecated flag should be removed in next release
+	command.Flags().BoolVar(&p.Async, "async", !waitDefault, "DEPRECATED: please use --no-wait instead. "+knflags.InvertUsage(waitUsage))
+	knflags.AddBothBoolFlagsUnhidden(command.Flags(), &p.Wait, "wait", "", waitDefault, waitUsage)
 	timeoutUsage := fmt.Sprintf("Seconds to wait before giving up on waiting for %s to be %s.", what, until)
 	command.Flags().IntVar(&p.TimeoutInSeconds, "wait-timeout", waitTimeoutDefault, timeoutUsage)
 }

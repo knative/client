@@ -48,3 +48,18 @@ func TestListPrintFlags(t *testing.T) {
 	_, ok := p.(hprinters.ResourcePrinter)
 	assert.Check(t, ok == true)
 }
+
+func TestListPrintFlagsPrint(t *testing.T) {
+	var cmd *cobra.Command
+	flags := NewListPrintFlags(func(h hprinters.PrintHandler) {})
+
+	cmd = &cobra.Command{}
+	flags.AddFlags(cmd)
+
+	pr, err := flags.ToPrinter()
+	assert.NilError(t, err)
+	assert.Assert(t, pr != nil)
+
+	err = flags.Print(nil, cmd.OutOrStdout())
+	assert.NilError(t, err)
+}

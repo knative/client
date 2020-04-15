@@ -31,7 +31,7 @@ func NewBindingCreateCommand(p *commands.KnParams) *cobra.Command {
 	var sinkFlags flags.SinkFlags
 
 	cmd := &cobra.Command{
-		Use:   "create NAME --subject SCHEDULE --sink SINK --ce-override KEY=VALUE",
+		Use:   "create NAME --subject SUBJECT --sink SINK --ce-override KEY=VALUE",
 		Short: "Create a sink binding.",
 		Example: `
   # Create a sink binding which connects a deployment 'myapp' with a Knative service 'mysvc'

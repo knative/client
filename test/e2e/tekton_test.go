@@ -23,6 +23,8 @@ import (
 
 	"gotest.tools/assert"
 	"k8s.io/apimachinery/pkg/util/wait"
+
+	"knative.dev/client/lib/test"
 	"knative.dev/client/pkg/util"
 )
 
@@ -34,26 +36,26 @@ const (
 )
 
 func TestTektonPipeline(t *testing.T) {
-	test, err := NewE2eTest()
+	it, err := test.NewKnTest()
 	assert.NilError(t, err)
 	defer func() {
-		assert.NilError(t, test.Teardown())
+		assert.NilError(t, it.Teardown())
 	}()
 
-	kubectl := kubectl{test.namespace}
-	basedir := currentDir(t) + "/../resources/tekton"
+	kubectl := test.NewKubectl(it.Namespace())
+	basedir := test.CurrentDir(t) + "/../resources/tekton"
 
 	// create secret for the kn-deployer-account service account
-	_, err = kubectl.Run("create", "-n", test.namespace, "secret",
+	_, err = kubectl.Run("create", "-n", it.Namespace(), "secret",
 		"generic", "container-registry",
-		"--from-file=.dockerconfigjson="+Flags.DockerConfigJSON,
+		"--from-file=.dockerconfigjson="+test.Flags.DockerConfigJSON,
 		"--type=kubernetes.io/dockerconfigjson")
 	assert.NilError(t, err)
 
 	_, err = kubectl.Run("apply", "-f", basedir+"/kn-deployer-rbac.yaml")
 	assert.NilError(t, err)
 
-	_, err = kubectl.Run("apply", "-f", basedir+"/buildah.yaml")
+	_, err = kubectl.Run("apply", "-f", "https://raw.githubusercontent.com/tektoncd/catalog/master/buildah/buildah.yaml")
 	assert.NilError(t, err)
 
 	_, err = kubectl.Run("apply", "-f", "https://raw.githubusercontent.com/tektoncd/catalog/master/kn/kn.yaml")
@@ -71,16 +73,16 @@ func TestTektonPipeline(t *testing.T) {
 	err = waitForPipelineSuccess(kubectl)
 	assert.NilError(t, err)
 
-	r := NewKnRunResultCollector(t)
+	r := test.NewKnRunResultCollector(t)
 
 	const serviceName = "hello"
-	out := test.kn.Run("service", "describe", serviceName)
+	out := it.Kn().Run("service", "describe", serviceName)
 	r.AssertNoError(out)
-	assert.Assert(t, util.ContainsAll(out.Stdout, serviceName, test.kn.namespace))
+	assert.Assert(t, util.ContainsAll(out.Stdout, serviceName, it.Kn().Namespace()))
 	assert.Assert(t, util.ContainsAll(out.Stdout, "Conditions", "ConfigurationsReady", "Ready", "RoutesReady"))
 }
 
-func waitForPipelineSuccess(k kubectl) error {
+func waitForPipelineSuccess(k test.Kubectl) error {
 	return wait.PollImmediate(Interval, Timeout, func() (bool, error) {
 		out, err := k.Run("get", "pipelinerun", "-o=jsonpath='{.items[0].status.conditions[?(@.type==\"Succeeded\")].status}'")
 		return strings.Contains(out, "True"), err

@@ -24,7 +24,10 @@ import (
 	"github.com/spf13/pflag"
 )
 
-var negPrefix = "no-"
+var (
+	negPrefix        = "no-"
+	deprecatedPrefix = "DEPRECATED:"
+)
 
 // AddBothBoolFlagsUnhidden is just like AddBothBoolFlags but shows both flags.
 func AddBothBoolFlagsUnhidden(f *pflag.FlagSet, p *bool, name, short string, value bool, usage string) {
@@ -32,7 +35,7 @@ func AddBothBoolFlagsUnhidden(f *pflag.FlagSet, p *bool, name, short string, val
 	negativeName := negPrefix + name
 
 	f.BoolVarP(p, name, short, value, usage)
-	f.Bool(negativeName, !value, "Do not "+firstCharToLower(usage))
+	f.Bool(negativeName, !value, InvertUsage(usage))
 }
 
 // AddBothBoolFlags adds the given flag in both `--foo` and `--no-foo` variants.
@@ -65,6 +68,20 @@ func ReconcileBoolFlags(f *pflag.FlagSet) error {
 		if err != nil {
 			return
 		}
+
+		// handle async flag
+		if flag.Name == "async" && flag.Changed {
+			if f.Lookup("wait").Changed || f.Lookup("no-wait").Changed {
+				err = fmt.Errorf("only one of (DEPRECATED) --async, --wait and --no-wait may be specified")
+				return
+			}
+			err = checkExplicitFalse(flag, "wait")
+			if err != nil {
+				return
+			}
+			f.Lookup("no-wait").Value.Set("true")
+		}
+
 		// Walk the "no-" versions of the flags. Make sure we didn't set
 		// both, and set the positive value to the opposite of the "no-"
 		// value if it exists.
@@ -90,6 +107,7 @@ func ReconcileBoolFlags(f *pflag.FlagSet) error {
 				err = checkExplicitFalse(positive, flag.Name)
 			}
 		}
+
 	})
 	return err
 }
@@ -110,7 +128,13 @@ func checkExplicitFalse(f *pflag.Flag, betterFlag string) error {
 	return nil
 }
 
-func firstCharToLower(s string) string {
+// FirstCharToLower converts first char in given string to lowercase
+func FirstCharToLower(s string) string {
 	r, n := utf8.DecodeRuneInString(s)
 	return string(unicode.ToLower(r)) + s[n:]
+}
+
+// InvertUsage inverts the usage string with prefix "Do not"
+func InvertUsage(usage string) string {
+	return "Do not " + FirstCharToLower(usage)
 }

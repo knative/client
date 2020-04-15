@@ -195,9 +195,17 @@ func TestServiceUpdateImage(t *testing.T) {
 func TestServiceUpdateWithMultipleImages(t *testing.T) {
 	orig := newEmptyService()
 	_, _, _, err := fakeServiceUpdate(orig, []string{
-		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--image", "gcr.io/bar/foo:baz", "--no-wait"})
+		"service", "update", "foo", "--image", "gcr.io/foo/bar:baz", "--image", "gcr.io/bar/foo:baz", "--no-wait"})
 
 	assert.Assert(t, util.ContainsAll(err.Error(), "\"--image\"", "\"gcr.io/bar/foo:baz\"", "flag", "once"))
+}
+
+func TestServiceUpdateWithMultipleNames(t *testing.T) {
+	orig := newEmptyService()
+	_, _, _, err := fakeServiceUpdate(orig, []string{
+		"service", "update", "foo", "foo1", "--image", "gcr.io/foo/bar:baz", "--no-wait"})
+
+	assert.Assert(t, util.ContainsAll(err.Error(), "'service update' requires the service name given as single argument"))
 }
 
 func TestServiceUpdateCommand(t *testing.T) {
@@ -311,7 +319,7 @@ func TestServiceUpdateMaxMinScale(t *testing.T) {
 
 	action, updated, _, err := fakeServiceUpdate(original, []string{
 		"service", "update", "foo",
-		"--min-scale", "1", "--max-scale", "5", "--concurrency-target", "10", "--concurrency-limit", "100", "--no-wait"})
+		"--min-scale", "1", "--max-scale", "5", "--concurrency-target", "10", "--concurrency-limit", "100", "--concurrency-utilization", "50", "--no-wait"})
 
 	if err != nil {
 		t.Fatal(err)
@@ -329,6 +337,7 @@ func TestServiceUpdateMaxMinScale(t *testing.T) {
 		"autoscaling.knative.dev/minScale", "1",
 		"autoscaling.knative.dev/maxScale", "5",
 		"autoscaling.knative.dev/target", "10",
+		"autoscaling.knative.dev/targetUtilizationPercentage", "50",
 	}
 
 	for i := 0; i < len(expectedAnnos); i += 2 {

@@ -75,6 +75,16 @@ func TestServiceDescribeBasic(t *testing.T) {
 	r.Validate()
 }
 
+func TestServiceDescribeWithMultipleNames(t *testing.T) {
+	client := knclient.NewMockKnServiceClient(t)
+	r := client.Recorder()
+	createTestService("foo", []string{"rev1"}, goodConditions())
+	_, err := executeServiceCommand(client, "describe", "foo", "foo1")
+
+	assert.Assert(t, util.ContainsAll(err.Error(), "'service describe' requires the service name given as single argument"))
+	r.Validate()
+}
+
 func TestServiceDescribeSad(t *testing.T) {
 	client := knclient.NewMockKnServiceClient(t)
 	r := client.Recorder()
@@ -243,13 +253,13 @@ func TestServiceDescribeScaling(t *testing.T) {
 
 	for _, data := range []struct {
 		minScale, maxScale, limit, target string
-		scaleOut                          string
+		scaleOut, utilization             string
 	}{
-		{"", "", "", "", ""},
-		{"", "10", "", "", "0 ... 10"},
-		{"10", "", "", "", "10 ... ∞"},
-		{"5", "20", "10", "", "5 ... 20"},
-		{"", "", "20", "30", ""},
+		{"", "", "", "", "", ""},
+		{"", "10", "", "", "0 ... 10", ""},
+		{"10", "", "", "", "10 ... ∞", ""},
+		{"5", "20", "10", "", "5 ... 20", ""},
+		{"", "", "20", "30", "", "50"},
 	} {
 		// New mock client
 		client := knclient.NewMockKnServiceClient(t)
@@ -263,7 +273,7 @@ func TestServiceDescribeScaling(t *testing.T) {
 		// Get service & revision
 		r.GetService("foo", &expectedService, nil)
 		rev1 := createTestRevision("rev1", 1)
-		addScaling(&rev1, data.minScale, data.maxScale, data.target, data.limit)
+		addScaling(&rev1, data.minScale, data.maxScale, data.target, data.limit, data.utilization)
 		r.GetRevision("rev1", &rev1, nil)
 
 		revList := servingv1.RevisionList{
@@ -422,11 +432,15 @@ func TestServiceDescribeVerbose(t *testing.T) {
 	r := client.Recorder()
 
 	// Prepare service
-	expectedService := createTestService("foo", []string{"rev1", "rev2"}, goodConditions())
+	expectedService := createTestService("foo", []string{"rev1", "rev2", "rev3"}, goodConditions())
+	expectedService.Status.Traffic = expectedService.Status.Traffic[2:]
+	expectedService.Status.Traffic[0].LatestRevision = ptr.Bool(true)
+	expectedService.Status.Traffic[0].Percent = ptr.Int64(int64(100))
 	r.GetService("foo", &expectedService, nil)
 
 	rev1 := createTestRevision("rev1", 1)
 	rev2 := createTestRevision("rev2", 2)
+	rev3 := createTestRevision("rev3", 3)
 
 	revList := servingv1.RevisionList{
 		TypeMeta: metav1.TypeMeta{
@@ -434,7 +448,7 @@ func TestServiceDescribeVerbose(t *testing.T) {
 			APIVersion: "serving.knative.dev/v1",
 		},
 		Items: []servingv1.Revision{
-			rev1, rev2,
+			rev1, rev2, rev3,
 		},
 	}
 
@@ -442,8 +456,7 @@ func TestServiceDescribeVerbose(t *testing.T) {
 	r.ListRevisions(knclient.HasLabelSelector(api_serving.ServiceLabelKey, "foo"), &revList, nil)
 
 	// Fetch the revisions
-	r.GetRevision("rev1", &rev1, nil)
-	r.GetRevision("rev2", &rev2, nil)
+	r.GetRevision("rev3", &rev3, nil)
 
 	// Testing:
 	output, err := executeServiceCommand(client, "describe", "foo", "--verbose")
@@ -452,12 +465,16 @@ func TestServiceDescribeVerbose(t *testing.T) {
 	validateServiceOutput(t, "foo", output)
 
 	assert.Assert(t, cmp.Regexp("Cluster:\\s+https://foo.default.svc.cluster.local", output))
-	assert.Assert(t, util.ContainsAll(output, "Image", "Name", "gcr.io/test/image (at 123456)", "50%", "(0s)"))
+	assert.Assert(t, util.ContainsAll(output, "Image", "Name", "gcr.io/test/image (at 123456)", "100%", "(0s)"))
 	assert.Assert(t, util.ContainsAll(output, "Env:", "env1=eval1\n", "env2=eval2\n"))
 	assert.Assert(t, util.ContainsAll(output, "EnvFrom:", "cm:test1\n", "cm:test2\n"))
 	assert.Assert(t, util.ContainsAll(output, "Annotations:", "anno1=aval1\n", "anno2=aval2\n"))
 	assert.Assert(t, util.ContainsAll(output, "Labels:", "label1=lval1\n", "label2=lval2\n"))
 	assert.Assert(t, util.ContainsAll(output, "[1]", "[2]"))
+	assert.Assert(t, util.ContainsAll(output, "rev1", "rev2", "rev3"))
+	assert.Equal(t, strings.Count(output, "rev3"), 1)
+	assert.Equal(t, strings.Count(output, "rev2"), 1)
+	assert.Equal(t, strings.Count(output, "rev1"), 1)
 
 	// Validate that all recorded API methods have been called
 	r.Validate()
@@ -570,7 +587,7 @@ func createTestServiceWithServiceAccount(name string, revisionNames []string, se
 	return service
 }
 
-func addScaling(revision *servingv1.Revision, minScale, maxScale, concurrencyTarget, concurrencyLimit string) {
+func addScaling(revision *servingv1.Revision, minScale, maxScale, concurrencyTarget, concurrencyLimit, utilization string) {
 	annos := make(map[string]string)
 	if minScale != "" {
 		annos[autoscaling.MinScaleAnnotationKey] = minScale
@@ -580,6 +597,9 @@ func addScaling(revision *servingv1.Revision, minScale, maxScale, concurrencyTar
 	}
 	if concurrencyTarget != "" {
 		annos[autoscaling.TargetAnnotationKey] = concurrencyTarget
+	}
+	if utilization != "" {
+		annos[autoscaling.TargetUtilizationPercentageKey] = utilization
 	}
 	revision.Annotations = annos
 	if concurrencyLimit != "" {

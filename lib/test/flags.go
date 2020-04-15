@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package e2e
+package test
 
 import (
 	"flag"
@@ -23,14 +23,15 @@ import (
 
 // Flags holds the command line flags or defaults for settings in the user's environment.
 // See ClientFlags for the list of supported fields.
-var Flags = initializeFlags()
+var Flags = InitializeFlags()
 
 // ClientFlags define the flags that are needed to run the e2e tests.
 type ClientFlags struct {
 	DockerConfigJSON string
 }
 
-func initializeFlags() *ClientFlags {
+// InitializeFlags initializes the client's flags
+func InitializeFlags() *ClientFlags {
 	var f ClientFlags
 
 	dockerConfigJSON := os.Getenv("DOCKER_CONFIG_JSON")

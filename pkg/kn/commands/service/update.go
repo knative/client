@@ -60,7 +60,7 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 		Example: updateExample,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
-				return errors.New("requires the service name")
+				return errors.New("'service update' requires the service name given as single argument")
 			}
 
 			namespace, err := p.GetNamespace(cmd)
@@ -110,7 +110,7 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 
 			out := cmd.OutOrStdout()
 			//TODO: deprecated condition should be once --async is gone
-			if !waitFlags.Async && !waitFlags.NoWait {
+			if !waitFlags.Async && waitFlags.Wait {
 				fmt.Fprintf(out, "Updating Service '%s' in namespace '%s':\n", args[0], namespace)
 				fmt.Fprintln(out, "")
 				err := waitForService(client, name, out, waitFlags.TimeoutInSeconds)
@@ -136,7 +136,7 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 
 	commands.AddNamespaceFlags(serviceUpdateCommand.Flags(), false)
 	editFlags.AddUpdateFlags(serviceUpdateCommand)
-	waitFlags.AddConditionWaitFlags(serviceUpdateCommand, commands.WaitDefaultTimeout, "Update", "service", "ready")
+	waitFlags.AddConditionWaitFlags(serviceUpdateCommand, commands.WaitDefaultTimeout, "update", "service", "ready")
 	trafficFlags.Add(serviceUpdateCommand)
 	return serviceUpdateCommand
 }

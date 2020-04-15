@@ -48,6 +48,7 @@ type ConfigurationEditFlags struct {
 	MaxScale                   int
 	ConcurrencyTarget          int
 	ConcurrencyLimit           int
+	ConcurrencyUtilization     int
 	AutoscaleWindow            string
 	Port                       int32
 	Labels                     []string
@@ -179,6 +180,10 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	command.Flags().IntVar(&p.ConcurrencyLimit, "concurrency-limit", 0,
 		"Hard Limit of concurrent requests to be processed by a single replica.")
 	p.markFlagMakesRevision("concurrency-limit")
+
+	command.Flags().IntVar(&p.ConcurrencyUtilization, "concurrency-utilization", 70,
+		"Percentage of concurrent requests utilization before scaling up.")
+	p.markFlagMakesRevision("concurrency-utilization")
 
 	command.Flags().Int32VarP(&p.Port, "port", "p", 0, "The port where application listens on.")
 	p.markFlagMakesRevision("port")
@@ -399,6 +404,13 @@ func (p *ConfigurationEditFlags) Apply(
 
 	if cmd.Flags().Changed("concurrency-limit") {
 		err = servinglib.UpdateConcurrencyLimit(template, int64(p.ConcurrencyLimit))
+		if err != nil {
+			return err
+		}
+	}
+
+	if cmd.Flags().Changed("concurrency-utilization") {
+		err = servinglib.UpdateConcurrencyUtilization(template, p.ConcurrencyUtilization)
 		if err != nil {
 			return err
 		}

@@ -17,9 +17,11 @@ package service
 import (
 	"bytes"
 
+	"github.com/spf13/cobra"
 	"k8s.io/client-go/tools/clientcmd"
 
 	"knative.dev/client/pkg/kn/commands"
+	knflags "knative.dev/client/pkg/kn/flags"
 	clientservingv1 "knative.dev/client/pkg/serving/v1"
 )
 
@@ -60,6 +62,10 @@ func executeServiceCommand(client clientservingv1.KnServingClient, args ...strin
 	cmd := NewServiceCommand(knParams)
 	cmd.SetArgs(args)
 	cmd.SetOutput(output)
+
+	cmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
+		return knflags.ReconcileBoolFlags(cmd.Flags())
+	}
 	err := cmd.Execute()
 	return output.String(), err
 }
