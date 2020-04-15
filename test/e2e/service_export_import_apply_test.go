@@ -203,6 +203,7 @@ func getSvcListWithOneRevision() servingv1.ServiceList {
 				withName("hello"),
 				withRevisionName("hello-rev2"),
 				withEnv("key1", "val1"),
+				withTrafficSplit([]string{"latest"}, []int{100}, []string{""}),
 			),
 		},
 	}
