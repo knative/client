@@ -98,7 +98,7 @@ func revisionListWithService(t *testing.T, it *test.KnTest, r *test.KnRunResultC
 }
 
 func revisionDelete(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, revName string) {
-	out := it.Kn().Run("revision", "delete", revName)
+	out := it.Kn().Run("revision", "delete", "--wait", revName)
 	assert.Check(t, util.ContainsAll(out.Stdout, "Revision", revName, "deleted", "namespace", it.Kn().Namespace()))
 	r.AssertNoError(out)
 }
