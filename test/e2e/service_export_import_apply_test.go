@@ -74,16 +74,16 @@ func serviceExport(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, 
 	command := []string{"service", "export", serviceName}
 	command = append(command, options...)
 	out := it.Kn().Run(command...)
-	validateExportedService(t, it, out.Stdout, expService)
 	r.AssertNoError(out)
+	validateExportedService(t, it, out.Stdout, expService)
 }
 
 func serviceExportWithRevisions(t *testing.T, it *test.KnTest, r *test.KnRunResultCollector, serviceName string, expServiceList servingv1.ServiceList, options ...string) {
 	command := []string{"service", "export", serviceName}
 	command = append(command, options...)
 	out := it.Kn().Run(command...)
-	validateExportedServiceList(t, it, out.Stdout, expServiceList)
 	r.AssertNoError(out)
+	validateExportedServiceList(t, it, out.Stdout, expServiceList)
 }
 
 // Private functions
