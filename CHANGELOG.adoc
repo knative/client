@@ -18,12 +18,32 @@
 |===
 | | Description | PR
 
+| 🎁
+| Add `-a` flag as an alias for `--annotation`
+| https://github.com/knative/client/pull/782[#782]
+
+|===
+
+## v0.13.2 (2020-04-15)
+
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
 | 🐛
-| Service describe command shows repetitive revisions
+| Make wait, no-wait and async flags per bool var CLI convention
+| https://github.com/knative/client/pull/802[#802]
+
+| 🐛
+| Fix resource listing with -oname flag
+| https://github.com/knative/client/pull/775[#775]
+
+| 🐛
+| Fix showing repetitive revisions in service describe
 | https://github.com/knative/client/pull/790[#790]
 
 | 🎁
-| Add concurrency-utilization option for `service create` and `service update` (`--concurrency-utilization`)
+| Add concurrency-utilization option for service `create` and `update`
 | https://github.com/knative/client/pull/788[#788]
 
 | 🐣
