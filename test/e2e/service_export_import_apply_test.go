@@ -22,7 +22,6 @@ import (
 	"testing"
 
 	"gotest.tools/assert"
-
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"knative.dev/pkg/ptr"
 	"sigs.k8s.io/yaml"
@@ -203,6 +202,7 @@ func getSvcListWithOneRevision() servingv1.ServiceList {
 				withName("hello"),
 				withRevisionName("hello-rev2"),
 				withEnv("key1", "val1"),
+				withTrafficSplit([]string{"latest"}, []int{100},[]string{""}),
 			),
 		},
 	}
