@@ -55,7 +55,7 @@ func TestTektonPipeline(t *testing.T) {
 	_, err = kubectl.Run("apply", "-f", basedir+"/kn-deployer-rbac.yaml")
 	assert.NilError(t, err)
 
-	_, err = kubectl.Run("apply", "-f", basedir+"/buildah.yaml")
+	_, err = kubectl.Run("apply", "-f", "https://raw.githubusercontent.com/tektoncd/catalog/master/buildah/buildah.yaml")
 	assert.NilError(t, err)
 
 	_, err = kubectl.Run("apply", "-f", "https://raw.githubusercontent.com/tektoncd/catalog/master/kn/kn.yaml")

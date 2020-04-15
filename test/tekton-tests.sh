@@ -28,16 +28,18 @@ export PATH=$PATH:${REPO_ROOT_DIR}
 # Script entry point.
 initialize $@
 
-export TEKTON_VERSION=${TEKTON_VERSION:-v0.9.2}
+export TEKTON_VERSION=${TEKTON_VERSION:-v0.11.1}
 export KN_E2E_NAMESPACE=tkn-kn
 
 header "Running integration tests for Tekton"
 
+subheader "Installing Tekton Pipelines ${TEKTON_VERSION}"
 # Install Tekton if not already installed
 if [[ $(kubectl api-resources | grep -c tekton.dev) -eq 0 ]]; then
   kubectl apply -f https://github.com/tektoncd/pipeline/releases/download/${TEKTON_VERSION}/release.yaml
 fi
 
+subheader "Configuring docker and registry"
 if (( IS_PROW )); then
   # Configure Docker so that we can create a secret for GCR
   gcloud auth configure-docker
@@ -53,6 +55,7 @@ for file in kn-deployer-rbac kn-pipeline-resource; do
       -e "s#\${CONTAINER_REGISTRY}#${CONTAINER_REGISTRY}#" ${resource_dir}/${file}-template.yaml > ${resource_dir}/${file}.yaml
 done
 
+subheader "Running test pipeline"
 go_test_e2e -timeout=30m -tags=tekton ./test/e2e || fail_test
 
 success
