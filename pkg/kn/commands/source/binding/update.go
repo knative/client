@@ -61,6 +61,9 @@ func NewBindingUpdateCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
+			if source.GetDeletionTimestamp() != nil {
+				return fmt.Errorf("can't update binding %s because it has been marked for deletion", name)
+			}
 
 			b := v1alpha12.NewSinkBindingBuilderFromExisting(source)
 			if cmd.Flags().Changed("sink") {

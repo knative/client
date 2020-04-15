@@ -22,6 +22,10 @@
 | Add `-a` flag as an alias for `--annotation`
 | https://github.com/knative/client/pull/782[#782]
 
+| 🐛
+| Check DeleteTimestamp before updating resource
+| https://github.com/knative/client/pull/805[#805]
+
 |===
 
 ## v0.13.2 (2020-04-15)

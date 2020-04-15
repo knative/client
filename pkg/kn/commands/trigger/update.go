@@ -75,6 +75,9 @@ func NewTriggerUpdateCommand(p *commands.KnParams) *cobra.Command {
 				if err != nil {
 					return err
 				}
+				if trigger.GetDeletionTimestamp() != nil {
+					return fmt.Errorf("can't update trigger %s because it has been marked for deletion", name)
+				}
 
 				b := client_v1alpha1.NewTriggerBuilderFromExisting(trigger)
 

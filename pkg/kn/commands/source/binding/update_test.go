@@ -17,6 +17,7 @@ package binding
 import (
 	"errors"
 	"testing"
+	"time"
 
 	"gotest.tools/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -65,4 +66,17 @@ func TestUpdateError(t *testing.T) {
 	util.ContainsAll(out, "testbinding", "name", "required")
 
 	bindingRecorder.Validate()
+}
+
+func TestBindingUpdateDeletionTimestampNotNil(t *testing.T) {
+	sinkBindingClient := clientsourcesv1alpha1.NewMockKnSinkBindingClient(t)
+	bindingRecorder := sinkBindingClient.Recorder()
+	present := createSinkBinding("testbinding", "", deploymentGvk, "", nil)
+	present.DeletionTimestamp = &v1.Time{Time: time.Now()}
+	bindingRecorder.GetSinkBinding("testbinding", present, nil)
+
+	_, err := executeSinkBindingCommand(sinkBindingClient, nil, "update", "testbinding")
+	assert.ErrorContains(t, err, present.Name)
+	assert.ErrorContains(t, err, "deletion")
+	assert.ErrorContains(t, err, "binding")
 }

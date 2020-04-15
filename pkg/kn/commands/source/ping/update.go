@@ -61,6 +61,9 @@ func NewPingUpdateCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
+			if source.GetDeletionTimestamp() != nil {
+				return fmt.Errorf("can't update ping source %s because it has been marked for deletion", name)
+			}
 
 			b := v1alpha2.NewPingSourceBuilderFromExisting(source)
 			if cmd.Flags().Changed("schedule") {

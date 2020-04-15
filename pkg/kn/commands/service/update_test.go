@@ -20,6 +20,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"gotest.tools/assert"
 	"gotest.tools/assert/cmp"
@@ -724,6 +725,16 @@ func TestServiceUpdateNoClusterLocalOnPrivateService(t *testing.T) {
 
 	actual = newTemplate.ObjectMeta.Labels
 	assert.DeepEqual(t, expected, actual)
+}
+
+func TestServiceUpdateDeletionTimestampNotNil(t *testing.T) {
+	original := newEmptyService()
+	original.DeletionTimestamp = &metav1.Time{Time: time.Now()}
+	_, _, _, err := fakeServiceUpdate(original, []string{
+		"service", "update", "foo", "--revision-name", "foo-v1"})
+	assert.ErrorContains(t, err, original.Name)
+	assert.ErrorContains(t, err, "deletion")
+	assert.ErrorContains(t, err, "service")
 }
 
 func newEmptyService() *servingv1.Service {
