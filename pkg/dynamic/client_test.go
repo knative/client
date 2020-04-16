@@ -108,7 +108,6 @@ func TestListSources(t *testing.T) {
 		client := createFakeKnDynamicClient(testNamespace,
 			newSourceCRDObjWithSpec("pingsources", "sources.knative.dev", "v1alpha1", "PingSource"),
 			newSourceCRDObjWithSpec("apiserversources", "sources.knative.dev", "v1alpha1", "ApiServerSource"),
-			newSourceCRDObjWithSpec("cronjobsources", "sources.knative.dev", "v1alpha1", "CronJobSource"),
 			newSourceUnstructuredObj("p1", "sources.knative.dev/v1alpha1", "PingSource"),
 			newSourceUnstructuredObj("a1", "sources.knative.dev/v1alpha1", "ApiServerSource"),
 			newSourceUnstructuredObj("c1", "sources.knative.dev/v1alpha1", "CronJobSource"),

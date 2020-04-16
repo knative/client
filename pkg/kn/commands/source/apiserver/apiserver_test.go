@@ -17,15 +17,14 @@ package apiserver
 import (
 	"bytes"
 
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/clientcmd"
-	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
-	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
+	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
+	duckv1 "knative.dev/pkg/apis/duck/v1"
 
 	kndynamic "knative.dev/client/pkg/dynamic"
+	clientv1alpha2 "knative.dev/client/pkg/sources/v1alpha2"
 
 	"knative.dev/client/pkg/kn/commands"
-	clientv1alpha1 "knative.dev/client/pkg/sources/v1alpha1"
 )
 
 const testNamespace = "default"
@@ -56,7 +55,7 @@ current-context: x
 	}
 }
 
-func executeAPIServerSourceCommand(apiServerSourceClient clientv1alpha1.KnAPIServerSourcesClient, dynamicClient kndynamic.KnDynamicClient, args ...string) (string, error) {
+func executeAPIServerSourceCommand(apiServerSourceClient clientv1alpha2.KnAPIServerSourcesClient, dynamicClient kndynamic.KnDynamicClient, args ...string) (string, error) {
 	knParams := &commands.KnParams{}
 	knParams.ClientConfig = blankConfig
 
@@ -70,7 +69,7 @@ func executeAPIServerSourceCommand(apiServerSourceClient clientv1alpha1.KnAPISer
 	cmd.SetArgs(args)
 	cmd.SetOutput(output)
 
-	apiServerSourceClientFactory = func(config clientcmd.ClientConfig, namespace string) (clientv1alpha1.KnAPIServerSourcesClient, error) {
+	apiServerSourceClientFactory = func(config clientcmd.ClientConfig, namespace string) (clientv1alpha2.KnAPIServerSourcesClient, error) {
 		return apiServerSourceClient, nil
 	}
 	defer cleanupAPIServerMockClient()
@@ -84,25 +83,24 @@ func cleanupAPIServerMockClient() {
 	apiServerSourceClientFactory = nil
 }
 
-func createAPIServerSource(name, resourceKind, resourceVersion, serviceAccount, mode, service string, isController bool) *v1alpha1.ApiServerSource {
-	resources := []v1alpha1.ApiServerResource{{
+func createAPIServerSource(name, resourceKind, resourceVersion, serviceAccount, mode, service string, isController bool) *v1alpha2.ApiServerSource {
+	resources := []v1alpha2.APIVersionKindSelector{{
 		APIVersion: resourceVersion,
 		Kind:       resourceKind,
-		Controller: isController,
 	}}
 
-	sink := &duckv1beta1.Destination{
-		Ref: &corev1.ObjectReference{
+	sink := duckv1.Destination{
+		Ref: &duckv1.KReference{
 			Kind:       "Service",
 			Name:       service,
 			APIVersion: "serving.knative.dev/v1",
 			Namespace:  "default",
 		}}
 
-	return clientv1alpha1.NewAPIServerSourceBuilder(name).
+	return clientv1alpha2.NewAPIServerSourceBuilder(name).
 		Resources(resources).
 		ServiceAccount(serviceAccount).
-		Mode(mode).
+		EventMode(mode).
 		Sink(sink).
 		Build()
 }

@@ -18,21 +18,23 @@ import (
 	"testing"
 
 	"gotest.tools/assert"
-	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
 )
 
 func TestGetAPIServerResourceArray(t *testing.T) {
 	t.Run("get single apiserver resource", func(t *testing.T) {
 		createFlag := APIServerSourceUpdateFlags{
 			ServiceAccountName: "test-sa",
-			Mode:               "Ref",
-			Resources:          []string{"Service:serving.knative.dev/v1:true"},
+			Mode:               "Reference",
+			Resources:          []string{"Service:serving.knative.dev/v1:key1=val1"},
 		}
-		created, _ := createFlag.getAPIServerResourceArray()
-		wanted := []v1alpha1.ApiServerResource{{
-			Kind:       "Service",
-			APIVersion: "serving.knative.dev/v1",
-			Controller: true,
+		created, _ := createFlag.getAPIServerVersionKindSelector()
+
+		wanted := []v1alpha2.APIVersionKindSelector{{
+			Kind:          "Service",
+			APIVersion:    "serving.knative.dev/v1",
+			LabelSelector: createLabelSelector("key1", "val1"),
 		}}
 		assert.DeepEqual(t, wanted, created)
 	})
@@ -40,14 +42,13 @@ func TestGetAPIServerResourceArray(t *testing.T) {
 	t.Run("get single apiserver resource when isController is default", func(t *testing.T) {
 		createFlag := APIServerSourceUpdateFlags{
 			ServiceAccountName: "test-sa",
-			Mode:               "Ref",
+			Mode:               "Reference",
 			Resources:          []string{"Service:serving.knative.dev/v1"},
 		}
-		created, _ := createFlag.getAPIServerResourceArray()
-		wanted := []v1alpha1.ApiServerResource{{
+		created, _ := createFlag.getAPIServerVersionKindSelector()
+		wanted := []v1alpha2.APIVersionKindSelector{{
 			Kind:       "Service",
 			APIVersion: "serving.knative.dev/v1",
-			Controller: false,
 		}}
 		assert.DeepEqual(t, wanted, created)
 	})
@@ -56,71 +57,68 @@ func TestGetAPIServerResourceArray(t *testing.T) {
 		createFlag := APIServerSourceUpdateFlags{
 			ServiceAccountName: "test-sa",
 			Mode:               "Resource",
-			Resources:          []string{"Event:v1:true", "Pod:v2:false"},
+			Resources:          []string{"Event:v1", "Pod:v2:key1=val1,key2=val2"},
 		}
-		created, _ := createFlag.getAPIServerResourceArray()
-		wanted := []v1alpha1.ApiServerResource{{
+		created, _ := createFlag.getAPIServerVersionKindSelector()
+		wanted := []v1alpha2.APIVersionKindSelector{{
 			Kind:       "Event",
 			APIVersion: "v1",
-			Controller: true,
 		}, {
-			Kind:       "Pod",
-			APIVersion: "v2",
-			Controller: false,
+			Kind:          "Pod",
+			APIVersion:    "v2",
+			LabelSelector: createLabelSelector("key1", "val1", "key2", "val2"),
 		}}
 		assert.DeepEqual(t, wanted, created)
 	})
 
-	t.Run("get multiple apiserver resources when isController is default", func(t *testing.T) {
+	t.Run("get multiple apiserver resources without label selector", func(t *testing.T) {
 		createFlag := APIServerSourceUpdateFlags{
 			ServiceAccountName: "test-sa",
 			Mode:               "Resource",
 			Resources:          []string{"Event:v1", "Pod:v1"},
 		}
-		created, _ := createFlag.getAPIServerResourceArray()
+		created, _ := createFlag.getAPIServerVersionKindSelector()
 
-		wanted := []v1alpha1.ApiServerResource{{
+		wanted := []v1alpha2.APIVersionKindSelector{{
 			Kind:       "Event",
 			APIVersion: "v1",
-			Controller: false,
 		}, {
 			Kind:       "Pod",
 			APIVersion: "v1",
-			Controller: false,
 		}}
 		assert.DeepEqual(t, wanted, created)
 	})
 
-	t.Run("get apiserver resource when isController has error", func(t *testing.T) {
+	t.Run("get apiserver resource when label controller has error", func(t *testing.T) {
 		createFlag := APIServerSourceUpdateFlags{
 			ServiceAccountName: "test-sa",
-			Mode:               "Ref",
-			Resources:          []string{"Event:v1:xxx"},
+			Mode:               "Reference",
+			Resources:          []string{"Event:v1:xxx,bla"},
 		}
-		_, err := createFlag.getAPIServerResourceArray()
-		errorMsg := "controller flag is not a boolean in resource specification Event:v1:xxx (expected: <Kind:ApiVersion[:controllerFlag]>)"
+		_, err := createFlag.getAPIServerVersionKindSelector()
+		errorMsg := "invalid label selector in resource specification Event:v1:xxx,bla (expected: <kind:apiVersion[:label1=val1,label2=val2,..]>"
 		assert.Error(t, err, errorMsg)
 	})
 
 	t.Run("get apiserver resources when kind has error", func(t *testing.T) {
 		createFlag := APIServerSourceUpdateFlags{
 			ServiceAccountName: "test-sa",
-			Mode:               "Ref",
-			Resources:          []string{":v2:true"},
+			Mode:               "Reference",
+			Resources:          []string{":v2"},
 		}
-		_, err := createFlag.getAPIServerResourceArray()
-		errorMsg := "cannot find 'Kind' part in resource specification :v2:true (expected: <Kind:ApiVersion[:controllerFlag]>"
+		_, err := createFlag.getAPIServerVersionKindSelector()
+		errorMsg := "cannot find 'kind' part in resource specification :v2 (expected: <kind:apiVersion[:label1=val1,label2=val2,..]>"
 		assert.Error(t, err, errorMsg)
 	})
 
 	t.Run("get apiserver resources when APIVersion has error", func(t *testing.T) {
 		createFlag := APIServerSourceUpdateFlags{
 			ServiceAccountName: "test-sa",
-			Mode:               "Ref",
+			Mode:               "Reference",
 			Resources:          []string{"kind"},
 		}
-		_, err := createFlag.getAPIServerResourceArray()
-		errorMsg := "cannot find 'APIVersion' part in resource specification kind (expected: <Kind:ApiVersion[:controllerFlag]>"
+		_, err := createFlag.getAPIServerVersionKindSelector()
+		errorMsg := "cannot find 'APIVersion' part in resource specification kind (expected: <kind:apiVersion[:label1=val1,label2=val2,..]>"
 		assert.Error(t, err, errorMsg)
 	})
 }
@@ -130,18 +128,16 @@ func TestGetUpdateAPIServerResourceArray(t *testing.T) {
 		createFlag := APIServerSourceUpdateFlags{
 			ServiceAccountName: "test-sa",
 			Mode:               "Resource",
-			Resources:          []string{"Event:v1:true", "Pod:v2:false-"},
+			Resources:          []string{"Event:v1", "Pod:v2-"},
 		}
-		added, removed, _ := createFlag.getUpdateAPIServerResourceArray()
-		addwanted := []v1alpha1.ApiServerResource{{
+		added, removed, _ := createFlag.getUpdateAPIVersionKindSelectorArray()
+		addwanted := []v1alpha2.APIVersionKindSelector{{
 			Kind:       "Event",
 			APIVersion: "v1",
-			Controller: true,
 		}}
-		removewanted := []v1alpha1.ApiServerResource{{
+		removewanted := []v1alpha2.APIVersionKindSelector{{
 			Kind:       "Pod",
 			APIVersion: "v2",
-			Controller: false,
 		}}
 		assert.DeepEqual(t, added, addwanted)
 		assert.DeepEqual(t, removed, removewanted)
@@ -150,19 +146,18 @@ func TestGetUpdateAPIServerResourceArray(t *testing.T) {
 		createFlag = APIServerSourceUpdateFlags{
 			ServiceAccountName: "test-sa",
 			Mode:               "Resource",
-			Resources:          []string{"Event:v1-", "Pod:v1"},
+			Resources:          []string{"Event:v1:key1=val1,key2=val2-", "Pod:v1"},
 		}
-		added, removed, _ = createFlag.getUpdateAPIServerResourceArray()
+		added, removed, _ = createFlag.getUpdateAPIVersionKindSelectorArray()
 
-		removewanted = []v1alpha1.ApiServerResource{{
-			Kind:       "Event",
-			APIVersion: "v1",
-			Controller: false,
+		removewanted = []v1alpha2.APIVersionKindSelector{{
+			Kind:          "Event",
+			APIVersion:    "v1",
+			LabelSelector: createLabelSelector("key1", "val1", "key2", "val2"),
 		}}
-		addwanted = []v1alpha1.ApiServerResource{{
+		addwanted = []v1alpha2.APIVersionKindSelector{{
 			Kind:       "Pod",
 			APIVersion: "v1",
-			Controller: false,
 		}}
 		assert.DeepEqual(t, added, addwanted)
 		assert.DeepEqual(t, removed, removewanted)
@@ -170,31 +165,28 @@ func TestGetUpdateAPIServerResourceArray(t *testing.T) {
 }
 
 func TestUpdateExistingAPIServerResourceArray(t *testing.T) {
-	existing := []v1alpha1.ApiServerResource{{
+	existing := []v1alpha2.APIVersionKindSelector{{
 		Kind:       "Event",
 		APIVersion: "v1",
-		Controller: false,
 	}, {
 		Kind:       "Pod",
 		APIVersion: "v1",
-		Controller: false,
 	}}
 
 	t.Run("update existing apiserver resources", func(t *testing.T) {
 		createFlag := APIServerSourceUpdateFlags{
 			ServiceAccountName: "test-sa",
 			Mode:               "Resource",
-			Resources:          []string{"Deployment:v1:true", "Pod:v1:false-"},
+			Resources:          []string{"Deployment:v1:key1=val1,key2=val2", "Pod:v1-"},
 		}
-		updated, _ := createFlag.updateExistingAPIServerResourceArray(existing)
-		updatedWanted := []v1alpha1.ApiServerResource{{
+		updated, _ := createFlag.updateExistingAPIVersionKindSelectorArray(existing)
+		updatedWanted := []v1alpha2.APIVersionKindSelector{{
 			Kind:       "Event",
 			APIVersion: "v1",
-			Controller: false,
 		}, {
-			Kind:       "Deployment",
-			APIVersion: "v1",
-			Controller: true,
+			Kind:          "Deployment",
+			APIVersion:    "v1",
+			LabelSelector: createLabelSelector("key1", "val1", "key2", "val2"),
 		}}
 		assert.DeepEqual(t, updated, updatedWanted)
 	})
@@ -203,10 +195,18 @@ func TestUpdateExistingAPIServerResourceArray(t *testing.T) {
 		createFlag := APIServerSourceUpdateFlags{
 			ServiceAccountName: "test-sa",
 			Mode:               "Resource",
-			Resources:          []string{"Deployment:v1:true", "Pod:v2:false-"},
+			Resources:          []string{"Deployment:v1", "Pod:v2-"},
 		}
-		_, err := createFlag.updateExistingAPIServerResourceArray(existing)
-		errorMsg := "cannot find resource Pod:v2:false to remove"
+		_, err := createFlag.updateExistingAPIVersionKindSelectorArray(existing)
+		errorMsg := "cannot find resources to remove: Pod:v2"
 		assert.Error(t, err, errorMsg)
 	})
+}
+
+func createLabelSelector(keyAndVal ...string) *metav1.LabelSelector {
+	labels := make(map[string]string)
+	for i := 0; i < len(keyAndVal); i += 2 {
+		labels[keyAndVal[i]] = keyAndVal[i+1]
+	}
+	return &metav1.LabelSelector{MatchLabels: labels}
 }

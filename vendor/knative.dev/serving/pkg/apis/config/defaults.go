@@ -21,7 +21,9 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"strconv"
+	"strings"
 	"text/template"
 
 	corev1 "k8s.io/api/core/v1"
@@ -53,34 +55,45 @@ const (
 	DefaultMaxRevisionContainerConcurrency int64 = 1000
 )
 
+func defaultConfig() *Defaults {
+	return &Defaults{
+		RevisionTimeoutSeconds:       DefaultRevisionTimeoutSeconds,
+		MaxRevisionTimeoutSeconds:    DefaultMaxRevisionTimeoutSeconds,
+		UserContainerNameTemplate:    DefaultUserContainerName,
+		ContainerConcurrency:         DefaultContainerConcurrency,
+		ContainerConcurrencyMaxLimit: DefaultMaxRevisionContainerConcurrency,
+	}
+}
+
 // NewDefaultsConfigFromMap creates a Defaults from the supplied Map
 func NewDefaultsConfigFromMap(data map[string]string) (*Defaults, error) {
-	nc := &Defaults{}
+	nc := defaultConfig()
+
+	// Process bool field.
+	nc.EnableMultiContainer = strings.EqualFold(data["enable-multi-container"], "true")
 
 	// Process int64 fields
 	for _, i64 := range []struct {
 		key   string
 		field *int64
-		// specified exactly when optional
-		defaultValue int64
 	}{{
-		key:          "revision-timeout-seconds",
-		field:        &nc.RevisionTimeoutSeconds,
-		defaultValue: DefaultRevisionTimeoutSeconds,
+		key:   "revision-timeout-seconds",
+		field: &nc.RevisionTimeoutSeconds,
 	}, {
-		key:          "max-revision-timeout-seconds",
-		field:        &nc.MaxRevisionTimeoutSeconds,
-		defaultValue: DefaultMaxRevisionTimeoutSeconds,
+		key:   "max-revision-timeout-seconds",
+		field: &nc.MaxRevisionTimeoutSeconds,
 	}, {
-		key:          "container-concurrency",
-		field:        &nc.ContainerConcurrency,
-		defaultValue: DefaultContainerConcurrency,
+		key:   "container-concurrency",
+		field: &nc.ContainerConcurrency,
+	}, {
+		key:   "container-concurrency-max-limit",
+		field: &nc.ContainerConcurrencyMaxLimit,
 	}} {
-		if raw, ok := data[i64.key]; !ok {
-			*i64.field = i64.defaultValue
-		} else if val, err := strconv.ParseInt(raw, 10, 64); err != nil {
-			return nil, err
-		} else {
+		if raw, ok := data[i64.key]; ok {
+			val, err := strconv.ParseInt(raw, 10, 64)
+			if err != nil {
+				return nil, err
+			}
 			*i64.field = val
 		}
 	}
@@ -88,9 +101,13 @@ func NewDefaultsConfigFromMap(data map[string]string) (*Defaults, error) {
 	if nc.RevisionTimeoutSeconds > nc.MaxRevisionTimeoutSeconds {
 		return nil, fmt.Errorf("revision-timeout-seconds (%d) cannot be greater than max-revision-timeout-seconds (%d)", nc.RevisionTimeoutSeconds, nc.MaxRevisionTimeoutSeconds)
 	}
-
-	if nc.ContainerConcurrency < 0 || nc.ContainerConcurrency > DefaultMaxRevisionContainerConcurrency {
-		return nil, apis.ErrOutOfBoundsValue(nc.ContainerConcurrency, 0, DefaultMaxRevisionContainerConcurrency, "containerConcurrency")
+	if nc.ContainerConcurrencyMaxLimit < 1 {
+		return nil, apis.ErrOutOfBoundsValue(
+			nc.ContainerConcurrencyMaxLimit, 1, math.MaxInt32, "container-concurrency-max-limit")
+	}
+	if nc.ContainerConcurrency < 0 || nc.ContainerConcurrency > nc.ContainerConcurrencyMaxLimit {
+		return nil, apis.ErrOutOfBoundsValue(
+			nc.ContainerConcurrency, 0, nc.ContainerConcurrencyMaxLimit, "container-concurrency")
 	}
 
 	// Process resource quantity fields
@@ -119,9 +136,7 @@ func NewDefaultsConfigFromMap(data map[string]string) (*Defaults, error) {
 		}
 	}
 
-	if raw, ok := data["container-name-template"]; !ok {
-		nc.UserContainerNameTemplate = DefaultUserContainerName
-	} else {
+	if raw, ok := data["container-name-template"]; ok {
 		tmpl, err := template.New("user-container").Parse(raw)
 		if err != nil {
 			return nil, err
@@ -145,6 +160,9 @@ func NewDefaultsConfigFromConfigMap(config *corev1.ConfigMap) (*Defaults, error)
 
 // Defaults includes the default values to be populated by the webhook.
 type Defaults struct {
+	// Feature flag to enable multi container support
+	EnableMultiContainer bool
+
 	RevisionTimeoutSeconds int64
 	// This is the timeout set for cluster ingress.
 	// RevisionTimeoutSeconds must be less than this value.
@@ -153,6 +171,10 @@ type Defaults struct {
 	UserContainerNameTemplate string
 
 	ContainerConcurrency int64
+
+	// ContainerConcurrencyMaxLimit is the maximum permitted container concurrency
+	// or target value in the system.
+	ContainerConcurrencyMaxLimit int64
 
 	RevisionCPURequest    *resource.Quantity
 	RevisionCPULimit      *resource.Quantity

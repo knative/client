@@ -17,11 +17,10 @@ package apiserver
 import (
 	"errors"
 	"fmt"
-	"strconv"
 
 	"github.com/spf13/cobra"
-	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
-	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
+	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
+	duckv1 "knative.dev/pkg/apis/duck/v1"
 
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/printers"
@@ -94,16 +93,17 @@ func NewAPIServerDescribeCommand(p *commands.KnParams) *cobra.Command {
 	return apiServerDescribe
 }
 
-func writeResources(dw printers.PrefixWriter, resources []v1alpha1.ApiServerResource) {
+func writeResources(dw printers.PrefixWriter, apiVersionKindSelectors []v1alpha2.APIVersionKindSelector) {
 	subWriter := dw.WriteAttribute("Resources", "")
-	for _, resource := range resources {
+	for _, resource := range apiVersionKindSelectors {
 		subWriter.WriteAttribute("Kind", fmt.Sprintf("%s (%s)", resource.Kind, resource.APIVersion))
-		subWriter.WriteAttribute("Controller", strconv.FormatBool(resource.Controller))
-		// TODO : Add Controller Selector section here for --verbose
+		if resource.LabelSelector != nil {
+			subWriter.WriteAttribute("Selector", labelSelectorToString(resource.LabelSelector))
+		}
 	}
 }
 
-func writeSink(dw printers.PrefixWriter, sink *duckv1beta1.Destination) {
+func writeSink(dw printers.PrefixWriter, sink duckv1.Destination) {
 	subWriter := dw.WriteAttribute("Sink", "")
 	subWriter.WriteAttribute("Name", sink.Ref.Name)
 	subWriter.WriteAttribute("Namespace", sink.Ref.Namespace)
@@ -117,8 +117,8 @@ func writeSink(dw printers.PrefixWriter, sink *duckv1beta1.Destination) {
 	}
 }
 
-func writeAPIServerSource(dw printers.PrefixWriter, source *v1alpha1.ApiServerSource, printDetails bool) {
+func writeAPIServerSource(dw printers.PrefixWriter, source *v1alpha2.ApiServerSource, printDetails bool) {
 	commands.WriteMetadata(dw, &source.ObjectMeta, printDetails)
 	dw.WriteAttribute("ServiceAccountName", source.Spec.ServiceAccountName)
-	dw.WriteAttribute("Mode", source.Spec.Mode)
+	dw.WriteAttribute("EventMode", source.Spec.EventMode)
 }

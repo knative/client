@@ -76,18 +76,15 @@ func TestSourceList(t *testing.T) {
 		newSourceCRDObjWithSpec("pingsources", "sources.knative.dev", "v1alpha1", "PingSource"),
 		newSourceCRDObjWithSpec("sinkbindings", "sources.knative.dev", "v1alpha1", "SinkBinding"),
 		newSourceCRDObjWithSpec("apiserversources", "sources.knative.dev", "v1alpha1", "ApiServerSource"),
-		newSourceCRDObjWithSpec("cronjobsources", "sources.eventing.knative.dev", "v1alpha1", "CronJobSource"),
 		newSourceUnstructuredObj("p1", "sources.knative.dev/v1alpha1", "PingSource"),
 		newSourceUnstructuredObj("s1", "sources.knative.dev/v1alpha1", "SinkBinding"),
 		newSourceUnstructuredObj("a1", "sources.knative.dev/v1alpha1", "ApiServerSource"),
-		newSourceUnstructuredObj("c1", "sources.eventing.knative.dev/v1alpha1", "CronJobSource"),
 	)
 	assert.NilError(t, err)
 	assert.Check(t, util.ContainsAll(output[0], "NAME", "TYPE", "RESOURCE", "SINK", "READY"))
 	assert.Check(t, util.ContainsAll(output[1], "a1", "ApiServerSource", "apiserversources.sources.knative.dev", "svc:foo", "<unknown>"))
-	assert.Check(t, util.ContainsAll(output[2], "c1", "CronJobSource", "cronjobsources.sources.eventing.knative.dev", "svc:foo", "<unknown>"))
-	assert.Check(t, util.ContainsAll(output[3], "p1", "PingSource", "pingsources.sources.knative.dev", "svc:foo", "<unknown>"))
-	assert.Check(t, util.ContainsAll(output[4], "s1", "SinkBinding", "sinkbindings.sources.knative.dev", "svc:foo", "<unknown>"))
+	assert.Check(t, util.ContainsAll(output[2], "p1", "PingSource", "pingsources.sources.knative.dev", "svc:foo", "<unknown>"))
+	assert.Check(t, util.ContainsAll(output[3], "s1", "SinkBinding", "sinkbindings.sources.knative.dev", "svc:foo", "<unknown>"))
 }
 
 func TestSourceListNoHeaders(t *testing.T) {

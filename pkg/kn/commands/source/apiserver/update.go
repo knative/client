@@ -22,7 +22,7 @@ import (
 
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
-	clientv1alpha1 "knative.dev/client/pkg/sources/v1alpha1"
+	"knative.dev/client/pkg/sources/v1alpha2"
 )
 
 // NewAPIServerUpdateCommand for managing source update
@@ -64,17 +64,17 @@ func NewAPIServerUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			b := clientv1alpha1.NewAPIServerSourceBuilderFromExisting(source)
+			b := v1alpha2.NewAPIServerSourceBuilderFromExisting(source)
 			if cmd.Flags().Changed("service-account") {
 				b.ServiceAccount(apiServerUpdateFlags.ServiceAccountName)
 			}
 
 			if cmd.Flags().Changed("mode") {
-				b.Mode(apiServerUpdateFlags.Mode)
+				b.EventMode(apiServerUpdateFlags.Mode)
 			}
 
 			if cmd.Flags().Changed("resource") {
-				updateExisting, err := apiServerUpdateFlags.updateExistingAPIServerResourceArray(source.Spec.Resources)
+				updateExisting, err := apiServerUpdateFlags.updateExistingAPIVersionKindSelectorArray(source.Spec.Resources)
 				if err != nil {
 					return err
 				}
@@ -86,7 +86,7 @@ func NewAPIServerUpdateCommand(p *commands.KnParams) *cobra.Command {
 				if err != nil {
 					return err
 				}
-				b.Sink(toDuckV1Beta1(objectRef))
+				b.Sink(*objectRef)
 			}
 
 			err = sourcesClient.UpdateAPIServerSource(b.Build())

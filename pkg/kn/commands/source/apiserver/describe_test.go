@@ -20,26 +20,26 @@ import (
 
 	"gotest.tools/assert"
 
-	clientv1alpha1 "knative.dev/client/pkg/sources/v1alpha1"
+	"knative.dev/client/pkg/sources/v1alpha2"
 	"knative.dev/client/pkg/util"
 )
 
 func TestSimpleDescribe(t *testing.T) {
-	apiServerClient := clientv1alpha1.NewMockKnAPIServerSourceClient(t, "mynamespace")
+	apiServerClient := v1alpha2.NewMockKnAPIServerSourceClient(t, "mynamespace")
 
 	apiServerRecorder := apiServerClient.Recorder()
-	sampleSource := createAPIServerSource("testsource", "Event", "v1", "testsa", "Ref", "testsvc", false)
+	sampleSource := createAPIServerSource("testsource", "Event", "v1", "testsa", "Reference", "testsvc", false)
 	apiServerRecorder.GetAPIServerSource("testsource", sampleSource, nil)
 
 	out, err := executeAPIServerSourceCommand(apiServerClient, nil, "describe", "testsource")
 	assert.NilError(t, err)
-	util.ContainsAll(out, "testsource", "testsa", "Ref", "testsvc", "Service", "Resources", "Event", "v1", "false", "Conditions")
+	util.ContainsAll(out, "testsource", "testsa", "Reference", "testsvc", "Service", "Resources", "Event", "v1", "false", "Conditions")
 
 	apiServerRecorder.Validate()
 }
 
 func TestDescribeError(t *testing.T) {
-	apiServerClient := clientv1alpha1.NewMockKnAPIServerSourceClient(t, "mynamespace")
+	apiServerClient := v1alpha2.NewMockKnAPIServerSourceClient(t, "mynamespace")
 
 	apiServerRecorder := apiServerClient.Recorder()
 	apiServerRecorder.GetAPIServerSource("testsource", nil, errors.New("no apiserver source testsource"))

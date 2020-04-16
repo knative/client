@@ -22,10 +22,8 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	eventinglegacy "knative.dev/eventing/pkg/apis/legacysources/v1alpha1"
-	sourcesv1alpha1 "knative.dev/eventing/pkg/apis/sources/v1alpha1"
-	pkgduck "knative.dev/pkg/apis/duck"
-	pkgduckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
+	sourcesv1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
+	duck "knative.dev/pkg/apis/duck"
 
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
@@ -108,24 +106,19 @@ func getSourceTypeName(source *unstructured.Unstructured) string {
 func findSink(source *unstructured.Unstructured) string {
 	switch source.GetKind() {
 	case "ApiServerSource":
-		var apiSource eventinglegacy.ApiServerSource
-		if err := pkgduck.FromUnstructured(source, &apiSource); err == nil {
-			return sinkToString(apiSource.Spec.Sink)
-		}
-	case "CronJobSource":
-		var cronSource eventinglegacy.CronJobSource
-		if err := pkgduck.FromUnstructured(source, &cronSource); err == nil {
-			return sinkToString(cronSource.Spec.Sink)
+		var apiSource sourcesv1alpha2.ApiServerSource
+		if err := duck.FromUnstructured(source, &apiSource); err == nil {
+			return flags.SinkToString(apiSource.Spec.Sink)
 		}
 	case "SinkBinding":
-		var binding sourcesv1alpha1.SinkBinding
-		if err := pkgduck.FromUnstructured(source, &binding); err == nil {
+		var binding sourcesv1alpha2.SinkBinding
+		if err := duck.FromUnstructured(source, &binding); err == nil {
 			return flags.SinkToString(binding.Spec.Sink)
 		}
 	case "PingSource":
-		var pingSource sourcesv1alpha1.PingSource
-		if err := pkgduck.FromUnstructured(source, &pingSource); err == nil {
-			return flags.SinkToString(*pingSource.Spec.Sink)
+		var pingSource sourcesv1alpha2.PingSource
+		if err := duck.FromUnstructured(source, &pingSource); err == nil {
+			return flags.SinkToString(pingSource.Spec.Sink)
 		}
 	}
 	// TODO: Find out how to find sink in untyped sources
@@ -135,43 +128,21 @@ func findSink(source *unstructured.Unstructured) string {
 func isReady(source *unstructured.Unstructured) string {
 	switch source.GetKind() {
 	case "ApiServerSource":
-		var tSource eventinglegacy.ApiServerSource
-		if err := pkgduck.FromUnstructured(source, &tSource); err == nil {
-			return commands.ReadyCondition(tSource.Status.Conditions)
-		}
-	case "CronJobSource":
-		var tSource eventinglegacy.CronJobSource
-		if err := pkgduck.FromUnstructured(source, &tSource); err == nil {
+		var tSource sourcesv1alpha2.ApiServerSource
+		if err := duck.FromUnstructured(source, &tSource); err == nil {
 			return commands.ReadyCondition(tSource.Status.Conditions)
 		}
 	case "SinkBinding":
-		var tSource eventinglegacy.SinkBinding
-		if err := pkgduck.FromUnstructured(source, &tSource); err == nil {
+		var tSource sourcesv1alpha2.SinkBinding
+		if err := duck.FromUnstructured(source, &tSource); err == nil {
 			return commands.ReadyCondition(tSource.Status.Conditions)
 		}
 	case "PingSource":
-		var tSource sourcesv1alpha1.PingSource
-		if err := pkgduck.FromUnstructured(source, &tSource); err == nil {
+		var tSource sourcesv1alpha2.PingSource
+		if err := duck.FromUnstructured(source, &tSource); err == nil {
 			return commands.ReadyCondition(tSource.Status.Conditions)
 		}
 	}
 	// TODO: Find out how to find ready conditions for untyped sources
 	return "<unknown>"
-}
-
-// temporary sinkToString for deprecated sources
-func sinkToString(sink *pkgduckv1beta1.Destination) string {
-	if sink != nil {
-		if sink.Ref != nil {
-			if sink.Ref.Kind == "Service" {
-				return fmt.Sprintf("svc:%s", sink.Ref.Name)
-			}
-			return fmt.Sprintf("%s:%s", strings.ToLower(sink.Ref.Kind), sink.Ref.Name)
-		}
-
-		if sink.URI != nil {
-			return sink.URI.String()
-		}
-	}
-	return ""
 }

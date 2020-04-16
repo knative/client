@@ -20,13 +20,13 @@ import (
 
 	"gotest.tools/assert"
 
-	clientv1alpha1 "knative.dev/client/pkg/sources/v1alpha1"
+	"knative.dev/client/pkg/sources/v1alpha2"
 	"knative.dev/client/pkg/util"
 )
 
 func TestApiServerSourceDelete(t *testing.T) {
 
-	apiServerClient := clientv1alpha1.NewMockKnAPIServerSourceClient(t, "testns")
+	apiServerClient := v1alpha2.NewMockKnAPIServerSourceClient(t, "testns")
 	apiServerRecorder := apiServerClient.Recorder()
 
 	apiServerRecorder.DeleteAPIServerSource("testsource", nil)
@@ -40,7 +40,7 @@ func TestApiServerSourceDelete(t *testing.T) {
 
 func TestDeleteWithError(t *testing.T) {
 
-	apiServerClient := clientv1alpha1.NewMockKnAPIServerSourceClient(t, "mynamespace")
+	apiServerClient := v1alpha2.NewMockKnAPIServerSourceClient(t, "mynamespace")
 	apiServerRecorder := apiServerClient.Recorder()
 
 	apiServerRecorder.DeleteAPIServerSource("testsource", errors.New("apiserver source testsource not found"))
