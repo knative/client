@@ -70,11 +70,11 @@ func NewAPIServerUpdateCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			if cmd.Flags().Changed("mode") {
-				b.Mode(apiServerUpdateFlags.Mode)
+				b.EventMode(apiServerUpdateFlags.Mode)
 			}
 
 			if cmd.Flags().Changed("resource") {
-				updateExisting, err := apiServerUpdateFlags.updateExistingAPIServerResourceArray(source.Spec.Resources)
+				updateExisting, err := apiServerUpdateFlags.updateExistingAPIVersionKindSelectorArray(source.Spec.Resources)
 				if err != nil {
 					return err
 				}
@@ -86,7 +86,7 @@ func NewAPIServerUpdateCommand(p *commands.KnParams) *cobra.Command {
 				if err != nil {
 					return err
 				}
-				b.Sink(toDuckV1Beta1(objectRef))
+				b.Sink(*objectRef)
 			}
 
 			err = sourcesClient.UpdateAPIServerSource(b.Build())

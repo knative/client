@@ -15,7 +15,7 @@
 package v1alpha1
 
 import (
-	clientv1alpha1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1"
+	clientv1alpha2 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha2"
 )
 
 // KnSinkBindingClient to Eventing Sources. All methods are relative to the
@@ -29,12 +29,12 @@ type KnSourcesClient interface {
 // Temporarily help to add sources dependencies
 // May be changed when adding real sources features
 type sourcesClient struct {
-	client    clientv1alpha1.SourcesV1alpha1Interface
+	client    clientv1alpha2.SourcesV1alpha2Interface
 	namespace string
 }
 
 // NewKnSourcesClient for managing all eventing built-in sources
-func NewKnSourcesClient(client clientv1alpha1.SourcesV1alpha1Interface, namespace string) KnSourcesClient {
+func NewKnSourcesClient(client clientv1alpha2.SourcesV1alpha2Interface, namespace string) KnSourcesClient {
 	return &sourcesClient{
 		client:    client,
 		namespace: namespace,

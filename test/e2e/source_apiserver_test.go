@@ -54,7 +54,7 @@ func TestSourceApiServer(t *testing.T) {
 	serviceCreate(r, "testsvc0")
 
 	t.Log("create apiserver sources with a sink to a service")
-	apiServerSourceCreate(r, "testapisource0", "Event:v1:true", "testsa", "svc:testsvc0")
+	apiServerSourceCreate(r, "testapisource0", "Event:v1:key1=value1", "testsa", "svc:testsvc0")
 	apiServerSourceCreate(r, "testapisource1", "Event:v1", "testsa", "svc:testsvc0")
 	apiServerSourceListOutputName(r, "testapisource0", "testapisource1")
 
@@ -73,10 +73,10 @@ func TestSourceApiServer(t *testing.T) {
 	apiServerSourceDelete(r, "testapisource1")
 
 	t.Log("create apiserver source with a missing sink service")
-	apiServerSourceCreateMissingSink(r, "testapisource2", "Event:v1:true", "testsa", "svc:unknown")
+	apiServerSourceCreateMissingSink(r, "testapisource2", "Event:v1", "testsa", "svc:unknown")
 
 	t.Log("update apiserver source sink service")
-	apiServerSourceCreate(r, "testapisource3", "Event:v1:true", "testsa", "svc:testsvc0")
+	apiServerSourceCreate(r, "testapisource3", "Event:v1", "testsa", "svc:testsvc0")
 	serviceCreate(r, "testsvc1")
 	apiServerSourceUpdateSink(r, "testapisource3", "svc:testsvc1")
 	jpSinkRefNameInSpec := "jsonpath={.spec.sink.ref.name}"

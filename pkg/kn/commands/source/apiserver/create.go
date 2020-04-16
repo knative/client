@@ -64,10 +64,10 @@ func NewAPIServerCreateCommand(p *commands.KnParams) *cobra.Command {
 
 			b := v1alpha1.NewAPIServerSourceBuilder(name).
 				ServiceAccount(updateFlags.ServiceAccountName).
-				Mode(updateFlags.Mode).
-				Sink(toDuckV1Beta1(objectRef))
+				EventMode(updateFlags.Mode).
+				Sink(*objectRef)
 
-			resources, err := updateFlags.getAPIServerResourceArray()
+			resources, err := updateFlags.getAPIServerVersionKindSelector()
 			if err != nil {
 				return err
 			}

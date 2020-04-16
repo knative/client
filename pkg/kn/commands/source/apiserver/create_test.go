@@ -37,7 +37,7 @@ func TestCreateApiServerSource(t *testing.T) {
 	apiServerRecorder := apiServerClient.Recorder()
 	apiServerRecorder.CreateAPIServerSource(createAPIServerSource("testsource", "Event", "v1", "testsa", "Ref", "testsvc", false), nil)
 
-	out, err := executeAPIServerSourceCommand(apiServerClient, dynamicClient, "create", "testsource", "--resource", "Event:v1:false", "--service-account", "testsa", "--sink", "svc:testsvc", "--mode", "Ref")
+	out, err := executeAPIServerSourceCommand(apiServerClient, dynamicClient, "create", "testsource", "--resource", "Event:v1", "--service-account", "testsa", "--sink", "svc:testsvc", "--mode", "Ref")
 	assert.NilError(t, err, "ApiServer source should be created")
 	util.ContainsAll(out, "created", "default", "testsource")
 
@@ -48,13 +48,13 @@ func TestSinkNotFoundError(t *testing.T) {
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default")
 	apiServerClient := clientv1alpha1.NewMockKnAPIServerSourceClient(t)
 	errorMsg := "cannot create ApiServerSource 'testsource' in namespace 'default' because: services.serving.knative.dev \"testsvc\" not found"
-	out, err := executeAPIServerSourceCommand(apiServerClient, dynamicClient, "create", "testsource", "--resource", "Event:v1:false", "--service-account", "testsa", "--sink", "svc:testsvc", "--mode", "Ref")
+	out, err := executeAPIServerSourceCommand(apiServerClient, dynamicClient, "create", "testsource", "--resource", "Event:v1:key1=value1", "--service-account", "testsa", "--sink", "svc:testsvc", "--mode", "Ref")
 	assert.Error(t, err, errorMsg)
 	assert.Assert(t, util.ContainsAll(out, errorMsg, "Usage"))
 }
 
 func TestNoSinkError(t *testing.T) {
 	apiServerClient := clientv1alpha1.NewMockKnAPIServerSourceClient(t)
-	_, err := executeAPIServerSourceCommand(apiServerClient, nil, "create", "testsource", "--resource", "Event:v1:false", "--service-account", "testsa", "--mode", "Ref")
+	_, err := executeAPIServerSourceCommand(apiServerClient, nil, "create", "testsource", "--resource", "Event:v1", "--service-account", "testsa", "--mode", "Ref")
 	assert.ErrorContains(t, err, "required flag(s)", "sink", "not set")
 }

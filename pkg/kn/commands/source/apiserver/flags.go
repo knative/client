@@ -18,14 +18,15 @@ import (
 	"fmt"
 	"reflect"
 	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
+	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
 
 	"knative.dev/client/pkg/kn/commands"
+	"knative.dev/client/pkg/kn/commands/flags"
 
 	metav1beta1 "k8s.io/apimachinery/pkg/apis/meta/v1beta1"
 
@@ -34,7 +35,9 @@ import (
 )
 
 const (
-	apiVersionSplitChar = ":"
+	resourceSplitChar = ":"
+	labelSplitChar    = ","
+	keyValueSplitChar = "="
 )
 
 // APIServerSourceUpdateFlags are flags for create and update a ApiServerSource
@@ -44,11 +47,11 @@ type APIServerSourceUpdateFlags struct {
 	Resources          []string
 }
 
-// getAPIServerResourceArray is to construct an array of resources.
-func (f *APIServerSourceUpdateFlags) getAPIServerResourceArray() ([]v1alpha1.ApiServerResource, error) {
-	var resourceList []v1alpha1.ApiServerResource
+// getAPIServerVersionKindSelector is to construct an array of resources.
+func (f *APIServerSourceUpdateFlags) getAPIServerVersionKindSelector() ([]v1alpha2.APIVersionKindSelector, error) {
+	var resourceList []v1alpha2.APIVersionKindSelector
 	for _, r := range f.Resources {
-		resourceSpec, err := getValidResource(r)
+		resourceSpec, err := getValidAPIVersionKindSelector(r)
 		if err != nil {
 			return nil, err
 		}
@@ -57,55 +60,60 @@ func (f *APIServerSourceUpdateFlags) getAPIServerResourceArray() ([]v1alpha1.Api
 	return resourceList, nil
 }
 
-// updateExistingAPIServerResourceArray is to update an array of resources.
-func (f *APIServerSourceUpdateFlags) updateExistingAPIServerResourceArray(existing []v1alpha1.ApiServerResource) ([]v1alpha1.ApiServerResource, error) {
-	var found bool
-
-	added, removed, err := f.getUpdateAPIServerResourceArray()
+// updateExistingAPIVersionKindSelectorArray is to update an array of resources.
+func (f *APIServerSourceUpdateFlags) updateExistingAPIVersionKindSelectorArray(existing []v1alpha2.APIVersionKindSelector) ([]v1alpha2.APIVersionKindSelector, error) {
+	added, removed, err := f.getUpdateAPIVersionKindSelectorArray()
 	if err != nil {
 		return nil, err
 	}
 
 	if existing == nil {
-		existing = []v1alpha1.ApiServerResource{}
+		existing = []v1alpha2.APIVersionKindSelector{}
 	}
 
 	existing = append(existing, added...)
 
-	for _, item := range removed {
-		found = false
-		for i, ref := range existing {
+	var updated []v1alpha2.APIVersionKindSelector
+OUTER:
+	for _, ref := range existing {
+		for i, item := range removed {
 			if reflect.DeepEqual(item, ref) {
-				existing = append(existing[:i], existing[i+1:]...)
-				found = true
-				break
+				removed = append(removed[:i], removed[i+1:]...)
+				continue OUTER
 			}
 		}
-		if !found {
-			return nil, fmt.Errorf("cannot find resource %s:%s:%t to remove", item.Kind, item.APIVersion, item.Controller)
-		}
+		updated = append(updated, ref)
 	}
-	return existing, nil
+
+	if len(removed) > 0 {
+		var errTxt []string
+		for _, item := range removed {
+			errTxt = append(errTxt, apiVersionKindSelectorToString(item))
+		}
+		return nil, fmt.Errorf("cannot find resources to remove: %s", strings.Join(errTxt, ", "))
+	}
+
+	return updated, nil
 }
 
-// getUpdateAPIServerResourceArray is to construct an array of resources for update action.
-func (f *APIServerSourceUpdateFlags) getUpdateAPIServerResourceArray() ([]v1alpha1.ApiServerResource, []v1alpha1.ApiServerResource, error) {
+// getUpdateAPIVersionKindSelectorArray is to construct an array of resources for update action.
+func (f *APIServerSourceUpdateFlags) getUpdateAPIVersionKindSelectorArray() ([]v1alpha2.APIVersionKindSelector, []v1alpha2.APIVersionKindSelector, error) {
 	addedArray, removedArray := util.AddedAndRemovalListsFromArray(f.Resources)
-	added, err := constructApiServerResourceArray(addedArray)
+	added, err := constructAPIVersionKindSelector(addedArray)
 	if err != nil {
 		return nil, nil, err
 	}
-	removed, err := constructApiServerResourceArray(removedArray)
+	removed, err := constructAPIVersionKindSelector(removedArray)
 	if err != nil {
 		return nil, nil, err
 	}
 	return added, removed, nil
 }
 
-func constructApiServerResourceArray(s []string) ([]v1alpha1.ApiServerResource, error) {
-	array := make([]v1alpha1.ApiServerResource, 0)
+func constructAPIVersionKindSelector(s []string) ([]v1alpha2.APIVersionKindSelector, error) {
+	array := make([]v1alpha2.APIVersionKindSelector, 0)
 	for _, r := range s {
-		resourceSpec, err := getValidResource(r)
+		resourceSpec, err := getValidAPIVersionKindSelector(r)
 		if err != nil {
 			return array, err
 		}
@@ -114,31 +122,26 @@ func constructApiServerResourceArray(s []string) ([]v1alpha1.ApiServerResource, 
 	return array, nil
 }
 
-//getValidResource is to parse resource spec from a string
-func getValidResource(resource string) (*v1alpha1.ApiServerResource, error) {
-	var isController bool
+//getValidAPIVersionKindSelector is to parse resource spec from a string
+func getValidAPIVersionKindSelector(resource string) (*v1alpha2.APIVersionKindSelector, error) {
 	var err error
 
-	parts := strings.SplitN(resource, apiVersionSplitChar, 3)
+	parts := strings.SplitN(resource, resourceSplitChar, 3)
 	if len(parts[0]) == 0 {
-		return nil, fmt.Errorf("cannot find 'Kind' part in resource specification %s (expected: <Kind:ApiVersion[:controllerFlag]>", resource)
+		return nil, fmt.Errorf("cannot find 'kind' part in resource specification %s (expected: <kind:apiVersion[:label1=val1,label2=val2,..]>", resource)
 	}
 	kind := parts[0]
 
 	if len(parts) < 2 || len(parts[1]) == 0 {
-		return nil, fmt.Errorf("cannot find 'APIVersion' part in resource specification %s (expected: <Kind:ApiVersion[:controllerFlag]>", resource)
+		return nil, fmt.Errorf("cannot find 'APIVersion' part in resource specification %s (expected: <kind:apiVersion[:label1=val1,label2=val2,..]>", resource)
 	}
 	version := parts[1]
 
-	if len(parts) >= 3 && len(parts[2]) > 0 {
-		isController, err = strconv.ParseBool(parts[2])
-		if err != nil {
-			return nil, fmt.Errorf("controller flag is not a boolean in resource specification %s (expected: <Kind:ApiVersion[:controllerFlag]>)", resource)
-		}
-	} else {
-		isController = false
+	labelSelector, err := extractLabelSelector(parts)
+	if err != nil {
+		return nil, err
 	}
-	return &v1alpha1.ApiServerResource{Kind: kind, APIVersion: version, Controller: isController}, nil
+	return &v1alpha2.APIVersionKindSelector{Kind: kind, APIVersion: version, LabelSelector: labelSelector}, nil
 }
 
 //Add is to set parameters
@@ -177,7 +180,7 @@ func APIServerSourceListHandlers(h hprinters.PrintHandler) {
 }
 
 // printSource populates a single row of source apiserver list table
-func printSource(source *v1alpha1.ApiServerSource, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+func printSource(source *v1alpha2.ApiServerSource, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	row := metav1beta1.TableRow{
 		Object: runtime.RawExtension{Object: source},
 	}
@@ -189,22 +192,13 @@ func printSource(source *v1alpha1.ApiServerSource, options hprinters.PrintOption
 	reason := strings.TrimSpace(commands.NonReadyConditionReason(source.Status.Conditions))
 	var resources []string
 	for _, resource := range source.Spec.Resources {
-		resources = append(resources, fmt.Sprintf("%s:%s:%s", resource.Kind, resource.APIVersion, strconv.FormatBool(resource.Controller)))
+		resources = append(resources, apiVersionKindSelectorToString(resource))
 	}
 
 	// Not moving to SinkToString() as it references v1beta1.Destination
 	// This source is going to be moved/removed soon to v1, so no need to move
 	// it now
-	var sink string
-	if source.Spec.Sink != nil {
-		if source.Spec.Sink.Ref != nil {
-			if source.Spec.Sink.Ref.Kind == "Service" {
-				sink = fmt.Sprintf("svc:%s", source.Spec.Sink.Ref.Name)
-			} else {
-				sink = fmt.Sprintf("%s:%s", source.Spec.Sink.Ref.Kind, source.Spec.Sink.Ref.Name)
-			}
-		}
-	}
+	sink := flags.SinkToString(source.Spec.Sink)
 
 	if options.AllNamespaces {
 		row.Cells = append(row.Cells, source.Namespace)
@@ -214,8 +208,40 @@ func printSource(source *v1alpha1.ApiServerSource, options hprinters.PrintOption
 	return []metav1beta1.TableRow{row}, nil
 }
 
+func apiVersionKindSelectorToString(apiVersionKindSelector v1alpha2.APIVersionKindSelector) string {
+	lTxt := labelSelectorToString(apiVersionKindSelector.LabelSelector)
+	if lTxt != "" {
+		lTxt = ":" + lTxt
+	}
+	return fmt.Sprintf("%s:%s%s", apiVersionKindSelector.Kind, apiVersionKindSelector.APIVersion, lTxt)
+}
+
+func labelSelectorToString(labelSelector *v1.LabelSelector) string {
+	if labelSelector == nil {
+		return ""
+	}
+	labelsMap := labelSelector.MatchLabels
+	if len(labelsMap) != 9 {
+		keys := make([]string, 0, len(labelsMap))
+		labels := make([]string, 0, len(labelsMap))
+		for k := range labelsMap {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+
+		for i, k := range keys {
+			labels[i] = k + "=" + labelsMap[k]
+		}
+		return strings.Join(labels, ",")
+	}
+	if len(labelSelector.MatchExpressions) > 0 {
+		return "[match expressions]"
+	}
+	return ""
+}
+
 // printSourceList populates the source apiserver list table rows
-func printSourceList(sourceList *v1alpha1.ApiServerSourceList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+func printSourceList(sourceList *v1alpha2.ApiServerSourceList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	if options.AllNamespaces {
 		return printSourceListWithNamespace(sourceList, options)
 	}
@@ -238,7 +264,7 @@ func printSourceList(sourceList *v1alpha1.ApiServerSourceList, options hprinters
 }
 
 // printSourceListWithNamespace populates the knative service table rows with namespace column
-func printSourceListWithNamespace(sourceList *v1alpha1.ApiServerSourceList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+func printSourceListWithNamespace(sourceList *v1alpha2.ApiServerSourceList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	rows := make([]metav1beta1.TableRow, 0, len(sourceList.Items))
 
 	// temporary slice for sorting services in non-default namespace
@@ -268,4 +294,22 @@ func printSourceListWithNamespace(sourceList *v1alpha1.ApiServerSourceList, opti
 	})
 
 	return append(rows, others...), nil
+}
+
+func extractLabelSelector(parts []string) (*v1.LabelSelector, error) {
+	var labelSelector *v1.LabelSelector
+	if len(parts) >= 3 && len(parts[2]) > 0 {
+		labelParts := strings.Split(parts[2], labelSplitChar)
+
+		labels := make(map[string]string)
+		for _, keyValue := range labelParts {
+			keyValueParts := strings.SplitN(keyValue, keyValueSplitChar, 2)
+			if len(keyValueParts) != 2 {
+				return nil, fmt.Errorf("invalid label selector in resource specification %s (expected: <kind:apiVersion[:label1=val1,label2=val2,..]>", strings.Join(parts, resourceSplitChar))
+			}
+			labels[keyValueParts[0]] = keyValueParts[1]
+		}
+		labelSelector = &v1.LabelSelector{MatchLabels: labels}
+	}
+	return labelSelector, nil
 }

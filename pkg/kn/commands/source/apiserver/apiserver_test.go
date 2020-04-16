@@ -17,10 +17,9 @@ package apiserver
 import (
 	"bytes"
 
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/clientcmd"
-	"knative.dev/eventing/pkg/apis/sources/v1alpha1"
-	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
+	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
+	duckv1 "knative.dev/pkg/apis/duck/v1"
 
 	kndynamic "knative.dev/client/pkg/dynamic"
 
@@ -84,15 +83,14 @@ func cleanupAPIServerMockClient() {
 	apiServerSourceClientFactory = nil
 }
 
-func createAPIServerSource(name, resourceKind, resourceVersion, serviceAccount, mode, service string, isController bool) *v1alpha1.ApiServerSource {
-	resources := []v1alpha1.ApiServerResource{{
+func createAPIServerSource(name, resourceKind, resourceVersion, serviceAccount, mode, service string, isController bool) *v1alpha2.ApiServerSource {
+	resources := []v1alpha2.APIVersionKindSelector{{
 		APIVersion: resourceVersion,
 		Kind:       resourceKind,
-		Controller: isController,
 	}}
 
-	sink := &duckv1beta1.Destination{
-		Ref: &corev1.ObjectReference{
+	sink := duckv1.Destination{
+		Ref: &duckv1.KReference{
 			Kind:       "Service",
 			Name:       service,
 			APIVersion: "serving.knative.dev/v1",
@@ -102,7 +100,7 @@ func createAPIServerSource(name, resourceKind, resourceVersion, serviceAccount, 
 	return clientv1alpha1.NewAPIServerSourceBuilder(name).
 		Resources(resources).
 		ServiceAccount(serviceAccount).
-		Mode(mode).
+		EventMode(mode).
 		Sink(sink).
 		Build()
 }

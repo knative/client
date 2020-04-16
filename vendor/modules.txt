@@ -43,10 +43,12 @@ github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/flags
 github.com/google/go-cmp/cmp/internal/function
 github.com/google/go-cmp/cmp/internal/value
-# github.com/google/go-containerregistry v0.0.0-20200304201134-fcc8ea80e26f
+# github.com/google/go-containerregistry v0.0.0-20200413145205-82d30a103c0a
 github.com/google/go-containerregistry/pkg/name
 # github.com/google/gofuzz v1.0.0
 github.com/google/gofuzz
+# github.com/google/uuid v1.1.1
+github.com/google/uuid
 # github.com/googleapis/gnostic v0.2.2
 github.com/googleapis/gnostic/OpenAPIv2
 github.com/googleapis/gnostic/compiler
@@ -127,7 +129,7 @@ go.uber.org/zap/internal/bufferpool
 go.uber.org/zap/internal/color
 go.uber.org/zap/internal/exit
 go.uber.org/zap/zapcore
-# golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413
+# golang.org/x/crypto v0.0.0-20200220183623-bac4c82f6975
 golang.org/x/crypto/ssh/terminal
 # golang.org/x/net v0.0.0-20191004110552-13f9640d40b9
 golang.org/x/net/context
@@ -174,7 +176,7 @@ google.golang.org/appengine/internal/urlfetch
 google.golang.org/appengine/urlfetch
 # gopkg.in/inf.v0 v0.9.1
 gopkg.in/inf.v0
-# gopkg.in/yaml.v2 v2.2.4
+# gopkg.in/yaml.v2 v2.2.8
 gopkg.in/yaml.v2
 # gotest.tools v2.2.0+incompatible
 gotest.tools/assert
@@ -182,7 +184,7 @@ gotest.tools/assert/cmp
 gotest.tools/internal/difflib
 gotest.tools/internal/format
 gotest.tools/internal/source
-# k8s.io/api v0.17.0
+# k8s.io/api v0.17.4
 k8s.io/api/admissionregistration/v1
 k8s.io/api/admissionregistration/v1beta1
 k8s.io/api/apps/v1
@@ -223,7 +225,7 @@ k8s.io/api/settings/v1alpha1
 k8s.io/api/storage/v1
 k8s.io/api/storage/v1alpha1
 k8s.io/api/storage/v1beta1
-# k8s.io/apimachinery v0.17.0
+# k8s.io/apimachinery v0.17.4
 k8s.io/apimachinery/pkg/api/apitesting/fuzzer
 k8s.io/apimachinery/pkg/api/equality
 k8s.io/apimachinery/pkg/api/errors
@@ -285,7 +287,7 @@ k8s.io/cli-runtime/pkg/kustomize/k8sdeps/transformer/patch
 k8s.io/cli-runtime/pkg/kustomize/k8sdeps/validator
 k8s.io/cli-runtime/pkg/printers
 k8s.io/cli-runtime/pkg/resource
-# k8s.io/client-go v0.17.0
+# k8s.io/client-go v0.17.4
 k8s.io/client-go/discovery
 k8s.io/client-go/discovery/cached/disk
 k8s.io/client-go/dynamic
@@ -463,7 +465,7 @@ k8s.io/kube-openapi/pkg/util/proto
 k8s.io/utils/buffer
 k8s.io/utils/integer
 k8s.io/utils/trace
-# knative.dev/eventing v0.13.6
+# knative.dev/eventing v0.14.0
 knative.dev/eventing/pkg/apis/config
 knative.dev/eventing/pkg/apis/configs
 knative.dev/eventing/pkg/apis/configs/v1alpha1
@@ -476,8 +478,6 @@ knative.dev/eventing/pkg/apis/eventing/v1beta1
 knative.dev/eventing/pkg/apis/flows
 knative.dev/eventing/pkg/apis/flows/v1alpha1
 knative.dev/eventing/pkg/apis/flows/v1beta1
-knative.dev/eventing/pkg/apis/legacysources
-knative.dev/eventing/pkg/apis/legacysources/v1alpha1
 knative.dev/eventing/pkg/apis/messaging
 knative.dev/eventing/pkg/apis/messaging/config
 knative.dev/eventing/pkg/apis/messaging/v1alpha1
@@ -488,14 +488,10 @@ knative.dev/eventing/pkg/apis/sources/v1alpha2
 knative.dev/eventing/pkg/client/clientset/versioned/scheme
 knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1alpha1
 knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1alpha1/fake
-knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1
-knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha1/fake
 knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha2
 knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha2/fake
-knative.dev/eventing/pkg/legacyclient/clientset/versioned/scheme
-knative.dev/eventing/pkg/legacyclient/clientset/versioned/typed/legacysources/v1alpha1
 knative.dev/eventing/pkg/logging
-# knative.dev/pkg v0.0.0-20200409225505-9147309d5366
+# knative.dev/pkg v0.0.0-20200414233146-0eed424fa4ee
 knative.dev/pkg/apis
 knative.dev/pkg/apis/duck
 knative.dev/pkg/apis/duck/v1
@@ -511,7 +507,7 @@ knative.dev/pkg/logging/logkey
 knative.dev/pkg/profiling
 knative.dev/pkg/ptr
 knative.dev/pkg/tracker
-# knative.dev/serving v0.13.2
+# knative.dev/serving v0.14.0
 knative.dev/serving/pkg/apis/autoscaling
 knative.dev/serving/pkg/apis/autoscaling/v1alpha1
 knative.dev/serving/pkg/apis/config
@@ -525,7 +521,7 @@ knative.dev/serving/pkg/autoscaler/config
 knative.dev/serving/pkg/client/clientset/versioned/scheme
 knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1
 knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1/fake
-# knative.dev/test-infra v0.0.0-20200409221904-5e04d955cdb9
+# knative.dev/test-infra v0.0.0-20200413202711-9cf64fb1b912
 knative.dev/test-infra/scripts
 # sigs.k8s.io/kustomize v2.0.3+incompatible
 sigs.k8s.io/kustomize/pkg/commands/build

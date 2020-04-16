@@ -17,7 +17,7 @@ package v1alpha1
 import (
 	"testing"
 
-	v1alpha1 "knative.dev/eventing/pkg/apis/sources/v1alpha1"
+	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
 
 	"knative.dev/client/pkg/util/mock"
 )
@@ -60,14 +60,14 @@ func (c *MockKnAPIServerSourceClient) Namespace() string {
 }
 
 // GetAPIServerSource records a call for GetApiServerSource with the expected object or error. Either apiServerSource or err should be nil
-func (sr *APIServerSourcesRecorder) GetAPIServerSource(name interface{}, apiServerSource *v1alpha1.ApiServerSource, err error) {
+func (sr *APIServerSourcesRecorder) GetAPIServerSource(name interface{}, apiServerSource *v1alpha2.ApiServerSource, err error) {
 	sr.r.Add("GetApiServerSource", []interface{}{name}, []interface{}{apiServerSource, err})
 }
 
 // GetAPIServerSource performs a previously recorded action, failing if non has been registered
-func (c *MockKnAPIServerSourceClient) GetAPIServerSource(name string) (*v1alpha1.ApiServerSource, error) {
+func (c *MockKnAPIServerSourceClient) GetAPIServerSource(name string) (*v1alpha2.ApiServerSource, error) {
 	call := c.recorder.r.VerifyCall("GetApiServerSource", name)
-	return call.Result[0].(*v1alpha1.ApiServerSource), mock.ErrorOrNil(call.Result[1])
+	return call.Result[0].(*v1alpha2.ApiServerSource), mock.ErrorOrNil(call.Result[1])
 }
 
 // CreateAPIServerSource records a call for CreateApiServerSource with the expected error
@@ -76,7 +76,7 @@ func (sr *APIServerSourcesRecorder) CreateAPIServerSource(apiServerSource interf
 }
 
 // CreateAPIServerSource performs a previously recorded action, failing if non has been registered
-func (c *MockKnAPIServerSourceClient) CreateAPIServerSource(apiServerSource *v1alpha1.ApiServerSource) error {
+func (c *MockKnAPIServerSourceClient) CreateAPIServerSource(apiServerSource *v1alpha2.ApiServerSource) error {
 	call := c.recorder.r.VerifyCall("CreateApiServerSource", apiServerSource)
 	return mock.ErrorOrNil(call.Result[0])
 }
@@ -87,7 +87,7 @@ func (sr *APIServerSourcesRecorder) UpdateAPIServerSource(apiServerSource interf
 }
 
 // UpdateAPIServerSource performs a previously recorded action, failing if non has been registered
-func (c *MockKnAPIServerSourceClient) UpdateAPIServerSource(apiServerSource *v1alpha1.ApiServerSource) error {
+func (c *MockKnAPIServerSourceClient) UpdateAPIServerSource(apiServerSource *v1alpha2.ApiServerSource) error {
 	call := c.recorder.r.VerifyCall("UpdateAPIServerSource", apiServerSource)
 	return mock.ErrorOrNil(call.Result[0])
 }
@@ -104,14 +104,14 @@ func (c *MockKnAPIServerSourceClient) DeleteAPIServerSource(name string) error {
 }
 
 // ListAPIServerSource records a call for ListAPIServerSource with the expected error (nil if none)
-func (sr *APIServerSourcesRecorder) ListAPIServerSource(apiJobSourceList *v1alpha1.ApiServerSourceList, err error) {
+func (sr *APIServerSourcesRecorder) ListAPIServerSource(apiJobSourceList *v1alpha2.ApiServerSourceList, err error) {
 	sr.r.Add("ListAPIServerSource", []interface{}{}, []interface{}{apiJobSourceList, err})
 }
 
 // ListAPIServerSource performs a previously recorded action, failing if non has been registered
-func (c *MockKnAPIServerSourceClient) ListAPIServerSource() (*v1alpha1.ApiServerSourceList, error) {
+func (c *MockKnAPIServerSourceClient) ListAPIServerSource() (*v1alpha2.ApiServerSourceList, error) {
 	call := c.recorder.r.VerifyCall("ListAPIServerSource")
-	return call.Result[0].(*v1alpha1.ApiServerSourceList), mock.ErrorOrNil(call.Result[1])
+	return call.Result[0].(*v1alpha2.ApiServerSourceList), mock.ErrorOrNil(call.Result[1])
 }
 
 // Validate validates whether every recorded action has been called
