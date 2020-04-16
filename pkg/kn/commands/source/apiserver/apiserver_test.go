@@ -22,9 +22,9 @@ import (
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 
 	kndynamic "knative.dev/client/pkg/dynamic"
+	clientv1alpha2 "knative.dev/client/pkg/sources/v1alpha2"
 
 	"knative.dev/client/pkg/kn/commands"
-	clientv1alpha1 "knative.dev/client/pkg/sources/v1alpha1"
 )
 
 const testNamespace = "default"
@@ -55,7 +55,7 @@ current-context: x
 	}
 }
 
-func executeAPIServerSourceCommand(apiServerSourceClient clientv1alpha1.KnAPIServerSourcesClient, dynamicClient kndynamic.KnDynamicClient, args ...string) (string, error) {
+func executeAPIServerSourceCommand(apiServerSourceClient clientv1alpha2.KnAPIServerSourcesClient, dynamicClient kndynamic.KnDynamicClient, args ...string) (string, error) {
 	knParams := &commands.KnParams{}
 	knParams.ClientConfig = blankConfig
 
@@ -69,7 +69,7 @@ func executeAPIServerSourceCommand(apiServerSourceClient clientv1alpha1.KnAPISer
 	cmd.SetArgs(args)
 	cmd.SetOutput(output)
 
-	apiServerSourceClientFactory = func(config clientcmd.ClientConfig, namespace string) (clientv1alpha1.KnAPIServerSourcesClient, error) {
+	apiServerSourceClientFactory = func(config clientcmd.ClientConfig, namespace string) (clientv1alpha2.KnAPIServerSourcesClient, error) {
 		return apiServerSourceClient, nil
 	}
 	defer cleanupAPIServerMockClient()
@@ -97,7 +97,7 @@ func createAPIServerSource(name, resourceKind, resourceVersion, serviceAccount, 
 			Namespace:  "default",
 		}}
 
-	return clientv1alpha1.NewAPIServerSourceBuilder(name).
+	return clientv1alpha2.NewAPIServerSourceBuilder(name).
 		Resources(resources).
 		ServiceAccount(serviceAccount).
 		EventMode(mode).

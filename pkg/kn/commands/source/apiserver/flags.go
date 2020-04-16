@@ -152,9 +152,9 @@ func (f *APIServerSourceUpdateFlags) Add(cmd *cobra.Command) {
 		"Name of the service account to use to run this source")
 	cmd.Flags().StringVar(&f.Mode,
 		"mode",
-		"Ref",
+		"Reference",
 		`The mode the receive adapter controller runs under:,
-"Ref" sends only the reference to the resource,
+"Reference" sends only the reference to the resource,
 "Resource" send the full resource.`)
 	cmd.Flags().StringArrayVar(&f.Resources,
 		"resource",

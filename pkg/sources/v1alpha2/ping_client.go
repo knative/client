@@ -18,14 +18,10 @@ import (
 	"fmt"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"knative.dev/eventing/pkg/apis/sources/v1alpha2"
 
-	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
 	clientv1alpha2 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha2"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
-
-	"knative.dev/client/pkg/util"
 )
 
 // Interface for interacting with a Ping source
@@ -120,10 +116,6 @@ func updatePingSourceListGVK(sourceList *v1alpha2.PingSourceList) (*v1alpha2.Pin
 		sourceListNew.Items[idx] = *sourceClone
 	}
 	return sourceListNew, nil
-}
-
-func updateSourceGVK(obj runtime.Object) error {
-	return util.UpdateGroupVersionKindWithScheme(obj, v1alpha2.SchemeGroupVersion, scheme.Scheme)
 }
 
 // Builder for building up Ping sources

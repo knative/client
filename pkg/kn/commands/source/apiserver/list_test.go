@@ -21,15 +21,15 @@ import (
 
 	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
 
-	clientv1alpha1 "knative.dev/client/pkg/sources/v1alpha1"
+	v1alpha22 "knative.dev/client/pkg/sources/v1alpha2"
 	"knative.dev/client/pkg/util"
 )
 
 func TestListAPIServerSource(t *testing.T) {
-	apiServerClient := clientv1alpha1.NewMockKnAPIServerSourceClient(t)
+	apiServerClient := v1alpha22.NewMockKnAPIServerSourceClient(t)
 
 	apiServerRecorder := apiServerClient.Recorder()
-	sampleSource := createAPIServerSource("testsource", "Event", "v1", "testsa", "Ref", "testsvc", false)
+	sampleSource := createAPIServerSource("testsource", "Event", "v1", "testsa", "Reference", "testsvc", false)
 	sampleSourceList := v1alpha2.ApiServerSourceList{}
 	sampleSourceList.Items = []v1alpha2.ApiServerSource{*sampleSource}
 
@@ -44,7 +44,7 @@ func TestListAPIServerSource(t *testing.T) {
 }
 
 func TestListAPIServerSourceEmpty(t *testing.T) {
-	apiServerClient := clientv1alpha1.NewMockKnAPIServerSourceClient(t)
+	apiServerClient := v1alpha22.NewMockKnAPIServerSourceClient(t)
 
 	apiServerRecorder := apiServerClient.Recorder()
 	sampleSourceList := v1alpha2.ApiServerSourceList{}

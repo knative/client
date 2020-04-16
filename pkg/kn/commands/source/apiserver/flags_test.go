@@ -26,7 +26,7 @@ func TestGetAPIServerResourceArray(t *testing.T) {
 	t.Run("get single apiserver resource", func(t *testing.T) {
 		createFlag := APIServerSourceUpdateFlags{
 			ServiceAccountName: "test-sa",
-			Mode:               "Ref",
+			Mode:               "Reference",
 			Resources:          []string{"Service:serving.knative.dev/v1:key1=val1"},
 		}
 		created, _ := createFlag.getAPIServerVersionKindSelector()
@@ -42,7 +42,7 @@ func TestGetAPIServerResourceArray(t *testing.T) {
 	t.Run("get single apiserver resource when isController is default", func(t *testing.T) {
 		createFlag := APIServerSourceUpdateFlags{
 			ServiceAccountName: "test-sa",
-			Mode:               "Ref",
+			Mode:               "Reference",
 			Resources:          []string{"Service:serving.knative.dev/v1"},
 		}
 		created, _ := createFlag.getAPIServerVersionKindSelector()
@@ -92,7 +92,7 @@ func TestGetAPIServerResourceArray(t *testing.T) {
 	t.Run("get apiserver resource when label controller has error", func(t *testing.T) {
 		createFlag := APIServerSourceUpdateFlags{
 			ServiceAccountName: "test-sa",
-			Mode:               "Ref",
+			Mode:               "Reference",
 			Resources:          []string{"Event:v1:xxx,bla"},
 		}
 		_, err := createFlag.getAPIServerVersionKindSelector()
@@ -103,7 +103,7 @@ func TestGetAPIServerResourceArray(t *testing.T) {
 	t.Run("get apiserver resources when kind has error", func(t *testing.T) {
 		createFlag := APIServerSourceUpdateFlags{
 			ServiceAccountName: "test-sa",
-			Mode:               "Ref",
+			Mode:               "Reference",
 			Resources:          []string{":v2"},
 		}
 		_, err := createFlag.getAPIServerVersionKindSelector()
@@ -114,7 +114,7 @@ func TestGetAPIServerResourceArray(t *testing.T) {
 	t.Run("get apiserver resources when APIVersion has error", func(t *testing.T) {
 		createFlag := APIServerSourceUpdateFlags{
 			ServiceAccountName: "test-sa",
-			Mode:               "Ref",
+			Mode:               "Reference",
 			Resources:          []string{"kind"},
 		}
 		_, err := createFlag.getAPIServerVersionKindSelector()

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1alpha1
+package v1alpha2
 
 import (
 	"fmt"
@@ -130,7 +130,7 @@ func TestListAPIServerSource(t *testing.T) {
 }
 
 func newAPIServerSource(name, resource string) *v1alpha2.ApiServerSource {
-	b := NewAPIServerSourceBuilder(name).ServiceAccount("testsa").EventMode("Ref")
+	b := NewAPIServerSourceBuilder(name).ServiceAccount("testsa").EventMode("Reference")
 	b.Sink(duckv1.Destination{
 		Ref: &duckv1.KReference{
 			Kind:      "Service",
