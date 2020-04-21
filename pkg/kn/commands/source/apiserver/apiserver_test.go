@@ -83,7 +83,7 @@ func cleanupAPIServerMockClient() {
 	apiServerSourceClientFactory = nil
 }
 
-func createAPIServerSource(name, resourceKind, resourceVersion, serviceAccount, mode, service string, isController bool) *v1alpha2.ApiServerSource {
+func createAPIServerSource(name, resourceKind, resourceVersion, serviceAccount, mode, service string) *v1alpha2.ApiServerSource {
 	resources := []v1alpha2.APIVersionKindSelector{{
 		APIVersion: resourceVersion,
 		Kind:       resourceKind,

@@ -159,8 +159,8 @@ func (f *APIServerSourceUpdateFlags) Add(cmd *cobra.Command) {
 	cmd.Flags().StringArrayVar(&f.Resources,
 		"resource",
 		[]string{},
-		`Specification for which events to listen, in the format Kind:APIVersion:isController, e.g. "Event:v1:true".
-"isController" can be omitted and is "false" by default, e.g. "Event:v1".`)
+		`Specification for which events to listen, in the format Kind:APIVersion:LabelSelector, e.g. "Event:v1:key=value".
+"LabelSelector" is a list of comma separated key value pairs. "LabelSelector" can be omitted, e.g. "Event:v1".`)
 }
 
 // APIServerSourceListHandlers handles printing human readable table for `kn source apiserver list` command's output

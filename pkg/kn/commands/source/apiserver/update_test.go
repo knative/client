@@ -37,10 +37,10 @@ func TestApiServerSourceUpdate(t *testing.T) {
 
 	apiServerRecorder := apiServerClient.Recorder()
 
-	present := createAPIServerSource("testsource", "Event", "v1", "testsa1", "Reference", "svc1", false)
+	present := createAPIServerSource("testsource", "Event", "v1", "testsa1", "Reference", "svc1")
 	apiServerRecorder.GetAPIServerSource("testsource", present, nil)
 
-	updated := createAPIServerSource("testsource", "Event", "v1", "testsa2", "Reference", "svc2", false)
+	updated := createAPIServerSource("testsource", "Event", "v1", "testsa2", "Reference", "svc2")
 	apiServerRecorder.UpdateAPIServerSource(updated, nil)
 
 	output, err := executeAPIServerSourceCommand(apiServerClient, dynamicClient, "update", "testsource", "--service-account", "testsa2", "--sink", "svc:svc2")
@@ -54,7 +54,7 @@ func TestApiServerSourceUpdateDeletionTimestampNotNil(t *testing.T) {
 	apiServerClient := v1alpha2.NewMockKnAPIServerSourceClient(t)
 	apiServerRecorder := apiServerClient.Recorder()
 
-	present := createAPIServerSource("testsource", "Event", "v1", "testsa1", "Ref", "svc1", false)
+	present := createAPIServerSource("testsource", "Event", "v1", "testsa1", "Ref", "svc1")
 	present.DeletionTimestamp = &metav1.Time{Time: time.Now()}
 	apiServerRecorder.GetAPIServerSource("testsource", present, nil)
 

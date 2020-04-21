@@ -39,7 +39,7 @@ func TestGetAPIServerResourceArray(t *testing.T) {
 		assert.DeepEqual(t, wanted, created)
 	})
 
-	t.Run("get single apiserver resource when isController is default", func(t *testing.T) {
+	t.Run("get single apiserver resource without label selector", func(t *testing.T) {
 		createFlag := APIServerSourceUpdateFlags{
 			ServiceAccountName: "test-sa",
 			Mode:               "Reference",
@@ -142,7 +142,6 @@ func TestGetUpdateAPIServerResourceArray(t *testing.T) {
 		assert.DeepEqual(t, added, addwanted)
 		assert.DeepEqual(t, removed, removewanted)
 
-		// default api version and isController
 		createFlag = APIServerSourceUpdateFlags{
 			ServiceAccountName: "test-sa",
 			Mode:               "Resource",
