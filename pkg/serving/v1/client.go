@@ -237,6 +237,9 @@ func updateServiceWithRetry(cl KnServingClient, name string, updateFunc serviceU
 		if err != nil {
 			return err
 		}
+		if service.GetDeletionTimestamp() != nil {
+			return fmt.Errorf("can't update service %s because it has been marked for deletion", name)
+		}
 		updatedService, err := updateFunc(service.DeepCopy())
 		if err != nil {
 			return err

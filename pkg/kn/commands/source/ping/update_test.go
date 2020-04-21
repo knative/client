@@ -17,6 +17,7 @@ package ping
 import (
 	"errors"
 	"testing"
+	"time"
 
 	"gotest.tools/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -73,4 +74,17 @@ func TestUpdateError(t *testing.T) {
 	util.ContainsAll(out, "Usage", "testsource")
 
 	pingRecorder.Validate()
+}
+
+func TestPingUpdateDeletionTimestampNotNil(t *testing.T) {
+	pingSourceClient := clientv1alpha2.NewMockKnPingSourceClient(t)
+	present := createPingSource("test", "", "", "")
+	present.DeletionTimestamp = &v1.Time{Time: time.Now()}
+	pingRecorder := pingSourceClient.Recorder()
+	pingRecorder.GetPingSource("test", present, nil)
+
+	_, err := executePingSourceCommand(pingSourceClient, nil, "update", "test")
+	assert.ErrorContains(t, err, present.Name)
+	assert.ErrorContains(t, err, "deletion")
+	assert.ErrorContains(t, err, "ping")
 }

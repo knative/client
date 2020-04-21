@@ -17,6 +17,7 @@ package trigger
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"gotest.tools/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -73,4 +74,19 @@ func TestTriggerUpdateInvalidBroker(t *testing.T) {
 	util.ContainsAll(out, "Usage", triggerName)
 
 	eventingRecorder.Validate()
+}
+
+func TestTriggerUpdateDeletionTimestampNotNil(t *testing.T) {
+	eventingClient := clienteventingv1alpha1.NewMockKnEventingClient(t)
+
+	eventingRecorder := eventingClient.Recorder()
+	present := createTrigger("default", triggerName, map[string]string{"type": "dev.knative.foo"}, "mybroker", "mysvc")
+	present.DeletionTimestamp = &metav1.Time{Time: time.Now()}
+	eventingRecorder.GetTrigger(triggerName, present, nil)
+
+	_, err := executeTriggerCommand(eventingClient, nil, "update", triggerName,
+		"--filter", "type=dev.knative.new", "--sink", "svc:mysvc")
+	assert.ErrorContains(t, err, present.Name)
+	assert.ErrorContains(t, err, "deletion")
+	assert.ErrorContains(t, err, "trigger")
 }

@@ -16,6 +16,7 @@ package apiserver
 
 import (
 	"testing"
+	"time"
 
 	"gotest.tools/assert"
 
@@ -47,4 +48,18 @@ func TestApiServerSourceUpdate(t *testing.T) {
 	assert.Assert(t, util.ContainsAll(output, "testsource", "updated", "default"))
 
 	apiServerRecorder.Validate()
+}
+
+func TestApiServerSourceUpdateDeletionTimestampNotNil(t *testing.T) {
+	apiServerClient := v1alpha2.NewMockKnAPIServerSourceClient(t)
+	apiServerRecorder := apiServerClient.Recorder()
+
+	present := createAPIServerSource("testsource", "Event", "v1", "testsa1", "Ref", "svc1", false)
+	present.DeletionTimestamp = &metav1.Time{Time: time.Now()}
+	apiServerRecorder.GetAPIServerSource("testsource", present, nil)
+
+	_, err := executeAPIServerSourceCommand(apiServerClient, nil, "update", "testsource", "--service-account", "testsa2", "--sink", "svc:svc2")
+	assert.ErrorContains(t, err, present.Name)
+	assert.ErrorContains(t, err, "deletion")
+	assert.ErrorContains(t, err, "apiserver")
 }
