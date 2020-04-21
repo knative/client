@@ -26,6 +26,10 @@
 | Check DeleteTimestamp before updating resource
 | https://github.com/knative/client/pull/805[#805]
 
+| 🎁
+| Allow plugins to extend fixed list of command groups, currently `source`
+| https://github.com/knative/client/pull/818[#818]
+
 |===
 
 ## v0.13.2 (2020-04-15)

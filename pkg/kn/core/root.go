@@ -43,6 +43,12 @@ import (
 	"knative.dev/client/pkg/kn/flags"
 )
 
+// AllowedExtensibleCommandGroups the list of command groups that can be
+// extended with plugins, e.g., a plugin named `kn-source-kafka` for Kafka
+// event sources is allowed. This is defined as a fixed [...]string since
+// cannot defined Golang []string constants
+var AllowedExtensibleCommandGroups = [...]string{"source"}
+
 // NewDefaultKnCommand creates the default `kn` command with a default plugin handler
 func NewDefaultKnCommand() *cobra.Command {
 	rootCmd := NewKnCommand()
@@ -81,7 +87,7 @@ func NewDefaultKnCommandWithArgs(rootCmd *cobra.Command,
 		// only look for suitable extension executables if
 		// the specified command does not already exist
 		foundCmd, innerArgs, err := rootCmd.Find(cmdPathPieces)
-		if err != nil {
+		if err != nil || inAllowedExtensibleCommandGroups(foundCmd.Name()) {
 			err := plugin.HandlePluginCommand(pluginHandler, cmdPathPieces)
 			if err != nil {
 				fmt.Fprintf(rootCmd.OutOrStderr(), "Error: unknown command '%s' \nRun 'kn --help' for usage.\n", args[1])
@@ -372,4 +378,13 @@ func showSubcommands(cmd *cobra.Command, args []string, innerArg string) string 
 		strs = append(strs, subcmd.Name())
 	}
 	return fmt.Sprintf("Error: unknown subcommand '%s' for '%s'. Available subcommands: %s\nRun 'kn --help' for usage.\n", innerArg, getCommands(args, innerArg), strings.Join(strs, ", "))
+}
+
+func inAllowedExtensibleCommandGroups(name string) bool {
+	for _, groupName := range AllowedExtensibleCommandGroups {
+		if name == groupName {
+			return true
+		}
+	}
+	return false
 }
