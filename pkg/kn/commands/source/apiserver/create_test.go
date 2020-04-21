@@ -35,7 +35,7 @@ func TestCreateApiServerSource(t *testing.T) {
 	apiServerClient := v1alpha2.NewMockKnAPIServerSourceClient(t)
 
 	apiServerRecorder := apiServerClient.Recorder()
-	apiServerRecorder.CreateAPIServerSource(createAPIServerSource("testsource", "Event", "v1", "testsa", "Reference", "testsvc", false), nil)
+	apiServerRecorder.CreateAPIServerSource(createAPIServerSource("testsource", "Event", "v1", "testsa", "Reference", "testsvc"), nil)
 
 	out, err := executeAPIServerSourceCommand(apiServerClient, dynamicClient, "create", "testsource", "--resource", "Event:v1", "--service-account", "testsa", "--sink", "svc:testsvc", "--mode", "Reference")
 	assert.NilError(t, err, "ApiServer source should be created")
