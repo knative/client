@@ -38,7 +38,6 @@ type expectedRevisionListOption func(*servingv1.RevisionList)
 type podSpecOption func(*v1.PodSpec)
 
 func TestServiceExportError(t *testing.T) {
-	// New mock client
 	client := knclient.NewMockKnServiceClient(t)
 
 	expectedService := getService("foo")
@@ -64,9 +63,7 @@ func TestServiceExport(t *testing.T) {
 }
 
 func exportServiceTest(t *testing.T, expectedService *servingv1.Service) {
-	// New mock client
 	client := knclient.NewMockKnServiceClient(t)
-	// Recording:
 	r := client.Recorder()
 	r.GetService(expectedService.ObjectMeta.Name, expectedService, nil)
 
@@ -268,9 +265,7 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 }
 
 func exportWithRevisionsforKubernetesTest(t *testing.T, latestSvc *servingv1.Service, revs *servingv1.RevisionList, expSvcList *servingv1.ServiceList) {
-	// New mock client
 	client := knclient.NewMockKnServiceClient(t)
-	// Recording:
 	r := client.Recorder()
 
 	r.GetService(latestSvc.ObjectMeta.Name, latestSvc, nil)
@@ -288,9 +283,7 @@ func exportWithRevisionsforKubernetesTest(t *testing.T, latestSvc *servingv1.Ser
 }
 
 func exportWithRevisionsTest(t *testing.T, latestSvc *servingv1.Service, revs *servingv1.RevisionList, expRevList *servingv1.RevisionList) {
-	// New mock client
 	client := knclient.NewMockKnServiceClient(t)
-	// Recording:
 	r := client.Recorder()
 
 	r.GetService(latestSvc.ObjectMeta.Name, latestSvc, nil)
