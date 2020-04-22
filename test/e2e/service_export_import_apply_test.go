@@ -60,7 +60,6 @@ func TestServiceExportImportApply(t *testing.T) {
 		withServiceName("hello"),
 		withServiceRevisionName("hello-rev1"),
 		withConfigurationAnnotations(),
-		withAnnotations(),
 		withServicePodSpecOption(withContainer()),
 	), "-o", "json")
 
@@ -69,7 +68,6 @@ func TestServiceExportImportApply(t *testing.T) {
 	serviceExport(r, "hello", getServiceWithOptions(
 		withServiceName("hello"),
 		withServiceRevisionName("hello-rev2"),
-		withAnnotations(),
 		withServicePodSpecOption(
 			withContainer(),
 			withEnv([]corev1.EnvVar{{Name: "a", Value: "mouse"}}),
@@ -80,7 +78,6 @@ func TestServiceExportImportApply(t *testing.T) {
 		withServices(
 			withServiceName("hello"),
 			withServiceRevisionName("hello-rev2"),
-			withAnnotations(),
 			withTrafficSplit([]string{"latest"}, []int{100}, []string{""}),
 			withServicePodSpecOption(
 				withContainer(),
@@ -92,7 +89,6 @@ func TestServiceExportImportApply(t *testing.T) {
 	serviceExportWithRevisionList(r, "hello", getServiceWithOptions(
 		withServiceName("hello"),
 		withServiceRevisionName("hello-rev2"),
-		withAnnotations(),
 		withTrafficSplit([]string{"latest"}, []int{100}, []string{""}),
 		withServicePodSpecOption(
 			withContainer(),
@@ -107,7 +103,6 @@ func TestServiceExportImportApply(t *testing.T) {
 		withServices(
 			withServiceName("hello"),
 			withServiceRevisionName("hello-rev1"),
-			withAnnotations(),
 			withServicePodSpecOption(
 				withContainer(),
 			),
@@ -115,7 +110,6 @@ func TestServiceExportImportApply(t *testing.T) {
 		withServices(
 			withServiceName("hello"),
 			withServiceRevisionName("hello-rev2"),
-			withAnnotations(),
 			withTrafficSplit([]string{"latest", "hello-rev1"}, []int{98, 2}, []string{"", "candidate"}),
 			withServicePodSpecOption(
 				withContainer(),
@@ -127,7 +121,6 @@ func TestServiceExportImportApply(t *testing.T) {
 	serviceExportWithRevisionList(r, "hello", getServiceWithOptions(
 		withServiceName("hello"),
 		withServiceRevisionName("hello-rev2"),
-		withAnnotations(),
 		withTrafficSplit([]string{"latest", "hello-rev1"}, []int{98, 2}, []string{"", "candidate"}),
 		withServicePodSpecOption(
 			withContainer(),
@@ -161,7 +154,6 @@ func TestServiceExportImportApply(t *testing.T) {
 		withServices(
 			withServiceName("hello"),
 			withServiceRevisionName("hello-rev1"),
-			withAnnotations(),
 			withServicePodSpecOption(
 				withContainer(),
 			),
@@ -169,7 +161,6 @@ func TestServiceExportImportApply(t *testing.T) {
 		withServices(
 			withServiceName("hello"),
 			withServiceRevisionName("hello-rev2"),
-			withAnnotations(),
 			withServicePodSpecOption(
 				withContainer(),
 				withEnv([]corev1.EnvVar{{Name: "a", Value: "mouse"}}),
@@ -178,7 +169,6 @@ func TestServiceExportImportApply(t *testing.T) {
 		withServices(
 			withServiceName("hello"),
 			withServiceRevisionName("hello-rev3"),
-			withAnnotations(),
 			withTrafficSplit([]string{"hello-rev1", "hello-rev2", "hello-rev3"}, []int{30, 30, 40}, []string{"", "", ""}),
 			withServicePodSpecOption(
 				withContainer(),
@@ -190,7 +180,6 @@ func TestServiceExportImportApply(t *testing.T) {
 	serviceExportWithRevisionList(r, "hello", getServiceWithOptions(
 		withServiceName("hello"),
 		withServiceRevisionName("hello-rev3"),
-		withAnnotations(),
 		withTrafficSplit([]string{"hello-rev1", "hello-rev2", "hello-rev3"}, []int{30, 30, 40}, []string{"", "", ""}),
 		withServicePodSpecOption(
 			withContainer(),
@@ -242,7 +231,6 @@ func TestServiceExportImportApply(t *testing.T) {
 		withServices(
 			withServiceName("hello"),
 			withServiceRevisionName("hello-rev2"),
-			withAnnotations(),
 			withServicePodSpecOption(
 				withContainer(),
 				withEnv([]corev1.EnvVar{{Name: "a", Value: "mouse"}}),
@@ -251,7 +239,6 @@ func TestServiceExportImportApply(t *testing.T) {
 		withServices(
 			withServiceName("hello"),
 			withServiceRevisionName("hello-rev3"),
-			withAnnotations(),
 			withTrafficSplit([]string{"hello-rev2"}, []int{100}, []string{""}),
 			withServicePodSpecOption(
 				withContainer(),
@@ -263,7 +250,6 @@ func TestServiceExportImportApply(t *testing.T) {
 	serviceExportWithRevisionList(r, "hello", getServiceWithOptions(
 		withServiceName("hello"),
 		withServiceRevisionName("hello-rev3"),
-		withAnnotations(),
 		withTrafficSplit([]string{"hello-rev2"}, []int{100}, []string{""}),
 		withServicePodSpecOption(
 			withContainer(),
@@ -323,14 +309,16 @@ func validateExportedService(t *testing.T, it *test.KnTest, out string, expServi
 	actSvc := servingv1.Service{}
 	err := json.Unmarshal([]byte(out), &actSvc)
 	assert.NilError(t, err)
+	stripGeneratedFieldsfromService(&actSvc)
 	assert.DeepEqual(t, &expService, &actSvc)
 }
 
 func validateExportedServiceList(t *testing.T, it *test.KnTest, out string, expServiceList servingv1.ServiceList) {
-	actSvc := servingv1.ServiceList{}
-	err := yaml.Unmarshal([]byte(out), &actSvc)
+	actSvcList := servingv1.ServiceList{}
+	err := yaml.Unmarshal([]byte(out), &actSvcList)
 	assert.NilError(t, err)
-	assert.DeepEqual(t, &expServiceList, &actSvc)
+	stripGeneratedFieldsfromServiceList(&actSvcList)
+	assert.DeepEqual(t, &expServiceList, &actSvcList)
 }
 
 func validateExportedServiceandRevisionList(t *testing.T, it *test.KnTest, out string, expService servingv1.Service, expRevisionList servingv1.RevisionList) {
@@ -339,6 +327,7 @@ func validateExportedServiceandRevisionList(t *testing.T, it *test.KnTest, out s
 	actSvc := servingv1.Service{}
 	err := yaml.Unmarshal([]byte(outArray[0]), &actSvc)
 	assert.NilError(t, err)
+	stripGeneratedFieldsfromService(&actSvc)
 	assert.DeepEqual(t, &expService, &actSvc)
 
 	if len(outArray) > 1 {
@@ -349,7 +338,7 @@ func validateExportedServiceandRevisionList(t *testing.T, it *test.KnTest, out s
 		actRevList := servingv1.RevisionList{}
 		err := yaml.Unmarshal([]byte(revListBuilder.String()), &actRevList)
 		assert.NilError(t, err)
-		stripGeneratedFields(&actRevList)
+		stripGeneratedFieldsfromRevisionList(&actRevList)
 		assert.DeepEqual(t, &actRevList, &actRevList)
 	} else if len(expRevisionList.Items) > 0 {
 		t.Errorf("expecting a revision list and got no list")
@@ -410,25 +399,13 @@ func getServiceWithOptions(options ...expectedServiceOption) servingv1.Service {
 	}
 	svc.Spec.Template.Spec.ContainerConcurrency = ptr.Int64(int64(0))
 	svc.Spec.Template.Spec.TimeoutSeconds = ptr.Int64(int64(300))
+	svc.ObjectMeta.Annotations = map[string]string{}
 
 	return svc
 }
 func withServiceName(name string) expectedServiceOption {
 	return func(svc *servingv1.Service) {
 		svc.ObjectMeta.Name = name
-	}
-}
-func withLabels(labels map[string]string) expectedServiceOption {
-	return func(svc *servingv1.Service) {
-		svc.ObjectMeta.Labels = labels
-	}
-}
-func withAnnotations() expectedServiceOption {
-	return func(svc *servingv1.Service) {
-		svc.ObjectMeta.Annotations = map[string]string{
-			"serving.knative.dev/creator":      "kubernetes-admin",
-			"serving.knative.dev/lastModifier": "kubernetes-admin",
-		}
 	}
 }
 func withConfigurationLabels(labels map[string]string) expectedServiceOption {
@@ -544,8 +521,22 @@ func withContainer() podSpecOption {
 	}
 }
 
-func stripGeneratedFields(list *servingv1.RevisionList) {
+func stripGeneratedFieldsfromRevisionList(list *servingv1.RevisionList) {
 	for _, revision := range list.Items {
 		delete(revision.ObjectMeta.Annotations, "serving.knative.dev/lastPinned")
+		if len(revision.ObjectMeta.Annotations) == 0 {
+			revision.ObjectMeta.Annotations = nil
+		}
 	}
+}
+
+func stripGeneratedFieldsfromServiceList(list *servingv1.ServiceList) {
+	for _, service := range list.Items {
+		stripGeneratedFieldsfromService(&service)
+	}
+}
+
+func stripGeneratedFieldsfromService(svc *servingv1.Service) {
+	delete(svc.ObjectMeta.Annotations, "serving.knative.dev/creator")
+	delete(svc.ObjectMeta.Annotations, "serving.knative.dev/lastModifier")
 }
