@@ -102,25 +102,25 @@ func exportService(cmd *cobra.Command, service *servingv1.Service, client client
 
 	if withRevisions {
 		if withKubernetesResources {
-			if svcList, err := exportServiceListWithActiveRevisions(service, client); err != nil {
+			svcList, err := exportServiceListWithActiveRevisions(service, client)
+			if err != nil {
 				return err
-			} else {
-				return printer.PrintObj(svcList, cmd.OutOrStdout())
 			}
+			return printer.PrintObj(svcList, cmd.OutOrStdout())
 		}
-		if latestSvc, revList, err := exportActiveRevisionList(service, client); err != nil {
+		latestSvc, revList, err := exportActiveRevisionList(service, client)
+		if err != nil {
 			return err
-		} else {
-			//print svc
-			if err := printer.PrintObj(latestSvc, cmd.OutOrStdout()); err != nil {
-				return err
-			}
-			// print revisionList if revisions exist
-			if len(revList.Items) > 0 {
-				return printer.PrintObj(revList, cmd.OutOrStdout())
-			}
-			return nil
 		}
+		//print svc
+		if err := printer.PrintObj(latestSvc, cmd.OutOrStdout()); err != nil {
+			return err
+		}
+		// print revisionList if revisions exist
+		if len(revList.Items) > 0 {
+			return printer.PrintObj(revList, cmd.OutOrStdout())
+		}
+		return nil
 	}
 	return printer.PrintObj(exportLatestService(service, false), cmd.OutOrStdout())
 }
