@@ -47,10 +47,6 @@
 | https://github.com/knative/client/pull/802[#802]
 
 | 🐛
-| Add support for `-o name` for "list" operations
-| https://github.com/knative/client/pull/799[#799]
-
-| 🐛
 | Fix showing repetitive revisions in service describe
 | https://github.com/knative/client/pull/790[#790]
 
@@ -63,8 +59,8 @@
 | https://github.com/knative/client/pull/778[#778]
 
 | 🐛
-| Fix resource listing with -oname flag
-| https://github.com/knative/client/pull/775[#775]
+| Add support for `-o name` for "list" operations
+| https://github.com/knative/client/pull/775[#775], https://github.com/knative/client/pull/799[#799]
 
 | 🐛
 | Fix plugin lookup with file ext on Windows
@@ -75,7 +71,7 @@
 | https://github.com/knative/client/pull/770[#770]
 
 | 🐣
-| Refactor `e2e` common code into `lib/test`
+| Refactor "e2e" common code into `lib/test`
 | https://github.com/knative/client/pull/765[#765]
 
 
