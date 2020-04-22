@@ -61,7 +61,7 @@ func TestServiceExportImportApply(t *testing.T) {
 		withServiceRevisionName("hello-rev1"),
 		withConfigurationAnnotations(),
 		withAnnotations(),
-		WithServicePodSpecOption(withContainer()),
+		withServicePodSpecOption(withContainer()),
 	), "-o", "json")
 
 	t.Log("update service - add env variable")
@@ -70,7 +70,7 @@ func TestServiceExportImportApply(t *testing.T) {
 		withServiceName("hello"),
 		withServiceRevisionName("hello-rev2"),
 		withAnnotations(),
-		WithServicePodSpecOption(
+		withServicePodSpecOption(
 			withContainer(),
 			withEnv([]corev1.EnvVar{{Name: "a", Value: "mouse"}}),
 		),
@@ -82,7 +82,7 @@ func TestServiceExportImportApply(t *testing.T) {
 			withServiceRevisionName("hello-rev2"),
 			withAnnotations(),
 			withTrafficSplit([]string{"latest"}, []int{100}, []string{""}),
-			WithServicePodSpecOption(
+			withServicePodSpecOption(
 				withContainer(),
 				withEnv([]corev1.EnvVar{{Name: "a", Value: "mouse"}}),
 			),
@@ -94,7 +94,7 @@ func TestServiceExportImportApply(t *testing.T) {
 		withServiceRevisionName("hello-rev2"),
 		withAnnotations(),
 		withTrafficSplit([]string{"latest"}, []int{100}, []string{""}),
-		WithServicePodSpecOption(
+		withServicePodSpecOption(
 			withContainer(),
 			withEnv([]corev1.EnvVar{{Name: "a", Value: "mouse"}}),
 		),
@@ -108,7 +108,7 @@ func TestServiceExportImportApply(t *testing.T) {
 			withServiceName("hello"),
 			withServiceRevisionName("hello-rev1"),
 			withAnnotations(),
-			WithServicePodSpecOption(
+			withServicePodSpecOption(
 				withContainer(),
 			),
 		),
@@ -117,7 +117,7 @@ func TestServiceExportImportApply(t *testing.T) {
 			withServiceRevisionName("hello-rev2"),
 			withAnnotations(),
 			withTrafficSplit([]string{"latest", "hello-rev1"}, []int{98, 2}, []string{"", "candidate"}),
-			WithServicePodSpecOption(
+			withServicePodSpecOption(
 				withContainer(),
 				withEnv([]corev1.EnvVar{{Name: "a", Value: "mouse"}}),
 			),
@@ -129,7 +129,7 @@ func TestServiceExportImportApply(t *testing.T) {
 		withServiceRevisionName("hello-rev2"),
 		withAnnotations(),
 		withTrafficSplit([]string{"latest", "hello-rev1"}, []int{98, 2}, []string{"", "candidate"}),
-		WithServicePodSpecOption(
+		withServicePodSpecOption(
 			withContainer(),
 			withEnv([]corev1.EnvVar{{Name: "a", Value: "mouse"}}),
 		),
@@ -148,7 +148,7 @@ func TestServiceExportImportApply(t *testing.T) {
 					"serving.knative.dev/route":                   "hello",
 					"serving.knative.dev/service":                 "hello",
 				}),
-			WithRevisionPodSpecOption(
+			withRevisionPodSpecOption(
 				withContainer(),
 			),
 		),
@@ -162,7 +162,7 @@ func TestServiceExportImportApply(t *testing.T) {
 			withServiceName("hello"),
 			withServiceRevisionName("hello-rev1"),
 			withAnnotations(),
-			WithServicePodSpecOption(
+			withServicePodSpecOption(
 				withContainer(),
 			),
 		),
@@ -170,7 +170,7 @@ func TestServiceExportImportApply(t *testing.T) {
 			withServiceName("hello"),
 			withServiceRevisionName("hello-rev2"),
 			withAnnotations(),
-			WithServicePodSpecOption(
+			withServicePodSpecOption(
 				withContainer(),
 				withEnv([]corev1.EnvVar{{Name: "a", Value: "mouse"}}),
 			),
@@ -180,7 +180,7 @@ func TestServiceExportImportApply(t *testing.T) {
 			withServiceRevisionName("hello-rev3"),
 			withAnnotations(),
 			withTrafficSplit([]string{"hello-rev1", "hello-rev2", "hello-rev3"}, []int{30, 30, 40}, []string{"", "", ""}),
-			WithServicePodSpecOption(
+			withServicePodSpecOption(
 				withContainer(),
 				withEnv([]corev1.EnvVar{{Name: "a", Value: "mouse"}, {Name: "b", Value: "cat"}}),
 			),
@@ -192,7 +192,7 @@ func TestServiceExportImportApply(t *testing.T) {
 		withServiceRevisionName("hello-rev3"),
 		withAnnotations(),
 		withTrafficSplit([]string{"hello-rev1", "hello-rev2", "hello-rev3"}, []int{30, 30, 40}, []string{"", "", ""}),
-		WithServicePodSpecOption(
+		withServicePodSpecOption(
 			withContainer(),
 			withEnv([]corev1.EnvVar{{Name: "a", Value: "mouse"}, {Name: "b", Value: "cat"}}),
 		),
@@ -211,7 +211,7 @@ func TestServiceExportImportApply(t *testing.T) {
 					"serving.knative.dev/route":                   "hello",
 					"serving.knative.dev/service":                 "hello",
 				}),
-			WithRevisionPodSpecOption(
+			withRevisionPodSpecOption(
 				withContainer(),
 			),
 		),
@@ -228,7 +228,7 @@ func TestServiceExportImportApply(t *testing.T) {
 					"serving.knative.dev/route":                   "hello",
 					"serving.knative.dev/service":                 "hello",
 				}),
-			WithRevisionPodSpecOption(
+			withRevisionPodSpecOption(
 				withContainer(),
 				withEnv([]corev1.EnvVar{{Name: "a", Value: "mouse"}}),
 			),
@@ -243,7 +243,7 @@ func TestServiceExportImportApply(t *testing.T) {
 			withServiceName("hello"),
 			withServiceRevisionName("hello-rev2"),
 			withAnnotations(),
-			WithServicePodSpecOption(
+			withServicePodSpecOption(
 				withContainer(),
 				withEnv([]corev1.EnvVar{{Name: "a", Value: "mouse"}}),
 			),
@@ -253,7 +253,7 @@ func TestServiceExportImportApply(t *testing.T) {
 			withServiceRevisionName("hello-rev3"),
 			withAnnotations(),
 			withTrafficSplit([]string{"hello-rev2"}, []int{100}, []string{""}),
-			WithServicePodSpecOption(
+			withServicePodSpecOption(
 				withContainer(),
 				withEnv([]corev1.EnvVar{{Name: "a", Value: "mouse"}, {Name: "b", Value: "cat"}}),
 			),
@@ -265,7 +265,7 @@ func TestServiceExportImportApply(t *testing.T) {
 		withServiceRevisionName("hello-rev3"),
 		withAnnotations(),
 		withTrafficSplit([]string{"hello-rev2"}, []int{100}, []string{""}),
-		WithServicePodSpecOption(
+		withServicePodSpecOption(
 			withContainer(),
 			withEnv([]corev1.EnvVar{{Name: "a", Value: "mouse"}, {Name: "b", Value: "cat"}}),
 		),
@@ -283,7 +283,7 @@ func TestServiceExportImportApply(t *testing.T) {
 					"serving.knative.dev/route":                   "hello",
 					"serving.knative.dev/service":                 "hello",
 				}),
-			WithRevisionPodSpecOption(
+			withRevisionPodSpecOption(
 				withContainer(),
 				withEnv([]corev1.EnvVar{{Name: "a", Value: "mouse"}}),
 			),
@@ -470,7 +470,7 @@ func withTrafficSplit(revisions []string, percentages []int, tags []string) expe
 		}
 	}
 }
-func WithServicePodSpecOption(options ...podSpecOption) expectedServiceOption {
+func withServicePodSpecOption(options ...podSpecOption) expectedServiceOption {
 	return func(svc *servingv1.Service) {
 		svc.Spec.Template.Spec.PodSpec = getPodSpecWithOptions(options...)
 	}
@@ -504,7 +504,7 @@ func withRevisionAnnotations(Annotations map[string]string) expectedRevisionOpti
 		rev.ObjectMeta.Annotations = Annotations
 	}
 }
-func WithRevisionPodSpecOption(options ...podSpecOption) expectedRevisionOption {
+func withRevisionPodSpecOption(options ...podSpecOption) expectedRevisionOption {
 	return func(rev *servingv1.Revision) {
 		rev.Spec.PodSpec = getPodSpecWithOptions(options...)
 	}

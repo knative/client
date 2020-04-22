@@ -51,11 +51,11 @@ func TestServiceExportError(t *testing.T) {
 func TestServiceExport(t *testing.T) {
 
 	svcs := []*servingv1.Service{
-		getServiceWithOptions(getService("foo"), WithServicePodSpecOption(withContainer())),
-		getServiceWithOptions(getService("foo"), WithServicePodSpecOption(withContainer(), withEnv([]v1.EnvVar{{Name: "a", Value: "mouse"}}))),
-		getServiceWithOptions(getService("foo"), withConfigurationLabels(map[string]string{"a": "mouse"}), withConfigurationAnnotations(map[string]string{"a": "mouse"}), WithServicePodSpecOption(withContainer())),
-		getServiceWithOptions(getService("foo"), withLabels(map[string]string{"a": "mouse"}), withAnnotations(map[string]string{"a": "mouse"}), WithServicePodSpecOption(withContainer())),
-		getServiceWithOptions(getService("foo"), WithServicePodSpecOption(withContainer(), withVolumeandSecrets("secretName"))),
+		getServiceWithOptions(getService("foo"), withServicePodSpecOption(withContainer())),
+		getServiceWithOptions(getService("foo"), withServicePodSpecOption(withContainer(), withEnv([]v1.EnvVar{{Name: "a", Value: "mouse"}}))),
+		getServiceWithOptions(getService("foo"), withConfigurationLabels(map[string]string{"a": "mouse"}), withConfigurationAnnotations(map[string]string{"a": "mouse"}), withServicePodSpecOption(withContainer())),
+		getServiceWithOptions(getService("foo"), withLabels(map[string]string{"a": "mouse"}), withAnnotations(map[string]string{"a": "mouse"}), withServicePodSpecOption(withContainer())),
+		getServiceWithOptions(getService("foo"), withServicePodSpecOption(withContainer(), withVolumeandSecrets("secretName"))),
 	}
 
 	for _, svc := range svcs {
@@ -96,19 +96,19 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 			getService("foo"),
 			withTrafficSplit([]string{"foo-rev-1", "foo-rev-2"}, []int{50, 50}, []string{"latest", "current"}),
 			withServiceRevisionName("foo-rev-2"),
-			WithServicePodSpecOption(withContainer()),
+			withServicePodSpecOption(withContainer()),
 		),
 		expectedSvcList: getServiceListWithOptions(
 			withServices(
 				getService("foo"),
 				withUnwantedFieldsStripped(),
-				WithServicePodSpecOption(withContainer()),
+				withServicePodSpecOption(withContainer()),
 				withServiceRevisionName("foo-rev-1"),
 			),
 			withServices(
 				getService("foo"),
 				withUnwantedFieldsStripped(),
-				WithServicePodSpecOption(withContainer()),
+				withServicePodSpecOption(withContainer()),
 				withServiceRevisionName("foo-rev-2"),
 				withTrafficSplit([]string{"foo-rev-1", "foo-rev-2"}, []int{50, 50}, []string{"latest", "current"}),
 			),
@@ -118,13 +118,13 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 				withRevisionLabels(map[string]string{apiserving.ServiceLabelKey: "foo"}),
 				withRevisionGeneration("1"),
 				withRevisionName("foo-rev-1"),
-				WithRevisionPodSpecOption(withContainer()),
+				withRevisionPodSpecOption(withContainer()),
 			),
 			withRevisions(
 				withRevisionLabels(map[string]string{apiserving.ServiceLabelKey: "foo"}),
 				withRevisionGeneration("2"),
 				withRevisionName("foo-rev-2"),
-				WithRevisionPodSpecOption(withContainer()),
+				withRevisionPodSpecOption(withContainer()),
 			),
 		),
 		expectedRevisionList: getRevisionListWithOptions(
@@ -132,7 +132,7 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 				withRevisionLabels(map[string]string{apiserving.ServiceLabelKey: "foo"}),
 				withRevisionName("foo-rev-1"),
 				withRevisionGeneration("1"),
-				WithRevisionPodSpecOption(withContainer()),
+				withRevisionPodSpecOption(withContainer()),
 			),
 		),
 	}, {
@@ -141,13 +141,13 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 			getService("foo"),
 			withTrafficSplit([]string{"foo-rev-2"}, []int{100}, []string{"latest"}),
 			withServiceRevisionName("foo-rev-2"),
-			WithServicePodSpecOption(withContainer()),
+			withServicePodSpecOption(withContainer()),
 		),
 		expectedSvcList: getServiceListWithOptions(
 			withServices(
 				getService("foo"),
 				withUnwantedFieldsStripped(),
-				WithServicePodSpecOption(withContainer()),
+				withServicePodSpecOption(withContainer()),
 				withServiceRevisionName("foo-rev-2"),
 				withTrafficSplit([]string{"foo-rev-2"}, []int{100}, []string{"latest"}),
 			),
@@ -157,13 +157,13 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 				withRevisionLabels(map[string]string{apiserving.ServiceLabelKey: "foo"}),
 				withRevisionGeneration("1"),
 				withRevisionName("foo-rev-1"),
-				WithRevisionPodSpecOption(withContainer()),
+				withRevisionPodSpecOption(withContainer()),
 			),
 			withRevisions(
 				withRevisionLabels(map[string]string{apiserving.ServiceLabelKey: "foo"}),
 				withRevisionGeneration("2"),
 				withRevisionName("foo-rev-2"),
-				WithRevisionPodSpecOption(withContainer()),
+				withRevisionPodSpecOption(withContainer()),
 			),
 		),
 	}, {
@@ -172,7 +172,7 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 			getService("foo"),
 			withTrafficSplit([]string{"foo-rev-1", "foo-rev-2", "foo-rev-3"}, []int{25, 50, 25}, []string{"", "", "latest"}),
 			withServiceRevisionName("foo-rev-3"),
-			WithServicePodSpecOption(
+			withServicePodSpecOption(
 				withContainer(),
 				withEnv([]v1.EnvVar{{Name: "a", Value: "mouse"}}),
 			),
@@ -181,7 +181,7 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 			withServices(
 				getService("foo"),
 				withUnwantedFieldsStripped(),
-				WithServicePodSpecOption(
+				withServicePodSpecOption(
 					withContainer(),
 					withEnv([]v1.EnvVar{{Name: "a", Value: "cat"}}),
 				),
@@ -190,7 +190,7 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 			withServices(
 				getService("foo"),
 				withUnwantedFieldsStripped(),
-				WithServicePodSpecOption(
+				withServicePodSpecOption(
 					withContainer(),
 					withEnv([]v1.EnvVar{{Name: "a", Value: "dog"}}),
 				),
@@ -199,7 +199,7 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 			withServices(
 				getService("foo"),
 				withUnwantedFieldsStripped(),
-				WithServicePodSpecOption(
+				withServicePodSpecOption(
 					withContainer(),
 					withEnv([]v1.EnvVar{{Name: "a", Value: "mouse"}}),
 				),
@@ -212,7 +212,7 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 				withRevisionLabels(map[string]string{apiserving.ServiceLabelKey: "foo"}),
 				withRevisionGeneration("1"),
 				withRevisionName("foo-rev-1"),
-				WithRevisionPodSpecOption(
+				withRevisionPodSpecOption(
 					withContainer(),
 					withEnv([]v1.EnvVar{{Name: "a", Value: "cat"}}),
 				),
@@ -221,7 +221,7 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 				withRevisionLabels(map[string]string{apiserving.ServiceLabelKey: "foo"}),
 				withRevisionGeneration("2"),
 				withRevisionName("foo-rev-2"),
-				WithRevisionPodSpecOption(
+				withRevisionPodSpecOption(
 					withContainer(),
 					withEnv([]v1.EnvVar{{Name: "a", Value: "dog"}}),
 				),
@@ -230,7 +230,7 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 				withRevisionLabels(map[string]string{apiserving.ServiceLabelKey: "foo"}),
 				withRevisionGeneration("3"),
 				withRevisionName("foo-rev-3"),
-				WithRevisionPodSpecOption(
+				withRevisionPodSpecOption(
 					withContainer(),
 					withEnv([]v1.EnvVar{{Name: "a", Value: "mouse"}}),
 				),
@@ -241,7 +241,7 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 				withRevisionLabels(map[string]string{apiserving.ServiceLabelKey: "foo"}),
 				withRevisionName("foo-rev-1"),
 				withRevisionGeneration("1"),
-				WithRevisionPodSpecOption(
+				withRevisionPodSpecOption(
 					withContainer(),
 					withEnv([]v1.EnvVar{{Name: "a", Value: "cat"}}),
 				),
@@ -250,7 +250,7 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 				withRevisionLabels(map[string]string{apiserving.ServiceLabelKey: "foo"}),
 				withRevisionName("foo-rev-2"),
 				withRevisionGeneration("2"),
-				WithRevisionPodSpecOption(
+				withRevisionPodSpecOption(
 					withContainer(),
 					withEnv([]v1.EnvVar{{Name: "a", Value: "dog"}}),
 				),
@@ -431,7 +431,7 @@ func withTrafficSplit(revisions []string, percentages []int, tags []string) expe
 		}
 	}
 }
-func WithServicePodSpecOption(options ...podSpecOption) expectedServiceOption {
+func withServicePodSpecOption(options ...podSpecOption) expectedServiceOption {
 	return func(svc *servingv1.Service) {
 		svc.Spec.Template.Spec.PodSpec = getPodSpecWithOptions(options...)
 	}
@@ -469,7 +469,7 @@ func withRevisionAnnotations(Annotations map[string]string) expectedRevisionOpti
 		rev.ObjectMeta.Annotations = Annotations
 	}
 }
-func WithRevisionPodSpecOption(options ...podSpecOption) expectedRevisionOption {
+func withRevisionPodSpecOption(options ...podSpecOption) expectedRevisionOption {
 	return func(rev *servingv1.Revision) {
 		rev.Spec.PodSpec = getPodSpecWithOptions(options...)
 	}
