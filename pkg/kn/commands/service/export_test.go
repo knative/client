@@ -94,6 +94,7 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 		name: "test 2 revisions with traffic split",
 		latestSvc: getServiceWithOptions(
 			getService("foo"),
+			withAnnotations(map[string]string{"serving.knative.dev/creator": "ut", "serving.knative.dev/lastModifier": "ut"}),
 			withTrafficSplit([]string{"foo-rev-1", "foo-rev-2"}, []int{50, 50}, []string{"latest", "current"}),
 			withServiceRevisionName("foo-rev-2"),
 			withServicePodSpecOption(withContainer()),
@@ -117,6 +118,7 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 			withRevisions(
 				withRevisionLabels(map[string]string{apiserving.ServiceLabelKey: "foo"}),
 				withRevisionGeneration("1"),
+				withRevisionAnnotations(map[string]string{"serving.knative.dev/lastPinned": "1111132"}),
 				withRevisionName("foo-rev-1"),
 				withRevisionPodSpecOption(withContainer()),
 			),
@@ -131,6 +133,7 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 			withRevisions(
 				withRevisionLabels(map[string]string{apiserving.ServiceLabelKey: "foo"}),
 				withRevisionName("foo-rev-1"),
+
 				withRevisionGeneration("1"),
 				withRevisionPodSpecOption(withContainer()),
 			),

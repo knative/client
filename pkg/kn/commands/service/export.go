@@ -43,11 +43,11 @@ func NewServiceExportCommand(p *commands.KnParams) *cobra.Command {
 		Use:   "export NAME",
 		Short: "Export a service.",
 		Example: `
-  # Export a service in yaml format
+  # Export a service in YAML format
   kn service export foo -n bar -o yaml
-  # Export a service in json format
+  # Export a service in JSON format
   kn service export foo -n bar -o json
-  # Export a service with revisions in json format
+  # Export a service with revisions in JSON format
   kn service export foo --with-revisions -n bar -o json
   # Export a service with revisions in kubectl friendly format
   kn service export foo --with-revisions --kubernetes-resources -n bar -o json`,
@@ -144,6 +144,8 @@ func exportLatestService(latestSvc *servingv1.Service, withRoutes bool) *serving
 		exportedSvc.Spec.RouteSpec = latestSvc.Spec.RouteSpec
 	}
 
+	stripGeneratedFieldsfromService(&exportedSvc)
+
 	return &exportedSvc
 }
 
@@ -158,7 +160,7 @@ func exportRevision(revision *servingv1.Revision) servingv1.Revision {
 	}
 
 	exportedRevision.Spec = revision.Spec
-
+	stripGeneratedFieldsfromRevision(&exportedRevision)
 	return exportedRevision
 }
 
@@ -178,7 +180,7 @@ func constructServicefromRevision(latestSvc *servingv1.Service, revision *servin
 	}
 
 	exportedSvc.Spec.ConfigurationSpec.Template.ObjectMeta.Name = revision.ObjectMeta.Name
-
+	stripGeneratedFieldsfromService(&exportedSvc)
 	return exportedSvc
 }
 
@@ -301,4 +303,13 @@ func revisionListSortFunc(revisionList *servingv1.RevisionList) func(i int, j in
 		}
 		return a.Name > b.Name
 	}
+}
+
+func stripGeneratedFieldsfromService(svc *servingv1.Service) {
+	delete(svc.ObjectMeta.Annotations, "serving.knative.dev/creator")
+	delete(svc.ObjectMeta.Annotations, "serving.knative.dev/lastModifier")
+}
+
+func stripGeneratedFieldsfromRevision(revision *servingv1.Revision) {
+	delete(revision.ObjectMeta.Annotations, "serving.knative.dev/lastPinned")
 }

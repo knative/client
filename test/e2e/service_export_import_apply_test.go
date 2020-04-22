@@ -309,7 +309,6 @@ func validateExportedService(t *testing.T, it *test.KnTest, out string, expServi
 	actSvc := servingv1.Service{}
 	err := json.Unmarshal([]byte(out), &actSvc)
 	assert.NilError(t, err)
-	stripGeneratedFieldsfromService(&actSvc)
 	assert.DeepEqual(t, &expService, &actSvc)
 }
 
@@ -317,7 +316,6 @@ func validateExportedServiceList(t *testing.T, it *test.KnTest, out string, expS
 	actSvcList := servingv1.ServiceList{}
 	err := yaml.Unmarshal([]byte(out), &actSvcList)
 	assert.NilError(t, err)
-	stripGeneratedFieldsfromServiceList(&actSvcList)
 	assert.DeepEqual(t, &expServiceList, &actSvcList)
 }
 
@@ -327,7 +325,6 @@ func validateExportedServiceandRevisionList(t *testing.T, it *test.KnTest, out s
 	actSvc := servingv1.Service{}
 	err := yaml.Unmarshal([]byte(outArray[0]), &actSvc)
 	assert.NilError(t, err)
-	stripGeneratedFieldsfromService(&actSvc)
 	assert.DeepEqual(t, &expService, &actSvc)
 
 	if len(outArray) > 1 {
@@ -338,7 +335,6 @@ func validateExportedServiceandRevisionList(t *testing.T, it *test.KnTest, out s
 		actRevList := servingv1.RevisionList{}
 		err := yaml.Unmarshal([]byte(revListBuilder.String()), &actRevList)
 		assert.NilError(t, err)
-		stripGeneratedFieldsfromRevisionList(&actRevList)
 		assert.DeepEqual(t, &actRevList, &actRevList)
 	} else if len(expRevisionList.Items) > 0 {
 		t.Errorf("expecting a revision list and got no list")
@@ -399,7 +395,6 @@ func getServiceWithOptions(options ...expectedServiceOption) servingv1.Service {
 	}
 	svc.Spec.Template.Spec.ContainerConcurrency = ptr.Int64(int64(0))
 	svc.Spec.Template.Spec.TimeoutSeconds = ptr.Int64(int64(300))
-	svc.ObjectMeta.Annotations = map[string]string{}
 
 	return svc
 }
@@ -519,24 +514,4 @@ func withContainer() podSpecOption {
 			},
 		}
 	}
-}
-
-func stripGeneratedFieldsfromRevisionList(list *servingv1.RevisionList) {
-	for _, revision := range list.Items {
-		delete(revision.ObjectMeta.Annotations, "serving.knative.dev/lastPinned")
-		if len(revision.ObjectMeta.Annotations) == 0 {
-			revision.ObjectMeta.Annotations = nil
-		}
-	}
-}
-
-func stripGeneratedFieldsfromServiceList(list *servingv1.ServiceList) {
-	for _, service := range list.Items {
-		stripGeneratedFieldsfromService(&service)
-	}
-}
-
-func stripGeneratedFieldsfromService(svc *servingv1.Service) {
-	delete(svc.ObjectMeta.Annotations, "serving.knative.dev/creator")
-	delete(svc.ObjectMeta.Annotations, "serving.knative.dev/lastModifier")
 }

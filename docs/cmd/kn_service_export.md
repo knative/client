@@ -14,11 +14,11 @@ kn service export NAME [flags]
 
 ```
 
-  # Export a service in yaml format
+  # Export a service in YAML format
   kn service export foo -n bar -o yaml
-  # Export a service in json format
+  # Export a service in JSON format
   kn service export foo -n bar -o json
-  # Export a service with revisions in json format
+  # Export a service with revisions in JSON format
   kn service export foo --with-revisions -n bar -o json
   # Export a service with revisions in kubectl friendly format
   kn service export foo --with-revisions --kubernetes-resources -n bar -o json
