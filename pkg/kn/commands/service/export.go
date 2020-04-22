@@ -25,6 +25,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"k8s.io/cli-runtime/pkg/printers"
 
 	"knative.dev/client/pkg/kn/commands"
 	clientservingv1 "knative.dev/client/pkg/serving/v1"
@@ -45,7 +46,11 @@ func NewServiceExportCommand(p *commands.KnParams) *cobra.Command {
   # Export a service in yaml format
   kn service export foo -n bar -o yaml
   # Export a service in json format
-  kn service export foo -n bar -o json`,
+  kn service export foo -n bar -o json
+  # Export a service with revisions in json format
+  kn service export foo --with-revisions -n bar -o json
+  # Export a service with revisions in kubectl friendly format
+  kn service export foo --with-revisions --kubernetes-resources -n bar -o json`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("'kn service export' requires name of the service as single argument")
@@ -69,40 +74,63 @@ func NewServiceExportCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-
-			withRevisions, err := cmd.Flags().GetBool("with-revisions")
-			if err != nil {
-				return err
-			}
-
 			printer, err := machineReadablePrintFlags.ToPrinter()
 			if err != nil {
 				return err
 			}
-
-			if withRevisions {
-				if svcList, err := exportServiceWithActiveRevisions(service, client); err != nil {
-					return err
-				} else {
-					return printer.PrintObj(svcList, cmd.OutOrStdout())
-				}
-			}
-			return printer.PrintObj(exportService(service), cmd.OutOrStdout())
+			return exportService(cmd, service, client, printer)
 		},
 	}
 	flags := command.Flags()
 	commands.AddNamespaceFlags(flags, false)
 	flags.Bool("with-revisions", false, "Export all routed revisions (experimental)")
+	flags.Bool("kubernetes-resources", false, "Export all routed revisions in kubectl friendly format(experimental)")
 	machineReadablePrintFlags.AddFlags(command)
 	return command
 }
 
-func exportService(latestSvc *servingv1.Service) *servingv1.Service {
+func exportService(cmd *cobra.Command, service *servingv1.Service, client clientservingv1.KnServingClient, printer printers.ResourcePrinter) error {
+	withRevisions, err := cmd.Flags().GetBool("with-revisions")
+	if err != nil {
+		return err
+	}
 
+	withKubernetesResources, err := cmd.Flags().GetBool("kubernetes-resources")
+	if err != nil {
+		return err
+	}
+
+	if withRevisions {
+		if withKubernetesResources {
+			if svcList, err := exportServiceListWithActiveRevisions(service, client); err != nil {
+				return err
+			} else {
+				return printer.PrintObj(svcList, cmd.OutOrStdout())
+			}
+		}
+		if latestSvc, revList, err := exportActiveRevisionList(service, client); err != nil {
+			return err
+		} else {
+			//print svc
+			if err := printer.PrintObj(latestSvc, cmd.OutOrStdout()); err != nil {
+				return err
+			}
+			// print revisionList if revisions exist
+			if len(revList.Items) > 0 {
+				return printer.PrintObj(revList, cmd.OutOrStdout())
+			}
+			return nil
+		}
+	}
+	return printer.PrintObj(exportLatestService(service, false), cmd.OutOrStdout())
+}
+
+func exportLatestService(latestSvc *servingv1.Service, withRoutes bool) *servingv1.Service {
 	exportedSvc := servingv1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:   latestSvc.ObjectMeta.Name,
-			Labels: latestSvc.ObjectMeta.Labels,
+			Name:        latestSvc.ObjectMeta.Name,
+			Labels:      latestSvc.ObjectMeta.Labels,
+			Annotations: latestSvc.ObjectMeta.Annotations,
 		},
 		TypeMeta: latestSvc.TypeMeta,
 	}
@@ -112,15 +140,34 @@ func exportService(latestSvc *servingv1.Service) *servingv1.Service {
 		ObjectMeta: latestSvc.Spec.ConfigurationSpec.Template.ObjectMeta,
 	}
 
+	if withRoutes {
+		exportedSvc.Spec.RouteSpec = latestSvc.Spec.RouteSpec
+	}
+
 	return &exportedSvc
 }
 
-func constructServicefromRevision(latestSvc *servingv1.Service, revision servingv1.Revision) servingv1.Service {
+func exportRevision(revision *servingv1.Revision) servingv1.Revision {
+	exportedRevision := servingv1.Revision{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        revision.ObjectMeta.Name,
+			Labels:      revision.ObjectMeta.Labels,
+			Annotations: revision.ObjectMeta.Annotations,
+		},
+		TypeMeta: revision.TypeMeta,
+	}
 
+	exportedRevision.Spec = revision.Spec
+
+	return exportedRevision
+}
+
+func constructServicefromRevision(latestSvc *servingv1.Service, revision *servingv1.Revision) servingv1.Service {
 	exportedSvc := servingv1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:   latestSvc.ObjectMeta.Name,
-			Labels: latestSvc.ObjectMeta.Labels,
+			Name:        latestSvc.ObjectMeta.Name,
+			Labels:      latestSvc.ObjectMeta.Labels,
+			Annotations: latestSvc.ObjectMeta.Annotations,
 		},
 		TypeMeta: latestSvc.TypeMeta,
 	}
@@ -135,7 +182,7 @@ func constructServicefromRevision(latestSvc *servingv1.Service, revision serving
 	return exportedSvc
 }
 
-func exportServiceWithActiveRevisions(latestSvc *servingv1.Service, client clientservingv1.KnServingClient) (*servingv1.ServiceList, error) {
+func exportServiceListWithActiveRevisions(latestSvc *servingv1.Service, client clientservingv1.KnServingClient) (*servingv1.ServiceList, error) {
 	var exportedSvcItems []servingv1.Service
 
 	//get revisions to export from traffic
@@ -150,24 +197,18 @@ func exportServiceWithActiveRevisions(latestSvc *servingv1.Service, client clien
 		return nil, fmt.Errorf("no revisions found for the service %s", latestSvc.ObjectMeta.Name)
 	}
 
-	// sort revisions to main the order of generations
+	// sort revisions to maintain the order of generations
 	sortRevisions(revisionList)
 
 	for _, revision := range revisionList.Items {
 		//construct service only for active revisions
-		if revsMap[revision.ObjectMeta.Name] {
-			exportedSvcItems = append(exportedSvcItems, constructServicefromRevision(latestSvc, revision))
+		if revsMap[revision.ObjectMeta.Name] && latestSvc.Spec.ConfigurationSpec.Template.ObjectMeta.Name != revision.ObjectMeta.Name {
+			exportedSvcItems = append(exportedSvcItems, constructServicefromRevision(latestSvc, &revision))
 		}
 	}
 
-	if len(exportedSvcItems) == 0 {
-		return nil, fmt.Errorf("no revisions found for service %s", latestSvc.ObjectMeta.Name)
-	}
-
-	//set traffic in the latest revision on if there is traffic split
-	if len(latestSvc.Spec.RouteSpec.Traffic) > 1 {
-		exportedSvcItems[len(exportedSvcItems)-1] = setTrafficSplit(latestSvc, exportedSvcItems[len(exportedSvcItems)-1])
-	}
+	//add latest service, add traffic if more than one revision exist
+	exportedSvcItems = append(exportedSvcItems, *(exportLatestService(latestSvc, len(revisionList.Items) > 1)))
 
 	typeMeta := metav1.TypeMeta{
 		APIVersion: "v1",
@@ -181,10 +222,41 @@ func exportServiceWithActiveRevisions(latestSvc *servingv1.Service, client clien
 	return exportedSvcList, nil
 }
 
-func setTrafficSplit(latestSvc *servingv1.Service, exportedSvc servingv1.Service) servingv1.Service {
+func exportActiveRevisionList(latestSvc *servingv1.Service, client clientservingv1.KnServingClient) (*servingv1.Service, *servingv1.RevisionList, error) {
+	var exportedRevItems []servingv1.Revision
 
-	exportedSvc.Spec.RouteSpec = latestSvc.Spec.RouteSpec
-	return exportedSvc
+	//get revisions to export from traffic
+	revsMap := getRevisionstoExport(latestSvc)
+
+	// Query for list with filters
+	revisionList, err := client.ListRevisions(clientservingv1.WithService(latestSvc.ObjectMeta.Name))
+	if err != nil {
+		return nil, nil, err
+	}
+	if len(revisionList.Items) == 0 {
+		return nil, nil, fmt.Errorf("no revisions found for the service %s", latestSvc.ObjectMeta.Name)
+	}
+
+	// sort revisions to maintain the order of generations
+	sortRevisions(revisionList)
+
+	for _, revision := range revisionList.Items {
+		//construct service only for active revisions
+		if revsMap[revision.ObjectMeta.Name] && latestSvc.Spec.ConfigurationSpec.Template.ObjectMeta.Name != revision.ObjectMeta.Name {
+			exportedRevItems = append(exportedRevItems, exportRevision(&revision))
+		}
+	}
+
+	typeMeta := metav1.TypeMeta{
+		APIVersion: "v1",
+		Kind:       "List",
+	}
+	exportedRevList := &servingv1.RevisionList{
+		TypeMeta: typeMeta,
+		Items:    exportedRevItems,
+	}
+
+	return exportLatestService(latestSvc, len(revisionList.Items) > 1), exportedRevList, nil
 }
 
 func getRevisionstoExport(latestSvc *servingv1.Service) map[string]bool {
