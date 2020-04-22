@@ -12,19 +12,27 @@
 | https://github.com/knative/client/pull/[#]
 ////
 
-## v0.14.0 (unreleased)
+## v0.14.0 (2020-04-21)
 
 [cols="1,10,3", options="header", width="100%"]
 |===
 | | Description | PR
 
-| 🎁
-| Add `-a` flag as an alias for `--annotation`
-| https://github.com/knative/client/pull/782[#782]
+| ✨
+| Moved to ApiServerSource v1alpha2 API version
+| https://github.com/knative/client/pull/810[#810]
+
+| ✨
+| Update to Knative serving and eventing 0.14.0
+| https://github.com/knative/client/pull/810[#810]
 
 | 🐛
 | Check DeleteTimestamp before updating resource
 | https://github.com/knative/client/pull/805[#805]
+
+| 🎁
+| Add `-a` flag as an alias for `--annotation`
+| https://github.com/knative/client/pull/782[#782]
 
 |===
 
@@ -39,28 +47,33 @@
 | https://github.com/knative/client/pull/802[#802]
 
 | 🐛
-| Fix resource listing with -oname flag
-| https://github.com/knative/client/pull/775[#775]
-
-| 🐛
 | Fix showing repetitive revisions in service describe
 | https://github.com/knative/client/pull/790[#790]
 
 | 🎁
-| Add concurrency-utilization option for service `create` and `update`
+| Add `--concurrency-utilization` option for service `create` and `update`
 | https://github.com/knative/client/pull/788[#788]
 
-| 🐣
-| Refactor `e2e` common code into `lib/test`
-| https://github.com/knative/client/pull/765[#765]
+| 🐛
+| Correct error message when updating service
+| https://github.com/knative/client/pull/778[#778]
+
+| 🐛
+| Add support for `-o name` for "list" operations
+| https://github.com/knative/client/pull/775[#775], https://github.com/knative/client/pull/799[#799]
 
 | 🐛
 | Fix plugin lookup with file ext on Windows
 | https://github.com/knative/client/pull/774[#774]
 
-| 🐛
-| Correct error message when updating service
-| https://github.com/knative/client/pull/778[#778]
+| 🐣
+| Don't wait for delete operations to be completed by default
+| https://github.com/knative/client/pull/770[#770]
+
+| 🐣
+| Refactor "e2e" common code into `lib/test`
+| https://github.com/knative/client/pull/765[#765]
+
 
 |===
 
