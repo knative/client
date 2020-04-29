@@ -32,16 +32,6 @@ import (
 	"gotest.tools/assert"
 )
 
-func TestInAllowedExtensibleCommandGroups(t *testing.T) {
-	isExtensibleCommand := InAllowedExtensibleCommandGroups("fake")
-	assert.Assert(t, isExtensibleCommand == false)
-
-	for _, name := range AllowedExtensibleCommandGroups {
-		isExtensibleCommand = InAllowedExtensibleCommandGroups(name)
-		assert.Assert(t, isExtensibleCommand == true)
-	}
-}
-
 func TestPluginVerifier(t *testing.T) {
 	var (
 		pluginPath string
