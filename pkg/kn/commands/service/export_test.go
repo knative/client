@@ -92,7 +92,7 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 		latestSvc: getServiceWithOptions(
 			getService("foo"),
 			withAnnotations(map[string]string{"serving.knative.dev/creator": "ut", "serving.knative.dev/lastModifier": "ut"}),
-			withTrafficSplit([]string{"foo-rev-1", "foo-rev-2"}, []int{50, 50}, []bool{false, true}),
+			withTrafficSplit([]string{"foo-rev-1", ""}, []int{50, 50}, []bool{false, true}),
 			withServicePodSpecOption(withContainer()),
 		),
 		expectedSvcList: getServiceListWithOptions(
@@ -106,7 +106,7 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 				getService("foo"),
 				withUnwantedFieldsStripped(),
 				withServicePodSpecOption(withContainer()),
-				withTrafficSplit([]string{"foo-rev-1", "foo-rev-2"}, []int{50, 50}, []bool{false, true}),
+				withTrafficSplit([]string{"foo-rev-1", ""}, []int{50, 50}, []bool{false, true}),
 			),
 		),
 		revisionList: getRevisionListWithOptions(
@@ -136,7 +136,7 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 		name: "test 2 revisions no traffic split",
 		latestSvc: getServiceWithOptions(
 			getService("foo"),
-			withTrafficSplit([]string{"foo-rev-2"}, []int{100}, []bool{true}),
+			withTrafficSplit([]string{""}, []int{100}, []bool{true}),
 			withServicePodSpecOption(withContainer()),
 		),
 		expectedSvcList: getServiceListWithOptions(
@@ -144,7 +144,7 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 				getService("foo"),
 				withUnwantedFieldsStripped(),
 				withServicePodSpecOption(withContainer()),
-				withTrafficSplit([]string{"foo-rev-2"}, []int{100}, []bool{true}),
+				withTrafficSplit([]string{""}, []int{100}, []bool{true}),
 			),
 		),
 		revisionList: getRevisionListWithOptions(
