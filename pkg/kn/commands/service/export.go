@@ -136,8 +136,8 @@ func exportLatestService(latestSvc *servingv1.Service, withRoutes bool) *serving
 	}
 
 	exportedSvc.Spec.Template = servingv1.RevisionTemplateSpec{
-		Spec:       latestSvc.Spec.ConfigurationSpec.Template.Spec,
-		ObjectMeta: latestSvc.Spec.ConfigurationSpec.Template.ObjectMeta,
+		Spec:       latestSvc.Spec.Template.Spec,
+		ObjectMeta: latestSvc.Spec.Template.ObjectMeta,
 	}
 
 	if withRoutes {
@@ -174,12 +174,12 @@ func constructServicefromRevision(latestSvc *servingv1.Service, revision *servin
 		TypeMeta: latestSvc.TypeMeta,
 	}
 
-	exportedSvc.Spec.ConfigurationSpec.Template = servingv1.RevisionTemplateSpec{
+	exportedSvc.Spec.Template = servingv1.RevisionTemplateSpec{
 		Spec:       revision.Spec,
-		ObjectMeta: latestSvc.Spec.ConfigurationSpec.Template.ObjectMeta,
+		ObjectMeta: latestSvc.Spec.Template.ObjectMeta,
 	}
 
-	exportedSvc.Spec.ConfigurationSpec.Template.ObjectMeta.Name = revision.ObjectMeta.Name
+	exportedSvc.Spec.Template.ObjectMeta.Name = revision.ObjectMeta.Name
 	stripGeneratedFieldsfromService(&exportedSvc)
 	return exportedSvc
 }
@@ -204,7 +204,7 @@ func exportServiceListWithActiveRevisions(latestSvc *servingv1.Service, client c
 
 	for _, revision := range revisionList.Items {
 		//construct service only for active revisions
-		if revsMap[revision.ObjectMeta.Name] && latestSvc.Spec.ConfigurationSpec.Template.ObjectMeta.Name != revision.ObjectMeta.Name {
+		if revsMap[revision.ObjectMeta.Name] && revision.ObjectMeta.Name != latestSvc.Spec.Template.ObjectMeta.Name {
 			exportedSvcItems = append(exportedSvcItems, constructServicefromRevision(latestSvc, &revision))
 		}
 	}
@@ -243,8 +243,8 @@ func exportActiveRevisionList(latestSvc *servingv1.Service, client clientserving
 	sortRevisions(revisionList)
 
 	for _, revision := range revisionList.Items {
-		//construct service only for active revisions
-		if revsMap[revision.ObjectMeta.Name] && latestSvc.Spec.ConfigurationSpec.Template.ObjectMeta.Name != revision.ObjectMeta.Name {
+		//append only active revisions, no latest revision
+		if revsMap[revision.ObjectMeta.Name] && revision.ObjectMeta.Name != latestSvc.Spec.Template.ObjectMeta.Name {
 			exportedRevItems = append(exportedRevItems, exportRevision(&revision))
 		}
 	}
@@ -266,9 +266,7 @@ func getRevisionstoExport(latestSvc *servingv1.Service) map[string]bool {
 	revsMap := make(map[string]bool)
 
 	for _, traffic := range trafficList {
-		if traffic.RevisionName == "" {
-			revsMap[latestSvc.Spec.ConfigurationSpec.Template.ObjectMeta.Name] = true
-		} else {
+		if traffic.RevisionName != "" {
 			revsMap[traffic.RevisionName] = true
 		}
 	}
@@ -308,6 +306,7 @@ func revisionListSortFunc(revisionList *servingv1.RevisionList) func(i int, j in
 func stripGeneratedFieldsfromService(svc *servingv1.Service) {
 	delete(svc.ObjectMeta.Annotations, "serving.knative.dev/creator")
 	delete(svc.ObjectMeta.Annotations, "serving.knative.dev/lastModifier")
+	delete(svc.ObjectMeta.Annotations, "kubectl.kubernetes.io/last-applied-configuration")
 }
 
 func stripGeneratedFieldsfromRevision(revision *servingv1.Revision) {

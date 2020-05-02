@@ -92,8 +92,7 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 		latestSvc: getServiceWithOptions(
 			getService("foo"),
 			withAnnotations(map[string]string{"serving.knative.dev/creator": "ut", "serving.knative.dev/lastModifier": "ut"}),
-			withTrafficSplit([]string{"foo-rev-1", "foo-rev-2"}, []int{50, 50}, []string{"latest", "current"}),
-			withServiceRevisionName("foo-rev-2"),
+			withTrafficSplit([]string{"foo-rev-1", "foo-rev-2"}, []int{50, 50}, []bool{false, true}),
 			withServicePodSpecOption(withContainer()),
 		),
 		expectedSvcList: getServiceListWithOptions(
@@ -107,8 +106,7 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 				getService("foo"),
 				withUnwantedFieldsStripped(),
 				withServicePodSpecOption(withContainer()),
-				withServiceRevisionName("foo-rev-2"),
-				withTrafficSplit([]string{"foo-rev-1", "foo-rev-2"}, []int{50, 50}, []string{"latest", "current"}),
+				withTrafficSplit([]string{"foo-rev-1", "foo-rev-2"}, []int{50, 50}, []bool{false, true}),
 			),
 		),
 		revisionList: getRevisionListWithOptions(
@@ -130,7 +128,6 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 			withRevisions(
 				withRevisionLabels(map[string]string{apiserving.ServiceLabelKey: "foo"}),
 				withRevisionName("foo-rev-1"),
-
 				withRevisionGeneration("1"),
 				withRevisionPodSpecOption(withContainer()),
 			),
@@ -139,8 +136,7 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 		name: "test 2 revisions no traffic split",
 		latestSvc: getServiceWithOptions(
 			getService("foo"),
-			withTrafficSplit([]string{"foo-rev-2"}, []int{100}, []string{"latest"}),
-			withServiceRevisionName("foo-rev-2"),
+			withTrafficSplit([]string{"foo-rev-2"}, []int{100}, []bool{true}),
 			withServicePodSpecOption(withContainer()),
 		),
 		expectedSvcList: getServiceListWithOptions(
@@ -148,8 +144,7 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 				getService("foo"),
 				withUnwantedFieldsStripped(),
 				withServicePodSpecOption(withContainer()),
-				withServiceRevisionName("foo-rev-2"),
-				withTrafficSplit([]string{"foo-rev-2"}, []int{100}, []string{"latest"}),
+				withTrafficSplit([]string{"foo-rev-2"}, []int{100}, []bool{true}),
 			),
 		),
 		revisionList: getRevisionListWithOptions(
@@ -167,10 +162,10 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 			),
 		),
 	}, {
-		name: "test 3 active revisions with traffic split",
+		name: "test 3 active revisions with traffic split with no latest revision",
 		latestSvc: getServiceWithOptions(
 			getService("foo"),
-			withTrafficSplit([]string{"foo-rev-1", "foo-rev-2", "foo-rev-3"}, []int{25, 50, 25}, []string{"", "", "latest"}),
+			withTrafficSplit([]string{"foo-rev-1", "foo-rev-2", "foo-rev-3"}, []int{25, 50, 25}, []bool{false, false, false}),
 			withServiceRevisionName("foo-rev-3"),
 			withServicePodSpecOption(
 				withContainer(),
@@ -204,7 +199,7 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 					withEnv([]v1.EnvVar{{Name: "a", Value: "mouse"}}),
 				),
 				withServiceRevisionName("foo-rev-3"),
-				withTrafficSplit([]string{"foo-rev-1", "foo-rev-2", "foo-rev-3"}, []int{25, 50, 25}, []string{"", "", "latest"}),
+				withTrafficSplit([]string{"foo-rev-1", "foo-rev-2", "foo-rev-3"}, []int{25, 50, 25}, []bool{false, false, false}),
 			),
 		),
 		revisionList: getRevisionListWithOptions(
@@ -274,6 +269,7 @@ func exportWithRevisionsforKubernetesTest(t *testing.T, latestSvc *servingv1.Ser
 	output, err := executeServiceCommand(client, "export", latestSvc.ObjectMeta.Name, "--with-revisions", "--kubernetes-resources", "-o", "json")
 	assert.NilError(t, err)
 
+	stripStatusFromSvcList(expSvcList)
 	actSvcList := servingv1.ServiceList{}
 	err = json.Unmarshal([]byte(output), &actSvcList)
 	assert.NilError(t, err)
@@ -316,6 +312,12 @@ func stripUnwantedFields(svc *servingv1.Service) {
 	svc.Spec.Template.Spec.Containers[0].Resources = v1.ResourceRequirements{}
 	svc.Status = servingv1.ServiceStatus{}
 	svc.ObjectMeta.CreationTimestamp = metav1.Time{}
+}
+
+func stripStatusFromSvcList(svcList *servingv1.ServiceList) {
+	for i := range svcList.Items {
+		svcList.Items[i].Status = servingv1.ServiceStatus{}
+	}
 }
 
 func getServiceListWithOptions(options ...expectedServiceListOption) *servingv1.ServiceList {
@@ -379,7 +381,7 @@ func withLabels(labels map[string]string) expectedServiceOption {
 }
 func withConfigurationLabels(labels map[string]string) expectedServiceOption {
 	return func(svc *servingv1.Service) {
-		svc.Spec.ConfigurationSpec.Template.ObjectMeta.Labels = labels
+		svc.Spec.Template.ObjectMeta.Labels = labels
 	}
 }
 func withAnnotations(Annotations map[string]string) expectedServiceOption {
@@ -389,12 +391,12 @@ func withAnnotations(Annotations map[string]string) expectedServiceOption {
 }
 func withConfigurationAnnotations(Annotations map[string]string) expectedServiceOption {
 	return func(svc *servingv1.Service) {
-		svc.Spec.ConfigurationSpec.Template.ObjectMeta.Annotations = Annotations
+		svc.Spec.Template.ObjectMeta.Annotations = Annotations
 	}
 }
 func withServiceRevisionName(name string) expectedServiceOption {
 	return func(svc *servingv1.Service) {
-		svc.Spec.ConfigurationSpec.Template.ObjectMeta.Name = name
+		svc.Spec.Template.ObjectMeta.Name = name
 	}
 }
 func withUnwantedFieldsStripped() expectedServiceOption {
@@ -405,17 +407,14 @@ func withUnwantedFieldsStripped() expectedServiceOption {
 		svc.ObjectMeta.CreationTimestamp = metav1.Time{}
 	}
 }
-func withTrafficSplit(revisions []string, percentages []int, tags []string) expectedServiceOption {
+func withTrafficSplit(revisions []string, percentages []int, latest []bool) expectedServiceOption {
 	return func(svc *servingv1.Service) {
 		var trafficTargets []servingv1.TrafficTarget
 		for i, rev := range revisions {
 			trafficTargets = append(trafficTargets, servingv1.TrafficTarget{
 				Percent: ptr.Int64(int64(percentages[i])),
 			})
-			if tags[i] != "" {
-				trafficTargets[i].Tag = tags[i]
-			}
-			if rev == "latest" {
+			if latest[i] {
 				trafficTargets[i].LatestRevision = ptr.Bool(true)
 			} else {
 				trafficTargets[i].RevisionName = rev

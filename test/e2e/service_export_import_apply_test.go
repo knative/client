@@ -41,7 +41,7 @@ type expectedServiceListOption func(*servingv1.ServiceList)
 type expectedRevisionListOption func(*servingv1.RevisionList)
 type podSpecOption func(*corev1.PodSpec)
 
-func TestServiceExportImportApply(t *testing.T) {
+func TestServiceExport(t *testing.T) {
 	t.Parallel()
 	it, err := test.NewKnTest()
 	assert.NilError(t, err)
@@ -55,7 +55,7 @@ func TestServiceExportImportApply(t *testing.T) {
 	t.Log("create service with byo revision")
 	serviceCreateWithOptions(r, "hello", "--revision-name", "rev1")
 
-	t.Log("export service and compare")
+	t.Log("export service-revision1 and compare")
 	serviceExport(r, "hello", getServiceWithOptions(
 		withServiceName("hello"),
 		withServiceRevisionName("hello-rev1"),
@@ -74,6 +74,7 @@ func TestServiceExportImportApply(t *testing.T) {
 		),
 	), "-o", "json")
 
+	t.Log("export service-revision2 with kubernetes-resources")
 	serviceExportWithServiceList(r, "hello", getServiceListWithOptions(
 		withServices(
 			withServiceName("hello"),
@@ -86,6 +87,7 @@ func TestServiceExportImportApply(t *testing.T) {
 		),
 	), "--with-revisions", "--kubernetes-resources", "-o", "yaml")
 
+	t.Log("export service-revision2 with revisions-only")
 	serviceExportWithRevisionList(r, "hello", getServiceWithOptions(
 		withServiceName("hello"),
 		withServiceRevisionName("hello-rev2"),
@@ -99,6 +101,7 @@ func TestServiceExportImportApply(t *testing.T) {
 	t.Log("update service with tag and split traffic")
 	serviceUpdateWithOptions(r, "hello", "--tag", "hello-rev1=candidate", "--traffic", "candidate=2%,@latest=98%")
 
+	t.Log("export service-revision2 after tagging kubernetes-resources")
 	serviceExportWithServiceList(r, "hello", getServiceListWithOptions(
 		withServices(
 			withServiceName("hello"),
@@ -118,6 +121,7 @@ func TestServiceExportImportApply(t *testing.T) {
 		),
 	), "--with-revisions", "--kubernetes-resources", "-o", "yaml")
 
+	t.Log("export service-revision2 after tagging with revisions-only")
 	serviceExportWithRevisionList(r, "hello", getServiceWithOptions(
 		withServiceName("hello"),
 		withServiceRevisionName("hello-rev2"),
@@ -147,9 +151,11 @@ func TestServiceExportImportApply(t *testing.T) {
 		),
 	), "--with-revisions", "-o", "yaml")
 
-	t.Log("update service - untag, add env variable and traffic split")
+	t.Log("update service - untag, add env variable, traffic split and system revision name")
 	serviceUpdateWithOptions(r, "hello", "--untag", "candidate")
-	serviceUpdateWithOptions(r, "hello", "--env", "b=cat", "--revision-name", "rev3", "--traffic", "hello-rev1=30,hello-rev2=30,hello-rev3=40")
+	serviceUpdateWithOptions(r, "hello", "--env", "b=cat", "--revision-name", "hello-rev3", "--traffic", "hello-rev1=30,hello-rev2=30,hello-rev3=40")
+
+	t.Log("export service-revision3 with kubernetes-resources")
 	serviceExportWithServiceList(r, "hello", getServiceListWithOptions(
 		withServices(
 			withServiceName("hello"),
@@ -177,6 +183,7 @@ func TestServiceExportImportApply(t *testing.T) {
 		),
 	), "--with-revisions", "--kubernetes-resources", "-o", "yaml")
 
+	t.Log("export service-revision3 with revisions-only")
 	serviceExportWithRevisionList(r, "hello", getServiceWithOptions(
 		withServiceName("hello"),
 		withServiceRevisionName("hello-rev3"),
@@ -227,6 +234,7 @@ func TestServiceExportImportApply(t *testing.T) {
 	t.Log("send all traffic to revision 2")
 	serviceUpdateWithOptions(r, "hello", "--traffic", "hello-rev2=100")
 
+	t.Log("export kubernetes-resources - all traffic to revision 2")
 	serviceExportWithServiceList(r, "hello", getServiceListWithOptions(
 		withServices(
 			withServiceName("hello"),
@@ -247,6 +255,7 @@ func TestServiceExportImportApply(t *testing.T) {
 		),
 	), "--with-revisions", "--kubernetes-resources", "-o", "yaml")
 
+	t.Log("export revisions-only - all traffic to revision 2")
 	serviceExportWithRevisionList(r, "hello", getServiceWithOptions(
 		withServiceName("hello"),
 		withServiceRevisionName("hello-rev3"),
@@ -405,19 +414,19 @@ func withServiceName(name string) expectedServiceOption {
 }
 func withConfigurationLabels(labels map[string]string) expectedServiceOption {
 	return func(svc *servingv1.Service) {
-		svc.Spec.ConfigurationSpec.Template.ObjectMeta.Labels = labels
+		svc.Spec.Template.ObjectMeta.Labels = labels
 	}
 }
 func withConfigurationAnnotations() expectedServiceOption {
 	return func(svc *servingv1.Service) {
-		svc.Spec.ConfigurationSpec.Template.ObjectMeta.Annotations = map[string]string{
+		svc.Spec.Template.ObjectMeta.Annotations = map[string]string{
 			"client.knative.dev/user-image": "gcr.io/knative-samples/helloworld-go",
 		}
 	}
 }
 func withServiceRevisionName(name string) expectedServiceOption {
 	return func(svc *servingv1.Service) {
-		svc.Spec.ConfigurationSpec.Template.ObjectMeta.Name = name
+		svc.Spec.Template.ObjectMeta.Name = name
 	}
 }
 func withTrafficSplit(revisions []string, percentages []int, tags []string) expectedServiceOption {
