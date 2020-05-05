@@ -54,7 +54,7 @@ func TestServiceDescribeBasic(t *testing.T) {
 
 	// Get service & revision
 	r.GetService("foo", &expectedService, nil)
-	rev1 := createTestRevision("rev1", 1)
+	rev1 := createTestRevision("rev1", 1, goodConditions())
 	r.GetRevision("rev1", &rev1, nil)
 
 	// Testing:
@@ -92,7 +92,7 @@ func TestServiceDescribeSad(t *testing.T) {
 	expectedService := createTestService("foo", []string{"rev1"}, goodConditions())
 	expectedService.Status.Conditions[0].Status = v1.ConditionFalse
 	r.GetService("foo", &expectedService, nil)
-	rev1 := createTestRevision("rev1", 1)
+	rev1 := createTestRevision("rev1", 1, goodConditions())
 	r.GetRevision("rev1", &rev1, nil)
 
 	output, err := executeServiceCommand(client, "describe", "foo")
@@ -114,7 +114,7 @@ func TestServiceDescribeLatest(t *testing.T) {
 
 	// Get service & revision
 	r.GetService("foo", &expectedService, nil)
-	rev1 := createTestRevision("rev1", 1)
+	rev1 := createTestRevision("rev1", 1, goodConditions())
 	r.GetRevision("rev1", &rev1, nil)
 
 	output, err := executeServiceCommand(client, "describe", "foo")
@@ -141,8 +141,8 @@ func TestServiceDescribeLatestNotInTraffic(t *testing.T) {
 
 	// Get service & revision
 	r.GetService("foo", &expectedService, nil)
-	rev1 := createTestRevision("rev1", 1)
-	rev2 := createTestRevision("rev2", 2)
+	rev1 := createTestRevision("rev1", 1, goodConditions())
+	rev2 := createTestRevision("rev2", 2, goodConditions())
 	r.GetRevision("rev1", &rev1, nil)
 	r.GetRevision("rev2", &rev2, nil)
 
@@ -172,8 +172,8 @@ func TestServiceDescribeEachNamedOnce(t *testing.T) {
 
 	// Get service & revision
 	r.GetService("foo", &expectedService, nil)
-	rev1 := createTestRevision("rev1", 1)
-	rev2 := createTestRevision("rev2", 2)
+	rev1 := createTestRevision("rev1", 1, goodConditions())
+	rev2 := createTestRevision("rev2", 2, goodConditions())
 	r.GetRevision("rev1", &rev1, nil)
 	r.GetRevision("rev2", &rev2, nil)
 
@@ -204,7 +204,7 @@ func TestServiceDescribeLatestAndCurrentBothHaveTrafficEntries(t *testing.T) {
 
 	// Get service & revision
 	r.GetService("foo", &expectedService, nil)
-	rev1 := createTestRevision("rev1", 1)
+	rev1 := createTestRevision("rev1", 1, goodConditions())
 	r.GetRevision("rev1", &rev1, nil)
 	r.GetRevision("rev1", &rev1, nil)
 
@@ -232,8 +232,8 @@ func TestServiceDescribeLatestCreatedIsBroken(t *testing.T) {
 
 	// Get service & revision
 	r.GetService("foo", &expectedService, nil)
-	rev1 := createTestRevision("rev1", 1)
-	rev2 := createTestRevision("rev2", 2)
+	rev1 := createTestRevision("rev1", 1, goodConditions())
+	rev2 := createTestRevision("rev2", 2, goodConditions())
 	rev2.Status.Conditions[0].Status = v1.ConditionFalse
 	r.GetRevision("rev1", &rev1, nil)
 	r.GetRevision("rev2", &rev2, nil)
@@ -272,7 +272,7 @@ func TestServiceDescribeScaling(t *testing.T) {
 
 		// Get service & revision
 		r.GetService("foo", &expectedService, nil)
-		rev1 := createTestRevision("rev1", 1)
+		rev1 := createTestRevision("rev1", 1, goodConditions())
 		addScaling(&rev1, data.minScale, data.maxScale, data.target, data.limit, data.utilization)
 		r.GetRevision("rev1", &rev1, nil)
 
@@ -341,7 +341,7 @@ func TestServiceDescribeResources(t *testing.T) {
 
 		// Get service & revision
 		r.GetService("foo", &expectedService, nil)
-		rev1 := createTestRevision("rev1", 1)
+		rev1 := createTestRevision("rev1", 1, goodConditions())
 		addResourceLimits(&rev1.Spec.Containers[0].Resources, data.reqMem, data.limitMem, data.reqCPU, data.limitCPU)
 		r.GetRevision("rev1", &rev1, nil)
 
@@ -385,10 +385,10 @@ func TestServiceDescribeUserImageVsImage(t *testing.T) {
 	expectedService := createTestService("foo", []string{"rev1", "rev2", "rev3", "rev4"}, goodConditions())
 	r.GetService("foo", &expectedService, nil)
 
-	rev1 := createTestRevision("rev1", 1)
-	rev2 := createTestRevision("rev2", 2)
-	rev3 := createTestRevision("rev3", 3)
-	rev4 := createTestRevision("rev4", 4)
+	rev1 := createTestRevision("rev1", 1, goodConditions())
+	rev2 := createTestRevision("rev2", 2, goodConditions())
+	rev3 := createTestRevision("rev3", 3, goodConditions())
+	rev4 := createTestRevision("rev4", 4, goodConditions())
 
 	// Different combinations of image annotations and not.
 	rev1.Spec.Containers[0].Image = "gcr.io/test/image:latest"
@@ -438,9 +438,9 @@ func TestServiceDescribeVerbose(t *testing.T) {
 	expectedService.Status.Traffic[0].Percent = ptr.Int64(int64(100))
 	r.GetService("foo", &expectedService, nil)
 
-	rev1 := createTestRevision("rev1", 1)
-	rev2 := createTestRevision("rev2", 2)
-	rev3 := createTestRevision("rev3", 3)
+	rev1 := createTestRevision("rev1", 1, goodConditions())
+	rev2 := createTestRevision("rev2", 2, goodConditions())
+	rev3 := createTestRevision("rev3", 3, goodConditions())
 
 	revList := servingv1.RevisionList{
 		TypeMeta: metav1.TypeMeta{
@@ -515,6 +515,32 @@ func validateServiceOutput(t *testing.T, service string, output string) {
 	assert.Assert(t, util.ContainsAll(output, "Ready", "RoutesReady", "OK", "TYPE", "AGE", "REASON"))
 }
 
+func TestServiceDescribeRevisionUnknown(t *testing.T) {
+	client := knclient.NewMockKnServiceClient(t)
+
+	r := client.Recorder()
+
+	expectedService := createTestServiceRevisionUnknown("foo", []string{"rev1"}, unknownConditions())
+
+	r.GetService("foo", &expectedService, nil)
+	rev1 := createTestRevision("rev1", 1, unknownConditions())
+	r.GetRevision("rev1", &rev1, nil)
+
+	output, err := executeServiceCommand(client, "describe", "foo")
+	assert.NilError(t, err)
+
+	validateServiceOutput(t, "foo", output)
+	assert.Assert(t, util.ContainsAll(output, "123456"))
+	assert.Assert(t, util.ContainsAll(output, "Annotations:", "anno1=aval1, anno2=aval2, anno3="))
+	assert.Assert(t, cmp.Regexp(`(?m)\s*Annotations:.*\.\.\.$`, output))
+	assert.Assert(t, util.ContainsAll(output, "Labels:", "label1=lval1, label2=lval2\n"))
+	assert.Assert(t, util.ContainsAll(output, "[1]"))
+
+	assert.Equal(t, strings.Count(output, "rev1"), 1)
+
+	r.Validate()
+}
+
 func createTestService(name string, revisionNames []string, conditions duckv1.Conditions) servingv1.Service {
 
 	labelMap := make(map[string]string)
@@ -525,8 +551,8 @@ func createTestService(name string, revisionNames []string, conditions duckv1.Co
 	annoMap["anno2"] = "aval2"
 	annoMap["anno3"] = "very_long_value_which_should_be_truncated_in_normal_output_if_we_make_it_even_longer"
 
-	serviceUrl, _ := apis.ParseURL(fmt.Sprintf("https://%s.default.svc.cluster.local", name))
-	addressUrl, _ := apis.ParseURL(fmt.Sprintf("https://%s.default.example.com", name))
+	serviceURL, _ := apis.ParseURL(fmt.Sprintf("https://%s.default.svc.cluster.local", name))
+	addressURL, _ := apis.ParseURL(fmt.Sprintf("https://%s.default.example.com", name))
 	service := servingv1.Service{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Service",
@@ -541,8 +567,8 @@ func createTestService(name string, revisionNames []string, conditions duckv1.Co
 		},
 		Status: servingv1.ServiceStatus{
 			RouteStatusFields: servingv1.RouteStatusFields{
-				URL:     addressUrl,
-				Address: &duckv1.Addressable{URL: serviceUrl},
+				URL:     addressURL,
+				Address: &duckv1.Addressable{URL: serviceURL},
 			},
 			Status: duckv1.Status{
 				Conditions: conditions,
@@ -551,6 +577,61 @@ func createTestService(name string, revisionNames []string, conditions duckv1.Co
 	}
 	service.Status.LatestCreatedRevisionName = revisionNames[len(revisionNames)-1]
 	service.Status.LatestReadyRevisionName = revisionNames[len(revisionNames)-1]
+
+	if len(revisionNames) > 0 {
+		trafficTargets := make([]servingv1.TrafficTarget, 0)
+		for _, rname := range revisionNames {
+			url, _ := apis.ParseURL(fmt.Sprintf("https://%s", rname))
+			target := servingv1.TrafficTarget{
+				RevisionName:      rname,
+				ConfigurationName: name,
+				Percent:           ptr.Int64(int64(100 / len(revisionNames))),
+				URL:               url,
+			}
+			trafficTargets = append(trafficTargets, target)
+		}
+		service.Status.Traffic = trafficTargets
+	}
+
+	return service
+}
+
+func createTestServiceRevisionUnknown(name string, revisionNames []string, conditions duckv1.Conditions) servingv1.Service {
+	labelMap := make(map[string]string)
+	labelMap["label1"] = "lval1"
+	labelMap["label2"] = "lval2"
+	annoMap := make(map[string]string)
+	annoMap["anno1"] = "aval1"
+	annoMap["anno2"] = "aval2"
+	annoMap["anno3"] = "very_long_value_which_should_be_truncated_in_normal_output_if_we_make_it_even_longer"
+
+	serviceURL, _ := apis.ParseURL(fmt.Sprintf("https://%s.default.svc.cluster.local", name))
+	addressURL, _ := apis.ParseURL(fmt.Sprintf("https://%s.default.example.com", name))
+	service := servingv1.Service{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Service",
+			APIVersion: "serving.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:              name,
+			Namespace:         "default",
+			Labels:            labelMap,
+			Annotations:       annoMap,
+			CreationTimestamp: metav1.Time{Time: time.Now().Add(-30 * time.Second)},
+		},
+		Status: servingv1.ServiceStatus{
+			RouteStatusFields: servingv1.RouteStatusFields{
+				URL:     addressURL,
+				Address: &duckv1.Addressable{URL: serviceURL},
+			},
+			Status: duckv1.Status{
+				Conditions: conditions,
+			},
+		},
+	}
+	service.Status.LatestCreatedRevisionName = revisionNames[len(revisionNames)-1]
+	// LatestReadyRevisionName == "" when Revision is unknown
+	service.Status.LatestReadyRevisionName = ""
 
 	if len(revisionNames) > 0 {
 		trafficTargets := make([]servingv1.TrafficTarget, 0)
@@ -626,7 +707,7 @@ func getResourceListQuantity(mem string, cpu string) v1.ResourceList {
 	return list
 }
 
-func createTestRevision(revision string, gen int64) servingv1.Revision {
+func createTestRevision(revision string, gen int64, conditions duckv1.Conditions) servingv1.Revision {
 	labels := make(map[string]string)
 	labels[api_serving.ConfigurationGenerationLabelKey] = fmt.Sprintf("%d", gen)
 
@@ -666,7 +747,7 @@ func createTestRevision(revision string, gen int64) servingv1.Revision {
 		Status: servingv1.RevisionStatus{
 			ImageDigest: "gcr.io/test/image@" + imageDigest,
 			Status: duckv1.Status{
-				Conditions: goodConditions(),
+				Conditions: conditions,
 			},
 		},
 	}
@@ -684,6 +765,25 @@ func goodConditions() duckv1.Conditions {
 	ret = append(ret, apis.Condition{
 		Type:   servingv1.ServiceConditionRoutesReady,
 		Status: v1.ConditionTrue,
+		LastTransitionTime: apis.VolatileTime{
+			Inner: metav1.Time{Time: time.Now()},
+		},
+	})
+	return ret
+}
+
+func unknownConditions() duckv1.Conditions {
+	ret := make(duckv1.Conditions, 0)
+	ret = append(ret, apis.Condition{
+		Type:   apis.ConditionReady,
+		Status: v1.ConditionUnknown,
+		LastTransitionTime: apis.VolatileTime{
+			Inner: metav1.Time{Time: time.Now()},
+		},
+	})
+	ret = append(ret, apis.Condition{
+		Type:   servingv1.ServiceConditionRoutesReady,
+		Status: v1.ConditionUnknown,
 		LastTransitionTime: apis.VolatileTime{
 			Inner: metav1.Time{Time: time.Now()},
 		},
