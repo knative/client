@@ -85,7 +85,7 @@ func TestServiceExport(t *testing.T) {
 				withEnv([]corev1.EnvVar{{Name: "a", Value: "mouse"}}),
 			),
 		),
-	), "--with-revisions", "--kubernetes-resources", "-o", "yaml")
+	), "--with-revisions", "--mode", "kubernetes", "-o", "yaml")
 
 	t.Log("export service-revision2 with revisions-only")
 	serviceExportWithRevisionList(r, "hello", getServiceWithOptions(
@@ -96,7 +96,7 @@ func TestServiceExport(t *testing.T) {
 			withContainer(),
 			withEnv([]corev1.EnvVar{{Name: "a", Value: "mouse"}}),
 		),
-	), getRevisionListWithOptions(), "--with-revisions", "-o", "yaml")
+	), getRevisionListWithOptions(), "--with-revisions", "--mode", "resources", "-o", "yaml")
 
 	t.Log("update service with tag and split traffic")
 	serviceUpdateWithOptions(r, "hello", "--tag", "hello-rev1=candidate", "--traffic", "candidate=2%,@latest=98%")
@@ -119,7 +119,7 @@ func TestServiceExport(t *testing.T) {
 				withEnv([]corev1.EnvVar{{Name: "a", Value: "mouse"}}),
 			),
 		),
-	), "--with-revisions", "--kubernetes-resources", "-o", "yaml")
+	), "--with-revisions", "--mode", "kubernetes", "-o", "yaml")
 
 	t.Log("export service-revision2 after tagging with revisions-only")
 	serviceExportWithRevisionList(r, "hello", getServiceWithOptions(
@@ -149,7 +149,7 @@ func TestServiceExport(t *testing.T) {
 				withContainer(),
 			),
 		),
-	), "--with-revisions", "-o", "yaml")
+	), "--with-revisions", "--mode", "resources", "-o", "yaml")
 
 	t.Log("update service - untag, add env variable, traffic split and system revision name")
 	serviceUpdateWithOptions(r, "hello", "--untag", "candidate")
@@ -181,7 +181,7 @@ func TestServiceExport(t *testing.T) {
 				withEnv([]corev1.EnvVar{{Name: "a", Value: "mouse"}, {Name: "b", Value: "cat"}}),
 			),
 		),
-	), "--with-revisions", "--kubernetes-resources", "-o", "yaml")
+	), "--with-revisions", "--mode", "kubernetes", "-o", "yaml")
 
 	t.Log("export service-revision3 with revisions-only")
 	serviceExportWithRevisionList(r, "hello", getServiceWithOptions(
@@ -229,7 +229,7 @@ func TestServiceExport(t *testing.T) {
 				withEnv([]corev1.EnvVar{{Name: "a", Value: "mouse"}}),
 			),
 		),
-	), "--with-revisions", "-o", "yaml")
+	), "--with-revisions", "--mode", "resources", "-o", "yaml")
 
 	t.Log("send all traffic to revision 2")
 	serviceUpdateWithOptions(r, "hello", "--traffic", "hello-rev2=100")
@@ -253,7 +253,7 @@ func TestServiceExport(t *testing.T) {
 				withEnv([]corev1.EnvVar{{Name: "a", Value: "mouse"}, {Name: "b", Value: "cat"}}),
 			),
 		),
-	), "--with-revisions", "--kubernetes-resources", "-o", "yaml")
+	), "--with-revisions", "--mode", "kubernetes", "-o", "yaml")
 
 	t.Log("export revisions-only - all traffic to revision 2")
 	serviceExportWithRevisionList(r, "hello", getServiceWithOptions(
@@ -283,7 +283,7 @@ func TestServiceExport(t *testing.T) {
 				withEnv([]corev1.EnvVar{{Name: "a", Value: "mouse"}}),
 			),
 		),
-	), "--with-revisions", "-o", "yaml")
+	), "--with-revisions", "--mode", "resources", "-o", "yaml")
 }
 
 // Private methods

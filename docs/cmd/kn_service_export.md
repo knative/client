@@ -18,10 +18,10 @@ kn service export NAME [flags]
   kn service export foo -n bar -o yaml
   # Export a service in JSON format
   kn service export foo -n bar -o json
-  # Export a service with revisions in JSON format
-  kn service export foo --with-revisions -n bar -o json
-  # Export a service with revisions in kubectl friendly format
-  kn service export foo --with-revisions --kubernetes-resources -n bar -o json
+  # Export a service with revisions
+  kn service export foo --with-revisions --mode=resources -n bar -o json
+  # Export services in kubectl friendly format, as a list kind, one service item for each revision
+  kn service export foo --with-revisions --mode=kubernetes -n bar -o json
 ```
 
 ### Options
@@ -29,7 +29,7 @@ kn service export NAME [flags]
 ```
       --allow-missing-template-keys   If true, ignore any errors in templates when a field or map key is missing in the template. Only applies to golang and jsonpath output formats. (default true)
   -h, --help                          help for export
-      --kubernetes-resources          Export all routed revisions in kubectl friendly format(experimental)
+      --mode string                   Format for exporting all routed revisions. One of kubernetes|resources (experimental)
   -n, --namespace string              Specify the namespace to operate in.
   -o, --output string                 Output format. One of: json|yaml|name|go-template|go-template-file|template|templatefile|jsonpath|jsonpath-file.
       --template string               Template string or path to template file to use when -o=go-template, -o=go-template-file. The template format is golang templates [http://golang.org/pkg/text/template/#pkg-overview].

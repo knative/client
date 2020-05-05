@@ -37,57 +37,54 @@ type expectedServiceListOption func(*servingv1.ServiceList)
 type expectedRevisionListOption func(*servingv1.RevisionList)
 type podSpecOption func(*v1.PodSpec)
 
+type testCase struct {
+	name                 string
+	latestSvc            *servingv1.Service
+	expectedSvcList      *servingv1.ServiceList
+	revisionList         *servingv1.RevisionList
+	expectedRevisionList *servingv1.RevisionList
+}
+
 func TestServiceExportError(t *testing.T) {
-	client := knclient.NewMockKnServiceClient(t)
+	tc := &testCase{latestSvc: getService("foo")}
 
-	expectedService := getService("foo")
-
-	_, err := executeServiceCommand(client, "export", expectedService.ObjectMeta.Name)
-
+	_, err := executeServiceExportCommand(t, tc, "export", tc.latestSvc.ObjectMeta.Name)
 	assert.Error(t, err, "'kn service export' requires output format")
+
+	_, err = executeServiceExportCommand(t, tc, "export", tc.latestSvc.ObjectMeta.Name, "--with-revisions", "-o", "json")
+	assert.Error(t, err, "'kn service export --with-revisions' requires a mode, please specify one of kubernetes|resources.")
+
+	_, err = executeServiceExportCommand(t, tc, "export", tc.latestSvc.ObjectMeta.Name, "--with-revisions", "--mode", "k8s", "-o", "yaml")
+	assert.Error(t, err, "'kn service export --with-revisions' requires a mode, please specify one of kubernetes|resources.")
 }
 
 func TestServiceExport(t *testing.T) {
 
-	svcs := []*servingv1.Service{
-		getServiceWithOptions(getService("foo"), withServicePodSpecOption(withContainer())),
-		getServiceWithOptions(getService("foo"), withServicePodSpecOption(withContainer(), withEnv([]v1.EnvVar{{Name: "a", Value: "mouse"}}))),
-		getServiceWithOptions(getService("foo"), withConfigurationLabels(map[string]string{"a": "mouse"}), withConfigurationAnnotations(map[string]string{"a": "mouse"}), withServicePodSpecOption(withContainer())),
-		getServiceWithOptions(getService("foo"), withLabels(map[string]string{"a": "mouse"}), withAnnotations(map[string]string{"a": "mouse"}), withServicePodSpecOption(withContainer())),
-		getServiceWithOptions(getService("foo"), withServicePodSpecOption(withContainer(), withVolumeandSecrets("secretName"))),
-	}
-
-	for _, svc := range svcs {
-		exportServiceTest(t, svc)
+	for _, tc := range []testCase{
+		{latestSvc: getServiceWithOptions(getService("foo"), withServicePodSpecOption(withContainer()))},
+		{latestSvc: getServiceWithOptions(getService("foo"), withServicePodSpecOption(withContainer(), withEnv([]v1.EnvVar{{Name: "a", Value: "mouse"}})))},
+		{latestSvc: getServiceWithOptions(getService("foo"), withConfigurationLabels(map[string]string{"a": "mouse"}), withConfigurationAnnotations(map[string]string{"a": "mouse"}), withServicePodSpecOption(withContainer()))},
+		{latestSvc: getServiceWithOptions(getService("foo"), withLabels(map[string]string{"a": "mouse"}), withAnnotations(map[string]string{"a": "mouse"}), withServicePodSpecOption(withContainer()))},
+		{latestSvc: getServiceWithOptions(getService("foo"), withServicePodSpecOption(withContainer(), withVolumeandSecrets("secretName")))},
+	} {
+		exportServiceTest(t, &tc)
 	}
 }
 
-func exportServiceTest(t *testing.T, expectedService *servingv1.Service) {
-	client := knclient.NewMockKnServiceClient(t)
-	r := client.Recorder()
-	r.GetService(expectedService.ObjectMeta.Name, expectedService, nil)
-
-	output, err := executeServiceCommand(client, "export", expectedService.ObjectMeta.Name, "-o", "yaml")
+func exportServiceTest(t *testing.T, tc *testCase) {
+	output, err := executeServiceExportCommand(t, tc, "export", tc.latestSvc.ObjectMeta.Name, "-o", "yaml")
 	assert.NilError(t, err)
 
 	actSvc := servingv1.Service{}
 	err = yaml.Unmarshal([]byte(output), &actSvc)
 	assert.NilError(t, err)
 
-	stripUnwantedFields(expectedService)
-	assert.DeepEqual(t, expectedService, &actSvc)
-	// Validate that all recorded API methods have been called
-	r.Validate()
+	stripUnwantedFields(tc.latestSvc)
+	assert.DeepEqual(t, tc.latestSvc, &actSvc)
 }
 
 func TestServiceExportwithMultipleRevisions(t *testing.T) {
-	for _, tc := range []struct {
-		name                 string
-		latestSvc            *servingv1.Service
-		expectedSvcList      *servingv1.ServiceList
-		revisionList         *servingv1.RevisionList
-		expectedRevisionList *servingv1.RevisionList
-	}{{
+	for _, tc := range []testCase{{
 		name: "test 2 revisions with traffic split",
 		latestSvc: getServiceWithOptions(
 			getService("foo"),
@@ -253,58 +250,51 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 		),
 	}} {
 		t.Run(tc.name, func(t *testing.T) {
-			exportWithRevisionsforKubernetesTest(t, tc.latestSvc, tc.revisionList, tc.expectedSvcList)
-			exportWithRevisionsTest(t, tc.latestSvc, tc.revisionList, tc.expectedRevisionList)
+			exportWithRevisionsforKubernetesTest(t, &tc)
+			exportWithRevisionsTest(t, &tc)
 		})
 	}
 }
 
-func exportWithRevisionsforKubernetesTest(t *testing.T, latestSvc *servingv1.Service, revs *servingv1.RevisionList, expSvcList *servingv1.ServiceList) {
-	client := knclient.NewMockKnServiceClient(t)
-	r := client.Recorder()
-
-	r.GetService(latestSvc.ObjectMeta.Name, latestSvc, nil)
-	r.ListRevisions(mock.Any(), revs, nil)
-
-	output, err := executeServiceCommand(client, "export", latestSvc.ObjectMeta.Name, "--with-revisions", "--kubernetes-resources", "-o", "json")
+func exportWithRevisionsforKubernetesTest(t *testing.T, tc *testCase) {
+	output, err := executeServiceExportCommand(t, tc, "export", tc.latestSvc.ObjectMeta.Name, "--with-revisions", "--mode", "kubernetes", "-o", "json")
 	assert.NilError(t, err)
 
-	stripStatusFromSvcList(expSvcList)
 	actSvcList := servingv1.ServiceList{}
 	err = json.Unmarshal([]byte(output), &actSvcList)
 	assert.NilError(t, err)
-	assert.DeepEqual(t, expSvcList, &actSvcList)
-	// Validate that all recorded API methods have been called
-	r.Validate()
+	assert.DeepEqual(t, tc.expectedSvcList, &actSvcList)
 }
 
-func exportWithRevisionsTest(t *testing.T, latestSvc *servingv1.Service, revs *servingv1.RevisionList, expRevList *servingv1.RevisionList) {
-	client := knclient.NewMockKnServiceClient(t)
-	r := client.Recorder()
-
-	r.GetService(latestSvc.ObjectMeta.Name, latestSvc, nil)
-	r.ListRevisions(mock.Any(), revs, nil)
-
-	output, err := executeServiceCommand(client, "export", latestSvc.ObjectMeta.Name, "--with-revisions", "-o", "json")
+func exportWithRevisionsTest(t *testing.T, tc *testCase) {
+	output, err := executeServiceExportCommand(t, tc, "export", tc.latestSvc.ObjectMeta.Name, "--with-revisions", "--mode", "resources", "-o", "json")
 	assert.NilError(t, err)
 
-	stripUnwantedFields(latestSvc)
+	stripUnwantedFields(tc.latestSvc)
 	expOut := strings.Builder{}
-	expSvcJSON, err := json.MarshalIndent(latestSvc, "", "    ")
+	expSvcJSON, err := json.MarshalIndent(tc.latestSvc, "", "    ")
 	assert.NilError(t, err)
 	expOut.Write(expSvcJSON)
 	expOut.WriteString("\n")
 
-	if expRevList != nil {
-		expRevsJSON, err := json.MarshalIndent(expRevList, "", "    ")
+	if tc.expectedRevisionList != nil {
+		expRevsJSON, err := json.MarshalIndent(tc.expectedRevisionList, "", "    ")
 		assert.NilError(t, err)
 		expOut.Write(expRevsJSON)
 		expOut.WriteString("\n")
 	}
 
 	assert.Equal(t, expOut.String(), output)
-	// Validate that all recorded API methods have been called
-	r.Validate()
+}
+
+func executeServiceExportCommand(t *testing.T, tc *testCase, options ...string) (string, error) {
+	client := knclient.NewMockKnServiceClient(t)
+	r := client.Recorder()
+
+	r.GetService(tc.latestSvc.ObjectMeta.Name, tc.latestSvc, nil)
+	r.ListRevisions(mock.Any(), tc.revisionList, nil)
+
+	return executeServiceCommand(client, options...)
 }
 
 func stripUnwantedFields(svc *servingv1.Service) {
@@ -312,12 +302,6 @@ func stripUnwantedFields(svc *servingv1.Service) {
 	svc.Spec.Template.Spec.Containers[0].Resources = v1.ResourceRequirements{}
 	svc.Status = servingv1.ServiceStatus{}
 	svc.ObjectMeta.CreationTimestamp = metav1.Time{}
-}
-
-func stripStatusFromSvcList(svcList *servingv1.ServiceList) {
-	for i := range svcList.Items {
-		svcList.Items[i].Status = servingv1.ServiceStatus{}
-	}
 }
 
 func getServiceListWithOptions(options ...expectedServiceListOption) *servingv1.ServiceList {

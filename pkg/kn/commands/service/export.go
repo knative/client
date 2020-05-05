@@ -33,6 +33,15 @@ import (
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
+var IGNORED_SERVICE_ANNOTATIONS = []string{
+	"serving.knative.dev/creator",
+	"serving.knative.dev/lastModifier",
+	"kubectl.kubernetes.io/last-applied-configuration",
+}
+var IGNORED_REVISION_ANNOTATIONS = []string{
+	"serving.knative.dev/lastPinned",
+}
+
 // NewServiceExportCommand returns a new command for exporting a service.
 func NewServiceExportCommand(p *commands.KnParams) *cobra.Command {
 
@@ -47,10 +56,10 @@ func NewServiceExportCommand(p *commands.KnParams) *cobra.Command {
   kn service export foo -n bar -o yaml
   # Export a service in JSON format
   kn service export foo -n bar -o json
-  # Export a service with revisions in JSON format
-  kn service export foo --with-revisions -n bar -o json
-  # Export a service with revisions in kubectl friendly format
-  kn service export foo --with-revisions --kubernetes-resources -n bar -o json`,
+  # Export a service with revisions
+  kn service export foo --with-revisions --mode=resources -n bar -o json
+  # Export services in kubectl friendly format, as a list kind, one service item for each revision
+  kn service export foo --with-revisions --mode=kubernetes -n bar -o json`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("'kn service export' requires name of the service as single argument")
@@ -84,7 +93,7 @@ func NewServiceExportCommand(p *commands.KnParams) *cobra.Command {
 	flags := command.Flags()
 	commands.AddNamespaceFlags(flags, false)
 	flags.Bool("with-revisions", false, "Export all routed revisions (experimental)")
-	flags.Bool("kubernetes-resources", false, "Export all routed revisions in kubectl friendly format(experimental)")
+	flags.String("mode", "", "Format for exporting all routed revisions. One of kubernetes|resources (experimental)")
 	machineReadablePrintFlags.AddFlags(command)
 	return command
 }
@@ -95,19 +104,23 @@ func exportService(cmd *cobra.Command, service *servingv1.Service, client client
 		return err
 	}
 
-	withKubernetesResources, err := cmd.Flags().GetBool("kubernetes-resources")
+	if !withRevisions {
+		return printer.PrintObj(exportLatestService(service, false), cmd.OutOrStdout())
+	}
+
+	mode, err := cmd.Flags().GetString("mode")
 	if err != nil {
 		return err
 	}
 
-	if withRevisions {
-		if withKubernetesResources {
-			svcList, err := exportServiceListWithActiveRevisions(service, client)
-			if err != nil {
-				return err
-			}
-			return printer.PrintObj(svcList, cmd.OutOrStdout())
+	switch mode {
+	case "kubernetes":
+		svcList, err := exportServiceListWithActiveRevisions(service, client)
+		if err != nil {
+			return err
 		}
+		return printer.PrintObj(svcList, cmd.OutOrStdout())
+	case "resources":
 		latestSvc, revList, err := exportActiveRevisionList(service, client)
 		if err != nil {
 			return err
@@ -120,9 +133,10 @@ func exportService(cmd *cobra.Command, service *servingv1.Service, client client
 		if len(revList.Items) > 0 {
 			return printer.PrintObj(revList, cmd.OutOrStdout())
 		}
-		return nil
+	default:
+		return errors.New("'kn service export --with-revisions' requires a mode, please specify one of kubernetes|resources.")
 	}
-	return printer.PrintObj(exportLatestService(service, false), cmd.OutOrStdout())
+	return nil
 }
 
 func exportLatestService(latestSvc *servingv1.Service, withRoutes bool) *servingv1.Service {
@@ -144,7 +158,7 @@ func exportLatestService(latestSvc *servingv1.Service, withRoutes bool) *serving
 		exportedSvc.Spec.RouteSpec = latestSvc.Spec.RouteSpec
 	}
 
-	stripGeneratedFieldsfromService(&exportedSvc)
+	stripIgnoredAnnotationsFromService(&exportedSvc)
 
 	return &exportedSvc
 }
@@ -160,11 +174,11 @@ func exportRevision(revision *servingv1.Revision) servingv1.Revision {
 	}
 
 	exportedRevision.Spec = revision.Spec
-	stripGeneratedFieldsfromRevision(&exportedRevision)
+	stripIgnoredAnnotationsFromRevision(&exportedRevision)
 	return exportedRevision
 }
 
-func constructServicefromRevision(latestSvc *servingv1.Service, revision *servingv1.Revision) servingv1.Service {
+func constructServiceFromRevision(latestSvc *servingv1.Service, revision *servingv1.Revision) servingv1.Service {
 	exportedSvc := servingv1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        latestSvc.ObjectMeta.Name,
@@ -180,32 +194,22 @@ func constructServicefromRevision(latestSvc *servingv1.Service, revision *servin
 	}
 
 	exportedSvc.Spec.Template.ObjectMeta.Name = revision.ObjectMeta.Name
-	stripGeneratedFieldsfromService(&exportedSvc)
+	stripIgnoredAnnotationsFromService(&exportedSvc)
 	return exportedSvc
 }
 
 func exportServiceListWithActiveRevisions(latestSvc *servingv1.Service, client clientservingv1.KnServingClient) (*servingv1.ServiceList, error) {
-	var exportedSvcItems []servingv1.Service
-
-	//get revisions to export from traffic
-	revsMap := getRevisionstoExport(latestSvc)
-
-	// Query for list with filters
-	revisionList, err := client.ListRevisions(clientservingv1.WithService(latestSvc.ObjectMeta.Name))
+	revisionList, revsMap, err := getRevisionsToExport(latestSvc, client)
 	if err != nil {
 		return nil, err
 	}
-	if len(revisionList.Items) == 0 {
-		return nil, fmt.Errorf("no revisions found for the service %s", latestSvc.ObjectMeta.Name)
-	}
 
-	// sort revisions to maintain the order of generations
-	sortRevisions(revisionList)
+	var exportedSvcItems []servingv1.Service
 
 	for _, revision := range revisionList.Items {
 		//construct service only for active revisions
 		if revsMap[revision.ObjectMeta.Name] && revision.ObjectMeta.Name != latestSvc.Spec.Template.ObjectMeta.Name {
-			exportedSvcItems = append(exportedSvcItems, constructServicefromRevision(latestSvc, &revision))
+			exportedSvcItems = append(exportedSvcItems, constructServiceFromRevision(latestSvc, &revision))
 		}
 	}
 
@@ -225,22 +229,12 @@ func exportServiceListWithActiveRevisions(latestSvc *servingv1.Service, client c
 }
 
 func exportActiveRevisionList(latestSvc *servingv1.Service, client clientservingv1.KnServingClient) (*servingv1.Service, *servingv1.RevisionList, error) {
-	var exportedRevItems []servingv1.Revision
-
-	//get revisions to export from traffic
-	revsMap := getRevisionstoExport(latestSvc)
-
-	// Query for list with filters
-	revisionList, err := client.ListRevisions(clientservingv1.WithService(latestSvc.ObjectMeta.Name))
+	revisionList, revsMap, err := getRevisionsToExport(latestSvc, client)
 	if err != nil {
 		return nil, nil, err
 	}
-	if len(revisionList.Items) == 0 {
-		return nil, nil, fmt.Errorf("no revisions found for the service %s", latestSvc.ObjectMeta.Name)
-	}
 
-	// sort revisions to maintain the order of generations
-	sortRevisions(revisionList)
+	var exportedRevItems []servingv1.Revision
 
 	for _, revision := range revisionList.Items {
 		//append only active revisions, no latest revision
@@ -261,7 +255,24 @@ func exportActiveRevisionList(latestSvc *servingv1.Service, client clientserving
 	return exportLatestService(latestSvc, len(revisionList.Items) > 1), exportedRevList, nil
 }
 
-func getRevisionstoExport(latestSvc *servingv1.Service) map[string]bool {
+func getRevisionsToExport(latestSvc *servingv1.Service, client clientservingv1.KnServingClient) (*servingv1.RevisionList, map[string]bool, error) {
+	//get revisions to export from traffic
+	revsMap := getRoutedRevisions(latestSvc)
+
+	// Query for list with filters
+	revisionList, err := client.ListRevisions(clientservingv1.WithService(latestSvc.ObjectMeta.Name))
+	if err != nil {
+		return nil, nil, err
+	}
+	if len(revisionList.Items) == 0 {
+		return nil, nil, fmt.Errorf("no revisions found for the service %s", latestSvc.ObjectMeta.Name)
+	}
+	// sort revisions to maintain the order of generations
+	sortRevisions(revisionList)
+	return revisionList, revsMap, nil
+}
+
+func getRoutedRevisions(latestSvc *servingv1.Service) map[string]bool {
 	trafficList := latestSvc.Spec.RouteSpec.Traffic
 	revsMap := make(map[string]bool)
 
@@ -303,12 +314,14 @@ func revisionListSortFunc(revisionList *servingv1.RevisionList) func(i int, j in
 	}
 }
 
-func stripGeneratedFieldsfromService(svc *servingv1.Service) {
-	delete(svc.ObjectMeta.Annotations, "serving.knative.dev/creator")
-	delete(svc.ObjectMeta.Annotations, "serving.knative.dev/lastModifier")
-	delete(svc.ObjectMeta.Annotations, "kubectl.kubernetes.io/last-applied-configuration")
+func stripIgnoredAnnotationsFromService(svc *servingv1.Service) {
+	for _, annotation := range IGNORED_SERVICE_ANNOTATIONS {
+		delete(svc.ObjectMeta.Annotations, annotation)
+	}
 }
 
-func stripGeneratedFieldsfromRevision(revision *servingv1.Revision) {
-	delete(revision.ObjectMeta.Annotations, "serving.knative.dev/lastPinned")
+func stripIgnoredAnnotationsFromRevision(revision *servingv1.Revision) {
+	for _, annotation := range IGNORED_REVISION_ANNOTATIONS {
+		delete(revision.ObjectMeta.Annotations, annotation)
+	}
 }
