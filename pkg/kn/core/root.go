@@ -81,7 +81,7 @@ func NewDefaultKnCommandWithArgs(rootCmd *cobra.Command,
 		// only look for suitable extension executables if
 		// the specified command does not already exist
 		foundCmd, innerArgs, err := rootCmd.Find(cmdPathPieces)
-		if err != nil {
+		if err != nil || plugin.InAllowedExtensibleCommandGroups(foundCmd.Name()) {
 			err := plugin.HandlePluginCommand(pluginHandler, cmdPathPieces)
 			if err != nil {
 				fmt.Fprintf(rootCmd.OutOrStderr(), "Error: unknown command '%s' \nRun 'kn --help' for usage.\n", args[1])

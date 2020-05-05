@@ -71,7 +71,6 @@ func (ctx *testContext) createTestPluginWithPath(pluginName string, fileMode os.
 }
 
 func TestPluginList(t *testing.T) {
-
 	setup := func(t *testing.T) *testContext {
 		knParams := &commands.KnParams{}
 		pluginCmd := NewPluginCommand(knParams)
@@ -159,7 +158,6 @@ func TestPluginList(t *testing.T) {
 				})
 
 				t.Run("with plugins with same name", func(t *testing.T) {
-
 					t.Run("warns user about second (in $PATH) plugin shadowing first", func(t *testing.T) {
 						ctx := setup(t)
 						defer ctx.cleanup()
@@ -201,6 +199,24 @@ func TestPluginList(t *testing.T) {
 						assert.ErrorContains(t, err, "overwrite", "built-in")
 						assert.Assert(t, util.ContainsAll(ctx.output(), "ERROR", "overwrite", "built-in"))
 					})
+
+					t.Run("allows plugin under the `source` command group", func(t *testing.T) {
+						ctx := setup(t)
+						defer ctx.cleanup()
+
+						sourceCmd := &cobra.Command{
+							Use: "source",
+						}
+						ctx.rootCmd.AddCommand(sourceCmd)
+						defer ctx.rootCmd.RemoveCommand(sourceCmd)
+
+						err := ctx.createTestPlugin("kn-source-fake", FileModeExecutable, true)
+						assert.NilError(t, err)
+
+						err = ctx.execute("plugin", "list", "--lookup-plugins=true")
+						assert.NilError(t, err)
+					})
+
 				})
 			})
 		})

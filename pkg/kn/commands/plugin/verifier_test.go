@@ -33,7 +33,6 @@ import (
 )
 
 func TestPluginVerifier(t *testing.T) {
-
 	var (
 		pluginPath string
 		rootCmd    *cobra.Command
@@ -141,6 +140,20 @@ func TestPluginVerifier(t *testing.T) {
 				assert.Assert(t, len(eaw.errors) == 1)
 				assert.Assert(t, len(eaw.warnings) == 0)
 				assert.Assert(t, util.ContainsAll(eaw.errors[0], "overwrite", "kn-plugin"))
+			})
+		})
+
+		t.Run("when kn plugin in path overwrites 'source' command (which is allowed)", func(t *testing.T) {
+			setup(t)
+			defer cleanup(t)
+			var overwritingPluginPath = CreateTestPlugin(t, "kn-source-test", KnTestPluginScript, FileModeExecutable)
+			defer DeleteTestPlugin(t, overwritingPluginPath)
+
+			t.Run("runs successfully", func(t *testing.T) {
+				eaw := errorsAndWarnings{}
+				eaw = verifier.verify(eaw, overwritingPluginPath)
+				assert.Assert(t, len(eaw.errors) == 0)
+				assert.Assert(t, len(eaw.warnings) == 0)
 			})
 		})
 	})

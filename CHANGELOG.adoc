@@ -31,6 +31,10 @@
 | https://github.com/knative/client/pull/805[#805]
 
 | 🎁
+| Allow plugins to extend fixed list of command groups, currently `source`
+| https://github.com/knative/client/pull/818[#818]
+
+| 🎁
 | Add `-a` flag as an alias for `--annotation`
 | https://github.com/knative/client/pull/782[#782]
 

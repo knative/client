@@ -110,7 +110,9 @@ func (v *pluginVerifier) addErrorIfOverwritingExistingCommand(eaw errorsAndWarni
 	for _, c := range [][]string{cmds, convertUnderscoresToDashes(cmds)} {
 		cmd, _, err := v.root.Find(c)
 		if err == nil {
-			overwrittenCommands[cmd.CommandPath()] = true
+			if !InAllowedExtensibleCommandGroups(cmd.Name()) {
+				overwrittenCommands[cmd.CommandPath()] = true
+			}
 		}
 	}
 	for command := range overwrittenCommands {
