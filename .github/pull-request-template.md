@@ -33,7 +33,7 @@ PLEASE DON'T ADD THAT LINE HERE IN THE PULL-REQUEST DESCRIPTION BUT DIRECTLY IN 
 -->
 
 <!--
-To automatically lint go code in this pull request uncomment the line belpow. You get feedback as comments on your pull request then -->
+To automatically lint go code in this pull request uncomment the line below. You get feedback as comments on your pull request then -->
 
 <!--
 /lint
