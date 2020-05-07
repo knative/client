@@ -50,9 +50,9 @@ run() {
 }
 
 integration_test() {
-  header "Running tests for Knative Serving $KNATIVE_SERVING_VERSION and Eventing $KNATIVE_EVENTING_VERSION"
+  header "Running tests for Knative Serving $KNATIVE_SERVING_VERSION"
 
-  go_test_e2e -timeout=45m ./test/e2e || fail_test
+  go_test_e2e -timeout=45m -tags="e2e serving" ./test/e2e || fail_test
 }
 
 smoke_test() {
