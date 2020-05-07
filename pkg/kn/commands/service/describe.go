@@ -294,7 +294,7 @@ func orderByConfigurationGeneration(descs []*revisionDesc) []*revisionDesc {
 
 func completeWithLatestRevisions(client clientservingv1.KnServingClient, service *servingv1.Service, revisionsSeen sets.String, descs []*revisionDesc) ([]*revisionDesc, error) {
 	for _, revisionName := range []string{service.Status.LatestCreatedRevisionName, service.Status.LatestReadyRevisionName} {
-		if revisionsSeen.Has(revisionName) {
+		if revisionName == "" || revisionsSeen.Has(revisionName) {
 			continue
 		}
 		revisionsSeen.Insert(revisionName)
