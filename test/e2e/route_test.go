@@ -61,7 +61,7 @@ func TestRoute(t *testing.T) {
 	routeDescribeWithPrintFlags(r, "hello")
 
 	t.Log("delete hello service and return no error")
-	serviceDelete(r, "hello")
+	test.ServiceDelete(r, "hello")
 }
 
 func routeList(r *test.KnRunResultCollector) {

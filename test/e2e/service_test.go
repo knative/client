@@ -49,7 +49,7 @@ func TestService(t *testing.T) {
 	serviceDescribeWithPrintFlags(r, "hello")
 
 	t.Log("delete hello service repeatedly and get an error")
-	serviceDelete(r, "hello")
+	test.ServiceDelete(r, "hello")
 	serviceDeleteNonexistent(r, "hello")
 
 	t.Log("delete two services with a service nonexistent")

@@ -52,7 +52,7 @@ func TestServiceOptions(t *testing.T) {
 	validateServiceConcurrencyUtilization(r, "svc1", "50")
 
 	t.Log("update and validate service with concurrency limit")
-	serviceUpdate(r, "svc1", "--concurrency-limit", "300")
+	test.ServiceUpdate(r, "svc1", "--concurrency-limit", "300")
 	validateServiceConcurrencyLimit(r, "svc1", "300")
 
 	t.Log("update concurrency options with invalid values for service")
@@ -66,7 +66,7 @@ func TestServiceOptions(t *testing.T) {
 	validateServiceConcurrencyUtilization(r, "svc1", "50")
 
 	t.Log("delete service")
-	serviceDelete(r, "svc1")
+	test.ServiceDelete(r, "svc1")
 
 	t.Log("create and validate service with min/max scale options ")
 	serviceCreateWithOptions(r, "svc2", "--min-scale", "1", "--max-scale", "3")
@@ -74,39 +74,39 @@ func TestServiceOptions(t *testing.T) {
 	validateServiceMaxScale(r, "svc2", "3")
 
 	t.Log("update and validate service with max scale option")
-	serviceUpdate(r, "svc2", "--max-scale", "2")
+	test.ServiceUpdate(r, "svc2", "--max-scale", "2")
 	validateServiceMaxScale(r, "svc2", "2")
 
 	t.Log("delete service")
-	serviceDelete(r, "svc2")
+	test.ServiceDelete(r, "svc2")
 
 	t.Log("create, update and validate service with annotations")
 	serviceCreateWithOptions(r, "svc3", "--annotation", "alpha=wolf", "--annotation", "brave=horse")
 	validateServiceAnnotations(r, "svc3", map[string]string{"alpha": "wolf", "brave": "horse"})
-	serviceUpdate(r, "svc3", "--annotation", "alpha=direwolf", "--annotation", "brave-")
+	test.ServiceUpdate(r, "svc3", "--annotation", "alpha=direwolf", "--annotation", "brave-")
 	validateServiceAnnotations(r, "svc3", map[string]string{"alpha": "direwolf", "brave": ""})
-	serviceDelete(r, "svc3")
+	test.ServiceDelete(r, "svc3")
 
 	t.Log("create, update and validate service with annotations but -a")
 	serviceCreateWithOptions(r, "svc3a", "-a", "alpha=wolf", "-a", "brave=horse")
 	validateServiceAnnotations(r, "svc3a", map[string]string{"alpha": "wolf", "brave": "horse"})
-	serviceUpdate(r, "svc3a", "-a", "alpha=direwolf", "-a", "brave-")
+	test.ServiceUpdate(r, "svc3a", "-a", "alpha=direwolf", "-a", "brave-")
 	validateServiceAnnotations(r, "svc3a", map[string]string{"alpha": "direwolf", "brave": ""})
-	serviceDelete(r, "svc3a")
+	test.ServiceDelete(r, "svc3a")
 
 	t.Log("create, update and validate service with autoscale window option")
 	serviceCreateWithOptions(r, "svc4", "--autoscale-window", "1m")
 	validateAutoscaleWindow(r, "svc4", "1m")
-	serviceUpdate(r, "svc4", "--autoscale-window", "15s")
+	test.ServiceUpdate(r, "svc4", "--autoscale-window", "15s")
 	validateAutoscaleWindow(r, "svc4", "15s")
-	serviceDelete(r, "svc4")
+	test.ServiceDelete(r, "svc4")
 
 	t.Log("create, update and validate service with cmd and arg options")
 	serviceCreateWithOptions(r, "svc5", "--cmd", "/go/bin/helloworld")
 	validateContainerField(r, "svc5", "command", "[/go/bin/helloworld]")
-	serviceUpdate(r, "svc5", "--arg", "myArg1", "--arg", "--myArg2")
+	test.ServiceUpdate(r, "svc5", "--arg", "myArg1", "--arg", "--myArg2")
 	validateContainerField(r, "svc5", "args", "[myArg1 --myArg2]")
-	serviceUpdate(r, "svc5", "--arg", "myArg1")
+	test.ServiceUpdate(r, "svc5", "--arg", "myArg1")
 	validateContainerField(r, "svc5", "args", "[myArg1]")
 
 	t.Log("create, update and validate service with user defined")
@@ -118,7 +118,7 @@ func TestServiceOptions(t *testing.T) {
 
 	serviceCreateWithOptions(r, "svc6", "--user", strconv.FormatInt(uid, 10))
 	validateUserID(r, "svc6", uid)
-	serviceUpdate(r, "svc6", "--user", strconv.FormatInt(uid+1, 10))
+	test.ServiceUpdate(r, "svc6", "--user", strconv.FormatInt(uid+1, 10))
 	validateUserID(r, "svc6", uid+1)
 
 	t.Log("create and validate service and revision labels")
