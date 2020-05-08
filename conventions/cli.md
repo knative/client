@@ -33,8 +33,6 @@ For resource-related commands, the kind itself used as a command in singular and
 
 ### Verb
 
-If the following subcommands can describe the thing the user's doing following the last noun
-
 For CRUD (create-retrieve-update-delete) operation the following verbs have to be used:
 
 - `describe` prints detailed information about a single resource that can contain data of dependent objects, too.
@@ -43,15 +41,14 @@ For CRUD (create-retrieve-update-delete) operation the following verbs have to b
 - `update` updates a resource.
 - `delete` deletes a resource,
 
-For a given resource, there should be parallelism between arguments to `create.`
-and `update` as much as possible and where it makes sense
+For a given resource, create and update should use the same arguments as much as possible and where it makes sense.
 
 Other domain-specific verbs are possible on a case-by-case basis for operations that go beyond basic CRUD operations.
 
 ### Identifier
 
 For the `CRUD` operations `describe`, `create`, `update`, `delete` the identifier is the resource's name and is required as a positional argument after the commands.
-I.e. its the last argument that does not start with a flag prefix `-` or `--`.
+For example it is the last argument that does not start with a flag prefix `-` or `--`.
 `list` operations don't use a resource name.
 
 Other identifiers can be plugin names or other entities' identifiers.
@@ -78,10 +75,10 @@ Flags are used for specifying the input for `kn` commands and can have different
 
 When adding new flags, the following recommendations should be considered:
 
-* Never add a global flag except for very very good reasons
+* Never add a global flag except for very good reasons
 * Group related flags together by using a common prefix, like `--label-revision` or `--label-service` so that they appear together in the help message (which is sorted alphabetically)
 * Don't add a short form without former discussions
-* Choose a name for the flag that is the same or close to the naming used in Knative serving itself e.g. the corresponding CRD field or annotation name.
+* Choose a name for the flag that is the same or close to the naming used in Knative serving itself like the corresponding CRD field or annotation name.
 
 As mentioned above, flag values can be of different types.
 The rules of how these values are modelled on the command line are given below.
