@@ -172,7 +172,7 @@ Those common functionalities should share the same conventions, syntax.
 Area to which this applies:
 
 * Resource limits
-* Output format, i.e. the data formats supported by the `--output` option (which is reused from k8s' _cli-runtime_)
+* Output formats, i.e. the data formats supported by the `--output` option (which is reused from k8s' _cli-runtime_)
 * Sinks
 * ....
 
