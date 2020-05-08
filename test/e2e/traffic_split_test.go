@@ -92,7 +92,7 @@ func TestTrafficSplit(t *testing.T) {
 			defer r.DumpIfFailed()
 
 			serviceName := test.GetNextServiceName(serviceBase)
-			serviceCreate(r, serviceName)
+			test.ServiceCreate(r, serviceName)
 
 			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
 			serviceUpdateWithOptions(r, serviceName, "--env", "TARGET=v1", "--revision-name", rev1)
@@ -117,7 +117,7 @@ func TestTrafficSplit(t *testing.T) {
 			defer r.DumpIfFailed()
 
 			serviceName := test.GetNextServiceName(serviceBase)
-			serviceCreate(r, serviceName)
+			test.ServiceCreate(r, serviceName)
 
 			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
 			serviceUpdateWithOptions(r, serviceName, "--env", "TARGET=v1", "--revision-name", rev1)

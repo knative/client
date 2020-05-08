@@ -38,7 +38,7 @@ func TestSourcePing(t *testing.T) {
 	defer r.DumpIfFailed()
 
 	t.Log("Creating a testservice")
-	serviceCreate(r, "testsvc0")
+	test.ServiceCreate(r, "testsvc0")
 
 	t.Log("create Ping sources with a sink to a service")
 
@@ -53,10 +53,10 @@ func TestSourcePing(t *testing.T) {
 
 	t.Log("update Ping source sink service")
 	pingSourceCreate(r, "testpingsource2", "* * * * */1", "ping", "svc:testsvc0")
-	serviceCreate(r, "testsvc1")
+	test.ServiceCreate(r, "testsvc1")
 	pingSourceUpdateSink(r, "testpingsource2", "svc:testsvc1")
 	jpSinkRefNameInSpec := "jsonpath={.spec.sink.ref.name}"
-	out, err := getResourceFieldsWithJSONPath(t, it, "pingsource", "testpingsource2", jpSinkRefNameInSpec)
+	out, err := test.GetResourceFieldsWithJSONPath(t, it, "pingsource", "testpingsource2", jpSinkRefNameInSpec)
 	assert.NilError(t, err)
 	assert.Equal(t, out, "testsvc1")
 

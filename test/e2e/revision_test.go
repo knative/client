@@ -41,7 +41,7 @@ func TestRevision(t *testing.T) {
 	defer r.DumpIfFailed()
 
 	t.Log("create hello service and return no error")
-	serviceCreate(r, "hello")
+	test.ServiceCreate(r, "hello")
 
 	t.Log("describe revision from hello service with print flags")
 	revName := findRevision(r, "hello")

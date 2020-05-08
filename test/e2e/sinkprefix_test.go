@@ -13,6 +13,7 @@
 // limitations under the License.
 
 // +build e2e
+// +build !serving
 
 package e2e
 
@@ -73,12 +74,12 @@ func TestSinkPrefixConfig(t *testing.T) {
 	defer tc.teardown()
 
 	t.Log("Creating a testservice")
-	serviceCreate(r, "testsvc0")
+	test.ServiceCreate(r, "testsvc0")
 	t.Log("create Ping sources with a sink to hello:testsvc0")
 	pingSourceCreateWithConfig(r, "testpingsource0", "* * * * */1", "ping", "hello:testsvc0", tc.knConfigPath)
 
 	jpSinkRefNameInSpec := "jsonpath={.spec.sink.ref.name}"
-	out, err := getResourceFieldsWithJSONPath(t, it, "pingsource", "testpingsource0", jpSinkRefNameInSpec)
+	out, err := test.GetResourceFieldsWithJSONPath(t, it, "pingsource", "testpingsource0", jpSinkRefNameInSpec)
 	assert.NilError(t, err)
 	assert.Equal(t, out, "testsvc0")
 

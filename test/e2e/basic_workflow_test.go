@@ -42,7 +42,7 @@ func TestBasicWorkflow(t *testing.T) {
 	serviceListEmpty(r)
 
 	t.Log("create hello service and return no error")
-	serviceCreate(r, "hello")
+	test.ServiceCreate(r, "hello")
 
 	t.Log("return valid info about hello service")
 	serviceList(r, "hello")
@@ -55,7 +55,7 @@ func TestBasicWorkflow(t *testing.T) {
 	serviceUpdate(r, "hello", "--env", "TARGET=kn", "--port", "8888")
 
 	t.Log("create another service and return no error")
-	serviceCreate(r, "svc2")
+	test.ServiceCreate(r, "svc2")
 
 	t.Log("return a list of revisions associated with hello and svc2 services")
 	revisionListForService(r, "hello")
@@ -94,12 +94,6 @@ func serviceListEmpty(r *test.KnRunResultCollector) {
 	out := r.KnTest().Kn().Run("service", "list")
 	r.AssertNoError(out)
 	assert.Check(r.T(), util.ContainsAll(out.Stdout, "No services found."))
-}
-
-func serviceCreate(r *test.KnRunResultCollector, serviceName string) {
-	out := r.KnTest().Kn().Run("service", "create", serviceName, "--image", test.KnDefaultTestImage)
-	r.AssertNoError(out)
-	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "service", serviceName, "creating", "namespace", r.KnTest().Kn().Namespace(), "ready"))
 }
 
 func serviceList(r *test.KnRunResultCollector, serviceName string) {

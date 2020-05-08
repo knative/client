@@ -51,7 +51,7 @@ func TestSourceApiServer(t *testing.T) {
 	defer r.DumpIfFailed()
 
 	setupForSourceAPIServer(t, it)
-	serviceCreate(r, "testsvc0")
+	test.ServiceCreate(r, "testsvc0")
 
 	t.Log("create apiserver sources with a sink to a service")
 	apiServerSourceCreate(r, "testapisource0", "Event:v1:key1=value1", "testsa", "svc:testsvc0")
@@ -77,10 +77,10 @@ func TestSourceApiServer(t *testing.T) {
 
 	t.Log("update apiserver source sink service")
 	apiServerSourceCreate(r, "testapisource3", "Event:v1", "testsa", "svc:testsvc0")
-	serviceCreate(r, "testsvc1")
+	test.ServiceCreate(r, "testsvc1")
 	apiServerSourceUpdateSink(r, "testapisource3", "svc:testsvc1")
 	jpSinkRefNameInSpec := "jsonpath={.spec.sink.ref.name}"
-	out, err := getResourceFieldsWithJSONPath(t, it, "apiserversource.sources.knative.dev", "testapisource3", jpSinkRefNameInSpec)
+	out, err := test.GetResourceFieldsWithJSONPath(t, it, "apiserversource.sources.knative.dev", "testapisource3", jpSinkRefNameInSpec)
 	assert.NilError(t, err)
 	assert.Equal(t, out, "testsvc1")
 	// TODO(navidshaikh): Verify the source's status with synchronous create/update
@@ -151,13 +151,4 @@ func apiServerSourceUpdateSink(r *test.KnRunResultCollector, sourceName string, 
 	out := r.KnTest().Kn().Run("source", "apiserver", "update", sourceName, "--sink", sink)
 	r.AssertNoError(out)
 	assert.Check(r.T(), util.ContainsAll(out.Stdout, sourceName, "updated", "namespace", r.KnTest().Kn().Namespace()))
-}
-
-func getResourceFieldsWithJSONPath(t *testing.T, it *test.KnTest, resource, name, jsonpath string) (string, error) {
-	out, err := test.NewKubectl(it.Kn().Namespace()).Run("get", resource, name, "-o", jsonpath, "-n", it.Kn().Namespace())
-	if err != nil {
-		return "", err
-	}
-
-	return out, nil
 }
