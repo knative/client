@@ -19,24 +19,28 @@ import (
 	"knative.dev/client/pkg/util"
 )
 
+// ServiceCreate verifies given service creation in sync mode and also verifies output
 func ServiceCreate(r *KnRunResultCollector, serviceName string) {
 	out := r.KnTest().Kn().Run("service", "create", serviceName, "--image", KnDefaultTestImage)
 	r.AssertNoError(out)
 	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "service", serviceName, "creating", "namespace", r.KnTest().Kn().Namespace(), "ready"))
 }
 
+// ServiceListEmpty verifies that there are no services present
 func ServiceListEmpty(r *KnRunResultCollector) {
 	out := r.KnTest().Kn().Run("service", "list")
 	r.AssertNoError(out)
 	assert.Check(r.T(), util.ContainsAll(out.Stdout, "No services found."))
 }
 
+// ServiceList verifies if given service exists
 func ServiceList(r *KnRunResultCollector, serviceName string) {
 	out := r.KnTest().Kn().Run("service", "list", serviceName)
 	r.AssertNoError(out)
 	assert.Check(r.T(), util.ContainsAll(out.Stdout, serviceName))
 }
 
+// ServiceDescribe describes given service and verifies the keys in the output
 func ServiceDescribe(r *KnRunResultCollector, serviceName string) {
 	out := r.KnTest().Kn().Run("service", "describe", serviceName)
 	r.AssertNoError(out)
@@ -45,12 +49,14 @@ func ServiceDescribe(r *KnRunResultCollector, serviceName string) {
 	assert.Assert(r.T(), util.ContainsAll(out.Stdout, "Name", "Namespace", "URL", "Age", "Revisions"))
 }
 
+// ServiceListOutput verifies listing given service using '--output name' flag
 func ServiceListOutput(r *KnRunResultCollector, serviceName string) {
 	out := r.KnTest().Kn().Run("service", "list", serviceName, "--output", "name")
 	r.AssertNoError(out)
 	assert.Check(r.T(), util.ContainsAll(out.Stdout, serviceName, "service.serving.knative.dev"))
 }
 
+// ServiceUpdate verifies service update operation with given arguments in sync mode
 func ServiceUpdate(r *KnRunResultCollector, serviceName string, args ...string) {
 	fullArgs := append([]string{}, "service", "update", serviceName)
 	fullArgs = append(fullArgs, args...)
@@ -59,22 +65,16 @@ func ServiceUpdate(r *KnRunResultCollector, serviceName string, args ...string) 
 	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "updating", "service", serviceName, "ready"))
 }
 
+// ServiceDelete verifies service deletion in sync mode
 func ServiceDelete(r *KnRunResultCollector, serviceName string) {
 	out := r.KnTest().Kn().Run("service", "delete", "--wait", serviceName)
 	r.AssertNoError(out)
 	assert.Check(r.T(), util.ContainsAll(out.Stdout, "Service", serviceName, "successfully deleted in namespace", r.KnTest().Kn().Namespace()))
 }
 
+// ServiceDescribeWithJSONPath returns output of given JSON path by describing the service
 func ServiceDescribeWithJSONPath(r *KnRunResultCollector, serviceName, jsonpath string) string {
 	out := r.KnTest().Kn().Run("service", "describe", serviceName, "-o", jsonpath)
 	r.AssertNoError(out)
 	return out.Stdout
-}
-
-func ServiceUpdateWithOptions(r *KnRunResultCollector, serviceName string, options ...string) {
-	command := []string{"service", "update", serviceName}
-	command = append(command, options...)
-	out := r.KnTest().Kn().Run(command...)
-	r.AssertNoError(out)
-	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "Service", serviceName, "updating", "namespace", r.KnTest().Kn().Namespace()))
 }

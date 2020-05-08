@@ -16,6 +16,7 @@ package test
 
 import "testing"
 
+// GetResourceFieldsWithJSONPath returns output of given JSON path for given resource using kubectl and error if any
 func GetResourceFieldsWithJSONPath(t *testing.T, it *KnTest, resource, name, jsonpath string) (string, error) {
 	out, err := NewKubectl(it.Kn().Namespace()).Run("get", resource, name, "-o", jsonpath, "-n", it.Kn().Namespace())
 	if err != nil {

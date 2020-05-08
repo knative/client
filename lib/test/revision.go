@@ -23,6 +23,7 @@ import (
 	"knative.dev/client/pkg/util"
 )
 
+// RevisionListForService list revisions of given service and verifies if their status is True
 func RevisionListForService(r *KnRunResultCollector, serviceName string) {
 	out := r.KnTest().Kn().Run("revision", "list", "-s", serviceName)
 	r.AssertNoError(out)
@@ -35,6 +36,7 @@ func RevisionListForService(r *KnRunResultCollector, serviceName string) {
 	}
 }
 
+// RevisionDescribe verifies revision describe output for given service's revision
 func RevisionDescribe(r *KnRunResultCollector, serviceName string) {
 	revName := FindRevision(r, serviceName)
 
@@ -43,12 +45,14 @@ func RevisionDescribe(r *KnRunResultCollector, serviceName string) {
 	assert.Check(r.T(), util.ContainsAll(out.Stdout, revName, r.KnTest().Kn().Namespace(), serviceName, "++ Ready", "TARGET=kn"))
 }
 
+// RevisionDelete verifies deleting given revision in sync mode
 func RevisionDelete(r *KnRunResultCollector, revName string) {
 	out := r.KnTest().Kn().Run("revision", "delete", "--wait", revName)
 	assert.Check(r.T(), util.ContainsAll(out.Stdout, "Revision", revName, "deleted", "namespace", r.KnTest().Kn().Namespace()))
 	r.AssertNoError(out)
 }
 
+// RevisionMultipleDelete verifies deleting multiple revisions
 func RevisionMultipleDelete(r *KnRunResultCollector, existRevision1, existRevision2, nonexistRevision string) {
 	out := r.KnTest().Kn().Run("revision", "list")
 	r.AssertNoError(out)
@@ -63,6 +67,7 @@ func RevisionMultipleDelete(r *KnRunResultCollector, existRevision1, existRevisi
 	assert.Check(r.T(), util.ContainsAll(out.Stdout, "revisions.serving.knative.dev", nonexistRevision, "not found"), "Failed to get 'not found' error")
 }
 
+// RevisionDescribeWithPrintFlags verifies describing given revision using print flag '--output=name'
 func RevisionDescribeWithPrintFlags(r *KnRunResultCollector, revName string) {
 	out := r.KnTest().Kn().Run("revision", "describe", revName, "-o=name")
 	r.AssertNoError(out)
@@ -70,6 +75,7 @@ func RevisionDescribeWithPrintFlags(r *KnRunResultCollector, revName string) {
 	assert.Equal(r.T(), strings.TrimSpace(out.Stdout), expectedName)
 }
 
+// FindRevision returns a revision name (at index 0) for given service
 func FindRevision(r *KnRunResultCollector, serviceName string) string {
 	out := r.KnTest().Kn().Run("revision", "list", "-s", serviceName, "-o=jsonpath={.items[0].metadata.name}")
 	r.AssertNoError(out)
@@ -79,6 +85,7 @@ func FindRevision(r *KnRunResultCollector, serviceName string) string {
 	return out.Stdout
 }
 
+// FindRevisionByGeneration returns a revision name for given revision at given generation number
 func FindRevisionByGeneration(r *KnRunResultCollector, serviceName string, generation int) string {
 	maxGen := FindConfigurationGeneration(r, serviceName)
 	out := r.KnTest().Kn().Run("revision", "list", "-s", serviceName,
@@ -90,6 +97,7 @@ func FindRevisionByGeneration(r *KnRunResultCollector, serviceName string, gener
 	return out.Stdout
 }
 
+// FindConfigurationGeneration returns the configuration generation number of given service
 func FindConfigurationGeneration(r *KnRunResultCollector, serviceName string) int {
 	out := r.KnTest().Kn().Run("revision", "list", "-s", serviceName, "-o=jsonpath={.items[0].metadata.labels.serving\\.knative\\.dev/configurationGeneration}")
 	r.AssertNoError(out)
@@ -104,12 +112,14 @@ func FindConfigurationGeneration(r *KnRunResultCollector, serviceName string) in
 	return confGen
 }
 
+// RevisionListOutputName verifies listing given revision using print flag '--output name'
 func RevisionListOutputName(r *KnRunResultCollector, revisionName string) {
 	out := r.KnTest().Kn().Run("revision", "list", "--output", "name")
 	r.AssertNoError(out)
 	assert.Check(r.T(), util.ContainsAll(out.Stdout, revisionName, "revision.serving.knative.dev"))
 }
 
+// RevisionListWithService verifies listing revisions per service from each given service names
 func RevisionListWithService(r *KnRunResultCollector, serviceNames ...string) {
 	for _, svcName := range serviceNames {
 		confGen := FindConfigurationGeneration(r, svcName)

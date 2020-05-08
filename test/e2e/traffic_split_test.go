@@ -94,14 +94,14 @@ func TestTrafficSplit(t *testing.T) {
 			test.ServiceCreate(r, serviceName)
 
 			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
-			test.ServiceUpdateWithOptions(r, serviceName, "--env", "TARGET=v1", "--revision-name", rev1)
+			test.ServiceUpdate(r, serviceName, "--env", "TARGET=v1", "--revision-name", rev1)
 
 			rev2 := fmt.Sprintf("%s-rev-2", serviceName)
-			test.ServiceUpdateWithOptions(r, serviceName, "--env", "TARGET=v2", "--revision-name", rev2)
+			test.ServiceUpdate(r, serviceName, "--env", "TARGET=v2", "--revision-name", rev2)
 
 			tflags := []string{"--tag", fmt.Sprintf("%s=v1,%s=v2", rev1, rev2),
 				"--traffic", "v1=50,v2=50"}
-			test.ServiceUpdateWithOptions(r, serviceName, tflags...)
+			test.ServiceUpdate(r, serviceName, tflags...)
 
 			// make ordered fields per tflags (tag, revision, percent, latest)
 			expectedTargets := []TargetFields{newTargetFields("v1", rev1, 50, false), newTargetFields("v2", rev2, 50, false)}
@@ -119,12 +119,12 @@ func TestTrafficSplit(t *testing.T) {
 			test.ServiceCreate(r, serviceName)
 
 			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
-			test.ServiceUpdateWithOptions(r, serviceName, "--env", "TARGET=v1", "--revision-name", rev1)
+			test.ServiceUpdate(r, serviceName, "--env", "TARGET=v1", "--revision-name", rev1)
 
 			rev2 := fmt.Sprintf("%s-rev-2", serviceName)
-			test.ServiceUpdateWithOptions(r, serviceName, "--env", "TARGET=v2", "--revision-name", rev2)
+			test.ServiceUpdate(r, serviceName, "--env", "TARGET=v2", "--revision-name", rev2)
 
-			test.ServiceUpdateWithOptions(r, serviceName, "--traffic", fmt.Sprintf("%s=20,%s=80", rev1, rev2))
+			test.ServiceUpdate(r, serviceName, "--traffic", fmt.Sprintf("%s=20,%s=80", rev1, rev2))
 
 			expectedTargets := []TargetFields{newTargetFields("", rev1, 20, false), newTargetFields("", rev2, 80, false)}
 			verifyTargets(r, serviceName, expectedTargets)
@@ -142,10 +142,10 @@ func TestTrafficSplit(t *testing.T) {
 			serviceCreateWithOptions(r, serviceName, "--revision-name", rev1)
 
 			rev2 := fmt.Sprintf("%s-rev-2", serviceName)
-			test.ServiceUpdateWithOptions(r, serviceName, "--env", "TARGET=v1", "--revision-name", rev2)
+			test.ServiceUpdate(r, serviceName, "--env", "TARGET=v1", "--revision-name", rev2)
 
 			// no traffic, append new target with tag in traffic block
-			test.ServiceUpdateWithOptions(r, serviceName, "--tag", fmt.Sprintf("%s=%s", rev1, "candidate"))
+			test.ServiceUpdate(r, serviceName, "--tag", fmt.Sprintf("%s=%s", rev1, "candidate"))
 
 			expectedTargets := []TargetFields{newTargetFields("", rev2, 100, true), newTargetFields("candidate", rev1, 0, false)}
 			verifyTargets(r, serviceName, expectedTargets)
@@ -163,10 +163,10 @@ func TestTrafficSplit(t *testing.T) {
 			serviceCreateWithOptions(r, serviceName, "--revision-name", rev1)
 
 			rev2 := fmt.Sprintf("%s-rev-2", serviceName)
-			test.ServiceUpdateWithOptions(r, serviceName, "--env", "TARGET=v1", "--revision-name", rev2)
+			test.ServiceUpdate(r, serviceName, "--env", "TARGET=v1", "--revision-name", rev2)
 
 			// traffic by tag name and use % at the end
-			test.ServiceUpdateWithOptions(r, serviceName,
+			test.ServiceUpdate(r, serviceName,
 				"--tag", fmt.Sprintf("%s=%s", rev1, "candidate"),
 				"--traffic", "candidate=2%,@latest=98%")
 
@@ -187,17 +187,17 @@ func TestTrafficSplit(t *testing.T) {
 			serviceCreateWithOptions(r, serviceName, "--revision-name", rev1)
 
 			rev2 := fmt.Sprintf("%s-rev-2", serviceName)
-			test.ServiceUpdateWithOptions(r, serviceName, "--env", "TARGET=v2", "--revision-name", rev2)
+			test.ServiceUpdate(r, serviceName, "--env", "TARGET=v2", "--revision-name", rev2)
 
 			rev3 := fmt.Sprintf("%s-rev-3", serviceName)
-			test.ServiceUpdateWithOptions(r, serviceName, "--env", "TARGET=v3", "--revision-name", rev3) //note that this gives 100% traffic to latest revision (rev3)
+			test.ServiceUpdate(r, serviceName, "--env", "TARGET=v3", "--revision-name", rev3) //note that this gives 100% traffic to latest revision (rev3)
 
 			// make existing state: tag current and candidate exist in traffic block
-			test.ServiceUpdateWithOptions(r, serviceName, "--tag", fmt.Sprintf("%s=current,%s=candidate", rev1, rev2))
+			test.ServiceUpdate(r, serviceName, "--tag", fmt.Sprintf("%s=current,%s=candidate", rev1, rev2))
 
 			// desired state of tags: update tag of revision (rev2) from candidate to current (which is present on rev1)
 			//untag first to update
-			test.ServiceUpdateWithOptions(r, serviceName,
+			test.ServiceUpdate(r, serviceName,
 				"--untag", "current,candidate",
 				"--tag", fmt.Sprintf("%s=current", rev2))
 
@@ -219,10 +219,10 @@ func TestTrafficSplit(t *testing.T) {
 			serviceCreateWithOptions(r, serviceName, "--revision-name", rev1)
 
 			// make existing state: tag @latest as testing
-			test.ServiceUpdateWithOptions(r, serviceName, "--tag", "@latest=testing")
+			test.ServiceUpdate(r, serviceName, "--tag", "@latest=testing")
 
 			// desired state: change tag from testing to staging
-			test.ServiceUpdateWithOptions(r, serviceName, "--untag", "testing", "--tag", "@latest=staging")
+			test.ServiceUpdate(r, serviceName, "--untag", "testing", "--tag", "@latest=staging")
 
 			expectedTargets := []TargetFields{newTargetFields("staging", rev1, 100, true)}
 			verifyTargets(r, serviceName, expectedTargets)
@@ -240,13 +240,13 @@ func TestTrafficSplit(t *testing.T) {
 			serviceCreateWithOptions(r, serviceName, "--revision-name", rev1)
 
 			rev2 := fmt.Sprintf("%s-rev-2", serviceName)
-			test.ServiceUpdateWithOptions(r, serviceName, "--env", "TARGET=v2", "--revision-name", rev2)
+			test.ServiceUpdate(r, serviceName, "--env", "TARGET=v2", "--revision-name", rev2)
 
 			// make existing state: tag a revision as testing
-			test.ServiceUpdateWithOptions(r, serviceName, "--tag", fmt.Sprintf("%s=testing", rev1))
+			test.ServiceUpdate(r, serviceName, "--tag", fmt.Sprintf("%s=testing", rev1))
 
 			// desired state: change tag from testing to staging
-			test.ServiceUpdateWithOptions(r, serviceName, "--untag", "testing", "--tag", fmt.Sprintf("%s=staging", rev1))
+			test.ServiceUpdate(r, serviceName, "--untag", "testing", "--tag", fmt.Sprintf("%s=staging", rev1))
 
 			expectedTargets := []TargetFields{newTargetFields("", rev2, 100, true),
 				newTargetFields("staging", rev1, 0, false)}
@@ -266,15 +266,15 @@ func TestTrafficSplit(t *testing.T) {
 			serviceCreateWithOptions(r, serviceName, "--revision-name", rev1)
 
 			rev2 := fmt.Sprintf("%s-rev-2", serviceName)
-			test.ServiceUpdateWithOptions(r, serviceName, "--env", "TARGET=v2", "--revision-name", rev2)
+			test.ServiceUpdate(r, serviceName, "--env", "TARGET=v2", "--revision-name", rev2)
 
 			// existing state: traffic block having a revision with tag old and some traffic
-			test.ServiceUpdateWithOptions(r, serviceName,
+			test.ServiceUpdate(r, serviceName,
 				"--tag", fmt.Sprintf("%s=old", rev1),
 				"--traffic", "old=2,@latest=98")
 
 			// desired state: remove revision with tag old
-			test.ServiceUpdateWithOptions(r, serviceName, "--untag", "old", "--traffic", "@latest=100")
+			test.ServiceUpdate(r, serviceName, "--untag", "old", "--traffic", "@latest=100")
 
 			expectedTargets := []TargetFields{newTargetFields("", rev2, 100, true)}
 			verifyTargets(r, serviceName, expectedTargets)
@@ -292,10 +292,10 @@ func TestTrafficSplit(t *testing.T) {
 			serviceCreateWithOptions(r, serviceName, "--revision-name", rev1)
 
 			// existing state: traffic block having two targets
-			test.ServiceUpdateWithOptions(r, serviceName, "--env", "TARGET=v2")
+			test.ServiceUpdate(r, serviceName, "--env", "TARGET=v2")
 
 			// desired state: tag non-@latest revision with two tags and 50-50% traffic each
-			test.ServiceUpdateWithOptions(r, serviceName,
+			test.ServiceUpdate(r, serviceName,
 				"--tag", fmt.Sprintf("%s=stable,%s=current", rev1, rev1),
 				"--traffic", "stable=50%,current=50%")
 
@@ -315,13 +315,13 @@ func TestTrafficSplit(t *testing.T) {
 			serviceCreateWithOptions(r, serviceName, "--revision-name", rev1)
 
 			rev2 := fmt.Sprintf("%s-rev-2", serviceName)
-			test.ServiceUpdateWithOptions(r, serviceName, "--env", "TARGET=v2", "--revision-name", rev2)
+			test.ServiceUpdate(r, serviceName, "--env", "TARGET=v2", "--revision-name", rev2)
 
 			// existing state: latest ready revision not getting any traffic
-			test.ServiceUpdateWithOptions(r, serviceName, "--traffic", fmt.Sprintf("%s=100", rev1))
+			test.ServiceUpdate(r, serviceName, "--traffic", fmt.Sprintf("%s=100", rev1))
 
 			// desired state: revert traffic to latest ready revision
-			test.ServiceUpdateWithOptions(r, serviceName, "--traffic", "@latest=100")
+			test.ServiceUpdate(r, serviceName, "--traffic", "@latest=100")
 
 			expectedTargets := []TargetFields{newTargetFields("", rev2, 100, true)}
 			verifyTargets(r, serviceName, expectedTargets)
@@ -340,7 +340,7 @@ func TestTrafficSplit(t *testing.T) {
 			serviceCreateWithOptions(r, serviceName, "--revision-name", rev1)
 
 			// desired state: tag latest ready revision as 'current'
-			test.ServiceUpdateWithOptions(r, serviceName, "--tag", "@latest=current")
+			test.ServiceUpdate(r, serviceName, "--tag", "@latest=current")
 
 			expectedTargets := []TargetFields{newTargetFields("current", rev1, 100, true)}
 			verifyTargets(r, serviceName, expectedTargets)
@@ -358,16 +358,16 @@ func TestTrafficSplit(t *testing.T) {
 			serviceCreateWithOptions(r, serviceName, "--revision-name", rev1)
 
 			rev2 := fmt.Sprintf("%s-rev-2", serviceName)
-			test.ServiceUpdateWithOptions(r, serviceName, "--env", "TARGET=v2", "--revision-name", rev2)
+			test.ServiceUpdate(r, serviceName, "--env", "TARGET=v2", "--revision-name", rev2)
 
 			// existing state: two revision exists with traffic share and
 			// each revision has tag and traffic portions
-			test.ServiceUpdateWithOptions(r, serviceName,
+			test.ServiceUpdate(r, serviceName,
 				"--tag", fmt.Sprintf("@latest=current,%s=candidate", rev1),
 				"--traffic", "current=90,candidate=10")
 
 			// desired state: update tag for rev1 as testing (from candidate) with 100% traffic
-			test.ServiceUpdateWithOptions(r, serviceName,
+			test.ServiceUpdate(r, serviceName,
 				"--untag", "candidate", "--tag", fmt.Sprintf("%s=testing", rev1),
 				"--traffic", "testing=100")
 
@@ -388,13 +388,13 @@ func TestTrafficSplit(t *testing.T) {
 			serviceCreateWithOptions(r, serviceName, "--revision-name", rev1)
 
 			rev2 := fmt.Sprintf("%s-rev-2", serviceName)
-			test.ServiceUpdateWithOptions(r, serviceName, "--env", "TARGET=v2", "--revision-name", rev2)
+			test.ServiceUpdate(r, serviceName, "--env", "TARGET=v2", "--revision-name", rev2)
 
 			// existing state: a revision exist with latest tag
-			test.ServiceUpdateWithOptions(r, serviceName, "--tag", fmt.Sprintf("%s=latest", rev1))
+			test.ServiceUpdate(r, serviceName, "--tag", fmt.Sprintf("%s=latest", rev1))
 
 			// desired state of revision tags: rev1=old rev2=latest
-			test.ServiceUpdateWithOptions(r, serviceName,
+			test.ServiceUpdate(r, serviceName,
 				"--untag", "latest",
 				"--tag", fmt.Sprintf("%s=old,%s=latest", rev1, rev2))
 
