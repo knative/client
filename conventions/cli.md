@@ -49,7 +49,7 @@ Other domain-specific verbs are possible on a case-by-case basis for operations 
 
 For the `CRUD` operations `describe`, `create`, `update`, `delete` the identifier is the resource's name and is required as a positional argument after the commands.
 For example it is the last argument that does not start with a flag prefix `-` or `--`.
-`list` operations don't use a resource name.
+`list` operations can use a resource name to filter on the resource.
 
 Other identifiers can be plugin names or other entities' identifiers.
 
