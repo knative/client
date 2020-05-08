@@ -39,7 +39,7 @@ For CRUD (create-retrieve-update-delete) operation the following verbs have to b
 - `list` prints summary information about all resources of a type.
 - `create` creates a resource.
 - `update` updates a resource.
-- `delete` deletes a resource,
+- `delete` deletes a resource.
 
 For a given resource, create and update should use the same arguments as much as possible and where it makes sense.
 
