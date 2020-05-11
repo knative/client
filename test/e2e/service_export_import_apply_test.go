@@ -64,7 +64,7 @@ func TestServiceExport(t *testing.T) {
 	), "-o", "json")
 
 	t.Log("update service - add env variable")
-	serviceUpdateWithOptions(r, "hello", "--env", "a=mouse", "--revision-name", "rev2", "--no-lock-to-digest")
+	test.ServiceUpdate(r, "hello", "--env", "a=mouse", "--revision-name", "rev2", "--no-lock-to-digest")
 	serviceExport(r, "hello", getServiceWithOptions(
 		withServiceName("hello"),
 		withServiceRevisionName("hello-rev2"),
@@ -99,7 +99,7 @@ func TestServiceExport(t *testing.T) {
 	), getRevisionListWithOptions(), "--with-revisions", "--mode", "resources", "-o", "yaml")
 
 	t.Log("update service with tag and split traffic")
-	serviceUpdateWithOptions(r, "hello", "--tag", "hello-rev1=candidate", "--traffic", "candidate=2%,@latest=98%")
+	test.ServiceUpdate(r, "hello", "--tag", "hello-rev1=candidate", "--traffic", "candidate=2%,@latest=98%")
 
 	t.Log("export service-revision2 after tagging kubernetes-resources")
 	serviceExportWithServiceList(r, "hello", getServiceListWithOptions(
@@ -152,8 +152,8 @@ func TestServiceExport(t *testing.T) {
 	), "--with-revisions", "--mode", "resources", "-o", "yaml")
 
 	t.Log("update service - untag, add env variable, traffic split and system revision name")
-	serviceUpdateWithOptions(r, "hello", "--untag", "candidate")
-	serviceUpdateWithOptions(r, "hello", "--env", "b=cat", "--revision-name", "hello-rev3", "--traffic", "hello-rev1=30,hello-rev2=30,hello-rev3=40")
+	test.ServiceUpdate(r, "hello", "--untag", "candidate")
+	test.ServiceUpdate(r, "hello", "--env", "b=cat", "--revision-name", "hello-rev3", "--traffic", "hello-rev1=30,hello-rev2=30,hello-rev3=40")
 
 	t.Log("export service-revision3 with kubernetes-resources")
 	serviceExportWithServiceList(r, "hello", getServiceListWithOptions(
@@ -232,7 +232,7 @@ func TestServiceExport(t *testing.T) {
 	), "--with-revisions", "--mode", "resources", "-o", "yaml")
 
 	t.Log("send all traffic to revision 2")
-	serviceUpdateWithOptions(r, "hello", "--traffic", "hello-rev2=100")
+	test.ServiceUpdate(r, "hello", "--traffic", "hello-rev2=100")
 
 	t.Log("export kubernetes-resources - all traffic to revision 2")
 	serviceExportWithServiceList(r, "hello", getServiceListWithOptions(

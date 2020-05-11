@@ -39,8 +39,8 @@ func TestInjectBrokerTrigger(t *testing.T) {
 
 	assert.NilError(t, err)
 
-	serviceCreate(r, "sinksvc0")
-	serviceCreate(r, "sinksvc1")
+	test.ServiceCreate(r, "sinksvc0")
+	test.ServiceCreate(r, "sinksvc1")
 
 	t.Log("create triggers and list them")
 	triggerCreateWithInject(r, "trigger1", "sinksvc0", []string{"a=b"})

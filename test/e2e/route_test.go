@@ -40,7 +40,7 @@ func TestRoute(t *testing.T) {
 	defer r.DumpIfFailed()
 
 	t.Log("create hello service and return no error")
-	serviceCreate(r, "hello")
+	test.ServiceCreate(r, "hello")
 
 	t.Log("return a list of routes")
 	routeList(r)
@@ -61,7 +61,7 @@ func TestRoute(t *testing.T) {
 	routeDescribeWithPrintFlags(r, "hello")
 
 	t.Log("delete hello service and return no error")
-	serviceDelete(r, "hello")
+	test.ServiceDelete(r, "hello")
 }
 
 func routeList(r *test.KnRunResultCollector) {

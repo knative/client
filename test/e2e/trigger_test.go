@@ -44,8 +44,8 @@ func TestBrokerTrigger(t *testing.T) {
 	assert.NilError(t, err)
 	defer unlableNamespaceForDefaultBroker(t, it)
 
-	serviceCreate(r, "sinksvc0")
-	serviceCreate(r, "sinksvc1")
+	test.ServiceCreate(r, "sinksvc0")
+	test.ServiceCreate(r, "sinksvc1")
 
 	t.Log("create triggers and list them")
 	triggerCreate(r, "trigger1", "sinksvc0", []string{"a=b"})

@@ -41,7 +41,7 @@ func TestService(t *testing.T) {
 	defer r.DumpIfFailed()
 
 	t.Log("create hello service, delete, and try to create duplicate and get service already exists error")
-	serviceCreate(r, "hello")
+	test.ServiceCreate(r, "hello")
 	serviceCreatePrivate(r, "hello-private")
 	serviceCreateDuplicate(r, "hello-private")
 
@@ -49,11 +49,11 @@ func TestService(t *testing.T) {
 	serviceDescribeWithPrintFlags(r, "hello")
 
 	t.Log("delete hello service repeatedly and get an error")
-	serviceDelete(r, "hello")
+	test.ServiceDelete(r, "hello")
 	serviceDeleteNonexistent(r, "hello")
 
 	t.Log("delete two services with a service nonexistent")
-	serviceCreate(r, "hello")
+	test.ServiceCreate(r, "hello")
 	serviceMultipleDelete(r, "hello", "bla123")
 
 	t.Log("create service private and make public")

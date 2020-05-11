@@ -37,7 +37,7 @@ func TestSourceBinding(t *testing.T) {
 	r := test.NewKnRunResultCollector(t, it)
 	defer r.DumpIfFailed()
 
-	serviceCreate(r, "testsvc0")
+	test.ServiceCreate(r, "testsvc0")
 
 	t.Log("create source binding")
 	sourceBindingCreate(r, "my-binding0", "Deployment:apps/v1:myapp", "svc:testsvc0")
@@ -48,10 +48,10 @@ func TestSourceBinding(t *testing.T) {
 
 	t.Log("update source binding")
 	sourceBindingCreate(r, "my-binding1", "Deployment:apps/v1:myapp", "svc:testsvc0")
-	serviceCreate(r, "testsvc1")
+	test.ServiceCreate(r, "testsvc1")
 	sourceBindingUpdate(r, "my-binding1", "Deployment:apps/v1:myapp", "svc:testsvc1")
 	jpSinkRefNameInSpec := "jsonpath={.spec.sink.ref.name}"
-	out, err := getResourceFieldsWithJSONPath(t, it, "sinkbindings.sources.knative.dev", "my-binding1", jpSinkRefNameInSpec)
+	out, err := test.GetResourceFieldsWithJSONPath(t, it, "sinkbindings.sources.knative.dev", "my-binding1", jpSinkRefNameInSpec)
 	assert.NilError(t, err)
 	assert.Equal(t, out, "testsvc1")
 }
