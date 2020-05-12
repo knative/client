@@ -74,11 +74,15 @@ func TestNewPluginCommand(t *testing.T) {
 }
 
 func TestInAllowedExtensibleCommandGroups(t *testing.T) {
-	isExtensibleCommand := InAllowedExtensibleCommandGroups("fake")
-	assert.Assert(t, isExtensibleCommand == false)
+	t.Run("returns true for any string in CoreCommandNames", func(t *testing.T) {
+		assert.Assert(t, len(CoreCommandNames) > 0)
+		for _, cmdName := range CoreCommandNames {
+			assert.Assert(t, InAllowedExtensibleCommandGroups(cmdName) == true)
+		}
+	})
 
-	for _, name := range AllowedExtensibleCommandGroups {
-		isExtensibleCommand = InAllowedExtensibleCommandGroups(name)
-		assert.Assert(t, isExtensibleCommand == true)
-	}
+	t.Run("returns false for random string", func(t *testing.T) {
+		assert.Assert(t, len(CoreCommandNames) > 0)
+		assert.Assert(t, InAllowedExtensibleCommandGroups("fake-cmd") == false)
+	})
 }

@@ -53,16 +53,13 @@ func BindPluginsFlagToViper(cmd *cobra.Command) {
 	viper.SetDefault("lookup-plugins", false)
 }
 
-// AllowedExtensibleCommandGroups the list of command groups that can be
-// extended with plugins, e.g., a plugin named `kn-source-kafka` for Kafka
-// event sources is allowed. This is defined as a fixed [...]string since
-// cannot defined Golang []string constants
-var AllowedExtensibleCommandGroups = [...]string{"source"}
+// CoreCommandNames names of all core `kn` commands
+var CoreCommandNames = []string{}
 
 // InAllowedExtensibleCommandGroups checks that the name is in the list of allowed
 // extensible command groups
 func InAllowedExtensibleCommandGroups(name string) bool {
-	for _, groupName := range AllowedExtensibleCommandGroups {
+	for _, groupName := range CoreCommandNames {
 		if name == groupName {
 			return true
 		}

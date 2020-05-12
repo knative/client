@@ -78,18 +78,36 @@ func NewDefaultKnCommandWithArgs(rootCmd *cobra.Command,
 		cmdPathPieces := args[1:]
 		cmdPathPieces = removeKnPluginFlags(cmdPathPieces) // Plugin does not need these flags
 
+		// Return fast if -h or --help is in path pieces
+		if helpOptionsPresent(cmdPathPieces) {
+			return rootCmd
+		}
+
 		// only look for suitable extension executables if
 		// the specified command does not already exist
 		foundCmd, innerArgs, err := rootCmd.Find(cmdPathPieces)
-		if err != nil || plugin.InAllowedExtensibleCommandGroups(foundCmd.Name()) {
+		if err != nil {
 			err := plugin.HandlePluginCommand(pluginHandler, cmdPathPieces)
 			if err != nil {
 				fmt.Fprintf(rootCmd.OutOrStderr(), "Error: unknown command '%s' \nRun 'kn --help' for usage.\n", args[1])
 				os.Exit(1)
 			}
-		} else if foundCmd.HasSubCommands() {
-			if _, _, err := rootCmd.Find(innerArgs); err != nil {
-				fmt.Fprintf(rootCmd.OutOrStderr(), showSubcommands(foundCmd, cmdPathPieces, innerArgs[0]))
+		}
+
+		// look for case of plugins with command that shadows existing command
+		if foundCmd.HasSubCommands() && len(innerArgs) > 0 {
+			cmdName := innerArgs[0]
+			for _, subcommand := range foundCmd.Commands() {
+				if subcommand.Name() == cmdName {
+					fmt.Fprintf(rootCmd.OutOrStderr(), fmt.Sprintf("Error: subcommand '%s' for '%s' already exists.\nRun 'kn --help' for usage.\n", cmdName, foundCmd.Name()))
+					os.Exit(1)
+				}
+			}
+
+			// try to handle a plugin for a command extending a core comand group
+			err = plugin.HandlePluginCommand(pluginHandler, cmdPathPieces)
+			if err != nil {
+				fmt.Fprintf(rootCmd.OutOrStderr(), "Error: unknown command '%s' \nRun 'kn --help' for usage.\n", args[1])
 				os.Exit(1)
 			}
 		}
@@ -174,6 +192,11 @@ func NewKnCommand(params ...commands.KnParams) *cobra.Command {
 
 	// For glog parse error.
 	flag.CommandLine.Parse([]string{})
+
+	// Set all current core commands to plugin.CoreCommandNames
+	for _, cmd := range rootCmd.Commands() {
+		plugin.CoreCommandNames = append(plugin.CoreCommandNames, cmd.Name())
+	}
 
 	return rootCmd
 }
@@ -340,7 +363,9 @@ func removeKnPluginFlags(args []string) []string {
 		if arg == "--plugins-dir" ||
 			strings.HasPrefix(arg, "--plugins-dir=") ||
 			arg == "--lookup-plugins" ||
-			strings.HasPrefix(arg, "--lookup-plugins=") {
+			strings.HasPrefix(arg, "--lookup-plugins=") ||
+			// remove -test.* args which are added when running go test
+			strings.HasPrefix(arg, "-test.") {
 			continue
 		} else {
 			remainingArgs = append(remainingArgs, arg)
@@ -372,4 +397,13 @@ func showSubcommands(cmd *cobra.Command, args []string, innerArg string) string 
 		strs = append(strs, subcmd.Name())
 	}
 	return fmt.Sprintf("Error: unknown subcommand '%s' for '%s'. Available subcommands: %s\nRun 'kn --help' for usage.\n", innerArg, getCommands(args, innerArg), strings.Join(strs, ", "))
+}
+
+func helpOptionsPresent(args []string) bool {
+	for _, arg := range args {
+		if arg == "-h" || arg == "--help" {
+			return true
+		}
+	}
+	return false
 }
