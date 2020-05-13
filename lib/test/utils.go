@@ -14,7 +14,17 @@
 
 package test
 
-import "testing"
+import (
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"testing"
+)
+
+const (
+	FileModeReadWrite  = 0666
+	FileModeExecutable = 0777
+)
 
 // GetResourceFieldsWithJSONPath returns output of given JSON path for given resource using kubectl and error if any
 func GetResourceFieldsWithJSONPath(t *testing.T, it *KnTest, resource, name, jsonpath string) (string, error) {
@@ -24,4 +34,11 @@ func GetResourceFieldsWithJSONPath(t *testing.T, it *KnTest, resource, name, jso
 	}
 
 	return out, nil
+}
+
+// CreateFile creates a file with given name, content, path, fileMode and returns absolute filepath and error if any
+func CreateFile(fileName, fileContent, filePath string, fileMode os.FileMode) (string, error) {
+	file := filepath.Join(filePath, fileName)
+	err := ioutil.WriteFile(file, []byte(fileContent), fileMode)
+	return file, err
 }
