@@ -58,6 +58,12 @@ func TestService(t *testing.T) {
 
 	t.Log("create service private and make public")
 	serviceCreatePrivateUpdatePublic(r, "hello-private-public")
+
+	t.Log("delete all services in a namespace")
+	test.ServiceCreate(r, "svc1")
+	test.ServiceCreate(r, "service2")
+	test.ServiceCreate(r, "ksvc3")
+	serviceDeleteAll(r, "svc1", "service2", "ksvc3")
 }
 
 func serviceCreatePrivate(r *test.KnRunResultCollector, serviceName string) {
@@ -132,4 +138,20 @@ func serviceMultipleDelete(r *test.KnRunResultCollector, existService, nonexistS
 	expectedErr := fmt.Sprintf(`services.serving.knative.dev "%s" not found`, nonexistService)
 	assert.Check(r.T(), strings.Contains(out.Stdout, expectedSuccess), "Failed to get 'successfully deleted' message")
 	assert.Check(r.T(), strings.Contains(out.Stdout, expectedErr), "Failed to get 'not found' error")
+}
+
+func serviceDeleteAll(r *test.KnRunResultCollector, service1 string, service2 string, service3 string) {
+	out := r.KnTest().Kn().Run("service", "list")
+	r.AssertNoError(out)
+	assert.Check(r.T(), strings.Contains(out.Stdout, service1), "The service ", service1, " does not exist (but is expected to exist)")
+	assert.Check(r.T(), strings.Contains(out.Stdout, service2), "The service ", service2, " does not exist (but is expected to exist)")
+	assert.Check(r.T(), strings.Contains(out.Stdout, service3), "The service ", service3, " does not exist (but is expected to exist)")
+
+	out = r.KnTest().Kn().Run("service", "delete", "--all")
+	r.AssertNoError(out)
+
+	namespace := r.KnTest().Kn().Namespace()
+	expectedSuccess := fmt.Sprintf("Service '%s' successfully deleted in namespace '%s'.\nService '%s' successfully deleted in namespace '%s'.\nService '%s' successfully deleted in namespace '%s'.\n",
+		service3, namespace, service2, namespace, service1, namespace)
+	assert.Check(r.T(), strings.Contains(out.Stdout, expectedSuccess), "Failed to get 'successfully deleted' message")
 }

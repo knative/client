@@ -16,6 +16,10 @@
 |===
 | | Description | PR
 
+| 🎁
+| Add kn service delete --all
+| https://github.com/knative/client/pull/836[#836]
+
 | 🐛
 | Skip LatestReadyRevisionName if Revision is Pending or Unknown
 | https://github.com/knative/client/pull/825[#825]

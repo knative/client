@@ -22,6 +22,7 @@ import (
 	clientservingv1 "knative.dev/client/pkg/serving/v1"
 	"knative.dev/client/pkg/util"
 	"knative.dev/client/pkg/util/mock"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
 func TestServiceDeleteMock(t *testing.T) {
@@ -73,6 +74,56 @@ func TestMultipleServiceDeleteMock(t *testing.T) {
 	output, err := executeServiceCommand(client, "delete", "foo", "bar", "baz")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "deleted", "foo", "bar", "baz", "default"))
+
+	r.Validate()
+}
+
+func TestServiceDeleteAllMock(t *testing.T) {
+	// New mock client
+	client := clientservingv1.NewMockKnServiceClient(t)
+
+	// Recording:
+	r := client.Recorder()
+
+	// Wait for delete event
+	r.DeleteService("foo", mock.Any(), nil)
+	r.DeleteService("bar", mock.Any(), nil)
+	r.DeleteService("baz", mock.Any(), nil)
+
+	service1 := createMockServiceWithParams("foo", "default", "http://foo.default.example.com", "foo-xyz")
+	service2 := createMockServiceWithParams("bar", "default", "http://bar.default.example.com", "bar-xyz")
+	service3 := createMockServiceWithParams("baz", "default", "http://baz.default.example.com", "baz-xyz")
+	serviceList := &servingv1.ServiceList{Items: []servingv1.Service{*service1, *service2, *service3}}
+	r.ListServices(mock.Any(), serviceList, nil)
+
+	output, err := executeServiceCommand(client, "delete", "--all")
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(output, "deleted", "foo", "bar", "baz", "default"))
+
+	r.Validate()
+}
+
+func TestServiceDeleteAllErrorFromArgMock(t *testing.T) {
+	// New mock client
+	client := clientservingv1.NewMockKnServiceClient(t)
+
+	_, err := executeServiceCommand(client, "delete", "foo", "--all")
+	assert.Error(t, err, "'service delete' with --all flag requires no arguments")
+}
+
+func TestServiceDeleteAllNoServicesMock(t *testing.T) {
+	// New mock client
+	client := clientservingv1.NewMockKnServiceClient(t)
+
+	// Recording:
+	r := client.Recorder()
+
+	serviceList := &servingv1.ServiceList{Items: []servingv1.Service{}}
+	r.ListServices(mock.Any(), serviceList, nil)
+
+	output, err := executeServiceCommand(client, "delete", "--all")
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(output, "No", "services", "found"))
 
 	r.Validate()
 }
