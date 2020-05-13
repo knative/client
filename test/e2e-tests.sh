@@ -52,7 +52,6 @@ run() {
 integration_test() {
   header "Running tests for Knative Serving $KNATIVE_SERVING_VERSION and Eventing $KNATIVE_EVENTING_VERSION"
 
-  kubectl create namespace kne2etests0
   go_test_e2e -timeout=45m ./test/e2e || fail_test
 }
 
