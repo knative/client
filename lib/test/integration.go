@@ -46,13 +46,22 @@ type KnTest struct {
 
 // NewKnTest creates a new KnTest object
 func NewKnTest() (*KnTest, error) {
-	ns := NextNamespace()
-
-	err := CreateNamespace(ns)
-	if err != nil {
-		return nil, err
+	ns := ""
+	// try next 20 namespace before giving up creating a namespace if it already exists
+	for i := 0; i < 20; i++ {
+		ns = NextNamespace()
+		err := CreateNamespace(ns)
+		if err == nil {
+			break
+		}
+		if strings.Contains(err.Error(), "AlreadyExists") {
+			continue
+		} else {
+			return nil, err
+		}
 	}
-	err = WaitForNamespaceCreated(ns)
+
+	err := WaitForNamespaceCreated(ns)
 	if err != nil {
 		return nil, err
 	}
