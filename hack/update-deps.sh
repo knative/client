@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-readonly ROOT_DIR=$(dirname $0)/..
-source ${ROOT_DIR}/vendor/knative.dev/test-infra/scripts/library.sh
+readonly ROOT_DIR="$(dirname "${BASH_SOURCE[0]}")/.."
+source ${ROOT_DIR}/scripts/test-infra/library.sh
 
 set -o errexit
 set -o nounset
@@ -28,7 +28,6 @@ VERSION="master"
 # The list of dependencies that we track at HEAD and periodically
 # float forward in this repository.
 FLOATING_DEPS=(
-  "knative.dev/test-infra"
   "knative.dev/pkg@${VERSION}"
   "knative.dev/serving@${VERSION}"
   "knative.dev/eventing@${VERSION}"
@@ -48,9 +47,19 @@ readonly GO_GET
 
 if (( GO_GET )); then
   go get -d ${FLOATING_DEPS[@]}
+
+  # Update test-infra
+  # TODO(coryrc): move this to a file in knative/test-infra/scripts
+  git remote add test-infra https://github.com/knative/test-infra.git || true
+  git fetch test-infra master
+  mkdir -p scripts/test-infra
+  # In order, put into the subdirectory scripts/test-infra from remote "test-infra", branch "master", pulling just tree rooted at "scripts" from there
+  git read-tree --prefix=scripts/test-infra -u test-infra/master:scripts
+
 fi
 
 
 # Prune modules.
 go mod tidy
 go mod vendor
+
