@@ -94,8 +94,8 @@ func TestServiceListDefaultOutputMock(t *testing.T) {
 	r := client.Recorder()
 
 	service1 := createMockServiceWithParams("foo", "default", "http://foo.default.example.com", "foo-xyz")
-	service3 := createMockServiceWithParams("sss", "default", "http://sss.default.example.com", "sss-xyz")
 	service2 := createMockServiceWithParams("bar", "default", "http://bar.default.example.com", "bar-xyz")
+	service3 := createMockServiceWithParams("sss", "default", "http://sss.default.example.com", "sss-xyz")
 	serviceList := &servingv1.ServiceList{Items: []servingv1.Service{*service1, *service2, *service3}}
 	r.ListServices(mock.Any(), serviceList, nil)
 
