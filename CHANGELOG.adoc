@@ -24,6 +24,8 @@
 | Skip LatestReadyRevisionName if Revision is Pending or Unknown
 | https://github.com/knative/client/pull/825[#825]
 
+|===
+
 ## v0.14.0 (2020-04-21)
 
 [cols="1,10,3", options="header", width="100%"]
