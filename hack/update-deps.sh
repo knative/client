@@ -52,10 +52,12 @@ if (( GO_GET )); then
   # TODO(coryrc): move this to a file in knative/test-infra/scripts
   git remote add test-infra https://github.com/knative/test-infra.git || true
   git fetch test-infra master
-  mkdir -p scripts/test-infra
-  # In order, put into the subdirectory scripts/test-infra from remote "test-infra", branch "master", pulling just tree rooted at "scripts" from there
+  # First-time setup:
+  #  mkdir -p scripts/test-infra
+  #  git read-tree --prefix=scripts/test-infra -u test-infra/master:scripts
+  # Each update:
+  git rm -fr scripts/test-infra
   git read-tree --prefix=scripts/test-infra -u test-infra/master:scripts
-
 fi
 
 
