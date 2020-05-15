@@ -7,23 +7,23 @@ require (
 	github.com/google/go-containerregistry v0.0.0-20200413145205-82d30a103c0a // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/openzipkin/zipkin-go v0.2.2 // indirect
-	github.com/pkg/errors v0.8.1
+	github.com/pkg/errors v0.9.1
 	github.com/robfig/cron v1.2.0 // indirect
-	github.com/spf13/cobra v0.0.5
+	github.com/spf13/cobra v0.0.6
 	github.com/spf13/pflag v1.0.5
-	github.com/spf13/viper v1.4.0
-	golang.org/x/crypto v0.0.0-20200220183623-bac4c82f6975
+	github.com/spf13/viper v1.6.2
+	golang.org/x/crypto v0.0.0-20200302210943-78000ba7a073
 	gomodules.xyz/jsonpatch/v2 v2.1.0 // indirect
 	gotest.tools v2.2.0+incompatible
 	k8s.io/api v0.17.4
 	k8s.io/apimachinery v0.17.4
-	k8s.io/cli-runtime v0.17.0
-	k8s.io/client-go v0.17.4
+	k8s.io/cli-runtime v0.17.3
+	k8s.io/client-go v11.0.1-0.20190805182717-6502b5e7b1b5+incompatible
 	knative.dev/eventing v0.14.1
-	knative.dev/pkg v0.0.0-20200414233146-0eed424fa4ee
+	knative.dev/pkg v0.0.0-20200514052058-c75d324f8b8b
 	knative.dev/serving v0.14.0
-	knative.dev/test-infra v0.0.0-20200413202711-9cf64fb1b912
-	sigs.k8s.io/yaml v1.1.0
+	knative.dev/test-infra v0.0.0-20200514223200-ef4fd3ad398f
+	sigs.k8s.io/yaml v1.2.0
 )
 
 // Temporary pinning certain libraries. Please check periodically, whether these are still needed
