@@ -25,6 +25,7 @@ kn completion [SHELL] [flags]
 
  # Generate completion code for zsh
  source <(kn completion zsh)
+ compdef _kn kn
 ```
 
 ### Options
