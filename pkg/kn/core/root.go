@@ -403,7 +403,7 @@ func showSubcommands(cmd *cobra.Command, args []string, innerArg string) string 
 	for _, subcmd := range cmd.Commands() {
 		strs = append(strs, subcmd.Name())
 	}
-	return fmt.Sprintf("Error: unknown subcommand '%s' for '%s'. Available subcommands: %s\nRun 'kn --help' for usage.\n", innerArg, getCommands(args, innerArg), strings.Join(strs, ", "))
+	return fmt.Sprintf("Error: unknown subcommand '%s' for '%s'.\nAvailable subcommands: %s\nRun 'kn --help' for usage.\n", innerArg, getCommands(args, innerArg), strings.Join(strs, ", "))
 }
 
 func helpOptionsPresent(args []string) bool {
