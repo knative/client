@@ -36,7 +36,8 @@ Supported Shells:
  source <(kn completion bash)
 
  # Generate completion code for zsh
- source <(kn completion zsh)`
+ source <(kn completion zsh)
+ compdef _kn kn`
 )
 
 // NewCompletionCommand implements shell auto-completion feature for Bash and Zsh
