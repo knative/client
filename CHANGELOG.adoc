@@ -16,6 +16,10 @@
 |===
 | | Description | PR
 
+| 🐛
+| Fix Panic for kn source ping describe with Sink URI
+| https://github.com/knative/client/pull/848[#848]
+
 | 🎁
 | Add kn service delete --all
 | https://github.com/knative/client/pull/836[#836]
