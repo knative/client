@@ -55,14 +55,3 @@ func BindPluginsFlagToViper(cmd *cobra.Command) {
 
 // CoreCommandNames names of all core `kn` commands
 var CoreCommandNames = []string{}
-
-// InAllowedExtensibleCommandGroups checks that the name is in the list of allowed
-// extensible command groups
-func InAllowedExtensibleCommandGroups(name string) bool {
-	for _, groupName := range CoreCommandNames {
-		if name == groupName {
-			return true
-		}
-	}
-	return false
-}

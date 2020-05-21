@@ -13,6 +13,8 @@
 // limitations under the License.
 
 // +build e2e
+// +build !eventing
+// +build !serving
 
 package e2e
 
@@ -35,9 +37,6 @@ const (
 echo "Hello Knative, I'm a Kn plugin"
 echo "  My plugin file is $0"
 echo "  I received arguments: $1 $2 $3 $4"`
-
-	FileModeReadWrite  = 0666
-	FileModeExecutable = 0777
 )
 
 type pluginTestConfig struct {
@@ -53,27 +52,27 @@ func (pc *pluginTestConfig) setup() error {
 	}
 
 	pc.knPluginsDir = filepath.Join(pc.knConfigDir, "plugins")
-	err = os.MkdirAll(pc.knPluginsDir, FileModeExecutable)
+	err = os.MkdirAll(pc.knPluginsDir, test.FileModeExecutable)
 	if err != nil {
 		return err
 	}
 
 	pc.knPluginsDir2 = filepath.Join(pc.knConfigDir, "plugins2")
-	err = os.MkdirAll(pc.knPluginsDir2, FileModeExecutable)
+	err = os.MkdirAll(pc.knPluginsDir2, test.FileModeExecutable)
 	if err != nil {
 		return err
 	}
 
-	pc.knConfigPath, err = createPluginFile("config.yaml", "", pc.knConfigDir, FileModeReadWrite)
+	pc.knConfigPath, err = test.CreateFile("config.yaml", "", pc.knConfigDir, test.FileModeReadWrite)
 	if err != nil {
 		return err
 	}
 
-	pc.knPluginPath, err = createPluginFile("kn-helloe2e", TestPluginCode, pc.knPluginsDir, FileModeExecutable)
+	pc.knPluginPath, err = test.CreateFile("kn-helloe2e", TestPluginCode, pc.knPluginsDir, test.FileModeExecutable)
 	if err != nil {
 		return err
 	}
-	pc.knPluginPath2, err = createPluginFile("kn-hello2e2e", TestPluginCode, pc.knPluginsDir2, FileModeExecutable)
+	pc.knPluginPath2, err = test.CreateFile("kn-hello2e2e", TestPluginCode, pc.knPluginsDir2, test.FileModeExecutable)
 	if err != nil {
 		return err
 	}

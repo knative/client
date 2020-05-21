@@ -22,6 +22,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"knative.dev/client/pkg/kn/commands"
+	clientservingv1 "knative.dev/client/pkg/serving/v1"
 )
 
 // NewServiceDeleteCommand represent 'service delete' command
@@ -36,11 +37,24 @@ func NewServiceDeleteCommand(p *commands.KnParams) *cobra.Command {
   kn service delete svc1
 
   # Delete a service 'svc2' in 'ns1' namespace
-  kn service delete svc2 -n ns1`,
+  kn service delete svc2 -n ns1
+
+  # Delete all services in 'ns1' namespace
+  kn service delete --all -n ns1`,
 
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if len(args) < 1 {
+			all, err := cmd.Flags().GetBool("all")
+			if err != nil {
+				return err
+			}
+			argsLen := len(args)
+
+			if argsLen < 1 && !all {
 				return errors.New("'service delete' requires the service name(s)")
+			}
+
+			if argsLen > 0 && all {
+				return errors.New("'service delete' with --all flag requires no arguments")
 			}
 
 			namespace, err := p.GetNamespace(cmd)
@@ -51,6 +65,18 @@ func NewServiceDeleteCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
+
+			if all {
+				args, err = getServiceNames(client)
+				if err != nil {
+					return err
+				}
+				if len(args) == 0 {
+					fmt.Fprintf(cmd.OutOrStdout(), "No services found.\n")
+					return nil
+				}
+			}
+
 			for _, name := range args {
 				timeout := time.Duration(0)
 				if waitFlags.Wait {
@@ -66,7 +92,21 @@ func NewServiceDeleteCommand(p *commands.KnParams) *cobra.Command {
 			return nil
 		},
 	}
+	flags := serviceDeleteCommand.Flags()
+	flags.Bool("all", false, "Delete all services in a namespace.")
 	commands.AddNamespaceFlags(serviceDeleteCommand.Flags(), false)
 	waitFlags.AddConditionWaitFlags(serviceDeleteCommand, commands.WaitDefaultTimeout, "delete", "service", "deleted")
 	return serviceDeleteCommand
+}
+
+func getServiceNames(client clientservingv1.KnServingClient) ([]string, error) {
+	serviceList, err := client.ListServices()
+	if err != nil {
+		return []string{}, err
+	}
+	serviceNames := []string{}
+	for _, service := range serviceList.Items {
+		serviceNames = append(serviceNames, service.Name)
+	}
+	return serviceNames, nil
 }

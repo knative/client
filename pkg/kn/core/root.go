@@ -99,7 +99,7 @@ func NewDefaultKnCommandWithArgs(rootCmd *cobra.Command,
 			cmdName := innerArgs[0]
 			for _, subcommand := range foundCmd.Commands() {
 				if subcommand.Name() == cmdName {
-					fmt.Fprintf(rootCmd.OutOrStderr(), fmt.Sprintf("Error: subcommand '%s' for '%s' already exists.\nRun 'kn --help' for usage.\n", cmdName, foundCmd.Name()))
+					fmt.Fprintf(rootCmd.OutOrStderr(), fmt.Sprintf("Error: sub-command '%s' for '%s' already exists.\nRun 'kn --help' for usage.\n", cmdName, foundCmd.Name()))
 					os.Exit(1)
 				}
 			}
@@ -107,7 +107,7 @@ func NewDefaultKnCommandWithArgs(rootCmd *cobra.Command,
 			// try to handle a plugin for a command extending a core comand group
 			err = plugin.HandlePluginCommand(pluginHandler, cmdPathPieces)
 			if err != nil {
-				fmt.Fprintf(rootCmd.OutOrStderr(), "Error: unknown command '%s' \nRun 'kn --help' for usage.\n", args[1])
+				fmt.Fprintf(rootCmd.OutOrStderr(), "Error: unknown sub-command '%s' for command '%s'\nRun 'kn --help' for usage.\n", cmdName, foundCmd.Name())
 				os.Exit(1)
 			}
 		}

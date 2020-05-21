@@ -78,7 +78,7 @@ func TestWrongCommand(t *testing.T) {
 	defer r.DumpIfFailed()
 
 	out := test.Kn{}.Run("source", "apiserver", "noverb", "--tag=0.13")
-	assert.Check(t, util.ContainsAll(out.Stderr, "Error", "unknown subcommand", "noverb"))
+	assert.Check(t, util.ContainsAll(out.Stderr, "Error", "unknown sub-command", "noverb"))
 	r.AssertError(out)
 
 	out = test.Kn{}.Run("rev")

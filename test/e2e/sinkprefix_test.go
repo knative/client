@@ -47,7 +47,7 @@ func (tc *sinkprefixTestConfig) setup() error {
 	if err != nil {
 		return err
 	}
-	tc.knConfigPath, err = createPluginFile("config.yaml", KnConfigContent, tc.knConfigDir, FileModeReadWrite)
+	tc.knConfigPath, err = test.CreateFile("config.yaml", KnConfigContent, tc.knConfigDir, test.FileModeReadWrite)
 	if err != nil {
 		return err
 	}

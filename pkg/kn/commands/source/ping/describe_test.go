@@ -25,21 +25,33 @@ import (
 
 	clientv1alpha2 "knative.dev/client/pkg/sources/v1alpha2"
 	"knative.dev/client/pkg/util"
+	"knative.dev/pkg/apis"
 )
 
-func TestSimpleDescribe(t *testing.T) {
+func TestDescribeRef(t *testing.T) {
 	pingClient := clientv1alpha2.NewMockKnPingSourceClient(t, "mynamespace")
 
 	pingRecorder := pingClient.Recorder()
-	pingRecorder.GetPingSource("testsource", getPingSource(), nil)
+	pingRecorder.GetPingSource("testsource-ref", getPingSourceSinkRef(), nil)
 
-	out, err := executePingSourceCommand(pingClient, nil, "describe", "testsource")
+	out, err := executePingSourceCommand(pingClient, nil, "describe", "testsource-ref")
 	assert.NilError(t, err)
-	util.ContainsAll(out, "1 2 3 4 5", "honeymoon", "myservicenamespace", "mysvc", "Service", "testsource")
-	util.ContainsAll(out, "myaccount", "100m", "128Mi", "200m", "256Mi")
+	assert.Assert(t, util.ContainsAll(out, "1 2 3 4 5", "honeymoon", "myservicenamespace", "mysvc", "Service", "testsource-ref"))
 
 	pingRecorder.Validate()
+}
 
+func TestDescribeURI(t *testing.T) {
+	pingClient := clientv1alpha2.NewMockKnPingSourceClient(t, "mynamespace")
+
+	pingRecorder := pingClient.Recorder()
+	pingRecorder.GetPingSource("testsource-uri", getPingSourceSinkURI(), nil)
+
+	out, err := executePingSourceCommand(pingClient, nil, "describe", "testsource-uri")
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(out, "mynamespace", "1 2 3 4 5", "honeymoon", "URI", "https", "foo", "testsource-uri"))
+
+	pingRecorder.Validate()
 }
 
 func TestDescribeError(t *testing.T) {
@@ -50,17 +62,17 @@ func TestDescribeError(t *testing.T) {
 
 	out, err := executePingSourceCommand(pingClient, nil, "describe", "testsource")
 	assert.ErrorContains(t, err, "testsource")
-	util.ContainsAll(out, "Usage", "testsource")
+	assert.Assert(t, util.ContainsAll(out, "Usage", "testsource"))
 
 	pingRecorder.Validate()
 
 }
 
-func getPingSource() *v1alpha2.PingSource {
+func getPingSourceSinkRef() *v1alpha2.PingSource {
 	return &v1alpha2.PingSource{
 		TypeMeta: metav1.TypeMeta{},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "testsource",
+			Name: "testsource-ref",
 		},
 		Spec: v1alpha2.PingSourceSpec{
 			Schedule: "1 2 3 4 5",
@@ -71,6 +83,29 @@ func getPingSource() *v1alpha2.PingSource {
 						Kind:      "Service",
 						Namespace: "myservicenamespace",
 						Name:      "mysvc",
+					},
+				},
+			},
+		},
+		Status: v1alpha2.PingSourceStatus{},
+	}
+}
+
+func getPingSourceSinkURI() *v1alpha2.PingSource {
+	return &v1alpha2.PingSource{
+		TypeMeta: metav1.TypeMeta{},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "testsource-uri",
+			Namespace: "mynamespace",
+		},
+		Spec: v1alpha2.PingSourceSpec{
+			Schedule: "1 2 3 4 5",
+			JsonData: "honeymoon",
+			SourceSpec: duckv1.SourceSpec{
+				Sink: duckv1.Destination{
+					URI: &apis.URL{
+						Scheme: "https",
+						Host:   "foo",
 					},
 				},
 			},

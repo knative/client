@@ -19,11 +19,15 @@ kn service delete NAME [flags]
 
   # Delete a service 'svc2' in 'ns1' namespace
   kn service delete svc2 -n ns1
+
+  # Delete all services in 'ns1' namespace
+  kn service delete --all -n ns1
 ```
 
 ### Options
 
 ```
+      --all                Delete all services in a namespace.
       --async              DEPRECATED: please use --no-wait instead. Do not wait for 'service delete' operation to be completed. (default true)
   -h, --help               help for delete
   -n, --namespace string   Specify the namespace to operate in.

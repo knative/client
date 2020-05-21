@@ -72,17 +72,3 @@ func TestNewPluginCommand(t *testing.T) {
 		assert.Assert(t, pluginCmd.Args == nil)
 	})
 }
-
-func TestInAllowedExtensibleCommandGroups(t *testing.T) {
-	t.Run("returns true for any string in CoreCommandNames", func(t *testing.T) {
-		assert.Assert(t, len(CoreCommandNames) > 0)
-		for _, cmdName := range CoreCommandNames {
-			assert.Assert(t, InAllowedExtensibleCommandGroups(cmdName) == true)
-		}
-	})
-
-	t.Run("returns false for random string", func(t *testing.T) {
-		assert.Assert(t, len(CoreCommandNames) > 0)
-		assert.Assert(t, InAllowedExtensibleCommandGroups("fake-cmd") == false)
-	})
-}
