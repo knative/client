@@ -30,7 +30,7 @@ func TestNewDefaultKnCommand(t *testing.T) {
 	var rootCmd *cobra.Command
 
 	setup := func(t *testing.T) {
-		rootCmd = NewDefaultKnCommand()
+		rootCmd, _ = NewDefaultKnCommand()
 	}
 
 	t.Run("returns a valid root command", func(t *testing.T) {
@@ -48,7 +48,7 @@ func TestNewDefaultKnCommandWithArgs(t *testing.T) {
 	)
 
 	setup := func(t *testing.T) {
-		rootCmd = NewDefaultKnCommandWithArgs(NewKnCommand(), pluginHandler, args, os.Stdin, os.Stdout, os.Stderr)
+		rootCmd, _ = NewDefaultKnCommandWithArgs(NewKnCommand(), pluginHandler, args, os.Stdin, os.Stdout, os.Stderr)
 	}
 
 	t.Run("when pluginHandler is nil", func(t *testing.T) {

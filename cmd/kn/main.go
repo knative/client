@@ -33,8 +33,13 @@ var err error
 func main() {
 	defer cleanup()
 	rand.Seed(time.Now().UnixNano())
-	err = core.NewDefaultKnCommand().Execute()
+	kn, err := core.NewDefaultKnCommand()
 	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+
+	if err := kn.Execute(); err != nil {
 		if err.Error() != "subcommand is required" {
 			fmt.Fprintln(os.Stderr, err)
 		}
