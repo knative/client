@@ -22,7 +22,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/pkg/errors"
 	"gotest.tools/assert"
 
 	"knative.dev/client/lib/test"
@@ -130,19 +129,19 @@ func tearDownForSourceAPIServer(t *testing.T, it *test.KnTest) error {
 	saCmd := []string{"delete", "serviceaccount", testServiceAccount}
 	_, err := test.NewKubectl(it.Kn().Namespace()).Run(saCmd...)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Error executing '%s'", strings.Join(saCmd, " ")))
+		return fmt.Errorf("Error executing %q: %w", strings.Join(saCmd, " "), err)
 	}
 
 	crCmd := []string{"delete", "clusterrole", clusterRolePrefix + it.Kn().Namespace()}
 	_, err = test.Kubectl{}.Run(crCmd...)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Error executing '%s'", strings.Join(saCmd, " ")))
+		return fmt.Errorf("Error executing %q: %w", strings.Join(saCmd, " "), err)
 	}
 
 	crbCmd := []string{"delete", "clusterrolebinding", clusterRoleBindingPrefix + it.Kn().Namespace()}
 	_, err = test.Kubectl{}.Run(crbCmd...)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Error executing '%s'", strings.Join(saCmd, " ")))
+		return fmt.Errorf("Error executing %q: %w", strings.Join(saCmd, " "), err)
 	}
 	return nil
 }
