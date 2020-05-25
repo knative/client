@@ -225,6 +225,9 @@ func UpdateRevisionTemplateAnnotation(template *servingv1.RevisionTemplateSpec, 
 	// without changing the existing spec
 	in := make(map[string]string)
 	in[annotation] = value
+	// The boolean indicates whether or not the init-scale annotation can be set to 0.
+	// Since we don't have the config handy, err towards allowing it. The API will
+	// correctly fail the request if it's forbidden.
 	if err := autoscaling.ValidateAnnotations(true, in); err != nil {
 		return err
 	}
