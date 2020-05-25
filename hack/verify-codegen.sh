@@ -18,7 +18,7 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-source $(dirname $0)/../vendor/knative.dev/test-infra/scripts/library.sh
+source $(dirname $0)/../scripts/test-infra/library.sh
 
 # Needed later
 go install golang.org/x/tools/cmd/goimports
