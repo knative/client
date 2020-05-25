@@ -125,7 +125,7 @@ func TestFreezeImageToDigest(t *testing.T) {
 	revision := &servingv1.Revision{}
 	revision.Spec = template.Spec
 	revision.ObjectMeta = template.ObjectMeta
-	revision.Status.ImageDigest = "gcr.io/foo/bar@sha256:deadbeef"
+	revision.Status.DeprecatedImageDigest = "gcr.io/foo/bar@sha256:deadbeef"
 	container.Image = "gcr.io/foo/bar:latest"
 	FreezeImageToDigest(template, revision)
 	assert.Equal(t, container.Image, "gcr.io/foo/bar@sha256:deadbeef")

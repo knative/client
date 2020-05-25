@@ -225,7 +225,10 @@ func UpdateRevisionTemplateAnnotation(template *servingv1.RevisionTemplateSpec, 
 	// without changing the existing spec
 	in := make(map[string]string)
 	in[annotation] = value
-	if err := autoscaling.ValidateAnnotations(in); err != nil {
+	// The boolean indicates whether or not the init-scale annotation can be set to 0.
+	// Since we don't have the config handy, err towards allowing it. The API will
+	// correctly fail the request if it's forbidden.
+	if err := autoscaling.ValidateAnnotations(true, in); err != nil {
 		return err
 	}
 
@@ -302,8 +305,8 @@ func FreezeImageToDigest(template *servingv1.RevisionTemplateSpec, baseRevision 
 		return fmt.Errorf("could not freeze image to digest since current revision contains unexpected image")
 	}
 
-	if baseRevision.Status.ImageDigest != "" {
-		return UpdateImage(template, baseRevision.Status.ImageDigest)
+	if baseRevision.Status.DeprecatedImageDigest != "" {
+		return UpdateImage(template, baseRevision.Status.DeprecatedImageDigest)
 	}
 	return nil
 }
