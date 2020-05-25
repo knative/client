@@ -28,7 +28,7 @@ VERSION="master"
 # The list of dependencies that we track at HEAD and periodically
 # float forward in this repository.
 FLOATING_DEPS=(
-  "knative.dev/test-infra"
+  "knative.dev/test-infra@${VERSION}"
   "knative.dev/pkg@${VERSION}"
   "knative.dev/serving@${VERSION}"
   "knative.dev/eventing@${VERSION}"
