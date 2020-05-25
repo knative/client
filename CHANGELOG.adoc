@@ -17,8 +17,8 @@
 | | Description | PR
 
 | 🐣
-| Replaced non-standard errors package with standard library functions.
-| https://github.com/knative/client/pull/852[#852]
+| Replaced non-standard errors package with standard library functions
+| https://github.com/knative/client/pull/853[#853]
 
 | 🐛
 | Fix Panic for kn source ping describe with Sink URI
