@@ -21,6 +21,7 @@
 package plugin
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -29,7 +30,6 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 

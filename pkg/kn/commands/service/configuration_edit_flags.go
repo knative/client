@@ -15,10 +15,10 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	corev1 "k8s.io/api/core/v1"
@@ -263,7 +263,7 @@ func (p *ConfigurationEditFlags) Apply(
 	if cmd.Flags().Changed("env") {
 		envMap, err := util.MapFromArrayAllowingSingles(p.Env, "=")
 		if err != nil {
-			return errors.Wrap(err, "Invalid --env")
+			return fmt.Errorf("Invalid --env: %w", err)
 		}
 
 		envToRemove := util.ParseMinusSuffix(envMap)
@@ -295,12 +295,12 @@ func (p *ConfigurationEditFlags) Apply(
 	if cmd.Flags().Changed("mount") || cmd.Flags().Changed("volume") {
 		mountsToUpdate, mountsToRemove, err := util.OrderedMapAndRemovalListFromArray(p.Mount, "=")
 		if err != nil {
-			return errors.Wrap(err, "Invalid --mount")
+			return fmt.Errorf("Invalid --mount: %w", err)
 		}
 
 		volumesToUpdate, volumesToRemove, err := util.OrderedMapAndRemovalListFromArray(p.Volume, "=")
 		if err != nil {
-			return errors.Wrap(err, "Invalid --volume")
+			return fmt.Errorf("Invalid --volume: %w", err)
 		}
 
 		err = servinglib.UpdateVolumeMountsAndVolumes(template, mountsToUpdate, mountsToRemove, volumesToUpdate, volumesToRemove)
@@ -429,24 +429,24 @@ func (p *ConfigurationEditFlags) Apply(
 	if cmd.Flags().Changed("label") || cmd.Flags().Changed("label-service") || cmd.Flags().Changed("label-revision") {
 		labelsAllMap, err := util.MapFromArrayAllowingSingles(p.Labels, "=")
 		if err != nil {
-			return errors.Wrap(err, "Invalid --label")
+			return fmt.Errorf("Invalid --label: %w", err)
 		}
 
 		err = p.updateLabels(&service.ObjectMeta, p.LabelsService, labelsAllMap)
 		if err != nil {
-			return errors.Wrap(err, "Invalid --label-service")
+			return fmt.Errorf("Invalid --label-service: %w", err)
 		}
 
 		err = p.updateLabels(&template.ObjectMeta, p.LabelsRevision, labelsAllMap)
 		if err != nil {
-			return errors.Wrap(err, "Invalid --label-revision")
+			return fmt.Errorf("Invalid --label-revision: %w", err)
 		}
 	}
 
 	if cmd.Flags().Changed("annotation") {
 		annotationsMap, err := util.MapFromArrayAllowingSingles(p.Annotations, "=")
 		if err != nil {
-			return errors.Wrap(err, "Invalid --annotation")
+			return fmt.Errorf("Invalid --annotation: %w", err)
 		}
 
 		annotationsToRemove := util.ParseMinusSuffix(annotationsMap)
@@ -477,7 +477,7 @@ func (p *ConfigurationEditFlags) Apply(
 func (p *ConfigurationEditFlags) updateLabels(obj *metav1.ObjectMeta, flagLabels []string, labelsAllMap map[string]string) error {
 	labelFlagMap, err := util.MapFromArrayAllowingSingles(flagLabels, "=")
 	if err != nil {
-		return errors.Wrap(err, "Unable to parse label flags")
+		return fmt.Errorf("Unable to parse label flags: %w", err)
 	}
 	labelsMap := make(util.StringMap)
 	labelsMap.Merge(labelsAllMap)
@@ -495,7 +495,7 @@ func (p *ConfigurationEditFlags) computeResources(resourceFlags ResourceFlags) (
 		cpuQuantity, err := resource.ParseQuantity(resourceFlags.CPU)
 		if err != nil {
 			return corev1.ResourceList{},
-				errors.Wrapf(err, "Error parsing %q", resourceFlags.CPU)
+				fmt.Errorf("Error parsing %q: %w", resourceFlags.CPU, err)
 		}
 
 		resourceList[corev1.ResourceCPU] = cpuQuantity
@@ -505,7 +505,7 @@ func (p *ConfigurationEditFlags) computeResources(resourceFlags ResourceFlags) (
 		memoryQuantity, err := resource.ParseQuantity(resourceFlags.Memory)
 		if err != nil {
 			return corev1.ResourceList{},
-				errors.Wrapf(err, "Error parsing %q", resourceFlags.Memory)
+				fmt.Errorf("Error parsing %q: %w", resourceFlags.Memory, err)
 		}
 
 		resourceList[corev1.ResourceMemory] = memoryQuantity

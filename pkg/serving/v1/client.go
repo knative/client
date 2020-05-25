@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/pkg/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/fields"
 	"knative.dev/pkg/apis"
@@ -254,7 +253,7 @@ func updateServiceWithRetry(cl KnServingClient, name string, updateFunc serviceU
 				time.Sleep(time.Second)
 				continue
 			}
-			return errors.Wrap(err, fmt.Sprintf("giving up after %d retries", nrRetries))
+			return fmt.Errorf("giving up after %d retries: %w", nrRetries, err)
 		}
 		return nil
 	}

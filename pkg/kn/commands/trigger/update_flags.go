@@ -15,7 +15,8 @@
 package trigger
 
 import (
-	"github.com/pkg/errors"
+	"fmt"
+
 	"github.com/spf13/cobra"
 
 	"knative.dev/client/pkg/util"
@@ -32,7 +33,7 @@ type TriggerUpdateFlags struct {
 func (f *TriggerUpdateFlags) GetFilters() (map[string]string, error) {
 	filters, err := util.MapFromArray(f.Filters, "=")
 	if err != nil {
-		return nil, errors.Wrap(err, "Invalid --filter")
+		return nil, fmt.Errorf("Invalid --filter: %w", err)
 	}
 	return filters, nil
 }
@@ -41,7 +42,7 @@ func (f *TriggerUpdateFlags) GetFilters() (map[string]string, error) {
 func (f *TriggerUpdateFlags) GetUpdateFilters() (map[string]string, []string, error) {
 	filters, err := util.MapFromArrayAllowingSingles(f.Filters, "=")
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "Invalid --filter")
+		return nil, nil, fmt.Errorf("Invalid --filter: %w", err)
 	}
 	removes := util.ParseMinusSuffix(filters)
 	return filters, removes, nil
