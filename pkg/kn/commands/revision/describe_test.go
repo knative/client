@@ -164,7 +164,7 @@ func createTestRevision(revision string, gen int64) servingv1.Revision {
 			},
 		},
 		Status: servingv1.RevisionStatus{
-			ImageDigest: "gcr.io/test/image@" + imageDigest,
+			DeprecatedImageDigest: "gcr.io/test/image@" + imageDigest,
 			Status: duckv1.Status{
 				Conditions: goodConditions(),
 			},
