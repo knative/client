@@ -26,11 +26,12 @@ import (
 	"testing"
 
 	"gotest.tools/assert"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	"knative.dev/client/lib/test"
 	"knative.dev/client/pkg/util"
-
-	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
 func TestServiceOptions(t *testing.T) {
@@ -124,6 +125,24 @@ func TestServiceOptions(t *testing.T) {
 	t.Log("create and validate service and revision labels")
 	serviceCreateWithOptions(r, "svc7", "--label-service", "svc=helloworld-svc", "--label-revision", "rev=helloworld-rev")
 	validateLabels(r, "svc7", map[string]string{"svc": "helloworld-svc"}, map[string]string{"rev": "helloworld-rev"})
+
+	t.Log("create and validate service resource options")
+	serviceCreateWithOptions(r, "svc7", "--limits", "memory=500Mi,cpu=1000m", "--requests", "memory=250Mi,cpu=200m")
+
+	rlist := corev1.ResourceList{}
+	rlist[corev1.ResourceCPU], err = resource.ParseQuantity("200m")
+	assert.NilError(t, err)
+	rlist[corev1.ResourceMemory], err = resource.ParseQuantity("250Mi")
+	assert.NilError(t, err)
+
+	llist := corev1.ResourceList{}
+	llist[corev1.ResourceCPU], err = resource.ParseQuantity("1000m")
+	assert.NilError(t, err)
+	llist[corev1.ResourceMemory], err = resource.ParseQuantity("500Mi")
+	assert.NilError(t, err)
+
+	validateServiceResources(r, "svc7", rlist, llist)
+
 }
 
 func serviceCreateWithOptions(r *test.KnRunResultCollector, serviceName string, options ...string) {
@@ -220,4 +239,18 @@ func validateUserID(r *test.KnRunResultCollector, serviceName string, uid int64)
 	err := data.Decode(&service)
 	assert.NilError(r.T(), err)
 	assert.Equal(r.T(), *service.Spec.Template.Spec.Containers[0].SecurityContext.RunAsUser, uid)
+}
+
+func validateServiceResources(r *test.KnRunResultCollector, serviceName string, requestsResourceList, limitsResourceList corev1.ResourceList) {
+	out := r.KnTest().Kn().Run("service", "describe", serviceName, "-ojson")
+	data := json.NewDecoder(strings.NewReader(out.Stdout))
+	var service servingv1.Service
+	err := data.Decode(&service)
+	assert.NilError(r.T(), err)
+
+	serviceRequestResourceList := service.Spec.Template.Spec.Containers[0].Resources.Requests
+	assert.DeepEqual(r.T(), serviceRequestResourceList, requestsResourceList)
+
+	serviceLimitsResourceList := service.Spec.Template.Spec.Containers[0].Resources.Limits
+	assert.DeepEqual(r.T(), serviceLimitsResourceList, limitsResourceList)
 }
