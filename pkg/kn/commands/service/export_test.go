@@ -53,10 +53,10 @@ func TestServiceExportError(t *testing.T) {
 	assert.Error(t, err, "'kn service export' requires output format")
 
 	_, err = executeServiceExportCommand(t, tc, "export", tc.latestSvc.ObjectMeta.Name, "--with-revisions", "-o", "json")
-	assert.Error(t, err, "'kn service export --with-revisions' requires a mode, please specify one of replay|export.")
+	assert.Error(t, err, "'kn service export --with-revisions' requires a mode, please specify one of replay|export")
 
 	_, err = executeServiceExportCommand(t, tc, "export", tc.latestSvc.ObjectMeta.Name, "--with-revisions", "--mode", "k8s", "-o", "yaml")
-	assert.Error(t, err, "'kn service export --with-revisions' requires a mode, please specify one of replay|export.")
+	assert.Error(t, err, "'kn service export --with-revisions' requires a mode, please specify one of replay|export")
 }
 
 func TestServiceExport(t *testing.T) {

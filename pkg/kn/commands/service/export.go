@@ -131,7 +131,7 @@ func exportService(cmd *cobra.Command, service *servingv1.Service, client client
 			return err
 		}
 	default:
-		return errors.New("'kn service export --with-revisions' requires a mode, please specify one of replay|export.")
+		return errors.New("'kn service export --with-revisions' requires a mode, please specify one of replay|export")
 	}
 	return nil
 }
