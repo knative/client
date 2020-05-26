@@ -59,7 +59,10 @@ var create_example = `
   kn service create s3 --image knativesamples/helloworld --annotation sidecar.istio.io/inject=false
 
   # Create a private service (that is a service with no external endpoint)
-  kn service create s4 --image knativesamples/helloworld --cluster-local`
+  kn service create s1 --image dev.local/ns/image:v3 --cluster-local
+
+  # Create a service with 250MB memory, 200m CPU requests and a GPU resource limit
+  kn service create gpusvc --image dev.local/ns/image:gpu --requests memory=250Mi,cpu=200m --limits nvidia.com/gpu=1`
 
 func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 	var editFlags ConfigurationEditFlags
