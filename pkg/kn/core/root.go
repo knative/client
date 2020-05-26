@@ -44,7 +44,7 @@ import (
 )
 
 // NewDefaultKnCommand creates the default `kn` command with a default plugin handler
-func NewDefaultKnCommand() *cobra.Command {
+func NewDefaultKnCommand() (*cobra.Command, error) {
 	rootCmd := NewKnCommand()
 
 	// Needed since otherwise --plugins-dir and --lookup-plugins
@@ -53,7 +53,7 @@ func NewDefaultKnCommand() *cobra.Command {
 	pluginsDir, lookupPluginsInPath, err := extractKnPluginFlags(os.Args)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(1)
+		return &cobra.Command{}, fmt.Errorf("%v", err)
 	}
 
 	pluginHandler := plugin.NewDefaultPluginHandler(plugin.ValidPluginFilenamePrefixes,
@@ -70,9 +70,9 @@ func NewDefaultKnCommandWithArgs(rootCmd *cobra.Command,
 	args []string,
 	in io.Reader,
 	out,
-	errOut io.Writer) *cobra.Command {
+	errOut io.Writer) (*cobra.Command, error) {
 	if pluginHandler == nil {
-		return rootCmd
+		return rootCmd, nil
 	}
 	if len(args) > 1 {
 		cmdPathPieces := args[1:]
@@ -84,18 +84,16 @@ func NewDefaultKnCommandWithArgs(rootCmd *cobra.Command,
 		if err != nil || plugin.InAllowedExtensibleCommandGroups(foundCmd.Name()) {
 			err := plugin.HandlePluginCommand(pluginHandler, cmdPathPieces)
 			if err != nil {
-				fmt.Fprintf(rootCmd.OutOrStderr(), "Error: unknown command '%s' \nRun 'kn --help' for usage.\n", args[1])
-				os.Exit(1)
+				return &cobra.Command{}, fmt.Errorf("unknown command '%s' \nRun 'kn --help' for usage", args[1])
 			}
 		} else if foundCmd.HasSubCommands() {
 			if _, _, err := rootCmd.Find(innerArgs); err != nil {
-				fmt.Fprintf(rootCmd.OutOrStderr(), showSubcommands(foundCmd, cmdPathPieces, innerArgs[0]))
-				os.Exit(1)
+				return &cobra.Command{}, fmt.Errorf(showSubcommands(foundCmd, cmdPathPieces, innerArgs[0]))
 			}
 		}
 	}
 
-	return rootCmd
+	return rootCmd, nil
 }
 
 // NewKnCommand creates the rootCmd which is the base command when called without any subcommands
@@ -232,8 +230,7 @@ func initConfig() {
 func defaultConfigDir() (string, error) {
 	home, err := homedir.Dir()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(1)
+		return "", fmt.Errorf("%v", err)
 	}
 	// Check the deprecated path first and fallback to it, add warning to error message
 	if configHome := filepath.Join(home, ".kn"); dirExists(configHome) {
