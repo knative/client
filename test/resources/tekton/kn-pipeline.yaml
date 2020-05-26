@@ -11,16 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-apiVersion: tekton.dev/v1alpha1
+apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
   name: buildah-build-kn-create
 spec:
-  resources:
-  - name: source
-    type: git
-  - name: image
-    type: image
   params:
   - name: ARGS
     type: array
@@ -30,18 +25,32 @@ spec:
   - name: IMAGE_FORMAT
     type: string
     description: Image format to build and push to registry
+  - name: IMAGE
+    type: string
+    description: Reference of the image the Pipeline will produce
+  workspaces:
+  - name: shared-workspace
   tasks:
+  - name: fetch-kn-from-git
+    taskRef:
+      name: git-clone
+    workspaces:
+    - name: output
+      workspace: shared-workspace
+    params:
+    - name: url
+      value: "https://github.com/knative/client"
   - name: buildah-build
     taskRef:
       name: buildah
-    resources:
-      inputs:
-        - name: source
-          resource: source
-      outputs:
-        - name: image
-          resource: image
+    runAfter:
+    - fetch-kn-from-git
+    workspaces:
+    - name: source
+      workspace: shared-workspace
     params:
+    - name: IMAGE
+      value: "$(params.IMAGE)"
     - name: DOCKERFILE
       value: ./test/test_images/helloworld/Dockerfile
     - name: BUILDER_IMAGE
@@ -52,13 +61,7 @@ spec:
     taskRef:
       name: kn
     runAfter:
-      - buildah-build
-    resources:
-      inputs:
-      - name: image
-        resource: image
-        from:
-          - buildah-build
+    - buildah-build
     params:
     - name: kn-image
       value: "gcr.io/knative-nightly/knative.dev/client/cmd/kn"

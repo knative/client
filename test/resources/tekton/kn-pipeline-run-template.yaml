@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-apiVersion: tekton.dev/v1alpha1
+apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
   generateName: buildah-build-kn-create-
@@ -19,16 +19,15 @@ spec:
   serviceAccountName: kn-deployer-account
   pipelineRef:
     name: buildah-build-kn-create
-  resources:
-    - name: source
-      resourceRef:
-        name: buildah-build-kn-create-source
-    - name: image
-      resourceRef:
-        name: buildah-build-kn-create-image
+  workspaces:
+  - name: shared-workspace
+    persistentvolumeclaim:
+      claimName: buildah-source-pvc
   params:
     - name: IMAGE_FORMAT
       value: "docker"
+    - name: IMAGE
+      value: "${CONTAINER_REGISTRY}/helloworld:tkn"
     - name: ARGS
       value:
         - "service"
@@ -36,5 +35,5 @@ spec:
         - "hello"
         - "--force"
         - "--service-account=kn-deployer-account"
-        - "--image=$(inputs.resources.image.url)"
+        - "--image=${CONTAINER_REGISTRY}/helloworld:tkn"
         - "--env=TARGET=Tekton"
