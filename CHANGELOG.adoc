@@ -16,6 +16,10 @@
 |===
 | | Description | PR
 
+| 🎁
+| Add --requests and --limits flags for resource requirements
+| https://github.com/knative/client/pull/859[#859]
+
 | 🐣
 | Replaced non-standard errors package with standard library functions
 | https://github.com/knative/client/pull/853[#853]
