@@ -22,6 +22,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 )
 
+// ResourceOptions to hold the container resource requirements values
 type ResourceOptions struct {
 	Requests             string
 	Limits               string

@@ -384,6 +384,9 @@ func (p *ConfigurationEditFlags) Apply(
 	}
 
 	err = servinglib.UpdateResources(template, p.Resources.ResourceRequirements)
+	if err != nil {
+		return err
+	}
 
 	if cmd.Flags().Changed("cmd") {
 		err = servinglib.UpdateContainerCommand(template, p.Command)
