@@ -133,11 +133,6 @@ func TestServiceExport(t *testing.T) {
 	), getKNExportWithOptions(
 		withRevisions(
 			withRevisionName("hello-rev1"),
-			withRevisionAnnotations(
-				map[string]string{
-					"client.knative.dev/user-image": "gcr.io/knative-samples/helloworld-go",
-					"serving.knative.dev/creator":   "kubernetes-admin",
-				}),
 			withRevisionLabels(
 				map[string]string{
 					"serving.knative.dev/configuration":           "hello",
@@ -198,7 +193,6 @@ func TestServiceExport(t *testing.T) {
 			withRevisionAnnotations(
 				map[string]string{
 					"client.knative.dev/user-image": "gcr.io/knative-samples/helloworld-go",
-					"serving.knative.dev/creator":   "kubernetes-admin",
 				}),
 			withRevisionLabels(
 				map[string]string{
@@ -213,10 +207,6 @@ func TestServiceExport(t *testing.T) {
 		),
 		withRevisions(
 			withRevisionName("hello-rev2"),
-			withRevisionAnnotations(
-				map[string]string{
-					"serving.knative.dev/creator": "kubernetes-admin",
-				}),
 			withRevisionLabels(
 				map[string]string{
 					"serving.knative.dev/configuration":           "hello",
@@ -267,10 +257,6 @@ func TestServiceExport(t *testing.T) {
 	), getKNExportWithOptions(
 		withRevisions(
 			withRevisionName("hello-rev2"),
-			withRevisionAnnotations(
-				map[string]string{
-					"serving.knative.dev/creator": "kubernetes-admin",
-				}),
 			withRevisionLabels(
 				map[string]string{
 					"serving.knative.dev/configuration":           "hello",
