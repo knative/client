@@ -18,6 +18,7 @@ require (
 	k8s.io/apimachinery v0.17.4
 	k8s.io/cli-runtime v0.17.0
 	k8s.io/client-go v0.17.4
+	k8s.io/code-generator v0.17.2
 	knative.dev/eventing v0.14.1
 	knative.dev/pkg v0.0.0-20200414233146-0eed424fa4ee
 	knative.dev/serving v0.14.0
@@ -31,5 +32,7 @@ require (
 // Fix for `[` in help messages and shell completion code
 // See https://github.com/spf13/cobra/pull/899
 replace github.com/spf13/cobra => github.com/chmouel/cobra v0.0.0-20191021105835-a78788917390
+
+replace k8s.io/code-generator => k8s.io/code-generator v0.16.4
 
 go 1.13
