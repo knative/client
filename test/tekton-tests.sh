@@ -50,7 +50,7 @@ fi
 
 # Feed $KN_E2E_NAMESPACE and $CONTAINER_REGISTRY into yaml files
 resource_dir=$(dirname $0)/resources/tekton
-for file in kn-deployer-rbac kn-pipeline-resource; do
+for file in kn-deployer-rbac kn-pipeline-run; do
   sed -e "s#\${KN_E2E_NAMESPACE}#${KN_E2E_NAMESPACE}#" \
       -e "s#\${CONTAINER_REGISTRY}#${CONTAINER_REGISTRY}#" ${resource_dir}/${file}-template.yaml > ${resource_dir}/${file}.yaml
 done
