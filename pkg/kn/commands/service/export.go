@@ -185,11 +185,14 @@ func constructServiceFromRevision(latestSvc *servingv1.Service, revision *servin
 		},
 		TypeMeta: latestSvc.TypeMeta,
 	}
-
 	exportedSvc.Spec.Template = servingv1.RevisionTemplateSpec{
 		Spec:       revision.Spec,
 		ObjectMeta: latestSvc.Spec.Template.ObjectMeta,
 	}
+
+	//ovrriding revision template annotations with revision annotations
+	stripIgnoredAnnotationsFromRevision(revision)
+	exportedSvc.Spec.Template.ObjectMeta.Annotations = revision.ObjectMeta.Annotations
 
 	exportedSvc.Spec.Template.ObjectMeta.Name = revision.ObjectMeta.Name
 	stripIgnoredAnnotationsFromService(&exportedSvc)
@@ -207,7 +210,7 @@ func exportServiceListForReplay(latestSvc *servingv1.Service, client clientservi
 	for _, revision := range revisionList.Items {
 		//construct service only for active revisions
 		if revsMap[revision.ObjectMeta.Name] && revision.ObjectMeta.Name != latestSvc.Spec.Template.ObjectMeta.Name {
-			exportedSvcItems = append(exportedSvcItems, constructServiceFromRevision(latestSvc, &revision))
+			exportedSvcItems = append(exportedSvcItems, constructServiceFromRevision(latestSvc, revision.DeepCopy()))
 		}
 	}
 

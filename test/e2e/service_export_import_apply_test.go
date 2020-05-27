@@ -106,6 +106,7 @@ func TestServiceExport(t *testing.T) {
 		withServices(
 			withServiceName("hello"),
 			withServiceRevisionName("hello-rev1"),
+			withConfigurationAnnotations(),
 			withServicePodSpecOption(
 				withContainer(),
 			),
@@ -133,6 +134,10 @@ func TestServiceExport(t *testing.T) {
 	), getKNExportWithOptions(
 		withRevisions(
 			withRevisionName("hello-rev1"),
+			withRevisionAnnotations(
+				map[string]string{
+					"client.knative.dev/user-image": "gcr.io/knative-samples/helloworld-go",
+				}),			
 			withRevisionLabels(
 				map[string]string{
 					"serving.knative.dev/configuration":           "hello",
@@ -154,6 +159,7 @@ func TestServiceExport(t *testing.T) {
 	serviceExportWithServiceList(r, "hello", getServiceListWithOptions(
 		withServices(
 			withServiceName("hello"),
+			withConfigurationAnnotations(),
 			withServiceRevisionName("hello-rev1"),
 			withServicePodSpecOption(
 				withContainer(),
