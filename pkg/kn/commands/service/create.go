@@ -62,6 +62,8 @@ var create_example = `
   kn service create s1 --image dev.local/ns/image:v3 --cluster-local
 
   # Create a service with 250MB memory, 200m CPU requests and a GPU resource limit
+  # [https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/]
+  # [https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/]
   kn service create gpusvc --image dev.local/ns/image:gpu --requests memory=250Mi,cpu=200m --limits nvidia.com/gpu=1`
 
 func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
