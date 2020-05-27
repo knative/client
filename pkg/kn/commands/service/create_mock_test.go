@@ -453,13 +453,11 @@ func TestServiceCreateWithResourcesWarning(t *testing.T) {
 	template := &service.Spec.Template
 
 	template.Spec.Containers[0].Resources.Requests = corev1.ResourceList{
-		//corev1.ResourceCPU:    parseQuantity(t, "250m"),
 		corev1.ResourceMemory: parseQuantity(t, "64Mi"),
 	}
 
 	template.Spec.Containers[0].Resources.Limits = corev1.ResourceList{
 		corev1.ResourceCPU: parseQuantity(t, "1000m"),
-		//corev1.ResourceMemory: parseQuantity(t, "1024Mi"),
 	}
 
 	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
