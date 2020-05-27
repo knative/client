@@ -137,7 +137,7 @@ func TestServiceExport(t *testing.T) {
 			withRevisionAnnotations(
 				map[string]string{
 					"client.knative.dev/user-image": "gcr.io/knative-samples/helloworld-go",
-				}),			
+				}),
 			withRevisionLabels(
 				map[string]string{
 					"serving.knative.dev/configuration":           "hello",
