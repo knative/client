@@ -25,7 +25,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"knative.dev/client/pkg/kn/flags"
+	knflags "knative.dev/client/pkg/kn/flags"
 	servinglib "knative.dev/client/pkg/serving"
 	"knative.dev/client/pkg/util"
 	"knative.dev/serving/pkg/apis/serving"
@@ -43,7 +43,8 @@ type ConfigurationEditFlags struct {
 	Command string
 	Arg     []string
 
-	RequestsFlags, LimitsFlags ResourceFlags
+	RequestsFlags, LimitsFlags ResourceFlags // TODO: Flag marked deprecated in release v0.15.0, remove in release v0.18.0
+	Resources                  knflags.ResourceOptions
 	MinScale                   int
 	MaxScale                   int
 	ConcurrencyTarget          int
@@ -144,17 +145,27 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 			"You can use this flag multiple times.")
 	p.markFlagMakesRevision("arg")
 
-	command.Flags().StringVar(&p.RequestsFlags.CPU, "requests-cpu", "", "The requested CPU (e.g., 250m).")
+	command.Flags().StringVar(&p.Resources.Limits, "limits", "", "The resource requirement limits for this Service. For example, 'cpu=100m,memory=256Mi'.")
+	p.markFlagMakesRevision("limits")
+	command.Flags().StringVar(&p.Resources.Requests, "requests", "", "The resource requirement requests for this Service. For example, 'cpu=100m,memory=256Mi'.")
+	p.markFlagMakesRevision("requests")
+
+	command.Flags().StringVar(&p.RequestsFlags.CPU, "requests-cpu", "",
+		"DEPRECATED: please use --requests instead. The requested CPU (e.g., 250m).")
 	p.markFlagMakesRevision("requests-cpu")
 
-	command.Flags().StringVar(&p.RequestsFlags.Memory, "requests-memory", "", "The requested memory (e.g., 64Mi).")
+	command.Flags().StringVar(&p.RequestsFlags.Memory, "requests-memory", "",
+		"DEPRECATED: please use --requests instead. The requested memory (e.g., 64Mi).")
 	p.markFlagMakesRevision("requests-memory")
 
-	command.Flags().StringVar(&p.LimitsFlags.CPU, "limits-cpu", "", "The limits on the requested CPU (e.g., 1000m).")
+	// TODO: Flag marked deprecated in release v0.15.0, remove in release v0.18.0
+	command.Flags().StringVar(&p.LimitsFlags.CPU, "limits-cpu", "",
+		"DEPRECATED: please use --limits instead. The limits on the requested CPU (e.g., 1000m).")
 	p.markFlagMakesRevision("limits-cpu")
 
+	// TODO: Flag marked deprecated in release v0.15.0, remove in release v0.18.0
 	command.Flags().StringVar(&p.LimitsFlags.Memory, "limits-memory", "",
-		"The limits on the requested memory (e.g., 1024Mi).")
+		"DEPRECATED: please use --limits instead. The limits on the requested memory (e.g., 1024Mi).")
 	p.markFlagMakesRevision("limits-memory")
 
 	command.Flags().IntVar(&p.MinScale, "min-scale", 0, "Minimal number of replicas.")
@@ -166,7 +177,7 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	command.Flags().StringVar(&p.AutoscaleWindow, "autoscale-window", "", "Duration to look back for making auto-scaling decisions. The service is scaled to zero if no request was received in during that time. (eg: 10s)")
 	p.markFlagMakesRevision("autoscale-window")
 
-	flags.AddBothBoolFlagsUnhidden(command.Flags(), &p.ClusterLocal, "cluster-local", "", false,
+	knflags.AddBothBoolFlagsUnhidden(command.Flags(), &p.ClusterLocal, "cluster-local", "", false,
 		"Specify that the service be private. (--no-cluster-local will make the service publicly available)")
 	//TODO: Need to also not change revision when already set (solution to issue #646)
 	p.markFlagMakesRevision("cluster-local")
@@ -214,7 +225,7 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 			"{{.Generation}} for the generation, and {{.Random [n]}} for n random consonants.")
 	p.markFlagMakesRevision("revision-name")
 
-	flags.AddBothBoolFlagsUnhidden(command.Flags(), &p.LockToDigest, "lock-to-digest", "", true,
+	knflags.AddBothBoolFlagsUnhidden(command.Flags(), &p.LockToDigest, "lock-to-digest", "", true,
 		"Keep the running image for the service constant when not explicitly specifying "+
 			"the image. (--no-lock-to-digest pulls the image tag afresh with each new revision)")
 	// Don't mark as changing the revision.
@@ -340,6 +351,20 @@ func (p *ConfigurationEditFlags) Apply(
 		servinglib.UnsetUserImageAnnot(template)
 	}
 
+	if cmd.Flags().Changed("limits-cpu") || cmd.Flags().Changed("limits-memory") {
+		if cmd.Flags().Changed("limits") {
+			return fmt.Errorf("only one of (DEPRECATED) --limits-cpu / --limits-memory and --limits can be specified")
+		}
+		fmt.Fprintf(cmd.OutOrStdout(), "\nWARNING: flags --limits-cpu / --limits-memory are deprecated and going to be removed in future release, please use --limits instead.\n\n")
+	}
+
+	if cmd.Flags().Changed("requests-cpu") || cmd.Flags().Changed("requests-memory") {
+		if cmd.Flags().Changed("requests") {
+			return fmt.Errorf("only one of (DEPRECATED) --requests-cpu / --requests-memory and --requests can be specified")
+		}
+		fmt.Fprintf(cmd.OutOrStdout(), "\nWARNING: flags --requests-cpu / --requests-memory are deprecated and going to be removed in future release, please use --requests instead.\n\n")
+	}
+
 	limitsResources, err := p.computeResources(p.LimitsFlags)
 	if err != nil {
 		return err
@@ -348,7 +373,17 @@ func (p *ConfigurationEditFlags) Apply(
 	if err != nil {
 		return err
 	}
-	err = servinglib.UpdateResources(template, requestsResources, limitsResources)
+	err = servinglib.UpdateResourcesDeprecated(template, requestsResources, limitsResources)
+	if err != nil {
+		return err
+	}
+
+	err = p.Resources.Validate()
+	if err != nil {
+		return err
+	}
+
+	err = servinglib.UpdateResources(template, p.Resources.ResourceRequirements)
 	if err != nil {
 		return err
 	}
