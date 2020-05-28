@@ -44,7 +44,7 @@ import (
 )
 
 // NewDefaultKnCommand creates the default `kn` command with a default plugin handler
-func NewDefaultKnCommand() *cobra.Command {
+func NewDefaultKnCommand() (*cobra.Command, error) {
 	rootCmd := NewKnCommand()
 
 	// Needed since otherwise --plugins-dir and --lookup-plugins
@@ -53,7 +53,7 @@ func NewDefaultKnCommand() *cobra.Command {
 	pluginsDir, lookupPluginsInPath, err := extractKnPluginFlags(os.Args)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(1)
+		return &cobra.Command{}, fmt.Errorf("%v", err)
 	}
 
 	pluginHandler := plugin.NewDefaultPluginHandler(plugin.ValidPluginFilenamePrefixes,
@@ -70,17 +70,19 @@ func NewDefaultKnCommandWithArgs(rootCmd *cobra.Command,
 	args []string,
 	in io.Reader,
 	out,
-	errOut io.Writer) *cobra.Command {
+	errOut io.Writer) (*cobra.Command, error) {
 	if pluginHandler == nil {
-		return rootCmd
+		return rootCmd, nil
 	}
+
+	// process possible plugin call
 	if len(args) > 1 {
 		cmdPathPieces := args[1:]
 		cmdPathPieces = removeKnPluginFlags(cmdPathPieces) // Plugin does not need these flags
 
 		// Return fast if -h or --help is in path pieces
 		if helpOptionsPresent(cmdPathPieces) {
-			return rootCmd
+			return rootCmd, nil
 		}
 
 		// only look for suitable extension executables if
@@ -89,31 +91,37 @@ func NewDefaultKnCommandWithArgs(rootCmd *cobra.Command,
 		if err != nil {
 			err := plugin.HandlePluginCommand(pluginHandler, cmdPathPieces)
 			if err != nil {
-				fmt.Fprintf(rootCmd.OutOrStderr(), "Error: unknown command '%s' \nRun 'kn --help' for usage.\n", args[1])
-				os.Exit(1)
+				return &cobra.Command{}, fmt.Errorf("unknown command '%s' \nRun 'kn --help' for usage", args[1])
 			}
 		}
 
-		// look for case of plugins with command that shadows existing command
-		if foundCmd.HasSubCommands() && len(innerArgs) > 0 {
-			cmdName := innerArgs[0]
-			for _, subcommand := range foundCmd.Commands() {
-				if subcommand.Name() == cmdName {
-					fmt.Fprintf(rootCmd.OutOrStderr(), fmt.Sprintf("Error: sub-command '%s' for '%s' already exists.\nRun 'kn --help' for usage.\n", cmdName, foundCmd.Name()))
-					os.Exit(1)
+		// when the call is on a leaf command, with sub commands
+		if foundCmd.HasSubCommands() {
+			// look for case of a plugin's command that shadows
+			// an existing command's subcommand
+			if len(innerArgs) > 0 {
+				cmdName := innerArgs[0]
+				for _, subcommand := range foundCmd.Commands() {
+					if subcommand.Name() == cmdName {
+						return &cobra.Command{}, fmt.Errorf("Error: sub-command '%s' for '%s' already exists.\nRun 'kn --help' for usage.\n", cmdName, foundCmd.Name())
+					}
 				}
-			}
 
-			// try to handle a plugin for a command extending a core comand group
-			err = plugin.HandlePluginCommand(pluginHandler, cmdPathPieces)
-			if err != nil {
-				fmt.Fprintf(rootCmd.OutOrStderr(), "Error: unknown sub-command '%s' for command '%s'\nRun 'kn --help' for usage.\n", cmdName, foundCmd.Name())
-				os.Exit(1)
+				// try to handle a plugin for a command extending a core comand group
+				err = plugin.HandlePluginCommand(pluginHandler, cmdPathPieces)
+				if err != nil {
+					return &cobra.Command{}, fmt.Errorf("Error: unknown sub-command '%s' for command '%s'\nRun 'kn --help' for usage.\n", cmdName, foundCmd.Name())
+				}
+			} else {
+				_, _, err := rootCmd.Find(innerArgs)
+				if err != nil {
+					return &cobra.Command{}, fmt.Errorf(showSubcommands(foundCmd, cmdPathPieces, innerArgs[0]))
+				}
 			}
 		}
 	}
 
-	return rootCmd
+	return rootCmd, nil
 }
 
 // NewKnCommand creates the rootCmd which is the base command when called without any subcommands
@@ -255,8 +263,7 @@ func initConfig() {
 func defaultConfigDir() (string, error) {
 	home, err := homedir.Dir()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(1)
+		return "", fmt.Errorf("%v", err)
 	}
 	// Check the deprecated path first and fallback to it, add warning to error message
 	if configHome := filepath.Join(home, ".kn"); dirExists(configHome) {

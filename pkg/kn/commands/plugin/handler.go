@@ -113,10 +113,10 @@ func (h *DefaultPluginHandler) Execute(executablePath string, cmdArgs, environme
 		cmd.Stdin = os.Stdin
 		cmd.Env = environment
 		err := cmd.Run()
-		if err == nil {
-			os.Exit(0)
+		if err != nil {
+			return err
 		}
-		return err
+		return nil
 	}
 	return syscall.Exec(executablePath, cmdArgs, environment)
 }

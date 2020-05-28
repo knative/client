@@ -19,8 +19,6 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 const (
@@ -107,7 +105,7 @@ func RunKubectl(namespace string, args ...string) (string, error) {
 	}
 	stdout, stderr, err := runCli("kubectl", args)
 	if err != nil {
-		return stdout, errors.Wrap(err, fmt.Sprintf("stderr: %s", stderr))
+		return stdout, fmt.Errorf("stderr: %s: %w", stderr, err)
 	}
 	return stdout, nil
 }

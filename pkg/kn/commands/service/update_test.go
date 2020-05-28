@@ -88,7 +88,7 @@ func fakeServiceUpdate(original *servingv1.Service, args []string) (
 			rev.Spec = original.Spec.Template.Spec
 			rev.ObjectMeta = original.Spec.Template.ObjectMeta
 			rev.Name = original.Status.LatestCreatedRevisionName
-			rev.Status.ImageDigest = exampleImageByDigest
+			rev.Status.DeprecatedImageDigest = exampleImageByDigest
 			return true, rev, nil
 		})
 

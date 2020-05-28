@@ -82,7 +82,7 @@ func TestWrongCommand(t *testing.T) {
 	r.AssertError(out)
 
 	out = test.Kn{}.Run("rev")
-	assert.Check(t, util.ContainsAll(out.Stderr, "Error", "unknown command", "rev"))
+	assert.Check(t, util.ContainsAll(out.Stderr, "unknown command", "rev"))
 	r.AssertError(out)
 
 }

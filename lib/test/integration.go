@@ -23,8 +23,6 @@ import (
 	"sync"
 	"testing"
 	"time"
-
-	"github.com/pkg/errors"
 )
 
 const (
@@ -121,7 +119,7 @@ func CreateNamespace(namespace string) error {
 	expectedOutputRegexp := fmt.Sprintf("namespace?.+%s.+created", namespace)
 	out, err := createNamespaceWithRetry(namespace, MaxRetries)
 	if err != nil {
-		return errors.Wrap(err, "could not create namespace "+namespace)
+		return fmt.Errorf("could not create namespace %s: %w", namespace, err)
 	}
 
 	// check that last output indeed show created namespace
@@ -140,7 +138,7 @@ func DeleteNamespace(namespace string) error {
 	kubectl := Kubectl{namespace}
 	out, err := kubectl.Run("delete", "namespace", namespace)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Cannot delete namespace %s", namespace))
+		return fmt.Errorf("Cannot delete namespace %s: %w", namespace, err)
 	}
 
 	expectedOutputRegexp := fmt.Sprintf("namespace?.+%s.+deleted", namespace)
@@ -226,7 +224,7 @@ func createNamespaceWithRetry(namespace string, maxRetries int) (string, error) 
 func matchRegexp(matchingRegexp, actual string) (bool, error) {
 	matched, err := regexp.MatchString(matchingRegexp, actual)
 	if err != nil {
-		return false, errors.Wrap(err, fmt.Sprintf("failed to match regexp '%s'", matchingRegexp))
+		return false, fmt.Errorf("failed to match regexp %q: %w", matchingRegexp, err)
 	}
 	return matched, nil
 }

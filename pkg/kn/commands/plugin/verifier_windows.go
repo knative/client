@@ -18,6 +18,7 @@
 package plugin
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -25,7 +26,6 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 

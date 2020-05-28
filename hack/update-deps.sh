@@ -15,7 +15,7 @@
 # limitations under the License.
 
 readonly ROOT_DIR=$(dirname $0)/..
-source ${ROOT_DIR}/vendor/knative.dev/test-infra/scripts/library.sh
+source ${ROOT_DIR}/scripts/test-infra/library.sh
 
 set -o errexit
 set -o nounset
@@ -28,7 +28,6 @@ VERSION="master"
 # The list of dependencies that we track at HEAD and periodically
 # float forward in this repository.
 FLOATING_DEPS=(
-  "knative.dev/test-infra"
   "knative.dev/pkg@${VERSION}"
   "knative.dev/serving@${VERSION}"
   "knative.dev/eventing@${VERSION}"
@@ -48,6 +47,7 @@ readonly GO_GET
 
 if (( GO_GET )); then
   go get -d ${FLOATING_DEPS[@]}
+  "${ROOT_DIR}/scripts/test-infra/update-test-infra.sh" --update --ref "${VERSION}"
 fi
 
 
