@@ -30,6 +30,7 @@ var sourceTypeDescription = map[string]string{
 	"ApiServerSource": "Watch and send Kubernetes API events to a sink",
 	"SinkBinding":     "Binding for connecting a PodSpecable to a sink",
 	"PingSource":      "Send periodically ping events to a sink",
+	"ContainerSource": "Generate events by Container image and send to a sink",
 }
 
 // ListTypesHandlers handles printing human readable table for `kn source list-types`
