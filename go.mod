@@ -6,6 +6,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.6.2
 	golang.org/x/crypto v0.0.0-20200302210943-78000ba7a073
+	golang.org/x/tools v0.0.0-20200329025819-fd4102a86c65
 	gotest.tools v2.2.0+incompatible
 	k8s.io/api v0.17.6
 	k8s.io/apimachinery v0.17.6
