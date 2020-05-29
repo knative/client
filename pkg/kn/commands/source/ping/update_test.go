@@ -21,42 +21,33 @@ import (
 
 	"gotest.tools/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
-	duckv1 "knative.dev/pkg/apis/duck/v1"
 
 	clientv1alpha2 "knative.dev/client/pkg/sources/v1alpha2"
 	"knative.dev/client/pkg/util"
 )
 
 func TestSimplePingUpdate(t *testing.T) {
-
 	pingSourceClient := clientv1alpha2.NewMockKnPingSourceClient(t)
-
 	pingRecorder := pingSourceClient.Recorder()
-	pingRecorder.GetPingSource("testsource", &v1alpha2.PingSource{
-		TypeMeta: v1.TypeMeta{},
-		ObjectMeta: v1.ObjectMeta{
-			Name: "testsource",
-		},
-		Spec: v1alpha2.PingSourceSpec{
-			Schedule: "1 2 3 4 5",
-			JsonData: "maxwell",
-			SourceSpec: duckv1.SourceSpec{
-				Sink: duckv1.Destination{
-					Ref: &duckv1.KReference{
-						Kind:       "Service",
-						Name:       "mysvc",
-						APIVersion: "serving.knative.dev/v1",
-						Namespace:  "default",
-					},
-				},
-			},
-		},
-		Status: v1alpha2.PingSourceStatus{},
-	}, nil)
-	pingRecorder.UpdatePingSource(createPingSource("testsource", "* * * * */3", "maxwell", "mysvc"), nil)
+	pingRecorder.GetPingSource("testsource", createPingSource("testsource", "* * * * */1", "maxwell", "mysvc", nil), nil)
+	pingRecorder.UpdatePingSource(createPingSource("testsource", "* * * * */3", "maxwell", "mysvc", nil), nil)
 
 	out, err := executePingSourceCommand(pingSourceClient, nil, "update", "--schedule", "* * * * */3", "testsource")
+	assert.NilError(t, err)
+	util.ContainsAll(out, "updated", "default", "testsource")
+
+	pingRecorder.Validate()
+}
+
+func TestSimplePingUpdateCEOverrides(t *testing.T) {
+	pingSourceClient := clientv1alpha2.NewMockKnPingSourceClient(t)
+	pingRecorder := pingSourceClient.Recorder()
+	ceOverrideMap := map[string]string{"bla": "blub", "foo": "bar"}
+	ceOverrideMapUpdated := map[string]string{"foo": "baz", "new": "ceoverride"}
+	pingRecorder.GetPingSource("testsource", createPingSource("testsource", "* * * * */1", "maxwell", "mysvc", ceOverrideMap), nil)
+	pingRecorder.UpdatePingSource(createPingSource("testsource", "* * * * */3", "maxwell", "mysvc", ceOverrideMapUpdated), nil)
+
+	out, err := executePingSourceCommand(pingSourceClient, nil, "update", "--schedule", "* * * * */3", "testsource", "--ce-override", "bla-", "--ce-override", "foo=baz", "--ce-override", "new=ceoverride")
 	assert.NilError(t, err)
 	util.ContainsAll(out, "updated", "default", "testsource")
 
@@ -78,7 +69,7 @@ func TestUpdateError(t *testing.T) {
 
 func TestPingUpdateDeletionTimestampNotNil(t *testing.T) {
 	pingSourceClient := clientv1alpha2.NewMockKnPingSourceClient(t)
-	present := createPingSource("test", "", "", "")
+	present := createPingSource("test", "", "", "", nil)
 	present.DeletionTimestamp = &v1.Time{Time: time.Now()}
 	pingRecorder := pingSourceClient.Recorder()
 	pingRecorder.GetPingSource("test", present, nil)
