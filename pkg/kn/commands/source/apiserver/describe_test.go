@@ -28,7 +28,7 @@ func TestSimpleDescribe(t *testing.T) {
 	apiServerClient := v1alpha2.NewMockKnAPIServerSourceClient(t, "mynamespace")
 
 	apiServerRecorder := apiServerClient.Recorder()
-	sampleSource := createAPIServerSource("testsource", "Event", "v1", "testsa", "Reference", "testsvc")
+	sampleSource := createAPIServerSource("testsource", "Event", "v1", "testsa", "Reference", "testsvc", nil)
 	apiServerRecorder.GetAPIServerSource("testsource", sampleSource, nil)
 
 	out, err := executeAPIServerSourceCommand(apiServerClient, nil, "describe", "testsource")

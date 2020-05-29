@@ -45,6 +45,7 @@ type APIServerSourceUpdateFlags struct {
 	ServiceAccountName string
 	Mode               string
 	Resources          []string
+	ceOverrides        []string
 }
 
 // getAPIServerVersionKindSelector is to construct an array of resources.
@@ -161,6 +162,13 @@ func (f *APIServerSourceUpdateFlags) Add(cmd *cobra.Command) {
 		[]string{},
 		`Specification for which events to listen, in the format Kind:APIVersion:LabelSelector, e.g. "Event:v1:key=value".
 "LabelSelector" is a list of comma separated key value pairs. "LabelSelector" can be omitted, e.g. "Event:v1".`)
+	cmd.Flags().StringArrayVar(&f.ceOverrides,
+		"ce-override",
+		[]string{},
+		"Cloud Event overrides to apply before sending event to sink. "+
+			"Example: '--ce-override key=value' "+
+			"You may be provide this flag multiple times. "+
+			"To unset, append \"-\" to the key (e.g. --ce-override key-).")
 }
 
 // APIServerSourceListHandlers handles printing human readable table for `kn source apiserver list` command's output

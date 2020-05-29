@@ -183,6 +183,26 @@ func (b *APIServerSourceBuilder) Sink(sink duckv1.Destination) *APIServerSourceB
 	return b
 }
 
+func (b *APIServerSourceBuilder) CloudEventOverrides(ceo map[string]string, toRemove []string) *APIServerSourceBuilder {
+	if ceo == nil && len(toRemove) == 0 {
+		return b
+	}
+
+	ceOverrides := b.apiServerSource.Spec.CloudEventOverrides
+	if ceOverrides == nil {
+		ceOverrides = &duckv1.CloudEventOverrides{Extensions: map[string]string{}}
+		b.apiServerSource.Spec.CloudEventOverrides = ceOverrides
+	}
+	for k, v := range ceo {
+		ceOverrides.Extensions[k] = v
+	}
+	for _, r := range toRemove {
+		delete(ceOverrides.Extensions, r)
+	}
+
+	return b
+}
+
 // Build the ApiServerSource object
 func (b *APIServerSourceBuilder) Build() *v1alpha2.ApiServerSource {
 	return b.apiServerSource

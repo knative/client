@@ -83,7 +83,7 @@ func cleanupAPIServerMockClient() {
 	apiServerSourceClientFactory = nil
 }
 
-func createAPIServerSource(name, resourceKind, resourceVersion, serviceAccount, mode, service string) *v1alpha2.ApiServerSource {
+func createAPIServerSource(name, resourceKind, resourceVersion, serviceAccount, mode, service string, ceOverrides map[string]string) *v1alpha2.ApiServerSource {
 	resources := []v1alpha2.APIVersionKindSelector{{
 		APIVersion: resourceVersion,
 		Kind:       resourceKind,
@@ -102,5 +102,6 @@ func createAPIServerSource(name, resourceKind, resourceVersion, serviceAccount, 
 		ServiceAccount(serviceAccount).
 		EventMode(mode).
 		Sink(sink).
+		CloudEventOverrides(ceOverrides, []string{}).
 		Build()
 }
