@@ -27,7 +27,6 @@ import (
 
 	"knative.dev/client/pkg/kn/commands"
 	clientsourcesv1alpha1 "knative.dev/client/pkg/sources/v1alpha2"
-	"knative.dev/client/pkg/util"
 )
 
 // NewBindingCommand is the root command for all binding related commands
@@ -130,16 +129,4 @@ func subjectToString(ref tracker.Reference) string {
 		return ret + ":" + strings.Join(keyValues, ",")
 	}
 	return ret
-}
-
-// updateCeOverrides updates the values of the --ce-override flags if given
-func updateCeOverrides(bindingFlags bindingUpdateFlags, bindingBuilder *clientsourcesv1alpha1.SinkBindingBuilder) error {
-	if bindingFlags.ceOverrides != nil {
-		ceOverrideMap, err := util.MapFromArray(bindingFlags.ceOverrides, "=")
-		if err != nil {
-			return err
-		}
-		bindingBuilder.AddCloudEventOverrides(ceOverrideMap)
-	}
-	return nil
 }

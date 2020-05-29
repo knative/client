@@ -23,6 +23,7 @@ import (
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
 	v1alpha12 "knative.dev/client/pkg/sources/v1alpha2"
+	"knative.dev/client/pkg/util"
 )
 
 // NewBindingCreateCommand is for creating sink bindings
@@ -68,15 +69,18 @@ func NewBindingCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			bindingBuilder := v1alpha12.NewSinkBindingBuilder(name).
-				Sink(destination).
-				Subject(reference).
-				Namespace(namespace)
-
-			err = updateCeOverrides(bindingFlags, bindingBuilder)
+			ceOverridesMap, err := util.MapFromArrayAllowingSingles(bindingFlags.ceOverrides, "=")
 			if err != nil {
 				return err
 			}
+			ceOverridesToRemove := util.ParseMinusSuffix(ceOverridesMap)
+
+			bindingBuilder := v1alpha12.NewSinkBindingBuilder(name).
+				Sink(destination).
+				Subject(reference).
+				Namespace(namespace).
+				AddCloudEventOverrides(ceOverridesMap, ceOverridesToRemove)
+
 			binding, err := bindingBuilder.Build()
 			if err != nil {
 				return err

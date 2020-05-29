@@ -136,7 +136,7 @@ func TestListSinkBinding(t *testing.T) {
 
 func TestSinkBindingBuilderAddCloudEventOverrides(t *testing.T) {
 	aBuilder := NewSinkBindingBuilder("testsinkbinding")
-	aBuilder.AddCloudEventOverrides(map[string]string{"type": "foo"})
+	aBuilder.AddCloudEventOverrides(map[string]string{"type": "foo"}, []string{})
 	a, err := aBuilder.Build()
 	assert.NilError(t, err)
 
@@ -145,7 +145,7 @@ func TestSinkBindingBuilderAddCloudEventOverrides(t *testing.T) {
 		b, err := bBuilder.Build()
 		assert.NilError(t, err)
 		assert.DeepEqual(t, b, a)
-		bBuilder.AddCloudEventOverrides(map[string]string{"type": "new"})
+		bBuilder.AddCloudEventOverrides(map[string]string{"type": "new"}, []string{})
 		expected := &duckv1.CloudEventOverrides{
 			Extensions: map[string]string{
 				"type": "new",
@@ -160,7 +160,7 @@ func TestSinkBindingBuilderAddCloudEventOverrides(t *testing.T) {
 		b, err := bBuilder.Build()
 		assert.NilError(t, err)
 		assert.DeepEqual(t, b, a)
-		bBuilder.AddCloudEventOverrides(map[string]string{"source": "bar"})
+		bBuilder.AddCloudEventOverrides(map[string]string{"source": "bar"}, []string{})
 		expected := &duckv1.CloudEventOverrides{
 			Extensions: map[string]string{
 				"type":   "foo",
@@ -169,6 +169,21 @@ func TestSinkBindingBuilderAddCloudEventOverrides(t *testing.T) {
 		}
 		assert.DeepEqual(t, expected, b.Spec.CloudEventOverrides)
 	})
+
+	t.Run("update bindings with new entry and removed entry", func(t *testing.T) {
+		bBuilder := NewSinkBindingBuilderFromExisting(a)
+		c, err := bBuilder.Build()
+		assert.NilError(t, err)
+		assert.DeepEqual(t, c, a)
+		bBuilder.AddCloudEventOverrides(map[string]string{"new": "entry"}, []string{"type"})
+		expected := &duckv1.CloudEventOverrides{
+			Extensions: map[string]string{
+				"new": "entry",
+			},
+		}
+		assert.DeepEqual(t, expected, c.Spec.CloudEventOverrides)
+	})
+
 }
 
 func TestSinkBindingBuilderForSubjectError(t *testing.T) {
@@ -246,7 +261,7 @@ func newSinkBinding(name, sinkService, pingName string) *v1alpha2.SinkBinding {
 		Sink(sink).
 		SubjectGVK(&schema.GroupVersionKind{"batch", "v1beta1", "CronJob"}).
 		SubjectName(pingName).
-		AddCloudEventOverrides(map[string]string{"type": "foo"}).
+		AddCloudEventOverrides(map[string]string{"type": "foo"}, []string{}).
 		Build()
 	return b
 }
