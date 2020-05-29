@@ -18,7 +18,7 @@
 
 | 🎁
 | Add --ce-override flag for apiserver and ping sources
-| https://github.com/knative/client/pull/861[#861]
+| https://github.com/knative/client/pull/865[#865]
 
 | 🎁
 | Add --requests and --limits flags for resource requirements
