@@ -151,6 +151,7 @@ func (b *PingSourceBuilder) Sink(sink duckv1.Destination) *PingSourceBuilder {
 	return b
 }
 
+// CloudEventOverrides adds given Cloud Event override extensions map to source spec
 func (b *PingSourceBuilder) CloudEventOverrides(ceo map[string]string, toRemove []string) *PingSourceBuilder {
 	if ceo == nil && len(toRemove) == 0 {
 		return b

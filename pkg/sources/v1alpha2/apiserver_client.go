@@ -183,6 +183,7 @@ func (b *APIServerSourceBuilder) Sink(sink duckv1.Destination) *APIServerSourceB
 	return b
 }
 
+// CloudEventOverrides adds given Cloud Event override extensions map to source spec
 func (b *APIServerSourceBuilder) CloudEventOverrides(ceo map[string]string, toRemove []string) *APIServerSourceBuilder {
 	if ceo == nil && len(toRemove) == 0 {
 		return b
