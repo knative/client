@@ -79,7 +79,7 @@ func NewBindingCreateCommand(p *commands.KnParams) *cobra.Command {
 				Sink(destination).
 				Subject(reference).
 				Namespace(namespace).
-				AddCloudEventOverrides(ceOverridesMap, ceOverridesToRemove)
+				CloudEventOverrides(ceOverridesMap, ceOverridesToRemove)
 
 			binding, err := bindingBuilder.Build()
 			if err != nil {

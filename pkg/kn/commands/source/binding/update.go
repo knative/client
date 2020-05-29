@@ -87,7 +87,7 @@ func NewBindingUpdateCommand(p *commands.KnParams) *cobra.Command {
 					return err
 				}
 				ceOverridesToRemove := util.ParseMinusSuffix(ceOverridesMap)
-				b.AddCloudEventOverrides(ceOverridesMap, ceOverridesToRemove)
+				b.CloudEventOverrides(ceOverridesMap, ceOverridesToRemove)
 			}
 			binding, err := b.Build()
 			if err != nil {

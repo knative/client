@@ -93,7 +93,7 @@ func createSinkBinding(name, service string, subjectGvk schema.GroupVersionKind,
 		SubjectGVK(&subjectGvk).
 		SubjectName(subjectName).
 		SubjectNamespace("default").
-		AddCloudEventOverrides(ceOverrides, []string{})
+		CloudEventOverrides(ceOverrides, []string{})
 
 	binding, _ := builder.Build()
 	return binding

@@ -134,9 +134,9 @@ func TestListSinkBinding(t *testing.T) {
 	})
 }
 
-func TestSinkBindingBuilderAddCloudEventOverrides(t *testing.T) {
+func TestSinkBindingBuilderCloudEventOverrides(t *testing.T) {
 	aBuilder := NewSinkBindingBuilder("testsinkbinding")
-	aBuilder.AddCloudEventOverrides(map[string]string{"type": "foo"}, []string{})
+	aBuilder.CloudEventOverrides(map[string]string{"type": "foo"}, []string{})
 	a, err := aBuilder.Build()
 	assert.NilError(t, err)
 
@@ -145,7 +145,7 @@ func TestSinkBindingBuilderAddCloudEventOverrides(t *testing.T) {
 		b, err := bBuilder.Build()
 		assert.NilError(t, err)
 		assert.DeepEqual(t, b, a)
-		bBuilder.AddCloudEventOverrides(map[string]string{"type": "new"}, []string{})
+		bBuilder.CloudEventOverrides(map[string]string{"type": "new"}, []string{})
 		expected := &duckv1.CloudEventOverrides{
 			Extensions: map[string]string{
 				"type": "new",
@@ -160,7 +160,7 @@ func TestSinkBindingBuilderAddCloudEventOverrides(t *testing.T) {
 		b, err := bBuilder.Build()
 		assert.NilError(t, err)
 		assert.DeepEqual(t, b, a)
-		bBuilder.AddCloudEventOverrides(map[string]string{"source": "bar"}, []string{})
+		bBuilder.CloudEventOverrides(map[string]string{"source": "bar"}, []string{})
 		expected := &duckv1.CloudEventOverrides{
 			Extensions: map[string]string{
 				"type":   "foo",
@@ -175,7 +175,7 @@ func TestSinkBindingBuilderAddCloudEventOverrides(t *testing.T) {
 		c, err := bBuilder.Build()
 		assert.NilError(t, err)
 		assert.DeepEqual(t, c, a)
-		bBuilder.AddCloudEventOverrides(map[string]string{"new": "entry"}, []string{"type"})
+		bBuilder.CloudEventOverrides(map[string]string{"new": "entry"}, []string{"type"})
 		expected := &duckv1.CloudEventOverrides{
 			Extensions: map[string]string{
 				"new": "entry",
@@ -261,7 +261,7 @@ func newSinkBinding(name, sinkService, pingName string) *v1alpha2.SinkBinding {
 		Sink(sink).
 		SubjectGVK(&schema.GroupVersionKind{"batch", "v1beta1", "CronJob"}).
 		SubjectName(pingName).
-		AddCloudEventOverrides(map[string]string{"type": "foo"}, []string{}).
+		CloudEventOverrides(map[string]string{"type": "foo"}, []string{}).
 		Build()
 	return b
 }
