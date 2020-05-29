@@ -28,12 +28,12 @@ func TestSimpleDescribe(t *testing.T) {
 	apiServerClient := v1alpha2.NewMockKnAPIServerSourceClient(t, "mynamespace")
 
 	apiServerRecorder := apiServerClient.Recorder()
-	sampleSource := createAPIServerSource("testsource", "Event", "v1", "testsa", "Reference", "testsvc", nil)
+	sampleSource := createAPIServerSource("testsource", "Event", "v1", "testsa", "Reference", "testsvc", map[string]string{"foo": "bar"})
 	apiServerRecorder.GetAPIServerSource("testsource", sampleSource, nil)
 
 	out, err := executeAPIServerSourceCommand(apiServerClient, nil, "describe", "testsource")
 	assert.NilError(t, err)
-	util.ContainsAll(out, "testsource", "testsa", "Reference", "testsvc", "Service", "Resources", "Event", "v1", "false", "Conditions")
+	util.ContainsAll(out, "testsource", "testsa", "Reference", "testsvc", "Service", "Resources", "Event", "v1", "false", "Conditions", "foo", "bar")
 
 	apiServerRecorder.Validate()
 }

@@ -17,6 +17,7 @@ package ping
 import (
 	"errors"
 	"fmt"
+	"sort"
 
 	"github.com/spf13/cobra"
 	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
@@ -46,7 +47,7 @@ func NewPingDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			cjSource, err := pingSourceClient.GetPingSource(name)
+			pingSource, err := pingSourceClient.GetPingSource(name)
 			if err != nil {
 				return err
 			}
@@ -59,21 +60,29 @@ func NewPingDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			writePingSource(dw, cjSource, printDetails)
+			writePingSource(dw, pingSource, printDetails)
 			dw.WriteLine()
 			if err := dw.Flush(); err != nil {
 				return err
 			}
 
 			// Revisions summary info
-			writeSink(dw, &cjSource.Spec.Sink)
+			writeSink(dw, &pingSource.Spec.Sink)
 			dw.WriteLine()
 			if err := dw.Flush(); err != nil {
 				return err
 			}
 
+			if pingSource.Spec.CloudEventOverrides != nil && pingSource.Spec.CloudEventOverrides.Extensions != nil {
+				writeCeOverrides(dw, pingSource.Spec.CloudEventOverrides.Extensions)
+				dw.WriteLine()
+				if err := dw.Flush(); err != nil {
+					return err
+				}
+			}
+
 			// Condition info
-			commands.WriteConditions(dw, cjSource.Status.Conditions, printDetails)
+			commands.WriteConditions(dw, pingSource.Status.Conditions, printDetails)
 			if err := dw.Flush(); err != nil {
 				return err
 			}
@@ -106,4 +115,16 @@ func writePingSource(dw printers.PrefixWriter, source *v1alpha2.PingSource, prin
 	commands.WriteMetadata(dw, &source.ObjectMeta, printDetails)
 	dw.WriteAttribute("Schedule", source.Spec.Schedule)
 	dw.WriteAttribute("Data", source.Spec.JsonData)
+}
+
+func writeCeOverrides(dw printers.PrefixWriter, ceOverrides map[string]string) {
+	subDw := dw.WriteAttribute("CloudEvent Overrides", "")
+	var keys []string
+	for k := range ceOverrides {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		subDw.WriteAttribute(k, ceOverrides[k])
+	}
 }
