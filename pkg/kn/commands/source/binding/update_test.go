@@ -38,10 +38,11 @@ func TestSimpleBindingUpdate(t *testing.T) {
 
 	bindingRecorder := sinkBindingClient.Recorder()
 	ceOverrideMap := map[string]string{"bla": "blub", "foo": "bar"}
+	ceOverrideMapUpdated := map[string]string{"foo": "baz", "new": "ceoverride"}
 	bindingRecorder.GetSinkBinding("testbinding", createSinkBinding("testbinding", "mysvc", deploymentGvk, "mydeploy", ceOverrideMap), nil)
-	bindingRecorder.UpdateSinkBinding(createSinkBinding("testbinding", "othersvc", deploymentGvk, "mydeploy", ceOverrideMap), nil)
+	bindingRecorder.UpdateSinkBinding(createSinkBinding("testbinding", "othersvc", deploymentGvk, "mydeploy", ceOverrideMapUpdated), nil)
 
-	out, err := executeSinkBindingCommand(sinkBindingClient, dynamicClient, "update", "testbinding", "--sink", "svc:othersvc", "--ce-override", "bla=blub", "--ce-override", "foo=bar")
+	out, err := executeSinkBindingCommand(sinkBindingClient, dynamicClient, "update", "testbinding", "--sink", "svc:othersvc", "--ce-override", "bla-", "--ce-override", "foo=baz", "--ce-override", "new=ceoverride")
 	assert.NilError(t, err)
 	util.ContainsAll(out, "updated", "default", "testbinding", "foo", "bar")
 

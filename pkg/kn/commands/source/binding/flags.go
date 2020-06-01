@@ -32,8 +32,17 @@ type bindingUpdateFlags struct {
 }
 
 func (b *bindingUpdateFlags) addBindingFlags(cmd *cobra.Command) {
-	cmd.Flags().StringVar(&b.subject, "subject", "", "Subject which emits cloud events. This argument takes format kind:apiVersion:name for named resources or kind:apiVersion:labelKey1=value1,labelKey2=value2 for matching via a label selector")
-	cmd.Flags().StringArrayVar(&b.ceOverrides, "ce-override", nil, "Cloud Event overrides to apply before sending event to sink in the format '--ce-override key=value'. --ce-override can be provide multiple times")
+	cmd.Flags().StringVar(&b.subject,
+		"subject",
+		"",
+		"Subject which emits cloud events. This argument takes format kind:apiVersion:name for named resources or kind:apiVersion:labelKey1=value1,labelKey2=value2 for matching via a label selector")
+	cmd.Flags().StringArrayVar(&b.ceOverrides,
+		"ce-override",
+		[]string{},
+		"Cloud Event overrides to apply before sending event to sink. "+
+			"Example: '--ce-override key=value' "+
+			"You may be provide this flag multiple times. "+
+			"To unset, append \"-\" to the key (e.g. --ce-override key-).")
 }
 
 func BindingListHandlers(h hprinters.PrintHandler) {

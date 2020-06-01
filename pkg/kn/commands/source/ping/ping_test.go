@@ -81,7 +81,7 @@ func cleanupPingMockClient() {
 	pingSourceClientFactory = nil
 }
 
-func createPingSource(name, schedule, data, service string) *v1alpha2.PingSource {
+func createPingSource(name, schedule, data, service string, ceOverridesMap map[string]string) *v1alpha2.PingSource {
 	sink := &v1.Destination{
 		Ref: &v1.KReference{Name: service, Kind: "Service", APIVersion: "serving.knative.dev/v1", Namespace: "default"},
 	}
@@ -89,5 +89,6 @@ func createPingSource(name, schedule, data, service string) *v1alpha2.PingSource
 		Schedule(schedule).
 		JsonData(data).
 		Sink(*sink).
+		CloudEventOverrides(ceOverridesMap, []string{}).
 		Build()
 }

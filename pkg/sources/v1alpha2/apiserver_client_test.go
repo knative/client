@@ -130,13 +130,16 @@ func TestListAPIServerSource(t *testing.T) {
 }
 
 func newAPIServerSource(name, resource string) *v1alpha2.ApiServerSource {
-	b := NewAPIServerSourceBuilder(name).ServiceAccount("testsa").EventMode("Reference")
-	b.Sink(duckv1.Destination{
-		Ref: &duckv1.KReference{
-			Kind:      "Service",
-			Name:      "foosvc",
-			Namespace: "default",
-		}})
+	b := NewAPIServerSourceBuilder(name).
+		ServiceAccount("testsa").
+		EventMode("Reference").
+		CloudEventOverrides(map[string]string{"type": "foo"}, []string{}).
+		Sink(duckv1.Destination{
+			Ref: &duckv1.KReference{
+				Kind:      "Service",
+				Name:      "foosvc",
+				Namespace: "default",
+			}})
 
 	if resource != "" {
 		b.Resources([]v1alpha2.APIVersionKindSelector{{

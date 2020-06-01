@@ -204,7 +204,12 @@ func (b *SinkBindingBuilder) Sink(sink *duckv1.Destination) *SinkBindingBuilder 
 	return b
 }
 
-func (b *SinkBindingBuilder) AddCloudEventOverrides(ceo map[string]string) *SinkBindingBuilder {
+// CloudEventOverrides adds given Cloud Event override extensions map to source spec
+func (b *SinkBindingBuilder) CloudEventOverrides(ceo map[string]string, toRemove []string) *SinkBindingBuilder {
+	if ceo == nil && len(toRemove) == 0 {
+		return b
+	}
+
 	ceOverrides := b.binding.Spec.CloudEventOverrides
 	if ceOverrides == nil {
 		ceOverrides = &duckv1.CloudEventOverrides{Extensions: map[string]string{}}
@@ -213,6 +218,10 @@ func (b *SinkBindingBuilder) AddCloudEventOverrides(ceo map[string]string) *Sink
 	for k, v := range ceo {
 		ceOverrides.Extensions[k] = v
 	}
+	for _, r := range toRemove {
+		delete(ceOverrides.Extensions, r)
+	}
+
 	return b
 }
 

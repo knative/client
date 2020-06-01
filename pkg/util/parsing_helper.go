@@ -108,6 +108,10 @@ func AddedAndRemovalListsFromArray(m []string) ([]string, []string) {
 // separated by a delimiter and returns a map where keys are mapped to their respective values.
 // If allowSingles is true, values without a delimiter will be added as keys pointing to empty strings
 func mapFromArray(arr []string, delimiter string, allowSingles bool) (map[string]string, error) {
+	if len(arr) == 0 {
+		return nil, nil
+	}
+
 	returnMap := map[string]string{}
 	for _, pairStr := range arr {
 		pairSlice := strings.SplitN(pairStr, delimiter, 2)

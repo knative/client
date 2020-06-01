@@ -32,11 +32,12 @@ func TestDescribeRef(t *testing.T) {
 	pingClient := clientv1alpha2.NewMockKnPingSourceClient(t, "mynamespace")
 
 	pingRecorder := pingClient.Recorder()
-	pingRecorder.GetPingSource("testsource-ref", getPingSourceSinkRef(), nil)
+	pingRecorder.GetPingSource("testping",
+		createPingSource("testping", "*/2 * * * *", "test", "testsvc", map[string]string{"foo": "bar"}), nil)
 
-	out, err := executePingSourceCommand(pingClient, nil, "describe", "testsource-ref")
+	out, err := executePingSourceCommand(pingClient, nil, "describe", "testping")
 	assert.NilError(t, err)
-	assert.Assert(t, util.ContainsAll(out, "1 2 3 4 5", "honeymoon", "myservicenamespace", "mysvc", "Service", "testsource-ref"))
+	assert.Assert(t, util.ContainsAll(out, "*/2 * * * *", "test", "testsvc", "Service", "Overrides", "foo", "bar", "Conditions"))
 
 	pingRecorder.Validate()
 }
@@ -66,29 +67,6 @@ func TestDescribeError(t *testing.T) {
 
 	pingRecorder.Validate()
 
-}
-
-func getPingSourceSinkRef() *v1alpha2.PingSource {
-	return &v1alpha2.PingSource{
-		TypeMeta: metav1.TypeMeta{},
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "testsource-ref",
-		},
-		Spec: v1alpha2.PingSourceSpec{
-			Schedule: "1 2 3 4 5",
-			JsonData: "honeymoon",
-			SourceSpec: duckv1.SourceSpec{
-				Sink: duckv1.Destination{
-					Ref: &duckv1.KReference{
-						Kind:      "Service",
-						Namespace: "myservicenamespace",
-						Name:      "mysvc",
-					},
-				},
-			},
-		},
-		Status: v1alpha2.PingSourceStatus{},
-	}
 }
 
 func getPingSourceSinkURI() *v1alpha2.PingSource {

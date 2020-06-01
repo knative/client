@@ -17,6 +17,7 @@ package apiserver
 import (
 	"errors"
 	"fmt"
+	"sort"
 
 	"github.com/spf13/cobra"
 	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
@@ -71,6 +72,10 @@ func NewAPIServerDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
+			if apiSource.Spec.CloudEventOverrides != nil && apiSource.Spec.CloudEventOverrides.Extensions != nil {
+				writeCeOverrides(dw, apiSource.Spec.CloudEventOverrides.Extensions)
+			}
+
 			writeResources(dw, apiSource.Spec.Resources)
 			dw.WriteLine()
 			if err := dw.Flush(); err != nil {
@@ -121,4 +126,16 @@ func writeAPIServerSource(dw printers.PrefixWriter, source *v1alpha2.ApiServerSo
 	commands.WriteMetadata(dw, &source.ObjectMeta, printDetails)
 	dw.WriteAttribute("ServiceAccountName", source.Spec.ServiceAccountName)
 	dw.WriteAttribute("EventMode", source.Spec.EventMode)
+}
+
+func writeCeOverrides(dw printers.PrefixWriter, ceOverrides map[string]string) {
+	subDw := dw.WriteAttribute("CloudEvent Overrides", "")
+	var keys []string
+	for k := range ceOverrides {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		subDw.WriteAttribute(k, ceOverrides[k])
+	}
 }

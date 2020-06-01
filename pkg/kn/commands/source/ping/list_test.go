@@ -29,7 +29,7 @@ func TestListPingSource(t *testing.T) {
 	pingClient := clientv1alpha2.NewMockKnPingSourceClient(t)
 
 	pingRecorder := pingClient.Recorder()
-	cJSource := createPingSource("testsource", "* * * * */2", "maxwell", "mysvc")
+	cJSource := createPingSource("testsource", "* * * * */2", "maxwell", "mysvc", nil)
 	cJSourceList := v1alpha2.PingSourceList{}
 	cJSourceList.Items = []v1alpha2.PingSource{*cJSource}
 

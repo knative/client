@@ -29,13 +29,26 @@ import (
 )
 
 type pingUpdateFlags struct {
-	schedule string
-	data     string
+	schedule    string
+	data        string
+	ceOverrides []string
 }
 
-func (c *pingUpdateFlags) addPingFlags(cmd *cobra.Command) {
-	cmd.Flags().StringVar(&c.schedule, "schedule", "", "Optional schedule specification in crontab format (e.g. '*/2 * * * *' for every two minutes. By default fire every minute.")
+func (c *pingUpdateFlags) addFlags(cmd *cobra.Command) {
+	cmd.Flags().StringVar(&c.schedule,
+		"schedule",
+		"",
+		"Optional schedule specification in crontab format (e.g. '*/2 * * * *' for every two minutes. By default fire every minute.")
+
 	cmd.Flags().StringVarP(&c.data, "data", "d", "", "Json data to send")
+
+	cmd.Flags().StringArrayVar(&c.ceOverrides,
+		"ce-override",
+		[]string{},
+		"Cloud Event overrides to apply before sending event to sink. "+
+			"Example: '--ce-override key=value' "+
+			"You may be provide this flag multiple times. "+
+			"To unset, append \"-\" to the key (e.g. --ce-override key-).")
 }
 
 // PingListHandlers handles printing human readable table for `kn source ping list` command's output

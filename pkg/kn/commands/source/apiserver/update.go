@@ -23,11 +23,12 @@ import (
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
 	"knative.dev/client/pkg/sources/v1alpha2"
+	"knative.dev/client/pkg/util"
 )
 
 // NewAPIServerUpdateCommand for managing source update
 func NewAPIServerUpdateCommand(p *commands.KnParams) *cobra.Command {
-	var apiServerUpdateFlags APIServerSourceUpdateFlags
+	var updateFlags APIServerSourceUpdateFlags
 	var sinkFlags flags.SinkFlags
 
 	cmd := &cobra.Command{
@@ -69,15 +70,15 @@ func NewAPIServerUpdateCommand(p *commands.KnParams) *cobra.Command {
 
 			b := v1alpha2.NewAPIServerSourceBuilderFromExisting(source)
 			if cmd.Flags().Changed("service-account") {
-				b.ServiceAccount(apiServerUpdateFlags.ServiceAccountName)
+				b.ServiceAccount(updateFlags.ServiceAccountName)
 			}
 
 			if cmd.Flags().Changed("mode") {
-				b.EventMode(apiServerUpdateFlags.Mode)
+				b.EventMode(updateFlags.Mode)
 			}
 
 			if cmd.Flags().Changed("resource") {
-				updateExisting, err := apiServerUpdateFlags.updateExistingAPIVersionKindSelectorArray(source.Spec.Resources)
+				updateExisting, err := updateFlags.updateExistingAPIVersionKindSelectorArray(source.Spec.Resources)
 				if err != nil {
 					return err
 				}
@@ -92,6 +93,15 @@ func NewAPIServerUpdateCommand(p *commands.KnParams) *cobra.Command {
 				b.Sink(*objectRef)
 			}
 
+			if cmd.Flags().Changed("ce-override") {
+				ceOverridesMap, err := util.MapFromArrayAllowingSingles(updateFlags.ceOverrides, "=")
+				if err != nil {
+					return err
+				}
+				ceOverridesToRemove := util.ParseMinusSuffix(ceOverridesMap)
+				b.CloudEventOverrides(ceOverridesMap, ceOverridesToRemove)
+			}
+
 			err = sourcesClient.UpdateAPIServerSource(b.Build())
 			if err == nil {
 				fmt.Fprintf(cmd.OutOrStdout(), "ApiServer source '%s' updated in namespace '%s'.\n", args[0], namespace)
@@ -101,7 +111,7 @@ func NewAPIServerUpdateCommand(p *commands.KnParams) *cobra.Command {
 		},
 	}
 	commands.AddNamespaceFlags(cmd.Flags(), false)
-	apiServerUpdateFlags.Add(cmd)
+	updateFlags.Add(cmd)
 	sinkFlags.Add(cmd)
 	return cmd
 }

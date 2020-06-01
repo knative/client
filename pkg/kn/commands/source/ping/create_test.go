@@ -37,9 +37,9 @@ func TestSimpleCreatePingSource(t *testing.T) {
 	pingClient := v1alpha2.NewMockKnPingSourceClient(t)
 
 	pingRecorder := pingClient.Recorder()
-	pingRecorder.CreatePingSource(createPingSource("testsource", "* * * * */2", "maxwell", "mysvc"), nil)
+	pingRecorder.CreatePingSource(createPingSource("testsource", "* * * * */2", "maxwell", "mysvc", map[string]string{"bla": "blub", "foo": "bar"}), nil)
 
-	out, err := executePingSourceCommand(pingClient, dynamicClient, "create", "--sink", "svc:mysvc", "--schedule", "* * * * */2", "--data", "maxwell", "testsource")
+	out, err := executePingSourceCommand(pingClient, dynamicClient, "create", "--sink", "svc:mysvc", "--schedule", "* * * * */2", "--data", "maxwell", "testsource", "--ce-override", "bla=blub", "--ce-override", "foo=bar")
 	assert.NilError(t, err, "Source should have been created")
 	util.ContainsAll(out, "created", "default", "testsource")
 

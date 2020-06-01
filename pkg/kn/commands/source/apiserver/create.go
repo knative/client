@@ -23,6 +23,7 @@ import (
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
 	"knative.dev/client/pkg/sources/v1alpha2"
+	"knative.dev/client/pkg/util"
 )
 
 // NewAPIServerCreateCommand for creating source
@@ -62,16 +63,23 @@ func NewAPIServerCreateCommand(p *commands.KnParams) *cobra.Command {
 						"because: %s", name, namespace, err)
 			}
 
-			b := v1alpha2.NewAPIServerSourceBuilder(name).
-				ServiceAccount(updateFlags.ServiceAccountName).
-				EventMode(updateFlags.Mode).
-				Sink(*objectRef)
-
 			resources, err := updateFlags.getAPIServerVersionKindSelector()
 			if err != nil {
 				return err
 			}
-			b.Resources(resources)
+
+			ceOverridesMap, err := util.MapFromArrayAllowingSingles(updateFlags.ceOverrides, "=")
+			if err != nil {
+				return err
+			}
+			ceOverridesToRemove := util.ParseMinusSuffix(ceOverridesMap)
+
+			b := v1alpha2.NewAPIServerSourceBuilder(name).
+				ServiceAccount(updateFlags.ServiceAccountName).
+				EventMode(updateFlags.Mode).
+				Sink(*objectRef).
+				Resources(resources).
+				CloudEventOverrides(ceOverridesMap, ceOverridesToRemove)
 
 			err = apiSourceClient.CreateAPIServerSource(b.Build())
 

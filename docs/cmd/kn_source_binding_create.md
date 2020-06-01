@@ -21,7 +21,7 @@ kn source binding create NAME --subject SUBJECT --sink SINK --ce-override KEY=VA
 ### Options
 
 ```
-      --ce-override stringArray   Cloud Event overrides to apply before sending event to sink in the format '--ce-override key=value'. --ce-override can be provide multiple times
+      --ce-override stringArray   Cloud Event overrides to apply before sending event to sink. Example: '--ce-override key=value' You may be provide this flag multiple times. To unset, append "-" to the key (e.g. --ce-override key-).
   -h, --help                      help for create
   -n, --namespace string          Specify the namespace to operate in.
   -s, --sink string               Addressable sink for events

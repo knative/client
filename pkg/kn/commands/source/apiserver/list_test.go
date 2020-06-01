@@ -29,7 +29,7 @@ func TestListAPIServerSource(t *testing.T) {
 	apiServerClient := v1alpha22.NewMockKnAPIServerSourceClient(t)
 
 	apiServerRecorder := apiServerClient.Recorder()
-	sampleSource := createAPIServerSource("testsource", "Event", "v1", "testsa", "Reference", "testsvc")
+	sampleSource := createAPIServerSource("testsource", "Event", "v1", "testsa", "Reference", "testsvc", nil)
 	sampleSourceList := v1alpha2.ApiServerSourceList{}
 	sampleSourceList.Items = []v1alpha2.ApiServerSource{*sampleSource}
 
