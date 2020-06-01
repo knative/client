@@ -110,7 +110,7 @@ func (v *pluginVerifier) addErrorIfOverwritingExistingCommand(eaw errorsAndWarni
 	for _, c := range [][]string{cmds, convertUnderscoresToDashes(cmds)} {
 		cmd, _, err := v.root.Find(c)
 		if err == nil {
-			if !InAllowedExtensibleCommandGroups(cmd.Name()) {
+			if !inAllowedExtensibleCommandGroups(cmd.Name()) {
 				overwrittenCommands[cmd.CommandPath()] = true
 			}
 		}
@@ -292,4 +292,13 @@ func convertUnderscoresToDashes(cmds []string) []string {
 
 func isSymlink(mode os.FileMode) bool {
 	return mode&os.ModeSymlink != 0
+}
+
+func inAllowedExtensibleCommandGroups(name string) bool {
+	for _, groupName := range CoreCommandNames {
+		if name == groupName {
+			return true
+		}
+	}
+	return false
 }

@@ -68,6 +68,10 @@
 | Add `-a` flag as an alias for `--annotation`
 | https://github.com/knative/client/pull/782[#782]
 
+| 🎁
+| Allow plugins to extend all command groups
+| https://github.com/knative/client/pull/834[#834]
+
 |===
 
 ## v0.13.2 (2020-04-15)
