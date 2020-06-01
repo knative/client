@@ -383,7 +383,7 @@ func (cl *knServingClient) DeleteRevision(name string, timeout time.Duration) er
 		return clienterrors.GetError(err)
 	}
 	if revision.GetDeletionTimestamp() != nil {
-		return fmt.Errorf("can't delete revision %s because it has been marked for deletion", name)
+		return fmt.Errorf("can't delete revision '%s' because it has been already marked for deletion", name)
 	}
 	if timeout == 0 {
 		return cl.deleteRevision(name)
