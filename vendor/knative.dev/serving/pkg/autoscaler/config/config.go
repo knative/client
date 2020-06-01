@@ -80,7 +80,6 @@ type Config struct {
 	StableWindow             time.Duration
 	PanicWindowPercentage    float64
 	PanicThresholdPercentage float64
-	TickInterval             time.Duration
 
 	ScaleToZeroGracePeriod        time.Duration
 	ScaleToZeroPodRetentionPeriod time.Duration
@@ -106,7 +105,6 @@ func defaultConfig() *Config {
 		StableWindow:                  60 * time.Second,
 		ScaleToZeroGracePeriod:        30 * time.Second,
 		ScaleToZeroPodRetentionPeriod: 0 * time.Second,
-		TickInterval:                  2 * time.Second,
 		PodAutoscalerClass:            autoscaling.KPA,
 		AllowZeroInitialScale:         false,
 		InitialScale:                  1,
@@ -139,7 +137,6 @@ func NewConfigFromMap(data map[string]string) (*Config, error) {
 		cm.AsDuration("stable-window", &lc.StableWindow),
 		cm.AsDuration("scale-to-zero-grace-period", &lc.ScaleToZeroGracePeriod),
 		cm.AsDuration("scale-to-zero-pod-retention-period", &lc.ScaleToZeroPodRetentionPeriod),
-		cm.AsDuration("tick-interval", &lc.TickInterval),
 	); err != nil {
 		return nil, fmt.Errorf("failed to parse data: %w", err)
 	}
@@ -193,16 +190,22 @@ func validate(lc *Config) (*Config, error) {
 	}
 
 	// We can't permit stable window be less than our aggregation window for correctness.
-	if lc.StableWindow < autoscaling.WindowMin {
-		return nil, fmt.Errorf("stable-window = %v, must be at least %v", lc.StableWindow, autoscaling.WindowMin)
+	// Or too big, so that our desisions are too imprecise.
+	if lc.StableWindow < autoscaling.WindowMin || lc.StableWindow > autoscaling.WindowMax {
+		return nil, fmt.Errorf("stable-window = %v, must be in [%v; %v] range", lc.StableWindow,
+			autoscaling.WindowMin, autoscaling.WindowMax)
 	}
+
 	if lc.StableWindow.Round(time.Second) != lc.StableWindow {
 		return nil, fmt.Errorf("stable-window = %v, must be specified with at most second precision", lc.StableWindow)
 	}
 
-	effPW := time.Duration(lc.PanicWindowPercentage / 100 * float64(lc.StableWindow))
-	if effPW < BucketSize || effPW > lc.StableWindow {
-		return nil, fmt.Errorf("panic-window-percentage = %v, must be in [%v, 100] interval", lc.PanicWindowPercentage, 100*float64(BucketSize)/float64(lc.StableWindow))
+	// We ensure BucketSize in the `MakeMetric`, so just ensure percentage is in the correct region.
+	if lc.PanicWindowPercentage < autoscaling.PanicWindowPercentageMin ||
+		lc.PanicWindowPercentage > autoscaling.PanicWindowPercentageMax {
+		return nil, fmt.Errorf("panic-window-percentage = %v, must be in [%v, %v] interval",
+			lc.PanicWindowPercentage, autoscaling.PanicWindowPercentageMin, autoscaling.PanicWindowPercentageMax)
+
 	}
 
 	if lc.InitialScale < 0 || (lc.InitialScale == 0 && !lc.AllowZeroInitialScale) {
