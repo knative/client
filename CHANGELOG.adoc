@@ -12,16 +12,30 @@
 | https://github.com/knative/client/pull/[#]
 ////
 
+## v0.15.0 (2020-06-02)
+
 [cols="1,10,3", options="header", width="100%"]
 |===
 | | Description | PR
 
-| 🎁
-| Add --ce-override flag for apiserver and ping sources
-| https://github.com/knative/client/pull/865[#865]
+| 🐛
+| Fix `kn source -h`
+| https://github.com/knative/client/pull/846[#846]
+
+| ✨
+| Update to Knative serving and eventing 0.15.0
+| https://github.com/knative/client/pull/810[#810]
 
 | 🎁
-| Add --requests and --limits flags for resource requirements
+| Add `--ce-override` flag for apiserver and ping sources
+| https://github.com/knative/client/pull/865[#865]
+
+| 🐣
+| Check `deletionTimestamp` for `kn revision delete`
+| https://github.com/knative/client/pull/860[#860]
+
+| 🎁
+| Add `--requests` and `--limits` flags for resource requirements
 | https://github.com/knative/client/pull/859[#859]
 
 | 🐣
@@ -29,17 +43,36 @@
 | https://github.com/knative/client/pull/853[#853]
 
 | 🐛
-| Fix Panic for kn source ping describe with Sink URI
+| Fix Panic for `kn source ping` describe with Sink URI
 | https://github.com/knative/client/pull/848[#848]
 
 | 🎁
-| Add kn service delete --all
+| Add `kn service delete --all`
 | https://github.com/knative/client/pull/836[#836]
 
+| 🎁
+| Allow plugins to extend all command groups
+| https://github.com/knative/client/pull/834[#834]
+
+| 🐣
+| Update and expanded https://github.com/knative/client/blob/master/conventions/cli.md[CLI convention document]
+| https://github.com/knative/client/pull/831[#831]
+
 | 🐛
-| Skip LatestReadyRevisionName if Revision is Pending or Unknown
+| Skip `LatestReadyRevisionName` if revision is `Pending` or `Unknown`
 | https://github.com/knative/client/pull/825[#825]
 
+| 🎁
+| Add `--with-revisions` to `kn export` to allow a direct export of revisions
+| https://github.com/knative/client/pull/819[#819]
+
+| 🐛
+| Update help messsage for `kn source apiserver` to reflect the new API
+| https://github.com/knative/client/pull/817[#817]
+
+| 🐛
+| Check `DeleteTimestamp` before updating resource
+| https://github.com/knative/client/pull/805[#805]
 |===
 
 ## v0.14.0 (2020-04-21)
@@ -56,22 +89,9 @@
 | Update to Knative serving and eventing 0.14.0
 | https://github.com/knative/client/pull/810[#810]
 
-| 🐛
-| Check DeleteTimestamp before updating resource
-| https://github.com/knative/client/pull/805[#805]
-
-| 🎁
-| Allow plugins to extend fixed list of command groups, currently `source`
-| https://github.com/knative/client/pull/818[#818]
-
 | 🎁
 | Add `-a` flag as an alias for `--annotation`
 | https://github.com/knative/client/pull/782[#782]
-
-| 🎁
-| Allow plugins to extend all command groups
-| https://github.com/knative/client/pull/834[#834]
-
 |===
 
 ## v0.13.2 (2020-04-15)
