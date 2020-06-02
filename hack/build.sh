@@ -188,6 +188,9 @@ update_deps() {
   echo "🚒 Update"
   go mod tidy
   go mod vendor
+
+  # Cleanup
+  find "./vendor" \( -name "OWNERS" -o -name "*_test.go" \) -print0 | xargs -0 rm -f
 }
 
 generate_docs() {
