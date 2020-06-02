@@ -165,6 +165,14 @@ func TestPluginHandler(t *testing.T) {
 			err = HandlePluginCommand(tPluginHandler, []string{"bogus"})
 			assert.Assert(t, err != nil, fmt.Sprintf("test plugin %s expected to fail executing", "bogus"))
 		})
+
+		t.Run("doesn't return error with -h", func(t *testing.T) {
+			setup(t)
+			defer cleanup(t)
+
+			err = HandlePluginCommand(tPluginHandler, []string{"source", "-h"})
+			assert.Assert(t, err == nil, fmt.Sprintf("test plugin command with -h failed executing: %s", err.Error()))
+		})
 	})
 }
 

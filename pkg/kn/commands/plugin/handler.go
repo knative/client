@@ -15,7 +15,6 @@
 package plugin
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -127,10 +126,11 @@ func HandlePluginCommand(pluginHandler PluginHandler, cmdArgs []string) error {
 	remainingArgs := []string{}
 
 	for idx := range cmdArgs {
-		if strings.HasPrefix(cmdArgs[idx], "-") {
+		cmdArg := cmdArgs[idx]
+		if strings.HasPrefix(cmdArg, "-") {
 			continue
 		}
-		remainingArgs = append(remainingArgs, strings.Replace(cmdArgs[idx], "-", "_", -1))
+		remainingArgs = append(remainingArgs, strings.Replace(cmdArg, "-", "_", -1))
 	}
 
 	foundBinaryPath := ""
@@ -147,16 +147,14 @@ func HandlePluginCommand(pluginHandler PluginHandler, cmdArgs []string) error {
 		break
 	}
 
-	if len(foundBinaryPath) == 0 {
-		return errors.New("Could not find plugin to execute")
-	}
-
 	// invoke cmd binary relaying the current environment and args given
 	// remainingArgs will always have at least one element.
 	// execve will make remainingArgs[0] the "binary name".
-	err := pluginHandler.Execute(foundBinaryPath, append([]string{foundBinaryPath}, cmdArgs[len(remainingArgs):]...), os.Environ())
-	if err != nil {
-		return err
+	if len(foundBinaryPath) != 0 {
+		err := pluginHandler.Execute(foundBinaryPath, append([]string{foundBinaryPath}, cmdArgs[len(remainingArgs):]...), os.Environ())
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
