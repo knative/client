@@ -26,6 +26,7 @@ import (
 )
 
 // +genclient
+// +genreconciler:krshapedlogic=true
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 type EventType struct {
@@ -56,6 +57,7 @@ var (
 	// Check that we can create OwnerReferences to an EventType.
 	_ kmeta.OwnerRefable = (*EventType)(nil)
 
+	// Check that the type conforms to the duck Knative Resource shape.
 	_ duckv1.KRShaped = (*EventType)(nil)
 )
 

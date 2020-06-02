@@ -34,7 +34,7 @@ const (
 )
 
 // +genclient
-// +genreconciler
+// +genreconciler:krshapedlogic=true
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // Trigger represents a request to have events delivered to a consumer from a
@@ -66,6 +66,7 @@ var (
 	// Check that we can create OwnerReferences to a Trigger.
 	_ kmeta.OwnerRefable = (*Trigger)(nil)
 
+	// Check that the type conforms to the duck Knative Resource shape.
 	_ duckv1.KRShaped = (*Trigger)(nil)
 )
 

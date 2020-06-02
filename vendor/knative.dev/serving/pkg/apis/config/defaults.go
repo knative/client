@@ -58,7 +58,7 @@ const (
 	DefaultAllowContainerConcurrencyZero bool = true
 )
 
-func defaultConfig() *Defaults {
+func defaultDefaultsConfig() *Defaults {
 	return &Defaults{
 		RevisionTimeoutSeconds:        DefaultRevisionTimeoutSeconds,
 		MaxRevisionTimeoutSeconds:     DefaultMaxRevisionTimeoutSeconds,
@@ -71,12 +71,11 @@ func defaultConfig() *Defaults {
 
 // NewDefaultsConfigFromMap creates a Defaults from the supplied Map.
 func NewDefaultsConfigFromMap(data map[string]string) (*Defaults, error) {
-	nc := defaultConfig()
+	nc := defaultDefaultsConfig()
 
 	if err := cm.Parse(data,
 		cm.AsString("container-name-template", &nc.UserContainerNameTemplate),
 
-		cm.AsBool("enable-multi-container", &nc.EnableMultiContainer),
 		cm.AsBool("allow-container-concurrency-zero", &nc.AllowContainerConcurrencyZero),
 
 		cm.AsInt64("revision-timeout-seconds", &nc.RevisionTimeoutSeconds),
@@ -84,10 +83,12 @@ func NewDefaultsConfigFromMap(data map[string]string) (*Defaults, error) {
 		cm.AsInt64("container-concurrency", &nc.ContainerConcurrency),
 		cm.AsInt64("container-concurrency-max-limit", &nc.ContainerConcurrencyMaxLimit),
 
-		asQuantity("revision-cpu-request", &nc.RevisionCPURequest),
-		asQuantity("revision-memory-request", &nc.RevisionMemoryRequest),
-		asQuantity("revision-cpu-limit", &nc.RevisionCPULimit),
-		asQuantity("revision-memory-limit", &nc.RevisionMemoryLimit),
+		cm.AsQuantity("revision-cpu-request", &nc.RevisionCPURequest),
+		cm.AsQuantity("revision-memory-request", &nc.RevisionMemoryRequest),
+		cm.AsQuantity("revision-ephemeral-storage-request", &nc.RevisionEphemeralStorageRequest),
+		cm.AsQuantity("revision-cpu-limit", &nc.RevisionCPULimit),
+		cm.AsQuantity("revision-memory-limit", &nc.RevisionMemoryLimit),
+		cm.AsQuantity("revision-ephemeral-storage-limit", &nc.RevisionEphemeralStorageLimit),
 	); err != nil {
 		return nil, err
 	}
@@ -123,9 +124,6 @@ func NewDefaultsConfigFromConfigMap(config *corev1.ConfigMap) (*Defaults, error)
 
 // Defaults includes the default values to be populated by the webhook.
 type Defaults struct {
-	// Feature flag to enable multi container support.
-	EnableMultiContainer bool
-
 	RevisionTimeoutSeconds int64
 	// This is the timeout set for ingress.
 	// RevisionTimeoutSeconds must be less than this value.
@@ -143,10 +141,12 @@ type Defaults struct {
 	// a containerConcurrency of 0 (i.e. unbounded).
 	AllowContainerConcurrencyZero bool
 
-	RevisionCPURequest    *resource.Quantity
-	RevisionCPULimit      *resource.Quantity
-	RevisionMemoryRequest *resource.Quantity
-	RevisionMemoryLimit   *resource.Quantity
+	RevisionCPURequest              *resource.Quantity
+	RevisionCPULimit                *resource.Quantity
+	RevisionMemoryRequest           *resource.Quantity
+	RevisionMemoryLimit             *resource.Quantity
+	RevisionEphemeralStorageRequest *resource.Quantity
+	RevisionEphemeralStorageLimit   *resource.Quantity
 }
 
 // UserContainerName returns the name of the user container based on the context.
@@ -158,18 +158,4 @@ func (d *Defaults) UserContainerName(ctx context.Context) string {
 		return ""
 	}
 	return buf.String()
-}
-
-// asQuantity parses the value at key as a *resource.Quantity into the target, if it exists.
-func asQuantity(key string, target **resource.Quantity) cm.ParseFunc {
-	return func(data map[string]string) error {
-		if raw, ok := data[key]; !ok {
-			*target = nil
-		} else if val, err := resource.ParseQuantity(raw); err != nil {
-			return err
-		} else {
-			*target = &val
-		}
-		return nil
-	}
 }
