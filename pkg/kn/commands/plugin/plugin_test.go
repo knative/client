@@ -72,13 +72,3 @@ func TestNewPluginCommand(t *testing.T) {
 		assert.Assert(t, pluginCmd.Args == nil)
 	})
 }
-
-func TestInAllowedExtensibleCommandGroups(t *testing.T) {
-	isExtensibleCommand := InAllowedExtensibleCommandGroups("fake")
-	assert.Assert(t, isExtensibleCommand == false)
-
-	for _, name := range AllowedExtensibleCommandGroups {
-		isExtensibleCommand = InAllowedExtensibleCommandGroups(name)
-		assert.Assert(t, isExtensibleCommand == true)
-	}
-}

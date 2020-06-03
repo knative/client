@@ -25,7 +25,7 @@ Examples:
 ```bash
 # Create a new service from an image
 
-kn service create mysvc --env KEY1=VALUE1 --env KEY2=VALUE2 --image dev.local/ns/image:latest
+kn service create mysvc --env KEY1=VALUE1 --env KEY2=VALUE2 --image knativesamples/helloworld
 ```
 
 You are able to also specify the requests and limits of both CPU and memory when

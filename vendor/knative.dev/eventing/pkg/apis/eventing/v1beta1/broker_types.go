@@ -28,7 +28,7 @@ import (
 )
 
 // +genclient
-// +genreconciler:class=eventing.knative.dev/broker.class
+// +genreconciler:class=eventing.knative.dev/broker.class,krshapedlogic=true
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // Broker collects a pool of events that are consumable using Triggers. Brokers
@@ -63,6 +63,7 @@ var (
 	// Check that we can create OwnerReferences to a Broker.
 	_ kmeta.OwnerRefable = (*Broker)(nil)
 
+	// Check that the type conforms to the duck Knative Resource shape.
 	_ duckv1.KRShaped = (*Broker)(nil)
 )
 

@@ -17,7 +17,7 @@
 # This script is used in Knative/test-infra as a custom prow job to run the
 # integration tests against Knative Serving / Eventing of a specific version.
 
-export KNATIVE_SERVING_VERSION="0.14.0"
-export KNATIVE_EVENTING_VERSION="0.14.0"
+export KNATIVE_SERVING_VERSION="0.15.0"
+export KNATIVE_EVENTING_VERSION="0.15.0"
 
 $(dirname $0)/presubmit-tests.sh --integration-tests

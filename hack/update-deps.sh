@@ -54,3 +54,11 @@ fi
 # Prune modules.
 go mod tidy
 go mod vendor
+
+# Cleanup
+find "${ROOT_DIR}/vendor" \( -name "OWNERS" -o -name "*_test.go" \) -print0 | xargs -0 rm -f
+
+export GOFLAGS=-mod=vendor
+update_licenses "${ROOT_DIR}/third_party/VENDOR-LICENSE" "./..."
+
+remove_broken_symlinks "${ROOT_DIR}/vendor"

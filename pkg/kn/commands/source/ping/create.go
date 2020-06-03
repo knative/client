@@ -23,11 +23,12 @@ import (
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
 	"knative.dev/client/pkg/sources/v1alpha2"
+	"knative.dev/client/pkg/util"
 )
 
 // NewPingCreateCommand is for creating Ping source COs
 func NewPingCreateCommand(p *commands.KnParams) *cobra.Command {
-	var pingUpdateFlags pingUpdateFlags
+	var updateFlags pingUpdateFlags
 	var sinkFlags flags.SinkFlags
 
 	cmd := &cobra.Command{
@@ -63,11 +64,18 @@ func NewPingCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
+			ceOverridesMap, err := util.MapFromArrayAllowingSingles(updateFlags.ceOverrides, "=")
+			if err != nil {
+				return err
+			}
+			ceOverridesToRemove := util.ParseMinusSuffix(ceOverridesMap)
+
 			err = pingSourceClient.CreatePingSource(
 				v1alpha2.NewPingSourceBuilder(name).
-					Schedule(pingUpdateFlags.schedule).
-					JsonData(pingUpdateFlags.data).
+					Schedule(updateFlags.schedule).
+					JsonData(updateFlags.data).
 					Sink(*destination).
+					CloudEventOverrides(ceOverridesMap, ceOverridesToRemove).
 					Build())
 			if err == nil {
 				fmt.Fprintf(cmd.OutOrStdout(), "Ping source '%s' created in namespace '%s'.\n", args[0], pingSourceClient.Namespace())
@@ -76,7 +84,7 @@ func NewPingCreateCommand(p *commands.KnParams) *cobra.Command {
 		},
 	}
 	commands.AddNamespaceFlags(cmd.Flags(), false)
-	pingUpdateFlags.addPingFlags(cmd)
+	updateFlags.addFlags(cmd)
 	sinkFlags.Add(cmd)
 	cmd.MarkFlagRequired("sink")
 

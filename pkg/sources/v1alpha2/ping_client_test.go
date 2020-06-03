@@ -135,7 +135,8 @@ func TestListPingSource(t *testing.T) {
 func newPingSource(name string, sink string) *v1alpha2.PingSource {
 	b := NewPingSourceBuilder(name).
 		Schedule("* * * * *").
-		JsonData("mydata")
+		JsonData("mydata").
+		CloudEventOverrides(map[string]string{"type": "foo"}, []string{})
 
 	if sink != "" {
 		b.Sink(

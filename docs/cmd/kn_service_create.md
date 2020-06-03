@@ -14,32 +14,37 @@ kn service create NAME --image IMAGE [flags]
 
 ```
 
-  # Create a service 'mysvc' using image at dev.local/ns/image:latest
-  kn service create mysvc --image dev.local/ns/image:latest
+  # Create a service 's0' using image knativesamples/helloworld
+  kn service create s0 --image knativesamples/helloworld
 
   # Create a service with multiple environment variables
-  kn service create mysvc --env KEY1=VALUE1 --env KEY2=VALUE2 --image dev.local/ns/image:latest
+  kn service create s1 --env TARGET=v1 --env FROM=examples --image knativesamples/helloworld
 
-  # Create or replace a service 's1' with image dev.local/ns/image:v2 using --force flag
-  # if service 's1' doesn't exist, it's just a normal create operation
-  kn service create --force s1 --image dev.local/ns/image:v2
+  # Create or replace a service using --force flag
+  # if service 's1' doesn't exist, it's a normal create operation
+  kn service create --force s1 --image knativesamples/helloworld
 
   # Create or replace environment variables of service 's1' using --force flag
-  kn service create --force s1 --env KEY1=NEW_VALUE1 --env NEW_KEY2=NEW_VALUE2 --image dev.local/ns/image:v1
+  kn service create --force s1 --env TARGET=force --env FROM=examples --image knativesamples/helloworld
 
-  # Create service 'mysvc' with port 80
-  kn service create mysvc --port 80 --image dev.local/ns/image:latest
+  # Create a service with port 80
+  kn service create s2 --port 80 --image knativesamples/helloworld
 
   # Create or replace default resources of a service 's1' using --force flag
   # (earlier configured resource requests and limits will be replaced with default)
   # (earlier configured environment variables will be cleared too if any)
-  kn service create --force s1 --image dev.local/ns/image:v1
+  kn service create --force s1 --image knativesamples/helloworld
 
   # Create a service with annotation
-  kn service create s1 --image dev.local/ns/image:v3 --annotation sidecar.istio.io/inject=false
+  kn service create s3 --image knativesamples/helloworld --annotation sidecar.istio.io/inject=false
 
   # Create a private service (that is a service with no external endpoint)
-  kn service create s1 --image dev.local/ns/image:v3 --cluster-local
+  kn service create s1 --image knativesamples/helloworld --cluster-local
+
+  # Create a service with 250MB memory, 200m CPU requests and a GPU resource limit
+  # [https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/]
+  # [https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/]
+  kn service create s4gpu --image knativesamples/hellocuda-go --request memory=250Mi,cpu=200m --limit nvidia.com/gpu=1
 ```
 
 ### Options
@@ -62,8 +67,9 @@ kn service create NAME --image IMAGE [flags]
   -l, --label stringArray             Labels to set for both Service and Revision. name=value; you may provide this flag any number of times to set multiple labels. To unset, specify the label name followed by a "-" (e.g., name-).
       --label-revision stringArray    Revision label to set. name=value; you may provide this flag any number of times to set multiple labels. To unset, specify the label name followed by a "-" (e.g., name-). This flag takes precedence over "label" flag.
       --label-service stringArray     Service label to set. name=value; you may provide this flag any number of times to set multiple labels. To unset, specify the label name followed by a "-" (e.g., name-). This flag takes precedence over "label" flag.
-      --limits-cpu string             The limits on the requested CPU (e.g., 1000m).
-      --limits-memory string          The limits on the requested memory (e.g., 1024Mi).
+      --limit strings                 The resource requirement limits for this Service. For example, 'cpu=100m,memory=256Mi'. You can use this flag multiple times. To unset a resource limit, append "-" to the resource name, e.g. '--limit memory-'.
+      --limits-cpu string             DEPRECATED: please use --limit instead. The limits on the requested CPU (e.g., 1000m).
+      --limits-memory string          DEPRECATED: please use --limit instead. The limits on the requested memory (e.g., 1024Mi).
       --lock-to-digest                Keep the running image for the service constant when not explicitly specifying the image. (--no-lock-to-digest pulls the image tag afresh with each new revision) (default true)
       --max-scale int                 Maximal number of replicas.
       --min-scale int                 Minimal number of replicas.
@@ -74,8 +80,9 @@ kn service create NAME --image IMAGE [flags]
       --no-wait                       Do not wait for 'service create' operation to be completed.
   -p, --port int32                    The port where application listens on.
       --pull-secret string            Image pull secret to set. An empty argument ("") clears the pull secret. The referenced secret must exist in the service's namespace.
-      --requests-cpu string           The requested CPU (e.g., 250m).
-      --requests-memory string        The requested memory (e.g., 64Mi).
+      --request strings               The resource requirement requests for this Service. For example, 'cpu=100m,memory=256Mi'. You can use this flag multiple times. To unset a resource request, append "-" to the resource name, e.g. '--request cpu-'.
+      --requests-cpu string           DEPRECATED: please use --request instead. The requested CPU (e.g., 250m).
+      --requests-memory string        DEPRECATED: please use --request instead. The requested memory (e.g., 64Mi).
       --revision-name string          The revision name to set. Must start with the service name and a dash as a prefix. Empty revision name will result in the server generating a name for the revision. Accepts golang templates, allowing {{.Service}} for the service name, {{.Generation}} for the generation, and {{.Random [n]}} for n random consonants. (default "{{.Service}}-{{.Random 5}}-{{.Generation}}")
       --service-account string        Service account name to set. An empty argument ("") clears the service account. The referenced service account must exist in the service's namespace.
       --user int                      The user ID to run the container (e.g., 1001).

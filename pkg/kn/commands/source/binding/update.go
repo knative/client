@@ -23,6 +23,7 @@ import (
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
 	v1alpha12 "knative.dev/client/pkg/sources/v1alpha2"
+	"knative.dev/client/pkg/util"
 )
 
 // NewBindingUpdateCommand prepares the command for a sink binding update
@@ -80,11 +81,14 @@ func NewBindingUpdateCommand(p *commands.KnParams) *cobra.Command {
 				}
 				b.Subject(reference)
 			}
-			err = updateCeOverrides(bindingFlags, b)
-			if err != nil {
-				return err
+			if cmd.Flags().Changed("ce-override") {
+				ceOverridesMap, err := util.MapFromArrayAllowingSingles(bindingFlags.ceOverrides, "=")
+				if err != nil {
+					return err
+				}
+				ceOverridesToRemove := util.ParseMinusSuffix(ceOverridesMap)
+				b.CloudEventOverrides(ceOverridesMap, ceOverridesToRemove)
 			}
-
 			binding, err := b.Build()
 			if err != nil {
 				return err

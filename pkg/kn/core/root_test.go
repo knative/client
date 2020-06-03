@@ -76,11 +76,12 @@ func TestNewDefaultKnCommandWithArgs(t *testing.T) {
 				err                                error
 			)
 
+			pluginName = "fake-plugin-name"
+
 			beforeEach := func(t *testing.T) {
 				tmpPathDir, err = ioutil.TempDir("", "plugin_list")
 				assert.Assert(t, err == nil)
 
-				pluginName = "fake-plugin-name"
 				pluginPath = plugin.CreateTestPluginInPath(t, "kn-"+pluginName, plugin.KnTestPluginScript, plugin.FileModeExecutable, tmpPathDir)
 			}
 
@@ -89,12 +90,56 @@ func TestNewDefaultKnCommandWithArgs(t *testing.T) {
 				assert.Assert(t, err == nil)
 			}
 
-			beforeEach(t)
-			args = []string{pluginPath, pluginName}
-			setup(t)
-			defer afterEach(t)
+			t.Run("when -h or --help option is present for plugin, return valid root command", func(t *testing.T) {
+				helpOptions := []string{"-h", "--help"}
+				for _, helpOption := range helpOptions {
+					beforeEach(t)
+					args = []string{pluginPath, pluginName, helpOption}
+					setup(t)
+					defer afterEach(t)
+
+					checkRootCmd(t, rootCmd)
+				}
+			})
+
+			t.Run("when --help option is present for normal command, return valid root command", func(t *testing.T) {
+				helpOptions := []string{"-h", "--help"}
+				for _, helpOption := range helpOptions {
+					beforeEach(t)
+					args = []string{"service", helpOption}
+					setup(t)
+					defer afterEach(t)
+
+					checkRootCmd(t, rootCmd)
+				}
+			})
 
 			t.Run("tries to handle args[1:] as plugin and return valid root command", func(t *testing.T) {
+				beforeEach(t)
+				args = []string{pluginPath, pluginName}
+				setup(t)
+				defer afterEach(t)
+
+				checkRootCmd(t, rootCmd)
+			})
+
+			t.Run("when plugin extends an existing command group it return valid root command", func(t *testing.T) {
+				pluginName = "service-fakecmd"
+				beforeEach(t)
+				args = []string{pluginPath, pluginName}
+				setup(t)
+				defer afterEach(t)
+
+				checkRootCmd(t, rootCmd)
+			})
+
+			t.Run("when plugin extends and shadows an existing command group it fails", func(t *testing.T) {
+				pluginName = "service-create"
+				beforeEach(t)
+				args = []string{pluginPath, pluginName, "test"}
+				setup(t)
+				defer afterEach(t)
+
 				checkRootCmd(t, rootCmd)
 			})
 		})

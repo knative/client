@@ -15,7 +15,14 @@
 package test
 
 import (
+	"encoding/json"
+	"strings"
+
 	"gotest.tools/assert"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
+
 	"knative.dev/client/pkg/util"
 )
 
@@ -77,4 +84,31 @@ func ServiceDescribeWithJSONPath(r *KnRunResultCollector, serviceName, jsonpath 
 	out := r.KnTest().Kn().Run("service", "describe", serviceName, "-o", jsonpath)
 	r.AssertNoError(out)
 	return out.Stdout
+}
+
+func ValidateServiceResources(r *KnRunResultCollector, serviceName string, requestsMemory, requestsCPU, limitsMemory, limitsCPU string) {
+	var err error
+	rlist := corev1.ResourceList{}
+	rlist[corev1.ResourceCPU], err = resource.ParseQuantity(requestsCPU)
+	assert.NilError(r.T(), err)
+	rlist[corev1.ResourceMemory], err = resource.ParseQuantity(requestsMemory)
+	assert.NilError(r.T(), err)
+
+	llist := corev1.ResourceList{}
+	llist[corev1.ResourceCPU], err = resource.ParseQuantity(limitsCPU)
+	assert.NilError(r.T(), err)
+	llist[corev1.ResourceMemory], err = resource.ParseQuantity(limitsMemory)
+	assert.NilError(r.T(), err)
+
+	out := r.KnTest().Kn().Run("service", "describe", serviceName, "-ojson")
+	data := json.NewDecoder(strings.NewReader(out.Stdout))
+	var service servingv1.Service
+	err = data.Decode(&service)
+	assert.NilError(r.T(), err)
+
+	serviceRequestResourceList := service.Spec.Template.Spec.Containers[0].Resources.Requests
+	assert.DeepEqual(r.T(), serviceRequestResourceList, rlist)
+
+	serviceLimitsResourceList := service.Spec.Template.Spec.Containers[0].Resources.Limits
+	assert.DeepEqual(r.T(), serviceLimitsResourceList, llist)
 }

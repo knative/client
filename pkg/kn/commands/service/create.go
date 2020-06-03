@@ -34,32 +34,37 @@ import (
 )
 
 var create_example = `
-  # Create a service 'mysvc' using image at dev.local/ns/image:latest
-  kn service create mysvc --image dev.local/ns/image:latest
+  # Create a service 's0' using image knativesamples/helloworld
+  kn service create s0 --image knativesamples/helloworld
 
   # Create a service with multiple environment variables
-  kn service create mysvc --env KEY1=VALUE1 --env KEY2=VALUE2 --image dev.local/ns/image:latest
+  kn service create s1 --env TARGET=v1 --env FROM=examples --image knativesamples/helloworld
 
-  # Create or replace a service 's1' with image dev.local/ns/image:v2 using --force flag
-  # if service 's1' doesn't exist, it's just a normal create operation
-  kn service create --force s1 --image dev.local/ns/image:v2
+  # Create or replace a service using --force flag
+  # if service 's1' doesn't exist, it's a normal create operation
+  kn service create --force s1 --image knativesamples/helloworld
 
   # Create or replace environment variables of service 's1' using --force flag
-  kn service create --force s1 --env KEY1=NEW_VALUE1 --env NEW_KEY2=NEW_VALUE2 --image dev.local/ns/image:v1
+  kn service create --force s1 --env TARGET=force --env FROM=examples --image knativesamples/helloworld
 
-  # Create service 'mysvc' with port 80
-  kn service create mysvc --port 80 --image dev.local/ns/image:latest
+  # Create a service with port 80
+  kn service create s2 --port 80 --image knativesamples/helloworld
 
   # Create or replace default resources of a service 's1' using --force flag
   # (earlier configured resource requests and limits will be replaced with default)
   # (earlier configured environment variables will be cleared too if any)
-  kn service create --force s1 --image dev.local/ns/image:v1
+  kn service create --force s1 --image knativesamples/helloworld
 
   # Create a service with annotation
-  kn service create s1 --image dev.local/ns/image:v3 --annotation sidecar.istio.io/inject=false
+  kn service create s3 --image knativesamples/helloworld --annotation sidecar.istio.io/inject=false
 
   # Create a private service (that is a service with no external endpoint)
-  kn service create s1 --image dev.local/ns/image:v3 --cluster-local`
+  kn service create s1 --image knativesamples/helloworld --cluster-local
+
+  # Create a service with 250MB memory, 200m CPU requests and a GPU resource limit
+  # [https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/]
+  # [https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/]
+  kn service create s4gpu --image knativesamples/hellocuda-go --request memory=250Mi,cpu=200m --limit nvidia.com/gpu=1`
 
 func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 	var editFlags ConfigurationEditFlags

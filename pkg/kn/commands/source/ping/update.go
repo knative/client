@@ -23,11 +23,12 @@ import (
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
 	"knative.dev/client/pkg/sources/v1alpha2"
+	"knative.dev/client/pkg/util"
 )
 
 // NewPingUpdateCommand prepares the command for a PingSource update
 func NewPingUpdateCommand(p *commands.KnParams) *cobra.Command {
-	var pingUpdateFlags pingUpdateFlags
+	var updateFlags pingUpdateFlags
 	var sinkFlags flags.SinkFlags
 
 	cmd := &cobra.Command{
@@ -67,10 +68,10 @@ func NewPingUpdateCommand(p *commands.KnParams) *cobra.Command {
 
 			b := v1alpha2.NewPingSourceBuilderFromExisting(source)
 			if cmd.Flags().Changed("schedule") {
-				b.Schedule(pingUpdateFlags.schedule)
+				b.Schedule(updateFlags.schedule)
 			}
 			if cmd.Flags().Changed("data") {
-				b.JsonData(pingUpdateFlags.data)
+				b.JsonData(updateFlags.data)
 			}
 			if cmd.Flags().Changed("sink") {
 				destination, err := sinkFlags.ResolveSink(dynamicClient, namespace)
@@ -79,6 +80,16 @@ func NewPingUpdateCommand(p *commands.KnParams) *cobra.Command {
 				}
 				b.Sink(*destination)
 			}
+
+			if cmd.Flags().Changed("ce-override") {
+				ceOverridesMap, err := util.MapFromArrayAllowingSingles(updateFlags.ceOverrides, "=")
+				if err != nil {
+					return err
+				}
+				ceOverridesToRemove := util.ParseMinusSuffix(ceOverridesMap)
+				b.CloudEventOverrides(ceOverridesMap, ceOverridesToRemove)
+			}
+
 			err = pingSourceClient.UpdatePingSource(b.Build())
 			if err == nil {
 				fmt.Fprintf(cmd.OutOrStdout(), "Ping source '%s' updated in namespace '%s'.\n", name, pingSourceClient.Namespace())
@@ -87,7 +98,7 @@ func NewPingUpdateCommand(p *commands.KnParams) *cobra.Command {
 		},
 	}
 	commands.AddNamespaceFlags(cmd.Flags(), false)
-	pingUpdateFlags.addPingFlags(cmd)
+	updateFlags.addFlags(cmd)
 	sinkFlags.Add(cmd)
 
 	return cmd

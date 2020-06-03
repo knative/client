@@ -26,11 +26,10 @@ import (
 	"testing"
 
 	"gotest.tools/assert"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	"knative.dev/client/lib/test"
 	"knative.dev/client/pkg/util"
-
-	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
 func TestServiceOptions(t *testing.T) {
@@ -124,6 +123,10 @@ func TestServiceOptions(t *testing.T) {
 	t.Log("create and validate service and revision labels")
 	serviceCreateWithOptions(r, "svc7", "--label-service", "svc=helloworld-svc", "--label-revision", "rev=helloworld-rev")
 	validateLabels(r, "svc7", map[string]string{"svc": "helloworld-svc"}, map[string]string{"rev": "helloworld-rev"})
+
+	t.Log("create and validate service resource options")
+	serviceCreateWithOptions(r, "svc8", "--limit", "memory=500Mi,cpu=1000m", "--request", "memory=250Mi,cpu=200m")
+	test.ValidateServiceResources(r, "svc8", "250Mi", "200m", "500Mi", "1000m")
 }
 
 func serviceCreateWithOptions(r *test.KnRunResultCollector, serviceName string, options ...string) {

@@ -105,8 +105,6 @@ func TestPluginWithoutLookup(t *testing.T) {
 
 	t.Log("does not list any other plugin in $PATH")
 	listPlugin(r, knFlags, []string{pc.knPluginPath}, []string{pc.knPluginPath2})
-
-	t.Log("with --lookup-plugins is true")
 }
 
 func TestPluginWithLookup(t *testing.T) {
@@ -160,6 +158,14 @@ func TestExecutePluginInPath(t *testing.T) {
 	runPlugin(r, knFlags, "hello2e2e", []string{}, []string{"Hello Knative, I'm a Kn plugin"})
 }
 
+// Private
+
+func createPluginFile(fileName, fileContent, filePath string, fileMode os.FileMode) (string, error) {
+	file := filepath.Join(filePath, fileName)
+	err := ioutil.WriteFile(file, []byte(fileContent), fileMode)
+	return file, err
+}
+
 func setupPluginTestConfigWithNewPath(t *testing.T) (pluginTestConfig, string) {
 	pc := pluginTestConfig{}
 	assert.NilError(t, pc.setup())
@@ -172,8 +178,6 @@ func tearDownWithPath(pc pluginTestConfig, oldPath string) {
 	os.Setenv("PATH", oldPath)
 	pc.teardown()
 }
-
-// Private
 
 func listPlugin(r *test.KnRunResultCollector, knFlags []string, expectedPlugins []string, unexpectedPlugins []string) {
 	knArgs := append(knFlags, "plugin", "list")

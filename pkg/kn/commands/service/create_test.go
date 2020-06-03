@@ -237,7 +237,7 @@ func TestServiceCreateEnv(t *testing.T) {
 	}
 }
 
-func TestServiceCreateWithRequests(t *testing.T) {
+func TestServiceCreateWithDeprecatedRequests(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
 		"--requests-cpu", "250m", "--requests-memory", "64Mi",
@@ -265,7 +265,35 @@ func TestServiceCreateWithRequests(t *testing.T) {
 	}
 }
 
-func TestServiceCreateWithLimits(t *testing.T) {
+func TestServiceCreateWithRequests(t *testing.T) {
+	action, created, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
+		"--request", "cpu=250m,memory=64Mi",
+		"--no-wait"}, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("create", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	expectedRequestsVars := corev1.ResourceList{
+		corev1.ResourceCPU:    parseQuantity(t, "250m"),
+		corev1.ResourceMemory: parseQuantity(t, "64Mi"),
+	}
+
+	template := &created.Spec.Template
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !reflect.DeepEqual(
+		template.Spec.Containers[0].Resources.Requests,
+		expectedRequestsVars) {
+		t.Fatalf("wrong requests vars %v", template.Spec.Containers[0].Resources.Requests)
+	}
+}
+
+func TestServiceCreateWithDeprecatedLimits(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
 		"--limits-cpu", "1000m", "--limits-memory", "1024Mi",
@@ -293,7 +321,35 @@ func TestServiceCreateWithLimits(t *testing.T) {
 	}
 }
 
-func TestServiceCreateRequestsLimitsCPU(t *testing.T) {
+func TestServiceCreateWithLimits(t *testing.T) {
+	action, created, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
+		"--limit", "cpu=1000m", "--limit", "memory=1024Mi",
+		"--no-wait"}, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("create", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	expectedLimitsVars := corev1.ResourceList{
+		corev1.ResourceCPU:    parseQuantity(t, "1000m"),
+		corev1.ResourceMemory: parseQuantity(t, "1024Mi"),
+	}
+
+	template := &created.Spec.Template
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !reflect.DeepEqual(
+		template.Spec.Containers[0].Resources.Limits,
+		expectedLimitsVars) {
+		t.Fatalf("wrong limits vars %v", template.Spec.Containers[0].Resources.Limits)
+	}
+}
+
+func TestServiceCreateDeprecatedRequestsLimitsCPU(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
 		"--requests-cpu", "250m", "--limits-cpu", "1000m",
@@ -332,12 +388,91 @@ func TestServiceCreateRequestsLimitsCPU(t *testing.T) {
 	}
 }
 
-func TestServiceCreateRequestsLimitsMemory(t *testing.T) {
+func TestServiceCreateRequestsLimitsCPU(t *testing.T) {
+	action, created, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
+		"--request", "cpu=250m", "--limit", "cpu=1000m",
+		"--no-wait"}, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("create", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	expectedRequestsVars := corev1.ResourceList{
+		corev1.ResourceCPU: parseQuantity(t, "250m"),
+	}
+
+	expectedLimitsVars := corev1.ResourceList{
+		corev1.ResourceCPU: parseQuantity(t, "1000m"),
+	}
+
+	template := &created.Spec.Template
+
+	if err != nil {
+		t.Fatal(err)
+	} else {
+		if !reflect.DeepEqual(
+			template.Spec.Containers[0].Resources.Requests,
+			expectedRequestsVars) {
+			t.Fatalf("wrong requests vars %v", template.Spec.Containers[0].Resources.Requests)
+		}
+
+		if !reflect.DeepEqual(
+			template.Spec.Containers[0].Resources.Limits,
+			expectedLimitsVars) {
+			t.Fatalf("wrong limits vars %v", template.Spec.Containers[0].Resources.Limits)
+		}
+	}
+}
+
+func TestServiceCreateDeprecatedRequestsLimitsMemory(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
 		"service", "create", "foo",
 		"--image", "gcr.io/foo/bar:baz",
 		"--requests-memory", "64Mi",
 		"--limits-memory", "1024Mi", "--no-wait"}, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("create", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	expectedRequestsVars := corev1.ResourceList{
+		corev1.ResourceMemory: parseQuantity(t, "64Mi"),
+	}
+
+	expectedLimitsVars := corev1.ResourceList{
+		corev1.ResourceMemory: parseQuantity(t, "1024Mi"),
+	}
+
+	template := &created.Spec.Template
+
+	if err != nil {
+		t.Fatal(err)
+	} else {
+		if !reflect.DeepEqual(
+			template.Spec.Containers[0].Resources.Requests,
+			expectedRequestsVars) {
+			t.Fatalf("wrong requests vars %v", template.Spec.Containers[0].Resources.Requests)
+		}
+
+		if !reflect.DeepEqual(
+			template.Spec.Containers[0].Resources.Limits,
+			expectedLimitsVars) {
+			t.Fatalf("wrong limits vars %v", template.Spec.Containers[0].Resources.Limits)
+		}
+	}
+}
+
+func TestServiceCreateRequestsLimitsMemory(t *testing.T) {
+	action, created, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo",
+		"--image", "gcr.io/foo/bar:baz",
+		"--request", "memory=64Mi",
+		"--limit", "memory=1024Mi", "--no-wait"}, false)
 
 	if err != nil {
 		t.Fatal(err)
