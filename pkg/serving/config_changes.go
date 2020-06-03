@@ -356,7 +356,7 @@ func UpdateUser(template *servingv1.RevisionTemplateSpec, user int64) error {
 }
 
 // UpdateResources updates container resources for given revision template
-func UpdateResources(template *servingv1.RevisionTemplateSpec, resources corev1.ResourceRequirements) error {
+func UpdateResources(template *servingv1.RevisionTemplateSpec, resources corev1.ResourceRequirements, requestsToRemove, limitsToRemove []string) error {
 	container, err := ContainerOfRevisionTemplate(template)
 	if err != nil {
 		return err
@@ -370,12 +370,20 @@ func UpdateResources(template *servingv1.RevisionTemplateSpec, resources corev1.
 		container.Resources.Requests[k] = v
 	}
 
+	for _, reqToRemove := range requestsToRemove {
+		delete(container.Resources.Requests, corev1.ResourceName(reqToRemove))
+	}
+
 	if container.Resources.Limits == nil {
 		container.Resources.Limits = corev1.ResourceList{}
 	}
 
 	for k, v := range resources.Limits {
 		container.Resources.Limits[k] = v
+	}
+
+	for _, limToRemove := range limitsToRemove {
+		delete(container.Resources.Limits, corev1.ResourceName(limToRemove))
 	}
 
 	return nil

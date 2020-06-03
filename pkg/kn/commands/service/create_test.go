@@ -268,7 +268,7 @@ func TestServiceCreateWithDeprecatedRequests(t *testing.T) {
 func TestServiceCreateWithRequests(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
-		"--requests", "cpu=250m,memory=64Mi",
+		"--request", "cpu=250m,memory=64Mi",
 		"--no-wait"}, false)
 
 	if err != nil {
@@ -324,7 +324,7 @@ func TestServiceCreateWithDeprecatedLimits(t *testing.T) {
 func TestServiceCreateWithLimits(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
-		"--limits", "cpu=1000m,memory=1024Mi",
+		"--limit", "cpu=1000m", "--limit", "memory=1024Mi",
 		"--no-wait"}, false)
 
 	if err != nil {
@@ -391,7 +391,7 @@ func TestServiceCreateDeprecatedRequestsLimitsCPU(t *testing.T) {
 func TestServiceCreateRequestsLimitsCPU(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
-		"--requests", "cpu=250m", "--limits", "cpu=1000m",
+		"--request", "cpu=250m", "--limit", "cpu=1000m",
 		"--no-wait"}, false)
 
 	if err != nil {
@@ -471,8 +471,8 @@ func TestServiceCreateRequestsLimitsMemory(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
 		"service", "create", "foo",
 		"--image", "gcr.io/foo/bar:baz",
-		"--requests", "memory=64Mi",
-		"--limits", "memory=1024Mi", "--no-wait"}, false)
+		"--request", "memory=64Mi",
+		"--limit", "memory=1024Mi", "--no-wait"}, false)
 
 	if err != nil {
 		t.Fatal(err)
