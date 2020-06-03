@@ -125,7 +125,7 @@ func TestServiceOptions(t *testing.T) {
 	validateLabels(r, "svc7", map[string]string{"svc": "helloworld-svc"}, map[string]string{"rev": "helloworld-rev"})
 
 	t.Log("create and validate service resource options")
-	serviceCreateWithOptions(r, "svc8", "--limits", "memory=500Mi,cpu=1000m", "--requests", "memory=250Mi,cpu=200m")
+	serviceCreateWithOptions(r, "svc8", "--limit", "memory=500Mi,cpu=1000m", "--request", "memory=250Mi,cpu=200m")
 	test.ValidateServiceResources(r, "svc8", "250Mi", "200m", "500Mi", "1000m")
 }
 
