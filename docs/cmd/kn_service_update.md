@@ -20,8 +20,8 @@ kn service update NAME [flags]
   # Update a service 'svc' with new port
   kn service update svc --port 80
 
-  # Updates a service 'svc' with new requests and limits parameters
-  kn service update svc --requests-cpu 500m --limits-memory 1024Mi
+  # Updates a service 'svc' with new request and limit parameters
+  kn service update svc --request cpu=500m --limit memory=1024Mi --limit cpu=1000m
 
   # Assign tag 'latest' and 'stable' to revisions 'echo-v2' and 'echo-v1' respectively
   kn service update svc --tag echo-v2=latest --tag echo-v1=stable
@@ -54,7 +54,7 @@ kn service update NAME [flags]
   -l, --label stringArray             Labels to set for both Service and Revision. name=value; you may provide this flag any number of times to set multiple labels. To unset, specify the label name followed by a "-" (e.g., name-).
       --label-revision stringArray    Revision label to set. name=value; you may provide this flag any number of times to set multiple labels. To unset, specify the label name followed by a "-" (e.g., name-). This flag takes precedence over "label" flag.
       --label-service stringArray     Service label to set. name=value; you may provide this flag any number of times to set multiple labels. To unset, specify the label name followed by a "-" (e.g., name-). This flag takes precedence over "label" flag.
-      --limit strings                 The resource requirement limits for this Service. For example, 'cpu=100m,memory=256Mi'.
+      --limit strings                 The resource requirement limits for this Service. For example, 'cpu=100m,memory=256Mi'. You can use this flag multiple times. To unset a resource limit, append "-" to the resource name, e.g. '--limit memory-'.
       --limits-cpu string             DEPRECATED: please use --limit instead. The limits on the requested CPU (e.g., 1000m).
       --limits-memory string          DEPRECATED: please use --limit instead. The limits on the requested memory (e.g., 1024Mi).
       --lock-to-digest                Keep the running image for the service constant when not explicitly specifying the image. (--no-lock-to-digest pulls the image tag afresh with each new revision) (default true)
@@ -67,7 +67,7 @@ kn service update NAME [flags]
       --no-wait                       Do not wait for 'service update' operation to be completed.
   -p, --port int32                    The port where application listens on.
       --pull-secret string            Image pull secret to set. An empty argument ("") clears the pull secret. The referenced secret must exist in the service's namespace.
-      --request strings               The resource requirement requests for this Service. For example, 'cpu=100m,memory=256Mi'.
+      --request strings               The resource requirement requests for this Service. For example, 'cpu=100m,memory=256Mi'. You can use this flag multiple times. To unset a resource request, append "-" to the resource name, e.g. '--request cpu-'.
       --requests-cpu string           DEPRECATED: please use --request instead. The requested CPU (e.g., 250m).
       --requests-memory string        DEPRECATED: please use --request instead. The requested memory (e.g., 64Mi).
       --revision-name string          The revision name to set. Must start with the service name and a dash as a prefix. Empty revision name will result in the server generating a name for the revision. Accepts golang templates, allowing {{.Service}} for the service name, {{.Generation}} for the generation, and {{.Random [n]}} for n random consonants. (default "{{.Service}}-{{.Random 5}}-{{.Generation}}")

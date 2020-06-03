@@ -145,9 +145,20 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 			"You can use this flag multiple times.")
 	p.markFlagMakesRevision("arg")
 
-	command.Flags().StringSliceVar(&p.Resources.Limits, "limit", nil, "The resource requirement limits for this Service. For example, 'cpu=100m,memory=256Mi'.")
+	command.Flags().StringSliceVar(&p.Resources.Limits,
+		"limit",
+		nil,
+		"The resource requirement limits for this Service. For example, 'cpu=100m,memory=256Mi'. "+
+			"You can use this flag multiple times. "+
+			"To unset a resource limit, append \"-\" to the resource name, e.g. '--limit memory-'.")
 	p.markFlagMakesRevision("limit")
-	command.Flags().StringSliceVar(&p.Resources.Requests, "request", nil, "The resource requirement requests for this Service. For example, 'cpu=100m,memory=256Mi'.")
+
+	command.Flags().StringSliceVar(&p.Resources.Requests,
+		"request",
+		nil,
+		"The resource requirement requests for this Service. For example, 'cpu=100m,memory=256Mi'. "+
+			"You can use this flag multiple times. "+
+			"To unset a resource request, append \"-\" to the resource name, e.g. '--request cpu-'.")
 	p.markFlagMakesRevision("request")
 
 	command.Flags().StringVar(&p.RequestsFlags.CPU, "requests-cpu", "",
