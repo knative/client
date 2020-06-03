@@ -23,8 +23,8 @@ import (
 )
 
 type resourceOptionsTestCase struct {
-	requests         string
-	limits           string
+	requests         []string
+	limits           []string
 	expectedRequests corev1.ResourceList
 	expectedLimits   corev1.ResourceList
 	expectedErr      bool
@@ -37,49 +37,75 @@ func parseQuantity(value string) resource.Quantity {
 
 func TestResourceOptions(t *testing.T) {
 	cases := []*resourceOptionsTestCase{
-		{"memory=200Mi,cpu=200m",
-			"memory=1024Mi,cpu=500m",
+		{[]string{"memory=200Mi", "cpu=200m"},
+			[]string{"memory=1024Mi", "cpu=500m"},
 			corev1.ResourceList{corev1.ResourceMemory: parseQuantity("200Mi"),
 				corev1.ResourceCPU: parseQuantity("200m")},
 			corev1.ResourceList{corev1.ResourceMemory: parseQuantity("1024Mi"),
 				corev1.ResourceCPU: parseQuantity("500m")},
 			false,
 		},
-		{"",
-			"nvidia.com/gpu=1",
+		{[]string{},
+			[]string{"nvidia.com/gpu=1"},
 			nil,
 			corev1.ResourceList{corev1.ResourceName("nvidia.com/gpu"): parseQuantity("1")},
 			false,
 		},
 
-		{"",
-			"memory:500Mi",
+		{[]string{},
+			[]string{"memory:500Mi"},
 			nil,
 			nil,
 			true,
 		},
-		{"memory:200Mi",
-			"",
+		{[]string{"memory:200Mi"},
+			[]string{},
 			nil,
 			nil,
 			true,
 		},
-		{"memory=200MB",
-			"",
+		{[]string{"memory=200MB"},
+			[]string{},
 			nil,
 			nil,
 			true,
+		},
+		{[]string{"cpu=500m", "cpu-"},
+			[]string{},
+			corev1.ResourceList{},
+			nil,
+			false,
+		},
+		{[]string{},
+			// resource being asked for removal is considered to be removed and its value isnt validated (200MB which is incorrect)
+			[]string{"memory=200Mi", "cpu=200m", "memory-=200MB"},
+			nil,
+			corev1.ResourceList{corev1.ResourceName("cpu"): parseQuantity("200m")},
+			false,
 		},
 	}
 	for _, c := range cases {
 		options := &ResourceOptions{}
 		options.Requests = c.requests
 		options.Limits = c.limits
-		err := options.Validate()
+		reqToRemove, limToRemove, err := options.Validate()
 
 		if c.expectedErr {
 			assert.Assert(t, err != nil)
 		} else {
+			// do the resource removal here as we arent dealing with container template in tests
+			if len(reqToRemove) > 0 {
+				for _, req := range reqToRemove {
+					delete(options.ResourceRequirements.Requests, corev1.ResourceName(req))
+				}
+			}
+
+			if len(limToRemove) > 0 {
+				for _, lim := range limToRemove {
+					delete(options.ResourceRequirements.Limits, corev1.ResourceName(lim))
+				}
+			}
+
 			assert.DeepEqual(t, options.ResourceRequirements, corev1.ResourceRequirements{Limits: c.expectedLimits, Requests: c.expectedRequests})
 		}
 	}

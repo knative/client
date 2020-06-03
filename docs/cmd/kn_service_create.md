@@ -44,7 +44,7 @@ kn service create NAME --image IMAGE [flags]
   # Create a service with 250MB memory, 200m CPU requests and a GPU resource limit
   # [https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/]
   # [https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/]
-  kn service create s4gpu --image knativesamples/hellocuda-go --requests memory=250Mi,cpu=200m --limits nvidia.com/gpu=1
+  kn service create s4gpu --image knativesamples/hellocuda-go --request memory=250Mi,cpu=200m --limit nvidia.com/gpu=1
 ```
 
 ### Options
@@ -67,9 +67,9 @@ kn service create NAME --image IMAGE [flags]
   -l, --label stringArray             Labels to set for both Service and Revision. name=value; you may provide this flag any number of times to set multiple labels. To unset, specify the label name followed by a "-" (e.g., name-).
       --label-revision stringArray    Revision label to set. name=value; you may provide this flag any number of times to set multiple labels. To unset, specify the label name followed by a "-" (e.g., name-). This flag takes precedence over "label" flag.
       --label-service stringArray     Service label to set. name=value; you may provide this flag any number of times to set multiple labels. To unset, specify the label name followed by a "-" (e.g., name-). This flag takes precedence over "label" flag.
-      --limits string                 The resource requirement limits for this Service. For example, 'cpu=100m,memory=256Mi'.
-      --limits-cpu string             DEPRECATED: please use --limits instead. The limits on the requested CPU (e.g., 1000m).
-      --limits-memory string          DEPRECATED: please use --limits instead. The limits on the requested memory (e.g., 1024Mi).
+      --limit strings                 The resource requirement limits for this Service. For example, 'cpu=100m,memory=256Mi'. You can use this flag multiple times. To unset a resource limit, append "-" to the resource name, e.g. '--limit memory-'.
+      --limits-cpu string             DEPRECATED: please use --limit instead. The limits on the requested CPU (e.g., 1000m).
+      --limits-memory string          DEPRECATED: please use --limit instead. The limits on the requested memory (e.g., 1024Mi).
       --lock-to-digest                Keep the running image for the service constant when not explicitly specifying the image. (--no-lock-to-digest pulls the image tag afresh with each new revision) (default true)
       --max-scale int                 Maximal number of replicas.
       --min-scale int                 Minimal number of replicas.
@@ -80,9 +80,9 @@ kn service create NAME --image IMAGE [flags]
       --no-wait                       Do not wait for 'service create' operation to be completed.
   -p, --port int32                    The port where application listens on.
       --pull-secret string            Image pull secret to set. An empty argument ("") clears the pull secret. The referenced secret must exist in the service's namespace.
-      --requests string               The resource requirement requests for this Service. For example, 'cpu=100m,memory=256Mi'.
-      --requests-cpu string           DEPRECATED: please use --requests instead. The requested CPU (e.g., 250m).
-      --requests-memory string        DEPRECATED: please use --requests instead. The requested memory (e.g., 64Mi).
+      --request strings               The resource requirement requests for this Service. For example, 'cpu=100m,memory=256Mi'. You can use this flag multiple times. To unset a resource request, append "-" to the resource name, e.g. '--request cpu-'.
+      --requests-cpu string           DEPRECATED: please use --request instead. The requested CPU (e.g., 250m).
+      --requests-memory string        DEPRECATED: please use --request instead. The requested memory (e.g., 64Mi).
       --revision-name string          The revision name to set. Must start with the service name and a dash as a prefix. Empty revision name will result in the server generating a name for the revision. Accepts golang templates, allowing {{.Service}} for the service name, {{.Generation}} for the generation, and {{.Random [n]}} for n random consonants. (default "{{.Service}}-{{.Random 5}}-{{.Generation}}")
       --service-account string        Service account name to set. An empty argument ("") clears the service account. The referenced service account must exist in the service's namespace.
       --user int                      The user ID to run the container (e.g., 1001).

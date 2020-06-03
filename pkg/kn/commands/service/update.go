@@ -36,8 +36,8 @@ var updateExample = `
   # Update a service 'svc' with new port
   kn service update svc --port 80
 
-  # Updates a service 'svc' with new requests and limits parameters
-  kn service update svc --requests-cpu 500m --limits-memory 1024Mi
+  # Updates a service 'svc' with new request and limit parameters
+  kn service update svc --request cpu=500m --limit memory=1024Mi --limit cpu=1000m
 
   # Assign tag 'latest' and 'stable' to revisions 'echo-v2' and 'echo-v1' respectively
   kn service update svc --tag echo-v2=latest --tag echo-v1=stable

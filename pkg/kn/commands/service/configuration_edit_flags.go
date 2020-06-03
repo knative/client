@@ -145,27 +145,38 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 			"You can use this flag multiple times.")
 	p.markFlagMakesRevision("arg")
 
-	command.Flags().StringVar(&p.Resources.Limits, "limits", "", "The resource requirement limits for this Service. For example, 'cpu=100m,memory=256Mi'.")
-	p.markFlagMakesRevision("limits")
-	command.Flags().StringVar(&p.Resources.Requests, "requests", "", "The resource requirement requests for this Service. For example, 'cpu=100m,memory=256Mi'.")
-	p.markFlagMakesRevision("requests")
+	command.Flags().StringSliceVar(&p.Resources.Limits,
+		"limit",
+		nil,
+		"The resource requirement limits for this Service. For example, 'cpu=100m,memory=256Mi'. "+
+			"You can use this flag multiple times. "+
+			"To unset a resource limit, append \"-\" to the resource name, e.g. '--limit memory-'.")
+	p.markFlagMakesRevision("limit")
+
+	command.Flags().StringSliceVar(&p.Resources.Requests,
+		"request",
+		nil,
+		"The resource requirement requests for this Service. For example, 'cpu=100m,memory=256Mi'. "+
+			"You can use this flag multiple times. "+
+			"To unset a resource request, append \"-\" to the resource name, e.g. '--request cpu-'.")
+	p.markFlagMakesRevision("request")
 
 	command.Flags().StringVar(&p.RequestsFlags.CPU, "requests-cpu", "",
-		"DEPRECATED: please use --requests instead. The requested CPU (e.g., 250m).")
+		"DEPRECATED: please use --request instead. The requested CPU (e.g., 250m).")
 	p.markFlagMakesRevision("requests-cpu")
 
 	command.Flags().StringVar(&p.RequestsFlags.Memory, "requests-memory", "",
-		"DEPRECATED: please use --requests instead. The requested memory (e.g., 64Mi).")
+		"DEPRECATED: please use --request instead. The requested memory (e.g., 64Mi).")
 	p.markFlagMakesRevision("requests-memory")
 
 	// TODO: Flag marked deprecated in release v0.15.0, remove in release v0.18.0
 	command.Flags().StringVar(&p.LimitsFlags.CPU, "limits-cpu", "",
-		"DEPRECATED: please use --limits instead. The limits on the requested CPU (e.g., 1000m).")
+		"DEPRECATED: please use --limit instead. The limits on the requested CPU (e.g., 1000m).")
 	p.markFlagMakesRevision("limits-cpu")
 
 	// TODO: Flag marked deprecated in release v0.15.0, remove in release v0.18.0
 	command.Flags().StringVar(&p.LimitsFlags.Memory, "limits-memory", "",
-		"DEPRECATED: please use --limits instead. The limits on the requested memory (e.g., 1024Mi).")
+		"DEPRECATED: please use --limit instead. The limits on the requested memory (e.g., 1024Mi).")
 	p.markFlagMakesRevision("limits-memory")
 
 	command.Flags().IntVar(&p.MinScale, "min-scale", 0, "Minimal number of replicas.")
@@ -352,17 +363,17 @@ func (p *ConfigurationEditFlags) Apply(
 	}
 
 	if cmd.Flags().Changed("limits-cpu") || cmd.Flags().Changed("limits-memory") {
-		if cmd.Flags().Changed("limits") {
-			return fmt.Errorf("only one of (DEPRECATED) --limits-cpu / --limits-memory and --limits can be specified")
+		if cmd.Flags().Changed("limit") {
+			return fmt.Errorf("only one of (DEPRECATED) --limits-cpu / --limits-memory and --limit can be specified")
 		}
-		fmt.Fprintf(cmd.OutOrStdout(), "\nWARNING: flags --limits-cpu / --limits-memory are deprecated and going to be removed in future release, please use --limits instead.\n\n")
+		fmt.Fprintf(cmd.OutOrStdout(), "\nWARNING: flags --limits-cpu / --limits-memory are deprecated and going to be removed in future release, please use --limit instead.\n\n")
 	}
 
 	if cmd.Flags().Changed("requests-cpu") || cmd.Flags().Changed("requests-memory") {
-		if cmd.Flags().Changed("requests") {
-			return fmt.Errorf("only one of (DEPRECATED) --requests-cpu / --requests-memory and --requests can be specified")
+		if cmd.Flags().Changed("request") {
+			return fmt.Errorf("only one of (DEPRECATED) --requests-cpu / --requests-memory and --request can be specified")
 		}
-		fmt.Fprintf(cmd.OutOrStdout(), "\nWARNING: flags --requests-cpu / --requests-memory are deprecated and going to be removed in future release, please use --requests instead.\n\n")
+		fmt.Fprintf(cmd.OutOrStdout(), "\nWARNING: flags --requests-cpu / --requests-memory are deprecated and going to be removed in future release, please use --request instead.\n\n")
 	}
 
 	limitsResources, err := p.computeResources(p.LimitsFlags)
@@ -378,12 +389,12 @@ func (p *ConfigurationEditFlags) Apply(
 		return err
 	}
 
-	err = p.Resources.Validate()
+	requestsToRemove, limitsToRemove, err := p.Resources.Validate()
 	if err != nil {
 		return err
 	}
 
-	err = servinglib.UpdateResources(template, p.Resources.ResourceRequirements)
+	err = servinglib.UpdateResources(template, p.Resources.ResourceRequirements, requestsToRemove, limitsToRemove)
 	if err != nil {
 		return err
 	}

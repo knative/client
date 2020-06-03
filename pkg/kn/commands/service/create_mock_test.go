@@ -434,8 +434,8 @@ func TestServiceCreateWithResources(t *testing.T) {
 	r.CreateService(service, nil)
 
 	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz",
-		"--requests", "cpu=250m,memory=64Mi",
-		"--limits", "cpu=1000m,memory=1024Mi,nvidia.com/gpu=1",
+		"--request", "cpu=250m,memory=64Mi",
+		"--limit", "cpu=1000m,memory=1024Mi,nvidia.com/gpu=1",
 		"--no-wait", "--revision-name=")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
@@ -469,8 +469,8 @@ func TestServiceCreateWithResourcesWarning(t *testing.T) {
 		"--limits-cpu", "1000m",
 		"--no-wait", "--revision-name=")
 	assert.NilError(t, err)
-	assert.Assert(t, util.ContainsAll(output, "WARNING", "--requests-cpu", "--requests-memory", "deprecated", "removed", "--requests", "instead"))
-	assert.Assert(t, util.ContainsAll(output, "WARNING", "--limits-cpu", "--limits-memory", "deprecated", "removed", "--limits", "instead"))
+	assert.Assert(t, util.ContainsAll(output, "WARNING", "--requests-cpu", "--requests-memory", "deprecated", "removed", "--request", "instead"))
+	assert.Assert(t, util.ContainsAll(output, "WARNING", "--limits-cpu", "--limits-memory", "deprecated", "removed", "--limit", "instead"))
 	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
 
 	r.Validate()
@@ -482,10 +482,10 @@ func TestServiceCreateWithResourcesError(t *testing.T) {
 
 	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz",
 		"--requests-memory", "64Mi",
-		"--requests", "memory=64Mi",
+		"--request", "memory=64Mi",
 		"--no-wait", "--revision-name=")
 	assert.Assert(t, err != nil)
-	assert.Assert(t, util.ContainsAll(output, "only one of", "DEPRECATED", "--requests-cpu", "--requests-memory", "--requests", "can be specified"))
+	assert.Assert(t, util.ContainsAll(output, "only one of", "DEPRECATED", "--requests-cpu", "--requests-memory", "--request", "can be specified"))
 
 	r.Validate()
 }
