@@ -15,58 +15,73 @@
 package flags
 
 import (
-	"fmt"
-	"strings"
-
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+
+	"knative.dev/client/pkg/util"
 )
 
 // ResourceOptions to hold the container resource requirements values
 type ResourceOptions struct {
-	Requests             string
-	Limits               string
+	Requests             []string
+	Limits               []string
 	ResourceRequirements corev1.ResourceRequirements
 }
 
 // Validate parses the limits and requests parameters if specified and
 // sets ResourceRequirements for ResourceOptions or returns error if any
-func (o *ResourceOptions) Validate() (err error) {
-	limits, err := populateResourceListV1(o.Limits)
+func (o *ResourceOptions) Validate() ([]string, []string, error) {
+	requests, requestsToRemove, err := populateResourceListV1(o.Requests)
 	if err != nil {
-		return err
+		return []string{}, []string{}, err
+	}
+	o.ResourceRequirements.Requests = requests
+
+	limits, limitsToRemove, err := populateResourceListV1(o.Limits)
+	if err != nil {
+		return []string{}, []string{}, err
 	}
 	o.ResourceRequirements.Limits = limits
 
-	requests, err := populateResourceListV1(o.Requests)
-	if err != nil {
-		return err
-	}
-	o.ResourceRequirements.Requests = requests
-	return nil
+	return requestsToRemove, limitsToRemove, nil
 }
 
-// populateResourceListV1 takes strings of form <resourceName1>=<value1>,<resourceName1>=<value2>
-// and returns ResourceList.
-func populateResourceListV1(spec string) (corev1.ResourceList, error) {
+// populateResourceListV1 takes array of strings of form <resourceName1>=<value1>
+// and returns ResourceList , an array of resource keys to remove and error if any
+func populateResourceListV1(resourceStatements []string) (corev1.ResourceList, []string, error) {
 	// empty input gets a nil response to preserve generator test expected behaviors
-	if spec == "" {
-		return nil, nil
+	if len(resourceStatements) == 0 {
+		return nil, []string{}, nil
 	}
 
 	result := corev1.ResourceList{}
-	resourceStatements := strings.Split(spec, ",")
-	for _, resourceStatement := range resourceStatements {
-		parts := strings.Split(resourceStatement, "=")
-		if len(parts) != 2 {
-			return nil, fmt.Errorf("invalid argument syntax %v, expected <resource>=<value>", resourceStatement)
-		}
-		resourceName := corev1.ResourceName(parts[0])
-		resourceQuantity, err := resource.ParseQuantity(parts[1])
-		if err != nil {
-			return nil, err
-		}
-		result[resourceName] = resourceQuantity
+	resources, err := util.MapFromArrayAllowingSingles(resourceStatements, "=")
+	if err != nil {
+		return result, []string{}, err
 	}
-	return result, nil
+
+	resourcesToRemove := util.ParseMinusSuffix(resources)
+
+	for res, value := range resources {
+		parse := true
+		// do not parse the quantity OR throw error if the key is being asked for removal
+		for _, toRemove := range resourcesToRemove {
+			if res == toRemove {
+				parse = false
+				break
+			}
+		}
+		if !parse {
+			continue
+		}
+
+		resourceQuantity, err := resource.ParseQuantity(value)
+		if err != nil {
+			return nil, resourcesToRemove, err
+		}
+
+		result[corev1.ResourceName(res)] = resourceQuantity
+	}
+
+	return result, resourcesToRemove, nil
 }
