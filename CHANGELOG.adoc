@@ -21,13 +21,6 @@
 | 🐛
 | Update flag names to --request and --limit
 | https://github.com/knative/client/pull/872[#872]
-|===
-
-## v0.15.0 (2020-06-02)
-
-[cols="1,10,3", options="header", width="100%"]
-|===
-| | Description | PR
 
 | 🐛
 | Fix `kn source -h`
