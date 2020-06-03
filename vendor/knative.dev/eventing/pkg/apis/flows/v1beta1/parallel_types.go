@@ -29,7 +29,7 @@ import (
 )
 
 // +genclient
-// +genreconciler
+// +genreconciler:krshapedlogic=true
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // Parallel defines conditional branches that will be wired in
 // series through Channels and Subscriptions.
@@ -62,6 +62,9 @@ var (
 
 	// Check that we can create OwnerReferences to a Parallel.
 	_ kmeta.OwnerRefable = (*Parallel)(nil)
+
+	// Check that the type conforms to the duck Knative Resource shape.
+	_ duckv1.KRShaped = (*Parallel)(nil)
 )
 
 type ParallelSpec struct {
@@ -155,4 +158,9 @@ type ParallelList struct {
 	// +optional
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []Parallel `json:"items"`
+}
+
+// GetStatus retrieves the status of the Parallel. Implements the KRShaped interface.
+func (p *Parallel) GetStatus() *duckv1.Status {
+	return &p.Status.Status
 }
