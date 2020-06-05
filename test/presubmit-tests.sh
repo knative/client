@@ -50,8 +50,6 @@ function post_build_tests() {
   fi
 }
 
-# Run the unit tests with an additional flag '-mod=vendor' to avoid
-# downloading the deps in unit tests CI job
 function unit_tests() {
   report_go_test -race ./... || failed=1
 }
