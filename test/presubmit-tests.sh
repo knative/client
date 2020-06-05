@@ -53,7 +53,7 @@ function post_build_tests() {
 # Run the unit tests with an additional flag '-mod=vendor' to avoid
 # downloading the deps in unit tests CI job
 function unit_tests() {
-  report_go_test -race -mod=vendor ./... || failed=1
+  report_go_test -race ./... || failed=1
 }
 
 # We use the default build and integration test runners.
