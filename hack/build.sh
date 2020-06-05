@@ -130,7 +130,7 @@ source_format() {
 
 go_build() {
   echo "🚧 Compile"
-  go build -ldflags "$(build_flags $(basedir))" -o kn ./cmd/...
+  go build -mod=vendor -ldflags "$(build_flags $(basedir))" -o kn ./cmd/...
 }
 
 go_test() {
@@ -273,11 +273,11 @@ cross_build() {
 
   export CGO_ENABLED=0
   echo "   🐧 kn-linux-amd64"
-  GOOS=linux GOARCH=amd64 go build -ldflags "${ld_flags}" -o ./kn-linux-amd64 ./cmd/... || failed=1
+  GOOS=linux GOARCH=amd64 go build -mod=vendor -ldflags "${ld_flags}" -o ./kn-linux-amd64 ./cmd/... || failed=1
   echo "   🍏 kn-darwin-amd64"
-  GOOS=darwin GOARCH=amd64 go build -ldflags "${ld_flags}" -o ./kn-darwin-amd64 ./cmd/... || failed=1
+  GOOS=darwin GOARCH=amd64 go build -mod=vendor -ldflags "${ld_flags}" -o ./kn-darwin-amd64 ./cmd/... || failed=1
   echo "   🎠 kn-windows-amd64.exe"
-  GOOS=windows GOARCH=amd64 go build -ldflags "${ld_flags}" -o ./kn-windows-amd64.exe ./cmd/... || failed=1
+  GOOS=windows GOARCH=amd64 go build -mod=vendor -ldflags "${ld_flags}" -o ./kn-windows-amd64.exe ./cmd/... || failed=1
 
   return ${failed}
 }

@@ -24,4 +24,4 @@ base=$(cd "$dir/.." && pwd)
 export KN_E2E_NAMESPACE=kne2etests
 
 echo "🧪  Testing"
-go test ${base}/test/e2e/ -test.v -tags "e2e ${E2E_TAGS}" "$@"
+go test -mod=vendor ${base}/test/e2e/ -test.v -tags "e2e ${E2E_TAGS}" "$@"
