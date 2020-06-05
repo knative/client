@@ -16,6 +16,8 @@
 
 set -o pipefail
 
+source $(dirname $0)/../scripts/test-infra/library.sh
+
 source_dirs="cmd pkg test lib"
 
 # Store for later
@@ -112,19 +114,8 @@ go_fmt() {
 
 source_format() {
   set +e
-  which goimports >/dev/null 2>&1
-  if [ $? -ne 0 ]; then
-     echo "✋ No 'goimports' found. Please use"
-     echo "✋   go install golang.org/x/tools/cmd/goimports"
-     echo "✋ to enable import cleanup. Import cleanup skipped."
-
-     # Run go fmt instead
-     go_fmt
-  else
-     echo "🧽 ${X}Format"
-     goimports -w $(echo $source_dirs)
-     find $(echo $source_dirs) -name "*.go" -print0 | xargs -0 gofmt -s -w
-  fi
+  run_go_tool golang.org/x/tools/cmd/goimports goimports -w $(echo $source_dirs)
+  find $(echo $source_dirs) -name "*.go" -print0 | xargs -0 gofmt -s -w
   set -e
 }
 
