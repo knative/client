@@ -24,60 +24,35 @@ import (
 	"gotest.tools/assert"
 )
 
-func TestCompletion(t *testing.T) {
-	var (
-		fakeRootCmd, completionCmd *cobra.Command
-		knParams                   *commands.KnParams
-	)
+func TestCompletionUsage(t *testing.T) {
+	completionCmd := NewCompletionCommand(&commands.KnParams{})
+	assert.Assert(t, util.ContainsAllIgnoreCase(completionCmd.Use, "completion"))
+	assert.Assert(t, util.ContainsAllIgnoreCase(completionCmd.Short, "completion", "shell"))
+	assert.Assert(t, completionCmd.RunE == nil)
+}
 
-	setup := func() {
-		knParams = &commands.KnParams{}
-		completionCmd = NewCompletionCommand(knParams)
-
-		fakeRootCmd = &cobra.Command{}
-		fakeRootCmd.AddCommand(completionCmd)
+func TestCompletionGeneration(t *testing.T) {
+	for _, shell := range []string{"bash", "zsh"} {
+		completionCmd := NewCompletionCommand(&commands.KnParams{})
+		c := commands.CaptureStdout(t)
+		completionCmd.Run(&cobra.Command{}, []string{shell})
+		out := c.Close()
+		assert.Assert(t, out != "")
 	}
+}
 
-	t.Run("creates a CompletionCommand", func(t *testing.T) {
-		setup()
-		assert.Equal(t, completionCmd.Use, "completion [SHELL]")
-		assert.Equal(t, completionCmd.Short, "Output shell completion code")
-		assert.Assert(t, completionCmd.RunE == nil)
-	})
+func TestCompletionNoArg(t *testing.T) {
+	completionCmd := NewCompletionCommand(&commands.KnParams{})
+	c := commands.CaptureStdout(t)
+	completionCmd.Run(&cobra.Command{}, []string{})
+	out := c.Close()
+	assert.Assert(t, util.ContainsAll(out, "bash", "zsh", "one", "argument"))
+}
 
-	t.Run("returns completion code for BASH", func(t *testing.T) {
-		setup()
-		commands.CaptureStdout(t)
-		defer commands.ReleaseStdout(t)
-
-		completionCmd.Run(fakeRootCmd, []string{"bash"})
-		assert.Assert(t, commands.ReadStdout(t) != "")
-	})
-
-	t.Run("returns completion code for Zsh", func(t *testing.T) {
-		setup()
-		commands.CaptureStdout(t)
-		defer commands.ReleaseStdout(t)
-
-		completionCmd.Run(fakeRootCmd, []string{"zsh"})
-		assert.Assert(t, commands.ReadStdout(t) != "")
-	})
-
-	t.Run("returns error on command without args", func(t *testing.T) {
-		setup()
-		commands.CaptureStdout(t)
-		defer commands.ReleaseStdout(t)
-
-		completionCmd.Run(fakeRootCmd, []string{})
-		assert.Assert(t, commands.ReadStdout(t) == "accepts one argument either 'bash' or 'zsh'\n")
-	})
-
-	t.Run("returns error on command with invalid args", func(t *testing.T) {
-		setup()
-		commands.CaptureStdout(t)
-		defer commands.ReleaseStdout(t)
-
-		completionCmd.Run(fakeRootCmd, []string{"sh"})
-		assert.Check(t, util.ContainsAll(commands.ReadStdout(t), "only supports 'bash' or 'zsh' shell completion"))
-	})
+func TestCompletionWrongArg(t *testing.T) {
+	completionCmd := NewCompletionCommand(&commands.KnParams{})
+	c := commands.CaptureStdout(t)
+	completionCmd.Run(&cobra.Command{}, []string{"sh"})
+	out := c.Close()
+	assert.Assert(t, util.ContainsAll(out, "bash", "zsh", "only", "supports"))
 }

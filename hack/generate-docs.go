@@ -23,22 +23,24 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra/doc"
-	"knative.dev/client/pkg/kn/core"
+	"knative.dev/client/pkg/kn/root"
 )
 
 func main() {
-	rootCmd := core.NewKnCommand()
+	rootCmd, err := root.NewRootCommand()
+	if err != nil {
+		log.Panicf("Can not create root command: %v", err)
+	}
 
 	dir := "."
 	if len(os.Args) > 1 {
 		dir = os.Args[1]
 	}
 	var withFrontMatter bool
-	var err error
 	if len(os.Args) > 2 {
 		withFrontMatter, err = strconv.ParseBool(os.Args[2])
 		if err != nil {
-			log.Panicf("Invalid argument %s, has to be boolean to switch on/off generation of frontmatter", os.Args[2])
+			log.Panicf("Invalid argument %s, has to be boolean to switch on/off generation of frontmatter (%v)", os.Args[2], err)
 		}
 	}
 	prependFunc := emptyString

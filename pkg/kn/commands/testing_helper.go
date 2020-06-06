@@ -16,13 +16,11 @@ package commands
 
 import (
 	"bytes"
-	"flag"
-	"io"
+	"io/ioutil"
 	"os"
 	"testing"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"gotest.tools/assert"
 	"k8s.io/apimachinery/pkg/runtime"
 	clienttesting "k8s.io/client-go/testing"
@@ -33,11 +31,9 @@ import (
 	"knative.dev/client/pkg/sources/v1alpha2"
 
 	dynamicfake "k8s.io/client-go/dynamic/fake"
-	eventingv1beta1fake "knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1beta1/fake"
 	sourcesv1alpha2fake "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha2/fake"
 
 	clientdynamic "knative.dev/client/pkg/dynamic"
-	eventingv1beta1 "knative.dev/client/pkg/eventing/v1beta1"
 )
 
 const FakeNamespace = "current"
@@ -59,7 +55,7 @@ func CreateTestKnCommand(cmd *cobra.Command, knParams *KnParams) (*cobra.Command
 		return clientservingv1.NewKnServingClient(fakeServing, FakeNamespace), nil
 	}
 	knParams.fixedCurrentNamespace = FakeNamespace
-	knCommand := NewKnTestCommand(cmd, knParams)
+	knCommand := NewTestCommand(cmd, knParams)
 	return knCommand, fakeServing, buf
 }
 
@@ -67,37 +63,18 @@ func CreateTestKnCommand(cmd *cobra.Command, knParams *KnParams) (*cobra.Command
 func CreateSourcesTestKnCommand(cmd *cobra.Command, knParams *KnParams) (*cobra.Command, *sourcesv1alpha2fake.FakeSourcesV1alpha2, *bytes.Buffer) {
 	buf := new(bytes.Buffer)
 	// create fake serving client because the sink of source depends on serving client
-	fakeServing := &servingv1fake.FakeServingV1{&clienttesting.Fake{}}
+	fakeServing := &servingv1fake.FakeServingV1{Fake: &clienttesting.Fake{}}
 	knParams.NewServingClient = func(namespace string) (clientservingv1.KnServingClient, error) {
 		return clientservingv1.NewKnServingClient(fakeServing, FakeNamespace), nil
 	}
 	// create fake sources client
-	fakeEventing := &sourcesv1alpha2fake.FakeSourcesV1alpha2{&clienttesting.Fake{}}
+	fakeEventing := &sourcesv1alpha2fake.FakeSourcesV1alpha2{Fake: &clienttesting.Fake{}}
 	knParams.Output = buf
 	knParams.NewSourcesClient = func(namespace string) (v1alpha2.KnSourcesClient, error) {
 		return v1alpha2.NewKnSourcesClient(fakeEventing, FakeNamespace), nil
 	}
 	knParams.fixedCurrentNamespace = FakeNamespace
-	knCommand := NewKnTestCommand(cmd, knParams)
-	return knCommand, fakeEventing, buf
-}
-
-// CreateEventingTestKnCommand helper for creating test commands
-func CreateEventingTestKnCommand(cmd *cobra.Command, knParams *KnParams) (*cobra.Command, *eventingv1beta1fake.FakeEventingV1beta1, *bytes.Buffer) {
-	buf := new(bytes.Buffer)
-	// create fake serving client because the sink of source depends on serving client
-	fakeServing := &servingv1fake.FakeServingV1{&clienttesting.Fake{}}
-	knParams.NewServingClient = func(namespace string) (clientservingv1.KnServingClient, error) {
-		return clientservingv1.NewKnServingClient(fakeServing, FakeNamespace), nil
-	}
-	// create fake sources client
-	fakeEventing := &eventingv1beta1fake.FakeEventingV1beta1{&clienttesting.Fake{}}
-	knParams.Output = buf
-	knParams.NewEventingClient = func(namespace string) (eventingv1beta1.KnEventingClient, error) {
-		return eventingv1beta1.NewKnEventingClient(fakeEventing, FakeNamespace), nil
-	}
-	knParams.fixedCurrentNamespace = FakeNamespace
-	knCommand := NewKnTestCommand(cmd, knParams)
+	knCommand := NewTestCommand(cmd, knParams)
 	return knCommand, fakeEventing, buf
 }
 
@@ -111,87 +88,51 @@ func CreateDynamicTestKnCommand(cmd *cobra.Command, knParams *KnParams, objects 
 	}
 
 	knParams.fixedCurrentNamespace = FakeNamespace
-	knCommand := NewKnTestCommand(cmd, knParams)
+	knCommand := NewTestCommand(cmd, knParams)
 	return knCommand, fakeDynamic, buf
 
 }
 
-// CaptureStdout collects the current content of os.Stdout
-func CaptureStdout(t *testing.T) {
-	oldStdout = os.Stdout
+type StdoutCapture struct {
+	r, w *os.File
+	t    *testing.T
+
+	oldStdout *os.File
+}
+
+func CaptureStdout(t *testing.T) StdoutCapture {
+	ret := StdoutCapture{
+		oldStdout: os.Stdout,
+		t:         t,
+	}
 	var err error
-	readFile, writeFile, err = os.Pipe()
-	assert.Assert(t, err == nil)
-	stdout = writeFile
-	os.Stdout = writeFile
+	ret.r, ret.w, err = os.Pipe()
+	assert.NilError(t, err)
+	os.Stdout = ret.w
+	return ret
 }
 
-// ReleaseStdout releases the os.Stdout and restores to original
-func ReleaseStdout(t *testing.T) {
-	output = ReadStdout(t)
-	os.Stdout = oldStdout
+// CaptureStdout collects the current content of os.Stdout
+func (c StdoutCapture) Close() string {
+	err := c.w.Close()
+	assert.NilError(c.t, err)
+	ret, err := ioutil.ReadAll(c.r)
+	assert.NilError(c.t, err)
+	os.Stdout = c.oldStdout
+	return string(ret)
 }
 
-// ReadStdout returns the collected os.Stdout content
-func ReadStdout(t *testing.T) string {
-	outC := make(chan string)
-	go func() {
-		var buf bytes.Buffer
-		io.Copy(&buf, readFile)
-		outC <- buf.String()
-	}()
-	writeFile.Close()
-	output = <-outC
-
-	CaptureStdout(t)
-
-	return output
-}
-
-// Private
-
-// NewKnTestCommand needed since calling the one in core would cause a import cycle
-func NewKnTestCommand(subCommand *cobra.Command, params *KnParams) *cobra.Command {
+// NewTestCommand can be used by tes
+func NewTestCommand(subCommand *cobra.Command, params *KnParams) *cobra.Command {
 	rootCmd := &cobra.Command{
-		Use:   "kn",
-		Short: "Knative client",
-		Long: `Manage your Knative building blocks:
-
-Serving: Manage your services and release new software to them.
-Build: Create builds and keep track of their results.
-Eventing: Manage event subscriptions and channels. Connect up event sources.`,
-
-		// Disable docs header
-		DisableAutoGenTag: true,
-
-		// Affects children as well
-		SilenceUsage: true,
-
-		// Prevents Cobra from dealing with errors as we deal with them in main.go
-		SilenceErrors: true,
-
+		Use: "kn",
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			return flags.ReconcileBoolFlags(cmd.Flags())
 		},
 	}
 	if params.Output != nil {
-		rootCmd.SetOutput(params.Output)
+		rootCmd.SetOut(params.Output)
 	}
-	rootCmd.PersistentFlags().StringVar(&CfgFile, "config", "", "config file (default is ~/.config/kn/config.yaml)")
-	rootCmd.PersistentFlags().StringVar(&params.KubeCfgPath, "kubeconfig", "", "kubectl config file (default is $HOME/.kube/config)")
-
-	rootCmd.Flags().StringVar(&Cfg.PluginsDir, "plugins-dir", "~/.config/kn/plugins", "kn plugins directory")
-	rootCmd.Flags().BoolVar(Cfg.LookupPlugins, "lookup-plugins", false, "look for kn plugins in $PATH")
-
-	viper.BindPFlag("plugins-dir", rootCmd.Flags().Lookup("plugins-dir"))
-	viper.BindPFlag("lookup-plugins", rootCmd.Flags().Lookup("lookup-plugins"))
-
-	viper.SetDefault("plugins-dir", "~/.config/kn/plugins")
-	viper.SetDefault("lookup-plugins", false)
-
 	rootCmd.AddCommand(subCommand)
-
-	// For glog parse error.
-	flag.CommandLine.Parse([]string{})
 	return rootCmd
 }

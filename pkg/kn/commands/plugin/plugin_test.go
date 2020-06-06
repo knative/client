@@ -15,60 +15,20 @@
 package plugin
 
 import (
-	"strings"
 	"testing"
 
-	"github.com/spf13/cobra"
 	"gotest.tools/assert"
+
 	"knative.dev/client/pkg/kn/commands"
+	"knative.dev/client/pkg/util"
 )
 
-const PluginCommandUsage = `Provides utilities for interacting and managing with kn plugins.
-
-Plugins provide extended functionality that is not part of the core kn command-line distribution.
-Please refer to the documentation and examples for more information about how write your own plugins.
-
-Usage:
-  kn plugin [flags]
-  kn plugin [command]
-
-Available Commands:
-  list        List all visible plugin executables
-
-Flags:
-  -h, --help                     help for plugin
-      --lookup-plugins           look for kn plugins in $PATH
-      --plugins-dir string       kn plugins directory (default "~/.config/kn/plugins")
-
-Global Flags:
-      --config string       kn config file (default is $HOME/.config/kn/config.yaml)
-      --kubeconfig string   kubectl config file (default is $HOME/.kube/config)
-
-Use "kn plugin [command] --help" for more information about a command.`
-
 func TestNewPluginCommand(t *testing.T) {
-	var (
-		rootCmd, pluginCmd *cobra.Command
-	)
+	pluginCmd := NewPluginCommand(&commands.KnParams{})
+	assert.Assert(t, pluginCmd != nil)
 
-	setup := func(t *testing.T) {
-		knParams := &commands.KnParams{}
-		pluginCmd = NewPluginCommand(knParams)
-		assert.Assert(t, pluginCmd != nil)
-
-		rootCmd, _, _ = commands.CreateTestKnCommand(pluginCmd, knParams)
-		assert.Assert(t, rootCmd != nil)
-	}
-
-	t.Run("creates a new cobra.Command", func(t *testing.T) {
-		setup(t)
-
-		assert.Assert(t, pluginCmd != nil)
-		assert.Assert(t, pluginCmd.Use == "plugin")
-		assert.Assert(t, pluginCmd.Short == "Plugin command group")
-		assert.Assert(t, strings.Contains(pluginCmd.Long, "Provides utilities for interacting and managing with kn plugins."))
-		assert.Assert(t, pluginCmd.Flags().Lookup("plugins-dir") != nil)
-		assert.Assert(t, pluginCmd.Flags().Lookup("lookup-plugins") != nil)
-		assert.Assert(t, pluginCmd.Args == nil)
-	})
+	assert.Assert(t, pluginCmd != nil)
+	assert.Equal(t, pluginCmd.Use, "plugin")
+	assert.Assert(t, util.ContainsAllIgnoreCase(pluginCmd.Short, "plugin"))
+	assert.Assert(t, util.ContainsAllIgnoreCase(pluginCmd.Long, "plugins"))
 }

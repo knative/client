@@ -1,4 +1,4 @@
-// Copyright © 2018 The Knative Authors
+// Copyright © 2020 The Knative Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,20 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package plugin
+package config
 
 import (
-	"github.com/spf13/cobra"
+	"testing"
+
+	"gotest.tools/assert"
 )
 
-// pluginListFlags contains all plugin commands flags
-type pluginListFlags struct {
-	nameOnly bool
-	verbose  bool
-}
+// Dummy test to keep code coverage quality gate happy.
+//
+func TestTestConfig(t *testing.T) {
+	cfg := TestConfig{
+		TestPluginsDir:          "pluginsDir",
+		TestConfigFile:          "configFile",
+		TestLookupPluginsInPath: true,
+		TestSinkMappings:        nil,
+	}
 
-// AddPluginFlags adds the various flags to plugin command
-func (p *pluginListFlags) AddPluginListFlags(command *cobra.Command) {
-	command.Flags().BoolVar(&p.nameOnly, "name-only", false, "If true, display only the binary name of each plugin, rather than its full path")
-	command.Flags().BoolVar(&p.verbose, "verbose", false, "verbose output")
+	assert.Equal(t, cfg.PluginsDir(), "pluginsDir")
+	assert.Equal(t, cfg.ConfigFile(), "configFile")
+	assert.Assert(t, cfg.LookupPluginsInPath())
+	assert.Assert(t, cfg.SinkMappings() == nil)
 }

@@ -25,7 +25,7 @@ import (
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 
 	clientdynamic "knative.dev/client/pkg/dynamic"
-	"knative.dev/client/pkg/kn/commands"
+	"knative.dev/client/pkg/kn/config"
 )
 
 type SinkFlags struct {
@@ -34,10 +34,19 @@ type SinkFlags struct {
 
 func (i *SinkFlags) Add(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&i.sink, "sink", "s", "", "Addressable sink for events")
+
+	for _, p := range config.GlobalConfig.SinkMappings() {
+		//user configration might override the default configuration
+		sinkMappings[p.Prefix] = schema.GroupVersionResource{
+			Resource: p.Resource,
+			Group:    p.Group,
+			Version:  p.Version,
+		}
+	}
 }
 
-// SinkPrefixes maps prefixes used for sinks to their GroupVersionResources.
-var SinkPrefixes = map[string]schema.GroupVersionResource{
+// sinkPrefixes maps prefixes used for sinks to their GroupVersionResources.
+var sinkMappings = map[string]schema.GroupVersionResource{
 	"broker": {
 		Resource: "brokers",
 		Group:    "eventing.knative.dev",
@@ -54,17 +63,6 @@ var SinkPrefixes = map[string]schema.GroupVersionResource{
 		Group:    "serving.knative.dev",
 		Version:  "v1",
 	},
-}
-
-func ConfigSinkPrefixes(prefixes []commands.SinkPrefixConfig) {
-	for _, p := range prefixes {
-		//user configration might override the default configuration
-		SinkPrefixes[p.Prefix] = schema.GroupVersionResource{
-			Resource: p.Resource,
-			Group:    p.Group,
-			Version:  p.Version,
-		}
-	}
 }
 
 // ResolveSink returns the Destination referred to by the flags in the acceptor.
@@ -84,7 +82,7 @@ func (i *SinkFlags) ResolveSink(knclient clientdynamic.KnDynamicClient, namespac
 		}
 		return &duckv1.Destination{URI: uri}, nil
 	}
-	typ, ok := SinkPrefixes[prefix]
+	typ, ok := sinkMappings[prefix]
 	if !ok {
 		return nil, fmt.Errorf("unsupported sink type: %s", i.sink)
 	}
