@@ -83,13 +83,15 @@ func (e ServiceTraffic) isTagPresent(tag string) bool {
 	return false
 }
 
-func (e ServiceTraffic) untagRevision(tag string) {
+func (e ServiceTraffic) untagRevision(tag string) error {
 	for i, target := range e {
 		if target.Tag == tag {
 			e[i].Tag = ""
-			break
+			return nil
 		}
 	}
+
+	return fmt.Errorf("Error: tag %s does not exist", tag)
 }
 
 func (e ServiceTraffic) isRevisionPresent(revision string) bool {
@@ -276,8 +278,17 @@ func Compute(cmd *cobra.Command, targets []servingv1.TrafficTarget, trafficFlags
 	traffic := newServiceTraffic(targets)
 
 	// First precedence: Untag revisions
+	var errStrings []string
 	for _, tag := range trafficFlags.UntagRevisions {
-		traffic.untagRevision(tag)
+		err = traffic.untagRevision(tag)
+		if err != nil {
+			errStrings = append(errStrings, err.Error())
+		}
+	}
+
+	// Return all errors from untagging revisions
+	if len(errStrings) > 0 {
+		return nil, fmt.Errorf(strings.Join(errStrings, "\n"))
 	}
 
 	for _, each := range trafficFlags.RevisionsTags {

@@ -278,6 +278,18 @@ func TestComputeErrMsg(t *testing.T) {
 			[]string{"--traffic", "echo-v1=40", "--traffic", "echo-v1=60"},
 			"repetition of revision reference echo-v1 is not allowed, use only once with --traffic flag",
 		},
+		{
+			"untag single tag that does not exist",
+			append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("latest", "echo-v1", 100, false)),
+			[]string{"--untag", "foo"},
+			"Error: tag foo does not exist",
+		},
+		{
+			"untag multiple tags that do not exist",
+			append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("latest", "echo-v1", 100, false)),
+			[]string{"--untag", "foo", "--untag", "bar"},
+			"Error: tag foo does not exist\nError: tag bar does not exist",
+		},
 	} {
 		t.Run(testCase.name, func(t *testing.T) {
 			testCmd, tFlags := newTestTrafficCommand()
