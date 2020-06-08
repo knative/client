@@ -16,6 +16,9 @@
 
 set -o pipefail
 
+[[ ! -v REPO_ROOT_DIR ]] && REPO_ROOT_DIR="$(git rev-parse --show-toplevel)"
+readonly REPO_ROOT_DIR
+
 source_dirs="cmd pkg test lib"
 
 # Store for later
