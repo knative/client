@@ -22,7 +22,7 @@ import (
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
 	hprinters "knative.dev/client/pkg/printers"
-	eventing "knative.dev/eventing/pkg/apis/eventing/v1alpha1"
+	v1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
 )
 
 // TriggerListHandlers handles printing human readable table for `kn source list-types` command's output
@@ -42,7 +42,7 @@ func TriggerListHandlers(h hprinters.PrintHandler) {
 }
 
 // printKService populates the knative service table rows
-func printTrigger(trigger *eventing.Trigger, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+func printTrigger(trigger *v1beta1.Trigger, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	name := trigger.Name
 	broker := trigger.Spec.Broker
 	sink := flags.SinkToString(trigger.Spec.Subscriber)
@@ -71,7 +71,7 @@ func printTrigger(trigger *eventing.Trigger, options hprinters.PrintOptions) ([]
 }
 
 // printTriggerListWithNamespace populates the knative service table rows with namespace column
-func printTriggerListWithNamespace(triggerList *eventing.TriggerList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+func printTriggerListWithNamespace(triggerList *v1beta1.TriggerList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	rows := make([]metav1beta1.TableRow, 0, len(triggerList.Items))
 
 	// temporary slice for sorting services in non-default namespace
@@ -104,7 +104,7 @@ func printTriggerListWithNamespace(triggerList *eventing.TriggerList, options hp
 }
 
 // printSourceTypesList populates the source types list table rows
-func printTriggerList(triggerList *eventing.TriggerList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+func printTriggerList(triggerList *v1beta1.TriggerList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	rows := make([]metav1beta1.TableRow, 0, len(triggerList.Items))
 
 	if options.AllNamespaces {

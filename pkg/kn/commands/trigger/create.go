@@ -22,7 +22,7 @@ import (
 
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 
-	client_v1alpha1 "knative.dev/client/pkg/eventing/v1alpha1"
+	clientv1beta1 "knative.dev/client/pkg/eventing/v1beta1"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
 )
@@ -77,7 +77,7 @@ func NewTriggerCreateCommand(p *commands.KnParams) *cobra.Command {
 						"because %s", name, err)
 			}
 
-			triggerBuilder := client_v1alpha1.
+			triggerBuilder := clientv1beta1.
 				NewTriggerBuilder(name).
 				Namespace(namespace).
 				Broker(triggerUpdateFlags.Broker).

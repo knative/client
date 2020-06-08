@@ -21,10 +21,10 @@ import (
 	"github.com/spf13/cobra"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
-	"knative.dev/eventing/pkg/apis/eventing/v1alpha1"
+	v1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 
-	client_v1alpha1 "knative.dev/client/pkg/eventing/v1alpha1"
+	clientv1beta1 "knative.dev/client/pkg/eventing/v1beta1"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
 	"knative.dev/client/pkg/util"
@@ -79,7 +79,7 @@ func NewTriggerUpdateCommand(p *commands.KnParams) *cobra.Command {
 					return fmt.Errorf("can't update trigger %s because it has been marked for deletion", name)
 				}
 
-				b := client_v1alpha1.NewTriggerBuilderFromExisting(trigger)
+				b := clientv1beta1.NewTriggerBuilderFromExisting(trigger)
 
 				if cmd.Flags().Changed("broker") {
 					return fmt.Errorf(
@@ -125,10 +125,10 @@ func NewTriggerUpdateCommand(p *commands.KnParams) *cobra.Command {
 	return cmd
 }
 
-func extractFilters(trigger *v1alpha1.Trigger) util.StringMap {
+func extractFilters(trigger *v1beta1.Trigger) util.StringMap {
 	attributes := make(util.StringMap)
 	if trigger.Spec.Filter != nil && trigger.Spec.Filter.Attributes != nil {
-		for k, v := range *trigger.Spec.Filter.Attributes {
+		for k, v := range trigger.Spec.Filter.Attributes {
 			attributes[k] = v
 		}
 	}

@@ -20,10 +20,11 @@ import (
 
 	"github.com/spf13/cobra"
 
+	v1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
+	duckv1 "knative.dev/pkg/apis/duck/v1"
+
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/printers"
-	"knative.dev/eventing/pkg/apis/eventing/v1alpha1"
-	duckv1 "knative.dev/pkg/apis/duck/v1"
 )
 
 // NewTriggerDescribeCommand returns a new command for describe a trigger
@@ -109,12 +110,12 @@ func writeSink(dw printers.PrefixWriter, sink *duckv1.Destination) {
 	}
 }
 
-func writeTrigger(dw printers.PrefixWriter, trigger *v1alpha1.Trigger, printDetails bool) {
+func writeTrigger(dw printers.PrefixWriter, trigger *v1beta1.Trigger, printDetails bool) {
 	commands.WriteMetadata(dw, &trigger.ObjectMeta, printDetails)
 	dw.WriteAttribute("Broker", trigger.Spec.Broker)
 	if trigger.Spec.Filter != nil && trigger.Spec.Filter.Attributes != nil {
 		subWriter := dw.WriteAttribute("Filter", "")
-		for key, value := range *trigger.Spec.Filter.Attributes {
+		for key, value := range trigger.Spec.Filter.Attributes {
 			subWriter.WriteAttribute(key, value)
 		}
 	}

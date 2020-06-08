@@ -29,7 +29,7 @@ import (
 )
 
 // +genclient
-// +genreconciler
+// +genreconciler:krshapedlogic=true
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // Sequence defines a sequence of Subscribers that will be wired in
 // series through Channels and Subscriptions.
@@ -62,6 +62,9 @@ var (
 
 	// Check that we can create OwnerReferences to a Sequence.
 	_ kmeta.OwnerRefable = (*Sequence)(nil)
+
+	// Check that the type conforms to the duck Knative Resource shape.
+	_ duckv1.KRShaped = (*Sequence)(nil)
 )
 
 type SequenceSpec struct {
@@ -134,4 +137,9 @@ type SequenceList struct {
 	// +optional
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []Sequence `json:"items"`
+}
+
+// GetStatus retrieves the status of the Sequence. Implements the KRShaped interface.
+func (p *Sequence) GetStatus() *duckv1.Status {
+	return &p.Status.Status
 }
