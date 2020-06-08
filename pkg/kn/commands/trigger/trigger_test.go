@@ -18,12 +18,12 @@ import (
 	"bytes"
 
 	"k8s.io/client-go/tools/clientcmd"
-	"knative.dev/eventing/pkg/apis/eventing/v1alpha1"
+	v1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
 	"knative.dev/pkg/apis"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 
-	kn_dynamic "knative.dev/client/pkg/dynamic"
-	eventc_v1alpha1 "knative.dev/client/pkg/eventing/v1alpha1"
+	clientdynamic "knative.dev/client/pkg/dynamic"
+	eventclientv1beta1 "knative.dev/client/pkg/eventing/v1beta1"
 	"knative.dev/client/pkg/kn/commands"
 )
 
@@ -52,17 +52,17 @@ current-context: x
 	}
 }
 
-func executeTriggerCommand(triggerClient eventc_v1alpha1.KnEventingClient, dynamicClient kn_dynamic.KnDynamicClient, args ...string) (string, error) {
+func executeTriggerCommand(triggerClient eventclientv1beta1.KnEventingClient, dynamicClient clientdynamic.KnDynamicClient, args ...string) (string, error) {
 	knParams := &commands.KnParams{}
 	knParams.ClientConfig = blankConfig
 
 	output := new(bytes.Buffer)
 	knParams.Output = output
-	knParams.NewDynamicClient = func(namespace string) (kn_dynamic.KnDynamicClient, error) {
+	knParams.NewDynamicClient = func(namespace string) (clientdynamic.KnDynamicClient, error) {
 		return dynamicClient, nil
 	}
 
-	knParams.NewEventingClient = func(namespace string) (eventc_v1alpha1.KnEventingClient, error) {
+	knParams.NewEventingClient = func(namespace string) (eventclientv1beta1.KnEventingClient, error) {
 		return triggerClient, nil
 	}
 
@@ -75,8 +75,8 @@ func executeTriggerCommand(triggerClient eventc_v1alpha1.KnEventingClient, dynam
 	return output.String(), err
 }
 
-func createTrigger(namespace string, name string, filters map[string]string, broker string, svcname string) *v1alpha1.Trigger {
-	return eventc_v1alpha1.NewTriggerBuilder(name).
+func createTrigger(namespace string, name string, filters map[string]string, broker string, svcname string) *v1beta1.Trigger {
+	return eventclientv1beta1.NewTriggerBuilder(name).
 		Namespace(namespace).
 		Broker(broker).
 		Filters(filters).
@@ -84,14 +84,14 @@ func createTrigger(namespace string, name string, filters map[string]string, bro
 		Build()
 }
 
-func createTriggerWithInject(namespace string, name string, filters map[string]string, broker string, svcname string) *v1alpha1.Trigger {
+func createTriggerWithInject(namespace string, name string, filters map[string]string, broker string, svcname string) *v1beta1.Trigger {
 	t := createTrigger(namespace, name, filters, broker, svcname)
-	return eventc_v1alpha1.NewTriggerBuilderFromExisting(t).InjectBroker(true).Build()
+	return eventclientv1beta1.NewTriggerBuilderFromExisting(t).InjectBroker(true).Build()
 }
 
-func createTriggerWithStatus(namespace string, name string, filters map[string]string, broker string, svcname string) *v1alpha1.Trigger {
+func createTriggerWithStatus(namespace string, name string, filters map[string]string, broker string, svcname string) *v1beta1.Trigger {
 	wanted := createTrigger(namespace, name, filters, broker, svcname)
-	wanted.Status = v1alpha1.TriggerStatus{
+	wanted.Status = v1beta1.TriggerStatus{
 		Status: duckv1.Status{
 			Conditions: []apis.Condition{{
 				Type:   "Ready",

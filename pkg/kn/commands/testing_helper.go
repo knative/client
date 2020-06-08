@@ -33,11 +33,11 @@ import (
 	"knative.dev/client/pkg/sources/v1alpha2"
 
 	dynamicfake "k8s.io/client-go/dynamic/fake"
-	eventingv1alpha1fake "knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1alpha1/fake"
+	eventingv1beta1fake "knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1beta1/fake"
 	sourcesv1alpha2fake "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha2/fake"
 
 	clientdynamic "knative.dev/client/pkg/dynamic"
-	eventingv1alpha1 "knative.dev/client/pkg/eventing/v1alpha1"
+	eventingv1beta1 "knative.dev/client/pkg/eventing/v1beta1"
 )
 
 const FakeNamespace = "current"
@@ -83,7 +83,7 @@ func CreateSourcesTestKnCommand(cmd *cobra.Command, knParams *KnParams) (*cobra.
 }
 
 // CreateEventingTestKnCommand helper for creating test commands
-func CreateEventingTestKnCommand(cmd *cobra.Command, knParams *KnParams) (*cobra.Command, *eventingv1alpha1fake.FakeEventingV1alpha1, *bytes.Buffer) {
+func CreateEventingTestKnCommand(cmd *cobra.Command, knParams *KnParams) (*cobra.Command, *eventingv1beta1fake.FakeEventingV1beta1, *bytes.Buffer) {
 	buf := new(bytes.Buffer)
 	// create fake serving client because the sink of source depends on serving client
 	fakeServing := &servingv1fake.FakeServingV1{&clienttesting.Fake{}}
@@ -91,10 +91,10 @@ func CreateEventingTestKnCommand(cmd *cobra.Command, knParams *KnParams) (*cobra
 		return clientservingv1.NewKnServingClient(fakeServing, FakeNamespace), nil
 	}
 	// create fake sources client
-	fakeEventing := &eventingv1alpha1fake.FakeEventingV1alpha1{&clienttesting.Fake{}}
+	fakeEventing := &eventingv1beta1fake.FakeEventingV1beta1{&clienttesting.Fake{}}
 	knParams.Output = buf
-	knParams.NewEventingClient = func(namespace string) (eventingv1alpha1.KnEventingClient, error) {
-		return eventingv1alpha1.NewKnEventingClient(fakeEventing, FakeNamespace), nil
+	knParams.NewEventingClient = func(namespace string) (eventingv1beta1.KnEventingClient, error) {
+		return eventingv1beta1.NewKnEventingClient(fakeEventing, FakeNamespace), nil
 	}
 	knParams.fixedCurrentNamespace = FakeNamespace
 	knCommand := NewKnTestCommand(cmd, knParams)

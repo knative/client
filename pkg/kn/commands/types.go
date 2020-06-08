@@ -24,7 +24,7 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	eventing "knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1alpha1"
+	eventingv1beta1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1beta1"
 	sourcesv1alpha2client "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha2"
 	servingv1client "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1"
 
@@ -33,7 +33,7 @@ import (
 
 	clientdynamic "knative.dev/client/pkg/dynamic"
 	knerrors "knative.dev/client/pkg/errors"
-	clienteventingv1alpha1 "knative.dev/client/pkg/eventing/v1alpha1"
+	clienteventingv1beta1 "knative.dev/client/pkg/eventing/v1beta1"
 	clientservingv1 "knative.dev/client/pkg/serving/v1"
 )
 
@@ -72,7 +72,7 @@ type KnParams struct {
 	ClientConfig      clientcmd.ClientConfig
 	NewServingClient  func(namespace string) (clientservingv1.KnServingClient, error)
 	NewSourcesClient  func(namespace string) (v1alpha2.KnSourcesClient, error)
-	NewEventingClient func(namespace string) (clienteventingv1alpha1.KnEventingClient, error)
+	NewEventingClient func(namespace string) (clienteventingv1beta1.KnEventingClient, error)
 	NewDynamicClient  func(namespace string) (clientdynamic.KnDynamicClient, error)
 
 	// General global options
@@ -120,14 +120,14 @@ func (params *KnParams) newSourcesClient(namespace string) (v1alpha2.KnSourcesCl
 	return v1alpha2.NewKnSourcesClient(client, namespace), nil
 }
 
-func (params *KnParams) newEventingClient(namespace string) (clienteventingv1alpha1.KnEventingClient, error) {
+func (params *KnParams) newEventingClient(namespace string) (clienteventingv1beta1.KnEventingClient, error) {
 	restConfig, err := params.RestConfig()
 	if err != nil {
 		return nil, err
 	}
 
-	client, _ := eventing.NewForConfig(restConfig)
-	return clienteventingv1alpha1.NewKnEventingClient(client, namespace), nil
+	client, _ := eventingv1beta1.NewForConfig(restConfig)
+	return clienteventingv1beta1.NewKnEventingClient(client, namespace), nil
 }
 
 func (params *KnParams) newDynamicClient(namespace string) (clientdynamic.KnDynamicClient, error) {
