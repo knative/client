@@ -22,15 +22,15 @@ import (
 	"gotest.tools/assert/cmp"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	v1alpha1 "knative.dev/eventing/pkg/apis/eventing/v1alpha1"
+	v1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 
-	client_v1alpha1 "knative.dev/client/pkg/eventing/v1alpha1"
+	clientv1beta1 "knative.dev/client/pkg/eventing/v1beta1"
 	"knative.dev/client/pkg/util"
 )
 
 func TestSimpleDescribe(t *testing.T) {
-	client := client_v1alpha1.NewMockKnEventingClient(t, "mynamespace")
+	client := clientv1beta1.NewMockKnEventingClient(t, "mynamespace")
 
 	recorder := client.Recorder()
 	recorder.GetTrigger("testtrigger", getTrigger(), nil)
@@ -50,7 +50,7 @@ func TestSimpleDescribe(t *testing.T) {
 }
 
 func TestDescribeError(t *testing.T) {
-	client := client_v1alpha1.NewMockKnEventingClient(t, "mynamespace")
+	client := clientv1beta1.NewMockKnEventingClient(t, "mynamespace")
 
 	recorder := client.Recorder()
 	recorder.GetTrigger("testtrigger", nil, errors.New("triggers.eventing.knative.dev 'testtrigger' not found"))
@@ -61,17 +61,17 @@ func TestDescribeError(t *testing.T) {
 	recorder.Validate()
 }
 
-func getTrigger() *v1alpha1.Trigger {
-	return &v1alpha1.Trigger{
+func getTrigger() *v1beta1.Trigger {
+	return &v1beta1.Trigger{
 		TypeMeta: v1.TypeMeta{},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testtrigger",
 			Namespace: "default",
 		},
-		Spec: v1alpha1.TriggerSpec{
+		Spec: v1beta1.TriggerSpec{
 			Broker: "mybroker",
-			Filter: &v1alpha1.TriggerFilter{
-				Attributes: &v1alpha1.TriggerFilterAttributes{
+			Filter: &v1beta1.TriggerFilter{
+				Attributes: v1beta1.TriggerFilterAttributes{
 					"type":   "foo.type.knative",
 					"source": "src.eventing.knative",
 				},
@@ -84,6 +84,6 @@ func getTrigger() *v1alpha1.Trigger {
 				},
 			},
 		},
-		Status: v1alpha1.TriggerStatus{},
+		Status: v1beta1.TriggerStatus{},
 	}
 }

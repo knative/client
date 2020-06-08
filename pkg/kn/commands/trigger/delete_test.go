@@ -20,14 +20,14 @@ import (
 
 	"gotest.tools/assert"
 
-	eventing_client "knative.dev/client/pkg/eventing/v1alpha1"
+	eventingclientv1beta1 "knative.dev/client/pkg/eventing/v1beta1"
 	"knative.dev/client/pkg/util"
 )
 
 func TestTriggerDelete(t *testing.T) {
 	triggerName := "trigger-12345"
 
-	eventingClient := eventing_client.NewMockKnEventingClient(t)
+	eventingClient := eventingclientv1beta1.NewMockKnEventingClient(t)
 	eventingRecorder := eventingClient.Recorder()
 	eventingRecorder.DeleteTrigger(triggerName, nil)
 
@@ -41,7 +41,7 @@ func TestTriggerDelete(t *testing.T) {
 func TestTriggerDeleteWithError(t *testing.T) {
 	triggerName := "trigger-12345"
 
-	eventingClient := eventing_client.NewMockKnEventingClient(t)
+	eventingClient := eventingclientv1beta1.NewMockKnEventingClient(t)
 	eventingRecorder := eventingClient.Recorder()
 	eventingRecorder.DeleteTrigger(triggerName, fmt.Errorf("trigger %s not found", triggerName))
 
