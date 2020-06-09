@@ -119,6 +119,7 @@ run_go_tool() {
     pushd "${temp_dir}" > /dev/null 2>&1
     GOFLAGS="" go get "$1" || install_failed=1
     popd > /dev/null 2>&1
+    rm -rf "${temp_dir}"
   fi
   (( install_failed )) && return ${install_failed}
   shift 2
