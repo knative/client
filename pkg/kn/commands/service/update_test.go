@@ -743,7 +743,7 @@ func TestServiceUpdateTagDoesNotExist(t *testing.T) {
 	_, _, _, err := fakeServiceUpdate(orig, []string{
 		"service", "update", "foo", "--untag", "foo", "--no-wait"})
 
-	assert.Error(t, err, "Error: tag foo does not exist")
+	assert.Assert(t, util.ContainsAll(err.Error(), "tag(s)", "foo", "not present", "service", "foo"))
 }
 
 func newEmptyService() *servingv1.Service {

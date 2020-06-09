@@ -193,7 +193,7 @@ func TestCompute(t *testing.T) {
 			testCmd, tFlags := newTestTrafficCommand()
 			testCmd.SetArgs(testCase.inputFlags)
 			testCmd.Execute()
-			targets, err := Compute(testCmd, testCase.existingTraffic, tFlags)
+			targets, err := Compute(testCmd, testCase.existingTraffic, tFlags, "serviceName")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -282,20 +282,20 @@ func TestComputeErrMsg(t *testing.T) {
 			"untag single tag that does not exist",
 			append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("latest", "echo-v1", 100, false)),
 			[]string{"--untag", "foo"},
-			"Error: tag foo does not exist",
+			"tag(s) foo not present for any revisions of service serviceName",
 		},
 		{
 			"untag multiple tags that do not exist",
 			append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("latest", "echo-v1", 100, false)),
 			[]string{"--untag", "foo", "--untag", "bar"},
-			"Error: tag foo does not exist\nError: tag bar does not exist",
+			"tag(s) foo, bar not present for any revisions of service serviceName",
 		},
 	} {
 		t.Run(testCase.name, func(t *testing.T) {
 			testCmd, tFlags := newTestTrafficCommand()
 			testCmd.SetArgs(testCase.inputFlags)
 			testCmd.Execute()
-			_, err := Compute(testCmd, testCase.existingTraffic, tFlags)
+			_, err := Compute(testCmd, testCase.existingTraffic, tFlags, "serviceName")
 			assert.Error(t, err, testCase.errMsg)
 		})
 	}
