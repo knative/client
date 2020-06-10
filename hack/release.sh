@@ -39,9 +39,11 @@ function build_release() {
   GOOS=windows GOARCH=amd64 go build -mod=vendor -ldflags "${ld_flags}" -o ./kn-windows-amd64.exe ./cmd/...
   echo "🚧 Z  Building for Linux(s390x)"
   GOOS=linux GOARCH=s390x go build -mod=vendor -ldflags "${ld_flags}" -o ./kn-linux-s390x ./cmd/...
+  echo "🚧 P  Building for Linux (ppc64le)"
+  GOOS=linux GOARCH=ppc64le go build -mod=vendor -ldflags "${ld_flags}" -o ./kn-linux-ppc64le ./cmd/...
   echo "🚧 🐳 Building the container image"
   ko resolve --strict ${KO_FLAGS} -f config/ > kn-image-location.yaml
-  ARTIFACTS_TO_PUBLISH="kn-darwin-amd64 kn-linux-amd64 kn-linux-arm64 kn-windows-amd64.exe kn-linux-s390x kn-image-location.yaml"
+  ARTIFACTS_TO_PUBLISH="kn-darwin-amd64 kn-linux-amd64 kn-linux-arm64 kn-windows-amd64.exe kn-linux-s390x kn-linux-ppc64le kn-image-location.yaml"
   sha256sum "${ARTIFACTS_TO_PUBLISH}" > checksums.txt
   ARTIFACTS_TO_PUBLISH="${ARTIFACTS_TO_PUBLISH} checksums.txt"
   echo "🧮     Checksum:"
