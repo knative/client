@@ -12,6 +12,15 @@
 | https://github.com/knative/client/pull/[#]
 ////
 
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🐛
+| Return Error Message from Using --untag with Nonexistent Tag
+| https://github.com/knative/client/pull/880[#880]
+|===
+
 ## v0.15.1 (2020-06-03)
 
 [cols="1,10,3", options="header", width="100%"]
