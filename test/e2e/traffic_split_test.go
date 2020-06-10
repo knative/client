@@ -105,7 +105,7 @@ func TestTrafficSplit(t *testing.T) {
 
 			// make ordered fields per tflags (tag, revision, percent, latest)
 			expectedTargets := []TargetFields{newTargetFields("v1", rev1, 50, false), newTargetFields("v2", rev2, 50, false)}
-			verifyTargets(r, serviceName, expectedTargets)
+			verifyTargets(r, serviceName, expectedTargets, false)
 			test.ServiceDelete(r, serviceName)
 		},
 	)
@@ -127,7 +127,7 @@ func TestTrafficSplit(t *testing.T) {
 			test.ServiceUpdate(r, serviceName, "--traffic", fmt.Sprintf("%s=20,%s=80", rev1, rev2))
 
 			expectedTargets := []TargetFields{newTargetFields("", rev1, 20, false), newTargetFields("", rev2, 80, false)}
-			verifyTargets(r, serviceName, expectedTargets)
+			verifyTargets(r, serviceName, expectedTargets, false)
 			test.ServiceDelete(r, serviceName)
 		},
 	)
@@ -148,7 +148,7 @@ func TestTrafficSplit(t *testing.T) {
 			test.ServiceUpdate(r, serviceName, "--tag", fmt.Sprintf("%s=%s", rev1, "candidate"))
 
 			expectedTargets := []TargetFields{newTargetFields("", rev2, 100, true), newTargetFields("candidate", rev1, 0, false)}
-			verifyTargets(r, serviceName, expectedTargets)
+			verifyTargets(r, serviceName, expectedTargets, false)
 			test.ServiceDelete(r, serviceName)
 		},
 	)
@@ -171,7 +171,7 @@ func TestTrafficSplit(t *testing.T) {
 				"--traffic", "candidate=2%,@latest=98%")
 
 			expectedTargets := []TargetFields{newTargetFields("", rev2, 98, true), newTargetFields("candidate", rev1, 2, false)}
-			verifyTargets(r, serviceName, expectedTargets)
+			verifyTargets(r, serviceName, expectedTargets, false)
 			test.ServiceDelete(r, serviceName)
 		},
 	)
@@ -204,7 +204,7 @@ func TestTrafficSplit(t *testing.T) {
 			// there will be 2 targets in existing block 1. @latest, 2.for revision $rev2
 			// target for rev1 is removed as it had no traffic and we untagged it's tag current
 			expectedTargets := []TargetFields{newTargetFields("", rev3, 100, true), newTargetFields("current", rev2, 0, false)}
-			verifyTargets(r, serviceName, expectedTargets)
+			verifyTargets(r, serviceName, expectedTargets, false)
 			test.ServiceDelete(r, serviceName)
 		},
 	)
@@ -225,7 +225,7 @@ func TestTrafficSplit(t *testing.T) {
 			test.ServiceUpdate(r, serviceName, "--untag", "testing", "--tag", "@latest=staging")
 
 			expectedTargets := []TargetFields{newTargetFields("staging", rev1, 100, true)}
-			verifyTargets(r, serviceName, expectedTargets)
+			verifyTargets(r, serviceName, expectedTargets, false)
 			test.ServiceDelete(r, serviceName)
 		},
 	)
@@ -250,7 +250,7 @@ func TestTrafficSplit(t *testing.T) {
 
 			expectedTargets := []TargetFields{newTargetFields("", rev2, 100, true),
 				newTargetFields("staging", rev1, 0, false)}
-			verifyTargets(r, serviceName, expectedTargets)
+			verifyTargets(r, serviceName, expectedTargets, false)
 			test.ServiceDelete(r, serviceName)
 		},
 	)
@@ -277,7 +277,7 @@ func TestTrafficSplit(t *testing.T) {
 			test.ServiceUpdate(r, serviceName, "--untag", "old", "--traffic", "@latest=100")
 
 			expectedTargets := []TargetFields{newTargetFields("", rev2, 100, true)}
-			verifyTargets(r, serviceName, expectedTargets)
+			verifyTargets(r, serviceName, expectedTargets, false)
 			test.ServiceDelete(r, serviceName)
 		},
 	)
@@ -300,7 +300,7 @@ func TestTrafficSplit(t *testing.T) {
 				"--traffic", "stable=50%,current=50%")
 
 			expectedTargets := []TargetFields{newTargetFields("stable", rev1, 50, false), newTargetFields("current", rev1, 50, false)}
-			verifyTargets(r, serviceName, expectedTargets)
+			verifyTargets(r, serviceName, expectedTargets, false)
 			test.ServiceDelete(r, serviceName)
 		},
 	)
@@ -324,7 +324,7 @@ func TestTrafficSplit(t *testing.T) {
 			test.ServiceUpdate(r, serviceName, "--traffic", "@latest=100")
 
 			expectedTargets := []TargetFields{newTargetFields("", rev2, 100, true)}
-			verifyTargets(r, serviceName, expectedTargets)
+			verifyTargets(r, serviceName, expectedTargets, false)
 			test.ServiceDelete(r, serviceName)
 		},
 	)
@@ -343,7 +343,7 @@ func TestTrafficSplit(t *testing.T) {
 			test.ServiceUpdate(r, serviceName, "--tag", "@latest=current")
 
 			expectedTargets := []TargetFields{newTargetFields("current", rev1, 100, true)}
-			verifyTargets(r, serviceName, expectedTargets)
+			verifyTargets(r, serviceName, expectedTargets, false)
 			test.ServiceDelete(r, serviceName)
 		},
 	)
@@ -373,7 +373,7 @@ func TestTrafficSplit(t *testing.T) {
 
 			expectedTargets := []TargetFields{newTargetFields("current", rev2, 0, true),
 				newTargetFields("testing", rev1, 100, false)}
-			verifyTargets(r, serviceName, expectedTargets)
+			verifyTargets(r, serviceName, expectedTargets, false)
 			test.ServiceDelete(r, serviceName)
 		},
 	)
@@ -405,17 +405,74 @@ func TestTrafficSplit(t *testing.T) {
 				// In spec of traffic block (not status) either latestReadyRevision:true or revisionName can be given per target
 				newTargetFields("latest", rev2, 0, false)}
 
-			verifyTargets(r, serviceName, expectedTargets)
+			verifyTargets(r, serviceName, expectedTargets, false)
+			test.ServiceDelete(r, serviceName)
+		},
+	)
+	t.Run("UntagNonExistentTag",
+		func(t *testing.T) {
+			t.Log("use --untag on a tag that does not exist")
+			r := test.NewKnRunResultCollector(t, it)
+			defer r.DumpIfFailed()
+
+			serviceName := test.GetNextServiceName(serviceBase)
+			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
+			serviceCreateWithOptions(r, serviceName, "--revision-name", rev1)
+
+			// existing state: a revision exist with latest tag
+			test.ServiceUpdate(r, serviceName, "--tag", fmt.Sprintf("%s=latest", rev1))
+
+			// desired state of revision tags: rev1=latest
+			// attempt to untag a tag that does not exist for the service's revisions
+			test.ServiceUpdateWithError(r, serviceName, "--untag", "foo")
+
+			// state should remain the same as error from --untag will stop service update
+			expectedTargets := []TargetFields{
+				newTargetFields("", rev1, 100, true),
+				newTargetFields("latest", rev1, 0, false),
+			}
+
+			verifyTargets(r, serviceName, expectedTargets, true)
+			test.ServiceDelete(r, serviceName)
+		},
+	)
+	t.Run("UntagNonExistentTagAndValidTag",
+		func(t *testing.T) {
+			t.Log("use --untag on a tag that does not exist in addition to a tag that exists")
+			r := test.NewKnRunResultCollector(t, it)
+			defer r.DumpIfFailed()
+
+			serviceName := test.GetNextServiceName(serviceBase)
+			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
+			serviceCreateWithOptions(r, serviceName, "--revision-name", rev1)
+
+			// existing state: a revision exist with latest tag
+			test.ServiceUpdate(r, serviceName, "--tag", fmt.Sprintf("%s=latest", rev1))
+
+			// desired state of revision tags: rev1=latest
+			// attempt to untag a tag that does not exist for the service's revisions (foo)
+			// and also untag a tag that exists (latest)
+			test.ServiceUpdateWithError(r, serviceName, "--untag", "latest", "--untag", "foo")
+
+			// state should remain the same as error from --untag will stop service update
+			expectedTargets := []TargetFields{
+				newTargetFields("", rev1, 100, true),
+				newTargetFields("latest", rev1, 0, false),
+			}
+
+			verifyTargets(r, serviceName, expectedTargets, true)
 			test.ServiceDelete(r, serviceName)
 		},
 	)
 }
 
-func verifyTargets(r *test.KnRunResultCollector, serviceName string, expectedTargets []TargetFields) {
+func verifyTargets(r *test.KnRunResultCollector, serviceName string, expectedTargets []TargetFields, expectErr bool) {
 	out := test.ServiceDescribeWithJSONPath(r, serviceName, targetsJsonPath)
 	assert.Check(r.T(), out != "")
 	actualTargets, err := splitTargets(out, targetsSeparator, len(expectedTargets))
-	assert.NilError(r.T(), err)
+	if !expectErr {
+		assert.NilError(r.T(), err)
+	}
 	formattedActualTargets := formatActualTargets(r.T(), r.KnTest(), actualTargets)
 	assert.DeepEqual(r.T(), expectedTargets, formattedActualTargets)
 	if r.T().Failed() {
