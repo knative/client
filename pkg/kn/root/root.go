@@ -90,39 +90,41 @@ func NewRootCommand() (*cobra.Command, error) {
 	// Initialize default `help` cmd early to prevent unknown command errors
 	rootCmd.InitDefaultHelpCmd()
 
-	// Deal with empty and unknown sub command groups
-	err := addEmptyAndUnknownSubCommandsValidation(rootCmd)
+	// Check that command groups can't execute and that leaf commands don't h
+	err := validateCommandStructure(rootCmd)
 	if err != nil {
 		return nil, err
 	}
+
 	// Wrap usage.
 	fitUsageMessageToTerminalWidth(rootCmd)
 
-	// For glog parse error.
+	// For glog parse error. TOO: Check why this is needed
 	flag.CommandLine.Parse([]string{})
 	return rootCmd, nil
 }
 
-// addEmptyAndUnknownSubCommandsValidation adds a RunE to all commands that are groups to
-// deal with errors when called with empty or unknown sub command
-func addEmptyAndUnknownSubCommandsValidation(cmd *cobra.Command) error {
+// Verify that command groups are not executable and that leaf commands have a run function
+func validateCommandStructure(cmd *cobra.Command) error {
 	for _, childCmd := range cmd.Commands() {
 		if childCmd.HasSubCommands() {
 			if childCmd.RunE != nil || childCmd.Run != nil {
 				return errors.Errorf("internal: command group '%s' must not enable any direct logic, only leaf commands are allowed to take actions", childCmd.Name())
 			}
 
+			subCommands := childCmd.Commands()
+			name := childCmd.Name()
 			childCmd.RunE = func(aCmd *cobra.Command, args []string) error {
-				aCmd.Help()
+				subText := fmt.Sprintf("Available sub-commands: %s", strings.Join(ExtractSubCommandNames(subCommands), ", "))
 				if len(args) == 0 {
-					return fmt.Errorf("please provide a valid sub-command for \"kn %s\"", aCmd.Name())
+					return fmt.Errorf("no sub-command given for 'kn %s'. %s", name, subText)
 				}
-				return fmt.Errorf("unknown sub-command \"%s\" for \"kn %s\"", args[0], aCmd.Name())
+				return fmt.Errorf("unknown sub-command '%s' for 'kn %s'. %s", args[0], aCmd.Name(), subText)
 			}
 		}
 
 		// recurse to deal with child commands that are themselves command groups
-		err := addEmptyAndUnknownSubCommandsValidation(childCmd)
+		err := validateCommandStructure(childCmd)
 		if err != nil {
 			return err
 		}
@@ -137,4 +139,13 @@ func fitUsageMessageToTerminalWidth(rootCmd *cobra.Command) {
 			fmt.Sprintf("FlagUsagesWrapped %d ", width))
 		rootCmd.SetUsageTemplate(newUsage)
 	}
+}
+
+// ExtractSubCommandNames extracts the names of all sub commands of a given command
+func ExtractSubCommandNames(cmds []*cobra.Command) []string {
+	var ret []string
+	for _, subCmd := range cmds {
+		ret = append(ret, subCmd.Name())
+	}
+	return ret
 }

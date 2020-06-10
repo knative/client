@@ -23,6 +23,7 @@ import (
 	"gotest.tools/assert"
 
 	"knative.dev/client/pkg/kn/commands"
+	"knative.dev/client/pkg/kn/root"
 	"knative.dev/client/pkg/util"
 )
 
@@ -124,6 +125,54 @@ func TestArgsWithoutCommands(t *testing.T) {
 		result := argsWithoutCommands(d.givenCmdArgs, d.givenPluginCommandParts)
 		assert.DeepEqual(t, result, d.expectedResult)
 	}
+}
+
+func TestUnknownCommands(t *testing.T) {
+	oldArgs := os.Args
+	defer (func() {
+		os.Args = oldArgs
+	})()
+
+	data := []struct {
+		givenCmdArgs  []string
+		commandPath   []string
+		expectedError []string
+	}{
+		{
+			[]string{"service", "udpate", "test", "--min-scale=0"},
+			[]string{"service"},
+			[]string{"unknown sub-command", "udpate"},
+		},
+		{
+			[]string{"service", "--foo=bar"},
+			[]string{"service"},
+			[]string{},
+		},
+		{
+			[]string{"source", "ping", "blub", "--foo=bar"},
+			[]string{"source", "ping"},
+			[]string{"unknown sub-command", "blub"},
+		},
+	}
+	for _, d := range data {
+		args := append([]string{"kn"}, d.givenCmdArgs...)
+		rootCmd, err := root.NewRootCommand()
+		os.Args = args
+		assert.NilError(t, err)
+		err = validateRootCommand(rootCmd)
+		if len(d.expectedError) == 0 {
+			assert.NilError(t, err)
+			continue
+		}
+		assert.Assert(t, err != nil)
+		assert.Assert(t, util.ContainsAll(err.Error(), d.expectedError...))
+		cmd, _, e := rootCmd.Find(d.commandPath)
+		assert.NilError(t, e)
+		for _, sub := range cmd.Commands() {
+			assert.ErrorContains(t, err, sub.Name())
+		}
+	}
+
 }
 
 func TestStripFlags(t *testing.T) {

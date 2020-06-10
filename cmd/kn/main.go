@@ -80,7 +80,12 @@ func run(args []string) error {
 
 		return plugin.Execute(argsWithoutCommands(args, plugin.CommandParts()))
 	} else {
-		// Execute kn root command
+		// Validate args for root command
+		err = validateRootCommand(rootCmd)
+		if err != nil {
+			return err
+		}
+		// Execute kn root command, args are taken from os.Args directly
 		return rootCmd.Execute()
 	}
 }
@@ -155,6 +160,22 @@ func validatePlugin(root *cobra.Command, plugin plugin.Plugin) error {
 			cmd.HasSubCommands() && len(args) == 0 { // a group can't be overridden either
 			return errors.Errorf("plugin %s is overriding built-in command '%s' which is not allowed", plugin.Path(), strings.Join(plugin.CommandParts(), " "))
 		}
+	}
+	return nil
+}
+
+// Check whether an unknown sub-command is addressed and return an error if this is the case
+// Needs to be called after the plugin has been extracted (as a plugin name can also lead to
+// an unknown sub command error otherwise)
+func validateRootCommand(cmd *cobra.Command) error {
+	foundCmd, innerArgs, err := cmd.Find(os.Args[1:])
+	if err == nil && foundCmd.HasSubCommands() && len(innerArgs) > 0 {
+		argsWithoutFlags, err := stripFlags(innerArgs)
+		if len(argsWithoutFlags) > 0 || err != nil {
+			return errors.Errorf("unknown sub-command '%s' for '%s'. Available sub-commands: %s", innerArgs[0], foundCmd.Name(), strings.Join(root.ExtractSubCommandNames(foundCmd.Commands()), ", "))
+		}
+		// If no args where given (only flags), then fall through to execute the command itself, which leads to
+		// a more appropriate error message
 	}
 	return nil
 }

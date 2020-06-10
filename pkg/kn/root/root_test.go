@@ -77,7 +77,7 @@ func TestEmptyAndUnknownSubCommands(t *testing.T) {
 	fakeGroupCmd.AddCommand(fakeSubCmd)
 	rootCmd.AddCommand(fakeGroupCmd)
 
-	err := addEmptyAndUnknownSubCommandsValidation(rootCmd)
+	err := validateCommandStructure(rootCmd)
 	assert.NilError(t, err)
 	checkLeafCommand(t, "fake-subcommand", fakeGroupCmd)
 	checkCommandGroup(t, []string{"fake-group"}, rootCmd)
@@ -99,7 +99,7 @@ func TestCommandGroupWithRunMethod(t *testing.T) {
 	fakeGroupCmd.AddCommand(fakeSubCmd)
 	rootCmd.AddCommand(fakeGroupCmd)
 
-	err := addEmptyAndUnknownSubCommandsValidation(rootCmd)
+	err := validateCommandStructure(rootCmd)
 	assert.Assert(t, err != nil)
 	assert.Assert(t, util.ContainsAll(err.Error(), fakeGroupCmd.Name(), "internal", "not enable"))
 }
@@ -124,7 +124,7 @@ func checkCommandGroup(t *testing.T, commands []string, rootCmd *cobra.Command) 
 	err = cmd.RunE(cmd, []string{})
 
 	assert.Assert(t, err != nil)
-	assert.Assert(t, util.ContainsAll(err.Error(), "provide", "valid", "sub-command", cmd.Name()))
+	assert.Assert(t, util.ContainsAll(err.Error(), "no", "sub-command", cmd.Name()))
 
 	err = cmd.RunE(cmd, []string{"deeper"})
 	assert.Assert(t, err != nil)
