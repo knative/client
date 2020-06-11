@@ -193,7 +193,7 @@ func TestCompute(t *testing.T) {
 			testCmd, tFlags := newTestTrafficCommand()
 			testCmd.SetArgs(testCase.inputFlags)
 			testCmd.Execute()
-			targets, err := Compute(testCmd, testCase.existingTraffic, tFlags)
+			targets, err := Compute(testCmd, testCase.existingTraffic, tFlags, "serviceName")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -278,12 +278,24 @@ func TestComputeErrMsg(t *testing.T) {
 			[]string{"--traffic", "echo-v1=40", "--traffic", "echo-v1=60"},
 			"repetition of revision reference echo-v1 is not allowed, use only once with --traffic flag",
 		},
+		{
+			"untag single tag that does not exist",
+			append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("latest", "echo-v1", 100, false)),
+			[]string{"--untag", "foo"},
+			"tag(s) foo not present for any revisions of service serviceName",
+		},
+		{
+			"untag multiple tags that do not exist",
+			append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("latest", "echo-v1", 100, false)),
+			[]string{"--untag", "foo", "--untag", "bar"},
+			"tag(s) foo, bar not present for any revisions of service serviceName",
+		},
 	} {
 		t.Run(testCase.name, func(t *testing.T) {
 			testCmd, tFlags := newTestTrafficCommand()
 			testCmd.SetArgs(testCase.inputFlags)
 			testCmd.Execute()
-			_, err := Compute(testCmd, testCase.existingTraffic, tFlags)
+			_, err := Compute(testCmd, testCase.existingTraffic, tFlags, "serviceName")
 			assert.Error(t, err, testCase.errMsg)
 		})
 	}

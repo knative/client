@@ -72,6 +72,15 @@ func ServiceUpdate(r *KnRunResultCollector, serviceName string, args ...string) 
 	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "updating", "service", serviceName, "ready"))
 }
 
+// ServiceUpdateWithError verifies service update operation with given arguments in sync mode
+// when expecting an error
+func ServiceUpdateWithError(r *KnRunResultCollector, serviceName string, args ...string) {
+	fullArgs := append([]string{}, "service", "update", serviceName)
+	fullArgs = append(fullArgs, args...)
+	out := r.KnTest().Kn().Run(fullArgs...)
+	r.AssertError(out)
+}
+
 // ServiceDelete verifies service deletion in sync mode
 func ServiceDelete(r *KnRunResultCollector, serviceName string) {
 	out := r.KnTest().Kn().Run("service", "delete", "--wait", serviceName)
