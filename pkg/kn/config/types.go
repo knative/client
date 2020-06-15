@@ -15,7 +15,7 @@
 package config
 
 // Package for holding configuration types used in bootstrapping
-// and for types in configuration foles
+// and for types in configuration files
 
 type Config interface {
 
