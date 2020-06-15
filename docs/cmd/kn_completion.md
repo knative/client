@@ -37,8 +37,8 @@ kn completion [SHELL] [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string       kn config file (default is ~/.config/kn/config.yaml)
-      --kubeconfig string   kubectl config file (default is ~/.kube/config)
+      --config string       kn configuration file (default: ~/.config/kn/config.yaml)
+      --kubeconfig string   kubectl configuration file (default: ~/.kube/config)
       --log-http            log http traffic
 ```
 

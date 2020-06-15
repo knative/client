@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"testing"
 
@@ -101,10 +102,23 @@ func TestPluginWithoutLookup(t *testing.T) {
 	listPlugin(r, knFlags, []string{pc.knPluginPath}, []string{})
 
 	t.Log("execute plugin in --plugins-dir")
-	runPlugin(r, knFlags, "helloe2e", []string{"e2e", "test"}, []string{"Hello Knative, I'm a Kn plugin", "I received arguments: e2e"})
+	runPlugin(r, knFlags, "helloe2e", []string{"e2e", "test"}, []string{"Hello Knative, I'm a Kn plugin", "I received arguments", "e2e"})
 
 	t.Log("does not list any other plugin in $PATH")
 	listPlugin(r, knFlags, []string{pc.knPluginPath}, []string{pc.knPluginPath2})
+}
+
+func execute(command string, args ...string) string {
+	cmd := exec.Command(command, args...)
+	r, w, _ := os.Pipe()
+	cmd.Stdout = w
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+	cmd.Env = os.Environ()
+	cmd.Run()
+	w.Close()
+	ret, _ := ioutil.ReadAll(r)
+	return string(ret)
 }
 
 func TestPluginWithLookup(t *testing.T) {
@@ -184,8 +198,12 @@ func listPlugin(r *test.KnRunResultCollector, knFlags []string, expectedPlugins 
 
 	out := test.Kn{}.Run(knArgs...)
 	r.AssertNoError(out)
-	assert.Check(r.T(), util.ContainsAll(out.Stdout, expectedPlugins...))
-	assert.Check(r.T(), util.ContainsNone(out.Stdout, unexpectedPlugins...))
+	for _, p := range expectedPlugins {
+		assert.Check(r.T(), util.ContainsAll(out.Stdout, filepath.Base(p)))
+	}
+	for _, p := range unexpectedPlugins {
+		assert.Check(r.T(), util.ContainsNone(out.Stdout, filepath.Base(p)))
+	}
 }
 
 func runPlugin(r *test.KnRunResultCollector, knFlags []string, pluginName string, args []string, expectedOutput []string) {

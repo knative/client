@@ -16,7 +16,7 @@ package plugin
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+
 	"knative.dev/client/pkg/kn/commands"
 )
 
@@ -30,28 +30,7 @@ Plugins provide extended functionality that is not part of the core kn command-l
 Please refer to the documentation and examples for more information about how write your own plugins.`,
 	}
 
-	AddPluginFlags(pluginCmd)
-	BindPluginsFlagToViper(pluginCmd)
-
 	pluginCmd.AddCommand(NewPluginListCommand(p))
 
 	return pluginCmd
 }
-
-// AddPluginFlags plugins-dir and lookup-plugins to cmd
-func AddPluginFlags(cmd *cobra.Command) {
-	cmd.Flags().StringVar(&commands.Cfg.PluginsDir, "plugins-dir", commands.Cfg.DefaultPluginDir, "kn plugins directory")
-	cmd.Flags().BoolVar(commands.Cfg.LookupPlugins, "lookup-plugins", false, "look for kn plugins in $PATH")
-}
-
-// BindPluginsFlagToViper bind and set default with viper for plugins flags
-func BindPluginsFlagToViper(cmd *cobra.Command) {
-	viper.BindPFlag("plugins-dir", cmd.Flags().Lookup("plugins-dir"))
-	viper.BindPFlag("lookup-plugins", cmd.Flags().Lookup("lookup-plugins"))
-
-	viper.SetDefault("plugins-dir", commands.Cfg.DefaultPluginDir)
-	viper.SetDefault("lookup-plugins", false)
-}
-
-// CoreCommandNames names of all core `kn` commands
-var CoreCommandNames = []string{}

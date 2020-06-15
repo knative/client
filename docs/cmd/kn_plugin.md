@@ -16,16 +16,14 @@ kn plugin [flags]
 ### Options
 
 ```
-  -h, --help                 help for plugin
-      --lookup-plugins       look for kn plugins in $PATH
-      --plugins-dir string   kn plugins directory (default "~/.config/kn/plugins")
+  -h, --help   help for plugin
 ```
 
 ### Options inherited from parent commands
 
 ```
-      --config string       kn config file (default is ~/.config/kn/config.yaml)
-      --kubeconfig string   kubectl config file (default is ~/.kube/config)
+      --config string       kn configuration file (default: ~/.config/kn/config.yaml)
+      --kubeconfig string   kubectl configuration file (default: ~/.kube/config)
       --log-http            log http traffic
 ```
 

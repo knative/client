@@ -19,7 +19,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"runtime"
 
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
@@ -36,34 +35,6 @@ import (
 	clienteventingv1beta1 "knative.dev/client/pkg/eventing/v1beta1"
 	clientservingv1 "knative.dev/client/pkg/serving/v1"
 )
-
-// CfgFile is Kn's config file is the path for the Kubernetes config
-var CfgFile string
-
-// Cfg is Kn's configuration values
-var Cfg Config = Config{
-	DefaultConfigDir: newDefaultConfigPath(""),
-	DefaultPluginDir: newDefaultConfigPath("plugins"),
-	PluginsDir:       "",
-	LookupPlugins:    newBoolP(false),
-}
-
-// Config contains the variables for the Kn config
-type Config struct {
-	DefaultConfigDir string
-	DefaultPluginDir string
-	PluginsDir       string
-	LookupPlugins    *bool
-	SinkPrefixes     []SinkPrefixConfig
-}
-
-// SinkPrefixConfig is the struct of sink prefix config in kn config
-type SinkPrefixConfig struct {
-	Prefix   string
-	Resource string
-	Group    string
-	Version  string
-}
 
 // KnParams for creating commands. Useful for inserting mocks for testing.
 type KnParams struct {
@@ -187,20 +158,4 @@ func (params *KnParams) GetClientConfig() (clientcmd.ClientConfig, error) {
 			"Please use the env var KUBECONFIG if you want to check for multiple configuration files", params.KubeCfgPath)
 	}
 	return nil, fmt.Errorf("Config file '%s' can not be found", params.KubeCfgPath)
-}
-
-// Private
-
-// Returns a pointer to bool, hard to do better in Golang
-func newBoolP(b bool) *bool {
-	aBool := b
-	return &aBool
-}
-
-// Returns default config path based on target OS
-func newDefaultConfigPath(subDir string) string {
-	if runtime.GOOS == "windows" {
-		return filepath.Join(os.Getenv("APPDATA"), "kn", subDir)
-	}
-	return filepath.Join("~", ".config", "kn", subDir)
 }
