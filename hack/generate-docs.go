@@ -40,7 +40,7 @@ func main() {
 	if len(os.Args) > 2 {
 		withFrontMatter, err = strconv.ParseBool(os.Args[2])
 		if err != nil {
-			log.Panicf("Invalid argument %s, has to be boolean to switch on/off generation of frontmatter (%v)", os.Args[2], err)
+			log.Panicf("invalid argument %s, has to be boolean to switch on/off generation of frontmatter (%v)", os.Args[2], err)
 		}
 	}
 	prependFunc := emptyString
