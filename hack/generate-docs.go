@@ -29,7 +29,7 @@ import (
 func main() {
 	rootCmd, err := root.NewRootCommand()
 	if err != nil {
-		log.Panicf("Can not create root command: %v", err)
+		log.Panicf("can not create root command: %v", err)
 	}
 
 	dir := "."
