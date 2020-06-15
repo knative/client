@@ -23,7 +23,7 @@ Let's talk now about the three phases separately.
 
 ### Bootstrap
 
-The bootstrap performed by [config.BootstrapConfig()](https://github.com/knative/client/blob/master/pkg/kn/config/config.go#L94) extracts all the options relevant for config file detection and plugin configuration.
+The bootstrap performed by [config.BootstrapConfig()](https://github.com/knative/client/blob/0063a263d121702432c1ee71cef30df375a40e76/pkg/kn/config/config.go#L94) extracts all the options relevant for config file detection and plugin configuration.
 The bootstrap process does not fully parse all arguments but only those that are relevant for starting up and for looking up any plugin.
 The configuration can be either provided via a `--config` flag or is picked up from a default location.
 The default configuration location conforms to the [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html) and is different for Unix systems and Windows systems.
@@ -33,7 +33,7 @@ The default configuration location conforms to the [XDG Base Directory Specifica
 ### Plugin Lookup
 
 In the next step, a `PluginManager` checks whether the given command-line arguments are pointing to a plugin.
-All non-flag arguments are extracted and then used to lookup via [plugin.PluginManager.FindPlugin()](https://github.com/knative/client/blob/master/pkg/kn/plugin/manager.go#L94) in the plugin directory (and the execution `$PATH` if configured) calculated in the _Bootstrap_ phase.
+All non-flag arguments are extracted and then used to lookup via [plugin.PluginManager.FindPlugin()](https://github.com/knative/client/blob/0063a263d121702432c1ee71cef30df375a40e76/pkg/kn/plugin/manager.go#L94) in the plugin directory (and the execution `$PATH` if configured) calculated in the _Bootstrap_ phase.
 
 ### Execution
 
