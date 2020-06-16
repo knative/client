@@ -20,9 +20,6 @@ set -o pipefail
 
 source $(dirname $0)/../scripts/test-infra/library.sh
 
-# Needed later
-go install golang.org/x/tools/cmd/goimports
-
 "${REPO_ROOT_DIR}"/hack/build.sh --codegen
 if output="$(git status --porcelain)" && [ -z "$output" ]; then
   echo "${REPO_ROOT_DIR} is up to date."

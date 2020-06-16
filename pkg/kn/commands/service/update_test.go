@@ -737,6 +737,15 @@ func TestServiceUpdateDeletionTimestampNotNil(t *testing.T) {
 	assert.ErrorContains(t, err, "service")
 }
 
+func TestServiceUpdateTagDoesNotExist(t *testing.T) {
+	orig := newEmptyService()
+
+	_, _, _, err := fakeServiceUpdate(orig, []string{
+		"service", "update", "foo", "--untag", "foo", "--no-wait"})
+
+	assert.Assert(t, util.ContainsAll(err.Error(), "tag(s)", "foo", "not present", "service", "foo"))
+}
+
 func newEmptyService() *servingv1.Service {
 	ret := &servingv1.Service{
 		TypeMeta: metav1.TypeMeta{

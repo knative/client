@@ -59,6 +59,10 @@ func TestService(t *testing.T) {
 	t.Log("create service private and make public")
 	serviceCreatePrivateUpdatePublic(r, "hello-private-public")
 
+	t.Log("error message from --untag with tag that doesn't exist")
+	test.ServiceCreate(r, "untag")
+	serviceUntagTagThatDoesNotExist(r, "untag")
+
 	t.Log("delete all services in a namespace")
 	test.ServiceCreate(r, "svc1")
 	test.ServiceCreate(r, "service2")
@@ -138,6 +142,15 @@ func serviceMultipleDelete(r *test.KnRunResultCollector, existService, nonexistS
 	expectedErr := fmt.Sprintf(`services.serving.knative.dev "%s" not found`, nonexistService)
 	assert.Check(r.T(), strings.Contains(out.Stdout, expectedSuccess), "Failed to get 'successfully deleted' message")
 	assert.Check(r.T(), strings.Contains(out.Stdout, expectedErr), "Failed to get 'not found' error")
+}
+
+func serviceUntagTagThatDoesNotExist(r *test.KnRunResultCollector, serviceName string) {
+	out := r.KnTest().Kn().Run("service", "list", serviceName)
+	r.AssertNoError(out)
+	assert.Check(r.T(), strings.Contains(out.Stdout, serviceName), "Service "+serviceName+" does not exist for test (but should exist)")
+
+	out = r.KnTest().Kn().Run("service", "update", serviceName, "--untag", "foo", "--no-wait")
+	assert.Check(r.T(), util.ContainsAll(out.Stderr, "tag(s)", "foo", "not present", "service", "untag"), "Expected error message for using --untag with nonexistent tag")
 }
 
 func serviceDeleteAll(r *test.KnRunResultCollector) {

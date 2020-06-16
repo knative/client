@@ -83,6 +83,7 @@ github.com/mailru/easyjson/buffer
 github.com/mailru/easyjson/jlexer
 github.com/mailru/easyjson/jwriter
 # github.com/mitchellh/go-homedir v1.1.0
+## explicit
 github.com/mitchellh/go-homedir
 # github.com/mitchellh/mapstructure v1.1.2
 github.com/mitchellh/mapstructure
@@ -108,13 +109,16 @@ github.com/spf13/afero/mem
 # github.com/spf13/cast v1.3.1
 github.com/spf13/cast
 # github.com/spf13/cobra v0.0.6 => github.com/chmouel/cobra v0.0.0-20191021105835-a78788917390
+## explicit
 github.com/spf13/cobra
 github.com/spf13/cobra/doc
 # github.com/spf13/jwalterweatherman v1.1.0
 github.com/spf13/jwalterweatherman
 # github.com/spf13/pflag v1.0.5
+## explicit
 github.com/spf13/pflag
 # github.com/spf13/viper v1.6.2
+## explicit
 github.com/spf13/viper
 # github.com/subosito/gotenv v1.2.0
 github.com/subosito/gotenv
@@ -130,6 +134,7 @@ go.uber.org/zap/internal/color
 go.uber.org/zap/internal/exit
 go.uber.org/zap/zapcore
 # golang.org/x/crypto v0.0.0-20200302210943-78000ba7a073
+## explicit
 golang.org/x/crypto/ssh/terminal
 # golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
 golang.org/x/net/context
@@ -184,12 +189,14 @@ gopkg.in/ini.v1
 # gopkg.in/yaml.v2 v2.3.0
 gopkg.in/yaml.v2
 # gotest.tools v2.2.0+incompatible
+## explicit
 gotest.tools/assert
 gotest.tools/assert/cmp
 gotest.tools/internal/difflib
 gotest.tools/internal/format
 gotest.tools/internal/source
 # k8s.io/api v0.17.4 => k8s.io/api v0.16.4
+## explicit
 k8s.io/api/admissionregistration/v1
 k8s.io/api/admissionregistration/v1beta1
 k8s.io/api/apps/v1
@@ -229,6 +236,7 @@ k8s.io/api/storage/v1
 k8s.io/api/storage/v1alpha1
 k8s.io/api/storage/v1beta1
 # k8s.io/apimachinery v0.17.4 => k8s.io/apimachinery v0.16.4
+## explicit
 k8s.io/apimachinery/pkg/api/apitesting/fuzzer
 k8s.io/apimachinery/pkg/api/equality
 k8s.io/apimachinery/pkg/api/errors
@@ -278,6 +286,7 @@ k8s.io/apimachinery/pkg/watch
 k8s.io/apimachinery/third_party/forked/golang/json
 k8s.io/apimachinery/third_party/forked/golang/reflect
 # k8s.io/cli-runtime v0.17.3 => k8s.io/cli-runtime v0.16.4
+## explicit
 k8s.io/cli-runtime/pkg/genericclioptions
 k8s.io/cli-runtime/pkg/kustomize
 k8s.io/cli-runtime/pkg/kustomize/k8sdeps
@@ -291,6 +300,7 @@ k8s.io/cli-runtime/pkg/kustomize/k8sdeps/validator
 k8s.io/cli-runtime/pkg/printers
 k8s.io/cli-runtime/pkg/resource
 # k8s.io/client-go v11.0.1-0.20190805182717-6502b5e7b1b5+incompatible => k8s.io/client-go v0.16.4
+## explicit
 k8s.io/client-go/discovery
 k8s.io/client-go/discovery/cached/disk
 k8s.io/client-go/dynamic
@@ -462,6 +472,7 @@ k8s.io/utils/buffer
 k8s.io/utils/integer
 k8s.io/utils/trace
 # knative.dev/eventing v0.15.1-0.20200528220601-a61a6784a053
+## explicit
 knative.dev/eventing/pkg/apis/config
 knative.dev/eventing/pkg/apis/configs
 knative.dev/eventing/pkg/apis/configs/v1alpha1
@@ -488,6 +499,7 @@ knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha2
 knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha2/fake
 knative.dev/eventing/pkg/logging
 # knative.dev/pkg v0.0.0-20200528142800-1c6815d7e4c9
+## explicit
 knative.dev/pkg/apis
 knative.dev/pkg/apis/duck
 knative.dev/pkg/apis/duck/v1
@@ -504,6 +516,7 @@ knative.dev/pkg/profiling
 knative.dev/pkg/ptr
 knative.dev/pkg/tracker
 # knative.dev/serving v0.15.1-0.20200601175503-4eab87b2ad07
+## explicit
 knative.dev/serving/pkg/apis/autoscaling
 knative.dev/serving/pkg/apis/autoscaling/v1alpha1
 knative.dev/serving/pkg/apis/config
@@ -541,4 +554,12 @@ sigs.k8s.io/kustomize/pkg/transformers/config
 sigs.k8s.io/kustomize/pkg/transformers/config/defaultconfig
 sigs.k8s.io/kustomize/pkg/types
 # sigs.k8s.io/yaml v1.2.0
+## explicit
 sigs.k8s.io/yaml
+# github.com/spf13/cobra => github.com/chmouel/cobra v0.0.0-20191021105835-a78788917390
+# k8s.io/api => k8s.io/api v0.16.4
+# k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.16.4
+# k8s.io/apimachinery => k8s.io/apimachinery v0.16.4
+# k8s.io/cli-runtime => k8s.io/cli-runtime v0.16.4
+# k8s.io/client-go => k8s.io/client-go v0.16.4
+# k8s.io/code-generator => k8s.io/code-generator v0.16.4
