@@ -56,8 +56,9 @@ func TestCreateDynamicTestKnCommand(t *testing.T) {
 }
 
 func TestCaptureStdout(t *testing.T) {
-	c := CaptureStdout(t)
+	c := CaptureOutput(t)
 	fmt.Print("Hello World !")
-	out := c.Close()
-	assert.Equal(t, out, "Hello World !")
+	stdOut, stdErr := c.Close()
+	assert.Equal(t, stdErr, "")
+	assert.Equal(t, stdOut, "Hello World !")
 }

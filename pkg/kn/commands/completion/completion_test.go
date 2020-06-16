@@ -35,11 +35,12 @@ func TestCompletionUsage(t *testing.T) {
 func TestCompletionGeneration(t *testing.T) {
 	for _, shell := range []string{"bash", "zsh"} {
 		completionCmd := NewCompletionCommand(&commands.KnParams{})
-		c := commands.CaptureStdout(t)
+		c := commands.CaptureOutput(t)
 		err := completionCmd.RunE(&cobra.Command{}, []string{shell})
 		assert.NilError(t, err)
-		out := c.Close()
-		assert.Assert(t, out != "")
+		stdOut, stdErr := c.Close()
+		assert.Assert(t, stdErr == "")
+		assert.Assert(t, stdOut != "")
 	}
 }
 

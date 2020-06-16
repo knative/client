@@ -93,33 +93,44 @@ func CreateDynamicTestKnCommand(cmd *cobra.Command, knParams *KnParams, objects 
 
 }
 
-type StdoutCapture struct {
-	r, w *os.File
-	t    *testing.T
+type OutputCapture struct {
+	outRead, outWrite     *os.File
+	errorRead, errorWrite *os.File
+	t                     *testing.T
 
 	oldStdout *os.File
+	oldStderr *os.File
 }
 
-func CaptureStdout(t *testing.T) StdoutCapture {
-	ret := StdoutCapture{
+func CaptureOutput(t *testing.T) OutputCapture {
+	ret := OutputCapture{
 		oldStdout: os.Stdout,
+		oldStderr: os.Stderr,
 		t:         t,
 	}
 	var err error
-	ret.r, ret.w, err = os.Pipe()
+	ret.outRead, ret.outWrite, err = os.Pipe()
 	assert.NilError(t, err)
-	os.Stdout = ret.w
+	os.Stdout = ret.outWrite
+	ret.errorRead, ret.errorWrite, err = os.Pipe()
+	assert.NilError(t, err)
+	os.Stderr = ret.errorWrite
 	return ret
 }
 
-// CaptureStdout collects the current content of os.Stdout
-func (c StdoutCapture) Close() string {
-	err := c.w.Close()
+// CaptureOutput collects the current content of os.Stdout
+func (c OutputCapture) Close() (string, string) {
+	err := c.outWrite.Close()
 	assert.NilError(c.t, err)
-	ret, err := ioutil.ReadAll(c.r)
+	err = c.errorWrite.Close()
+	assert.NilError(c.t, err)
+	outOutput, err := ioutil.ReadAll(c.outRead)
+	assert.NilError(c.t, err)
+	errOutput, err := ioutil.ReadAll(c.errorRead)
 	assert.NilError(c.t, err)
 	os.Stdout = c.oldStdout
-	return string(ret)
+	os.Stderr = c.oldStderr
+	return string(outOutput), string(errOutput)
 }
 
 // NewTestCommand can be used by tes

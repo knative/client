@@ -37,8 +37,7 @@ func init() {
 func main() {
 	err := run(os.Args[1:])
 	if err != nil && len(os.Args) > 1 {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		fmt.Fprintf(os.Stderr, "Run '%s --help' for usage\n", extractCommandPathFromErrorMessage(err.Error(), os.Args[0]))
+		printError(err)
 		// This is the only point from where to exit when an error occurs
 		os.Exit(1)
 	}
@@ -188,6 +187,12 @@ func validateRootCommand(cmd *cobra.Command) error {
 	return nil
 }
 
+// printError prints out any given error
+func printError(err error) {
+	fmt.Fprintf(os.Stderr, "Error: %s\n", cleanupErrorMessage(err.Error()))
+	fmt.Fprintf(os.Stderr, "Run '%s --help' for usage\n", extractCommandPathFromErrorMessage(err.Error(), os.Args[0]))
+}
+
 // extractCommandPathFromErrorMessage tries to extract the command name from an error message
 // by checking a pattern like 'kn service' in the error message. If not found, return the
 // base command name.
@@ -199,3 +204,10 @@ func extractCommandPathFromErrorMessage(errorMsg string, arg0 string) string {
 	}
 	return arg0
 }
+
+// cleanupErrorMessage remove any redundance content of an error message
+func cleanupErrorMessage(msg string) string {
+	regexp := regexp.MustCompile("(?i)^error:\\s*")
+	return string(regexp.ReplaceAll([]byte(msg), []byte("")))
+}
+

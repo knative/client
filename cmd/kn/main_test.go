@@ -15,8 +15,10 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/spf13/cobra"
@@ -226,6 +228,32 @@ func TestStripFlags(t *testing.T) {
 	}
 }
 
+func TestRunWithError(t *testing.T) {
+	data := []struct {
+		given string
+		expected string
+	} {
+		{
+			"unknown sub-command blub",
+			"Error: unknown sub-command blub",
+		},
+		{
+			"error: unknown type blub",
+			"Error: unknown type blub",
+		},
+
+	}
+	for _, d := range data {
+		capture := commands.CaptureOutput(t)
+		printError(errors.New(d.given))
+		stdOut, errOut := capture.Close()
+
+		assert.Equal(t, stdOut, "")
+		assert.Assert(t, strings.Contains(errOut, d.expected))
+		assert.Assert(t, util.ContainsAll(errOut, "Run", "--help", "usage"))
+	}
+}
+
 // Smoke test
 func TestRun(t *testing.T) {
 	oldArgs := os.Args
@@ -234,9 +262,9 @@ func TestRun(t *testing.T) {
 		os.Args = oldArgs
 	})()
 
-	capture := commands.CaptureStdout(t)
+	capture := commands.CaptureOutput(t)
 	err := run(os.Args[1:])
-	out := capture.Close()
+	out, _ := capture.Close()
 
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAllIgnoreCase(out, "version", "build", "git"))
