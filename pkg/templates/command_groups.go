@@ -25,7 +25,7 @@ type CommandGroup struct {
 	// Title for command group shown in help/usage messages
 	Header string
 
-	// List of commans for this group
+	// List of commands for this group
 	Commands []*cobra.Command
 }
 
