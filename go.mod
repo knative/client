@@ -32,4 +32,4 @@ replace (
 	k8s.io/code-generator => k8s.io/code-generator v0.16.4
 )
 
-go 1.13
+go 1.14

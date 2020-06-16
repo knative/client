@@ -83,13 +83,15 @@ func (e ServiceTraffic) isTagPresent(tag string) bool {
 	return false
 }
 
-func (e ServiceTraffic) untagRevision(tag string) {
+func (e ServiceTraffic) untagRevision(tag string, serviceName string) bool {
 	for i, target := range e {
 		if target.Tag == tag {
 			e[i].Tag = ""
-			break
+			return true
 		}
 	}
+
+	return false
 }
 
 func (e ServiceTraffic) isRevisionPresent(revision string) bool {
@@ -267,7 +269,8 @@ func verifyInputSanity(trafficFlags *flags.Traffic) error {
 }
 
 // Compute takes service traffic targets and updates per given traffic flags
-func Compute(cmd *cobra.Command, targets []servingv1.TrafficTarget, trafficFlags *flags.Traffic) ([]servingv1.TrafficTarget, error) {
+func Compute(cmd *cobra.Command, targets []servingv1.TrafficTarget,
+	trafficFlags *flags.Traffic, serviceName string) ([]servingv1.TrafficTarget, error) {
 	err := verifyInputSanity(trafficFlags)
 	if err != nil {
 		return nil, err
@@ -276,8 +279,17 @@ func Compute(cmd *cobra.Command, targets []servingv1.TrafficTarget, trafficFlags
 	traffic := newServiceTraffic(targets)
 
 	// First precedence: Untag revisions
+	var errTagNames []string
 	for _, tag := range trafficFlags.UntagRevisions {
-		traffic.untagRevision(tag)
+		tagExists := traffic.untagRevision(tag, serviceName)
+		if !tagExists {
+			errTagNames = append(errTagNames, tag)
+		}
+	}
+
+	// Return all errors from untagging revisions
+	if len(errTagNames) > 0 {
+		return nil, fmt.Errorf("tag(s) %s not present for any revisions of service %s", strings.Join(errTagNames, ", "), serviceName)
 	}
 
 	for _, each := range trafficFlags.RevisionsTags {
