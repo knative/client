@@ -28,12 +28,12 @@ func NewListTypesCommand(p *commands.KnParams) *cobra.Command {
 	listTypesFlags := flags.NewListPrintFlags(ListTypesHandlers)
 	listTypesCommand := &cobra.Command{
 		Use:   "list-types",
-		Short: "List available source types",
+		Short: "List event source types",
 		Example: `
-  # List available eventing source types
+  # List available event source types
   kn source list-types
 
-  # List available eventing source types in YAML format
+  # List available event source types in YAML format
   kn source list-types -o yaml`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			namespace, err := p.GetNamespace(cmd)

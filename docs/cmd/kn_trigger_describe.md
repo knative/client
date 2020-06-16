@@ -7,7 +7,7 @@ Show details of a trigger
 Show details of a trigger
 
 ```
-kn trigger describe NAME [flags]
+kn trigger describe NAME
 ```
 
 ### Examples
@@ -36,5 +36,5 @@ kn trigger describe NAME [flags]
 
 ### SEE ALSO
 
-* [kn trigger](kn_trigger.md)	 - Trigger command group
+* [kn trigger](kn_trigger.md)	 - Manage event triggers
 

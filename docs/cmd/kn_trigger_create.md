@@ -7,7 +7,7 @@ Create a trigger
 Create a trigger
 
 ```
-kn trigger create NAME --broker BROKER --sink SINK [flags]
+kn trigger create NAME --sink SINK
 ```
 
 ### Examples
@@ -42,5 +42,5 @@ kn trigger create NAME --broker BROKER --sink SINK [flags]
 
 ### SEE ALSO
 
-* [kn trigger](kn_trigger.md)	 - Trigger command group
+* [kn trigger](kn_trigger.md)	 - Manage event triggers
 

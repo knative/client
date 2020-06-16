@@ -28,7 +28,7 @@ func NewBindingListCommand(p *commands.KnParams) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "List sink bindings.",
+		Short: "List sink bindings",
 		Example: `
   # List all sink binidngs
   kn source binding list

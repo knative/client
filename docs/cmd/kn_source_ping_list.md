@@ -1,13 +1,13 @@
 ## kn source ping list
 
-List Ping sources.
+List ping sources
 
 ### Synopsis
 
-List Ping sources.
+List ping sources
 
 ```
-kn source ping list [flags]
+kn source ping list
 ```
 
 ### Examples
@@ -43,5 +43,5 @@ kn source ping list [flags]
 
 ### SEE ALSO
 
-* [kn source ping](kn_source_ping.md)	 - Ping source command group
+* [kn source ping](kn_source_ping.md)	 - Manage ping sources
 

@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -35,8 +36,9 @@ func init() {
 
 func main() {
 	err := run(os.Args[1:])
-	if err != nil {
+	if err != nil && len(os.Args) > 1 {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Run '%s --help' for usage\n", extractCommandPathFromErrorMessage(err.Error(), os.Args[0]))
 		// This is the only point from where to exit when an error occurs
 		os.Exit(1)
 	}
@@ -106,7 +108,13 @@ func stripFlags(args []string) ([]string, error) {
 				*commandsFound = append(*commandsFound, arg)
 			}
 		},
+		SilenceErrors: true,
+		SilenceUsage:  true,
 	}
+
+	// No help and usage functions to prin
+	extractCommand.SetHelpFunc(func(*cobra.Command, []string) {})
+	extractCommand.SetUsageFunc(func(*cobra.Command) error { return nil })
 
 	// Filter out --help and -h options to avoid special treatment which we don't
 	// need here
@@ -172,10 +180,22 @@ func validateRootCommand(cmd *cobra.Command) error {
 	if err == nil && foundCmd.HasSubCommands() && len(innerArgs) > 0 {
 		argsWithoutFlags, err := stripFlags(innerArgs)
 		if len(argsWithoutFlags) > 0 || err != nil {
-			return errors.Errorf("unknown sub-command '%s' for '%s'. Available sub-commands: %s", innerArgs[0], foundCmd.Name(), strings.Join(root.ExtractSubCommandNames(foundCmd.Commands()), ", "))
+			return errors.Errorf("unknown sub-command '%s' for '%s'. Available sub-commands: %s", innerArgs[0], foundCmd.CommandPath(), strings.Join(root.ExtractSubCommandNames(foundCmd.Commands()), ", "))
 		}
 		// If no args where given (only flags), then fall through to execute the command itself, which leads to
 		// a more appropriate error message
 	}
 	return nil
+}
+
+// extractCommandPathFromErrorMessage tries to extract the command name from an error message
+// by checking a pattern like 'kn service' in the error message. If not found, return the
+// base command name.
+func extractCommandPathFromErrorMessage(errorMsg string, arg0 string) string {
+	extractPattern := regexp.MustCompile(fmt.Sprintf("'(%s\\s.+?)'", arg0))
+	command := extractPattern.FindSubmatch([]byte(errorMsg))
+	if command != nil {
+		return string(command[1])
+	}
+	return arg0
 }

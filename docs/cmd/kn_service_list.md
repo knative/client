@@ -1,13 +1,13 @@
 ## kn service list
 
-List available services.
+List available services
 
 ### Synopsis
 
-List available services.
+List available services
 
 ```
-kn service list [name] [flags]
+kn service list
 ```
 
 ### Examples
@@ -46,5 +46,5 @@ kn service list [name] [flags]
 
 ### SEE ALSO
 
-* [kn service](kn_service.md)	 - Service command group
+* [kn service](kn_service.md)	 - Manage Knative services
 

@@ -36,7 +36,7 @@ func NewTriggerUpdateCommand(p *commands.KnParams) *cobra.Command {
 	var sinkFlags flags.SinkFlags
 
 	cmd := &cobra.Command{
-		Use:   "update NAME --filter KEY=VALUE --sink SINK",
+		Use:   "update NAME",
 		Short: "Update a trigger",
 		Example: `
   # Update the filter which key is 'type' to value 'knative.dev.bar' in a trigger 'mytrigger'

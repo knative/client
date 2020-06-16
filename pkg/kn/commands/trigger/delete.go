@@ -26,7 +26,7 @@ import (
 func NewTriggerDeleteCommand(p *commands.KnParams) *cobra.Command {
 	TriggerDeleteCommand := &cobra.Command{
 		Use:   "delete NAME",
-		Short: "Delete a trigger.",
+		Short: "Delete a trigger",
 		Example: `
   # Delete a trigger 'mytrigger' in default namespace
   kn trigger delete mytrigger`,

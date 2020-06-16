@@ -1,13 +1,13 @@
 ## kn service delete
 
-Delete a service.
+Delete a service
 
 ### Synopsis
 
-Delete a service.
+Delete a service
 
 ```
-kn service delete NAME [flags]
+kn service delete NAME
 ```
 
 ### Examples
@@ -46,5 +46,5 @@ kn service delete NAME [flags]
 
 ### SEE ALSO
 
-* [kn service](kn_service.md)	 - Service command group
+* [kn service](kn_service.md)	 - Manage Knative services
 

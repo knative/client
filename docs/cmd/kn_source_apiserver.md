@@ -1,13 +1,13 @@
 ## kn source apiserver
 
-Kubernetes API Server Event Source command group
+Manage Kubernetes api-server sources
 
 ### Synopsis
 
-Kubernetes API Server Event Source command group
+Manage Kubernetes api-server sources
 
 ```
-kn source apiserver [flags]
+kn source apiserver COMMAND
 ```
 
 ### Options
@@ -26,10 +26,10 @@ kn source apiserver [flags]
 
 ### SEE ALSO
 
-* [kn source](kn_source.md)	 - Event source command group
-* [kn source apiserver create](kn_source_apiserver_create.md)	 - Create an ApiServer source.
-* [kn source apiserver delete](kn_source_apiserver_delete.md)	 - Delete an ApiServer source.
-* [kn source apiserver describe](kn_source_apiserver_describe.md)	 - Show details of an ApiServer source
-* [kn source apiserver list](kn_source_apiserver_list.md)	 - List ApiServer sources.
-* [kn source apiserver update](kn_source_apiserver_update.md)	 - Update an ApiServer source.
+* [kn source](kn_source.md)	 - Manage event sources
+* [kn source apiserver create](kn_source_apiserver_create.md)	 - Create an api-server source
+* [kn source apiserver delete](kn_source_apiserver_delete.md)	 - Delete api-server sources
+* [kn source apiserver describe](kn_source_apiserver_describe.md)	 - Show details of an api-server source
+* [kn source apiserver list](kn_source_apiserver_list.md)	 - List api-server sources
+* [kn source apiserver update](kn_source_apiserver_update.md)	 - Update an api-server source
 

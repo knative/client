@@ -29,7 +29,7 @@ func NewPingListCommand(p *commands.KnParams) *cobra.Command {
 
 	listCommand := &cobra.Command{
 		Use:   "list",
-		Short: "List Ping sources.",
+		Short: "List ping sources",
 		Example: `
   # List all Ping sources
   kn source ping list

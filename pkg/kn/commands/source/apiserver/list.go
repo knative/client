@@ -29,7 +29,7 @@ func NewAPIServerListCommand(p *commands.KnParams) *cobra.Command {
 
 	listCommand := &cobra.Command{
 		Use:   "list",
-		Short: "List ApiServer sources.",
+		Short: "List api-server sources",
 		Example: `
   # List all ApiServer sources
   kn source apiserver list

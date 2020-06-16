@@ -1,13 +1,13 @@
 ## kn source apiserver update
 
-Update an ApiServer source.
+Update an api-server source
 
 ### Synopsis
 
-Update an ApiServer source.
+Update an api-server source
 
 ```
-kn source apiserver update NAME --resource RESOURCE --service-account ACCOUNTNAME --sink SINK --mode MODE [flags]
+kn source apiserver update NAME
 ```
 
 ### Examples
@@ -43,5 +43,5 @@ kn source apiserver update NAME --resource RESOURCE --service-account ACCOUNTNAM
 
 ### SEE ALSO
 
-* [kn source apiserver](kn_source_apiserver.md)	 - Kubernetes API Server Event Source command group
+* [kn source apiserver](kn_source_apiserver.md)	 - Manage Kubernetes api-server sources
 

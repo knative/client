@@ -7,7 +7,7 @@ Show details of a service
 Show details of a service
 
 ```
-kn service describe NAME [flags]
+kn service describe NAME
 ```
 
 ### Options
@@ -31,5 +31,5 @@ kn service describe NAME [flags]
 
 ### SEE ALSO
 
-* [kn service](kn_service.md)	 - Service command group
+* [kn service](kn_service.md)	 - Manage Knative services
 

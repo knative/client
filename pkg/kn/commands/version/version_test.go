@@ -25,6 +25,7 @@ import (
 	"sigs.k8s.io/yaml"
 
 	"knative.dev/client/pkg/kn/commands"
+	"knative.dev/client/pkg/util"
 )
 
 var versionOutputTemplate = `Version:      {{.Version}}
@@ -73,7 +74,7 @@ func TestVersion(t *testing.T) {
 	t.Run("creates a VersionCommand", func(t *testing.T) {
 		setup()
 		assert.Equal(t, versionCmd.Use, "version")
-		assert.Equal(t, versionCmd.Short, "Prints the client version")
+		assert.Assert(t, util.ContainsAll(versionCmd.Short, "version"))
 		assert.Assert(t, versionCmd.RunE != nil)
 	})
 

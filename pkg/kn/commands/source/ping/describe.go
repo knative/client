@@ -32,7 +32,7 @@ func NewPingDescribeCommand(p *commands.KnParams) *cobra.Command {
 
 	pingDescribe := &cobra.Command{
 		Use:   "describe NAME",
-		Short: "Show details of a Ping source",
+		Short: "Show details of a ping source",
 		Example: `
   # Describe a Ping source with name 'myping'
   kn source ping describe myping`,

@@ -1,13 +1,13 @@
 ## kn source ping delete
 
-Delete a Ping source.
+Delete a ping source
 
 ### Synopsis
 
-Delete a Ping source.
+Delete a ping source
 
 ```
-kn source ping delete NAME [flags]
+kn source ping delete NAME
 ```
 
 ### Examples
@@ -35,5 +35,5 @@ kn source ping delete NAME [flags]
 
 ### SEE ALSO
 
-* [kn source ping](kn_source_ping.md)	 - Ping source command group
+* [kn source ping](kn_source_ping.md)	 - Manage ping sources
 

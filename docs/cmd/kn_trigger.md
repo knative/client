@@ -1,13 +1,13 @@
 ## kn trigger
 
-Trigger command group
+Manage event triggers
 
 ### Synopsis
 
-Trigger command group
+Manage event triggers
 
 ```
-kn trigger [flags]
+kn trigger
 ```
 
 ### Options
@@ -26,10 +26,10 @@ kn trigger [flags]
 
 ### SEE ALSO
 
-* [kn](kn.md)	 - Knative client
+* [kn](kn.md)	 - kn manages Knative Serving and Eventing resources
 * [kn trigger create](kn_trigger_create.md)	 - Create a trigger
-* [kn trigger delete](kn_trigger_delete.md)	 - Delete a trigger.
+* [kn trigger delete](kn_trigger_delete.md)	 - Delete a trigger
 * [kn trigger describe](kn_trigger_describe.md)	 - Show details of a trigger
-* [kn trigger list](kn_trigger_list.md)	 - List available triggers.
+* [kn trigger list](kn_trigger_list.md)	 - List triggers
 * [kn trigger update](kn_trigger_update.md)	 - Update a trigger
 

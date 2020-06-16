@@ -1,13 +1,13 @@
 ## kn route
 
-Route command group
+List and show service routes
 
 ### Synopsis
 
-Route command group
+List and show service routes
 
 ```
-kn route [flags]
+kn route
 ```
 
 ### Options
@@ -26,7 +26,7 @@ kn route [flags]
 
 ### SEE ALSO
 
-* [kn](kn.md)	 - Knative client
+* [kn](kn.md)	 - kn manages Knative Serving and Eventing resources
 * [kn route describe](kn_route_describe.md)	 - Show details of a route
-* [kn route list](kn_route_list.md)	 - List available routes.
+* [kn route list](kn_route_list.md)	 - List routes
 

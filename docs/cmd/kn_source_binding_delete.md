@@ -1,13 +1,13 @@
 ## kn source binding delete
 
-Delete a sink binding.
+Delete a sink binding
 
 ### Synopsis
 
-Delete a sink binding.
+Delete a sink binding
 
 ```
-kn source binding delete NAME [flags]
+kn source binding delete NAME
 ```
 
 ### Examples
@@ -35,5 +35,5 @@ kn source binding delete NAME [flags]
 
 ### SEE ALSO
 
-* [kn source binding](kn_source_binding.md)	 - Sink binding command group
+* [kn source binding](kn_source_binding.md)	 - Manage sink bindings
 

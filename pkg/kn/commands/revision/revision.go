@@ -24,7 +24,7 @@ import (
 func NewRevisionCommand(p *commands.KnParams) *cobra.Command {
 	revisionCmd := &cobra.Command{
 		Use:   "revision",
-		Short: "Revision command group",
+		Short: "Manage service revisions",
 	}
 	revisionCmd.AddCommand(NewRevisionListCommand(p))
 	revisionCmd.AddCommand(NewRevisionDescribeCommand(p))

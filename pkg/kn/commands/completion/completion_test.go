@@ -28,14 +28,16 @@ func TestCompletionUsage(t *testing.T) {
 	completionCmd := NewCompletionCommand(&commands.KnParams{})
 	assert.Assert(t, util.ContainsAllIgnoreCase(completionCmd.Use, "completion"))
 	assert.Assert(t, util.ContainsAllIgnoreCase(completionCmd.Short, "completion", "shell"))
-	assert.Assert(t, completionCmd.RunE == nil)
+	assert.Assert(t, completionCmd.Run == nil)
+	assert.Assert(t, completionCmd.RunE != nil)
 }
 
 func TestCompletionGeneration(t *testing.T) {
 	for _, shell := range []string{"bash", "zsh"} {
 		completionCmd := NewCompletionCommand(&commands.KnParams{})
 		c := commands.CaptureStdout(t)
-		completionCmd.Run(&cobra.Command{}, []string{shell})
+		err := completionCmd.RunE(&cobra.Command{}, []string{shell})
+		assert.NilError(t, err)
 		out := c.Close()
 		assert.Assert(t, out != "")
 	}
@@ -43,16 +45,12 @@ func TestCompletionGeneration(t *testing.T) {
 
 func TestCompletionNoArg(t *testing.T) {
 	completionCmd := NewCompletionCommand(&commands.KnParams{})
-	c := commands.CaptureStdout(t)
-	completionCmd.Run(&cobra.Command{}, []string{})
-	out := c.Close()
-	assert.Assert(t, util.ContainsAll(out, "bash", "zsh", "one", "argument"))
+	err := completionCmd.RunE(&cobra.Command{}, []string{})
+	assert.Assert(t, util.ContainsAll(err.Error(), "bash", "zsh", "one", "argument"))
 }
 
 func TestCompletionWrongArg(t *testing.T) {
 	completionCmd := NewCompletionCommand(&commands.KnParams{})
-	c := commands.CaptureStdout(t)
-	completionCmd.Run(&cobra.Command{}, []string{"sh"})
-	out := c.Close()
-	assert.Assert(t, util.ContainsAll(out, "bash", "zsh", "only", "supports"))
+	err := completionCmd.RunE(&cobra.Command{}, []string{"sh"})
+	assert.Assert(t, util.ContainsAll(err.Error(), "bash", "zsh", "support"))
 }

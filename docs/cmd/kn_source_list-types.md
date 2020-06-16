@@ -1,23 +1,23 @@
 ## kn source list-types
 
-List available source types
+List event source types
 
 ### Synopsis
 
-List available source types
+List event source types
 
 ```
-kn source list-types [flags]
+kn source list-types
 ```
 
 ### Examples
 
 ```
 
-  # List available eventing source types
+  # List available event source types
   kn source list-types
 
-  # List available eventing source types in YAML format
+  # List available event source types in YAML format
   kn source list-types -o yaml
 ```
 
@@ -42,5 +42,5 @@ kn source list-types [flags]
 
 ### SEE ALSO
 
-* [kn source](kn_source.md)	 - Event source command group
+* [kn source](kn_source.md)	 - Manage event sources
 

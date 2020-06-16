@@ -34,7 +34,7 @@ const (
 func NewServiceCommand(p *commands.KnParams) *cobra.Command {
 	serviceCmd := &cobra.Command{
 		Use:   "service",
-		Short: "Service command group",
+		Short: "Manage Knative services",
 	}
 	serviceCmd.AddCommand(NewServiceListCommand(p))
 	serviceCmd.AddCommand(NewServiceDescribeCommand(p))

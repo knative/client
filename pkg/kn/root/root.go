@@ -17,17 +17,16 @@ package root
 import (
 	"flag"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"golang.org/x/crypto/ssh/terminal"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
 
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/completion"
+	"knative.dev/client/pkg/kn/commands/options"
 	"knative.dev/client/pkg/kn/commands/plugin"
 	"knative.dev/client/pkg/kn/commands/revision"
 	"knative.dev/client/pkg/kn/commands/route"
@@ -37,6 +36,7 @@ import (
 	"knative.dev/client/pkg/kn/commands/version"
 	"knative.dev/client/pkg/kn/config"
 	"knative.dev/client/pkg/kn/flags"
+	"knative.dev/client/pkg/templates"
 )
 
 // NewRootCommand creates the default `kn` command with a default plugin handler
@@ -46,20 +46,13 @@ func NewRootCommand() (*cobra.Command, error) {
 
 	rootCmd := &cobra.Command{
 		Use:   "kn",
-		Short: "Knative client",
-		Long: `Manage your Knative building blocks:
+		Short: "kn manages Knative Serving and Eventing resources",
+		Long: `kn is the command line interface for managing Knative Serving and Eventing resources
 
-* Serving: Manage your services and release new software to them.
-* Eventing: Manage event subscriptions and channels. Connect up event sources.`,
+ Find more information about Knative at: https://knative.dev`,
 
 		// Disable docs header
 		DisableAutoGenTag: true,
-
-		// Affects children as well
-		SilenceUsage: true,
-
-		// Prevents Cobra from dealing with errors as we deal with them in main.go
-		SilenceErrors: true,
 
 		// Validate our boolean configs
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
@@ -77,27 +70,46 @@ func NewRootCommand() (*cobra.Command, error) {
 	rootCmd.PersistentFlags().StringVar(&p.KubeCfgPath, "kubeconfig", "", "kubectl configuration file (default: ~/.kube/config)")
 	flags.AddBothBoolFlags(rootCmd.PersistentFlags(), &p.LogHTTP, "log-http", "", false, "log http traffic")
 
-	// root child commands
-	rootCmd.AddCommand(service.NewServiceCommand(p))
-	rootCmd.AddCommand(revision.NewRevisionCommand(p))
-	rootCmd.AddCommand(plugin.NewPluginCommand(p))
-	rootCmd.AddCommand(route.NewRouteCommand(p))
-	rootCmd.AddCommand(completion.NewCompletionCommand(p))
-	rootCmd.AddCommand(version.NewVersionCommand(p))
-	rootCmd.AddCommand(source.NewSourceCommand(p))
-	rootCmd.AddCommand(trigger.NewTriggerCommand(p))
+	// Grouped commands
+	groups := templates.CommandGroups{
+		{
+			Header: "Serving Commands:",
+			Commands: []*cobra.Command{
+				service.NewServiceCommand(p),
+				revision.NewRevisionCommand(p),
+				route.NewRouteCommand(p),
+			},
+		},
+		{
+			Header: "Eventing Commands:",
+			Commands: []*cobra.Command{
+				source.NewSourceCommand(p),
+				trigger.NewTriggerCommand(p),
+			},
+		},
+		{
+			Header: "Other Commands:",
+			Commands: []*cobra.Command{
+				plugin.NewPluginCommand(p),
+				completion.NewCompletionCommand(p),
+				version.NewVersionCommand(p),
+			},
+		},
+	}
+	// Add all commands to the root command, flat
+	groups.AddTo(rootCmd)
 
 	// Initialize default `help` cmd early to prevent unknown command errors
-	rootCmd.InitDefaultHelpCmd()
+	groups.SetRootUsage(rootCmd)
+
+	// Add the "options" commands for showing all global options
+	rootCmd.AddCommand(options.NewOptionsCommand())
 
 	// Check that command groups can't execute and that leaf commands don't h
 	err := validateCommandStructure(rootCmd)
 	if err != nil {
 		return nil, err
 	}
-
-	// Wrap usage.
-	fitUsageMessageToTerminalWidth(rootCmd)
 
 	// For glog parse error. TOO: Check why this is needed
 	flag.CommandLine.Parse([]string{})
@@ -130,15 +142,6 @@ func validateCommandStructure(cmd *cobra.Command) error {
 		}
 	}
 	return nil
-}
-
-func fitUsageMessageToTerminalWidth(rootCmd *cobra.Command) {
-	width, _, err := terminal.GetSize(int(os.Stdout.Fd()))
-	if err == nil {
-		newUsage := strings.ReplaceAll(rootCmd.UsageTemplate(), "FlagUsages ",
-			fmt.Sprintf("FlagUsagesWrapped %d ", width))
-		rootCmd.SetUsageTemplate(newUsage)
-	}
 }
 
 // ExtractSubCommandNames extracts the names of all sub commands of a given command

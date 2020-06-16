@@ -27,7 +27,7 @@ import (
 func NewAPIServerDeleteCommand(p *commands.KnParams) *cobra.Command {
 	deleteCommand := &cobra.Command{
 		Use:   "delete NAME",
-		Short: "Delete an ApiServer source.",
+		Short: "Delete api-server sources",
 		Example: `
   # Delete an ApiServerSource 'k8sevents' in default namespace
   kn source apiserver delete k8sevents`,

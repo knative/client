@@ -1,13 +1,13 @@
 ## kn trigger delete
 
-Delete a trigger.
+Delete a trigger
 
 ### Synopsis
 
-Delete a trigger.
+Delete a trigger
 
 ```
-kn trigger delete NAME [flags]
+kn trigger delete NAME
 ```
 
 ### Examples
@@ -35,5 +35,5 @@ kn trigger delete NAME [flags]
 
 ### SEE ALSO
 
-* [kn trigger](kn_trigger.md)	 - Trigger command group
+* [kn trigger](kn_trigger.md)	 - Manage event triggers
 

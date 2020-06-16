@@ -30,7 +30,7 @@ func TestNewRootCommand(t *testing.T) {
 	assert.Assert(t, rootCmd != nil)
 
 	assert.Equal(t, rootCmd.Name(), "kn")
-	assert.Equal(t, rootCmd.Short, "Knative client")
+	assert.Assert(t, util.ContainsAll(rootCmd.Short, "Knative", "Serving", "Eventing"))
 	assert.Assert(t, util.ContainsAll(rootCmd.Long, "Knative", "Serving", "Eventing"))
 
 	assert.Assert(t, rootCmd.DisableAutoGenTag)

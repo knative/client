@@ -48,7 +48,7 @@ Available plugins are those that are:
 - executable
 - begin with "kn-"
 - Kn's plugin directory
-- Anywhere in the execution $PATH (if plugins.path-lookup config variable is enabled)`,
+- Anywhere in the execution $PATH (if plugins.path-lookup configuration variable is enabled)`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return listPlugins(cmd, plFlags)
 		},

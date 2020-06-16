@@ -1,13 +1,13 @@
 ## kn source
 
-Event source command group
+Manage event sources
 
 ### Synopsis
 
-Event source command group
+Manage event sources
 
 ```
-kn source [flags]
+kn source SOURCE|COMMAND
 ```
 
 ### Options
@@ -26,10 +26,10 @@ kn source [flags]
 
 ### SEE ALSO
 
-* [kn](kn.md)	 - Knative client
-* [kn source apiserver](kn_source_apiserver.md)	 - Kubernetes API Server Event Source command group
-* [kn source binding](kn_source_binding.md)	 - Sink binding command group
-* [kn source list](kn_source_list.md)	 - List available sources
-* [kn source list-types](kn_source_list-types.md)	 - List available source types
-* [kn source ping](kn_source_ping.md)	 - Ping source command group
+* [kn](kn.md)	 - kn manages Knative Serving and Eventing resources
+* [kn source apiserver](kn_source_apiserver.md)	 - Manage Kubernetes api-server sources
+* [kn source binding](kn_source_binding.md)	 - Manage sink bindings
+* [kn source list](kn_source_list.md)	 - List event sources
+* [kn source list-types](kn_source_list-types.md)	 - List event source types
+* [kn source ping](kn_source_ping.md)	 - Manage ping sources
 

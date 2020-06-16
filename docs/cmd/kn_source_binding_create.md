@@ -1,13 +1,13 @@
 ## kn source binding create
 
-Create a sink binding.
+Create a sink binding
 
 ### Synopsis
 
-Create a sink binding.
+Create a sink binding
 
 ```
-kn source binding create NAME --subject SUBJECT --sink SINK --ce-override KEY=VALUE [flags]
+kn source binding create NAME --subject SUBJECT --sink SINK
 ```
 
 ### Examples
@@ -38,5 +38,5 @@ kn source binding create NAME --subject SUBJECT --sink SINK --ce-override KEY=VA
 
 ### SEE ALSO
 
-* [kn source binding](kn_source_binding.md)	 - Sink binding command group
+* [kn source binding](kn_source_binding.md)	 - Manage sink bindings
 

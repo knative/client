@@ -26,7 +26,7 @@ import (
 func NewPingDeleteCommand(p *commands.KnParams) *cobra.Command {
 	pingDeleteCommand := &cobra.Command{
 		Use:   "delete NAME",
-		Short: "Delete a Ping source.",
+		Short: "Delete a ping source",
 		Example: `
   # Delete a Ping source 'my-ping'
   kn source ping delete my-ping`,

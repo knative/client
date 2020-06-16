@@ -55,8 +55,8 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 	var waitFlags commands.WaitFlags
 	var trafficFlags flags.Traffic
 	serviceUpdateCommand := &cobra.Command{
-		Use:     "update NAME [flags]",
-		Short:   "Update a service.",
+		Use:     "update NAME",
+		Short:   "Update a service",
 		Example: updateExample,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {

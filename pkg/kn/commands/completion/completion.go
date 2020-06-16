@@ -15,8 +15,9 @@
 package completion
 
 import (
-	"fmt"
 	"os"
+
+	"github.com/pkg/errors"
 
 	"knative.dev/client/pkg/kn/commands"
 
@@ -43,23 +44,23 @@ Supported Shells:
 // NewCompletionCommand implements shell auto-completion feature for Bash and Zsh
 func NewCompletionCommand(p *commands.KnParams) *cobra.Command {
 	return &cobra.Command{
-		Use:       "completion [SHELL]",
+		Use:       "completion SHELL",
 		Short:     "Output shell completion code",
 		Long:      desc,
 		ValidArgs: []string{"bash", "zsh"},
 		Example:   eg,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 1 {
 				switch args[0] {
 				case "bash":
-					cmd.Root().GenBashCompletion(os.Stdout)
+					return cmd.Root().GenBashCompletion(os.Stdout)
 				case "zsh":
-					cmd.Root().GenZshCompletion(os.Stdout)
+					return cmd.Root().GenZshCompletion(os.Stdout)
 				default:
-					fmt.Println("only supports 'bash' or 'zsh' shell completion")
+					return errors.New("'bash' or 'zsh' shell completion is supported")
 				}
 			} else {
-				fmt.Println("accepts one argument either 'bash' or 'zsh'")
+				return errors.New("Only one argument is can be provided, either 'bash' or 'zsh'")
 			}
 		},
 	}

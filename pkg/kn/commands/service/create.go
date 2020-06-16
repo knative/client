@@ -72,7 +72,7 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 
 	serviceCreateCommand := &cobra.Command{
 		Use:     "create NAME --image IMAGE",
-		Short:   "Create a service.",
+		Short:   "Create a service",
 		Example: create_example,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {

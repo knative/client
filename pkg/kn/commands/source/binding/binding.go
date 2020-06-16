@@ -32,8 +32,8 @@ import (
 // NewBindingCommand is the root command for all binding related commands
 func NewBindingCommand(p *commands.KnParams) *cobra.Command {
 	bindingCmd := &cobra.Command{
-		Use:   "binding",
-		Short: "Sink binding command group",
+		Use:   "binding COMMAND",
+		Short: "Manage sink bindings",
 	}
 	bindingCmd.AddCommand(NewBindingCreateCommand(p))
 	bindingCmd.AddCommand(NewBindingUpdateCommand(p))
