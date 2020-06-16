@@ -230,9 +230,9 @@ func TestStripFlags(t *testing.T) {
 
 func TestRunWithError(t *testing.T) {
 	data := []struct {
-		given string
+		given    string
 		expected string
-	} {
+	}{
 		{
 			"unknown sub-command blub",
 			"Error: unknown sub-command blub",
@@ -241,7 +241,6 @@ func TestRunWithError(t *testing.T) {
 			"error: unknown type blub",
 			"Error: unknown type blub",
 		},
-
 	}
 	for _, d := range data {
 		capture := commands.CaptureOutput(t)

@@ -210,4 +210,3 @@ func cleanupErrorMessage(msg string) string {
 	regexp := regexp.MustCompile("(?i)^error:\\s*")
 	return string(regexp.ReplaceAll([]byte(msg), []byte("")))
 }
-
