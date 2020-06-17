@@ -27,7 +27,7 @@ kn revision
 ### SEE ALSO
 
 * [kn](kn.md)	 - kn manages Knative Serving and Eventing resources
-* [kn revision delete](kn_revision_delete.md)	 - Delete a revision
+* [kn revision delete](kn_revision_delete.md)	 - Delete revisions
 * [kn revision describe](kn_revision_describe.md)	 - Show details of a revision
 * [kn revision list](kn_revision_list.md)	 - List revisions
 

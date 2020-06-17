@@ -1,10 +1,10 @@
 ## kn route
 
-List and show service routes
+List and describe service routes
 
 ### Synopsis
 
-List and show service routes
+List and describe service routes
 
 ```
 kn route

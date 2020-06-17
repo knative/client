@@ -1,13 +1,13 @@
 ## kn revision delete
 
-Delete a revision
+Delete revisions
 
 ### Synopsis
 
-Delete a revision
+Delete revisions
 
 ```
-kn revision delete NAME
+kn revision delete NAME [NAME ...]
 ```
 
 ### Examples

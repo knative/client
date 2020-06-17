@@ -1,10 +1,10 @@
 ## kn source apiserver delete
 
-Delete api-server sources
+Delete an api-server source
 
 ### Synopsis
 
-Delete api-server sources
+Delete an api-server source
 
 ```
 kn source apiserver delete NAME

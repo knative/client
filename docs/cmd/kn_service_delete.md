@@ -1,13 +1,13 @@
 ## kn service delete
 
-Delete a service
+Delete services
 
 ### Synopsis
 
-Delete a service
+Delete services
 
 ```
-kn service delete NAME
+kn service delete NAME [NAME ...]
 ```
 
 ### Examples

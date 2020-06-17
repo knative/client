@@ -31,5 +31,5 @@ kn route describe NAME
 
 ### SEE ALSO
 
-* [kn route](kn_route.md)	 - List and show service routes
+* [kn route](kn_route.md)	 - List and describe service routes
 

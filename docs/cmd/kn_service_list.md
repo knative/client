@@ -1,10 +1,10 @@
 ## kn service list
 
-List available services
+List services
 
 ### Synopsis
 
-List available services
+List services
 
 ```
 kn service list

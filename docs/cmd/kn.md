@@ -23,7 +23,7 @@ kn is the command line interface for managing Knative Serving and Eventing resou
 * [kn options](kn_options.md)	 - Print the list of flags inherited by all commands
 * [kn plugin](kn_plugin.md)	 - Manage kn plugins
 * [kn revision](kn_revision.md)	 - Manage service revisions
-* [kn route](kn_route.md)	 - List and show service routes
+* [kn route](kn_route.md)	 - List and describe service routes
 * [kn service](kn_service.md)	 - Manage Knative services
 * [kn source](kn_source.md)	 - Manage event sources
 * [kn trigger](kn_trigger.md)	 - Manage event triggers
