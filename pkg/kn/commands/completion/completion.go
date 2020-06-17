@@ -60,7 +60,7 @@ func NewCompletionCommand(p *commands.KnParams) *cobra.Command {
 					return errors.New("'bash' or 'zsh' shell completion is supported")
 				}
 			} else {
-				return errors.New("Only one argument is can be provided, either 'bash' or 'zsh'")
+				return errors.New("Only one argument can be provided, either 'bash' or 'zsh'")
 			}
 		},
 	}
