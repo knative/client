@@ -27,6 +27,7 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/cli-runtime/pkg/printers"
 
+	clientv1alpha1 "knative.dev/client/pkg/apis/client/v1alpha1"
 	"knative.dev/client/pkg/kn/commands"
 	clientservingv1 "knative.dev/client/pkg/serving/v1"
 	"knative.dev/serving/pkg/apis/serving"
@@ -40,6 +41,7 @@ var IGNORED_SERVICE_ANNOTATIONS = []string{
 }
 var IGNORED_REVISION_ANNOTATIONS = []string{
 	"serving.knative.dev/lastPinned",
+	"serving.knative.dev/creator",
 }
 
 // NewServiceExportCommand returns a new command for exporting a service.
@@ -93,7 +95,7 @@ func NewServiceExportCommand(p *commands.KnParams) *cobra.Command {
 	flags := command.Flags()
 	commands.AddNamespaceFlags(flags, false)
 	flags.Bool("with-revisions", false, "Export all routed revisions (experimental)")
-	flags.String("mode", "", "Format for exporting all routed revisions. One of kubernetes|resources (experimental)")
+	flags.String("mode", "", "Format for exporting all routed revisions. One of replay|export (experimental)")
 	machineReadablePrintFlags.AddFlags(command)
 	return command
 }
@@ -105,7 +107,7 @@ func exportService(cmd *cobra.Command, service *servingv1.Service, client client
 	}
 
 	if !withRevisions {
-		return printer.PrintObj(exportLatestService(service, false), cmd.OutOrStdout())
+		return printer.PrintObj(exportLatestService(service.DeepCopy(), false), cmd.OutOrStdout())
 	}
 
 	mode, err := cmd.Flags().GetString("mode")
@@ -114,27 +116,23 @@ func exportService(cmd *cobra.Command, service *servingv1.Service, client client
 	}
 
 	switch mode {
-	case "kubernetes":
-		svcList, err := exportServiceListWithActiveRevisions(service, client)
+	case "replay":
+		svcList, err := exportServiceListForReplay(service.DeepCopy(), client)
 		if err != nil {
 			return err
 		}
 		return printer.PrintObj(svcList, cmd.OutOrStdout())
-	case "resources":
-		latestSvc, revList, err := exportActiveRevisionList(service, client)
+	case "export":
+		knExport, err := exportForKNImport(service.DeepCopy(), client)
 		if err != nil {
 			return err
 		}
-		//print svc
-		if err := printer.PrintObj(latestSvc, cmd.OutOrStdout()); err != nil {
+		//print kn export
+		if err := printer.PrintObj(knExport, cmd.OutOrStdout()); err != nil {
 			return err
 		}
-		// print revisionList if revisions exist
-		if len(revList.Items) > 0 {
-			return printer.PrintObj(revList, cmd.OutOrStdout())
-		}
 	default:
-		return errors.New("'kn service export --with-revisions' requires a mode, please specify one of kubernetes|resources.")
+		return errors.New("'kn service export --with-revisions' requires a mode, please specify one of replay|export")
 	}
 	return nil
 }
@@ -187,18 +185,21 @@ func constructServiceFromRevision(latestSvc *servingv1.Service, revision *servin
 		},
 		TypeMeta: latestSvc.TypeMeta,
 	}
-
 	exportedSvc.Spec.Template = servingv1.RevisionTemplateSpec{
 		Spec:       revision.Spec,
 		ObjectMeta: latestSvc.Spec.Template.ObjectMeta,
 	}
+
+	//ovrriding revision template annotations with revision annotations
+	stripIgnoredAnnotationsFromRevision(revision)
+	exportedSvc.Spec.Template.ObjectMeta.Annotations = revision.ObjectMeta.Annotations
 
 	exportedSvc.Spec.Template.ObjectMeta.Name = revision.ObjectMeta.Name
 	stripIgnoredAnnotationsFromService(&exportedSvc)
 	return exportedSvc
 }
 
-func exportServiceListWithActiveRevisions(latestSvc *servingv1.Service, client clientservingv1.KnServingClient) (*servingv1.ServiceList, error) {
+func exportServiceListForReplay(latestSvc *servingv1.Service, client clientservingv1.KnServingClient) (*servingv1.ServiceList, error) {
 	revisionList, revsMap, err := getRevisionsToExport(latestSvc, client)
 	if err != nil {
 		return nil, err
@@ -209,7 +210,7 @@ func exportServiceListWithActiveRevisions(latestSvc *servingv1.Service, client c
 	for _, revision := range revisionList.Items {
 		//construct service only for active revisions
 		if revsMap[revision.ObjectMeta.Name] && revision.ObjectMeta.Name != latestSvc.Spec.Template.ObjectMeta.Name {
-			exportedSvcItems = append(exportedSvcItems, constructServiceFromRevision(latestSvc, &revision))
+			exportedSvcItems = append(exportedSvcItems, constructServiceFromRevision(latestSvc, revision.DeepCopy()))
 		}
 	}
 
@@ -228,10 +229,10 @@ func exportServiceListWithActiveRevisions(latestSvc *servingv1.Service, client c
 	return exportedSvcList, nil
 }
 
-func exportActiveRevisionList(latestSvc *servingv1.Service, client clientservingv1.KnServingClient) (*servingv1.Service, *servingv1.RevisionList, error) {
+func exportForKNImport(latestSvc *servingv1.Service, client clientservingv1.KnServingClient) (*clientv1alpha1.Export, error) {
 	revisionList, revsMap, err := getRevisionsToExport(latestSvc, client)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	var exportedRevItems []servingv1.Revision
@@ -239,20 +240,23 @@ func exportActiveRevisionList(latestSvc *servingv1.Service, client clientserving
 	for _, revision := range revisionList.Items {
 		//append only active revisions, no latest revision
 		if revsMap[revision.ObjectMeta.Name] && revision.ObjectMeta.Name != latestSvc.Spec.Template.ObjectMeta.Name {
-			exportedRevItems = append(exportedRevItems, exportRevision(&revision))
+			exportedRevItems = append(exportedRevItems, exportRevision(revision.DeepCopy()))
 		}
 	}
 
 	typeMeta := metav1.TypeMeta{
-		APIVersion: "v1",
-		Kind:       "List",
+		APIVersion: "client.knative.dev/v1alpha1",
+		Kind:       "Export",
 	}
-	exportedRevList := &servingv1.RevisionList{
+	knExport := &clientv1alpha1.Export{
 		TypeMeta: typeMeta,
-		Items:    exportedRevItems,
+		Spec: clientv1alpha1.ExportSpec{
+			Service:   *(exportLatestService(latestSvc, len(revisionList.Items) > 1)),
+			Revisions: exportedRevItems,
+		},
 	}
 
-	return exportLatestService(latestSvc, len(revisionList.Items) > 1), exportedRevList, nil
+	return knExport, nil
 }
 
 func getRevisionsToExport(latestSvc *servingv1.Service, client clientservingv1.KnServingClient) (*servingv1.RevisionList, map[string]bool, error) {

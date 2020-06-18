@@ -16,13 +16,13 @@ package service
 
 import (
 	"encoding/json"
-	"strings"
 	"testing"
 
 	"gotest.tools/assert"
 
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	clientv1alpha1 "knative.dev/client/pkg/apis/client/v1alpha1"
 	knclient "knative.dev/client/pkg/serving/v1"
 	"knative.dev/client/pkg/util/mock"
 	"knative.dev/pkg/ptr"
@@ -35,14 +35,15 @@ type expectedServiceOption func(*servingv1.Service)
 type expectedRevisionOption func(*servingv1.Revision)
 type expectedServiceListOption func(*servingv1.ServiceList)
 type expectedRevisionListOption func(*servingv1.RevisionList)
+type expectedKNExportOption func(*clientv1alpha1.Export)
 type podSpecOption func(*v1.PodSpec)
 
 type testCase struct {
-	name                 string
-	latestSvc            *servingv1.Service
-	expectedSvcList      *servingv1.ServiceList
-	revisionList         *servingv1.RevisionList
-	expectedRevisionList *servingv1.RevisionList
+	name             string
+	latestSvc        *servingv1.Service
+	expectedSvcList  *servingv1.ServiceList
+	revisionList     *servingv1.RevisionList
+	expectedKNExport *clientv1alpha1.Export
 }
 
 func TestServiceExportError(t *testing.T) {
@@ -52,10 +53,10 @@ func TestServiceExportError(t *testing.T) {
 	assert.Error(t, err, "'kn service export' requires output format")
 
 	_, err = executeServiceExportCommand(t, tc, "export", tc.latestSvc.ObjectMeta.Name, "--with-revisions", "-o", "json")
-	assert.Error(t, err, "'kn service export --with-revisions' requires a mode, please specify one of kubernetes|resources.")
+	assert.Error(t, err, "'kn service export --with-revisions' requires a mode, please specify one of replay|export")
 
 	_, err = executeServiceExportCommand(t, tc, "export", tc.latestSvc.ObjectMeta.Name, "--with-revisions", "--mode", "k8s", "-o", "yaml")
-	assert.Error(t, err, "'kn service export --with-revisions' requires a mode, please specify one of kubernetes|resources.")
+	assert.Error(t, err, "'kn service export --with-revisions' requires a mode, please specify one of replay|export")
 }
 
 func TestServiceExport(t *testing.T) {
@@ -89,6 +90,7 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 		latestSvc: getServiceWithOptions(
 			getService("foo"),
 			withAnnotations(map[string]string{"serving.knative.dev/creator": "ut", "serving.knative.dev/lastModifier": "ut"}),
+			withConfigurationAnnotations(map[string]string{"client.knative.dev/user-image": "gcr.io/foo/bar:baz2"}),
 			withTrafficSplit([]string{"foo-rev-1", ""}, []int{50, 50}, []bool{false, true}),
 			withServicePodSpecOption(withContainer()),
 		),
@@ -96,12 +98,14 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 			withServices(
 				getService("foo"),
 				withUnwantedFieldsStripped(),
+				withConfigurationAnnotations(map[string]string{"client.knative.dev/user-image": "gcr.io/foo/bar:baz1"}),
 				withServicePodSpecOption(withContainer()),
 				withServiceRevisionName("foo-rev-1"),
 			),
 			withServices(
 				getService("foo"),
 				withUnwantedFieldsStripped(),
+				withConfigurationAnnotations(map[string]string{"client.knative.dev/user-image": "gcr.io/foo/bar:baz2"}),
 				withServicePodSpecOption(withContainer()),
 				withTrafficSplit([]string{"foo-rev-1", ""}, []int{50, 50}, []bool{false, true}),
 			),
@@ -111,6 +115,7 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 				withRevisionLabels(map[string]string{apiserving.ServiceLabelKey: "foo"}),
 				withRevisionGeneration("1"),
 				withRevisionAnnotations(map[string]string{"serving.knative.dev/lastPinned": "1111132"}),
+				withRevisionAnnotations(map[string]string{"client.knative.dev/user-image": "gcr.io/foo/bar:baz1"}),
 				withRevisionName("foo-rev-1"),
 				withRevisionPodSpecOption(withContainer()),
 			),
@@ -118,14 +123,16 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 				withRevisionLabels(map[string]string{apiserving.ServiceLabelKey: "foo"}),
 				withRevisionGeneration("2"),
 				withRevisionName("foo-rev-2"),
+				withRevisionAnnotations(map[string]string{"client.knative.dev/user-image": "gcr.io/foo/bar:baz2"}),
 				withRevisionPodSpecOption(withContainer()),
 			),
 		),
-		expectedRevisionList: getRevisionListWithOptions(
-			withRevisions(
+		expectedKNExport: getKNExportWithOptions(
+			withKNRevisions(
 				withRevisionLabels(map[string]string{apiserving.ServiceLabelKey: "foo"}),
 				withRevisionName("foo-rev-1"),
 				withRevisionGeneration("1"),
+				withRevisionAnnotations(map[string]string{"client.knative.dev/user-image": "gcr.io/foo/bar:baz1"}),
 				withRevisionPodSpecOption(withContainer()),
 			),
 		),
@@ -158,6 +165,7 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 				withRevisionPodSpecOption(withContainer()),
 			),
 		),
+		expectedKNExport: getKNExportWithOptions(),
 	}, {
 		name: "test 3 active revisions with traffic split with no latest revision",
 		latestSvc: getServiceWithOptions(
@@ -228,8 +236,8 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 				),
 			),
 		),
-		expectedRevisionList: getRevisionListWithOptions(
-			withRevisions(
+		expectedKNExport: getKNExportWithOptions(
+			withKNRevisions(
 				withRevisionLabels(map[string]string{apiserving.ServiceLabelKey: "foo"}),
 				withRevisionName("foo-rev-1"),
 				withRevisionGeneration("1"),
@@ -238,7 +246,7 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 					withEnv([]v1.EnvVar{{Name: "a", Value: "cat"}}),
 				),
 			),
-			withRevisions(
+			withKNRevisions(
 				withRevisionLabels(map[string]string{apiserving.ServiceLabelKey: "foo"}),
 				withRevisionName("foo-rev-2"),
 				withRevisionGeneration("2"),
@@ -257,7 +265,7 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 }
 
 func exportWithRevisionsforKubernetesTest(t *testing.T, tc *testCase) {
-	output, err := executeServiceExportCommand(t, tc, "export", tc.latestSvc.ObjectMeta.Name, "--with-revisions", "--mode", "kubernetes", "-o", "json")
+	output, err := executeServiceExportCommand(t, tc, "export", tc.latestSvc.ObjectMeta.Name, "--with-revisions", "--mode", "replay", "-o", "json")
 	assert.NilError(t, err)
 
 	actSvcList := servingv1.ServiceList{}
@@ -267,24 +275,17 @@ func exportWithRevisionsforKubernetesTest(t *testing.T, tc *testCase) {
 }
 
 func exportWithRevisionsTest(t *testing.T, tc *testCase) {
-	output, err := executeServiceExportCommand(t, tc, "export", tc.latestSvc.ObjectMeta.Name, "--with-revisions", "--mode", "resources", "-o", "json")
+	output, err := executeServiceExportCommand(t, tc, "export", tc.latestSvc.ObjectMeta.Name, "--with-revisions", "--mode", "export", "-o", "json")
 	assert.NilError(t, err)
 
 	stripUnwantedFields(tc.latestSvc)
-	expOut := strings.Builder{}
-	expSvcJSON, err := json.MarshalIndent(tc.latestSvc, "", "    ")
+	tc.expectedKNExport.Spec.Service = *tc.latestSvc
+
+	actKNExport := &clientv1alpha1.Export{}
+	err = json.Unmarshal([]byte(output), actKNExport)
 	assert.NilError(t, err)
-	expOut.Write(expSvcJSON)
-	expOut.WriteString("\n")
 
-	if tc.expectedRevisionList != nil {
-		expRevsJSON, err := json.MarshalIndent(tc.expectedRevisionList, "", "    ")
-		assert.NilError(t, err)
-		expOut.Write(expRevsJSON)
-		expOut.WriteString("\n")
-	}
-
-	assert.Equal(t, expOut.String(), output)
+	assert.DeepEqual(t, tc.expectedKNExport, actKNExport)
 }
 
 func executeServiceExportCommand(t *testing.T, tc *testCase, options ...string) (string, error) {
@@ -302,6 +303,12 @@ func stripUnwantedFields(svc *servingv1.Service) {
 	svc.Spec.Template.Spec.Containers[0].Resources = v1.ResourceRequirements{}
 	svc.Status = servingv1.ServiceStatus{}
 	svc.ObjectMeta.CreationTimestamp = metav1.Time{}
+	for _, annotation := range IGNORED_SERVICE_ANNOTATIONS {
+		delete(svc.ObjectMeta.Annotations, annotation)
+	}
+	if len(svc.ObjectMeta.Annotations) == 0 {
+		svc.ObjectMeta.Annotations = nil
+	}
 }
 
 func getServiceListWithOptions(options ...expectedServiceListOption) *servingv1.ServiceList {
@@ -343,6 +350,27 @@ func getRevisionListWithOptions(options ...expectedRevisionListOption) *servingv
 func withRevisions(options ...expectedRevisionOption) expectedRevisionListOption {
 	return func(list *servingv1.RevisionList) {
 		list.Items = append(list.Items, getRevisionWithOptions(options...))
+	}
+}
+
+func getKNExportWithOptions(options ...expectedKNExportOption) *clientv1alpha1.Export {
+	knExport := &clientv1alpha1.Export{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "client.knative.dev/v1alpha1",
+			Kind:       "Export",
+		},
+	}
+
+	for _, fn := range options {
+		fn(knExport)
+	}
+
+	return knExport
+}
+
+func withKNRevisions(options ...expectedRevisionOption) expectedKNExportOption {
+	return func(export *clientv1alpha1.Export) {
+		export.Spec.Revisions = append(export.Spec.Revisions, getRevisionWithOptions(options...))
 	}
 }
 

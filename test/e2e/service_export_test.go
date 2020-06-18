@@ -19,7 +19,6 @@ package e2e
 
 import (
 	"encoding/json"
-	"strings"
 	"testing"
 
 	"gotest.tools/assert"
@@ -32,13 +31,14 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	clientv1alpha1 "knative.dev/client/pkg/apis/client/v1alpha1"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
 type expectedServiceOption func(*servingv1.Service)
 type expectedRevisionOption func(*servingv1.Revision)
 type expectedServiceListOption func(*servingv1.ServiceList)
-type expectedRevisionListOption func(*servingv1.RevisionList)
+type expectedKNExportOption func(*clientv1alpha1.Export)
 type podSpecOption func(*corev1.PodSpec)
 
 func TestServiceExport(t *testing.T) {
@@ -85,7 +85,7 @@ func TestServiceExport(t *testing.T) {
 				withEnv([]corev1.EnvVar{{Name: "a", Value: "mouse"}}),
 			),
 		),
-	), "--with-revisions", "--mode", "kubernetes", "-o", "yaml")
+	), "--with-revisions", "--mode", "replay", "-o", "yaml")
 
 	t.Log("export service-revision2 with revisions-only")
 	serviceExportWithRevisionList(r, "hello", getServiceWithOptions(
@@ -96,7 +96,7 @@ func TestServiceExport(t *testing.T) {
 			withContainer(),
 			withEnv([]corev1.EnvVar{{Name: "a", Value: "mouse"}}),
 		),
-	), getRevisionListWithOptions(), "--with-revisions", "--mode", "resources", "-o", "yaml")
+	), getKNExportWithOptions(), "--with-revisions", "--mode", "export", "-o", "yaml")
 
 	t.Log("update service with tag and split traffic")
 	test.ServiceUpdate(r, "hello", "--tag", "hello-rev1=candidate", "--traffic", "candidate=2%,@latest=98%")
@@ -106,6 +106,7 @@ func TestServiceExport(t *testing.T) {
 		withServices(
 			withServiceName("hello"),
 			withServiceRevisionName("hello-rev1"),
+			withConfigurationAnnotations(),
 			withServicePodSpecOption(
 				withContainer(),
 			),
@@ -119,7 +120,7 @@ func TestServiceExport(t *testing.T) {
 				withEnv([]corev1.EnvVar{{Name: "a", Value: "mouse"}}),
 			),
 		),
-	), "--with-revisions", "--mode", "kubernetes", "-o", "yaml")
+	), "--with-revisions", "--mode", "replay", "-o", "yaml")
 
 	t.Log("export service-revision2 after tagging with revisions-only")
 	serviceExportWithRevisionList(r, "hello", getServiceWithOptions(
@@ -130,13 +131,12 @@ func TestServiceExport(t *testing.T) {
 			withContainer(),
 			withEnv([]corev1.EnvVar{{Name: "a", Value: "mouse"}}),
 		),
-	), getRevisionListWithOptions(
+	), getKNExportWithOptions(
 		withRevisions(
 			withRevisionName("hello-rev1"),
 			withRevisionAnnotations(
 				map[string]string{
 					"client.knative.dev/user-image": "gcr.io/knative-samples/helloworld-go",
-					"serving.knative.dev/creator":   "kubernetes-admin",
 				}),
 			withRevisionLabels(
 				map[string]string{
@@ -149,7 +149,7 @@ func TestServiceExport(t *testing.T) {
 				withContainer(),
 			),
 		),
-	), "--with-revisions", "--mode", "resources", "-o", "yaml")
+	), "--with-revisions", "--mode", "export", "-o", "yaml")
 
 	t.Log("update service - untag, add env variable, traffic split and system revision name")
 	test.ServiceUpdate(r, "hello", "--untag", "candidate")
@@ -159,6 +159,7 @@ func TestServiceExport(t *testing.T) {
 	serviceExportWithServiceList(r, "hello", getServiceListWithOptions(
 		withServices(
 			withServiceName("hello"),
+			withConfigurationAnnotations(),
 			withServiceRevisionName("hello-rev1"),
 			withServicePodSpecOption(
 				withContainer(),
@@ -181,7 +182,7 @@ func TestServiceExport(t *testing.T) {
 				withEnv([]corev1.EnvVar{{Name: "a", Value: "mouse"}, {Name: "b", Value: "cat"}}),
 			),
 		),
-	), "--with-revisions", "--mode", "kubernetes", "-o", "yaml")
+	), "--with-revisions", "--mode", "replay", "-o", "yaml")
 
 	t.Log("export service-revision3 with revisions-only")
 	serviceExportWithRevisionList(r, "hello", getServiceWithOptions(
@@ -192,13 +193,12 @@ func TestServiceExport(t *testing.T) {
 			withContainer(),
 			withEnv([]corev1.EnvVar{{Name: "a", Value: "mouse"}, {Name: "b", Value: "cat"}}),
 		),
-	), getRevisionListWithOptions(
+	), getKNExportWithOptions(
 		withRevisions(
 			withRevisionName("hello-rev1"),
 			withRevisionAnnotations(
 				map[string]string{
 					"client.knative.dev/user-image": "gcr.io/knative-samples/helloworld-go",
-					"serving.knative.dev/creator":   "kubernetes-admin",
 				}),
 			withRevisionLabels(
 				map[string]string{
@@ -213,10 +213,6 @@ func TestServiceExport(t *testing.T) {
 		),
 		withRevisions(
 			withRevisionName("hello-rev2"),
-			withRevisionAnnotations(
-				map[string]string{
-					"serving.knative.dev/creator": "kubernetes-admin",
-				}),
 			withRevisionLabels(
 				map[string]string{
 					"serving.knative.dev/configuration":           "hello",
@@ -229,7 +225,7 @@ func TestServiceExport(t *testing.T) {
 				withEnv([]corev1.EnvVar{{Name: "a", Value: "mouse"}}),
 			),
 		),
-	), "--with-revisions", "--mode", "resources", "-o", "yaml")
+	), "--with-revisions", "--mode", "export", "-o", "yaml")
 
 	t.Log("send all traffic to revision 2")
 	test.ServiceUpdate(r, "hello", "--traffic", "hello-rev2=100")
@@ -253,7 +249,7 @@ func TestServiceExport(t *testing.T) {
 				withEnv([]corev1.EnvVar{{Name: "a", Value: "mouse"}, {Name: "b", Value: "cat"}}),
 			),
 		),
-	), "--with-revisions", "--mode", "kubernetes", "-o", "yaml")
+	), "--with-revisions", "--mode", "replay", "-o", "yaml")
 
 	t.Log("export revisions-only - all traffic to revision 2")
 	serviceExportWithRevisionList(r, "hello", getServiceWithOptions(
@@ -264,13 +260,9 @@ func TestServiceExport(t *testing.T) {
 			withContainer(),
 			withEnv([]corev1.EnvVar{{Name: "a", Value: "mouse"}, {Name: "b", Value: "cat"}}),
 		),
-	), getRevisionListWithOptions(
+	), getKNExportWithOptions(
 		withRevisions(
 			withRevisionName("hello-rev2"),
-			withRevisionAnnotations(
-				map[string]string{
-					"serving.knative.dev/creator": "kubernetes-admin",
-				}),
 			withRevisionLabels(
 				map[string]string{
 					"serving.knative.dev/configuration":           "hello",
@@ -283,7 +275,7 @@ func TestServiceExport(t *testing.T) {
 				withEnv([]corev1.EnvVar{{Name: "a", Value: "mouse"}}),
 			),
 		),
-	), "--with-revisions", "--mode", "resources", "-o", "yaml")
+	), "--with-revisions", "--mode", "export", "-o", "yaml")
 }
 
 // Private methods
@@ -304,11 +296,11 @@ func serviceExportWithServiceList(r *test.KnRunResultCollector, serviceName stri
 	r.AssertNoError(out)
 }
 
-func serviceExportWithRevisionList(r *test.KnRunResultCollector, serviceName string, expService servingv1.Service, expRevisionList servingv1.RevisionList, options ...string) {
+func serviceExportWithRevisionList(r *test.KnRunResultCollector, serviceName string, expService servingv1.Service, knExport clientv1alpha1.Export, options ...string) {
 	command := []string{"service", "export", serviceName}
 	command = append(command, options...)
 	out := r.KnTest().Kn().Run(command...)
-	validateExportedServiceandRevisionList(r.T(), r.KnTest(), out.Stdout, expService, expRevisionList)
+	validateExportedServiceandRevisionList(r.T(), r.KnTest(), out.Stdout, expService, knExport)
 	r.AssertNoError(out)
 }
 
@@ -328,26 +320,13 @@ func validateExportedServiceList(t *testing.T, it *test.KnTest, out string, expS
 	assert.DeepEqual(t, &expServiceList, &actSvcList)
 }
 
-func validateExportedServiceandRevisionList(t *testing.T, it *test.KnTest, out string, expService servingv1.Service, expRevisionList servingv1.RevisionList) {
-	outArray := strings.Split(out, "apiVersion: v1")
-
-	actSvc := servingv1.Service{}
-	err := yaml.Unmarshal([]byte(outArray[0]), &actSvc)
+func validateExportedServiceandRevisionList(t *testing.T, it *test.KnTest, out string, expService servingv1.Service, knExport clientv1alpha1.Export) {
+	actSvc := clientv1alpha1.Export{}
+	err := yaml.Unmarshal([]byte(out), &actSvc)
 	assert.NilError(t, err)
-	assert.DeepEqual(t, &expService, &actSvc)
 
-	if len(outArray) > 1 {
-		revListBuilder := strings.Builder{}
-		revListBuilder.WriteString("apiVersion: v1")
-		revListBuilder.WriteString("\n")
-		revListBuilder.WriteString(outArray[1])
-		actRevList := servingv1.RevisionList{}
-		err := yaml.Unmarshal([]byte(revListBuilder.String()), &actRevList)
-		assert.NilError(t, err)
-		assert.DeepEqual(t, &actRevList, &actRevList)
-	} else if len(expRevisionList.Items) > 0 {
-		t.Errorf("expecting a revision list and got no list")
-	}
+	knExport.Spec.Service = expService
+	assert.DeepEqual(t, &knExport, &actSvc)
 }
 
 func getServiceListWithOptions(options ...expectedServiceListOption) servingv1.ServiceList {
@@ -370,24 +349,24 @@ func withServices(options ...expectedServiceOption) expectedServiceListOption {
 	}
 }
 
-func getRevisionListWithOptions(options ...expectedRevisionListOption) servingv1.RevisionList {
-	list := servingv1.RevisionList{
+func getKNExportWithOptions(options ...expectedKNExportOption) clientv1alpha1.Export {
+	knExport := clientv1alpha1.Export{
 		TypeMeta: metav1.TypeMeta{
-			APIVersion: "v1",
-			Kind:       "List",
+			APIVersion: "client.knative.dev/v1alpha1",
+			Kind:       "Export",
 		},
 	}
 
 	for _, fn := range options {
-		fn(&list)
+		fn(&knExport)
 	}
 
-	return list
+	return knExport
 }
 
-func withRevisions(options ...expectedRevisionOption) expectedRevisionListOption {
-	return func(list *servingv1.RevisionList) {
-		list.Items = append(list.Items, getRevisionWithOptions(options...))
+func withRevisions(options ...expectedRevisionOption) expectedKNExportOption {
+	return func(export *clientv1alpha1.Export) {
+		export.Spec.Revisions = append(export.Spec.Revisions, getRevisionWithOptions(options...))
 	}
 }
 
