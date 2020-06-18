@@ -16,12 +16,9 @@ package commands
 
 import (
 	"bytes"
-	"io/ioutil"
 	"os"
-	"testing"
 
 	"github.com/spf13/cobra"
-	"gotest.tools/assert"
 	"k8s.io/apimachinery/pkg/runtime"
 	clienttesting "k8s.io/client-go/testing"
 	servingv1fake "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1/fake"
@@ -91,46 +88,6 @@ func CreateDynamicTestKnCommand(cmd *cobra.Command, knParams *KnParams, objects 
 	knCommand := NewTestCommand(cmd, knParams)
 	return knCommand, fakeDynamic, buf
 
-}
-
-type OutputCapture struct {
-	outRead, outWrite     *os.File
-	errorRead, errorWrite *os.File
-	t                     *testing.T
-
-	oldStdout *os.File
-	oldStderr *os.File
-}
-
-func CaptureOutput(t *testing.T) OutputCapture {
-	ret := OutputCapture{
-		oldStdout: os.Stdout,
-		oldStderr: os.Stderr,
-		t:         t,
-	}
-	var err error
-	ret.outRead, ret.outWrite, err = os.Pipe()
-	assert.NilError(t, err)
-	os.Stdout = ret.outWrite
-	ret.errorRead, ret.errorWrite, err = os.Pipe()
-	assert.NilError(t, err)
-	os.Stderr = ret.errorWrite
-	return ret
-}
-
-// CaptureOutput collects the current content of os.Stdout
-func (c OutputCapture) Close() (string, string) {
-	err := c.outWrite.Close()
-	assert.NilError(c.t, err)
-	err = c.errorWrite.Close()
-	assert.NilError(c.t, err)
-	outOutput, err := ioutil.ReadAll(c.outRead)
-	assert.NilError(c.t, err)
-	errOutput, err := ioutil.ReadAll(c.errorRead)
-	assert.NilError(c.t, err)
-	os.Stdout = c.oldStdout
-	os.Stderr = c.oldStderr
-	return string(outOutput), string(errOutput)
 }
 
 // NewTestCommand can be used by tes

@@ -21,7 +21,7 @@ import (
 	"github.com/spf13/cobra"
 	"gotest.tools/assert"
 
-	"knative.dev/client/pkg/kn/commands"
+	"knative.dev/client/lib/test"
 	"knative.dev/client/pkg/util"
 )
 
@@ -54,14 +54,14 @@ func TestSetUsage(t *testing.T) {
 		assert.Assert(t, cmd.DisableFlagsInUseLine)
 	}
 
-	capture := commands.CaptureOutput(t)
+	capture := test.CaptureOutput(t)
 	err := (rootCmd.UsageFunc())(rootCmd)
 	assert.NilError(t, err)
 	stdOut, stdErr := capture.Close()
 	assert.Equal(t, stdErr, "")
 	assert.Assert(t, util.ContainsAll(stdOut, "header-1", "header-2"))
 
-	capture = commands.CaptureOutput(t)
+	capture = test.CaptureOutput(t)
 	(rootCmd.HelpFunc())(rootCmd, nil)
 	stdOut, stdErr = capture.Close()
 	assert.Equal(t, stdErr, "")

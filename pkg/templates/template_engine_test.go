@@ -23,7 +23,7 @@ import (
 	"github.com/spf13/cobra"
 	"gotest.tools/assert"
 
-	"knative.dev/client/pkg/kn/commands"
+	"knative.dev/client/lib/test"
 	"knative.dev/client/pkg/util"
 )
 
@@ -60,7 +60,7 @@ func TestUsageFunc(t *testing.T) {
 		},
 	}
 	for _, d := range data {
-		capture := commands.CaptureOutput(t)
+		capture := test.CaptureOutput(t)
 		err := (engine.usageFunc())(d.cmd)
 		assert.NilError(t, err)
 		stdOut, stdErr := capture.Close()
@@ -91,7 +91,7 @@ func TestHelpFunc(t *testing.T) {
 		},
 	}
 	for _, d := range data {
-		capture := commands.CaptureOutput(t)
+		capture := test.CaptureOutput(t)
 		(engine.helpFunc())(d.cmd, []string{})
 		stdOut, stdErr := capture.Close()
 
@@ -103,7 +103,7 @@ func TestHelpFunc(t *testing.T) {
 func TestOptionsFunc(t *testing.T) {
 	rootCmd, _ := newTemplateEngine()
 	subCmd := rootCmd.Commands()[0]
-	capture := commands.CaptureOutput(t)
+	capture := test.CaptureOutput(t)
 	err := NewGlobalOptionsFunc()(subCmd)
 	assert.NilError(t, err)
 	stdOut, stdErr := capture.Close()

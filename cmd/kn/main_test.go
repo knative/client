@@ -24,7 +24,7 @@ import (
 	"github.com/spf13/cobra"
 	"gotest.tools/assert"
 
-	"knative.dev/client/pkg/kn/commands"
+	"knative.dev/client/lib/test"
 	"knative.dev/client/pkg/kn/root"
 	"knative.dev/client/pkg/util"
 )
@@ -243,7 +243,7 @@ func TestRunWithError(t *testing.T) {
 		},
 	}
 	for _, d := range data {
-		capture := commands.CaptureOutput(t)
+		capture := test.CaptureOutput(t)
 		printError(errors.New(d.given))
 		stdOut, errOut := capture.Close()
 
@@ -261,7 +261,7 @@ func TestRun(t *testing.T) {
 		os.Args = oldArgs
 	})()
 
-	capture := commands.CaptureOutput(t)
+	capture := test.CaptureOutput(t)
 	err := run(os.Args[1:])
 	out, _ := capture.Close()
 

@@ -17,6 +17,7 @@ package completion
 import (
 	"testing"
 
+	"knative.dev/client/lib/test"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/util"
 
@@ -35,7 +36,7 @@ func TestCompletionUsage(t *testing.T) {
 func TestCompletionGeneration(t *testing.T) {
 	for _, shell := range []string{"bash", "zsh"} {
 		completionCmd := NewCompletionCommand(&commands.KnParams{})
-		c := commands.CaptureOutput(t)
+		c := test.CaptureOutput(t)
 		err := completionCmd.RunE(&cobra.Command{}, []string{shell})
 		assert.NilError(t, err)
 		stdOut, stdErr := c.Close()
