@@ -16,12 +16,9 @@ package commands
 
 import (
 	"bytes"
-	"io/ioutil"
 	"os"
-	"testing"
 
 	"github.com/spf13/cobra"
-	"gotest.tools/assert"
 	"k8s.io/apimachinery/pkg/runtime"
 	clienttesting "k8s.io/client-go/testing"
 	servingv1fake "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1/fake"
@@ -91,35 +88,6 @@ func CreateDynamicTestKnCommand(cmd *cobra.Command, knParams *KnParams, objects 
 	knCommand := NewTestCommand(cmd, knParams)
 	return knCommand, fakeDynamic, buf
 
-}
-
-type StdoutCapture struct {
-	r, w *os.File
-	t    *testing.T
-
-	oldStdout *os.File
-}
-
-func CaptureStdout(t *testing.T) StdoutCapture {
-	ret := StdoutCapture{
-		oldStdout: os.Stdout,
-		t:         t,
-	}
-	var err error
-	ret.r, ret.w, err = os.Pipe()
-	assert.NilError(t, err)
-	os.Stdout = ret.w
-	return ret
-}
-
-// CaptureStdout collects the current content of os.Stdout
-func (c StdoutCapture) Close() string {
-	err := c.w.Close()
-	assert.NilError(c.t, err)
-	ret, err := ioutil.ReadAll(c.r)
-	assert.NilError(c.t, err)
-	os.Stdout = c.oldStdout
-	return string(ret)
 }
 
 // NewTestCommand can be used by tes

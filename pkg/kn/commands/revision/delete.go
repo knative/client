@@ -29,8 +29,8 @@ func NewRevisionDeleteCommand(p *commands.KnParams) *cobra.Command {
 	var waitFlags commands.WaitFlags
 
 	RevisionDeleteCommand := &cobra.Command{
-		Use:   "delete NAME",
-		Short: "Delete a revision.",
+		Use:   "delete NAME [NAME ...]",
+		Short: "Delete revisions",
 		Example: `
   # Delete a revision 'svc1-abcde' in default namespace
   kn revision delete svc1-abcde`,

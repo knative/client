@@ -1,13 +1,13 @@
 ## kn service create
 
-Create a service.
+Create a service
 
 ### Synopsis
 
-Create a service.
+Create a service
 
 ```
-kn service create NAME --image IMAGE [flags]
+kn service create NAME --image IMAGE
 ```
 
 ### Examples
@@ -101,5 +101,5 @@ kn service create NAME --image IMAGE [flags]
 
 ### SEE ALSO
 
-* [kn service](kn_service.md)	 - Service command group
+* [kn service](kn_service.md)	 - Manage Knative services
 

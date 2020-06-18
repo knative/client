@@ -1,13 +1,13 @@
 ## kn source apiserver describe
 
-Show details of an ApiServer source
+Show details of an api-server source
 
 ### Synopsis
 
-Show details of an ApiServer source
+Show details of an api-server source
 
 ```
-kn source apiserver describe NAME [flags]
+kn source apiserver describe NAME
 ```
 
 ### Examples
@@ -36,5 +36,5 @@ kn source apiserver describe NAME [flags]
 
 ### SEE ALSO
 
-* [kn source apiserver](kn_source_apiserver.md)	 - Kubernetes API Server Event Source command group
+* [kn source apiserver](kn_source_apiserver.md)	 - Manage Kubernetes api-server sources
 

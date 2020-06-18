@@ -32,7 +32,7 @@ func NewAPIServerDescribeCommand(p *commands.KnParams) *cobra.Command {
 
 	apiServerDescribe := &cobra.Command{
 		Use:   "describe NAME",
-		Short: "Show details of an ApiServer source",
+		Short: "Show details of an api-server source",
 		Example: `
   # Describe an ApiServer source with name 'k8sevents'
   kn source apiserver describe k8sevents`,

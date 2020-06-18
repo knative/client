@@ -1,13 +1,13 @@
 ## kn source list
 
-List available sources
+List event sources
 
 ### Synopsis
 
-List available sources
+List event sources
 
 ```
-kn source list [flags]
+kn source list
 ```
 
 ### Examples
@@ -47,5 +47,5 @@ kn source list [flags]
 
 ### SEE ALSO
 
-* [kn source](kn_source.md)	 - Event source command group
+* [kn source](kn_source.md)	 - Manage event sources
 

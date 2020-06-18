@@ -20,6 +20,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"gotest.tools/assert"
+
+	"knative.dev/client/lib/test"
 )
 
 func TestCreateTestKnCommand(t *testing.T) {
@@ -56,8 +58,9 @@ func TestCreateDynamicTestKnCommand(t *testing.T) {
 }
 
 func TestCaptureStdout(t *testing.T) {
-	c := CaptureStdout(t)
+	c := test.CaptureOutput(t)
 	fmt.Print("Hello World !")
-	out := c.Close()
-	assert.Equal(t, out, "Hello World !")
+	stdOut, stdErr := c.Close()
+	assert.Equal(t, stdErr, "")
+	assert.Equal(t, stdOut, "Hello World !")
 }

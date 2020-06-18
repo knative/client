@@ -1,13 +1,13 @@
 ## kn source ping describe
 
-Show details of a Ping source
+Show details of a ping source
 
 ### Synopsis
 
-Show details of a Ping source
+Show details of a ping source
 
 ```
-kn source ping describe NAME [flags]
+kn source ping describe NAME
 ```
 
 ### Examples
@@ -36,5 +36,5 @@ kn source ping describe NAME [flags]
 
 ### SEE ALSO
 
-* [kn source ping](kn_source_ping.md)	 - Ping source command group
+* [kn source ping](kn_source_ping.md)	 - Manage ping sources
 

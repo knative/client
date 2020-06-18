@@ -13,7 +13,7 @@ Supported Shells:
  - zsh
 
 ```
-kn completion [SHELL] [flags]
+kn completion SHELL
 ```
 
 ### Examples
@@ -44,5 +44,5 @@ kn completion [SHELL] [flags]
 
 ### SEE ALSO
 
-* [kn](kn.md)	 - Knative client
+* [kn](kn.md)	 - kn manages Knative Serving and Eventing resources
 

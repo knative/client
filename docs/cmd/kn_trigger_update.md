@@ -7,7 +7,7 @@ Update a trigger
 Update a trigger
 
 ```
-kn trigger update NAME --filter KEY=VALUE --sink SINK [flags]
+kn trigger update NAME
 ```
 
 ### Examples
@@ -46,5 +46,5 @@ kn trigger update NAME --filter KEY=VALUE --sink SINK [flags]
 
 ### SEE ALSO
 
-* [kn trigger](kn_trigger.md)	 - Trigger command group
+* [kn trigger](kn_trigger.md)	 - Manage event triggers
 

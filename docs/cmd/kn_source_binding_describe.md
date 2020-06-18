@@ -7,7 +7,7 @@ Show details of a sink binding
 Show details of a sink binding
 
 ```
-kn source binding describe NAME [flags]
+kn source binding describe NAME
 ```
 
 ### Examples
@@ -36,5 +36,5 @@ kn source binding describe NAME [flags]
 
 ### SEE ALSO
 
-* [kn source binding](kn_source_binding.md)	 - Sink binding command group
+* [kn source binding](kn_source_binding.md)	 - Manage sink bindings
 

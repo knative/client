@@ -1,13 +1,13 @@
 ## kn route list
 
-List available routes.
+List routes
 
 ### Synopsis
 
-List available routes.
+List routes
 
 ```
-kn route list NAME [flags]
+kn route list NAME
 ```
 
 ### Examples
@@ -46,5 +46,5 @@ kn route list NAME [flags]
 
 ### SEE ALSO
 
-* [kn route](kn_route.md)	 - Route command group
+* [kn route](kn_route.md)	 - List and describe service routes
 

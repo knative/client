@@ -28,8 +28,8 @@ func NewTriggerListCommand(p *commands.KnParams) *cobra.Command {
 	triggerListFlags := flags.NewListPrintFlags(TriggerListHandlers)
 
 	triggerListCommand := &cobra.Command{
-		Use:   "list [name]",
-		Short: "List available triggers.",
+		Use:   "list",
+		Short: "List triggers",
 		Example: `
   # List all triggers
   kn trigger list

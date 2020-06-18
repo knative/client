@@ -23,7 +23,7 @@ import (
 func NewRouteCommand(p *commands.KnParams) *cobra.Command {
 	routeCmd := &cobra.Command{
 		Use:   "route",
-		Short: "Route command group",
+		Short: "List and describe service routes",
 	}
 	routeCmd.AddCommand(NewRouteListCommand(p))
 	routeCmd.AddCommand(NewRouteDescribeCommand(p))

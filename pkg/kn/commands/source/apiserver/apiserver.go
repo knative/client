@@ -26,8 +26,8 @@ import (
 // NewAPIServerCommand for managing ApiServer source
 func NewAPIServerCommand(p *commands.KnParams) *cobra.Command {
 	apiServerSourceCmd := &cobra.Command{
-		Use:   "apiserver",
-		Short: "Kubernetes API Server Event Source command group",
+		Use:   "apiserver COMMAND",
+		Short: "Manage Kubernetes api-server sources",
 	}
 	apiServerSourceCmd.AddCommand(NewAPIServerCreateCommand(p))
 	apiServerSourceCmd.AddCommand(NewAPIServerUpdateCommand(p))

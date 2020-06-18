@@ -1,13 +1,13 @@
 ## kn source apiserver list
 
-List ApiServer sources.
+List api-server sources
 
 ### Synopsis
 
-List ApiServer sources.
+List api-server sources
 
 ```
-kn source apiserver list [flags]
+kn source apiserver list
 ```
 
 ### Examples
@@ -43,5 +43,5 @@ kn source apiserver list [flags]
 
 ### SEE ALSO
 
-* [kn source apiserver](kn_source_apiserver.md)	 - Kubernetes API Server Event Source command group
+* [kn source apiserver](kn_source_apiserver.md)	 - Manage Kubernetes api-server sources
 

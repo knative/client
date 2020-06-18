@@ -50,7 +50,7 @@ func NewServiceExportCommand(p *commands.KnParams) *cobra.Command {
 
 	command := &cobra.Command{
 		Use:   "export NAME",
-		Short: "Export a service.",
+		Short: "Export a service and its revisions",
 		Example: `
   # Export a service in YAML format
   kn service export foo -n bar -o yaml

@@ -1,13 +1,13 @@
 ## kn trigger list
 
-List available triggers.
+List triggers
 
 ### Synopsis
 
-List available triggers.
+List triggers
 
 ```
-kn trigger list [name] [flags]
+kn trigger list
 ```
 
 ### Examples
@@ -43,5 +43,5 @@ kn trigger list [name] [flags]
 
 ### SEE ALSO
 
-* [kn trigger](kn_trigger.md)	 - Trigger command group
+* [kn trigger](kn_trigger.md)	 - Manage event triggers
 

@@ -1,13 +1,13 @@
 ## kn revision list
 
-List available revisions.
+List revisions
 
 ### Synopsis
 
 List revisions for a given service.
 
 ```
-kn revision list [name] [flags]
+kn revision list
 ```
 
 ### Examples
@@ -50,5 +50,5 @@ kn revision list [name] [flags]
 
 ### SEE ALSO
 
-* [kn revision](kn_revision.md)	 - Revision command group
+* [kn revision](kn_revision.md)	 - Manage service revisions
 

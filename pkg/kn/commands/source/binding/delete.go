@@ -26,7 +26,7 @@ import (
 func NewBindingDeleteCommand(p *commands.KnParams) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "delete NAME",
-		Short: "Delete a sink binding.",
+		Short: "Delete a sink binding",
 		Example: `
   # Delete a sink binding with name 'my-binding'
   kn source binding delete my-binding`,

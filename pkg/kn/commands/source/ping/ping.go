@@ -26,8 +26,8 @@ import (
 // NewPingCommand is the root command for all Ping source related commands
 func NewPingCommand(p *commands.KnParams) *cobra.Command {
 	pingImporterCmd := &cobra.Command{
-		Use:   "ping",
-		Short: "Ping source command group",
+		Use:   "ping COMMAND",
+		Short: "Manage ping sources",
 	}
 	pingImporterCmd.AddCommand(NewPingCreateCommand(p))
 	pingImporterCmd.AddCommand(NewPingDeleteCommand(p))

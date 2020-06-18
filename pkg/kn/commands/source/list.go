@@ -41,7 +41,7 @@ func NewListCommand(p *commands.KnParams) *cobra.Command {
 	listFlags := flags.NewListPrintFlags(ListHandlers)
 	listCommand := &cobra.Command{
 		Use:     "list",
-		Short:   "List available sources",
+		Short:   "List event sources",
 		Example: listExample,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			namespace, err := p.GetNamespace(cmd)

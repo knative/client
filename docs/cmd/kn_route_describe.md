@@ -7,7 +7,7 @@ Show details of a route
 Show details of a route
 
 ```
-kn route describe NAME [flags]
+kn route describe NAME
 ```
 
 ### Options
@@ -31,5 +31,5 @@ kn route describe NAME [flags]
 
 ### SEE ALSO
 
-* [kn route](kn_route.md)	 - Route command group
+* [kn route](kn_route.md)	 - List and describe service routes
 

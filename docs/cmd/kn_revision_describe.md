@@ -7,7 +7,7 @@ Show details of a revision
 Show details of a revision
 
 ```
-kn revision describe NAME [flags]
+kn revision describe NAME
 ```
 
 ### Options
@@ -31,5 +31,5 @@ kn revision describe NAME [flags]
 
 ### SEE ALSO
 
-* [kn revision](kn_revision.md)	 - Revision command group
+* [kn revision](kn_revision.md)	 - Manage service revisions
 

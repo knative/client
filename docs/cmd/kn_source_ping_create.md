@@ -1,13 +1,13 @@
 ## kn source ping create
 
-Create a Ping source.
+Create a ping source
 
 ### Synopsis
 
-Create a Ping source.
+Create a ping source
 
 ```
-kn source ping create NAME --schedule SCHEDULE --sink SINK --data DATA [flags]
+kn source ping create NAME
 ```
 
 ### Examples
@@ -39,5 +39,5 @@ kn source ping create NAME --schedule SCHEDULE --sink SINK --data DATA [flags]
 
 ### SEE ALSO
 
-* [kn source ping](kn_source_ping.md)	 - Ping source command group
+* [kn source ping](kn_source_ping.md)	 - Manage ping sources
 

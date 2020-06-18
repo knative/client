@@ -10,10 +10,10 @@ Available plugins are those that are:
 - executable
 - begin with "kn-"
 - Kn's plugin directory
-- Anywhere in the execution $PATH (if plugins.path-lookup config variable is enabled)
+- Anywhere in the execution $PATH (if plugins.path-lookup configuration variable is enabled)
 
 ```
-kn plugin list [flags]
+kn plugin list
 ```
 
 ### Options
@@ -33,5 +33,5 @@ kn plugin list [flags]
 
 ### SEE ALSO
 
-* [kn plugin](kn_plugin.md)	 - Plugin command group
+* [kn plugin](kn_plugin.md)	 - Manage kn plugins
 

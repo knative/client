@@ -32,8 +32,8 @@ func NewPingCreateCommand(p *commands.KnParams) *cobra.Command {
 	var sinkFlags flags.SinkFlags
 
 	cmd := &cobra.Command{
-		Use:   "create NAME --schedule SCHEDULE --sink SINK --data DATA",
-		Short: "Create a Ping source.",
+		Use:   "create NAME",
+		Short: "Create a ping source",
 		Example: `
   # Create a Ping source 'my-ping' which fires every two minutes and sends '{ value: "hello" }' to service 'mysvc' as a cloudevent
   kn source ping create my-ping --schedule "*/2 * * * *" --data '{ value: "hello" }' --sink svc:mysvc`,

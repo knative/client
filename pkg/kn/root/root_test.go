@@ -15,6 +15,7 @@
 package root
 
 import (
+	"errors"
 	"strings"
 	"testing"
 
@@ -30,7 +31,7 @@ func TestNewRootCommand(t *testing.T) {
 	assert.Assert(t, rootCmd != nil)
 
 	assert.Equal(t, rootCmd.Name(), "kn")
-	assert.Equal(t, rootCmd.Short, "Knative client")
+	assert.Assert(t, util.ContainsAll(rootCmd.Short, "Knative", "Serving", "Eventing"))
 	assert.Assert(t, util.ContainsAll(rootCmd.Long, "Knative", "Serving", "Eventing"))
 
 	assert.Assert(t, rootCmd.DisableAutoGenTag)
@@ -43,6 +44,10 @@ func TestNewRootCommand(t *testing.T) {
 	assert.Assert(t, rootCmd.PersistentFlags().Lookup("kubeconfig") != nil)
 
 	assert.Assert(t, rootCmd.RunE == nil)
+
+	fErrorFunc := rootCmd.FlagErrorFunc()
+	err = fErrorFunc(rootCmd, errors.New("test"))
+	assert.Equal(t, err.Error(), "test for 'kn'")
 }
 
 func TestSubCommands(t *testing.T) {

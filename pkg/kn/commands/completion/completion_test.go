@@ -17,6 +17,7 @@ package completion
 import (
 	"testing"
 
+	"knative.dev/client/lib/test"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/util"
 
@@ -28,31 +29,30 @@ func TestCompletionUsage(t *testing.T) {
 	completionCmd := NewCompletionCommand(&commands.KnParams{})
 	assert.Assert(t, util.ContainsAllIgnoreCase(completionCmd.Use, "completion"))
 	assert.Assert(t, util.ContainsAllIgnoreCase(completionCmd.Short, "completion", "shell"))
-	assert.Assert(t, completionCmd.RunE == nil)
+	assert.Assert(t, completionCmd.Run == nil)
+	assert.Assert(t, completionCmd.RunE != nil)
 }
 
 func TestCompletionGeneration(t *testing.T) {
 	for _, shell := range []string{"bash", "zsh"} {
 		completionCmd := NewCompletionCommand(&commands.KnParams{})
-		c := commands.CaptureStdout(t)
-		completionCmd.Run(&cobra.Command{}, []string{shell})
-		out := c.Close()
-		assert.Assert(t, out != "")
+		c := test.CaptureOutput(t)
+		err := completionCmd.RunE(&cobra.Command{}, []string{shell})
+		assert.NilError(t, err)
+		stdOut, stdErr := c.Close()
+		assert.Assert(t, stdErr == "")
+		assert.Assert(t, stdOut != "")
 	}
 }
 
 func TestCompletionNoArg(t *testing.T) {
 	completionCmd := NewCompletionCommand(&commands.KnParams{})
-	c := commands.CaptureStdout(t)
-	completionCmd.Run(&cobra.Command{}, []string{})
-	out := c.Close()
-	assert.Assert(t, util.ContainsAll(out, "bash", "zsh", "one", "argument"))
+	err := completionCmd.RunE(&cobra.Command{}, []string{})
+	assert.Assert(t, util.ContainsAll(err.Error(), "bash", "zsh", "one", "argument"))
 }
 
 func TestCompletionWrongArg(t *testing.T) {
 	completionCmd := NewCompletionCommand(&commands.KnParams{})
-	c := commands.CaptureStdout(t)
-	completionCmd.Run(&cobra.Command{}, []string{"sh"})
-	out := c.Close()
-	assert.Assert(t, util.ContainsAll(out, "bash", "zsh", "only", "supports"))
+	err := completionCmd.RunE(&cobra.Command{}, []string{"sh"})
+	assert.Assert(t, util.ContainsAll(err.Error(), "bash", "zsh", "support"))
 }

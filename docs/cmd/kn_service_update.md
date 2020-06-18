@@ -1,13 +1,13 @@
 ## kn service update
 
-Update a service.
+Update a service
 
 ### Synopsis
 
-Update a service.
+Update a service
 
 ```
-kn service update NAME [flags]
+kn service update NAME
 ```
 
 ### Examples
@@ -91,5 +91,5 @@ kn service update NAME [flags]
 
 ### SEE ALSO
 
-* [kn service](kn_service.md)	 - Service command group
+* [kn service](kn_service.md)	 - Manage Knative services
 

@@ -51,6 +51,7 @@ be used:
 - `create` creates a resource.
 - `update` updates a resource.
 - `delete` deletes a resource.
+- `apply` for an idempotent "create-or-update", much like `kubetl apply`
 
 For a given resource, create and update should use the same arguments as much as
 possible and where it makes sense.
@@ -84,6 +85,7 @@ Flags are used for specifying the input for `kn` commands and can have different
 characteristics:
 
 - They can be _mandatory_ or _optional_
+- Mandatory flags are mentioned in the `Use` attribute of a command like in `service NAME --image IMAGE` for `ServiceCommand`
 - Optional flags can have _default values_
 - Flag values can be _scalars_, _binary_, _lists_ or _maps_ (see below for
   details)

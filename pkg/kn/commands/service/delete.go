@@ -30,8 +30,8 @@ func NewServiceDeleteCommand(p *commands.KnParams) *cobra.Command {
 	var waitFlags commands.WaitFlags
 
 	serviceDeleteCommand := &cobra.Command{
-		Use:   "delete NAME",
-		Short: "Delete a service.",
+		Use:   "delete NAME [NAME ...]",
+		Short: "Delete services",
 		Example: `
   # Delete a service 'svc1' in default namespace
   kn service delete svc1

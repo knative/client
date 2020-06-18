@@ -33,7 +33,7 @@ func NewTriggerCreateCommand(p *commands.KnParams) *cobra.Command {
 	var sinkFlags flags.SinkFlags
 
 	cmd := &cobra.Command{
-		Use:   "create NAME --broker BROKER --sink SINK",
+		Use:   "create NAME --sink SINK",
 		Short: "Create a trigger",
 		Example: `
   # Create a trigger 'mytrigger' to declare a subscription to events from default broker. The subscriber is service 'mysvc'

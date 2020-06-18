@@ -29,7 +29,7 @@ const (
 func NewTriggerCommand(p *commands.KnParams) *cobra.Command {
 	triggerCmd := &cobra.Command{
 		Use:   "trigger",
-		Short: "Trigger command group",
+		Short: "Manage event triggers",
 	}
 	triggerCmd.AddCommand(NewTriggerCreateCommand(p))
 	triggerCmd.AddCommand(NewTriggerUpdateCommand(p))

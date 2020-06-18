@@ -32,8 +32,8 @@ func NewPingUpdateCommand(p *commands.KnParams) *cobra.Command {
 	var sinkFlags flags.SinkFlags
 
 	cmd := &cobra.Command{
-		Use:   "update NAME --schedule SCHEDULE --sink SERVICE --data DATA",
-		Short: "Update a Ping source.",
+		Use:   "update NAME",
+		Short: "Update a ping source",
 		Example: `
   # Update the schedule of a Ping source 'my-ping' to fire every minute
   kn source ping update my-ping --schedule "* * * * *"`,

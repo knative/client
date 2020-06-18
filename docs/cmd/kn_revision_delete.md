@@ -1,13 +1,13 @@
 ## kn revision delete
 
-Delete a revision.
+Delete revisions
 
 ### Synopsis
 
-Delete a revision.
+Delete revisions
 
 ```
-kn revision delete NAME [flags]
+kn revision delete NAME [NAME ...]
 ```
 
 ### Examples
@@ -39,5 +39,5 @@ kn revision delete NAME [flags]
 
 ### SEE ALSO
 
-* [kn revision](kn_revision.md)	 - Revision command group
+* [kn revision](kn_revision.md)	 - Manage service revisions
 

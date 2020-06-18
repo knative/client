@@ -1,13 +1,13 @@
 ## kn source apiserver delete
 
-Delete an ApiServer source.
+Delete an api-server source
 
 ### Synopsis
 
-Delete an ApiServer source.
+Delete an api-server source
 
 ```
-kn source apiserver delete NAME [flags]
+kn source apiserver delete NAME
 ```
 
 ### Examples
@@ -35,5 +35,5 @@ kn source apiserver delete NAME [flags]
 
 ### SEE ALSO
 
-* [kn source apiserver](kn_source_apiserver.md)	 - Kubernetes API Server Event Source command group
+* [kn source apiserver](kn_source_apiserver.md)	 - Manage Kubernetes api-server sources
 

@@ -1,13 +1,13 @@
 ## kn source binding update
 
-Update a sink binding.
+Update a sink binding
 
 ### Synopsis
 
-Update a sink binding.
+Update a sink binding
 
 ```
-kn source binding update NAME --subject SCHEDULE --sink SINK --ce-override OVERRIDE [flags]
+kn source binding update NAME
 ```
 
 ### Examples
@@ -38,5 +38,5 @@ kn source binding update NAME --subject SCHEDULE --sink SINK --ce-override OVERR
 
 ### SEE ALSO
 
-* [kn source binding](kn_source_binding.md)	 - Sink binding command group
+* [kn source binding](kn_source_binding.md)	 - Manage sink bindings
 

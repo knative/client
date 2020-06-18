@@ -1,13 +1,13 @@
 ## kn version
 
-Prints the client version
+Show the version of this client
 
 ### Synopsis
 
-Prints the client version
+Show the version of this client
 
 ```
-kn version [flags]
+kn version
 ```
 
 ### Options
@@ -27,5 +27,5 @@ kn version [flags]
 
 ### SEE ALSO
 
-* [kn](kn.md)	 - Knative client
+* [kn](kn.md)	 - kn manages Knative Serving and Eventing resources
 

@@ -50,7 +50,7 @@ type knVersion struct {
 func NewVersionCommand(p *commands.KnParams) *cobra.Command {
 	versionCmd := &cobra.Command{
 		Use:   "version",
-		Short: "Prints the client version",
+		Short: "Show the version of this client",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if cmd.Flags().Changed("output") {
 				return printVersionMachineReadable(cmd)

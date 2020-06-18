@@ -1,13 +1,13 @@
 ## kn source binding list
 
-List sink bindings.
+List sink bindings
 
 ### Synopsis
 
-List sink bindings.
+List sink bindings
 
 ```
-kn source binding list [flags]
+kn source binding list
 ```
 
 ### Examples
@@ -43,5 +43,5 @@ kn source binding list [flags]
 
 ### SEE ALSO
 
-* [kn source binding](kn_source_binding.md)	 - Sink binding command group
+* [kn source binding](kn_source_binding.md)	 - Manage sink bindings
 

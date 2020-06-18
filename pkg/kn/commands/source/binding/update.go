@@ -32,8 +32,8 @@ func NewBindingUpdateCommand(p *commands.KnParams) *cobra.Command {
 	var sinkFlags flags.SinkFlags
 
 	cmd := &cobra.Command{
-		Use:   "update NAME --subject SCHEDULE --sink SINK --ce-override OVERRIDE",
-		Short: "Update a sink binding.",
+		Use:   "update NAME",
+		Short: "Update a sink binding",
 		Example: `
   # Update the subject of a sink binding 'my-binding' to a new cronjob with label selector 'app=ping'  
   kn source binding update my-binding --subject cronjob:batch/v1beta1:app=ping"`,

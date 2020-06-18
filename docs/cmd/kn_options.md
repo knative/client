@@ -1,19 +1,26 @@
-## kn route
+## kn options
 
-List and describe service routes
+Print the list of flags inherited by all commands
 
 ### Synopsis
 
-List and describe service routes
+Print the list of flags inherited by all commands
 
 ```
-kn route
+kn options [flags]
+```
+
+### Examples
+
+```
+# Print flags inherited by all commands
+kn options
 ```
 
 ### Options
 
 ```
-  -h, --help   help for route
+  -h, --help   help for options
 ```
 
 ### Options inherited from parent commands
@@ -27,6 +34,4 @@ kn route
 ### SEE ALSO
 
 * [kn](kn.md)	 - kn manages Knative Serving and Eventing resources
-* [kn route describe](kn_route_describe.md)	 - Show details of a route
-* [kn route list](kn_route_list.md)	 - List routes
 
