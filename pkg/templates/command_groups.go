@@ -15,7 +15,6 @@
 package templates
 
 import (
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -47,11 +46,6 @@ func (g CommandGroups) SetRootUsage(rootCmd *cobra.Command) {
 		CommandGroups: g,
 	}
 	setHelpFlagsToSubCommands(rootCmd)
-	rootCmd.SilenceUsage = true
-	rootCmd.SilenceErrors = true
-	rootCmd.SetFlagErrorFunc(func(c *cobra.Command, err error) error {
-		return errors.Errorf("%s for '%s'", err.Error(), c.CommandPath())
-	})
 	rootCmd.SetUsageFunc(engine.usageFunc())
 	rootCmd.SetHelpFunc(engine.helpFunc())
 }

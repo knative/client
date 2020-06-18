@@ -15,6 +15,7 @@
 package root
 
 import (
+	"errors"
 	"strings"
 	"testing"
 
@@ -43,6 +44,10 @@ func TestNewRootCommand(t *testing.T) {
 	assert.Assert(t, rootCmd.PersistentFlags().Lookup("kubeconfig") != nil)
 
 	assert.Assert(t, rootCmd.RunE == nil)
+
+	fErrorFunc := rootCmd.FlagErrorFunc()
+	err = fErrorFunc(rootCmd, errors.New("test"))
+	assert.Equal(t, err.Error(), "test for 'kn'")
 }
 
 func TestSubCommands(t *testing.T) {

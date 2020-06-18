@@ -15,7 +15,6 @@
 package templates
 
 import (
-	"errors"
 	"fmt"
 	"testing"
 
@@ -54,14 +53,9 @@ func TestSetUsage(t *testing.T) {
 	for _, cmd := range rootCmd.Commands() {
 		assert.Assert(t, cmd.DisableFlagsInUseLine)
 	}
-	assert.Assert(t, rootCmd.SilenceUsage)
-	assert.Assert(t, rootCmd.SilenceErrors)
-	fErrorFunc := rootCmd.FlagErrorFunc()
-	err := fErrorFunc(rootCmd, errors.New("test"))
-	assert.Equal(t, err.Error(), "test for 'root'")
 
 	capture := commands.CaptureOutput(t)
-	err = (rootCmd.UsageFunc())(rootCmd)
+	err := (rootCmd.UsageFunc())(rootCmd)
 	assert.NilError(t, err)
 	stdOut, stdErr := capture.Close()
 	assert.Equal(t, stdErr, "")

@@ -54,6 +54,11 @@ func NewRootCommand() (*cobra.Command, error) {
 		// Disable docs header
 		DisableAutoGenTag: true,
 
+		// Disable usage & error printing from cobra as we
+		// are handling all error output on our own
+		SilenceUsage:  true,
+		SilenceErrors: true,
+
 		// Validate our boolean configs
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			return flags.ReconcileBoolFlags(cmd.Flags())
@@ -110,6 +115,11 @@ func NewRootCommand() (*cobra.Command, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// Add some command context when flags can not be parsed
+	rootCmd.SetFlagErrorFunc(func(c *cobra.Command, err error) error {
+		return errors.Errorf("%s for '%s'", err.Error(), c.CommandPath())
+	})
 
 	// For glog parse error. TOO: Check why this is needed
 	flag.CommandLine.Parse([]string{})
