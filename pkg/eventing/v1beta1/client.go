@@ -44,6 +44,8 @@ type KnEventingClient interface {
 	UpdateTrigger(trigger *v1beta1.Trigger) error
 	// CreateBroker is used to create an instance of broker
 	CreateBroker(broker *v1beta1.Broker) error
+	// GetBroker is used to get an instance of broker
+	GetBroker(name string) (*v1beta1.Broker, error)
 	// DeleteBroker is used to delete an instance of broker
 	DeleteBroker(name string) error
 	// ListBroker returns list of broker CRDs
@@ -214,6 +216,15 @@ func (c *knEventingClient) CreateBroker(broker *v1beta1.Broker) error {
 		return kn_errors.GetError(err)
 	}
 	return nil
+}
+
+//GetBroker is used to get an instance of broker
+func (c *knEventingClient) GetBroker(name string) (*v1beta1.Broker, error) {
+	trigger, err := c.client.Brokers(c.namespace).Get(name, apis_v1.GetOptions{})
+	if err != nil {
+		return nil, kn_errors.GetError(err)
+	}
+	return trigger, nil
 }
 
 // DeleteBroker is used to delete an instance of broker

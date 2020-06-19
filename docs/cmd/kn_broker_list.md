@@ -1,10 +1,10 @@
 ## kn broker list
 
-List brokers.
+List brokers
 
 ### Synopsis
 
-List brokers.
+List brokers
 
 ```
 kn broker list

@@ -27,7 +27,8 @@ kn broker
 ### SEE ALSO
 
 * [kn](kn.md)	 - kn manages Knative Serving and Eventing resources
-* [kn broker create](kn_broker_create.md)	 - Create a broker.
-* [kn broker delete](kn_broker_delete.md)	 - Delete a broker.
-* [kn broker list](kn_broker_list.md)	 - List brokers.
+* [kn broker create](kn_broker_create.md)	 - Create a broker
+* [kn broker delete](kn_broker_delete.md)	 - Delete a broker
+* [kn broker describe](kn_broker_describe.md)	 - Describe broker
+* [kn broker list](kn_broker_list.md)	 - List brokers
 

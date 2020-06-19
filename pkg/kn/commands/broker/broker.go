@@ -29,6 +29,7 @@ func NewBrokerCommand(p *commands.KnParams) *cobra.Command {
 		Short: "Manage message broker",
 	}
 	brokerCmd.AddCommand(NewBrokerCreateCommand(p))
+	brokerCmd.AddCommand(NewBrokerDescribeCommand(p))
 	brokerCmd.AddCommand(NewBrokerDeleteCommand(p))
 	brokerCmd.AddCommand(NewBrokerListCommand(p))
 	return brokerCmd

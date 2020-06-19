@@ -1,10 +1,10 @@
 ## kn broker delete
 
-Delete a broker.
+Delete a broker
 
 ### Synopsis
 
-Delete a broker.
+Delete a broker
 
 ```
 kn broker delete NAME

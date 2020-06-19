@@ -212,6 +212,27 @@ func TestBrokerCreate(t *testing.T) {
 	})
 }
 
+func TestBrokerGet(t *testing.T) {
+	var name = "foo"
+	server, client := setup()
+
+	server.AddReactor("get", "brokers",
+		func(a client_testing.Action) (bool, runtime.Object, error) {
+			name := a.(client_testing.GetAction).GetName()
+			if name == "errorBroker" {
+				return true, nil, fmt.Errorf("error while getting broker %s", name)
+			}
+			return true, newBroker(name), nil
+		})
+
+	broker, err := client.GetBroker(name)
+	assert.NilError(t, err)
+	assert.Equal(t, broker.Name, name)
+
+	_, err = client.GetBroker("errorBroker")
+	assert.ErrorContains(t, err, "errorBroker")
+}
+
 func TestBrokerDelete(t *testing.T) {
 	var name = "fooBroker"
 	server, client := setup()

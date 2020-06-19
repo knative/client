@@ -125,6 +125,17 @@ func (c *MockKnEventingClient) CreateBroker(broker *v1beta1.Broker) error {
 	return mock.ErrorOrNil(call.Result[0])
 }
 
+// GetBroker records a call for GetBroker with the expected object or error. Either trigger or err should be nil
+func (sr *EventingRecorder) GetBroker(name interface{}, broker *v1beta1.Broker, err error) {
+	sr.r.Add("GetBroker", []interface{}{name}, []interface{}{broker, err})
+}
+
+// GetBroker performs a previously recorded action
+func (c *MockKnEventingClient) GetBroker(name string) (*v1beta1.Broker, error) {
+	call := c.recorder.r.VerifyCall("GetBroker", name)
+	return call.Result[0].(*v1beta1.Broker), mock.ErrorOrNil(call.Result[1])
+}
+
 // DeleteBroker records a call for DeleteBroker with the expected error (nil if none)
 func (sr *EventingRecorder) DeleteBroker(name interface{}, err error) {
 	sr.r.Add("DeleteBroker", []interface{}{name}, []interface{}{err})

@@ -1,13 +1,13 @@
-## kn broker create
+## kn broker describe
 
-Create a broker
+Describe broker
 
 ### Synopsis
 
-Create a broker
+Describe broker
 
 ```
-kn broker create NAME
+kn broker describe NAME
 ```
 
 ### Examples
@@ -24,7 +24,7 @@ kn broker create NAME
 ### Options
 
 ```
-  -h, --help               help for create
+  -h, --help               help for describe
   -n, --namespace string   Specify the namespace to operate in.
 ```
 
