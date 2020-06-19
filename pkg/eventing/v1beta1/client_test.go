@@ -184,10 +184,85 @@ func TestTriggerBuilder(t *testing.T) {
 
 }
 
+func TestBrokerCreate(t *testing.T) {
+	var name = "broker"
+	server, client := setup()
+
+	objNew := newBroker(name)
+
+	server.AddReactor("create", "brokers",
+		func(a client_testing.Action) (bool, runtime.Object, error) {
+			assert.Equal(t, testNamespace, a.GetNamespace())
+			name := a.(client_testing.CreateAction).GetObject().(metav1.Object).GetName()
+			if name == objNew.Name {
+				objNew.Generation = 2
+				return true, objNew, nil
+			}
+			return true, nil, fmt.Errorf("error while creating broker %s", name)
+		})
+
+	t.Run("create broker without error", func(t *testing.T) {
+		err := client.CreateBroker(objNew)
+		assert.NilError(t, err)
+	})
+
+	t.Run("create broker with an error returns an error object", func(t *testing.T) {
+		err := client.CreateBroker(newBroker("unknown"))
+		assert.ErrorContains(t, err, "unknown")
+	})
+}
+
+func TestBrokerDelete(t *testing.T) {
+	var name = "fooBroker"
+	server, client := setup()
+
+	server.AddReactor("delete", "brokers",
+		func(a client_testing.Action) (bool, runtime.Object, error) {
+			name := a.(client_testing.DeleteAction).GetName()
+			if name == "errorBroker" {
+				return true, nil, fmt.Errorf("error while deleting broker %s", name)
+			}
+			return true, nil, nil
+		})
+
+	err := client.DeleteTrigger(name)
+	assert.NilError(t, err)
+
+	err = client.DeleteBroker("errorBroker")
+	assert.ErrorContains(t, err, "errorBroker")
+}
+
+func TestBrokerList(t *testing.T) {
+	serving, client := setup()
+
+	t.Run("broker list returns a list of brokers", func(t *testing.T) {
+		broker1 := newBroker("foo1")
+		broker2 := newBroker("foo2")
+
+		serving.AddReactor("list", "brokers",
+			func(a client_testing.Action) (bool, runtime.Object, error) {
+				assert.Equal(t, testNamespace, a.GetNamespace())
+				return true, &v1beta1.BrokerList{Items: []v1beta1.Broker{*broker1, *broker2}}, nil
+			})
+
+		brokerList, err := client.ListBrokers()
+		assert.NilError(t, err)
+		assert.Assert(t, len(brokerList.Items) == 2)
+		assert.Equal(t, brokerList.Items[0].Name, "foo1")
+		assert.Equal(t, brokerList.Items[1].Name, "foo2")
+	})
+}
+
 func newTrigger(name string) *v1beta1.Trigger {
 	return NewTriggerBuilder(name).
 		Namespace(testNamespace).
 		Broker("default").
 		Filters(map[string]string{"type": "foo"}).
+		Build()
+}
+
+func newBroker(name string) *v1beta1.Broker {
+	return NewBrokerBuilder(name).
+		Namespace(testNamespace).
 		Build()
 }

@@ -25,6 +25,7 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
 
 	"knative.dev/client/pkg/kn/commands"
+	"knative.dev/client/pkg/kn/commands/broker"
 	"knative.dev/client/pkg/kn/commands/completion"
 	"knative.dev/client/pkg/kn/commands/options"
 	"knative.dev/client/pkg/kn/commands/plugin"
@@ -88,6 +89,7 @@ func NewRootCommand() (*cobra.Command, error) {
 		{
 			Header: "Eventing Commands:",
 			Commands: []*cobra.Command{
+				broker.NewBrokerCommand(p),
 				source.NewSourceCommand(p),
 				trigger.NewTriggerCommand(p),
 			},

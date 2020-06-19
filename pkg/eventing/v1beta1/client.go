@@ -42,6 +42,12 @@ type KnEventingClient interface {
 	ListTriggers() (*v1beta1.TriggerList, error)
 	// UpdateTrigger is used to update an instance of trigger
 	UpdateTrigger(trigger *v1beta1.Trigger) error
+	// CreateBroker is used to create an instance of broker
+	CreateBroker(broker *v1beta1.Broker) error
+	// DeleteBroker is used to delete an instance of broker
+	DeleteBroker(name string) error
+	// ListBroker returns list of broker CRDs
+	ListBrokers() (*v1beta1.BrokerList, error)
 }
 
 // KnEventingClient is a combination of Sources client interface and namespace
@@ -93,7 +99,7 @@ func (c *knEventingClient) ListTriggers() (*v1beta1.TriggerList, error) {
 		return nil, kn_errors.GetError(err)
 	}
 	triggerListNew := triggerList.DeepCopy()
-	err = updateTriggerGvk(triggerListNew)
+	err = updateEventingGvk(triggerListNew)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +107,7 @@ func (c *knEventingClient) ListTriggers() (*v1beta1.TriggerList, error) {
 	triggerListNew.Items = make([]v1beta1.Trigger, len(triggerList.Items))
 	for idx, trigger := range triggerList.Items {
 		triggerClone := trigger.DeepCopy()
-		err := updateTriggerGvk(triggerClone)
+		err := updateEventingGvk(triggerClone)
 		if err != nil {
 			return nil, err
 		}
@@ -125,7 +131,7 @@ func (c *knEventingClient) Namespace() string {
 }
 
 // update with the v1beta1 group + version
-func updateTriggerGvk(obj runtime.Object) error {
+func updateEventingGvk(obj runtime.Object) error {
 	return util.UpdateGroupVersionKindWithScheme(obj, v1beta1.SchemeGroupVersion, scheme.Scheme)
 }
 
@@ -199,4 +205,71 @@ func (b *TriggerBuilder) Filters(filters map[string]string) *TriggerBuilder {
 // Build to return an instance of trigger object
 func (b *TriggerBuilder) Build() *v1beta1.Trigger {
 	return b.trigger
+}
+
+// CreateBroker is used to create an instance of broker
+func (c *knEventingClient) CreateBroker(broker *v1beta1.Broker) error {
+	_, err := c.client.Brokers(c.namespace).Create(broker)
+	if err != nil {
+		return kn_errors.GetError(err)
+	}
+	return nil
+}
+
+// DeleteBroker is used to delete an instance of broker
+func (c *knEventingClient) DeleteBroker(name string) error {
+	err := c.client.Brokers(c.namespace).Delete(name, &apis_v1.DeleteOptions{})
+	if err != nil {
+		return kn_errors.GetError(err)
+	}
+	return nil
+}
+
+// ListBrokers is used to retrieve the list of broker instances
+func (c *knEventingClient) ListBrokers() (*v1beta1.BrokerList, error) {
+	brokerList, err := c.client.Brokers(c.namespace).List(apis_v1.ListOptions{})
+	if err != nil {
+		return nil, kn_errors.GetError(err)
+	}
+	brokerListNew := brokerList.DeepCopy()
+	err = updateEventingGvk(brokerListNew)
+	if err != nil {
+		return nil, err
+	}
+
+	brokerListNew.Items = make([]v1beta1.Broker, len(brokerList.Items))
+	for idx, trigger := range brokerList.Items {
+		triggerClone := trigger.DeepCopy()
+		err := updateEventingGvk(triggerClone)
+		if err != nil {
+			return nil, err
+		}
+		brokerListNew.Items[idx] = *triggerClone
+	}
+	return brokerListNew, nil
+}
+
+// BrokerBuilder is for building the broker
+type BrokerBuilder struct {
+	broker *v1beta1.Broker
+}
+
+// NewBrokerBuilder for building broker object
+func NewBrokerBuilder(name string) *BrokerBuilder {
+	return &BrokerBuilder{broker: &v1beta1.Broker{
+		ObjectMeta: meta_v1.ObjectMeta{
+			Name: name,
+		},
+	}}
+}
+
+// Namespace for broker builder
+func (b *BrokerBuilder) Namespace(ns string) *BrokerBuilder {
+	b.broker.Namespace = ns
+	return b
+}
+
+// Build to return an instance of broker object
+func (b *BrokerBuilder) Build() *v1beta1.Broker {
+	return b.broker
 }

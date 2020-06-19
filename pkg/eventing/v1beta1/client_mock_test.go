@@ -33,12 +33,20 @@ func TestMockKnClient(t *testing.T) {
 	recorder.ListTriggers(nil, nil)
 	recorder.UpdateTrigger(&v1beta1.Trigger{}, nil)
 
+	recorder.CreateBroker(&v1beta1.Broker{}, nil)
+	recorder.DeleteBroker("foo", nil)
+	recorder.ListBrokers(nil, nil)
+
 	// Call all service
 	client.GetTrigger("hello")
 	client.CreateTrigger(&v1beta1.Trigger{})
 	client.DeleteTrigger("hello")
 	client.ListTriggers()
 	client.UpdateTrigger(&v1beta1.Trigger{})
+
+	client.CreateBroker(&v1beta1.Broker{})
+	client.DeleteBroker("foo")
+	client.ListBrokers()
 
 	// Validate
 	recorder.Validate()
