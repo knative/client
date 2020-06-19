@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 package broker
 
 import (
@@ -39,7 +40,7 @@ var listExample = `
 
 // NewBrokerListCommand represents command to list all brokers
 func NewBrokerListCommand(p *commands.KnParams) *cobra.Command {
-	brokerListFlags := flags.NewListPrintFlags(BrokerListHandlers)
+	brokerListFlags := flags.NewListPrintFlags(ListHandlers)
 
 	cmd := &cobra.Command{
 		Use:     "list",
@@ -82,8 +83,8 @@ func NewBrokerListCommand(p *commands.KnParams) *cobra.Command {
 	return cmd
 }
 
-// BrokerListHandlers handles printing human readable table for `kn broker list` command's output
-func BrokerListHandlers(h hprinters.PrintHandler) {
+// ListHandlers handles printing human readable table for `kn broker list` command's output
+func ListHandlers(h hprinters.PrintHandler) {
 	brokerColumnDefinitions := []metav1beta1.TableColumnDefinition{
 		{Name: "Namespace", Type: "string", Description: "Namespace of the Broker instance", Priority: 0},
 		{Name: "Name", Type: "string", Description: "Name of the Broker instance", Priority: 1},
