@@ -18,12 +18,9 @@
 package e2e
 
 import (
-	"strings"
 	"testing"
-	"time"
 
 	"gotest.tools/assert"
-	"k8s.io/apimachinery/pkg/util/wait"
 
 	"knative.dev/client/lib/test"
 	"knative.dev/client/pkg/util"
@@ -40,9 +37,9 @@ func TestBrokerTrigger(t *testing.T) {
 	r := test.NewKnRunResultCollector(t, it)
 	defer r.DumpIfFailed()
 
-	err = lableNamespaceForDefaultBroker(t, it)
+	err = test.LabelNamespaceForDefaultBroker(r)
 	assert.NilError(t, err)
-	defer unlableNamespaceForDefaultBroker(t, it)
+	defer test.UnlabelNamespaceForDefaultBroker(r)
 
 	test.ServiceCreate(r, "sinksvc0")
 	test.ServiceCreate(r, "sinksvc1")
@@ -81,30 +78,6 @@ func TestBrokerTrigger(t *testing.T) {
 }
 
 // Private functions
-
-func unlableNamespaceForDefaultBroker(t *testing.T, it *test.KnTest) {
-	_, err := test.Kubectl{}.Run("label", "namespace", it.Kn().Namespace(), "knative-eventing-injection-")
-	if err != nil {
-		t.Fatalf("Error executing 'kubectl label namespace %s knative-eventing-injection-'. Error: %s", it.Kn().Namespace(), err.Error())
-	}
-}
-
-func lableNamespaceForDefaultBroker(t *testing.T, it *test.KnTest) error {
-	_, err := test.Kubectl{}.Run("label", "namespace", it.Kn().Namespace(), "knative-eventing-injection=enabled")
-
-	if err != nil {
-		t.Fatalf("Error executing 'kubectl label namespace %s knative-eventing-injection=enabled'. Error: %s", it.Kn().Namespace(), err.Error())
-	}
-
-	return wait.PollImmediate(10*time.Second, 5*time.Minute, func() (bool, error) {
-		out, err := test.NewKubectl(it.Kn().Namespace()).Run("get", "broker", "-o=jsonpath='{.items[0].status.conditions[?(@.type==\"Ready\")].status}'")
-		if err != nil {
-			return false, nil
-		} else {
-			return strings.Contains(out, "True"), nil
-		}
-	})
-}
 
 func triggerCreate(r *test.KnRunResultCollector, name string, sinksvc string, filters []string) {
 	args := []string{"trigger", "create", name, "--broker", "default", "--sink", "svc:" + sinksvc}
