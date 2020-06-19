@@ -33,7 +33,18 @@ type SinkFlags struct {
 }
 
 func (i *SinkFlags) Add(cmd *cobra.Command) {
-	cmd.Flags().StringVarP(&i.sink, "sink", "s", "", "Addressable sink for events")
+	cmd.Flags().StringVarP(&i.sink,
+		"sink",
+		"s",
+		"",
+		"Addressable sink for events. "+
+			"You can specify broker, service or URI. "+
+			"Examples: '--sink broker:nest' for 'nest' broker, "+
+			"'--sink https://event.receiver.uri' for an URI (identified by 'http' or 'https'), "+
+			"'--sink service:receiver' for 'receiver' knative service, "+
+			"you can also use prefix alias 'svc' for 'service'. "+
+			"If do not specify a prefix, it is considered as knative service, "+
+			"i.e. '--sink receiver' is same as '--sink svc:receiver'.")
 
 	for _, p := range config.GlobalConfig.SinkMappings() {
 		//user configration might override the default configuration
