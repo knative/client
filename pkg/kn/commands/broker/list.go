@@ -29,7 +29,7 @@ import (
 	"knative.dev/eventing/pkg/apis/eventing/v1beta1"
 )
 
-var list_example = `
+var listExample = `
 # List all brokers
   kn broker list
 
@@ -37,13 +37,14 @@ var list_example = `
   kn broker list -o json
 `
 
+// NewBrokerListCommand represents command to list all brokers
 func NewBrokerListCommand(p *commands.KnParams) *cobra.Command {
 	brokerListFlags := flags.NewListPrintFlags(BrokerListHandlers)
 
 	cmd := &cobra.Command{
 		Use:     "list",
 		Short:   "List brokers.",
-		Example: list_example,
+		Example: listExample,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			namespace, err := p.GetNamespace(cmd)
 			if err != nil {

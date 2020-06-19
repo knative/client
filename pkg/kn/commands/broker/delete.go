@@ -25,19 +25,20 @@ import (
 	"knative.dev/client/pkg/kn/commands"
 )
 
-var delete_example = `
+var deleteExample = `
 # Delete a broker 'mybroker' in the current namespace
   kn broker create mybroker
 # Delete a broker 'mybroker' in the 'myproject' namespace
   kn broker create mybroker --namespace myproject
 `
 
+// NewBrokerDeleteCommand represents command to existing delete broker
 func NewBrokerDeleteCommand(p *commands.KnParams) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "delete NAME",
 		Short:   "Delete a broker.",
-		Example: delete_example,
+		Example: deleteExample,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
 				return errors.New("'broker delete' requires the broker name given as single argument")

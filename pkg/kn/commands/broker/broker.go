@@ -22,6 +22,7 @@ import (
 	"knative.dev/client/pkg/kn/commands"
 )
 
+// NewBrokerCommand represents broker management commands
 func NewBrokerCommand(p *commands.KnParams) *cobra.Command {
 	brokerCmd := &cobra.Command{
 		Use:   "broker",

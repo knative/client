@@ -26,19 +26,20 @@ import (
 	"knative.dev/client/pkg/kn/commands"
 )
 
-var create_example = `
+var createExample = `
 # Create a broker 'mybroker' in the current namespace
   kn broker create mybroker
 # Create a broker 'mybroker' in the 'myproject' namespace
   kn broker create mybroker --namespace myproject
 `
 
+// NewBrokerCreateCommand represents command to create new broker instance
 func NewBrokerCreateCommand(p *commands.KnParams) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "create NAME",
 		Short:   "Create a broker.",
-		Example: create_example,
+		Example: createExample,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
 				return errors.New("'broker create' requires the broker name given as single argument")
