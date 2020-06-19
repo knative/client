@@ -40,7 +40,7 @@ func TestResolve(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "mysvc", Namespace: "default"},
 	}
 	defaultBroker := &eventingv1beta1.Broker{
-		TypeMeta:   metav1.TypeMeta{Kind: "Broker", APIVersion: "eventing.knative.dev/v1alpha1"},
+		TypeMeta:   metav1.TypeMeta{Kind: "Broker", APIVersion: "eventing.knative.dev/v1beta1"},
 		ObjectMeta: metav1.ObjectMeta{Name: "default", Namespace: "default"},
 	}
 
@@ -59,7 +59,7 @@ func TestResolve(t *testing.T) {
 		{"svc:absent", nil, "\"absent\" not found"},
 		{"broker:default", &duckv1.Destination{
 			Ref: &duckv1.KReference{Kind: "Broker",
-				APIVersion: "eventing.knative.dev/v1alpha1",
+				APIVersion: "eventing.knative.dev/v1beta1",
 				Namespace:  "default",
 				Name:       "default"}}, ""},
 		{"http://target.example.com", &duckv1.Destination{

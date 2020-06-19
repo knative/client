@@ -50,7 +50,7 @@ var sinkMappings = map[string]schema.GroupVersionResource{
 	"broker": {
 		Resource: "brokers",
 		Group:    "eventing.knative.dev",
-		Version:  "v1alpha1",
+		Version:  "v1beta1",
 	},
 	"service": {
 		Resource: "services",

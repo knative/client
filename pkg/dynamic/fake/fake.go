@@ -29,7 +29,7 @@ import (
 func CreateFakeKnDynamicClient(testNamespace string, objects ...runtime.Object) dynamic.KnDynamicClient {
 	scheme := runtime.NewScheme()
 	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "serving.knative.dev", Version: "v1", Kind: "Service"}, &servingv1.Service{})
-	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "eventing.knative.dev", Version: "v1alpha1", Kind: "Broker"}, &eventingv1beta1.Broker{})
+	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "eventing.knative.dev", Version: "v1beta1", Kind: "Broker"}, &eventingv1beta1.Broker{})
 	client := dynamicfake.NewSimpleDynamicClient(scheme, objects...)
 	return dynamic.NewKnDynamicClient(client, testNamespace)
 }
