@@ -37,7 +37,7 @@ func NewBrokerDeleteCommand(p *commands.KnParams) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "delete NAME",
-		Short:   "Delete a broker.",
+		Short:   "Delete a broker",
 		Example: deleteExample,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
