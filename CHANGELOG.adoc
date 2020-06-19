@@ -12,17 +12,34 @@
 | https://github.com/knative/client/pull/[#]
 ////
 
+## Unreleased
+
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🎁
+| Group commands in usage output with `kn --help`
+| https://github.com/knative/client/pull/887[#887]
+|===
+
+## v0.15.2 (2020-06-16)
+
 [cols="1,10,3", options="header", width="100%"]
 |===
 | | Description | PR
 
 | 🐛
-| Return error message from using `--untag` with nonexistent tag
+| Fix build.sh for macOS users
+| https://github.com/knative/client/pull/883[#883]
+
+| 🐛
+| Return error message when using --untag with nonexistent tag
 | https://github.com/knative/client/pull/880[#880]
 
-| 🎁
-| Group commands in usage output with `kn --help`
-| https://github.com/knative/client/pull/887[#887]
+| ✨
+| Update go.mod to specify the module is go1.14
+| https://github.com/knative/client/pull/866[#866]
 |===
 
 ## v0.15.1 (2020-06-03)
