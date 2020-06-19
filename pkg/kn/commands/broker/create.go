@@ -38,7 +38,7 @@ func NewBrokerCreateCommand(p *commands.KnParams) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "create NAME",
-		Short:   "Create a broker.",
+		Short:   "Create a broker",
 		Example: createExample,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
