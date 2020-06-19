@@ -24,7 +24,6 @@ import (
 // LabelNamespaceForDefaultBroker adds label 'knative-eventing-injection=enabled' to the configured namespace
 func LabelNamespaceForDefaultBroker(r *KnRunResultCollector) error {
 	_, err := Kubectl{}.Run("label", "namespace", r.KnTest().Kn().Namespace(), "knative-eventing-injection=enabled")
-	r
 
 	if err != nil {
 		r.T().Fatalf("Error executing 'kubectl label namespace %s knative-eventing-injection=enabled'. Error: %s", r.KnTest().Kn().Namespace(), err.Error())
@@ -44,6 +43,6 @@ func LabelNamespaceForDefaultBroker(r *KnRunResultCollector) error {
 func UnlabelNamespaceForDefaultBroker(r *KnRunResultCollector) {
 	_, err := Kubectl{}.Run("label", "namespace", r.KnTest().Kn().Namespace(), "knative-eventing-injection-")
 	if err != nil {
-		t.Fatalf("Error executing 'kubectl label namespace %s knative-eventing-injection-'. Error: %s", r.KnTest().Kn().Namespace(), err.Error())
+		r.T().Fatalf("Error executing 'kubectl label namespace %s knative-eventing-injection-'. Error: %s", r.KnTest().Kn().Namespace(), err.Error())
 	}
 }
