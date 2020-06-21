@@ -18,6 +18,7 @@ package broker
 
 import (
 	"errors"
+	"strings"
 	"testing"
 
 	"gotest.tools/assert"
@@ -45,6 +46,16 @@ func TestBrokerDescribe(t *testing.T) {
 	assert.Assert(t, cmp.Regexp("Namespace:\\s+default", out))
 
 	assert.Assert(t, util.ContainsAll(out, "Address:", "URL:", "http://foo-broker.test"))
+	assert.Assert(t, util.ContainsAll(out, "Conditions:", "Ready"))
+
+	// There're 2 empty lines used in the "describe" formatting
+	lineCounter := 0
+	for _, line := range strings.Split(strings.TrimSpace(out), "\n") {
+		if line == "" {
+			lineCounter++
+		}
+	}
+	assert.Equal(t, lineCounter, 2)
 
 	// Validate that all recorded API methods have been called
 	recorder.Validate()
@@ -72,6 +83,14 @@ func getBroker() *v1beta1.Broker {
 		Status: v1beta1.BrokerStatus{
 			Address: duckv1.Addressable{
 				URL: &apis.URL{Scheme: "http", Host: "foo-broker.test"},
+			},
+			Status: duckv1.Status{
+				Conditions: duckv1.Conditions{
+					apis.Condition{
+						Type:   "Ready",
+						Status: "True",
+					},
+				},
 			},
 		},
 	}
