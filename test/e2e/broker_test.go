@@ -56,8 +56,8 @@ func TestBroker(t *testing.T) {
 	verifyBrokerList(r, "foo3", "foo4")
 	verifyBrokerListOutputName(r, "foo3", "foo4")
 	brokerDelete(r, "foo3")
-	verifyBrokerNotfound(r, "foo3")
 	brokerDelete(r, "foo4")
+	verifyBrokerNotfound(r, "foo3")
 	verifyBrokerNotfound(r, "foo4")
 }
 
