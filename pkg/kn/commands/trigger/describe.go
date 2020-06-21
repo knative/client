@@ -98,10 +98,10 @@ func NewTriggerDescribeCommand(p *commands.KnParams) *cobra.Command {
 
 func writeSink(dw printers.PrefixWriter, sink *duckv1.Destination) {
 	subWriter := dw.WriteAttribute("Sink", "")
-	subWriter.WriteAttribute("Name", sink.Ref.Name)
-	subWriter.WriteAttribute("Namespace", sink.Ref.Namespace)
 	ref := sink.Ref
 	if ref != nil {
+		subWriter.WriteAttribute("Name", sink.Ref.Name)
+		subWriter.WriteAttribute("Namespace", sink.Ref.Namespace)
 		subWriter.WriteAttribute("Resource", fmt.Sprintf("%s (%s)", sink.Ref.Kind, sink.Ref.APIVersion))
 	}
 	uri := sink.URI

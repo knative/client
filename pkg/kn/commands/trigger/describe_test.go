@@ -23,6 +23,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
+	"knative.dev/pkg/apis"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 
 	clientv1beta1 "knative.dev/client/pkg/eventing/v1beta1"
@@ -33,7 +34,7 @@ func TestSimpleDescribe(t *testing.T) {
 	client := clientv1beta1.NewMockKnEventingClient(t, "mynamespace")
 
 	recorder := client.Recorder()
-	recorder.GetTrigger("testtrigger", getTrigger(), nil)
+	recorder.GetTrigger("testtrigger", getTriggerSinkRef(), nil)
 
 	out, err := executeTriggerCommand(client, nil, "describe", "testtrigger")
 	assert.NilError(t, err)
@@ -60,8 +61,27 @@ func TestDescribeError(t *testing.T) {
 
 	recorder.Validate()
 }
+func TestDescribeTriggerWithSinkURI(t *testing.T) {
+	client := clientv1beta1.NewMockKnEventingClient(t, "mynamespace")
 
-func getTrigger() *v1beta1.Trigger {
+	recorder := client.Recorder()
+	recorder.GetTrigger("testtrigger", getTriggerSinkURI(), nil)
+
+	out, err := executeTriggerCommand(client, nil, "describe", "testtrigger")
+	assert.NilError(t, err)
+
+	assert.Assert(t, cmp.Regexp("Name:\\s+testtrigger", out))
+	assert.Assert(t, cmp.Regexp("Namespace:\\s+default", out))
+
+	assert.Assert(t, util.ContainsAll(out, "Broker:", "mybroker"))
+	assert.Assert(t, util.ContainsAll(out, "Filter:", "type", "foo.type.knative", "source", "src.eventing.knative"))
+	assert.Assert(t, util.ContainsAll(out, "Sink:", "URI", "https", "foo"))
+
+	// Validate that all recorded API methods have been called
+	recorder.Validate()
+}
+
+func getTriggerSinkRef() *v1beta1.Trigger {
 	return &v1beta1.Trigger{
 		TypeMeta: v1.TypeMeta{},
 		ObjectMeta: metav1.ObjectMeta{
@@ -81,6 +101,32 @@ func getTrigger() *v1beta1.Trigger {
 					Kind:      "Service",
 					Namespace: "myservicenamespace",
 					Name:      "mysvc",
+				},
+			},
+		},
+		Status: v1beta1.TriggerStatus{},
+	}
+}
+
+func getTriggerSinkURI() *v1beta1.Trigger {
+	return &v1beta1.Trigger{
+		TypeMeta: v1.TypeMeta{},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "testtrigger",
+			Namespace: "default",
+		},
+		Spec: v1beta1.TriggerSpec{
+			Broker: "mybroker",
+			Filter: &v1beta1.TriggerFilter{
+				Attributes: v1beta1.TriggerFilterAttributes{
+					"type":   "foo.type.knative",
+					"source": "src.eventing.knative",
+				},
+			},
+			Subscriber: duckv1.Destination{
+				URI: &apis.URL{
+					Scheme: "https",
+					Host:   "foo",
 				},
 			},
 		},
