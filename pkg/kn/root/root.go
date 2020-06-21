@@ -89,8 +89,8 @@ func NewRootCommand() (*cobra.Command, error) {
 		{
 			Header: "Eventing Commands:",
 			Commands: []*cobra.Command{
-				broker.NewBrokerCommand(p),
 				source.NewSourceCommand(p),
+				broker.NewBrokerCommand(p),
 				trigger.NewTriggerCommand(p),
 			},
 		},
