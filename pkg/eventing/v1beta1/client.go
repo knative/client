@@ -137,7 +137,7 @@ func (c *knEventingClient) Namespace() string {
 }
 
 // update with the v1beta1 group + version
-func updateEventingGvk(obj runtime.Object) error {
+func updateEventingGVK(obj runtime.Object) error {
 	return util.UpdateGroupVersionKindWithScheme(obj, v1beta1.SchemeGroupVersion, scheme.Scheme)
 }
 
