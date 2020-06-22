@@ -19,6 +19,10 @@
 | | Description | PR
 
 | 🐛
+| Fix Panic for `kn source apiserver` and `kn source binding` describe with Sink URI
+| https://github.com/knative/client/pull/901[#901]
+
+| 🐛
 | Fix Panic for `kn trigger describe` with Sink URI
 | https://github.com/knative/client/pull/900[#900]
 

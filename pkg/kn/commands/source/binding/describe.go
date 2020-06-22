@@ -95,10 +95,10 @@ func writeSink(dw printers.PrefixWriter, namespace string, sink *duckv1.Destinat
 	subWriter := dw.WriteAttribute("Sink", "")
 	ref := sink.Ref
 	if ref != nil {
+		subWriter.WriteAttribute("Name", sink.Ref.Name)
 		if sink.Ref.Namespace != "" && sink.Ref.Namespace != namespace {
 			subWriter.WriteAttribute("Namespace", sink.Ref.Namespace)
 		}
-		subWriter.WriteAttribute("Name", sink.Ref.Name)
 		subWriter.WriteAttribute("Resource", fmt.Sprintf("%s (%s)", sink.Ref.Kind, sink.Ref.APIVersion))
 	}
 	uri := sink.URI
