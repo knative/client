@@ -31,12 +31,11 @@ import (
 )
 
 var listExample = `
-# List all brokers
+  # List all brokers
   kn broker list
 
-# List all brokers in JSON output format
-  kn broker list -o json
-`
+  # List all brokers in JSON output format
+  kn broker list -o json`
 
 // NewBrokerListCommand represents command to list all brokers
 func NewBrokerListCommand(p *commands.KnParams) *cobra.Command {
