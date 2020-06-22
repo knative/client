@@ -29,11 +29,10 @@ import (
 )
 
 var describeExample = `
-# Describe broker 'mybroker' in the current namespace
+  # Describe broker 'mybroker' in the current namespace
   kn broker describe mybroker
-# # Describe broker 'mybroker' in the 'myproject' namespace
-  kn broker describe mybroker --namespace myproject
-`
+  # Describe broker 'mybroker' in the 'myproject' namespace
+  kn broker describe mybroker --namespace myproject`
 
 // NewBrokerDescribeCommand represents command to describe details of broker instance
 func NewBrokerDescribeCommand(p *commands.KnParams) *cobra.Command {
