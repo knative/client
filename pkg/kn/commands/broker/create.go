@@ -29,7 +29,7 @@ import (
 var createExample = `
 # Create a broker 'mybroker' in the current namespace
   kn broker create mybroker
-  
+
 # Create a broker 'mybroker' in the 'myproject' namespace
   kn broker create mybroker --namespace myproject
 `
