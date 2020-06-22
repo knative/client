@@ -30,6 +30,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Allow plugins to register to this slice for inlining
+var InternalPlugins PluginList
+
 // Interface describing a plugin
 type Plugin interface {
 	// Get the name of the plugin (the file name without extensions)
@@ -99,13 +102,19 @@ func (manager *Manager) FindPlugin(parts []string) (Plugin, error) {
 		return nil, nil
 	}
 
+	// Try to find internal plugin fist
+	plugin := lookupInternalPlugin(parts)
+	if plugin != nil {
+		return plugin, nil
+	}
+
 	// Try to find plugin in pluginsDir
 	pluginDir, err := homedir.Expand(manager.pluginsDir)
 	if err != nil {
 		return nil, err
 	}
 
-	return findMostSpecificPlugin(pluginDir, parts, manager.lookupInPath)
+	return findMostSpecificPluginInPath(pluginDir, parts, manager.lookupInPath)
 }
 
 // ListPlugins lists all plugins that can be found in the plugin directory or in the path (if configured)
@@ -116,7 +125,8 @@ func (manager *Manager) ListPlugins() (PluginList, error) {
 // ListPluginsForCommandGroup lists all plugins that can be found in the plugin directory or in the path (if configured),
 // and which fits to a command group
 func (manager *Manager) ListPluginsForCommandGroup(commandGroupParts []string) (PluginList, error) {
-	var plugins []Plugin
+	// Initialize with list of internal plugins
+	var plugins = append([]Plugin{}, InternalPlugins...)
 
 	dirs, err := manager.pluginLookupDirectories()
 	if err != nil {
@@ -343,7 +353,7 @@ func stripWindowsExecExtensions(name string) string {
 // Return the path and the parts building the most specific plugin in the given directory
 // If lookupInPath is true, then also the OS PATH is checked.
 // An error returned if any IO operation fails
-func findMostSpecificPlugin(dir string, parts []string, lookupInPath bool) (Plugin, error) {
+func findMostSpecificPluginInPath(dir string, parts []string, lookupInPath bool) (Plugin, error) {
 	for i := len(parts); i > 0; i-- {
 
 		// Construct plugin name to lookup
@@ -428,4 +438,28 @@ func findInDirOrPath(name string, dir string, lookupInPath bool) (string, error)
 
 	// Not found
 	return "", nil
+}
+
+// lookupInternalPlugin looks up internally registered plugins. Return nil if none is found.
+func lookupInternalPlugin(parts []string) Plugin {
+	for _, plugin := range InternalPlugins {
+		if equalsSlice(plugin.CommandParts(), parts) {
+			return plugin
+		}
+	}
+	return nil
+}
+
+// equalsSlice return true if two string slices contain the same elements
+func equalsSlice(a, b []string) bool {
+	if len(a) != len(b) || len(a) == 0 {
+		return false
+	}
+
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
 }
