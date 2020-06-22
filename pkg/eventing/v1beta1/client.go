@@ -222,7 +222,7 @@ func (c *knEventingClient) CreateBroker(broker *v1beta1.Broker) error {
 	return nil
 }
 
-//GetBroker is used to get an instance of broker
+// GetBroker is used to get an instance of broker
 func (c *knEventingClient) GetBroker(name string) (*v1beta1.Broker, error) {
 	trigger, err := c.client.Brokers(c.namespace).Get(name, apis_v1.GetOptions{})
 	if err != nil {
@@ -231,11 +231,14 @@ func (c *knEventingClient) GetBroker(name string) (*v1beta1.Broker, error) {
 	return trigger, nil
 }
 
+// WatchBroker is used to create watcher object
 func (c *knEventingClient) WatchBroker(name string, timeout time.Duration) (watch.Interface, error) {
 	return wait.NewWatcher(c.client.Brokers(c.namespace).Watch,
 		c.client.RESTClient(), c.namespace, "brokers", name, timeout)
 }
 
+// DeleteBroker is used to delete an instance of broker and wait for completion until given timeout
+// For `timeout == 0` delete is performed async without any wait
 func (c *knEventingClient) DeleteBroker(name string, timeout time.Duration) error {
 	if timeout == 0 {
 		return c.deleteBroker(name, apis_v1.DeletePropagationBackground)
@@ -253,7 +256,7 @@ func (c *knEventingClient) DeleteBroker(name string, timeout time.Duration) erro
 	return <-waitC
 }
 
-// DeleteBroker is used to delete an instance of broker
+// deleteBroker is used to delete an instance of broker
 func (c *knEventingClient) deleteBroker(name string, propagationPolicy apis_v1.DeletionPropagation) error {
 	err := c.client.Brokers(c.namespace).Delete(name, &apis_v1.DeleteOptions{PropagationPolicy: &propagationPolicy})
 	if err != nil {
