@@ -35,7 +35,7 @@ func TestSimpleCreateBinding(t *testing.T) {
 
 	out, err := executeSinkBindingCommand(bindingClient, dynamicClient, "create", "testbinding", "--sink", "svc:mysvc", "--subject", "deployment:apps/v1:mydeploy", "--ce-override", "bla=blub", "--ce-override", "foo=bar")
 	assert.NilError(t, err, "Source should have been created")
-	util.ContainsAll(out, "created", "default", "testbinding")
+	assert.Assert(t, util.ContainsAll(out, "created", "default", "testbinding"))
 
 	bindingRecorder.Validate()
 }

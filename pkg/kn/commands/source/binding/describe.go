@@ -93,12 +93,12 @@ func writeSinkBinding(dw printers.PrefixWriter, binding *v1alpha2.SinkBinding, p
 
 func writeSink(dw printers.PrefixWriter, namespace string, sink *duckv1.Destination) {
 	subWriter := dw.WriteAttribute("Sink", "")
-	if sink.Ref.Namespace != "" && sink.Ref.Namespace != namespace {
-		subWriter.WriteAttribute("Namespace", sink.Ref.Namespace)
-	}
-	subWriter.WriteAttribute("Name", sink.Ref.Name)
 	ref := sink.Ref
 	if ref != nil {
+		if sink.Ref.Namespace != "" && sink.Ref.Namespace != namespace {
+			subWriter.WriteAttribute("Namespace", sink.Ref.Namespace)
+		}
+		subWriter.WriteAttribute("Name", sink.Ref.Name)
 		subWriter.WriteAttribute("Resource", fmt.Sprintf("%s (%s)", sink.Ref.Kind, sink.Ref.APIVersion))
 	}
 	uri := sink.URI

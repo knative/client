@@ -33,7 +33,7 @@ func TestApiServerSourceDelete(t *testing.T) {
 
 	out, err := executeAPIServerSourceCommand(apiServerClient, nil, "delete", "testsource")
 	assert.NilError(t, err)
-	util.ContainsAll(out, "deleted", "testns", "testsource")
+	assert.Assert(t, util.ContainsAll(out, "deleted", "default", "testsource"))
 
 	apiServerRecorder.Validate()
 }
@@ -47,7 +47,7 @@ func TestDeleteWithError(t *testing.T) {
 
 	out, err := executeAPIServerSourceCommand(apiServerClient, nil, "delete", "testsource")
 	assert.ErrorContains(t, err, "testsource")
-	util.ContainsAll(out, "apiserver", "source", "testsource", "not found")
+	assert.Assert(t, util.ContainsAll(out, "apiserver", "source", "testsource", "not found"))
 
 	apiServerRecorder.Validate()
 }

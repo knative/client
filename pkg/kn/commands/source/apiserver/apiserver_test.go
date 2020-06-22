@@ -19,6 +19,7 @@ import (
 
 	"k8s.io/client-go/tools/clientcmd"
 	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
+	"knative.dev/pkg/apis"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 
 	kndynamic "knative.dev/client/pkg/dynamic"
@@ -29,8 +30,25 @@ import (
 
 const testNamespace = "default"
 
-// Helper methods
-var blankConfig clientcmd.ClientConfig
+var (
+	sinkRef = duckv1.Destination{
+		Ref: &duckv1.KReference{
+			Kind:       "Service",
+			Name:       "testsvc",
+			APIVersion: "serving.knative.dev/v1",
+			Namespace:  "default",
+		},
+	}
+
+	sinkURI = duckv1.Destination{
+		URI: &apis.URL{
+			Scheme: "https",
+			Host:   "foo",
+		},
+	}
+
+	blankConfig clientcmd.ClientConfig
+)
 
 // TODO: Remove that blankConfig hack for tests in favor of overwriting GetConfig()
 func init() {
@@ -83,19 +101,11 @@ func cleanupAPIServerMockClient() {
 	apiServerSourceClientFactory = nil
 }
 
-func createAPIServerSource(name, resourceKind, resourceVersion, serviceAccount, mode, service string, ceOverrides map[string]string) *v1alpha2.ApiServerSource {
+func createAPIServerSource(name, resourceKind, resourceVersion, serviceAccount, mode string, ceOverrides map[string]string, sink duckv1.Destination) *v1alpha2.ApiServerSource {
 	resources := []v1alpha2.APIVersionKindSelector{{
 		APIVersion: resourceVersion,
 		Kind:       resourceKind,
 	}}
-
-	sink := duckv1.Destination{
-		Ref: &duckv1.KReference{
-			Kind:       "Service",
-			Name:       service,
-			APIVersion: "serving.knative.dev/v1",
-			Namespace:  "default",
-		}}
 
 	return clientv1alpha2.NewAPIServerSourceBuilder(name).
 		Resources(resources).

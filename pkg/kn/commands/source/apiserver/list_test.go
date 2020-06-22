@@ -29,7 +29,7 @@ func TestListAPIServerSource(t *testing.T) {
 	apiServerClient := v1alpha22.NewMockKnAPIServerSourceClient(t)
 
 	apiServerRecorder := apiServerClient.Recorder()
-	sampleSource := createAPIServerSource("testsource", "Event", "v1", "testsa", "Reference", "testsvc", nil)
+	sampleSource := createAPIServerSource("testsource", "Event", "v1", "testsa", "Reference", nil, sinkRef)
 	sampleSourceList := v1alpha2.ApiServerSourceList{}
 	sampleSourceList.Items = []v1alpha2.ApiServerSource{*sampleSource}
 
@@ -37,8 +37,8 @@ func TestListAPIServerSource(t *testing.T) {
 
 	out, err := executeAPIServerSourceCommand(apiServerClient, nil, "list")
 	assert.NilError(t, err, "sources should be listed")
-	util.ContainsAll(out, "NAME", "RESOURCES", "SINK", "AGE", "CONDITIONS", "READY", "REASON")
-	util.ContainsAll(out, "testsource", "Eventing:v1:false", "mysvc")
+	assert.Assert(t, util.ContainsAll(out, "NAME", "RESOURCES", "SINK", "AGE", "CONDITIONS", "READY", "REASON"))
+	assert.Assert(t, util.ContainsAll(out, "testsource", "Event:v1", "svc:testsvc"))
 
 	apiServerRecorder.Validate()
 }
@@ -53,8 +53,8 @@ func TestListAPIServerSourceEmpty(t *testing.T) {
 
 	out, err := executeAPIServerSourceCommand(apiServerClient, nil, "list")
 	assert.NilError(t, err, "Sources should be listed")
-	util.ContainsNone(out, "NAME", "RESOURCES", "SINK", "AGE", "CONDITIONS", "READY", "REASON")
-	util.ContainsAll(out, "No", "ApiServer", "source", "found")
+	assert.Assert(t, util.ContainsNone(out, "NAME", "RESOURCES", "SINK", "AGE", "CONDITIONS", "READY", "REASON"))
+	assert.Assert(t, util.ContainsAll(out, "No", "ApiServer", "source", "found"))
 
 	apiServerRecorder.Validate()
 }

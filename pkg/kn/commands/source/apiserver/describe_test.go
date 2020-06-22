@@ -28,12 +28,12 @@ func TestSimpleDescribe(t *testing.T) {
 	apiServerClient := v1alpha2.NewMockKnAPIServerSourceClient(t, "mynamespace")
 
 	apiServerRecorder := apiServerClient.Recorder()
-	sampleSource := createAPIServerSource("testsource", "Event", "v1", "testsa", "Reference", "testsvc", map[string]string{"foo": "bar"})
+	sampleSource := createAPIServerSource("testsource", "Event", "v1", "testsa", "Reference", map[string]string{"foo": "bar"}, sinkRef)
 	apiServerRecorder.GetAPIServerSource("testsource", sampleSource, nil)
 
 	out, err := executeAPIServerSourceCommand(apiServerClient, nil, "describe", "testsource")
 	assert.NilError(t, err)
-	util.ContainsAll(out, "testsource", "testsa", "Reference", "testsvc", "Service", "Resources", "Event", "v1", "false", "Conditions", "foo", "bar")
+	assert.Assert(t, util.ContainsAll(out, "testsource", "testsa", "Reference", "testsvc", "Service", "Resources", "Event", "v1", "Conditions", "foo", "bar"))
 
 	apiServerRecorder.Validate()
 }
@@ -46,7 +46,21 @@ func TestDescribeError(t *testing.T) {
 
 	out, err := executeAPIServerSourceCommand(apiServerClient, nil, "describe", "testsource")
 	assert.ErrorContains(t, err, "testsource")
-	util.ContainsAll(out, "Usage", "testsource")
+	assert.Assert(t, util.ContainsAll(out, "Usage", "testsource"))
+
+	apiServerRecorder.Validate()
+}
+
+func TestDescribeWithSinkURI(t *testing.T) {
+	apiServerClient := v1alpha2.NewMockKnAPIServerSourceClient(t, "mynamespace")
+
+	apiServerRecorder := apiServerClient.Recorder()
+	sampleSource := createAPIServerSource("testsource", "Event", "v1", "testsa", "Reference", map[string]string{"foo": "bar"}, sinkURI)
+	apiServerRecorder.GetAPIServerSource("testsource", sampleSource, nil)
+
+	out, err := executeAPIServerSourceCommand(apiServerClient, nil, "describe", "testsource")
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(out, "testsource", "testsa", "Reference", "Service", "Resources", "Event", "v1", "Conditions", "foo", "bar", "URI", "https", "foo"))
 
 	apiServerRecorder.Validate()
 }

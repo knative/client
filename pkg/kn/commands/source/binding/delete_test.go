@@ -33,7 +33,7 @@ func TestSimpleDelete(t *testing.T) {
 
 	out, err := executeSinkBindingCommand(bindingClient, nil, "delete", "mybinding")
 	assert.NilError(t, err)
-	util.ContainsAll(out, "deleted", "mynamespace", "mybinding", "sink binding")
+	assert.Assert(t, util.ContainsAll(out, "deleted", "mynamespace", "mybinding", "Sink binding"))
 
 	bindingRecorder.Validate()
 }
@@ -47,7 +47,7 @@ func TestDeleteWithError(t *testing.T) {
 
 	out, err := executeSinkBindingCommand(bindingClient, nil, "delete", "mybinding")
 	assert.ErrorContains(t, err, "mybinding")
-	util.ContainsAll(out, "no such", "mybinding")
+	assert.Assert(t, util.ContainsAll(out, "no such", "mybinding"))
 
 	bindingRecorder.Validate()
 }

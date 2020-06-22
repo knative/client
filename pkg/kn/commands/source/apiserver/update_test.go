@@ -21,11 +21,32 @@ import (
 	"gotest.tools/assert"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	duckv1 "knative.dev/pkg/apis/duck/v1"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	dynamicfake "knative.dev/client/pkg/dynamic/fake"
 	"knative.dev/client/pkg/sources/v1alpha2"
 	"knative.dev/client/pkg/util"
+)
+
+var (
+	sinkRefsvc1 = duckv1.Destination{
+		Ref: &duckv1.KReference{
+			Kind:       "Service",
+			Name:       "svc1",
+			APIVersion: "serving.knative.dev/v1",
+			Namespace:  "default",
+		},
+	}
+
+	sinkRefsvc2 = duckv1.Destination{
+		Ref: &duckv1.KReference{
+			Kind:       "Service",
+			Name:       "svc2",
+			APIVersion: "serving.knative.dev/v1",
+			Namespace:  "default",
+		},
+	}
 )
 
 func TestApiServerSourceUpdate(t *testing.T) {
@@ -37,10 +58,10 @@ func TestApiServerSourceUpdate(t *testing.T) {
 
 	apiServerRecorder := apiServerClient.Recorder()
 
-	present := createAPIServerSource("testsource", "Event", "v1", "testsa1", "Reference", "svc1", map[string]string{"bla": "blub", "foo": "bar"})
+	present := createAPIServerSource("testsource", "Event", "v1", "testsa1", "Reference", map[string]string{"bla": "blub", "foo": "bar"}, sinkRefsvc1)
 	apiServerRecorder.GetAPIServerSource("testsource", present, nil)
 
-	updated := createAPIServerSource("testsource", "Event", "v1", "testsa2", "Reference", "svc2", map[string]string{"foo": "baz"})
+	updated := createAPIServerSource("testsource", "Event", "v1", "testsa2", "Reference", map[string]string{"foo": "baz"}, sinkRefsvc2)
 	apiServerRecorder.UpdateAPIServerSource(updated, nil)
 
 	output, err := executeAPIServerSourceCommand(apiServerClient, dynamicClient, "update", "testsource", "--service-account", "testsa2", "--sink", "svc:svc2", "--ce-override", "bla-", "--ce-override", "foo=baz")
@@ -54,7 +75,7 @@ func TestApiServerSourceUpdateDeletionTimestampNotNil(t *testing.T) {
 	apiServerClient := v1alpha2.NewMockKnAPIServerSourceClient(t)
 	apiServerRecorder := apiServerClient.Recorder()
 
-	present := createAPIServerSource("testsource", "Event", "v1", "testsa1", "Ref", "svc1", nil)
+	present := createAPIServerSource("testsource", "Event", "v1", "testsa1", "Ref", nil, sinkRefsvc1)
 	present.DeletionTimestamp = &metav1.Time{Time: time.Now()}
 	apiServerRecorder.GetAPIServerSource("testsource", present, nil)
 

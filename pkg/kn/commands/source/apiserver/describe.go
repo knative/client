@@ -29,7 +29,6 @@ import (
 
 // NewAPIServerDescribeCommand to describe an ApiServer source object
 func NewAPIServerDescribeCommand(p *commands.KnParams) *cobra.Command {
-
 	apiServerDescribe := &cobra.Command{
 		Use:   "describe NAME",
 		Short: "Show details of an api-server source",
@@ -110,10 +109,10 @@ func writeResources(dw printers.PrefixWriter, apiVersionKindSelectors []v1alpha2
 
 func writeSink(dw printers.PrefixWriter, sink duckv1.Destination) {
 	subWriter := dw.WriteAttribute("Sink", "")
-	subWriter.WriteAttribute("Name", sink.Ref.Name)
-	subWriter.WriteAttribute("Namespace", sink.Ref.Namespace)
 	ref := sink.Ref
 	if ref != nil {
+		subWriter.WriteAttribute("Name", sink.Ref.Name)
+		subWriter.WriteAttribute("Namespace", sink.Ref.Namespace)
 		subWriter.WriteAttribute("Kind", fmt.Sprintf("%s (%s)", sink.Ref.Kind, sink.Ref.APIVersion))
 	}
 	uri := sink.URI
