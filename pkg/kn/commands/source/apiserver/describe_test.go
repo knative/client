@@ -29,11 +29,12 @@ func TestSimpleDescribe(t *testing.T) {
 
 	apiServerRecorder := apiServerClient.Recorder()
 	sampleSource := createAPIServerSource("testsource", "Event", "v1", "testsa", "Reference", map[string]string{"foo": "bar"}, sinkRef)
+	sampleSource.Namespace = "mynamespace"
 	apiServerRecorder.GetAPIServerSource("testsource", sampleSource, nil)
 
 	out, err := executeAPIServerSourceCommand(apiServerClient, nil, "describe", "testsource")
 	assert.NilError(t, err)
-	assert.Assert(t, util.ContainsAll(out, "testsource", "testsa", "Reference", "testsvc", "Service", "Resources", "Event", "v1", "Conditions", "foo", "bar"))
+	assert.Assert(t, util.ContainsAll(out, "testsource", "testsa", "Reference", "testsvc", "Service (serving.knative.dev/v1)", "Resources", "Event", "v1", "Conditions", "foo", "bar", "mynamespace", "default"))
 
 	apiServerRecorder.Validate()
 }
@@ -56,11 +57,12 @@ func TestDescribeWithSinkURI(t *testing.T) {
 
 	apiServerRecorder := apiServerClient.Recorder()
 	sampleSource := createAPIServerSource("testsource", "Event", "v1", "testsa", "Reference", map[string]string{"foo": "bar"}, sinkURI)
+	sampleSource.Namespace = "mynamespace"
 	apiServerRecorder.GetAPIServerSource("testsource", sampleSource, nil)
 
 	out, err := executeAPIServerSourceCommand(apiServerClient, nil, "describe", "testsource")
 	assert.NilError(t, err)
-	assert.Assert(t, util.ContainsAll(out, "testsource", "testsa", "Reference", "Service", "Resources", "Event", "v1", "Conditions", "foo", "bar", "URI", "https", "foo"))
+	assert.Assert(t, util.ContainsAll(out, "testsource", "testsa", "Reference", "Resources", "Event", "v1", "Conditions", "foo", "bar", "URI", "https", "foo", "mynamespace"))
 
 	apiServerRecorder.Validate()
 }
