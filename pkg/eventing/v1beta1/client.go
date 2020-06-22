@@ -105,7 +105,7 @@ func (c *knEventingClient) ListTriggers() (*v1beta1.TriggerList, error) {
 		return nil, kn_errors.GetError(err)
 	}
 	triggerListNew := triggerList.DeepCopy()
-	err = updateEventingGvk(triggerListNew)
+	err = updateEventingGVK(triggerListNew)
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +113,7 @@ func (c *knEventingClient) ListTriggers() (*v1beta1.TriggerList, error) {
 	triggerListNew.Items = make([]v1beta1.Trigger, len(triggerList.Items))
 	for idx, trigger := range triggerList.Items {
 		triggerClone := trigger.DeepCopy()
-		err := updateEventingGvk(triggerClone)
+		err := updateEventingGVK(triggerClone)
 		if err != nil {
 			return nil, err
 		}
@@ -269,7 +269,7 @@ func (c *knEventingClient) ListBrokers() (*v1beta1.BrokerList, error) {
 		return nil, kn_errors.GetError(err)
 	}
 	brokerListNew := brokerList.DeepCopy()
-	err = updateEventingGvk(brokerListNew)
+	err = updateEventingGVK(brokerListNew)
 	if err != nil {
 		return nil, err
 	}
@@ -277,7 +277,7 @@ func (c *knEventingClient) ListBrokers() (*v1beta1.BrokerList, error) {
 	brokerListNew.Items = make([]v1beta1.Broker, len(brokerList.Items))
 	for idx, trigger := range brokerList.Items {
 		triggerClone := trigger.DeepCopy()
-		err := updateEventingGvk(triggerClone)
+		err := updateEventingGVK(triggerClone)
 		if err != nil {
 			return nil, err
 		}

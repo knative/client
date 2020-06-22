@@ -14,11 +14,10 @@ kn broker describe NAME
 
 ```
 
-# Create a broker 'mybroker' in the current namespace
-  kn broker create mybroker
-# Create a broker 'mybroker' in the 'myproject' namespace
-  kn broker create mybroker --namespace myproject
-
+  # Describe broker 'mybroker' in the current namespace
+  kn broker describe mybroker
+  # Describe broker 'mybroker' in the 'myproject' namespace
+  kn broker describe mybroker --namespace myproject
 ```
 
 ### Options

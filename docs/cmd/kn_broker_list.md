@@ -14,12 +14,11 @@ kn broker list
 
 ```
 
-# List all brokers
+  # List all brokers
   kn broker list
 
-# List all brokers in JSON output format
+  # List all brokers in JSON output format
   kn broker list -o json
-
 ```
 
 ### Options
