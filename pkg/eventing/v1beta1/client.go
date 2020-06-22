@@ -15,9 +15,12 @@
 package v1beta1
 
 import (
+	"time"
+
 	apis_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/watch"
 	v1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
 	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
 	client_v1beta1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1beta1"
@@ -25,6 +28,7 @@ import (
 
 	kn_errors "knative.dev/client/pkg/errors"
 	"knative.dev/client/pkg/util"
+	"knative.dev/client/pkg/wait"
 )
 
 // KnEventingClient to Eventing Sources. All methods are relative to the
@@ -47,7 +51,7 @@ type KnEventingClient interface {
 	// GetBroker is used to get an instance of broker
 	GetBroker(name string) (*v1beta1.Broker, error)
 	// DeleteBroker is used to delete an instance of broker
-	DeleteBroker(name string) error
+	DeleteBroker(name string, timeout time.Duration) error
 	// ListBroker returns list of broker CRDs
 	ListBrokers() (*v1beta1.BrokerList, error)
 }
@@ -227,9 +231,31 @@ func (c *knEventingClient) GetBroker(name string) (*v1beta1.Broker, error) {
 	return trigger, nil
 }
 
+func (c *knEventingClient) WatchBroker(name string, timeout time.Duration) (watch.Interface, error) {
+	return wait.NewWatcher(c.client.Brokers(c.namespace).Watch,
+		c.client.RESTClient(), c.namespace, "brokers", name, timeout)
+}
+
+func (c *knEventingClient) DeleteBroker(name string, timeout time.Duration) error {
+	if timeout == 0 {
+		return c.deleteBroker(name, apis_v1.DeletePropagationBackground)
+	}
+	waitC := make(chan error)
+	go func() {
+		waitForEvent := wait.NewWaitForEvent("broker", c.WatchBroker, func(evt *watch.Event) bool { return evt.Type == watch.Deleted })
+		err, _ := waitForEvent.Wait(name, wait.Options{Timeout: &timeout}, wait.NoopMessageCallback())
+		waitC <- err
+	}()
+	err := c.deleteBroker(name, apis_v1.DeletePropagationForeground)
+	if err != nil {
+		return err
+	}
+	return <-waitC
+}
+
 // DeleteBroker is used to delete an instance of broker
-func (c *knEventingClient) DeleteBroker(name string) error {
-	err := c.client.Brokers(c.namespace).Delete(name, &apis_v1.DeleteOptions{})
+func (c *knEventingClient) deleteBroker(name string, propagationPolicy apis_v1.DeletionPropagation) error {
+	err := c.client.Brokers(c.namespace).Delete(name, &apis_v1.DeleteOptions{PropagationPolicy: &propagationPolicy})
 	if err != nil {
 		return kn_errors.GetError(err)
 	}

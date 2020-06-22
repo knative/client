@@ -17,14 +17,21 @@ package v1beta1
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"gotest.tools/assert"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/watch"
 
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	client_testing "k8s.io/client-go/testing"
+	"knative.dev/client/pkg/wait"
 	v1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
 	"knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1beta1/fake"
+	"knative.dev/pkg/apis"
+	duckv1 "knative.dev/pkg/apis/duck/v1"
 )
 
 var testNamespace = "test-ns"
@@ -246,11 +253,43 @@ func TestBrokerDelete(t *testing.T) {
 			return true, nil, nil
 		})
 
-	err := client.DeleteTrigger(name)
+	err := client.DeleteBroker(name, 0)
 	assert.NilError(t, err)
 
-	err = client.DeleteBroker("errorBroker")
-	assert.ErrorContains(t, err, "errorBroker")
+	err = client.DeleteBroker("errorBroker", 0)
+	assert.ErrorContains(t, err, "errorBroker", 0)
+}
+
+func TestBrokerDeleteWithWait(t *testing.T) {
+	var name = "fooBroker"
+	server, client := setup()
+
+	server.AddReactor("delete", "brokers",
+		func(a client_testing.Action) (bool, runtime.Object, error) {
+			name := a.(client_testing.DeleteAction).GetName()
+			if name == "errorBroker" {
+				return true, nil, fmt.Errorf("error while deleting broker %s", name)
+			}
+			return true, nil, nil
+		})
+
+	server.AddWatchReactor("brokers",
+		func(a client_testing.Action) (bool, watch.Interface, error) {
+			watchAction := a.(client_testing.WatchAction)
+			name, found := watchAction.GetWatchRestrictions().Fields.RequiresExactMatch("metadata.name")
+			if !found {
+				return true, nil, errors.NewNotFound(v1beta1.Resource("broker"), name)
+			}
+			w := wait.NewFakeWatch(getBrokerDeleteEvents("fooBroker"))
+			w.Start()
+			return true, w, nil
+		})
+
+	err := client.DeleteBroker(name, time.Duration(10)*time.Second)
+	assert.NilError(t, err)
+
+	err = client.DeleteBroker("errorBroker", time.Duration(10)*time.Second)
+	assert.ErrorContains(t, err, "errorBroker", time.Duration(10)*time.Second)
 }
 
 func TestBrokerList(t *testing.T) {
@@ -286,4 +325,22 @@ func newBroker(name string) *v1beta1.Broker {
 	return NewBrokerBuilder(name).
 		Namespace(testNamespace).
 		Build()
+}
+
+func getBrokerDeleteEvents(name string) []watch.Event {
+	return []watch.Event{
+		{watch.Added, createBrokerWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "", "msg1")},
+		{watch.Modified, createBrokerWithConditions(name, corev1.ConditionUnknown, corev1.ConditionTrue, "", "msg2")},
+		{watch.Deleted, createBrokerWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "", "")},
+	}
+}
+
+func createBrokerWithConditions(name string, readyStatus corev1.ConditionStatus, otherReadyStatus corev1.ConditionStatus, reason string, message string) runtime.Object {
+	broker := newBroker(name)
+	broker.Status.Conditions = duckv1.Conditions([]apis.Condition{
+		{Type: "ChannelServiceReady", Status: otherReadyStatus},
+		{Type: apis.ConditionReady, Status: readyStatus, Reason: reason, Message: message},
+		{Type: "Addressable", Status: otherReadyStatus},
+	})
+	return broker
 }

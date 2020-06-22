@@ -19,6 +19,7 @@ package broker
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -34,6 +35,7 @@ var deleteExample = `
 
 // NewBrokerDeleteCommand represents command to existing delete broker
 func NewBrokerDeleteCommand(p *commands.KnParams) *cobra.Command {
+	var waitFlags commands.WaitFlags
 
 	cmd := &cobra.Command{
 		Use:     "delete NAME",
@@ -55,7 +57,11 @@ func NewBrokerDeleteCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			err = eventingClient.DeleteBroker(name)
+			timeout := time.Duration(0)
+			if waitFlags.Wait {
+				timeout = time.Duration(waitFlags.TimeoutInSeconds) * time.Second
+			}
+			err = eventingClient.DeleteBroker(name, timeout)
 			if err != nil {
 				return fmt.Errorf(
 					"cannot delete broker '%s' in namespace '%s' "+
@@ -66,5 +72,6 @@ func NewBrokerDeleteCommand(p *commands.KnParams) *cobra.Command {
 		},
 	}
 	commands.AddNamespaceFlags(cmd.Flags(), false)
+	waitFlags.AddConditionWaitFlags(cmd, commands.WaitDefaultTimeout, "delete", "broker", "deleted")
 	return cmd
 }

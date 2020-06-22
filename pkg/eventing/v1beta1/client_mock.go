@@ -16,6 +16,7 @@ package v1beta1
 
 import (
 	"testing"
+	"time"
 
 	v1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
 
@@ -137,13 +138,13 @@ func (c *MockKnEventingClient) GetBroker(name string) (*v1beta1.Broker, error) {
 }
 
 // DeleteBroker records a call for DeleteBroker with the expected error (nil if none)
-func (sr *EventingRecorder) DeleteBroker(name interface{}, err error) {
-	sr.r.Add("DeleteBroker", []interface{}{name}, []interface{}{err})
+func (sr *EventingRecorder) DeleteBroker(name, timeout interface{}, err error) {
+	sr.r.Add("DeleteBroker", []interface{}{name, timeout}, []interface{}{err})
 }
 
 // DeleteBroker performs a previously recorded action, failing if non has been registered
-func (c *MockKnEventingClient) DeleteBroker(name string) error {
-	call := c.recorder.r.VerifyCall("DeleteBroker", name)
+func (c *MockKnEventingClient) DeleteBroker(name string, timeout time.Duration) error {
+	call := c.recorder.r.VerifyCall("DeleteBroker", name, timeout)
 	return mock.ErrorOrNil(call.Result[0])
 }
 

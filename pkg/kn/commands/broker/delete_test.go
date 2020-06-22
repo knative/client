@@ -24,6 +24,7 @@ import (
 
 	clienteventingv1beta1 "knative.dev/client/pkg/eventing/v1beta1"
 	"knative.dev/client/pkg/util"
+	"knative.dev/client/pkg/util/mock"
 )
 
 func TestBrokerDelete(t *testing.T) {
@@ -31,7 +32,7 @@ func TestBrokerDelete(t *testing.T) {
 	eventingClient := clienteventingv1beta1.NewMockKnEventingClient(t)
 
 	eventingRecorder := eventingClient.Recorder()
-	eventingRecorder.DeleteBroker(brokerName, nil)
+	eventingRecorder.DeleteBroker(brokerName, mock.Any(), nil)
 
 	out, err := executeBrokerCommand(eventingClient, "delete", brokerName)
 	assert.NilError(t, err, "Broker should be deleted")
@@ -45,7 +46,7 @@ func TestBrokerWithDelete(t *testing.T) {
 	eventingClient := clienteventingv1beta1.NewMockKnEventingClient(t)
 
 	eventingRecorder := eventingClient.Recorder()
-	eventingRecorder.DeleteBroker(brokerName, fmt.Errorf("broker %s not found", brokerName))
+	eventingRecorder.DeleteBroker(brokerName, mock.Any(), fmt.Errorf("broker %s not found", brokerName))
 
 	out, err := executeBrokerCommand(eventingClient, "delete", brokerName)
 	assert.ErrorContains(t, err, brokerName)

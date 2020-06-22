@@ -42,12 +42,12 @@ func TestBroker(t *testing.T) {
 	verifyBrokerList(r, "foo1")
 	verifyBrokerListOutputName(r, "foo1")
 	verifyBrokerDescribe(r, "foo1")
-	brokerDelete(r, "foo1")
+	brokerDelete(r, "foo1", false)
 
 	t.Log("create broker and delete it")
 	brokerCreate(r, "foo2")
 	verifyBrokerList(r, "foo2")
-	brokerDelete(r, "foo2")
+	brokerDelete(r, "foo2", true)
 	verifyBrokerNotfound(r, "foo2")
 
 	t.Log("create multiple brokers and list them")
@@ -55,8 +55,8 @@ func TestBroker(t *testing.T) {
 	brokerCreate(r, "foo4")
 	verifyBrokerList(r, "foo3", "foo4")
 	verifyBrokerListOutputName(r, "foo3", "foo4")
-	brokerDelete(r, "foo3")
-	brokerDelete(r, "foo4")
+	brokerDelete(r, "foo3", true)
+	brokerDelete(r, "foo4", true)
 	verifyBrokerNotfound(r, "foo3")
 	verifyBrokerNotfound(r, "foo4")
 }
@@ -69,8 +69,12 @@ func brokerCreate(r *test.KnRunResultCollector, name string) {
 	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "Broker", name, "created", "namespace", r.KnTest().Kn().Namespace()))
 }
 
-func brokerDelete(r *test.KnRunResultCollector, name string) {
-	out := r.KnTest().Kn().Run("broker", "delete", name)
+func brokerDelete(r *test.KnRunResultCollector, name string, wait bool) {
+	args := []string{"broker", "delete", name}
+	if wait {
+		args = append(args, "--wait")
+	}
+	out := r.KnTest().Kn().Run(args...)
 	r.AssertNoError(out)
 	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "Broker", name, "deleted", "namespace", r.KnTest().Kn().Namespace()))
 }
