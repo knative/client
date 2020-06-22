@@ -31,6 +31,7 @@ import (
 var describeExample = `
   # Describe broker 'mybroker' in the current namespace
   kn broker describe mybroker
+  
   # Describe broker 'mybroker' in the 'myproject' namespace
   kn broker describe mybroker --namespace myproject`
 
