@@ -25,6 +25,10 @@
 | 🎁
 | Group commands in usage output with `kn --help`
 | https://github.com/knative/client/pull/887[#887]
+
+| 🎁
+| Add commands to manage Broker resource
+| https://github.com/knative/client/pull/894[#894]
 |===
 
 ## v0.15.2 (2020-06-16)
