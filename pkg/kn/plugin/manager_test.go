@@ -44,11 +44,11 @@ type testPlugin struct {
 	parts []string
 }
 
-func (t testPlugin) Name() string { return strings.Join(t.parts, " ") }
-func (t testPlugin) Execute(args []string) error { return nil}
+func (t testPlugin) Name() string                 { return strings.Join(t.parts, " ") }
+func (t testPlugin) Execute(args []string) error  { return nil }
 func (t testPlugin) Description() (string, error) { return "desc: " + t.Name(), nil }
-func (t testPlugin) CommandParts() []string { return t.parts }
-func (t testPlugin) Path() string { return "" }
+func (t testPlugin) CommandParts() []string       { return t.parts }
+func (t testPlugin) Path() string                 { return "" }
 
 var _ Plugin = testPlugin{}
 
@@ -133,11 +133,11 @@ func TestFindPluginInternally(t *testing.T) {
 
 	data := []struct {
 		parts []string
-		name string
-	} {
-		{ []string{ "a", "b"}, "a b" },
-		{ []string{ "a"}, "a" },
-		{ []string{ "a", "c"}, "a" },
+		name  string
+	}{
+		{[]string{"a", "b"}, "a b"},
+		{[]string{"a"}, "a"},
+		{[]string{"a", "c"}, "a"},
 	}
 	for _, d := range data {
 		plugin, err := ctx.pluginManager.FindPlugin(d.parts)
