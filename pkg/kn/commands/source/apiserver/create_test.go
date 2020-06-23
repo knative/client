@@ -35,7 +35,7 @@ func TestCreateApiServerSource(t *testing.T) {
 	apiServerClient := v1alpha2.NewMockKnAPIServerSourceClient(t)
 
 	apiServerRecorder := apiServerClient.Recorder()
-	apiServerRecorder.CreateAPIServerSource(createAPIServerSource("testsource", "Event", "v1", "testsa", "Reference", map[string]string{"bla": "blub", "foo": "bar"}, sinkRef), nil)
+	apiServerRecorder.CreateAPIServerSource(createAPIServerSource("testsource", "Event", "v1", "testsa", "Reference", map[string]string{"bla": "blub", "foo": "bar"}, createSinkv1("testsvc", "default")), nil)
 
 	out, err := executeAPIServerSourceCommand(apiServerClient, dynamicClient, "create", "testsource", "--resource", "Event:v1", "--service-account", "testsa", "--sink", "svc:testsvc", "--mode", "Reference", "--ce-override", "bla=blub", "--ce-override", "foo=bar")
 	assert.NilError(t, err, "ApiServer source should be created")

@@ -22,13 +22,23 @@ import (
 
 	"knative.dev/client/pkg/sources/v1alpha2"
 	"knative.dev/client/pkg/util"
+	"knative.dev/pkg/apis"
+	duckv1 "knative.dev/pkg/apis/duck/v1"
+)
+
+var (
+	sinkURI = duckv1.Destination{
+		URI: &apis.URL{
+			Scheme: "https",
+			Host:   "foo",
+		}}
 )
 
 func TestSimpleDescribe(t *testing.T) {
 	apiServerClient := v1alpha2.NewMockKnAPIServerSourceClient(t, "mynamespace")
 
 	apiServerRecorder := apiServerClient.Recorder()
-	sampleSource := createAPIServerSource("testsource", "Event", "v1", "testsa", "Reference", map[string]string{"foo": "bar"}, sinkRef)
+	sampleSource := createAPIServerSource("testsource", "Event", "v1", "testsa", "Reference", map[string]string{"foo": "bar"}, createSinkv1("testsvc", "default"))
 	sampleSource.Namespace = "mynamespace"
 	apiServerRecorder.GetAPIServerSource("testsource", sampleSource, nil)
 

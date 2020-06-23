@@ -85,8 +85,8 @@ func cleanupSinkBindingClient() {
 	sinkBindingClientFactory = nil
 }
 
-func createSinkBinding(name, service string, subjectGvk schema.GroupVersionKind, subjectName string, ceOverrides map[string]string) *v1alpha2.SinkBinding {
-	sink := createServiceSink(service)
+func createSinkBinding(name, service string, subjectGvk schema.GroupVersionKind, subjectName, namespace string, ceOverrides map[string]string) *v1alpha2.SinkBinding {
+	sink := createServiceSink(service, namespace)
 	builder := clientv1alpha2.NewSinkBindingBuilder(name).
 		Namespace("default").
 		Sink(&sink).
@@ -99,8 +99,12 @@ func createSinkBinding(name, service string, subjectGvk schema.GroupVersionKind,
 	return binding
 }
 
-func createServiceSink(service string) v1.Destination {
+func createServiceSink(service, namespace string) v1.Destination {
 	return v1.Destination{
-		Ref: &v1.KReference{Name: service, Kind: "Service", APIVersion: "serving.knative.dev/v1", Namespace: "default"},
+		Ref: &v1.KReference{Name: service,
+			Kind:       "Service",
+			APIVersion: "serving.knative.dev/v1",
+			Namespace:  namespace,
+		},
 	}
 }

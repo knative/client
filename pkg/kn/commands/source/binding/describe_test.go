@@ -32,31 +32,22 @@ import (
 )
 
 var (
-	sinkRef = duckv1.Destination{
-		Ref: &duckv1.KReference{
-			Kind:      "Service",
-			Namespace: "myservicenamespace",
-			Name:      "mysvc",
-		},
-	}
-
 	sinkURI = duckv1.Destination{
 		URI: &apis.URL{
 			Scheme: "https",
 			Host:   "foo",
-		},
-	}
+		}}
 )
 
 func TestSimpleDescribeWitName(t *testing.T) {
 	bindingClient := clientv1alpha2.NewMockKnSinkBindingClient(t, "mynamespace")
 
 	bindingRecorder := bindingClient.Recorder()
-	bindingRecorder.GetSinkBinding("mybinding", getSinkBindingSource("myapp", map[string]string{"foo": "bar"}, sinkRef), nil)
+	bindingRecorder.GetSinkBinding("mybinding", getSinkBindingSource("myapp", map[string]string{"foo": "bar"}, createServiceSink("mysvc", "myservicenamespace")), nil)
 
 	out, err := executeSinkBindingCommand(bindingClient, nil, "describe", "mybinding")
 	assert.NilError(t, err)
-	assert.Assert(t, util.ContainsAll(out, "mysinkbinding", "myapp", "Deployment", "apps/v1", "mynamespace", "mysvc", "foo", "bar", "myservicenamespace", "Service ()"))
+	assert.Assert(t, util.ContainsAll(out, "mysinkbinding", "myapp", "Deployment", "apps/v1", "mynamespace", "mysvc", "foo", "bar", "myservicenamespace", "Service (serving.knative.dev/v1)"))
 	assert.Assert(t, util.ContainsNone(out, "URI"))
 
 	bindingRecorder.Validate()
@@ -66,11 +57,11 @@ func TestSimpleDescribeWithSelector(t *testing.T) {
 	bindingClient := clientv1alpha2.NewMockKnSinkBindingClient(t, "mynamespace")
 
 	bindingRecorder := bindingClient.Recorder()
-	bindingRecorder.GetSinkBinding("mybinding", getSinkBindingSource("app=myapp,type=test", nil, sinkRef), nil)
+	bindingRecorder.GetSinkBinding("mybinding", getSinkBindingSource("app=myapp,type=test", nil, createServiceSink("mysvc", "myservicenamespace")), nil)
 
 	out, err := executeSinkBindingCommand(bindingClient, nil, "describe", "mybinding")
 	assert.NilError(t, err)
-	assert.Assert(t, util.ContainsAll(out, "mysinkbinding", "app:", "myapp", "type:", "test", "Deployment", "apps/v1", "mynamespace", "mysvc", "myservicenamespace", "Service ()"))
+	assert.Assert(t, util.ContainsAll(out, "mysinkbinding", "app:", "myapp", "type:", "test", "Deployment", "apps/v1", "mynamespace", "mysvc", "myservicenamespace", "Service (serving.knative.dev/v1)"))
 	assert.Assert(t, util.ContainsNone(out, "URI"))
 
 	bindingRecorder.Validate()

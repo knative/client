@@ -19,7 +19,6 @@ import (
 
 	"k8s.io/client-go/tools/clientcmd"
 	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
-	"knative.dev/pkg/apis"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 
 	kndynamic "knative.dev/client/pkg/dynamic"
@@ -30,25 +29,7 @@ import (
 
 const testNamespace = "default"
 
-var (
-	sinkRef = duckv1.Destination{
-		Ref: &duckv1.KReference{
-			Kind:       "Service",
-			Name:       "testsvc",
-			APIVersion: "serving.knative.dev/v1",
-			Namespace:  "default",
-		},
-	}
-
-	sinkURI = duckv1.Destination{
-		URI: &apis.URL{
-			Scheme: "https",
-			Host:   "foo",
-		},
-	}
-
-	blankConfig clientcmd.ClientConfig
-)
+var blankConfig clientcmd.ClientConfig
 
 // TODO: Remove that blankConfig hack for tests in favor of overwriting GetConfig()
 func init() {
@@ -114,4 +95,15 @@ func createAPIServerSource(name, resourceKind, resourceVersion, serviceAccount, 
 		Sink(sink).
 		CloudEventOverrides(ceOverrides, []string{}).
 		Build()
+}
+
+func createSinkv1(serviceName, namespace string) duckv1.Destination {
+	return duckv1.Destination{
+		Ref: &duckv1.KReference{
+			Kind:       "Service",
+			Name:       serviceName,
+			APIVersion: "serving.knative.dev/v1",
+			Namespace:  namespace,
+		},
+	}
 }
