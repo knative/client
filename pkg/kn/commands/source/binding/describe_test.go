@@ -57,6 +57,7 @@ func TestSimpleDescribeWitName(t *testing.T) {
 	out, err := executeSinkBindingCommand(bindingClient, nil, "describe", "mybinding")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(out, "mysinkbinding", "myapp", "Deployment", "apps/v1", "mynamespace", "mysvc", "foo", "bar", "myservicenamespace", "Service ()"))
+	assert.Assert(t, util.ContainsNone(out, "URI"))
 
 	bindingRecorder.Validate()
 }
@@ -70,6 +71,7 @@ func TestSimpleDescribeWithSelector(t *testing.T) {
 	out, err := executeSinkBindingCommand(bindingClient, nil, "describe", "mybinding")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(out, "mysinkbinding", "app:", "myapp", "type:", "test", "Deployment", "apps/v1", "mynamespace", "mysvc", "myservicenamespace", "Service ()"))
+	assert.Assert(t, util.ContainsNone(out, "URI"))
 
 	bindingRecorder.Validate()
 }

@@ -35,6 +35,7 @@ func TestSimpleDescribe(t *testing.T) {
 	out, err := executeAPIServerSourceCommand(apiServerClient, nil, "describe", "testsource")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(out, "testsource", "testsa", "Reference", "testsvc", "Service (serving.knative.dev/v1)", "Resources", "Event", "v1", "Conditions", "foo", "bar", "mynamespace", "default"))
+	assert.Assert(t, util.ContainsNone(out, "URI"))
 
 	apiServerRecorder.Validate()
 }
