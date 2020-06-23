@@ -27,12 +27,11 @@ import (
 )
 
 var deleteExample = `
-# Delete a broker 'mybroker' in the current namespace
+  # Delete a broker 'mybroker' in the current namespace
   kn broker create mybroker
 
-# Delete a broker 'mybroker' in the 'myproject' namespace
-  kn broker create mybroker --namespace myproject
-`
+  # Delete a broker 'mybroker' in the 'myproject' namespace
+  kn broker create mybroker --namespace myproject`
 
 // NewBrokerDeleteCommand represents command to existing delete broker
 func NewBrokerDeleteCommand(p *commands.KnParams) *cobra.Command {

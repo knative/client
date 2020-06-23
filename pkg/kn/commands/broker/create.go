@@ -27,12 +27,11 @@ import (
 )
 
 var createExample = `
-# Create a broker 'mybroker' in the current namespace
+  # Create a broker 'mybroker' in the current namespace
   kn broker create mybroker
 
-# Create a broker 'mybroker' in the 'myproject' namespace
-  kn broker create mybroker --namespace myproject
-`
+  # Create a broker 'mybroker' in the 'myproject' namespace
+  kn broker create mybroker --namespace myproject`
 
 // NewBrokerCreateCommand represents command to create new broker instance
 func NewBrokerCreateCommand(p *commands.KnParams) *cobra.Command {

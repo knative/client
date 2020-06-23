@@ -14,12 +14,11 @@ kn broker delete NAME
 
 ```
 
-# Delete a broker 'mybroker' in the current namespace
+  # Delete a broker 'mybroker' in the current namespace
   kn broker create mybroker
 
-# Delete a broker 'mybroker' in the 'myproject' namespace
+  # Delete a broker 'mybroker' in the 'myproject' namespace
   kn broker create mybroker --namespace myproject
-
 ```
 
 ### Options
