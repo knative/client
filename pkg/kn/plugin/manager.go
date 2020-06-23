@@ -441,10 +441,14 @@ func findInDirOrPath(name string, dir string, lookupInPath bool) (string, error)
 }
 
 // lookupInternalPlugin looks up internally registered plugins. Return nil if none is found.
+// Start with longest argument path first to find the most specific match
 func lookupInternalPlugin(parts []string) Plugin {
-	for _, plugin := range InternalPlugins {
-		if equalsSlice(plugin.CommandParts(), parts) {
-			return plugin
+	for i := len(parts); i > 0; i-- {
+		checkParts := parts[0:i]
+		for _, plugin := range InternalPlugins {
+			if equalsSlice(plugin.CommandParts(), checkParts) {
+				return plugin
+			}
 		}
 	}
 	return nil

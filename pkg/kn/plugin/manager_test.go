@@ -21,6 +21,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/spf13/cobra"
@@ -38,6 +39,18 @@ type testContext struct {
 	pluginsDir    string
 	pluginManager *Manager
 }
+
+type testPlugin struct {
+	parts []string
+}
+
+func (t testPlugin) Name() string { return strings.Join(t.parts, " ") }
+func (t testPlugin) Execute(args []string) error { return nil}
+func (t testPlugin) Description() (string, error) { return "desc: " + t.Name(), nil }
+func (t testPlugin) CommandParts() []string { return t.parts }
+func (t testPlugin) Path() string { return "" }
+
+var _ Plugin = testPlugin{}
 
 func TestEmptyFind(t *testing.T) {
 	ctx := setup(t)
@@ -65,7 +78,7 @@ func TestLookupInPluginsDir(t *testing.T) {
 	assert.Equal(t, out, "OK \n")
 }
 
-func TestLookupWithNotFoundResult(t *testing.T) {
+func TestFindWithNotFoundResult(t *testing.T) {
 	ctx := setup(t)
 	defer cleanup(t, ctx)
 
@@ -74,7 +87,7 @@ func TestLookupWithNotFoundResult(t *testing.T) {
 	assert.NilError(t, err, "no error expected")
 }
 
-func TestPluginInPath(t *testing.T) {
+func TestFindPluginInPath(t *testing.T) {
 	ctx := setup(t)
 	defer cleanup(t, ctx)
 
@@ -90,6 +103,9 @@ func TestPluginInPath(t *testing.T) {
 	plugin, err := ctx.pluginManager.FindPlugin(pluginCommands)
 	assert.NilError(t, err)
 	assert.Assert(t, plugin != nil)
+	desc, err := plugin.Description()
+	assert.NilError(t, err)
+	assert.Assert(t, desc != "")
 	assert.Equal(t, plugin.Path(), filepath.Join(tmpPathDir, "kn-path-test"))
 	assert.DeepEqual(t, plugin.CommandParts(), pluginCommands)
 
@@ -98,6 +114,38 @@ func TestPluginInPath(t *testing.T) {
 	plugin, err = ctx.pluginManager.FindPlugin(pluginCommands)
 	assert.NilError(t, err)
 	assert.Assert(t, plugin == nil)
+}
+
+func TestFindPluginInternally(t *testing.T) {
+	ctx := setup(t)
+	defer cleanup(t, ctx)
+
+	// Initialize registered plugins
+	plugins := PluginList{
+		testPlugin{[]string{"a", "b"}},
+		testPlugin{[]string{"a"}},
+	}
+	oldPlugins := InternalPlugins
+	defer func() {
+		InternalPlugins = oldPlugins
+	}()
+	InternalPlugins = plugins
+
+	data := []struct {
+		parts []string
+		name string
+	} {
+		{ []string{ "a", "b"}, "a b" },
+		{ []string{ "a"}, "a" },
+		{ []string{ "a", "c"}, "a" },
+	}
+	for _, d := range data {
+		plugin, err := ctx.pluginManager.FindPlugin(d.parts)
+		assert.NilError(t, err)
+		assert.Assert(t, plugin != nil)
+		assert.Equal(t, plugin.Name(), d.name)
+		assert.DeepEqual(t, plugin.CommandParts(), strings.Split(d.name, " "))
+	}
 }
 
 func TestPluginExecute(t *testing.T) {
