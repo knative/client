@@ -7,7 +7,7 @@ Create a ping source
 Create a ping source
 
 ```
-kn source ping create NAME
+kn source ping create NAME --sink SINK
 ```
 
 ### Examples
