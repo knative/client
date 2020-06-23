@@ -17,14 +17,21 @@ package v1beta1
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"gotest.tools/assert"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/watch"
 
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	client_testing "k8s.io/client-go/testing"
+	"knative.dev/client/pkg/wait"
 	v1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
 	"knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1beta1/fake"
+	"knative.dev/pkg/apis"
+	duckv1 "knative.dev/pkg/apis/duck/v1"
 )
 
 var testNamespace = "test-ns"
@@ -184,10 +191,156 @@ func TestTriggerBuilder(t *testing.T) {
 
 }
 
+func TestBrokerCreate(t *testing.T) {
+	var name = "broker"
+	server, client := setup()
+
+	objNew := newBroker(name)
+
+	server.AddReactor("create", "brokers",
+		func(a client_testing.Action) (bool, runtime.Object, error) {
+			assert.Equal(t, testNamespace, a.GetNamespace())
+			name := a.(client_testing.CreateAction).GetObject().(metav1.Object).GetName()
+			if name == objNew.Name {
+				objNew.Generation = 2
+				return true, objNew, nil
+			}
+			return true, nil, fmt.Errorf("error while creating broker %s", name)
+		})
+
+	t.Run("create broker without error", func(t *testing.T) {
+		err := client.CreateBroker(objNew)
+		assert.NilError(t, err)
+	})
+
+	t.Run("create broker with an error returns an error object", func(t *testing.T) {
+		err := client.CreateBroker(newBroker("unknown"))
+		assert.ErrorContains(t, err, "unknown")
+	})
+}
+
+func TestBrokerGet(t *testing.T) {
+	var name = "foo"
+	server, client := setup()
+
+	server.AddReactor("get", "brokers",
+		func(a client_testing.Action) (bool, runtime.Object, error) {
+			name := a.(client_testing.GetAction).GetName()
+			if name == "errorBroker" {
+				return true, nil, fmt.Errorf("error while getting broker %s", name)
+			}
+			return true, newBroker(name), nil
+		})
+
+	broker, err := client.GetBroker(name)
+	assert.NilError(t, err)
+	assert.Equal(t, broker.Name, name)
+
+	_, err = client.GetBroker("errorBroker")
+	assert.ErrorContains(t, err, "errorBroker")
+}
+
+func TestBrokerDelete(t *testing.T) {
+	var name = "fooBroker"
+	server, client := setup()
+
+	server.AddReactor("delete", "brokers",
+		func(a client_testing.Action) (bool, runtime.Object, error) {
+			name := a.(client_testing.DeleteAction).GetName()
+			if name == "errorBroker" {
+				return true, nil, fmt.Errorf("error while deleting broker %s", name)
+			}
+			return true, nil, nil
+		})
+
+	err := client.DeleteBroker(name, 0)
+	assert.NilError(t, err)
+
+	err = client.DeleteBroker("errorBroker", 0)
+	assert.ErrorContains(t, err, "errorBroker", 0)
+}
+
+func TestBrokerDeleteWithWait(t *testing.T) {
+	var name = "fooBroker"
+	server, client := setup()
+
+	server.AddReactor("delete", "brokers",
+		func(a client_testing.Action) (bool, runtime.Object, error) {
+			name := a.(client_testing.DeleteAction).GetName()
+			if name == "errorBroker" {
+				return true, nil, fmt.Errorf("error while deleting broker %s", name)
+			}
+			return true, nil, nil
+		})
+
+	server.AddWatchReactor("brokers",
+		func(a client_testing.Action) (bool, watch.Interface, error) {
+			watchAction := a.(client_testing.WatchAction)
+			name, found := watchAction.GetWatchRestrictions().Fields.RequiresExactMatch("metadata.name")
+			if !found {
+				return true, nil, errors.NewNotFound(v1beta1.Resource("broker"), name)
+			}
+			w := wait.NewFakeWatch(getBrokerDeleteEvents("fooBroker"))
+			w.Start()
+			return true, w, nil
+		})
+
+	err := client.DeleteBroker(name, time.Duration(10)*time.Second)
+	assert.NilError(t, err)
+
+	err = client.DeleteBroker("errorBroker", time.Duration(10)*time.Second)
+	assert.ErrorContains(t, err, "errorBroker", time.Duration(10)*time.Second)
+}
+
+func TestBrokerList(t *testing.T) {
+	serving, client := setup()
+
+	t.Run("broker list returns a list of brokers", func(t *testing.T) {
+		broker1 := newBroker("foo1")
+		broker2 := newBroker("foo2")
+
+		serving.AddReactor("list", "brokers",
+			func(a client_testing.Action) (bool, runtime.Object, error) {
+				assert.Equal(t, testNamespace, a.GetNamespace())
+				return true, &v1beta1.BrokerList{Items: []v1beta1.Broker{*broker1, *broker2}}, nil
+			})
+
+		brokerList, err := client.ListBrokers()
+		assert.NilError(t, err)
+		assert.Assert(t, len(brokerList.Items) == 2)
+		assert.Equal(t, brokerList.Items[0].Name, "foo1")
+		assert.Equal(t, brokerList.Items[1].Name, "foo2")
+	})
+}
+
 func newTrigger(name string) *v1beta1.Trigger {
 	return NewTriggerBuilder(name).
 		Namespace(testNamespace).
 		Broker("default").
 		Filters(map[string]string{"type": "foo"}).
 		Build()
+}
+
+func newBroker(name string) *v1beta1.Broker {
+	return NewBrokerBuilder(name).
+		Namespace(testNamespace).
+		Build()
+}
+
+func getBrokerDeleteEvents(name string) []watch.Event {
+	return []watch.Event{
+		{watch.Added, createBrokerWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "", "msg1")},
+		{watch.Modified, createBrokerWithConditions(name, corev1.ConditionUnknown, corev1.ConditionTrue, "", "msg2")},
+		{watch.Deleted, createBrokerWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "", "")},
+	}
+}
+
+func createBrokerWithConditions(name string, readyStatus corev1.ConditionStatus, otherReadyStatus corev1.ConditionStatus, reason string, message string) runtime.Object {
+	broker := newBroker(name)
+	broker.Status.Conditions = duckv1.Conditions([]apis.Condition{
+		{Type: "ChannelServiceReady", Status: otherReadyStatus},
+		{Type: apis.ConditionReady, Status: readyStatus, Reason: reason, Message: message},
+		{Type: "Addressable", Status: otherReadyStatus},
+	})
+	return broker
 }

@@ -16,6 +16,7 @@ package v1beta1
 
 import (
 	"testing"
+	"time"
 
 	v1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
 
@@ -112,6 +113,50 @@ func (sr *EventingRecorder) UpdateTrigger(trigger interface{}, err error) {
 func (c *MockKnEventingClient) UpdateTrigger(trigger *v1beta1.Trigger) error {
 	call := c.recorder.r.VerifyCall("UpdateTrigger")
 	return mock.ErrorOrNil(call.Result[0])
+}
+
+// CreateBroker records a call for CreateBroker with the expected error
+func (sr *EventingRecorder) CreateBroker(broker interface{}, err error) {
+	sr.r.Add("CreateBroker", []interface{}{broker}, []interface{}{err})
+}
+
+// CreateBroker performs a previously recorded action
+func (c *MockKnEventingClient) CreateBroker(broker *v1beta1.Broker) error {
+	call := c.recorder.r.VerifyCall("CreateBroker", broker)
+	return mock.ErrorOrNil(call.Result[0])
+}
+
+// GetBroker records a call for GetBroker with the expected object or error. Either trigger or err should be nil
+func (sr *EventingRecorder) GetBroker(name interface{}, broker *v1beta1.Broker, err error) {
+	sr.r.Add("GetBroker", []interface{}{name}, []interface{}{broker, err})
+}
+
+// GetBroker performs a previously recorded action
+func (c *MockKnEventingClient) GetBroker(name string) (*v1beta1.Broker, error) {
+	call := c.recorder.r.VerifyCall("GetBroker", name)
+	return call.Result[0].(*v1beta1.Broker), mock.ErrorOrNil(call.Result[1])
+}
+
+// DeleteBroker records a call for DeleteBroker with the expected error (nil if none)
+func (sr *EventingRecorder) DeleteBroker(name, timeout interface{}, err error) {
+	sr.r.Add("DeleteBroker", []interface{}{name, timeout}, []interface{}{err})
+}
+
+// DeleteBroker performs a previously recorded action, failing if non has been registered
+func (c *MockKnEventingClient) DeleteBroker(name string, timeout time.Duration) error {
+	call := c.recorder.r.VerifyCall("DeleteBroker", name, timeout)
+	return mock.ErrorOrNil(call.Result[0])
+}
+
+// ListBrokers records a call for ListBrokers with the expected result and error (nil if none)
+func (sr *EventingRecorder) ListBrokers(brokerList *v1beta1.BrokerList, err error) {
+	sr.r.Add("ListBrokers", nil, []interface{}{brokerList, err})
+}
+
+// ListBrokers performs a previously recorded action
+func (c *MockKnEventingClient) ListBrokers() (*v1beta1.BrokerList, error) {
+	call := c.recorder.r.VerifyCall("ListBrokers")
+	return call.Result[0].(*v1beta1.BrokerList), mock.ErrorOrNil(call.Result[1])
 }
 
 // Validate validates whether every recorded action has been called

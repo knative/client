@@ -16,6 +16,7 @@ package v1beta1
 
 import (
 	"testing"
+	"time"
 
 	v1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
 )
@@ -33,12 +34,22 @@ func TestMockKnClient(t *testing.T) {
 	recorder.ListTriggers(nil, nil)
 	recorder.UpdateTrigger(&v1beta1.Trigger{}, nil)
 
+	recorder.CreateBroker(&v1beta1.Broker{}, nil)
+	recorder.GetBroker("foo", nil, nil)
+	recorder.DeleteBroker("foo", time.Duration(10)*time.Second, nil)
+	recorder.ListBrokers(nil, nil)
+
 	// Call all service
 	client.GetTrigger("hello")
 	client.CreateTrigger(&v1beta1.Trigger{})
 	client.DeleteTrigger("hello")
 	client.ListTriggers()
 	client.UpdateTrigger(&v1beta1.Trigger{})
+
+	client.CreateBroker(&v1beta1.Broker{})
+	client.GetBroker("foo")
+	client.DeleteBroker("foo", time.Duration(10)*time.Second)
+	client.ListBrokers()
 
 	// Validate
 	recorder.Validate()
