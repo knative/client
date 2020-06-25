@@ -44,7 +44,7 @@ func TestTriggerCreate(t *testing.T) {
 	out, err := executeTriggerCommand(eventingClient, dynamicClient, "create", triggerName, "--broker", "mybroker",
 		"--filter", "type=dev.knative.foo", "--sink", "svc:mysvc")
 	assert.NilError(t, err, "Trigger should be created")
-	util.ContainsAll(out, "Trigger", triggerName, "created", "namespace", "default")
+	assert.Assert(t, util.ContainsAll(out, "Trigger", triggerName, "created", "namespace", "default"))
 
 	eventingRecorder.Validate()
 }
@@ -62,7 +62,7 @@ func TestTriggerWithInjectCreate(t *testing.T) {
 	out, err := executeTriggerCommand(eventingClient, dynamicClient, "create", triggerName, "--broker", "default", "--inject-broker",
 		"--filter", "type=dev.knative.foo", "--sink", "svc:mysvc")
 	assert.NilError(t, err, "Trigger should be created")
-	util.ContainsAll(out, "Trigger", triggerName, "created", "namespace", "default")
+	assert.Assert(t, util.ContainsAll(out, "Trigger", triggerName, "created", "namespace", "default"))
 
 	eventingRecorder.Validate()
 }
@@ -111,7 +111,7 @@ func TestTriggerCreateMultipleFilter(t *testing.T) {
 	out, err := executeTriggerCommand(eventingClient, dynamicClient, "create", triggerName, "--broker", "mybroker",
 		"--filter", "type=dev.knative.foo", "--filter", "source=event.host", "--sink", "svc:mysvc")
 	assert.NilError(t, err, "Trigger should be created")
-	util.ContainsAll(out, "Trigger", triggerName, "created", "namespace", "default")
+	assert.Assert(t, util.ContainsAll(out, "Trigger", triggerName, "created", "namespace", "default"))
 
 	eventingRecorder.Validate()
 }
@@ -128,7 +128,7 @@ func TestTriggerCreateWithoutFilter(t *testing.T) {
 
 	out, err := executeTriggerCommand(eventingClient, dynamicClient, "create", triggerName, "--broker", "mybroker", "--sink", "svc:mysvc")
 	assert.NilError(t, err, "Trigger should be created")
-	util.ContainsAll(out, "Trigger", triggerName, "created", "namespace", "default")
+	assert.Assert(t, util.ContainsAll(out, "Trigger", triggerName, "created", "namespace", "default"))
 
 	eventingRecorder.Validate()
 }

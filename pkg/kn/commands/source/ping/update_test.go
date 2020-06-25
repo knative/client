@@ -34,7 +34,7 @@ func TestSimplePingUpdate(t *testing.T) {
 
 	out, err := executePingSourceCommand(pingSourceClient, nil, "update", "--schedule", "* * * * */3", "testsource")
 	assert.NilError(t, err)
-	util.ContainsAll(out, "updated", "default", "testsource")
+	assert.Assert(t, util.ContainsAll(out, "updated", "default", "testsource"))
 
 	pingRecorder.Validate()
 }
@@ -49,7 +49,7 @@ func TestSimplePingUpdateCEOverrides(t *testing.T) {
 
 	out, err := executePingSourceCommand(pingSourceClient, nil, "update", "--schedule", "* * * * */3", "testsource", "--ce-override", "bla-", "--ce-override", "foo=baz", "--ce-override", "new=ceoverride")
 	assert.NilError(t, err)
-	util.ContainsAll(out, "updated", "default", "testsource")
+	assert.Assert(t, util.ContainsAll(out, "updated", "default", "testsource"))
 
 	pingRecorder.Validate()
 }
@@ -62,7 +62,7 @@ func TestUpdateError(t *testing.T) {
 
 	out, err := executePingSourceCommand(pingClient, nil, "update", "testsource")
 	assert.ErrorContains(t, err, "testsource")
-	util.ContainsAll(out, "Usage", "testsource")
+	assert.Assert(t, util.ContainsAll(out, "Usage", "testsource"))
 
 	pingRecorder.Validate()
 }

@@ -37,7 +37,7 @@ func TestBrokerCreate(t *testing.T) {
 
 	out, err := executeBrokerCommand(eventingClient, "create", brokerName)
 	assert.NilError(t, err, "Broker should be created")
-	util.ContainsAll(out, "Broker", brokerName, "created", "namespace", "default")
+	assert.Assert(t, util.ContainsAll(out, "Broker", brokerName, "created", "namespace", "default"))
 
 	eventingRecorder.Validate()
 }
@@ -47,5 +47,5 @@ func TestBrokerCreateWithError(t *testing.T) {
 
 	_, err := executeBrokerCommand(eventingClient, "create")
 	assert.ErrorContains(t, err, "broker create")
-	util.ContainsAll(err.Error(), "broker create", "requires", "name", "argument")
+	assert.Assert(t, util.ContainsAll(err.Error(), "broker create", "requires", "name", "argument"))
 }

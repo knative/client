@@ -36,7 +36,7 @@ func TestBrokerDelete(t *testing.T) {
 
 	out, err := executeBrokerCommand(eventingClient, "delete", brokerName)
 	assert.NilError(t, err, "Broker should be deleted")
-	util.ContainsAll(out, "Broker", brokerName, "deleted", "namespace", "default")
+	assert.Assert(t, util.ContainsAll(out, "Broker", brokerName, "deleted", "namespace", "default"))
 
 	eventingRecorder.Validate()
 }
@@ -50,7 +50,7 @@ func TestBrokerWithDelete(t *testing.T) {
 
 	out, err := executeBrokerCommand(eventingClient, "delete", brokerName)
 	assert.ErrorContains(t, err, brokerName)
-	util.ContainsAll(out, "broker", brokerName, "not found")
+	assert.Assert(t, util.ContainsAll(out, "broker", brokerName, "not found"))
 
 	eventingRecorder.Validate()
 }

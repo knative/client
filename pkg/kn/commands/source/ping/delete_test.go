@@ -33,7 +33,7 @@ func TestSimpleDelete(t *testing.T) {
 
 	out, err := executePingSourceCommand(pingClient, nil, "delete", "testsource")
 	assert.NilError(t, err)
-	util.ContainsAll(out, "deleted", "mynamespace", "testsource", "ping")
+	assert.Assert(t, util.ContainsAll(out, "deleted", "mynamespace", "testsource", "Ping"))
 
 	pingRecorder.Validate()
 }
