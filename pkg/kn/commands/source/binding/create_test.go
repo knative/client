@@ -31,11 +31,11 @@ func TestSimpleCreateBinding(t *testing.T) {
 
 	bindingClient := v1alpha2.NewMockKnSinkBindingClient(t)
 	bindingRecorder := bindingClient.Recorder()
-	bindingRecorder.CreateSinkBinding(createSinkBinding("testbinding", "mysvc", deploymentGvk, "mydeploy", map[string]string{"bla": "blub", "foo": "bar"}), nil)
+	bindingRecorder.CreateSinkBinding(createSinkBinding("testbinding", "mysvc", deploymentGvk, "mydeploy", "default", map[string]string{"bla": "blub", "foo": "bar"}), nil)
 
 	out, err := executeSinkBindingCommand(bindingClient, dynamicClient, "create", "testbinding", "--sink", "svc:mysvc", "--subject", "deployment:apps/v1:mydeploy", "--ce-override", "bla=blub", "--ce-override", "foo=bar")
 	assert.NilError(t, err, "Source should have been created")
-	util.ContainsAll(out, "created", "default", "testbinding")
+	assert.Assert(t, util.ContainsAll(out, "created", "default", "testbinding"))
 
 	bindingRecorder.Validate()
 }

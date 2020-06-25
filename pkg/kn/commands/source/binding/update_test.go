@@ -39,12 +39,12 @@ func TestSimpleBindingUpdate(t *testing.T) {
 	bindingRecorder := sinkBindingClient.Recorder()
 	ceOverrideMap := map[string]string{"bla": "blub", "foo": "bar"}
 	ceOverrideMapUpdated := map[string]string{"foo": "baz", "new": "ceoverride"}
-	bindingRecorder.GetSinkBinding("testbinding", createSinkBinding("testbinding", "mysvc", deploymentGvk, "mydeploy", ceOverrideMap), nil)
-	bindingRecorder.UpdateSinkBinding(createSinkBinding("testbinding", "othersvc", deploymentGvk, "mydeploy", ceOverrideMapUpdated), nil)
+	bindingRecorder.GetSinkBinding("testbinding", createSinkBinding("testbinding", "mysvc", deploymentGvk, "mydeploy", "default", ceOverrideMap), nil)
+	bindingRecorder.UpdateSinkBinding(createSinkBinding("testbinding", "othersvc", deploymentGvk, "mydeploy", "default", ceOverrideMapUpdated), nil)
 
 	out, err := executeSinkBindingCommand(sinkBindingClient, dynamicClient, "update", "testbinding", "--sink", "svc:othersvc", "--ce-override", "bla-", "--ce-override", "foo=baz", "--ce-override", "new=ceoverride")
 	assert.NilError(t, err)
-	util.ContainsAll(out, "updated", "default", "testbinding", "foo", "bar")
+	assert.Assert(t, util.ContainsAll(out, "updated", "default", "testbinding"))
 
 	bindingRecorder.Validate()
 }
@@ -64,7 +64,7 @@ func TestUpdateError(t *testing.T) {
 
 	out, err := executeSinkBindingCommand(sinkBindingClient, nil, "update", "testbinding")
 	assert.ErrorContains(t, err, "testbinding")
-	util.ContainsAll(out, "testbinding", "name", "required")
+	assert.Assert(t, util.ContainsAll(out, "Error:", "testbinding", "no", "binding"))
 
 	bindingRecorder.Validate()
 }
@@ -72,7 +72,7 @@ func TestUpdateError(t *testing.T) {
 func TestBindingUpdateDeletionTimestampNotNil(t *testing.T) {
 	sinkBindingClient := clientsourcesv1alpha1.NewMockKnSinkBindingClient(t)
 	bindingRecorder := sinkBindingClient.Recorder()
-	present := createSinkBinding("testbinding", "", deploymentGvk, "", nil)
+	present := createSinkBinding("testbinding", "", deploymentGvk, "", "default", nil)
 	present.DeletionTimestamp = &v1.Time{Time: time.Now()}
 	bindingRecorder.GetSinkBinding("testbinding", present, nil)
 

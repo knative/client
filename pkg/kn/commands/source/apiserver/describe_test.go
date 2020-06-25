@@ -22,18 +22,30 @@ import (
 
 	"knative.dev/client/pkg/sources/v1alpha2"
 	"knative.dev/client/pkg/util"
+	"knative.dev/pkg/apis"
+	duckv1 "knative.dev/pkg/apis/duck/v1"
+)
+
+var (
+	sinkURI = duckv1.Destination{
+		URI: &apis.URL{
+			Scheme: "https",
+			Host:   "foo",
+		}}
 )
 
 func TestSimpleDescribe(t *testing.T) {
 	apiServerClient := v1alpha2.NewMockKnAPIServerSourceClient(t, "mynamespace")
 
 	apiServerRecorder := apiServerClient.Recorder()
-	sampleSource := createAPIServerSource("testsource", "Event", "v1", "testsa", "Reference", "testsvc", map[string]string{"foo": "bar"})
+	sampleSource := createAPIServerSource("testsource", "Event", "v1", "testsa", "Reference", map[string]string{"foo": "bar"}, createSinkv1("testsvc", "default"))
+	sampleSource.Namespace = "mynamespace"
 	apiServerRecorder.GetAPIServerSource("testsource", sampleSource, nil)
 
 	out, err := executeAPIServerSourceCommand(apiServerClient, nil, "describe", "testsource")
 	assert.NilError(t, err)
-	util.ContainsAll(out, "testsource", "testsa", "Reference", "testsvc", "Service", "Resources", "Event", "v1", "false", "Conditions", "foo", "bar")
+	assert.Assert(t, util.ContainsAll(out, "testsource", "testsa", "Reference", "testsvc", "Service (serving.knative.dev/v1)", "Resources", "Event", "v1", "Conditions", "foo", "bar", "mynamespace", "default"))
+	assert.Assert(t, util.ContainsNone(out, "URI"))
 
 	apiServerRecorder.Validate()
 }
@@ -46,7 +58,22 @@ func TestDescribeError(t *testing.T) {
 
 	out, err := executeAPIServerSourceCommand(apiServerClient, nil, "describe", "testsource")
 	assert.ErrorContains(t, err, "testsource")
-	util.ContainsAll(out, "Usage", "testsource")
+	assert.Assert(t, util.ContainsAll(out, "Usage", "testsource"))
+
+	apiServerRecorder.Validate()
+}
+
+func TestDescribeWithSinkURI(t *testing.T) {
+	apiServerClient := v1alpha2.NewMockKnAPIServerSourceClient(t, "mynamespace")
+
+	apiServerRecorder := apiServerClient.Recorder()
+	sampleSource := createAPIServerSource("testsource", "Event", "v1", "testsa", "Reference", map[string]string{"foo": "bar"}, sinkURI)
+	sampleSource.Namespace = "mynamespace"
+	apiServerRecorder.GetAPIServerSource("testsource", sampleSource, nil)
+
+	out, err := executeAPIServerSourceCommand(apiServerClient, nil, "describe", "testsource")
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(out, "testsource", "testsa", "Reference", "Resources", "Event", "v1", "Conditions", "foo", "bar", "URI", "https", "foo", "mynamespace"))
 
 	apiServerRecorder.Validate()
 }

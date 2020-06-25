@@ -29,7 +29,6 @@ import (
 
 const testNamespace = "default"
 
-// Helper methods
 var blankConfig clientcmd.ClientConfig
 
 // TODO: Remove that blankConfig hack for tests in favor of overwriting GetConfig()
@@ -83,19 +82,11 @@ func cleanupAPIServerMockClient() {
 	apiServerSourceClientFactory = nil
 }
 
-func createAPIServerSource(name, resourceKind, resourceVersion, serviceAccount, mode, service string, ceOverrides map[string]string) *v1alpha2.ApiServerSource {
+func createAPIServerSource(name, resourceKind, resourceVersion, serviceAccount, mode string, ceOverrides map[string]string, sink duckv1.Destination) *v1alpha2.ApiServerSource {
 	resources := []v1alpha2.APIVersionKindSelector{{
 		APIVersion: resourceVersion,
 		Kind:       resourceKind,
 	}}
-
-	sink := duckv1.Destination{
-		Ref: &duckv1.KReference{
-			Kind:       "Service",
-			Name:       service,
-			APIVersion: "serving.knative.dev/v1",
-			Namespace:  "default",
-		}}
 
 	return clientv1alpha2.NewAPIServerSourceBuilder(name).
 		Resources(resources).
@@ -104,4 +95,15 @@ func createAPIServerSource(name, resourceKind, resourceVersion, serviceAccount, 
 		Sink(sink).
 		CloudEventOverrides(ceOverrides, []string{}).
 		Build()
+}
+
+func createSinkv1(serviceName, namespace string) duckv1.Destination {
+	return duckv1.Destination{
+		Ref: &duckv1.KReference{
+			Kind:       "Service",
+			Name:       serviceName,
+			APIVersion: "serving.knative.dev/v1",
+			Namespace:  namespace,
+		},
+	}
 }

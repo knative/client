@@ -22,6 +22,7 @@ import (
 	"gotest.tools/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
+	"knative.dev/pkg/apis"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 	"knative.dev/pkg/apis/duck/v1alpha1"
 	"knative.dev/pkg/tracker"
@@ -30,15 +31,24 @@ import (
 	"knative.dev/client/pkg/util"
 )
 
+var (
+	sinkURI = duckv1.Destination{
+		URI: &apis.URL{
+			Scheme: "https",
+			Host:   "foo",
+		}}
+)
+
 func TestSimpleDescribeWitName(t *testing.T) {
 	bindingClient := clientv1alpha2.NewMockKnSinkBindingClient(t, "mynamespace")
 
 	bindingRecorder := bindingClient.Recorder()
-	bindingRecorder.GetSinkBinding("mybinding", getSinkBindingSource("myapp", map[string]string{"foo": "bar"}), nil)
+	bindingRecorder.GetSinkBinding("mybinding", getSinkBindingSource("myapp", map[string]string{"foo": "bar"}, createServiceSink("mysvc", "myservicenamespace")), nil)
 
 	out, err := executeSinkBindingCommand(bindingClient, nil, "describe", "mybinding")
 	assert.NilError(t, err)
-	util.ContainsAll(out, "mybinding", "myapp", "Deployment", "app/v1", "mynamespace", "mysvc", "foo", "bar")
+	assert.Assert(t, util.ContainsAll(out, "mysinkbinding", "myapp", "Deployment", "apps/v1", "mynamespace", "mysvc", "foo", "bar", "myservicenamespace", "Service (serving.knative.dev/v1)"))
+	assert.Assert(t, util.ContainsNone(out, "URI"))
 
 	bindingRecorder.Validate()
 }
@@ -47,11 +57,12 @@ func TestSimpleDescribeWithSelector(t *testing.T) {
 	bindingClient := clientv1alpha2.NewMockKnSinkBindingClient(t, "mynamespace")
 
 	bindingRecorder := bindingClient.Recorder()
-	bindingRecorder.GetSinkBinding("mybinding", getSinkBindingSource("app=myapp,type=test", nil), nil)
+	bindingRecorder.GetSinkBinding("mybinding", getSinkBindingSource("app=myapp,type=test", nil, createServiceSink("mysvc", "myservicenamespace")), nil)
 
 	out, err := executeSinkBindingCommand(bindingClient, nil, "describe", "mybinding")
 	assert.NilError(t, err)
-	util.ContainsAll(out, "mybinding", "app:", "myapp", "type:", "test", "Deployment", "app/v1", "mynamespace", "mysvc")
+	assert.Assert(t, util.ContainsAll(out, "mysinkbinding", "app:", "myapp", "type:", "test", "Deployment", "apps/v1", "mynamespace", "mysvc", "myservicenamespace", "Service (serving.knative.dev/v1)"))
+	assert.Assert(t, util.ContainsNone(out, "URI"))
 
 	bindingRecorder.Validate()
 }
@@ -64,12 +75,25 @@ func TestDescribeError(t *testing.T) {
 
 	out, err := executeSinkBindingCommand(bindingClient, nil, "describe", "mybinding")
 	assert.ErrorContains(t, err, "mybinding")
-	util.ContainsAll(out, "mybinding")
+	assert.Assert(t, util.ContainsAll(out, "mybinding"))
 
 	bindingRecorder.Validate()
 }
 
-func getSinkBindingSource(nameOrSelector string, ceOverrides map[string]string) *v1alpha2.SinkBinding {
+func TestDescribeWithSinkURI(t *testing.T) {
+	bindingClient := clientv1alpha2.NewMockKnSinkBindingClient(t, "mynamespace")
+
+	bindingRecorder := bindingClient.Recorder()
+	bindingRecorder.GetSinkBinding("mybinding", getSinkBindingSource("myapp", map[string]string{"foo": "bar"}, sinkURI), nil)
+
+	out, err := executeSinkBindingCommand(bindingClient, nil, "describe", "mybinding")
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(out, "mysinkbinding", "myapp", "Deployment", "apps/v1", "mynamespace", "foo", "bar", "URI", "https", "foo"))
+
+	bindingRecorder.Validate()
+}
+
+func getSinkBindingSource(nameOrSelector string, ceOverrides map[string]string, sink duckv1.Destination) *v1alpha2.SinkBinding {
 	binding := &v1alpha2.SinkBinding{
 		TypeMeta: v1.TypeMeta{},
 		ObjectMeta: v1.ObjectMeta{
@@ -77,13 +101,7 @@ func getSinkBindingSource(nameOrSelector string, ceOverrides map[string]string) 
 		},
 		Spec: v1alpha2.SinkBindingSpec{
 			SourceSpec: duckv1.SourceSpec{
-				Sink: duckv1.Destination{
-					Ref: &duckv1.KReference{
-						Kind:      "Service",
-						Namespace: "myservicenamespace",
-						Name:      "mysvc",
-					},
-				},
+				Sink: sink,
 			},
 			BindingSpec: v1alpha1.BindingSpec{
 				Subject: tracker.Reference{
