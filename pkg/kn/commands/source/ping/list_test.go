@@ -37,8 +37,8 @@ func TestListPingSource(t *testing.T) {
 
 	out, err := executePingSourceCommand(pingClient, nil, "list")
 	assert.NilError(t, err, "Sources should be listed")
-	util.ContainsAll(out, "NAME", "SCHEDULE", "SINK", "AGE", "CONDITIONS", "READY", "REASON")
-	util.ContainsAll(out, "testsource", "* * * * */2", "mysvc")
+	assert.Assert(t, util.ContainsAll(out, "NAME", "SCHEDULE", "SINK", "AGE", "CONDITIONS", "READY", "REASON"))
+	assert.Assert(t, util.ContainsAll(out, "testsource", "* * * * */2", "mysvc"))
 
 	pingRecorder.Validate()
 }
@@ -53,8 +53,8 @@ func TestListPingJobSourceEmpty(t *testing.T) {
 
 	out, err := executePingSourceCommand(pingClient, nil, "list")
 	assert.NilError(t, err, "Sources should be listed")
-	util.ContainsNone(out, "NAME", "SCHEDULE", "SINK", "AGE", "CONDITIONS", "READY", "REASON")
-	util.ContainsAll(out, "No", "ping", "source", "found")
+	assert.Assert(t, util.ContainsNone(out, "NAME", "SCHEDULE", "SINK", "AGE", "CONDITIONS", "READY", "REASON"))
+	assert.Assert(t, util.ContainsAll(out, "No", "Ping", "source", "found"))
 
 	pingRecorder.Validate()
 }

@@ -41,7 +41,7 @@ func TestSimpleCreatePingSource(t *testing.T) {
 
 	out, err := executePingSourceCommand(pingClient, dynamicClient, "create", "--sink", "svc:mysvc", "--schedule", "* * * * */2", "--data", "maxwell", "testsource", "--ce-override", "bla=blub", "--ce-override", "foo=bar")
 	assert.NilError(t, err, "Source should have been created")
-	util.ContainsAll(out, "created", "default", "testsource")
+	assert.Assert(t, util.ContainsAll(out, "created", "default", "testsource"))
 
 	pingRecorder.Validate()
 }

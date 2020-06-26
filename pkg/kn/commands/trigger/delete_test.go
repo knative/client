@@ -33,7 +33,7 @@ func TestTriggerDelete(t *testing.T) {
 
 	out, err := executeTriggerCommand(eventingClient, nil, "delete", triggerName)
 	assert.NilError(t, err)
-	util.ContainsAll(out, "deleted", "testns", triggerName)
+	assert.Assert(t, util.ContainsAll(out, "deleted", "default", triggerName))
 
 	eventingRecorder.Validate()
 }
@@ -47,7 +47,7 @@ func TestTriggerDeleteWithError(t *testing.T) {
 
 	out, err := executeTriggerCommand(eventingClient, nil, "delete", triggerName)
 	assert.ErrorContains(t, err, triggerName)
-	util.ContainsAll(out, "trigger", triggerName, "not found")
+	assert.Assert(t, util.ContainsAll(out, "trigger", triggerName, "not found"))
 
 	eventingRecorder.Validate()
 }

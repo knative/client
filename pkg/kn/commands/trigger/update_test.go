@@ -44,7 +44,7 @@ func TestTriggerUpdate(t *testing.T) {
 	out, err := executeTriggerCommand(eventingClient, dynamicClient, "update", triggerName,
 		"--filter", "type=dev.knative.new", "--sink", "svc:mysvc")
 	assert.NilError(t, err, "Trigger should be updated")
-	util.ContainsAll(out, "Trigger", triggerName, "updated", "namespace", "default")
+	assert.Assert(t, util.ContainsAll(out, "Trigger", triggerName, "updated", "namespace", "default"))
 
 	eventingRecorder.Validate()
 }
@@ -57,7 +57,7 @@ func TestTriggerUpdateWithError(t *testing.T) {
 	out, err := executeTriggerCommand(eventingClient, nil, "update", triggerName,
 		"--filter", "type=dev.knative.new", "--sink", "svc:newsvc")
 	assert.ErrorContains(t, err, "trigger not found")
-	util.ContainsAll(out, "Usage", triggerName)
+	assert.Assert(t, util.ContainsAll(out, "Usage", triggerName))
 
 	eventingRecorder.Validate()
 }
@@ -71,7 +71,7 @@ func TestTriggerUpdateInvalidBroker(t *testing.T) {
 	out, err := executeTriggerCommand(eventingClient, nil, "update", triggerName,
 		"--broker", "newbroker")
 	assert.ErrorContains(t, err, "broker is immutable")
-	util.ContainsAll(out, "Usage", triggerName)
+	assert.Assert(t, util.ContainsAll(out, "Usage", triggerName))
 
 	eventingRecorder.Validate()
 }
