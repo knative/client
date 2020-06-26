@@ -38,11 +38,15 @@ const (
 echo "Hello Knative, I'm a Kn plugin"
 echo "  My plugin file is $0"
 echo "  I received arguments: $1 $2 $3 $4"`
+
+	TestPluginCodeErr string = `#!/bin/bash
+
+exit 1`
 )
 
 type pluginTestConfig struct {
-	knConfigDir, knPluginsDir, knPluginsDir2  string
-	knConfigPath, knPluginPath, knPluginPath2 string
+	knConfigDir, knPluginsDir, knPluginsDir2, knPluginsDir3  string
+	knConfigPath, knPluginPath, knPluginPath2, knPluginPath3 string
 }
 
 func (pc *pluginTestConfig) setup() error {
@@ -64,6 +68,12 @@ func (pc *pluginTestConfig) setup() error {
 		return err
 	}
 
+	pc.knPluginsDir3 = filepath.Join(pc.knConfigDir, "plugins3")
+	err = os.MkdirAll(pc.knPluginsDir3, test.FileModeExecutable)
+	if err != nil {
+		return err
+	}
+
 	pc.knConfigPath, err = test.CreateFile("config.yaml", "", pc.knConfigDir, test.FileModeReadWrite)
 	if err != nil {
 		return err
@@ -74,6 +84,10 @@ func (pc *pluginTestConfig) setup() error {
 		return err
 	}
 	pc.knPluginPath2, err = test.CreateFile("kn-hello2e2e", TestPluginCode, pc.knPluginsDir2, test.FileModeExecutable)
+	if err != nil {
+		return err
+	}
+	pc.knPluginPath3, err = test.CreateFile("kn-hello3e2e", TestPluginCodeErr, pc.knPluginsDir3, test.FileModeExecutable)
 	if err != nil {
 		return err
 	}
@@ -102,7 +116,7 @@ func TestPluginWithoutLookup(t *testing.T) {
 	listPlugin(r, knFlags, []string{pc.knPluginPath}, []string{})
 
 	t.Log("execute plugin in --plugins-dir")
-	runPlugin(r, knFlags, "helloe2e", []string{"e2e", "test"}, []string{"Hello Knative, I'm a Kn plugin", "I received arguments", "e2e"})
+	runPlugin(r, knFlags, "helloe2e", []string{"e2e", "test"}, []string{"Hello Knative, I'm a Kn plugin", "I received arguments", "e2e"}, []string{}, false)
 
 	t.Log("does not list any other plugin in $PATH")
 	listPlugin(r, knFlags, []string{pc.knPluginPath}, []string{pc.knPluginPath2})
@@ -138,7 +152,7 @@ func TestPluginWithLookup(t *testing.T) {
 	listPlugin(r, knFlags, []string{pc.knPluginPath}, []string{pc.knPluginPath2})
 
 	t.Log("execute plugin in --plugins-dir")
-	runPlugin(r, knFlags, "helloe2e", []string{}, []string{"Hello Knative, I'm a Kn plugin"})
+	runPlugin(r, knFlags, "helloe2e", []string{}, []string{"Hello Knative, I'm a Kn plugin"}, []string{}, false)
 }
 
 func TestListPluginInPath(t *testing.T) {
@@ -169,7 +183,26 @@ func TestExecutePluginInPath(t *testing.T) {
 
 	t.Log("execute plugin in $PATH")
 	knFlags := []string{fmt.Sprintf("--plugins-dir=%s", pc.knPluginsDir), "--lookup-plugins=true"}
-	runPlugin(r, knFlags, "hello2e2e", []string{}, []string{"Hello Knative, I'm a Kn plugin"})
+	runPlugin(r, knFlags, "hello2e2e", []string{}, []string{"Hello Knative, I'm a Kn plugin"}, []string{}, false)
+}
+
+func TestExecutePluginInPathWithError(t *testing.T) {
+	it, err := test.NewKnTest()
+	assert.NilError(t, err)
+
+	r := test.NewKnRunResultCollector(t, it)
+	defer r.DumpIfFailed()
+
+	pc := pluginTestConfig{}
+	assert.NilError(t, pc.setup())
+	oldPath := os.Getenv("PATH")
+	assert.NilError(t, os.Setenv("PATH", fmt.Sprintf("%s:%s", oldPath, pc.knPluginsDir3)))
+	defer tearDownWithPath(pc, oldPath)
+
+	t.Log("execute plugin in $PATH that returns error")
+	knFlags := []string{fmt.Sprintf("--plugins-dir=%s", pc.knPluginsDir), "--lookup-plugins=true"}
+	// Unexpected output []string{"Run", "kn --help", "usage"} to verify no kn --help message for error with plugin
+	runPlugin(r, knFlags, "hello3e2e", []string{}, []string{"Error: exit status 1"}, []string{"Run", "kn --help", "usage"}, true)
 }
 
 // Private
@@ -206,14 +239,25 @@ func listPlugin(r *test.KnRunResultCollector, knFlags []string, expectedPlugins 
 	}
 }
 
-func runPlugin(r *test.KnRunResultCollector, knFlags []string, pluginName string, args []string, expectedOutput []string) {
+func runPlugin(r *test.KnRunResultCollector, knFlags []string, pluginName string, args []string, expectedOutput []string, unexpectedOutput []string, expectErr bool) {
 	knArgs := append([]string{}, knFlags...)
 	knArgs = append(knArgs, pluginName)
 	knArgs = append(knArgs, args...)
 
 	out := test.Kn{}.Run(knArgs...)
-	r.AssertNoError(out)
+	var stdOutOrErr string
+	if !expectErr {
+		r.AssertNoError(out)
+		stdOutOrErr = out.Stdout
+	} else {
+		r.AssertError(out)
+		stdOutOrErr = out.Stderr
+	}
+
 	for _, output := range expectedOutput {
-		assert.Check(r.T(), util.ContainsAll(out.Stdout, output))
+		assert.Check(r.T(), util.ContainsAll(stdOutOrErr, output))
+	}
+	for _, output := range unexpectedOutput {
+		assert.Check(r.T(), util.ContainsNone(stdOutOrErr, output))
 	}
 }

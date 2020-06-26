@@ -30,6 +30,8 @@ import (
 	"knative.dev/client/pkg/kn/root"
 )
 
+var pluginErr = false
+
 func init() {
 	rand.Seed(time.Now().UnixNano())
 }
@@ -79,7 +81,12 @@ func run(args []string) error {
 			return err
 		}
 
-		return plugin.Execute(argsWithoutCommands(args, plugin.CommandParts()))
+		err = plugin.Execute(argsWithoutCommands(args, plugin.CommandParts()))
+		if err != nil {
+			// Used to not print `--kn help` message with plugin errors
+			pluginErr = true
+		}
+		return err
 	} else {
 		// Validate args for root command
 		err = validateRootCommand(rootCmd)
@@ -190,7 +197,9 @@ func validateRootCommand(cmd *cobra.Command) error {
 // printError prints out any given error
 func printError(err error) {
 	fmt.Fprintf(os.Stderr, "Error: %s\n", cleanupErrorMessage(err.Error()))
-	fmt.Fprintf(os.Stderr, "Run '%s --help' for usage\n", extractCommandPathFromErrorMessage(err.Error(), os.Args[0]))
+	if !pluginErr {
+		fmt.Fprintf(os.Stderr, "Run '%s --help' for usage\n", extractCommandPathFromErrorMessage(err.Error(), os.Args[0]))
+	}
 }
 
 // extractCommandPathFromErrorMessage tries to extract the command name from an error message
