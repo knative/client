@@ -30,72 +30,71 @@ import (
 	"knative.dev/client/pkg/kn/root"
 )
 
-var pluginErr = false
-
 func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
 func main() {
-	err := run(os.Args[1:])
+	displayHelp, err := run(os.Args[1:])
 	if err != nil && len(os.Args) > 1 {
-		printError(err)
+		printError(err, displayHelp)
 		// This is the only point from where to exit when an error occurs
 		os.Exit(1)
 	}
 }
 
 // Run the main program. Args are the args as given on the command line (excluding the program name itself)
-func run(args []string) error {
+func run(args []string) (bool, error) {
 	// Parse config & plugin flags early to read in configuration file
 	// and bind to viper. After that you can access all configuration and
 	// global options via methods on config.GlobalConfig
 	err := config.BootstrapConfig()
 	if err != nil {
-		return err
+		return true, err
 	}
 
 	// Strip of all flags to get the non-flag commands only
 	commands, err := stripFlags(args)
 	if err != nil {
-		return err
+		return true, err
 	}
 
 	// Find plugin with the commands arguments
 	pluginManager := plugin.NewManager(config.GlobalConfig.PluginsDir(), config.GlobalConfig.LookupPluginsInPath())
 	plugin, err := pluginManager.FindPlugin(commands)
 	if err != nil {
-		return err
+		return true, err
 	}
 
 	// Create kn root command and all sub-commands
 	rootCmd, err := root.NewRootCommand()
 	if err != nil {
-		return err
+		return true, err
 	}
 
 	if plugin != nil {
 		// Validate & Execute plugin
 		err = validatePlugin(rootCmd, plugin)
 		if err != nil {
-			return err
+			return true, err
 		}
 
 		err = plugin.Execute(argsWithoutCommands(args, plugin.CommandParts()))
 		if err != nil {
-			// Used to not print `--kn help` message with plugin errors
-			pluginErr = true
+			// Return false to not print `--kn help` message with plugin errors
+			return false, err
 		}
-		return err
-	} else {
-		// Validate args for root command
-		err = validateRootCommand(rootCmd)
-		if err != nil {
-			return err
-		}
-		// Execute kn root command, args are taken from os.Args directly
-		return rootCmd.Execute()
+
+		return true, err
 	}
+
+	// Validate args for root command
+	err = validateRootCommand(rootCmd)
+	if err != nil {
+		return true, err
+	}
+	// Execute kn root command, args are taken from os.Args directly
+	return true, rootCmd.Execute()
 }
 
 // Get only the args provided but no options. The extraction
@@ -195,9 +194,9 @@ func validateRootCommand(cmd *cobra.Command) error {
 }
 
 // printError prints out any given error
-func printError(err error) {
+func printError(err error, displayHelp bool) {
 	fmt.Fprintf(os.Stderr, "Error: %s\n", cleanupErrorMessage(err.Error()))
-	if !pluginErr {
+	if displayHelp {
 		fmt.Fprintf(os.Stderr, "Run '%s --help' for usage\n", extractCommandPathFromErrorMessage(err.Error(), os.Args[0]))
 	}
 }
