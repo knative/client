@@ -176,7 +176,7 @@ func findSink(source *unstructured.Unstructured) string {
 		}
 		return knflags.SinkToString(*sink)
 	}
-	return "<unknwon>"
+	return "<unknown>"
 }
 
 func isReady(source *unstructured.Unstructured) string {

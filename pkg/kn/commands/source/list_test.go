@@ -82,9 +82,21 @@ func TestSourceList(t *testing.T) {
 	)
 	assert.NilError(t, err)
 	assert.Check(t, util.ContainsAll(output[0], "NAME", "TYPE", "RESOURCE", "SINK", "READY"))
-	assert.Check(t, util.ContainsAll(output[1], "a1", "ApiServerSource", "apiserversources.sources.knative.dev", "svc:foo", "<unknown>"))
-	assert.Check(t, util.ContainsAll(output[2], "p1", "PingSource", "pingsources.sources.knative.dev", "svc:foo", "<unknown>"))
-	assert.Check(t, util.ContainsAll(output[3], "s1", "SinkBinding", "sinkbindings.sources.knative.dev", "svc:foo", "<unknown>"))
+	assert.Check(t, util.ContainsAll(output[1], "a1", "ApiServerSource", "apiserversources.sources.knative.dev", "svc:foo", "True"))
+	assert.Check(t, util.ContainsAll(output[2], "p1", "PingSource", "pingsources.sources.knative.dev", "svc:foo", "True"))
+	assert.Check(t, util.ContainsAll(output[3], "s1", "SinkBinding", "sinkbindings.sources.knative.dev", "svc:foo", "True"))
+}
+
+func TestSourceListUntyped(t *testing.T) {
+	output, err := sourceFakeCmd([]string{"source", "list"},
+		newSourceCRDObjWithSpec("kafkasources", "sources.knative.dev", "v1alpha1", "KafkaSource"),
+		newSourceUnstructuredObj("k1", "sources.knative.dev/v1alpha1", "KafkaSource"),
+		newSourceUnstructuredObj("k2", "sources.knative.dev/v1alpha1", "KafkaSource"),
+	)
+	assert.NilError(t, err)
+	assert.Check(t, util.ContainsAll(output[0], "NAME", "TYPE", "RESOURCE", "SINK", "READY"))
+	assert.Check(t, util.ContainsAll(output[1], "k1", "KafkaSource", "kafkasources.sources.knative.dev", "svc:foo", "True"))
+	assert.Check(t, util.ContainsAll(output[2], "k2", "KafkaSource", "kafkasources.sources.knative.dev", "svc:foo", "True"))
 }
 
 func TestSourceListNoHeaders(t *testing.T) {
@@ -134,6 +146,14 @@ func newSourceUnstructuredObj(name, apiVersion, kind string) *unstructured.Unstr
 					"ref": map[string]interface{}{
 						"kind": "Service",
 						"name": "foo",
+					},
+				},
+			},
+			"status": map[string]interface{}{
+				"conditions": []interface{}{
+					map[string]interface{}{
+						"Type":   "Ready",
+						"Status": "True",
 					},
 				},
 			},
