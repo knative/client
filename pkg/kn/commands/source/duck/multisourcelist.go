@@ -15,6 +15,7 @@
 package duck
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -24,9 +25,10 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	sourcesv1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
 	duck "knative.dev/pkg/apis/duck"
+	duckv1 "knative.dev/pkg/apis/duck/v1"
 
 	"knative.dev/client/pkg/kn/commands"
-	"knative.dev/client/pkg/kn/commands/flags"
+	knflags "knative.dev/client/pkg/kn/commands/flags"
 )
 
 // Source struct holds common properties between different eventing sources
@@ -103,26 +105,78 @@ func getSourceTypeName(source *unstructured.Unstructured) string {
 	)
 }
 
+func sinkFromUnstructured(u *unstructured.Unstructured) (*duckv1.Destination, error) {
+	content := u.UnstructuredContent()
+	sink, found, err := unstructured.NestedFieldCopy(content, "spec", "sink")
+	if err != nil {
+		return nil, fmt.Errorf("cant find sink in given unstructured object at spec.sink field: %v", err)
+	}
+
+	if !found {
+		return nil, nil
+	}
+
+	sinkM, err := json.Marshal(sink)
+	if err != nil {
+		return nil, fmt.Errorf("error marshaling sink %v: %v", sink, err)
+	}
+
+	var sinkD duckv1.Destination
+	if err := json.Unmarshal(sinkM, &sinkD); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal source sink: %v", err)
+	}
+
+	return &sinkD, nil
+}
+
+func conditionsFromUnstructured(u *unstructured.Unstructured) (*duckv1.Conditions, error) {
+	content := u.UnstructuredContent()
+	conds, found, err := unstructured.NestedFieldCopy(content, "status", "conditions")
+	if !found || err != nil {
+		return nil, fmt.Errorf("cant find conditions in given unstructured object at status.conditions field: %v", err)
+	}
+
+	condsM, err := json.Marshal(conds)
+	if err != nil {
+		return nil, fmt.Errorf("error marshaling conditions %v: %v", conds, err)
+	}
+
+	var condsD duckv1.Conditions
+	if err := json.Unmarshal(condsM, &condsD); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal source status conditions: %v", err)
+	}
+
+	return &condsD, nil
+}
+
 func findSink(source *unstructured.Unstructured) string {
 	switch source.GetKind() {
 	case "ApiServerSource":
 		var apiSource sourcesv1alpha2.ApiServerSource
 		if err := duck.FromUnstructured(source, &apiSource); err == nil {
-			return flags.SinkToString(apiSource.Spec.Sink)
+			return knflags.SinkToString(apiSource.Spec.Sink)
 		}
 	case "SinkBinding":
 		var binding sourcesv1alpha2.SinkBinding
 		if err := duck.FromUnstructured(source, &binding); err == nil {
-			return flags.SinkToString(binding.Spec.Sink)
+			return knflags.SinkToString(binding.Spec.Sink)
 		}
 	case "PingSource":
 		var pingSource sourcesv1alpha2.PingSource
 		if err := duck.FromUnstructured(source, &pingSource); err == nil {
-			return flags.SinkToString(pingSource.Spec.Sink)
+			return knflags.SinkToString(pingSource.Spec.Sink)
 		}
+	default:
+		sink, err := sinkFromUnstructured(source)
+		if err != nil {
+			return "<unknown>"
+		}
+		if sink == nil {
+			return ""
+		}
+		return knflags.SinkToString(*sink)
 	}
-	// TODO: Find out how to find sink in untyped sources
-	return "<unknown>"
+	return "<unknwon>"
 }
 
 func isReady(source *unstructured.Unstructured) string {
@@ -142,7 +196,13 @@ func isReady(source *unstructured.Unstructured) string {
 		if err := duck.FromUnstructured(source, &tSource); err == nil {
 			return commands.ReadyCondition(tSource.Status.Conditions)
 		}
+	default:
+		conds, err := conditionsFromUnstructured(source)
+		if err != nil {
+			// dont throw error in listing: if it cant find the status, return unknown
+			return "<unknown>"
+		}
+		return commands.ReadyCondition(*conds)
 	}
-	// TODO: Find out how to find ready conditions for untyped sources
 	return "<unknown>"
 }
