@@ -285,21 +285,24 @@ func TestUpdateContainerArg(t *testing.T) {
 
 func TestUpdateContainerPort(t *testing.T) {
 	template, _ := getRevisionTemplate()
-	err := UpdateContainerPort(template, 8888)
+	err := UpdateContainerPort(template, "8888")
 	assert.NilError(t, err)
 	// Verify update is successful or not
-	checkPortUpdate(t, template, 8888)
+	checkPortUpdate(t, template, 8888, "")
 	// update template with container port info
 	template.Spec.Containers[0].Ports[0].ContainerPort = 9090
-	err = UpdateContainerPort(template, 80)
+	err = UpdateContainerPort(template, "h2c:80")
 	assert.NilError(t, err)
 	// Verify that given port overrides the existing container port
-	checkPortUpdate(t, template, 80)
+	checkPortUpdate(t, template, 80, "h2c")
 }
 
-func checkPortUpdate(t *testing.T, template *servingv1.RevisionTemplateSpec, port int32) {
+func checkPortUpdate(t *testing.T, template *servingv1.RevisionTemplateSpec, port int32, name string) {
 	if template.Spec.Containers[0].Ports[0].ContainerPort != port {
 		t.Error("Failed to update the container port")
+	}
+	if template.Spec.Containers[0].Ports[0].Name != name {
+		t.Error("Failed to update the container port name")
 	}
 }
 

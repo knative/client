@@ -331,14 +331,26 @@ func UpdateContainerArg(template *servingv1.RevisionTemplateSpec, arg []string) 
 	return nil
 }
 
-// UpdateContainerPort updates container with a give port
-func UpdateContainerPort(template *servingv1.RevisionTemplateSpec, port int32) error {
+// UpdateContainerPort updates container with a given name:port
+func UpdateContainerPort(template *servingv1.RevisionTemplateSpec, port string) error {
 	container, err := ContainerOfRevisionTemplate(template)
 	if err != nil {
 		return err
 	}
+	var containerPort int
+	var name string
+
+	if strings.Contains(port, ":") {
+		portDetails := strings.Split(port, ":")
+		name = portDetails[0]
+		containerPort, _ = strconv.Atoi(portDetails[1])
+	} else {
+		containerPort, _ = strconv.Atoi(port)
+	}
+
 	container.Ports = []corev1.ContainerPort{{
-		ContainerPort: port,
+		ContainerPort: int32(containerPort),
+		Name:          name,
 	}}
 	return nil
 }

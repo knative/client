@@ -65,7 +65,7 @@ kn service update NAME
       --no-cluster-local              Do not specify that the service be private. (--no-cluster-local will make the service publicly available) (default true)
       --no-lock-to-digest             Do not keep the running image for the service constant when not explicitly specifying the image. (--no-lock-to-digest pulls the image tag afresh with each new revision)
       --no-wait                       Do not wait for 'service update' operation to be completed.
-  -p, --port int32                    The port where application listens on.
+  -p, --port string                   The port where application listens on. (e.g., h2c:8080 or just 8080) where h2c is port name and 8080 is container port
       --pull-secret string            Image pull secret to set. An empty argument ("") clears the pull secret. The referenced secret must exist in the service's namespace.
       --request strings               The resource requirement requests for this Service. For example, 'cpu=100m,memory=256Mi'. You can use this flag multiple times. To unset a resource request, append "-" to the resource name, e.g. '--request cpu-'.
       --requests-cpu string           DEPRECATED: please use --request instead. The requested CPU (e.g., 250m).
