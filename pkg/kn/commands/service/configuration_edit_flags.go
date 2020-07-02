@@ -45,6 +45,7 @@ type ConfigurationEditFlags struct {
 
 	RequestsFlags, LimitsFlags ResourceFlags // TODO: Flag marked deprecated in release v0.15.0, remove in release v0.18.0
 	Resources                  knflags.ResourceOptions
+	Scale                      int
 	MinScale                   int
 	MaxScale                   int
 	ConcurrencyTarget          int
@@ -184,6 +185,9 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 
 	command.Flags().IntVar(&p.MaxScale, "max-scale", 0, "Maximal number of replicas.")
 	p.markFlagMakesRevision("max-scale")
+
+	command.Flags().IntVar(&p.Scale, "scale", 0, "Minimal and Maximal number of replicas.")
+	p.markFlagMakesRevision("scale")
 
 	command.Flags().StringVar(&p.AutoscaleWindow, "autoscale-window", "", "Duration to look back for making auto-scaling decisions. The service is scaled to zero if no request was received in during that time. (eg: 10s)")
 	p.markFlagMakesRevision("autoscale-window")
@@ -429,6 +433,17 @@ func (p *ConfigurationEditFlags) Apply(
 
 	if cmd.Flags().Changed("max-scale") {
 		err = servinglib.UpdateMaxScale(template, p.MaxScale)
+		if err != nil {
+			return err
+		}
+	}
+
+	if cmd.Flags().Changed("scale") {
+		err = servinglib.UpdateMaxScale(template, p.Scale)
+		if err != nil {
+			return err
+		}
+		err = servinglib.UpdateMinScale(template, p.Scale)
 		if err != nil {
 			return err
 		}
