@@ -55,7 +55,7 @@ spec:
     "template": {
 		"spec": {
 		"containers": [
-			{ 
+			{
 			"image": "%s",
 			"env": [
 				{
