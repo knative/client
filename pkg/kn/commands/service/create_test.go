@@ -737,7 +737,7 @@ var serviceJSON = `
     "template": {
 		"spec": {
 		"containers": [
-			{ 
+			{
 			"image": "gcr.io/foo/bar:baz",
 			"env": [
 				{

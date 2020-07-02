@@ -282,7 +282,7 @@ func constructServiceFromFile(cmd *cobra.Command, editFlags ConfigurationEditFla
 		return nil, err
 	}
 	if service.Name != name {
-		return nil, fmt.Errorf("Provided service name '%s' doesn't match name from file '%s'.", name, service.Name)
+		return nil, fmt.Errorf("provided service name '%s' doesn't match name from file '%s'", name, service.Name)
 	}
 	// Set namespace in case it's specified as --namespace
 	service.ObjectMeta.Namespace = namespace
