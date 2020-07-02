@@ -31,7 +31,7 @@ kn service create NAME --image IMAGE
   kn service create s2 --port 80 --image knativesamples/helloworld
 
   # Create a service with port 80 and port name h2c
-  kn service create s2 --port h2c:80 --image knativesamples/helloworld  
+  kn service create s2 --port h2c:80 --image knativesamples/helloworld
 
   # Create or replace default resources of a service 's1' using --force flag
   # (earlier configured resource requests and limits will be replaced with default)
