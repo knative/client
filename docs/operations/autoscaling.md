@@ -10,9 +10,6 @@ limit) and is the recommended configuration for autoscaling in Knative.
 The `minScale` and `maxScale` annotations can be used to configure the minimum
 and maximum number of pods that can serve applications.
 
-The `scale` annotation can be used to configure the minimum and maximum number
-of pods at the same time.
-
 You can access autoscaling capabilities by using `kn` to modify Knative services
 without editing YAML files directly.
 
@@ -25,4 +22,3 @@ flags to configure the autoscaling behavior.
 | `--concurrency-target int` | Recommendation for when to scale up based on the concurrent number of incoming requests. Defaults to `--concurrency-limit`. |
 | `--max-scale int`          | Maximum number of replicas.                                                                                                 |
 | `--min-scale int`          | Minimum number of replicas.                                                                                                 |
-| `--scale int`              | Set min and max scale as the same value.                                                                                    |
