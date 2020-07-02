@@ -755,6 +755,7 @@ var serviceJSON = `
 func TestServiceCreateFromYAML(t *testing.T) {
 	tempDir, err := ioutil.TempDir("", "kn-file")
 	assert.NilError(t, err)
+	defer os.RemoveAll(tempDir)
 
 	tempFile := filepath.Join(tempDir, "service.yaml")
 	err = ioutil.WriteFile(tempFile, []byte(serviceYAML), os.FileMode(0666))
@@ -764,7 +765,7 @@ func TestServiceCreateFromYAML(t *testing.T) {
 		"service", "create", "foo", "--file", tempFile}, false)
 	assert.NilError(t, err)
 	assert.Assert(t, action.Matches("create", "services"))
-	fmt.Println("Name: " + created.Name)
+
 	assert.Equal(t, created.Name, "foo")
 	assert.Equal(t, created.Spec.Template.Spec.GetContainer().Image, "gcr.io/foo/bar:baz")
 }
@@ -772,6 +773,7 @@ func TestServiceCreateFromYAML(t *testing.T) {
 func TestServiceCreateFromJSON(t *testing.T) {
 	tempDir, err := ioutil.TempDir("", "kn-file")
 	assert.NilError(t, err)
+	defer os.RemoveAll(tempDir)
 
 	tempFile := filepath.Join(tempDir, "service.json")
 	err = ioutil.WriteFile(tempFile, []byte(serviceJSON), os.FileMode(0666))
@@ -805,4 +807,60 @@ func TestServiceCreateFileError(t *testing.T) {
 		"service", "create", "foo", "--file", "filepath"}, false)
 
 	assert.Assert(t, util.ContainsAll(err.Error(), "no", "such", "file", "directory", "filepath"))
+}
+
+func TestServiceCreateInvalidDataJSON(t *testing.T) {
+	tempDir, err := ioutil.TempDir("", "kn-file")
+	assert.NilError(t, err)
+	defer os.RemoveAll(tempDir)
+	tempFile := filepath.Join(tempDir, "invalid.json")
+
+	// Double curly bracket at the beginning of file
+	invalidData := strings.Replace(serviceJSON, "{\n", "{{\n", 1)
+	err = ioutil.WriteFile(tempFile, []byte(invalidData), os.FileMode(0666))
+	assert.NilError(t, err)
+	_, _, _, err = fakeServiceCreate([]string{"service", "create", "foo", "--file", tempFile}, false)
+	assert.Assert(t, util.ContainsAll(err.Error(), "invalid", "character", "'{'", "beginning"))
+
+	// Remove closing quote on key
+	invalidData = strings.Replace(serviceJSON, "metadata\"", "metadata", 1)
+	err = ioutil.WriteFile(tempFile, []byte(invalidData), os.FileMode(0666))
+	assert.NilError(t, err)
+	_, _, _, err = fakeServiceCreate([]string{"service", "create", "foo", "--file", tempFile}, false)
+	assert.Assert(t, util.ContainsAll(err.Error(), "invalid", "character", "'\\n'", "string", "literal"))
+
+	// Remove opening square bracket
+	invalidData = strings.Replace(serviceJSON, " [", "", 1)
+	err = ioutil.WriteFile(tempFile, []byte(invalidData), os.FileMode(0666))
+	assert.NilError(t, err)
+	_, _, _, err = fakeServiceCreate([]string{"service", "create", "foo", "--file", tempFile}, false)
+	assert.Assert(t, util.ContainsAll(err.Error(), "invalid", "character", "']'", "after", "key:value"))
+}
+
+func TestServiceCreateInvalidDataYAML(t *testing.T) {
+	tempDir, err := ioutil.TempDir("", "kn-file")
+	assert.NilError(t, err)
+	defer os.RemoveAll(tempDir)
+	tempFile := filepath.Join(tempDir, "invalid.yaml")
+
+	// Remove dash
+	invalidData := strings.Replace(serviceYAML, "- image", "image", 1)
+	err = ioutil.WriteFile(tempFile, []byte(invalidData), os.FileMode(0666))
+	assert.NilError(t, err)
+	_, _, _, err = fakeServiceCreate([]string{"service", "create", "foo", "--file", tempFile}, false)
+	assert.Assert(t, util.ContainsAll(err.Error(), "mapping", "values", "not", "allowed"))
+
+	// Remove name key
+	invalidData = strings.Replace(serviceYAML, "name:", "", 1)
+	err = ioutil.WriteFile(tempFile, []byte(invalidData), os.FileMode(0666))
+	assert.NilError(t, err)
+	_, _, _, err = fakeServiceCreate([]string{"service", "create", "foo", "--file", tempFile}, false)
+	assert.Assert(t, util.ContainsAll(err.Error(), "cannot", "unmarshal", "Go", "struct", "Service.metadata"))
+
+	// Remove opening square bracket
+	invalidData = strings.Replace(serviceYAML, "env", "\tenv", 1)
+	err = ioutil.WriteFile(tempFile, []byte(invalidData), os.FileMode(0666))
+	assert.NilError(t, err)
+	_, _, _, err = fakeServiceCreate([]string{"service", "create", "foo", "--file", tempFile}, false)
+	assert.Assert(t, util.ContainsAll(err.Error(), "found", "found", "found", "violates", "violates"))
 }
