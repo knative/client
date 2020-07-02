@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 
 	"knative.dev/client/pkg/kn/commands"
 	servinglib "knative.dev/client/pkg/serving"
@@ -28,6 +29,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/yaml"
+
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	clientservingv1 "knative.dev/client/pkg/serving/v1"
@@ -79,7 +82,7 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 				return errors.New("'service create' requires the service name given as single argument")
 			}
 			name := args[0]
-			if editFlags.Image == "" {
+			if editFlags.Image == "" && editFlags.File == "" {
 				return errors.New("'service create' requires the image name to run provided with the --image option")
 			}
 
@@ -88,7 +91,12 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			service, err := constructService(cmd, editFlags, name, namespace)
+			var service *servingv1.Service
+			if editFlags.File == "" {
+				service, err = constructService(cmd, editFlags, name, namespace)
+			} else {
+				service, err = constructServiceFromFile(cmd, editFlags, name, namespace)
+			}
 			if err != nil {
 				return err
 			}
@@ -97,8 +105,7 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-
-			serviceExists, err := serviceExists(client, name)
+			serviceExists, err := serviceExists(client, service.Name)
 			if err != nil {
 				return err
 			}
@@ -108,7 +115,7 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 				if !editFlags.ForceCreate {
 					return fmt.Errorf(
 						"cannot create service '%s' in namespace '%s' "+
-							"because the service already exists and no --force option was given", name, namespace)
+							"because the service already exists and no --force option was given", service.Name, namespace)
 				}
 				err = replaceService(client, service, waitFlags, out)
 			} else {
@@ -258,5 +265,34 @@ func constructService(cmd *cobra.Command, editFlags ConfigurationEditFlags, name
 	if err != nil {
 		return nil, err
 	}
+	return &service, nil
+}
+
+// constructServiceFromFile creates struct from provided file
+func constructServiceFromFile(cmd *cobra.Command, editFlags ConfigurationEditFlags, name, namespace string) (*servingv1.Service, error) {
+	var service servingv1.Service
+	file, err := os.Open(editFlags.File)
+	if err != nil {
+		return nil, err
+	}
+	decoder := yaml.NewYAMLOrJSONDecoder(file, 512)
+
+	err = decoder.Decode(&service)
+	if err != nil {
+		return nil, err
+	}
+	if service.Name != name {
+		return nil, fmt.Errorf("Provided service name '%s' doesn't match name from file '%s'.", name, service.Name)
+	}
+	// Set namespace in case it's specified as --namespace
+	service.ObjectMeta.Namespace = namespace
+
+	// We need to generate revision to have --force replace working
+	revName, err := servinglib.GenerateRevisionName(editFlags.RevisionName, &service)
+	if err != nil {
+		return nil, err
+	}
+	service.Spec.Template.Name = revName
+
 	return &service, nil
 }

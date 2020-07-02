@@ -17,6 +17,9 @@ package service
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
@@ -706,4 +709,100 @@ func TestServiceCreateWithClusterLocal(t *testing.T) {
 	if labelValue != serving.VisibilityClusterLocal {
 		t.Fatalf("Incorrect VisibilityClusterLocal value '%s'", labelValue)
 	}
+}
+
+var serviceYAML = `
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: foo
+spec:
+  template:
+    spec:
+      containers:
+        - image: gcr.io/foo/bar:baz
+          env:
+            - name: TARGET
+              value: "Go Sample v1"
+`
+
+var serviceJSON = `
+{
+  "apiVersion": "serving.knative.dev/v1",
+  "kind": "Service",
+  "metadata": {
+    "name": "foo"
+  },
+  "spec": {
+    "template": {
+		"spec": {
+		"containers": [
+			{ 
+			"image": "gcr.io/foo/bar:baz",
+			"env": [
+				{
+				"name": "TARGET",
+				"value": "Go Sample v1"
+				}
+			]
+		  }
+		]
+	  }
+	}
+  }
+}`
+
+func TestServiceCreateFromYAML(t *testing.T) {
+	tempDir, err := ioutil.TempDir("", "kn-file")
+	assert.NilError(t, err)
+
+	tempFile := filepath.Join(tempDir, "service.yaml")
+	err = ioutil.WriteFile(tempFile, []byte(serviceYAML), os.FileMode(0666))
+	assert.NilError(t, err)
+
+	action, created, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--file", tempFile}, false)
+	assert.NilError(t, err)
+	assert.Assert(t, action.Matches("create", "services"))
+	fmt.Println("Name: " + created.Name)
+	assert.Equal(t, created.Name, "foo")
+	assert.Equal(t, created.Spec.Template.Spec.GetContainer().Image, "gcr.io/foo/bar:baz")
+}
+
+func TestServiceCreateFromJSON(t *testing.T) {
+	tempDir, err := ioutil.TempDir("", "kn-file")
+	assert.NilError(t, err)
+
+	tempFile := filepath.Join(tempDir, "service.json")
+	err = ioutil.WriteFile(tempFile, []byte(serviceJSON), os.FileMode(0666))
+	assert.NilError(t, err)
+
+	action, created, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--file", tempFile}, false)
+	assert.NilError(t, err)
+	assert.Assert(t, action.Matches("create", "services"))
+
+	assert.Equal(t, created.Name, "foo")
+	assert.Equal(t, created.Spec.Template.Spec.GetContainer().Image, "gcr.io/foo/bar:baz")
+}
+
+func TestServiceCreateFileNameMismatch(t *testing.T) {
+	tempDir, err := ioutil.TempDir("", "kn-file")
+	assert.NilError(t, err)
+
+	tempFile := filepath.Join(tempDir, "service.json")
+	err = ioutil.WriteFile(tempFile, []byte(serviceJSON), os.FileMode(0666))
+	assert.NilError(t, err)
+
+	_, _, _, err = fakeServiceCreate([]string{
+		"service", "create", "anotherFoo", "--file", tempFile}, false)
+
+	assert.Assert(t, util.ContainsAllIgnoreCase(err.Error(), "provided", "'anotherFoo'", "name", "match", "from", "file", "'foo'"))
+}
+
+func TestServiceCreateFileError(t *testing.T) {
+	_, _, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--file", "filepath"}, false)
+
+	assert.Assert(t, util.ContainsAll(err.Error(), "no", "such", "file", "directory", "filepath"))
 }

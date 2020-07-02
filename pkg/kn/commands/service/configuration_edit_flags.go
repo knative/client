@@ -68,6 +68,8 @@ type ConfigurationEditFlags struct {
 	GenerateRevisionName bool
 	ForceCreate          bool
 
+	File string
+
 	// Bookkeeping
 	flags []string
 }
@@ -272,7 +274,9 @@ func (p *ConfigurationEditFlags) AddCreateFlags(command *cobra.Command) {
 	p.addSharedFlags(command)
 	command.Flags().BoolVar(&p.ForceCreate, "force", false,
 		"Create service forcefully, replaces existing service if any.")
-	command.MarkFlagRequired("image")
+	//command.MarkFlagRequired("image")
+	command.Flags().StringVarP(&p.File, "file", "", "", "Create service from file.")
+	command.MarkFlagFilename("file")
 }
 
 // Apply mutates the given service according to the flags in the command.
