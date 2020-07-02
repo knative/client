@@ -274,8 +274,7 @@ func (p *ConfigurationEditFlags) AddCreateFlags(command *cobra.Command) {
 	p.addSharedFlags(command)
 	command.Flags().BoolVar(&p.ForceCreate, "force", false,
 		"Create service forcefully, replaces existing service if any.")
-	//command.MarkFlagRequired("image")
-	command.Flags().StringVarP(&p.File, "file", "", "", "Create service from file.")
+	command.Flags().StringVarP(&p.File, "filename", "f", "", "Create service from file.")
 	command.MarkFlagFilename("file")
 }
 

@@ -102,7 +102,7 @@ func TestServiceCreateFromFile(t *testing.T) {
 }
 
 func serviceCreateFromFile(r *test.KnRunResultCollector, serviceName, filePath string) {
-	out := r.KnTest().Kn().Run("service", "create", serviceName, "--file", filePath)
+	out := r.KnTest().Kn().Run("service", "create", serviceName, "-f", filePath)
 	r.AssertNoError(out)
 	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "service", serviceName, "creating", "namespace", r.KnTest().Kn().Namespace(), "ready"))
 
@@ -112,13 +112,13 @@ func serviceCreateFromFile(r *test.KnRunResultCollector, serviceName, filePath s
 }
 
 func serviceCreateFromFileError(r *test.KnRunResultCollector, serviceName, filePath string) {
-	out := r.KnTest().Kn().Run("service", "create", serviceName, "--file", filePath)
+	out := r.KnTest().Kn().Run("service", "create", serviceName, "--filename", filePath)
 	r.AssertError(out)
 	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stderr, "no", "such", "file", "directory", filePath))
 }
 
 func serviceCreateFromFileNameMismatch(r *test.KnRunResultCollector, serviceName, filePath string) {
-	out := r.KnTest().Kn().Run("service", "create", serviceName, "--file", filePath)
+	out := r.KnTest().Kn().Run("service", "create", serviceName, "--filename", filePath)
 	r.AssertError(out)
 	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stderr, "provided", "'"+serviceName+"'", "name", "match", "from", "file"))
 }

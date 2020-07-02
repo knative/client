@@ -762,7 +762,7 @@ func TestServiceCreateFromYAML(t *testing.T) {
 	assert.NilError(t, err)
 
 	action, created, _, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--file", tempFile}, false)
+		"service", "create", "foo", "--filename", tempFile}, false)
 	assert.NilError(t, err)
 	assert.Assert(t, action.Matches("create", "services"))
 
@@ -780,7 +780,7 @@ func TestServiceCreateFromJSON(t *testing.T) {
 	assert.NilError(t, err)
 
 	action, created, _, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--file", tempFile}, false)
+		"service", "create", "foo", "--filename", tempFile}, false)
 	assert.NilError(t, err)
 	assert.Assert(t, action.Matches("create", "services"))
 
@@ -797,14 +797,14 @@ func TestServiceCreateFileNameMismatch(t *testing.T) {
 	assert.NilError(t, err)
 
 	_, _, _, err = fakeServiceCreate([]string{
-		"service", "create", "anotherFoo", "--file", tempFile}, false)
+		"service", "create", "anotherFoo", "--filename", tempFile}, false)
 
 	assert.Assert(t, util.ContainsAllIgnoreCase(err.Error(), "provided", "'anotherFoo'", "name", "match", "from", "file", "'foo'"))
 }
 
 func TestServiceCreateFileError(t *testing.T) {
 	_, _, _, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--file", "filepath"}, false)
+		"service", "create", "foo", "--filename", "filepath"}, false)
 
 	assert.Assert(t, util.ContainsAll(err.Error(), "no", "such", "file", "directory", "filepath"))
 }
@@ -819,21 +819,21 @@ func TestServiceCreateInvalidDataJSON(t *testing.T) {
 	invalidData := strings.Replace(serviceJSON, "{\n", "{{\n", 1)
 	err = ioutil.WriteFile(tempFile, []byte(invalidData), os.FileMode(0666))
 	assert.NilError(t, err)
-	_, _, _, err = fakeServiceCreate([]string{"service", "create", "foo", "--file", tempFile}, false)
+	_, _, _, err = fakeServiceCreate([]string{"service", "create", "foo", "--filename", tempFile}, false)
 	assert.Assert(t, util.ContainsAll(err.Error(), "invalid", "character", "'{'", "beginning"))
 
 	// Remove closing quote on key
 	invalidData = strings.Replace(serviceJSON, "metadata\"", "metadata", 1)
 	err = ioutil.WriteFile(tempFile, []byte(invalidData), os.FileMode(0666))
 	assert.NilError(t, err)
-	_, _, _, err = fakeServiceCreate([]string{"service", "create", "foo", "--file", tempFile}, false)
+	_, _, _, err = fakeServiceCreate([]string{"service", "create", "foo", "--filename", tempFile}, false)
 	assert.Assert(t, util.ContainsAll(err.Error(), "invalid", "character", "'\\n'", "string", "literal"))
 
 	// Remove opening square bracket
 	invalidData = strings.Replace(serviceJSON, " [", "", 1)
 	err = ioutil.WriteFile(tempFile, []byte(invalidData), os.FileMode(0666))
 	assert.NilError(t, err)
-	_, _, _, err = fakeServiceCreate([]string{"service", "create", "foo", "--file", tempFile}, false)
+	_, _, _, err = fakeServiceCreate([]string{"service", "create", "foo", "--filename", tempFile}, false)
 	assert.Assert(t, util.ContainsAll(err.Error(), "invalid", "character", "']'", "after", "key:value"))
 }
 
@@ -847,20 +847,20 @@ func TestServiceCreateInvalidDataYAML(t *testing.T) {
 	invalidData := strings.Replace(serviceYAML, "- image", "image", 1)
 	err = ioutil.WriteFile(tempFile, []byte(invalidData), os.FileMode(0666))
 	assert.NilError(t, err)
-	_, _, _, err = fakeServiceCreate([]string{"service", "create", "foo", "--file", tempFile}, false)
+	_, _, _, err = fakeServiceCreate([]string{"service", "create", "foo", "--filename", tempFile}, false)
 	assert.Assert(t, util.ContainsAll(err.Error(), "mapping", "values", "not", "allowed"))
 
 	// Remove name key
 	invalidData = strings.Replace(serviceYAML, "name:", "", 1)
 	err = ioutil.WriteFile(tempFile, []byte(invalidData), os.FileMode(0666))
 	assert.NilError(t, err)
-	_, _, _, err = fakeServiceCreate([]string{"service", "create", "foo", "--file", tempFile}, false)
+	_, _, _, err = fakeServiceCreate([]string{"service", "create", "foo", "--filename", tempFile}, false)
 	assert.Assert(t, util.ContainsAll(err.Error(), "cannot", "unmarshal", "Go", "struct", "Service.metadata"))
 
 	// Remove opening square bracket
 	invalidData = strings.Replace(serviceYAML, "env", "\tenv", 1)
 	err = ioutil.WriteFile(tempFile, []byte(invalidData), os.FileMode(0666))
 	assert.NilError(t, err)
-	_, _, _, err = fakeServiceCreate([]string{"service", "create", "foo", "--file", tempFile}, false)
+	_, _, _, err = fakeServiceCreate([]string{"service", "create", "foo", "--filename", tempFile}, false)
 	assert.Assert(t, util.ContainsAll(err.Error(), "found", "found", "found", "violates", "violates"))
 }
