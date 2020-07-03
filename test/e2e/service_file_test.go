@@ -84,8 +84,8 @@ func TestServiceCreateFromFile(t *testing.T) {
 	defer r.DumpIfFailed()
 
 	tempDir, err := ioutil.TempDir("", "kn-file")
-	assert.NilError(t, err)
 	defer os.RemoveAll(tempDir)
+	assert.NilError(t, err)
 
 	test.CreateFile("foo.json", fmt.Sprintf(ServiceJSON, test.KnDefaultTestImage), tempDir, test.FileModeReadWrite)
 	test.CreateFile("foo.yaml", fmt.Sprintf(ServiceYAML, test.KnDefaultTestImage), tempDir, test.FileModeReadWrite)

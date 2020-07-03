@@ -754,8 +754,8 @@ var serviceJSON = `
 
 func TestServiceCreateFromYAML(t *testing.T) {
 	tempDir, err := ioutil.TempDir("", "kn-file")
-	assert.NilError(t, err)
 	defer os.RemoveAll(tempDir)
+	assert.NilError(t, err)
 
 	tempFile := filepath.Join(tempDir, "service.yaml")
 	err = ioutil.WriteFile(tempFile, []byte(serviceYAML), os.FileMode(0666))
@@ -772,8 +772,8 @@ func TestServiceCreateFromYAML(t *testing.T) {
 
 func TestServiceCreateFromJSON(t *testing.T) {
 	tempDir, err := ioutil.TempDir("", "kn-file")
-	assert.NilError(t, err)
 	defer os.RemoveAll(tempDir)
+	assert.NilError(t, err)
 
 	tempFile := filepath.Join(tempDir, "service.json")
 	err = ioutil.WriteFile(tempFile, []byte(serviceJSON), os.FileMode(0666))
@@ -811,8 +811,8 @@ func TestServiceCreateFileError(t *testing.T) {
 
 func TestServiceCreateInvalidDataJSON(t *testing.T) {
 	tempDir, err := ioutil.TempDir("", "kn-file")
-	assert.NilError(t, err)
 	defer os.RemoveAll(tempDir)
+	assert.NilError(t, err)
 	tempFile := filepath.Join(tempDir, "invalid.json")
 
 	// Double curly bracket at the beginning of file
@@ -839,8 +839,8 @@ func TestServiceCreateInvalidDataJSON(t *testing.T) {
 
 func TestServiceCreateInvalidDataYAML(t *testing.T) {
 	tempDir, err := ioutil.TempDir("", "kn-file")
-	assert.NilError(t, err)
 	defer os.RemoveAll(tempDir)
+	assert.NilError(t, err)
 	tempFile := filepath.Join(tempDir, "invalid.yaml")
 
 	// Remove dash
