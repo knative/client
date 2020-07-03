@@ -91,18 +91,27 @@ func TestServiceCreateFromFile(t *testing.T) {
 	test.CreateFile("foo.yaml", fmt.Sprintf(ServiceYAML, test.KnDefaultTestImage), tempDir, test.FileModeReadWrite)
 
 	t.Log("create foo-json service from JSON file")
-	serviceCreateFromFile(r, "foo-json", filepath.Join(tempDir, "foo.json"))
+	serviceCreateFromFile(r, "foo-json", filepath.Join(tempDir, "foo.json"), true)
 
 	t.Log("create foo-yaml service from YAML file")
-	serviceCreateFromFile(r, "foo-yaml", filepath.Join(tempDir, "foo.yaml"))
+	serviceCreateFromFile(r, "foo-yaml", filepath.Join(tempDir, "foo.yaml"), false)
 
 	t.Log("error message for non-existing file")
-	serviceCreateFromFileNameMismatch(r, "foo", filepath.Join(tempDir, "foo.yaml"))
+	serviceCreateFromFileError(r, "foo", filepath.Join(tempDir, "fake-foo.json"))
+	serviceCreateFromFileError(r, "foo", filepath.Join(tempDir, "fake-foo.yaml"))
+
+	t.Log("error message for mismatch names")
 	serviceCreateFromFileNameMismatch(r, "foo", filepath.Join(tempDir, "foo.json"))
+	serviceCreateFromFileNameMismatch(r, "foo", filepath.Join(tempDir, "foo.yaml"))
 }
 
-func serviceCreateFromFile(r *test.KnRunResultCollector, serviceName, filePath string) {
-	out := r.KnTest().Kn().Run("service", "create", serviceName, "-f", filePath)
+func serviceCreateFromFile(r *test.KnRunResultCollector, serviceName, filePath string, useName bool) {
+	var out test.KnRunResult
+	if useName {
+		out = r.KnTest().Kn().Run("service", "create", serviceName, "-f", filePath)
+	} else {
+		out = r.KnTest().Kn().Run("service", "create", "-f", filePath)
+	}
 	r.AssertNoError(out)
 	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "service", serviceName, "creating", "namespace", r.KnTest().Kn().Namespace(), "ready"))
 
