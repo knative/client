@@ -82,7 +82,7 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 				return errors.New("'service create' requires the service name given as single argument")
 			}
 			name := args[0]
-			if editFlags.Image == "" && editFlags.File == "" {
+			if editFlags.Image == "" && editFlags.Filename == "" {
 				return errors.New("'service create' requires the image name to run provided with the --image option")
 			}
 
@@ -92,7 +92,7 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			var service *servingv1.Service
-			if editFlags.File == "" {
+			if editFlags.Filename == "" {
 				service, err = constructService(cmd, editFlags, name, namespace)
 			} else {
 				service, err = constructServiceFromFile(cmd, editFlags, name, namespace)
@@ -271,7 +271,7 @@ func constructService(cmd *cobra.Command, editFlags ConfigurationEditFlags, name
 // constructServiceFromFile creates struct from provided file
 func constructServiceFromFile(cmd *cobra.Command, editFlags ConfigurationEditFlags, name, namespace string) (*servingv1.Service, error) {
 	var service servingv1.Service
-	file, err := os.Open(editFlags.File)
+	file, err := os.Open(editFlags.Filename)
 	if err != nil {
 		return nil, err
 	}
