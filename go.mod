@@ -10,14 +10,14 @@ require (
 	github.com/spf13/viper v1.6.2
 	golang.org/x/crypto v0.0.0-20200302210943-78000ba7a073
 	gotest.tools v2.2.0+incompatible
-	k8s.io/api v0.17.6
-	k8s.io/apimachinery v0.17.6
+	k8s.io/api v0.18.1
+	k8s.io/apimachinery v0.18.1
 	k8s.io/cli-runtime v0.17.6
 	k8s.io/client-go v11.0.1-0.20190805182717-6502b5e7b1b5+incompatible
 	k8s.io/code-generator v0.18.0
-	knative.dev/eventing v0.15.1-0.20200608083719-c024353a712c
-	knative.dev/pkg v0.0.0-20200606224418-7ed1d4a552bc
-	knative.dev/serving v0.15.1-0.20200608114919-92e849c1db9c
+	knative.dev/eventing v0.15.1-0.20200703003042-996c9312c445
+	knative.dev/pkg v0.0.0-20200702055942-f397d1a271c2
+	knative.dev/serving v0.15.1-0.20200702215542-bb1b0d3b4893
 	sigs.k8s.io/yaml v1.2.0
 )
 
