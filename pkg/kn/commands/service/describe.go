@@ -20,6 +20,7 @@ import (
 	"io"
 	"sort"
 	"strconv"
+	"strings"
 
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
@@ -102,11 +103,16 @@ func NewServiceDescribeCommand(p *commands.KnParams) *cobra.Command {
 
 			// Print out machine readable output if requested
 			if machineReadablePrintFlags.OutputFlagSpecified() {
+				out := cmd.OutOrStdout()
+				if strings.ToLower(*machineReadablePrintFlags.OutputFormat) == "url" {
+					fmt.Fprintf(out, "%s\n", extractURL(service))
+					return nil
+				}
 				printer, err := machineReadablePrintFlags.ToPrinter()
 				if err != nil {
 					return err
 				}
-				return printer.PrintObj(service, cmd.OutOrStdout())
+				return printer.PrintObj(service, out)
 			}
 
 			printDetails, err = cmd.Flags().GetBool("verbose")
