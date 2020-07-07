@@ -540,7 +540,7 @@ func TestServiceCreateMaxMinScale(t *testing.T) {
 	}
 
 	if *template.Spec.ContainerConcurrency != int64(100) {
-		t.Fatalf("container concurrency not set to given value 1000")
+		t.Fatalf("container concurrency not set to given value 100")
 	}
 }
 
