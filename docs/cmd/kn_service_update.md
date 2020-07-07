@@ -71,7 +71,7 @@ kn service update NAME
       --requests-cpu string           DEPRECATED: please use --request instead. The requested CPU (e.g., 250m).
       --requests-memory string        DEPRECATED: please use --request instead. The requested memory (e.g., 64Mi).
       --revision-name string          The revision name to set. Must start with the service name and a dash as a prefix. Empty revision name will result in the server generating a name for the revision. Accepts golang templates, allowing {{.Service}} for the service name, {{.Generation}} for the generation, and {{.Random [n]}} for n random consonants. (default "{{.Service}}-{{.Random 5}}-{{.Generation}}")
-      --scale int                     Minimal and Maximal number of replicas.
+      --scale int                     Minimum and maximum number of replicas.
       --service-account string        Service account name to set. An empty argument ("") clears the service account. The referenced service account must exist in the service's namespace.
       --tag strings                   Set tag (format: --tag revisionRef=tagName) where revisionRef can be a revision or '@latest' string representing latest ready revision. This flag can be specified multiple times.
       --traffic strings               Set traffic distribution (format: --traffic revisionRef=percent) where revisionRef can be a revision or a tag or '@latest' string representing latest ready revision. This flag can be given multiple times with percent summing up to 100%.

@@ -547,10 +547,7 @@ func TestServiceCreateMaxMinScale(t *testing.T) {
 func TestServiceCreateScale(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
-		"--scale", "5",
-		"--concurrency-target", "10", "--concurrency-limit", "100",
-		"--concurrency-utilization", "50",
-		"--no-wait"}, false)
+		"--scale", "5"}, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -564,8 +561,6 @@ func TestServiceCreateScale(t *testing.T) {
 	expectedAnnos := []string{
 		"autoscaling.knative.dev/minScale", "5",
 		"autoscaling.knative.dev/maxScale", "5",
-		"autoscaling.knative.dev/target", "10",
-		"autoscaling.knative.dev/targetUtilizationPercentage", "50",
 	}
 
 	for i := 0; i < len(expectedAnnos); i += 2 {
@@ -574,10 +569,6 @@ func TestServiceCreateScale(t *testing.T) {
 			t.Fatalf("Unexpected annotation value for %s : %s (actual) != %s (expected)",
 				anno, actualAnnos[anno], expectedAnnos[i+1])
 		}
-	}
-
-	if *template.Spec.ContainerConcurrency != int64(100) {
-		t.Fatalf("container concurrency not set to given value 1000")
 	}
 }
 
