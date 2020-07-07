@@ -143,7 +143,7 @@ func NewServiceDescribeCommand(p *commands.KnParams) *cobra.Command {
 	commands.AddNamespaceFlags(flags, false)
 	flags.BoolP("verbose", "v", false, "More output.")
 	machineReadablePrintFlags.AddFlags(command)
-	command.Flag("output").Usage = fmt.Sprintf("Output format one of %s.", strings.Join(append(machineReadablePrintFlags.AllowedFormats(), "url"), "|"))
+	command.Flag("output").Usage = fmt.Sprintf("Output format. One of: %s.", strings.Join(append(machineReadablePrintFlags.AllowedFormats(), "url"), "|"))
 	return command
 }
 
