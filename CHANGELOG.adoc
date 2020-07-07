@@ -19,7 +19,7 @@
 | | Description | PR
 
 | 🎁
-| Add "url" output format to return service url in service describe 
+| Add "url" output format to return service url in service describe
 | https://github.com/knative/client/pull/916[#916]
 
 | 🐛
