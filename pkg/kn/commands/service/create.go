@@ -47,11 +47,11 @@ var create_example = `
   # Create or replace environment variables of service 's1' using --force flag
   kn service create --force s1 --env TARGET=force --env FROM=examples --image knativesamples/helloworld
 
-  # Create a service with port 80
-  kn service create s2 --port 80 --image knativesamples/helloworld
+  # Create a service with port 8080
+  kn service create s2 --port 8080 --image knativesamples/helloworld
 
-  # Create a service with port 80 and port name h2c
-  kn service create s2 --port h2c:80 --image knativesamples/helloworld
+  # Create a service with port 8080 and port name h2c
+  kn service create s2 --port h2c:8080 --image knativesamples/helloworld
 
   # Create or replace default resources of a service 's1' using --force flag
   # (earlier configured resource requests and limits will be replaced with default)
