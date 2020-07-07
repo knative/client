@@ -337,15 +337,21 @@ func UpdateContainerPort(template *servingv1.RevisionTemplateSpec, port string) 
 	if err != nil {
 		return err
 	}
-	var containerPort int
+	var containerPort int64
 	var name string
 
 	if strings.Contains(port, ":") {
 		portDetails := strings.Split(port, ":")
 		name = portDetails[0]
-		containerPort, _ = strconv.Atoi(portDetails[1])
+		containerPort, err = strconv.ParseInt(portDetails[1], 10, 32)
+		if err != nil {
+			return err
+		}
 	} else {
-		containerPort, _ = strconv.Atoi(port)
+		containerPort, err = strconv.ParseInt(port, 10, 32)
+		if err != nil {
+			return err
+		}
 	}
 
 	container.Ports = []corev1.ContainerPort{{

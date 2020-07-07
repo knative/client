@@ -207,7 +207,7 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 		"Percentage of concurrent requests utilization before scaling up.")
 	p.markFlagMakesRevision("concurrency-utilization")
 
-	command.Flags().StringVarP(&p.Port, "port", "p", "", "The port where application listens on. (e.g., h2c:8080 or just 8080) where h2c is port name and 8080 is container port")
+	command.Flags().StringVarP(&p.Port, "port", "p", "", "The port where application listens on, in the format 'NAME:PORT', where 'NAME' is optional. Examples: '--port h2c:8080' , '--port 8080'.")
 	p.markFlagMakesRevision("port")
 
 	command.Flags().StringArrayVarP(&p.Labels, "label", "l", []string{},
