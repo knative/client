@@ -506,6 +506,23 @@ func TestServiceDescribeMachineReadable(t *testing.T) {
 	r.Validate()
 }
 
+func TestServiceDescribeURL(t *testing.T) {
+	client := knclient.NewMockKnServiceClient(t)
+
+	// Recording:
+	r := client.Recorder()
+
+	// Prepare service
+	expectedService := createTestService("foo", []string{"rev1", "rev2"}, goodConditions())
+	r.GetService("foo", &expectedService, nil)
+
+	output, err := executeServiceCommand(client, "describe", "foo", "-o", "url")
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(output, "foo.default.example.com"))
+
+	r.Validate()
+}
+
 func validateServiceOutput(t *testing.T, service string, output string) {
 	assert.Assert(t, cmp.Regexp("Name:\\s+"+service, output))
 	assert.Assert(t, cmp.Regexp("Namespace:\\s+default", output))

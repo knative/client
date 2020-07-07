@@ -18,6 +18,10 @@
 |===
 | | Description | PR
 
+| 🎁
+| Add "url" output format to return service url in service describe
+| https://github.com/knative/client/pull/916[#916]
+
 | 🐛
 | Fix panic for `kn source apiserver` and `kn source binding` describe with Sink URI
 | https://github.com/knative/client/pull/901[#901]
