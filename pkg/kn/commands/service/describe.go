@@ -71,6 +71,16 @@ type revisionDesc struct {
 // As this command does not do any writes/updates, it's just a matter of fallbacks.
 // [/REMOVE COMMENT WHEN MOVING TO 0.7.0]
 
+var describe_example = `
+  # Describe service 'svc' in human friendly format
+  kn service describe svc
+
+  # Describe service 'svc' in YAML format
+  kn service describe svc -o yaml
+
+  # Print only service URL
+  kn service describe svc -o url`
+
 // NewServiceDescribeCommand returns a new command for describing a service.
 func NewServiceDescribeCommand(p *commands.KnParams) *cobra.Command {
 
@@ -78,8 +88,9 @@ func NewServiceDescribeCommand(p *commands.KnParams) *cobra.Command {
 	machineReadablePrintFlags := genericclioptions.NewPrintFlags("")
 
 	command := &cobra.Command{
-		Use:   "describe NAME",
-		Short: "Show details of a service",
+		Use:     "describe NAME",
+		Short:   "Show details of a service",
+		Example: describe_example,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("'service describe' requires the service name given as single argument")
@@ -132,6 +143,7 @@ func NewServiceDescribeCommand(p *commands.KnParams) *cobra.Command {
 	commands.AddNamespaceFlags(flags, false)
 	flags.BoolP("verbose", "v", false, "More output.")
 	machineReadablePrintFlags.AddFlags(command)
+	command.Flag("output").Usage = fmt.Sprintf("Output format one of %s.", strings.Join(append(machineReadablePrintFlags.AllowedFormats(), "url"), "|"))
 	return command
 }
 
