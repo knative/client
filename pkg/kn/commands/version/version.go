@@ -35,7 +35,7 @@ var apiVersions = map[string][]string{
 	},
 	"eventing": {
 		"sources.knative.dev/v1alpha2 (knative-eventing v0.16.0)",
-		"eventing.knative.dev/v1alpha1 (knative-eventing v0.16.0)",
+		"eventing.knative.dev/v1beta1 (knative-eventing v0.16.0)",
 	},
 }
 
