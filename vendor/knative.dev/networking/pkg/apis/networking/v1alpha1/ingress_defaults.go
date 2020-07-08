@@ -23,7 +23,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"knative.dev/pkg/apis"
 
-	"knative.dev/serving/pkg/apis/config"
+	"knative.dev/networking/pkg/apis/config"
 )
 
 // SetDefaults populates default values in Ingress
