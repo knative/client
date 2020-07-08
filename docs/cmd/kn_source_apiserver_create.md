@@ -30,7 +30,7 @@ kn source apiserver create NAME --resource RESOURCE --sink SINK
       --resource stringArray      Specification for which events to listen, in the format Kind:APIVersion:LabelSelector, e.g. "Event:v1:key=value".
                                   "LabelSelector" is a list of comma separated key value pairs. "LabelSelector" can be omitted, e.g. "Event:v1".
       --service-account string    Name of the service account to use to run this source
-  -s, --sink string               Addressable sink for events. You can specify broker, service or URI. Examples: '--sink broker:nest' for 'nest' broker, '--sink https://event.receiver.uri' for an URI (identified by 'http' or 'https'), '--sink service:receiver' for 'receiver' knative service, you can also use prefix alias 'svc' for 'service'. If do not specify a prefix, it is considered as knative service, i.e. '--sink receiver' is same as '--sink svc:receiver'.
+  -s, --sink string               Addressable sink for events. You can specify broker, knative service or URI. Examples: '--sink broker:nest' for 'nest' broker, '--sink https://event.receiver.uri' for an URI (identified by 'http' or 'https'), '--sink ksvc:receiver' or '--sink receiver' for 'receiver' knative service. If prefix is not provided, it is considered as knative service.
 ```
 
 ### Options inherited from parent commands

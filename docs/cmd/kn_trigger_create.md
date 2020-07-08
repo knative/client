@@ -29,7 +29,7 @@ kn trigger create NAME --sink SINK
   -h, --help               help for create
       --inject-broker      Create new broker with name default through common annotation
   -n, --namespace string   Specify the namespace to operate in.
-  -s, --sink string        Addressable sink for events. You can specify broker, service or URI. Examples: '--sink broker:nest' for 'nest' broker, '--sink https://event.receiver.uri' for an URI (identified by 'http' or 'https'), '--sink service:receiver' for 'receiver' knative service, you can also use prefix alias 'svc' for 'service'. If do not specify a prefix, it is considered as knative service, i.e. '--sink receiver' is same as '--sink svc:receiver'.
+  -s, --sink string        Addressable sink for events. You can specify broker, knative service or URI. Examples: '--sink broker:nest' for 'nest' broker, '--sink https://event.receiver.uri' for an URI (identified by 'http' or 'https'), '--sink ksvc:receiver' or '--sink receiver' for 'receiver' knative service. If prefix is not provided, it is considered as knative service.
 ```
 
 ### Options inherited from parent commands
