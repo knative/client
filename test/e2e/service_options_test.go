@@ -57,7 +57,7 @@ func TestServiceOptions(t *testing.T) {
 	t.Log("update concurrency options with invalid values for service")
 	out := r.KnTest().Kn().Run("service", "update", "svc1", "--concurrency-limit", "-1", "--concurrency-target", "0")
 	r.AssertError(out)
-	assert.Check(r.T(), util.ContainsAll(out.Stderr, "invalid"))
+	assert.Check(r.T(), util.ContainsAll(out.Stderr, "should be at least 0.01"))
 
 	t.Log("returns steady concurrency options for service")
 	validateServiceConcurrencyLimit(r, "svc1", "300")
