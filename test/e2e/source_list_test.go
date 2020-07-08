@@ -63,6 +63,34 @@ func TestSourceList(t *testing.T) {
 	assert.Check(t, util.ContainsAll(output, "No", "sources", "found", "namespace"))
 	assert.Check(t, util.ContainsNone(output, "NAME", "TYPE", "RESOURCE", "SINK", "READY"))
 
+	setupForSourceAPIServer(t, it)
+	test.ServiceCreate(r, "testsvc0")
+	apiServerSourceCreate(r, "testapisource0", "Event:v1:key1=value1", "testsa", "svc:testsvc0")
+	apiServerSourceListOutputName(r, "testapisource0")
+	t.Log("list sources")
+	output = sourceList(r, "--type", "testapisource0")
+	assert.Check(t, util.ContainsAll(output, "No", "sources", "found", "namespace"))
+	output := sourceList(r)
+	assert.Check(t, util.ContainsAll(output, "NAME", "TYPE", "RESOURCE", "SINK", "READY"))
+	assert.Check(t, util.ContainsAll(output, "testapisource0", "ApiServerSource", "apiserversources.sources.knative.dev", "svc:testsvc0"))
+
+	t.Log("create source binding")
+	sourceBindingCreate(r, "my-binding0", "Deployment:apps/v1:myapp", "svc:testsvc0")
+	sourceBindingListOutputName(r, "my-binding0")
+	output = sourceList(r, "--type", "my-binding0")
+	assert.Check(t, util.ContainsAll(output, "No", "sources", "found", "namespace"))
+
+	pingSourceCreate(r, "testpingsource0", "* * * * */1", "ping", "svc:testsvc0")
+	pingSourceListOutputName(r, "testpingsource0")
+	output = sourceList(r, "--type", "testpingsource0")
+	assert.Check(t, util.ContainsAll(output, "No", "sources", "found", "namespace"))
+
+	t.Log("delete apiserver sources")
+	apiServerSourceDelete(r, "testapisource0")
+	t.Log("delete source binding")
+	sourceBindingDelete(r, "my-binding0")
+	t.Log("delete Ping sources")
+	pingSourceDelete(r, "testpingsource0")
 	// non empty list case is tested in test/e2e/source_apiserver_it.go where source setup is present
 }
 
