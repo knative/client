@@ -61,13 +61,8 @@ var sinkMappings = map[string]schema.GroupVersionResource{
 		Group:    "eventing.knative.dev",
 		Version:  "v1beta1",
 	},
-	"service": {
-		Resource: "services",
-		Group:    "serving.knative.dev",
-		Version:  "v1",
-	},
 	// Shorthand alias for service
-	"svc": {
+	"ksvc": {
 		Resource: "services",
 		Group:    "serving.knative.dev",
 		Version:  "v1",
@@ -117,7 +112,7 @@ func (i *SinkFlags) ResolveSink(knclient clientdynamic.KnDynamicClient, namespac
 func parseSink(sink string) (string, string) {
 	parts := strings.SplitN(sink, ":", 2)
 	if len(parts) == 1 {
-		return "svc", parts[0]
+		return "ksvc", parts[0]
 	} else if parts[0] == "http" || parts[0] == "https" {
 		return "", sink
 	} else {
@@ -129,7 +124,7 @@ func parseSink(sink string) (string, string) {
 func SinkToString(sink duckv1.Destination) string {
 	if sink.Ref != nil {
 		if sink.Ref.Kind == "Service" {
-			return fmt.Sprintf("svc:%s", sink.Ref.Name)
+			return fmt.Sprintf("ksvc:%s", sink.Ref.Name)
 		} else {
 			return fmt.Sprintf("%s:%s", strings.ToLower(sink.Ref.Kind), sink.Ref.Name)
 		}

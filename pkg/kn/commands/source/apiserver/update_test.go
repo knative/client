@@ -43,7 +43,7 @@ func TestApiServerSourceUpdate(t *testing.T) {
 	updated := createAPIServerSource("testsource", "Event", "v1", "testsa2", "Reference", map[string]string{"foo": "baz"}, createSinkv1("svc2", "default"))
 	apiServerRecorder.UpdateAPIServerSource(updated, nil)
 
-	output, err := executeAPIServerSourceCommand(apiServerClient, dynamicClient, "update", "testsource", "--service-account", "testsa2", "--sink", "svc:svc2", "--ce-override", "bla-", "--ce-override", "foo=baz")
+	output, err := executeAPIServerSourceCommand(apiServerClient, dynamicClient, "update", "testsource", "--service-account", "testsa2", "--sink", "ksvc:svc2", "--ce-override", "bla-", "--ce-override", "foo=baz")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "testsource", "updated", "default"))
 
@@ -58,7 +58,7 @@ func TestApiServerSourceUpdateDeletionTimestampNotNil(t *testing.T) {
 	present.DeletionTimestamp = &metav1.Time{Time: time.Now()}
 	apiServerRecorder.GetAPIServerSource("testsource", present, nil)
 
-	_, err := executeAPIServerSourceCommand(apiServerClient, nil, "update", "testsource", "--service-account", "testsa2", "--sink", "svc:svc2")
+	_, err := executeAPIServerSourceCommand(apiServerClient, nil, "update", "testsource", "--service-account", "testsa2", "--sink", "ksvc:svc2")
 	assert.ErrorContains(t, err, present.Name)
 	assert.ErrorContains(t, err, "deletion")
 	assert.ErrorContains(t, err, "apiserver")

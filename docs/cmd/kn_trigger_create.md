@@ -15,10 +15,10 @@ kn trigger create NAME --sink SINK
 ```
 
   # Create a trigger 'mytrigger' to declare a subscription to events from default broker. The subscriber is service 'mysvc'
-  kn trigger create mytrigger --broker default --sink svc:mysvc
+  kn trigger create mytrigger --broker default --sink ksvc:mysvc
 
   # Create a trigger to filter events with attribute 'type=dev.knative.foo'
-  kn trigger create mytrigger --broker default --filter type=dev.knative.foo --sink svc:mysvc
+  kn trigger create mytrigger --broker default --filter type=dev.knative.foo --sink ksvc:mysvc
 ```
 
 ### Options

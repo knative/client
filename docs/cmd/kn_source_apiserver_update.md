@@ -15,7 +15,7 @@ kn source apiserver update NAME
 ```
 
   # Update an ApiServerSource 'k8sevents' with different service account and sink service
-  kn source apiserver update k8sevents --service-account newsa --sink svc:newsvc
+  kn source apiserver update k8sevents --service-account newsa --sink ksvc:newsvc
 ```
 
 ### Options

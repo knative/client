@@ -46,17 +46,17 @@ func TestResolve(t *testing.T) {
 
 	assert.NilError(t, err)
 	cases := []resolveCase{
-		{"svc:mysvc", &duckv1.Destination{
+		{"ksvc:mysvc", &duckv1.Destination{
 			Ref: &duckv1.KReference{Kind: "Service",
 				APIVersion: "serving.knative.dev/v1",
 				Namespace:  "default",
 				Name:       "mysvc"}}, ""},
-		{"service:mysvc", &duckv1.Destination{
+		{"mysvc", &duckv1.Destination{
 			Ref: &duckv1.KReference{Kind: "Service",
 				APIVersion: "serving.knative.dev/v1",
 				Namespace:  "default",
 				Name:       "mysvc"}}, ""},
-		{"svc:absent", nil, "\"absent\" not found"},
+		{"ksvc:absent", nil, "\"absent\" not found"},
 		{"broker:default", &duckv1.Destination{
 			Ref: &duckv1.KReference{Kind: "Broker",
 				APIVersion: "eventing.knative.dev/v1beta1",

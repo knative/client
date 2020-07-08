@@ -15,7 +15,7 @@ kn source ping create NAME --sink SINK
 ```
 
   # Create a Ping source 'my-ping' which fires every two minutes and sends '{ value: "hello" }' to service 'mysvc' as a cloudevent
-  kn source ping create my-ping --schedule "*/2 * * * *" --data '{ value: "hello" }' --sink svc:mysvc
+  kn source ping create my-ping --schedule "*/2 * * * *" --data '{ value: "hello" }' --sink ksvc:mysvc
 ```
 
 ### Options

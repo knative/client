@@ -15,7 +15,7 @@ kn source apiserver create NAME --resource RESOURCE --sink SINK
 ```
 
   # Create an ApiServerSource 'k8sevents' which consumes Kubernetes events and sends message to service 'mysvc' as a cloudevent
-  kn source apiserver create k8sevents --resource Event:v1 --service-account myaccountname --sink svc:mysvc
+  kn source apiserver create k8sevents --resource Event:v1 --service-account myaccountname --sink ksvc:mysvc
 ```
 
 ### Options

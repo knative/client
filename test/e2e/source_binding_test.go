@@ -40,16 +40,16 @@ func TestSourceBinding(t *testing.T) {
 	test.ServiceCreate(r, "testsvc0")
 
 	t.Log("create source binding")
-	sourceBindingCreate(r, "my-binding0", "Deployment:apps/v1:myapp", "svc:testsvc0")
+	sourceBindingCreate(r, "my-binding0", "Deployment:apps/v1:myapp", "ksvc:testsvc0")
 	sourceBindingListOutputName(r, "my-binding0")
 
 	t.Log("delete source binding")
 	sourceBindingDelete(r, "my-binding0")
 
 	t.Log("update source binding")
-	sourceBindingCreate(r, "my-binding1", "Deployment:apps/v1:myapp", "svc:testsvc0")
+	sourceBindingCreate(r, "my-binding1", "Deployment:apps/v1:myapp", "ksvc:testsvc0")
 	test.ServiceCreate(r, "testsvc1")
-	sourceBindingUpdate(r, "my-binding1", "Deployment:apps/v1:myapp", "svc:testsvc1")
+	sourceBindingUpdate(r, "my-binding1", "Deployment:apps/v1:myapp", "ksvc:testsvc1")
 	jpSinkRefNameInSpec := "jsonpath={.spec.sink.ref.name}"
 	out, err := test.GetResourceFieldsWithJSONPath(t, it, "sinkbindings.sources.knative.dev", "my-binding1", jpSinkRefNameInSpec)
 	assert.NilError(t, err)

@@ -39,7 +39,7 @@ func TestSimpleCreatePingSource(t *testing.T) {
 	pingRecorder := pingClient.Recorder()
 	pingRecorder.CreatePingSource(createPingSource("testsource", "* * * * */2", "maxwell", "mysvc", map[string]string{"bla": "blub", "foo": "bar"}), nil)
 
-	out, err := executePingSourceCommand(pingClient, dynamicClient, "create", "--sink", "svc:mysvc", "--schedule", "* * * * */2", "--data", "maxwell", "testsource", "--ce-override", "bla=blub", "--ce-override", "foo=bar")
+	out, err := executePingSourceCommand(pingClient, dynamicClient, "create", "--sink", "ksvc:mysvc", "--schedule", "* * * * */2", "--data", "maxwell", "testsource", "--ce-override", "bla=blub", "--ce-override", "foo=bar")
 	assert.NilError(t, err, "Source should have been created")
 	assert.Assert(t, util.ContainsAll(out, "created", "default", "testsource"))
 
@@ -51,7 +51,7 @@ func TestNoSinkError(t *testing.T) {
 
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default")
 
-	out, err := executePingSourceCommand(pingClient, dynamicClient, "create", "--sink", "svc:mysvc", "--schedule", "* * * * */2", "--data", "maxwell", "testsource")
+	out, err := executePingSourceCommand(pingClient, dynamicClient, "create", "--sink", "ksvc:mysvc", "--schedule", "* * * * */2", "--data", "maxwell", "testsource")
 	assert.Error(t, err, "services.serving.knative.dev \"mysvc\" not found")
 	assert.Assert(t, util.ContainsAll(out, "Usage"))
 }
@@ -64,7 +64,7 @@ func TestNoSinkGivenError(t *testing.T) {
 }
 
 func TestNoNameGivenError(t *testing.T) {
-	out, err := executePingSourceCommand(nil, nil, "create", "--sink", "svc:mysvc", "--schedule", "* * * * */2")
+	out, err := executePingSourceCommand(nil, nil, "create", "--sink", "ksvc:mysvc", "--schedule", "* * * * */2")
 	assert.ErrorContains(t, err, "name")
 	assert.ErrorContains(t, err, "require")
 	assert.Assert(t, util.ContainsAll(out, "Usage", "require", "name"))

@@ -42,7 +42,7 @@ func TestSimpleBindingUpdate(t *testing.T) {
 	bindingRecorder.GetSinkBinding("testbinding", createSinkBinding("testbinding", "mysvc", deploymentGvk, "mydeploy", "default", ceOverrideMap), nil)
 	bindingRecorder.UpdateSinkBinding(createSinkBinding("testbinding", "othersvc", deploymentGvk, "mydeploy", "default", ceOverrideMapUpdated), nil)
 
-	out, err := executeSinkBindingCommand(sinkBindingClient, dynamicClient, "update", "testbinding", "--sink", "svc:othersvc", "--ce-override", "bla-", "--ce-override", "foo=baz", "--ce-override", "new=ceoverride")
+	out, err := executeSinkBindingCommand(sinkBindingClient, dynamicClient, "update", "testbinding", "--sink", "ksvc:othersvc", "--ce-override", "bla-", "--ce-override", "foo=baz", "--ce-override", "new=ceoverride")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(out, "updated", "default", "testbinding"))
 

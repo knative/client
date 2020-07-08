@@ -42,7 +42,7 @@ func TestTriggerUpdate(t *testing.T) {
 	eventingRecorder.UpdateTrigger(updated, nil)
 
 	out, err := executeTriggerCommand(eventingClient, dynamicClient, "update", triggerName,
-		"--filter", "type=dev.knative.new", "--sink", "svc:mysvc")
+		"--filter", "type=dev.knative.new", "--sink", "ksvc:mysvc")
 	assert.NilError(t, err, "Trigger should be updated")
 	assert.Assert(t, util.ContainsAll(out, "Trigger", triggerName, "updated", "namespace", "default"))
 
@@ -55,7 +55,7 @@ func TestTriggerUpdateWithError(t *testing.T) {
 	eventingRecorder.GetTrigger(triggerName, nil, fmt.Errorf("trigger not found"))
 
 	out, err := executeTriggerCommand(eventingClient, nil, "update", triggerName,
-		"--filter", "type=dev.knative.new", "--sink", "svc:newsvc")
+		"--filter", "type=dev.knative.new", "--sink", "ksvc:newsvc")
 	assert.ErrorContains(t, err, "trigger not found")
 	assert.Assert(t, util.ContainsAll(out, "Usage", triggerName))
 
@@ -85,7 +85,7 @@ func TestTriggerUpdateDeletionTimestampNotNil(t *testing.T) {
 	eventingRecorder.GetTrigger(triggerName, present, nil)
 
 	_, err := executeTriggerCommand(eventingClient, nil, "update", triggerName,
-		"--filter", "type=dev.knative.new", "--sink", "svc:mysvc")
+		"--filter", "type=dev.knative.new", "--sink", "ksvc:mysvc")
 	assert.ErrorContains(t, err, present.Name)
 	assert.ErrorContains(t, err, "deletion")
 	assert.ErrorContains(t, err, "trigger")

@@ -15,7 +15,7 @@ kn source binding create NAME --subject SUBJECT --sink SINK
 ```
 
   # Create a sink binding which connects a deployment 'myapp' with a Knative service 'mysvc'
-  kn source binding create my-binding --subject Deployment:apps/v1:myapp --sink svc:mysvc
+  kn source binding create my-binding --subject Deployment:apps/v1:myapp --sink ksvc:mysvc
 ```
 
 ### Options
