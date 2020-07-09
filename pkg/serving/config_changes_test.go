@@ -15,6 +15,7 @@
 package serving
 
 import (
+	"fmt"
 	"reflect"
 	"strconv"
 	"testing"
@@ -289,7 +290,6 @@ func TestUpdateContainerPort(t *testing.T) {
 		name    string
 		input   string
 		isErr   bool
-		err     string
 		expPort int32
 		expName string
 	}{{
@@ -305,22 +305,18 @@ func TestUpdateContainerPort(t *testing.T) {
 		name:  "error case - not correct format",
 		input: "h2c:800000000000000000",
 		isErr: true,
-		err:   PortFormatErr.Error(),
 	}, {
 		name:  "error case - empty port",
 		input: "h2c:",
 		isErr: true,
-		err:   PortFormatErr.Error(),
 	}, {
 		name:  "error case - wrong format",
 		input: "8080:h2c",
 		isErr: true,
-		err:   PortFormatErr.Error(),
 	}, {
 		name:  "error case - multiple :",
 		input: "h2c:8080:proto",
 		isErr: true,
-		err:   PortFormatErr.Error(),
 	}, {
 		name:    "empty name no error",
 		input:   ":8888",
@@ -329,7 +325,7 @@ func TestUpdateContainerPort(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			err := UpdateContainerPort(template, tc.input)
 			if tc.isErr {
-				assert.Error(t, err, tc.err)
+				assert.Error(t, err, fmt.Sprintf(PortFormatErr, tc.input))
 			} else {
 				assert.NilError(t, err)
 				assert.Equal(t, template.Spec.Containers[0].Ports[0].ContainerPort, tc.expPort)

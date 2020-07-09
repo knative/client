@@ -40,12 +40,12 @@ type VolumeSourceType int
 const (
 	ConfigMapVolumeSourceType VolumeSourceType = iota
 	SecretVolumeSourceType
+	PortFormatErr = "The port specification '%s' is not valid. Please provide in the format 'NAME:PORT', where 'NAME' is optional. Examples: '--port h2c:8080' , '--port 8080'."
 )
 
 var (
 	UserImageAnnotationKey = "client.knative.dev/user-image"
 	ApiTooOldError         = errors.New("the service is using too old of an API format for the operation")
-	PortFormatErr          = errors.New("Incorrect port format, please provide in the format 'NAME:PORT', where 'NAME' is optional. Examples: '--port h2c:8080' , '--port 8080'.")
 )
 
 func (vt VolumeSourceType) String() string {
@@ -339,25 +339,22 @@ func UpdateContainerPort(template *servingv1.RevisionTemplateSpec, port string) 
 	if err != nil {
 		return err
 	}
+
 	var containerPort int64
 	var name string
 
-	if strings.Contains(port, ":") {
-		portDetails := strings.Split(port, ":")
-		//check for port format
-		if len(portDetails) > 2 {
-			return PortFormatErr
-		}
-		name = portDetails[0]
-		//check whether port is int32
-		containerPort, err = strconv.ParseInt(portDetails[1], 10, 32)
+	elements := strings.SplitN(port, ":", 2)
+	if len(elements) == 2 {
+		name = elements[0]
+		containerPort, err = strconv.ParseInt(elements[1], 10, 32)
 		if err != nil {
-			return PortFormatErr
+			return fmt.Errorf(PortFormatErr, port)
 		}
 	} else {
-		containerPort, err = strconv.ParseInt(port, 10, 32)
+		name = ""
+		containerPort, err = strconv.ParseInt(elements[0], 10, 32)
 		if err != nil {
-			return PortFormatErr
+			return fmt.Errorf(PortFormatErr, port)
 		}
 	}
 
