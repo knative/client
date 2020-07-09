@@ -52,37 +52,40 @@ func TestSourceList(t *testing.T) {
 	it, err := test.NewKnTest()
 	assert.NilError(t, err)
 	defer func() {
+		assert.NilError(t, tearDownForSourceAPIServer(t, it))
 		assert.NilError(t, it.Teardown())
 	}()
 
 	r := test.NewKnRunResultCollector(t, it)
+
 	defer r.DumpIfFailed()
+	setupForSourceAPIServer(t, it)
+	test.ServiceCreate(r, "testsvc0")
 
 	t.Log("List sources empty case")
 	output := sourceList(r)
 	assert.Check(t, util.ContainsAll(output, "No", "sources", "found", "namespace"))
 	assert.Check(t, util.ContainsNone(output, "NAME", "TYPE", "RESOURCE", "SINK", "READY"))
 
-	setupForSourceAPIServer(t, it)
-	test.ServiceCreate(r, "testsvc0")
+	t.Log("Create API Server")
 	apiServerSourceCreate(r, "testapisource0", "Event:v1:key1=value1", "testsa", "svc:testsvc0")
 	apiServerSourceListOutputName(r, "testapisource0")
-	t.Log("list sources")
-	output = sourceList(r, "--type", "testapisource0")
-	assert.Check(t, util.ContainsAll(output, "No", "sources", "found", "namespace"))
-	output := sourceList(r)
-	assert.Check(t, util.ContainsAll(output, "NAME", "TYPE", "RESOURCE", "SINK", "READY"))
-	assert.Check(t, util.ContainsAll(output, "testapisource0", "ApiServerSource", "apiserversources.sources.knative.dev", "svc:testsvc0"))
 
 	t.Log("create source binding")
 	sourceBindingCreate(r, "my-binding0", "Deployment:apps/v1:myapp", "svc:testsvc0")
 	sourceBindingListOutputName(r, "my-binding0")
-	output = sourceList(r, "--type", "my-binding0")
-	assert.Check(t, util.ContainsAll(output, "No", "sources", "found", "namespace"))
 
+	t.Log("create Ping Source")
 	pingSourceCreate(r, "testpingsource0", "* * * * */1", "ping", "svc:testsvc0")
 	pingSourceListOutputName(r, "testpingsource0")
-	output = sourceList(r, "--type", "testpingsource0")
+
+	t.Log("List sources Valid case")
+	output = sourceList(r, "--type", "PingSource")
+	assert.Check(t, util.ContainsAll(output, "NAME", "TYPE", "RESOURCE", "SINK", "READY"))
+	assert.Check(t, util.ContainsAll(output, "testpingsource0", "PingSource", "pingsources.sources.knative.dev", "svc:testsvc0"))
+
+	t.Log("List sources Invalid case")
+	output = sourceList(r, "--type", "testapisource0")
 	assert.Check(t, util.ContainsAll(output, "No", "sources", "found", "namespace"))
 
 	t.Log("delete apiserver sources")
