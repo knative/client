@@ -43,5 +43,9 @@ function knative_setup() {
 
   else
     start_release_knative_eventing "${eventing_version}"
+
+    # install the sugar controller
+    kubectl apply --filename https://storage.googleapis.com/knative-releases/eventing/previous/${eventing_version}/eventing-sugar-controller.yaml
+    wait_until_pods_running knative-eventing || return 1
   fi
 }

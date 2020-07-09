@@ -38,6 +38,7 @@ export GO111MODULE=on
 export KNATIVE_SERVING_VERSION=${KNATIVE_SERVING_VERSION:-latest}
 export KNATIVE_EVENTING_VERSION=${KNATIVE_EVENTING_VERSION:-latest}
 source $(dirname $0)/../scripts/test-infra/presubmit-tests.sh
+source $(dirname $0)/common.sh
 
 # Run cross platform build to ensure kn compiles for Linux, macOS and Windows
 function post_build_tests() {
