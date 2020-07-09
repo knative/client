@@ -42,6 +42,12 @@ const (
 	SecretVolumeSourceType
 )
 
+var (
+	UserImageAnnotationKey = "client.knative.dev/user-image"
+	ApiTooOldError         = errors.New("the service is using too old of an API format for the operation")
+	PortFormatErr          = errors.New("Incorrect port format, please provide in the format 'NAME:PORT', where 'NAME' is optional. Examples: '--port h2c:8080' , '--port 8080'.")
+)
+
 func (vt VolumeSourceType) String() string {
 	names := [...]string{"config-map", "secret"}
 	if vt < ConfigMapVolumeSourceType || vt > SecretVolumeSourceType {
@@ -49,8 +55,6 @@ func (vt VolumeSourceType) String() string {
 	}
 	return names[vt]
 }
-
-var UserImageAnnotationKey = "client.knative.dev/user-image"
 
 // UpdateEnvVars gives the configuration all the env var values listed in the given map of
 // vars.  Does not touch any environment variables not mentioned, but it can add
@@ -236,8 +240,6 @@ func UpdateRevisionTemplateAnnotation(template *servingv1.RevisionTemplateSpec, 
 	return nil
 }
 
-var ApiTooOldError = errors.New("the service is using too old of an API format for the operation")
-
 // EnvToMap is an utility function to translate between the API list form of env vars, and the
 // more convenient map form.
 func EnvToMap(vars []corev1.EnvVar) (map[string]string, error) {
@@ -342,15 +344,20 @@ func UpdateContainerPort(template *servingv1.RevisionTemplateSpec, port string) 
 
 	if strings.Contains(port, ":") {
 		portDetails := strings.Split(port, ":")
+		//check for port format
+		if len(portDetails) > 2 {
+			return PortFormatErr
+		}
 		name = portDetails[0]
+		//check whether port is int32
 		containerPort, err = strconv.ParseInt(portDetails[1], 10, 32)
 		if err != nil {
-			return err
+			return PortFormatErr
 		}
 	} else {
 		containerPort, err = strconv.ParseInt(port, 10, 32)
 		if err != nil {
-			return err
+			return PortFormatErr
 		}
 	}
 
