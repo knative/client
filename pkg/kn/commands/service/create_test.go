@@ -547,7 +547,7 @@ func TestServiceCreateMaxMinScale(t *testing.T) {
 func TestServiceCreateScale(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
-		"--scale", "5"}, false)
+		"--scale", "5", "--no-wait"}, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -570,6 +570,32 @@ func TestServiceCreateScale(t *testing.T) {
 				anno, actualAnnos[anno], expectedAnnos[i+1])
 		}
 	}
+}
+
+func TestServiceCreateScaleWithMaxScaleSet(t *testing.T) {
+	_, _, output, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
+		"--scale", "5", "--max-scale", "2", "--no-wait"}, true)
+	if err == nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(output, "only --scale or --max-scale can be specified") {
+		t.Errorf("Invalid error output: '%s'", output)
+	}
+
+}
+
+func TestServiceCreateScaleWithMinScaleSet(t *testing.T) {
+	_, _, output, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
+		"--scale", "5", "--min-scale", "2", "--no-wait"}, true)
+	if err == nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(output, "only --scale or --min-scale can be specified") {
+		t.Errorf("Invalid error output: '%s'", output)
+	}
+
 }
 
 func TestServiceCreateRequestsLimitsCPUMemory(t *testing.T) {

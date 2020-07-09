@@ -360,7 +360,7 @@ func TestServiceUpdateScale(t *testing.T) {
 
 	action, updated, _, err := fakeServiceUpdate(original, []string{
 		"service", "update", "foo",
-		"--scale", "5"})
+		"--scale", "5", "--no-wait"})
 
 	if err != nil {
 		t.Fatal(err)
@@ -389,6 +389,39 @@ func TestServiceUpdateScale(t *testing.T) {
 
 }
 
+func TestServiceUpdateScaleWithMaxScaleSet(t *testing.T) {
+	original := newEmptyService()
+
+	_, _, _, err := fakeServiceUpdate(original, []string{
+		"service", "update", "foo",
+		"--scale", "5", "--max-scale", "2", "--no-wait"})
+
+	if err == nil {
+		t.Fatal(err)
+	}
+
+	if !strings.Contains(err.Error(), "only --scale or --max-scale can be specified") {
+		t.Errorf("Invalid error output: '%s'", err)
+	}
+
+}
+
+func TestServiceUpdateScaleWithMinScaleSet(t *testing.T) {
+	original := newEmptyService()
+
+	_, _, _, err := fakeServiceUpdate(original, []string{
+		"service", "update", "foo",
+		"--scale", "5", "--min-scale", "2", "--no-wait"})
+
+	if err == nil {
+		t.Fatal(err)
+	}
+
+	if !strings.Contains(err.Error(), "only --scale or --min-scale can be specified") {
+		t.Errorf("Invalid error output: '%s'", err)
+	}
+
+}
 func TestServiceUpdateEnv(t *testing.T) {
 	orig := newEmptyService()
 
