@@ -397,11 +397,13 @@ func TestServiceUpdateScaleWithMaxScaleSet(t *testing.T) {
 		"--scale", "5", "--max-scale", "2", "--no-wait"})
 
 	if err == nil {
-		t.Fatal(err)
+		t.Fatal("Expected error, got nil")
 	}
 
-	if !strings.Contains(err.Error(), "only --scale or --max-scale can be specified") {
-		t.Errorf("Invalid error output: '%s'", err)
+	expectedErrMsg := "only --scale or --max-scale can be specified"
+
+	if !strings.Contains(err.Error(), expectedErrMsg) {
+		t.Errorf("Invalid error output, expected: %s, got : '%s'", expectedErrMsg, err)
 	}
 
 }
@@ -414,11 +416,13 @@ func TestServiceUpdateScaleWithMinScaleSet(t *testing.T) {
 		"--scale", "5", "--min-scale", "2", "--no-wait"})
 
 	if err == nil {
-		t.Fatal(err)
+		t.Fatal("Expected error, got nil")
 	}
 
-	if !strings.Contains(err.Error(), "only --scale or --min-scale can be specified") {
-		t.Errorf("Invalid error output: '%s'", err)
+	expectedErrMsg := "only --scale or --min-scale can be specified"
+
+	if !strings.Contains(err.Error(), expectedErrMsg) {
+		t.Errorf("Invalid error output, expected: %s, got : '%s'", expectedErrMsg, err)
 	}
 
 }
