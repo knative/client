@@ -71,28 +71,35 @@ func TestSourceList(t *testing.T) {
 	apiServerSourceCreate(r, "testapisource0", "Event:v1:key1=value1", "testsa", "svc:testsvc0")
 	apiServerSourceListOutputName(r, "testapisource0")
 
-	t.Log("create source binding")
+	t.Log("Create source binding")
 	sourceBindingCreate(r, "my-binding0", "Deployment:apps/v1:myapp", "svc:testsvc0")
 	sourceBindingListOutputName(r, "my-binding0")
 
-	t.Log("create Ping Source")
+	t.Log("Create ping source")
 	pingSourceCreate(r, "testpingsource0", "* * * * */1", "ping", "svc:testsvc0")
 	pingSourceListOutputName(r, "testpingsource0")
 
-	t.Log("List sources Valid case")
+	t.Log("List sources filter valid case")
 	output = sourceList(r, "--type", "PingSource")
 	assert.Check(t, util.ContainsAll(output, "NAME", "TYPE", "RESOURCE", "SINK", "READY"))
 	assert.Check(t, util.ContainsAll(output, "testpingsource0", "PingSource", "pingsources.sources.knative.dev", "svc:testsvc0"))
 
-	t.Log("List sources Invalid case")
+	t.Log("List sources filter invalid case")
 	output = sourceList(r, "--type", "testapisource0")
 	assert.Check(t, util.ContainsAll(output, "No", "sources", "found", "namespace"))
+	output = sourceList(r, "--type", "TestSource", "-oyaml")
+	assert.Check(t, util.ContainsAll(output, "No", "sources", "found", "namespace"))
 
-	t.Log("delete apiserver sources")
+	t.Log("List available source in YAML format")
+	output = sourceList(r, "--type", "PingSource,ApiServerSource", "-oyaml")
+	assert.Check(t, util.ContainsAll(output, "testpingsource0", "PingSource", "Service", "testsvc0"))
+	assert.Check(t, util.ContainsAll(output, "testapisource1", "ApiServerSource", "Service", "testsvc0"))
+
+	t.Log("Delete apiserver sources")
 	apiServerSourceDelete(r, "testapisource0")
-	t.Log("delete source binding")
+	t.Log("Delete source binding")
 	sourceBindingDelete(r, "my-binding0")
-	t.Log("delete Ping sources")
+	t.Log("Delete Ping sources")
 	pingSourceDelete(r, "testpingsource0")
 	// non empty list case is tested in test/e2e/source_apiserver_it.go where source setup is present
 }
