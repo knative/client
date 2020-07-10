@@ -40,6 +40,12 @@ type VolumeSourceType int
 const (
 	ConfigMapVolumeSourceType VolumeSourceType = iota
 	SecretVolumeSourceType
+	PortFormatErr = "The port specification '%s' is not valid. Please provide in the format 'NAME:PORT', where 'NAME' is optional. Examples: '--port h2c:8080' , '--port 8080'."
+)
+
+var (
+	UserImageAnnotationKey = "client.knative.dev/user-image"
+	ApiTooOldError         = errors.New("the service is using too old of an API format for the operation")
 )
 
 func (vt VolumeSourceType) String() string {
@@ -49,8 +55,6 @@ func (vt VolumeSourceType) String() string {
 	}
 	return names[vt]
 }
-
-var UserImageAnnotationKey = "client.knative.dev/user-image"
 
 // UpdateEnvVars gives the configuration all the env var values listed in the given map of
 // vars.  Does not touch any environment variables not mentioned, but it can add
@@ -236,8 +240,6 @@ func UpdateRevisionTemplateAnnotation(template *servingv1.RevisionTemplateSpec, 
 	return nil
 }
 
-var ApiTooOldError = errors.New("the service is using too old of an API format for the operation")
-
 // EnvToMap is an utility function to translate between the API list form of env vars, and the
 // more convenient map form.
 func EnvToMap(vars []corev1.EnvVar) (map[string]string, error) {
@@ -331,14 +333,34 @@ func UpdateContainerArg(template *servingv1.RevisionTemplateSpec, arg []string) 
 	return nil
 }
 
-// UpdateContainerPort updates container with a give port
-func UpdateContainerPort(template *servingv1.RevisionTemplateSpec, port int32) error {
+// UpdateContainerPort updates container with a given name:port
+func UpdateContainerPort(template *servingv1.RevisionTemplateSpec, port string) error {
 	container, err := ContainerOfRevisionTemplate(template)
 	if err != nil {
 		return err
 	}
+
+	var containerPort int64
+	var name string
+
+	elements := strings.SplitN(port, ":", 2)
+	if len(elements) == 2 {
+		name = elements[0]
+		containerPort, err = strconv.ParseInt(elements[1], 10, 32)
+		if err != nil {
+			return fmt.Errorf(PortFormatErr, port)
+		}
+	} else {
+		name = ""
+		containerPort, err = strconv.ParseInt(elements[0], 10, 32)
+		if err != nil {
+			return fmt.Errorf(PortFormatErr, port)
+		}
+	}
+
 	container.Ports = []corev1.ContainerPort{{
-		ContainerPort: port,
+		ContainerPort: int32(containerPort),
+		Name:          name,
 	}}
 	return nil
 }

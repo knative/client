@@ -15,6 +15,7 @@
 package serving
 
 import (
+	"fmt"
 	"reflect"
 	"strconv"
 	"testing"
@@ -285,21 +286,52 @@ func TestUpdateContainerArg(t *testing.T) {
 
 func TestUpdateContainerPort(t *testing.T) {
 	template, _ := getRevisionTemplate()
-	err := UpdateContainerPort(template, 8888)
-	assert.NilError(t, err)
-	// Verify update is successful or not
-	checkPortUpdate(t, template, 8888)
-	// update template with container port info
-	template.Spec.Containers[0].Ports[0].ContainerPort = 9090
-	err = UpdateContainerPort(template, 80)
-	assert.NilError(t, err)
-	// Verify that given port overrides the existing container port
-	checkPortUpdate(t, template, 80)
-}
-
-func checkPortUpdate(t *testing.T, template *servingv1.RevisionTemplateSpec, port int32) {
-	if template.Spec.Containers[0].Ports[0].ContainerPort != port {
-		t.Error("Failed to update the container port")
+	for _, tc := range []struct {
+		name    string
+		input   string
+		isErr   bool
+		expPort int32
+		expName string
+	}{{
+		name:    "only port 8888",
+		input:   "8888",
+		expPort: int32(8888),
+	}, {
+		name:    "name and port h2c:8080",
+		input:   "h2c:8080",
+		expPort: int32(8080),
+		expName: "h2c",
+	}, {
+		name:  "error case - not correct format",
+		input: "h2c:800000000000000000",
+		isErr: true,
+	}, {
+		name:  "error case - empty port",
+		input: "h2c:",
+		isErr: true,
+	}, {
+		name:  "error case - wrong format",
+		input: "8080:h2c",
+		isErr: true,
+	}, {
+		name:  "error case - multiple :",
+		input: "h2c:8080:proto",
+		isErr: true,
+	}, {
+		name:    "empty name no error",
+		input:   ":8888",
+		expPort: int32(8888),
+	}} {
+		t.Run(tc.name, func(t *testing.T) {
+			err := UpdateContainerPort(template, tc.input)
+			if tc.isErr {
+				assert.Error(t, err, fmt.Sprintf(PortFormatErr, tc.input))
+			} else {
+				assert.NilError(t, err)
+				assert.Equal(t, template.Spec.Containers[0].Ports[0].ContainerPort, tc.expPort)
+				assert.Equal(t, template.Spec.Containers[0].Ports[0].Name, tc.expName)
+			}
+		})
 	}
 }
 

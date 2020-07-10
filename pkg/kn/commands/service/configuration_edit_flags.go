@@ -51,7 +51,7 @@ type ConfigurationEditFlags struct {
 	ConcurrencyLimit           int
 	ConcurrencyUtilization     int
 	AutoscaleWindow            string
-	Port                       int32
+	Port                       string
 	Labels                     []string
 	LabelsService              []string
 	LabelsRevision             []string
@@ -207,7 +207,7 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 		"Percentage of concurrent requests utilization before scaling up.")
 	p.markFlagMakesRevision("concurrency-utilization")
 
-	command.Flags().Int32VarP(&p.Port, "port", "p", 0, "The port where application listens on.")
+	command.Flags().StringVarP(&p.Port, "port", "p", "", "The port where application listens on, in the format 'NAME:PORT', where 'NAME' is optional. Examples: '--port h2c:8080' , '--port 8080'.")
 	p.markFlagMakesRevision("port")
 
 	command.Flags().StringArrayVarP(&p.Labels, "label", "l", []string{},

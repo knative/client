@@ -27,8 +27,11 @@ kn service create NAME --image IMAGE
   # Create or replace environment variables of service 's1' using --force flag
   kn service create --force s1 --env TARGET=force --env FROM=examples --image knativesamples/helloworld
 
-  # Create a service with port 80
-  kn service create s2 --port 80 --image knativesamples/helloworld
+  # Create a service with port 8080
+  kn service create s2 --port 8080 --image knativesamples/helloworld
+
+  # Create a service with port 8080 and port name h2c
+  kn service create s2 --port h2c:8080 --image knativesamples/helloworld
 
   # Create or replace default resources of a service 's1' using --force flag
   # (earlier configured resource requests and limits will be replaced with default)
@@ -78,7 +81,7 @@ kn service create NAME --image IMAGE
       --no-cluster-local              Do not specify that the service be private. (--no-cluster-local will make the service publicly available) (default true)
       --no-lock-to-digest             Do not keep the running image for the service constant when not explicitly specifying the image. (--no-lock-to-digest pulls the image tag afresh with each new revision)
       --no-wait                       Do not wait for 'service create' operation to be completed.
-  -p, --port int32                    The port where application listens on.
+  -p, --port string                   The port where application listens on, in the format 'NAME:PORT', where 'NAME' is optional. Examples: '--port h2c:8080' , '--port 8080'.
       --pull-secret string            Image pull secret to set. An empty argument ("") clears the pull secret. The referenced secret must exist in the service's namespace.
       --request strings               The resource requirement requests for this Service. For example, 'cpu=100m,memory=256Mi'. You can use this flag multiple times. To unset a resource request, append "-" to the resource name, e.g. '--request cpu-'.
       --requests-cpu string           DEPRECATED: please use --request instead. The requested CPU (e.g., 250m).
