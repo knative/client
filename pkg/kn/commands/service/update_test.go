@@ -389,6 +389,25 @@ func TestServiceUpdateScale(t *testing.T) {
 
 }
 
+func TestServiceUpdateScaleWithNegativeValue(t *testing.T) {
+	original := newEmptyService()
+
+	_, _, _, err := fakeServiceUpdate(original, []string{
+		"service", "update", "foo",
+		"--scale", "-1", "--no-wait"})
+
+	if err == nil {
+		t.Fatal("Expected error, got nil")
+	}
+
+	expectedErrMsg := "expected 0 <= -1 <= 2147483647: autoscaling.knative.dev/maxScale"
+
+	if !strings.Contains(err.Error(), expectedErrMsg) {
+		t.Errorf("Invalid error output, expected: %s, got : '%s'", expectedErrMsg, err)
+	}
+
+}
+
 func TestServiceUpdateScaleWithMaxScaleSet(t *testing.T) {
 	original := newEmptyService()
 

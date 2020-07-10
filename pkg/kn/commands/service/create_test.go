@@ -572,28 +572,44 @@ func TestServiceCreateScale(t *testing.T) {
 	}
 }
 
+func TestServiceCreateScaleWithNegativeValue(t *testing.T) {
+	_, _, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
+		"--scale", "-1", "--no-wait"}, true)
+	if err == nil {
+		t.Fatal(err)
+	}
+	expectedErrMsg := "expected 0 <= -1 <= 2147483647: autoscaling.knative.dev/maxScale"
+	if !strings.Contains(err.Error(), expectedErrMsg) {
+		t.Errorf("Invalid error output, expected: %s, got : '%s'", expectedErrMsg, err)
+	}
+
+}
+
 func TestServiceCreateScaleWithMaxScaleSet(t *testing.T) {
-	_, _, output, err := fakeServiceCreate([]string{
+	_, _, _, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
 		"--scale", "5", "--max-scale", "2", "--no-wait"}, true)
 	if err == nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(output, "only --scale or --max-scale can be specified") {
-		t.Errorf("Invalid error output: '%s'", output)
+	expectedErrMsg := "only --scale or --max-scale can be specified"
+	if !strings.Contains(err.Error(), expectedErrMsg) {
+		t.Errorf("Invalid error output, expected: %s, got : '%s'", expectedErrMsg, err)
 	}
 
 }
 
 func TestServiceCreateScaleWithMinScaleSet(t *testing.T) {
-	_, _, output, err := fakeServiceCreate([]string{
+	_, _, _, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
 		"--scale", "5", "--min-scale", "2", "--no-wait"}, true)
 	if err == nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(output, "only --scale or --min-scale can be specified") {
-		t.Errorf("Invalid error output: '%s'", output)
+	expectedErrMsg := "only --scale or --min-scale can be specified"
+	if !strings.Contains(err.Error(), expectedErrMsg) {
+		t.Errorf("Invalid error output, expected: %s, got : '%s'", expectedErrMsg, err)
 	}
 
 }
