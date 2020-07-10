@@ -107,6 +107,11 @@ var (
 	_ apis.Listable    = (*Subscribable)(nil)
 
 	_ apis.Convertible = (*Subscribable)(nil)
+	_ apis.Convertible = (*SubscribableSpec)(nil)
+	_ apis.Convertible = (*SubscribableStatus)(nil)
+
+	_ apis.Convertible = (*SubscriberSpec)(nil)
+	_ apis.Convertible = (*SubscriberStatus)(nil)
 )
 
 // GetFullType implements duck.Implementable

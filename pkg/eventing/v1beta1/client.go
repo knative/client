@@ -182,10 +182,10 @@ func (b *TriggerBuilder) Broker(broker string) *TriggerBuilder {
 // InjectBroker to add annotation to setup default broker
 func (b *TriggerBuilder) InjectBroker(inject bool) *TriggerBuilder {
 	if inject {
-		meta_v1.SetMetaDataAnnotation(&b.trigger.ObjectMeta, v1beta1.InjectionAnnotation, "enabled")
+		meta_v1.SetMetaDataAnnotation(&b.trigger.ObjectMeta, v1beta1.DeprecatedInjectionAnnotation, "enabled")
 	} else {
-		if meta_v1.HasAnnotation(b.trigger.ObjectMeta, v1beta1.InjectionAnnotation) {
-			delete(b.trigger.ObjectMeta.Annotations, v1beta1.InjectionAnnotation)
+		if meta_v1.HasAnnotation(b.trigger.ObjectMeta, v1beta1.DeprecatedInjectionAnnotation) {
+			delete(b.trigger.ObjectMeta.Annotations, v1beta1.DeprecatedInjectionAnnotation)
 		}
 	}
 	return b

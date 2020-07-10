@@ -228,7 +228,7 @@ func TestUpdateConcurrencyTarget(t *testing.T) {
 	checkAnnotationValueInt(t, template, autoscaling.TargetAnnotationKey, 10)
 	// Update with invalid value
 	err = UpdateConcurrencyTarget(template, -1)
-	assert.ErrorContains(t, err, "invalid")
+	assert.ErrorContains(t, err, "should be at least 0.01")
 }
 
 func TestUpdateConcurrencyLimit(t *testing.T) {

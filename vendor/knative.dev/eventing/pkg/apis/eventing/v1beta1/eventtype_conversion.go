@@ -24,11 +24,11 @@ import (
 )
 
 // ConvertTo implements apis.Convertible
-func (source *EventType) ConvertTo(ctx context.Context, sink apis.Convertible) error {
-	return fmt.Errorf("v1beta1 is the highest known version, got: %T", sink)
+func (source *EventType) ConvertTo(ctx context.Context, to apis.Convertible) error {
+	return fmt.Errorf("v1beta1 is the highest known version, got: %T", to)
 }
 
 // ConvertFrom implements apis.Convertible
-func (sink *EventType) ConvertFrom(ctx context.Context, source apis.Convertible) error {
-	return fmt.Errorf("v1beta1 is the highest known version, got: %T", source)
+func (sink *EventType) ConvertFrom(ctx context.Context, from apis.Convertible) error {
+	return fmt.Errorf("v1beta1 is the highest known version, got: %T", from)
 }

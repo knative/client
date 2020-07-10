@@ -233,7 +233,7 @@ gotest.tools/assert/cmp
 gotest.tools/internal/difflib
 gotest.tools/internal/format
 gotest.tools/internal/source
-# k8s.io/api v0.17.6 => k8s.io/api v0.17.6
+# k8s.io/api v0.18.1 => k8s.io/api v0.17.6
 ## explicit
 k8s.io/api/admissionregistration/v1
 k8s.io/api/admissionregistration/v1beta1
@@ -275,7 +275,7 @@ k8s.io/api/settings/v1alpha1
 k8s.io/api/storage/v1
 k8s.io/api/storage/v1alpha1
 k8s.io/api/storage/v1beta1
-# k8s.io/apimachinery v0.17.6 => k8s.io/apimachinery v0.17.6
+# k8s.io/apimachinery v0.18.1 => k8s.io/apimachinery v0.17.6
 ## explicit
 k8s.io/apimachinery/pkg/api/apitesting/fuzzer
 k8s.io/apimachinery/pkg/api/equality
@@ -568,19 +568,23 @@ k8s.io/kube-openapi/pkg/util/sets
 k8s.io/utils/buffer
 k8s.io/utils/integer
 k8s.io/utils/trace
-# knative.dev/eventing v0.15.1-0.20200608083719-c024353a712c
+# knative.dev/eventing v0.16.0
 ## explicit
 knative.dev/eventing/pkg/apis/config
 knative.dev/eventing/pkg/apis/configs
 knative.dev/eventing/pkg/apis/configs/v1alpha1
 knative.dev/eventing/pkg/apis/duck
+knative.dev/eventing/pkg/apis/duck/v1
 knative.dev/eventing/pkg/apis/duck/v1beta1
 knative.dev/eventing/pkg/apis/eventing
+knative.dev/eventing/pkg/apis/eventing/v1
 knative.dev/eventing/pkg/apis/eventing/v1beta1
 knative.dev/eventing/pkg/apis/flows
+knative.dev/eventing/pkg/apis/flows/v1
 knative.dev/eventing/pkg/apis/flows/v1beta1
 knative.dev/eventing/pkg/apis/messaging
 knative.dev/eventing/pkg/apis/messaging/config
+knative.dev/eventing/pkg/apis/messaging/v1
 knative.dev/eventing/pkg/apis/messaging/v1beta1
 knative.dev/eventing/pkg/apis/sources
 knative.dev/eventing/pkg/apis/sources/v1alpha1
@@ -591,7 +595,11 @@ knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1beta1/fake
 knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha2
 knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha2/fake
 knative.dev/eventing/pkg/logging
-# knative.dev/pkg v0.0.0-20200606224418-7ed1d4a552bc
+# knative.dev/networking v0.0.0-20200630191330-5080f859c17d
+knative.dev/networking/pkg/apis/config
+knative.dev/networking/pkg/apis/networking
+knative.dev/networking/pkg/apis/networking/v1alpha1
+# knative.dev/pkg v0.0.0-20200702222342-ea4d6e985ba0
 ## explicit
 knative.dev/pkg/apis
 knative.dev/pkg/apis/duck
@@ -608,13 +616,11 @@ knative.dev/pkg/logging/logkey
 knative.dev/pkg/profiling
 knative.dev/pkg/ptr
 knative.dev/pkg/tracker
-# knative.dev/serving v0.15.1-0.20200608114919-92e849c1db9c
+# knative.dev/serving v0.16.0
 ## explicit
 knative.dev/serving/pkg/apis/autoscaling
 knative.dev/serving/pkg/apis/autoscaling/v1alpha1
 knative.dev/serving/pkg/apis/config
-knative.dev/serving/pkg/apis/networking
-knative.dev/serving/pkg/apis/networking/v1alpha1
 knative.dev/serving/pkg/apis/serving
 knative.dev/serving/pkg/apis/serving/v1
 knative.dev/serving/pkg/apis/serving/v1alpha1
