@@ -93,7 +93,7 @@ func TestSourceList(t *testing.T) {
 	t.Log("List available source in YAML format")
 	output = sourceList(r, "--type", "PingSource,ApiServerSource", "-oyaml")
 	assert.Check(t, util.ContainsAll(output, "testpingsource0", "PingSource", "Service", "testsvc0"))
-	assert.Check(t, util.ContainsAll(output, "testapisource1", "ApiServerSource", "Service", "testsvc0"))
+	assert.Check(t, util.ContainsAll(output, "testapisource0", "ApiServerSource", "Service", "testsvc0"))
 
 	t.Log("Delete apiserver sources")
 	apiServerSourceDelete(r, "testapisource0")
