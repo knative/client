@@ -17,6 +17,9 @@ package service
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
@@ -706,4 +709,197 @@ func TestServiceCreateWithClusterLocal(t *testing.T) {
 	if labelValue != serving.VisibilityClusterLocal {
 		t.Fatalf("Incorrect VisibilityClusterLocal value '%s'", labelValue)
 	}
+}
+
+var serviceYAML = `
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: foo
+spec:
+  template:
+    spec:
+      containers:
+        - image: gcr.io/foo/bar:baz
+          env:
+            - name: TARGET
+              value: "Go Sample v1"
+`
+
+var serviceJSON = `
+{
+  "apiVersion": "serving.knative.dev/v1",
+  "kind": "Service",
+  "metadata": {
+    "name": "foo"
+  },
+  "spec": {
+    "template": {
+		"spec": {
+		"containers": [
+			{
+			"image": "gcr.io/foo/bar:baz",
+			"env": [
+				{
+				"name": "TARGET",
+				"value": "Go Sample v1"
+				}
+			]
+		  }
+		]
+	  }
+	}
+  }
+}`
+
+func TestServiceCreateFromYAML(t *testing.T) {
+	tempDir, err := ioutil.TempDir("", "kn-file")
+	defer os.RemoveAll(tempDir)
+	assert.NilError(t, err)
+
+	tempFile := filepath.Join(tempDir, "service.yaml")
+	err = ioutil.WriteFile(tempFile, []byte(serviceYAML), os.FileMode(0666))
+	assert.NilError(t, err)
+
+	action, created, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--filename", tempFile}, false)
+	assert.NilError(t, err)
+	assert.Assert(t, action.Matches("create", "services"))
+
+	assert.Equal(t, created.Name, "foo")
+	assert.Equal(t, created.Spec.Template.Spec.GetContainer().Image, "gcr.io/foo/bar:baz")
+}
+
+func TestServiceCreateFromJSON(t *testing.T) {
+	tempDir, err := ioutil.TempDir("", "kn-file")
+	defer os.RemoveAll(tempDir)
+	assert.NilError(t, err)
+
+	tempFile := filepath.Join(tempDir, "service.json")
+	err = ioutil.WriteFile(tempFile, []byte(serviceJSON), os.FileMode(0666))
+	assert.NilError(t, err)
+
+	action, created, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--filename", tempFile}, false)
+	assert.NilError(t, err)
+	assert.Assert(t, action.Matches("create", "services"))
+
+	assert.Equal(t, created.Name, "foo")
+	assert.Equal(t, created.Spec.Template.Spec.GetContainer().Image, "gcr.io/foo/bar:baz")
+}
+
+func TestServiceCreateFromFileWithName(t *testing.T) {
+	tempDir, err := ioutil.TempDir("", "kn-file")
+	defer os.RemoveAll(tempDir)
+	assert.NilError(t, err)
+
+	tempFile := filepath.Join(tempDir, "service.yaml")
+	err = ioutil.WriteFile(tempFile, []byte(serviceYAML), os.FileMode(0666))
+	assert.NilError(t, err)
+
+	t.Log("no NAME param provided")
+	action, created, _, err := fakeServiceCreate([]string{
+		"service", "create", "--filename", tempFile}, false)
+	assert.NilError(t, err)
+	assert.Assert(t, action.Matches("create", "services"))
+
+	assert.Equal(t, created.Name, "foo")
+	assert.Equal(t, created.Spec.Template.Spec.GetContainer().Image, "gcr.io/foo/bar:baz")
+
+	t.Log("no service.Name provided in file")
+	err = ioutil.WriteFile(tempFile, []byte(strings.ReplaceAll(serviceYAML, "name: foo", "")), os.FileMode(0666))
+	assert.NilError(t, err)
+	action, created, _, err = fakeServiceCreate([]string{
+		"service", "create", "cli-foo", "--filename", tempFile}, false)
+	assert.NilError(t, err)
+	assert.Assert(t, action.Matches("create", "services"))
+
+	assert.Equal(t, created.Name, "cli-foo")
+	assert.Equal(t, created.Spec.Template.Spec.GetContainer().Image, "gcr.io/foo/bar:baz")
+}
+
+func TestServiceCreateFileNameMismatch(t *testing.T) {
+	tempDir, err := ioutil.TempDir("", "kn-file")
+	assert.NilError(t, err)
+
+	tempFile := filepath.Join(tempDir, "service.json")
+	err = ioutil.WriteFile(tempFile, []byte(serviceJSON), os.FileMode(0666))
+	assert.NilError(t, err)
+
+	t.Log("NAME param nad service.Name differ")
+	_, _, _, err = fakeServiceCreate([]string{
+		"service", "create", "anotherFoo", "--filename", tempFile}, false)
+	assert.Assert(t, err != nil)
+	assert.Assert(t, util.ContainsAllIgnoreCase(err.Error(), "provided", "'anotherFoo'", "name", "match", "from", "file", "'foo'"))
+
+	t.Log("no NAME param & no service.Name provided in file")
+	err = ioutil.WriteFile(tempFile, []byte(strings.ReplaceAll(serviceYAML, "name: foo", "")), os.FileMode(0666))
+	assert.NilError(t, err)
+	_, _, _, err = fakeServiceCreate([]string{
+		"service", "create", "--filename", tempFile}, false)
+	assert.Assert(t, err != nil)
+	assert.Assert(t, util.ContainsAllIgnoreCase(err.Error(), "no", "service", "name", "provided", "parameter", "file"))
+}
+
+func TestServiceCreateFileError(t *testing.T) {
+	_, _, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--filename", "filepath"}, false)
+
+	assert.Assert(t, util.ContainsAll(err.Error(), "no", "such", "file", "directory", "filepath"))
+}
+
+func TestServiceCreateInvalidDataJSON(t *testing.T) {
+	tempDir, err := ioutil.TempDir("", "kn-file")
+	defer os.RemoveAll(tempDir)
+	assert.NilError(t, err)
+	tempFile := filepath.Join(tempDir, "invalid.json")
+
+	// Double curly bracket at the beginning of file
+	invalidData := strings.Replace(serviceJSON, "{\n", "{{\n", 1)
+	err = ioutil.WriteFile(tempFile, []byte(invalidData), os.FileMode(0666))
+	assert.NilError(t, err)
+	_, _, _, err = fakeServiceCreate([]string{"service", "create", "foo", "--filename", tempFile}, false)
+	assert.Assert(t, util.ContainsAll(err.Error(), "invalid", "character", "'{'", "beginning"))
+
+	// Remove closing quote on key
+	invalidData = strings.Replace(serviceJSON, "metadata\"", "metadata", 1)
+	err = ioutil.WriteFile(tempFile, []byte(invalidData), os.FileMode(0666))
+	assert.NilError(t, err)
+	_, _, _, err = fakeServiceCreate([]string{"service", "create", "foo", "--filename", tempFile}, false)
+	assert.Assert(t, util.ContainsAll(err.Error(), "invalid", "character", "'\\n'", "string", "literal"))
+
+	// Remove opening square bracket
+	invalidData = strings.Replace(serviceJSON, " [", "", 1)
+	err = ioutil.WriteFile(tempFile, []byte(invalidData), os.FileMode(0666))
+	assert.NilError(t, err)
+	_, _, _, err = fakeServiceCreate([]string{"service", "create", "foo", "--filename", tempFile}, false)
+	assert.Assert(t, util.ContainsAll(err.Error(), "invalid", "character", "']'", "after", "key:value"))
+}
+
+func TestServiceCreateInvalidDataYAML(t *testing.T) {
+	tempDir, err := ioutil.TempDir("", "kn-file")
+	defer os.RemoveAll(tempDir)
+	assert.NilError(t, err)
+	tempFile := filepath.Join(tempDir, "invalid.yaml")
+
+	// Remove dash
+	invalidData := strings.Replace(serviceYAML, "- image", "image", 1)
+	err = ioutil.WriteFile(tempFile, []byte(invalidData), os.FileMode(0666))
+	assert.NilError(t, err)
+	_, _, _, err = fakeServiceCreate([]string{"service", "create", "foo", "--filename", tempFile}, false)
+	assert.Assert(t, util.ContainsAll(err.Error(), "mapping", "values", "not", "allowed"))
+
+	// Remove name key
+	invalidData = strings.Replace(serviceYAML, "name:", "", 1)
+	err = ioutil.WriteFile(tempFile, []byte(invalidData), os.FileMode(0666))
+	assert.NilError(t, err)
+	_, _, _, err = fakeServiceCreate([]string{"service", "create", "foo", "--filename", tempFile}, false)
+	assert.Assert(t, util.ContainsAll(err.Error(), "cannot", "unmarshal", "Go", "struct", "Service.metadata"))
+
+	// Remove opening square bracket
+	invalidData = strings.Replace(serviceYAML, "env", "\tenv", 1)
+	err = ioutil.WriteFile(tempFile, []byte(invalidData), os.FileMode(0666))
+	assert.NilError(t, err)
+	_, _, _, err = fakeServiceCreate([]string{"service", "create", "foo", "--filename", tempFile}, false)
+	assert.Assert(t, util.ContainsAll(err.Error(), "found", "tab", "violates", "indentation"))
 }
