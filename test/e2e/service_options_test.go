@@ -67,7 +67,7 @@ func TestServiceOptions(t *testing.T) {
 	t.Log("delete service")
 	test.ServiceDelete(r, "svc1")
 
-	t.Log("create and validate service with min/max scale options ")
+	t.Log("create and validate service with min/max scale options")
 	serviceCreateWithOptions(r, "svc2", "--min-scale", "1", "--max-scale", "3")
 	validateServiceMinScale(r, "svc2", "1")
 	validateServiceMaxScale(r, "svc2", "3")
@@ -75,6 +75,16 @@ func TestServiceOptions(t *testing.T) {
 	t.Log("update and validate service with max scale option")
 	test.ServiceUpdate(r, "svc2", "--max-scale", "2")
 	validateServiceMaxScale(r, "svc2", "2")
+
+	t.Log("create and validate service with scale options")
+	serviceCreateWithOptions(r, "svc2a", "--scale", "5")
+	validateServiceMinScale(r, "svc2a", "5")
+	validateServiceMaxScale(r, "svc2a", "5")
+
+	t.Log("update and validate service with scale option")
+	test.ServiceUpdate(r, "svc2a", "--scale", "2")
+	validateServiceMaxScale(r, "svc2a", "2")
+	validateServiceMinScale(r, "svc2a", "2")
 
 	t.Log("delete service")
 	test.ServiceDelete(r, "svc2")
