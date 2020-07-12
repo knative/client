@@ -18,16 +18,20 @@
 |===
 | | Description | PR
 
+| ✨
+| New sink prefix "ksvc" and drop support for "svc", "service" prefixes for knative service
+| https://github.com/knative/client/pull/896[#896]
+
 | 🎁
 | Add "url" output format to return service url in service describe
 | https://github.com/knative/client/pull/916[#916]
 
 | 🐛
-| Fix panic for `kn source apiserver` and `kn source binding` describe with Sink URI
+| Fix panic for `kn source apiserver` and `kn source binding` describe with sink URI
 | https://github.com/knative/client/pull/901[#901]
 
 | 🐛
-| Fix Panic for `kn trigger describe` with Sink URI
+| Fix panic for `kn trigger describe` with sink URI
 | https://github.com/knative/client/pull/900[#900]
 
 | 🎁
@@ -35,7 +39,7 @@
 | https://github.com/knative/client/pull/887[#887]
 
 | 🎁
-| Add commands to manage Broker resource
+| Add commands to manage broker resource
 | https://github.com/knative/client/pull/894[#894]
 
 | 🐣
