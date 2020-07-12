@@ -37,6 +37,10 @@
 | 🎁
 | Add commands to manage Broker resource
 | https://github.com/knative/client/pull/894[#894]
+
+| 🐣
+| Refactor port field to accept port name and port
+| https://github.com/knative/client/pull/915[#915]
 |===
 
 ## v0.15.2 (2020-06-16)
