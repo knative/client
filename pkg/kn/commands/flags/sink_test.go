@@ -65,6 +65,9 @@ func TestResolve(t *testing.T) {
 		{"http://target.example.com", &duckv1.Destination{
 			URI: targetExampleCom,
 		}, ""},
+		{"k8ssvc:foo", nil, "unsupported sink prefix: 'k8ssvc'"},
+		{"svc:foo", nil, "please use prefix 'ksvc' for knative service"},
+		{"service:foo", nil, "please use prefix 'ksvc' for knative service"},
 	}
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default", mysvc, defaultBroker)
 	for _, c := range cases {

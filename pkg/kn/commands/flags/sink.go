@@ -88,7 +88,10 @@ func (i *SinkFlags) ResolveSink(knclient clientdynamic.KnDynamicClient, namespac
 	}
 	typ, ok := sinkMappings[prefix]
 	if !ok {
-		return nil, fmt.Errorf("unsupported sink type: %s", i.sink)
+		if prefix == "svc" || prefix == "service" {
+			return nil, fmt.Errorf("unsupported sink prefix: '%s', please use prefix 'ksvc' for knative service", prefix)
+		}
+		return nil, fmt.Errorf("unsupported sink prefix: '%s'", prefix)
 	}
 	obj, err := client.Resource(typ).Namespace(namespace).Get(name, metav1.GetOptions{})
 	if err != nil {
