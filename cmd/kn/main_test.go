@@ -158,7 +158,7 @@ func TestUnknownCommands(t *testing.T) {
 	}
 	for _, d := range data {
 		args := append([]string{"kn"}, d.givenCmdArgs...)
-		rootCmd, err := root.NewRootCommand()
+		rootCmd, err := root.NewRootCommand(nil)
 		os.Args = args
 		assert.NilError(t, err)
 		err = validateRootCommand(rootCmd)
