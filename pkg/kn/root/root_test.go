@@ -26,7 +26,7 @@ import (
 )
 
 func TestNewRootCommand(t *testing.T) {
-	rootCmd, err := NewRootCommand()
+	rootCmd, err := NewRootCommand(nil)
 	assert.NilError(t, err)
 	assert.Assert(t, rootCmd != nil)
 
@@ -51,13 +51,13 @@ func TestNewRootCommand(t *testing.T) {
 }
 
 func TestSubCommands(t *testing.T) {
-	rootCmd, err := NewRootCommand()
+	rootCmd, err := NewRootCommand(nil)
 	assert.NilError(t, err)
 	checkLeafCommand(t, "version", rootCmd)
 }
 
 func TestCommandGroup(t *testing.T) {
-	rootCmd, err := NewRootCommand()
+	rootCmd, err := NewRootCommand(nil)
 	assert.NilError(t, err)
 	commandGroups := []string{
 		"service", "revision", "plugin", "source", "source apiserver",

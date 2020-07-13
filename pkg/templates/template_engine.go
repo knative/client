@@ -30,14 +30,30 @@ import (
 type templateEngine struct {
 	RootCmd *cobra.Command
 	CommandGroups
+	functions template.FuncMap
 }
 
 // Get the function to show the global options
 func NewGlobalOptionsFunc() func(command *cobra.Command) error {
-	return templateEngine{}.optionsFunc()
+	return newTemplateEngine(nil, nil, nil).optionsFunc()
 }
 
-func (e templateEngine) usageFunc() func(command *cobra.Command) error {
+// Create new template engine
+func newTemplateEngine(rootCmd *cobra.Command, g CommandGroups, extraFunctions *template.FuncMap) templateEngine {
+	engine := templateEngine{
+		RootCmd:       rootCmd,
+		CommandGroups: g,
+	}
+	engine.functions = engine.templateFunctions()
+	if extraFunctions != nil {
+		for name, function := range *extraFunctions {
+			engine.functions[name] = function
+		}
+	}
+	return engine
+}
+
+func (e templateEngine) usageFunc() func(*cobra.Command) error {
 	return func(c *cobra.Command) error {
 		return e.fillTemplate("usage", c, usageTemplate())
 	}
@@ -60,7 +76,7 @@ func (e templateEngine) optionsFunc() func(command *cobra.Command) error {
 
 func (e templateEngine) fillTemplate(name string, c *cobra.Command, templ string) error {
 	t := template.New(name)
-	t.Funcs(e.templateFunctions())
+	t.Funcs(e.functions)
 	_, err := t.Parse(templ)
 	if err != nil {
 		fmt.Fprintf(c.ErrOrStderr(), "\nINTERNAL: >>>>> %v\n", err)

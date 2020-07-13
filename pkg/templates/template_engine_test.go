@@ -33,7 +33,7 @@ type testData struct {
 }
 
 func TestUsageFunc(t *testing.T) {
-	rootCmd, engine := newTemplateEngine()
+	rootCmd, engine := newTestTemplateEngine()
 	subCmdWithSubs, _, _ := rootCmd.Find([]string{"g1.1"})
 	subCmd, _, _ := rootCmd.Find([]string{"g2.1"})
 
@@ -71,7 +71,7 @@ func TestUsageFunc(t *testing.T) {
 }
 
 func TestHelpFunc(t *testing.T) {
-	rootCmd, engine := newTemplateEngine()
+	rootCmd, engine := newTestTemplateEngine()
 	subCmd := rootCmd.Commands()[0]
 
 	data := []testData{
@@ -101,7 +101,7 @@ func TestHelpFunc(t *testing.T) {
 }
 
 func TestOptionsFunc(t *testing.T) {
-	rootCmd, _ := newTemplateEngine()
+	rootCmd, _ := newTestTemplateEngine()
 	subCmd := rootCmd.Commands()[0]
 	capture := test.CaptureOutput(t)
 	err := NewGlobalOptionsFunc()(subCmd)
@@ -135,7 +135,7 @@ func validateSubUsageOutput(t *testing.T, stdOut string, cmd *cobra.Command) {
 	assert.Assert(t, util.ContainsAll(stdOut, "Use", "root", "options", "global"))
 }
 
-func newTemplateEngine() (*cobra.Command, templateEngine) {
+func newTestTemplateEngine() (*cobra.Command, templateEngine) {
 	rootCmd := &cobra.Command{Use: "root", Short: "desc-root", Long: "longdesc-root"}
 	rootCmd.PersistentFlags().String("global-opt", "", "global option")
 	cmdGroups := CommandGroups{
@@ -148,10 +148,7 @@ func newTemplateEngine() (*cobra.Command, templateEngine) {
 			[]*cobra.Command{newCmd("g2.1"), newCmd("g2.2"), newCmd("g2.3")},
 		},
 	}
-	engine := templateEngine{
-		RootCmd:       rootCmd,
-		CommandGroups: cmdGroups,
-	}
+	engine := newTemplateEngine(rootCmd, cmdGroups, getTestFuncMap())
 	cmdGroups.AddTo(rootCmd)
 
 	// Add a sub-command to first command

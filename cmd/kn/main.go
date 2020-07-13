@@ -67,7 +67,7 @@ func run(args []string) error {
 	}
 
 	// Create kn root command and all sub-commands
-	rootCmd, err := root.NewRootCommand()
+	rootCmd, err := root.NewRootCommand(pluginManager.HelpTemplateFuncs())
 	if err != nil {
 		return err
 	}
