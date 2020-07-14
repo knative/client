@@ -43,6 +43,17 @@ func main() {
 	}
 }
 
+// runError is used when during the execution of a command/plugin an error occurs and
+// so no extra usage message should be shown.
+type runError struct {
+	err error
+}
+
+// Error implements the error() interface
+func (e *runError) Error() string {
+	return e.err.Error()
+}
+
 // Run the main program. Args are the args as given on the command line (excluding the program name itself)
 func run(args []string) error {
 	// Parse config & plugin flags early to read in configuration file
@@ -67,7 +78,7 @@ func run(args []string) error {
 	}
 
 	// Create kn root command and all sub-commands
-	rootCmd, err := root.NewRootCommand()
+	rootCmd, err := root.NewRootCommand(pluginManager.HelpTemplateFuncs())
 	if err != nil {
 		return err
 	}
@@ -79,7 +90,11 @@ func run(args []string) error {
 			return err
 		}
 
-		return plugin.Execute(argsWithoutCommands(args, plugin.CommandParts()))
+		err := plugin.Execute(argsWithoutCommands(args, plugin.CommandParts()))
+		if err != nil {
+			return &runError{err: err}
+		}
+		return nil
 	} else {
 		// Validate args for root command
 		err = validateRootCommand(rootCmd)
@@ -190,7 +205,11 @@ func validateRootCommand(cmd *cobra.Command) error {
 // printError prints out any given error
 func printError(err error) {
 	fmt.Fprintf(os.Stderr, "Error: %s\n", cleanupErrorMessage(err.Error()))
-	fmt.Fprintf(os.Stderr, "Run '%s --help' for usage\n", extractCommandPathFromErrorMessage(err.Error(), os.Args[0]))
+	var runError *runError
+	if !errors.As(err, &runError) {
+		// Print help hint only if its not a runError occurred when executing a command
+		fmt.Fprintf(os.Stderr, "Run '%s --help' for usage\n", extractCommandPathFromErrorMessage(err.Error(), os.Args[0]))
+	}
 }
 
 // extractCommandPathFromErrorMessage tries to extract the command name from an error message

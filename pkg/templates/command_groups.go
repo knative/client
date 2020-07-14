@@ -15,6 +15,8 @@
 package templates
 
 import (
+	"text/template"
+
 	"github.com/spf13/cobra"
 )
 
@@ -40,11 +42,8 @@ func (g CommandGroups) AddTo(cmd *cobra.Command) {
 }
 
 // SetRootUsage sets our own help and usage function messages to the root command
-func (g CommandGroups) SetRootUsage(rootCmd *cobra.Command) {
-	engine := &templateEngine{
-		RootCmd:       rootCmd,
-		CommandGroups: g,
-	}
+func (g CommandGroups) SetRootUsage(rootCmd *cobra.Command, extraTemplateFunctions *template.FuncMap) {
+	engine := newTemplateEngine(rootCmd, g, extraTemplateFunctions)
 	setHelpFlagsToSubCommands(rootCmd)
 	rootCmd.SetUsageFunc(engine.usageFunc())
 	rootCmd.SetHelpFunc(engine.helpFunc())

@@ -23,6 +23,10 @@
 | https://github.com/knative/client/pull/896[#896]
 
 | 🎁
+| Add available plugins to help messages
+| https://github.com/knative/client/pull/929[#929]
+
+| 🎁
 | Add "url" output format to return service url in service describe
 | https://github.com/knative/client/pull/916[#916]
 

@@ -158,7 +158,7 @@ func TestUnknownCommands(t *testing.T) {
 	}
 	for _, d := range data {
 		args := append([]string{"kn"}, d.givenCmdArgs...)
-		rootCmd, err := root.NewRootCommand()
+		rootCmd, err := root.NewRootCommand(nil)
 		os.Args = args
 		assert.NilError(t, err)
 		err = validateRootCommand(rootCmd)
@@ -250,6 +250,29 @@ func TestRunWithError(t *testing.T) {
 		assert.Equal(t, stdOut, "")
 		assert.Assert(t, strings.Contains(errOut, d.expected))
 		assert.Assert(t, util.ContainsAll(errOut, "Run", "--help", "usage"))
+	}
+}
+
+func TestRunWithPluginError(t *testing.T) {
+	data := []struct {
+		given    string
+		expected string
+	}{
+		{
+			"exit status 1",
+			"Error: exit status 1",
+		},
+	}
+	for _, d := range data {
+		capture := test.CaptureOutput(t)
+		// displayHelp argument is false for plugin error
+		printError(&runError{errors.New(d.given)})
+		stdOut, errOut := capture.Close()
+
+		assert.Equal(t, stdOut, "")
+		assert.Assert(t, strings.Contains(errOut, d.expected))
+		// check that --help message isn't displayed
+		assert.Assert(t, util.ContainsNone(errOut, "Run", "--help", "usage"))
 	}
 }
 

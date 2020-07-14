@@ -22,7 +22,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"testing"
 
@@ -38,11 +37,14 @@ const (
 echo "Hello Knative, I'm a Kn plugin"
 echo "  My plugin file is $0"
 echo "  I received arguments: $1 $2 $3 $4"`
+
+	TestPluginCodeErr string = `#!/bin/bash
+exit 1`
 )
 
 type pluginTestConfig struct {
-	knConfigDir, knPluginsDir, knPluginsDir2  string
-	knConfigPath, knPluginPath, knPluginPath2 string
+	knConfigDir, knPluginsDir, knPluginsDir2, knPluginsDir3   string
+	knConfigPath, knPluginPath, knPluginPath2, knPluginsPath3 string
 }
 
 func (pc *pluginTestConfig) setup() error {
@@ -108,17 +110,18 @@ func TestPluginWithoutLookup(t *testing.T) {
 	listPlugin(r, knFlags, []string{pc.knPluginPath}, []string{pc.knPluginPath2})
 }
 
-func execute(command string, args ...string) string {
-	cmd := exec.Command(command, args...)
-	r, w, _ := os.Pipe()
-	cmd.Stdout = w
-	cmd.Stderr = os.Stderr
-	cmd.Stdin = os.Stdin
-	cmd.Env = os.Environ()
-	cmd.Run()
-	w.Close()
-	ret, _ := ioutil.ReadAll(r)
-	return string(ret)
+func TestPluginInHelpMessage(t *testing.T) {
+	pc := pluginTestConfig{}
+	assert.NilError(t, pc.setup())
+	defer pc.teardown()
+
+	result := test.Kn{}.Run("--plugins-dir", pc.knPluginsDir, "--help")
+	assert.NilError(t, result.Error)
+	assert.Assert(t, util.ContainsAll(result.Stdout, "Plugins:", "helloe2e", "kn-helloe2e"))
+
+	result = test.Kn{}.Run("--plugins-dir", pc.knPluginsDir, "service", "--help")
+	assert.NilError(t, result.Error)
+	assert.Assert(t, util.ContainsNone(result.Stdout, "Plugins:", "helloe2e", "kn-helloe2e"))
 }
 
 func TestPluginWithLookup(t *testing.T) {
@@ -172,14 +175,33 @@ func TestExecutePluginInPath(t *testing.T) {
 	runPlugin(r, knFlags, "hello2e2e", []string{}, []string{"Hello Knative, I'm a Kn plugin"})
 }
 
-// Private
+func TestExecutePluginInPathWithError(t *testing.T) {
+	it, err := test.NewKnTest()
+	assert.NilError(t, err)
 
-func createPluginFile(fileName, fileContent, filePath string, fileMode os.FileMode) (string, error) {
-	file := filepath.Join(filePath, fileName)
-	err := ioutil.WriteFile(file, []byte(fileContent), fileMode)
-	return file, err
+	r := test.NewKnRunResultCollector(t, it)
+	defer r.DumpIfFailed()
+
+	pc := pluginTestConfig{}
+	assert.NilError(t, pc.setup())
+	oldPath := os.Getenv("PATH")
+
+	t.Log("execute plugin in $PATH that returns error")
+	pluginsDir := filepath.Join(pc.knConfigDir, "plugins3")
+	err = os.MkdirAll(pluginsDir, test.FileModeExecutable)
+	assert.NilError(t, err)
+	_, err = test.CreateFile("kn-hello3e2e", TestPluginCodeErr, pluginsDir, test.FileModeExecutable)
+	assert.NilError(t, err)
+	assert.NilError(t, os.Setenv("PATH", fmt.Sprintf("%s:%s", oldPath, pluginsDir)))
+	defer tearDownWithPath(pc, oldPath)
+
+	out := test.Kn{}.Run("--lookup-plugins=true", "hello3e2e")
+	r.AssertError(out)
+	assert.Check(r.T(), util.ContainsAll(out.Stderr, "Error: exit status 1"))
+	assert.Check(r.T(), util.ContainsNone(out.Stderr, "Run", "kn --help", "usage"))
 }
 
+// Private
 func setupPluginTestConfigWithNewPath(t *testing.T) (pluginTestConfig, string) {
 	pc := pluginTestConfig{}
 	assert.NilError(t, pc.setup())

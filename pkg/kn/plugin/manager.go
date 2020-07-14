@@ -23,9 +23,11 @@ import (
 	"runtime"
 	"sort"
 	"strings"
+	"text/template"
 
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
 )
 
 // Interface describing a plugin
@@ -108,6 +110,12 @@ func (manager *Manager) FindPlugin(parts []string) (Plugin, error) {
 
 // ListPlugins lists all plugins that can be found in the plugin directory or in the path (if configured)
 func (manager *Manager) ListPlugins() (PluginList, error) {
+	return manager.ListPluginsForCommandGroup(nil)
+}
+
+// ListPluginsForCommandGroup lists all plugins that can be found in the plugin directory or in the path (if configured),
+// and which fits to a command group
+func (manager *Manager) ListPluginsForCommandGroup(commandGroupParts []string) (PluginList, error) {
 	var plugins []Plugin
 
 	dirs, err := manager.pluginLookupDirectories()
@@ -135,6 +143,11 @@ func (manager *Manager) ListPlugins() (PluginList, error) {
 				continue
 			}
 
+			// Check if plugin matches a command group
+			if !isPartOfCommandGroup(commandGroupParts, f.Name()) {
+				continue
+			}
+
 			// Ignore all plugins that are shadowed
 			if _, ok := hasSeen[name]; !ok {
 				plugins = append(plugins, &plugin{
@@ -146,9 +159,33 @@ func (manager *Manager) ListPlugins() (PluginList, error) {
 			}
 		}
 	}
+
 	// Sort according to name
 	sort.Sort(PluginList(plugins))
 	return plugins, nil
+}
+
+func isPartOfCommandGroup(commandGroupParts []string, name string) bool {
+	if commandGroupParts == nil {
+		return true
+	}
+
+	commandParts := extractPluginCommandFromFileName(name)
+
+	// commandParts must be one more element then the parts of the command group
+	// it belongs to. E.g. for the command "service", "log" (2 elements) the containing
+	// group only has one element ("service"). This condition is here for
+	// shortcut and ensure that we don't run in an out-of-bound array error
+	// in the loop below.
+	if len(commandParts) != len(commandGroupParts)+1 {
+		return false
+	}
+	for i := range commandGroupParts {
+		if commandParts[i] != commandGroupParts[i] {
+			return false
+		}
+	}
+	return true
 }
 
 // PluginsDir returns the configured directory holding plugins
@@ -176,8 +213,9 @@ func (plugin *plugin) Execute(args []string) error {
 // Return a description of the plugin (if support by the plugin binary)
 func (plugin *plugin) Description() (string, error) {
 	// TODO: Call out to the plugin to find a description.
-	// For now just use the plugin name
-	return strings.Join(plugin.commandParts, "-"), nil
+	// For now just use the path to the plugin
+	return plugin.path, nil
+	// return strings.Join(plugin.commandParts, "-"), nil
 }
 
 // The the command path leading to this plugin.
@@ -210,6 +248,49 @@ func (manager *Manager) pluginLookupDirectories() ([]string, error) {
 	}
 	dirs = uniquePathsList(dirs)
 	return dirs, nil
+}
+
+// HelpTemplateFuncs returns a function map which can be used in templates for resolving
+// plugin related help messages
+func (manager *Manager) HelpTemplateFuncs() *template.FuncMap {
+	ret := template.FuncMap{
+		"listPlugins": manager.listPluginsHelpMessage(),
+	}
+
+	return &ret
+}
+
+// listPluginsHelpMessage returns a function which returns all plugins that are directly below the given
+// command as a properly formatted string
+func (manager *Manager) listPluginsHelpMessage() func(cmd *cobra.Command) string {
+	return func(cmd *cobra.Command) string {
+		if !cmd.HasSubCommands() {
+			return ""
+		}
+		list, err := manager.ListPluginsForCommandGroup(extractCommandGroup(cmd, []string{}))
+		if err != nil || len(list) == 0 {
+			// We don't show plugins if there is an error
+			return ""
+		}
+		var plugins []string
+		for _, pl := range list {
+			t := fmt.Sprintf("  %%-%ds %%s", cmd.NamePadding())
+			desc, _ := pl.Description()
+			command := (pl.CommandParts())[len(pl.CommandParts())-1]
+			help := fmt.Sprintf(t, command, desc)
+			plugins = append(plugins, help)
+		}
+		return strings.Join(plugins, "\n")
+	}
+}
+
+// extractCommandGroup constructs the command path as array of strings
+func extractCommandGroup(cmd *cobra.Command, parts []string) []string {
+	if cmd.HasParent() {
+		parts = extractCommandGroup(cmd.Parent(), parts)
+		parts = append(parts, cmd.Name())
+	}
+	return parts
 }
 
 // uniquePathsList deduplicates a given slice of strings without
