@@ -207,8 +207,9 @@ func (plugin *plugin) Execute(args []string) error {
 // Return a description of the plugin (if support by the plugin binary)
 func (plugin *plugin) Description() (string, error) {
 	// TODO: Call out to the plugin to find a description.
-	// For now just use the plugin name
-	return strings.Join(plugin.commandParts, "-"), nil
+	// For now just use the path to the plugin
+	return plugin.path, nil
+	// return strings.Join(plugin.commandParts, "-"), nil
 }
 
 // The the command path leading to this plugin.

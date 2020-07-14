@@ -35,59 +35,68 @@ func init() {
 }
 
 func main() {
-	err := run(os.Args[1:])
-	if err != nil && len(os.Args) > 1 {
-		printError(err)
+	runError := run(os.Args[1:])
+	if runError.err != nil && len(os.Args) > 1 {
+		printError(runError)
 		// This is the only point from where to exit when an error occurs
 		os.Exit(1)
 	}
 }
 
+// Type for not printing a help message
+type runError struct {
+	// Return encapsulate error
+	err error
+
+	// Whether to show a help message or not
+	showUsageHint bool
+}
+
 // Run the main program. Args are the args as given on the command line (excluding the program name itself)
-func run(args []string) error {
+func run(args []string) runError {
 	// Parse config & plugin flags early to read in configuration file
 	// and bind to viper. After that you can access all configuration and
 	// global options via methods on config.GlobalConfig
 	err := config.BootstrapConfig()
 	if err != nil {
-		return err
+		return runError{err, true}
 	}
 
 	// Strip of all flags to get the non-flag commands only
 	commands, err := stripFlags(args)
 	if err != nil {
-		return err
+		return runError{err, true}
 	}
 
 	// Find plugin with the commands arguments
 	pluginManager := plugin.NewManager(config.GlobalConfig.PluginsDir(), config.GlobalConfig.LookupPluginsInPath())
 	plugin, err := pluginManager.FindPlugin(commands)
 	if err != nil {
-		return err
+		return runError{err, true}
 	}
 
 	// Create kn root command and all sub-commands
 	rootCmd, err := root.NewRootCommand(pluginManager.HelpTemplateFuncs())
 	if err != nil {
-		return err
+		return runError{err, true}
 	}
 
 	if plugin != nil {
 		// Validate & Execute plugin
 		err = validatePlugin(rootCmd, plugin)
 		if err != nil {
-			return err
+			return runError{err, true}
 		}
 
-		return plugin.Execute(argsWithoutCommands(args, plugin.CommandParts()))
+		return runError{err, false}
 	} else {
 		// Validate args for root command
 		err = validateRootCommand(rootCmd)
 		if err != nil {
-			return err
+			return runError{err, true}
 		}
 		// Execute kn root command, args are taken from os.Args directly
-		return rootCmd.Execute()
+		return runError{rootCmd.Execute(), true}
 	}
 }
 
@@ -188,9 +197,12 @@ func validateRootCommand(cmd *cobra.Command) error {
 }
 
 // printError prints out any given error
-func printError(err error) {
+func printError(runErr runError) {
+	err := runErr.err
 	fmt.Fprintf(os.Stderr, "Error: %s\n", cleanupErrorMessage(err.Error()))
-	fmt.Fprintf(os.Stderr, "Run '%s --help' for usage\n", extractCommandPathFromErrorMessage(err.Error(), os.Args[0]))
+	if runErr.showUsageHint {
+		fmt.Fprintf(os.Stderr, "Run '%s --help' for usage\n", extractCommandPathFromErrorMessage(err.Error(), os.Args[0]))
+	}
 }
 
 // extractCommandPathFromErrorMessage tries to extract the command name from an error message
