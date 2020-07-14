@@ -188,7 +188,7 @@ func TestExecutePluginInPathWithError(t *testing.T) {
 
 	t.Log("execute plugin in $PATH that returns error")
 	pluginsDir := filepath.Join(pc.knConfigDir, "plugins3")
-	err = os.MkdirAll(pc.knPluginsDir3, test.FileModeExecutable)
+	err = os.MkdirAll(pluginsDir, test.FileModeExecutable)
 	assert.NilError(t, err)
 	_, err = test.CreateFile("kn-hello3e2e", TestPluginCodeErr, pluginsDir, test.FileModeExecutable)
 	assert.NilError(t, err)
