@@ -171,6 +171,12 @@ func isPartOfCommandGroup(commandGroupParts []string, name string) bool {
 	}
 
 	commandParts := extractPluginCommandFromFileName(name)
+
+	// commandParts must be one more element then the parts of the command group
+	// it belongs to. E.g. for the command "service", "log" (2 elements) the containing
+	// group only has one element ("service"). This condition is here for
+	// shortcut and ensure that we don't run in an out-of-bound array error
+	// in the loop below.
 	if len(commandParts) != len(commandGroupParts)+1 {
 		return false
 	}
