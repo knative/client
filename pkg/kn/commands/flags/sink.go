@@ -33,7 +33,16 @@ type SinkFlags struct {
 }
 
 func (i *SinkFlags) Add(cmd *cobra.Command) {
-	cmd.Flags().StringVarP(&i.sink, "sink", "s", "", "Addressable sink for events")
+	cmd.Flags().StringVarP(&i.sink,
+		"sink",
+		"s",
+		"",
+		"Addressable sink for events. "+
+			"You can specify a broker, Knative service or URI. "+
+			"Examples: '--sink broker:nest' for a broker 'nest', "+
+			"'--sink https://event.receiver.uri' for an URI with an 'http://' or 'https://' schema, "+
+			"'--sink 'ksvc:receiver' or simply '--sink receiver' for a Knative service 'receiver'. "+
+			"If prefix is not provided, it is considered as a Knative service.")
 
 	for _, p := range config.GlobalConfig.SinkMappings() {
 		//user configration might override the default configuration
@@ -52,13 +61,8 @@ var sinkMappings = map[string]schema.GroupVersionResource{
 		Group:    "eventing.knative.dev",
 		Version:  "v1beta1",
 	},
-	"service": {
-		Resource: "services",
-		Group:    "serving.knative.dev",
-		Version:  "v1",
-	},
 	// Shorthand alias for service
-	"svc": {
+	"ksvc": {
 		Resource: "services",
 		Group:    "serving.knative.dev",
 		Version:  "v1",
@@ -84,7 +88,10 @@ func (i *SinkFlags) ResolveSink(knclient clientdynamic.KnDynamicClient, namespac
 	}
 	typ, ok := sinkMappings[prefix]
 	if !ok {
-		return nil, fmt.Errorf("unsupported sink type: %s", i.sink)
+		if prefix == "svc" || prefix == "service" {
+			return nil, fmt.Errorf("unsupported sink prefix: '%s', please use prefix 'ksvc' for knative service", prefix)
+		}
+		return nil, fmt.Errorf("unsupported sink prefix: '%s'", prefix)
 	}
 	obj, err := client.Resource(typ).Namespace(namespace).Get(name, metav1.GetOptions{})
 	if err != nil {
@@ -108,7 +115,7 @@ func (i *SinkFlags) ResolveSink(knclient clientdynamic.KnDynamicClient, namespac
 func parseSink(sink string) (string, string) {
 	parts := strings.SplitN(sink, ":", 2)
 	if len(parts) == 1 {
-		return "svc", parts[0]
+		return "ksvc", parts[0]
 	} else if parts[0] == "http" || parts[0] == "https" {
 		return "", sink
 	} else {
@@ -120,7 +127,7 @@ func parseSink(sink string) (string, string) {
 func SinkToString(sink duckv1.Destination) string {
 	if sink.Ref != nil {
 		if sink.Ref.Kind == "Service" {
-			return fmt.Sprintf("svc:%s", sink.Ref.Name)
+			return fmt.Sprintf("ksvc:%s", sink.Ref.Name)
 		} else {
 			return fmt.Sprintf("%s:%s", strings.ToLower(sink.Ref.Kind), sink.Ref.Name)
 		}

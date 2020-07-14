@@ -86,7 +86,7 @@ func printSource(source *v1alpha2.PingSource, options hprinters.PrintOptions) ([
 	var sink string
 	if source.Spec.Sink.Ref != nil {
 		if source.Spec.Sink.Ref.Kind == "Service" {
-			sink = fmt.Sprintf("svc:%s", source.Spec.Sink.Ref.Name)
+			sink = fmt.Sprintf("ksvc:%s", source.Spec.Sink.Ref.Name)
 		} else {
 			sink = fmt.Sprintf("%s:%s", source.Spec.Sink.Ref.Kind, source.Spec.Sink.Ref.Name)
 		}

@@ -33,10 +33,10 @@ func TestToSource(t *testing.T) {
 	assert.Check(t, s.SourceKind == "SinkBinding")
 	s = toSource(newSourceUnstructuredObjWithSink("p1",
 		"sources.knative.dev/v1alpha1", "PingSource"))
-	assert.Check(t, s.Sink == "svc:foo")
+	assert.Check(t, s.Sink == "ksvc:foo")
 	s = toSource(newSourceUnstructuredObjWithSink("k1",
 		"sources.knative.dev/v1alpha1", "KafkaSource"))
-	assert.Check(t, s.Sink == "svc:foo")
+	assert.Check(t, s.Sink == "ksvc:foo")
 	s = toSource(newSourceUnstructuredObjWithoutSink("k1",
 		"sources.knative.dev/v1alpha1", "KafkaSource"))
 	assert.Check(t, s.Sink == "")

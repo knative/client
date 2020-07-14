@@ -82,9 +82,9 @@ func TestSourceList(t *testing.T) {
 	)
 	assert.NilError(t, err)
 	assert.Check(t, util.ContainsAll(output[0], "NAME", "TYPE", "RESOURCE", "SINK", "READY"))
-	assert.Check(t, util.ContainsAll(output[1], "a1", "ApiServerSource", "apiserversources.sources.knative.dev", "svc:foo", "True"))
-	assert.Check(t, util.ContainsAll(output[2], "p1", "PingSource", "pingsources.sources.knative.dev", "svc:foo", "True"))
-	assert.Check(t, util.ContainsAll(output[3], "s1", "SinkBinding", "sinkbindings.sources.knative.dev", "svc:foo", "True"))
+	assert.Check(t, util.ContainsAll(output[1], "a1", "ApiServerSource", "apiserversources.sources.knative.dev", "ksvc:foo", "True"))
+	assert.Check(t, util.ContainsAll(output[2], "p1", "PingSource", "pingsources.sources.knative.dev", "ksvc:foo", "True"))
+	assert.Check(t, util.ContainsAll(output[3], "s1", "SinkBinding", "sinkbindings.sources.knative.dev", "ksvc:foo", "True"))
 }
 
 func TestSourceListUntyped(t *testing.T) {
@@ -95,8 +95,8 @@ func TestSourceListUntyped(t *testing.T) {
 	)
 	assert.NilError(t, err)
 	assert.Check(t, util.ContainsAll(output[0], "NAME", "TYPE", "RESOURCE", "SINK", "READY"))
-	assert.Check(t, util.ContainsAll(output[1], "k1", "KafkaSource", "kafkasources.sources.knative.dev", "svc:foo", "True"))
-	assert.Check(t, util.ContainsAll(output[2], "k2", "KafkaSource", "kafkasources.sources.knative.dev", "svc:foo", "True"))
+	assert.Check(t, util.ContainsAll(output[1], "k1", "KafkaSource", "kafkasources.sources.knative.dev", "ksvc:foo", "True"))
+	assert.Check(t, util.ContainsAll(output[2], "k2", "KafkaSource", "kafkasources.sources.knative.dev", "ksvc:foo", "True"))
 }
 
 func TestSourceListNoHeaders(t *testing.T) {

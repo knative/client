@@ -42,11 +42,11 @@ func NewTriggerUpdateCommand(p *commands.KnParams) *cobra.Command {
   # Update the filter which key is 'type' to value 'knative.dev.bar' in a trigger 'mytrigger'
   kn trigger update mytrigger --filter type=knative.dev.bar
 
-  # Remove the filter which key is 'type' from a trigger 'mytrigger' 
+  # Remove the filter which key is 'type' from a trigger 'mytrigger'
   kn trigger update mytrigger --filter type-
 
-  # Update the sink of a trigger 'mytrigger' to 'svc:new-service'
-  kn trigger update mytrigger --sink svc:new-service
+  # Update the sink of a trigger 'mytrigger' to 'ksvc:new-service'
+  kn trigger update mytrigger --sink ksvc:new-service
   `,
 
 		RunE: func(cmd *cobra.Command, args []string) (err error) {

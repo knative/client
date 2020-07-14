@@ -33,7 +33,7 @@ func TestSimpleCreateBinding(t *testing.T) {
 	bindingRecorder := bindingClient.Recorder()
 	bindingRecorder.CreateSinkBinding(createSinkBinding("testbinding", "mysvc", deploymentGvk, "mydeploy", "default", map[string]string{"bla": "blub", "foo": "bar"}), nil)
 
-	out, err := executeSinkBindingCommand(bindingClient, dynamicClient, "create", "testbinding", "--sink", "svc:mysvc", "--subject", "deployment:apps/v1:mydeploy", "--ce-override", "bla=blub", "--ce-override", "foo=bar")
+	out, err := executeSinkBindingCommand(bindingClient, dynamicClient, "create", "testbinding", "--sink", "ksvc:mysvc", "--subject", "deployment:apps/v1:mydeploy", "--ce-override", "bla=blub", "--ce-override", "foo=bar")
 	assert.NilError(t, err, "Source should have been created")
 	assert.Assert(t, util.ContainsAll(out, "created", "default", "testbinding"))
 
@@ -44,7 +44,7 @@ func TestNoSinkError(t *testing.T) {
 	bindingClient := v1alpha2.NewMockKnSinkBindingClient(t)
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default")
 
-	_, err := executeSinkBindingCommand(bindingClient, dynamicClient, "create", "testbinding", "--sink", "svc:mysvc", "--subject", "deployment:apps/v1:app=myapp")
+	_, err := executeSinkBindingCommand(bindingClient, dynamicClient, "create", "testbinding", "--sink", "ksvc:mysvc", "--subject", "deployment:apps/v1:app=myapp")
 	assert.ErrorContains(t, err, "mysvc")
 	assert.ErrorContains(t, err, "not found")
 }

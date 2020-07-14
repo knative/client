@@ -68,21 +68,21 @@ func TestSourceList(t *testing.T) {
 	assert.Check(t, util.ContainsNone(output, "NAME", "TYPE", "RESOURCE", "SINK", "READY"))
 
 	t.Log("Create API Server")
-	apiServerSourceCreate(r, "testapisource0", "Event:v1:key1=value1", "testsa", "svc:testsvc0")
+	apiServerSourceCreate(r, "testapisource0", "Event:v1:key1=value1", "testsa", "ksvc:testsvc0")
 	apiServerSourceListOutputName(r, "testapisource0")
 
 	t.Log("Create source binding")
-	sourceBindingCreate(r, "my-binding0", "Deployment:apps/v1:myapp", "svc:testsvc0")
+	sourceBindingCreate(r, "my-binding0", "Deployment:apps/v1:myapp", "ksvc:testsvc0")
 	sourceBindingListOutputName(r, "my-binding0")
 
 	t.Log("Create ping source")
-	pingSourceCreate(r, "testpingsource0", "* * * * */1", "ping", "svc:testsvc0")
+	pingSourceCreate(r, "testpingsource0", "* * * * */1", "ping", "ksvc:testsvc0")
 	pingSourceListOutputName(r, "testpingsource0")
 
 	t.Log("List sources filter valid case")
 	output = sourceList(r, "--type", "PingSource")
 	assert.Check(t, util.ContainsAll(output, "NAME", "TYPE", "RESOURCE", "SINK", "READY"))
-	assert.Check(t, util.ContainsAll(output, "testpingsource0", "PingSource", "pingsources.sources.knative.dev", "svc:testsvc0"))
+	assert.Check(t, util.ContainsAll(output, "testpingsource0", "PingSource", "pingsources.sources.knative.dev", "ksvc:testsvc0"))
 
 	t.Log("List sources filter invalid case")
 	output = sourceList(r, "--type", "testapisource0")
