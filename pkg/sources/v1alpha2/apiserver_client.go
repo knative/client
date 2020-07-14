@@ -111,7 +111,7 @@ func (c *apiServerSourcesClient) Namespace() string {
 func (c *apiServerSourcesClient) ListAPIServerSource() (*v1alpha2.ApiServerSourceList, error) {
 	sourceList, err := c.client.List(metav1.ListOptions{})
 	if err != nil {
-		return nil, err
+		return nil, knerrors.GetError(err)
 	}
 
 	return updateAPIServerSourceListGVK(sourceList)

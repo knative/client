@@ -22,7 +22,7 @@ import (
 func newInvalidCRD(apiGroup string) *KNError {
 	parts := strings.Split(apiGroup, ".")
 	name := parts[0]
-	msg := fmt.Sprintf("no Knative %s API found on the backend, please verify the installation", name)
+	msg := fmt.Sprintf("404: no Knative %s API found on the backend, please verify the installation", name)
 	return NewKNError(msg)
 }
 
@@ -36,4 +36,8 @@ func newNoRouteToHost(errString string) error {
 
 func newNoKubeConfig(errString string) error {
 	return NewKNError("no kubeconfig has been provided, please use a valid configuration to connect to the cluster")
+}
+
+func newForbidden(code int32, msg string) *KNError {
+	return NewKNError(fmt.Sprintf("%d: %s", code, msg))
 }

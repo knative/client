@@ -15,6 +15,7 @@
 package errors
 
 import (
+	"net/http"
 	"strings"
 
 	api_errors "k8s.io/apimachinery/pkg/api/errors"
@@ -38,6 +39,10 @@ func isEmptyConfigError(err error) bool {
 	return strings.Contains(err.Error(), "no configuration has been provided")
 }
 
+func IsForbiddenError(status api_errors.APIStatus) bool {
+	return status.Status().Code == http.StatusForbidden
+}
+
 //Retrieves a custom error struct based on the original error APIStatus struct
 //Returns the original error struct in case it can't identify the kind of APIStatus error
 func GetError(err error) error {
@@ -55,11 +60,17 @@ func GetError(err error) error {
 			return err
 		}
 		var knerr *KNError
-		if isCRDError(apiStatus) {
+		switch {
+		case isCRDError(apiStatus):
 			knerr = newInvalidCRD(apiStatus.Status().Details.Group)
 			knerr.Status = apiStatus
 			return knerr
+		case IsForbiddenError(apiStatus):
+			knerr = newForbidden(apiStatus.Status().Code, apiStatus.Status().Message)
+			knerr.Status = apiStatus
+			return knerr
+		default:
+			return err
 		}
-		return err
 	}
 }

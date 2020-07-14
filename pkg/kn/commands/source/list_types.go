@@ -16,11 +16,16 @@ package source
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/spf13/cobra"
 
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"knative.dev/client/pkg/dynamic"
+	knerrors "knative.dev/client/pkg/errors"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
+	sourcesv1alpha2 "knative.dev/client/pkg/sources/v1alpha2"
 )
 
 // NewListTypesCommand defines and processes `kn source list-types`
@@ -48,11 +53,21 @@ func NewListTypesCommand(p *commands.KnParams) *cobra.Command {
 
 			sourceListTypes, err := dynamicClient.ListSourcesTypes()
 			if err != nil {
-				return err
+				if strings.HasPrefix(knerrors.GetError(err).Error(), "403") {
+					sourcesClient, err := p.NewSourcesClient(namespace)
+					if err != nil {
+						return err
+					}
+
+					sourceListTypes, err = listBuiltInSourceTypes(sourcesClient)
+					if err != nil {
+						return knerrors.GetError(err)
+					}
+				}
 			}
 
 			if len(sourceListTypes.Items) == 0 {
-				fmt.Fprintf(cmd.OutOrStdout(), "No sources found.\n")
+				fmt.Fprintf(cmd.OutOrStdout(), "404: no sources found on the backend, please verify the installation\n")
 				return nil
 			}
 
@@ -72,4 +87,21 @@ func NewListTypesCommand(p *commands.KnParams) *cobra.Command {
 	commands.AddNamespaceFlags(listTypesCommand.Flags(), false)
 	listTypesFlags.AddFlags(listTypesCommand)
 	return listTypesCommand
+}
+
+func listBuiltInSourceTypes(c sourcesv1alpha2.KnSourcesClient) (*unstructured.UnstructuredList, error) {
+	_, err := c.APIServerSourcesClient().ListAPIServerSource()
+	if err != nil {
+		if strings.HasPrefix(err.Error(), "404") {
+			return nil, err
+		}
+	}
+
+	uList := unstructured.UnstructuredList{}
+	gvks := sourcesv1alpha2.BuiltInSourcesGVKs()
+	for _, gvk := range gvks {
+		u := dynamic.UnstructuredCRDFromGVK(gvk)
+		uList.Items = append(uList.Items, *u)
+	}
+	return &uList, nil
 }
