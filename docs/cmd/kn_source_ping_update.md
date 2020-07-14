@@ -26,7 +26,7 @@ kn source ping update NAME
   -h, --help                      help for update
   -n, --namespace string          Specify the namespace to operate in.
       --schedule string           Optional schedule specification in crontab format (e.g. '*/2 * * * *' for every two minutes. By default fire every minute.
-  -s, --sink string               Addressable sink for events. You can specify broker, knative service or URI. Examples: '--sink broker:nest' for 'nest' broker, '--sink https://event.receiver.uri' for an URI (identified by 'http' or 'https'), '--sink ksvc:receiver' or '--sink receiver' for 'receiver' knative service. If prefix is not provided, it is considered as knative service.
+  -s, --sink string               Addressable sink for events. You can specify a broker, Knative service or URI. Examples: '--sink broker:nest' for a broker 'nest', '--sink https://event.receiver.uri' for an URI with an 'http://' or 'https://' schema, '--sink 'ksvc:receiver' or simply '--sink receiver' for a Knative service 'receiver'. If prefix is not provided, it is considered as a Knative service.
 ```
 
 ### Options inherited from parent commands

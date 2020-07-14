@@ -38,11 +38,11 @@ func (i *SinkFlags) Add(cmd *cobra.Command) {
 		"s",
 		"",
 		"Addressable sink for events. "+
-			"You can specify broker, knative service or URI. "+
-			"Examples: '--sink broker:nest' for 'nest' broker, "+
-			"'--sink https://event.receiver.uri' for an URI (identified by 'http' or 'https'), "+
-			"'--sink ksvc:receiver' or '--sink receiver' for 'receiver' knative service. "+
-			"If prefix is not provided, it is considered as knative service.")
+			"You can specify a broker, Knative service or URI. "+
+			"Examples: '--sink broker:nest' for a broker 'nest', "+
+			"'--sink https://event.receiver.uri' for an URI with an 'http://' or 'https://' schema, "+
+			"'--sink 'ksvc:receiver' or simply '--sink receiver' for a Knative service 'receiver'. "+
+			"If prefix is not provided, it is considered as a Knative service.")
 
 	for _, p := range config.GlobalConfig.SinkMappings() {
 		//user configration might override the default configuration
