@@ -244,7 +244,7 @@ func TestRunWithError(t *testing.T) {
 	}
 	for _, d := range data {
 		capture := test.CaptureOutput(t)
-		printError(runError{errors.New(d.given), true})
+		printError(errors.New(d.given))
 		stdOut, errOut := capture.Close()
 
 		assert.Equal(t, stdOut, "")
@@ -266,7 +266,7 @@ func TestRunWithPluginError(t *testing.T) {
 	for _, d := range data {
 		capture := test.CaptureOutput(t)
 		// displayHelp argument is false for plugin error
-		printError(runError{errors.New(d.given), false})
+		printError(&runError{errors.New(d.given)})
 		stdOut, errOut := capture.Close()
 
 		assert.Equal(t, stdOut, "")
@@ -288,6 +288,6 @@ func TestRun(t *testing.T) {
 	err := run(os.Args[1:])
 	out, _ := capture.Close()
 
-	assert.NilError(t, err.err)
+	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAllIgnoreCase(out, "version", "build", "git"))
 }
