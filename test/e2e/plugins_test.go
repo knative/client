@@ -115,11 +115,11 @@ func TestPluginInHelpMessage(t *testing.T) {
 	assert.NilError(t, pc.setup())
 	defer pc.teardown()
 
-	result := test.Kn{}.Run("--plugins-dir", pc.knPluginPath, "--help")
+	result := test.Kn{}.Run("--plugins-dir", pc.knPluginsDir, "--help")
 	assert.NilError(t, result.Error)
 	assert.Assert(t, util.ContainsAll(result.Stdout, "Plugins:", "helloe2e", "kn-helloe2e"))
 
-	result = test.Kn{}.Run("--plugins-dir", pc.knPluginPath, "service", "--help")
+	result = test.Kn{}.Run("--plugins-dir", pc.knPluginsDir, "service", "--help")
 	assert.NilError(t, result.Error)
 	assert.Assert(t, util.ContainsNone(result.Stdout, "Plugins:", "helloe2e", "kn-helloe2e"))
 }

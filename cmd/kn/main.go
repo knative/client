@@ -35,68 +35,71 @@ func init() {
 }
 
 func main() {
-	runError := run(os.Args[1:])
-	if runError.err != nil && len(os.Args) > 1 {
-		printError(runError)
+	err := run(os.Args[1:])
+	if err != nil && len(os.Args) > 1 {
+		printError(err)
 		// This is the only point from where to exit when an error occurs
 		os.Exit(1)
 	}
 }
 
-// Type for not printing a help message
+// runError is used when during the execution of a command/plugin an error occurs and
+// so no extra usage message should be shown.
 type runError struct {
-	// Return encapsulate error
 	err error
+}
 
-	// Whether to show a help message or not
-	showUsageHint bool
+// Error implements the error() interface
+func (e *runError) Error() string {
+	return e.err.Error()
 }
 
 // Run the main program. Args are the args as given on the command line (excluding the program name itself)
-func run(args []string) runError {
+func run(args []string) error {
 	// Parse config & plugin flags early to read in configuration file
 	// and bind to viper. After that you can access all configuration and
 	// global options via methods on config.GlobalConfig
 	err := config.BootstrapConfig()
 	if err != nil {
-		return runError{err, true}
+		return err
 	}
 
 	// Strip of all flags to get the non-flag commands only
 	commands, err := stripFlags(args)
 	if err != nil {
-		return runError{err, true}
+		return err
 	}
 
 	// Find plugin with the commands arguments
 	pluginManager := plugin.NewManager(config.GlobalConfig.PluginsDir(), config.GlobalConfig.LookupPluginsInPath())
 	plugin, err := pluginManager.FindPlugin(commands)
 	if err != nil {
-		return runError{err, true}
+		return err
 	}
 
 	// Create kn root command and all sub-commands
 	rootCmd, err := root.NewRootCommand(pluginManager.HelpTemplateFuncs())
 	if err != nil {
-		return runError{err, true}
+		return err
 	}
 
 	if plugin != nil {
 		// Validate & Execute plugin
 		err = validatePlugin(rootCmd, plugin)
 		if err != nil {
-			return runError{err, true}
+			return err
 		}
 
-		return runError{err, false}
+		err := plugin.Execute(argsWithoutCommands(args, plugin.CommandParts()))
+		return &runError{err: err}
 	} else {
 		// Validate args for root command
 		err = validateRootCommand(rootCmd)
 		if err != nil {
-			return runError{err, true}
+			return err
 		}
 		// Execute kn root command, args are taken from os.Args directly
-		return runError{rootCmd.Execute(), true}
+		return rootCmd.Execute()
 	}
 }
 
@@ -197,10 +200,11 @@ func validateRootCommand(cmd *cobra.Command) error {
 }
 
 // printError prints out any given error
-func printError(runErr runError) {
-	err := runErr.err
+func printError(err error) {
 	fmt.Fprintf(os.Stderr, "Error: %s\n", cleanupErrorMessage(err.Error()))
-	if runErr.showUsageHint {
+	var runError *runError
+	if !errors.As(err, &runError) {
+		// Print help hint only if its not a runError occurred when executing a command
 		fmt.Fprintf(os.Stderr, "Run '%s --help' for usage\n", extractCommandPathFromErrorMessage(err.Error(), os.Args[0]))
 	}
 }
