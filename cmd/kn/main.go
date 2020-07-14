@@ -91,7 +91,10 @@ func run(args []string) error {
 		}
 
 		err := plugin.Execute(argsWithoutCommands(args, plugin.CommandParts()))
-		return &runError{err: err}
+		if err != nil {
+			return &runError{err: err}
+		}
+		return nil
 	} else {
 		// Validate args for root command
 		err = validateRootCommand(rootCmd)
