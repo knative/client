@@ -19,16 +19,16 @@
 | | Description | PR
 
 | 🎁
+| Add available plugins to help messages
+| https://github.com/knative/client/pull/929[#929]
+
+| 🎁
 | Add E2E test cases for `kn source list`
 | https://github.com/knative/client/pull/924[#924]
 
 | 🎁
 | Add sugar controller to E2E tests
 | https://github.com/knative/client/pull/920[#920]
-
-| 🎁
-| Add available plugins to help messages
-| https://github.com/knative/client/pull/929[#929]
 
 | 🎁
 | Add "url" output format to return service url in service describe
