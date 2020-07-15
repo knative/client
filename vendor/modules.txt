@@ -111,7 +111,7 @@ github.com/spf13/afero
 github.com/spf13/afero/mem
 # github.com/spf13/cast v1.3.1
 github.com/spf13/cast
-# github.com/spf13/cobra v1.0.0 => github.com/chmouel/cobra v0.0.0-20191021105835-a78788917390
+# github.com/spf13/cobra v1.0.1-0.20200715031239-b95db644ed1c
 ## explicit
 github.com/spf13/cobra
 github.com/spf13/cobra/doc
@@ -691,7 +691,6 @@ sigs.k8s.io/kustomize/pkg/types
 # sigs.k8s.io/yaml v1.2.0
 ## explicit
 sigs.k8s.io/yaml
-# github.com/spf13/cobra => github.com/chmouel/cobra v0.0.0-20191021105835-a78788917390
 # k8s.io/api => k8s.io/api v0.17.6
 # k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.17.6
 # k8s.io/apimachinery => k8s.io/apimachinery v0.17.6

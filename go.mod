@@ -5,7 +5,7 @@ go 1.14
 require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pkg/errors v0.9.1
-	github.com/spf13/cobra v1.0.0
+	github.com/spf13/cobra v1.0.1-0.20200715031239-b95db644ed1c
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.0
 	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899
@@ -23,11 +23,7 @@ require (
 
 // Temporary pinning certain libraries. Please check periodically, whether these are still needed
 // ----------------------------------------------------------------------------------------------
-
-// Fix for `[` in help messages and shell completion code
-// See https://github.com/spf13/cobra/pull/899
 replace (
-	github.com/spf13/cobra => github.com/chmouel/cobra v0.0.0-20191021105835-a78788917390
 	k8s.io/api => k8s.io/api v0.17.6
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.17.6
 	k8s.io/apimachinery => k8s.io/apimachinery v0.17.6
