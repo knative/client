@@ -21,7 +21,8 @@ line or from within Shell scripts.
 - A thin client-specific API in golang which helps in tasks like synchronously
   waiting on Knative service write operations.
 - An easy integration of Knative into Tekton Pipelines by using
-  [`kn` in a Tekton `Task`](https://github.com/tektoncd/catalog/tree/master/kn).
+  [`kn` in a Tekton `Task`](https://github.com/tektoncd/catalog/tree/master/task/kn).
+
 
 This client uses the
 [Knative Serving](https://github.com/knative/docs/blob/master/docs/serving/spec/knative-api-specification-1.0.md)
