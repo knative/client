@@ -23,7 +23,7 @@ set -o pipefail
 
 cd ${ROOT_DIR}
 
-VERSION="release-16"
+VERSION="master"
 
 # The list of dependencies that we track at HEAD and periodically
 # float forward in this repository.
