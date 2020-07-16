@@ -303,12 +303,11 @@ func constructServiceFromFile(cmd *cobra.Command, editFlags ConfigurationEditFla
 	// Set namespace in case it's specified as --namespace
 	service.ObjectMeta.Namespace = namespace
 
-	// We need to generate revision to have --force replace working
-	revName, err := servinglib.GenerateRevisionName(editFlags.RevisionName, &service)
+	// Apply options provided from cmdline
+	err = editFlags.Apply(&service, nil, cmd)
 	if err != nil {
 		return nil, err
 	}
-	service.Spec.Template.Name = revName
 
 	return &service, nil
 }

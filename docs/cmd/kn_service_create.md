@@ -64,7 +64,7 @@ kn service create NAME --image IMAGE
       --concurrency-utilization int   Percentage of concurrent requests utilization before scaling up. (default 70)
   -e, --env stringArray               Environment variable to set. NAME=value; you may provide this flag any number of times to set multiple environment variables. To unset, specify the environment variable name followed by a "-" (e.g., NAME-).
       --env-from stringArray          Add environment variables from a ConfigMap (prefix cm: or config-map:) or a Secret (prefix secret:). Example: --env-from cm:myconfigmap or --env-from secret:mysecret. You can use this flag multiple times. To unset a ConfigMap/Secret reference, append "-" to the name, e.g. --env-from cm:myconfigmap-.
-  -f, --filename string               Create a service from file.
+  -f, --filename string               Create a service from file. The created service can be futher modified by combining with other options.Example: -f /path/to/file --env NAME=value will also add environment variable.
       --force                         Create service forcefully, replaces existing service if any.
   -h, --help                          help for create
       --image string                  Image to run.

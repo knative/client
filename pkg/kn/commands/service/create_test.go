@@ -973,3 +973,65 @@ func TestServiceCreateInvalidDataYAML(t *testing.T) {
 	_, _, _, err = fakeServiceCreate([]string{"service", "create", "foo", "--filename", tempFile}, false)
 	assert.Assert(t, util.ContainsAll(err.Error(), "found", "tab", "violates", "indentation"))
 }
+
+func TestServiceCreateFromYAMLWithOverride(t *testing.T) {
+	tempDir, err := ioutil.TempDir("", "kn-file")
+	defer os.RemoveAll(tempDir)
+	assert.NilError(t, err)
+
+	tempFile := filepath.Join(tempDir, "service.yaml")
+	err = ioutil.WriteFile(tempFile, []byte(serviceYAML), os.FileMode(0666))
+	assert.NilError(t, err)
+	// Merge env vars
+	expectedEnvVars := map[string]string{
+		"TARGET": "Go Sample v1",
+		"FOO":    "BAR"}
+	action, created, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--filename", tempFile, "--env", "FOO=BAR"}, false)
+	assert.NilError(t, err)
+	assert.Assert(t, action.Matches("create", "services"))
+	assert.Equal(t, created.Name, "foo")
+
+	actualEnvVar, err := servinglib.EnvToMap(created.Spec.Template.Spec.GetContainer().Env)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, actualEnvVar, expectedEnvVars)
+
+	// Override env vars
+	expectedEnvVars = map[string]string{
+		"TARGET": "FOOBAR",
+		"FOO":    "BAR"}
+	action, created, _, err = fakeServiceCreate([]string{
+		"service", "create", "foo", "--filename", tempFile, "--env", "TARGET=FOOBAR", "--env", "FOO=BAR"}, false)
+	assert.NilError(t, err)
+	assert.Assert(t, action.Matches("create", "services"))
+	assert.Equal(t, created.Name, "foo")
+
+	actualEnvVar, err = servinglib.EnvToMap(created.Spec.Template.Spec.GetContainer().Env)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, actualEnvVar, expectedEnvVars)
+
+	// Remove existing env vars
+	expectedEnvVars = map[string]string{
+		"FOO": "BAR"}
+	action, created, _, err = fakeServiceCreate([]string{
+		"service", "create", "foo", "--filename", tempFile, "--env", "TARGET-", "--env", "FOO=BAR"}, false)
+	assert.NilError(t, err)
+	assert.Assert(t, action.Matches("create", "services"))
+	assert.Equal(t, created.Name, "foo")
+
+	actualEnvVar, err = servinglib.EnvToMap(created.Spec.Template.Spec.GetContainer().Env)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, actualEnvVar, expectedEnvVars)
+
+	// Multiple edit flags
+	expectedAnnotations := map[string]string{
+		"foo": "bar"}
+	action, created, _, err = fakeServiceCreate([]string{"service", "create", "foo", "--filename", tempFile,
+		"--service-account", "foo", "--cmd", "/foo/bar", "-a", "foo=bar"}, false)
+	assert.NilError(t, err)
+	assert.Assert(t, action.Matches("create", "services"))
+	assert.Equal(t, created.Name, "foo")
+	assert.DeepEqual(t, created.Spec.Template.Spec.GetContainer().Command, []string{"/foo/bar"})
+	assert.Equal(t, created.Spec.Template.Spec.ServiceAccountName, "foo")
+	assert.DeepEqual(t, created.ObjectMeta.Annotations, expectedAnnotations)
+}
