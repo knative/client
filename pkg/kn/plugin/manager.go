@@ -125,8 +125,9 @@ func (manager *Manager) ListPlugins() (PluginList, error) {
 // ListPluginsForCommandGroup lists all plugins that can be found in the plugin directory or in the path (if configured),
 // and which fits to a command group
 func (manager *Manager) ListPluginsForCommandGroup(commandGroupParts []string) (PluginList, error) {
+
 	// Initialize with list of internal plugins
-	var plugins = append([]Plugin{}, InternalPlugins...)
+	var plugins = append([]Plugin{}, filterPluginsByCommandGroup(InternalPlugins, commandGroupParts)...)
 
 	dirs, err := manager.pluginLookupDirectories()
 	if err != nil {
@@ -135,6 +136,9 @@ func (manager *Manager) ListPluginsForCommandGroup(commandGroupParts []string) (
 
 	// Examine all files in possible plugin directories
 	hasSeen := make(map[string]bool)
+	for _, pl := range plugins {
+		hasSeen[pl.Name()] = true
+	}
 	for _, dir := range dirs {
 		files, err := ioutil.ReadDir(dir)
 
@@ -154,7 +158,7 @@ func (manager *Manager) ListPluginsForCommandGroup(commandGroupParts []string) (
 			}
 
 			// Check if plugin matches a command group
-			if !isPartOfCommandGroup(commandGroupParts, f.Name()) {
+			if !isPluginFileNamePartOfCommandGroup(commandGroupParts, f.Name()) {
 				continue
 			}
 
@@ -175,18 +179,34 @@ func (manager *Manager) ListPluginsForCommandGroup(commandGroupParts []string) (
 	return plugins, nil
 }
 
-func isPartOfCommandGroup(commandGroupParts []string, name string) bool {
+func filterPluginsByCommandGroup(plugins PluginList, commandGroupParts []string) PluginList {
+	ret := PluginList{}
+	for _, pl := range plugins {
+		if isPartOfCommandGroup(commandGroupParts, pl.CommandParts()) {
+			ret = append(ret, pl)
+		}
+	}
+	return ret
+}
+
+func isPartOfCommandGroup(commandGroupParts []string, commandParts []string) bool {
+	if len(commandParts) != len(commandGroupParts)+1 {
+		return false
+	}
+	for i := range commandGroupParts {
+		if commandParts[i] != commandGroupParts[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func isPluginFileNamePartOfCommandGroup(commandGroupParts []string, pluginFileName string) bool {
 	if commandGroupParts == nil {
 		return true
 	}
 
-	commandParts := extractPluginCommandFromFileName(name)
-
-	// commandParts must be one more element then the parts of the command group
-	// it belongs to. E.g. for the command "service", "log" (2 elements) the containing
-	// group only has one element ("service"). This condition is here for
-	// shortcut and ensure that we don't run in an out-of-bound array error
-	// in the loop below.
+	commandParts := extractPluginCommandFromFileName(pluginFileName)
 	if len(commandParts) != len(commandGroupParts)+1 {
 		return false
 	}
