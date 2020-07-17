@@ -1035,3 +1035,23 @@ func TestServiceCreateFromYAMLWithOverride(t *testing.T) {
 	assert.Equal(t, created.Spec.Template.Spec.ServiceAccountName, "foo")
 	assert.DeepEqual(t, created.ObjectMeta.Annotations, expectedAnnotations)
 }
+
+func TestServiceCreateFromYAMLWithOverrideError(t *testing.T) {
+	tempDir, err := ioutil.TempDir("", "kn-file")
+	defer os.RemoveAll(tempDir)
+	assert.NilError(t, err)
+
+	tempFile := filepath.Join(tempDir, "service.yaml")
+	err = ioutil.WriteFile(tempFile, []byte(serviceYAML), os.FileMode(0666))
+	assert.NilError(t, err)
+
+	_, _, _, err = fakeServiceCreate([]string{
+		"service", "create", "foo", "--filename", tempFile, "--image", "foo/bar", "--image", "bar/foo"}, false)
+	assert.Assert(t, err != nil)
+	assert.Assert(t, util.ContainsAll(err.Error(), "\"--image\"", "invalid", "argument", "only", "once"))
+
+	_, _, _, err = fakeServiceCreate([]string{
+		"service", "create", "foo", "--filename", tempFile, "--scale", "-1"}, false)
+	assert.Assert(t, err != nil)
+	assert.Assert(t, util.ContainsAll(err.Error(), "expected", "0", "<=", "2147483647", "autoscaling.knative.dev/maxScale"))
+}
