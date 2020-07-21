@@ -278,8 +278,11 @@ func (p *ConfigurationEditFlags) AddCreateFlags(command *cobra.Command) {
 	p.addSharedFlags(command)
 	command.Flags().BoolVar(&p.ForceCreate, "force", false,
 		"Create service forcefully, replaces existing service if any.")
-	command.Flags().StringVarP(&p.Filename, "filename", "f", "", "Create a service from file.")
+	command.Flags().StringVarP(&p.Filename, "filename", "f", "", "Create a service from file. "+
+		"The created service can be further modified by combining with other options. "+
+		"For example, -f /path/to/file --env NAME=value adds also an environment variable.")
 	command.MarkFlagFilename("filename")
+	p.markFlagMakesRevision("filename")
 }
 
 // Apply mutates the given service according to the flags in the command.

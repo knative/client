@@ -12,6 +12,18 @@
 | https://github.com/knative/client/pull/[#]
 ////
 
+## Unreleased
+
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🎁
+| Add support to combine service create --filename with other options
+| https://github.com/knative/client/pull/937[#937]
+
+|===
+
 ## v0.16.0 (2020-07-14)
 
 [cols="1,10,3", options="header", width="100%"]
