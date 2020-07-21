@@ -19,7 +19,7 @@
 | | Description | PR
 
 | 🎁
-|  Add support to combine service create --filename with other options
+| Add support to combine service create --filename with other options
 | https://github.com/knative/client/pull/937[#937]
 
 |===
