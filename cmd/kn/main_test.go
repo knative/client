@@ -25,6 +25,7 @@ import (
 	"gotest.tools/assert"
 
 	"knative.dev/client/lib/test"
+	"knative.dev/client/pkg/kn/config"
 	"knative.dev/client/pkg/kn/root"
 	"knative.dev/client/pkg/util"
 )
@@ -218,7 +219,9 @@ func TestStripFlags(t *testing.T) {
 
 	for i, f := range data {
 		step := fmt.Sprintf("Check %d", i)
-		commands, err := stripFlags(f.givenArgs)
+		cmd := &cobra.Command{FParseErrWhitelist: cobra.FParseErrWhitelist{UnknownFlags: true}}
+		config.AddBootstrapFlags(cmd.Flags())
+		commands, err := stripFlags(cmd, f.givenArgs)
 		assert.DeepEqual(t, commands, f.expectedCommands)
 		if f.expectedError != "" {
 			assert.ErrorContains(t, err, f.expectedError, step)
