@@ -280,7 +280,7 @@ func (p *ConfigurationEditFlags) AddCreateFlags(command *cobra.Command) {
 		"Create service forcefully, replaces existing service if any.")
 	command.Flags().StringVarP(&p.Filename, "filename", "f", "", "Create a service from file. "+
 		"The created service can be further modified by combining with other options. "+
-		"For example -f /path/to/file --env NAME=value will also add environment variable.")
+		"For example, -f /path/to/file --env NAME=value adds also an environment variable.")
 	command.MarkFlagFilename("filename")
 	p.markFlagMakesRevision("filename")
 }
