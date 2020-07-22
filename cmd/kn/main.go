@@ -114,7 +114,7 @@ func run(args []string) error {
 // Get only the args provided but no options
 func stripFlags(rootCmd *cobra.Command, args []string) ([]string, error) {
 	if err := rootCmd.ParseFlags(filterHelpOptions(args)); err != nil {
-		fmt.Errorf("error while parsing flags from args %v: %s", args, err.Error())
+		return []string{}, fmt.Errorf("error while parsing flags from args %v: %s", args, err.Error())
 	}
 	return rootCmd.Flags().Args(), nil
 }
