@@ -64,21 +64,26 @@ func run(args []string) error {
 		return err
 	}
 
-	// Strip of all flags to get the non-flag commands only
-	commands, err := stripFlags(args)
-	if err != nil {
-		return err
-	}
-
-	// Find plugin with the commands arguments
 	pluginManager := plugin.NewManager(config.GlobalConfig.PluginsDir(), config.GlobalConfig.LookupPluginsInPath())
-	plugin, err := pluginManager.FindPlugin(commands)
-	if err != nil {
-		return err
-	}
 
 	// Create kn root command and all sub-commands
 	rootCmd, err := root.NewRootCommand(pluginManager.HelpTemplateFuncs())
+	if err != nil {
+		return err
+	}
+
+	// temporary setting to parse all flags
+	rootCmd.FParseErrWhitelist = cobra.FParseErrWhitelist{UnknownFlags: true}
+	// Strip of all flags to get the non-flag commands only
+	commands, err := stripFlags(rootCmd, args)
+	if err != nil {
+		return err
+	}
+	// reset the temporary setting
+	rootCmd.FParseErrWhitelist = cobra.FParseErrWhitelist{UnknownFlags: false}
+
+	// Find plugin with the commands arguments
+	plugin, err := pluginManager.FindPlugin(commands)
 	if err != nil {
 		return err
 	}
@@ -106,46 +111,12 @@ func run(args []string) error {
 	}
 }
 
-// Get only the args provided but no options. The extraction
-// process is a bit tricky as Cobra doesn't provide such
-// functionality out of the box
-func stripFlags(args []string) ([]string, error) {
-	// Store all command
-	commandsFound := &[]string{}
-
-	// Use a canary command that allows all options and only extracts
-	// commands. Doesn't work with arbitrary boolean flags but is good enough
-	// for us here
-	extractCommand := cobra.Command{
-		Run: func(cmd *cobra.Command, args []string) {
-			for _, arg := range args {
-				*commandsFound = append(*commandsFound, arg)
-			}
-		},
-		SilenceErrors: true,
-		SilenceUsage:  true,
+// Get only the args provided but no options
+func stripFlags(rootCmd *cobra.Command, args []string) ([]string, error) {
+	if err := rootCmd.ParseFlags(filterHelpOptions(args)); err != nil {
+		return []string{}, fmt.Errorf("error while parsing flags from args %v: %s", args, err.Error())
 	}
-
-	// No help and usage functions to prin
-	extractCommand.SetHelpFunc(func(*cobra.Command, []string) {})
-	extractCommand.SetUsageFunc(func(*cobra.Command) error { return nil })
-
-	// Filter out --help and -h options to avoid special treatment which we don't
-	// need here
-	extractCommand.SetArgs(filterHelpOptions(args))
-
-	// Adding all global flags here
-	config.AddBootstrapFlags(extractCommand.Flags())
-
-	// Allow all options
-	extractCommand.FParseErrWhitelist = cobra.FParseErrWhitelist{UnknownFlags: true}
-
-	// Execute to get to the command args
-	err := extractCommand.Execute()
-	if err != nil {
-		return nil, err
-	}
-	return *commandsFound, nil
+	return rootCmd.Flags().Args(), nil
 }
 
 // Strip all plugin commands before calling out to the plugin
@@ -192,7 +163,7 @@ func validatePlugin(root *cobra.Command, plugin plugin.Plugin) error {
 func validateRootCommand(cmd *cobra.Command) error {
 	foundCmd, innerArgs, err := cmd.Find(os.Args[1:])
 	if err == nil && foundCmd.HasSubCommands() && len(innerArgs) > 0 {
-		argsWithoutFlags, err := stripFlags(innerArgs)
+		argsWithoutFlags, err := stripFlags(cmd, innerArgs)
 		if len(argsWithoutFlags) > 0 || err != nil {
 			return errors.Errorf("unknown sub-command '%s' for '%s'. Available sub-commands: %s", innerArgs[0], foundCmd.CommandPath(), strings.Join(root.ExtractSubCommandNames(foundCmd.Commands()), ", "))
 		}

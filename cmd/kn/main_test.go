@@ -25,6 +25,7 @@ import (
 	"gotest.tools/assert"
 
 	"knative.dev/client/lib/test"
+	"knative.dev/client/pkg/kn/config"
 	"knative.dev/client/pkg/kn/root"
 	"knative.dev/client/pkg/util"
 )
@@ -159,6 +160,7 @@ func TestUnknownCommands(t *testing.T) {
 	for _, d := range data {
 		args := append([]string{"kn"}, d.givenCmdArgs...)
 		rootCmd, err := root.NewRootCommand(nil)
+		rootCmd.FParseErrWhitelist = cobra.FParseErrWhitelist{UnknownFlags: true}
 		os.Args = args
 		assert.NilError(t, err)
 		err = validateRootCommand(rootCmd)
@@ -218,7 +220,9 @@ func TestStripFlags(t *testing.T) {
 
 	for i, f := range data {
 		step := fmt.Sprintf("Check %d", i)
-		commands, err := stripFlags(f.givenArgs)
+		cmd := &cobra.Command{FParseErrWhitelist: cobra.FParseErrWhitelist{UnknownFlags: true}}
+		config.AddBootstrapFlags(cmd.Flags())
+		commands, err := stripFlags(cmd, f.givenArgs)
 		assert.DeepEqual(t, commands, f.expectedCommands)
 		if f.expectedError != "" {
 			assert.ErrorContains(t, err, f.expectedError, step)
@@ -226,6 +230,12 @@ func TestStripFlags(t *testing.T) {
 			assert.NilError(t, err, step)
 		}
 	}
+
+	t.Log("checking error case for stripFlags")
+	cmd, err := root.NewRootCommand(nil)
+	assert.NilError(t, err)
+	_, err = stripFlags(cmd, []string{"--config"})
+	assert.ErrorContains(t, err, "needs an argument")
 }
 
 func TestRunWithError(t *testing.T) {
