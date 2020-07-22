@@ -160,6 +160,7 @@ func TestUnknownCommands(t *testing.T) {
 	for _, d := range data {
 		args := append([]string{"kn"}, d.givenCmdArgs...)
 		rootCmd, err := root.NewRootCommand(nil)
+		rootCmd.FParseErrWhitelist = cobra.FParseErrWhitelist{UnknownFlags: true}
 		os.Args = args
 		assert.NilError(t, err)
 		err = validateRootCommand(rootCmd)
@@ -229,6 +230,12 @@ func TestStripFlags(t *testing.T) {
 			assert.NilError(t, err, step)
 		}
 	}
+
+	t.Log("checking error case for stripFlags")
+	cmd, err := root.NewRootCommand(nil)
+	assert.NilError(t, err)
+	_, err = stripFlags(cmd, []string{"--config"})
+	assert.ErrorContains(t, err, "needs an argument")
 }
 
 func TestRunWithError(t *testing.T) {
