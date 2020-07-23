@@ -39,7 +39,7 @@ func isEmptyConfigError(err error) bool {
 	return strings.Contains(err.Error(), "no configuration has been provided")
 }
 
-func IsForbiddenError(status api_errors.APIStatus) bool {
+func isForbiddenError(status api_errors.APIStatus) bool {
 	return status.Status().Code == http.StatusForbidden
 }
 
@@ -65,7 +65,7 @@ func GetError(err error) error {
 			knerr = newInvalidCRD(apiStatus.Status().Details.Group)
 			knerr.Status = apiStatus
 			return knerr
-		case IsForbiddenError(apiStatus):
+		case isForbiddenError(apiStatus):
 			knerr = newForbidden(apiStatus.Status().Code, apiStatus.Status().Message)
 			knerr.Status = apiStatus
 			return knerr

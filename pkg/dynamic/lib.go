@@ -125,6 +125,7 @@ func (types WithTypes) List() []string {
 	return stypes
 }
 
+// UnstructuredCRDFromGVK constructs an unstructured object using the given GVK
 func UnstructuredCRDFromGVK(gvk schema.GroupVersionKind) *unstructured.Unstructured {
 	name := fmt.Sprintf("%ss.%s", strings.ToLower(gvk.Kind), gvk.Group)
 	plural := fmt.Sprintf("%ss", strings.ToLower(gvk.Kind))
