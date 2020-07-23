@@ -15,6 +15,7 @@
 package dynamic
 
 import (
+	"fmt"
 	"strings"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -44,13 +45,13 @@ type KnDynamicClient interface {
 	// ListCRDs returns list of CRDs with their type and name
 	ListCRDs(options metav1.ListOptions) (*unstructured.UnstructuredList, error)
 
-	// ListSourceCRDs returns list of eventing sources CRDs
+	// ListSourcesTypes returns list of eventing sources CRDs
 	ListSourcesTypes() (*unstructured.UnstructuredList, error)
 
 	// ListSources returns list of available source objects
 	ListSources(types ...WithType) (*unstructured.UnstructuredList, error)
 
-	// ListSources returns list of available source objects using given list of GVKs
+	// ListSourcesUsingGVKs returns list of available source objects using given list of GVKs
 	ListSourcesUsingGVKs(*[]schema.GroupVersionKind, ...WithType) (*unstructured.UnstructuredList, error)
 
 	// RawClient returns the raw dynamic client interface
@@ -118,6 +119,11 @@ func (c *knDynamicClient) ListSources(types ...WithType) (*unstructured.Unstruct
 	if err != nil {
 		return nil, err
 	}
+
+	if sourceTypes == nil || len(sourceTypes.Items) == 0 {
+		return nil, fmt.Errorf("404: no sources found on the backend, please verify the installation")
+	}
+
 	namespace := c.Namespace()
 	filters := WithTypes(types).List()
 	// For each source type available, find out each source types objects
@@ -159,7 +165,7 @@ func (c *knDynamicClient) ListSources(types ...WithType) (*unstructured.Unstruct
 	return &sourceList, nil
 }
 
-// ListSources returns list of available source objects using given list of GVKs
+// ListSourcesUsingGVKs returns list of available source objects using given list of GVKs
 func (c *knDynamicClient) ListSourcesUsingGVKs(gvks *[]schema.GroupVersionKind, types ...WithType) (*unstructured.UnstructuredList, error) {
 	if gvks == nil {
 		return nil, nil

@@ -43,6 +43,10 @@ func isForbiddenError(status api_errors.APIStatus) bool {
 	return status.Status().Code == http.StatusForbidden
 }
 
+func isResourceNotFoundError(err error) bool {
+	return strings.Contains(err.Error(), "server could not find the requested resource")
+}
+
 //Retrieves a custom error struct based on the original error APIStatus struct
 //Returns the original error struct in case it can't identify the kind of APIStatus error
 func GetError(err error) error {
@@ -67,6 +71,10 @@ func GetError(err error) error {
 			return knerr
 		case isForbiddenError(apiStatus):
 			knerr = newForbidden(apiStatus.Status().Code, apiStatus.Status().Message)
+			knerr.Status = apiStatus
+			return knerr
+		case isResourceNotFoundError(err):
+			knerr = newResourceNotFoundError(apiStatus.Status().Code, apiStatus.Status().Message)
 			knerr.Status = apiStatus
 			return knerr
 		default:

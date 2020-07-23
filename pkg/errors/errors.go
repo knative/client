@@ -41,3 +41,7 @@ func newNoKubeConfig(errString string) error {
 func newForbidden(code int32, msg string) *KNError {
 	return NewKNError(fmt.Sprintf("%d: %s", code, msg))
 }
+
+func newResourceNotFoundError(code int32, msg string) *KNError {
+	return NewKNError(fmt.Sprintf("%d: %s, please verify the installation", code, msg))
+}
