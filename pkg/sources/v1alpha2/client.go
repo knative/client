@@ -15,8 +15,6 @@
 package v1alpha2
 
 import (
-	"strings"
-
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	sourcesv1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
 	clientv1alpha2 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha2"
