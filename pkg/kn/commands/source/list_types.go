@@ -21,6 +21,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"knative.dev/client/pkg/dynamic"
 	knerrors "knative.dev/client/pkg/errors"
 	"knative.dev/client/pkg/kn/commands"
@@ -54,21 +55,17 @@ func NewListTypesCommand(p *commands.KnParams) *cobra.Command {
 			sourceListTypes, err := dynamicClient.ListSourcesTypes()
 			if err != nil {
 				if strings.HasPrefix(knerrors.GetError(err).Error(), "403") {
-					sourcesClient, err := p.NewSourcesClient(namespace)
-					if err != nil {
-						return err
-					}
-
-					sourceListTypes, err = listBuiltInSourceTypes(sourcesClient)
+					sourceListTypes, err = listBuiltInSourceTypes(dynamicClient)
 					if err != nil {
 						return knerrors.GetError(err)
 					}
+				} else {
+					return knerrors.GetError(err)
 				}
 			}
 
-			if len(sourceListTypes.Items) == 0 {
-				fmt.Fprintf(cmd.OutOrStdout(), "404: no sources found on the backend, please verify the installation\n")
-				return nil
+			if sourceListTypes == nil || len(sourceListTypes.Items) == 0 {
+				return fmt.Errorf("404: no sources found on the backend, please verify the installation")
 			}
 
 			printer, err := listTypesFlags.ToPrinter()
@@ -89,19 +86,21 @@ func NewListTypesCommand(p *commands.KnParams) *cobra.Command {
 	return listTypesCommand
 }
 
-func listBuiltInSourceTypes(c sourcesv1alpha2.KnSourcesClient) (*unstructured.UnstructuredList, error) {
-	_, err := c.APIServerSourcesClient().ListAPIServerSource()
-	if err != nil {
-		if strings.HasPrefix(err.Error(), "404") {
-			return nil, err
-		}
-	}
-
+func listBuiltInSourceTypes(d dynamic.KnDynamicClient) (*unstructured.UnstructuredList, error) {
+	var err error
 	uList := unstructured.UnstructuredList{}
 	gvks := sourcesv1alpha2.BuiltInSourcesGVKs()
 	for _, gvk := range gvks {
+		_, err = d.ListSourcesUsingGVKs(&[]schema.GroupVersionKind{gvk})
+		if err != nil {
+			continue
+		}
 		u := dynamic.UnstructuredCRDFromGVK(gvk)
 		uList.Items = append(uList.Items, *u)
+	}
+	// if not even one source is found
+	if len(uList.Items) == 0 && err != nil {
+		return nil, knerrors.GetError(err)
 	}
 	return &uList, nil
 }
