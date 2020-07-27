@@ -48,22 +48,20 @@ func GetError(err error) error {
 	case isNoRouteToHostError(err):
 		return newNoRouteToHost(err.Error())
 	default:
-		var knerr *KNError
 		apiStatus, ok := err.(api_errors.APIStatus)
-		switch {
-		case !ok:
+		if !ok {
 			return err
-		case apiStatus.Status().Details == nil:
-			knerr = NewKNError(err.Error())
-			knerr.Status = apiStatus
-			return knerr
-		case isCRDError(apiStatus):
+		}
+		if apiStatus.Status().Details == nil {
+			return err
+		}
+		var knerr *KNError
+		if isCRDError(apiStatus) {
 			knerr = newInvalidCRD(apiStatus.Status().Details.Group)
 			knerr.Status = apiStatus
 			return knerr
-		default:
-			return err
 		}
+		return err
 	}
 }
 
