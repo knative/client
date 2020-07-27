@@ -118,6 +118,40 @@ func TestListSources(t *testing.T) {
 	})
 }
 
+func TestListSourcesUsingGVKs(t *testing.T) {
+	t.Run("No GVKs given", func(t *testing.T) {
+		client := createFakeKnDynamicClient(testNamespace)
+		assert.Check(t, client.RawClient() != nil)
+		s, err := client.ListSourcesUsingGVKs(nil)
+		assert.NilError(t, err)
+		assert.Check(t, s == nil)
+	})
+
+	t.Run("source list with given GVKs", func(t *testing.T) {
+		client := createFakeKnDynamicClient(testNamespace,
+			newSourceCRDObjWithSpec("pingsources", "sources.knative.dev", "v1alpha1", "PingSource"),
+			newSourceCRDObjWithSpec("apiserversources", "sources.knative.dev", "v1alpha1", "ApiServerSource"),
+			newSourceUnstructuredObj("p1", "sources.knative.dev/v1alpha1", "PingSource"),
+			newSourceUnstructuredObj("a1", "sources.knative.dev/v1alpha1", "ApiServerSource"),
+		)
+		assert.Check(t, client.RawClient() != nil)
+		gv := schema.GroupVersion{"sources.knative.dev", "v1alpha1"}
+		gvks := []schema.GroupVersionKind{gv.WithKind("ApiServerSource"), gv.WithKind("PingSource")}
+
+		s, err := client.ListSourcesUsingGVKs(&gvks)
+		assert.NilError(t, err)
+		assert.Check(t, s != nil)
+		assert.Equal(t, len(s.Items), 2)
+
+		// withType
+		s, err = client.ListSourcesUsingGVKs(&gvks, WithTypeFilter("PingSource"))
+		assert.NilError(t, err)
+		assert.Check(t, s != nil)
+		assert.Equal(t, len(s.Items), 1)
+	})
+
+}
+
 // createFakeKnDynamicClient gives you a dynamic client for testing containing the given objects.
 // See also the one in the fake package. Duplicated here to avoid a dependency loop.
 func createFakeKnDynamicClient(testNamespace string, objects ...runtime.Object) KnDynamicClient {

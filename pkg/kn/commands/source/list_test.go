@@ -23,6 +23,8 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 
+	dynamicfake "k8s.io/client-go/dynamic/fake"
+	clientdynamic "knative.dev/client/pkg/dynamic"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/util"
 )
@@ -69,6 +71,14 @@ func TestSourceListTypesNoHeaders(t *testing.T) {
 	assert.NilError(t, err)
 	assert.Check(t, util.ContainsNone(output[0], "TYPE", "NAME", "DESCRIPTION"))
 	assert.Check(t, util.ContainsAll(output[0], "PingSource"))
+}
+
+func TestListBuiltInSources(t *testing.T) {
+	fakeDynamic := dynamicfake.NewSimpleDynamicClient(runtime.NewScheme())
+	sources, err := listBuiltInSourceTypes(clientdynamic.NewKnDynamicClient(fakeDynamic, "current"))
+	assert.NilError(t, err)
+	assert.Check(t, sources != nil)
+	assert.Equal(t, len(sources.Items), 4)
 }
 
 func TestSourceList(t *testing.T) {
