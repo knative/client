@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	"gotest.tools/assert"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	"knative.dev/client/pkg/util"
 )
@@ -76,4 +77,23 @@ func TestGVRFromUnstructured(t *testing.T) {
 	_, err = gvrFromUnstructured(obj)
 	assert.Check(t, err != nil)
 	assert.Check(t, util.ContainsAll(err.Error(), "can't", "find", "version"))
+}
+
+func TestUnstructuredCRDFromGVK(t *testing.T) {
+	u := UnstructuredCRDFromGVK(schema.GroupVersionKind{"sources.knative.dev", "v1alpha2", "ApiServerSource"})
+	g, err := groupFromUnstructured(u)
+	assert.NilError(t, err)
+	assert.Equal(t, g, "sources.knative.dev")
+
+	v, err := versionFromUnstructured(u)
+	assert.NilError(t, err)
+	assert.Equal(t, v, "v1alpha2")
+
+	k, err := kindFromUnstructured(u)
+	assert.NilError(t, err)
+	assert.Equal(t, k, "ApiServerSource")
+
+	r, err := resourceFromUnstructured(u)
+	assert.NilError(t, err)
+	assert.Equal(t, r, "apiserversources")
 }
