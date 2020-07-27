@@ -39,14 +39,6 @@ func isEmptyConfigError(err error) bool {
 	return strings.Contains(err.Error(), "no configuration has been provided")
 }
 
-func isForbiddenError(status api_errors.APIStatus) bool {
-	return status.Status().Code == http.StatusForbidden
-}
-
-func isResourceNotFoundError(err error) bool {
-	return strings.Contains(err.Error(), "server could not find the requested resource")
-}
-
 //Retrieves a custom error struct based on the original error APIStatus struct
 //Returns the original error struct in case it can't identify the kind of APIStatus error
 func GetError(err error) error {
@@ -56,29 +48,29 @@ func GetError(err error) error {
 	case isNoRouteToHostError(err):
 		return newNoRouteToHost(err.Error())
 	default:
-		apiStatus, ok := err.(api_errors.APIStatus)
-		if !ok {
-			return err
-		}
-		if apiStatus.Status().Details == nil {
-			return err
-		}
 		var knerr *KNError
+		apiStatus, ok := err.(api_errors.APIStatus)
 		switch {
+		case !ok:
+			return err
+		case apiStatus.Status().Details == nil:
+			knerr = NewKNError(err.Error())
+			knerr.Status = apiStatus
+			return knerr
 		case isCRDError(apiStatus):
 			knerr = newInvalidCRD(apiStatus.Status().Details.Group)
-			knerr.Status = apiStatus
-			return knerr
-		case isForbiddenError(apiStatus):
-			knerr = newForbidden(apiStatus.Status().Code, apiStatus.Status().Message)
-			knerr.Status = apiStatus
-			return knerr
-		case isResourceNotFoundError(err):
-			knerr = newResourceNotFoundError(apiStatus.Status().Code, apiStatus.Status().Message)
 			knerr.Status = apiStatus
 			return knerr
 		default:
 			return err
 		}
 	}
+}
+
+// IsForbiddenError returns true if given error can be converted to API status and of type forbidden access else false
+func IsForbiddenError(err error) bool {
+	if status, ok := err.(api_errors.APIStatus); ok {
+		return status.Status().Code == int32(http.StatusForbidden)
+	}
+	return false
 }

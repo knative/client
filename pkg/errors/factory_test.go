@@ -48,7 +48,7 @@ func TestKnErrorsStatusErrors(t *testing.T) {
 				}
 				return statusError
 			},
-			ExpectedMsg: "404: no Knative serving API found on the backend, please verify the installation",
+			ExpectedMsg: "no Knative serving API found on the backend, please verify the installation",
 			Validate: func(t *testing.T, err error, msg string) {
 				assert.Error(t, err, msg)
 			},

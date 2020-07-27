@@ -16,12 +16,11 @@ package source
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/spf13/cobra"
-
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+
 	"knative.dev/client/pkg/dynamic"
 	knerrors "knative.dev/client/pkg/errors"
 	"knative.dev/client/pkg/kn/commands"
@@ -53,19 +52,17 @@ func NewListTypesCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			sourceListTypes, err := dynamicClient.ListSourcesTypes()
-			if err != nil {
-				if strings.HasPrefix(knerrors.GetError(err).Error(), "403") {
-					sourceListTypes, err = listBuiltInSourceTypes(dynamicClient)
-					if err != nil {
-						return knerrors.GetError(err)
-					}
-				} else {
+			switch {
+			case knerrors.IsForbiddenError(err):
+				if sourceListTypes, err = listBuiltInSourceTypes(dynamicClient); err != nil {
 					return knerrors.GetError(err)
 				}
+			case err != nil:
+				return knerrors.GetError(err)
 			}
 
 			if sourceListTypes == nil || len(sourceListTypes.Items) == 0 {
-				return fmt.Errorf("404: no sources found on the backend, please verify the installation")
+				return fmt.Errorf("no sources found on the backend, please verify the installation")
 			}
 
 			printer, err := listTypesFlags.ToPrinter()

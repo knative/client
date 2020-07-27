@@ -16,7 +16,6 @@ package source
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -62,16 +61,15 @@ func NewListCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			sourceList, err := dynamicClient.ListSources(filters...)
-			if err != nil {
-				if strings.HasPrefix(knerrors.GetError(err).Error(), "403") {
-					gvks := sourcesv1alpha2.BuiltInSourcesGVKs()
-					sourceList, err = dynamicClient.ListSourcesUsingGVKs(&gvks, filters...)
-					if err != nil {
-						return knerrors.GetError(err)
-					}
-				} else {
+
+			switch {
+			case knerrors.IsForbiddenError(err):
+				gvks := sourcesv1alpha2.BuiltInSourcesGVKs()
+				if sourceList, err = dynamicClient.ListSourcesUsingGVKs(&gvks, filters...); err != nil {
 					return knerrors.GetError(err)
 				}
+			case err != nil:
+				return knerrors.GetError(err)
 			}
 
 			if sourceList == nil || len(sourceList.Items) == 0 {

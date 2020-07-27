@@ -15,7 +15,7 @@
 package dynamic
 
 import (
-	"fmt"
+	"errors"
 	"strings"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -121,7 +121,7 @@ func (c *knDynamicClient) ListSources(types ...WithType) (*unstructured.Unstruct
 	}
 
 	if sourceTypes == nil || len(sourceTypes.Items) == 0 {
-		return nil, fmt.Errorf("404: no sources found on the backend, please verify the installation")
+		return nil, errors.New("no sources found on the backend, please verify the installation")
 	}
 
 	namespace := c.Namespace()
