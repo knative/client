@@ -160,3 +160,19 @@ func newSourceUnstructuredObj(name, apiVersion, kind string) *unstructured.Unstr
 		},
 	}
 }
+
+func TestSourceListAllNamespace(t *testing.T) {
+	output, err := sourceFakeCmd([]string{"source", "list", "--all-namespaces"},
+		newSourceCRDObjWithSpec("pingsources", "sources.knative.dev", "v1alpha1", "PingSource"),
+		newSourceCRDObjWithSpec("sinkbindings", "sources.knative.dev", "v1alpha1", "SinkBinding"),
+		newSourceCRDObjWithSpec("apiserversources", "sources.knative.dev", "v1alpha1", "ApiServerSource"),
+		newSourceUnstructuredObj("p1", "sources.knative.dev/v1alpha1", "PingSource"),
+		newSourceUnstructuredObj("s1", "sources.knative.dev/v1alpha1", "SinkBinding"),
+		newSourceUnstructuredObj("a1", "sources.knative.dev/v1alpha1", "ApiServerSource"),
+	)
+	assert.NilError(t, err)
+	assert.Check(t, util.ContainsAll(output[0], "NAMESPACE", "NAME", "TYPE", "RESOURCE", "SINK", "READY"))
+	assert.Check(t, util.ContainsAll(output[1], "current", "a1", "ApiServerSource", "apiserversources.sources.knative.dev", "ksvc:foo", "True"))
+	assert.Check(t, util.ContainsAll(output[2], "current", "p1", "PingSource", "pingsources.sources.knative.dev", "ksvc:foo", "True"))
+	assert.Check(t, util.ContainsAll(output[3], "current", "s1", "SinkBinding", "sinkbindings.sources.knative.dev", "ksvc:foo", "True"))
+}
