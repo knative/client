@@ -22,6 +22,10 @@
 | Add support to combine service create --filename with other options
 | https://github.com/knative/client/pull/937[#937]
 
+| 🎁
+| Fix Missing NAMESPACE column header for 'kn source list -A'
+| https://github.com/knative/client/pull/951[#951]
+
 |===
 
 ## v0.16.0 (2020-07-14)
