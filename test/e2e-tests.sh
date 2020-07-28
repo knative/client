@@ -61,6 +61,12 @@ smoke_test() {
   # Test namespace
   ns="kne2esmoketests"
 
+  # Test image
+  img=${KN_TEST_IMAGE}
+  if [[ -z "${KN_TEST_IMAGE}" ]]; then
+    img="gcr.io/knative-samples/helloworld-go"
+  fi
+
   set -x
 
   kubectl create ns $ns || fail_test
@@ -68,15 +74,15 @@ smoke_test() {
 
   sleep 4 # Wait for the namespace to get initialized by kube-controller-manager
 
-  ./kn service create svc1 --no-wait --image gcr.io/knative-samples/helloworld-go -e TARGET=Knative -n $ns || fail_test
-  ./kn service create svc2 --no-wait --image gcr.io/knative-samples/helloworld-go -e TARGET=Knative -n $ns || fail_test
-  ./kn service create hello --image gcr.io/knative-samples/helloworld-go -e TARGET=Knative -n $ns || fail_test
+  ./kn service create svc1 --no-wait --image $img -e TARGET=Knative -n $ns || fail_test
+  ./kn service create svc2 --no-wait --image $img -e TARGET=Knative -n $ns || fail_test
+  ./kn service create hello --image $img -e TARGET=Knative -n $ns || fail_test
   ./kn service list hello -n $ns || fail_test
   ./kn service update hello --env TARGET=kn -n $ns || fail_test
   ./kn revision list hello -n $ns || fail_test
   ./kn service list -n $ns || fail_test
-  ./kn service create hello --force --image gcr.io/knative-samples/helloworld-go -e TARGET=Awesome -n $ns || fail_test
-  ./kn service create foo --force --image gcr.io/knative-samples/helloworld-go -e TARGET=foo -n $ns || fail_test
+  ./kn service create hello --force --image $img -e TARGET=Awesome -n $ns || fail_test
+  ./kn service create foo --force --image $img -e TARGET=foo -n $ns || fail_test
   ./kn revision list -n $ns || fail_test
   ./kn service list -n $ns || fail_test
   ./kn service describe hello -n $ns || fail_test

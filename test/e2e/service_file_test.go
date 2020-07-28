@@ -87,8 +87,8 @@ func TestServiceCreateFromFile(t *testing.T) {
 	defer os.RemoveAll(tempDir)
 	assert.NilError(t, err)
 
-	test.CreateFile("foo.json", fmt.Sprintf(ServiceJSON, test.KnDefaultTestImage), tempDir, test.FileModeReadWrite)
-	test.CreateFile("foo.yaml", fmt.Sprintf(ServiceYAML, test.KnDefaultTestImage), tempDir, test.FileModeReadWrite)
+	test.CreateFile("foo.json", fmt.Sprintf(ServiceJSON, test.GetKnTestImage()), tempDir, test.FileModeReadWrite)
+	test.CreateFile("foo.yaml", fmt.Sprintf(ServiceYAML, test.GetKnTestImage()), tempDir, test.FileModeReadWrite)
 
 	t.Log("create foo-json service from JSON file")
 	serviceCreateFromFile(r, "foo-json", filepath.Join(tempDir, "foo.json"), true)

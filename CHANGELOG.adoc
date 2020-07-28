@@ -18,6 +18,10 @@
 |===
 | | Description | PR
 
+| 🐣
+| Allow the kn test image to be customized via environment variable
+| https://github.com/knative/client/pull/957[#957]
+
 | 🎁
 | Add support to combine service create --filename with other options
 | https://github.com/knative/client/pull/937[#937]
