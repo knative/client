@@ -28,7 +28,7 @@ import (
 
 // ServiceCreate verifies given service creation in sync mode and also verifies output
 func ServiceCreate(r *KnRunResultCollector, serviceName string) {
-	out := r.KnTest().Kn().Run("service", "create", serviceName, "--image", KnDefaultTestImage)
+	out := r.KnTest().Kn().Run("service", "create", serviceName, "--image", GetKnTestImage())
 	r.AssertNoError(out)
 	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "service", serviceName, "creating", "namespace", r.KnTest().Kn().Namespace(), "ready"))
 }
@@ -51,7 +51,7 @@ func ServiceList(r *KnRunResultCollector, serviceName string) {
 func ServiceDescribe(r *KnRunResultCollector, serviceName string) {
 	out := r.KnTest().Kn().Run("service", "describe", serviceName)
 	r.AssertNoError(out)
-	assert.Assert(r.T(), util.ContainsAll(out.Stdout, serviceName, r.KnTest().Kn().Namespace(), KnDefaultTestImage))
+	assert.Assert(r.T(), util.ContainsAll(out.Stdout, serviceName, r.KnTest().Kn().Namespace(), GetKnTestImage()))
 	assert.Assert(r.T(), util.ContainsAll(out.Stdout, "Conditions", "ConfigurationsReady", "Ready", "RoutesReady"))
 	assert.Assert(r.T(), util.ContainsAll(out.Stdout, "Name", "Namespace", "URL", "Age", "Revisions"))
 }

@@ -140,7 +140,7 @@ func TestServiceOptions(t *testing.T) {
 }
 
 func serviceCreateWithOptions(r *test.KnRunResultCollector, serviceName string, options ...string) {
-	command := []string{"service", "create", serviceName, "--image", test.KnDefaultTestImage}
+	command := []string{"service", "create", serviceName, "--image", test.GetKnTestImage()}
 	command = append(command, options...)
 	out := r.KnTest().Kn().Run(command...)
 	assert.Check(r.T(), util.ContainsAll(out.Stdout, "service", serviceName, "Creating", "namespace", r.KnTest().Kn().Namespace(), "Ready"))
