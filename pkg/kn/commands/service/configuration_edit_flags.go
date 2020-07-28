@@ -182,6 +182,14 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 		"DEPRECATED: please use --limit instead. The limits on the requested memory (e.g., 1024Mi).")
 	p.markFlagMakesRevision("limits-memory")
 
+	command.Flags().IntVar(&p.MinScale, "min-scale", 0, "Minimal number of replicas.")
+	command.Flags().MarkHidden("min-scale")
+	p.markFlagMakesRevision("min-scale")
+
+	command.Flags().IntVar(&p.MaxScale, "max-scale", 0, "Maximal number of replicas.")
+	command.Flags().MarkHidden("max-scale")
+	p.markFlagMakesRevision("max-scale")
+
 	command.Flags().IntVar(&p.Scale, "scale", 0, "Minimum and maximum number of replicas.")
 	p.markFlagMakesRevision("scale")
 
