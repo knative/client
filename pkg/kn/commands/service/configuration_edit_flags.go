@@ -46,7 +46,6 @@ type ConfigurationEditFlags struct {
 	Labels                 []string
 	LabelsService          []string
 	LabelsRevision         []string
-	NamePrefix             string
 	RevisionName           string
 	Annotations            []string
 	ClusterLocal           bool
@@ -74,23 +73,6 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	for _, name := range flagNames {
 		p.markFlagMakesRevision(name)
 	}
-	// p.markFlagMakesRevision("image")
-	// p.markFlagMakesRevision("env")
-	// p.markFlagMakesRevision("env-from")
-	// p.markFlagMakesRevision("mount")
-	// p.markFlagMakesRevision("volume")
-	// p.markFlagMakesRevision("cmd")
-	// p.markFlagMakesRevision("arg")
-	// p.markFlagMakesRevision("limit")
-	// p.markFlagMakesRevision("request")
-	// p.markFlagMakesRevision("requests-cpu")
-	// p.markFlagMakesRevision("requests-memory")
-	// p.markFlagMakesRevision("limits-cpu")
-	// p.markFlagMakesRevision("limits-memory")
-	// p.markFlagMakesRevision("port")
-	// p.markFlagMakesRevision("service-account")
-	// p.markFlagMakesRevision("pull-secret")
-	// p.markFlagMakesRevision("user")
 
 	command.Flags().IntVar(&p.MinScale, "min-scale", 0, "Minimal number of replicas.")
 	p.markFlagMakesRevision("min-scale")
