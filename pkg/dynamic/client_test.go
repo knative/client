@@ -95,6 +95,13 @@ func TestListSources(t *testing.T) {
 		assert.Check(t, util.ContainsAll(err.Error(), "can't", "find", "source", "kind", "CRD"))
 	})
 
+	t.Run("sources not installed", func(t *testing.T) {
+		client := createFakeKnDynamicClient(testNamespace)
+		_, err := client.ListSources()
+		assert.Check(t, err != nil)
+		assert.Check(t, util.ContainsAll(err.Error(), "no sources", "found", "backend", "verify", "installation"))
+	})
+
 	t.Run("source list empty", func(t *testing.T) {
 		client := createFakeKnDynamicClient(testNamespace,
 			newSourceCRDObjWithSpec("pingsources", "sources.knative.dev", "v1alpha1", "PingSource"),
