@@ -320,7 +320,7 @@ func TestServiceUpdateMaxMinScale(t *testing.T) {
 
 	action, updated, _, err := fakeServiceUpdate(original, []string{
 		"service", "update", "foo",
-		"--min-scale", "1", "--max-scale", "5", "--concurrency-target", "10", "--concurrency-limit", "100", "--concurrency-utilization", "50", "--no-wait"})
+		"--scale-min", "1", "--scale-max", "5", "--concurrency-target", "10", "--concurrency-limit", "100", "--concurrency-utilization", "50", "--no-wait"})
 
 	if err != nil {
 		t.Fatal(err)
@@ -413,13 +413,13 @@ func TestServiceUpdateScaleWithMaxScaleSet(t *testing.T) {
 
 	_, _, _, err := fakeServiceUpdate(original, []string{
 		"service", "update", "foo",
-		"--scale", "5", "--max-scale", "2", "--no-wait"})
+		"--scale", "5", "--scale-max", "2", "--no-wait"})
 
 	if err == nil {
 		t.Fatal("Expected error, got nil")
 	}
 
-	expectedErrMsg := "only --scale or --max-scale can be specified"
+	expectedErrMsg := "only --scale or --scale-max can be specified"
 
 	if !strings.Contains(err.Error(), expectedErrMsg) {
 		t.Errorf("Invalid error output, expected: %s, got : '%s'", expectedErrMsg, err)
@@ -432,13 +432,13 @@ func TestServiceUpdateScaleWithMinScaleSet(t *testing.T) {
 
 	_, _, _, err := fakeServiceUpdate(original, []string{
 		"service", "update", "foo",
-		"--scale", "5", "--min-scale", "2", "--no-wait"})
+		"--scale", "5", "--scale-min", "2", "--no-wait"})
 
 	if err == nil {
 		t.Fatal("Expected error, got nil")
 	}
 
-	expectedErrMsg := "only --scale or --min-scale can be specified"
+	expectedErrMsg := "only --scale or --scale-min can be specified"
 
 	if !strings.Contains(err.Error(), expectedErrMsg) {
 		t.Errorf("Invalid error output, expected: %s, got : '%s'", expectedErrMsg, err)

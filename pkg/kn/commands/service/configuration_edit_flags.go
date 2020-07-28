@@ -182,14 +182,14 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 		"DEPRECATED: please use --limit instead. The limits on the requested memory (e.g., 1024Mi).")
 	p.markFlagMakesRevision("limits-memory")
 
-	command.Flags().IntVar(&p.MinScale, "min-scale", 0, "Minimal number of replicas.")
-	p.markFlagMakesRevision("min-scale")
-
-	command.Flags().IntVar(&p.MaxScale, "max-scale", 0, "Maximal number of replicas.")
-	p.markFlagMakesRevision("max-scale")
-
 	command.Flags().IntVar(&p.Scale, "scale", 0, "Minimum and maximum number of replicas.")
 	p.markFlagMakesRevision("scale")
+
+	command.Flags().IntVar(&p.MinScale, "scale-min", 0, "Minimum number of replicas.")
+	p.markFlagMakesRevision("scale-min")
+
+	command.Flags().IntVar(&p.MaxScale, "scale-max", 0, "Maximum number of replicas.")
+	p.markFlagMakesRevision("scale-max")
 
 	command.Flags().StringVar(&p.AutoscaleWindow, "autoscale-window", "", "Duration to look back for making auto-scaling decisions. The service is scaled to zero if no request was received in during that time. (eg: 10s)")
 	p.markFlagMakesRevision("autoscale-window")
@@ -430,14 +430,14 @@ func (p *ConfigurationEditFlags) Apply(
 		}
 	}
 
-	if cmd.Flags().Changed("min-scale") {
+	if cmd.Flags().Changed("scale-min") {
 		err = servinglib.UpdateMinScale(template, p.MinScale)
 		if err != nil {
 			return err
 		}
 	}
 
-	if cmd.Flags().Changed("max-scale") {
+	if cmd.Flags().Changed("scale-max") {
 		err = servinglib.UpdateMaxScale(template, p.MaxScale)
 		if err != nil {
 			return err
@@ -445,10 +445,10 @@ func (p *ConfigurationEditFlags) Apply(
 	}
 
 	if cmd.Flags().Changed("scale") {
-		if cmd.Flags().Changed("max-scale") {
-			return fmt.Errorf("only --scale or --max-scale can be specified")
-		} else if cmd.Flags().Changed("min-scale") {
-			return fmt.Errorf("only --scale or --min-scale can be specified")
+		if cmd.Flags().Changed("scale-max") {
+			return fmt.Errorf("only --scale or --scale-max can be specified")
+		} else if cmd.Flags().Changed("scale-min") {
+			return fmt.Errorf("only --scale or --scale-min can be specified")
 		} else {
 			err = servinglib.UpdateMaxScale(template, p.Scale)
 			if err != nil {

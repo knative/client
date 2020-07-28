@@ -20,5 +20,5 @@ flags to configure the autoscaling behavior.
 | :------------------------- | :-------------------------------------------------------------------------------------------------------------------------- |
 | `--concurrency-limit int`  | Hard limit of concurrent requests to be processed by a single replica.                                                      |
 | `--concurrency-target int` | Recommendation for when to scale up based on the concurrent number of incoming requests. Defaults to `--concurrency-limit`. |
-| `--max-scale int`          | Maximum number of replicas.                                                                                                 |
-| `--min-scale int`          | Minimum number of replicas.                                                                                                 |
+| `--scale-max int`          | Maximum number of replicas.                                                                                                 |
+| `--scale-min int`          | Minimum number of replicas.                                                                                                 |
