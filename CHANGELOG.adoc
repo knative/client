@@ -49,6 +49,10 @@
 | ✨
 | `kn source list` output now has client custom GVK set as `{Group: client.knative.dev, Version: v1alpha1, Kind: SourceList}`
 | https://github.com/knative/client/pull/980[#980]
+
+| 🎁
+| Manage knative eventing channels
+| https://github.com/knative/client/pull/967[#967]
 |===
 
 ## v0.16.0 (2020-07-14)

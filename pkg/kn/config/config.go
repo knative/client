@@ -43,6 +43,9 @@ type config struct {
 
 	// sinkMappings is a list of sink mapping
 	sinkMappings []SinkMapping
+
+	// channelTypeMappings is a list of channel type mapping
+	channelTypeMappings []ChannelTypeMapping
 }
 
 // ConfigFile returns the config file which is either the default XDG conform
@@ -82,6 +85,10 @@ func (c *config) LookupPluginsInPath() bool {
 
 func (c *config) SinkMappings() []SinkMapping {
 	return c.sinkMappings
+}
+
+func (c *config) ChannelTypeMappings() []ChannelTypeMapping {
+	return c.channelTypeMappings
 }
 
 // Config used for flag binding
@@ -143,6 +150,12 @@ func BootstrapConfig() error {
 
 	// Deserialize sink mappings if configured
 	err = parseSinkMappings()
+	if err != nil {
+		return err
+	}
+
+	// Deserialize channel type mappings if configured
+	err = parseChannelTypeMappings()
 	return err
 }
 
@@ -237,6 +250,18 @@ func parseSinkMappings() error {
 		err := viper.UnmarshalKey(key, &globalConfig.sinkMappings)
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf("error while parsing sink mappings in configuration file %s",
+				viper.ConfigFileUsed()))
+		}
+	}
+	return nil
+}
+
+// parse channel type mappings and store them in the global configuration
+func parseChannelTypeMappings() error {
+	if viper.IsSet(keyChannelTypeMappings) {
+		err := viper.UnmarshalKey(keyChannelTypeMappings, &globalConfig.channelTypeMappings)
+		if err != nil {
+			return errors.Wrap(err, fmt.Sprintf("error while parsing channel type mappings in configuration file %s",
 				viper.ConfigFileUsed()))
 		}
 	}

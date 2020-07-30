@@ -28,10 +28,12 @@ func TestTestConfig(t *testing.T) {
 		TestConfigFile:          "configFile",
 		TestLookupPluginsInPath: true,
 		TestSinkMappings:        nil,
+		TestChannelTypeMappings: nil,
 	}
 
 	assert.Equal(t, cfg.PluginsDir(), "pluginsDir")
 	assert.Equal(t, cfg.ConfigFile(), "configFile")
 	assert.Assert(t, cfg.LookupPluginsInPath())
 	assert.Assert(t, cfg.SinkMappings() == nil)
+	assert.Assert(t, cfg.ChannelTypeMappings() == nil)
 }
