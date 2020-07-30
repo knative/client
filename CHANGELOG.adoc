@@ -20,7 +20,7 @@
 
 | 🐣
 | Separate PodSpecFlags from Service ConfigurationEditFlags
-| https://github.com/knative/client/pull/915[#915]
+| https://github.com/knative/client/pull/943[#943]
 
 | 🐣
 | Allow the kn test image to be customized via environment variable
