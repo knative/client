@@ -79,7 +79,7 @@ func TestSourceListTypesNoHeaders(t *testing.T) {
 	assert.Check(t, util.ContainsAll(output[0], "PingSource"))
 }
 
-func TestListBuiltInSources(t *testing.T) {
+func TestListBuiltInSourceTypes(t *testing.T) {
 	fakeDynamic := dynamicfake.NewSimpleDynamicClient(runtime.NewScheme())
 	sources, err := listBuiltInSourceTypes(clientdynamic.NewKnDynamicClient(fakeDynamic, "current"))
 	assert.NilError(t, err)
