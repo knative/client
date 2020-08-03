@@ -75,8 +75,6 @@ kn service create NAME --image IMAGE
       --limits-cpu string             DEPRECATED: please use --limit instead. The limits on the requested CPU (e.g., 1000m).
       --limits-memory string          DEPRECATED: please use --limit instead. The limits on the requested memory (e.g., 1024Mi).
       --lock-to-digest                Keep the running image for the service constant when not explicitly specifying the image. (--no-lock-to-digest pulls the image tag afresh with each new revision) (default true)
-      --max-scale int                 Maximal number of replicas.
-      --min-scale int                 Minimal number of replicas.
       --mount stringArray             Mount a ConfigMap (prefix cm: or config-map:), a Secret (prefix secret: or sc:), or an existing Volume (without any prefix) on the specified directory. Example: --mount /mydir=cm:myconfigmap, --mount /mydir=secret:mysecret, or --mount /mydir=myvolume. When a configmap or a secret is specified, a corresponding volume is automatically generated. You can use this flag multiple times. For unmounting a directory, append "-", e.g. --mount /mydir-, which also removes any auto-generated volume.
   -n, --namespace string              Specify the namespace to operate in.
       --no-cluster-local              Do not specify that the service be private. (--no-cluster-local will make the service publicly available) (default true)
@@ -89,6 +87,8 @@ kn service create NAME --image IMAGE
       --requests-memory string        DEPRECATED: please use --request instead. The requested memory (e.g., 64Mi).
       --revision-name string          The revision name to set. Must start with the service name and a dash as a prefix. Empty revision name will result in the server generating a name for the revision. Accepts golang templates, allowing {{.Service}} for the service name, {{.Generation}} for the generation, and {{.Random [n]}} for n random consonants. (default "{{.Service}}-{{.Random 5}}-{{.Generation}}")
       --scale int                     Minimum and maximum number of replicas.
+      --scale-max int                 Maximum number of replicas.
+      --scale-min int                 Minimum number of replicas.
       --service-account string        Service account name to set. An empty argument ("") clears the service account. The referenced service account must exist in the service's namespace.
       --user int                      The user ID to run the container (e.g., 1001).
       --volume stringArray            Add a volume from a ConfigMap (prefix cm: or config-map:) or a Secret (prefix secret: or sc:). Example: --volume myvolume=cm:myconfigmap or --volume myvolume=secret:mysecret. You can use this flag multiple times. To unset a ConfigMap/Secret reference, append "-" to the name, e.g. --volume myvolume-.

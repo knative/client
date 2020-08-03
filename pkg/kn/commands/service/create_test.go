@@ -513,7 +513,7 @@ func TestServiceCreateRequestsLimitsMemory(t *testing.T) {
 func TestServiceCreateMaxMinScale(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
-		"--min-scale", "1", "--max-scale", "5",
+		"--scale-min", "1", "--scale-max", "5",
 		"--concurrency-target", "10", "--concurrency-limit", "100",
 		"--concurrency-utilization", "50",
 		"--no-wait"}, false)
@@ -592,11 +592,11 @@ func TestServiceCreateScaleWithNegativeValue(t *testing.T) {
 func TestServiceCreateScaleWithMaxScaleSet(t *testing.T) {
 	_, _, _, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
-		"--scale", "5", "--max-scale", "2", "--no-wait"}, true)
+		"--scale", "5", "--scale-max", "2", "--no-wait"}, true)
 	if err == nil {
 		t.Fatal(err)
 	}
-	expectedErrMsg := "only --scale or --max-scale can be specified"
+	expectedErrMsg := "only --scale or --scale-max can be specified"
 	if !strings.Contains(err.Error(), expectedErrMsg) {
 		t.Errorf("Invalid error output, expected: %s, got : '%s'", expectedErrMsg, err)
 	}
@@ -606,11 +606,11 @@ func TestServiceCreateScaleWithMaxScaleSet(t *testing.T) {
 func TestServiceCreateScaleWithMinScaleSet(t *testing.T) {
 	_, _, _, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
-		"--scale", "5", "--min-scale", "2", "--no-wait"}, true)
+		"--scale", "5", "--scale-min", "2", "--no-wait"}, true)
 	if err == nil {
 		t.Fatal(err)
 	}
-	expectedErrMsg := "only --scale or --min-scale can be specified"
+	expectedErrMsg := "only --scale or --scale-min can be specified"
 	if !strings.Contains(err.Error(), expectedErrMsg) {
 		t.Errorf("Invalid error output, expected: %s, got : '%s'", expectedErrMsg, err)
 	}
