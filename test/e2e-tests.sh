@@ -98,4 +98,4 @@ smoke_test() {
 }
 
 header "Running tekton e2e tests"
-exec bash $(dirname $0)/tekton-tests.sh
+bash -x $(dirname $0)/tekton-tests.sh
