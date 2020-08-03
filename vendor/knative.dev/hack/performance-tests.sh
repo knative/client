@@ -136,7 +136,7 @@ function reconcile_benchmark_clusters() {
   # can be as long as <update_clusters interval>.
 }
 
-# Parse flags and excute the command.
+# Parse flags and execute the command.
 function main() {
   if (( ! IS_PROW )); then
     abort "this script should only be run by Prow since it needs secrets created on Prow cluster"

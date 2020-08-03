@@ -32,8 +32,8 @@ func ToUnstructuredList(obj runtime.Object) (*unstructured.UnstructuredList, err
 		if err != nil {
 			return nil, err
 		}
-		for _, item := range items {
-			ud, err := toUnstructured(item)
+		for _, obji := range items {
+			ud, err := ToUnstructured(obji)
 			if err != nil {
 				return nil, err
 			}
@@ -41,7 +41,7 @@ func ToUnstructuredList(obj runtime.Object) (*unstructured.UnstructuredList, err
 		}
 
 	} else {
-		ud, err := toUnstructured(obj)
+		ud, err := ToUnstructured(obj)
 		if err != nil {
 			return nil, err
 		}
@@ -51,7 +51,7 @@ func ToUnstructuredList(obj runtime.Object) (*unstructured.UnstructuredList, err
 
 }
 
-func toUnstructured(obj runtime.Object) (*unstructured.Unstructured, error) {
+func ToUnstructured(obj runtime.Object) (*unstructured.Unstructured, error) {
 	b, err := json.Marshal(obj)
 	if err != nil {
 		return nil, err

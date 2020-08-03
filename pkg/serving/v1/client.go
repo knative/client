@@ -16,11 +16,14 @@ package v1
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/fields"
+	"k8s.io/apimachinery/pkg/types"
+
 	"knative.dev/pkg/apis"
 	"knative.dev/serving/pkg/client/clientset/versioned/scheme"
 
@@ -67,6 +70,20 @@ type KnServingClient interface {
 	// The updateFunc receives a deep copy of the existing service and can add update it in
 	// place.
 	UpdateServiceWithRetry(name string, updateFunc ServiceUpdateFunc, nrRetries int) error
+
+	// Apply a service's definition to the cluster. The full service declaration needs to be provided,
+	// which is different to UpdateService which can also do a partial update. If the given
+	// service does not already exists (identified by name) then the service is create.
+	// If the service exists, then a three-way merge will be performed between the original
+	// configuration given (from the last "apply" operation), the new configuration as given ]
+	// here and the current configuration as found on the cluster.
+	// The returned bool indicates whether the service has been changed or whether this operation
+	// was a no-op
+	// An error can indicate a general error or a conflict that occured during the three way merge.
+	ApplyService(service *servingv1.Service) (bool, error)
+
+	// PatchService patches a service and returns the patched service
+	PatchService(name string, patchType types.PatchType, patch []byte) (*servingv1.Service, error)
 
 	// Delete a service by name
 	DeleteService(name string, timeout time.Duration) error
@@ -265,6 +282,42 @@ func updateServiceWithRetry(cl KnServingClient, name string, updateFunc ServiceU
 		}
 		return nil
 	}
+}
+
+// ApplyService applies a service definition that contains the service's targer state
+func (cl *knServingClient) ApplyService(modifiedService *servingv1.Service) (bool, error) {
+	currentService, err := cl.GetService(modifiedService.Name)
+	if err != nil && !apierrors.IsNotFound(err) {
+		return false, err
+	}
+
+	containers := modifiedService.Spec.Template.Spec.Containers
+	if len(containers) == 0 || containers[0].Image == "" && currentService != nil {
+		return false, errors.New("'service apply' requires the image name to run provided with the --image option")
+	}
+
+	// No current service --> create a new service
+	if currentService == nil {
+		err := updateLastAppliedAnnotation(modifiedService)
+		if err != nil {
+			return false, err
+		}
+		return true, cl.CreateService(modifiedService)
+	}
+
+	// Merge with existing service
+	uOriginalService := getOriginalConfiguration(currentService)
+	return cl.patch(modifiedService, currentService, uOriginalService)
+}
+
+// PatchService patches the given service
+func (cl *knServingClient) PatchService(name string, patchType types.PatchType, patch []byte) (*servingv1.Service, error) {
+	service, err := cl.client.Services(cl.namespace).Patch(context.TODO(), name, patchType, patch, v1.PatchOptions{})
+	if err != nil {
+		return nil, err
+	}
+	err = updateServingGvk(service)
+	return service, err
 }
 
 // Delete a service by name

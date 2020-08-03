@@ -21,6 +21,7 @@ import (
 	"gotest.tools/assert"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/types"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	"knative.dev/client/pkg/util/mock"
@@ -102,6 +103,26 @@ func (c *MockKnServingClient) UpdateService(service *servingv1.Service) error {
 // Delegate to shared retry method
 func (c *MockKnServingClient) UpdateServiceWithRetry(name string, updateFunc ServiceUpdateFunc, maxRetry int) error {
 	return updateServiceWithRetry(c, name, updateFunc, maxRetry)
+}
+
+// Update the given service
+func (sr *ServingRecorder) ApplyService(service interface{}, hasChanged bool, err error) {
+	sr.r.Add("UpdateService", []interface{}{service}, []interface{}{hasChanged, err})
+}
+
+func (c *MockKnServingClient) ApplyService(service *servingv1.Service) (bool, error) {
+	call := c.recorder.r.VerifyCall("ApplyService", service)
+	return call.Result[0].(bool), mock.ErrorOrNil(call.Result[1])
+}
+
+// Patch a service
+func (sr *ServingRecorder) PatchService(name string, patchType types.PatchType, patch []byte, service interface{}, err error) {
+	sr.r.Add("PatchService", []interface{}{name, patch}, []interface{}{service, err})
+}
+
+func (c *MockKnServingClient) PatchService(name string, patchType types.PatchType, patch []byte) (*servingv1.Service, error) {
+	call := c.recorder.r.VerifyCall("PatchService", name, patch)
+	return call.Result[0].(*servingv1.Service), mock.ErrorOrNil(call.Result[1])
 }
 
 // Delete a service by name

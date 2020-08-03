@@ -145,7 +145,7 @@ func createService(client clientservingv1.KnServingClient, service *servingv1.Se
 		return err
 	}
 
-	return waitIfRequested(client, service, waitFlags, "Creating", "created", out)
+	return waitIfRequested(client, service.Name, waitFlags, "Creating", "created", out)
 }
 
 func replaceService(client clientservingv1.KnServingClient, service *servingv1.Service, waitFlags commands.WaitFlags, out io.Writer) error {
@@ -153,23 +153,23 @@ func replaceService(client clientservingv1.KnServingClient, service *servingv1.S
 	if err != nil {
 		return err
 	}
-	return waitIfRequested(client, service, waitFlags, "Replacing", "replaced", out)
+	return waitIfRequested(client, service.Name, waitFlags, "Replacing", "replaced", out)
 }
 
-func waitIfRequested(client clientservingv1.KnServingClient, service *servingv1.Service, waitFlags commands.WaitFlags, verbDoing string, verbDone string, out io.Writer) error {
+func waitIfRequested(client clientservingv1.KnServingClient, serviceName string, waitFlags commands.WaitFlags, verbDoing string, verbDone string, out io.Writer) error {
 	//TODO: deprecated condition should be removed with --async flag
 	if waitFlags.Async {
 		fmt.Fprintf(out, "\nWARNING: flag --async is deprecated and going to be removed in future release, please use --no-wait instead.\n\n")
-		fmt.Fprintf(out, "Service '%s' %s in namespace '%s'.\n", service.Name, verbDone, client.Namespace())
+		fmt.Fprintf(out, "Service '%s' %s in namespace '%s'.\n", serviceName, verbDone, client.Namespace())
 		return nil
 	}
 	if !waitFlags.Wait {
-		fmt.Fprintf(out, "Service '%s' %s in namespace '%s'.\n", service.Name, verbDone, client.Namespace())
+		fmt.Fprintf(out, "Service '%s' %s in namespace '%s'.\n", serviceName, verbDone, client.Namespace())
 		return nil
 	}
 
-	fmt.Fprintf(out, "%s service '%s' in namespace '%s':\n", verbDoing, service.Name, client.Namespace())
-	return waitForServiceToGetReady(client, service.Name, waitFlags.TimeoutInSeconds, verbDone, out)
+	fmt.Fprintf(out, "%s service '%s' in namespace '%s':\n", verbDoing, serviceName, client.Namespace())
+	return waitForServiceToGetReady(client, serviceName, waitFlags.TimeoutInSeconds, verbDone, out)
 }
 
 func prepareAndUpdateService(client clientservingv1.KnServingClient, service *servingv1.Service) error {
