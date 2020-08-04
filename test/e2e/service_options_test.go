@@ -57,7 +57,7 @@ func TestServiceOptions(t *testing.T) {
 	t.Log("update concurrency options with invalid values for service")
 	out := r.KnTest().Kn().Run("service", "update", "svc1", "--concurrency-limit", "-1", "--concurrency-target", "0")
 	r.AssertError(out)
-	assert.Check(r.T(), util.ContainsAll(out.Stderr, "invalid"))
+	assert.Check(r.T(), util.ContainsAll(out.Stderr, "should be at least 0.01"))
 
 	t.Log("returns steady concurrency options for service")
 	validateServiceConcurrencyLimit(r, "svc1", "300")
@@ -67,14 +67,24 @@ func TestServiceOptions(t *testing.T) {
 	t.Log("delete service")
 	test.ServiceDelete(r, "svc1")
 
-	t.Log("create and validate service with min/max scale options ")
-	serviceCreateWithOptions(r, "svc2", "--min-scale", "1", "--max-scale", "3")
+	t.Log("create and validate service with min/max scale options")
+	serviceCreateWithOptions(r, "svc2", "--scale-min", "1", "--scale-max", "3")
 	validateServiceMinScale(r, "svc2", "1")
 	validateServiceMaxScale(r, "svc2", "3")
 
 	t.Log("update and validate service with max scale option")
-	test.ServiceUpdate(r, "svc2", "--max-scale", "2")
+	test.ServiceUpdate(r, "svc2", "--scale-max", "2")
 	validateServiceMaxScale(r, "svc2", "2")
+
+	t.Log("create and validate service with scale options")
+	serviceCreateWithOptions(r, "svc2a", "--scale", "5")
+	validateServiceMinScale(r, "svc2a", "5")
+	validateServiceMaxScale(r, "svc2a", "5")
+
+	t.Log("update and validate service with scale option")
+	test.ServiceUpdate(r, "svc2a", "--scale", "2")
+	validateServiceMaxScale(r, "svc2a", "2")
+	validateServiceMinScale(r, "svc2a", "2")
 
 	t.Log("delete service")
 	test.ServiceDelete(r, "svc2")
@@ -130,7 +140,7 @@ func TestServiceOptions(t *testing.T) {
 }
 
 func serviceCreateWithOptions(r *test.KnRunResultCollector, serviceName string, options ...string) {
-	command := []string{"service", "create", serviceName, "--image", test.KnDefaultTestImage}
+	command := []string{"service", "create", serviceName, "--image", test.GetKnTestImage()}
 	command = append(command, options...)
 	out := r.KnTest().Kn().Run(command...)
 	assert.Check(r.T(), util.ContainsAll(out.Stdout, "service", serviceName, "Creating", "namespace", r.KnTest().Kn().Namespace(), "Ready"))

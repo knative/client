@@ -42,19 +42,19 @@ func TestSourcePing(t *testing.T) {
 
 	t.Log("create Ping sources with a sink to a service")
 
-	pingSourceCreate(r, "testpingsource0", "* * * * */1", "ping", "svc:testsvc0")
+	pingSourceCreate(r, "testpingsource0", "* * * * */1", "ping", "ksvc:testsvc0")
 	pingSourceListOutputName(r, "testpingsource0")
 
 	t.Log("delete Ping sources")
 	pingSourceDelete(r, "testpingsource0")
 
 	t.Log("create Ping source with a missing sink service")
-	pingSourceCreateMissingSink(r, "testpingsource1", "* * * * */1", "ping", "svc:unknown")
+	pingSourceCreateMissingSink(r, "testpingsource1", "* * * * */1", "ping", "ksvc:unknown")
 
 	t.Log("update Ping source sink service")
-	pingSourceCreate(r, "testpingsource2", "* * * * */1", "ping", "svc:testsvc0")
+	pingSourceCreate(r, "testpingsource2", "* * * * */1", "ping", "ksvc:testsvc0")
 	test.ServiceCreate(r, "testsvc1")
-	pingSourceUpdateSink(r, "testpingsource2", "svc:testsvc1")
+	pingSourceUpdateSink(r, "testpingsource2", "ksvc:testsvc1")
 	jpSinkRefNameInSpec := "jsonpath={.spec.sink.ref.name}"
 	out, err := test.GetResourceFieldsWithJSONPath(t, it, "pingsource", "testpingsource2", jpSinkRefNameInSpec)
 	assert.NilError(t, err)
@@ -62,7 +62,7 @@ func TestSourcePing(t *testing.T) {
 
 	t.Log("verify Ping source description")
 	mymsg := "This is a message from Ping."
-	pingSourceCreate(r, "testpingsource3", "*/1 * * * *", mymsg, "svc:testsvc1")
+	pingSourceCreate(r, "testpingsource3", "*/1 * * * *", mymsg, "ksvc:testsvc1")
 	verifyPingSourceDescribe(r, "testpingsource3", "*/1 * * * *", mymsg, "testsvc1")
 }
 

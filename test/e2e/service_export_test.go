@@ -136,7 +136,7 @@ func TestServiceExport(t *testing.T) {
 			withRevisionName("hello-rev1"),
 			withRevisionAnnotations(
 				map[string]string{
-					"client.knative.dev/user-image": "gcr.io/knative-samples/helloworld-go",
+					"client.knative.dev/user-image": test.GetKnTestImage(),
 				}),
 			withRevisionLabels(
 				map[string]string{
@@ -198,7 +198,7 @@ func TestServiceExport(t *testing.T) {
 			withRevisionName("hello-rev1"),
 			withRevisionAnnotations(
 				map[string]string{
-					"client.knative.dev/user-image": "gcr.io/knative-samples/helloworld-go",
+					"client.knative.dev/user-image": test.GetKnTestImage(),
 				}),
 			withRevisionLabels(
 				map[string]string{
@@ -399,7 +399,7 @@ func withConfigurationLabels(labels map[string]string) expectedServiceOption {
 func withConfigurationAnnotations() expectedServiceOption {
 	return func(svc *servingv1.Service) {
 		svc.Spec.Template.ObjectMeta.Annotations = map[string]string{
-			"client.knative.dev/user-image": "gcr.io/knative-samples/helloworld-go",
+			"client.knative.dev/user-image": test.GetKnTestImage(),
 		}
 	}
 }
@@ -489,7 +489,7 @@ func withContainer() podSpecOption {
 		spec.Containers = []corev1.Container{
 			{
 				Name:      "user-container",
-				Image:     test.KnDefaultTestImage,
+				Image:     test.GetKnTestImage(),
 				Resources: corev1.ResourceRequirements{},
 				ReadinessProbe: &corev1.Probe{
 					SuccessThreshold: int32(1),

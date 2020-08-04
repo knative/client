@@ -19,14 +19,14 @@ package v1alpha1
 import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	net "knative.dev/networking/pkg/apis/networking"
 	"knative.dev/pkg/apis"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 	"knative.dev/pkg/kmeta"
-	net "knative.dev/serving/pkg/apis/networking"
 )
 
 // +genclient
-// +genreconciler:class=autoscaling.knative.dev/class,krshapedlogic=true
+// +genreconciler:class=autoscaling.knative.dev/class
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // PodAutoscaler is a Knative abstraction that encapsulates the interface by which Knative
@@ -112,6 +112,9 @@ const (
 	// PodAutoscalerConditionReady is set when the revision is starting to materialize
 	// runtime resources, and becomes true when those resources are ready.
 	PodAutoscalerConditionReady = apis.ConditionReady
+	// PodAutoscalerConditionScaleTargetInitialized is set when the PodAutoscaler's
+	// ScaleTargetRef was ready to serve traffic once.
+	PodAutoscalerConditionScaleTargetInitialized apis.ConditionType = "ScaleTargetInitialized"
 	// PodAutoscalerConditionActive is set when the PodAutoscaler's ScaleTargetRef is receiving traffic.
 	PodAutoscalerConditionActive apis.ConditionType = "Active"
 )

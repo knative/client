@@ -15,6 +15,7 @@
 package errors
 
 import (
+	"net/http"
 	"strings"
 
 	api_errors "k8s.io/apimachinery/pkg/api/errors"
@@ -62,4 +63,12 @@ func GetError(err error) error {
 		}
 		return err
 	}
+}
+
+// IsForbiddenError returns true if given error can be converted to API status and of type forbidden access else false
+func IsForbiddenError(err error) bool {
+	if status, ok := err.(api_errors.APIStatus); ok {
+		return status.Status().Code == int32(http.StatusForbidden)
+	}
+	return false
 }

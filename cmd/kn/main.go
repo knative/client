@@ -43,6 +43,17 @@ func main() {
 	}
 }
 
+// runError is used when during the execution of a command/plugin an error occurs and
+// so no extra usage message should be shown.
+type runError struct {
+	err error
+}
+
+// Error implements the error() interface
+func (e *runError) Error() string {
+	return e.err.Error()
+}
+
 // Run the main program. Args are the args as given on the command line (excluding the program name itself)
 func run(args []string) error {
 	// Parse config & plugin flags early to read in configuration file
@@ -53,21 +64,26 @@ func run(args []string) error {
 		return err
 	}
 
-	// Strip of all flags to get the non-flag commands only
-	commands, err := stripFlags(args)
-	if err != nil {
-		return err
-	}
-
-	// Find plugin with the commands arguments
 	pluginManager := plugin.NewManager(config.GlobalConfig.PluginsDir(), config.GlobalConfig.LookupPluginsInPath())
-	plugin, err := pluginManager.FindPlugin(commands)
-	if err != nil {
-		return err
-	}
 
 	// Create kn root command and all sub-commands
-	rootCmd, err := root.NewRootCommand()
+	rootCmd, err := root.NewRootCommand(pluginManager.HelpTemplateFuncs())
+	if err != nil {
+		return err
+	}
+
+	// temporary setting to parse all flags
+	rootCmd.FParseErrWhitelist = cobra.FParseErrWhitelist{UnknownFlags: true}
+	// Strip of all flags to get the non-flag commands only
+	commands, err := stripFlags(rootCmd, args)
+	if err != nil {
+		return err
+	}
+	// reset the temporary setting
+	rootCmd.FParseErrWhitelist = cobra.FParseErrWhitelist{UnknownFlags: false}
+
+	// Find plugin with the commands arguments
+	plugin, err := pluginManager.FindPlugin(commands)
 	if err != nil {
 		return err
 	}
@@ -79,7 +95,11 @@ func run(args []string) error {
 			return err
 		}
 
-		return plugin.Execute(argsWithoutCommands(args, plugin.CommandParts()))
+		err := plugin.Execute(argsWithoutCommands(args, plugin.CommandParts()))
+		if err != nil {
+			return &runError{err: err}
+		}
+		return nil
 	} else {
 		// Validate args for root command
 		err = validateRootCommand(rootCmd)
@@ -91,46 +111,12 @@ func run(args []string) error {
 	}
 }
 
-// Get only the args provided but no options. The extraction
-// process is a bit tricky as Cobra doesn't provide such
-// functionality out of the box
-func stripFlags(args []string) ([]string, error) {
-	// Store all command
-	commandsFound := &[]string{}
-
-	// Use a canary command that allows all options and only extracts
-	// commands. Doesn't work with arbitrary boolean flags but is good enough
-	// for us here
-	extractCommand := cobra.Command{
-		Run: func(cmd *cobra.Command, args []string) {
-			for _, arg := range args {
-				*commandsFound = append(*commandsFound, arg)
-			}
-		},
-		SilenceErrors: true,
-		SilenceUsage:  true,
+// Get only the args provided but no options
+func stripFlags(rootCmd *cobra.Command, args []string) ([]string, error) {
+	if err := rootCmd.ParseFlags(filterHelpOptions(args)); err != nil {
+		return []string{}, fmt.Errorf("error while parsing flags from args %v: %s", args, err.Error())
 	}
-
-	// No help and usage functions to prin
-	extractCommand.SetHelpFunc(func(*cobra.Command, []string) {})
-	extractCommand.SetUsageFunc(func(*cobra.Command) error { return nil })
-
-	// Filter out --help and -h options to avoid special treatment which we don't
-	// need here
-	extractCommand.SetArgs(filterHelpOptions(args))
-
-	// Adding all global flags here
-	config.AddBootstrapFlags(extractCommand.Flags())
-
-	// Allow all options
-	extractCommand.FParseErrWhitelist = cobra.FParseErrWhitelist{UnknownFlags: true}
-
-	// Execute to get to the command args
-	err := extractCommand.Execute()
-	if err != nil {
-		return nil, err
-	}
-	return *commandsFound, nil
+	return rootCmd.Flags().Args(), nil
 }
 
 // Strip all plugin commands before calling out to the plugin
@@ -177,7 +163,7 @@ func validatePlugin(root *cobra.Command, plugin plugin.Plugin) error {
 func validateRootCommand(cmd *cobra.Command) error {
 	foundCmd, innerArgs, err := cmd.Find(os.Args[1:])
 	if err == nil && foundCmd.HasSubCommands() && len(innerArgs) > 0 {
-		argsWithoutFlags, err := stripFlags(innerArgs)
+		argsWithoutFlags, err := stripFlags(cmd, innerArgs)
 		if len(argsWithoutFlags) > 0 || err != nil {
 			return errors.Errorf("unknown sub-command '%s' for '%s'. Available sub-commands: %s", innerArgs[0], foundCmd.CommandPath(), strings.Join(root.ExtractSubCommandNames(foundCmd.Commands()), ", "))
 		}
@@ -190,7 +176,11 @@ func validateRootCommand(cmd *cobra.Command) error {
 // printError prints out any given error
 func printError(err error) {
 	fmt.Fprintf(os.Stderr, "Error: %s\n", cleanupErrorMessage(err.Error()))
-	fmt.Fprintf(os.Stderr, "Run '%s --help' for usage\n", extractCommandPathFromErrorMessage(err.Error(), os.Args[0]))
+	var runError *runError
+	if !errors.As(err, &runError) {
+		// Print help hint only if its not a runError occurred when executing a command
+		fmt.Fprintf(os.Stderr, "Run '%s --help' for usage\n", extractCommandPathFromErrorMessage(err.Error(), os.Args[0]))
+	}
 }
 
 // extractCommandPathFromErrorMessage tries to extract the command name from an error message

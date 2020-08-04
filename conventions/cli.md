@@ -114,7 +114,7 @@ string or a number. Such an option is allowed to be given only once. If given
 multiple times, an error should be thrown.
 
 A scalar flag's value can have an inner structure, too. For example
-`--sink svc:myservice` uses a prefix `svc:` to indicate the targeted sink is a
+`--sink ksvc:myservice` uses a prefix `ksvc:` to indicate the targeted sink is a
 Knative Service. A colon (`:`) should be used as separators if values have a
 structure.
 
@@ -160,10 +160,10 @@ Example:
 
 ```
 # Create an ApiServer source for listening on Pod and Job resource events
-kn source apiserver create mysrc --resource pod:v1 --resource job:batch/v1 --sink svc:mysvc
+kn source apiserver create mysrc --resource pod:v1 --resource job:batch/v1 --sink ksvc:mysvc
 
 # Same as above, but crammed into a single option
-kn source apiserver create mysrc --resource pod:v1,job:batch/v1 --sink svc:mysvc
+kn source apiserver create mysrc --resource pod:v1,job:batch/v1 --sink ksvc:mysvc
 ```
 
 #### Maps

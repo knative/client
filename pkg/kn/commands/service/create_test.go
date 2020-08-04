@@ -17,6 +17,9 @@ package service
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
@@ -510,7 +513,7 @@ func TestServiceCreateRequestsLimitsMemory(t *testing.T) {
 func TestServiceCreateMaxMinScale(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
-		"--min-scale", "1", "--max-scale", "5",
+		"--scale-min", "1", "--scale-max", "5",
 		"--concurrency-target", "10", "--concurrency-limit", "100",
 		"--concurrency-utilization", "50",
 		"--no-wait"}, false)
@@ -540,8 +543,78 @@ func TestServiceCreateMaxMinScale(t *testing.T) {
 	}
 
 	if *template.Spec.ContainerConcurrency != int64(100) {
-		t.Fatalf("container concurrency not set to given value 1000")
+		t.Fatalf("container concurrency not set to given value 100")
 	}
+}
+
+func TestServiceCreateScale(t *testing.T) {
+	action, created, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
+		"--scale", "5", "--no-wait"}, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("create", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template := &created.Spec.Template
+
+	actualAnnos := template.Annotations
+	expectedAnnos := []string{
+		"autoscaling.knative.dev/minScale", "5",
+		"autoscaling.knative.dev/maxScale", "5",
+	}
+
+	for i := 0; i < len(expectedAnnos); i += 2 {
+		anno := expectedAnnos[i]
+		if actualAnnos[anno] != expectedAnnos[i+1] {
+			t.Fatalf("Unexpected annotation value for %s : %s (actual) != %s (expected)",
+				anno, actualAnnos[anno], expectedAnnos[i+1])
+		}
+	}
+}
+
+func TestServiceCreateScaleWithNegativeValue(t *testing.T) {
+	_, _, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
+		"--scale", "-1", "--no-wait"}, true)
+	if err == nil {
+		t.Fatal(err)
+	}
+	expectedErrMsg := "expected 0 <= -1 <= 2147483647: autoscaling.knative.dev/maxScale"
+	if !strings.Contains(err.Error(), expectedErrMsg) {
+		t.Errorf("Invalid error output, expected: %s, got : '%s'", expectedErrMsg, err)
+	}
+
+}
+
+func TestServiceCreateScaleWithMaxScaleSet(t *testing.T) {
+	_, _, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
+		"--scale", "5", "--scale-max", "2", "--no-wait"}, true)
+	if err == nil {
+		t.Fatal(err)
+	}
+	expectedErrMsg := "only --scale or --scale-max can be specified"
+	if !strings.Contains(err.Error(), expectedErrMsg) {
+		t.Errorf("Invalid error output, expected: %s, got : '%s'", expectedErrMsg, err)
+	}
+
+}
+
+func TestServiceCreateScaleWithMinScaleSet(t *testing.T) {
+	_, _, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
+		"--scale", "5", "--scale-min", "2", "--no-wait"}, true)
+	if err == nil {
+		t.Fatal(err)
+	}
+	expectedErrMsg := "only --scale or --scale-min can be specified"
+	if !strings.Contains(err.Error(), expectedErrMsg) {
+		t.Errorf("Invalid error output, expected: %s, got : '%s'", expectedErrMsg, err)
+	}
+
 }
 
 func TestServiceCreateRequestsLimitsCPUMemory(t *testing.T) {
@@ -706,4 +779,279 @@ func TestServiceCreateWithClusterLocal(t *testing.T) {
 	if labelValue != serving.VisibilityClusterLocal {
 		t.Fatalf("Incorrect VisibilityClusterLocal value '%s'", labelValue)
 	}
+}
+
+var serviceYAML = `
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: foo
+spec:
+  template:
+    spec:
+      containers:
+        - image: gcr.io/foo/bar:baz
+          env:
+            - name: TARGET
+              value: "Go Sample v1"
+`
+
+var serviceJSON = `
+{
+  "apiVersion": "serving.knative.dev/v1",
+  "kind": "Service",
+  "metadata": {
+    "name": "foo"
+  },
+  "spec": {
+    "template": {
+		"spec": {
+		"containers": [
+			{
+			"image": "gcr.io/foo/bar:baz",
+			"env": [
+				{
+				"name": "TARGET",
+				"value": "Go Sample v1"
+				}
+			]
+		  }
+		]
+	  }
+	}
+  }
+}`
+
+func TestServiceCreateFromYAML(t *testing.T) {
+	tempDir, err := ioutil.TempDir("", "kn-file")
+	defer os.RemoveAll(tempDir)
+	assert.NilError(t, err)
+
+	tempFile := filepath.Join(tempDir, "service.yaml")
+	err = ioutil.WriteFile(tempFile, []byte(serviceYAML), os.FileMode(0666))
+	assert.NilError(t, err)
+
+	action, created, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--filename", tempFile}, false)
+	assert.NilError(t, err)
+	assert.Assert(t, action.Matches("create", "services"))
+
+	assert.Equal(t, created.Name, "foo")
+	assert.Equal(t, created.Spec.Template.Spec.GetContainer().Image, "gcr.io/foo/bar:baz")
+}
+
+func TestServiceCreateFromJSON(t *testing.T) {
+	tempDir, err := ioutil.TempDir("", "kn-file")
+	defer os.RemoveAll(tempDir)
+	assert.NilError(t, err)
+
+	tempFile := filepath.Join(tempDir, "service.json")
+	err = ioutil.WriteFile(tempFile, []byte(serviceJSON), os.FileMode(0666))
+	assert.NilError(t, err)
+
+	action, created, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--filename", tempFile}, false)
+	assert.NilError(t, err)
+	assert.Assert(t, action.Matches("create", "services"))
+
+	assert.Equal(t, created.Name, "foo")
+	assert.Equal(t, created.Spec.Template.Spec.GetContainer().Image, "gcr.io/foo/bar:baz")
+}
+
+func TestServiceCreateFromFileWithName(t *testing.T) {
+	tempDir, err := ioutil.TempDir("", "kn-file")
+	defer os.RemoveAll(tempDir)
+	assert.NilError(t, err)
+
+	tempFile := filepath.Join(tempDir, "service.yaml")
+	err = ioutil.WriteFile(tempFile, []byte(serviceYAML), os.FileMode(0666))
+	assert.NilError(t, err)
+
+	t.Log("no NAME param provided")
+	action, created, _, err := fakeServiceCreate([]string{
+		"service", "create", "--filename", tempFile}, false)
+	assert.NilError(t, err)
+	assert.Assert(t, action.Matches("create", "services"))
+
+	assert.Equal(t, created.Name, "foo")
+	assert.Equal(t, created.Spec.Template.Spec.GetContainer().Image, "gcr.io/foo/bar:baz")
+
+	t.Log("no service.Name provided in file")
+	err = ioutil.WriteFile(tempFile, []byte(strings.ReplaceAll(serviceYAML, "name: foo", "")), os.FileMode(0666))
+	assert.NilError(t, err)
+	action, created, _, err = fakeServiceCreate([]string{
+		"service", "create", "cli-foo", "--filename", tempFile}, false)
+	assert.NilError(t, err)
+	assert.Assert(t, action.Matches("create", "services"))
+
+	assert.Equal(t, created.Name, "cli-foo")
+	assert.Equal(t, created.Spec.Template.Spec.GetContainer().Image, "gcr.io/foo/bar:baz")
+}
+
+func TestServiceCreateFileNameMismatch(t *testing.T) {
+	tempDir, err := ioutil.TempDir("", "kn-file")
+	assert.NilError(t, err)
+
+	tempFile := filepath.Join(tempDir, "service.json")
+	err = ioutil.WriteFile(tempFile, []byte(serviceJSON), os.FileMode(0666))
+	assert.NilError(t, err)
+
+	t.Log("NAME param nad service.Name differ")
+	_, _, _, err = fakeServiceCreate([]string{
+		"service", "create", "anotherFoo", "--filename", tempFile}, false)
+	assert.Assert(t, err != nil)
+	assert.Assert(t, util.ContainsAllIgnoreCase(err.Error(), "provided", "'anotherFoo'", "name", "match", "from", "file", "'foo'"))
+
+	t.Log("no NAME param & no service.Name provided in file")
+	err = ioutil.WriteFile(tempFile, []byte(strings.ReplaceAll(serviceYAML, "name: foo", "")), os.FileMode(0666))
+	assert.NilError(t, err)
+	_, _, _, err = fakeServiceCreate([]string{
+		"service", "create", "--filename", tempFile}, false)
+	assert.Assert(t, err != nil)
+	assert.Assert(t, util.ContainsAllIgnoreCase(err.Error(), "no", "service", "name", "provided", "parameter", "file"))
+}
+
+func TestServiceCreateFileError(t *testing.T) {
+	_, _, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--filename", "filepath"}, false)
+
+	assert.Assert(t, util.ContainsAll(err.Error(), "no", "such", "file", "directory", "filepath"))
+}
+
+func TestServiceCreateInvalidDataJSON(t *testing.T) {
+	tempDir, err := ioutil.TempDir("", "kn-file")
+	defer os.RemoveAll(tempDir)
+	assert.NilError(t, err)
+	tempFile := filepath.Join(tempDir, "invalid.json")
+
+	// Double curly bracket at the beginning of file
+	invalidData := strings.Replace(serviceJSON, "{\n", "{{\n", 1)
+	err = ioutil.WriteFile(tempFile, []byte(invalidData), os.FileMode(0666))
+	assert.NilError(t, err)
+	_, _, _, err = fakeServiceCreate([]string{"service", "create", "foo", "--filename", tempFile}, false)
+	assert.Assert(t, util.ContainsAll(err.Error(), "invalid", "character", "'{'", "beginning"))
+
+	// Remove closing quote on key
+	invalidData = strings.Replace(serviceJSON, "metadata\"", "metadata", 1)
+	err = ioutil.WriteFile(tempFile, []byte(invalidData), os.FileMode(0666))
+	assert.NilError(t, err)
+	_, _, _, err = fakeServiceCreate([]string{"service", "create", "foo", "--filename", tempFile}, false)
+	assert.Assert(t, util.ContainsAll(err.Error(), "invalid", "character", "'\\n'", "string", "literal"))
+
+	// Remove opening square bracket
+	invalidData = strings.Replace(serviceJSON, " [", "", 1)
+	err = ioutil.WriteFile(tempFile, []byte(invalidData), os.FileMode(0666))
+	assert.NilError(t, err)
+	_, _, _, err = fakeServiceCreate([]string{"service", "create", "foo", "--filename", tempFile}, false)
+	assert.Assert(t, util.ContainsAll(err.Error(), "invalid", "character", "']'", "after", "key:value"))
+}
+
+func TestServiceCreateInvalidDataYAML(t *testing.T) {
+	tempDir, err := ioutil.TempDir("", "kn-file")
+	defer os.RemoveAll(tempDir)
+	assert.NilError(t, err)
+	tempFile := filepath.Join(tempDir, "invalid.yaml")
+
+	// Remove dash
+	invalidData := strings.Replace(serviceYAML, "- image", "image", 1)
+	err = ioutil.WriteFile(tempFile, []byte(invalidData), os.FileMode(0666))
+	assert.NilError(t, err)
+	_, _, _, err = fakeServiceCreate([]string{"service", "create", "foo", "--filename", tempFile}, false)
+	assert.Assert(t, util.ContainsAll(err.Error(), "mapping", "values", "not", "allowed"))
+
+	// Remove name key
+	invalidData = strings.Replace(serviceYAML, "name:", "", 1)
+	err = ioutil.WriteFile(tempFile, []byte(invalidData), os.FileMode(0666))
+	assert.NilError(t, err)
+	_, _, _, err = fakeServiceCreate([]string{"service", "create", "foo", "--filename", tempFile}, false)
+	assert.Assert(t, util.ContainsAll(err.Error(), "cannot", "unmarshal", "Go", "struct", "Service.metadata"))
+
+	// Remove opening square bracket
+	invalidData = strings.Replace(serviceYAML, "env", "\tenv", 1)
+	err = ioutil.WriteFile(tempFile, []byte(invalidData), os.FileMode(0666))
+	assert.NilError(t, err)
+	_, _, _, err = fakeServiceCreate([]string{"service", "create", "foo", "--filename", tempFile}, false)
+	assert.Assert(t, util.ContainsAll(err.Error(), "found", "tab", "violates", "indentation"))
+}
+
+func TestServiceCreateFromYAMLWithOverride(t *testing.T) {
+	tempDir, err := ioutil.TempDir("", "kn-file")
+	defer os.RemoveAll(tempDir)
+	assert.NilError(t, err)
+
+	tempFile := filepath.Join(tempDir, "service.yaml")
+	err = ioutil.WriteFile(tempFile, []byte(serviceYAML), os.FileMode(0666))
+	assert.NilError(t, err)
+	// Merge env vars
+	expectedEnvVars := map[string]string{
+		"TARGET": "Go Sample v1",
+		"FOO":    "BAR"}
+	action, created, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--filename", tempFile, "--env", "FOO=BAR"}, false)
+	assert.NilError(t, err)
+	assert.Assert(t, action.Matches("create", "services"))
+	assert.Equal(t, created.Name, "foo")
+
+	actualEnvVar, err := servinglib.EnvToMap(created.Spec.Template.Spec.GetContainer().Env)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, actualEnvVar, expectedEnvVars)
+
+	// Override env vars
+	expectedEnvVars = map[string]string{
+		"TARGET": "FOOBAR",
+		"FOO":    "BAR"}
+	action, created, _, err = fakeServiceCreate([]string{
+		"service", "create", "foo", "--filename", tempFile, "--env", "TARGET=FOOBAR", "--env", "FOO=BAR"}, false)
+	assert.NilError(t, err)
+	assert.Assert(t, action.Matches("create", "services"))
+	assert.Equal(t, created.Name, "foo")
+
+	actualEnvVar, err = servinglib.EnvToMap(created.Spec.Template.Spec.GetContainer().Env)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, actualEnvVar, expectedEnvVars)
+
+	// Remove existing env vars
+	expectedEnvVars = map[string]string{
+		"FOO": "BAR"}
+	action, created, _, err = fakeServiceCreate([]string{
+		"service", "create", "foo", "--filename", tempFile, "--env", "TARGET-", "--env", "FOO=BAR"}, false)
+	assert.NilError(t, err)
+	assert.Assert(t, action.Matches("create", "services"))
+	assert.Equal(t, created.Name, "foo")
+
+	actualEnvVar, err = servinglib.EnvToMap(created.Spec.Template.Spec.GetContainer().Env)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, actualEnvVar, expectedEnvVars)
+
+	// Multiple edit flags
+	expectedAnnotations := map[string]string{
+		"foo": "bar"}
+	action, created, _, err = fakeServiceCreate([]string{"service", "create", "foo", "--filename", tempFile,
+		"--service-account", "foo", "--cmd", "/foo/bar", "-a", "foo=bar"}, false)
+	assert.NilError(t, err)
+	assert.Assert(t, action.Matches("create", "services"))
+	assert.Equal(t, created.Name, "foo")
+	assert.DeepEqual(t, created.Spec.Template.Spec.GetContainer().Command, []string{"/foo/bar"})
+	assert.Equal(t, created.Spec.Template.Spec.ServiceAccountName, "foo")
+	assert.DeepEqual(t, created.ObjectMeta.Annotations, expectedAnnotations)
+}
+
+func TestServiceCreateFromYAMLWithOverrideError(t *testing.T) {
+	tempDir, err := ioutil.TempDir("", "kn-file")
+	defer os.RemoveAll(tempDir)
+	assert.NilError(t, err)
+
+	tempFile := filepath.Join(tempDir, "service.yaml")
+	err = ioutil.WriteFile(tempFile, []byte(serviceYAML), os.FileMode(0666))
+	assert.NilError(t, err)
+
+	_, _, _, err = fakeServiceCreate([]string{
+		"service", "create", "foo", "--filename", tempFile, "--image", "foo/bar", "--image", "bar/foo"}, false)
+	assert.Assert(t, err != nil)
+	assert.Assert(t, util.ContainsAll(err.Error(), "\"--image\"", "invalid", "argument", "only", "once"))
+
+	_, _, _, err = fakeServiceCreate([]string{
+		"service", "create", "foo", "--filename", tempFile, "--scale", "-1"}, false)
+	assert.Assert(t, err != nil)
+	assert.Assert(t, util.ContainsAll(err.Error(), "expected", "0", "<=", "2147483647", "autoscaling.knative.dev/maxScale"))
 }

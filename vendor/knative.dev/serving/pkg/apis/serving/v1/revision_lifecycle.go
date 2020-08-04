@@ -62,9 +62,20 @@ func (r *Revision) GetGroupVersionKind() schema.GroupVersionKind {
 	return SchemeGroupVersion.WithKind("Revision")
 }
 
-// IsReady returns if the revision is ready to serve the requested configuration.
-func (rs *RevisionStatus) IsReady() bool {
-	return revisionCondSet.Manage(rs).IsHappy()
+// IsReady returns true if the Status condition RevisionConditionReady
+// is true and the latest spec has been observed.
+func (r *Revision) IsReady() bool {
+	rs := r.Status
+	return rs.ObservedGeneration == r.Generation &&
+		rs.GetCondition(RevisionConditionReady).IsTrue()
+}
+
+// IsFailed returns true if the resource has observed the latest generation
+// and ready is false.
+func (r *Revision) IsFailed() bool {
+	rs := r.Status
+	return rs.ObservedGeneration == r.Generation &&
+		rs.GetCondition(RevisionConditionReady).IsFalse()
 }
 
 // GetContainerConcurrency returns the container concurrency. If
@@ -160,6 +171,13 @@ func (rs *RevisionStatus) PropagateAutoscalerStatus(ps *av1alpha1.PodAutoscalerS
 		return
 	}
 
+	if ps.IsScaleTargetInitialized() {
+		// Precondition for PA being initialized is SKS being active and
+		// that implies that |service.endpoints| > 0.
+		rs.MarkResourcesAvailableTrue()
+		rs.MarkContainerHealthyTrue()
+	}
+
 	switch cond.Status {
 	case corev1.ConditionUnknown:
 		rs.MarkActiveUnknown(cond.Reason, cond.Message)
@@ -169,7 +187,10 @@ func (rs *RevisionStatus) PropagateAutoscalerStatus(ps *av1alpha1.PodAutoscalerS
 		rs.MarkActiveTrue()
 
 		// Precondition for PA being active is SKS being active and
-		// that entices that |service.endpoints| > 0.
+		// that implies that |service.endpoints| > 0.
+		//
+		// Note: This is needed for backwards compatibility as we're adding the new
+		// ScaleTargetInitialized condition to gate readiness.
 		rs.MarkResourcesAvailableTrue()
 		rs.MarkContainerHealthyTrue()
 	}

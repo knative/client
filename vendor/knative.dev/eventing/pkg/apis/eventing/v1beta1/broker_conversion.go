@@ -20,15 +20,48 @@ import (
 	"context"
 	"fmt"
 
+	duckv1 "knative.dev/eventing/pkg/apis/duck/v1"
+	duckv1beta1 "knative.dev/eventing/pkg/apis/duck/v1beta1"
+	v1 "knative.dev/eventing/pkg/apis/eventing/v1"
 	"knative.dev/pkg/apis"
 )
 
 // ConvertTo implements apis.Convertible
-func (source *Broker) ConvertTo(ctx context.Context, sink apis.Convertible) error {
-	return fmt.Errorf("v1beta1 is the highest known version, got: %T", sink)
+func (source *Broker) ConvertTo(ctx context.Context, to apis.Convertible) error {
+	switch sink := to.(type) {
+	case *v1.Broker:
+		sink.ObjectMeta = source.ObjectMeta
+		sink.Spec.Config = source.Spec.Config
+		if source.Spec.Delivery != nil {
+			sink.Spec.Delivery = &duckv1.DeliverySpec{}
+			if err := source.Spec.Delivery.ConvertTo(ctx, sink.Spec.Delivery); err != nil {
+				return err
+			}
+		}
+		sink.Status.Status = source.Status.Status
+		sink.Status.Address = source.Status.Address
+		return nil
+	default:
+		return fmt.Errorf("unknown version, got: %T", sink)
+	}
 }
 
 // ConvertFrom implements apis.Convertible
-func (sink *Broker) ConvertFrom(ctx context.Context, source apis.Convertible) error {
-	return fmt.Errorf("v1beta1 is the highest known version, got: %T", source)
+func (sink *Broker) ConvertFrom(ctx context.Context, from apis.Convertible) error {
+	switch source := from.(type) {
+	case *v1.Broker:
+		sink.ObjectMeta = source.ObjectMeta
+		sink.Spec.Config = source.Spec.Config
+		if source.Spec.Delivery != nil {
+			sink.Spec.Delivery = &duckv1beta1.DeliverySpec{}
+			if err := sink.Spec.Delivery.ConvertFrom(ctx, source.Spec.Delivery); err != nil {
+				return err
+			}
+		}
+		sink.Status.Status = source.Status.Status
+		sink.Status.Address = source.Status.Address
+		return nil
+	default:
+		return fmt.Errorf("unknown version, got: %T", source)
+	}
 }

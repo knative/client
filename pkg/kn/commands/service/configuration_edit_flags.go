@@ -45,13 +45,14 @@ type ConfigurationEditFlags struct {
 
 	RequestsFlags, LimitsFlags ResourceFlags // TODO: Flag marked deprecated in release v0.15.0, remove in release v0.18.0
 	Resources                  knflags.ResourceOptions
+	Scale                      int
 	MinScale                   int
 	MaxScale                   int
 	ConcurrencyTarget          int
 	ConcurrencyLimit           int
 	ConcurrencyUtilization     int
 	AutoscaleWindow            string
-	Port                       int32
+	Port                       string
 	Labels                     []string
 	LabelsService              []string
 	LabelsRevision             []string
@@ -67,6 +68,8 @@ type ConfigurationEditFlags struct {
 	LockToDigest         bool
 	GenerateRevisionName bool
 	ForceCreate          bool
+
+	Filename string
 
 	// Bookkeeping
 	flags []string
@@ -180,10 +183,21 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	p.markFlagMakesRevision("limits-memory")
 
 	command.Flags().IntVar(&p.MinScale, "min-scale", 0, "Minimal number of replicas.")
+	command.Flags().MarkHidden("min-scale")
 	p.markFlagMakesRevision("min-scale")
 
 	command.Flags().IntVar(&p.MaxScale, "max-scale", 0, "Maximal number of replicas.")
+	command.Flags().MarkHidden("max-scale")
 	p.markFlagMakesRevision("max-scale")
+
+	command.Flags().IntVar(&p.Scale, "scale", 0, "Minimum and maximum number of replicas.")
+	p.markFlagMakesRevision("scale")
+
+	command.Flags().IntVar(&p.MinScale, "scale-min", 0, "Minimum number of replicas.")
+	p.markFlagMakesRevision("scale-min")
+
+	command.Flags().IntVar(&p.MaxScale, "scale-max", 0, "Maximum number of replicas.")
+	p.markFlagMakesRevision("scale-max")
 
 	command.Flags().StringVar(&p.AutoscaleWindow, "autoscale-window", "", "Duration to look back for making auto-scaling decisions. The service is scaled to zero if no request was received in during that time. (eg: 10s)")
 	p.markFlagMakesRevision("autoscale-window")
@@ -207,7 +221,7 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 		"Percentage of concurrent requests utilization before scaling up.")
 	p.markFlagMakesRevision("concurrency-utilization")
 
-	command.Flags().Int32VarP(&p.Port, "port", "p", 0, "The port where application listens on.")
+	command.Flags().StringVarP(&p.Port, "port", "p", "", "The port where application listens on, in the format 'NAME:PORT', where 'NAME' is optional. Examples: '--port h2c:8080' , '--port 8080'.")
 	p.markFlagMakesRevision("port")
 
 	command.Flags().StringArrayVarP(&p.Labels, "label", "l", []string{},
@@ -272,7 +286,11 @@ func (p *ConfigurationEditFlags) AddCreateFlags(command *cobra.Command) {
 	p.addSharedFlags(command)
 	command.Flags().BoolVar(&p.ForceCreate, "force", false,
 		"Create service forcefully, replaces existing service if any.")
-	command.MarkFlagRequired("image")
+	command.Flags().StringVarP(&p.Filename, "filename", "f", "", "Create a service from file. "+
+		"The created service can be further modified by combining with other options. "+
+		"For example, -f /path/to/file --env NAME=value adds also an environment variable.")
+	command.MarkFlagFilename("filename")
+	p.markFlagMakesRevision("filename")
 }
 
 // Apply mutates the given service according to the flags in the command.
@@ -420,17 +438,34 @@ func (p *ConfigurationEditFlags) Apply(
 		}
 	}
 
-	if cmd.Flags().Changed("min-scale") {
+	if cmd.Flags().Changed("scale-min") {
 		err = servinglib.UpdateMinScale(template, p.MinScale)
 		if err != nil {
 			return err
 		}
 	}
 
-	if cmd.Flags().Changed("max-scale") {
+	if cmd.Flags().Changed("scale-max") {
 		err = servinglib.UpdateMaxScale(template, p.MaxScale)
 		if err != nil {
 			return err
+		}
+	}
+
+	if cmd.Flags().Changed("scale") {
+		if cmd.Flags().Changed("scale-max") {
+			return fmt.Errorf("only --scale or --scale-max can be specified")
+		} else if cmd.Flags().Changed("scale-min") {
+			return fmt.Errorf("only --scale or --scale-min can be specified")
+		} else {
+			err = servinglib.UpdateMaxScale(template, p.Scale)
+			if err != nil {
+				return err
+			}
+			err = servinglib.UpdateMinScale(template, p.Scale)
+			if err != nil {
+				return err
+			}
 		}
 	}
 

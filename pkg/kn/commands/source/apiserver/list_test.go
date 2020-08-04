@@ -38,7 +38,7 @@ func TestListAPIServerSource(t *testing.T) {
 	out, err := executeAPIServerSourceCommand(apiServerClient, nil, "list")
 	assert.NilError(t, err, "sources should be listed")
 	assert.Assert(t, util.ContainsAll(out, "NAME", "RESOURCES", "SINK", "AGE", "CONDITIONS", "READY", "REASON"))
-	assert.Assert(t, util.ContainsAll(out, "testsource", "Event:v1", "svc:testsvc"))
+	assert.Assert(t, util.ContainsAll(out, "testsource", "Event:v1", "ksvc:testsvc"))
 
 	apiServerRecorder.Validate()
 }

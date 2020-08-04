@@ -80,7 +80,7 @@ func TestBrokerTrigger(t *testing.T) {
 // Private functions
 
 func triggerCreate(r *test.KnRunResultCollector, name string, sinksvc string, filters []string) {
-	args := []string{"trigger", "create", name, "--broker", "default", "--sink", "svc:" + sinksvc}
+	args := []string{"trigger", "create", name, "--broker", "default", "--sink", "ksvc:" + sinksvc}
 	if len(filters) > 0 {
 		for _, v := range filters {
 			args = append(args, "--filter", v)
@@ -92,7 +92,7 @@ func triggerCreate(r *test.KnRunResultCollector, name string, sinksvc string, fi
 }
 
 func triggerCreateMissingSink(r *test.KnRunResultCollector, name string, sinksvc string) {
-	out := r.KnTest().Kn().Run("trigger", "create", name, "--broker", "default", "--sink", "svc:"+sinksvc)
+	out := r.KnTest().Kn().Run("trigger", "create", name, "--broker", "default", "--sink", "ksvc:"+sinksvc)
 	r.AssertError(out)
 	assert.Check(r.T(), util.ContainsAll(out.Stderr, "services.serving.knative.dev", "not found"))
 }
@@ -104,7 +104,7 @@ func triggerDelete(r *test.KnRunResultCollector, name string) {
 }
 
 func triggerUpdate(r *test.KnRunResultCollector, name string, filter string, sinksvc string) {
-	out := r.KnTest().Kn().Run("trigger", "update", name, "--filter", filter, "--sink", "svc:"+sinksvc)
+	out := r.KnTest().Kn().Run("trigger", "update", name, "--filter", filter, "--sink", "ksvc:"+sinksvc)
 	r.AssertNoError(out)
 	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "Trigger", name, "updated", "namespace", r.KnTest().Kn().Namespace()))
 }

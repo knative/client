@@ -5,29 +5,25 @@ go 1.14
 require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pkg/errors v0.9.1
-	github.com/spf13/cobra v0.0.6
+	github.com/spf13/cobra v1.0.1-0.20200715031239-b95db644ed1c
 	github.com/spf13/pflag v1.0.5
-	github.com/spf13/viper v1.6.2
-	golang.org/x/crypto v0.0.0-20200302210943-78000ba7a073
+	github.com/spf13/viper v1.7.0
+	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899
 	gotest.tools v2.2.0+incompatible
-	k8s.io/api v0.17.6
-	k8s.io/apimachinery v0.17.6
+	k8s.io/api v0.18.1
+	k8s.io/apimachinery v0.18.6
 	k8s.io/cli-runtime v0.17.6
 	k8s.io/client-go v11.0.1-0.20190805182717-6502b5e7b1b5+incompatible
 	k8s.io/code-generator v0.18.0
-	knative.dev/eventing v0.15.1-0.20200608083719-c024353a712c
-	knative.dev/pkg v0.0.0-20200606224418-7ed1d4a552bc
-	knative.dev/serving v0.15.1-0.20200608114919-92e849c1db9c
+	knative.dev/eventing v0.16.1-0.20200724032657-8d83431c07bd
+	knative.dev/pkg v0.0.0-20200724211057-f21f66204a5c
+	knative.dev/serving v0.16.1-0.20200724203457-1517b1735305
 	sigs.k8s.io/yaml v1.2.0
 )
 
 // Temporary pinning certain libraries. Please check periodically, whether these are still needed
 // ----------------------------------------------------------------------------------------------
-
-// Fix for `[` in help messages and shell completion code
-// See https://github.com/spf13/cobra/pull/899
 replace (
-	github.com/spf13/cobra => github.com/chmouel/cobra v0.0.0-20191021105835-a78788917390
 	k8s.io/api => k8s.io/api v0.17.6
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.17.6
 	k8s.io/apimachinery => k8s.io/apimachinery v0.17.6

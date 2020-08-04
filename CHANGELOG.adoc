@@ -18,25 +18,89 @@
 |===
 | | Description | PR
 
+| 🐣
+| Allow the kn test image to be customized via environment variable
+| https://github.com/knative/client/pull/957[#957]
+
+| 🎁
+| Add support to combine service create --filename with other options
+| https://github.com/knative/client/pull/937[#937]
+
+| 🎁
+| Fix Missing NAMESPACE column header for 'kn source list -A'
+| https://github.com/knative/client/pull/951[#951]
+
 | 🐛
-| Fix panic for `kn source apiserver` and `kn source binding` describe with Sink URI
+| Fix exit code for `kn service delete` failures
+| https://github.com/knative/client/pull/971[#971]
+
+|===
+
+## v0.16.0 (2020-07-14)
+
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🎁
+| Add available plugins to help messages
+| https://github.com/knative/client/pull/929[#929]
+
+| 🎁
+| Add E2E test cases for `kn source list`
+| https://github.com/knative/client/pull/924[#924]
+
+| 🎁
+| Add sugar controller to E2E tests
+| https://github.com/knative/client/pull/920[#920]
+
+| 🎁
+| Add "url" output format to return service url in service describe
+| https://github.com/knative/client/pull/916[#916]
+
+| 🐣
+| Refactor port field to accept port name and port
+| https://github.com/knative/client/pull/915[#915]
+
+| 🎁
+| Add `--scale` for setting `--min-scale` and `--max-scale` to the same value
+| https://github.com/knative/client/pull/914[#914]
+
+| 🎁
+| Add `--filename` flag to `service create` command
+| https://github.com/knative/client/pull/913[#913]
+
+| ✨
+| Find sink and ready conditions for untyped sources
+| https://github.com/knative/client/pull/911[#911]
+
+| 🐛
+| Add mandatory ``--sink` to PingSource command's name
+| https://github.com/knative/client/pull/903[#903]
+
+| 🐛
+| Fix panic for `kn source apiserver` and `kn source binding` describe with sink URI
 | https://github.com/knative/client/pull/901[#901]
 
 | 🐛
-| Fix Panic for `kn trigger describe` with Sink URI
+| Fix panic for `kn trigger describe` with sink URI
 | https://github.com/knative/client/pull/900[#900]
+
+| ✨
+| New sink prefix "ksvc" and drop support for "svc", "service" prefixes for knative service
+| https://github.com/knative/client/pull/896[#896]
+
+| 🎁
+| Add CRUD commands to manage Broker resource
+| https://github.com/knative/client/pull/894[#894]
 
 | 🎁
 | Group commands in usage output with `kn --help`
 | https://github.com/knative/client/pull/887[#887]
 
 | 🎁
-| Add commands to manage Broker resource
-| https://github.com/knative/client/pull/894[#894]
-
-| 🐛
-| Fix exit code for `kn service delete` failures
-| https://github.com/knative/client/pull/971[#971]
+| Add `kn export` type `Export`
+| https://github.com/knative/client/pull/866[#856]
 |===
 
 ## v0.15.2 (2020-06-16)

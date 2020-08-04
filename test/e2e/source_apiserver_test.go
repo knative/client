@@ -53,15 +53,15 @@ func TestSourceApiServer(t *testing.T) {
 	test.ServiceCreate(r, "testsvc0")
 
 	t.Log("create apiserver sources with a sink to a service")
-	apiServerSourceCreate(r, "testapisource0", "Event:v1:key1=value1", "testsa", "svc:testsvc0")
-	apiServerSourceCreate(r, "testapisource1", "Event:v1", "testsa", "svc:testsvc0")
+	apiServerSourceCreate(r, "testapisource0", "Event:v1:key1=value1", "testsa", "ksvc:testsvc0")
+	apiServerSourceCreate(r, "testapisource1", "Event:v1", "testsa", "ksvc:testsvc0")
 	apiServerSourceListOutputName(r, "testapisource0", "testapisource1")
 
 	t.Log("list sources")
 	output := sourceList(r)
 	assert.Check(t, util.ContainsAll(output, "NAME", "TYPE", "RESOURCE", "SINK", "READY"))
-	assert.Check(t, util.ContainsAll(output, "testapisource0", "ApiServerSource", "apiserversources.sources.knative.dev", "svc:testsvc0"))
-	assert.Check(t, util.ContainsAll(output, "testapisource1", "ApiServerSource", "apiserversources.sources.knative.dev", "svc:testsvc0"))
+	assert.Check(t, util.ContainsAll(output, "testapisource0", "ApiServerSource", "apiserversources.sources.knative.dev", "ksvc:testsvc0"))
+	assert.Check(t, util.ContainsAll(output, "testapisource1", "ApiServerSource", "apiserversources.sources.knative.dev", "ksvc:testsvc0"))
 
 	t.Log("list sources in YAML format")
 	output = sourceList(r, "-oyaml")
@@ -72,12 +72,12 @@ func TestSourceApiServer(t *testing.T) {
 	apiServerSourceDelete(r, "testapisource1")
 
 	t.Log("create apiserver source with a missing sink service")
-	apiServerSourceCreateMissingSink(r, "testapisource2", "Event:v1", "testsa", "svc:unknown")
+	apiServerSourceCreateMissingSink(r, "testapisource2", "Event:v1", "testsa", "ksvc:unknown")
 
 	t.Log("update apiserver source sink service")
-	apiServerSourceCreate(r, "testapisource3", "Event:v1", "testsa", "svc:testsvc0")
+	apiServerSourceCreate(r, "testapisource3", "Event:v1", "testsa", "ksvc:testsvc0")
 	test.ServiceCreate(r, "testsvc1")
-	apiServerSourceUpdateSink(r, "testapisource3", "svc:testsvc1")
+	apiServerSourceUpdateSink(r, "testapisource3", "ksvc:testsvc1")
 	jpSinkRefNameInSpec := "jsonpath={.spec.sink.ref.name}"
 	out, err := test.GetResourceFieldsWithJSONPath(t, it, "apiserversource.sources.knative.dev", "testapisource3", jpSinkRefNameInSpec)
 	assert.NilError(t, err)

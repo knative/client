@@ -51,13 +51,13 @@ func TestInjectBrokerTrigger(t *testing.T) {
 
 	t.Log("create trigger with error")
 	out := it.Kn().Run("trigger", "create", "errorTrigger", "--broker", "mybroker", "--inject-broker",
-		"--sink", "svc:sinksvc0", "--filter", "a=b")
+		"--sink", "ksvc:sinksvc0", "--filter", "a=b")
 	r.AssertError(out)
 	assert.Check(t, util.ContainsAllIgnoreCase(out.Stderr, "broker", "name", "'default'", "--inject-broker", "flag"))
 }
 
 func triggerCreateWithInject(r *test.KnRunResultCollector, name string, sinksvc string, filters []string) {
-	args := []string{"trigger", "create", name, "--broker", "default", "--inject-broker", "--sink", "svc:" + sinksvc}
+	args := []string{"trigger", "create", name, "--broker", "default", "--inject-broker", "--sink", "ksvc:" + sinksvc}
 	for _, v := range filters {
 		args = append(args, "--filter", v)
 	}

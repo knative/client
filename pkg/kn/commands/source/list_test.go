@@ -23,6 +23,8 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 
+	dynamicfake "k8s.io/client-go/dynamic/fake"
+	clientdynamic "knative.dev/client/pkg/dynamic"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/util"
 )
@@ -51,6 +53,12 @@ func sourceFakeCmd(args []string, objects ...runtime.Object) (output []string, e
 	return
 }
 
+func TestSourceListTypesNoSourcesInstalled(t *testing.T) {
+	_, err := sourceFakeCmd([]string{"source", "list-types"})
+	assert.Check(t, err != nil)
+	assert.Check(t, util.ContainsAll(err.Error(), "no sources", "found", "backend", "verify", "installation"))
+}
+
 func TestSourceListTypes(t *testing.T) {
 	output, err := sourceFakeCmd([]string{"source", "list-types"},
 		newSourceCRDObjWithSpec("pingsources", "sources.knative.dev", "v1alpha1", "PingSource"),
@@ -71,6 +79,20 @@ func TestSourceListTypesNoHeaders(t *testing.T) {
 	assert.Check(t, util.ContainsAll(output[0], "PingSource"))
 }
 
+func TestListBuiltInSourceTypes(t *testing.T) {
+	fakeDynamic := dynamicfake.NewSimpleDynamicClient(runtime.NewScheme())
+	sources, err := listBuiltInSourceTypes(clientdynamic.NewKnDynamicClient(fakeDynamic, "current"))
+	assert.NilError(t, err)
+	assert.Check(t, sources != nil)
+	assert.Equal(t, len(sources.Items), 4)
+}
+
+func TestSourceListNoSourcesInstalled(t *testing.T) {
+	_, err := sourceFakeCmd([]string{"source", "list"})
+	assert.Check(t, err != nil)
+	assert.Check(t, util.ContainsAll(err.Error(), "no sources", "found", "backend", "verify", "installation"))
+}
+
 func TestSourceList(t *testing.T) {
 	output, err := sourceFakeCmd([]string{"source", "list"},
 		newSourceCRDObjWithSpec("pingsources", "sources.knative.dev", "v1alpha1", "PingSource"),
@@ -82,9 +104,9 @@ func TestSourceList(t *testing.T) {
 	)
 	assert.NilError(t, err)
 	assert.Check(t, util.ContainsAll(output[0], "NAME", "TYPE", "RESOURCE", "SINK", "READY"))
-	assert.Check(t, util.ContainsAll(output[1], "a1", "ApiServerSource", "apiserversources.sources.knative.dev", "svc:foo", "True"))
-	assert.Check(t, util.ContainsAll(output[2], "p1", "PingSource", "pingsources.sources.knative.dev", "svc:foo", "True"))
-	assert.Check(t, util.ContainsAll(output[3], "s1", "SinkBinding", "sinkbindings.sources.knative.dev", "svc:foo", "True"))
+	assert.Check(t, util.ContainsAll(output[1], "a1", "ApiServerSource", "apiserversources.sources.knative.dev", "ksvc:foo", "True"))
+	assert.Check(t, util.ContainsAll(output[2], "p1", "PingSource", "pingsources.sources.knative.dev", "ksvc:foo", "True"))
+	assert.Check(t, util.ContainsAll(output[3], "s1", "SinkBinding", "sinkbindings.sources.knative.dev", "ksvc:foo", "True"))
 }
 
 func TestSourceListUntyped(t *testing.T) {
@@ -95,8 +117,8 @@ func TestSourceListUntyped(t *testing.T) {
 	)
 	assert.NilError(t, err)
 	assert.Check(t, util.ContainsAll(output[0], "NAME", "TYPE", "RESOURCE", "SINK", "READY"))
-	assert.Check(t, util.ContainsAll(output[1], "k1", "KafkaSource", "kafkasources.sources.knative.dev", "svc:foo", "True"))
-	assert.Check(t, util.ContainsAll(output[2], "k2", "KafkaSource", "kafkasources.sources.knative.dev", "svc:foo", "True"))
+	assert.Check(t, util.ContainsAll(output[1], "k1", "KafkaSource", "kafkasources.sources.knative.dev", "ksvc:foo", "True"))
+	assert.Check(t, util.ContainsAll(output[2], "k2", "KafkaSource", "kafkasources.sources.knative.dev", "ksvc:foo", "True"))
 }
 
 func TestSourceListNoHeaders(t *testing.T) {
@@ -159,4 +181,20 @@ func newSourceUnstructuredObj(name, apiVersion, kind string) *unstructured.Unstr
 			},
 		},
 	}
+}
+
+func TestSourceListAllNamespace(t *testing.T) {
+	output, err := sourceFakeCmd([]string{"source", "list", "--all-namespaces"},
+		newSourceCRDObjWithSpec("pingsources", "sources.knative.dev", "v1alpha1", "PingSource"),
+		newSourceCRDObjWithSpec("sinkbindings", "sources.knative.dev", "v1alpha1", "SinkBinding"),
+		newSourceCRDObjWithSpec("apiserversources", "sources.knative.dev", "v1alpha1", "ApiServerSource"),
+		newSourceUnstructuredObj("p1", "sources.knative.dev/v1alpha1", "PingSource"),
+		newSourceUnstructuredObj("s1", "sources.knative.dev/v1alpha1", "SinkBinding"),
+		newSourceUnstructuredObj("a1", "sources.knative.dev/v1alpha1", "ApiServerSource"),
+	)
+	assert.NilError(t, err)
+	assert.Check(t, util.ContainsAll(output[0], "NAMESPACE", "NAME", "TYPE", "RESOURCE", "SINK", "READY"))
+	assert.Check(t, util.ContainsAll(output[1], "current", "a1", "ApiServerSource", "apiserversources.sources.knative.dev", "ksvc:foo", "True"))
+	assert.Check(t, util.ContainsAll(output[2], "current", "p1", "PingSource", "pingsources.sources.knative.dev", "ksvc:foo", "True"))
+	assert.Check(t, util.ContainsAll(output[3], "current", "s1", "SinkBinding", "sinkbindings.sources.knative.dev", "ksvc:foo", "True"))
 }

@@ -72,7 +72,7 @@ func TestService(t *testing.T) {
 
 func serviceCreatePrivate(r *test.KnRunResultCollector, serviceName string) {
 	out := r.KnTest().Kn().Run("service", "create", serviceName,
-		"--image", test.KnDefaultTestImage, "--cluster-local")
+		"--image", test.GetKnTestImage(), "--cluster-local")
 	r.AssertNoError(out)
 	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "service", serviceName, "creating", "namespace", r.KnTest().Kn().Namespace(), "ready"))
 
@@ -83,7 +83,7 @@ func serviceCreatePrivate(r *test.KnRunResultCollector, serviceName string) {
 
 func serviceCreatePrivateUpdatePublic(r *test.KnRunResultCollector, serviceName string) {
 	out := r.KnTest().Kn().Run("service", "create", serviceName,
-		"--image", test.KnDefaultTestImage, "--cluster-local")
+		"--image", test.GetKnTestImage(), "--cluster-local")
 	r.AssertNoError(out)
 	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "service", serviceName, "creating", "namespace", r.KnTest().Kn().Namespace(), "ready"))
 
@@ -92,7 +92,7 @@ func serviceCreatePrivateUpdatePublic(r *test.KnRunResultCollector, serviceName 
 	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, serving.VisibilityLabelKey, serving.VisibilityClusterLocal))
 
 	out = r.KnTest().Kn().Run("service", "update", serviceName,
-		"--image", test.KnDefaultTestImage, "--no-cluster-local")
+		"--image", test.GetKnTestImage(), "--no-cluster-local")
 	r.AssertNoError(out)
 	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "service", serviceName, "updated", "namespace", r.KnTest().Kn().Namespace(), "ready"))
 
@@ -106,7 +106,7 @@ func serviceCreateDuplicate(r *test.KnRunResultCollector, serviceName string) {
 	r.AssertNoError(out)
 	assert.Check(r.T(), strings.Contains(out.Stdout, serviceName), "The service does not exist yet")
 
-	out = r.KnTest().Kn().Run("service", "create", serviceName, "--image", test.KnDefaultTestImage)
+	out = r.KnTest().Kn().Run("service", "create", serviceName, "--image", test.GetKnTestImage())
 	r.AssertError(out)
 	assert.Check(r.T(), util.ContainsAll(out.Stderr, "the service already exists"))
 }

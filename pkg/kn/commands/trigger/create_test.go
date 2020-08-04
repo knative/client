@@ -42,7 +42,7 @@ func TestTriggerCreate(t *testing.T) {
 	eventingRecorder.CreateTrigger(createTrigger("default", triggerName, map[string]string{"type": "dev.knative.foo"}, "mybroker", "mysvc"), nil)
 
 	out, err := executeTriggerCommand(eventingClient, dynamicClient, "create", triggerName, "--broker", "mybroker",
-		"--filter", "type=dev.knative.foo", "--sink", "svc:mysvc")
+		"--filter", "type=dev.knative.foo", "--sink", "ksvc:mysvc")
 	assert.NilError(t, err, "Trigger should be created")
 	assert.Assert(t, util.ContainsAll(out, "Trigger", triggerName, "created", "namespace", "default"))
 
@@ -60,7 +60,7 @@ func TestTriggerWithInjectCreate(t *testing.T) {
 	eventingRecorder.CreateTrigger(createTriggerWithInject("default", triggerName, map[string]string{"type": "dev.knative.foo"}, "default", "mysvc"), nil)
 
 	out, err := executeTriggerCommand(eventingClient, dynamicClient, "create", triggerName, "--broker", "default", "--inject-broker",
-		"--filter", "type=dev.knative.foo", "--sink", "svc:mysvc")
+		"--filter", "type=dev.knative.foo", "--sink", "ksvc:mysvc")
 	assert.NilError(t, err, "Trigger should be created")
 	assert.Assert(t, util.ContainsAll(out, "Trigger", triggerName, "created", "namespace", "default"))
 
@@ -75,7 +75,7 @@ func TestTriggetWithInjecError(t *testing.T) {
 	})
 
 	_, err := executeTriggerCommand(eventingClient, dynamicClient, "create", triggerName, "--broker", "mybroker", "--inject-broker",
-		"--filter", "type=dev.knative.foo", "--sink", "svc:mysvc")
+		"--filter", "type=dev.knative.foo", "--sink", "ksvc:mysvc")
 	assert.ErrorContains(t, err, "broker", "name", "'default'", "--inject-broker", "flag")
 }
 
@@ -86,7 +86,7 @@ func TestSinkNotFoundError(t *testing.T) {
 	errorMsg := fmt.Sprintf("cannot create trigger '%s' in namespace 'default' because: services.serving.knative.dev \"mysvc\" not found", triggerName)
 
 	out, err := executeTriggerCommand(eventingClient, dynamicClient, "create", triggerName, "--broker", "mybroker",
-		"--filter", "type=dev.knative.foo", "--sink", "svc:mysvc")
+		"--filter", "type=dev.knative.foo", "--sink", "ksvc:mysvc")
 	assert.Error(t, err, errorMsg)
 	assert.Assert(t, util.ContainsAll(out, errorMsg, "Usage"))
 }
@@ -109,7 +109,7 @@ func TestTriggerCreateMultipleFilter(t *testing.T) {
 	eventingRecorder.CreateTrigger(createTrigger("default", triggerName, map[string]string{"type": "dev.knative.foo", "source": "event.host"}, "mybroker", "mysvc"), nil)
 
 	out, err := executeTriggerCommand(eventingClient, dynamicClient, "create", triggerName, "--broker", "mybroker",
-		"--filter", "type=dev.knative.foo", "--filter", "source=event.host", "--sink", "svc:mysvc")
+		"--filter", "type=dev.knative.foo", "--filter", "source=event.host", "--sink", "ksvc:mysvc")
 	assert.NilError(t, err, "Trigger should be created")
 	assert.Assert(t, util.ContainsAll(out, "Trigger", triggerName, "created", "namespace", "default"))
 
@@ -126,7 +126,7 @@ func TestTriggerCreateWithoutFilter(t *testing.T) {
 	eventingRecorder := eventingClient.Recorder()
 	eventingRecorder.CreateTrigger(createTrigger("default", triggerName, nil, "mybroker", "mysvc"), nil)
 
-	out, err := executeTriggerCommand(eventingClient, dynamicClient, "create", triggerName, "--broker", "mybroker", "--sink", "svc:mysvc")
+	out, err := executeTriggerCommand(eventingClient, dynamicClient, "create", triggerName, "--broker", "mybroker", "--sink", "ksvc:mysvc")
 	assert.NilError(t, err, "Trigger should be created")
 	assert.Assert(t, util.ContainsAll(out, "Trigger", triggerName, "created", "namespace", "default"))
 

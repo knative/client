@@ -17,7 +17,10 @@ limitations under the License.
 package serving
 
 import (
+	"context"
+
 	corev1 "k8s.io/api/core/v1"
+	"knative.dev/serving/pkg/apis/config"
 )
 
 // VolumeMask performs a _shallow_ copy of the Kubernetes Volume object to a new
@@ -136,11 +139,12 @@ func KeyToPathMask(in *corev1.KeyToPath) *corev1.KeyToPath {
 // PodSpecMask performs a _shallow_ copy of the Kubernetes PodSpec object to a new
 // Kubernetes PodSpec object bringing over only the fields allowed in the Knative API. This
 // does not validate the contents or the bounds of the provided fields.
-func PodSpecMask(in *corev1.PodSpec) *corev1.PodSpec {
+func PodSpecMask(ctx context.Context, in *corev1.PodSpec) *corev1.PodSpec {
 	if in == nil {
 		return nil
 	}
 
+	cfg := config.FromContextOrDefaults(ctx)
 	out := new(corev1.PodSpec)
 
 	// Allowed fields
@@ -148,6 +152,18 @@ func PodSpecMask(in *corev1.PodSpec) *corev1.PodSpec {
 	out.Containers = in.Containers
 	out.Volumes = in.Volumes
 	out.ImagePullSecrets = in.ImagePullSecrets
+	out.EnableServiceLinks = in.EnableServiceLinks
+
+	// Feature fields
+	if cfg.Features.PodSpecAffinity != config.Disabled {
+		out.Affinity = in.Affinity
+	}
+	if cfg.Features.PodSpecNodeSelector != config.Disabled {
+		out.NodeSelector = in.NodeSelector
+	}
+	if cfg.Features.PodSpecTolerations != config.Disabled {
+		out.Tolerations = in.Tolerations
+	}
 
 	// Disallowed fields
 	// This list is unnecessary, but added here for clarity
@@ -156,7 +172,6 @@ func PodSpecMask(in *corev1.PodSpec) *corev1.PodSpec {
 	out.TerminationGracePeriodSeconds = nil
 	out.ActiveDeadlineSeconds = nil
 	out.DNSPolicy = ""
-	out.NodeSelector = nil
 	out.AutomountServiceAccountToken = nil
 	out.NodeName = ""
 	out.HostNetwork = false
@@ -166,16 +181,13 @@ func PodSpecMask(in *corev1.PodSpec) *corev1.PodSpec {
 	out.SecurityContext = nil
 	out.Hostname = ""
 	out.Subdomain = ""
-	out.Affinity = nil
 	out.SchedulerName = ""
-	out.Tolerations = nil
 	out.HostAliases = nil
 	out.PriorityClassName = ""
 	out.Priority = nil
 	out.DNSConfig = nil
 	out.ReadinessGates = nil
 	out.RuntimeClassName = nil
-	// TODO(mattmoor): Coming in 1.13: out.EnableServiceLinks = nil
 
 	return out
 }
@@ -372,7 +384,7 @@ func EnvVarMask(in *corev1.EnvVar) *corev1.EnvVar {
 // EnvVarSourceMask performs a _shallow_ copy of the Kubernetes EnvVarSource object to a new
 // Kubernetes EnvVarSource object bringing over only the fields allowed in the Knative API. This
 // does not validate the contents or the bounds of the provided fields.
-func EnvVarSourceMask(in *corev1.EnvVarSource) *corev1.EnvVarSource {
+func EnvVarSourceMask(in *corev1.EnvVarSource, fieldRef bool) *corev1.EnvVarSource {
 	if in == nil {
 		return nil
 	}
@@ -383,10 +395,10 @@ func EnvVarSourceMask(in *corev1.EnvVarSource) *corev1.EnvVarSource {
 	out.ConfigMapKeyRef = in.ConfigMapKeyRef
 	out.SecretKeyRef = in.SecretKeyRef
 
-	// Disallowed
-	// This list is unnecessary, but added here for clarity
-	out.FieldRef = nil
-	out.ResourceFieldRef = nil
+	if fieldRef {
+		out.FieldRef = in.FieldRef
+		out.ResourceFieldRef = in.ResourceFieldRef
+	}
 
 	return out
 }

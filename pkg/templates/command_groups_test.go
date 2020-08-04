@@ -17,6 +17,7 @@ package templates
 import (
 	"fmt"
 	"testing"
+	"text/template"
 
 	"github.com/spf13/cobra"
 	"gotest.tools/assert"
@@ -48,7 +49,7 @@ func TestAddTo(t *testing.T) {
 func TestSetUsage(t *testing.T) {
 	rootCmd := &cobra.Command{Use: "root", Short: "root", Run: func(cmd *cobra.Command, args []string) {}}
 	groups.AddTo(rootCmd)
-	groups.SetRootUsage(rootCmd)
+	groups.SetRootUsage(rootCmd, getTestFuncMap())
 
 	for _, cmd := range rootCmd.Commands() {
 		assert.Assert(t, cmd.DisableFlagsInUseLine)
@@ -66,4 +67,13 @@ func TestSetUsage(t *testing.T) {
 	stdOut, stdErr = capture.Close()
 	assert.Equal(t, stdErr, "")
 	assert.Assert(t, util.ContainsAll(stdOut, "root", "header-1", "header-2"))
+}
+
+func getTestFuncMap() *template.FuncMap {
+	fMap := template.FuncMap{
+		"listPlugins": func(c *cobra.Command) string {
+			return ""
+		},
+	}
+	return &fMap
 }

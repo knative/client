@@ -19,9 +19,11 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"testing"
 
+	"github.com/spf13/cobra"
 	"gotest.tools/assert"
 )
 
@@ -108,6 +110,56 @@ func TestPluginExecute(t *testing.T) {
 	out, err := executePlugin(plugin, []string{"arg1", "arg2"})
 	assert.NilError(t, err)
 	assert.Equal(t, out, "OK arg1 arg2\n")
+}
+
+func TestPluginListForCommandGroup(t *testing.T) {
+	ctx := setup(t)
+	defer cleanup(t, ctx)
+	createTestPlugin(t, "kn-service-log_2", ctx)
+
+	pluginList, err := ctx.pluginManager.ListPluginsForCommandGroup([]string{"service"})
+	assert.NilError(t, err)
+	assert.Assert(t, pluginList.Len() == 1)
+	assert.Equal(t, pluginList[0].Name(), "kn-service-log_2")
+	pluginList, err = ctx.pluginManager.ListPluginsForCommandGroup([]string{})
+	assert.NilError(t, err)
+	assert.Assert(t, pluginList.Len() == 0)
+}
+
+func TestPluginHelpMessage(t *testing.T) {
+	ctx := setup(t)
+	defer cleanup(t, ctx)
+	createTestPlugin(t, "kn-service-log_2", ctx)
+	createTestPlugin(t, "kn-admin", ctx)
+
+	funcs := *ctx.pluginManager.HelpTemplateFuncs()
+	f := funcs["listPlugins"]
+	assert.Assert(t, f != nil)
+	listPluginsFunc := ctx.pluginManager.listPluginsHelpMessage()
+
+	root := &cobra.Command{
+		Use: "kn",
+	}
+	serviceCmd := &cobra.Command{
+		Use: "service",
+	}
+	serviceCreateCmd := &cobra.Command{
+		Use: "create",
+	}
+	serviceCmd.AddCommand(serviceCreateCmd)
+	root.AddCommand(serviceCmd)
+
+	helpRoot := listPluginsFunc(root)
+	re := regexp.MustCompile("^\\s*admin\\s.*admin")
+	assert.Assert(t, re.MatchString(helpRoot))
+
+	helpService := listPluginsFunc(serviceCmd)
+	println(helpService)
+	re = regexp.MustCompile("^\\s*log-2\\s.*kn-service-log_2")
+	assert.Assert(t, re.MatchString(helpService))
+
+	helpServiceCreate := listPluginsFunc(serviceCreateCmd)
+	assert.Assert(t, len(helpServiceCreate) == 0)
 }
 
 func TestPluginList(t *testing.T) {

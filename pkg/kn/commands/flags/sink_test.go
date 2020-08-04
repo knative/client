@@ -46,17 +46,17 @@ func TestResolve(t *testing.T) {
 
 	assert.NilError(t, err)
 	cases := []resolveCase{
-		{"svc:mysvc", &duckv1.Destination{
+		{"ksvc:mysvc", &duckv1.Destination{
 			Ref: &duckv1.KReference{Kind: "Service",
 				APIVersion: "serving.knative.dev/v1",
 				Namespace:  "default",
 				Name:       "mysvc"}}, ""},
-		{"service:mysvc", &duckv1.Destination{
+		{"mysvc", &duckv1.Destination{
 			Ref: &duckv1.KReference{Kind: "Service",
 				APIVersion: "serving.knative.dev/v1",
 				Namespace:  "default",
 				Name:       "mysvc"}}, ""},
-		{"svc:absent", nil, "\"absent\" not found"},
+		{"ksvc:absent", nil, "\"absent\" not found"},
 		{"broker:default", &duckv1.Destination{
 			Ref: &duckv1.KReference{Kind: "Broker",
 				APIVersion: "eventing.knative.dev/v1beta1",
@@ -65,6 +65,9 @@ func TestResolve(t *testing.T) {
 		{"http://target.example.com", &duckv1.Destination{
 			URI: targetExampleCom,
 		}, ""},
+		{"k8ssvc:foo", nil, "unsupported sink prefix: 'k8ssvc'"},
+		{"svc:foo", nil, "please use prefix 'ksvc' for knative service"},
+		{"service:foo", nil, "please use prefix 'ksvc' for knative service"},
 	}
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default", mysvc, defaultBroker)
 	for _, c := range cases {

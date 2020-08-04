@@ -27,7 +27,7 @@ import (
 )
 
 func main() {
-	rootCmd, err := root.NewRootCommand()
+	rootCmd, err := root.NewRootCommand(nil)
 	if err != nil {
 		log.Panicf("can not create root command: %v", err)
 	}

@@ -37,7 +37,9 @@ var (
 		UpdaterAnnotation,
 		CreatorAnnotation,
 		RevisionLastPinnedAnnotationKey,
+		RoutingStateModifiedAnnotationKey,
 		GroupNamePrefix+"forceUpgrade",
+		RevisionPreservedAnnotationKey,
 	)
 )
 

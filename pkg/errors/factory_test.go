@@ -120,6 +120,11 @@ func TestKnErrors(t *testing.T) {
 			Error:       errors.New("no route to host 192.168.1.1"),
 			ExpectedMsg: "error connecting to the cluster: no route to host 192.168.1.1",
 		},
+		{
+			Name:        "foo error which cant be converted to APIStatus",
+			Error:       errors.New("foo error"),
+			ExpectedMsg: "foo error",
+		},
 	}
 	for _, tc := range cases {
 		tc := tc
@@ -127,6 +132,32 @@ func TestKnErrors(t *testing.T) {
 			t.Parallel()
 			err := GetError(tc.Error)
 			assert.Error(t, err, tc.ExpectedMsg)
+		})
+	}
+}
+
+func TestIsForbiddenError(t *testing.T) {
+	cases := []struct {
+		Name      string
+		Error     error
+		Forbidden bool
+	}{
+		{
+			Name:      "forbidden error",
+			Error:     api_errors.NewForbidden(schema.GroupResource{Group: "apiextensions.k8s.io", Resource: "CustomResourceDefinition"}, "", nil),
+			Forbidden: true,
+		},
+		{
+			Name:      "non forbidden error",
+			Error:     errors.New("panic"),
+			Forbidden: false,
+		},
+	}
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.Name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, IsForbiddenError(tc.Error), tc.Forbidden)
 		})
 	}
 }

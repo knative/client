@@ -95,6 +95,13 @@ func TestListSources(t *testing.T) {
 		assert.Check(t, util.ContainsAll(err.Error(), "can't", "find", "source", "kind", "CRD"))
 	})
 
+	t.Run("sources not installed", func(t *testing.T) {
+		client := createFakeKnDynamicClient(testNamespace)
+		_, err := client.ListSources()
+		assert.Check(t, err != nil)
+		assert.Check(t, util.ContainsAll(err.Error(), "no sources", "found", "backend", "verify", "installation"))
+	})
+
 	t.Run("source list empty", func(t *testing.T) {
 		client := createFakeKnDynamicClient(testNamespace,
 			newSourceCRDObjWithSpec("pingsources", "sources.knative.dev", "v1alpha1", "PingSource"),
@@ -116,6 +123,40 @@ func TestListSources(t *testing.T) {
 		assert.NilError(t, err)
 		assert.Equal(t, len(sources.Items), 2)
 	})
+}
+
+func TestListSourcesUsingGVKs(t *testing.T) {
+	t.Run("No GVKs given", func(t *testing.T) {
+		client := createFakeKnDynamicClient(testNamespace)
+		assert.Check(t, client.RawClient() != nil)
+		s, err := client.ListSourcesUsingGVKs(nil)
+		assert.NilError(t, err)
+		assert.Check(t, s == nil)
+	})
+
+	t.Run("source list with given GVKs", func(t *testing.T) {
+		client := createFakeKnDynamicClient(testNamespace,
+			newSourceCRDObjWithSpec("pingsources", "sources.knative.dev", "v1alpha1", "PingSource"),
+			newSourceCRDObjWithSpec("apiserversources", "sources.knative.dev", "v1alpha1", "ApiServerSource"),
+			newSourceUnstructuredObj("p1", "sources.knative.dev/v1alpha1", "PingSource"),
+			newSourceUnstructuredObj("a1", "sources.knative.dev/v1alpha1", "ApiServerSource"),
+		)
+		assert.Check(t, client.RawClient() != nil)
+		gv := schema.GroupVersion{"sources.knative.dev", "v1alpha1"}
+		gvks := []schema.GroupVersionKind{gv.WithKind("ApiServerSource"), gv.WithKind("PingSource")}
+
+		s, err := client.ListSourcesUsingGVKs(&gvks)
+		assert.NilError(t, err)
+		assert.Check(t, s != nil)
+		assert.Equal(t, len(s.Items), 2)
+
+		// withType
+		s, err = client.ListSourcesUsingGVKs(&gvks, WithTypeFilter("PingSource"))
+		assert.NilError(t, err)
+		assert.Check(t, s != nil)
+		assert.Equal(t, len(s.Items), 1)
+	})
+
 }
 
 // createFakeKnDynamicClient gives you a dynamic client for testing containing the given objects.

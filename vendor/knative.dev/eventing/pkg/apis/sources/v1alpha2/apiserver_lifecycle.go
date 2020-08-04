@@ -18,11 +18,10 @@ package v1alpha2
 
 import (
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	"knative.dev/pkg/apis"
-
-	"knative.dev/eventing/pkg/apis/duck"
 )
 
 const (
@@ -37,9 +36,6 @@ const (
 
 	// ApiServerConditionSufficientPermissions has status True when the ApiServerSource has sufficient permissions to access resources.
 	ApiServerConditionSufficientPermissions apis.ConditionType = "SufficientPermissions"
-
-	// ApiServerConditionEventTypeProvided has status True when the ApiServerSource has been configured with its event types.
-	ApiServerConditionEventTypeProvided apis.ConditionType = "EventTypesProvided"
 )
 
 var apiserverCondSet = apis.NewLivingConditionSet(
@@ -68,6 +64,11 @@ func (s *ApiServerSourceStatus) GetCondition(t apis.ConditionType) *apis.Conditi
 	return apiserverCondSet.Manage(s).GetCondition(t)
 }
 
+// GetTopLevelCondition returns the top level condition.
+func (s *ApiServerSourceStatus) GetTopLevelCondition() *apis.Condition {
+	return apiserverCondSet.Manage(s).GetTopLevelCondition()
+}
+
 // InitializeConditions sets relevant unset conditions to Unknown state.
 func (s *ApiServerSourceStatus) InitializeConditions() {
 	apiserverCondSet.Manage(s).InitializeConditions()
@@ -91,23 +92,22 @@ func (s *ApiServerSourceStatus) MarkNoSink(reason, messageFormat string, message
 // PropagateDeploymentAvailability uses the availability of the provided Deployment to determine if
 // ApiServerConditionDeployed should be marked as true or false.
 func (s *ApiServerSourceStatus) PropagateDeploymentAvailability(d *appsv1.Deployment) {
-	if duck.DeploymentIsAvailable(&d.Status, false) {
-		apiserverCondSet.Manage(s).MarkTrue(ApiServerConditionDeployed)
-	} else {
-		// I don't know how to propagate the status well, so just give the name of the Deployment
-		// for now.
-		apiserverCondSet.Manage(s).MarkFalse(ApiServerConditionDeployed, "DeploymentUnavailable", "The Deployment '%s' is unavailable.", d.Name)
+	deploymentAvailableFound := false
+	for _, cond := range d.Status.Conditions {
+		if cond.Type == appsv1.DeploymentAvailable {
+			deploymentAvailableFound = true
+			if cond.Status == corev1.ConditionTrue {
+				apiserverCondSet.Manage(s).MarkTrue(ApiServerConditionDeployed)
+			} else if cond.Status == corev1.ConditionFalse {
+				apiserverCondSet.Manage(s).MarkFalse(ApiServerConditionDeployed, cond.Reason, cond.Message)
+			} else if cond.Status == corev1.ConditionUnknown {
+				apiserverCondSet.Manage(s).MarkUnknown(ApiServerConditionDeployed, cond.Reason, cond.Message)
+			}
+		}
 	}
-}
-
-// MarkEventTypes sets the condition that the source has set its event type.
-func (s *ApiServerSourceStatus) MarkEventTypes() {
-	apiserverCondSet.Manage(s).MarkTrue(ApiServerConditionEventTypeProvided)
-}
-
-// MarkNoEventTypes sets the condition that the source does not its event type configured.
-func (s *ApiServerSourceStatus) MarkNoEventTypes(reason, messageFormat string, messageA ...interface{}) {
-	apiserverCondSet.Manage(s).MarkFalse(ApiServerConditionEventTypeProvided, reason, messageFormat, messageA...)
+	if !deploymentAvailableFound {
+		apiserverCondSet.Manage(s).MarkUnknown(ApiServerConditionDeployed, "DeploymentUnavailable", "The Deployment '%s' is unavailable.", d.Name)
+	}
 }
 
 // MarkSufficientPermissions sets the condition that the source has enough permissions to access the resources.

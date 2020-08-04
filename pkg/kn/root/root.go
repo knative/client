@@ -18,6 +18,7 @@ import (
 	"flag"
 	"fmt"
 	"strings"
+	"text/template"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -41,7 +42,7 @@ import (
 )
 
 // NewRootCommand creates the default `kn` command with a default plugin handler
-func NewRootCommand() (*cobra.Command, error) {
+func NewRootCommand(helpFuncs *template.FuncMap) (*cobra.Command, error) {
 	p := &commands.KnParams{}
 	p.Initialize()
 
@@ -107,7 +108,7 @@ func NewRootCommand() (*cobra.Command, error) {
 	groups.AddTo(rootCmd)
 
 	// Initialize default `help` cmd early to prevent unknown command errors
-	groups.SetRootUsage(rootCmd)
+	groups.SetRootUsage(rootCmd, helpFuncs)
 
 	// Add the "options" commands for showing all global options
 	rootCmd.AddCommand(options.NewOptionsCommand())

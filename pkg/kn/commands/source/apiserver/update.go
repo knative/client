@@ -36,7 +36,7 @@ func NewAPIServerUpdateCommand(p *commands.KnParams) *cobra.Command {
 		Short: "Update an api-server source",
 		Example: `
   # Update an ApiServerSource 'k8sevents' with different service account and sink service
-  kn source apiserver update k8sevents --service-account newsa --sink svc:newsvc`,
+  kn source apiserver update k8sevents --service-account newsa --sink ksvc:newsvc`,
 
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {

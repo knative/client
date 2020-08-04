@@ -37,7 +37,7 @@ func TestCreateApiServerSource(t *testing.T) {
 	apiServerRecorder := apiServerClient.Recorder()
 	apiServerRecorder.CreateAPIServerSource(createAPIServerSource("testsource", "Event", "v1", "testsa", "Reference", map[string]string{"bla": "blub", "foo": "bar"}, createSinkv1("testsvc", "default")), nil)
 
-	out, err := executeAPIServerSourceCommand(apiServerClient, dynamicClient, "create", "testsource", "--resource", "Event:v1", "--service-account", "testsa", "--sink", "svc:testsvc", "--mode", "Reference", "--ce-override", "bla=blub", "--ce-override", "foo=bar")
+	out, err := executeAPIServerSourceCommand(apiServerClient, dynamicClient, "create", "testsource", "--resource", "Event:v1", "--service-account", "testsa", "--sink", "ksvc:testsvc", "--mode", "Reference", "--ce-override", "bla=blub", "--ce-override", "foo=bar")
 	assert.NilError(t, err, "ApiServer source should be created")
 	assert.Assert(t, util.ContainsAll(out, "created", "default", "testsource"))
 
@@ -48,7 +48,7 @@ func TestSinkNotFoundError(t *testing.T) {
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default")
 	apiServerClient := v1alpha2.NewMockKnAPIServerSourceClient(t)
 	errorMsg := "cannot create ApiServerSource 'testsource' in namespace 'default' because: services.serving.knative.dev \"testsvc\" not found"
-	out, err := executeAPIServerSourceCommand(apiServerClient, dynamicClient, "create", "testsource", "--resource", "Event:v1:key1=value1", "--service-account", "testsa", "--sink", "svc:testsvc", "--mode", "Reference")
+	out, err := executeAPIServerSourceCommand(apiServerClient, dynamicClient, "create", "testsource", "--resource", "Event:v1:key1=value1", "--service-account", "testsa", "--sink", "ksvc:testsvc", "--mode", "Reference")
 	assert.Error(t, err, errorMsg)
 	assert.Assert(t, util.ContainsAll(out, errorMsg, "Usage"))
 }

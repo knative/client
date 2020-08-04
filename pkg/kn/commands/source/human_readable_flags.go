@@ -47,6 +47,7 @@ func ListTypesHandlers(h printers.PrintHandler) {
 // ListHandlers handles printing human readable table for `kn source list`
 func ListHandlers(h printers.PrintHandler) {
 	sourceListColumnDefinitions := []metav1beta1.TableColumnDefinition{
+		{Name: "Namespace", Type: "string", Description: "Namespace of the source", Priority: 0},
 		{Name: "Name", Type: "string", Description: "Name of the created source", Priority: 1},
 		{Name: "Type", Type: "string", Description: "Type of the source", Priority: 1},
 		{Name: "Resource", Type: "string", Description: "Source type name", Priority: 1},

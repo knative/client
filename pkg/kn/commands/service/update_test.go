@@ -320,7 +320,7 @@ func TestServiceUpdateMaxMinScale(t *testing.T) {
 
 	action, updated, _, err := fakeServiceUpdate(original, []string{
 		"service", "update", "foo",
-		"--min-scale", "1", "--max-scale", "5", "--concurrency-target", "10", "--concurrency-limit", "100", "--concurrency-utilization", "50", "--no-wait"})
+		"--scale-min", "1", "--scale-max", "5", "--concurrency-target", "10", "--concurrency-limit", "100", "--concurrency-utilization", "50", "--no-wait"})
 
 	if err != nil {
 		t.Fatal(err)
@@ -350,11 +350,101 @@ func TestServiceUpdateMaxMinScale(t *testing.T) {
 	}
 
 	if *template.Spec.ContainerConcurrency != int64(100) {
-		t.Fatalf("container concurrency not set to given value 1000")
+		t.Fatalf("container concurrency not set to given value 100")
 	}
 
 }
 
+func TestServiceUpdateScale(t *testing.T) {
+	original := newEmptyService()
+
+	action, updated, _, err := fakeServiceUpdate(original, []string{
+		"service", "update", "foo",
+		"--scale", "5", "--no-wait"})
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template := updated.Spec.Template
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	actualAnnos := template.Annotations
+	expectedAnnos := []string{
+		"autoscaling.knative.dev/minScale", "5",
+		"autoscaling.knative.dev/maxScale", "5",
+	}
+
+	for i := 0; i < len(expectedAnnos); i += 2 {
+		anno := expectedAnnos[i]
+		if actualAnnos[anno] != expectedAnnos[i+1] {
+			t.Fatalf("Unexpected annotation value for %s : %s (actual) != %s (expected)",
+				anno, actualAnnos[anno], expectedAnnos[i+1])
+		}
+	}
+
+}
+
+func TestServiceUpdateScaleWithNegativeValue(t *testing.T) {
+	original := newEmptyService()
+
+	_, _, _, err := fakeServiceUpdate(original, []string{
+		"service", "update", "foo",
+		"--scale", "-1", "--no-wait"})
+
+	if err == nil {
+		t.Fatal("Expected error, got nil")
+	}
+
+	expectedErrMsg := "expected 0 <= -1 <= 2147483647: autoscaling.knative.dev/maxScale"
+
+	if !strings.Contains(err.Error(), expectedErrMsg) {
+		t.Errorf("Invalid error output, expected: %s, got : '%s'", expectedErrMsg, err)
+	}
+
+}
+
+func TestServiceUpdateScaleWithMaxScaleSet(t *testing.T) {
+	original := newEmptyService()
+
+	_, _, _, err := fakeServiceUpdate(original, []string{
+		"service", "update", "foo",
+		"--scale", "5", "--scale-max", "2", "--no-wait"})
+
+	if err == nil {
+		t.Fatal("Expected error, got nil")
+	}
+
+	expectedErrMsg := "only --scale or --scale-max can be specified"
+
+	if !strings.Contains(err.Error(), expectedErrMsg) {
+		t.Errorf("Invalid error output, expected: %s, got : '%s'", expectedErrMsg, err)
+	}
+
+}
+
+func TestServiceUpdateScaleWithMinScaleSet(t *testing.T) {
+	original := newEmptyService()
+
+	_, _, _, err := fakeServiceUpdate(original, []string{
+		"service", "update", "foo",
+		"--scale", "5", "--scale-min", "2", "--no-wait"})
+
+	if err == nil {
+		t.Fatal("Expected error, got nil")
+	}
+
+	expectedErrMsg := "only --scale or --scale-min can be specified"
+
+	if !strings.Contains(err.Error(), expectedErrMsg) {
+		t.Errorf("Invalid error output, expected: %s, got : '%s'", expectedErrMsg, err)
+	}
+
+}
 func TestServiceUpdateEnv(t *testing.T) {
 	orig := newEmptyService()
 
