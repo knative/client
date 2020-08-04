@@ -88,7 +88,7 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 			if len(args) == 1 {
 				name = args[0]
 			}
-			if editFlags.Image == "" && editFlags.Filename == "" {
+			if editFlags.PodSpecFlags.Image == "" && editFlags.Filename == "" {
 				return errors.New("'service create' requires the image name to run provided with the --image option")
 			}
 

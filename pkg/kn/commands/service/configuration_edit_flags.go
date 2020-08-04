@@ -15,7 +15,6 @@
 package service
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -33,36 +32,23 @@ import (
 )
 
 type ConfigurationEditFlags struct {
+	//Fields for PodSpecFlags
+	PodSpecFlags knflags.PodSpecFlags
+
 	// Direct field manipulation
-	Image   uniqueStringArg
-	Env     []string
-	EnvFrom []string
-	Mount   []string
-	Volume  []string
-
-	Command string
-	Arg     []string
-
-	RequestsFlags, LimitsFlags ResourceFlags // TODO: Flag marked deprecated in release v0.15.0, remove in release v0.18.0
-	Resources                  knflags.ResourceOptions
-	Scale                      int
-	MinScale                   int
-	MaxScale                   int
-	ConcurrencyTarget          int
-	ConcurrencyLimit           int
-	ConcurrencyUtilization     int
-	AutoscaleWindow            string
-	Port                       string
-	Labels                     []string
-	LabelsService              []string
-	LabelsRevision             []string
-	NamePrefix                 string
-	RevisionName               string
-	ServiceAccountName         string
-	ImagePullSecrets           string
-	Annotations                []string
-	ClusterLocal               bool
-	User                       int64
+	Scale                  int
+	MinScale               int
+	MaxScale               int
+	ConcurrencyTarget      int
+	ConcurrencyLimit       int
+	ConcurrencyUtilization int
+	AutoscaleWindow        string
+	Labels                 []string
+	LabelsService          []string
+	LabelsRevision         []string
+	RevisionName           string
+	Annotations            []string
+	ClusterLocal           bool
 
 	// Preferences about how to do the action.
 	LockToDigest         bool
@@ -75,30 +61,6 @@ type ConfigurationEditFlags struct {
 	flags []string
 }
 
-type ResourceFlags struct {
-	CPU    string
-	Memory string
-}
-
-// -- uniqueStringArg Value
-// Custom implementation of flag.Value interface to prevent multiple value assignment.
-// Useful to enforce unique use of flags, e.g. --image.
-type uniqueStringArg string
-
-func (s *uniqueStringArg) Set(val string) error {
-	if len(*s) > 0 {
-		return errors.New("can be provided only once")
-	}
-	*s = uniqueStringArg(val)
-	return nil
-}
-
-func (s *uniqueStringArg) Type() string {
-	return "string"
-}
-
-func (s *uniqueStringArg) String() string { return string(*s) }
-
 // markFlagMakesRevision indicates that a flag will create a new revision if you
 // set it.
 func (p *ConfigurationEditFlags) markFlagMakesRevision(f string) {
@@ -107,80 +69,10 @@ func (p *ConfigurationEditFlags) markFlagMakesRevision(f string) {
 
 // addSharedFlags adds the flags common between create & update.
 func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
-	command.Flags().VarP(&p.Image, "image", "", "Image to run.")
-	p.markFlagMakesRevision("image")
-	command.Flags().StringArrayVarP(&p.Env, "env", "e", []string{},
-		"Environment variable to set. NAME=value; you may provide this flag "+
-			"any number of times to set multiple environment variables. "+
-			"To unset, specify the environment variable name followed by a \"-\" (e.g., NAME-).")
-	p.markFlagMakesRevision("env")
-
-	command.Flags().StringArrayVarP(&p.EnvFrom, "env-from", "", []string{},
-		"Add environment variables from a ConfigMap (prefix cm: or config-map:) or a Secret (prefix secret:). "+
-			"Example: --env-from cm:myconfigmap or --env-from secret:mysecret. "+
-			"You can use this flag multiple times. "+
-			"To unset a ConfigMap/Secret reference, append \"-\" to the name, e.g. --env-from cm:myconfigmap-.")
-	p.markFlagMakesRevision("env-from")
-
-	command.Flags().StringArrayVarP(&p.Mount, "mount", "", []string{},
-		"Mount a ConfigMap (prefix cm: or config-map:), a Secret (prefix secret: or sc:), or an existing Volume (without any prefix) on the specified directory. "+
-			"Example: --mount /mydir=cm:myconfigmap, --mount /mydir=secret:mysecret, or --mount /mydir=myvolume. "+
-			"When a configmap or a secret is specified, a corresponding volume is automatically generated. "+
-			"You can use this flag multiple times. "+
-			"For unmounting a directory, append \"-\", e.g. --mount /mydir-, which also removes any auto-generated volume.")
-	p.markFlagMakesRevision("mount")
-
-	command.Flags().StringArrayVarP(&p.Volume, "volume", "", []string{},
-		"Add a volume from a ConfigMap (prefix cm: or config-map:) or a Secret (prefix secret: or sc:). "+
-			"Example: --volume myvolume=cm:myconfigmap or --volume myvolume=secret:mysecret. "+
-			"You can use this flag multiple times. "+
-			"To unset a ConfigMap/Secret reference, append \"-\" to the name, e.g. --volume myvolume-.")
-	p.markFlagMakesRevision("volume")
-
-	command.Flags().StringVarP(&p.Command, "cmd", "", "",
-		"Specify command to be used as entrypoint instead of default one. "+
-			"Example: --cmd /app/start or --cmd /app/start --arg myArg to pass aditional arguments.")
-	p.markFlagMakesRevision("cmd")
-
-	command.Flags().StringArrayVarP(&p.Arg, "arg", "", []string{},
-		"Add argument to the container command. "+
-			"Example: --arg myArg1 --arg --myArg2 --arg myArg3=3. "+
-			"You can use this flag multiple times.")
-	p.markFlagMakesRevision("arg")
-
-	command.Flags().StringSliceVar(&p.Resources.Limits,
-		"limit",
-		nil,
-		"The resource requirement limits for this Service. For example, 'cpu=100m,memory=256Mi'. "+
-			"You can use this flag multiple times. "+
-			"To unset a resource limit, append \"-\" to the resource name, e.g. '--limit memory-'.")
-	p.markFlagMakesRevision("limit")
-
-	command.Flags().StringSliceVar(&p.Resources.Requests,
-		"request",
-		nil,
-		"The resource requirement requests for this Service. For example, 'cpu=100m,memory=256Mi'. "+
-			"You can use this flag multiple times. "+
-			"To unset a resource request, append \"-\" to the resource name, e.g. '--request cpu-'.")
-	p.markFlagMakesRevision("request")
-
-	command.Flags().StringVar(&p.RequestsFlags.CPU, "requests-cpu", "",
-		"DEPRECATED: please use --request instead. The requested CPU (e.g., 250m).")
-	p.markFlagMakesRevision("requests-cpu")
-
-	command.Flags().StringVar(&p.RequestsFlags.Memory, "requests-memory", "",
-		"DEPRECATED: please use --request instead. The requested memory (e.g., 64Mi).")
-	p.markFlagMakesRevision("requests-memory")
-
-	// TODO: Flag marked deprecated in release v0.15.0, remove in release v0.18.0
-	command.Flags().StringVar(&p.LimitsFlags.CPU, "limits-cpu", "",
-		"DEPRECATED: please use --limit instead. The limits on the requested CPU (e.g., 1000m).")
-	p.markFlagMakesRevision("limits-cpu")
-
-	// TODO: Flag marked deprecated in release v0.15.0, remove in release v0.18.0
-	command.Flags().StringVar(&p.LimitsFlags.Memory, "limits-memory", "",
-		"DEPRECATED: please use --limit instead. The limits on the requested memory (e.g., 1024Mi).")
-	p.markFlagMakesRevision("limits-memory")
+	flagNames := p.PodSpecFlags.AddFlags(command.Flags())
+	for _, name := range flagNames {
+		p.markFlagMakesRevision(name)
+	}
 
 	command.Flags().IntVar(&p.MinScale, "min-scale", 0, "Minimal number of replicas.")
 	command.Flags().MarkHidden("min-scale")
@@ -221,9 +113,6 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 		"Percentage of concurrent requests utilization before scaling up.")
 	p.markFlagMakesRevision("concurrency-utilization")
 
-	command.Flags().StringVarP(&p.Port, "port", "p", "", "The port where application listens on, in the format 'NAME:PORT', where 'NAME' is optional. Examples: '--port h2c:8080' , '--port 8080'.")
-	p.markFlagMakesRevision("port")
-
 	command.Flags().StringArrayVarP(&p.Labels, "label", "l", []string{},
 		"Labels to set for both Service and Revision. name=value; you may provide this flag "+
 			"any number of times to set multiple labels. "+
@@ -255,25 +144,11 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 			"the image. (--no-lock-to-digest pulls the image tag afresh with each new revision)")
 	// Don't mark as changing the revision.
 
-	command.Flags().StringVar(&p.ServiceAccountName,
-		"service-account",
-		"",
-		"Service account name to set. An empty argument (\"\") clears the service account. The referenced service account must exist in the service's namespace.")
-	p.markFlagMakesRevision("service-account")
-
 	command.Flags().StringArrayVarP(&p.Annotations, "annotation", "a", []string{},
 		"Service annotation to set. name=value; you may provide this flag "+
 			"any number of times to set multiple annotations. "+
 			"To unset, specify the annotation name followed by a \"-\" (e.g., name-).")
 	p.markFlagMakesRevision("annotation")
-
-	command.Flags().StringVar(&p.ImagePullSecrets,
-		"pull-secret",
-		"",
-		"Image pull secret to set. An empty argument (\"\") clears the pull secret. The referenced secret must exist in the service's namespace.")
-	p.markFlagMakesRevision("pull-secret")
-	command.Flags().Int64VarP(&p.User, "user", "", 0, "The user ID to run the container (e.g., 1001).")
-	p.markFlagMakesRevision("user")
 }
 
 // AddUpdateFlags adds the flags specific to update.
@@ -301,7 +176,7 @@ func (p *ConfigurationEditFlags) Apply(
 
 	template := &service.Spec.Template
 	if cmd.Flags().Changed("env") {
-		envMap, err := util.MapFromArrayAllowingSingles(p.Env, "=")
+		envMap, err := util.MapFromArrayAllowingSingles(p.PodSpecFlags.Env, "=")
 		if err != nil {
 			return fmt.Errorf("Invalid --env: %w", err)
 		}
@@ -316,7 +191,7 @@ func (p *ConfigurationEditFlags) Apply(
 	if cmd.Flags().Changed("env-from") {
 		envFromSourceToUpdate := []string{}
 		envFromSourceToRemove := []string{}
-		for _, name := range p.EnvFrom {
+		for _, name := range p.PodSpecFlags.EnvFrom {
 			if name == "-" {
 				return fmt.Errorf("\"-\" is not a valid value for \"--env-from\"")
 			} else if strings.HasSuffix(name, "-") {
@@ -333,12 +208,12 @@ func (p *ConfigurationEditFlags) Apply(
 	}
 
 	if cmd.Flags().Changed("mount") || cmd.Flags().Changed("volume") {
-		mountsToUpdate, mountsToRemove, err := util.OrderedMapAndRemovalListFromArray(p.Mount, "=")
+		mountsToUpdate, mountsToRemove, err := util.OrderedMapAndRemovalListFromArray(p.PodSpecFlags.Mount, "=")
 		if err != nil {
 			return fmt.Errorf("Invalid --mount: %w", err)
 		}
 
-		volumesToUpdate, volumesToRemove, err := util.OrderedMapAndRemovalListFromArray(p.Volume, "=")
+		volumesToUpdate, volumesToRemove, err := util.OrderedMapAndRemovalListFromArray(p.PodSpecFlags.Volume, "=")
 		if err != nil {
 			return fmt.Errorf("Invalid --volume: %w", err)
 		}
@@ -360,7 +235,7 @@ func (p *ConfigurationEditFlags) Apply(
 
 	imageSet := false
 	if cmd.Flags().Changed("image") {
-		err = servinglib.UpdateImage(template, p.Image.String())
+		err = servinglib.UpdateImage(template, p.PodSpecFlags.Image.String())
 		if err != nil {
 			return err
 		}
@@ -394,11 +269,11 @@ func (p *ConfigurationEditFlags) Apply(
 		fmt.Fprintf(cmd.OutOrStdout(), "\nWARNING: flags --requests-cpu / --requests-memory are deprecated and going to be removed in future release, please use --request instead.\n\n")
 	}
 
-	limitsResources, err := p.computeResources(p.LimitsFlags)
+	limitsResources, err := p.computeResources(p.PodSpecFlags.LimitsFlags)
 	if err != nil {
 		return err
 	}
-	requestsResources, err := p.computeResources(p.RequestsFlags)
+	requestsResources, err := p.computeResources(p.PodSpecFlags.RequestsFlags)
 	if err != nil {
 		return err
 	}
@@ -407,32 +282,32 @@ func (p *ConfigurationEditFlags) Apply(
 		return err
 	}
 
-	requestsToRemove, limitsToRemove, err := p.Resources.Validate()
+	requestsToRemove, limitsToRemove, err := p.PodSpecFlags.Resources.Validate()
 	if err != nil {
 		return err
 	}
 
-	err = servinglib.UpdateResources(template, p.Resources.ResourceRequirements, requestsToRemove, limitsToRemove)
+	err = servinglib.UpdateResources(template, p.PodSpecFlags.Resources.ResourceRequirements, requestsToRemove, limitsToRemove)
 	if err != nil {
 		return err
 	}
 
 	if cmd.Flags().Changed("cmd") {
-		err = servinglib.UpdateContainerCommand(template, p.Command)
+		err = servinglib.UpdateContainerCommand(template, p.PodSpecFlags.Command)
 		if err != nil {
 			return err
 		}
 	}
 
 	if cmd.Flags().Changed("arg") {
-		err = servinglib.UpdateContainerArg(template, p.Arg)
+		err = servinglib.UpdateContainerArg(template, p.PodSpecFlags.Arg)
 		if err != nil {
 			return err
 		}
 	}
 
 	if cmd.Flags().Changed("port") {
-		err = servinglib.UpdateContainerPort(template, p.Port)
+		err = servinglib.UpdateContainerPort(template, p.PodSpecFlags.Port)
 		if err != nil {
 			return err
 		}
@@ -538,18 +413,18 @@ func (p *ConfigurationEditFlags) Apply(
 	}
 
 	if cmd.Flags().Changed("service-account") {
-		err = servinglib.UpdateServiceAccountName(template, p.ServiceAccountName)
+		err = servinglib.UpdateServiceAccountName(template, p.PodSpecFlags.ServiceAccountName)
 		if err != nil {
 			return err
 		}
 	}
 
 	if cmd.Flags().Changed("pull-secret") {
-		servinglib.UpdateImagePullSecrets(template, p.ImagePullSecrets)
+		servinglib.UpdateImagePullSecrets(template, p.PodSpecFlags.ImagePullSecrets)
 	}
 
 	if cmd.Flags().Changed("user") {
-		servinglib.UpdateUser(template, p.User)
+		servinglib.UpdateUser(template, p.PodSpecFlags.User)
 	}
 
 	return nil
@@ -569,7 +444,7 @@ func (p *ConfigurationEditFlags) updateLabels(obj *metav1.ObjectMeta, flagLabels
 	return nil
 }
 
-func (p *ConfigurationEditFlags) computeResources(resourceFlags ResourceFlags) (corev1.ResourceList, error) {
+func (p *ConfigurationEditFlags) computeResources(resourceFlags knflags.ResourceFlags) (corev1.ResourceList, error) {
 	resourceList := corev1.ResourceList{}
 
 	if resourceFlags.CPU != "" {
