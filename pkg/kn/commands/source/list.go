@@ -20,9 +20,11 @@ import (
 	"github.com/spf13/cobra"
 
 	"knative.dev/client/pkg/dynamic"
+	knerrors "knative.dev/client/pkg/errors"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
 	"knative.dev/client/pkg/kn/commands/source/duck"
+	sourcesv1alpha2 "knative.dev/client/pkg/sources/v1alpha2"
 )
 
 var listExample = `
@@ -52,15 +54,25 @@ func NewListCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
+
 			var filters dynamic.WithTypes
 			for _, filter := range filterFlags.Filters {
 				filters = append(filters, dynamic.WithTypeFilter(filter))
 			}
+
 			sourceList, err := dynamicClient.ListSources(filters...)
-			if err != nil {
-				return err
+
+			switch {
+			case knerrors.IsForbiddenError(err):
+				gvks := sourcesv1alpha2.BuiltInSourcesGVKs()
+				if sourceList, err = dynamicClient.ListSourcesUsingGVKs(&gvks, filters...); err != nil {
+					return knerrors.GetError(err)
+				}
+			case err != nil:
+				return knerrors.GetError(err)
 			}
-			if len(sourceList.Items) == 0 {
+
+			if sourceList == nil || len(sourceList.Items) == 0 {
 				fmt.Fprintf(cmd.OutOrStdout(), "No sources found in %s namespace.\n", namespace)
 				return nil
 			}

@@ -15,6 +15,9 @@
 package dynamic
 
 import (
+	"errors"
+	"strings"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/labels"
@@ -42,11 +45,14 @@ type KnDynamicClient interface {
 	// ListCRDs returns list of CRDs with their type and name
 	ListCRDs(options metav1.ListOptions) (*unstructured.UnstructuredList, error)
 
-	// ListSourceCRDs returns list of eventing sources CRDs
+	// ListSourcesTypes returns list of eventing sources CRDs
 	ListSourcesTypes() (*unstructured.UnstructuredList, error)
 
 	// ListSources returns list of available source objects
 	ListSources(types ...WithType) (*unstructured.UnstructuredList, error)
+
+	// ListSourcesUsingGVKs returns list of available source objects using given list of GVKs
+	ListSourcesUsingGVKs(*[]schema.GroupVersionKind, ...WithType) (*unstructured.UnstructuredList, error)
 
 	// RawClient returns the raw dynamic client interface
 	RawClient() dynamic.Interface
@@ -107,12 +113,17 @@ func (c *knDynamicClient) ListSources(types ...WithType) (*unstructured.Unstruct
 	var (
 		sourceList               unstructured.UnstructuredList
 		options                  metav1.ListOptions
-		numberOfsourceTypesFound int
+		numberOfSourceTypesFound int
 	)
 	sourceTypes, err := c.ListSourcesTypes()
 	if err != nil {
 		return nil, err
 	}
+
+	if sourceTypes == nil || len(sourceTypes.Items) == 0 {
+		return nil, errors.New("no sources found on the backend, please verify the installation")
+	}
+
 	namespace := c.Namespace()
 	filters := WithTypes(types).List()
 	// For each source type available, find out each source types objects
@@ -141,14 +152,56 @@ func (c *knDynamicClient) ListSources(types ...WithType) (*unstructured.Unstruct
 
 		if len(sList.Items) > 0 {
 			// keep a track if we found source objects of different types
-			numberOfsourceTypesFound++
+			numberOfSourceTypesFound++
 			sourceList.Items = append(sourceList.Items, sList.Items...)
 			sourceList.SetGroupVersionKind(sList.GetObjectKind().GroupVersionKind())
 		}
 	}
 	// Clear the Group and Version for list if there are multiple types of source objects found
 	// Keep the source's GVK if there is only one type of source objects found or requested via --type filter
-	if numberOfsourceTypesFound > 1 {
+	if numberOfSourceTypesFound > 1 {
+		sourceList.SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "", Kind: "List"})
+	}
+	return &sourceList, nil
+}
+
+// ListSourcesUsingGVKs returns list of available source objects using given list of GVKs
+func (c *knDynamicClient) ListSourcesUsingGVKs(gvks *[]schema.GroupVersionKind, types ...WithType) (*unstructured.UnstructuredList, error) {
+	if gvks == nil {
+		return nil, nil
+	}
+
+	var (
+		sourceList               unstructured.UnstructuredList
+		options                  metav1.ListOptions
+		numberOfSourceTypesFound int
+	)
+	namespace := c.Namespace()
+	filters := WithTypes(types).List()
+
+	for _, gvk := range *gvks {
+		if len(filters) > 0 && !util.SliceContainsIgnoreCase(filters, gvk.Kind) {
+			continue
+		}
+
+		gvr := gvk.GroupVersion().WithResource(strings.ToLower(gvk.Kind) + "s")
+
+		// list objects of source type with this GVR
+		sList, err := c.client.Resource(gvr).Namespace(namespace).List(options)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(sList.Items) > 0 {
+			// keep a track if we found source objects of different types
+			numberOfSourceTypesFound++
+			sourceList.Items = append(sourceList.Items, sList.Items...)
+			sourceList.SetGroupVersionKind(sList.GetObjectKind().GroupVersionKind())
+		}
+	}
+	// Clear the Group and Version for list if there are multiple types of source objects found
+	// Keep the source's GVK if there is only one type of source objects found or requested via --type filter
+	if numberOfSourceTypesFound > 1 {
 		sourceList.SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "", Kind: "List"})
 	}
 	return &sourceList, nil
