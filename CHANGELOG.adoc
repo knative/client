@@ -33,6 +33,10 @@
 | 🎁
 | Add commands to manage Broker resource
 | https://github.com/knative/client/pull/894[#894]
+
+| 🐛
+| Fix exit code for `kn service delete` failures
+| https://github.com/knative/client/pull/971[#971]
 |===
 
 ## v0.15.2 (2020-06-16)
