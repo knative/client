@@ -17,6 +17,7 @@
 package e2e
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -55,16 +56,16 @@ func TestTektonPipeline(t *testing.T) {
 	_, err = kubectl.Run("apply", "-f", basedir+"/kn-deployer-rbac.yaml")
 	assert.NilError(t, err)
 
-	_, err = kubectl.Run("apply", "-f", "https://raw.githubusercontent.com/tektoncd/catalog/v1beta1/git/git-clone.yaml")
+	_, err = kubectl.Run("apply", "-f", tektonCatalogTask("git-clone", "0.1"))
 	assert.NilError(t, err)
 
 	_, err = kubectl.Run("apply", "-f", basedir+"/resources.yaml")
 	assert.NilError(t, err)
 
-	_, err = kubectl.Run("apply", "-f", "https://raw.githubusercontent.com/tektoncd/catalog/v1beta1/buildah/buildah.yaml")
+	_, err = kubectl.Run("apply", "-f", tektonCatalogTask("buildah", "0.1"))
 	assert.NilError(t, err)
 
-	_, err = kubectl.Run("apply", "-f", "https://raw.githubusercontent.com/tektoncd/catalog/v1beta1/kn/kn.yaml")
+	_, err = kubectl.Run("apply", "-f", tektonCatalogTask("kn", "0.1"))
 	assert.NilError(t, err)
 
 	_, err = kubectl.Run("apply", "-f", basedir+"/kn-pipeline.yaml")
@@ -90,4 +91,12 @@ func waitForPipelineSuccess(k test.Kubectl) error {
 		out, err := k.Run("get", "pipelinerun", "-o=jsonpath='{.items[0].status.conditions[?(@.type==\"Succeeded\")].status}'")
 		return strings.Contains(out, "True"), err
 	})
+}
+
+func tektonCatalogTask(taskName, version string) string {
+	return fmt.Sprintf(
+		"https://raw.githubusercontent.com/tektoncd/catalog/"+
+			"master/task/%s/%s/%s.yaml",
+		taskName, version, taskName,
+	)
 }
