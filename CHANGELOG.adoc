@@ -34,6 +34,10 @@
 | Add `-a` flag as an alias for `--annotation`
 | https://github.com/knative/client/pull/782[#782]
 
+| 🎁
+| Add mock test client for dynamic client
+| https://github.com/knative/client/pull/952[#952]
+
 |===
 
 ## v0.13.2 (2020-04-15)
