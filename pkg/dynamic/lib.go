@@ -16,6 +16,7 @@ package dynamic
 
 import (
 	"fmt"
+	"strings"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -122,4 +123,26 @@ func (types WithTypes) List() []string {
 		f(&stypes)
 	}
 	return stypes
+}
+
+// UnstructuredCRDFromGVK constructs an unstructured object using the given GVK
+func UnstructuredCRDFromGVK(gvk schema.GroupVersionKind) *unstructured.Unstructured {
+	name := fmt.Sprintf("%ss.%s", strings.ToLower(gvk.Kind), gvk.Group)
+	plural := fmt.Sprintf("%ss", strings.ToLower(gvk.Kind))
+	u := &unstructured.Unstructured{}
+	u.SetUnstructuredContent(map[string]interface{}{
+		"metadata": map[string]interface{}{
+			"name": name,
+		},
+		"spec": map[string]interface{}{
+			"group":   gvk.Group,
+			"version": gvk.Version,
+			"names": map[string]interface{}{
+				"kind":   gvk.Kind,
+				"plural": plural,
+			},
+		},
+	})
+
+	return u
 }
