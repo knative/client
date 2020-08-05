@@ -18,6 +18,8 @@ import (
 	"testing"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/dynamic/fake"
 	"knative.dev/client/pkg/util/mock"
 )
 
@@ -27,15 +29,17 @@ func TestMockKnDynamicClient(t *testing.T) {
 
 	recorder := client.Recorder()
 
-	// Record all services
 	recorder.ListCRDs(mock.Any(), nil, nil)
 	recorder.ListSourcesTypes(nil, nil)
 	recorder.ListSources(mock.Any(), nil, nil)
+	recorder.RawClient(&fake.FakeDynamicClient{})
+	recorder.ListSourcesUsingGVKs(mock.Any(), mock.Any(), nil, nil)
 
-	// Call all service
 	client.ListCRDs(metav1.ListOptions{})
 	client.ListSourcesTypes()
 	client.ListSources(WithTypeFilter("blub"))
+	client.RawClient()
+	client.ListSourcesUsingGVKs(&[]schema.GroupVersionKind{}, WithTypeFilter("blub"))
 	// Validate
 	recorder.Validate()
 }

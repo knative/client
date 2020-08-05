@@ -19,6 +19,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
 	"knative.dev/client/pkg/util/mock"
 )
@@ -63,7 +64,6 @@ func (c *MockKnDynamicClient) Namespace() string {
 // ListCRDs returns list of installed CRDs in the cluster and filters based on the given options
 func (dr *ClientRecorder) ListCRDs(options interface{}, ulist *unstructured.UnstructuredList, err error) {
 	dr.r.Add("ListCRDs", []interface{}{options}, []interface{}{ulist, err})
-
 }
 
 // ListCRDs returns list of installed CRDs in the cluster and filters based on the given options
@@ -75,7 +75,6 @@ func (c *MockKnDynamicClient) ListCRDs(options metav1.ListOptions) (*unstructure
 // ListSourcesTypes returns installed knative eventing sources CRDs
 func (dr *ClientRecorder) ListSourcesTypes(ulist *unstructured.UnstructuredList, err error) {
 	dr.r.Add("ListSourcesTypes", []interface{}{}, []interface{}{ulist, err})
-
 }
 
 // ListSourcesTypes returns installed knative eventing sources CRDs
@@ -87,7 +86,6 @@ func (c *MockKnDynamicClient) ListSourcesTypes() (*unstructured.UnstructuredList
 // ListSources returns list of available sources objects
 func (dr *ClientRecorder) ListSources(types interface{}, ulist *unstructured.UnstructuredList, err error) {
 	dr.r.Add("ListSources", []interface{}{types}, []interface{}{ulist, err})
-
 }
 
 // ListSources returns list of available sources objects
@@ -98,14 +96,24 @@ func (c *MockKnDynamicClient) ListSources(types ...WithType) (*unstructured.Unst
 
 // RawClient creates a client
 func (dr *ClientRecorder) RawClient(dynamicInterface dynamic.Interface) {
-	dr.r.Add("ListSources", []interface{}{}, []interface{}{dynamicInterface})
-
+	dr.r.Add("RawClient", []interface{}{}, []interface{}{dynamicInterface})
 }
 
 // RawClient creates a client
 func (c *MockKnDynamicClient) RawClient() (dynamicInterface dynamic.Interface) {
-	call := c.recorder.r.VerifyCall("ListSources")
+	call := c.recorder.r.VerifyCall("RawClient")
 	return call.Result[0].(dynamic.Interface)
+}
+
+// ListSourcesUsingGVKs returns list of available source objects using given list of GVKs
+func (dr *ClientRecorder) ListSourcesUsingGVKs(gvks interface{}, types interface{}, ulist *unstructured.UnstructuredList, err error) {
+	dr.r.Add("ListSourcesUsingGVKs", []interface{}{gvks, types}, []interface{}{ulist, err})
+}
+
+// ListSourcesUsingGVKs returns list of available source objects using given list of GVKs
+func (c *MockKnDynamicClient) ListSourcesUsingGVKs(gvks *[]schema.GroupVersionKind, types ...WithType) (*unstructured.UnstructuredList, error) {
+	call := c.recorder.r.VerifyCall("ListSourcesUsingGVKs")
+	return call.Result[0].(*unstructured.UnstructuredList), mock.ErrorOrNil(call.Result[1])
 }
 
 // Validate validates whether every recorded action has been called
