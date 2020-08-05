@@ -15,14 +15,23 @@
 package revision
 
 import (
+	"bytes"
 	"strings"
 	"testing"
 
+	"github.com/spf13/cobra"
 	"gotest.tools/assert"
+	"k8s.io/client-go/tools/clientcmd"
+	knflags "knative.dev/client/pkg/kn/flags"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
+	"knative.dev/client/pkg/kn/commands"
+	clientservingv1 "knative.dev/client/pkg/serving/v1"
 	"knative.dev/client/pkg/util"
 )
+
+// Helper methods
+var blankConfig clientcmd.ClientConfig
 
 func TestExtractTrafficAndTag(t *testing.T) {
 
@@ -51,4 +60,24 @@ func createTarget(rev string, percent int64, tag string) servingv1.TrafficTarget
 		RevisionName: rev,
 		Percent:      &percent,
 	}
+}
+
+func executeRevisionCommand(client clientservingv1.KnServingClient, args ...string) (string, error) {
+	knParams := &commands.KnParams{}
+	knParams.ClientConfig = blankConfig
+
+	output := new(bytes.Buffer)
+	knParams.Output = output
+	knParams.NewServingClient = func(namespace string) (clientservingv1.KnServingClient, error) {
+		return client, nil
+	}
+	cmd := NewRevisionCommand(knParams)
+	cmd.SetArgs(args)
+	cmd.SetOutput(output)
+
+	cmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
+		return knflags.ReconcileBoolFlags(cmd.Flags())
+	}
+	err := cmd.Execute()
+	return output.String(), err
 }
