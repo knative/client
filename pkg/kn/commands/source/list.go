@@ -73,7 +73,7 @@ func NewListCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			if sourceList == nil || len(sourceList.Items) == 0 {
-				fmt.Fprintf(cmd.OutOrStdout(), "No sources found in %s namespace.\n", namespace)
+				fmt.Fprintf(cmd.OutOrStdout(), "No sources found.\n")
 				return nil
 			}
 			// empty namespace indicates all namespaces flag is specified
