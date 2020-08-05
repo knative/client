@@ -115,7 +115,6 @@ func (c *MockKnDynamicClient) ListSourcesUsingGVKs(gvks *[]schema.GroupVersionKi
 	call := c.recorder.r.VerifyCall("ListSourcesUsingGVKs")
 	return call.Result[0].(*unstructured.UnstructuredList), mock.ErrorOrNil(call.Result[1])
 }
-
 // Validate validates whether every recorded action has been called
 func (dr *ClientRecorder) Validate() {
 	dr.r.CheckThatAllRecordedMethodsHaveBeenCalled()

@@ -207,6 +207,7 @@
 | Add `-a` flag as an alias for `--annotation`
 | https://github.com/knative/client/pull/782[#782]
 
+
 |===
 
 ## v0.13.2 (2020-04-15)
