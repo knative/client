@@ -38,6 +38,9 @@
 | Fix exit code for `kn service delete` and `kn revision delete` failures
 | https://github.com/knative/client/pull/971[#971]
 
+| 🎁
+| Add mock test client for dynamic client
+| https://github.com/knative/client/pull/972[#972]
 |===
 
 ## v0.16.0 (2020-07-14)
