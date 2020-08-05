@@ -34,9 +34,6 @@
 | Add `-a` flag as an alias for `--annotation`
 | https://github.com/knative/client/pull/782[#782]
 
-| 🎁
-| Add mock test client for dynamic client
-| https://github.com/knative/client/pull/952[#952]
 
 |===
 
