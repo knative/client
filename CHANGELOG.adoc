@@ -26,6 +26,10 @@
 | Fix Missing NAMESPACE column header for 'kn source list -A'
 | https://github.com/knative/client/pull/951[#951]
 
+| 🐛
+| Fix exit code for `kn service delete` and `kn revision delete` failures
+| https://github.com/knative/client/pull/971[#971]
+
 |===
 
 ## v0.16.0 (2020-07-14)
