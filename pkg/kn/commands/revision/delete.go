@@ -17,6 +17,7 @@ package revision
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -47,6 +48,7 @@ func NewRevisionDeleteCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
+			errs := []string{}
 			for _, name := range args {
 				timeout := time.Duration(0)
 				if waitFlags.Wait {
@@ -54,10 +56,13 @@ func NewRevisionDeleteCommand(p *commands.KnParams) *cobra.Command {
 				}
 				err = client.DeleteRevision(name, timeout)
 				if err != nil {
-					fmt.Fprintf(cmd.OutOrStdout(), "%s.\n", err)
+					errs = append(errs, err.Error())
 				} else {
 					fmt.Fprintf(cmd.OutOrStdout(), "Revision '%s' deleted in namespace '%s'.\n", name, namespace)
 				}
+			}
+			if len(errs) > 0 {
+				return errors.New("Error: " + strings.Join(errs, "\nError: "))
 			}
 			return nil
 		},

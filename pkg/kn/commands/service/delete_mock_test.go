@@ -15,6 +15,7 @@
 package service
 
 import (
+	"errors"
 	"testing"
 
 	"gotest.tools/assert"
@@ -140,4 +141,24 @@ func TestServiceDeleteNoSvcNameMock(t *testing.T) {
 
 	r.Validate()
 
+}
+
+func TestServiceDeleteCheckErrorForNotFoundServicesMock(t *testing.T) {
+	// New mock client
+	client := clientservingv1.NewMockKnServiceClient(t)
+
+	// Recording:
+	r := client.Recorder()
+
+	r.DeleteService("foo", mock.Any(), nil)
+	r.DeleteService("bar", mock.Any(), errors.New("services.serving.knative.dev \"bar\" not found."))
+	r.DeleteService("baz", mock.Any(), errors.New("services.serving.knative.dev \"baz\" not found."))
+
+	output, err := executeServiceCommand(client, "delete", "foo", "bar", "baz")
+	if err == nil {
+		t.Fatal("Expected service not found error, returned nil")
+	}
+	assert.Assert(t, util.ContainsAll(output, "'foo' successfully deleted", "\"bar\" not found", "\"baz\" not found"))
+
+	r.Validate()
 }

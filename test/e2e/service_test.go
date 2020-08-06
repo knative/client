@@ -125,8 +125,8 @@ func serviceDeleteNonexistent(r *test.KnRunResultCollector, serviceName string) 
 	assert.Check(r.T(), !strings.Contains(out.Stdout, serviceName), "The service exists")
 
 	out = r.KnTest().Kn().Run("service", "delete", serviceName)
-	r.AssertNoError(out)
-	assert.Check(r.T(), util.ContainsAll(out.Stdout, "hello", "not found"), "Failed to get 'not found' error")
+	r.AssertError(out)
+	assert.Check(r.T(), util.ContainsAll(out.Stderr, "hello", "not found"), "Failed to get 'not found' error")
 }
 
 func serviceMultipleDelete(r *test.KnRunResultCollector, existService, nonexistService string) {
@@ -136,12 +136,12 @@ func serviceMultipleDelete(r *test.KnRunResultCollector, existService, nonexistS
 	assert.Check(r.T(), !strings.Contains(out.Stdout, nonexistService), "The service", nonexistService, " exists (but is supposed to be not)")
 
 	out = r.KnTest().Kn().Run("service", "delete", existService, nonexistService)
-	r.AssertNoError(out)
+	r.AssertError(out)
 
 	expectedSuccess := fmt.Sprintf(`Service '%s' successfully deleted in namespace '%s'.`, existService, r.KnTest().Kn().Namespace())
 	expectedErr := fmt.Sprintf(`services.serving.knative.dev "%s" not found`, nonexistService)
 	assert.Check(r.T(), strings.Contains(out.Stdout, expectedSuccess), "Failed to get 'successfully deleted' message")
-	assert.Check(r.T(), strings.Contains(out.Stdout, expectedErr), "Failed to get 'not found' error")
+	assert.Check(r.T(), strings.Contains(out.Stderr, expectedErr), "Failed to get 'not found' error")
 }
 
 func serviceUntagTagThatDoesNotExist(r *test.KnRunResultCollector, serviceName string) {
