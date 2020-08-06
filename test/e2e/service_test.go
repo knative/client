@@ -125,8 +125,8 @@ func serviceDeleteNonexistent(r *test.KnRunResultCollector, serviceName string) 
 	assert.Check(r.T(), !strings.Contains(out.Stdout, serviceName), "The service exists")
 
 	out = r.KnTest().Kn().Run("service", "delete", serviceName)
-	r.AssertNoError(out)
-	assert.Check(r.T(), util.ContainsAll(out.Stdout, "hello", "not found"), "Failed to get 'not found' error")
+	r.AssertError(out)
+	assert.Check(r.T(), util.ContainsAll(out.Stderr, "hello", "not found"), "Failed to get 'not found' error")
 }
 
 func serviceMultipleDelete(r *test.KnRunResultCollector, existService, nonexistService string) {
