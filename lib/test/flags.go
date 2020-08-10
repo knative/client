@@ -28,6 +28,9 @@ var Flags = InitializeFlags()
 // ClientFlags define the flags that are needed to run the e2e tests.
 type ClientFlags struct {
 	DockerConfigJSON string
+	ImageTemplate    string // Template to build the image reference (defaults to {{.Repository}}/{{.Name}}:{{.Tag}})
+	DockerRepo       string // Docker repo (defaults to $KO_DOCKER_REPO)
+	Tag              string // Tag for test images
 }
 
 // InitializeFlags initializes the client's flags
@@ -37,6 +40,15 @@ func InitializeFlags() *ClientFlags {
 	dockerConfigJSON := os.Getenv("DOCKER_CONFIG_JSON")
 	flag.StringVar(&f.DockerConfigJSON, "dockerconfigjson", dockerConfigJSON,
 		"Provide the path to Docker configuration file in json format. Defaults to $DOCKER_CONFIG_JSON")
+
+	flag.StringVar(&f.ImageTemplate, "imagetemplate", "{{.Repository}}/{{.Name}}:{{.Tag}}",
+		"Provide a template to generate the reference to an image from the test. Defaults to `{{.Repository}}/{{.Name}}:{{.Tag}}`.")
+
+	defaultRepo := os.Getenv("KO_DOCKER_REPO")
+	flag.StringVar(&f.DockerRepo, "dockerrepo", defaultRepo,
+		"Provide the uri of the docker repo you have uploaded the test image to using `uploadtestimage.sh`. Defaults to $KO_DOCKER_REPO")
+
+	flag.StringVar(&f.Tag, "tag", "latest", "Provide the version tag for the test images.")
 
 	return &f
 }

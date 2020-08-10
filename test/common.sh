@@ -51,3 +51,10 @@ function knative_setup() {
     wait_until_pods_running knative-eventing || return 1
   fi
 }
+
+# Create test resources and images
+function test_setup() {
+  echo ">> Uploading test images..."
+  ${REPO_ROOT_DIR}/test/upload-test-images.sh || return 1  
+}
+
