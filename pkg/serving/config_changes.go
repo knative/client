@@ -507,13 +507,13 @@ func GenerateVolumeName(path string) string {
 	builder := &strings.Builder{}
 	for idx, r := range path {
 		switch {
-		case unicode.IsLower(r) || unicode.IsDigit(r) || r == '-' || r == '.':
+		case unicode.IsLower(r) || unicode.IsDigit(r) || r == '-':
 			builder.WriteRune(r)
 		case unicode.IsUpper(r):
 			builder.WriteRune(unicode.ToLower(r))
 		case r == '/':
 			if idx != 0 {
-				builder.WriteRune('.')
+				builder.WriteRune('-')
 			}
 		default:
 			builder.WriteRune('-')
