@@ -23,8 +23,5 @@ base=$(cd "$dir/.." && pwd)
 # Will create and delete this namespace (used for all tests, modify if you want a different one used)
 export KN_E2E_NAMESPACE=kne2etests
 
-echo ">> Uploading test images..."
-test/upload-test-images.sh
-
 echo "🧪  Testing"
 go test -mod=vendor ${base}/test/e2e/ -test.v -tags "e2e ${E2E_TAGS}" "$@"
