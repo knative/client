@@ -69,18 +69,5 @@ test/local-e2e-tests.sh -short
 
 ## Test images
 
-### Building the test images
-
-The [`upload-test-images.sh`](./upload-test-images.sh) script can be used to
-build and push the test images used by e2e tests. The script
-expects 'KO_DOCKER_REPO' environment variable set.
-
-To run the script for all end to end test images:
-
-```bash
-./test/upload-test-images.sh
-```
-
-### Adding new test images
-
-New test images should be placed in `test/test_images`.
+Please refer this [link](https://github.com/knative/serving/blob/master/test/README.md#test-images) on how 
+to add/upload test images

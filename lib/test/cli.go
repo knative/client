@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
-	"text/template"
 )
 
 const (
@@ -234,26 +233,4 @@ func appendCLIOutput(buffer *bytes.Buffer, desc string, out string, err error) {
 
 func cmdCLIDesc(cli string, args []string) string {
 	return fmt.Sprintf("%s %s", cli, strings.Join(args, " "))
-}
-
-// ImagePath is a helper function to transform an image name into an image reference that can be pulled.
-func ImagePath(name string) string {
-	tpl, err := template.New("image").Parse(Flags.ImageTemplate)
-	if err != nil {
-		panic("could not parse image template: " + err.Error())
-	}
-
-	var buf bytes.Buffer
-	if err := tpl.Execute(&buf, struct {
-		Repository string
-		Name       string
-		Tag        string
-	}{
-		Repository: Flags.DockerRepo,
-		Name:       name,
-		Tag:        Flags.Tag,
-	}); err != nil {
-		panic("could not apply the image template: " + err.Error())
-	}
-	return buf.String()
 }
