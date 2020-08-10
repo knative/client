@@ -1,4 +1,5 @@
 # Use :nonroot base image for all containers
-defaultBaseImage: docker.repo1.uhc.com/seset/static:nonroot
+defaultBaseImage: gcr.io/distroless/base:debug-nonroot
 baseImageOverrides:
   knative.dev/client/cmd/kn: docker.io/library/alpine:latest
+
