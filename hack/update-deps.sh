@@ -47,7 +47,7 @@ readonly GO_GET
 
 if (( GO_GET )); then
   go get -d ${FLOATING_DEPS[@]}
-  "${ROOT_DIR}/scripts/test-infra/update-test-infra.sh" --update --ref "${VERSION}"
+  "${ROOT_DIR}/scripts/test-infra/update-test-infra.sh" --update --ref "release-0.17"
 fi
 
 
