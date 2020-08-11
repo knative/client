@@ -501,8 +501,13 @@ func UpdateImagePullSecrets(template *servingv1.RevisionTemplateSpec, pullsecret
 }
 
 // GenerateVolumeName generates a volume name with respect to a given path string.
-// Current implementation basically sanitizes the path string by changing "/" into "."
+// Current implementation basically sanitizes the path string by replacing "/" with "-"
 // To reduce any chance of duplication, a checksum part generated from the path string is appended to the sanitized string.
+// The volume name must follow the DNS label standard as defined in RFC 1123. This means the name must:
+// - contain at most 63 characters
+// - contain only lowercase alphanumeric characters or '-'
+// - start with an alphanumeric character
+// - end with an alphanumeric character
 func GenerateVolumeName(path string) string {
 	builder := &strings.Builder{}
 	for idx, r := range path {
@@ -520,7 +525,20 @@ func GenerateVolumeName(path string) string {
 		}
 	}
 
-	return appendCheckSum(builder.String(), path)
+	vname := appendCheckSum(builder.String(), path)
+
+	// the name must start with an alphanumeric character
+	if !unicode.IsLetter(rune(vname[0])) && !unicode.IsNumber(rune(vname[0])) {
+		vname = fmt.Sprintf("k-%s", vname)
+	}
+
+	// contain at most 63 characters
+	if len(vname) > 63 {
+		// must end with an alphanumeric character
+		vname = fmt.Sprintf("%s-n", vname[0:61])
+	}
+
+	return vname
 }
 
 // =======================================================================================
@@ -802,8 +820,8 @@ func existsVolumeNameInVolumeMounts(volumeName string, volumeMounts []corev1.Vol
 	return false
 }
 
-func appendCheckSum(sanitiedString string, path string) string {
+func appendCheckSum(sanitizedString, path string) string {
 	checkSum := sha1.Sum([]byte(path))
 	shortCheckSum := checkSum[0:4]
-	return fmt.Sprintf("%s-%x", sanitiedString, shortCheckSum)
+	return fmt.Sprintf("%s-%x", sanitizedString, shortCheckSum)
 }

@@ -671,14 +671,16 @@ func TestGenerateVolumeName(t *testing.T) {
 		"",
 		"/",
 		"/path.mypath/",
+		"/.path.mypath",
 	}
 
 	expected := []string{
 		"ab12---------------------------------xz",
 		"ab12---------------------------------xz-",
-		"",
-		"",
+		"k-",
+		"k-",
 		"path-mypath-",
+		"k--path-mypath",
 	}
 
 	for i := range actual {
@@ -686,6 +688,11 @@ func TestGenerateVolumeName(t *testing.T) {
 		expectedName := appendCheckSum(expected[i], actual[i])
 		assert.Equal(t, actualName, expectedName)
 	}
+
+	// 63 char limit case, no need to append the checksum in expected string
+	expName_63 := "k---ab12---------------------------------xz-ab12--------------n"
+	assert.Equal(t, len(expName_63), 63)
+	assert.Equal(t, GenerateVolumeName("/./Ab12~`!@#$%^&*()-=_+[]{}|/\\<>,./?:;\"'xZ/Ab12~`!@#$%^&*()-=_+[]{}|/\\<>,./?:;\"'xZ/"), expName_63)
 }
 
 func TestUpdateUser(t *testing.T) {
