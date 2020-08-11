@@ -13,4 +13,3 @@
 # limitations under the License.
 
 image: ko://knative.dev/client/test/test_images/helloworld
-

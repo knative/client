@@ -57,4 +57,3 @@ function test_setup() {
   echo ">> Uploading test images..."
   ${REPO_ROOT_DIR}/test/upload-test-images.sh || return 1  
 }
-

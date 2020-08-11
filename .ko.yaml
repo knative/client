@@ -2,4 +2,3 @@
 defaultBaseImage: gcr.io/distroless/base:debug-nonroot
 baseImageOverrides:
   knative.dev/client/cmd/kn: docker.io/library/alpine:latest
-
