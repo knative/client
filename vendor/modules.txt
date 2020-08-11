@@ -658,7 +658,7 @@ knative.dev/pkg/logging/logkey
 knative.dev/pkg/profiling
 knative.dev/pkg/ptr
 knative.dev/pkg/tracker
-# knative.dev/serving v0.16.1-0.20200811163906-b710f591a309
+# knative.dev/serving v0.16.1-0.20200811173106-5388b6efad78
 ## explicit
 knative.dev/serving/pkg/apis/autoscaling
 knative.dev/serving/pkg/apis/autoscaling/v1alpha1
