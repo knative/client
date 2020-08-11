@@ -62,7 +62,7 @@ smoke_test() {
   ns="kne2esmoketests"
 
   # Test image
-  img=${KO_DOCKER_REPO}/helloworld-go
+  img=${KO_DOCKER_REPO}/helloworld
 
   set -x
 
