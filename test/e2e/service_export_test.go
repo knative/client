@@ -32,6 +32,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientv1alpha1 "knative.dev/client/pkg/apis/client/v1alpha1"
+	pkgtest "knative.dev/pkg/test"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
@@ -136,7 +137,7 @@ func TestServiceExport(t *testing.T) {
 			withRevisionName("hello-rev1"),
 			withRevisionAnnotations(
 				map[string]string{
-					"client.knative.dev/user-image": test.GetKnTestImage(),
+					"client.knative.dev/user-image": pkgtest.ImagePath("helloworld"),
 				}),
 			withRevisionLabels(
 				map[string]string{
@@ -198,7 +199,7 @@ func TestServiceExport(t *testing.T) {
 			withRevisionName("hello-rev1"),
 			withRevisionAnnotations(
 				map[string]string{
-					"client.knative.dev/user-image": test.GetKnTestImage(),
+					"client.knative.dev/user-image": pkgtest.ImagePath("helloworld"),
 				}),
 			withRevisionLabels(
 				map[string]string{
@@ -399,7 +400,7 @@ func withConfigurationLabels(labels map[string]string) expectedServiceOption {
 func withConfigurationAnnotations() expectedServiceOption {
 	return func(svc *servingv1.Service) {
 		svc.Spec.Template.ObjectMeta.Annotations = map[string]string{
-			"client.knative.dev/user-image": test.GetKnTestImage(),
+			"client.knative.dev/user-image": pkgtest.ImagePath("helloworld"),
 		}
 	}
 }
@@ -489,7 +490,7 @@ func withContainer() podSpecOption {
 		spec.Containers = []corev1.Container{
 			{
 				Name:      "user-container",
-				Image:     test.GetKnTestImage(),
+				Image:     pkgtest.ImagePath("helloworld"),
 				Resources: corev1.ResourceRequirements{},
 				ReadinessProbe: &corev1.Probe{
 					SuccessThreshold: int32(1),

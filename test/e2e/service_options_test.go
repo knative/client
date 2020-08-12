@@ -26,10 +26,11 @@ import (
 	"testing"
 
 	"gotest.tools/assert"
-	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	"knative.dev/client/lib/test"
 	"knative.dev/client/pkg/util"
+	pkgtest "knative.dev/pkg/test"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
 func TestServiceOptions(t *testing.T) {
@@ -140,7 +141,7 @@ func TestServiceOptions(t *testing.T) {
 }
 
 func serviceCreateWithOptions(r *test.KnRunResultCollector, serviceName string, options ...string) {
-	command := []string{"service", "create", serviceName, "--image", test.GetKnTestImage()}
+	command := []string{"service", "create", serviceName, "--image", pkgtest.ImagePath("helloworld")}
 	command = append(command, options...)
 	out := r.KnTest().Kn().Run(command...)
 	assert.Check(r.T(), util.ContainsAll(out.Stdout, "service", serviceName, "Creating", "namespace", r.KnTest().Kn().Namespace(), "Ready"))

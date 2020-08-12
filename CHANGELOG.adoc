@@ -41,6 +41,10 @@
 | 🎁
 | Add mock test client for dynamic client
 | https://github.com/knative/client/pull/972[#972]
+
+| 🐣
+| Build test images for e2e tests, add .ko.yaml specifying base image
+| https://github.com/knative/client/pull/974[#974]
 |===
 
 ## v0.16.0 (2020-07-14)
