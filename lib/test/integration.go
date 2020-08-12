@@ -28,7 +28,6 @@ import (
 const (
 	MaxRetries         int           = 10
 	RetrySleepDuration time.Duration = 5 * time.Second
-	KnTestImageEnv     string        = "KN_TEST_IMAGE" // Allow test image to be customized
 )
 
 var nsMutex sync.Mutex
