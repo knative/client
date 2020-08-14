@@ -45,6 +45,10 @@
 | 🐣
 | Build test images for e2e tests, add .ko.yaml specifying base image
 | https://github.com/knative/client/pull/974[#974]
+
+| 🐛
+| Fix client side volume name generation
+| https://github.com/knative/client/pull/975[#975]
 |===
 
 ## v0.16.0 (2020-07-14)
