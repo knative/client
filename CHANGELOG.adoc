@@ -41,6 +41,10 @@
 | 🎁
 | Add mock test client for dynamic client
 | https://github.com/knative/client/pull/972[#972]
+
+| 🐛
+| Fix client side volume name generation
+| https://github.com/knative/client/pull/975[#975]
 |===
 
 ## v0.16.0 (2020-07-14)
