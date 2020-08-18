@@ -122,6 +122,7 @@ func TestListSources(t *testing.T) {
 		sources, err := client.ListSources(WithTypeFilter("pingsource"), WithTypeFilter("ApiServerSource"))
 		assert.NilError(t, err)
 		assert.Equal(t, len(sources.Items), 2)
+		assert.DeepEqual(t, sources.GroupVersionKind(), schema.GroupVersionKind{sourceListGroup, sourceListVersion, sourceListKind})
 	})
 }
 
@@ -149,12 +150,14 @@ func TestListSourcesUsingGVKs(t *testing.T) {
 		assert.NilError(t, err)
 		assert.Check(t, s != nil)
 		assert.Equal(t, len(s.Items), 2)
+		assert.DeepEqual(t, s.GroupVersionKind(), schema.GroupVersionKind{sourceListGroup, sourceListVersion, sourceListKind})
 
 		// withType
 		s, err = client.ListSourcesUsingGVKs(&gvks, WithTypeFilter("PingSource"))
 		assert.NilError(t, err)
 		assert.Check(t, s != nil)
 		assert.Equal(t, len(s.Items), 1)
+		assert.DeepEqual(t, s.GroupVersionKind(), schema.GroupVersionKind{sourceListGroup, sourceListVersion, sourceListKind})
 	})
 
 }

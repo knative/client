@@ -37,6 +37,10 @@
 | 🐛
 | Fix client side volume name generation
 | https://github.com/knative/client/pull/975[#975]
+
+| ✨
+| `kn source list` output now has client custom GVK set as `{Group: client.knative.dev, Version: v1alpha1, Kind: SourceList}`
+| https://github.com/knative/client/pull/980[#980]
 |===
 
 ## v0.16.0 (2020-07-14)
