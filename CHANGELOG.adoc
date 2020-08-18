@@ -12,27 +12,19 @@
 | https://github.com/knative/client/pull/[#]
 ////
 
-## Unreleased
+## v0.16.1 (2020-08-18)
 
 [cols="1,10,3", options="header", width="100%"]
 |===
 | | Description | PR
 
-| 🎁
-| Add support to combine service create --filename with other options
-| https://github.com/knative/client/pull/937[#937]
-
-| 🎁
-| Fix Missing NAMESPACE column header for 'kn source list -A'
+| 🐛
+| Fix missing NAMESPACE column header for 'kn source list -A'
 | https://github.com/knative/client/pull/951[#951]
 
 | 🐛
 | Fix exit code for `kn service delete` and `kn revision delete` failures
 | https://github.com/knative/client/pull/971[#971]
-
-| 🎁
-| Add mock test client for dynamic client
-| https://github.com/knative/client/pull/972[#972]
 
 | 🐛
 | Fix client side volume name generation
@@ -41,6 +33,14 @@
 | ✨
 | `kn source list` output now has client custom GVK set as `{Group: client.knative.dev, Version: v1alpha1, Kind: SourceList}`
 | https://github.com/knative/client/pull/980[#980]
+
+| 🐛
+| fix(kn source list): list inbuilt sources if crd access is restricted
+| https://github.com/knative/client/pull/948[#948]
+
+| 🐛
+| fix(tekton e2e): Refer tasks from new tekton catalog task structure
+| https://github.com/knative/client/pull/966[#966]
 |===
 
 ## v0.16.0 (2020-07-14)
