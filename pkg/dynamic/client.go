@@ -34,6 +34,9 @@ const (
 	crdKinds          = "customresourcedefinitions"
 	sourcesLabelKey   = "duck.knative.dev/source"
 	sourcesLabelValue = "true"
+	sourceListGroup   = "client.knative.dev"
+	sourceListVersion = "v1alpha1"
+	sourceListKind    = "SourceList"
 )
 
 // KnDynamicClient to client-go Dynamic client. All methods are relative to the
@@ -111,9 +114,8 @@ func (c knDynamicClient) RawClient() dynamic.Interface {
 // only given types of source objects
 func (c *knDynamicClient) ListSources(types ...WithType) (*unstructured.UnstructuredList, error) {
 	var (
-		sourceList               unstructured.UnstructuredList
-		options                  metav1.ListOptions
-		numberOfSourceTypesFound int
+		sourceList unstructured.UnstructuredList
+		options    metav1.ListOptions
 	)
 	sourceTypes, err := c.ListSourcesTypes()
 	if err != nil {
@@ -151,16 +153,11 @@ func (c *knDynamicClient) ListSources(types ...WithType) (*unstructured.Unstruct
 		}
 
 		if len(sList.Items) > 0 {
-			// keep a track if we found source objects of different types
-			numberOfSourceTypesFound++
 			sourceList.Items = append(sourceList.Items, sList.Items...)
-			sourceList.SetGroupVersionKind(sList.GetObjectKind().GroupVersionKind())
 		}
 	}
-	// Clear the Group and Version for list if there are multiple types of source objects found
-	// Keep the source's GVK if there is only one type of source objects found or requested via --type filter
-	if numberOfSourceTypesFound > 1 {
-		sourceList.SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "", Kind: "List"})
+	if len(sourceList.Items) > 0 {
+		sourceList.SetGroupVersionKind(schema.GroupVersionKind{Group: sourceListGroup, Version: sourceListVersion, Kind: sourceListKind})
 	}
 	return &sourceList, nil
 }
@@ -172,9 +169,8 @@ func (c *knDynamicClient) ListSourcesUsingGVKs(gvks *[]schema.GroupVersionKind, 
 	}
 
 	var (
-		sourceList               unstructured.UnstructuredList
-		options                  metav1.ListOptions
-		numberOfSourceTypesFound int
+		sourceList unstructured.UnstructuredList
+		options    metav1.ListOptions
 	)
 	namespace := c.Namespace()
 	filters := WithTypes(types).List()
@@ -193,16 +189,11 @@ func (c *knDynamicClient) ListSourcesUsingGVKs(gvks *[]schema.GroupVersionKind, 
 		}
 
 		if len(sList.Items) > 0 {
-			// keep a track if we found source objects of different types
-			numberOfSourceTypesFound++
 			sourceList.Items = append(sourceList.Items, sList.Items...)
-			sourceList.SetGroupVersionKind(sList.GetObjectKind().GroupVersionKind())
 		}
 	}
-	// Clear the Group and Version for list if there are multiple types of source objects found
-	// Keep the source's GVK if there is only one type of source objects found or requested via --type filter
-	if numberOfSourceTypesFound > 1 {
-		sourceList.SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "", Kind: "List"})
+	if len(sourceList.Items) > 0 {
+		sourceList.SetGroupVersionKind(schema.GroupVersionKind{Group: sourceListGroup, Version: sourceListVersion, Kind: sourceListKind})
 	}
 	return &sourceList, nil
 }
