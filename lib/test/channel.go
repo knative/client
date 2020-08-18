@@ -15,6 +15,8 @@
 package test
 
 import (
+	"time"
+
 	"gotest.tools/assert"
 
 	"knative.dev/client/pkg/util"
@@ -26,6 +28,8 @@ func ChannelCreate(r *KnRunResultCollector, cname string, args ...string) {
 	out := r.KnTest().Kn().Run(cmd...)
 	r.AssertNoError(out)
 	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "channel", cname, "created"))
+	// let channel reconcile TODO: fix the wait for channel to become ready
+	time.Sleep(5 * time.Second)
 }
 
 func ChannelList(r *KnRunResultCollector, args ...string) string {
