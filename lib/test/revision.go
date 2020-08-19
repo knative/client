@@ -60,11 +60,11 @@ func RevisionMultipleDelete(r *KnRunResultCollector, existRevision1, existRevisi
 	assert.Check(r.T(), strings.Contains(out.Stdout, existRevision2), "Required revision2 does not exist")
 
 	out = r.KnTest().Kn().Run("revision", "delete", existRevision1, existRevision2, nonexistRevision)
-	r.AssertNoError(out)
+	r.AssertError(out)
 
 	assert.Check(r.T(), util.ContainsAll(out.Stdout, "Revision", existRevision1, "deleted", "namespace", r.KnTest().Kn().Namespace()), "Failed to get 'deleted' first revision message")
 	assert.Check(r.T(), util.ContainsAll(out.Stdout, "Revision", existRevision2, "deleted", "namespace", r.KnTest().Kn().Namespace()), "Failed to get 'deleted' second revision message")
-	assert.Check(r.T(), util.ContainsAll(out.Stdout, "revisions.serving.knative.dev", nonexistRevision, "not found"), "Failed to get 'not found' error")
+	assert.Check(r.T(), util.ContainsAll(out.Stderr, "revisions.serving.knative.dev", nonexistRevision, "not found"), "Failed to get 'not found' error")
 }
 
 // RevisionDescribeWithPrintFlags verifies describing given revision using print flag '--output=name'

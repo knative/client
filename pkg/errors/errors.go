@@ -26,7 +26,7 @@ func newInvalidCRD(apiGroup string) *KNError {
 	return NewKNError(msg)
 }
 
-func newNoRouteToHost(errString string) error {
+func newNoRouteToHost(errString string) *KNError {
 	parts := strings.SplitAfter(errString, "dial tcp")
 	if len(parts) == 2 {
 		return NewKNError(fmt.Sprintf("error connecting to the cluster, please verify connection at: %s", strings.Trim(parts[1], " ")))
@@ -34,6 +34,6 @@ func newNoRouteToHost(errString string) error {
 	return NewKNError(fmt.Sprintf("error connecting to the cluster: %s", errString))
 }
 
-func newNoKubeConfig(errString string) error {
+func newNoKubeConfig(errString string) *KNError {
 	return NewKNError("no kubeconfig has been provided, please use a valid configuration to connect to the cluster")
 }
