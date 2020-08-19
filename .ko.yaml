@@ -1,1 +1,3 @@
-defaultBaseImage: docker.io/library/alpine:latest
+defaultBaseImage: gcr.io/distroless/static:nonroot
+baseImageOverrides:
+  knative.dev/client/cmd/kn: docker.io/library/alpine:latest
