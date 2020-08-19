@@ -55,5 +55,5 @@ function knative_setup() {
 # Create test resources and images
 function test_setup() {
   echo ">> Uploading test images..."
-  ${REPO_ROOT_DIR}/test/upload-test-images.sh || return 1  
+  ${REPO_ROOT_DIR}/test/upload-test-images.sh || return 1
 }
