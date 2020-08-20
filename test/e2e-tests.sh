@@ -62,10 +62,7 @@ smoke_test() {
   ns="kne2esmoketests"
 
   # Test image
-  img=${KN_TEST_IMAGE}
-  if [[ -z "${KN_TEST_IMAGE}" ]]; then
-    img="gcr.io/knative-samples/helloworld-go"
-  fi
+  img=${KO_DOCKER_REPO}/helloworld
 
   set -x
 

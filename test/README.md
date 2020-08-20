@@ -66,3 +66,30 @@ mode, use
 ```bash
 test/local-e2e-tests.sh -short
 ```
+
+## Test images
+
+### Building the test images
+
+The [`upload-test-images.sh`](./upload-test-images.sh) script can be used to
+build and push the test images used by the e2e tests. The script
+expects your environment to be setup as described in
+[DEVELOPMENT.md](https://github.com/knative/serving/blob/master/DEVELOPMENT.md#install-requirements).
+
+To run the script for all end to end test images:
+
+```bash
+./test/upload-test-images.sh
+```
+
+A docker tag may be passed as an optional parameter. This can be useful on
+Minikube in tandem with the `--tag` [flag](#using-a-docker-tag):
+
+```bash
+eval $(minikube docker-env)
+./test/upload-test-images.sh any-old-tag
+```
+
+### Adding new test images
+
+New test images should be placed in `./test/test_images`.

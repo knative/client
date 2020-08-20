@@ -26,10 +26,11 @@ import (
 	"testing"
 
 	"gotest.tools/assert"
-	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	"knative.dev/client/lib/test"
 	"knative.dev/client/pkg/util"
+	pkgtest "knative.dev/pkg/test"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
 func TestServiceOptions(t *testing.T) {
@@ -111,8 +112,8 @@ func TestServiceOptions(t *testing.T) {
 	test.ServiceDelete(r, "svc4")
 
 	t.Log("create, update and validate service with cmd and arg options")
-	serviceCreateWithOptions(r, "svc5", "--cmd", "/go/bin/helloworld")
-	validateContainerField(r, "svc5", "command", "[/go/bin/helloworld]")
+	serviceCreateWithOptions(r, "svc5", "--cmd", "/ko-app/helloworld")
+	validateContainerField(r, "svc5", "command", "[/ko-app/helloworld]")
 	test.ServiceUpdate(r, "svc5", "--arg", "myArg1", "--arg", "--myArg2")
 	validateContainerField(r, "svc5", "args", "[myArg1 --myArg2]")
 	test.ServiceUpdate(r, "svc5", "--arg", "myArg1")
@@ -140,7 +141,7 @@ func TestServiceOptions(t *testing.T) {
 }
 
 func serviceCreateWithOptions(r *test.KnRunResultCollector, serviceName string, options ...string) {
-	command := []string{"service", "create", serviceName, "--image", test.GetKnTestImage()}
+	command := []string{"service", "create", serviceName, "--image", pkgtest.ImagePath("helloworld")}
 	command = append(command, options...)
 	out := r.KnTest().Kn().Run(command...)
 	assert.Check(r.T(), util.ContainsAll(out.Stdout, "service", serviceName, "Creating", "namespace", r.KnTest().Kn().Namespace(), "Ready"))

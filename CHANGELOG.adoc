@@ -42,6 +42,10 @@
 | Add mock test client for dynamic client
 | https://github.com/knative/client/pull/972[#972]
 
+| 🐣
+| Build test images for e2e tests, add .ko.yaml specifying base image
+| https://github.com/knative/client/pull/974[#974]
+
 | 🐛
 | Fix client side volume name generation
 | https://github.com/knative/client/pull/975[#975]
