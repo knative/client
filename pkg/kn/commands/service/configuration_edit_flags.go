@@ -15,6 +15,7 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -38,7 +39,7 @@ type ConfigurationEditFlags struct {
 	PodSpecFlags knflags.PodSpecFlags
 
 	// Direct field manipulation
-	Scale                  int
+	Scale                  string
 	MinScale               int
 	MaxScale               int
 	ConcurrencyTarget      int
@@ -85,7 +86,19 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	command.Flags().MarkHidden("max-scale")
 	p.markFlagMakesRevision("max-scale")
 
-	command.Flags().IntVar(&p.Scale, "scale", 0, "Minimum and maximum number of replicas.")
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+	command.Flags().StringVar(&p.Scale, "scale", "1", "Minimum and maximum number of replicas. (e.g., 1..5)")
+=======
+	command.Flags().StringVar(&p.Scale, "scale", "", "Minimum and maximum number of replicas.")
+>>>>>>> 29dc3a98... Added range options to --scale
+=======
+	command.Flags().StringVar(&p.Scale, "scale", "1", "Minimum and maximum number of replicas.")
+>>>>>>> 49c7a26a... Fixed issues related to reviews and cleaned up some of the logic
+=======
+	command.Flags().StringVar(&p.Scale, "scale", "1", "Minimum and maximum number of replicas. (e.g., 1..5)")
+>>>>>>> 3050e558... Updated wording and scaleconversion
 	p.markFlagMakesRevision("scale")
 
 	command.Flags().IntVar(&p.MinScale, "scale-min", 0, "Minimum number of replicas.")
@@ -339,14 +352,71 @@ func (p *ConfigurationEditFlags) Apply(
 		} else if cmd.Flags().Changed("scale-min") {
 			return fmt.Errorf("only --scale or --scale-min can be specified")
 		} else {
-			err = servinglib.UpdateMaxScale(template, p.Scale)
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+			scaleMin, scaleMax, err := p.scaleConversion(p.Scale)
 			if err != nil {
 				return err
 			}
-			err = servinglib.UpdateMinScale(template, p.Scale)
+=======
+			scaleMin, scaleMax, err := p.ScaleConversion(p.Scale)
+<<<<<<< HEAD
+>>>>>>> f9e53d51... Updated helper function/cleaned it up and resolved failing tests
+=======
+=======
+			scaleMin, scaleMax, err := p.scaleConversion(p.Scale)
+>>>>>>> 3050e558... Updated wording and scaleconversion
 			if err != nil {
 				return err
 			}
+>>>>>>> 29514e26... Added checks for non ".." values and added more tests
+			err = servinglib.UpdateMaxScale(template, scaleMax)
+			if err != nil {
+				return err
+			}
+			err = servinglib.UpdateMinScale(template, scaleMin)
+			if err != nil {
+				return err
+<<<<<<< HEAD
+=======
+			if !strings.Contains(p.Scale, "..") {
+				scaleMin, _ := strconv.Atoi(p.Scale)
+				scaleMax := scaleMin
+				err = servinglib.UpdateMaxScale(template, scaleMax)
+				if err != nil {
+					return err
+				}
+				err = servinglib.UpdateMinScale(template, scaleMin)
+				if err != nil {
+					return err
+				}
+			} else {
+				scaleParts := strings.Split(p.Scale, "..")
+				scaleMin, _ := strconv.Atoi(scaleParts[0])
+				scaleMax, _ := strconv.Atoi(scaleParts[1])
+				if scaleMax > 0 {
+					err = servinglib.UpdateMaxScale(template, scaleMax)
+					if err != nil {
+						return err
+					}
+				}
+				if scaleMin > 0 {
+					err = servinglib.UpdateMinScale(template, scaleMin)
+					if err != nil {
+						return err
+					}
+				}
+>>>>>>> 49c7a26a... Fixed issues related to reviews and cleaned up some of the logic
+			}
+
+=======
+			p.ScaleConversion(template, p.Scale)
+>>>>>>> 7f05b8c4... Ran build to update docs/created a helper script
+=======
+			}
+>>>>>>> f9e53d51... Updated helper function/cleaned it up and resolved failing tests
 		}
 	}
 
@@ -508,4 +578,88 @@ func (p *ConfigurationEditFlags) AnyMutation(cmd *cobra.Command) bool {
 		}
 	}
 	return false
+}
+
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+func (p *ConfigurationEditFlags) scaleConversion(scale string) (scaleMin int, scaleMax int, err error) {
+	if len(scale) <= 2 {
+		if !strings.Contains(scale, "..") {
+			scaleMin, err = strconv.Atoi(scale)
+			if err != nil {
+				return 0, 0, err
+			}
+			scaleMax = scaleMin
+		}
+	} else if strings.Contains(scale, "..") {
+		scaleParts := strings.Split(scale, "..")
+		if scaleParts[0] != "" {
+			scaleMin, err = strconv.Atoi(scaleParts[0])
+			if err != nil {
+				return 0, 0, err
+			}
+		}
+		if scaleParts[1] != "" {
+			scaleMax, err = strconv.Atoi(scaleParts[1])
+			if err != nil {
+				return 0, 0, err
+			}
+		}
+	} else {
+		return 0, 0, errors.New("Scale must be of the format x..y or x")
+	}
+	return scaleMin, scaleMax, err
+=======
+func (p *ConfigurationEditFlags) ScaleConversion(template *servingv1.RevisionTemplateSpec, scale string) {
+	var scaleMin, scaleMax int
+	var err error
+
+=======
+func (p *ConfigurationEditFlags) ScaleConversion(scale string) (scaleMin int, scaleMax int, err error) {
+<<<<<<< HEAD
+>>>>>>> f9e53d51... Updated helper function/cleaned it up and resolved failing tests
+	if !strings.Contains(scale, "..") {
+		scaleMin, err = strconv.Atoi(scale)
+		if err != nil {
+			return 0, 0, err
+=======
+=======
+=======
+// Helper function for figuring out scale
+>>>>>>> a8d3ddf8... Added comment about the helper function
+func (p *ConfigurationEditFlags) scaleConversion(scale string) (scaleMin int, scaleMax int, err error) {
+>>>>>>> 3050e558... Updated wording and scaleconversion
+	if len(scale) <= 2 {
+		if !strings.Contains(scale, "..") {
+			scaleMin, err = strconv.Atoi(scale)
+			if err != nil {
+				return 0, 0, err
+			}
+			scaleMax = scaleMin
+>>>>>>> 29514e26... Added checks for non ".." values and added more tests
+		}
+	} else if strings.Contains(scale, "..") {
+		scaleParts := strings.Split(scale, "..")
+		if scaleParts[0] != "" {
+			scaleMin, err = strconv.Atoi(scaleParts[0])
+			if err != nil {
+				return 0, 0, err
+			}
+		}
+		if scaleParts[1] != "" {
+			scaleMax, err = strconv.Atoi(scaleParts[1])
+			if err != nil {
+				return 0, 0, err
+			}
+		}
+	} else {
+		return 0, 0, errors.New("Scale must be of the format x..y or x")
+	}
+<<<<<<< HEAD
+>>>>>>> 7f05b8c4... Ran build to update docs/created a helper script
+=======
+	return scaleMin, scaleMax, err
+>>>>>>> f9e53d51... Updated helper function/cleaned it up and resolved failing tests
 }
