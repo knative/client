@@ -617,6 +617,88 @@ func TestServiceCreateScaleWithMinScaleSet(t *testing.T) {
 
 }
 
+func TestServiceCreateScaleRange(t *testing.T) {
+	action, created, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
+		"--scale", "1..5", "--no-wait"}, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("create", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template := &created.Spec.Template
+
+	actualAnnos := template.Annotations
+	expectedAnnos := []string{
+		"autoscaling.knative.dev/minScale", "1",
+		"autoscaling.knative.dev/maxScale", "5",
+	}
+
+	for i := 0; i < len(expectedAnnos); i += 2 {
+		anno := expectedAnnos[i]
+		if actualAnnos[anno] != expectedAnnos[i+1] {
+			t.Fatalf("Unexpected annotation value for %s : %s (actual) != %s (expected)",
+				anno, actualAnnos[anno], expectedAnnos[i+1])
+		}
+	}
+}
+
+func TestServiceCreateScaleRangeOnlyMin(t *testing.T) {
+	action, created, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
+		"--scale", "1..", "--no-wait"}, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("create", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template := &created.Spec.Template
+
+	actualAnnos := template.Annotations
+	expectedAnnos := []string{
+		"autoscaling.knative.dev/minScale", "1",
+	}
+
+	for i := 0; i < len(expectedAnnos); i += 2 {
+		anno := expectedAnnos[i]
+		if actualAnnos[anno] != expectedAnnos[i+1] {
+			t.Fatalf("Unexpected annotation value for %s : %s (actual) != %s (expected)",
+				anno, actualAnnos[anno], expectedAnnos[i+1])
+		}
+	}
+}
+
+func TestServiceCreateScaleRangeOnlyMax(t *testing.T) {
+	action, created, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
+		"--scale", "..5", "--no-wait"}, false)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("create", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template := &created.Spec.Template
+
+	actualAnnos := template.Annotations
+	expectedAnnos := []string{
+		"autoscaling.knative.dev/maxScale", "5",
+	}
+
+	for i := 0; i < len(expectedAnnos); i += 2 {
+		anno := expectedAnnos[i]
+		if actualAnnos[anno] != expectedAnnos[i+1] {
+			t.Fatalf("Unexpected annotation value for %s : %s (actual) != %s (expected)",
+				anno, actualAnnos[anno], expectedAnnos[i+1])
+		}
+	}
+}
+
 func TestServiceCreateRequestsLimitsCPUMemory(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",

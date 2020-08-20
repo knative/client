@@ -17,6 +17,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -45,7 +46,7 @@ type ConfigurationEditFlags struct {
 
 	RequestsFlags, LimitsFlags ResourceFlags // TODO: Flag marked deprecated in release v0.15.0, remove in release v0.18.0
 	Resources                  knflags.ResourceOptions
-	Scale                      int
+	Scale                      string
 	MinScale                   int
 	MaxScale                   int
 	ConcurrencyTarget          int
@@ -190,7 +191,7 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	command.Flags().MarkHidden("max-scale")
 	p.markFlagMakesRevision("max-scale")
 
-	command.Flags().IntVar(&p.Scale, "scale", 0, "Minimum and maximum number of replicas.")
+	command.Flags().StringVar(&p.Scale, "scale", "", "Minimum and maximum number of replicas.")
 	p.markFlagMakesRevision("scale")
 
 	command.Flags().IntVar(&p.MinScale, "scale-min", 0, "Minimum number of replicas.")
@@ -438,6 +439,55 @@ func (p *ConfigurationEditFlags) Apply(
 		}
 	}
 
+	if cmd.Flags().Changed("scale") {
+		if cmd.Flags().Changed("scale-max") {
+			return fmt.Errorf("only --scale or --scale-max can be specified")
+		} else if cmd.Flags().Changed("scale-min") {
+			return fmt.Errorf("only --scale or --scale-min can be specified")
+		} else {
+			if !strings.Contains(p.Scale, "..") {
+				scaleInt, _ := strconv.Atoi(p.Scale)
+				err = servinglib.UpdateMaxScale(template, scaleInt)
+				if err != nil {
+					return err
+				}
+				err = servinglib.UpdateMinScale(template, scaleInt)
+				if err != nil {
+					return err
+				}
+			} else if len(p.Scale) == 4 {
+				scaleParts := strings.Split(p.Scale, "..")
+				scaleMin, _ := strconv.Atoi(scaleParts[0])
+				scaleMax, _ := strconv.Atoi(scaleParts[1])
+				err = servinglib.UpdateMinScale(template, scaleMin)
+				if err != nil {
+					return err
+				}
+				err = servinglib.UpdateMaxScale(template, scaleMax)
+				if err != nil {
+					return err
+				}
+			} else {
+				scaleParts := strings.Split(p.Scale, "")
+				if scaleParts[0] == "." {
+					scaleParts = strings.Split(p.Scale, "..")
+					scaleMax, _ := strconv.Atoi(scaleParts[1])
+					err = servinglib.UpdateMaxScale(template, scaleMax)
+					if err != nil {
+						return err
+					}
+				} else {
+					scaleParts = strings.Split(p.Scale, "..")
+					scaleMin, _ := strconv.Atoi(scaleParts[0])
+					err = servinglib.UpdateMinScale(template, scaleMin)
+					if err != nil {
+						return err
+					}
+				}
+			}
+		}
+	}
+
 	if cmd.Flags().Changed("scale-min") {
 		err = servinglib.UpdateMinScale(template, p.MinScale)
 		if err != nil {
@@ -449,23 +499,6 @@ func (p *ConfigurationEditFlags) Apply(
 		err = servinglib.UpdateMaxScale(template, p.MaxScale)
 		if err != nil {
 			return err
-		}
-	}
-
-	if cmd.Flags().Changed("scale") {
-		if cmd.Flags().Changed("scale-max") {
-			return fmt.Errorf("only --scale or --scale-max can be specified")
-		} else if cmd.Flags().Changed("scale-min") {
-			return fmt.Errorf("only --scale or --scale-min can be specified")
-		} else {
-			err = servinglib.UpdateMaxScale(template, p.Scale)
-			if err != nil {
-				return err
-			}
-			err = servinglib.UpdateMinScale(template, p.Scale)
-			if err != nil {
-				return err
-			}
 		}
 	}
 
@@ -605,3 +638,9 @@ func (p *ConfigurationEditFlags) AnyMutation(cmd *cobra.Command) bool {
 	}
 	return false
 }
+
+// // Scale Range Helper Function
+// func (p *ConfigurationEditFlags) scaleRange() {
+// 	scaleRange := strings.Split(p.Scale, "")
+
+// }
