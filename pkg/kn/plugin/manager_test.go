@@ -157,7 +157,7 @@ func TestPluginMixed(t *testing.T) {
 	ctx := setup(t)
 	defer cleanup(t, ctx)
 
-    createTestPlugin(t, "kn-external", ctx)
+	createTestPlugin(t, "kn-external", ctx)
 	createTestPlugin(t, "kn-shadow", ctx)
 
 	// Initialize registered plugins
@@ -167,13 +167,13 @@ func TestPluginMixed(t *testing.T) {
 	))()
 
 	data := []struct {
-			path []string
-			name  string
-			isInternal bool
+		path       []string
+		name       string
+		isInternal bool
 	}{
-		{[]string{ "external" },"kn-external", false},
-		{[]string{ "internal" }, "kn-internal",  true},
-		{[]string{ "shadow" }, "kn-shadow", true},
+		{[]string{"external"}, "kn-external", false},
+		{[]string{"internal"}, "kn-internal", true},
+		{[]string{"shadow"}, "kn-shadow", true},
 	}
 	for _, d := range data {
 		plugin, err := ctx.pluginManager.FindPlugin(d.path)
@@ -188,7 +188,7 @@ func TestPluginMixed(t *testing.T) {
 func prepareInternalPlugins(plugins ...Plugin) func() {
 	oldPlugins := InternalPlugins
 	InternalPlugins = plugins
-    return 	func() {
+	return func() {
 		InternalPlugins = oldPlugins
 	}
 }
