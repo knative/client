@@ -163,7 +163,7 @@ func (manager *Manager) ListPluginsForCommandGroup(commandGroupParts []string) (
 			}
 
 			// Ignore all plugins that are shadowed
-			if _, ok := hasSeen[name]; !ok {
+			if seen, ok := hasSeen[name]; !ok || !seen {
 				plugins = append(plugins, &plugin{
 					path:         filepath.Join(dir, f.Name()),
 					name:         stripWindowsExecExtensions(f.Name()),
