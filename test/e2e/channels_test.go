@@ -32,7 +32,7 @@ const (
 	knChannelTypesConfigContent string = `
 eventing:
   channel-type-mappings:
-  - alias: imcv1beta1
+  - alias: imcbeta
     kind: InMemoryChannel
     group: messaging.knative.dev
     version: v1beta1`
@@ -82,7 +82,7 @@ func TestChannels(t *testing.T) {
 	test.ChannelCreate(r, "c1", "--type", "messaging.knative.dev:v1beta1:InMemoryChannel")
 
 	t.Log("Create a channel with an alias from kn config: ", tc.knConfigPath)
-	test.ChannelCreate(r, "c2", "--type", "imcv1beta1", "--config", tc.knConfigPath)
+	test.ChannelCreate(r, "c2", "--type", "imcbeta", "--config", tc.knConfigPath)
 
 	t.Log("List channels")
 	listout := test.ChannelList(r)

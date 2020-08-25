@@ -32,9 +32,15 @@ type channelTypeFlagsTestCase struct {
 func TestChannelTypesFlags(t *testing.T) {
 	cases := []*channelTypeFlagsTestCase{
 		{
-			"inbuilt alias 'imc' case",
-			"imc",
+			"inbuilt alias 'imcv1beta1' case",
+			"imcv1beta1",
 			&schema.GroupVersionKind{Group: "messaging.knative.dev", Kind: "InMemoryChannel", Version: "v1beta1"},
+			"",
+		},
+		{
+			"inbuilt alias 'imcv1beta1' case",
+			"imcv1",
+			&schema.GroupVersionKind{Group: "messaging.knative.dev", Kind: "InMemoryChannel", Version: "v1"},
 			"",
 		},
 		{

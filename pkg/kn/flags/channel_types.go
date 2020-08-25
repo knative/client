@@ -50,9 +50,14 @@ func (i *ChannelTypeFlags) Add(f *pflag.FlagSet) {
 
 // ctypeMappings maps aliases used for channel types to their GroupVersionKind
 var ctypeMappings = map[string]schema.GroupVersionKind{
-	"imc": {
+	"imcv1beta1": {
 		Group:   "messaging.knative.dev",
 		Version: "v1beta1",
+		Kind:    "InMemoryChannel",
+	},
+	"imcv1": {
+		Group:   "messaging.knative.dev",
+		Version: "v1",
 		Kind:    "InMemoryChannel",
 	},
 }
