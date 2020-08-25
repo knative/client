@@ -12,7 +12,7 @@
 | https://github.com/knative/client/pull/[#]
 ////
 
-## v0.16.1 (2020-08-18)
+## v0.16.1 (2020-08-25)
 
 [cols="1,10,3", options="header", width="100%"]
 |===
@@ -44,7 +44,7 @@
 
 | 🎁
 | Add support for internal plugins
-| https://github.com/knative/client/pull/880[#880]
+| https://github.com/knative/client/pull/902[#902]
 |===
 
 ## v0.16.0 (2020-07-14)
