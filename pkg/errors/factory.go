@@ -42,6 +42,10 @@ func isEmptyConfigError(err error) bool {
 //Retrieves a custom error struct based on the original error APIStatus struct
 //Returns the original error struct in case it can't identify the kind of APIStatus error
 func GetError(err error) error {
+	if err == nil {
+		return nil
+	}
+
 	switch {
 	case isEmptyConfigError(err):
 		return newNoKubeConfig(err.Error())

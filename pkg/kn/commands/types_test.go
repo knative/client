@@ -242,3 +242,53 @@ func TestNewDynamicClient(t *testing.T) {
 		}
 	}
 }
+
+func TestNewMessagingClient(t *testing.T) {
+	basic, err := clientcmd.NewClientConfigFromBytes([]byte(BASIC_KUBECONFIG))
+	namespace := "test"
+	if err != nil {
+		t.Error(err)
+	}
+	for i, tc := range []configTestCase{
+		{
+			clientcmd.NewDefaultClientConfig(clientcmdapi.Config{}, &clientcmd.ConfigOverrides{}),
+			"no kubeconfig has been provided, please use a valid configuration to connect to the cluster",
+			false,
+		},
+		{
+			basic,
+			"",
+			false,
+		},
+		{ // Test that the cast to wrap the http client in a logger works
+			basic,
+			"",
+			true,
+		},
+	} {
+		p := &KnParams{
+			ClientConfig: tc.clientConfig,
+			LogHTTP:      tc.logHttp,
+		}
+
+		msgClient, err := p.newMessagingClient(namespace)
+
+		switch len(tc.expectedErrString) {
+		case 0:
+			if err != nil {
+				t.Errorf("%d: unexpected error: %s", i, err.Error())
+			}
+		default:
+			if err == nil {
+				t.Errorf("%d: wrong error detected: %s (expected) != %s (actual)", i, tc.expectedErrString, err)
+			}
+			if !strings.Contains(err.Error(), tc.expectedErrString) {
+				t.Errorf("%d: wrong error detected: %s (expected) != %s (actual)", i, tc.expectedErrString, err.Error())
+			}
+		}
+
+		if msgClient != nil {
+			assert.Assert(t, msgClient.ChannelsClient().Namespace() == namespace)
+		}
+	}
+}

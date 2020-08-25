@@ -22,12 +22,14 @@ type TestConfig struct {
 	TestConfigFile          string
 	TestLookupPluginsInPath bool
 	TestSinkMappings        []SinkMapping
+	TestChannelTypeMappings []ChannelTypeMapping
 }
 
 // Ensure that TestConfig implements the configuration interface
 var _ Config = &TestConfig{}
 
-func (t TestConfig) PluginsDir() string          { return t.TestPluginsDir }
-func (t TestConfig) ConfigFile() string          { return t.TestConfigFile }
-func (t TestConfig) LookupPluginsInPath() bool   { return t.TestLookupPluginsInPath }
-func (t TestConfig) SinkMappings() []SinkMapping { return t.TestSinkMappings }
+func (t TestConfig) PluginsDir() string                        { return t.TestPluginsDir }
+func (t TestConfig) ConfigFile() string                        { return t.TestConfigFile }
+func (t TestConfig) LookupPluginsInPath() bool                 { return t.TestLookupPluginsInPath }
+func (t TestConfig) SinkMappings() []SinkMapping               { return t.TestSinkMappings }
+func (t TestConfig) ChannelTypeMappings() []ChannelTypeMapping { return t.TestChannelTypeMappings }

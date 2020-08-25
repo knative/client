@@ -31,6 +31,9 @@ type Config interface {
 
 	// SinkMappings returns additional mappings for sink prefixes to resources
 	SinkMappings() []SinkMapping
+
+	// ChannelTypeMappings returns additional mappings for channel type aliases
+	ChannelTypeMappings() []ChannelTypeMapping
 }
 
 // SinkMappings is the struct of sink prefix config in kn config
@@ -49,11 +52,28 @@ type SinkMapping struct {
 	Version string
 }
 
+// ChannelTypeMapping is the struct of ChannelType alias config in kn config
+type ChannelTypeMapping struct {
+
+	// Alias is the mapping alias (like "kafka")
+	Alias string
+
+	// Kind is the name for the mapped resource kind (like "KafkaChannel")
+	Kind string
+
+	// Group is the API group for the mapped resource kind (like "messaging.knative.dev")
+	Group string
+
+	// Version is the API version for the mapped resource kind (like "v1alpha1")
+	Version string
+}
+
 // config Keys for looking up in viper
 const (
 	keyPluginsDirectory    = "plugins.directory"
 	keyPluginsLookupInPath = "plugins.path-lookup"
 	keySinkMappings        = "eventing.sink-mappings"
+	keyChannelTypeMappings = "eventing.channel-type-mappings"
 )
 
 // legacy config keys, deprecated

@@ -37,6 +37,11 @@ eventing:
     resource: services
     group: core
     version: v1
+  channel-type-mappings:
+  - alias: kafka
+    kind: KafkaChannel
+    group: messaging.knative.dev
+    version: v1alpha1
 `
 
 	configFile, cleanup := setupConfig(t, configYaml)
@@ -54,6 +59,13 @@ eventing:
 		Resource: "services",
 		Group:    "core",
 		Version:  "v1",
+	})
+	assert.Equal(t, len(GlobalConfig.ChannelTypeMappings()), 1)
+	assert.DeepEqual(t, (GlobalConfig.ChannelTypeMappings())[0], ChannelTypeMapping{
+		Alias:   "kafka",
+		Kind:    "KafkaChannel",
+		Group:   "messaging.knative.dev",
+		Version: "v1alpha1",
 	})
 }
 
