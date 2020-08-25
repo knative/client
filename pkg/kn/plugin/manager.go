@@ -30,6 +30,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Allow plugins to register to this slice for inlining
+var InternalPlugins PluginList
+
 // Interface describing a plugin
 type Plugin interface {
 	// Get the name of the plugin (the file name without extensions)
@@ -99,13 +102,19 @@ func (manager *Manager) FindPlugin(parts []string) (Plugin, error) {
 		return nil, nil
 	}
 
+	// Try to find internal plugin fist
+	plugin := lookupInternalPlugin(parts)
+	if plugin != nil {
+		return plugin, nil
+	}
+
 	// Try to find plugin in pluginsDir
 	pluginDir, err := homedir.Expand(manager.pluginsDir)
 	if err != nil {
 		return nil, err
 	}
 
-	return findMostSpecificPlugin(pluginDir, parts, manager.lookupInPath)
+	return findMostSpecificPluginInPath(pluginDir, parts, manager.lookupInPath)
 }
 
 // ListPlugins lists all plugins that can be found in the plugin directory or in the path (if configured)
@@ -116,7 +125,9 @@ func (manager *Manager) ListPlugins() (PluginList, error) {
 // ListPluginsForCommandGroup lists all plugins that can be found in the plugin directory or in the path (if configured),
 // and which fits to a command group
 func (manager *Manager) ListPluginsForCommandGroup(commandGroupParts []string) (PluginList, error) {
-	var plugins []Plugin
+
+	// Initialize with list of internal plugins
+	var plugins = append([]Plugin{}, filterPluginsByCommandGroup(InternalPlugins, commandGroupParts)...)
 
 	dirs, err := manager.pluginLookupDirectories()
 	if err != nil {
@@ -125,6 +136,9 @@ func (manager *Manager) ListPluginsForCommandGroup(commandGroupParts []string) (
 
 	// Examine all files in possible plugin directories
 	hasSeen := make(map[string]bool)
+	for _, pl := range plugins {
+		hasSeen[pl.Name()] = true
+	}
 	for _, dir := range dirs {
 		files, err := ioutil.ReadDir(dir)
 
@@ -144,12 +158,12 @@ func (manager *Manager) ListPluginsForCommandGroup(commandGroupParts []string) (
 			}
 
 			// Check if plugin matches a command group
-			if !isPartOfCommandGroup(commandGroupParts, f.Name()) {
+			if !isPluginFileNamePartOfCommandGroup(commandGroupParts, f.Name()) {
 				continue
 			}
 
 			// Ignore all plugins that are shadowed
-			if _, ok := hasSeen[name]; !ok {
+			if seen, ok := hasSeen[name]; !ok || !seen {
 				plugins = append(plugins, &plugin{
 					path:         filepath.Join(dir, f.Name()),
 					name:         stripWindowsExecExtensions(f.Name()),
@@ -165,18 +179,34 @@ func (manager *Manager) ListPluginsForCommandGroup(commandGroupParts []string) (
 	return plugins, nil
 }
 
-func isPartOfCommandGroup(commandGroupParts []string, name string) bool {
+func filterPluginsByCommandGroup(plugins PluginList, commandGroupParts []string) PluginList {
+	ret := PluginList{}
+	for _, pl := range plugins {
+		if isPartOfCommandGroup(commandGroupParts, pl.CommandParts()) {
+			ret = append(ret, pl)
+		}
+	}
+	return ret
+}
+
+func isPartOfCommandGroup(commandGroupParts []string, commandParts []string) bool {
+	if len(commandParts) != len(commandGroupParts)+1 {
+		return false
+	}
+	for i := range commandGroupParts {
+		if commandParts[i] != commandGroupParts[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func isPluginFileNamePartOfCommandGroup(commandGroupParts []string, pluginFileName string) bool {
 	if commandGroupParts == nil {
 		return true
 	}
 
-	commandParts := extractPluginCommandFromFileName(name)
-
-	// commandParts must be one more element then the parts of the command group
-	// it belongs to. E.g. for the command "service", "log" (2 elements) the containing
-	// group only has one element ("service"). This condition is here for
-	// shortcut and ensure that we don't run in an out-of-bound array error
-	// in the loop below.
+	commandParts := extractPluginCommandFromFileName(pluginFileName)
 	if len(commandParts) != len(commandGroupParts)+1 {
 		return false
 	}
@@ -343,7 +373,7 @@ func stripWindowsExecExtensions(name string) string {
 // Return the path and the parts building the most specific plugin in the given directory
 // If lookupInPath is true, then also the OS PATH is checked.
 // An error returned if any IO operation fails
-func findMostSpecificPlugin(dir string, parts []string, lookupInPath bool) (Plugin, error) {
+func findMostSpecificPluginInPath(dir string, parts []string, lookupInPath bool) (Plugin, error) {
 	for i := len(parts); i > 0; i-- {
 
 		// Construct plugin name to lookup
@@ -428,4 +458,32 @@ func findInDirOrPath(name string, dir string, lookupInPath bool) (string, error)
 
 	// Not found
 	return "", nil
+}
+
+// lookupInternalPlugin looks up internally registered plugins. Return nil if none is found.
+// Start with longest argument path first to find the most specific match
+func lookupInternalPlugin(parts []string) Plugin {
+	for i := len(parts); i > 0; i-- {
+		checkParts := parts[0:i]
+		for _, plugin := range InternalPlugins {
+			if equalsSlice(plugin.CommandParts(), checkParts) {
+				return plugin
+			}
+		}
+	}
+	return nil
+}
+
+// equalsSlice return true if two string slices contain the same elements
+func equalsSlice(a, b []string) bool {
+	if len(a) != len(b) || len(a) == 0 {
+		return false
+	}
+
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
 }
