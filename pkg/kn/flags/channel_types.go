@@ -55,7 +55,7 @@ var ctypeMappings = map[string]schema.GroupVersionKind{
 		Version: "v1beta1",
 		Kind:    "InMemoryChannel",
 	},
-	"imcv1": {
+	"imc": {
 		Group:   "messaging.knative.dev",
 		Version: "v1",
 		Kind:    "InMemoryChannel",

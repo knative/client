@@ -38,8 +38,8 @@ func TestChannelTypesFlags(t *testing.T) {
 			"",
 		},
 		{
-			"inbuilt alias 'imcv1beta1' case",
-			"imcv1",
+			"inbuilt alias 'imc' case",
+			"imc",
 			&schema.GroupVersionKind{Group: "messaging.knative.dev", Kind: "InMemoryChannel", Version: "v1"},
 			"",
 		},
