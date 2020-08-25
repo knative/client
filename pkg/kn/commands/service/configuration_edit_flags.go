@@ -16,6 +16,7 @@ package service
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -49,6 +50,7 @@ type ConfigurationEditFlags struct {
 	RevisionName           string
 	Annotations            []string
 	ClusterLocal           bool
+	ScaleInit              int
 
 	// Preferences about how to do the action.
 	LockToDigest         bool
@@ -149,6 +151,9 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 			"any number of times to set multiple annotations. "+
 			"To unset, specify the annotation name followed by a \"-\" (e.g., name-).")
 	p.markFlagMakesRevision("annotation")
+
+	command.Flags().IntVar(&p.ScaleInit, "scale-init", 0, "Initial scale for a service")
+	p.markFlagMakesRevision("scale-init")
 }
 
 // AddUpdateFlags adds the flags specific to update.
@@ -425,6 +430,28 @@ func (p *ConfigurationEditFlags) Apply(
 
 	if cmd.Flags().Changed("user") {
 		servinglib.UpdateUser(template, p.PodSpecFlags.User)
+	}
+
+	if cmd.Flags().Changed("scale-init") {
+		contains := func(s []string, e string) bool {
+			for _, a := range s {
+				if strings.Contains(a, e) {
+					return true
+				}
+			}
+			return false
+		}
+
+		if cmd.Flags().Changed("annotation") && contains(p.Annotations, "autoscaling.knative.dev/initialScale") {
+			return fmt.Errorf("only one of the --scale-init or --annotation autoscaling.knative.dev/initialScale can be specified")
+		}
+		annotationsMap := make(map[string]string)
+		annotationsMap["autoscaling.knative.dev/initialScale"] = strconv.Itoa(p.ScaleInit)
+
+		err = servinglib.UpdateAnnotations(service, template, annotationsMap, []string{})
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
