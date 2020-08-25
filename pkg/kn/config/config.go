@@ -129,7 +129,7 @@ func BootstrapConfig() error {
 	viper.SetConfigFile(GlobalConfig.ConfigFile())
 	viper.AutomaticEnv() // read in environment variables that match
 
-	// Defaults are taken from the parsed flags, which in turn have bootstrapDefaults
+	// Defaults are taken from the parsed flags, which in turn have bootstrap defaults
 	// TODO: Re-enable when legacy handling for plugin config has been removed
 	// For now default handling is happening directly in the getter of GlobalConfig
 	// viper.SetDefault(keyPluginsDirectory, bootstrapDefaults.pluginsDir)

@@ -62,6 +62,10 @@
 | https://github.com/knative/client/pull/920[#920]
 
 | 🎁
+| Add support for internal plugins
+| https://github.com/knative/client/pull/880[#880]
+
+| 🎁
 | Add "url" output format to return service url in service describe
 | https://github.com/knative/client/pull/916[#916]
 
