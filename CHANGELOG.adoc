@@ -41,6 +41,10 @@
 | 🐛
 | fix(tekton e2e): Refer tasks from new tekton catalog task structure
 | https://github.com/knative/client/pull/966[#966]
+
+| 🎁
+| Add support for internal plugins
+| https://github.com/knative/client/pull/880[#880]
 |===
 
 ## v0.16.0 (2020-07-14)
@@ -60,10 +64,6 @@
 | 🎁
 | Add sugar controller to E2E tests
 | https://github.com/knative/client/pull/920[#920]
-
-| 🎁
-| Add support for internal plugins
-| https://github.com/knative/client/pull/880[#880]
 
 | 🎁
 | Add "url" output format to return service url in service describe
