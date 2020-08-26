@@ -139,9 +139,9 @@ func TestServiceOptions(t *testing.T) {
 	test.ValidateServiceResources(r, "svc8", "250Mi", "200m", "500Mi", "1000m")
 
 	t.Log("create, update and validate service with option --scale-init")
-	serviceCreateWithOptions(r, "svc8", "--scale-init", "1")
-	validateServiceAnnotations(r, "svc8", map[string]string{"autoscaling.knative.dev/initialScale": "1"})
-	test.ServiceDelete(r, "svc8")
+	serviceCreateWithOptions(r, "svc9", "--scale-init", "1")
+	validateServiceAnnotations(r, "svc9", map[string]string{"autoscaling.knative.dev/initialScale": "1"})
+	test.ServiceDelete(r, "svc9")
 }
 
 func serviceCreateWithOptions(r *test.KnRunResultCollector, serviceName string, options ...string) {
