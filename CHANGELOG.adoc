@@ -86,8 +86,8 @@
 | https://github.com/knative/client/pull/971[#971]
 
 | 🐛
-| fix(tekton e2e): Refer tasks from new tekton catalog task structure
-| https://github.com/knative/client/pull/966[#966] (backport)
+| fix(tekton e2e): Refer tasks from new tekton catalog task structure (backport)
+| https://github.com/knative/client/pull/966[#966]
 
 | 🐛
 | Fix missing NAMESPACE column header for 'kn source list -A' (backport)
