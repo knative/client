@@ -138,9 +138,10 @@ func TestServiceOptions(t *testing.T) {
 	serviceCreateWithOptions(r, "svc8", "--limit", "memory=500Mi,cpu=1000m", "--request", "memory=250Mi,cpu=200m")
 	test.ValidateServiceResources(r, "svc8", "250Mi", "200m", "500Mi", "1000m")
 
-	t.Log("create, update and validate service with option --scale-init")
+	t.Log("create and validate service with scale init option")
 	serviceCreateWithOptions(r, "svc9", "--scale-init", "1")
-	validateServiceAnnotations(r, "svc9", map[string]string{"autoscaling.knative.dev/initialScale": "1"})
+	validateServiceInitScale(r, "svc9", "1")
+	t.Log("delete service")
 	test.ServiceDelete(r, "svc9")
 }
 
@@ -191,6 +192,13 @@ func validateServiceMaxScale(r *test.KnRunResultCollector, serviceName, maxScale
 	jsonpath := "jsonpath={.items[0].spec.template.metadata.annotations.autoscaling\\.knative\\.dev/maxScale}"
 	out := r.KnTest().Kn().Run("service", "list", serviceName, "-o", jsonpath)
 	assert.Equal(r.T(), out.Stdout, maxScale)
+	r.AssertNoError(out)
+}
+
+func validateServiceInitScale(r *test.KnRunResultCollector, serviceName, initScale string) {
+	jsonpath := "jsonpath={.items[0].spec.template.metadata.annotations.autoscaling\\.knative\\.dev/initialScale}"
+	out := r.KnTest().Kn().Run("service", "list", serviceName, "-o", jsonpath)
+	assert.Equal(r.T(), out.Stdout, initScale)
 	r.AssertNoError(out)
 }
 
