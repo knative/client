@@ -94,8 +94,8 @@
 | https://github.com/knative/client/pull/951[#951]
 
 | 🐛
-| fix(kn source list): list inbuilt sources if crd access is restricted
-| https://github.com/knative/client/pull/948[#948] (backport)
+| fix(kn source list): list inbuilt sources if crd access is restricted (backport)
+| https://github.com/knative/client/pull/948[#948]
 
 | 🎁
 | Add support for internal plugins (backport)
