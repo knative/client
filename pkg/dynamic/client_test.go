@@ -26,6 +26,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	dynamicfake "k8s.io/client-go/dynamic/fake"
 	eventingv1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
+	messagingv1beta1 "knative.dev/eventing/pkg/apis/messaging/v1beta1"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	"knative.dev/client/pkg/util"
@@ -172,7 +173,7 @@ func createFakeKnDynamicClient(testNamespace string, objects ...runtime.Object) 
 	scheme := runtime.NewScheme()
 	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "serving.knative.dev", Version: "v1alpha1", Kind: "Service"}, &servingv1.Service{})
 	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "eventing.knative.dev", Version: "v1alpha1", Kind: "Broker"}, &eventingv1beta1.Broker{})
-
+	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "messaging.knative.dev", Version: "v1beta1", Kind: "Channel"}, &messagingv1beta1.Channel{})
 	client := dynamicfake.NewSimpleDynamicClient(scheme, objects...)
 	return NewKnDynamicClient(client, testNamespace)
 }
@@ -235,4 +236,36 @@ func newSourceUnstructuredObj(name, apiVersion, kind string) *unstructured.Unstr
 			},
 		},
 	}
+}
+
+func newChannelCRDObj(name string) *unstructured.Unstructured {
+	obj := &unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": crdGroup + "/" + crdVersion,
+			"kind":       crdKind,
+			"metadata": map[string]interface{}{
+				"namespace": testNamespace,
+				"name":      name,
+			},
+		},
+	}
+	obj.SetLabels(labels.Set{channelLabelKey: channelLabelValue})
+	return obj
+}
+func TestListChannelsTypes(t *testing.T) {
+	client := createFakeKnDynamicClient(
+		testNamespace,
+		newChannelCRDObj("foo"),
+		newChannelCRDObj("bar"),
+	)
+
+	t.Run("List channel types", func(t *testing.T) {
+		uList, err := client.ListChannelsTypes()
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, len(uList.Items), 2)
+		assert.Equal(t, uList.Items[0].GetName(), "foo")
+		assert.Equal(t, uList.Items[1].GetName(), "bar")
+	})
 }
