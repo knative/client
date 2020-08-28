@@ -101,4 +101,10 @@ func TestChannels(t *testing.T) {
 	test.ChannelDelete(r, "c0")
 	test.ChannelDelete(r, "c1")
 	test.ChannelDelete(r, "c2")
+
+	t.Log("List channel types")
+	listout = test.ChannelListTypes(r)
+	assert.Check(t, util.ContainsAll(listout, "TYPE", "GROUP", "VERSION"))
+	assert.Check(t, util.ContainsAll(listout, "InMemoryChannel", "messaging.knative.dev", "v1beta1"))
+
 }

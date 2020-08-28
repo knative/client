@@ -18,21 +18,22 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	knerrors "knative.dev/client/pkg/errors"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
 )
 
-// NewChannelListTypesCommand defines and processes `kn channel list-types`
+// NewListTypesCommand defines and processes `kn channel list-types`
 func NewListTypesCommand(p *commands.KnParams) *cobra.Command {
 	listTypesFlags := flags.NewListPrintFlags(ListTypesHandlers)
 	listTypesCommand := &cobra.Command{
 		Use:   "list-types",
-		Short: "List event source types",
+		Short: "List channel types",
 		Example: `
-  # List available event source types
+  # List available channel types
   kn channel list-types
 
-  # List available event source types in YAML format
+  # List available channel types in YAML format
   kn channel list-types -o yaml`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			namespace, err := p.GetNamespace(cmd)
@@ -46,6 +47,9 @@ func NewListTypesCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			channelListTypes, err := dynamicClient.ListChannelsTypes()
+			if err != nil {
+				return knerrors.GetError(err)
+			}
 
 			if channelListTypes == nil || len(channelListTypes.Items) == 0 {
 				return fmt.Errorf("no channel found on the backend, please verify the installation")
