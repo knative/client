@@ -15,16 +15,21 @@
 package channel
 
 import (
+	"fmt"
 	"sort"
 
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	metav1beta1 "k8s.io/apimachinery/pkg/apis/meta/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	"knative.dev/client/pkg/kn/commands"
+	"knative.dev/client/pkg/printers"
 	hprinters "knative.dev/client/pkg/printers"
 
 	messagingv1beta1 "knative.dev/eventing/pkg/apis/messaging/v1beta1"
 )
+
+var channelName = "channels.messaging.knative.dev"
 
 // ListHandlers handles printing human readable table for `kn channel list` command's output
 func ListHandlers(h hprinters.PrintHandler) {
@@ -119,4 +124,65 @@ func printChannelListWithNamespace(channelList *messagingv1beta1.ChannelList, op
 	})
 
 	return append(rows, others...), nil
+}
+
+// ListTypesHandlers handles printing human readable table for `kn channel list-types`
+func ListTypesHandlers(h printers.PrintHandler) {
+	channelTypesColumnDefinitions := []metav1beta1.TableColumnDefinition{
+		{Name: "Type", Type: "string", Description: "Kind / Type of the channel type", Priority: 1},
+		{Name: "Group", Type: "string", Description: "Group of the channel type", Priority: 1},
+		{Name: "Version", Type: "string", Description: "Version of the channel type", Priority: 1},
+	}
+	h.TableHandler(channelTypesColumnDefinitions, printChannelTypes)
+	h.TableHandler(channelTypesColumnDefinitions, printChannelTypesList)
+}
+
+// printChannelTypes populates a single row of source types list table
+func printChannelTypes(channelType unstructured.Unstructured, options printers.PrintOptions) ([]metav1beta1.TableRow, error) {
+	name := channelType.GetName()
+	content := channelType.UnstructuredContent()
+	version := channelType.GroupVersionKind().Version
+	kind, found, err := unstructured.NestedString(content, "spec", "names", "kind")
+	if err != nil {
+		return nil, err
+	}
+	if !found {
+		return nil, fmt.Errorf("can't find specs.names.kind for %s", name)
+	}
+
+	group, found, err := unstructured.NestedString(content, "spec", "group")
+	if err != nil {
+		return nil, err
+	}
+
+	if !found {
+		return nil, fmt.Errorf("can't find specs.group for %s", name)
+	}
+
+	row := metav1beta1.TableRow{
+		Object: runtime.RawExtension{Object: &channelType},
+	}
+	row.Cells = append(row.Cells, kind, group, version)
+
+	return []metav1beta1.TableRow{row}, nil
+}
+
+// printChannelTypesList populates the source types list table rows
+func printChannelTypesList(channelTypesList *unstructured.UnstructuredList, options printers.PrintOptions) ([]metav1beta1.TableRow, error) {
+	rows := make([]metav1beta1.TableRow, 0, len(channelTypesList.Items))
+
+	sort.SliceStable(channelTypesList.Items, func(i, j int) bool {
+		return channelTypesList.Items[i].GetName() < channelTypesList.Items[j].GetName()
+	})
+	for _, item := range channelTypesList.Items {
+		if item.GetName() != channelName {
+			row, err := printChannelTypes(item, options)
+			if err != nil {
+				return nil, err
+			}
+			rows = append(rows, row...)
+		}
+
+	}
+	return rows, nil
 }

@@ -37,6 +37,8 @@ const (
 	sourceListGroup   = "client.knative.dev"
 	sourceListVersion = "v1alpha1"
 	sourceListKind    = "SourceList"
+	channelLabelKey   = "messaging.knative.dev/subscribable"
+	channelLabelValue = "true"
 )
 
 // KnDynamicClient to client-go Dynamic client. All methods are relative to the
@@ -56,6 +58,8 @@ type KnDynamicClient interface {
 
 	// ListSourcesUsingGVKs returns list of available source objects using given list of GVKs
 	ListSourcesUsingGVKs(*[]schema.GroupVersionKind, ...WithType) (*unstructured.UnstructuredList, error)
+
+	ListChannelsTypes() (*unstructured.UnstructuredList, error)
 
 	// RawClient returns the raw dynamic client interface
 	RawClient() dynamic.Interface
@@ -102,6 +106,14 @@ func (c *knDynamicClient) ListSourcesTypes() (*unstructured.UnstructuredList, er
 	options := metav1.ListOptions{}
 	sourcesLabels := labels.Set{sourcesLabelKey: sourcesLabelValue}
 	options.LabelSelector = sourcesLabels.String()
+	return c.ListCRDs(options)
+}
+
+// ListChannelsTypes returns installed knative messaging CRDs
+func (c *knDynamicClient) ListChannelsTypes() (*unstructured.UnstructuredList, error) {
+	options := metav1.ListOptions{}
+	channelsLabels := labels.Set{channelLabelKey: channelLabelValue}
+	options.LabelSelector = channelsLabels.String()
 	return c.ListCRDs(options)
 }
 

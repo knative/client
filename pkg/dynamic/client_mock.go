@@ -83,6 +83,17 @@ func (c *MockKnDynamicClient) ListSourcesTypes() (*unstructured.UnstructuredList
 	return call.Result[0].(*unstructured.UnstructuredList), mock.ErrorOrNil(call.Result[1])
 }
 
+// ListChannelsTypes returns installed knative messaging CRDs
+func (dr *ClientRecorder) ListChannelsTypes(ulist *unstructured.UnstructuredList, err error) {
+	dr.r.Add("ListChannelsTypes", []interface{}{}, []interface{}{ulist, err})
+}
+
+// ListChannelsTypes returns installed knative messaging CRDs
+func (c *MockKnDynamicClient) ListChannelsTypes() (*unstructured.UnstructuredList, error) {
+	call := c.recorder.r.VerifyCall("ListChannelsTypes")
+	return call.Result[0].(*unstructured.UnstructuredList), mock.ErrorOrNil(call.Result[1])
+}
+
 // ListSources returns list of available sources objects
 func (dr *ClientRecorder) ListSources(types interface{}, ulist *unstructured.UnstructuredList, err error) {
 	dr.r.Add("ListSources", []interface{}{types}, []interface{}{ulist, err})
