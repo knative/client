@@ -31,4 +31,5 @@ kn channel COMMAND
 * [kn channel delete](kn_channel_delete.md)	 - Delete a channel
 * [kn channel describe](kn_channel_describe.md)	 - Show details of a channel
 * [kn channel list](kn_channel_list.md)	 - List channels (alias: 'ls')
+* [kn channel list-types](kn_channel_list-types.md)	 - List channel types
 

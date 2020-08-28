@@ -18,10 +18,9 @@ import (
 	"github.com/spf13/cobra"
 
 	"k8s.io/client-go/tools/clientcmd"
-	clientv1beta1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/messaging/v1beta1"
-
 	"knative.dev/client/pkg/kn/commands"
 	messagingv1beta1 "knative.dev/client/pkg/messaging/v1beta1"
+	clientv1beta1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/messaging/v1beta1"
 )
 
 // NewChannelCommand to manage event channels
@@ -35,6 +34,7 @@ func NewChannelCommand(p *commands.KnParams) *cobra.Command {
 	channelCmd.AddCommand(NewChannelListCommand(p))
 	channelCmd.AddCommand(NewChannelDeleteCommand(p))
 	channelCmd.AddCommand(NewChannelDescribeCommand(p))
+	channelCmd.AddCommand(NewChannelListTypesCommand(p))
 	return channelCmd
 }
 

@@ -26,6 +26,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	dynamicfake "k8s.io/client-go/dynamic/fake"
 	eventingv1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
+	"knative.dev/eventing/pkg/apis/messaging"
+	messagingv1beta1 "knative.dev/eventing/pkg/apis/messaging/v1beta1"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	"knative.dev/client/pkg/util"
@@ -172,7 +174,7 @@ func createFakeKnDynamicClient(testNamespace string, objects ...runtime.Object) 
 	scheme := runtime.NewScheme()
 	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "serving.knative.dev", Version: "v1alpha1", Kind: "Service"}, &servingv1.Service{})
 	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "eventing.knative.dev", Version: "v1alpha1", Kind: "Broker"}, &eventingv1beta1.Broker{})
-
+	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "messaging.knative.dev", Version: "v1beta1", Kind: "Channel"}, &messagingv1beta1.Channel{})
 	client := dynamicfake.NewSimpleDynamicClient(scheme, objects...)
 	return NewKnDynamicClient(client, testNamespace)
 }
@@ -235,4 +237,127 @@ func newSourceUnstructuredObj(name, apiVersion, kind string) *unstructured.Unstr
 			},
 		},
 	}
+}
+
+func newChannelCRDObj(name string) *unstructured.Unstructured {
+	obj := &unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": crdGroup + "/" + crdVersion,
+			"kind":       crdKind,
+			"metadata": map[string]interface{}{
+				"namespace": testNamespace,
+				"name":      name,
+			},
+		},
+	}
+	obj.SetLabels(labels.Set{messaging.SubscribableDuckVersionAnnotation: channelLabelValue})
+	return obj
+}
+
+func newChannelCRDObjWithSpec(name, group, version, kind string) *unstructured.Unstructured {
+	obj := &unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": crdGroup + "/" + crdVersion,
+			"kind":       crdKind,
+			"metadata": map[string]interface{}{
+				"namespace": testNamespace,
+				"name":      name,
+			},
+		},
+	}
+
+	obj.Object["spec"] = map[string]interface{}{
+		"group":   group,
+		"version": version,
+		"names": map[string]interface{}{
+			"kind":   kind,
+			"plural": strings.ToLower(kind) + "s",
+		},
+	}
+	obj.SetLabels(labels.Set{messaging.SubscribableDuckVersionAnnotation: channelLabelValue})
+	return obj
+}
+
+func newChannelUnstructuredObj(name, apiVersion, kind string) *unstructured.Unstructured {
+	return &unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": apiVersion,
+			"kind":       kind,
+			"metadata": map[string]interface{}{
+				"namespace": "current",
+				"name":      name,
+			},
+			"spec": map[string]interface{}{
+				"sink": map[string]interface{}{
+					"ref": map[string]interface{}{
+						"name": "foo",
+					},
+				},
+			},
+		},
+	}
+}
+func TestListChannelsTypes(t *testing.T) {
+	t.Run("List channel types", func(t *testing.T) {
+		client := createFakeKnDynamicClient(
+			testNamespace,
+			newChannelCRDObjWithSpec("Channel", "messaging.knative.dev", "v1beta1", "Channel"),
+			newChannelCRDObjWithSpec("InMemoryChannel", "messaging.knative.dev", "v1beta1", "InMemoryChannel"),
+		)
+
+		uList, err := client.ListChannelsTypes()
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, len(uList.Items), 1)
+		assert.Equal(t, uList.Items[0].GetName(), "InMemoryChannel")
+	})
+
+	t.Run("List channel types error", func(t *testing.T) {
+		client := createFakeKnDynamicClient(
+			testNamespace,
+			newChannelCRDObj("foo"),
+		)
+		uList, err := client.ListChannelsTypes()
+		assert.Check(t, err == nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, len(uList.Items), 1)
+		assert.Equal(t, uList.Items[0].GetName(), "foo")
+	})
+}
+
+func TestListChannelsUsingGVKs(t *testing.T) {
+	t.Run("No GVKs given", func(t *testing.T) {
+		client := createFakeKnDynamicClient(testNamespace)
+		assert.Check(t, client.RawClient() != nil)
+		s, err := client.ListChannelsUsingGVKs(nil)
+		assert.NilError(t, err)
+		assert.Check(t, s == nil)
+	})
+
+	t.Run("channel list with given GVKs", func(t *testing.T) {
+		client := createFakeKnDynamicClient(testNamespace,
+			newChannelCRDObjWithSpec("InMemoryChannel", "messaging.knative.dev", "v1beta1", "InMemoryChannel"),
+			newChannelUnstructuredObj("i1", "messaging.knative.dev/v1beta1", "InMemoryChannel"),
+		)
+		assert.Check(t, client.RawClient() != nil)
+		gv := schema.GroupVersion{"messaging.knative.dev", "v1beta1"}
+		gvks := []schema.GroupVersionKind{gv.WithKind("InMemoryChannel")}
+
+		s, err := client.ListChannelsUsingGVKs(&gvks)
+		assert.NilError(t, err)
+		assert.Check(t, s != nil)
+		assert.Equal(t, len(s.Items), 1)
+		assert.DeepEqual(t, s.GroupVersionKind(), schema.GroupVersionKind{messaging.GroupName, channelListVersion, channelListKind})
+
+		// withType
+		s, err = client.ListChannelsUsingGVKs(&gvks, WithTypeFilter("InMemoryChannel"))
+		assert.NilError(t, err)
+		assert.Check(t, s != nil)
+		assert.Equal(t, len(s.Items), 1)
+		assert.DeepEqual(t, s.GroupVersionKind(), schema.GroupVersionKind{messaging.GroupName, channelListVersion, channelListKind})
+	})
+
 }
