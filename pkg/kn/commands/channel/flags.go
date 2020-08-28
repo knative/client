@@ -137,7 +137,7 @@ func ListTypesHandlers(h printers.PrintHandler) {
 	h.TableHandler(channelTypesColumnDefinitions, printChannelTypesList)
 }
 
-// printChannelTypes populates a single row of source types list table
+// printChannelTypes populates a single row of channel types list table
 func printChannelTypes(channelType unstructured.Unstructured, options printers.PrintOptions) ([]metav1beta1.TableRow, error) {
 	name := channelType.GetName()
 	content := channelType.UnstructuredContent()
@@ -167,7 +167,7 @@ func printChannelTypes(channelType unstructured.Unstructured, options printers.P
 	return []metav1beta1.TableRow{row}, nil
 }
 
-// printChannelTypesList populates the source types list table rows
+// printChannelTypesList populates the channel types list table rows
 func printChannelTypesList(channelTypesList *unstructured.UnstructuredList, options printers.PrintOptions) ([]metav1beta1.TableRow, error) {
 	rows := make([]metav1beta1.TableRow, 0, len(channelTypesList.Items))
 
