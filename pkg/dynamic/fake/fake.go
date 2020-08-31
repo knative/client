@@ -20,6 +20,7 @@ import (
 	dynamicfake "k8s.io/client-go/dynamic/fake"
 
 	eventingv1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
+	messagingv1beta1 "knative.dev/eventing/pkg/apis/messaging/v1beta1"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	"knative.dev/client/pkg/dynamic"
@@ -30,6 +31,7 @@ func CreateFakeKnDynamicClient(testNamespace string, objects ...runtime.Object) 
 	scheme := runtime.NewScheme()
 	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "serving.knative.dev", Version: "v1", Kind: "Service"}, &servingv1.Service{})
 	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "eventing.knative.dev", Version: "v1beta1", Kind: "Broker"}, &eventingv1beta1.Broker{})
+	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "eventing.knative.dev", Version: "v1beta1", Kind: "Subscription"}, &messagingv1beta1.Subscription{})
 	client := dynamicfake.NewSimpleDynamicClient(scheme, objects...)
 	return dynamic.NewKnDynamicClient(client, testNamespace)
 }

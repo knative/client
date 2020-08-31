@@ -19,6 +19,7 @@ import (
 
 	"github.com/spf13/pflag"
 	"gotest.tools/assert"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
@@ -27,6 +28,13 @@ type channelTypeFlagsTestCase struct {
 	arg             string
 	expectedGVK     *schema.GroupVersionKind
 	expectedErrText string
+}
+
+type channelRefFlagsTestCase struct {
+	name              string
+	arg               string
+	expectedObjectRef *corev1.ObjectReference
+	expectedErrText   string
 }
 
 func TestChannelTypesFlags(t *testing.T) {
@@ -80,6 +88,62 @@ func TestChannelTypesFlags(t *testing.T) {
 				assert.Equal(t, err.Error(), c.expectedErrText)
 			} else {
 				assert.Equal(t, *gvk, *c.expectedGVK)
+			}
+		})
+	}
+}
+
+func TestChannelRefFlags(t *testing.T) {
+	cases := []*channelRefFlagsTestCase{
+		{
+			"inbuilt alias imcv1beta1 case",
+			"imcv1beta1:i1",
+			&corev1.ObjectReference{APIVersion: "messaging.knative.dev/v1beta1", Kind: "InMemoryChannel", Name: "i1"},
+			"",
+		},
+		{
+			"inbuilt alias 'imc' case",
+			"imc:i2",
+			&corev1.ObjectReference{APIVersion: "messaging.knative.dev/v1", Kind: "InMemoryChannel", Name: "i2"},
+			"",
+		},
+		{
+			"explicit GVK case",
+			"messaging.knative.dev:v1alpha1:KafkaChannel:k1",
+			&corev1.ObjectReference{APIVersion: "messaging.knative.dev/v1alpha1", Kind: "KafkaChannel", Name: "k1"},
+			"",
+		},
+		{
+			"error case unknown alias",
+			"natss",
+			nil,
+			"Error: incorrect value 'natss' for '--channel', must be in the format 'Group:Version:Kind:Name' or configure an alias in kn config and refer as: '--channel ALIAS:NAME'",
+		},
+		{
+			"error case incorrect gvk format, missing version",
+			"foo::bar",
+			nil,
+			"Error: incorrect value 'foo::bar' for '--channel', must be in the format 'Group:Version:Kind:Name' or configure an alias in kn config and refer as: '--channel ALIAS:NAME'",
+		},
+		{
+			"error case incorrect gvk format, additional field",
+			"foo:bar::bat",
+			nil,
+			"Error: incorrect value 'foo:bar::bat' for '--channel', must be in the format 'Group:Version:Kind:Name' or configure an alias in kn config and refer as: '--channel ALIAS:NAME'",
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			f := &ChannelRef{}
+			flagset := &pflag.FlagSet{}
+			f.Add(flagset)
+			flagset.Set("channel", c.arg)
+			obj, err := f.Parse()
+			if c.expectedErrText != "" {
+				assert.Equal(t, err.Error(), c.expectedErrText)
+			} else {
+				assert.Equal(t, *obj, *c.expectedObjectRef)
 			}
 		})
 	}
