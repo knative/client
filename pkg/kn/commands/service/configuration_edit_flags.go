@@ -433,20 +433,21 @@ func (p *ConfigurationEditFlags) Apply(
 	}
 
 	if cmd.Flags().Changed("scale-init") {
-		contains := func(s []string, e string) bool {
-			for _, a := range s {
-				if strings.Contains(a, e) {
+		containsAnnotation := func(annotationList []string, annotation string) bool {
+			for _, element := range annotationList {
+				if strings.Contains(element, annotation) {
 					return true
 				}
 			}
 			return false
 		}
 
-		if cmd.Flags().Changed("annotation") && contains(p.Annotations, "autoscaling.knative.dev/initialScale") {
+		if cmd.Flags().Changed("annotation") && containsAnnotation(p.Annotations, "autoscaling.knative.dev/initialScale") {
 			return fmt.Errorf("only one of the --scale-init or --annotation autoscaling.knative.dev/initialScale can be specified")
 		}
-		annotationsMap := make(map[string]string)
-		annotationsMap["autoscaling.knative.dev/initialScale"] = strconv.Itoa(p.ScaleInit)
+		annotationsMap := map[string]string{
+			"autoscaling.knative.dev/initialScale": strconv.Itoa(p.ScaleInit),
+		}
 
 		err = servinglib.UpdateAnnotations(service, template, annotationsMap, []string{})
 		if err != nil {
