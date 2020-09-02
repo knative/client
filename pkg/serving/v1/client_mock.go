@@ -101,7 +101,7 @@ func (c *MockKnServingClient) UpdateService(service *servingv1.Service) error {
 }
 
 // Delegate to shared retry method
-func (c *MockKnServingClient) UpdateServiceWithRetry(name string, updateFunc serviceUpdateFunc, maxRetry int) error {
+func (c *MockKnServingClient) UpdateServiceWithRetry(name string, updateFunc ServiceUpdateFunc, maxRetry int) error {
 	return updateServiceWithRetry(c, name, updateFunc, maxRetry)
 }
 

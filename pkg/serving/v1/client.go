@@ -40,7 +40,7 @@ import (
 
 // Func signature for an updating function which returns the updated service object
 // or an error
-type serviceUpdateFunc func(origService *servingv1.Service) (*servingv1.Service, error)
+type ServiceUpdateFunc func(origService *servingv1.Service) (*servingv1.Service, error)
 
 // Kn interface to serving. All methods are relative to the
 // namespace specified during construction
@@ -65,7 +65,7 @@ type KnServingClient interface {
 	// UpdateServiceWithRetry updates service and retries if there is a version conflict.
 	// The updateFunc receives a deep copy of the existing service and can add update it in
 	// place.
-	UpdateServiceWithRetry(name string, updateFunc serviceUpdateFunc, nrRetries int) error
+	UpdateServiceWithRetry(name string, updateFunc ServiceUpdateFunc, nrRetries int) error
 
 	// Delete a service by name
 	DeleteService(name string, timeout time.Duration) error
@@ -224,12 +224,12 @@ func (cl *knServingClient) UpdateService(service *servingv1.Service) error {
 }
 
 // Update the given service with a retry in case of a conflict
-func (cl *knServingClient) UpdateServiceWithRetry(name string, updateFunc serviceUpdateFunc, nrRetries int) error {
+func (cl *knServingClient) UpdateServiceWithRetry(name string, updateFunc ServiceUpdateFunc, nrRetries int) error {
 	return updateServiceWithRetry(cl, name, updateFunc, nrRetries)
 }
 
 // Extracted to be usable with the Mocking client
-func updateServiceWithRetry(cl KnServingClient, name string, updateFunc serviceUpdateFunc, nrRetries int) error {
+func updateServiceWithRetry(cl KnServingClient, name string, updateFunc ServiceUpdateFunc, nrRetries int) error {
 	var retries = 0
 	for {
 		service, err := cl.GetService(name)
