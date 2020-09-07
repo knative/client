@@ -87,7 +87,7 @@ kn service create NAME --image IMAGE
       --requests-memory string        DEPRECATED: please use --request instead. The requested memory (e.g., 64Mi).
       --revision-name string          The revision name to set. Must start with the service name and a dash as a prefix. Empty revision name will result in the server generating a name for the revision. Accepts golang templates, allowing {{.Service}} for the service name, {{.Generation}} for the generation, and {{.Random [n]}} for n random consonants. (default "{{.Service}}-{{.Random 5}}-{{.Generation}}")
       --scale int                     Minimum and maximum number of replicas.
-      --scale-init int                Initial scale for a service
+      --scale-init int                Initial number of replicas with which a service starts. Can be 0 or a positive integer.
       --scale-max int                 Maximum number of replicas.
       --scale-min int                 Minimum number of replicas.
       --service-account string        Service account name to set. An empty argument ("") clears the service account. The referenced service account must exist in the service's namespace.

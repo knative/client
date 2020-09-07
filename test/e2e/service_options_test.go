@@ -141,6 +141,8 @@ func TestServiceOptions(t *testing.T) {
 	t.Log("create and validate service with scale init option")
 	serviceCreateWithOptions(r, "svc9", "--scale-init", "1")
 	validateServiceInitScale(r, "svc9", "1")
+	test.ServiceUpdate(r, "svc9", "--scale-init", "2")
+	validateServiceInitScale(r, "svc9", "2")
 	t.Log("delete service")
 	test.ServiceDelete(r, "svc9")
 }

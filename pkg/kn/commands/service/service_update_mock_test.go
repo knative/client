@@ -1473,3 +1473,50 @@ func TestServiceUpdateUser(t *testing.T) {
 
 	r.Validate()
 }
+
+func TestServiceUpdateInitialScaleMock(t *testing.T) {
+	client := clientservingv1.NewMockKnServiceClient(t)
+	svcName := "svc1"
+	newService := getService(svcName)
+	template := &newService.Spec.Template
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	newService.ObjectMeta.Annotations = map[string]string{
+		"autoscaling.knative.dev/initialScale": "1",
+	}
+	template.ObjectMeta.Annotations = map[string]string{
+		"autoscaling.knative.dev/initialScale": "1",
+		clientserving.UserImageAnnotationKey:   "gcr.io/foo/bar:baz",
+	}
+
+	updatedService := getService(svcName)
+	template = &updatedService.Spec.Template
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	updatedService.ObjectMeta.Annotations = map[string]string{
+		"autoscaling.knative.dev/initialScale": "2",
+	}
+	template.ObjectMeta.Annotations = map[string]string{
+		"autoscaling.knative.dev/initialScale": "2",
+		clientserving.UserImageAnnotationKey:   "gcr.io/foo/bar:baz",
+	}
+
+	r := client.Recorder()
+	recordServiceUpdateWithSuccess(r, svcName, newService, updatedService)
+
+	output, err := executeServiceCommand(client,
+		"create", svcName, "--image", "gcr.io/foo/bar:baz",
+		"--scale-init", "1",
+		"--no-wait", "--revision-name=",
+	)
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(output, "created", svcName, "default"))
+
+	output, err = executeServiceCommand(client,
+		"update", svcName,
+		"--scale-init", "2",
+		"--no-wait", "--revision-name=",
+	)
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
+
+	r.Validate()
+}

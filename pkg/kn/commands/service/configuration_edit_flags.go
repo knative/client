@@ -152,7 +152,7 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 			"To unset, specify the annotation name followed by a \"-\" (e.g., name-).")
 	p.markFlagMakesRevision("annotation")
 
-	command.Flags().IntVar(&p.ScaleInit, "scale-init", 0, "Initial scale for a service")
+	command.Flags().IntVar(&p.ScaleInit, "scale-init", 0, "Initial number of replicas with which a service starts. Can be 0 or a positive integer.")
 	p.markFlagMakesRevision("scale-init")
 }
 
