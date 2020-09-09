@@ -42,6 +42,7 @@ var IGNORED_SERVICE_ANNOTATIONS = []string{
 var IGNORED_REVISION_ANNOTATIONS = []string{
 	"serving.knative.dev/lastPinned",
 	"serving.knative.dev/creator",
+	"serving.knative.dev/routingStateModified",
 }
 
 // NewServiceExportCommand returns a new command for exporting a service.
