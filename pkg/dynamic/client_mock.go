@@ -130,3 +130,14 @@ func (c *MockKnDynamicClient) ListSourcesUsingGVKs(gvks *[]schema.GroupVersionKi
 func (dr *ClientRecorder) Validate() {
 	dr.r.CheckThatAllRecordedMethodsHaveBeenCalled()
 }
+
+// ListChannelsUsingGVKs returns list of available channel objects using given list of GVKs
+func (dr *ClientRecorder) ListChannelsUsingGVKs(gvks interface{}, types interface{}, ulist *unstructured.UnstructuredList, err error) {
+	dr.r.Add("ListChannelsUsingGVKs", []interface{}{gvks, types}, []interface{}{ulist, err})
+}
+
+// ListChannelsUsingGVKs returns list of available channel objects using given list of GVKs
+func (c *MockKnDynamicClient) ListChannelsUsingGVKs(gvks *[]schema.GroupVersionKind, types ...WithType) (*unstructured.UnstructuredList, error) {
+	call := c.recorder.r.VerifyCall("ListChannelsUsingGVKs")
+	return call.Result[0].(*unstructured.UnstructuredList), mock.ErrorOrNil(call.Result[1])
+}
