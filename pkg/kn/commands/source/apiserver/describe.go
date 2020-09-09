@@ -129,7 +129,7 @@ func writeAPIServerSource(dw printers.PrefixWriter, source *v1alpha2.ApiServerSo
 
 func writeCeOverrides(dw printers.PrefixWriter, ceOverrides map[string]string) {
 	subDw := dw.WriteAttribute("CloudEvent Overrides", "")
-	var keys []string
+	keys := make([]string, 0, len(ceOverrides))
 	for k := range ceOverrides {
 		keys = append(keys, k)
 	}

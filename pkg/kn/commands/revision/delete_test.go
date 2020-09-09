@@ -100,8 +100,8 @@ func TestMultipleRevisionDelete(t *testing.T) {
 
 func getRevisionDeleteEvents(name string) []watch.Event {
 	return []watch.Event{
-		{watch.Added, &servingv1.Revision{ObjectMeta: metav1.ObjectMeta{Name: name}}},
-		{watch.Deleted, &servingv1.Revision{ObjectMeta: metav1.ObjectMeta{Name: name}}},
+		{Type: watch.Added, Object: &servingv1.Revision{ObjectMeta: metav1.ObjectMeta{Name: name}}},
+		{Type: watch.Deleted, Object: &servingv1.Revision{ObjectMeta: metav1.ObjectMeta{Name: name}}},
 	}
 }
 

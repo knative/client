@@ -99,7 +99,7 @@ func NonReadyConditionReason(conditions duckv1.Conditions) string {
 			if condition.Message != "" {
 				return fmt.Sprintf("%s : %s", condition.Reason, condition.Message)
 			}
-			return string(condition.Reason)
+			return condition.Reason
 		}
 	}
 	return "<unknown>"

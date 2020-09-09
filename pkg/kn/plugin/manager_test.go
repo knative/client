@@ -251,12 +251,12 @@ func TestPluginHelpMessage(t *testing.T) {
 	root.AddCommand(serviceCmd)
 
 	helpRoot := listPluginsFunc(root)
-	re := regexp.MustCompile("^\\s*admin\\s.*admin")
+	re := regexp.MustCompile(`^\s*admin\s.*admin`)
 	assert.Assert(t, re.MatchString(helpRoot))
 
 	helpService := listPluginsFunc(serviceCmd)
 	println(helpService)
-	re = regexp.MustCompile("^\\s*log-2\\s.*kn-service-log_2")
+	re = regexp.MustCompile(`^\s*log-2\s.*kn-service-log_2`)
 	assert.Assert(t, re.MatchString(helpService))
 
 	helpServiceCreate := listPluginsFunc(serviceCreateCmd)

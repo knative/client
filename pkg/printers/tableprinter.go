@@ -45,9 +45,8 @@ func (h *HumanReadablePrinter) PrintObj(obj runtime.Object, output io.Writer) er
 		return nil
 	}
 
-	w, found := output.(*tabwriter.Writer)
-	if !found {
-		w = NewTabWriter(output)
+	if _, found := output.(*tabwriter.Writer); !found {
+		w := NewTabWriter(output)
 		output = w
 		defer w.Flush()
 	}

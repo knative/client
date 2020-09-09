@@ -118,7 +118,7 @@ func (c *KnRunResultCollector) errorDetails() string {
 	dumpInfos = append(dumpInfos, c.extraDumps...)
 	for _, d := range dumpInfos {
 		fmt.Fprintln(&out, "--------------------------[[DUMP]]-------------------------------")
-		fmt.Fprintf(&out, d)
+		fmt.Fprint(&out, d)
 	}
 
 	fmt.Fprintln(&out, "=================================================================")

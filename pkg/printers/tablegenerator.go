@@ -73,9 +73,7 @@ func (h *HumanReadablePrinter) GenerateTable(obj runtime.Object, options PrintOp
 		return nil, results[1].Interface().(error)
 	}
 
-	var columns []metav1beta1.TableColumnDefinition
-
-	columns = make([]metav1beta1.TableColumnDefinition, 0, len(handler.columnDefinitions))
+	columns := make([]metav1beta1.TableColumnDefinition, 0, len(handler.columnDefinitions))
 	for i := range handler.columnDefinitions {
 		columns = append(columns, handler.columnDefinitions[i])
 	}

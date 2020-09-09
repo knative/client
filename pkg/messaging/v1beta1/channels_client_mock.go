@@ -23,9 +23,8 @@ import (
 )
 
 type MockKnChannelsClient struct {
-	t         *testing.T
-	recorder  *ChannelsRecorder
-	namespace string
+	t        *testing.T
+	recorder *ChannelsRecorder
 }
 
 // NewMockKnChannelsClient returns a new mock instance which you need to record for

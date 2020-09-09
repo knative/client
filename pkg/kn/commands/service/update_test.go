@@ -215,6 +215,7 @@ func TestServiceUpdateCommand(t *testing.T) {
 	origTemplate := &orig.Spec.Template
 
 	err := servinglib.UpdateContainerCommand(origTemplate, "./start")
+	assert.NilError(t, err)
 
 	action, updated, _, err := fakeServiceUpdate(orig, []string{
 		"service", "update", "foo", "--cmd", "/app/start", "--no-wait"})
@@ -527,6 +528,7 @@ func TestServiceUpdateDoesntPinToDigestWhenUnAsked(t *testing.T) {
 
 	template := orig.Spec.Template
 	err := servinglib.UpdateImage(&template, "gcr.io/foo/bar:baz")
+	assert.NilError(t, err)
 
 	action, updated, _, err := fakeServiceUpdate(orig, []string{
 		"service", "update", "foo", "-e", "TARGET=Awesome", "--no-lock-to-digest", "--no-wait"})

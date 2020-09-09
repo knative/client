@@ -161,7 +161,7 @@ func validateCommandStructure(cmd *cobra.Command) error {
 
 // ExtractSubCommandNames extracts the names of all sub commands of a given command
 func ExtractSubCommandNames(cmds []*cobra.Command) []string {
-	var ret []string
+	ret := make([]string, 0, len(cmds))
 	for _, subCmd := range cmds {
 		ret = append(ret, subCmd.Name())
 	}

@@ -327,7 +327,7 @@ func extractCommandGroup(cmd *cobra.Command, parts []string) []string {
 // sorting or otherwise altering its order in any way.
 func uniquePathsList(paths []string) []string {
 	seen := map[string]bool{}
-	var newPaths []string
+	newPaths := make([]string, 0, len(paths))
 	for _, p := range paths {
 		if seen[p] {
 			continue
@@ -347,7 +347,7 @@ func extractPluginCommandFromFileName(name string) []string {
 	if len(parts) < 1 {
 		return []string{}
 	}
-	var ret []string
+	ret := make([]string, 0, len(parts)-1)
 	for _, p := range parts[1:] {
 		ret = append(ret, convertUnderscoreToDash(p))
 	}

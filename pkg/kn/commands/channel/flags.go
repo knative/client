@@ -93,7 +93,7 @@ func printChannelListWithNamespace(channelList *messagingv1beta1.ChannelList, op
 	rows := make([]metav1beta1.TableRow, 0, len(channelList.Items))
 
 	// temporary slice for sorting services in non-default namespace
-	var others []metav1beta1.TableRow
+	others := make([]metav1beta1.TableRow, 0, len(rows))
 
 	for _, channel := range channelList.Items {
 		// Fill in with services in `default` namespace at first

@@ -301,7 +301,7 @@ func TestServiceUpdateEnvFromRemovalWithConfigMap(t *testing.T) {
 	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
 
 	// empty string
-	output, err = executeServiceCommand(client,
+	_, err = executeServiceCommand(client,
 		"update", svcName,
 		"--env-from", "config-map:-",
 		"--no-wait", "--revision-name=",
@@ -647,7 +647,7 @@ func TestServiceUpdateEnvFromRemovalWithSecret(t *testing.T) {
 	assert.Assert(t, util.ContainsAll(output, "updated", svcName, "default"))
 
 	// empty string
-	output, err = executeServiceCommand(client,
+	_, err = executeServiceCommand(client,
 		"update", svcName,
 		"--env-from", "secret:-",
 		"--no-wait", "--revision-name=",

@@ -105,7 +105,7 @@ func (e ServiceTraffic) isRevisionPresent(revision string) bool {
 
 func (e ServiceTraffic) isLatestRevisionTrue() bool {
 	for _, target := range e {
-		if *target.LatestRevision == true {
+		if *target.LatestRevision {
 			return true
 		}
 	}

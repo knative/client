@@ -31,7 +31,7 @@ import (
 var blankConfig clientcmd.ClientConfig
 
 // Gvk used in tests
-var deploymentGvk = schema.GroupVersionKind{"apps", "v1", "deployment"}
+var deploymentGvk = schema.GroupVersionKind{Group: "apps", Version: "v1", Kind: "deployment"}
 
 // TODO: Remove that blankConfig hack for tests in favor of overwriting GetConfig()
 // Remove also in service_test.go

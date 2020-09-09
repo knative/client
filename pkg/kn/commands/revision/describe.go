@@ -111,7 +111,7 @@ func describe(w io.Writer, revision *servingv1.Revision, service *servingv1.Serv
 			serviceSection.WriteAttribute("Latest Ready", strconv.FormatBool(revision.Name == service.Status.LatestReadyRevisionName))
 			percent, tags := trafficAndTagsForRevision(revision.Name, service)
 			if percent != 0 {
-				serviceSection.WriteAttribute("Traffic", strconv.FormatInt(int64(percent), 10)+"%")
+				serviceSection.WriteAttribute("Traffic", strconv.FormatInt(percent, 10)+"%")
 			}
 			if len(tags) > 0 {
 				commands.WriteSliceDesc(serviceSection, tags, "Tags", printDetails)
@@ -135,7 +135,7 @@ func WriteConcurrencyOptions(dw printers.PrefixWriter, revision *servingv1.Revis
 	if target != nil || limit != nil && *limit != 0 || autoscaleWindow != "" || concurrencyUtilization != nil {
 		section := dw.WriteAttribute("Concurrency", "")
 		if limit != nil && *limit != 0 {
-			section.WriteAttribute("Limit", strconv.FormatInt(int64(*limit), 10))
+			section.WriteAttribute("Limit", strconv.FormatInt(*limit, 10))
 		}
 		if target != nil {
 			section.WriteAttribute("Target", strconv.Itoa(*target))
@@ -248,7 +248,7 @@ func writeResourcesHelper(dw printers.PrefixWriter, label string, request *resou
 func shortenDigest(digest string) string {
 	match := imageDigestRegexp.FindStringSubmatch(digest)
 	if len(match) > 1 {
-		return string(match[1][:6])
+		return match[1][:6]
 	}
 	return digest
 }

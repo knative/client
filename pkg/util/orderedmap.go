@@ -129,7 +129,7 @@ func (it *orderedMapIterator) Next() (string, interface{}, bool) {
 	}
 
 	key := it.orderedMap.Keys[it.nextIndex]
-	ve, _ := it.orderedMap.ValueMap[key]
+	ve := it.orderedMap.ValueMap[key]
 
 	it.nextIndex++
 

@@ -109,7 +109,7 @@ func writeSink(dw printers.PrefixWriter, namespace string, sink *duckv1.Destinat
 
 func writeCeOverrides(dw printers.PrefixWriter, ceOverrides map[string]string) {
 	subDw := dw.WriteAttribute("CloudEvent Overrides", "")
-	var keys []string
+	keys := make([]string, 0, len(ceOverrides))
 	for k := range ceOverrides {
 		keys = append(keys, k)
 	}

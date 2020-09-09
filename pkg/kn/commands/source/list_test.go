@@ -33,7 +33,6 @@ const (
 	crdGroup          = "apiextensions.k8s.io"
 	crdVersion        = "v1beta1"
 	crdKind           = "CustomResourceDefinition"
-	crdKinds          = "customresourcedefinitions"
 	sourcesLabelKey   = "duck.knative.dev/source"
 	sourcesLabelValue = "true"
 	testNamespace     = "current"
@@ -83,7 +82,9 @@ func TestListBuiltInSourceTypes(t *testing.T) {
 	fakeDynamic := dynamicfake.NewSimpleDynamicClient(runtime.NewScheme())
 	sources, err := listBuiltInSourceTypes(clientdynamic.NewKnDynamicClient(fakeDynamic, "current"))
 	assert.NilError(t, err)
-	assert.Check(t, sources != nil)
+	if sources == nil {
+		t.Fatal("sources = nil, want not nil")
+	}
 	assert.Equal(t, len(sources.Items), 4)
 }
 

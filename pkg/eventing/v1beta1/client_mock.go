@@ -25,9 +25,8 @@ import (
 
 // MockKnEventingClient is a combine of test object and recorder
 type MockKnEventingClient struct {
-	t         *testing.T
-	recorder  *EventingRecorder
-	namespace string
+	t        *testing.T
+	recorder *EventingRecorder
 }
 
 // NewMockKnEventingClient returns a new mock instance which you need to record for

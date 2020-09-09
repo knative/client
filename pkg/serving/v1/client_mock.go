@@ -28,9 +28,8 @@ import (
 )
 
 type MockKnServingClient struct {
-	t         *testing.T
-	recorder  *ServingRecorder
-	namespace string
+	t        *testing.T
+	recorder *ServingRecorder
 }
 
 // NewMockKnServiceClient returns a new mock instance which you need to record for

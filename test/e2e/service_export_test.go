@@ -425,11 +425,6 @@ func withServiceName(name string) expectedServiceOption {
 		svc.ObjectMeta.Name = name
 	}
 }
-func withConfigurationLabels(labels map[string]string) expectedServiceOption {
-	return func(svc *servingv1.Service) {
-		svc.Spec.Template.ObjectMeta.Labels = labels
-	}
-}
 func withConfigurationAnnotations(annotations map[string]string) expectedServiceOption {
 	return func(svc *servingv1.Service) {
 		svc.Spec.Template.ObjectMeta.Annotations = annotations

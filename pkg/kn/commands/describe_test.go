@@ -84,7 +84,7 @@ func TestSortConditions(t *testing.T) {
 	}
 }
 
-var spaces = regexp.MustCompile("\\s*")
+var spaces = regexp.MustCompile(`\s*`)
 
 func normalizeSpace(s string) string {
 	return spaces.ReplaceAllLiteralString(s, " ")
