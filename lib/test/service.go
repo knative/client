@@ -123,7 +123,9 @@ func ValidateServiceResources(r *KnRunResultCollector, serviceName string, reque
 	assert.DeepEqual(r.T(), serviceLimitsResourceList, llist)
 }
 
-func GetServiceFromKNServiceDescribe(r *KnRunResultCollector, serviceName string) servingv1.Service{
+//GetServiceFromKNServiceDescribe runs the kn service describe command
+//decodes it into a ksvc and returns it.
+func GetServiceFromKNServiceDescribe(r *KnRunResultCollector, serviceName string) servingv1.Service {
 	out := r.KnTest().Kn().Run("service", "describe", serviceName, "-ojson")
 	data := json.NewDecoder(strings.NewReader(out.Stdout))
 	data.UseNumber()
