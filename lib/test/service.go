@@ -122,3 +122,13 @@ func ValidateServiceResources(r *KnRunResultCollector, serviceName string, reque
 	serviceLimitsResourceList := service.Spec.Template.Spec.Containers[0].Resources.Limits
 	assert.DeepEqual(r.T(), serviceLimitsResourceList, llist)
 }
+
+func GetServiceFromKNServiceDescribe(r *KnRunResultCollector, serviceName string) servingv1.Service{
+	out := r.KnTest().Kn().Run("service", "describe", serviceName, "-ojson")
+	data := json.NewDecoder(strings.NewReader(out.Stdout))
+	data.UseNumber()
+	var service servingv1.Service
+	err := data.Decode(&service)
+	assert.NilError(r.T(), err)
+	return service
+}

@@ -22,6 +22,7 @@ function upload_test_images() {
   # to pickup .ko.yaml
   cd "$( dirname "$0")/.."
   local image_dir="test/test_images"
+  local vendor_image_dir="vendor/knative.dev/serving/test/test_images"
   local docker_tag=$1
   local tag_option=""
   if [ -n "${docker_tag}" ]; then
@@ -32,6 +33,9 @@ function upload_test_images() {
   # so the resulting yaml produced is ignored.
   # We limit the number of concurrent builds (jobs) to avoid OOMs.
   ko resolve --jobs=4 ${tag_option} -RBf "${image_dir}" > /dev/null
+
+  #build and publish images from vendor directory
+  ko resolve --jobs=4 ${tag_option} -RBf "${vendor_image_dir}" > /dev/null
 }
 
 : ${KO_DOCKER_REPO:?"You must set 'KO_DOCKER_REPO'"}
