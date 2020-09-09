@@ -111,7 +111,7 @@ func TestServiceExport(t *testing.T) {
 			withServiceRevisionName("hello-rev1"),
 			withConfigurationAnnotations(map[string]string{
 				"client.knative.dev/user-image": pkgtest.ImagePath("helloworld"),
-				"serving.knative.dev/routes": "hello",
+				"serving.knative.dev/routes":    "hello",
 			}),
 			withServicePodSpecOption(
 				withContainer(),
@@ -143,7 +143,7 @@ func TestServiceExport(t *testing.T) {
 			withRevisionAnnotations(
 				map[string]string{
 					"client.knative.dev/user-image": pkgtest.ImagePath("helloworld"),
-					"serving.knative.dev/routes": "hello",
+					"serving.knative.dev/routes":    "hello",
 				}),
 			withRevisionLabels(
 				map[string]string{
@@ -169,7 +169,7 @@ func TestServiceExport(t *testing.T) {
 			withServiceName("hello"),
 			withConfigurationAnnotations(map[string]string{
 				"client.knative.dev/user-image": pkgtest.ImagePath("helloworld"),
-				"serving.knative.dev/routes": "hello",
+				"serving.knative.dev/routes":    "hello",
 			}),
 			withServiceRevisionName("hello-rev1"),
 			withServicePodSpecOption(
@@ -213,7 +213,7 @@ func TestServiceExport(t *testing.T) {
 			withRevisionAnnotations(
 				map[string]string{
 					"client.knative.dev/user-image": pkgtest.ImagePath("helloworld"),
-					"serving.knative.dev/routes": "hello",
+					"serving.knative.dev/routes":    "hello",
 				}),
 			withRevisionLabels(
 				map[string]string{
