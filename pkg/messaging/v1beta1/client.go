@@ -16,6 +16,7 @@ package v1beta1
 
 import (
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	messagingv1beta1 "knative.dev/eventing/pkg/apis/messaging/v1beta1"
 	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
 	clientv1beta1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/messaging/v1beta1"
@@ -52,4 +53,11 @@ func (c *messagingClient) ChannelsClient() KnChannelsClient {
 // update GVK of object
 func updateMessagingGVK(obj runtime.Object) error {
 	return util.UpdateGroupVersionKindWithScheme(obj, messagingv1beta1.SchemeGroupVersion, scheme.Scheme)
+}
+
+// BuiltInChannelGVKs returns the GVKs for built in channel
+func BuiltInChannelGVKs() []schema.GroupVersionKind {
+	return []schema.GroupVersionKind{
+		messagingv1beta1.SchemeGroupVersion.WithKind("InMemoryChannel"),
+	}
 }

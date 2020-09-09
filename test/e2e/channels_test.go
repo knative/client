@@ -107,4 +107,9 @@ func TestChannels(t *testing.T) {
 	assert.Check(t, util.ContainsAll(listout, "TYPE", "GROUP", "VERSION"))
 	assert.Check(t, util.ContainsAll(listout, "InMemoryChannel", "messaging.knative.dev", "v1beta1"))
 
+	t.Log("List channel types no header")
+	listout = test.ChannelListTypes(r, "--no-headers")
+	assert.Check(t, util.ContainsNone(listout, "TYPE", "GROUP", "VERSION"))
+	assert.Check(t, util.ContainsAll(listout, "InMemoryChannel", "messaging.knative.dev", "v1beta1"))
+
 }

@@ -34,7 +34,7 @@ func NewChannelCommand(p *commands.KnParams) *cobra.Command {
 	channelCmd.AddCommand(NewChannelListCommand(p))
 	channelCmd.AddCommand(NewChannelDeleteCommand(p))
 	channelCmd.AddCommand(NewChannelDescribeCommand(p))
-	channelCmd.AddCommand(NewListTypesCommand(p))
+	channelCmd.AddCommand(NewChannelListTypesCommand(p))
 	return channelCmd
 }
 

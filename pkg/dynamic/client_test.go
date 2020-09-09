@@ -248,6 +248,50 @@ func newChannelCRDObj(name string) *unstructured.Unstructured {
 	obj.SetLabels(labels.Set{channelLabelKey: channelLabelValue})
 	return obj
 }
+
+func newChannelCRDObjWithSpec(name, group, version, kind string) *unstructured.Unstructured {
+	obj := &unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": crdGroup + "/" + crdVersion,
+			"kind":       crdKind,
+			"metadata": map[string]interface{}{
+				"namespace": testNamespace,
+				"name":      name,
+			},
+		},
+	}
+
+	obj.Object["spec"] = map[string]interface{}{
+		"group":   group,
+		"version": version,
+		"names": map[string]interface{}{
+			"kind":   kind,
+			"plural": strings.ToLower(kind) + "s",
+		},
+	}
+	obj.SetLabels(labels.Set{channelLabelKey: channelLabelValue})
+	return obj
+}
+
+func newChannelUnstructuredObj(name, apiVersion, kind string) *unstructured.Unstructured {
+	return &unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": apiVersion,
+			"kind":       kind,
+			"metadata": map[string]interface{}{
+				"namespace": "current",
+				"name":      name,
+			},
+			"spec": map[string]interface{}{
+				"sink": map[string]interface{}{
+					"ref": map[string]interface{}{
+						"name": "foo",
+					},
+				},
+			},
+		},
+	}
+}
 func TestListChannelsTypes(t *testing.T) {
 	client := createFakeKnDynamicClient(
 		testNamespace,
@@ -264,4 +308,38 @@ func TestListChannelsTypes(t *testing.T) {
 		assert.Equal(t, uList.Items[0].GetName(), "foo")
 		assert.Equal(t, uList.Items[1].GetName(), "bar")
 	})
+}
+
+func TestListChannelsUsingGVKs(t *testing.T) {
+	t.Run("No GVKs given", func(t *testing.T) {
+		client := createFakeKnDynamicClient(testNamespace)
+		assert.Check(t, client.RawClient() != nil)
+		s, err := client.ListChannelsUsingGVKs(nil)
+		assert.NilError(t, err)
+		assert.Check(t, s == nil)
+	})
+
+	t.Run("channel list with given GVKs", func(t *testing.T) {
+		client := createFakeKnDynamicClient(testNamespace,
+			newChannelCRDObjWithSpec("InMemoryChannel", "messaging.knative.dev", "v1beta1", "InMemoryChannel"),
+			newChannelUnstructuredObj("i1", "messaging.knative.dev/v1beta1", "InMemoryChannel"),
+		)
+		assert.Check(t, client.RawClient() != nil)
+		gv := schema.GroupVersion{"messaging.knative.dev", "v1beta1"}
+		gvks := []schema.GroupVersionKind{gv.WithKind("InMemoryChannel")}
+
+		s, err := client.ListChannelsUsingGVKs(&gvks)
+		assert.NilError(t, err)
+		assert.Check(t, s != nil)
+		assert.Equal(t, len(s.Items), 1)
+		assert.DeepEqual(t, s.GroupVersionKind(), schema.GroupVersionKind{channelListGroup, channelListVersion, channelListKind})
+
+		// withType
+		s, err = client.ListChannelsUsingGVKs(&gvks, WithTypeFilter("InMemoryChannel"))
+		assert.NilError(t, err)
+		assert.Check(t, s != nil)
+		assert.Equal(t, len(s.Items), 1)
+		assert.DeepEqual(t, s.GroupVersionKind(), schema.GroupVersionKind{channelListGroup, channelListVersion, channelListKind})
+	})
+
 }

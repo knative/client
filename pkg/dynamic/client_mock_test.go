@@ -35,6 +35,7 @@ func TestMockKnDynamicClient(t *testing.T) {
 	recorder.ListChannelsTypes(nil, nil)
 	recorder.RawClient(&fake.FakeDynamicClient{})
 	recorder.ListSourcesUsingGVKs(mock.Any(), mock.Any(), nil, nil)
+	recorder.ListChannelsUsingGVKs(mock.Any(), mock.Any(), nil, nil)
 
 	client.ListCRDs(metav1.ListOptions{})
 	client.ListSourcesTypes()
@@ -42,6 +43,8 @@ func TestMockKnDynamicClient(t *testing.T) {
 	client.ListSources(WithTypeFilter("blub"))
 	client.RawClient()
 	client.ListSourcesUsingGVKs(&[]schema.GroupVersionKind{}, WithTypeFilter("blub"))
+	client.ListChannelsUsingGVKs(&[]schema.GroupVersionKind{}, WithTypeFilter("blub"))
+
 	// Validate
 	recorder.Validate()
 }
