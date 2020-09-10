@@ -1,1 +1,1 @@
-/Developer/work/go/src/knative.dev/client/vendor/knative.dev/serving/test/test_images/grpc-ping
+./../../vendor/knative.dev/serving/test/test_images/grpc-ping
