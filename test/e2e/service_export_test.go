@@ -19,6 +19,8 @@ package e2e
 
 import (
 	"encoding/json"
+	"os"
+	"strings"
 	"testing"
 
 	"gotest.tools/assert"
@@ -44,7 +46,9 @@ type podSpecOption func(*corev1.PodSpec)
 
 func TestServiceExport(t *testing.T) {
 	//FIXME: enable once 0.18 is available
-	t.Skip("The test is skipped until Serving release 0.18")
+	if strings.HasPrefix(os.Getenv("KNATIVE_SERVING_VERSION"), "0.17") {
+		t.Skip("The test is skipped on Serving version 0.17")
+	}
 	t.Parallel()
 	it, err := test.NewKnTest()
 	assert.NilError(t, err)
