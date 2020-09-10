@@ -33,6 +33,9 @@ function upload_test_images() {
   # so the resulting yaml produced is ignored.
   # We limit the number of concurrent builds (jobs) to avoid OOMs.
   ko resolve --jobs=4 ${tag_option} -RBf "${image_dir}" > /dev/null
+
+  #build and publish images from vendor directory
+  ko resolve --jobs=4 ${tag_option} -RBf "${vendor_image_dir}" > /dev/null
 }
 
 : ${KO_DOCKER_REPO:?"You must set 'KO_DOCKER_REPO'"}
