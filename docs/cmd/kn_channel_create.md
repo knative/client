@@ -17,8 +17,8 @@ kn channel create NAME
   # Create a channel 'pipe' with default setting for channel configuration
   kn channel create pipe
 
-  # Create a channel 'imc1' of type InMemoryChannel using inbuilt alias 'imc'
-  kn channel create imc1 --type imc
+  # Create a channel 'imc1' of type InMemoryChannel using inbuilt alias 'imcv1beta1'
+  kn channel create imc1 --type imcv1beta1
   # same as above without using inbuilt alias but providing explicit GVK
   kn channel create imc1 --type messaging.knative.dev:v1beta1:InMemoryChannel
 
