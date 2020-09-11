@@ -28,7 +28,9 @@ import (
 func TestNewRootCommand(t *testing.T) {
 	rootCmd, err := NewRootCommand(nil)
 	assert.NilError(t, err)
-	assert.Assert(t, rootCmd != nil)
+	if rootCmd == nil {
+		t.Fatal("rootCmd = nil, want not nil")
+	}
 
 	assert.Equal(t, rootCmd.Name(), "kn")
 	assert.Assert(t, util.ContainsAll(rootCmd.Short, "Knative", "Serving", "Eventing"))
@@ -114,14 +116,18 @@ func TestCommandGroupWithRunMethod(t *testing.T) {
 func checkLeafCommand(t *testing.T, name string, rootCmd *cobra.Command) {
 	cmd, _, err := rootCmd.Find([]string{name})
 	assert.Assert(t, err == nil)
-	assert.Assert(t, cmd != nil)
+	if cmd == nil {
+		t.Fatal("cmd = nil, want not nil")
+	}
 	assert.Assert(t, !cmd.HasSubCommands())
 }
 
 func checkCommandGroup(t *testing.T, commands []string, rootCmd *cobra.Command) {
 	cmd, _, err := rootCmd.Find(commands)
 	assert.Assert(t, err == nil)
-	assert.Assert(t, cmd != nil)
+	if cmd == nil {
+		t.Fatal("cmd = nil, want not nil")
+	}
 	assert.Assert(t, cmd.RunE != nil)
 	assert.Assert(t, cmd.HasSubCommands())
 

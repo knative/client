@@ -129,8 +129,8 @@ func prepareDeleteTestCases(name string) []waitForReadyTestCase {
 
 func errorTest(name string) waitForReadyTestCase {
 	events := []watch.Event{
-		{watch.Modified, CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "", "msg1")},
-		{watch.Modified, CreateTestServiceWithConditions(name, corev1.ConditionFalse, corev1.ConditionTrue, "FakeError", "Test Error")},
+		{Type: watch.Modified, Object: CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "", "msg1")},
+		{Type: watch.Modified, Object: CreateTestServiceWithConditions(name, corev1.ConditionFalse, corev1.ConditionTrue, "FakeError", "Test Error")},
 	}
 
 	return waitForReadyTestCase{
@@ -162,41 +162,41 @@ func pMessages(max int) []string {
 func peNormal(name string) ([]watch.Event, int) {
 	messages := pMessages(2)
 	return []watch.Event{
-		{watch.Added, CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "", messages[0])},
-		{watch.Modified, CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "", messages[0])},
-		{watch.Modified, CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionTrue, "", messages[1])},
-		{watch.Modified, CreateTestServiceWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "", "")},
+		{Type: watch.Added, Object: CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "", messages[0])},
+		{Type: watch.Modified, Object: CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "", messages[0])},
+		{Type: watch.Modified, Object: CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionTrue, "", messages[1])},
+		{Type: watch.Modified, Object: CreateTestServiceWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "", "")},
 	}, len(messages)
 }
 
 func peTimeout(name string) ([]watch.Event, int) {
 	messages := pMessages(1)
 	return []watch.Event{
-		{watch.Modified, CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "", messages[0])},
+		{Type: watch.Modified, Object: CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "", messages[0])},
 	}, len(messages)
 }
 
 func peWrongGeneration(name string) ([]watch.Event, int) {
 	messages := pMessages(1)
 	return []watch.Event{
-		{watch.Modified, CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "", messages[0])},
-		{watch.Modified, CreateTestServiceWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "", "", 1, 2)},
+		{Type: watch.Modified, Object: CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "", messages[0])},
+		{Type: watch.Modified, Object: CreateTestServiceWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "", "", 1, 2)},
 	}, len(messages)
 }
 
 func peReadyFalseWithinErrorWindow(name string) ([]watch.Event, int) {
 	messages := pMessages(1)
 	return []watch.Event{
-		{watch.Modified, CreateTestServiceWithConditions(name, corev1.ConditionFalse, corev1.ConditionFalse, "Route not ready", messages[0])},
-		{watch.Modified, CreateTestServiceWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "Route ready", "")},
+		{Type: watch.Modified, Object: CreateTestServiceWithConditions(name, corev1.ConditionFalse, corev1.ConditionFalse, "Route not ready", messages[0])},
+		{Type: watch.Modified, Object: CreateTestServiceWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "Route ready", "")},
 	}, len(messages)
 }
 
 func deNormal(name string) ([]watch.Event, int) {
 	messages := pMessages(2)
 	return []watch.Event{
-		{watch.Modified, CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "", messages[0])},
-		{watch.Modified, CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionTrue, "", messages[1])},
-		{watch.Deleted, CreateTestServiceWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "", "")},
+		{Type: watch.Modified, Object: CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "", messages[0])},
+		{Type: watch.Modified, Object: CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionTrue, "", messages[1])},
+		{Type: watch.Deleted, Object: CreateTestServiceWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "", "")},
 	}, len(messages)
 }

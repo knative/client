@@ -24,12 +24,6 @@ import (
 // and adapted to the specific needs of `kn`
 
 const (
-	// sectionAliases is the help template section that displays command aliases.
-	sectionAliases = `{{if gt .Aliases 0}}Aliases:
-{{.NameAndAliases}}
-
-{{end}}`
-
 	// sectionExamples is the help template section that displays command examples.
 	sectionExamples = `{{if .HasExample}}Examples:
 {{trimRight .Example}}

@@ -86,7 +86,7 @@ func Age(t time.Time) string {
 	if t.IsZero() {
 		return ""
 	}
-	return duration.ShortHumanDuration(time.Now().Sub(t))
+	return duration.ShortHumanDuration(time.Since(t))
 }
 
 func formatConditionType(condition apis.Condition) string {
@@ -130,9 +130,7 @@ func getMaxTypeLen(conditions []apis.Condition) int {
 func sortConditions(conditions []apis.Condition) []apis.Condition {
 	// Don't change the orig slice
 	ret := make([]apis.Condition, len(conditions))
-	for i, c := range conditions {
-		ret[i] = c
-	}
+	copy(ret, conditions)
 	sort.SliceStable(ret, func(i, j int) bool {
 		ic := &ret[i]
 		jc := &ret[j]
@@ -220,5 +218,5 @@ func joinAndTruncate(sortedKeys []string, m map[string]string, width int) string
 	if len(ret) <= width {
 		return ret
 	}
-	return string(ret[:width-4]) + " ..."
+	return ret[:width-4] + " ..."
 }

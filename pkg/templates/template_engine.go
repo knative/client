@@ -106,7 +106,7 @@ func (e templateEngine) templateFunctions() template.FuncMap {
 }
 
 func (e templateEngine) cmdGroupsString() string {
-	var groups []string
+	groups := make([]string, 0, len(e.CommandGroups))
 	for _, cmdGroup := range e.CommandGroups {
 		groups = append(groups, formatCommandGroup(cmdGroup))
 	}

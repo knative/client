@@ -25,8 +25,7 @@ import (
 )
 
 var (
-	negPrefix        = "no-"
-	deprecatedPrefix = "DEPRECATED:"
+	negPrefix = "no-"
 )
 
 // AddBothBoolFlagsUnhidden is just like AddBothBoolFlags but shows both flags.

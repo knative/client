@@ -27,8 +27,6 @@ import (
 	"knative.dev/client/pkg/kn/commands"
 )
 
-const testNamespace = "default"
-
 var blankConfig clientcmd.ClientConfig
 
 // TODO: Remove that blankConfig hack for tests in favor of overwriting GetConfig()

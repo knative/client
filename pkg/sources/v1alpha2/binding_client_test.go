@@ -195,7 +195,7 @@ func TestSinkBindingBuilderForSubjectError(t *testing.T) {
 	assert.ErrorContains(t, err, "kind")
 
 	b, err = NewSinkBindingBuilder("test").
-		SubjectGVK(&schema.GroupVersionKind{"apps", "v1", "Deployment"}).
+		SubjectGVK(&schema.GroupVersionKind{Group: "apps", Version: "v1", Kind: "Deployment"}).
 		SubjectName("foo").
 		AddSubjectMatchLabel("bla", "blub").
 		Build()
@@ -207,7 +207,7 @@ func TestSinkBindingBuilderForSubjectError(t *testing.T) {
 }
 
 func TestSinkBindingBuilderForSubject(t *testing.T) {
-	gvk := schema.GroupVersionKind{"apps", "v1", "Deployment"}
+	gvk := schema.GroupVersionKind{Group: "apps", Version: "v1", Kind: "Deployment"}
 
 	b, err := NewSinkBindingBuilder("test").
 		SubjectGVK(&gvk).
@@ -220,7 +220,7 @@ func TestSinkBindingBuilderForSubject(t *testing.T) {
 	assert.DeepEqual(t, subject.GroupVersionKind(), gvk)
 
 	b, err = NewSinkBindingBuilder("test").
-		SubjectGVK(&schema.GroupVersionKind{"apps", "v1", "Deployment"}).
+		SubjectGVK(&schema.GroupVersionKind{Group: "apps", Version: "v1", Kind: "Deployment"}).
 		AddSubjectMatchLabel("bla", "blub").
 		AddSubjectMatchLabel("foo", "bar").
 		Build()
@@ -259,7 +259,7 @@ func newSinkBinding(name, sinkService, pingName string) *v1alpha2.SinkBinding {
 	b, _ := NewSinkBindingBuilder(name).
 		Namespace(testNamespace).
 		Sink(sink).
-		SubjectGVK(&schema.GroupVersionKind{"batch", "v1beta1", "CronJob"}).
+		SubjectGVK(&schema.GroupVersionKind{Group: "batch", Version: "v1beta1", Kind: "CronJob"}).
 		SubjectName(pingName).
 		CloudEventOverrides(map[string]string{"type": "foo"}, []string{}).
 		Build()

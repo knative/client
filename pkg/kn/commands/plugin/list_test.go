@@ -34,9 +34,10 @@ import (
 func TestPluginListBasic(t *testing.T) {
 
 	pluginListCmd := NewPluginListCommand(&commands.KnParams{})
-	assert.Assert(t, pluginListCmd != nil)
+	if pluginListCmd == nil {
+		t.Fatal("pluginListCmd = nil, want not nil")
+	}
 
-	assert.Assert(t, pluginListCmd != nil)
 	assert.Assert(t, pluginListCmd.Use == "list")
 	assert.Assert(t, pluginListCmd.Short == "List plugins")
 	assert.Assert(t, strings.Contains(pluginListCmd.Long, "List all installed plugins"))

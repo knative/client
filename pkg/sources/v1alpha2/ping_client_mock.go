@@ -23,9 +23,8 @@ import (
 )
 
 type MockKnPingSourceClient struct {
-	t         *testing.T
-	recorder  *PingSourcesRecorder
-	namespace string
+	t        *testing.T
+	recorder *PingSourcesRecorder
 }
 
 // NewMockKnPingSourceClient returns a new mock instance which you need to record for

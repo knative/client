@@ -70,15 +70,17 @@ func TestChannelTypesFlags(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		f := &ChannelTypeFlags{}
-		flagset := &pflag.FlagSet{}
-		f.Add(flagset)
-		flagset.Set("type", c.arg)
-		gvk, err := f.Parse()
-		if c.expectedErrText != "" {
-			assert.Equal(t, err.Error(), c.expectedErrText)
-		} else {
-			assert.Equal(t, *gvk, *c.expectedGVK)
-		}
+		t.Run(c.name, func(t *testing.T) {
+			f := &ChannelTypeFlags{}
+			flagset := &pflag.FlagSet{}
+			f.Add(flagset)
+			flagset.Set("type", c.arg)
+			gvk, err := f.Parse()
+			if c.expectedErrText != "" {
+				assert.Equal(t, err.Error(), c.expectedErrText)
+			} else {
+				assert.Equal(t, *gvk, *c.expectedGVK)
+			}
+		})
 	}
 }

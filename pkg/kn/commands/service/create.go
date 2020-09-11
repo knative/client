@@ -224,17 +224,6 @@ func waitForServiceToGetReady(client clientservingv1.KnServingClient, name strin
 	return showUrl(client, name, "", verbDone, out)
 }
 
-// Duck type for writers having a flush
-type flusher interface {
-	Flush() error
-}
-
-func flush(out io.Writer) {
-	if flusher, ok := out.(flusher); ok {
-		flusher.Flush()
-	}
-}
-
 func serviceExists(client clientservingv1.KnServingClient, name string) (bool, error) {
 	_, err := client.GetService(name)
 	if apierrors.IsNotFound(err) {

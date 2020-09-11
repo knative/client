@@ -53,10 +53,10 @@ func newFakePollInterval(n int) PollInterval {
 func newWatcherForTest(pollResults []runtime.Object) watch.Interface {
 	i := 0
 	poll := func() (runtime.Object, error) {
-		defer func() { i += 1 }()
+		defer func() { i++ }()
 		if pollResults[i] == nil {
 			// 404
-			return nil, api_errors.NewNotFound(schema.GroupResource{"thing", "stuff"}, "eggs")
+			return nil, api_errors.NewNotFound(schema.GroupResource{Group: "thing", Resource: "stuff"}, "eggs")
 		}
 		return pollResults[i], nil
 	}
@@ -87,14 +87,14 @@ type testCase struct {
 func TestPollWatcher(t *testing.T) {
 	cases := []testCase{
 		// Doesn't exist for a while, then does for a while.
-		{[]runtime.Object{nil, nil, a, aa, nil}, []watch.Event{{watch.Added, a}, {watch.Deleted, a}}},
+		{[]runtime.Object{nil, nil, a, aa, nil}, []watch.Event{{Type: watch.Added, Object: a}, {Type: watch.Deleted, Object: a}}},
 		// Changes.
-		{[]runtime.Object{a, b}, []watch.Event{{watch.Added, a}, {watch.Modified, b}}},
+		{[]runtime.Object{a, b}, []watch.Event{{Type: watch.Added, Object: a}, {Type: watch.Modified, Object: b}}},
 		// Changes but stays the same a couple times too.
 		{[]runtime.Object{a, aa, b, bb, c, cc, nil},
-			[]watch.Event{{watch.Added, a}, {watch.Modified, b}, {watch.Modified, c}, {watch.Deleted, c}}},
+			[]watch.Event{{Type: watch.Added, Object: a}, {Type: watch.Modified, Object: b}, {Type: watch.Modified, Object: c}, {Type: watch.Deleted, Object: c}}},
 		// Deleted and recreated between polls.
-		{[]runtime.Object{a, z}, []watch.Event{{watch.Added, a}, {watch.Deleted, a}, {watch.Added, z}}},
+		{[]runtime.Object{a, z}, []watch.Event{{Type: watch.Added, Object: a}, {Type: watch.Deleted, Object: a}, {Type: watch.Added, Object: z}}},
 	}
 	for _, c := range cases {
 		w := newWatcherForTest(c.pollResults)

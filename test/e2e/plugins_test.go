@@ -43,8 +43,8 @@ exit 1`
 )
 
 type pluginTestConfig struct {
-	knConfigDir, knPluginsDir, knPluginsDir2, knPluginsDir3   string
-	knConfigPath, knPluginPath, knPluginPath2, knPluginsPath3 string
+	knConfigDir, knPluginsDir, knPluginsDir2  string
+	knConfigPath, knPluginPath, knPluginPath2 string
 }
 
 func (pc *pluginTestConfig) setup() error {

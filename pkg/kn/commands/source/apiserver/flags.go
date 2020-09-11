@@ -50,7 +50,7 @@ type APIServerSourceUpdateFlags struct {
 
 // getAPIServerVersionKindSelector is to construct an array of resources.
 func (f *APIServerSourceUpdateFlags) getAPIServerVersionKindSelector() ([]v1alpha2.APIVersionKindSelector, error) {
-	var resourceList []v1alpha2.APIVersionKindSelector
+	resourceList := make([]v1alpha2.APIVersionKindSelector, 0, len(f.Resources))
 	for _, r := range f.Resources {
 		resourceSpec, err := getValidAPIVersionKindSelector(r)
 		if err != nil {
@@ -198,7 +198,7 @@ func printSource(source *v1alpha2.ApiServerSource, options hprinters.PrintOption
 	conditions := commands.ConditionsValue(source.Status.Conditions)
 	ready := commands.ReadyCondition(source.Status.Conditions)
 	reason := strings.TrimSpace(commands.NonReadyConditionReason(source.Status.Conditions))
-	var resources []string
+	resources := make([]string, 0, len(source.Spec.Resources))
 	for _, resource := range source.Spec.Resources {
 		resources = append(resources, apiVersionKindSelectorToString(resource))
 	}

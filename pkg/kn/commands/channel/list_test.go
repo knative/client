@@ -41,8 +41,8 @@ func TestChannelList(t *testing.T) {
 	cRecorder := cClient.Recorder()
 	clist := &messagingv1beta1.ChannelList{}
 	clist.Items = []messagingv1beta1.Channel{
-		*createChannel("c0", &schema.GroupVersionKind{"messaging.knative.dev", "v1beta1", "InMemoryChannel"}),
-		*createChannel("c1", &schema.GroupVersionKind{"messaging.knative.dev", "v1beta1", "InMemoryChannel"}),
+		*createChannel("c0", &schema.GroupVersionKind{Group: "messaging.knative.dev", Version: "v1beta1", Kind: "InMemoryChannel"}),
+		*createChannel("c1", &schema.GroupVersionKind{Group: "messaging.knative.dev", Version: "v1beta1", Kind: "InMemoryChannel"}),
 	}
 	cRecorder.ListChannel(clist, nil)
 	out, err := executeChannelCommand(cClient, "list")

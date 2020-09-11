@@ -25,9 +25,10 @@ import (
 
 func TestNewPluginCommand(t *testing.T) {
 	pluginCmd := NewPluginCommand(&commands.KnParams{})
-	assert.Assert(t, pluginCmd != nil)
+	if pluginCmd == nil {
+		t.Fatal("pluginCmd = nil, want not nil")
+	}
 
-	assert.Assert(t, pluginCmd != nil)
 	assert.Equal(t, pluginCmd.Use, "plugin")
 	assert.Assert(t, util.ContainsAllIgnoreCase(pluginCmd.Short, "plugin"))
 	assert.Assert(t, util.ContainsAllIgnoreCase(pluginCmd.Long, "plugins"))

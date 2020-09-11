@@ -16,7 +16,6 @@ package commands
 
 import (
 	"bytes"
-	"os"
 
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -35,18 +34,10 @@ import (
 
 const FakeNamespace = "current"
 
-var (
-	oldStdout *os.File
-	stdout    *os.File
-	output    string
-
-	readFile, writeFile *os.File
-)
-
 // CreateTestKnCommand helper for creating test commands
 func CreateTestKnCommand(cmd *cobra.Command, knParams *KnParams) (*cobra.Command, *servingv1fake.FakeServingV1, *bytes.Buffer) {
 	buf := new(bytes.Buffer)
-	fakeServing := &servingv1fake.FakeServingV1{&clienttesting.Fake{}}
+	fakeServing := &servingv1fake.FakeServingV1{Fake: &clienttesting.Fake{}}
 	knParams.Output = buf
 	knParams.NewServingClient = func(namespace string) (clientservingv1.KnServingClient, error) {
 		return clientservingv1.NewKnServingClient(fakeServing, FakeNamespace), nil
