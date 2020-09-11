@@ -12,6 +12,18 @@
 | https://github.com/knative/client/pull/[#]
 ////
 
+## Unreleased
+
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🐛
+| Fix service export example documentation
+| https://github.com/knative/client/pull/1006[#1006]
+
+|===
+
 ## v0.17.0 (2020-08-26)
 
 [cols="1,10,3", options="header", width="100%"]
