@@ -161,3 +161,7 @@ func TestIsForbiddenError(t *testing.T) {
 		})
 	}
 }
+
+func TestNilError(t *testing.T) {
+	assert.NilError(t, GetError(nil), nil)
+}

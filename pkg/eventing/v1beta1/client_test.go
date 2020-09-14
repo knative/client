@@ -329,9 +329,9 @@ func newBroker(name string) *v1beta1.Broker {
 
 func getBrokerDeleteEvents(name string) []watch.Event {
 	return []watch.Event{
-		{watch.Added, createBrokerWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "", "msg1")},
-		{watch.Modified, createBrokerWithConditions(name, corev1.ConditionUnknown, corev1.ConditionTrue, "", "msg2")},
-		{watch.Deleted, createBrokerWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "", "")},
+		{Type: watch.Added, Object: createBrokerWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "", "msg1")},
+		{Type: watch.Modified, Object: createBrokerWithConditions(name, corev1.ConditionUnknown, corev1.ConditionTrue, "", "msg2")},
+		{Type: watch.Deleted, Object: createBrokerWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "", "")},
 	}
 }
 

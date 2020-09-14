@@ -24,9 +24,8 @@ import (
 
 // MockKnSinkBindingClient is a combine of test object and recorder
 type MockKnSinkBindingClient struct {
-	t         *testing.T
-	recorder  *EventingRecorder
-	namespace string
+	t        *testing.T
+	recorder *EventingRecorder
 }
 
 // NewMockKnSinkBindingClient returns a new mock instance which you need to record for

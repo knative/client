@@ -21,6 +21,7 @@ import (
 	"gotest.tools/assert"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	pkgtest "knative.dev/pkg/test"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	"knative.dev/client/pkg/util"
@@ -28,7 +29,7 @@ import (
 
 // ServiceCreate verifies given service creation in sync mode and also verifies output
 func ServiceCreate(r *KnRunResultCollector, serviceName string) {
-	out := r.KnTest().Kn().Run("service", "create", serviceName, "--image", GetKnTestImage())
+	out := r.KnTest().Kn().Run("service", "create", serviceName, "--image", pkgtest.ImagePath("helloworld"))
 	r.AssertNoError(out)
 	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "service", serviceName, "creating", "namespace", r.KnTest().Kn().Namespace(), "ready"))
 }
@@ -51,7 +52,7 @@ func ServiceList(r *KnRunResultCollector, serviceName string) {
 func ServiceDescribe(r *KnRunResultCollector, serviceName string) {
 	out := r.KnTest().Kn().Run("service", "describe", serviceName)
 	r.AssertNoError(out)
-	assert.Assert(r.T(), util.ContainsAll(out.Stdout, serviceName, r.KnTest().Kn().Namespace(), GetKnTestImage()))
+	assert.Assert(r.T(), util.ContainsAll(out.Stdout, serviceName, r.KnTest().Kn().Namespace(), pkgtest.ImagePath("helloworld")))
 	assert.Assert(r.T(), util.ContainsAll(out.Stdout, "Conditions", "ConfigurationsReady", "Ready", "RoutesReady"))
 	assert.Assert(r.T(), util.ContainsAll(out.Stdout, "Name", "Namespace", "URL", "Age", "Revisions"))
 }
@@ -120,4 +121,16 @@ func ValidateServiceResources(r *KnRunResultCollector, serviceName string, reque
 
 	serviceLimitsResourceList := service.Spec.Template.Spec.Containers[0].Resources.Limits
 	assert.DeepEqual(r.T(), serviceLimitsResourceList, llist)
+}
+
+//GetServiceFromKNServiceDescribe runs the kn service describe command
+//decodes it into a ksvc and returns it.
+func GetServiceFromKNServiceDescribe(r *KnRunResultCollector, serviceName string) servingv1.Service {
+	out := r.KnTest().Kn().Run("service", "describe", serviceName, "-ojson")
+	data := json.NewDecoder(strings.NewReader(out.Stdout))
+	data.UseNumber()
+	var service servingv1.Service
+	err := data.Decode(&service)
+	assert.NilError(r.T(), err)
+	return service
 }

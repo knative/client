@@ -19,6 +19,8 @@ package e2e
 
 import (
 	"encoding/json"
+	"os"
+	"strings"
 	"testing"
 
 	"gotest.tools/assert"
@@ -32,6 +34,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientv1alpha1 "knative.dev/client/pkg/apis/client/v1alpha1"
+	pkgtest "knative.dev/pkg/test"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
@@ -42,6 +45,10 @@ type expectedKNExportOption func(*clientv1alpha1.Export)
 type podSpecOption func(*corev1.PodSpec)
 
 func TestServiceExport(t *testing.T) {
+	//FIXME: enable once 0.18 is available
+	if strings.HasPrefix(os.Getenv("KNATIVE_SERVING_VERSION"), "0.17") {
+		t.Skip("The test is skipped on Serving version 0.17")
+	}
 	t.Parallel()
 	it, err := test.NewKnTest()
 	assert.NilError(t, err)
@@ -59,7 +66,9 @@ func TestServiceExport(t *testing.T) {
 	serviceExport(r, "hello", getServiceWithOptions(
 		withServiceName("hello"),
 		withServiceRevisionName("hello-rev1"),
-		withConfigurationAnnotations(),
+		withConfigurationAnnotations(map[string]string{
+			"client.knative.dev/user-image": pkgtest.ImagePath("helloworld"),
+		}),
 		withServicePodSpecOption(withContainer()),
 	), "-o", "json")
 
@@ -106,7 +115,10 @@ func TestServiceExport(t *testing.T) {
 		withServices(
 			withServiceName("hello"),
 			withServiceRevisionName("hello-rev1"),
-			withConfigurationAnnotations(),
+			withConfigurationAnnotations(map[string]string{
+				"client.knative.dev/user-image": pkgtest.ImagePath("helloworld"),
+				"serving.knative.dev/routes":    "hello",
+			}),
 			withServicePodSpecOption(
 				withContainer(),
 			),
@@ -136,13 +148,15 @@ func TestServiceExport(t *testing.T) {
 			withRevisionName("hello-rev1"),
 			withRevisionAnnotations(
 				map[string]string{
-					"client.knative.dev/user-image": test.GetKnTestImage(),
+					"client.knative.dev/user-image": pkgtest.ImagePath("helloworld"),
+					"serving.knative.dev/routes":    "hello",
 				}),
 			withRevisionLabels(
 				map[string]string{
 					"serving.knative.dev/configuration":           "hello",
 					"serving.knative.dev/configurationGeneration": "1",
 					"serving.knative.dev/route":                   "hello",
+					"serving.knative.dev/routingState":            "active",
 					"serving.knative.dev/service":                 "hello",
 				}),
 			withRevisionPodSpecOption(
@@ -159,7 +173,10 @@ func TestServiceExport(t *testing.T) {
 	serviceExportWithServiceList(r, "hello", getServiceListWithOptions(
 		withServices(
 			withServiceName("hello"),
-			withConfigurationAnnotations(),
+			withConfigurationAnnotations(map[string]string{
+				"client.knative.dev/user-image": pkgtest.ImagePath("helloworld"),
+				"serving.knative.dev/routes":    "hello",
+			}),
 			withServiceRevisionName("hello-rev1"),
 			withServicePodSpecOption(
 				withContainer(),
@@ -168,6 +185,9 @@ func TestServiceExport(t *testing.T) {
 		withServices(
 			withServiceName("hello"),
 			withServiceRevisionName("hello-rev2"),
+			withConfigurationAnnotations(map[string]string{
+				"serving.knative.dev/routes": "hello",
+			}),
 			withServicePodSpecOption(
 				withContainer(),
 				withEnv([]corev1.EnvVar{{Name: "a", Value: "mouse"}}),
@@ -198,13 +218,15 @@ func TestServiceExport(t *testing.T) {
 			withRevisionName("hello-rev1"),
 			withRevisionAnnotations(
 				map[string]string{
-					"client.knative.dev/user-image": test.GetKnTestImage(),
+					"client.knative.dev/user-image": pkgtest.ImagePath("helloworld"),
+					"serving.knative.dev/routes":    "hello",
 				}),
 			withRevisionLabels(
 				map[string]string{
 					"serving.knative.dev/configuration":           "hello",
 					"serving.knative.dev/configurationGeneration": "1",
 					"serving.knative.dev/route":                   "hello",
+					"serving.knative.dev/routingState":            "active",
 					"serving.knative.dev/service":                 "hello",
 				}),
 			withRevisionPodSpecOption(
@@ -213,11 +235,16 @@ func TestServiceExport(t *testing.T) {
 		),
 		withRevisions(
 			withRevisionName("hello-rev2"),
+			withRevisionAnnotations(
+				map[string]string{
+					"serving.knative.dev/routes": "hello",
+				}),
 			withRevisionLabels(
 				map[string]string{
 					"serving.knative.dev/configuration":           "hello",
 					"serving.knative.dev/configurationGeneration": "2",
 					"serving.knative.dev/route":                   "hello",
+					"serving.knative.dev/routingState":            "active",
 					"serving.knative.dev/service":                 "hello",
 				}),
 			withRevisionPodSpecOption(
@@ -235,6 +262,9 @@ func TestServiceExport(t *testing.T) {
 		withServices(
 			withServiceName("hello"),
 			withServiceRevisionName("hello-rev2"),
+			withConfigurationAnnotations(map[string]string{
+				"serving.knative.dev/routes": "hello",
+			}),
 			withServicePodSpecOption(
 				withContainer(),
 				withEnv([]corev1.EnvVar{{Name: "a", Value: "mouse"}}),
@@ -263,11 +293,15 @@ func TestServiceExport(t *testing.T) {
 	), getKNExportWithOptions(
 		withRevisions(
 			withRevisionName("hello-rev2"),
+			withRevisionAnnotations(map[string]string{
+				"serving.knative.dev/routes": "hello",
+			}),
 			withRevisionLabels(
 				map[string]string{
 					"serving.knative.dev/configuration":           "hello",
 					"serving.knative.dev/configurationGeneration": "2",
 					"serving.knative.dev/route":                   "hello",
+					"serving.knative.dev/routingState":            "active",
 					"serving.knative.dev/service":                 "hello",
 				}),
 			withRevisionPodSpecOption(
@@ -391,16 +425,9 @@ func withServiceName(name string) expectedServiceOption {
 		svc.ObjectMeta.Name = name
 	}
 }
-func withConfigurationLabels(labels map[string]string) expectedServiceOption {
+func withConfigurationAnnotations(annotations map[string]string) expectedServiceOption {
 	return func(svc *servingv1.Service) {
-		svc.Spec.Template.ObjectMeta.Labels = labels
-	}
-}
-func withConfigurationAnnotations() expectedServiceOption {
-	return func(svc *servingv1.Service) {
-		svc.Spec.Template.ObjectMeta.Annotations = map[string]string{
-			"client.knative.dev/user-image": test.GetKnTestImage(),
-		}
+		svc.Spec.Template.ObjectMeta.Annotations = annotations
 	}
 }
 func withServiceRevisionName(name string) expectedServiceOption {
@@ -489,7 +516,7 @@ func withContainer() podSpecOption {
 		spec.Containers = []corev1.Container{
 			{
 				Name:      "user-container",
-				Image:     test.GetKnTestImage(),
+				Image:     pkgtest.ImagePath("helloworld"),
 				Resources: corev1.ResourceRequirements{},
 				ReadinessProbe: &corev1.Probe{
 					SuccessThreshold: int32(1),

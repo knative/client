@@ -24,9 +24,8 @@ import (
 
 // MockKnAPIServerSourceClient for mocking the client
 type MockKnAPIServerSourceClient struct {
-	t         *testing.T
-	recorder  *APIServerSourcesRecorder
-	namespace string
+	t        *testing.T
+	recorder *APIServerSourcesRecorder
 }
 
 // NewMockKnAPIServerSourceClient returns a new mock instance which you need to record for

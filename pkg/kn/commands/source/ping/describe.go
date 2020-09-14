@@ -119,7 +119,7 @@ func writePingSource(dw printers.PrefixWriter, source *v1alpha2.PingSource, prin
 
 func writeCeOverrides(dw printers.PrefixWriter, ceOverrides map[string]string) {
 	subDw := dw.WriteAttribute("CloudEvent Overrides", "")
-	var keys []string
+	keys := make([]string, 0, len(ceOverrides))
 	for k := range ceOverrides {
 		keys = append(keys, k)
 	}

@@ -16,12 +16,15 @@ kn service export NAME
 
   # Export a service in YAML format
   kn service export foo -n bar -o yaml
+
   # Export a service in JSON format
   kn service export foo -n bar -o json
+
   # Export a service with revisions
-  kn service export foo --with-revisions --mode=resources -n bar -o json
+  kn service export foo --with-revisions --mode=export -n bar -o json
+
   # Export services in kubectl friendly format, as a list kind, one service item for each revision
-  kn service export foo --with-revisions --mode=kubernetes -n bar -o json
+  kn service export foo --with-revisions --mode=replay -n bar -o json
 ```
 
 ### Options

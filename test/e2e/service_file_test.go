@@ -28,6 +28,7 @@ import (
 
 	"knative.dev/client/lib/test"
 	"knative.dev/client/pkg/util"
+	pkgtest "knative.dev/pkg/test"
 )
 
 const (
@@ -87,8 +88,8 @@ func TestServiceCreateFromFile(t *testing.T) {
 	defer os.RemoveAll(tempDir)
 	assert.NilError(t, err)
 
-	test.CreateFile("foo.json", fmt.Sprintf(ServiceJSON, test.GetKnTestImage()), tempDir, test.FileModeReadWrite)
-	test.CreateFile("foo.yaml", fmt.Sprintf(ServiceYAML, test.GetKnTestImage()), tempDir, test.FileModeReadWrite)
+	test.CreateFile("foo.json", fmt.Sprintf(ServiceJSON, pkgtest.ImagePath("helloworld")), tempDir, test.FileModeReadWrite)
+	test.CreateFile("foo.yaml", fmt.Sprintf(ServiceYAML, pkgtest.ImagePath("helloworld")), tempDir, test.FileModeReadWrite)
 
 	t.Log("create foo-json service from JSON file")
 	serviceCreateFromFile(r, "foo-json", filepath.Join(tempDir, "foo.json"), true)

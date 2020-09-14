@@ -26,9 +26,8 @@ import (
 
 // MockKnDynamicClient is a combine of test object and recorder
 type MockKnDynamicClient struct {
-	t         *testing.T
-	recorder  *ClientRecorder
-	namespace string
+	t        *testing.T
+	recorder *ClientRecorder
 }
 
 // NewMockKnDyanmicClient returns a new mock instance which you need to record for

@@ -121,7 +121,7 @@ func stripFlags(rootCmd *cobra.Command, args []string) ([]string, error) {
 
 // Strip all plugin commands before calling out to the plugin
 func argsWithoutCommands(cmdArgs []string, pluginCommandsParts []string) []string {
-	var ret []string
+	ret := make([]string, 0, len(cmdArgs))
 	for _, arg := range cmdArgs {
 		if len(pluginCommandsParts) > 0 && pluginCommandsParts[0] == arg {
 			pluginCommandsParts = pluginCommandsParts[1:]
@@ -197,6 +197,6 @@ func extractCommandPathFromErrorMessage(errorMsg string, arg0 string) string {
 
 // cleanupErrorMessage remove any redundance content of an error message
 func cleanupErrorMessage(msg string) string {
-	regexp := regexp.MustCompile("(?i)^error:\\s*")
+	regexp := regexp.MustCompile(`(?i)^error:\s*`)
 	return string(regexp.ReplaceAll([]byte(msg), []byte("")))
 }

@@ -26,10 +26,11 @@ import (
 	"testing"
 
 	"gotest.tools/assert"
-	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	"knative.dev/client/lib/test"
 	"knative.dev/client/pkg/util"
+	pkgtest "knative.dev/pkg/test"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
 func TestServiceOptions(t *testing.T) {
@@ -111,12 +112,13 @@ func TestServiceOptions(t *testing.T) {
 	test.ServiceDelete(r, "svc4")
 
 	t.Log("create, update and validate service with cmd and arg options")
-	serviceCreateWithOptions(r, "svc5", "--cmd", "/go/bin/helloworld")
-	validateContainerField(r, "svc5", "command", "[/go/bin/helloworld]")
+	serviceCreateWithOptions(r, "svc5", "--cmd", "/ko-app/helloworld")
+	validateContainerField(r, "svc5", "command", "[/ko-app/helloworld]")
 	test.ServiceUpdate(r, "svc5", "--arg", "myArg1", "--arg", "--myArg2")
 	validateContainerField(r, "svc5", "args", "[myArg1 --myArg2]")
 	test.ServiceUpdate(r, "svc5", "--arg", "myArg1")
 	validateContainerField(r, "svc5", "args", "[myArg1]")
+	test.ServiceDelete(r, "svc5")
 
 	t.Log("create, update and validate service with user defined")
 	var uid int64 = 1000
@@ -129,30 +131,51 @@ func TestServiceOptions(t *testing.T) {
 	validateUserID(r, "svc6", uid)
 	test.ServiceUpdate(r, "svc6", "--user", strconv.FormatInt(uid+1, 10))
 	validateUserID(r, "svc6", uid+1)
+	test.ServiceDelete(r, "svc6")
 
 	t.Log("create and validate service and revision labels")
 	serviceCreateWithOptions(r, "svc7", "--label-service", "svc=helloworld-svc", "--label-revision", "rev=helloworld-rev")
 	validateLabels(r, "svc7", map[string]string{"svc": "helloworld-svc"}, map[string]string{"rev": "helloworld-rev"})
+	test.ServiceDelete(r, "svc7")
 
 	t.Log("create and validate service resource options")
 	serviceCreateWithOptions(r, "svc8", "--limit", "memory=500Mi,cpu=1000m", "--request", "memory=250Mi,cpu=200m")
 	test.ValidateServiceResources(r, "svc8", "250Mi", "200m", "500Mi", "1000m")
+	test.ServiceDelete(r, "svc8")
+
+	t.Log("create a grpc service and validate port name")
+	serviceCreateWithOptions(r, "svc9", "--image", pkgtest.ImagePath("grpc-ping"), "--port", "h2c:8080")
+	validatePort(r, "svc9", 8080, "h2c")
+	test.ServiceDelete(r, "svc9")
 
 	t.Log("create and validate service with scale init option")
-	serviceCreateWithOptions(r, "svc9", "--scale-init", "1")
-	validateServiceInitScale(r, "svc9", "1")
-	test.ServiceUpdate(r, "svc9", "--scale-init", "2")
-	validateServiceInitScale(r, "svc9", "2")
+	serviceCreateWithOptions(r, "svc10", "--scale-init", "1")
+	validateServiceInitScale(r, "svc10", "1")
+	test.ServiceUpdate(r, "svc10", "--scale-init", "2")
+	validateServiceInitScale(r, "svc10", "2")
 	t.Log("delete service")
-	test.ServiceDelete(r, "svc9")
+	test.ServiceDelete(r, "svc10")
+
 }
 
 func serviceCreateWithOptions(r *test.KnRunResultCollector, serviceName string, options ...string) {
-	command := []string{"service", "create", serviceName, "--image", test.GetKnTestImage()}
-	command = append(command, options...)
+	command := []string{"service", "create", serviceName}
+	command = append(command, getOptionsWithImage(options...)...)
 	out := r.KnTest().Kn().Run(command...)
 	assert.Check(r.T(), util.ContainsAll(out.Stdout, "service", serviceName, "Creating", "namespace", r.KnTest().Kn().Namespace(), "Ready"))
 	r.AssertNoError(out)
+}
+
+func getOptionsWithImage(options ...string) []string {
+	for _, o := range options {
+		if strings.HasPrefix(o, "--image") {
+			//options have an image return options
+			return options
+		}
+	}
+	//options dont have a image , add HW image
+	options = append(options, "--image="+pkgtest.ImagePath("helloworld"))
+	return options
 }
 
 func validateServiceConcurrencyLimit(r *test.KnRunResultCollector, serviceName, concurrencyLimit string) {
@@ -241,11 +264,12 @@ func validateContainerField(r *test.KnRunResultCollector, serviceName, field, ex
 }
 
 func validateUserID(r *test.KnRunResultCollector, serviceName string, uid int64) {
-	out := r.KnTest().Kn().Run("service", "describe", serviceName, "-ojson")
-	data := json.NewDecoder(strings.NewReader(out.Stdout))
-	data.UseNumber()
-	var service servingv1.Service
-	err := data.Decode(&service)
-	assert.NilError(r.T(), err)
-	assert.Equal(r.T(), *service.Spec.Template.Spec.Containers[0].SecurityContext.RunAsUser, uid)
+	svc := test.GetServiceFromKNServiceDescribe(r, serviceName)
+	assert.Equal(r.T(), *svc.Spec.Template.Spec.Containers[0].SecurityContext.RunAsUser, uid)
+}
+
+func validatePort(r *test.KnRunResultCollector, serviceName string, portNumber int32, portName string) {
+	svc := test.GetServiceFromKNServiceDescribe(r, serviceName)
+	assert.Equal(r.T(), svc.Spec.Template.Spec.Containers[0].Ports[0].ContainerPort, portNumber)
+	assert.Equal(r.T(), svc.Spec.Template.Spec.Containers[0].Ports[0].Name, portName)
 }

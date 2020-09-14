@@ -28,9 +28,8 @@ import (
 )
 
 type MockKnServingClient struct {
-	t         *testing.T
-	recorder  *ServingRecorder
-	namespace string
+	t        *testing.T
+	recorder *ServingRecorder
 }
 
 // NewMockKnServiceClient returns a new mock instance which you need to record for
@@ -101,7 +100,7 @@ func (c *MockKnServingClient) UpdateService(service *servingv1.Service) error {
 }
 
 // Delegate to shared retry method
-func (c *MockKnServingClient) UpdateServiceWithRetry(name string, updateFunc serviceUpdateFunc, maxRetry int) error {
+func (c *MockKnServingClient) UpdateServiceWithRetry(name string, updateFunc ServiceUpdateFunc, maxRetry int) error {
 	return updateServiceWithRetry(c, name, updateFunc, maxRetry)
 }
 

@@ -26,10 +26,8 @@ import (
 )
 
 const (
-	KnDefaultTestImage string        = "gcr.io/knative-samples/helloworld-go"
 	MaxRetries         int           = 10
 	RetrySleepDuration time.Duration = 5 * time.Second
-	KnTestImageEnv     string        = "KN_TEST_IMAGE" // Allow test image to be customized
 )
 
 var nsMutex sync.Mutex
@@ -41,15 +39,6 @@ var namespaceCount int
 type KnTest struct {
 	namespace string
 	kn        Kn
-}
-
-// GetKnTestImage returns either customized or default kn test image
-func GetKnTestImage() string {
-	value := os.Getenv(KnTestImageEnv)
-	if value == "" {
-		return KnDefaultTestImage
-	}
-	return value
 }
 
 // NewKnTest creates a new KnTest object

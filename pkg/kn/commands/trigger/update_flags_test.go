@@ -45,7 +45,7 @@ func TestGetFilters(t *testing.T) {
 		createFlag = TriggerUpdateFlags{
 			Filters: []string{"type="},
 		}
-		filters, err := createFlag.GetFilters()
+		filters, _ := createFlag.GetFilters()
 		wanted := map[string]string{"type": ""}
 		assert.DeepEqual(t, wanted, filters)
 

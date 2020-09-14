@@ -122,6 +122,7 @@ func TestListSources(t *testing.T) {
 		sources, err := client.ListSources(WithTypeFilter("pingsource"), WithTypeFilter("ApiServerSource"))
 		assert.NilError(t, err)
 		assert.Equal(t, len(sources.Items), 2)
+		assert.DeepEqual(t, sources.GroupVersionKind(), schema.GroupVersionKind{Group: sourceListGroup, Version: sourceListVersion, Kind: sourceListKind})
 	})
 }
 
@@ -142,19 +143,25 @@ func TestListSourcesUsingGVKs(t *testing.T) {
 			newSourceUnstructuredObj("a1", "sources.knative.dev/v1alpha1", "ApiServerSource"),
 		)
 		assert.Check(t, client.RawClient() != nil)
-		gv := schema.GroupVersion{"sources.knative.dev", "v1alpha1"}
+		gv := schema.GroupVersion{Group: "sources.knative.dev", Version: "v1alpha1"}
 		gvks := []schema.GroupVersionKind{gv.WithKind("ApiServerSource"), gv.WithKind("PingSource")}
 
 		s, err := client.ListSourcesUsingGVKs(&gvks)
 		assert.NilError(t, err)
-		assert.Check(t, s != nil)
+		if s == nil {
+			t.Fatal("s = nil, want not nil")
+		}
 		assert.Equal(t, len(s.Items), 2)
+		assert.DeepEqual(t, s.GroupVersionKind(), schema.GroupVersionKind{Group: sourceListGroup, Version: sourceListVersion, Kind: sourceListKind})
 
 		// withType
 		s, err = client.ListSourcesUsingGVKs(&gvks, WithTypeFilter("PingSource"))
 		assert.NilError(t, err)
-		assert.Check(t, s != nil)
+		if s == nil {
+			t.Fatal("s = nil, want not nil")
+		}
 		assert.Equal(t, len(s.Items), 1)
+		assert.DeepEqual(t, s.GroupVersionKind(), schema.GroupVersionKind{Group: sourceListGroup, Version: sourceListVersion, Kind: sourceListKind})
 	})
 
 }

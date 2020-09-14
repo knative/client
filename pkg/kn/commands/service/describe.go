@@ -228,11 +228,6 @@ func writeRevisions(dw printers.PrefixWriter, revisions []*revisionDesc, printDe
 // ======================================================================================
 // Helper functions
 
-// Format label (extracted so that color could be added more easily to all labels)
-func l(label string) string {
-	return label + ":"
-}
-
 // Format the revision name along with its generation. Use colors if enabled.
 func revisionHeader(desc *revisionDesc) string {
 	header := desc.revision.Name

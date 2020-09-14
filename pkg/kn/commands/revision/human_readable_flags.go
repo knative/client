@@ -103,5 +103,5 @@ func trunc(txt string) string {
 	if len(txt) <= ListColumnMaxLength {
 		return txt
 	}
-	return string(txt[:ListColumnMaxLength-4]) + " ..."
+	return txt[:ListColumnMaxLength-4] + " ..."
 }

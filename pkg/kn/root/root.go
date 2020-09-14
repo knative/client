@@ -27,6 +27,7 @@ import (
 
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/broker"
+	"knative.dev/client/pkg/kn/commands/channel"
 	"knative.dev/client/pkg/kn/commands/completion"
 	"knative.dev/client/pkg/kn/commands/options"
 	"knative.dev/client/pkg/kn/commands/plugin"
@@ -93,6 +94,7 @@ func NewRootCommand(helpFuncs *template.FuncMap) (*cobra.Command, error) {
 				source.NewSourceCommand(p),
 				broker.NewBrokerCommand(p),
 				trigger.NewTriggerCommand(p),
+				channel.NewChannelCommand(p),
 			},
 		},
 		{
@@ -159,7 +161,7 @@ func validateCommandStructure(cmd *cobra.Command) error {
 
 // ExtractSubCommandNames extracts the names of all sub commands of a given command
 func ExtractSubCommandNames(cmds []*cobra.Command) []string {
-	var ret []string
+	ret := make([]string, 0, len(cmds))
 	for _, subCmd := range cmds {
 		ret = append(ret, subCmd.Name())
 	}

@@ -128,7 +128,7 @@ func printSourceListWithNamespace(sourceList *v1alpha2.PingSourceList, options h
 	rows := make([]metav1beta1.TableRow, 0, len(sourceList.Items))
 
 	// temporary slice for sorting services in non-default namespace
-	var others []metav1beta1.TableRow
+	others := make([]metav1beta1.TableRow, 0, len(rows))
 
 	for _, source := range sourceList.Items {
 		// Fill in with services in `default` namespace at first

@@ -19,4 +19,5 @@ package tools
 import (
 	_ "k8s.io/code-generator"
 	_ "k8s.io/code-generator/cmd/deepcopy-gen"
+	_ "knative.dev/serving/test/test_images/grpc-ping"
 )

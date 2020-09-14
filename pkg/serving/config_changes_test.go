@@ -132,25 +132,6 @@ func TestFreezeImageToDigest(t *testing.T) {
 	assert.Equal(t, container.Image, "gcr.io/foo/bar@sha256:deadbeef")
 }
 
-func testUpdateEnvVarsAppendOld(t *testing.T, template *servingv1.RevisionTemplateSpec, container *corev1.Container) {
-	container.Env = []corev1.EnvVar{
-		{Name: "a", Value: "foo"},
-	}
-
-	env := map[string]string{
-		"b": "bar",
-	}
-	err := UpdateEnvVars(template, env, []string{})
-	assert.NilError(t, err)
-
-	expected := []corev1.EnvVar{
-		{Name: "a", Value: "foo"},
-		{Name: "b", Value: "bar"},
-	}
-
-	assert.DeepEqual(t, expected, container.Env)
-}
-
 func TestUpdateEnvVarsModify(t *testing.T) {
 	revision, container := getRevisionTemplate()
 	container.Env = []corev1.EnvVar{
@@ -181,7 +162,7 @@ func TestUpdateEnvVarsRemove(t *testing.T) {
 	assert.NilError(t, err)
 
 	expected := []corev1.EnvVar{
-		{"a", "foo", nil},
+		{Name: "a", Value: "foo"},
 	}
 
 	assert.DeepEqual(t, expected, container.Env)

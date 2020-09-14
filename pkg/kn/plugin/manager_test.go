@@ -21,6 +21,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/spf13/cobra"
@@ -38,6 +39,18 @@ type testContext struct {
 	pluginsDir    string
 	pluginManager *Manager
 }
+
+type testPlugin struct {
+	parts []string
+}
+
+func (t testPlugin) Name() string                 { return "kn-" + strings.Join(t.parts, "-") }
+func (t testPlugin) Execute(args []string) error  { return nil }
+func (t testPlugin) Description() (string, error) { return "desc: " + t.Name(), nil }
+func (t testPlugin) CommandParts() []string       { return t.parts }
+func (t testPlugin) Path() string                 { return "" }
+
+var _ Plugin = testPlugin{}
 
 func TestEmptyFind(t *testing.T) {
 	ctx := setup(t)
@@ -65,7 +78,7 @@ func TestLookupInPluginsDir(t *testing.T) {
 	assert.Equal(t, out, "OK \n")
 }
 
-func TestLookupWithNotFoundResult(t *testing.T) {
+func TestFindWithNotFoundResult(t *testing.T) {
 	ctx := setup(t)
 	defer cleanup(t, ctx)
 
@@ -74,7 +87,7 @@ func TestLookupWithNotFoundResult(t *testing.T) {
 	assert.NilError(t, err, "no error expected")
 }
 
-func TestPluginInPath(t *testing.T) {
+func TestFindPluginInPath(t *testing.T) {
 	ctx := setup(t)
 	defer cleanup(t, ctx)
 
@@ -90,6 +103,9 @@ func TestPluginInPath(t *testing.T) {
 	plugin, err := ctx.pluginManager.FindPlugin(pluginCommands)
 	assert.NilError(t, err)
 	assert.Assert(t, plugin != nil)
+	desc, err := plugin.Description()
+	assert.NilError(t, err)
+	assert.Assert(t, desc != "")
 	assert.Equal(t, plugin.Path(), filepath.Join(tmpPathDir, "kn-path-test"))
 	assert.DeepEqual(t, plugin.CommandParts(), pluginCommands)
 
@@ -98,6 +114,31 @@ func TestPluginInPath(t *testing.T) {
 	plugin, err = ctx.pluginManager.FindPlugin(pluginCommands)
 	assert.NilError(t, err)
 	assert.Assert(t, plugin == nil)
+}
+
+func TestFindPluginInternally(t *testing.T) {
+	ctx := setup(t)
+	defer cleanup(t, ctx)
+
+	// Initialize registered plugins
+	defer (prepareInternalPlugins(
+		testPlugin{[]string{"a", "b"}},
+		testPlugin{[]string{"a"}}))()
+
+	data := []struct {
+		parts []string
+		name  string
+	}{
+		{[]string{"a", "b"}, "kn-a-b"},
+		{[]string{"a"}, "kn-a"},
+		{[]string{"a", "c"}, "kn-a"},
+	}
+	for _, d := range data {
+		plugin, err := ctx.pluginManager.FindPlugin(d.parts)
+		assert.NilError(t, err)
+		assert.Assert(t, plugin != nil)
+		assert.Equal(t, plugin.Name(), d.name)
+	}
 }
 
 func TestPluginExecute(t *testing.T) {
@@ -112,18 +153,78 @@ func TestPluginExecute(t *testing.T) {
 	assert.Equal(t, out, "OK arg1 arg2\n")
 }
 
+func TestPluginMixed(t *testing.T) {
+	ctx := setup(t)
+	defer cleanup(t, ctx)
+
+	createTestPlugin(t, "kn-external", ctx)
+	createTestPlugin(t, "kn-shadow", ctx)
+
+	// Initialize registered plugins
+	defer (prepareInternalPlugins(
+		testPlugin{[]string{"internal"}},
+		testPlugin{[]string{"shadow"}},
+	))()
+
+	data := []struct {
+		path       []string
+		name       string
+		isInternal bool
+	}{
+		{[]string{"external"}, "kn-external", false},
+		{[]string{"internal"}, "kn-internal", true},
+		{[]string{"shadow"}, "kn-shadow", true},
+	}
+	for _, d := range data {
+		plugin, err := ctx.pluginManager.FindPlugin(d.path)
+		assert.NilError(t, err)
+		assert.Assert(t, plugin != nil)
+		assert.Equal(t, plugin.Name(), d.name)
+		_, ok := plugin.(testPlugin)
+		assert.Equal(t, d.isInternal, ok)
+	}
+}
+
+func prepareInternalPlugins(plugins ...Plugin) func() {
+	oldPlugins := InternalPlugins
+	InternalPlugins = plugins
+	return func() {
+		InternalPlugins = oldPlugins
+	}
+}
+
 func TestPluginListForCommandGroup(t *testing.T) {
 	ctx := setup(t)
 	defer cleanup(t, ctx)
-	createTestPlugin(t, "kn-service-log_2", ctx)
+	createTestPlugin(t, "kn-service-external", ctx)
+	createTestPlugin(t, "kn-foo-bar", ctx)
+	createTestPlugin(t, "kn-service-shadow", ctx)
+
+	// Internal plugin should be filtered out if not belong to the service group
+	defer (prepareInternalPlugins(
+		testPlugin{[]string{"service", "internal"}},
+		testPlugin{[]string{"service", "shadow"}},
+		testPlugin{[]string{"bla", "blub"}},
+		testPlugin{[]string{"bla", "blub", "longer"}}))()
 
 	pluginList, err := ctx.pluginManager.ListPluginsForCommandGroup([]string{"service"})
 	assert.NilError(t, err)
-	assert.Assert(t, pluginList.Len() == 1)
-	assert.Equal(t, pluginList[0].Name(), "kn-service-log_2")
+	assert.Assert(t, pluginList.Len() == 3)
+	assert.Assert(t, containsPluginWithName(pluginList, "kn-service-internal"))
+	assert.Assert(t, containsPluginWithName(pluginList, "kn-service-external"))
+	assert.Assert(t, containsPluginWithName(pluginList, "kn-service-shadow"))
 	pluginList, err = ctx.pluginManager.ListPluginsForCommandGroup([]string{})
 	assert.NilError(t, err)
 	assert.Assert(t, pluginList.Len() == 0)
+}
+
+func containsPluginWithName(plugins PluginList, name string) bool {
+	for _, pl := range plugins {
+		if pl.Name() == name {
+			return true
+		}
+	}
+	return false
 }
 
 func TestPluginHelpMessage(t *testing.T) {
@@ -150,12 +251,12 @@ func TestPluginHelpMessage(t *testing.T) {
 	root.AddCommand(serviceCmd)
 
 	helpRoot := listPluginsFunc(root)
-	re := regexp.MustCompile("^\\s*admin\\s.*admin")
+	re := regexp.MustCompile(`^\s*admin\s.*admin`)
 	assert.Assert(t, re.MatchString(helpRoot))
 
 	helpService := listPluginsFunc(serviceCmd)
 	println(helpService)
-	re = regexp.MustCompile("^\\s*log-2\\s.*kn-service-log_2")
+	re = regexp.MustCompile(`^\s*log-2\s.*kn-service-log_2`)
 	assert.Assert(t, re.MatchString(helpService))
 
 	helpServiceCreate := listPluginsFunc(serviceCreateCmd)

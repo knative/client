@@ -169,10 +169,7 @@ func checkIfUserInGroup(gid uint32) (bool, error) {
 }
 
 func checkIfUserIsFileOwner(uid uint32) bool {
-	if int(uid) == os.Getuid() {
-		return true
-	}
-	return false
+	return int(uid) == os.Getuid()
 }
 
 // Check if all can execute, and the user is not file owner and not in the file's perm group
