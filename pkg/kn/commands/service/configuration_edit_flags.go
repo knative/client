@@ -28,6 +28,7 @@ import (
 	knflags "knative.dev/client/pkg/kn/flags"
 	servinglib "knative.dev/client/pkg/serving"
 	"knative.dev/client/pkg/util"
+	"knative.dev/serving/pkg/apis/autoscaling"
 	"knative.dev/serving/pkg/apis/serving"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
@@ -442,11 +443,11 @@ func (p *ConfigurationEditFlags) Apply(
 			return false
 		}
 
-		if cmd.Flags().Changed("annotation") && containsAnnotation(p.Annotations, "autoscaling.knative.dev/initialScale") {
-			return fmt.Errorf("only one of the --scale-init or --annotation autoscaling.knative.dev/initialScale can be specified")
+		if cmd.Flags().Changed("annotation") && containsAnnotation(p.Annotations, autoscaling.InitialScaleAnnotationKey) {
+			return fmt.Errorf("only one of the --scale-init or --annotation %s can be specified", autoscaling.InitialScaleAnnotationKey)
 		}
 		annotationsMap := map[string]string{
-			"autoscaling.knative.dev/initialScale": strconv.Itoa(p.ScaleInit),
+			autoscaling.InitialScaleAnnotationKey: strconv.Itoa(p.ScaleInit),
 		}
 
 		err = servinglib.UpdateAnnotations(service, template, annotationsMap, []string{})
