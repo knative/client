@@ -25,7 +25,10 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 
 	dynamicfake "k8s.io/client-go/dynamic/fake"
+	dynamicfakeClient "knative.dev/client/pkg/dynamic/fake"
+
 	"knative.dev/client/pkg/dynamic"
+	clientdynamic "knative.dev/client/pkg/dynamic"
 	"knative.dev/client/pkg/kn/commands"
 
 	"knative.dev/client/pkg/util"
@@ -46,10 +49,14 @@ const (
 
 // channelFakeCmd takes cmd to be executed using dynamic client
 // pass the objects to be registered to dynamic client
-func channelFakeCmd(args []string, objects ...runtime.Object) (output []string, err error) {
+func channelFakeCmd(args []string, dynamicClient clientdynamic.KnDynamicClient, objects ...runtime.Object) (output []string, err error) {
 	knParams := &commands.KnParams{}
 	cmd, _, buf := commands.CreateDynamicTestKnCommand(NewChannelCommand(knParams), knParams, objects...)
 	cmd.SetArgs(args)
+	knParams.NewDynamicClient = func(namespace string) (clientdynamic.KnDynamicClient, error) {
+		return dynamicClient, nil
+	}
+
 	err = cmd.Execute()
 	if err != nil {
 		return
@@ -59,24 +66,41 @@ func channelFakeCmd(args []string, objects ...runtime.Object) (output []string, 
 }
 
 func TestChannelListTypesNoChannelInstalled(t *testing.T) {
-	_, err := channelFakeCmd([]string{"channel", "list-types"})
+	dynamicClient := dynamicfakeClient.CreateFakeKnDynamicClient(testNamespace)
+	assert.Equal(t, dynamicClient.Namespace(), testNamespace)
+
+	_, err := channelFakeCmd([]string{"channel", "list-types"}, dynamicClient)
+	assert.Check(t, err != nil)
+	assert.Check(t, util.ContainsAll(err.Error(), "No channel found on the backend, please verify the installation"))
+}
+
+func TestChannelListTypesErrorDynamicClient(t *testing.T) {
+	dynamicClient := dynamicfakeClient.CreateFakeKnDynamicClient("")
+	assert.Check(t, dynamicClient.Namespace() != testNamespace)
+
+	_, err := channelFakeCmd([]string{"channel", "list-types"}, dynamicClient)
 	assert.Check(t, err != nil)
 	assert.Check(t, util.ContainsAll(err.Error(), "No channel found on the backend, please verify the installation"))
 }
 
 func TestChannelListTypes(t *testing.T) {
-	output, err := channelFakeCmd([]string{"channel", "list-types"},
+	dynamicClient := dynamicfakeClient.CreateFakeKnDynamicClient(testNamespace,
 		newChannelCRDObjWithSpec("InMemoryChannel", "messaging.knative.dev", "v1beta1", "InMemoryChannel"),
 	)
+	assert.Equal(t, dynamicClient.Namespace(), testNamespace)
+
+	output, err := channelFakeCmd([]string{"channel", "list-types"}, dynamicClient)
 	assert.NilError(t, err)
 	assert.Check(t, util.ContainsAll(output[0], "TYPE", "GROUP", "VERSION"))
 	assert.Check(t, util.ContainsAll(output[1], "InMemoryChannel", "messaging.knative.dev", "v1beta1"))
 }
 
 func TestChannelListTypesNoHeaders(t *testing.T) {
-	output, err := channelFakeCmd([]string{"channel", "list-types", "--no-headers"},
+	dynamicClient := dynamicfakeClient.CreateFakeKnDynamicClient(testNamespace,
 		newChannelCRDObjWithSpec("InMemoryChannel", "messaging.knative.dev", "v1beta1", "InMemoryChannel"),
 	)
+	assert.Equal(t, dynamicClient.Namespace(), testNamespace)
+	output, err := channelFakeCmd([]string{"channel", "list-types", "--no-headers"}, dynamicClient)
 	assert.NilError(t, err)
 	assert.Check(t, util.ContainsNone(output[0], "TYPE", "GROUP", "VERSION"))
 	assert.Check(t, util.ContainsAll(output[0], "InMemoryChannel", "messaging.knative.dev", "v1beta1"))
@@ -111,4 +135,38 @@ func newChannelCRDObjWithSpec(name, group, version, kind string) *unstructured.U
 	}
 	obj.SetLabels(labels.Set{channelLabelKey: channelLabelValue})
 	return obj
+}
+
+func newChannelCRDObj(name string) *unstructured.Unstructured {
+	obj := &unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": crdGroup + "/" + crdVersion,
+			"kind":       crdKind,
+			"metadata": map[string]interface{}{
+				"namespace": testNamespace,
+				"name":      name,
+			},
+		},
+	}
+	obj.SetLabels(labels.Set{channelLabelKey: channelLabelValue})
+	return obj
+}
+
+func TestChannelListTypeError(t *testing.T) {
+	dynamicClient := dynamicfakeClient.CreateFakeKnDynamicClient(testNamespace, newChannelCRDObj("InMemoryChannel"))
+	assert.Equal(t, dynamicClient.Namespace(), testNamespace)
+
+	output, err := channelFakeCmd([]string{"channel", "list-types"}, dynamicClient)
+	assert.Check(t, err != nil)
+
+	assert.Check(t, util.ContainsAll(err.Error(), "can't find specs.names.kind for InMemoryChannel"))
+
+	dynamicClient = dynamicfakeClient.CreateFakeKnDynamicClient(testNamespace,
+		newChannelCRDObjWithSpec("InMemoryChannel", "messaging.knative.dev", "v1beta1", "InMemoryChannel"),
+	)
+
+	output, err = channelFakeCmd([]string{"channel", "list-types"}, dynamicClient)
+	assert.NilError(t, err)
+	assert.Check(t, util.ContainsAll(output[0], "TYPE", "GROUP", "VERSION"))
+	assert.Check(t, util.ContainsAll(output[1], "InMemoryChannel", "messaging.knative.dev", "v1beta1"))
 }
