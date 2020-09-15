@@ -512,6 +512,39 @@ func getService(name string) *servingv1.Service {
 	return service
 }
 
+func TestServiceCreateWithInitScaleAsOption(t *testing.T) {
+	client := knclient.NewMockKnServiceClient(t)
+
+	r := client.Recorder()
+
+	// Check for existing service --> no
+	r.GetService("foo", nil, errors.NewNotFound(servingv1.Resource("service"), "foo"))
+	// Create service (don't validate given service --> "Any()" arg is allowed)
+	r.CreateService(mock.Any(), nil)
+	// Wait for service to become ready
+	r.WaitForService("foo", mock.Any(), wait.NoopMessageCallback(), nil, time.Second)
+	// Get for showing the URL
+	r.GetService("foo", getServiceWithUrl("foo", "http://foo.example.com"), nil)
+
+	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "--scale-init", "0")
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
+
+	r.Validate()
+}
+
+func TestServiceCreateWithBothAnnotationAndInitScaleAsOption(t *testing.T) {
+	client := knclient.NewMockKnServiceClient(t)
+
+	r := client.Recorder()
+
+	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "--annotation", "autoscaling.knative.dev/initialScale=0", "--scale-init", "0")
+	assert.Assert(t, err != nil)
+	assert.Assert(t, util.ContainsAll(output, "only one of the", "--scale-init", "--annotation", "autoscaling.knative.dev/initialScale", "can be specified"))
+
+	r.Validate()
+}
+
 func getServiceWithUrl(name string, urlName string) *servingv1.Service {
 	service := servingv1.Service{}
 	url, _ := apis.ParseURL(urlName)

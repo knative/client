@@ -16,6 +16,7 @@ package service
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -27,6 +28,7 @@ import (
 	knflags "knative.dev/client/pkg/kn/flags"
 	servinglib "knative.dev/client/pkg/serving"
 	"knative.dev/client/pkg/util"
+	"knative.dev/serving/pkg/apis/autoscaling"
 	"knative.dev/serving/pkg/apis/serving"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
@@ -49,6 +51,7 @@ type ConfigurationEditFlags struct {
 	RevisionName           string
 	Annotations            []string
 	ClusterLocal           bool
+	ScaleInit              int
 
 	// Preferences about how to do the action.
 	LockToDigest         bool
@@ -149,6 +152,9 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 			"any number of times to set multiple annotations. "+
 			"To unset, specify the annotation name followed by a \"-\" (e.g., name-).")
 	p.markFlagMakesRevision("annotation")
+
+	command.Flags().IntVar(&p.ScaleInit, "scale-init", 0, "Initial number of replicas with which a service starts. Can be 0 or a positive integer.")
+	p.markFlagMakesRevision("scale-init")
 }
 
 // AddUpdateFlags adds the flags specific to update.
@@ -425,6 +431,29 @@ func (p *ConfigurationEditFlags) Apply(
 
 	if cmd.Flags().Changed("user") {
 		servinglib.UpdateUser(template, p.PodSpecFlags.User)
+	}
+
+	if cmd.Flags().Changed("scale-init") {
+		containsAnnotation := func(annotationList []string, annotation string) bool {
+			for _, element := range annotationList {
+				if strings.Contains(element, annotation) {
+					return true
+				}
+			}
+			return false
+		}
+
+		if cmd.Flags().Changed("annotation") && containsAnnotation(p.Annotations, autoscaling.InitialScaleAnnotationKey) {
+			return fmt.Errorf("only one of the --scale-init or --annotation %s can be specified", autoscaling.InitialScaleAnnotationKey)
+		}
+		annotationsMap := map[string]string{
+			autoscaling.InitialScaleAnnotationKey: strconv.Itoa(p.ScaleInit),
+		}
+
+		err = servinglib.UpdateAnnotations(service, template, annotationsMap, []string{})
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

@@ -147,6 +147,15 @@ func TestServiceOptions(t *testing.T) {
 	serviceCreateWithOptions(r, "svc9", "--image", pkgtest.ImagePath("grpc-ping"), "--port", "h2c:8080")
 	validatePort(r, "svc9", 8080, "h2c")
 	test.ServiceDelete(r, "svc9")
+
+	t.Log("create and validate service with scale init option")
+	serviceCreateWithOptions(r, "svc10", "--scale-init", "1")
+	validateServiceInitScale(r, "svc10", "1")
+	test.ServiceUpdate(r, "svc10", "--scale-init", "2")
+	validateServiceInitScale(r, "svc10", "2")
+	t.Log("delete service")
+	test.ServiceDelete(r, "svc10")
+
 }
 
 func serviceCreateWithOptions(r *test.KnRunResultCollector, serviceName string, options ...string) {
@@ -208,6 +217,13 @@ func validateServiceMaxScale(r *test.KnRunResultCollector, serviceName, maxScale
 	jsonpath := "jsonpath={.items[0].spec.template.metadata.annotations.autoscaling\\.knative\\.dev/maxScale}"
 	out := r.KnTest().Kn().Run("service", "list", serviceName, "-o", jsonpath)
 	assert.Equal(r.T(), out.Stdout, maxScale)
+	r.AssertNoError(out)
+}
+
+func validateServiceInitScale(r *test.KnRunResultCollector, serviceName, initScale string) {
+	jsonpath := "jsonpath={.items[0].spec.template.metadata.annotations.autoscaling\\.knative\\.dev/initialScale}"
+	out := r.KnTest().Kn().Run("service", "list", serviceName, "-o", jsonpath)
+	assert.Equal(r.T(), out.Stdout, initScale)
 	r.AssertNoError(out)
 }
 
