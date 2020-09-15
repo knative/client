@@ -15,13 +15,13 @@
 package v1beta1
 
 import (
+	"context"
 	"time"
 
-	apis_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
-	v1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
+	"knative.dev/eventing/pkg/apis/eventing/v1beta1"
 	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
 	client_v1beta1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1beta1"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
@@ -74,7 +74,7 @@ func NewKnEventingClient(client client_v1beta1.EventingV1beta1Interface, namespa
 
 //CreateTrigger is used to create an instance of trigger
 func (c *knEventingClient) CreateTrigger(trigger *v1beta1.Trigger) error {
-	_, err := c.client.Triggers(c.namespace).Create(trigger)
+	_, err := c.client.Triggers(c.namespace).Create(context.Background(), trigger, metav1.CreateOptions{})
 	if err != nil {
 		return kn_errors.GetError(err)
 	}
@@ -83,7 +83,7 @@ func (c *knEventingClient) CreateTrigger(trigger *v1beta1.Trigger) error {
 
 //DeleteTrigger is used to delete an instance of trigger
 func (c *knEventingClient) DeleteTrigger(name string) error {
-	err := c.client.Triggers(c.namespace).Delete(name, &apis_v1.DeleteOptions{})
+	err := c.client.Triggers(c.namespace).Delete(context.Background(), name, metav1.DeleteOptions{})
 	if err != nil {
 		return kn_errors.GetError(err)
 	}
@@ -92,7 +92,7 @@ func (c *knEventingClient) DeleteTrigger(name string) error {
 
 //GetTrigger is used to get an instance of trigger
 func (c *knEventingClient) GetTrigger(name string) (*v1beta1.Trigger, error) {
-	trigger, err := c.client.Triggers(c.namespace).Get(name, apis_v1.GetOptions{})
+	trigger, err := c.client.Triggers(c.namespace).Get(context.Background(), name, metav1.GetOptions{})
 	if err != nil {
 		return nil, kn_errors.GetError(err)
 	}
@@ -100,7 +100,7 @@ func (c *knEventingClient) GetTrigger(name string) (*v1beta1.Trigger, error) {
 }
 
 func (c *knEventingClient) ListTriggers() (*v1beta1.TriggerList, error) {
-	triggerList, err := c.client.Triggers(c.namespace).List(apis_v1.ListOptions{})
+	triggerList, err := c.client.Triggers(c.namespace).List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		return nil, kn_errors.GetError(err)
 	}
@@ -124,7 +124,7 @@ func (c *knEventingClient) ListTriggers() (*v1beta1.TriggerList, error) {
 
 //CreateTrigger is used to create an instance of trigger
 func (c *knEventingClient) UpdateTrigger(trigger *v1beta1.Trigger) error {
-	_, err := c.client.Triggers(c.namespace).Update(trigger)
+	_, err := c.client.Triggers(c.namespace).Update(context.Background(), trigger, metav1.UpdateOptions{})
 	if err != nil {
 		return kn_errors.GetError(err)
 	}
@@ -149,7 +149,7 @@ type TriggerBuilder struct {
 // NewTriggerBuilder for building trigger object
 func NewTriggerBuilder(name string) *TriggerBuilder {
 	return &TriggerBuilder{trigger: &v1beta1.Trigger{
-		ObjectMeta: meta_v1.ObjectMeta{
+		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
 		},
 	}}
@@ -182,9 +182,9 @@ func (b *TriggerBuilder) Broker(broker string) *TriggerBuilder {
 // InjectBroker to add annotation to setup default broker
 func (b *TriggerBuilder) InjectBroker(inject bool) *TriggerBuilder {
 	if inject {
-		meta_v1.SetMetaDataAnnotation(&b.trigger.ObjectMeta, v1beta1.DeprecatedInjectionAnnotation, "enabled")
+		metav1.SetMetaDataAnnotation(&b.trigger.ObjectMeta, v1beta1.DeprecatedInjectionAnnotation, "enabled")
 	} else {
-		if meta_v1.HasAnnotation(b.trigger.ObjectMeta, v1beta1.DeprecatedInjectionAnnotation) {
+		if metav1.HasAnnotation(b.trigger.ObjectMeta, v1beta1.DeprecatedInjectionAnnotation) {
 			delete(b.trigger.ObjectMeta.Annotations, v1beta1.DeprecatedInjectionAnnotation)
 		}
 	}
@@ -215,7 +215,7 @@ func (b *TriggerBuilder) Build() *v1beta1.Trigger {
 
 // CreateBroker is used to create an instance of broker
 func (c *knEventingClient) CreateBroker(broker *v1beta1.Broker) error {
-	_, err := c.client.Brokers(c.namespace).Create(broker)
+	_, err := c.client.Brokers(c.namespace).Create(context.Background(), broker, metav1.CreateOptions{})
 	if err != nil {
 		return kn_errors.GetError(err)
 	}
@@ -224,7 +224,7 @@ func (c *knEventingClient) CreateBroker(broker *v1beta1.Broker) error {
 
 // GetBroker is used to get an instance of broker
 func (c *knEventingClient) GetBroker(name string) (*v1beta1.Broker, error) {
-	trigger, err := c.client.Brokers(c.namespace).Get(name, apis_v1.GetOptions{})
+	trigger, err := c.client.Brokers(c.namespace).Get(context.Background(), name, metav1.GetOptions{})
 	if err != nil {
 		return nil, kn_errors.GetError(err)
 	}
@@ -241,7 +241,7 @@ func (c *knEventingClient) WatchBroker(name string, timeout time.Duration) (watc
 // For `timeout == 0` delete is performed async without any wait
 func (c *knEventingClient) DeleteBroker(name string, timeout time.Duration) error {
 	if timeout == 0 {
-		return c.deleteBroker(name, apis_v1.DeletePropagationBackground)
+		return c.deleteBroker(name, metav1.DeletePropagationBackground)
 	}
 	waitC := make(chan error)
 	go func() {
@@ -249,7 +249,7 @@ func (c *knEventingClient) DeleteBroker(name string, timeout time.Duration) erro
 		err, _ := waitForEvent.Wait(name, wait.Options{Timeout: &timeout}, wait.NoopMessageCallback())
 		waitC <- err
 	}()
-	err := c.deleteBroker(name, apis_v1.DeletePropagationForeground)
+	err := c.deleteBroker(name, metav1.DeletePropagationForeground)
 	if err != nil {
 		return err
 	}
@@ -257,8 +257,8 @@ func (c *knEventingClient) DeleteBroker(name string, timeout time.Duration) erro
 }
 
 // deleteBroker is used to delete an instance of broker
-func (c *knEventingClient) deleteBroker(name string, propagationPolicy apis_v1.DeletionPropagation) error {
-	err := c.client.Brokers(c.namespace).Delete(name, &apis_v1.DeleteOptions{PropagationPolicy: &propagationPolicy})
+func (c *knEventingClient) deleteBroker(name string, propagationPolicy metav1.DeletionPropagation) error {
+	err := c.client.Brokers(c.namespace).Delete(context.Background(), name, metav1.DeleteOptions{PropagationPolicy: &propagationPolicy})
 	if err != nil {
 		return kn_errors.GetError(err)
 	}
@@ -267,7 +267,7 @@ func (c *knEventingClient) deleteBroker(name string, propagationPolicy apis_v1.D
 
 // ListBrokers is used to retrieve the list of broker instances
 func (c *knEventingClient) ListBrokers() (*v1beta1.BrokerList, error) {
-	brokerList, err := c.client.Brokers(c.namespace).List(apis_v1.ListOptions{})
+	brokerList, err := c.client.Brokers(c.namespace).List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		return nil, kn_errors.GetError(err)
 	}
@@ -297,7 +297,7 @@ type BrokerBuilder struct {
 // NewBrokerBuilder for building broker object
 func NewBrokerBuilder(name string) *BrokerBuilder {
 	return &BrokerBuilder{broker: &v1beta1.Broker{
-		ObjectMeta: meta_v1.ObjectMeta{
+		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
 		},
 	}}

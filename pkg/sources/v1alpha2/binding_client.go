@@ -15,9 +15,9 @@
 package v1alpha2
 
 import (
+	"context"
 	"fmt"
 
-	apisv1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -66,7 +66,7 @@ func newKnSinkBindingClient(client clientv1alpha2.SinkBindingInterface, namespac
 
 //CreateSinkBinding is used to create an instance of binding
 func (c *knBindingClient) CreateSinkBinding(binding *v1alpha2.SinkBinding) error {
-	_, err := c.client.Create(binding)
+	_, err := c.client.Create(context.Background(), binding, metav1.CreateOptions{})
 	if err != nil {
 		return knerrors.GetError(err)
 	}
@@ -75,7 +75,7 @@ func (c *knBindingClient) CreateSinkBinding(binding *v1alpha2.SinkBinding) error
 
 //DeleteSinkBinding is used to delete an instance of binding
 func (c *knBindingClient) DeleteSinkBinding(name string) error {
-	err := c.client.Delete(name, &apisv1.DeleteOptions{})
+	err := c.client.Delete(context.Background(), name, metav1.DeleteOptions{})
 	if err != nil {
 		return knerrors.GetError(err)
 	}
@@ -84,7 +84,7 @@ func (c *knBindingClient) DeleteSinkBinding(name string) error {
 
 //GetSinkBinding is used to get an instance of binding
 func (c *knBindingClient) GetSinkBinding(name string) (*v1alpha2.SinkBinding, error) {
-	binding, err := c.client.Get(name, apisv1.GetOptions{})
+	binding, err := c.client.Get(context.Background(), name, metav1.GetOptions{})
 	if err != nil {
 		return nil, knerrors.GetError(err)
 	}
@@ -92,7 +92,7 @@ func (c *knBindingClient) GetSinkBinding(name string) (*v1alpha2.SinkBinding, er
 }
 
 func (c *knBindingClient) ListSinkBindings() (*v1alpha2.SinkBindingList, error) {
-	bindingList, err := c.client.List(apisv1.ListOptions{})
+	bindingList, err := c.client.List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		return nil, knerrors.GetError(err)
 	}
@@ -116,7 +116,7 @@ func (c *knBindingClient) ListSinkBindings() (*v1alpha2.SinkBindingList, error) 
 
 //CreateSinkBinding is used to create an instance of binding
 func (c *knBindingClient) UpdateSinkBinding(binding *v1alpha2.SinkBinding) error {
-	_, err := c.client.Update(binding)
+	_, err := c.client.Update(context.Background(), binding, metav1.UpdateOptions{})
 	if err != nil {
 		return knerrors.GetError(err)
 	}

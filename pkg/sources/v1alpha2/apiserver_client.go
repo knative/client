@@ -15,9 +15,11 @@
 package v1alpha2
 
 import (
+	"context"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
+	"knative.dev/eventing/pkg/apis/sources/v1alpha2"
 	clientv1alpha2 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha2"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 
@@ -68,7 +70,7 @@ func newKnAPIServerSourcesClient(client clientv1alpha2.ApiServerSourceInterface,
 
 //GetAPIServerSource returns apiSource object if present
 func (c *apiServerSourcesClient) GetAPIServerSource(name string) (*v1alpha2.ApiServerSource, error) {
-	apiSource, err := c.client.Get(name, metav1.GetOptions{})
+	apiSource, err := c.client.Get(context.Background(), name, metav1.GetOptions{})
 	if err != nil {
 		return nil, knerrors.GetError(err)
 	}
@@ -78,7 +80,7 @@ func (c *apiServerSourcesClient) GetAPIServerSource(name string) (*v1alpha2.ApiS
 
 //CreateAPIServerSource is used to create an instance of ApiServerSource
 func (c *apiServerSourcesClient) CreateAPIServerSource(apiSource *v1alpha2.ApiServerSource) error {
-	_, err := c.client.Create(apiSource)
+	_, err := c.client.Create(context.Background(), apiSource, metav1.CreateOptions{})
 	if err != nil {
 		return knerrors.GetError(err)
 	}
@@ -88,7 +90,7 @@ func (c *apiServerSourcesClient) CreateAPIServerSource(apiSource *v1alpha2.ApiSe
 
 //UpdateAPIServerSource is used to update an instance of ApiServerSource
 func (c *apiServerSourcesClient) UpdateAPIServerSource(apiSource *v1alpha2.ApiServerSource) error {
-	_, err := c.client.Update(apiSource)
+	_, err := c.client.Update(context.Background(), apiSource, metav1.UpdateOptions{})
 	if err != nil {
 		return knerrors.GetError(err)
 	}
@@ -98,7 +100,7 @@ func (c *apiServerSourcesClient) UpdateAPIServerSource(apiSource *v1alpha2.ApiSe
 
 //DeleteAPIServerSource is used to create an instance of ApiServerSource
 func (c *apiServerSourcesClient) DeleteAPIServerSource(name string) error {
-	err := c.client.Delete(name, &metav1.DeleteOptions{})
+	err := c.client.Delete(context.Background(), name, metav1.DeleteOptions{})
 	return err
 }
 
@@ -109,7 +111,7 @@ func (c *apiServerSourcesClient) Namespace() string {
 
 // ListAPIServerSource returns the available ApiServer type sources
 func (c *apiServerSourcesClient) ListAPIServerSource() (*v1alpha2.ApiServerSourceList, error) {
-	sourceList, err := c.client.List(metav1.ListOptions{})
+	sourceList, err := c.client.List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		return nil, knerrors.GetError(err)
 	}

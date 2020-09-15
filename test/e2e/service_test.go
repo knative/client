@@ -79,7 +79,7 @@ func serviceCreatePrivate(r *test.KnRunResultCollector, serviceName string) {
 
 	out = r.KnTest().Kn().Run("service", "describe", serviceName, "--verbose")
 	r.AssertNoError(out)
-	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, serving.VisibilityLabelKey, serving.VisibilityClusterLocal))
+	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, serving.VisibilityLabelKeyObsolete, serving.VisibilityClusterLocal))
 }
 
 func serviceCreatePrivateUpdatePublic(r *test.KnRunResultCollector, serviceName string) {
@@ -90,7 +90,7 @@ func serviceCreatePrivateUpdatePublic(r *test.KnRunResultCollector, serviceName 
 
 	out = r.KnTest().Kn().Run("service", "describe", serviceName, "--verbose")
 	r.AssertNoError(out)
-	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, serving.VisibilityLabelKey, serving.VisibilityClusterLocal))
+	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, serving.VisibilityLabelKeyObsolete, serving.VisibilityClusterLocal))
 
 	out = r.KnTest().Kn().Run("service", "update", serviceName,
 		"--image", pkgtest.ImagePath("helloworld"), "--no-cluster-local")
@@ -99,7 +99,7 @@ func serviceCreatePrivateUpdatePublic(r *test.KnRunResultCollector, serviceName 
 
 	out = r.KnTest().Kn().Run("service", "describe", serviceName, "--verbose")
 	r.AssertNoError(out)
-	assert.Check(r.T(), util.ContainsNone(out.Stdout, serving.VisibilityLabelKey, serving.VisibilityClusterLocal))
+	assert.Check(r.T(), util.ContainsNone(out.Stdout, serving.VisibilityLabelKeyObsolete, serving.VisibilityClusterLocal))
 }
 
 func serviceCreateDuplicate(r *test.KnRunResultCollector, serviceName string) {

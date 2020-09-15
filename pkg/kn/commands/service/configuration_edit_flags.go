@@ -380,10 +380,10 @@ func (p *ConfigurationEditFlags) Apply(
 
 	if cmd.Flags().Changed("cluster-local") || cmd.Flags().Changed("no-cluster-local") {
 		if p.ClusterLocal {
-			labels := servinglib.UpdateLabels(service.ObjectMeta.Labels, map[string]string{serving.VisibilityLabelKey: serving.VisibilityClusterLocal}, []string{})
+			labels := servinglib.UpdateLabels(service.ObjectMeta.Labels, map[string]string{serving.VisibilityLabelKeyObsolete: serving.VisibilityClusterLocal}, []string{})
 			service.ObjectMeta.Labels = labels // In case service.ObjectMeta.Labels was nil
 		} else {
-			labels := servinglib.UpdateLabels(service.ObjectMeta.Labels, map[string]string{}, []string{serving.VisibilityLabelKey})
+			labels := servinglib.UpdateLabels(service.ObjectMeta.Labels, map[string]string{}, []string{serving.VisibilityLabelKeyObsolete})
 			service.ObjectMeta.Labels = labels // In case service.ObjectMeta.Labels was nil
 		}
 	}

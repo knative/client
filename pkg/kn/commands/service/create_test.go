@@ -773,7 +773,7 @@ func TestServiceCreateWithClusterLocal(t *testing.T) {
 
 	labels := created.ObjectMeta.Labels
 
-	labelValue, present := labels[serving.VisibilityLabelKey]
+	labelValue, present := labels[serving.VisibilityLabelKeyObsolete]
 	assert.Assert(t, present)
 
 	if labelValue != serving.VisibilityClusterLocal {

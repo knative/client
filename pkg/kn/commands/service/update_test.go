@@ -753,9 +753,9 @@ func TestServiceUpdateLabelExisting(t *testing.T) {
 
 func TestServiceUpdateNoClusterLocal(t *testing.T) {
 	original := newEmptyService()
-	original.ObjectMeta.Labels = map[string]string{serving.VisibilityLabelKey: serving.VisibilityClusterLocal}
+	original.ObjectMeta.Labels = map[string]string{serving.VisibilityLabelKeyObsolete: serving.VisibilityClusterLocal}
 	originalTemplate := &original.Spec.Template
-	originalTemplate.ObjectMeta.Labels = map[string]string{serving.VisibilityLabelKey: serving.VisibilityClusterLocal}
+	originalTemplate.ObjectMeta.Labels = map[string]string{serving.VisibilityLabelKeyObsolete: serving.VisibilityClusterLocal}
 
 	action, updated, _, err := fakeServiceUpdate(original, []string{
 		"service", "update", "foo", "--no-cluster-local", "--no-wait"})
@@ -793,9 +793,9 @@ func TestServiceUpdateNoClusterLocalOnPublicService(t *testing.T) {
 //TODO: add check for template name not changing when issue #646 solution is merged
 func TestServiceUpdateNoClusterLocalOnPrivateService(t *testing.T) {
 	original := newEmptyService()
-	original.ObjectMeta.Labels = map[string]string{serving.VisibilityLabelKey: serving.VisibilityClusterLocal}
+	original.ObjectMeta.Labels = map[string]string{serving.VisibilityLabelKeyObsolete: serving.VisibilityClusterLocal}
 	originalTemplate := &original.Spec.Template
-	originalTemplate.ObjectMeta.Labels = map[string]string{serving.VisibilityLabelKey: serving.VisibilityClusterLocal}
+	originalTemplate.ObjectMeta.Labels = map[string]string{serving.VisibilityLabelKeyObsolete: serving.VisibilityClusterLocal}
 
 	action, updated, _, err := fakeServiceUpdate(original, []string{
 		"service", "update", "foo", "--cluster-local", "--no-wait"})
@@ -806,7 +806,7 @@ func TestServiceUpdateNoClusterLocalOnPrivateService(t *testing.T) {
 		t.Fatalf("Bad action %v", action)
 	}
 
-	expected := map[string]string{serving.VisibilityLabelKey: serving.VisibilityClusterLocal}
+	expected := map[string]string{serving.VisibilityLabelKeyObsolete: serving.VisibilityClusterLocal}
 	actual := updated.ObjectMeta.Labels
 	assert.DeepEqual(t, expected, actual)
 
