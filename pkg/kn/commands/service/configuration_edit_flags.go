@@ -446,11 +446,8 @@ func (p *ConfigurationEditFlags) Apply(
 		if cmd.Flags().Changed("annotation") && containsAnnotation(p.Annotations, autoscaling.InitialScaleAnnotationKey) {
 			return fmt.Errorf("only one of the --scale-init or --annotation %s can be specified", autoscaling.InitialScaleAnnotationKey)
 		}
-		annotationsMap := map[string]string{
-			autoscaling.InitialScaleAnnotationKey: strconv.Itoa(p.ScaleInit),
-		}
 
-		err = servinglib.UpdateAnnotations(service, template, annotationsMap, []string{})
+		err = servinglib.UpdateRevisionTemplateAnnotation(template, autoscaling.InitialScaleAnnotationKey, strconv.Itoa(p.ScaleInit))
 		if err != nil {
 			return err
 		}

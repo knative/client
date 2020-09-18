@@ -453,6 +453,7 @@ func UpdateLabels(labelsMap map[string]string, add map[string]string, remove []s
 }
 
 // UpdateAnnotations updates the annotations identically on a service and template.
+// Unless it's Autoscaling annotation that's allowed only on template.
 // Does not overwrite the entire Annotations field, only makes the requested updates.
 func UpdateAnnotations(
 	service *servingv1.Service,
@@ -460,16 +461,29 @@ func UpdateAnnotations(
 	toUpdate map[string]string,
 	toRemove []string) error {
 
-	if service.ObjectMeta.Annotations == nil {
+	// filter Autoscaling annotations
+	autoscalingAnnotations := make(map[string]string)
+	for key, value := range toUpdate {
+		if strings.HasPrefix(key, autoscaling.GroupName) {
+			autoscalingAnnotations[key] = value
+			delete(toUpdate, key)
+		}
+	}
+
+	if service.ObjectMeta.Annotations == nil && len(toUpdate) > 0 {
 		service.ObjectMeta.Annotations = make(map[string]string)
 	}
 
-	if template.ObjectMeta.Annotations == nil {
+	if template.ObjectMeta.Annotations == nil && (len(toUpdate) > 0 || len(autoscalingAnnotations) > 0) {
 		template.ObjectMeta.Annotations = make(map[string]string)
 	}
 
 	for key, value := range toUpdate {
 		service.ObjectMeta.Annotations[key] = value
+		template.ObjectMeta.Annotations[key] = value
+	}
+	// add only to template
+	for key, value := range autoscalingAnnotations {
 		template.ObjectMeta.Annotations[key] = value
 	}
 

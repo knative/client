@@ -1480,9 +1480,6 @@ func TestServiceUpdateInitialScaleMock(t *testing.T) {
 	newService := getService(svcName)
 	template := &newService.Spec.Template
 	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
-	newService.ObjectMeta.Annotations = map[string]string{
-		"autoscaling.knative.dev/initialScale": "1",
-	}
 	template.ObjectMeta.Annotations = map[string]string{
 		"autoscaling.knative.dev/initialScale": "1",
 		clientserving.UserImageAnnotationKey:   "gcr.io/foo/bar:baz",
@@ -1491,9 +1488,6 @@ func TestServiceUpdateInitialScaleMock(t *testing.T) {
 	updatedService := getService(svcName)
 	template = &updatedService.Spec.Template
 	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
-	updatedService.ObjectMeta.Annotations = map[string]string{
-		"autoscaling.knative.dev/initialScale": "2",
-	}
 	template.ObjectMeta.Annotations = map[string]string{
 		"autoscaling.knative.dev/initialScale": "2",
 		clientserving.UserImageAnnotationKey:   "gcr.io/foo/bar:baz",
