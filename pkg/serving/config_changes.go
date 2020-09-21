@@ -462,28 +462,30 @@ func UpdateAnnotations(
 	toRemove []string) error {
 
 	// filter Autoscaling annotations
-	autoscalingAnnotations := make(map[string]string)
+	annotations := make(map[string]string)
+	templateAnnotations := make(map[string]string)
 	for key, value := range toUpdate {
 		if strings.HasPrefix(key, autoscaling.GroupName) {
-			autoscalingAnnotations[key] = value
-			delete(toUpdate, key)
+			templateAnnotations[key] = value
+		} else {
+			annotations[key] = value
 		}
 	}
 
-	if service.ObjectMeta.Annotations == nil && len(toUpdate) > 0 {
+	if service.ObjectMeta.Annotations == nil && len(annotations) > 0 {
 		service.ObjectMeta.Annotations = make(map[string]string)
 	}
 
-	if template.ObjectMeta.Annotations == nil && (len(toUpdate) > 0 || len(autoscalingAnnotations) > 0) {
+	if template.ObjectMeta.Annotations == nil && (len(annotations) > 0 || len(templateAnnotations) > 0) {
 		template.ObjectMeta.Annotations = make(map[string]string)
 	}
 
-	for key, value := range toUpdate {
+	for key, value := range annotations {
 		service.ObjectMeta.Annotations[key] = value
 		template.ObjectMeta.Annotations[key] = value
 	}
 	// add only to template
-	for key, value := range autoscalingAnnotations {
+	for key, value := range templateAnnotations {
 		template.ObjectMeta.Annotations[key] = value
 	}
 

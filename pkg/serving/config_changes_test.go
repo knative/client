@@ -600,6 +600,94 @@ func TestUpdateAnnotationsNew(t *testing.T) {
 	}
 }
 
+func TestUpdateAnnotationsAutoscalingNew(t *testing.T) {
+	service, template, _ := getService()
+
+	annotations := map[string]string{
+		autoscaling.InitialScaleAnnotationKey: "1",
+		autoscaling.MaxScaleAnnotationKey:     "2",
+	}
+	err := UpdateAnnotations(service, template, annotations, []string{})
+	assert.NilError(t, err)
+
+	actual := service.ObjectMeta.Annotations
+	assert.Assert(t, actual == nil)
+
+	actual = template.ObjectMeta.Annotations
+	assert.DeepEqual(t, annotations, actual)
+}
+
+func TestUpdateAnnotationsAutoscalingExisting(t *testing.T) {
+	service, template, _ := getService()
+	template.ObjectMeta.Annotations = map[string]string{
+		autoscaling.InitialScaleAnnotationKey: "1",
+		autoscaling.MaxScaleAnnotationKey:     "2",
+	}
+
+	annotations := map[string]string{
+		autoscaling.InitialScaleAnnotationKey: "5",
+		autoscaling.MaxScaleAnnotationKey:     "10",
+	}
+	err := UpdateAnnotations(service, template, annotations, []string{})
+	assert.NilError(t, err)
+
+	actual := service.ObjectMeta.Annotations
+	assert.Assert(t, actual == nil)
+
+	actual = template.ObjectMeta.Annotations
+	assert.DeepEqual(t, annotations, actual)
+}
+
+func TestUpdateAnnotationsAutoscalingRemoveExisting(t *testing.T) {
+	service, template, _ := getService()
+	template.ObjectMeta.Annotations = map[string]string{
+		autoscaling.InitialScaleAnnotationKey: "1",
+		autoscaling.MaxScaleAnnotationKey:     "2",
+	}
+	expectedAnnotations := map[string]string{
+		autoscaling.InitialScaleAnnotationKey: "1",
+	}
+	remove := []string{autoscaling.MaxScaleAnnotationKey}
+	err := UpdateAnnotations(service, template, map[string]string{}, remove)
+	assert.NilError(t, err)
+
+	actual := service.ObjectMeta.Annotations
+	assert.Assert(t, actual == nil)
+
+	actual = template.ObjectMeta.Annotations
+	assert.DeepEqual(t, expectedAnnotations, actual)
+}
+
+func TestUpdateAnnotationsAutoscalingCombo(t *testing.T) {
+	service, template, _ := getService()
+
+	annotations := map[string]string{
+		"foo":                                 "bar",
+		"bar":                                 "foo",
+		autoscaling.InitialScaleAnnotationKey: "1",
+		autoscaling.MaxScaleAnnotationKey:     "2",
+	}
+	expectedMetaAnnotations := map[string]string{
+		"foo": "bar",
+		"bar": "foo",
+	}
+	expectedTemplateAnnotations := map[string]string{
+		"foo":                                 "bar",
+		"bar":                                 "foo",
+		autoscaling.InitialScaleAnnotationKey: "1",
+		autoscaling.MaxScaleAnnotationKey:     "2",
+	}
+
+	err := UpdateAnnotations(service, template, annotations, []string{})
+	assert.NilError(t, err)
+
+	actual := service.ObjectMeta.Annotations
+	assert.DeepEqual(t, expectedMetaAnnotations, actual)
+
+	actual = template.ObjectMeta.Annotations
+	assert.DeepEqual(t, expectedTemplateAnnotations, actual)
+}
+
 func TestUpdateAnnotationsExisting(t *testing.T) {
 	service, template, _ := getService()
 	service.ObjectMeta.Annotations = map[string]string{"a": "foo", "b": "bar"}
