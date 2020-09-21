@@ -412,10 +412,23 @@ func (p *ConfigurationEditFlags) Apply(
 		}
 
 		annotationsToRemove := util.ParseMinusSuffix(annotationsMap)
-		err = servinglib.UpdateAnnotations(service, template, annotationsMap, annotationsToRemove)
+		// Service Annotations can't contain Autoscaling ones
+		serviceAnnotations := make(map[string]string)
+		for key, value := range annotationsMap {
+			if !strings.HasPrefix(key, autoscaling.GroupName) {
+				serviceAnnotations[key] = value
+			}
+		}
+		// Add all user provided annotations to RevisionTemplate
+		err = servinglib.UpdateRevisionTemplateAnnotations(template, annotationsMap, annotationsToRemove)
 		if err != nil {
 			return err
 		}
+		err = servinglib.UpdateServiceAnnotations(service, serviceAnnotations, annotationsToRemove)
+		if err != nil {
+			return err
+		}
+
 	}
 
 	if cmd.Flags().Changed("service-account") {
@@ -446,7 +459,7 @@ func (p *ConfigurationEditFlags) Apply(
 		if cmd.Flags().Changed("annotation") && containsAnnotation(p.Annotations, autoscaling.InitialScaleAnnotationKey) {
 			return fmt.Errorf("only one of the --scale-init or --annotation %s can be specified", autoscaling.InitialScaleAnnotationKey)
 		}
-
+		// Autoscaling annotations are only applicable on Revision Template, not Service
 		err = servinglib.UpdateRevisionTemplateAnnotation(template, autoscaling.InitialScaleAnnotationKey, strconv.Itoa(p.ScaleInit))
 		if err != nil {
 			return err

@@ -216,30 +216,6 @@ func UpdateConcurrencyLimit(template *servingv1.RevisionTemplateSpec, limit int6
 	return nil
 }
 
-// UpdateRevisionTemplateAnnotation updates an annotation for the given Revision Template.
-// Also validates the autoscaling annotation values
-func UpdateRevisionTemplateAnnotation(template *servingv1.RevisionTemplateSpec, annotation string, value string) error {
-	annoMap := template.Annotations
-	if annoMap == nil {
-		annoMap = make(map[string]string)
-		template.Annotations = annoMap
-	}
-
-	// Validate autoscaling annotations and returns error if invalid input provided
-	// without changing the existing spec
-	in := make(map[string]string)
-	in[annotation] = value
-	// The boolean indicates whether or not the init-scale annotation can be set to 0.
-	// Since we don't have the config handy, err towards allowing it. The API will
-	// correctly fail the request if it's forbidden.
-	if err := autoscaling.ValidateAnnotations(true, in); err != nil {
-		return err
-	}
-
-	annoMap[annotation] = value
-	return nil
-}
-
 // EnvToMap is an utility function to translate between the API list form of env vars, and the
 // more convenient map form.
 func EnvToMap(vars []corev1.EnvVar) (map[string]string, error) {
@@ -452,49 +428,30 @@ func UpdateLabels(labelsMap map[string]string, add map[string]string, remove []s
 	return labelsMap
 }
 
-// UpdateAnnotations updates the annotations identically on a service and template.
-// Unless it's Autoscaling annotation that's allowed only on template.
-// Does not overwrite the entire Annotations field, only makes the requested updates.
-func UpdateAnnotations(
-	service *servingv1.Service,
-	template *servingv1.RevisionTemplateSpec,
-	toUpdate map[string]string,
-	toRemove []string) error {
-
-	// filter Autoscaling annotations
-	annotations := make(map[string]string)
-	templateAnnotations := make(map[string]string)
-	for key, value := range toUpdate {
-		if strings.HasPrefix(key, autoscaling.GroupName) {
-			templateAnnotations[key] = value
-		} else {
-			annotations[key] = value
-		}
+// UpdateServiceAnnotations updates annotations for the given Service Metadata.
+func UpdateServiceAnnotations(service *servingv1.Service, toUpdate map[string]string, toRemove []string) error {
+	if service.Annotations == nil && len(toUpdate) > 0 {
+		service.Annotations = make(map[string]string)
 	}
+	return updateAnnotations(service.Annotations, toUpdate, toRemove)
+}
 
-	if service.ObjectMeta.Annotations == nil && len(annotations) > 0 {
-		service.ObjectMeta.Annotations = make(map[string]string)
+// UpdateRevisionTemplateAnnotations updates annotations for the given Revision Template.
+// Also validates the autoscaling annotation values
+func UpdateRevisionTemplateAnnotations(template *servingv1.RevisionTemplateSpec, toUpdate map[string]string, toRemove []string) error {
+	if err := autoscaling.ValidateAnnotations(true, toUpdate); err != nil {
+		return err
 	}
+	if template.Annotations == nil {
+		template.Annotations = make(map[string]string)
+	}
+	return updateAnnotations(template.Annotations, toUpdate, toRemove)
+}
 
-	if template.ObjectMeta.Annotations == nil && (len(annotations) > 0 || len(templateAnnotations) > 0) {
-		template.ObjectMeta.Annotations = make(map[string]string)
-	}
-
-	for key, value := range annotations {
-		service.ObjectMeta.Annotations[key] = value
-		template.ObjectMeta.Annotations[key] = value
-	}
-	// add only to template
-	for key, value := range templateAnnotations {
-		template.ObjectMeta.Annotations[key] = value
-	}
-
-	for _, key := range toRemove {
-		delete(service.ObjectMeta.Annotations, key)
-		delete(template.ObjectMeta.Annotations, key)
-	}
-
-	return nil
+// UpdateRevisionTemplateAnnotation updates an annotation for the given Revision Template.
+// Also validates the autoscaling annotation values
+func UpdateRevisionTemplateAnnotation(template *servingv1.RevisionTemplateSpec, annotation string, value string) error {
+	return UpdateRevisionTemplateAnnotations(template, map[string]string{annotation: value}, []string{})
 }
 
 // UpdateServiceAccountName updates the service account name used for the corresponding knative service
@@ -558,6 +515,16 @@ func GenerateVolumeName(path string) string {
 }
 
 // =======================================================================================
+
+func updateAnnotations(annotations map[string]string, toUpdate map[string]string, toRemove []string) error {
+	for key, value := range toUpdate {
+		annotations[key] = value
+	}
+	for _, key := range toRemove {
+		delete(annotations, key)
+	}
+	return nil
+}
 
 func updateEnvVarsFromMap(env []corev1.EnvVar, toUpdate map[string]string) []corev1.EnvVar {
 	set := sets.NewString()
