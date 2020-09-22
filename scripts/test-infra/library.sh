@@ -69,12 +69,12 @@ function abort() {
 # Parameters: $1 - character to use for the box.
 #             $2 - banner message.
 function make_banner() {
-    local msg="$1$1$1$1 $2 $1$1$1$1"
-    local border="${msg//[-0-9A-Za-z _.,\/()\']/$1}"
-    echo -e "${border}\n${msg}\n${border}"
-    # TODO(adrcunha): Remove once logs have timestamps on Prow
-    # For details, see https://github.com/kubernetes/test-infra/issues/10100
-    echo -e "$1$1$1$1 $(TZ='America/Los_Angeles' date)\n${border}"
+  local msg="$1$1$1$1 $2 $1$1$1$1"
+  local border="${msg//[-0-9A-Za-z _.,\/()\']/$1}"
+  echo -e "${border}\n${msg}\n${border}"
+  # TODO(adrcunha): Remove once logs have timestamps on Prow
+  # For details, see https://github.com/kubernetes/test-infra/issues/10100
+  echo -e "$1$1$1$1 $(TZ='America/Los_Angeles' date)\n${border}"
 }
 
 # Simple header for logging purposes.
@@ -176,21 +176,8 @@ function wait_until_pods_running() {
 # Waits until all batch jobs complete in the given namespace.
 # Parameters: $1 - namespace.
 function wait_until_batch_job_complete() {
-  echo -n "Waiting until all batch jobs in namespace $1 run to completion."
-  for i in {1..150}; do  # timeout after 5 minutes
-    local jobs=$(kubectl get jobs -n $1 --no-headers \
-                 -ocustom-columns='n:{.metadata.name},c:{.spec.completions},s:{.status.succeeded}')
-    # All jobs must be complete
-    local not_complete=$(echo "${jobs}" | awk '{if ($2!=$3) print $0}' | wc -l)
-    if [[ ${not_complete} -eq 0 ]]; then
-      echo -e "\nAll jobs are complete:\n${jobs}"
-      return 0
-    fi
-    echo -n "."
-    sleep 2
-  done
-  echo -e "\n\nERROR: timeout waiting for jobs to complete\n${jobs}"
-  return 1
+  echo "Waiting until all batch jobs in namespace $1 run to completion."
+  kubectl wait job --for=condition=Complete --all -n "$1" --timeout=5m || return 1
 }
 
 # Waits until the given service has an external address (IP/hostname).
@@ -311,44 +298,6 @@ function dump_app_logs() {
   done
 }
 
-# Sets the given user as cluster admin.
-# Parameters: $1 - user
-#             $2 - cluster name
-#             $3 - cluster region
-#             $4 - cluster zone, optional
-function acquire_cluster_admin_role() {
-  echo "Acquiring cluster-admin role for user '$1'"
-  local geoflag="--region=$3"
-  [[ -n $4 ]] && geoflag="--zone=$3-$4"
-  # Get the password of the admin and use it, as the service account (or the user)
-  # might not have the necessary permission.
-  local password=$(gcloud --format="value(masterAuth.password)" \
-      container clusters describe $2 ${geoflag})
-  if [[ -n "${password}" ]]; then
-    # Cluster created with basic authentication
-    kubectl config set-credentials cluster-admin \
-        --username=admin --password=${password}
-  else
-    local cert=$(mktemp)
-    local key=$(mktemp)
-    echo "Certificate in ${cert}, key in ${key}"
-    gcloud --format="value(masterAuth.clientCertificate)" \
-      container clusters describe $2 ${geoflag} | base64 --decode > ${cert}
-    gcloud --format="value(masterAuth.clientKey)" \
-      container clusters describe $2 ${geoflag} | base64 --decode > ${key}
-    kubectl config set-credentials cluster-admin \
-      --client-certificate=${cert} --client-key=${key}
-  fi
-  kubectl config set-context $(kubectl config current-context) \
-      --user=cluster-admin
-  kubectl create clusterrolebinding cluster-admin-binding \
-      --clusterrole=cluster-admin \
-      --user=$1
-  # Reset back to the default account
-  gcloud container clusters get-credentials \
-      $2 ${geoflag} --project $(gcloud config get-value project)
-}
-
 # Run a command through tee and capture its output.
 # Parameters: $1 - file where the output will be stored.
 #             $2... - command to run.
@@ -408,7 +357,7 @@ function report_go_test() {
   json="$(mktemp_with_extension "${ARTIFACTS}"/json_XXXXXXXX json)"
   echo "Running go test with args: ${go_test_args[*]}"
   # TODO(chizhg): change to `--format testname`?
-  capture_output "${report}" gotestsum --format standard-verbose \
+  capture_output "${report}" gotestsum --format "${GO_TEST_VERBOSITY:-standard-verbose}" \
     --junitfile "${xml}" --junitfile-testsuite-name relative --junitfile-testcase-classname relative \
     --jsonfile "${json}" \
     -- "${go_test_args[@]}"

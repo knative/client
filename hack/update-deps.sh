@@ -28,7 +28,7 @@ VERSION="master"
 # The list of dependencies that we track at HEAD and periodically
 # float forward in this repository.
 FLOATING_DEPS=(
-  "knative.dev/pkg@release-0.17"
+  "knative.dev/pkg@release-0.18"
   "knative.dev/serving@${VERSION}"
   "knative.dev/eventing@${VERSION}"
 )
@@ -47,7 +47,7 @@ readonly GO_GET
 
 if (( GO_GET )); then
   go get -d ${FLOATING_DEPS[@]}
-  "${ROOT_DIR}/scripts/test-infra/update-test-infra.sh" --update --ref "release-0.17"
+  "${ROOT_DIR}/scripts/test-infra/update-test-infra.sh" --update --ref "release-0.18"
 fi
 
 
