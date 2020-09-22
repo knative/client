@@ -17,6 +17,7 @@
 package e2e
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"testing"
@@ -75,7 +76,11 @@ func TestTektonPipeline(t *testing.T) {
 	assert.NilError(t, err)
 
 	err = waitForPipelineSuccess(kubectl)
-	assert.NilError(t, err)
+	if err != nil {
+		logs, logsErr := kubectl.Run("logs", "-l", "tekton.dev/pipeline=buildah-build-kn-create", "--all-containers", "--prefix=true")
+		assert.NilError(t, logsErr, "Unable to gather logs from pipeline pods")
+		t.Fatalf("PipelineRun failed with %v, printing logs from pipeline pods:\n%s", err, logs)
+	}
 
 	r := test.NewKnRunResultCollector(t, it)
 
@@ -89,7 +94,14 @@ func TestTektonPipeline(t *testing.T) {
 func waitForPipelineSuccess(k test.Kubectl) error {
 	return wait.PollImmediate(Interval, Timeout, func() (bool, error) {
 		out, err := k.Run("get", "pipelinerun", "-o=jsonpath='{.items[0].status.conditions[?(@.type==\"Succeeded\")].status}'")
-		return strings.Contains(out, "True"), err
+		if err != nil {
+			return false, err
+		}
+		// Return early if the run failed.
+		if strings.Contains(out, "False") {
+			return false, errors.New("pipelinerun failure")
+		}
+		return strings.Contains(out, "True"), nil
 	})
 }
 
