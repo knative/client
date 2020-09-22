@@ -16,7 +16,14 @@ package flags
 
 import (
 	"errors"
+	"fmt"
+	"strings"
 
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
+	"knative.dev/client/pkg/util"
+
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
 
@@ -162,4 +169,166 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
 	flagset.Int64VarP(&p.User, "user", "", 0, "The user ID to run the container (e.g., 1001).")
 	flagNames = append(flagNames, "user")
 	return flagNames
+}
+
+func (p *PodSpecFlags) ResolvePodSpec(podSpec *corev1.PodSpec, cmd *cobra.Command) error {
+	//var podSpec = &corev1.PodSpec{Containers: []corev1.Container{{}}}
+	var err error
+
+	if cmd.Flags().Changed("env") {
+		envMap, err := util.MapFromArrayAllowingSingles(p.Env, "=")
+		if err != nil {
+			return fmt.Errorf("Invalid --env: %w", err)
+		}
+
+		envToRemove := util.ParseMinusSuffix(envMap)
+		err = UpdateEnvVars(podSpec, envMap, envToRemove)
+		if err != nil {
+			return err
+		}
+	}
+
+	if cmd.Flags().Changed("env-from") {
+		envFromSourceToUpdate := []string{}
+		envFromSourceToRemove := []string{}
+		for _, name := range p.EnvFrom {
+			if name == "-" {
+				return fmt.Errorf("\"-\" is not a valid value for \"--env-from\"")
+			} else if strings.HasSuffix(name, "-") {
+				envFromSourceToRemove = append(envFromSourceToRemove, name[:len(name)-1])
+			} else {
+				envFromSourceToUpdate = append(envFromSourceToUpdate, name)
+			}
+		}
+
+		err := UpdateEnvFrom(podSpec, envFromSourceToUpdate, envFromSourceToRemove)
+		if err != nil {
+			return err
+		}
+	}
+
+	if cmd.Flags().Changed("mount") || cmd.Flags().Changed("volume") {
+		mountsToUpdate, mountsToRemove, err := util.OrderedMapAndRemovalListFromArray(p.Mount, "=")
+		if err != nil {
+			return fmt.Errorf("Invalid --mount: %w", err)
+		}
+
+		volumesToUpdate, volumesToRemove, err := util.OrderedMapAndRemovalListFromArray(p.Volume, "=")
+		if err != nil {
+			return fmt.Errorf("Invalid --volume: %w", err)
+		}
+
+		err = UpdateVolumeMountsAndVolumes(podSpec, mountsToUpdate, mountsToRemove, volumesToUpdate, volumesToRemove)
+		if err != nil {
+			return err
+		}
+	}
+
+	if cmd.Flags().Changed("image") {
+		err = UpdateImage(podSpec, p.Image.String())
+		if err != nil {
+			return err
+		}
+	}
+
+	if cmd.Flags().Changed("limits-cpu") || cmd.Flags().Changed("limits-memory") {
+		if cmd.Flags().Changed("limit") {
+			return fmt.Errorf("only one of (DEPRECATED) --limits-cpu / --limits-memory and --limit can be specified")
+		}
+		fmt.Fprintf(cmd.OutOrStdout(), "\nWARNING: flags --limits-cpu / --limits-memory are deprecated and going to be removed in future release, please use --limit instead.\n\n")
+	}
+
+	if cmd.Flags().Changed("requests-cpu") || cmd.Flags().Changed("requests-memory") {
+		if cmd.Flags().Changed("request") {
+			return fmt.Errorf("only one of (DEPRECATED) --requests-cpu / --requests-memory and --request can be specified")
+		}
+		fmt.Fprintf(cmd.OutOrStdout(), "\nWARNING: flags --requests-cpu / --requests-memory are deprecated and going to be removed in future release, please use --request instead.\n\n")
+	}
+
+	limitsResources, err := p.computeResources(p.LimitsFlags)
+	if err != nil {
+		return err
+	}
+	requestsResources, err := p.computeResources(p.RequestsFlags)
+	if err != nil {
+		return err
+	}
+	err = UpdateResourcesDeprecated(podSpec, requestsResources, limitsResources)
+	if err != nil {
+		return err
+	}
+
+	requestsToRemove, limitsToRemove, err := p.Resources.Validate()
+	if err != nil {
+		return err
+	}
+
+	err = UpdateResources(podSpec, p.Resources.ResourceRequirements, requestsToRemove, limitsToRemove)
+	if err != nil {
+		return err
+	}
+
+	if cmd.Flags().Changed("cmd") {
+		err = UpdateContainerCommand(podSpec, p.Command)
+		if err != nil {
+			return err
+		}
+	}
+
+	if cmd.Flags().Changed("arg") {
+		err = UpdateContainerArg(podSpec, p.Arg)
+		if err != nil {
+			return err
+		}
+	}
+
+	if cmd.Flags().Changed("port") {
+		err = UpdateContainerPort(podSpec, p.Port)
+		if err != nil {
+			return err
+		}
+	}
+
+	if cmd.Flags().Changed("service-account") {
+		err = UpdateServiceAccountName(podSpec, p.ServiceAccountName)
+		if err != nil {
+			return err
+		}
+	}
+
+	if cmd.Flags().Changed("pull-secret") {
+		UpdateImagePullSecrets(podSpec, p.ImagePullSecrets)
+	}
+
+	if cmd.Flags().Changed("user") {
+		UpdateUser(podSpec, p.User)
+	}
+
+	return nil
+}
+
+func (p *PodSpecFlags) computeResources(resourceFlags ResourceFlags) (corev1.ResourceList, error) {
+	resourceList := corev1.ResourceList{}
+
+	if resourceFlags.CPU != "" {
+		cpuQuantity, err := resource.ParseQuantity(resourceFlags.CPU)
+		if err != nil {
+			return corev1.ResourceList{},
+				fmt.Errorf("Error parsing %q: %w", resourceFlags.CPU, err)
+		}
+
+		resourceList[corev1.ResourceCPU] = cpuQuantity
+	}
+
+	if resourceFlags.Memory != "" {
+		memoryQuantity, err := resource.ParseQuantity(resourceFlags.Memory)
+		if err != nil {
+			return corev1.ResourceList{},
+				fmt.Errorf("Error parsing %q: %w", resourceFlags.Memory, err)
+		}
+
+		resourceList[corev1.ResourceMemory] = memoryQuantity
+	}
+
+	return resourceList, nil
 }

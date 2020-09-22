@@ -30,7 +30,6 @@ import (
 	"k8s.io/apimachinery/pkg/watch"
 
 	"knative.dev/client/pkg/kn/commands"
-	servinglib "knative.dev/client/pkg/serving"
 	"knative.dev/client/pkg/util"
 	"knative.dev/client/pkg/wait"
 	network "knative.dev/networking/pkg"
@@ -225,7 +224,7 @@ func TestServiceCreateEnv(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	actualEnvVars, err := servinglib.EnvToMap(template.Spec.Containers[0].Env)
+	actualEnvVars, err := util.EnvToMap(template.Spec.Containers[0].Env)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -726,7 +725,7 @@ func TestServiceCreateEnvForce(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	actualEnvVars, err := servinglib.EnvToMap(template.Spec.Containers[0].Env)
+	actualEnvVars, err := util.EnvToMap(template.Spec.Containers[0].Env)
 	if err != nil {
 		t.Fatal(err)
 	} else if template.Spec.Containers[0].Image != "gcr.io/foo/bar:v2" {
@@ -993,7 +992,7 @@ func TestServiceCreateFromYAMLWithOverride(t *testing.T) {
 	assert.Assert(t, action.Matches("create", "services"))
 	assert.Equal(t, created.Name, "foo")
 
-	actualEnvVar, err := servinglib.EnvToMap(created.Spec.Template.Spec.GetContainer().Env)
+	actualEnvVar, err := util.EnvToMap(created.Spec.Template.Spec.GetContainer().Env)
 	assert.NilError(t, err)
 	assert.DeepEqual(t, actualEnvVar, expectedEnvVars)
 
@@ -1007,7 +1006,7 @@ func TestServiceCreateFromYAMLWithOverride(t *testing.T) {
 	assert.Assert(t, action.Matches("create", "services"))
 	assert.Equal(t, created.Name, "foo")
 
-	actualEnvVar, err = servinglib.EnvToMap(created.Spec.Template.Spec.GetContainer().Env)
+	actualEnvVar, err = util.EnvToMap(created.Spec.Template.Spec.GetContainer().Env)
 	assert.NilError(t, err)
 	assert.DeepEqual(t, actualEnvVar, expectedEnvVars)
 
@@ -1020,7 +1019,7 @@ func TestServiceCreateFromYAMLWithOverride(t *testing.T) {
 	assert.Assert(t, action.Matches("create", "services"))
 	assert.Equal(t, created.Name, "foo")
 
-	actualEnvVar, err = servinglib.EnvToMap(created.Spec.Template.Spec.GetContainer().Env)
+	actualEnvVar, err = util.EnvToMap(created.Spec.Template.Spec.GetContainer().Env)
 	assert.NilError(t, err)
 	assert.DeepEqual(t, actualEnvVar, expectedEnvVars)
 

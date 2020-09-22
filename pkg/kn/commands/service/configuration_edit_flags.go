@@ -198,53 +198,10 @@ func (p *ConfigurationEditFlags) Apply(
 	cmd *cobra.Command) error {
 
 	template := &service.Spec.Template
-	if cmd.Flags().Changed("env") {
-		envMap, err := util.MapFromArrayAllowingSingles(p.PodSpecFlags.Env, "=")
-		if err != nil {
-			return fmt.Errorf("Invalid --env: %w", err)
-		}
 
-		envToRemove := util.ParseMinusSuffix(envMap)
-		err = servinglib.UpdateEnvVars(template, envMap, envToRemove)
-		if err != nil {
-			return err
-		}
-	}
-
-	if cmd.Flags().Changed("env-from") {
-		envFromSourceToUpdate := []string{}
-		envFromSourceToRemove := []string{}
-		for _, name := range p.PodSpecFlags.EnvFrom {
-			if name == "-" {
-				return fmt.Errorf("\"-\" is not a valid value for \"--env-from\"")
-			} else if strings.HasSuffix(name, "-") {
-				envFromSourceToRemove = append(envFromSourceToRemove, name[:len(name)-1])
-			} else {
-				envFromSourceToUpdate = append(envFromSourceToUpdate, name)
-			}
-		}
-
-		err := servinglib.UpdateEnvFrom(template, envFromSourceToUpdate, envFromSourceToRemove)
-		if err != nil {
-			return err
-		}
-	}
-
-	if cmd.Flags().Changed("mount") || cmd.Flags().Changed("volume") {
-		mountsToUpdate, mountsToRemove, err := util.OrderedMapAndRemovalListFromArray(p.PodSpecFlags.Mount, "=")
-		if err != nil {
-			return fmt.Errorf("Invalid --mount: %w", err)
-		}
-
-		volumesToUpdate, volumesToRemove, err := util.OrderedMapAndRemovalListFromArray(p.PodSpecFlags.Volume, "=")
-		if err != nil {
-			return fmt.Errorf("Invalid --volume: %w", err)
-		}
-
-		err = servinglib.UpdateVolumeMountsAndVolumes(template, mountsToUpdate, mountsToRemove, volumesToUpdate, volumesToRemove)
-		if err != nil {
-			return err
-		}
+	err := p.PodSpecFlags.ResolvePodSpec(&template.Spec.PodSpec, cmd)
+	if err != nil {
+		return err
 	}
 
 	name, err := servinglib.GenerateRevisionName(p.RevisionName, service)
@@ -258,10 +215,6 @@ func (p *ConfigurationEditFlags) Apply(
 
 	imageSet := false
 	if cmd.Flags().Changed("image") {
-		err = servinglib.UpdateImage(template, p.PodSpecFlags.Image.String())
-		if err != nil {
-			return err
-		}
 		imageSet = true
 	}
 	_, userImagePresent := template.Annotations[servinglib.UserImageAnnotationKey]
@@ -470,21 +423,6 @@ func (p *ConfigurationEditFlags) Apply(
 			return err
 		}
 
-	}
-
-	if cmd.Flags().Changed("service-account") {
-		err = servinglib.UpdateServiceAccountName(template, p.PodSpecFlags.ServiceAccountName)
-		if err != nil {
-			return err
-		}
-	}
-
-	if cmd.Flags().Changed("pull-secret") {
-		servinglib.UpdateImagePullSecrets(template, p.PodSpecFlags.ImagePullSecrets)
-	}
-
-	if cmd.Flags().Changed("user") {
-		servinglib.UpdateUser(template, p.PodSpecFlags.User)
 	}
 
 	if cmd.Flags().Changed("scale-init") {
