@@ -17,6 +17,8 @@ package service
 import (
 	"testing"
 
+	"knative.dev/serving/pkg/apis/autoscaling"
+
 	"gotest.tools/assert"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -77,10 +79,11 @@ func TestServiceUpdateAnnotationsMock(t *testing.T) {
 		"an3": "getsRemoved",
 	}
 	template.ObjectMeta.Annotations = map[string]string{
-		"an1":                                "staysConstant",
-		"an2":                                "getsUpdated",
-		"an3":                                "getsRemoved",
-		clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz",
+		"an1":                                 "staysConstant",
+		"an2":                                 "getsUpdated",
+		"an3":                                 "getsRemoved",
+		clientserving.UserImageAnnotationKey:  "gcr.io/foo/bar:baz",
+		autoscaling.InitialScaleAnnotationKey: "1",
 	}
 
 	updatedService := getService(svcName)
@@ -91,9 +94,10 @@ func TestServiceUpdateAnnotationsMock(t *testing.T) {
 		"an2": "isUpdated",
 	}
 	template.ObjectMeta.Annotations = map[string]string{
-		"an1":                                "staysConstant",
-		"an2":                                "isUpdated",
-		clientserving.UserImageAnnotationKey: "gcr.io/foo/bar:baz",
+		"an1":                                 "staysConstant",
+		"an2":                                 "isUpdated",
+		clientserving.UserImageAnnotationKey:  "gcr.io/foo/bar:baz",
+		autoscaling.InitialScaleAnnotationKey: "2",
 	}
 
 	r := client.Recorder()
@@ -104,6 +108,7 @@ func TestServiceUpdateAnnotationsMock(t *testing.T) {
 		"--annotation", "an1=staysConstant",
 		"--annotation", "an2=getsUpdated",
 		"--annotation", "an3=getsRemoved",
+		"--annotation", autoscaling.InitialScaleAnnotationKey+"=1",
 		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
@@ -113,6 +118,7 @@ func TestServiceUpdateAnnotationsMock(t *testing.T) {
 		"update", svcName,
 		"--annotation", "an2=isUpdated",
 		"--annotation", "an3-",
+		"--annotation", autoscaling.InitialScaleAnnotationKey+"=2",
 		"--no-wait", "--revision-name=",
 	)
 	assert.NilError(t, err)
@@ -1480,9 +1486,6 @@ func TestServiceUpdateInitialScaleMock(t *testing.T) {
 	newService := getService(svcName)
 	template := &newService.Spec.Template
 	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
-	newService.ObjectMeta.Annotations = map[string]string{
-		"autoscaling.knative.dev/initialScale": "1",
-	}
 	template.ObjectMeta.Annotations = map[string]string{
 		"autoscaling.knative.dev/initialScale": "1",
 		clientserving.UserImageAnnotationKey:   "gcr.io/foo/bar:baz",
@@ -1491,9 +1494,6 @@ func TestServiceUpdateInitialScaleMock(t *testing.T) {
 	updatedService := getService(svcName)
 	template = &updatedService.Spec.Template
 	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
-	updatedService.ObjectMeta.Annotations = map[string]string{
-		"autoscaling.knative.dev/initialScale": "2",
-	}
 	template.ObjectMeta.Annotations = map[string]string{
 		"autoscaling.knative.dev/initialScale": "2",
 		clientserving.UserImageAnnotationKey:   "gcr.io/foo/bar:baz",

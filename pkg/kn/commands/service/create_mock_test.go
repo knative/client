@@ -18,6 +18,8 @@ import (
 	"testing"
 	"time"
 
+	"knative.dev/serving/pkg/apis/autoscaling"
+
 	"gotest.tools/assert"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -541,6 +543,38 @@ func TestServiceCreateWithBothAnnotationAndInitScaleAsOption(t *testing.T) {
 	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "--annotation", "autoscaling.knative.dev/initialScale=0", "--scale-init", "0")
 	assert.Assert(t, err != nil)
 	assert.Assert(t, util.ContainsAll(output, "only one of the", "--scale-init", "--annotation", "autoscaling.knative.dev/initialScale", "can be specified"))
+
+	r.Validate()
+}
+
+func TestServiceCreateWithAnnotations(t *testing.T) {
+	client := knclient.NewMockKnServiceClient(t)
+
+	r := client.Recorder()
+	r.GetService("foo", nil, errors.NewNotFound(servingv1.Resource("service"), "foo"))
+
+	service := getService("foo")
+	template := &service.Spec.Template
+
+	service.ObjectMeta.Annotations = map[string]string{
+		"foo": "bar",
+	}
+
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.ObjectMeta.Annotations = map[string]string{
+		autoscaling.InitialScaleAnnotationKey: "1", // autoscaling in only added Revision Template
+		"foo":                                 "bar",
+		servinglib.UserImageAnnotationKey:     "gcr.io/foo/bar:baz",
+	}
+
+	r.CreateService(service, nil)
+
+	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz",
+		"--annotation", "foo=bar",
+		"--annotation", autoscaling.InitialScaleAnnotationKey+"=1",
+		"--no-wait", "--revision-name=")
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
 
 	r.Validate()
 }

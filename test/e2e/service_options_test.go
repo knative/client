@@ -25,6 +25,8 @@ import (
 	"strings"
 	"testing"
 
+	"knative.dev/serving/pkg/apis/autoscaling"
+
 	"gotest.tools/assert"
 
 	"knative.dev/client/lib/test"
@@ -156,6 +158,11 @@ func TestServiceOptions(t *testing.T) {
 	t.Log("delete service")
 	test.ServiceDelete(r, "svc10")
 
+	t.Log("create and validate service with scale init option via --annotation flag")
+	serviceCreateWithOptions(r, "svc11", "--annotation", autoscaling.InitialScaleAnnotationKey+"=2")
+	validateServiceInitScale(r, "svc11", "2")
+	t.Log("delete service")
+	test.ServiceDelete(r, "svc11")
 }
 
 func serviceCreateWithOptions(r *test.KnRunResultCollector, serviceName string, options ...string) {
