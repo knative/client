@@ -16,6 +16,7 @@ require (
 	k8s.io/client-go v11.0.1-0.20190805182717-6502b5e7b1b5+incompatible
 	k8s.io/code-generator v0.18.8
 	knative.dev/eventing v0.17.1-0.20200922201940-baa7cd3e8254
+	knative.dev/networking v0.0.0-20200922180040-a71b40c69b15
 	knative.dev/pkg v0.0.0-20200922164940-4bf40ad82aab
 	knative.dev/serving v0.17.1-0.20200922232940-9d0250fcaaec
 	sigs.k8s.io/yaml v1.2.0

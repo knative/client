@@ -15,6 +15,7 @@
 package dynamic
 
 import (
+	"context"
 	"errors"
 	"strings"
 
@@ -89,7 +90,7 @@ func (c *knDynamicClient) ListCRDs(options metav1.ListOptions) (*unstructured.Un
 		Resource: crdKinds,
 	}
 
-	uList, err := c.client.Resource(gvr).List(options)
+	uList, err := c.client.Resource(gvr).List(context.TODO(), options)
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +148,7 @@ func (c *knDynamicClient) ListSources(types ...WithType) (*unstructured.Unstruct
 		}
 
 		// list objects of source type with this GVR
-		sList, err := c.client.Resource(gvr).Namespace(namespace).List(options)
+		sList, err := c.client.Resource(gvr).Namespace(namespace).List(context.TODO(), options)
 		if err != nil {
 			return nil, err
 		}
@@ -183,7 +184,7 @@ func (c *knDynamicClient) ListSourcesUsingGVKs(gvks *[]schema.GroupVersionKind, 
 		gvr := gvk.GroupVersion().WithResource(strings.ToLower(gvk.Kind) + "s")
 
 		// list objects of source type with this GVR
-		sList, err := c.client.Resource(gvr).Namespace(namespace).List(options)
+		sList, err := c.client.Resource(gvr).Namespace(namespace).List(context.TODO(), options)
 		if err != nil {
 			return nil, err
 		}

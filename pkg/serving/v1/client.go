@@ -15,6 +15,7 @@
 package v1
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -160,7 +161,7 @@ func (cl *knServingClient) Namespace() string {
 
 // Get a service by its unique name
 func (cl *knServingClient) GetService(name string) (*servingv1.Service, error) {
-	service, err := cl.client.Services(cl.namespace).Get(name, v1.GetOptions{})
+	service, err := cl.client.Services(cl.namespace).Get(context.TODO(), name, v1.GetOptions{})
 	if err != nil {
 		return nil, clienterrors.GetError(err)
 	}
@@ -183,7 +184,7 @@ func (cl *knServingClient) WatchRevision(name string, timeout time.Duration) (wa
 
 // List services
 func (cl *knServingClient) ListServices(config ...ListConfig) (*servingv1.ServiceList, error) {
-	serviceList, err := cl.client.Services(cl.namespace).List(ListConfigs(config).toListOptions())
+	serviceList, err := cl.client.Services(cl.namespace).List(context.TODO(), ListConfigs(config).toListOptions())
 	if err != nil {
 		return nil, clienterrors.GetError(err)
 	}
@@ -207,7 +208,7 @@ func (cl *knServingClient) ListServices(config ...ListConfig) (*servingv1.Servic
 
 // Create a new service
 func (cl *knServingClient) CreateService(service *servingv1.Service) error {
-	_, err := cl.client.Services(cl.namespace).Create(service)
+	_, err := cl.client.Services(cl.namespace).Create(context.TODO(), service, v1.CreateOptions{})
 	if err != nil {
 		return clienterrors.GetError(err)
 	}
@@ -216,7 +217,7 @@ func (cl *knServingClient) CreateService(service *servingv1.Service) error {
 
 // Update the given service
 func (cl *knServingClient) UpdateService(service *servingv1.Service) error {
-	_, err := cl.client.Services(cl.namespace).Update(service)
+	_, err := cl.client.Services(cl.namespace).Update(context.TODO(), service, v1.UpdateOptions{})
 	if err != nil {
 		return err
 	}
@@ -281,8 +282,9 @@ func (cl *knServingClient) DeleteService(serviceName string, timeout time.Durati
 
 func (cl *knServingClient) deleteService(serviceName string, propagationPolicy v1.DeletionPropagation) error {
 	err := cl.client.Services(cl.namespace).Delete(
+		context.TODO(),
 		serviceName,
-		&v1.DeleteOptions{PropagationPolicy: &propagationPolicy},
+		v1.DeleteOptions{PropagationPolicy: &propagationPolicy},
 	)
 	if err != nil {
 		return clienterrors.GetError(err)
@@ -299,7 +301,7 @@ func (cl *knServingClient) WaitForService(name string, timeout time.Duration, ms
 
 // Get the configuration for a service
 func (cl *knServingClient) GetConfiguration(name string) (*servingv1.Configuration, error) {
-	configuration, err := cl.client.Configurations(cl.namespace).Get(name, v1.GetOptions{})
+	configuration, err := cl.client.Configurations(cl.namespace).Get(context.TODO(), name, v1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -312,7 +314,7 @@ func (cl *knServingClient) GetConfiguration(name string) (*servingv1.Configurati
 
 // Get a revision by name
 func (cl *knServingClient) GetRevision(name string) (*servingv1.Revision, error) {
-	revision, err := cl.client.Revisions(cl.namespace).Get(name, v1.GetOptions{})
+	revision, err := cl.client.Revisions(cl.namespace).Get(context.TODO(), name, v1.GetOptions{})
 	if err != nil {
 		return nil, clienterrors.GetError(err)
 	}
@@ -378,7 +380,7 @@ func getBaseRevision(cl KnServingClient, service *servingv1.Service) (*servingv1
 
 // Delete a revision by name
 func (cl *knServingClient) DeleteRevision(name string, timeout time.Duration) error {
-	revision, err := cl.client.Revisions(cl.namespace).Get(name, v1.GetOptions{})
+	revision, err := cl.client.Revisions(cl.namespace).Get(context.TODO(), name, v1.GetOptions{})
 	if err != nil {
 		return clienterrors.GetError(err)
 	}
@@ -403,7 +405,7 @@ func (cl *knServingClient) DeleteRevision(name string, timeout time.Duration) er
 }
 
 func (cl *knServingClient) deleteRevision(name string) error {
-	err := cl.client.Revisions(cl.namespace).Delete(name, &v1.DeleteOptions{})
+	err := cl.client.Revisions(cl.namespace).Delete(context.TODO(), name, v1.DeleteOptions{})
 	if err != nil {
 		return clienterrors.GetError(err)
 	}
@@ -413,7 +415,7 @@ func (cl *knServingClient) deleteRevision(name string) error {
 
 // List revisions
 func (cl *knServingClient) ListRevisions(config ...ListConfig) (*servingv1.RevisionList, error) {
-	revisionList, err := cl.client.Revisions(cl.namespace).List(ListConfigs(config).toListOptions())
+	revisionList, err := cl.client.Revisions(cl.namespace).List(context.TODO(), ListConfigs(config).toListOptions())
 	if err != nil {
 		return nil, clienterrors.GetError(err)
 	}
@@ -422,7 +424,7 @@ func (cl *knServingClient) ListRevisions(config ...ListConfig) (*servingv1.Revis
 
 // Get a route by its unique name
 func (cl *knServingClient) GetRoute(name string) (*servingv1.Route, error) {
-	route, err := cl.client.Routes(cl.namespace).Get(name, v1.GetOptions{})
+	route, err := cl.client.Routes(cl.namespace).Get(context.TODO(), name, v1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -435,7 +437,7 @@ func (cl *knServingClient) GetRoute(name string) (*servingv1.Route, error) {
 
 // List routes
 func (cl *knServingClient) ListRoutes(config ...ListConfig) (*servingv1.RouteList, error) {
-	routeList, err := cl.client.Routes(cl.namespace).List(ListConfigs(config).toListOptions())
+	routeList, err := cl.client.Routes(cl.namespace).List(context.TODO(), ListConfigs(config).toListOptions())
 	if err != nil {
 		return nil, err
 	}

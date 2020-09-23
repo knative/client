@@ -15,6 +15,7 @@
 package flags
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -93,7 +94,7 @@ func (i *SinkFlags) ResolveSink(knclient clientdynamic.KnDynamicClient, namespac
 		}
 		return nil, fmt.Errorf("unsupported sink prefix: '%s'", prefix)
 	}
-	obj, err := client.Resource(typ).Namespace(namespace).Get(name, metav1.GetOptions{})
+	obj, err := client.Resource(typ).Namespace(namespace).Get(context.TODO(), name, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}

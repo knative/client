@@ -33,6 +33,7 @@ import (
 	servinglib "knative.dev/client/pkg/serving"
 	"knative.dev/client/pkg/util"
 	"knative.dev/client/pkg/wait"
+	network "knative.dev/networking/pkg"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -773,7 +774,7 @@ func TestServiceCreateWithClusterLocal(t *testing.T) {
 
 	labels := created.ObjectMeta.Labels
 
-	labelValue, present := labels[serving.VisibilityLabelKey]
+	labelValue, present := labels[network.VisibilityLabelKey]
 	assert.Assert(t, present)
 
 	if labelValue != serving.VisibilityClusterLocal {

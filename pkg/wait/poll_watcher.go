@@ -15,6 +15,7 @@
 package wait
 
 import (
+	"context"
 	"sync"
 	"time"
 
@@ -48,7 +49,7 @@ type pollingWatcher struct {
 	poll func() (runtime.Object, error)
 }
 
-type watchF func(v1.ListOptions) (watch.Interface, error)
+type watchF func(context.Context, v1.ListOptions) (watch.Interface, error)
 
 type tickerPollInterval struct {
 	t *time.Ticker
@@ -168,12 +169,12 @@ func nativeWatch(watchFunc watchF, name string, timeout time.Duration) (watch.In
 	}
 	opts.Watch = true
 	addWatchTimeout(&opts, timeout)
-	return watchFunc(opts)
+	return watchFunc(context.TODO(), opts)
 }
 
 func nativePoll(c rest.Interface, ns, resource, name string) func() (runtime.Object, error) {
 	return func() (runtime.Object, error) {
-		return c.Get().Namespace(ns).Resource(resource).Name(name).Do().Get()
+		return c.Get().Namespace(ns).Resource(resource).Name(name).Do(context.TODO()).Get()
 	}
 }
 
