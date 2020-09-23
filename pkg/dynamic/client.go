@@ -239,7 +239,7 @@ func (c *knDynamicClient) ListChannelsUsingGVKs(gvks *[]schema.GroupVersionKind,
 		gvr := gvk.GroupVersion().WithResource(strings.ToLower(gvk.Kind) + "s")
 
 		// list objects of chaneel type with this GVR
-		cList, err := c.client.Resource(gvr).Namespace(namespace).List(options)
+		cList, err := c.client.Resource(gvr).Namespace(namespace).List(context.TODO(), options)
 		if err != nil {
 			return nil, err
 		}
