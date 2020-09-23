@@ -28,6 +28,7 @@ import (
 	knflags "knative.dev/client/pkg/kn/flags"
 	servinglib "knative.dev/client/pkg/serving"
 	"knative.dev/client/pkg/util"
+	network "knative.dev/networking/pkg"
 	"knative.dev/serving/pkg/apis/autoscaling"
 	"knative.dev/serving/pkg/apis/serving"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
@@ -380,10 +381,10 @@ func (p *ConfigurationEditFlags) Apply(
 
 	if cmd.Flags().Changed("cluster-local") || cmd.Flags().Changed("no-cluster-local") {
 		if p.ClusterLocal {
-			labels := servinglib.UpdateLabels(service.ObjectMeta.Labels, map[string]string{serving.VisibilityLabelKey: serving.VisibilityClusterLocal}, []string{})
+			labels := servinglib.UpdateLabels(service.ObjectMeta.Labels, map[string]string{network.VisibilityLabelKey: serving.VisibilityClusterLocal}, []string{})
 			service.ObjectMeta.Labels = labels // In case service.ObjectMeta.Labels was nil
 		} else {
-			labels := servinglib.UpdateLabels(service.ObjectMeta.Labels, map[string]string{}, []string{serving.VisibilityLabelKey})
+			labels := servinglib.UpdateLabels(service.ObjectMeta.Labels, map[string]string{}, []string{network.VisibilityLabelKey})
 			service.ObjectMeta.Labels = labels // In case service.ObjectMeta.Labels was nil
 		}
 	}

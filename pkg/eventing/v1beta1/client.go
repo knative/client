@@ -15,6 +15,7 @@
 package v1beta1
 
 import (
+	"context"
 	"time"
 
 	apis_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -74,7 +75,7 @@ func NewKnEventingClient(client client_v1beta1.EventingV1beta1Interface, namespa
 
 //CreateTrigger is used to create an instance of trigger
 func (c *knEventingClient) CreateTrigger(trigger *v1beta1.Trigger) error {
-	_, err := c.client.Triggers(c.namespace).Create(trigger)
+	_, err := c.client.Triggers(c.namespace).Create(context.TODO(), trigger, meta_v1.CreateOptions{})
 	if err != nil {
 		return kn_errors.GetError(err)
 	}
@@ -83,7 +84,7 @@ func (c *knEventingClient) CreateTrigger(trigger *v1beta1.Trigger) error {
 
 //DeleteTrigger is used to delete an instance of trigger
 func (c *knEventingClient) DeleteTrigger(name string) error {
-	err := c.client.Triggers(c.namespace).Delete(name, &apis_v1.DeleteOptions{})
+	err := c.client.Triggers(c.namespace).Delete(context.TODO(), name, apis_v1.DeleteOptions{})
 	if err != nil {
 		return kn_errors.GetError(err)
 	}
@@ -92,7 +93,7 @@ func (c *knEventingClient) DeleteTrigger(name string) error {
 
 //GetTrigger is used to get an instance of trigger
 func (c *knEventingClient) GetTrigger(name string) (*v1beta1.Trigger, error) {
-	trigger, err := c.client.Triggers(c.namespace).Get(name, apis_v1.GetOptions{})
+	trigger, err := c.client.Triggers(c.namespace).Get(context.TODO(), name, apis_v1.GetOptions{})
 	if err != nil {
 		return nil, kn_errors.GetError(err)
 	}
@@ -100,7 +101,7 @@ func (c *knEventingClient) GetTrigger(name string) (*v1beta1.Trigger, error) {
 }
 
 func (c *knEventingClient) ListTriggers() (*v1beta1.TriggerList, error) {
-	triggerList, err := c.client.Triggers(c.namespace).List(apis_v1.ListOptions{})
+	triggerList, err := c.client.Triggers(c.namespace).List(context.TODO(), apis_v1.ListOptions{})
 	if err != nil {
 		return nil, kn_errors.GetError(err)
 	}
@@ -124,7 +125,7 @@ func (c *knEventingClient) ListTriggers() (*v1beta1.TriggerList, error) {
 
 //CreateTrigger is used to create an instance of trigger
 func (c *knEventingClient) UpdateTrigger(trigger *v1beta1.Trigger) error {
-	_, err := c.client.Triggers(c.namespace).Update(trigger)
+	_, err := c.client.Triggers(c.namespace).Update(context.TODO(), trigger, meta_v1.UpdateOptions{})
 	if err != nil {
 		return kn_errors.GetError(err)
 	}
@@ -215,7 +216,7 @@ func (b *TriggerBuilder) Build() *v1beta1.Trigger {
 
 // CreateBroker is used to create an instance of broker
 func (c *knEventingClient) CreateBroker(broker *v1beta1.Broker) error {
-	_, err := c.client.Brokers(c.namespace).Create(broker)
+	_, err := c.client.Brokers(c.namespace).Create(context.TODO(), broker, meta_v1.CreateOptions{})
 	if err != nil {
 		return kn_errors.GetError(err)
 	}
@@ -224,7 +225,7 @@ func (c *knEventingClient) CreateBroker(broker *v1beta1.Broker) error {
 
 // GetBroker is used to get an instance of broker
 func (c *knEventingClient) GetBroker(name string) (*v1beta1.Broker, error) {
-	trigger, err := c.client.Brokers(c.namespace).Get(name, apis_v1.GetOptions{})
+	trigger, err := c.client.Brokers(c.namespace).Get(context.TODO(), name, apis_v1.GetOptions{})
 	if err != nil {
 		return nil, kn_errors.GetError(err)
 	}
@@ -258,7 +259,7 @@ func (c *knEventingClient) DeleteBroker(name string, timeout time.Duration) erro
 
 // deleteBroker is used to delete an instance of broker
 func (c *knEventingClient) deleteBroker(name string, propagationPolicy apis_v1.DeletionPropagation) error {
-	err := c.client.Brokers(c.namespace).Delete(name, &apis_v1.DeleteOptions{PropagationPolicy: &propagationPolicy})
+	err := c.client.Brokers(c.namespace).Delete(context.TODO(), name, apis_v1.DeleteOptions{PropagationPolicy: &propagationPolicy})
 	if err != nil {
 		return kn_errors.GetError(err)
 	}
@@ -267,7 +268,7 @@ func (c *knEventingClient) deleteBroker(name string, propagationPolicy apis_v1.D
 
 // ListBrokers is used to retrieve the list of broker instances
 func (c *knEventingClient) ListBrokers() (*v1beta1.BrokerList, error) {
-	brokerList, err := c.client.Brokers(c.namespace).List(apis_v1.ListOptions{})
+	brokerList, err := c.client.Brokers(c.namespace).List(context.TODO(), apis_v1.ListOptions{})
 	if err != nil {
 		return nil, kn_errors.GetError(err)
 	}

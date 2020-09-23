@@ -15,6 +15,8 @@
 package v1beta1
 
 import (
+	"context"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"knative.dev/eventing/pkg/apis/messaging/v1beta1"
@@ -63,7 +65,7 @@ func (c *channelsClient) Namespace() string {
 
 // GetChannel gets Channel by its name
 func (c *channelsClient) GetChannel(name string) (*v1beta1.Channel, error) {
-	channel, err := c.client.Get(name, metav1.GetOptions{})
+	channel, err := c.client.Get(context.TODO(), name, metav1.GetOptions{})
 	if err != nil {
 		return nil, knerrors.GetError(err)
 	}
@@ -76,18 +78,18 @@ func (c *channelsClient) GetChannel(name string) (*v1beta1.Channel, error) {
 
 // CreateChannel creates Channel with given spec
 func (c *channelsClient) CreateChannel(channel *v1beta1.Channel) error {
-	_, err := c.client.Create(channel)
+	_, err := c.client.Create(context.TODO(), channel, metav1.CreateOptions{})
 	return knerrors.GetError(err)
 }
 
 // DeleteChannel deletes Channel by its name
 func (c *channelsClient) DeleteChannel(name string) error {
-	return knerrors.GetError(c.client.Delete(name, &metav1.DeleteOptions{}))
+	return knerrors.GetError(c.client.Delete(context.TODO(), name, metav1.DeleteOptions{}))
 }
 
 // ListChannel lists channels in configured namespace
 func (c *channelsClient) ListChannel() (*v1beta1.ChannelList, error) {
-	channelList, err := c.client.List(metav1.ListOptions{})
+	channelList, err := c.client.List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return nil, knerrors.GetError(err)
 	}
