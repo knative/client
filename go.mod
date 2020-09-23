@@ -12,7 +12,7 @@ require (
 	gotest.tools v2.2.0+incompatible
 	k8s.io/api v0.18.8
 	k8s.io/apimachinery v0.18.8
-	k8s.io/cli-runtime v0.17.6
+	k8s.io/cli-runtime v0.18.8
 	k8s.io/client-go v11.0.1-0.20190805182717-6502b5e7b1b5+incompatible
 	k8s.io/code-generator v0.18.8
 	knative.dev/eventing v0.17.1-0.20200922201940-baa7cd3e8254
@@ -24,10 +24,10 @@ require (
 // Temporary pinning certain libraries. Please check periodically, whether these are still needed
 // ----------------------------------------------------------------------------------------------
 replace (
-	k8s.io/api => k8s.io/api v0.17.6
-	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.17.6
-	k8s.io/apimachinery => k8s.io/apimachinery v0.17.6
-	k8s.io/cli-runtime => k8s.io/cli-runtime v0.17.6
-	k8s.io/client-go => k8s.io/client-go v0.17.6
-	k8s.io/code-generator => k8s.io/code-generator v0.17.6
+	k8s.io/api => k8s.io/api v0.18.8
+	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.18.8
+	k8s.io/apimachinery => k8s.io/apimachinery v0.18.8
+	k8s.io/cli-runtime => k8s.io/cli-runtime v0.18.8
+	k8s.io/client-go => k8s.io/client-go v0.18.8
+	k8s.io/code-generator => k8s.io/code-generator v0.18.8
 )
