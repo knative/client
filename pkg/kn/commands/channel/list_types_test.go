@@ -45,6 +45,7 @@ const (
 	channelListGroup   = "messaging.knative.dev"
 	channelListVersion = "v1beta1"
 	channelListKind    = "ChannelList"
+	inMemoryChannel    = "InMemoryChannel"
 )
 
 // channelFakeCmd takes cmd to be executed using dynamic client
@@ -152,7 +153,7 @@ func newChannelCRDObj(name string) *unstructured.Unstructured {
 	return obj
 }
 
-func TestChannelListTypeError(t *testing.T) {
+func TestChannelListTypeErrors(t *testing.T) {
 	dynamicClient := dynamicfakeClient.CreateFakeKnDynamicClient(testNamespace, newChannelCRDObj("InMemoryChannel"))
 	assert.Equal(t, dynamicClient.Namespace(), testNamespace)
 
@@ -161,9 +162,63 @@ func TestChannelListTypeError(t *testing.T) {
 
 	assert.Check(t, util.ContainsAll(err.Error(), "can't find specs.names.kind for InMemoryChannel"))
 
+	obj := newChannelCRDObj(inMemoryChannel)
+	obj.Object["spec"] = map[string]interface{}{
+		"group":   channelListGroup,
+		"version": channelListVersion,
+		"names":   map[string]interface{}{},
+	}
+	dynamicClient = dynamicfakeClient.CreateFakeKnDynamicClient(testNamespace, obj)
+	output, err = channelFakeCmd([]string{"channel", "list-types"}, dynamicClient)
+	assert.Check(t, err != nil)
+	assert.Error(t, err, "can't find specs.names.kind for InMemoryChannel")
+
+	obj.Object["spec"] = map[string]interface{}{
+		"group":   channelListGroup,
+		"version": channelListVersion,
+		"names": map[string]interface{}{
+			"kind":   true,
+			"plural": strings.ToLower("kind") + "s",
+		},
+	}
+
+	dynamicClient = dynamicfakeClient.CreateFakeKnDynamicClient(testNamespace, obj)
+	output, err = channelFakeCmd([]string{"channel", "list-types"}, dynamicClient)
+	assert.Check(t, err != nil)
+	assert.Error(t, err, ".spec.names.kind accessor error: true is of the type bool, expected string")
+
+	obj.Object["spec"] = map[string]interface{}{
+		"version": channelListVersion,
+		"names": map[string]interface{}{
+			"kind":   inMemoryChannel,
+			"plural": strings.ToLower(inMemoryChannel) + "s",
+		},
+	}
+	dynamicClient = dynamicfakeClient.CreateFakeKnDynamicClient(testNamespace, obj)
+	output, err = channelFakeCmd([]string{"channel", "list-types"}, dynamicClient)
+	assert.Check(t, err != nil)
+	assert.Error(t, err, "can't find specs.group for InMemoryChannel")
+
+	obj.Object["spec"] = map[string]interface{}{
+		"group":   true,
+		"version": channelListVersion,
+		"names": map[string]interface{}{
+			"kind":   inMemoryChannel,
+			"plural": strings.ToLower(inMemoryChannel) + "s",
+		},
+	}
+
+	dynamicClient = dynamicfakeClient.CreateFakeKnDynamicClient(testNamespace, obj)
+	output, err = channelFakeCmd([]string{"channel", "list-types"}, dynamicClient)
+	assert.Check(t, err != nil)
+	assert.Error(t, err, ".spec.group accessor error: true is of the type bool, expected string")
+
 	dynamicClient = dynamicfakeClient.CreateFakeKnDynamicClient(testNamespace,
 		newChannelCRDObjWithSpec("InMemoryChannel", "messaging.knative.dev", "v1beta1", "InMemoryChannel"),
 	)
+	_, err = channelFakeCmd([]string{"channel", "list-types", "--noheader"}, dynamicClient)
+	assert.Check(t, err != nil)
+	assert.Error(t, err, "unknown flag: --noheader")
 
 	output, err = channelFakeCmd([]string{"channel", "list-types"}, dynamicClient)
 	assert.NilError(t, err)
