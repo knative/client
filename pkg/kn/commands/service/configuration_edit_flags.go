@@ -51,6 +51,8 @@ type ConfigurationEditFlags struct {
 	LabelsRevision         []string
 	RevisionName           string
 	Annotations            []string
+	AnnotationsService     []string
+	AnnotationsRevision    []string
 	ClusterLocal           bool
 	ScaleInit              int
 
@@ -127,13 +129,13 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 		"Service label to set. name=value; you may provide this flag "+
 			"any number of times to set multiple labels. "+
 			"To unset, specify the label name followed by a \"-\" (e.g., name-). This flag takes "+
-			"precedence over \"label\" flag.")
+			"precedence over the \"label\" flag.")
 	p.markFlagMakesRevision("label-service")
 	command.Flags().StringArrayVarP(&p.LabelsRevision, "label-revision", "", []string{},
 		"Revision label to set. name=value; you may provide this flag "+
 			"any number of times to set multiple labels. "+
 			"To unset, specify the label name followed by a \"-\" (e.g., name-). This flag takes "+
-			"precedence over \"label\" flag.")
+			"precedence over the \"label\" flag.")
 	p.markFlagMakesRevision("label-revision")
 
 	command.Flags().StringVar(&p.RevisionName, "revision-name", "{{.Service}}-{{.Random 5}}-{{.Generation}}",
@@ -149,10 +151,24 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	// Don't mark as changing the revision.
 
 	command.Flags().StringArrayVarP(&p.Annotations, "annotation", "a", []string{},
-		"Service annotation to set. name=value; you may provide this flag "+
+		"Annotations to set for both Service and Revision. name=value; you may provide this flag "+
 			"any number of times to set multiple annotations. "+
 			"To unset, specify the annotation name followed by a \"-\" (e.g., name-).")
 	p.markFlagMakesRevision("annotation")
+
+	command.Flags().StringArrayVarP(&p.AnnotationsService, "annotation-service", "", []string{},
+		"Service annotation to set. name=value; you may provide this flag "+
+			"any number of times to set multiple annotations. "+
+			"To unset, specify the annotation name followed by a \"-\" (e.g., name-). This flag takes "+
+			"precedence over the \"annotation\" flag.")
+	p.markFlagMakesRevision("annotation-service")
+
+	command.Flags().StringArrayVarP(&p.AnnotationsRevision, "annotation-revision", "", []string{},
+		"Revision annotation to set. name=value; you may provide this flag "+
+			"any number of times to set multiple annotations. "+
+			"To unset, specify the annotation name followed by a \"-\" (e.g., name-). This flag takes "+
+			"precedence over the \"annotation\" flag.")
+	p.markFlagMakesRevision("annotation-revision")
 
 	command.Flags().IntVar(&p.ScaleInit, "scale-init", 0, "Initial number of replicas with which a service starts. Can be 0 or a positive integer.")
 	p.markFlagMakesRevision("scale-init")
@@ -406,25 +422,47 @@ func (p *ConfigurationEditFlags) Apply(
 		}
 	}
 
-	if cmd.Flags().Changed("annotation") {
-		annotationsMap, err := util.MapFromArrayAllowingSingles(p.Annotations, "=")
+	if cmd.Flags().Changed("annotation") || cmd.Flags().Changed("annotation-service") || cmd.Flags().Changed("annotation-revision") {
+		annotationsAllMap, err := util.MapFromArrayAllowingSingles(p.Annotations, "=")
 		if err != nil {
 			return fmt.Errorf("Invalid --annotation: %w", err)
 		}
+		annotationRevisionFlagMap, err := util.MapFromArrayAllowingSingles(p.AnnotationsRevision, "=")
+		if err != nil {
+			return fmt.Errorf("Invalid --annotation-revision: %w", err)
+		}
+		annotationServiceFlagMap, err := util.MapFromArrayAllowingSingles(p.AnnotationsService, "=")
+		if err != nil {
+			return fmt.Errorf("Invalid --annotation-service: %w", err)
+		}
 
-		annotationsToRemove := util.ParseMinusSuffix(annotationsMap)
+		annotationsToRemove := util.ParseMinusSuffix(annotationsAllMap)
+
+		revisionAnnotations := make(util.StringMap)
+		revisionAnnotations.Merge(annotationsAllMap)
+		revisionAnnotations.Merge(annotationRevisionFlagMap)
+		err = servinglib.UpdateRevisionTemplateAnnotations(template, revisionAnnotations, annotationsToRemove)
+		if err != nil {
+			return err
+		}
+
+		serviceAnnotations := make(util.StringMap)
+
 		// Service Annotations can't contain Autoscaling ones
-		serviceAnnotations := make(map[string]string)
-		for key, value := range annotationsMap {
+
+		for key, value := range annotationsAllMap {
 			if !strings.HasPrefix(key, autoscaling.GroupName) {
 				serviceAnnotations[key] = value
 			}
 		}
-		// Add all user provided annotations to RevisionTemplate
-		err = servinglib.UpdateRevisionTemplateAnnotations(template, annotationsMap, annotationsToRemove)
-		if err != nil {
-			return err
+
+		for key, value := range annotationServiceFlagMap {
+			if strings.HasPrefix(key, autoscaling.GroupName) {
+				return fmt.Errorf("Service cannot have annotation: %s", key)
+			}
+			serviceAnnotations[key] = value
 		}
+
 		err = servinglib.UpdateServiceAnnotations(service, serviceAnnotations, annotationsToRemove)
 		if err != nil {
 			return err
