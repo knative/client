@@ -298,7 +298,7 @@ apply_emoji_fixes() {
   if [ -n "${ITERM_PROFILE:-}" ]; then
     S=" "
     # This issue has been fixed with iTerm2 3.3.7, so let's check for this
-    # We can remove this code alltogether if iTerm2 3.3.7 is in common usage everywhere
+    # We can remove this code altogether if iTerm2 3.3.7 is in common usage everywhere
     if [ -n "${TERM_PROGRAM_VERSION}" ]; then
       args=$(echo $TERM_PROGRAM_VERSION | sed -e 's#[^0-9]*\([0-9]*\)[.]\([0-9]*\)[.]\([0-9]*\)\([0-9A-Za-z-]*\)#\1 \2 \3#')
       expanded=$(printf '%03d%03d%03d' $args)
