@@ -694,7 +694,7 @@
 | https://github.com/knative/client/pull/401[#401]
 
 | 🐛
-| Add enviroment variables in alphabetical order for service create/update
+| Add environment variables in alphabetical order for service create/update
 | https://github.com/knative/client/pull/389[#389]
 
 | 🐛
