@@ -653,7 +653,7 @@ k8s.io/kube-openapi/pkg/util/sets
 k8s.io/utils/buffer
 k8s.io/utils/integer
 k8s.io/utils/trace
-# knative.dev/eventing v0.17.1-0.20200925222044-b313bac67b1c
+# knative.dev/eventing v0.18.0
 ## explicit
 knative.dev/eventing/pkg/apis/config
 knative.dev/eventing/pkg/apis/configs
@@ -714,7 +714,7 @@ knative.dev/pkg/tracing/config
 knative.dev/pkg/tracing/propagation
 knative.dev/pkg/tracing/propagation/tracecontextb3
 knative.dev/pkg/tracker
-# knative.dev/serving v0.17.1-0.20200928165745-e46acff3aa54
+# knative.dev/serving v0.18.0
 ## explicit
 knative.dev/serving/pkg/apis/autoscaling
 knative.dev/serving/pkg/apis/autoscaling/v1alpha1

@@ -23,13 +23,13 @@ set -o pipefail
 
 cd ${ROOT_DIR}
 
-VERSION="master"
+VERSION="release-0.18"
 
 # The list of dependencies that we track at HEAD and periodically
 # float forward in this repository.
 FLOATING_DEPS=(
-  "knative.dev/pkg@release-0.18"
-  "knative.dev/networking@release-0.18"
+  "knative.dev/pkg@${VERSION}"
+  "knative.dev/networking@${VERSION}"
   "knative.dev/serving@${VERSION}"
   "knative.dev/eventing@${VERSION}"
 )
