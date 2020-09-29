@@ -124,9 +124,7 @@ function markdown_build_tests() {
   (( DISABLE_MD_LINTING && DISABLE_MD_LINK_CHECK )) && return 0
   # Get changed markdown files (ignore /vendor, github templates, and deleted files)
   local mdfiles=""
-  # Exclude scripts/test-infra as it is directly imported from test-infra repo which could
-  # have the link with relative path of test-infra repo which does not work with client repo.
-  for file in $(echo "${CHANGED_FILES}" | grep \\.md$ | grep -v ^vendor/ | grep -v ^.github/ | grep =v ^scripts/test-infra); do
+  for file in $(echo "${CHANGED_FILES}" | grep \\.md$ | grep -v ^vendor/ | grep -v ^.github/); do
     [[ -f "${file}" ]] && mdfiles="${mdfiles} ${file}"
   done
   [[ -z "${mdfiles}" ]] && return 0
