@@ -42,7 +42,7 @@ func TestSubscriptions(t *testing.T) {
 	test.ServiceCreate(r, "svc0")
 	test.ServiceCreate(r, "svc1")
 	test.ServiceCreate(r, "svc2")
-	test.SubscriptionCreate(r, "sub0", "--channel", "imcv1beta1:c0", "--sink", "ksvc:svc0", "--sink-reply", "ksvc:svc1", "--sink-dead-letter", "ksvc:svc2")
+	test.SubscriptionCreate(r, "sub0", "--channel", "c0", "--sink", "ksvc:svc0", "--sink-reply", "ksvc:svc1", "--sink-dead-letter", "ksvc:svc2")
 
 	t.Log("Update a subscription")
 	test.ServiceCreate(r, "svc3")

@@ -114,10 +114,16 @@ func TestChannelRefFlags(t *testing.T) {
 			"",
 		},
 		{
+			"default channel type prefix case",
+			"c1",
+			&corev1.ObjectReference{APIVersion: "messaging.knative.dev/v1beta1", Kind: "Channel", Name: "c1"},
+			"",
+		},
+		{
 			"error case unknown alias",
-			"natss",
+			"natss:n1",
 			nil,
-			"Error: incorrect value 'natss' for '--channel', must be in the format 'Group:Version:Kind:Name' or configure an alias in kn config and refer as: '--channel ALIAS:NAME'",
+			"Error: unknown alias 'natss' for '--channel', please configure the alias in kn config or specify in the format '--channel Group:Version:Kind:Name'",
 		},
 		{
 			"error case incorrect gvk format, missing version",
