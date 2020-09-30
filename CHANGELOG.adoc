@@ -26,6 +26,10 @@
 | Add support for service initialScale via `--scale-init` flag
 | https://github.com/knative/client/pull/990[#990]
 
+| 🎁
+| Add "--annotation-service" and "--annotation-revision" to kn service create/update
+| https://github.com/knative/client/pull/1029[#1029]
+
 |===
 
 ## v0.17.0 (2020-08-26)

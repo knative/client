@@ -163,6 +163,21 @@ func TestServiceOptions(t *testing.T) {
 	validateServiceInitScale(r, "svc11", "2")
 	t.Log("delete service")
 	test.ServiceDelete(r, "svc11")
+
+	t.Log("create and validate service and revision annotations")
+	serviceCreateWithOptions(r, "svc12", "--annotation-service", "svc=helloworld-svc", "--annotation-revision", "rev=helloworld-rev")
+	validateServiceAndRevisionAnnotations(r, "svc12", map[string]string{"svc": "helloworld-svc"}, map[string]string{"rev": "helloworld-rev"})
+	test.ServiceDelete(r, "svc12")
+
+	t.Log("create and validate service annotations")
+	serviceCreateWithOptions(r, "svc13", "--annotation-service", "svc=helloworld-svc")
+	validateServiceAndRevisionAnnotations(r, "svc13", map[string]string{"svc": "helloworld-svc"}, nil)
+	test.ServiceDelete(r, "svc13")
+
+	t.Log("create and validate revision annotations")
+	serviceCreateWithOptions(r, "svc14", "--annotation-revision", "rev=helloworld-rev")
+	validateServiceAndRevisionAnnotations(r, "svc14", nil, map[string]string{"rev": "helloworld-rev"})
+	test.ServiceDelete(r, "svc14")
 }
 
 func serviceCreateWithOptions(r *test.KnRunResultCollector, serviceName string, options ...string) {
@@ -244,6 +259,26 @@ func validateServiceAnnotations(r *test.KnRunResultCollector, serviceName string
 		r.AssertNoError(out)
 
 		out = r.KnTest().Kn().Run("service", "describe", serviceName, "-o", fmt.Sprintf(templateAnnotationsJsonpathFormat, k))
+		assert.Equal(r.T(), v, out.Stdout)
+		r.AssertNoError(out)
+	}
+}
+
+func validateServiceAndRevisionAnnotations(r *test.KnRunResultCollector, serviceName string, expectedServiceAnnotations, expectedRevisionAnnotations map[string]string) {
+
+	metadataAnnotationsJsonpathFormat := "jsonpath={.metadata.annotations.%s}"
+	templateAnnotationsJsonpathFormat := "jsonpath={.spec.template.metadata.annotations.%s}"
+
+	for k, v := range expectedServiceAnnotations {
+
+		out := r.KnTest().Kn().Run("service", "describe", serviceName, "-o", fmt.Sprintf(metadataAnnotationsJsonpathFormat, k))
+		assert.Equal(r.T(), v, out.Stdout)
+		r.AssertNoError(out)
+	}
+
+	for k, v := range expectedRevisionAnnotations {
+
+		out := r.KnTest().Kn().Run("service", "describe", serviceName, "-o", fmt.Sprintf(templateAnnotationsJsonpathFormat, k))
 		assert.Equal(r.T(), v, out.Stdout)
 		r.AssertNoError(out)
 	}

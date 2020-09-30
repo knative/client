@@ -579,6 +579,106 @@ func TestServiceCreateWithAnnotations(t *testing.T) {
 	r.Validate()
 }
 
+func TestServiceCreateWithRevisionAndServiceAnnotations(t *testing.T) {
+	client := knclient.NewMockKnServiceClient(t)
+
+	r := client.Recorder()
+	r.GetService("foo", nil, errors.NewNotFound(servingv1.Resource("service"), "foo"))
+
+	service := getService("foo")
+	template := &service.Spec.Template
+
+	service.ObjectMeta.Annotations = map[string]string{
+		"foo": "bar",
+	}
+
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.ObjectMeta.Annotations = map[string]string{
+		autoscaling.InitialScaleAnnotationKey: "1", // autoscaling in only added Revision Template
+		servinglib.UserImageAnnotationKey:     "gcr.io/foo/bar:baz",
+	}
+
+	r.CreateService(service, nil)
+
+	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz",
+		"--annotation-service", "foo=bar",
+		"--annotation-revision", autoscaling.InitialScaleAnnotationKey+"=1",
+		"--no-wait", "--revision-name=")
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
+
+	r.Validate()
+}
+
+func TestServiceCreateWithRevisionAnnotations(t *testing.T) {
+	client := knclient.NewMockKnServiceClient(t)
+
+	r := client.Recorder()
+	r.GetService("foo", nil, errors.NewNotFound(servingv1.Resource("service"), "foo"))
+
+	service := getService("foo")
+	template := &service.Spec.Template
+
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.ObjectMeta.Annotations = map[string]string{
+		autoscaling.InitialScaleAnnotationKey: "1", // autoscaling in only added Revision Template
+		servinglib.UserImageAnnotationKey:     "gcr.io/foo/bar:baz",
+	}
+
+	r.CreateService(service, nil)
+
+	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz",
+		"--annotation-revision", autoscaling.InitialScaleAnnotationKey+"=1",
+		"--no-wait", "--revision-name=")
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
+
+	r.Validate()
+}
+
+func TestServiceCreateWithServiceAnnotations(t *testing.T) {
+	client := knclient.NewMockKnServiceClient(t)
+
+	r := client.Recorder()
+	r.GetService("foo", nil, errors.NewNotFound(servingv1.Resource("service"), "foo"))
+
+	service := getService("foo")
+	template := &service.Spec.Template
+
+	service.ObjectMeta.Annotations = map[string]string{
+		"foo": "bar",
+	}
+
+	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
+	template.ObjectMeta.Annotations = map[string]string{
+		servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz",
+	}
+
+	r.CreateService(service, nil)
+
+	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz",
+		"--annotation-service", "foo=bar",
+		"--no-wait", "--revision-name=")
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
+
+	r.Validate()
+}
+
+func TestServiceCreateWithAutoScaleServiceAnnotationsError(t *testing.T) {
+	client := knclient.NewMockKnServiceClient(t)
+
+	r := client.Recorder()
+
+	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz",
+		"--annotation-service", autoscaling.InitialScaleAnnotationKey+"=1",
+		"--no-wait", "--revision-name=")
+	assert.Assert(t, err != nil)
+	assert.Assert(t, util.ContainsAll(output, "Service cannot have annotation: autoscaling.knative.dev/initialScale"))
+
+	r.Validate()
+}
+
 func getServiceWithUrl(name string, urlName string) *servingv1.Service {
 	service := servingv1.Service{}
 	url, _ := apis.ParseURL(urlName)
