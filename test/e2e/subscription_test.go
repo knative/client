@@ -55,7 +55,7 @@ func TestSubscriptions(t *testing.T) {
 
 	t.Log("Describe subscription")
 	sdesc := test.SubscriptionDescribe(r, "sub0")
-	assert.Check(t, util.ContainsAll(sdesc, "sub0", "Age", "Channel", "InMemoryChannel", "c0", "Subscriber", "svc3", "Resource", "Service", "serving.knative.dev/v1", "Reply", "svc1", "DeadLetterSink", "svc2", "Conditions"))
+	assert.Check(t, util.ContainsAll(sdesc, "sub0", "Age", "Channel", "Channel", "c0", "Subscriber", "svc3", "Resource", "Service", "serving.knative.dev/v1", "Reply", "svc1", "DeadLetterSink", "svc2", "Conditions"))
 
 	t.Log("Delete subscription")
 	test.SubscriptionDelete(r, "sub0")
