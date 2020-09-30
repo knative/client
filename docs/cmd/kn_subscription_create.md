@@ -24,7 +24,7 @@ kn subscription create NAME
 ### Options
 
 ```
-      --channel string            Specify the channel to subscribe to, in the format '--channel Group:Version:Kind:Name'. You can refer channel type aliases from kn config with this flag. You can also refer inbuilt channel type aliases 'imcv1beta1' or 'imc'. Examples: '--channel messaging.knative.dev:v1alpha1:KafkaChannel:k1' for specifying explicit Group:Version:Kind:Name. If a prefix is not provided, it is considered as Channel(messaging.knative.dev/v1beta1).
+      --channel string            Specify the channel to subscribe to. For the default channel, just use the name (e.g. 'mychannel'). A mapped channel type like 'imc' can be used as a prefix (e.g. 'imc:mychannel'). Finally you can specify the full coordinates to the referenced channel with Group:Version:Kind:Name (e.g. 'messaging.knative.dev:v1alpha1:KafkaChannel:mychannel').
   -h, --help                      help for create
   -n, --namespace string          Specify the namespace to operate in.
   -s, --sink string               Addressable sink for events. You can specify a broker, Knative service or URI. Examples: '--sink broker:nest' for a broker 'nest', '--sink https://event.receiver.uri' for an URI with an 'http://' or 'https://' schema, '--sink ksvc:receiver' or simply '--sink receiver' for a Knative service 'receiver'. If a prefix is not provided, it is considered as a Knative service.
