@@ -18,12 +18,16 @@
 |===
 | | Description | PR
 
+| 🎁
+| Add subscription CRUD
+| https://github.com/knative/client/pull/1013[#1013]
+
 | 🐛
 | Fix service export example documentation
 | https://github.com/knative/client/pull/1006[#1006]
 
 | 🎁
-| Add support for service initialScale via `--scale-init` flag
+| Add support for service initialscale via `--scale-init` flag
 | https://github.com/knative/client/pull/990[#990]
 
 | 🎁
