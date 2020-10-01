@@ -674,7 +674,7 @@ func TestServiceCreateWithAutoScaleServiceAnnotationsError(t *testing.T) {
 		"--annotation-service", autoscaling.InitialScaleAnnotationKey+"=1",
 		"--no-wait", "--revision-name=")
 	assert.Assert(t, err != nil)
-	assert.Assert(t, util.ContainsAll(output, "Service cannot have annotation: autoscaling.knative.dev/initialScale"))
+	assert.Assert(t, util.ContainsAll(output, "service can not have auto-scaling related annotation", "autoscaling.knative.dev/initialScale"))
 
 	r.Validate()
 }

@@ -458,7 +458,7 @@ func (p *ConfigurationEditFlags) Apply(
 
 		for key, value := range annotationServiceFlagMap {
 			if strings.HasPrefix(key, autoscaling.GroupName) {
-				return fmt.Errorf("Service cannot have annotation: %s", key)
+				return fmt.Errorf("service can not have auto-scaling related annotation: %s , please update using '--annotation-revision'", key)
 			}
 			serviceAnnotations[key] = value
 		}
