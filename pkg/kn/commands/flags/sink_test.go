@@ -17,6 +17,7 @@ package flags
 import (
 	"testing"
 
+	"github.com/spf13/cobra"
 	"gotest.tools/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	eventingv1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
@@ -31,6 +32,40 @@ type resolveCase struct {
 	sink        string
 	destination *duckv1.Destination
 	errContents string
+}
+
+type sinkFlagAddTestCases struct {
+	flagName          string
+	expectedFlagName  string
+	expectedShortName string
+}
+
+func TestSinkFlagAdd(t *testing.T) {
+	cases := []*sinkFlagAddTestCases{
+		{
+			"",
+			"sink",
+			"s",
+		},
+		{
+			"subscriber",
+			"subscriber",
+			"",
+		},
+	}
+	for _, tc := range cases {
+		c := &cobra.Command{Use: "sinktest"}
+		sinkFlags := new(SinkFlags)
+		if tc.flagName == "" {
+			sinkFlags.Add(c)
+			assert.Equal(t, tc.expectedFlagName, c.Flag("sink").Name)
+			assert.Equal(t, tc.expectedShortName, c.Flag("sink").Shorthand)
+		} else {
+			sinkFlags.AddWithFlagName(c, tc.flagName, "")
+			assert.Equal(t, tc.expectedFlagName, c.Flag(tc.flagName).Name)
+			assert.Equal(t, tc.expectedShortName, c.Flag(tc.flagName).Shorthand)
+		}
+	}
 }
 
 func TestResolve(t *testing.T) {

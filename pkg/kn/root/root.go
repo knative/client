@@ -35,6 +35,7 @@ import (
 	"knative.dev/client/pkg/kn/commands/route"
 	"knative.dev/client/pkg/kn/commands/service"
 	"knative.dev/client/pkg/kn/commands/source"
+	"knative.dev/client/pkg/kn/commands/subscription"
 	"knative.dev/client/pkg/kn/commands/trigger"
 	"knative.dev/client/pkg/kn/commands/version"
 	"knative.dev/client/pkg/kn/config"
@@ -95,6 +96,7 @@ func NewRootCommand(helpFuncs *template.FuncMap) (*cobra.Command, error) {
 				broker.NewBrokerCommand(p),
 				trigger.NewTriggerCommand(p),
 				channel.NewChannelCommand(p),
+				subscription.NewSubscriptionCommand(p),
 			},
 		},
 		{
