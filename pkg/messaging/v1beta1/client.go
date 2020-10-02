@@ -28,6 +28,9 @@ import (
 type KnMessagingClient interface {
 	// Get the Channels client
 	ChannelsClient() KnChannelsClient
+
+	// Get the Subscriptions client
+	SubscriptionsClient() KnSubscriptionsClient
 }
 
 // messagingClient holds Messaging client interface and namespace
@@ -47,6 +50,11 @@ func NewKnMessagingClient(client clientv1beta1.MessagingV1beta1Interface, namesp
 // ChannelsClient for working with Channels
 func (c *messagingClient) ChannelsClient() KnChannelsClient {
 	return newKnChannelsClient(c.client.Channels(c.namespace), c.namespace)
+}
+
+// SubscriptionsClient for working with Subscriptions
+func (c *messagingClient) SubscriptionsClient() KnSubscriptionsClient {
+	return newKnSubscriptionsClient(c.client.Subscriptions(c.namespace), c.namespace)
 }
 
 // update GVK of object

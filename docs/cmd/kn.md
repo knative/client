@@ -28,6 +28,7 @@ kn is the command line interface for managing Knative Serving and Eventing resou
 * [kn route](kn_route.md)	 - List and describe service routes
 * [kn service](kn_service.md)	 - Manage Knative services
 * [kn source](kn_source.md)	 - Manage event sources
+* [kn subscription](kn_subscription.md)	 - Manage event subscriptions
 * [kn trigger](kn_trigger.md)	 - Manage event triggers
 * [kn version](kn_version.md)	 - Show the version of this client
 
