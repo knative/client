@@ -17,8 +17,6 @@ limitations under the License.
 package v1beta1
 
 import (
-	"context"
-
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	eventingduckv1beta1 "knative.dev/eventing/pkg/apis/duck/v1beta1"
@@ -72,7 +70,7 @@ func (c *subscriptionsClient) Namespace() string {
 
 // GetSubscription gets Subscription by its name
 func (c *subscriptionsClient) GetSubscription(name string) (*v1beta1.Subscription, error) {
-	subscription, err := c.client.Get(context.TODO(), name, metav1.GetOptions{})
+	subscription, err := c.client.Get(name, metav1.GetOptions{})
 	if err != nil {
 		return nil, knerrors.GetError(err)
 	}
@@ -85,24 +83,24 @@ func (c *subscriptionsClient) GetSubscription(name string) (*v1beta1.Subscriptio
 
 // CreateSubscription creates Subscription with given spec
 func (c *subscriptionsClient) CreateSubscription(subscription *v1beta1.Subscription) error {
-	_, err := c.client.Create(context.TODO(), subscription, metav1.CreateOptions{})
+	_, err := c.client.Create(subscription)
 	return knerrors.GetError(err)
 }
 
 // UpdateSubscription creates Subscription with given spec
 func (c *subscriptionsClient) UpdateSubscription(subscription *v1beta1.Subscription) error {
-	_, err := c.client.Update(context.TODO(), subscription, metav1.UpdateOptions{})
+	_, err := c.client.Update(subscription)
 	return knerrors.GetError(err)
 }
 
 // DeleteSubscription deletes Subscription by its name
 func (c *subscriptionsClient) DeleteSubscription(name string) error {
-	return knerrors.GetError(c.client.Delete(context.TODO(), name, metav1.DeleteOptions{}))
+	return knerrors.GetError(c.client.Delete(name, &metav1.DeleteOptions{}))
 }
 
 // ListSubscription lists subscriptions in configured namespace
 func (c *subscriptionsClient) ListSubscription() (*v1beta1.SubscriptionList, error) {
-	subscriptionList, err := c.client.List(context.TODO(), metav1.ListOptions{})
+	subscriptionList, err := c.client.List(metav1.ListOptions{})
 	if err != nil {
 		return nil, knerrors.GetError(err)
 	}
