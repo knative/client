@@ -1,10 +1,10 @@
 ## kn subscription list
 
-List subscriptions
+List subscriptions (alias: 'ls')
 
 ### Synopsis
 
-List subscriptions
+List subscriptions (alias: 'ls')
 
 ```
 kn subscription list
@@ -43,5 +43,5 @@ kn subscription list
 
 ### SEE ALSO
 
-* [kn subscription](kn_subscription.md)	 - Manage event subscriptions
+* [kn subscription](kn_subscription.md)	 - Manage event subscriptions (aliases: subscriptions, sub)
 

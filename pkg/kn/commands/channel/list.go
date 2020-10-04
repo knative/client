@@ -28,8 +28,9 @@ func NewChannelListCommand(p *commands.KnParams) *cobra.Command {
 	listFlags := flags.NewListPrintFlags(ListHandlers)
 
 	listCommand := &cobra.Command{
-		Use:   "list",
-		Short: "List channels",
+		Use:     "list",
+		Short:   "List channels (alias: 'ls')",
+		Aliases: []string{"ls"},
 		Example: `
   # List all channels
   kn channel list

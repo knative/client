@@ -30,7 +30,7 @@ import (
 func NewSubscriptionCommand(p *commands.KnParams) *cobra.Command {
 	subscriptionCmd := &cobra.Command{
 		Use:     "subscription COMMAND",
-		Short:   "Manage event subscriptions",
+		Short:   "Manage event subscriptions (aliases: subscriptions, sub)",
 		Aliases: []string{"subscriptions", "sub"},
 	}
 	subscriptionCmd.AddCommand(NewSubscriptionCreateCommand(p))

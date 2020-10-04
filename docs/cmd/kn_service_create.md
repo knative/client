@@ -109,5 +109,5 @@ kn service create NAME --image IMAGE
 
 ### SEE ALSO
 
-* [kn service](kn_service.md)	 - Manage Knative services
+* [kn service](kn_service.md)	 - Manage Knative services (aliases: ksvc, services)
 

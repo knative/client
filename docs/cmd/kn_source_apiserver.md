@@ -26,7 +26,7 @@ kn source apiserver COMMAND
 
 ### SEE ALSO
 
-* [kn source](kn_source.md)	 - Manage event sources
+* [kn source](kn_source.md)	 - Manage event sources (alias: sources)
 * [kn source apiserver create](kn_source_apiserver_create.md)	 - Create an api-server source
 * [kn source apiserver delete](kn_source_apiserver_delete.md)	 - Delete an api-server source
 * [kn source apiserver describe](kn_source_apiserver_describe.md)	 - Show details of an api-server source

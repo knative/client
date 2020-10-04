@@ -43,7 +43,8 @@ func NewBrokerListCommand(p *commands.KnParams) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "list",
-		Short:   "List brokers",
+		Short:   "List brokers (alias: 'ls')",
+		Aliases: []string{"ls"},
 		Example: listExample,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			namespace, err := p.GetNamespace(cmd)

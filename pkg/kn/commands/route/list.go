@@ -31,8 +31,9 @@ import (
 func NewRouteListCommand(p *commands.KnParams) *cobra.Command {
 	routeListFlags := flags.NewListPrintFlags(RouteListHandlers)
 	routeListCommand := &cobra.Command{
-		Use:   "list NAME",
-		Short: "List routes",
+		Use:     "list NAME",
+		Short:   "List routes (alias: 'ls')",
+		Aliases: []string{"ls"},
 		Example: `
   # List all routes
   kn route list

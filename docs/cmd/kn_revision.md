@@ -1,10 +1,10 @@
 ## kn revision
 
-Manage service revisions
+Manage service revisions (alias: revisions)
 
 ### Synopsis
 
-Manage service revisions
+Manage service revisions (alias: revisions)
 
 ```
 kn revision
@@ -29,5 +29,5 @@ kn revision
 * [kn](kn.md)	 - kn manages Knative Serving and Eventing resources
 * [kn revision delete](kn_revision_delete.md)	 - Delete revisions
 * [kn revision describe](kn_revision_describe.md)	 - Show details of a revision
-* [kn revision list](kn_revision_list.md)	 - List revisions
+* [kn revision list](kn_revision_list.md)	 - List revisions (alias: 'ls')
 

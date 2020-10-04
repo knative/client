@@ -41,5 +41,5 @@ kn subscription update NAME
 
 ### SEE ALSO
 
-* [kn subscription](kn_subscription.md)	 - Manage event subscriptions
+* [kn subscription](kn_subscription.md)	 - Manage event subscriptions (aliases: subscriptions, sub)
 

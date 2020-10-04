@@ -31,8 +31,9 @@ func NewServiceListCommand(p *commands.KnParams) *cobra.Command {
 	serviceListFlags := flags.NewListPrintFlags(ServiceListHandlers)
 
 	serviceListCommand := &cobra.Command{
-		Use:   "list",
-		Short: "List services",
+		Use:     "list",
+		Short:   "List services (alias: 'ls')",
+		Aliases: []string{"ls"},
 		Example: `
   # List all services
   kn service list

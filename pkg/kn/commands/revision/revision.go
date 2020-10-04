@@ -23,8 +23,9 @@ import (
 
 func NewRevisionCommand(p *commands.KnParams) *cobra.Command {
 	revisionCmd := &cobra.Command{
-		Use:   "revision",
-		Short: "Manage service revisions",
+		Use:     "revision",
+		Short:   "Manage service revisions (alias: revisions)",
+		Aliases: []string{"revisions"},
 	}
 	revisionCmd.AddCommand(NewRevisionListCommand(p))
 	revisionCmd.AddCommand(NewRevisionDescribeCommand(p))

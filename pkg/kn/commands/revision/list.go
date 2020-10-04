@@ -38,9 +38,10 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 	revisionListFlags := flags.NewListPrintFlags(RevisionListHandlers)
 
 	revisionListCommand := &cobra.Command{
-		Use:   "list",
-		Short: "List revisions",
-		Long:  "List revisions for a given service.",
+		Use:     "list",
+		Short:   "List revisions (alias: 'ls')",
+		Aliases: []string{"ls"},
+		Long:    "List revisions for a given service.",
 		Example: `
   # List all revisions
   kn revision list
