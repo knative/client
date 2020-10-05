@@ -32,6 +32,9 @@
 # Serving / Eventing of this specific version.
 
 export DISABLE_MD_LINTING=1
+# Temporarily disable link check until the links within
+# the test-infra README is fixed itself. See https://github.com/knative/test-infra/issues/2478
+export DISABLE_MD_LINK_CHECK=1
 export PRESUBMIT_TEST_FAIL_FAST=1
 
 export GO111MODULE=on
