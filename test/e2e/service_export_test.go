@@ -45,9 +45,10 @@ type expectedKNExportOption func(*clientv1alpha1.Export)
 type podSpecOption func(*corev1.PodSpec)
 
 func TestServiceExport(t *testing.T) {
-	//FIXME: enable once 0.18 is available
-	if strings.HasPrefix(os.Getenv("KNATIVE_SERVING_VERSION"), "0.17") {
-		t.Skip("The test is skipped on Serving version 0.17")
+	//FIXME: enable once 0.19 is available
+	// see: https://github.com/knative/serving/pull/9685
+	if strings.HasPrefix(os.Getenv("KNATIVE_SERVING_VERSION"), "0.18") {
+		t.Skip("The test is skipped on Serving version 0.18")
 	}
 	t.Parallel()
 	it, err := test.NewKnTest()
@@ -502,6 +503,8 @@ func getPodSpecWithOptions(options ...podSpecOption) corev1.PodSpec {
 	for _, fn := range options {
 		fn(&spec)
 	}
+	// Service links are disabled by default now see https://github.com/knative/serving/pull/9685
+	spec.EnableServiceLinks = ptr.Bool(false)
 	return spec
 }
 
