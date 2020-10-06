@@ -17,6 +17,8 @@ limitations under the License.
 package test
 
 import (
+	"time"
+
 	"gotest.tools/assert"
 
 	"knative.dev/client/pkg/util"
@@ -28,6 +30,8 @@ func SubscriptionCreate(r *KnRunResultCollector, sname string, args ...string) {
 	out := r.KnTest().Kn().Run(cmd...)
 	r.AssertNoError(out)
 	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "subscription", sname, "created"))
+	// let the subscription and related resource reconcile
+	time.Sleep(time.Second * 5)
 }
 
 func SubscriptionList(r *KnRunResultCollector, args ...string) string {
@@ -58,4 +62,6 @@ func SubscriptionUpdate(r *KnRunResultCollector, sname string, args ...string) {
 	out := r.KnTest().Kn().Run(cmd...)
 	r.AssertNoError(out)
 	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "subscription", sname, "updated"))
+	// let the subscription and related resource reconcile
+	time.Sleep(time.Second * 5)
 }
