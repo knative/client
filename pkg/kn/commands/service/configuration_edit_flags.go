@@ -336,14 +336,16 @@ func (p *ConfigurationEditFlags) Apply(
 		}
 	}
 
-	if cmd.Flags().Changed("scale-min") {
+	// Deprecated "min-scale" in 0.19, updated to "scale-min"
+	if cmd.Flags().Changed("scale-min") || cmd.Flags().Changed("min-scale") {
 		err = servinglib.UpdateMinScale(template, p.MinScale)
 		if err != nil {
 			return err
 		}
 	}
 
-	if cmd.Flags().Changed("scale-max") {
+	// Deprecated "max-scale" in 0.19, updated to "scale-max"
+	if cmd.Flags().Changed("scale-max") || cmd.Flags().Changed("max-scale") {
 		err = servinglib.UpdateMaxScale(template, p.MaxScale)
 		if err != nil {
 			return err
