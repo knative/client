@@ -23,7 +23,6 @@ import (
 	"testing"
 
 	"gotest.tools/assert"
-
 	"knative.dev/client/lib/test"
 	"knative.dev/client/pkg/util"
 )
@@ -101,4 +100,13 @@ func TestChannels(t *testing.T) {
 	test.ChannelDelete(r, "c0")
 	test.ChannelDelete(r, "c1")
 	test.ChannelDelete(r, "c2")
+
+	t.Log("List channel types")
+	listout = test.ChannelListTypes(r)
+	assert.Check(t, util.ContainsAll(listout, "TYPE", "NAME", "DESCRIPTION", "InMemoryChannel"))
+
+	t.Log("List channel types no header")
+	listout = test.ChannelListTypes(r, "--no-headers")
+	assert.Check(t, util.ContainsNone(listout, "TYPE", "NAME", "DESCRIPTION"))
+	assert.Check(t, util.ContainsAll(listout, "InMemoryChannel"))
 }

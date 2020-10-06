@@ -20,24 +20,29 @@ import (
 	"strings"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
-
 	"knative.dev/client/pkg/util"
+	"knative.dev/eventing/pkg/apis/messaging"
 )
 
 const (
-	crdGroup          = "apiextensions.k8s.io"
-	crdVersion        = "v1beta1"
-	crdKind           = "CustomResourceDefinition"
-	crdKinds          = "customresourcedefinitions"
-	sourcesLabelKey   = "duck.knative.dev/source"
-	sourcesLabelValue = "true"
-	sourceListGroup   = "client.knative.dev"
-	sourceListVersion = "v1alpha1"
-	sourceListKind    = "SourceList"
+	crdGroup           = "apiextensions.k8s.io"
+	crdVersion         = "v1beta1"
+	crdKind            = "CustomResourceDefinition"
+	crdKinds           = "customresourcedefinitions"
+	sourcesLabelKey    = "duck.knative.dev/source"
+	sourcesLabelValue  = "true"
+	sourceListGroup    = "client.knative.dev"
+	sourceListVersion  = "v1alpha1"
+	sourceListKind     = "SourceList"
+	channelLabelValue  = "true"
+	channelListVersion = "v1beta1"
+	channelListKind    = "ChannelList"
+	channelKind        = "Channel"
 )
 
 // KnDynamicClient to client-go Dynamic client. All methods are relative to the
@@ -57,6 +62,12 @@ type KnDynamicClient interface {
 
 	// ListSourcesUsingGVKs returns list of available source objects using given list of GVKs
 	ListSourcesUsingGVKs(*[]schema.GroupVersionKind, ...WithType) (*unstructured.UnstructuredList, error)
+
+	// ListChannelsTypes returns installed knative channel CRDs
+	ListChannelsTypes() (*unstructured.UnstructuredList, error)
+
+	// ListChannelsUsingGVKs returns list of available channel objects using given list of GVKs
+	ListChannelsUsingGVKs(*[]schema.GroupVersionKind, ...WithType) (*unstructured.UnstructuredList, error)
 
 	// RawClient returns the raw dynamic client interface
 	RawClient() dynamic.Interface
@@ -104,6 +115,30 @@ func (c *knDynamicClient) ListSourcesTypes() (*unstructured.UnstructuredList, er
 	sourcesLabels := labels.Set{sourcesLabelKey: sourcesLabelValue}
 	options.LabelSelector = sourcesLabels.String()
 	return c.ListCRDs(options)
+}
+
+// ListChannelsTypes returns installed knative channel CRDs
+func (c *knDynamicClient) ListChannelsTypes() (*unstructured.UnstructuredList, error) {
+	var ChannelTypeList unstructured.UnstructuredList
+	options := metav1.ListOptions{}
+	channelsLabels := labels.Set{messaging.SubscribableDuckVersionAnnotation: channelLabelValue}
+	options.LabelSelector = channelsLabels.String()
+	uList, err := c.ListCRDs(options)
+	if err != nil {
+		return nil, err
+	}
+	ChannelTypeList.Object = uList.Object
+	for _, channelType := range uList.Items {
+		content := channelType.UnstructuredContent()
+		channelTypeKind, _, err := unstructured.NestedString(content, "spec", "names", "kind")
+		if err != nil {
+			return nil, err
+		}
+		if !util.SliceContainsIgnoreCase([]string{channelKind}, channelTypeKind) {
+			ChannelTypeList.Items = append(ChannelTypeList.Items, channelType)
+		}
+	}
+	return &ChannelTypeList, nil
 }
 
 func (c knDynamicClient) RawClient() dynamic.Interface {
@@ -197,4 +232,40 @@ func (c *knDynamicClient) ListSourcesUsingGVKs(gvks *[]schema.GroupVersionKind, 
 		sourceList.SetGroupVersionKind(schema.GroupVersionKind{Group: sourceListGroup, Version: sourceListVersion, Kind: sourceListKind})
 	}
 	return &sourceList, nil
+}
+
+// ListChannelsUsingGVKs returns list of available channel objects using given list of GVKs
+func (c *knDynamicClient) ListChannelsUsingGVKs(gvks *[]schema.GroupVersionKind, types ...WithType) (*unstructured.UnstructuredList, error) {
+	if gvks == nil {
+		return nil, nil
+	}
+
+	var (
+		channelList unstructured.UnstructuredList
+		options     metav1.ListOptions
+	)
+	namespace := c.Namespace()
+	filters := WithTypes(types).List()
+
+	for _, gvk := range *gvks {
+		if len(filters) > 0 && !util.SliceContainsIgnoreCase(filters, gvk.Kind) {
+			continue
+		}
+
+		gvr := gvk.GroupVersion().WithResource(strings.ToLower(gvk.Kind) + "s")
+
+		// list objects of chaneel type with this GVR
+		cList, err := c.client.Resource(gvr).Namespace(namespace).List(context.TODO(), options)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(cList.Items) > 0 {
+			channelList.Items = append(channelList.Items, cList.Items...)
+		}
+	}
+	if len(channelList.Items) > 0 {
+		channelList.SetGroupVersionKind(schema.GroupVersionKind{Group: messaging.GroupName, Version: channelListVersion, Kind: channelListKind})
+	}
+	return &channelList, nil
 }
