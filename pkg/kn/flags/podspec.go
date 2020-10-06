@@ -290,10 +290,7 @@ func (p *PodSpecFlags) ResolvePodSpec(podSpec *corev1.PodSpec, cmd *cobra.Comman
 	}
 
 	if cmd.Flags().Changed("service-account") {
-		err = UpdateServiceAccountName(podSpec, p.ServiceAccountName)
-		if err != nil {
-			return err
-		}
+		UpdateServiceAccountName(podSpec, p.ServiceAccountName)
 	}
 
 	if cmd.Flags().Changed("pull-secret") {
@@ -301,7 +298,10 @@ func (p *PodSpecFlags) ResolvePodSpec(podSpec *corev1.PodSpec, cmd *cobra.Comman
 	}
 
 	if cmd.Flags().Changed("user") {
-		UpdateUser(podSpec, p.User)
+		err = UpdateUser(podSpec, p.User)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

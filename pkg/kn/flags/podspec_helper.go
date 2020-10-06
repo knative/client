@@ -35,10 +35,6 @@ const (
 	PortFormatErr = "the port specification '%s' is not valid. Please provide in the format 'NAME:PORT', where 'NAME' is optional. Examples: '--port h2c:8080' , '--port 8080'."
 )
 
-var (
-	UserImageAnnotationKey = "client.knative.dev/user-image"
-)
-
 func (vt VolumeSourceType) String() string {
 	names := [...]string{"config-map", "secret"}
 	if vt < ConfigMapVolumeSourceType || vt > SecretVolumeSourceType {
@@ -254,10 +250,9 @@ func UpdateResourcesDeprecated(spec *corev1.PodSpec, requestsResourceList corev1
 }
 
 // UpdateServiceAccountName updates the service account name used for the corresponding knative service
-func UpdateServiceAccountName(spec *corev1.PodSpec, serviceAccountName string) error {
+func UpdateServiceAccountName(spec *corev1.PodSpec, serviceAccountName string) {
 	serviceAccountName = strings.TrimSpace(serviceAccountName)
 	spec.ServiceAccountName = serviceAccountName
-	return nil
 }
 
 // UpdateImagePullSecrets updates the image pull secrets used for the corresponding knative service
