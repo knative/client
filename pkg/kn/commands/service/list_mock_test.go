@@ -168,6 +168,19 @@ func TestServiceListWithTwoSrvNameMock(t *testing.T) {
 	r.Validate()
 }
 
+func TestServiceListWithTwoSrvNameAliasMock(t *testing.T) {
+	// New mock client
+	client := clientservingv1.NewMockKnServiceClient(t)
+
+	// Recording:
+	r := client.Recorder()
+
+	_, err := executeServiceCommand(client, "ls", "foo", "bar")
+	assert.ErrorContains(t, err, "'kn service list' accepts maximum 1 argument")
+
+	r.Validate()
+}
+
 func getServiceWithNamespace(name, namespace string) *servingv1.Service {
 	service := servingv1.Service{}
 	service.Name = name

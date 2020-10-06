@@ -19,16 +19,16 @@ kn is the command line interface for managing Knative Serving and Eventing resou
 
 ### SEE ALSO
 
-* [kn broker](kn_broker.md)	 - Manage message broker
-* [kn channel](kn_channel.md)	 - Manage event channels
+* [kn broker](kn_broker.md)	 - Manage message broker (alias: brokers)
+* [kn channel](kn_channel.md)	 - Manage event channels (alias: channels)
 * [kn completion](kn_completion.md)	 - Output shell completion code
 * [kn options](kn_options.md)	 - Print the list of flags inherited by all commands
-* [kn plugin](kn_plugin.md)	 - Manage kn plugins
-* [kn revision](kn_revision.md)	 - Manage service revisions
-* [kn route](kn_route.md)	 - List and describe service routes
-* [kn service](kn_service.md)	 - Manage Knative services
-* [kn source](kn_source.md)	 - Manage event sources
-* [kn subscription](kn_subscription.md)	 - Manage event subscriptions
-* [kn trigger](kn_trigger.md)	 - Manage event triggers
+* [kn plugin](kn_plugin.md)	 - Manage kn plugins (alias: plugins)
+* [kn revision](kn_revision.md)	 - Manage service revisions (alias: revisions)
+* [kn route](kn_route.md)	 - List and describe service routes (alias: routes)
+* [kn service](kn_service.md)	 - Manage Knative services (aliases: ksvc, services)
+* [kn source](kn_source.md)	 - Manage event sources (alias: sources)
+* [kn subscription](kn_subscription.md)	 - Manage event subscriptions (aliases: subscriptions, sub)
+* [kn trigger](kn_trigger.md)	 - Manage event triggers (alias: triggers)
 * [kn version](kn_version.md)	 - Show the version of this client
 

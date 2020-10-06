@@ -1,10 +1,10 @@
 ## kn route list
 
-List routes
+List routes (alias: 'ls')
 
 ### Synopsis
 
-List routes
+List routes (alias: 'ls')
 
 ```
 kn route list NAME
@@ -46,5 +46,5 @@ kn route list NAME
 
 ### SEE ALSO
 
-* [kn route](kn_route.md)	 - List and describe service routes
+* [kn route](kn_route.md)	 - List and describe service routes (alias: routes)
 

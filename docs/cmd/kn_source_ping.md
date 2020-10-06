@@ -26,7 +26,7 @@ kn source ping COMMAND
 
 ### SEE ALSO
 
-* [kn source](kn_source.md)	 - Manage event sources
+* [kn source](kn_source.md)	 - Manage event sources (alias: sources)
 * [kn source ping create](kn_source_ping_create.md)	 - Create a ping source
 * [kn source ping delete](kn_source_ping_delete.md)	 - Delete a ping source
 * [kn source ping describe](kn_source_ping_describe.md)	 - Show details of a ping source

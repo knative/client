@@ -1,10 +1,10 @@
 ## kn trigger list
 
-List triggers
+List triggers (alias: 'ls')
 
 ### Synopsis
 
-List triggers
+List triggers (alias: 'ls')
 
 ```
 kn trigger list
@@ -43,5 +43,5 @@ kn trigger list
 
 ### SEE ALSO
 
-* [kn trigger](kn_trigger.md)	 - Manage event triggers
+* [kn trigger](kn_trigger.md)	 - Manage event triggers (alias: triggers)
 

@@ -1,10 +1,10 @@
 ## kn route
 
-List and describe service routes
+List and describe service routes (alias: routes)
 
 ### Synopsis
 
-List and describe service routes
+List and describe service routes (alias: routes)
 
 ```
 kn route
@@ -28,5 +28,5 @@ kn route
 
 * [kn](kn.md)	 - kn manages Knative Serving and Eventing resources
 * [kn route describe](kn_route_describe.md)	 - Show details of a route
-* [kn route list](kn_route_list.md)	 - List routes
+* [kn route list](kn_route_list.md)	 - List routes (alias: 'ls')
 

@@ -42,5 +42,5 @@ kn source list-types
 
 ### SEE ALSO
 
-* [kn source](kn_source.md)	 - Manage event sources
+* [kn source](kn_source.md)	 - Manage event sources (alias: sources)
 

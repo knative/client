@@ -27,8 +27,9 @@ import (
 // NewChannelCommand to manage event channels
 func NewChannelCommand(p *commands.KnParams) *cobra.Command {
 	channelCmd := &cobra.Command{
-		Use:   "channel COMMAND",
-		Short: "Manage event channels",
+		Use:     "channel COMMAND",
+		Short:   "Manage event channels (alias: channels)",
+		Aliases: []string{"channels"},
 	}
 	channelCmd.AddCommand(NewChannelCreateCommand(p))
 	channelCmd.AddCommand(NewChannelListCommand(p))

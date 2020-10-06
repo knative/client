@@ -34,6 +34,10 @@
 | Add "--annotation-service" and "--annotation-revision" to kn service create/update
 | https://github.com/knative/client/pull/1029[#1029]
 
+| 🎁
+| Add alias to commands
+| https://github.com/knative/client/pull/1041[#1041]
+
 |===
 
 ## v0.17.0 (2020-08-26)

@@ -39,7 +39,7 @@ func TestPluginListBasic(t *testing.T) {
 	}
 
 	assert.Assert(t, pluginListCmd.Use == "list")
-	assert.Assert(t, pluginListCmd.Short == "List plugins")
+	assert.Assert(t, pluginListCmd.Short == "List plugins (alias: 'ls')")
 	assert.Assert(t, strings.Contains(pluginListCmd.Long, "List all installed plugins"))
 	assert.Assert(t, pluginListCmd.RunE != nil)
 }

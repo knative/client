@@ -39,5 +39,5 @@ kn revision delete NAME [NAME ...]
 
 ### SEE ALSO
 
-* [kn revision](kn_revision.md)	 - Manage service revisions
+* [kn revision](kn_revision.md)	 - Manage service revisions (alias: revisions)
 

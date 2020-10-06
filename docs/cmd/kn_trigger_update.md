@@ -46,5 +46,5 @@ kn trigger update NAME
 
 ### SEE ALSO
 
-* [kn trigger](kn_trigger.md)	 - Manage event triggers
+* [kn trigger](kn_trigger.md)	 - Manage event triggers (alias: triggers)
 

@@ -1,10 +1,10 @@
 ## kn channel list
 
-List channels
+List channels (alias: 'ls')
 
 ### Synopsis
 
-List channels
+List channels (alias: 'ls')
 
 ```
 kn channel list
@@ -43,5 +43,5 @@ kn channel list
 
 ### SEE ALSO
 
-* [kn channel](kn_channel.md)	 - Manage event channels
+* [kn channel](kn_channel.md)	 - Manage event channels (alias: channels)
 

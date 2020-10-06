@@ -1,10 +1,10 @@
 ## kn channel
 
-Manage event channels
+Manage event channels (alias: channels)
 
 ### Synopsis
 
-Manage event channels
+Manage event channels (alias: channels)
 
 ```
 kn channel COMMAND
@@ -30,5 +30,5 @@ kn channel COMMAND
 * [kn channel create](kn_channel_create.md)	 - Create an event channel
 * [kn channel delete](kn_channel_delete.md)	 - Delete a channel
 * [kn channel describe](kn_channel_describe.md)	 - Show details of a channel
-* [kn channel list](kn_channel_list.md)	 - List channels
+* [kn channel list](kn_channel_list.md)	 - List channels (alias: 'ls')
 

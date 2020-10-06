@@ -146,6 +146,24 @@ func TestServiceGetWithTwoSrvName(t *testing.T) {
 	_, _, err := fakeServiceList([]string{"service", "list", "foo", "bar"}, serviceList)
 	assert.ErrorContains(t, err, "'kn service list' accepts maximum 1 argument")
 }
+func TestServiceListWithAlias(t *testing.T) {
+	service1 := createMockServiceWithParams("foo", "default", "http://foo.default.example.com", "foo-xyz")
+	service3 := createMockServiceWithParams("sss", "default", "http://sss.default.example.com", "sss-xyz")
+	service2 := createMockServiceWithParams("bar", "default", "http://bar.default.example.com", "bar-xyz")
+	serviceList := &servingv1.ServiceList{Items: []servingv1.Service{*service1, *service2, *service3}}
+	action, output, err := fakeServiceList([]string{"service", "ls"}, serviceList)
+	assert.NilError(t, err)
+	if action == nil {
+		t.Errorf("No action")
+	} else if !action.Matches("list", "services") {
+		t.Errorf("Bad action %v", action)
+	}
+	// Outputs in alphabetical order
+	assert.Check(t, util.ContainsAll(output[0], "NAME", "URL", "LATEST", "AGE", "CONDITIONS", "READY", "REASON"))
+	assert.Check(t, util.ContainsAll(output[1], "bar", "bar.default.example.com", "bar-xyz"))
+	assert.Check(t, util.ContainsAll(output[2], "foo", "foo.default.example.com", "foo-xyz"))
+	assert.Check(t, util.ContainsAll(output[3], "sss", "sss.default.example.com", "sss-xyz"))
+}
 
 func createMockServiceWithParams(name, namespace, urlS string, revision string) *servingv1.Service {
 	url, _ := apis.ParseURL(urlS)

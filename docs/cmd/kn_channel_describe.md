@@ -39,5 +39,5 @@ kn channel describe NAME
 
 ### SEE ALSO
 
-* [kn channel](kn_channel.md)	 - Manage event channels
+* [kn channel](kn_channel.md)	 - Manage event channels (alias: channels)
 

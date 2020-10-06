@@ -1,10 +1,10 @@
 ## kn broker list
 
-List brokers
+List brokers (alias: 'ls')
 
 ### Synopsis
 
-List brokers
+List brokers (alias: 'ls')
 
 ```
 kn broker list
@@ -43,5 +43,5 @@ kn broker list
 
 ### SEE ALSO
 
-* [kn broker](kn_broker.md)	 - Manage message broker
+* [kn broker](kn_broker.md)	 - Manage message broker (alias: brokers)
 

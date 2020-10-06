@@ -147,7 +147,7 @@ func serviceMultipleDelete(r *test.KnRunResultCollector, existService, nonexistS
 }
 
 func serviceUntagTagThatDoesNotExist(r *test.KnRunResultCollector, serviceName string) {
-	out := r.KnTest().Kn().Run("service", "list", serviceName)
+	out := r.KnTest().Kn().Run("ksvc", "ls", serviceName)
 	r.AssertNoError(out)
 	assert.Check(r.T(), strings.Contains(out.Stdout, serviceName), "Service "+serviceName+" does not exist for test (but should exist)")
 
@@ -156,17 +156,17 @@ func serviceUntagTagThatDoesNotExist(r *test.KnRunResultCollector, serviceName s
 }
 
 func serviceDeleteAll(r *test.KnRunResultCollector) {
-	out := r.KnTest().Kn().Run("service", "list")
+	out := r.KnTest().Kn().Run("services", "ls")
 	r.AssertNoError(out)
 	// Check if services created successfully/available for test.
 	assert.Check(r.T(), !strings.Contains(out.Stdout, "No services found."), "No services created for kn service delete --all e2e (but should exist)")
 
-	out = r.KnTest().Kn().Run("service", "delete", "--all")
+	out = r.KnTest().Kn().Run("services", "delete", "--all")
 	r.AssertNoError(out)
 	// Check if output contains successfully deleted to verify deletion took place.
 	assert.Check(r.T(), strings.Contains(out.Stdout, "successfully deleted"), "Failed to get 'successfully deleted' message")
 
-	out = r.KnTest().Kn().Run("service", "list")
+	out = r.KnTest().Kn().Run("services", "list")
 	r.AssertNoError(out)
 	// Check if no services present after kn service delete --all.
 	assert.Check(r.T(), strings.Contains(out.Stdout, "No services found."), "Failed to show 'No services found' after kn service delete --all")

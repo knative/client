@@ -31,7 +31,7 @@ func NewSubscriptionListCommand(p *commands.KnParams) *cobra.Command {
 
 	listCommand := &cobra.Command{
 		Use:   "list",
-		Short: "List subscriptions",
+		Short: "List subscriptions (alias: 'ls')",
 		Example: `
   # List all subscriptions
   kn subscription list
