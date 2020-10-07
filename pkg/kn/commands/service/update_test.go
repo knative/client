@@ -582,10 +582,6 @@ func TestServiceUpdateScaleRangeOnlyMaxWrongSeparator(t *testing.T) {
 	if !strings.Contains(err.Error(), expectedErrMsg) {
 		t.Errorf("Invalid error output, expected: %s, got : '%s'", expectedErrMsg, err)
 	}
-<<<<<<< HEAD
-=======
-
->>>>>>> 29514e26... Added checks for non ".." values and added more tests
 }
 
 func TestServiceUpdateEnv(t *testing.T) {
