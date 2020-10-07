@@ -197,6 +197,10 @@ func (w *waitForReadyConfig) waitForReadyCondition(start time.Time, name string,
 				if cond.Type == apis.ConditionReady {
 					switch cond.Status {
 					case corev1.ConditionTrue:
+						if errorTimer != nil {
+							errorTimer.Stop()
+							errorTimer = nil
+						}
 						return false, false, nil
 					case corev1.ConditionFalse:
 						// Fire up a timer waiting for the error window duration to still allow to reconcile
@@ -208,6 +212,11 @@ func (w *waitForReadyConfig) waitForReadyCondition(start time.Time, name string,
 							errorTimer = time.AfterFunc(errorWindow, func() {
 								errChan <- err
 							})
+						}
+					case corev1.ConditionUnknown:
+						if errorTimer != nil {
+							errorTimer.Stop()
+							errorTimer = nil
 						}
 					}
 					if cond.Message != "" {
