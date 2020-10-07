@@ -12,11 +12,15 @@
 | https://github.com/knative/client/pull/[#]
 ////
 
-## v0.17.1 (2020-10-02)
+## v0.17.1 (2020-10-07)
 
 [cols="1,10,3", options="header", width="100%"]
 |===
 | | Description | PR
+
+| 🐛
+| Added back functionality to deprecated max-scale/min-scale
+| https://github.com/knative/client/pull/1010[#1010]
 
 | 🎁
 | Add subscription CRUD
