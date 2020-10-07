@@ -27,7 +27,7 @@
 | https://github.com/knative/client/pull/1006[#1006]
 
 | 🎁
-| Add support for service initialscale via `--scale-init` flag
+| Add support for service initialScale via `--scale-init` flag
 | https://github.com/knative/client/pull/990[#990]
 
 | 🎁
@@ -41,6 +41,26 @@
 | 🎁
 | Add channel list-types
 | https://github.com/knative/client/pull/1027[#1027]
+
+|===
+
+## v0.17.1 (2020-10-07)
+
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🐛
+| Added back functionality to deprecated max-scale/min-scale
+| https://github.com/knative/client/pull/1010[#1010]
+
+| 🎁
+| Add subscription CRUD
+| https://github.com/knative/client/pull/1013[#1013]
+
+| 🐛
+| Fix channel create example with inbuilt alias for imcv1beta1
+| https://github.com/knative/client/pull/1005[#1005]
 
 |===
 
