@@ -7,41 +7,48 @@
 // the empty line separators.
 
 ////
-| 🎁🐛✨🐣🗑️
+| 🎁🐛🐣🗑️✨
 |
 | https://github.com/knative/client/pull/[#]
 ////
 
-## Unreleased
+## v0.18.0 (2020-10-07)
 
 [cols="1,10,3", options="header", width="100%"]
 |===
 | | Description | PR
 
 | 🎁
-| Add subscription CRUD
-| https://github.com/knative/client/pull/1013[#1013]
-
-| 🐛
-| Fix service export example documentation
-| https://github.com/knative/client/pull/1006[#1006]
-
-| 🎁
-| Add support for service initialScale via `--scale-init` flag
-| https://github.com/knative/client/pull/990[#990]
-
-| 🎁
-| Add "--annotation-service" and "--annotation-revision" to kn service create/update
-| https://github.com/knative/client/pull/1029[#1029]
-
-| 🎁
-| Add alias to commands
+| Add aliases for commands (plural forms, `ksvc`, `ls`)
 | https://github.com/knative/client/pull/1041[#1041]
 
 | 🎁
-| Add channel list-types
+| Add `--annotation-service` and `--annotation-revision` to `kn service create/update`
+| https://github.com/knative/client/pull/1029[#1029]
+
+| 🎁
+| Add `channel list-types` command
 | https://github.com/knative/client/pull/1027[#1027]
 
+| ✨
+| Update Knative Serving and Eventing dependencies to 0.18
+| https://github.com/knative/client/pull/1025[#1025]
+
+| 🐛
+| Fix autoscaling annotations in service metadata
+| https://github.com/knative/client/pull/1021[#1021]
+
+| 🎁
+| Add `kn subscription` command
+| https://github.com/knative/client/pull/1013[#1013]
+
+| 🐛
+| Fix `kn service export` example documentation
+| https://github.com/knative/client/pull/1006[#1006]
+
+| 🎁
+| Add support for service's initial scale via the `--scale-init` flag
+| https://github.com/knative/client/pull/990[#990]
 |===
 
 ## v0.17.1 (2020-10-07)
@@ -51,15 +58,15 @@
 | | Description | PR
 
 | 🐛
-| Added back functionality to deprecated max-scale/min-scale
+| Added back functionality to deprecated `--max-scale` and `--min-scale`
 | https://github.com/knative/client/pull/1010[#1010]
 
 | 🎁
-| Add subscription CRUD
+| Add `kn subscription` commands
 | https://github.com/knative/client/pull/1013[#1013]
 
 | 🐛
-| Fix channel create example with inbuilt alias for imcv1beta1
+| Fix channel create example with inbuilt alias for `imcv1beta1`
 | https://github.com/knative/client/pull/1005[#1005]
 
 |===
