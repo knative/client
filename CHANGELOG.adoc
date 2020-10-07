@@ -47,7 +47,7 @@
 | https://github.com/knative/client/pull/1006[#1006]
 
 | 🎁
-| Add support for service's initial dcale via the `--scale-init` flag
+| Add support for service's initial scale via the `--scale-init` flag
 | https://github.com/knative/client/pull/990[#990]
 |===
 
