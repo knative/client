@@ -98,8 +98,13 @@ func (c *KnRunResultCollector) AddDump(kind string, name string, namespace strin
 // DumpIfFailed logs if collector failed
 func (c *KnRunResultCollector) DumpIfFailed() {
 	if c.t.Failed() {
-		c.t.Log(c.errorDetails())
+		c.Dump()
 	}
+}
+
+// Dump prints out the collected output and logs
+func (c *KnRunResultCollector) Dump() {
+	c.t.Log(c.errorDetails())
 }
 
 // Private
