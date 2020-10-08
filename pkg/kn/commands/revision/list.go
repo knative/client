@@ -39,7 +39,7 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 
 	revisionListCommand := &cobra.Command{
 		Use:     "list",
-		Short:   "List revisions (alias: 'ls')",
+		Short:   "List revisions",
 		Aliases: []string{"ls"},
 		Long:    "List revisions for a given service.",
 		Example: `

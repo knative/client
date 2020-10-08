@@ -35,5 +35,5 @@ kn trigger delete NAME
 
 ### SEE ALSO
 
-* [kn trigger](kn_trigger.md)	 - Manage event triggers (alias: triggers)
+* [kn trigger](kn_trigger.md)	 - Manage event triggers
 

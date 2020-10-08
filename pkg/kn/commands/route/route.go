@@ -23,7 +23,7 @@ import (
 func NewRouteCommand(p *commands.KnParams) *cobra.Command {
 	routeCmd := &cobra.Command{
 		Use:     "route",
-		Short:   "List and describe service routes (alias: routes)",
+		Short:   "List and describe service routes",
 		Aliases: []string{"routes"},
 	}
 	routeCmd.AddCommand(NewRouteListCommand(p))

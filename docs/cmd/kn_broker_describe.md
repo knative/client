@@ -38,5 +38,5 @@ kn broker describe NAME
 
 ### SEE ALSO
 
-* [kn broker](kn_broker.md)	 - Manage message broker (alias: brokers)
+* [kn broker](kn_broker.md)	 - Manage message
 

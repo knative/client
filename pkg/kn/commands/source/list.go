@@ -43,7 +43,7 @@ func NewListCommand(p *commands.KnParams) *cobra.Command {
 	listFlags := flags.NewListPrintFlags(ListHandlers)
 	listCommand := &cobra.Command{
 		Use:     "list",
-		Short:   "List event sources (alias: 'ls')",
+		Short:   "List event sources",
 		Aliases: []string{"ls"},
 		Example: listExample,
 		RunE: func(cmd *cobra.Command, args []string) error {

@@ -133,6 +133,7 @@ func validateSubUsageOutput(t *testing.T, stdOut string, cmd *cobra.Command) {
 	assert.Assert(t, util.ContainsAll(stdOut, "Usage", cmd.CommandPath()+" [options]"))
 	assert.Assert(t, util.ContainsAll(stdOut, "Options", "--local-opt", "local option"))
 	assert.Assert(t, util.ContainsAll(stdOut, "Use", "root", "options", "global"))
+	assert.Assert(t, util.ContainsAll(stdOut, "Aliases", "alias"))
 }
 
 func newTestTemplateEngine() (*cobra.Command, templateEngine) {
@@ -162,10 +163,11 @@ func newTestTemplateEngine() (*cobra.Command, templateEngine) {
 
 func newCmd(name string) *cobra.Command {
 	ret := &cobra.Command{
-		Use:   name,
-		Short: "desc-" + name,
-		Long:  "longdesc-" + name,
-		Run:   func(cmd *cobra.Command, args []string) {},
+		Use:     name,
+		Short:   "desc-" + name,
+		Long:    "longdesc-" + name,
+		Run:     func(cmd *cobra.Command, args []string) {},
+		Aliases: []string{"alias"},
 	}
 	ret.Flags().String("local-opt", "", "local option")
 	return ret

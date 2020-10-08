@@ -49,5 +49,5 @@ kn service export NAME
 
 ### SEE ALSO
 
-* [kn service](kn_service.md)	 - Manage Knative services (aliases: ksvc, services)
+* [kn service](kn_service.md)	 - Manage Knative services
 

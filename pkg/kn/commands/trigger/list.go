@@ -29,7 +29,7 @@ func NewTriggerListCommand(p *commands.KnParams) *cobra.Command {
 
 	triggerListCommand := &cobra.Command{
 		Use:     "list",
-		Short:   "List triggers (alias: 'ls')",
+		Short:   "List triggers",
 		Aliases: []string{"ls"},
 		Example: `
   # List all triggers

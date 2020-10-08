@@ -26,7 +26,7 @@ import (
 func NewSourceCommand(p *commands.KnParams) *cobra.Command {
 	sourceCmd := &cobra.Command{
 		Use:     "source SOURCE|COMMAND",
-		Short:   "Manage event sources (alias: sources)",
+		Short:   "Manage event sources",
 		Aliases: []string{"sources"},
 	}
 	sourceCmd.AddCommand(NewListTypesCommand(p))

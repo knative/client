@@ -1,10 +1,10 @@
 ## kn service list
 
-List services (alias: 'ls')
+List services
 
 ### Synopsis
 
-List services (alias: 'ls')
+List services
 
 ```
 kn service list
@@ -46,5 +46,5 @@ kn service list
 
 ### SEE ALSO
 
-* [kn service](kn_service.md)	 - Manage Knative services (aliases: ksvc, services)
+* [kn service](kn_service.md)	 - Manage Knative services
 

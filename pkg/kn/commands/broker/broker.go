@@ -26,7 +26,7 @@ import (
 func NewBrokerCommand(p *commands.KnParams) *cobra.Command {
 	brokerCmd := &cobra.Command{
 		Use:     "broker",
-		Short:   "Manage message broker (alias: brokers)",
+		Short:   "Manage message",
 		Aliases: []string{"brokers"},
 	}
 	brokerCmd.AddCommand(NewBrokerCreateCommand(p))

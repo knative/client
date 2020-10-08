@@ -1,6 +1,6 @@
 ## kn plugin list
 
-List plugins (alias: 'ls')
+List plugins
 
 ### Synopsis
 
@@ -33,5 +33,5 @@ kn plugin list
 
 ### SEE ALSO
 
-* [kn plugin](kn_plugin.md)	 - Manage kn plugins (alias: plugins)
+* [kn plugin](kn_plugin.md)	 - Manage kn plugins
 

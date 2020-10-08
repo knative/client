@@ -26,7 +26,7 @@ kn source binding COMMAND
 
 ### SEE ALSO
 
-* [kn source](kn_source.md)	 - Manage event sources (alias: sources)
+* [kn source](kn_source.md)	 - Manage event sources
 * [kn source binding create](kn_source_binding_create.md)	 - Create a sink binding
 * [kn source binding delete](kn_source_binding_delete.md)	 - Delete a sink binding
 * [kn source binding describe](kn_source_binding_describe.md)	 - Show details of a sink binding

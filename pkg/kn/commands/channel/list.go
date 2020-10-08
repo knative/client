@@ -29,7 +29,7 @@ func NewChannelListCommand(p *commands.KnParams) *cobra.Command {
 
 	listCommand := &cobra.Command{
 		Use:     "list",
-		Short:   "List channels (alias: 'ls')",
+		Short:   "List channels",
 		Aliases: []string{"ls"},
 		Example: `
   # List all channels
