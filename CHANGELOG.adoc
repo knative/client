@@ -12,6 +12,15 @@
 | https://github.com/knative/client/pull/[#]
 ////
 
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🎁
+| Add Aliases to Help Command and Remove Aliases in Short
+| https://github.com/knative/client/pull/1055[#1055]
+|===
+
 ## v0.18.0 (2020-10-07)
 
 [cols="1,10,3", options="header", width="100%"]

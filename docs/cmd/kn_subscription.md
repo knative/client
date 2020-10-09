@@ -1,10 +1,10 @@
 ## kn subscription
 
-Manage event subscriptions (aliases: subscriptions, sub)
+Manage event subscriptions
 
 ### Synopsis
 
-Manage event subscriptions (aliases: subscriptions, sub)
+Manage event subscriptions
 
 ```
 kn subscription COMMAND
@@ -30,6 +30,6 @@ kn subscription COMMAND
 * [kn subscription create](kn_subscription_create.md)	 - Create a subscription
 * [kn subscription delete](kn_subscription_delete.md)	 - Delete a subscription
 * [kn subscription describe](kn_subscription_describe.md)	 - Show details of a subscription
-* [kn subscription list](kn_subscription_list.md)	 - List subscriptions (alias: 'ls')
+* [kn subscription list](kn_subscription_list.md)	 - List subscriptions
 * [kn subscription update](kn_subscription_update.md)	 - Update an event subscription
 

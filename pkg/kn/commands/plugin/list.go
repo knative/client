@@ -41,7 +41,7 @@ func NewPluginListCommand(p *commands.KnParams) *cobra.Command {
 	plFlags := pluginListFlags{}
 	pluginListCommand := &cobra.Command{
 		Use:     "list",
-		Short:   "List plugins (alias: 'ls')",
+		Short:   "List plugins",
 		Aliases: []string{"ls"},
 		Long: `List all installed plugins.
 

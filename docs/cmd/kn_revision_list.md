@@ -1,6 +1,6 @@
 ## kn revision list
 
-List revisions (alias: 'ls')
+List revisions
 
 ### Synopsis
 
@@ -50,5 +50,5 @@ kn revision list
 
 ### SEE ALSO
 
-* [kn revision](kn_revision.md)	 - Manage service revisions (alias: revisions)
+* [kn revision](kn_revision.md)	 - Manage service revisions
 

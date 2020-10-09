@@ -1,6 +1,6 @@
 ## kn plugin
 
-Manage kn plugins (alias: plugins)
+Manage kn plugins
 
 ### Synopsis
 
@@ -30,5 +30,5 @@ kn plugin
 ### SEE ALSO
 
 * [kn](kn.md)	 - kn manages Knative Serving and Eventing resources
-* [kn plugin list](kn_plugin_list.md)	 - List plugins (alias: 'ls')
+* [kn plugin list](kn_plugin_list.md)	 - List plugins
 

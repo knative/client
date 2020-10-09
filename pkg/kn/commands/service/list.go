@@ -32,7 +32,7 @@ func NewServiceListCommand(p *commands.KnParams) *cobra.Command {
 
 	serviceListCommand := &cobra.Command{
 		Use:     "list",
-		Short:   "List services (alias: 'ls')",
+		Short:   "List services",
 		Aliases: []string{"ls"},
 		Example: `
   # List all services

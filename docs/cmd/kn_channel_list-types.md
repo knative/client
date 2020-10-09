@@ -42,5 +42,5 @@ kn channel list-types
 
 ### SEE ALSO
 
-* [kn channel](kn_channel.md)	 - Manage event channels (alias: channels)
+* [kn channel](kn_channel.md)	 - Manage event channels
 

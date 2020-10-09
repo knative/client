@@ -35,5 +35,5 @@ kn subscription delete NAME
 
 ### SEE ALSO
 
-* [kn subscription](kn_subscription.md)	 - Manage event subscriptions (aliases: subscriptions, sub)
+* [kn subscription](kn_subscription.md)	 - Manage event subscriptions
 

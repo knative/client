@@ -24,6 +24,18 @@ import (
 // and adapted to the specific needs of `kn`
 
 const (
+	// sectionUsage is the help template section that displays the command's usage.
+	sectionUsage = `{{if and .Runnable (ne .UseLine "") (not (isRootCmd .))}}Usage:
+  {{useLine .}}
+
+{{end}}`
+
+	// sectionAliases is the help template section that displays the command's aliases.
+	sectionAliases = `{{ if ne (len .Aliases) 0}}Aliases: 
+  {{.NameAndAliases}}
+
+{{end}}`
+
 	// sectionExamples is the help template section that displays command examples.
 	sectionExamples = `{{if .HasExample}}Examples:
 {{trimRight .Example}}
@@ -53,12 +65,6 @@ const (
 
 {{end}}`
 
-	// sectionUsage is the help template section that displays the command's usage.
-	sectionUsage = `{{if and .Runnable (ne .UseLine "") (not (isRootCmd .))}}Usage:
-  {{useLine .}}
-
-{{end}}`
-
 	// sectionTipsHelp is the help template section that displays the '--help' hint.
 	sectionTipsHelp = `{{if .HasSubCommands}}Use "{{rootCmdName}} <command> --help" for more information about a given command.
 {{end}}`
@@ -71,13 +77,13 @@ const (
 func usageTemplate() string {
 	sections := []string{
 		"\n\n",
-		//		sectionAliases,
+		sectionUsage,
+		sectionAliases,
 		sectionExamples,
 		sectionCommandGroups,
 		sectionSubCommands,
 		sectionPlugins,
 		sectionFlags,
-		sectionUsage,
 		sectionTipsHelp,
 		sectionTipsGlobalOptions,
 	}

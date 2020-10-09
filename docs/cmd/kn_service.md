@@ -1,10 +1,10 @@
 ## kn service
 
-Manage Knative services (aliases: ksvc, services)
+Manage Knative services
 
 ### Synopsis
 
-Manage Knative services (aliases: ksvc, services)
+Manage Knative services
 
 ```
 kn service
@@ -31,6 +31,6 @@ kn service
 * [kn service delete](kn_service_delete.md)	 - Delete services
 * [kn service describe](kn_service_describe.md)	 - Show details of a service
 * [kn service export](kn_service_export.md)	 - Export a service and its revisions
-* [kn service list](kn_service_list.md)	 - List services (alias: 'ls')
+* [kn service list](kn_service_list.md)	 - List services
 * [kn service update](kn_service_update.md)	 - Update a service
 

@@ -23,7 +23,7 @@ import (
 func NewPluginCommand(p *commands.KnParams) *cobra.Command {
 	pluginCmd := &cobra.Command{
 		Use:     "plugin",
-		Short:   "Manage kn plugins (alias: plugins)",
+		Short:   "Manage kn plugins",
 		Aliases: []string{"plugins"},
 		Long: `Manage kn plugins
 

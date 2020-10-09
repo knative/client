@@ -1,10 +1,10 @@
 ## kn source list
 
-List event sources (alias: 'ls')
+List event sources
 
 ### Synopsis
 
-List event sources (alias: 'ls')
+List event sources
 
 ```
 kn source list
@@ -47,5 +47,5 @@ kn source list
 
 ### SEE ALSO
 
-* [kn source](kn_source.md)	 - Manage event sources (alias: sources)
+* [kn source](kn_source.md)	 - Manage event sources
 

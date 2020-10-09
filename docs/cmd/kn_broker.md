@@ -1,10 +1,10 @@
 ## kn broker
 
-Manage message broker (alias: brokers)
+Manage message
 
 ### Synopsis
 
-Manage message broker (alias: brokers)
+Manage message
 
 ```
 kn broker
@@ -30,5 +30,5 @@ kn broker
 * [kn broker create](kn_broker_create.md)	 - Create a broker
 * [kn broker delete](kn_broker_delete.md)	 - Delete a broker
 * [kn broker describe](kn_broker_describe.md)	 - Describe broker
-* [kn broker list](kn_broker_list.md)	 - List brokers (alias: 'ls')
+* [kn broker list](kn_broker_list.md)	 - List brokers
 
