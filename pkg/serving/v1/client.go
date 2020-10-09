@@ -140,6 +140,13 @@ func WithService(service string) ListConfig {
 	}
 }
 
+// WithLabel filters on the provided label
+func WithLabel(labelKey, labelValue string) ListConfig {
+	return func(lo *listConfigCollector) {
+		lo.Labels[labelKey] = labelValue
+	}
+}
+
 type knServingClient struct {
 	client    clientv1.ServingV1Interface
 	namespace string
