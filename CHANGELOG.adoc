@@ -19,6 +19,10 @@
 | 🎁
 | Add Aliases to Help Command and Remove Aliases in Short
 | https://github.com/knative/client/pull/1055[#1055]
+
+| 🎁
+| Add WithLabel list filter to serving client lib
+| https://github.com/knative/client/pull/1054[#1054]
 |===
 
 ## v0.18.0 (2020-10-07)

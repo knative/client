@@ -85,24 +85,45 @@ func TestListService(t *testing.T) {
 	serving, client := setup()
 
 	t.Run("list service returns a list of services", func(t *testing.T) {
+		labelKey := "labelKey"
+		labelValue := "labelValue"
+		labels := map[string]string{labelKey: labelValue}
+		incorrectLabels := map[string]string{"foo": "bar"}
+
 		service1 := newService("service-1")
 		service2 := newService("service-2")
+		service3 := newService("service-3-with-label")
+		service3.Labels = labels
+		service4 := newService("service-4-with-label")
+		service4.Labels = labels
+		service5 := newService("service-5-with-incorrect-label")
+		service5.Labels = incorrectLabels
 
 		serving.AddReactor("list", "services",
 			func(a clienttesting.Action) (bool, runtime.Object, error) {
 				assert.Equal(t, testNamespace, a.GetNamespace())
-				return true, &servingv1.ServiceList{Items: []servingv1.Service{*service1, *service2}}, nil
+				return true, &servingv1.ServiceList{Items: []servingv1.Service{*service1, *service2, *service3, *service4, *service5}}, nil
 			})
 
 		listServices, err := client.ListServices()
 		assert.NilError(t, err)
-		assert.Assert(t, len(listServices.Items) == 2)
+		assert.Assert(t, len(listServices.Items) == 5)
 		assert.Equal(t, listServices.Items[0].Name, "service-1")
 		assert.Equal(t, listServices.Items[1].Name, "service-2")
 		validateGroupVersionKind(t, listServices)
 		validateGroupVersionKind(t, &listServices.Items[0])
 		validateGroupVersionKind(t, &listServices.Items[1])
+
+		listFilteredServices, err := client.ListServices(WithLabel(labelKey, labelValue))
+		assert.NilError(t, err)
+		assert.Assert(t, len(listFilteredServices.Items) == 2)
+		assert.Equal(t, listFilteredServices.Items[0].Name, "service-3-with-label")
+		assert.Equal(t, listFilteredServices.Items[1].Name, "service-4-with-label")
+		validateGroupVersionKind(t, listFilteredServices)
+		validateGroupVersionKind(t, &listFilteredServices.Items[0])
+		validateGroupVersionKind(t, &listFilteredServices.Items[1])
 	})
+
 }
 
 func TestCreateService(t *testing.T) {

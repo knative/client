@@ -34,6 +34,7 @@ func TestMockKnClient(t *testing.T) {
 	// Record all services
 	recorder.GetService("hello", nil, nil)
 	recorder.ListServices(mock.Any(), nil, nil)
+	recorder.ListServices(mock.Any(), nil, nil)
 	recorder.CreateService(&servingv1.Service{}, nil)
 	recorder.UpdateService(&servingv1.Service{}, nil)
 	recorder.DeleteService("hello", time.Duration(10)*time.Second, nil)
@@ -48,6 +49,7 @@ func TestMockKnClient(t *testing.T) {
 	// Call all services
 	client.GetService("hello")
 	client.ListServices(WithName("blub"))
+	client.ListServices(WithLabel("foo", "bar"))
 	client.CreateService(&servingv1.Service{})
 	client.UpdateService(&servingv1.Service{})
 	client.DeleteService("hello", time.Duration(10)*time.Second)
