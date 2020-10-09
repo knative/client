@@ -1,10 +1,10 @@
 ## kn broker
 
-Manage message
+Manage message brokers
 
 ### Synopsis
 
-Manage message
+Manage message brokers
 
 ```
 kn broker
