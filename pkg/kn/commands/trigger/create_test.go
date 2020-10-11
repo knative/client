@@ -67,7 +67,7 @@ func TestTriggerWithInjectCreate(t *testing.T) {
 	eventingRecorder.Validate()
 }
 
-func TestTriggetWithInjectError(t *testing.T) {
+func TestTriggerWithInjectError(t *testing.T) {
 	eventingClient := clienteventingv1beta1.NewMockKnEventingClient(t)
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default", &servingv1.Service{
 		TypeMeta:   metav1.TypeMeta{Kind: "Service", APIVersion: "serving.knative.dev/v1"},
