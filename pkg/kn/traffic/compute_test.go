@@ -225,7 +225,7 @@ func TestComputeErrMsg(t *testing.T) {
 			"expecting the value format in value1=value2, given @latest=",
 		},
 		{
-			"repeatedly spliting traffic to @latest revision",
+			"repeatedly splitting traffic to @latest revision",
 			append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("", "", 100, true)),
 			[]string{"--traffic", "@latest=90,@latest=10"},
 			"repetition of identifier @latest is not allowed, use only once with --traffic flag",
@@ -273,7 +273,7 @@ func TestComputeErrMsg(t *testing.T) {
 			"invalid value for traffic percent -100, expected 0 <= percent <= 100",
 		},
 		{
-			"repeatedly spliting traffic to the same revision",
+			"repeatedly splitting traffic to the same revision",
 			append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("", "", 100, true)),
 			[]string{"--traffic", "echo-v1=40", "--traffic", "echo-v1=60"},
 			"repetition of revision reference echo-v1 is not allowed, use only once with --traffic flag",
