@@ -113,7 +113,7 @@ func GetNextServiceName(base string) string {
 	return base + strconv.Itoa(current)
 }
 
-// CreateNamespace creates and tests a namesspace creation invoking kubectl
+// CreateNamespace creates and tests a namespace creation invoking kubectl
 func CreateNamespace(namespace string) error {
 	expectedOutputRegexp := fmt.Sprintf("namespace?.+%s.+created", namespace)
 	out, err := createNamespaceWithRetry(namespace, MaxRetries)
@@ -132,7 +132,7 @@ func CreateNamespace(namespace string) error {
 	return nil
 }
 
-// DeleteNamespace deletes and tests a namesspace deletion invoking kubectl
+// DeleteNamespace deletes and tests a namespace deletion invoking kubectl
 func DeleteNamespace(namespace string) error {
 	kubectl := Kubectl{namespace}
 	out, err := kubectl.Run("delete", "namespace", namespace)
