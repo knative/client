@@ -80,7 +80,7 @@ find the digest of the resolved image for the revision.
 
 If an client does not set the revision name, the client may find the
 `status.latestCreatedRevision` field useful, even though using it is subject to
-a race condition, if the client compares the relevant informatin on the found
+a race condition, if the client compares the relevant information on the found
 revision to the template. For example, if the image on the template matches the
 `latestCreatedRevision`'s image, the client is justified in using the
 `status.imageDigest` field from the revision.
