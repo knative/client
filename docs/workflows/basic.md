@@ -1,6 +1,6 @@
 # Basic Workflow
 
-In this basic worflow we show the CRUD (create, read, update, delete) operations
+In this basic workflow we show the CRUD (create, read, update, delete) operations
 on a service. We use a well known
 [simple Hello World service](https://github.com/knative/docs/tree/master/docs/serving/samples/hello-world/helloworld-go)
 that reads the environment variable `TARGET` and prints it as output.
