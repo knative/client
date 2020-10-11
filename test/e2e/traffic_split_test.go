@@ -401,7 +401,7 @@ func TestTrafficSplit(t *testing.T) {
 			expectedTargets := []TargetFields{newTargetFields("", rev2, 100, true),
 				newTargetFields("old", rev1, 0, false),
 				// Tagging by revision name adds a new target even though latestReadyRevision==rev2,
-				// because we didn't refer @latest reference, but explcit name of revision.
+				// because we didn't refer @latest reference, but explicit name of revision.
 				// In spec of traffic block (not status) either latestReadyRevision:true or revisionName can be given per target
 				newTargetFields("latest", rev2, 0, false)}
 
