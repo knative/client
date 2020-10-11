@@ -102,7 +102,7 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
 
 	flagset.StringVarP(&p.Command, "cmd", "", "",
 		"Specify command to be used as entrypoint instead of default one. "+
-			"Example: --cmd /app/start or --cmd /app/start --arg myArg to pass aditional arguments.")
+			"Example: --cmd /app/start or --cmd /app/start --arg myArg to pass additional arguments.")
 	flagNames = append(flagNames, "cmd")
 
 	flagset.StringArrayVarP(&p.Arg, "arg", "", []string{},
