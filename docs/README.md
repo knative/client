@@ -72,7 +72,7 @@ Below are the options you can specify in the `kn` config file.
    plugins. It can be any directory that is visible to the user.
 
 2. `lookupPluginsInPath` which is the same as the persistent flag
-   `--lookup-plugins-in-path` and specficies if `kn` should look for plugins
+   `--lookup-plugins-in-path` and specifies if `kn` should look for plugins
    anywhere in the specified `PATH` environment variable. This is a boolean
    configuration option and the default value is `false`.
 
