@@ -323,7 +323,7 @@
 | https://github.com/knative/client/pull/819[#819]
 
 | 🐛
-| Update help messsage for `kn source apiserver` to reflect the new API
+| Update help message for `kn source apiserver` to reflect the new API
 | https://github.com/knative/client/pull/817[#817]
 
 | 🐛
