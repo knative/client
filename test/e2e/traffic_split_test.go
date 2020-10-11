@@ -254,7 +254,7 @@ func TestTrafficSplit(t *testing.T) {
 			test.ServiceDelete(r, serviceName)
 		},
 	)
-	// test reducing number of targets from traffic blockdd
+	// test reducing number of targets from traffic blocked
 	t.Run("RemoveTag",
 		func(t *testing.T) {
 			t.Log("remove a revision with tag old from traffic block entirely")
