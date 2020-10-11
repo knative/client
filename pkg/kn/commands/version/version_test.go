@@ -58,7 +58,7 @@ func TestVersion(t *testing.T) {
 		BuildDate = fakeBuildDate
 		GitRevision = fakeGitRevision
 		knVersionObj = knVersion{fakeVersion, fakeBuildDate, fakeGitRevision, apiVersions}
-		expectedOutput = genVersionOuput(t, knVersionObj)
+		expectedOutput = genVersionOutput(t, knVersionObj)
 		knParams = &commands.KnParams{}
 		versionCmd = NewVersionCommand(knParams)
 		output = new(bytes.Buffer)
@@ -114,7 +114,7 @@ func TestVersion(t *testing.T) {
 
 }
 
-func genVersionOuput(t *testing.T, obj knVersion) string {
+func genVersionOutput(t *testing.T, obj knVersion) string {
 	tmpl, err := template.New("versionOutput").Parse(versionOutputTemplate)
 	assert.NilError(t, err)
 	buf := bytes.Buffer{}
