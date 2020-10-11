@@ -120,7 +120,7 @@ func fakeServiceUpdate(original *servingv1.Service, args []string) (
 	return
 }
 
-func TestServcieUpdateNoFlags(t *testing.T) {
+func TestServiceUpdateNoFlags(t *testing.T) {
 	orig := newEmptyService()
 
 	action, _, _, err := fakeServiceUpdate(orig, []string{"service", "update", "foo"})
