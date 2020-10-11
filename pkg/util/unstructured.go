@@ -32,8 +32,8 @@ func ToUnstructuredList(obj runtime.Object) (*unstructured.UnstructuredList, err
 		if err != nil {
 			return nil, err
 		}
-		for _, obji := range items {
-			ud, err := toUnstructured(obji)
+		for _, item := range items {
+			ud, err := toUnstructured(item)
 			if err != nil {
 				return nil, err
 			}
