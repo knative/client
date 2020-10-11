@@ -44,7 +44,7 @@ func AddNamespaceFlags(flags *pflag.FlagSet, allowAll bool) {
 // GetNamespace returns namespace from command specified by flag
 func (params *KnParams) GetNamespace(cmd *cobra.Command) (string, error) {
 	namespace := cmd.Flag("namespace").Value.String()
-	// check value of all-namepaces only if its defined
+	// check value of all-namespaces only if its defined
 	if cmd.Flags().Lookup("all-namespaces") != nil {
 		all, err := cmd.Flags().GetBool("all-namespaces")
 		if err != nil {
@@ -54,7 +54,7 @@ func (params *KnParams) GetNamespace(cmd *cobra.Command) (string, error) {
 			return "", nil
 		}
 	}
-	// if all-namepaces=False or namespace not given, use default namespace
+	// if all-namespaces=False or namespace not given, use default namespace
 	if namespace == "" {
 		var err error
 		namespace, err = params.CurrentNamespace()
