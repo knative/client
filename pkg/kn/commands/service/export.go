@@ -194,7 +194,7 @@ func constructServiceFromRevision(latestSvc *servingv1.Service, revision *servin
 		ObjectMeta: latestSvc.Spec.Template.ObjectMeta,
 	}
 
-	//ovrriding revision template annotations with revision annotations
+	//overriding revision template annotations with revision annotations
 	stripIgnoredAnnotationsFromRevision(revision)
 	exportedSvc.Spec.Template.ObjectMeta.Annotations = revision.ObjectMeta.Annotations
 
