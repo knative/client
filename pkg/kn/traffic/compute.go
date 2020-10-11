@@ -49,7 +49,7 @@ func newTarget(tag, revision string, percent int64, latestRevision bool) (target
 	if latestRevision {
 		target.LatestRevision = ptr.Bool(true)
 	} else {
-		// as LatestRevision and RevisionName can't be specfied together for a target
+		// as LatestRevision and RevisionName can't be specified together for a target
 		target.LatestRevision = ptr.Bool(false)
 		target.RevisionName = revision
 	}
