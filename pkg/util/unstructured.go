@@ -22,7 +22,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-// ToUnstructuredList is to converts an object to unstructured.UnstructuredList.
+// ToUnstructuredList is to convert an object to unstructured.UnstructuredList.
 // If the object is not a list type, it will convert to a single item UnstructuredList.
 func ToUnstructuredList(obj runtime.Object) (*unstructured.UnstructuredList, error) {
 	unstructuredList := &unstructured.UnstructuredList{}
