@@ -50,7 +50,7 @@ func (i *SinkFlags) AddWithFlagName(cmd *cobra.Command, fname, short string) {
 		"If a prefix is not provided, it is considered as a Knative service."
 
 	for _, p := range config.GlobalConfig.SinkMappings() {
-		//user configration might override the default configuration
+		//user configuration might override the default configuration
 		sinkMappings[p.Prefix] = schema.GroupVersionResource{
 			Resource: p.Resource,
 			Group:    p.Group,
