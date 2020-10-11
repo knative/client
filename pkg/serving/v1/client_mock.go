@@ -181,7 +181,7 @@ func (sr *ServingRecorder) GetConfiguration(name string, config *servingv1.Confi
 
 }
 
-// Check for the base reviision
+// Check for the base revision
 func (c *MockKnServingClient) GetBaseRevision(service *servingv1.Service) (*servingv1.Revision, error) {
 	return getBaseRevision(c, service)
 }
