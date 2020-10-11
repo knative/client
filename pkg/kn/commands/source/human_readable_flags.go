@@ -33,7 +33,7 @@ var sourceTypeDescription = map[string]string{
 	"ContainerSource": "Generate events by Container image and send to addressable",
 	// TODO: source plugin could bring the description that kn could look for based on the availability
 	// of the plugin and fetch the description from there, for now we dont have that capability in kn
-	// so we're shipping harcoded short description of the KafkaSource as below
+	// so we're shipping hardcoded short description of the KafkaSource as below
 	"KafkaSource": "Route events from Apache Kafka Server to addressable",
 }
 
