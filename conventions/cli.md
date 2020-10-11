@@ -51,7 +51,7 @@ be used:
 - `create` creates a resource.
 - `update` updates a resource.
 - `delete` deletes a resource.
-- `apply` for an idempotent "create-or-update", much like `kubetl apply`
+- `apply` for an idempotent "create-or-update", much like `kubectl apply`
 
 For a given resource, create and update should use the same arguments as much as
 possible and where it makes sense.
