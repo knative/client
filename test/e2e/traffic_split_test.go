@@ -32,7 +32,7 @@ var targetsSeparator = "|"
 var targetFieldsSeparator = ","
 var targetFieldsLength = 4
 
-// returns deployed service targets separated by '|' and each target fields seprated by comma
+// returns deployed service targets separated by '|' and each target fields separated by comma
 var targetsJsonPath = "jsonpath={range .status.traffic[*]}{.tag}{','}{.revisionName}{','}{.percent}{','}{.latestRevision}{'|'}{end}"
 
 // TargetFields are used in e2e to store expected fields per traffic target
