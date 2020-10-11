@@ -186,7 +186,7 @@ func TestCompute(t *testing.T) {
 	} {
 		t.Run(testCase.name, func(t *testing.T) {
 			if lper, lrev, ltag := len(testCase.desiredPercents), len(testCase.desiredRevisions), len(testCase.desiredTags); lper != lrev || lper != ltag {
-				t.Fatalf("length of desird revisions, tags and percents is mismatched: got=(desiredPercents, desiredRevisions, desiredTags)=(%d, %d, %d)",
+				t.Fatalf("length of desired revisions, tags and percents is mismatched: got=(desiredPercents, desiredRevisions, desiredTags)=(%d, %d, %d)",
 					lper, lrev, ltag)
 			}
 
