@@ -30,7 +30,7 @@ func NewBindingListCommand(p *commands.KnParams) *cobra.Command {
 		Use:   "list",
 		Short: "List sink bindings",
 		Example: `
-  # List all sink binidngs
+  # List all sink bindings
   kn source binding list
 
   # List all sink bindings in YAML format
