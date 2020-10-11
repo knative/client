@@ -34,7 +34,7 @@ func ListHandlers(h hprinters.PrintHandler) {
 	subscriptionColumnDefinitions := []metav1beta1.TableColumnDefinition{
 		{Name: "Namespace", Type: "string", Description: "Namespace of the subscription", Priority: 0},
 		{Name: "Name", Type: "string", Description: "Name of the subscription", Priority: 1},
-		{Name: "Channel", Type: "string", Description: "Channel of the subcription", Priority: 1},
+		{Name: "Channel", Type: "string", Description: "Channel of the subscription", Priority: 1},
 		{Name: "Subscriber", Type: "string", Description: "Subscriber sink of the subscription", Priority: 1},
 		{Name: "Reply", Type: "string", Description: "Reply sink of the subscription", Priority: 1},
 		{Name: "Dead Letter Sink", Type: "string", Description: "DeadLetterSink of the subscription", Priority: 1},
