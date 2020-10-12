@@ -12,6 +12,7 @@
 | https://github.com/knative/client/pull/[#]
 ////
 
+### Unreleased
 [cols="1,10,3", options="header", width="100%"]
 |===
 | | Description | PR
@@ -23,6 +24,34 @@
 | 🎁
 | Add WithLabel list filter to serving client lib
 | https://github.com/knative/client/pull/1054[#1054]
+|===
+
+## v0.18.1 (2020-10-13)
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🎁
+| Add WithLabel list filter to serving client lib
+| https://github.com/knative/client/pull/1054[#1054]
+
+| 🐛
+| Fix for test flake when sync waiting and an intermediate error occurs
+| https://github.com/knative/client/pull/1052[#1052]
+|===
+
+## v0.17.2 (2020-10-12)
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🎁
+| Add WithLabel list filter to serving client lib
+| https://github.com/knative/client/pull/1054[#1054]
+
+| 🐛
+| Fix for test flake when sync waiting and an intermediate error occurs
+| https://github.com/knative/client/pull/1052[#1052]
 |===
 
 ## v0.18.0 (2020-10-07)
