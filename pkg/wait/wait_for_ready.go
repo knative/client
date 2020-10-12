@@ -135,6 +135,12 @@ func (w *waitForReadyConfig) Wait(name string, options Options, msgCallback Mess
 	}
 }
 
+// waitForReadyCondition waits until the status condition "Ready" is set to true (good path) or return an error
+// when the "Ready" condition is set to false. An error is also returned when the given timeout is reached (plus the
+// return value of timeoutReached is set to true in this case).
+// An errorWindow can be specified which takes into account of intermediate "false" ready conditions. So before returning
+// an error, this methods waits for the errorWindow duration and if an "True" or "Unknown" event arrives in the meantime
+// for the "Ready" condition, then the method continues to wait.
 func (w *waitForReadyConfig) waitForReadyCondition(start time.Time, name string, timeout time.Duration, errorWindow time.Duration, msgCallback MessageCallback) (retry bool, timeoutReached bool, err error) {
 
 	watcher, err := w.watchMaker(name, timeout)
@@ -143,7 +149,7 @@ func (w *waitForReadyConfig) waitForReadyCondition(start time.Time, name string,
 	}
 	defer watcher.Stop()
 
-	// channel used to transport the error
+	// channel used to transport the error that has been received
 	errChan := make(chan error)
 
 	var errorTimer *time.Timer
@@ -152,14 +158,18 @@ func (w *waitForReadyConfig) waitForReadyCondition(start time.Time, name string,
 	defer (func() {
 		if errorTimer != nil {
 			errorTimer.Stop()
+			errorTimer = nil
 		}
 	})()
 
 	for {
 		select {
 		case <-time.After(timeout):
+			// We reached a timeout without receiving a "Ready" == "True" event
 			return false, true, nil
 		case err = <-errChan:
+			// The error timer fired and we have not received a recovery event ("True" / "Unknown") in the
+			// meantime. So the error status is considered to be final.
 			return false, false, err
 		case event, ok := <-watcher.ResultChan():
 			if !ok || event.Object == nil {
@@ -197,6 +207,7 @@ func (w *waitForReadyConfig) waitForReadyCondition(start time.Time, name string,
 				if cond.Type == apis.ConditionReady {
 					switch cond.Status {
 					case corev1.ConditionTrue:
+						// Any error timer running will be cancelled by the defer method that has been set above
 						return false, false, nil
 					case corev1.ConditionFalse:
 						// Fire up a timer waiting for the error window duration to still allow to reconcile
@@ -208,6 +219,14 @@ func (w *waitForReadyConfig) waitForReadyCondition(start time.Time, name string,
 							errorTimer = time.AfterFunc(errorWindow, func() {
 								errChan <- err
 							})
+						}
+					case corev1.ConditionUnknown:
+						// If an errorTimer is triggered because of a previous "False" event, but now
+						// we received an "Unknown" event during the error window, cancel the error timer
+						// to avoid to receive an error signal.
+						if errorTimer != nil {
+							errorTimer.Stop()
+							errorTimer = nil
 						}
 					}
 					if cond.Message != "" {
