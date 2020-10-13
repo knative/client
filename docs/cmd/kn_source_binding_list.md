@@ -14,7 +14,7 @@ kn source binding list
 
 ```
 
-  # List all sink binidngs
+  # List all sink bindings
   kn source binding list
 
   # List all sink bindings in YAML format

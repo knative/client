@@ -466,7 +466,7 @@ function start_release_eventing_sugar_controller() {
   start_knative_eventing_extension "https://storage.googleapis.com/knative-releases/eventing/previous/v$1/eventing-sugar-controller.yaml" "knative-eventing"
 }
 
-# Install the sugar cotroller eventing extension
+# Install the sugar controller eventing extension
 function start_latest_eventing_sugar_controller() {
   start_knative_eventing_extension "${KNATIVE_EVENTING_SUGAR_CONTROLLER_RELEASE}" "knative-eventing"
 }

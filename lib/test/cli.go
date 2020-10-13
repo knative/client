@@ -22,8 +22,8 @@ import (
 )
 
 const (
-	seperatorHeavy = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-	seperatorLight = "╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍"
+	separatorHeavy = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	separatorLight = "╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍"
 )
 
 // Kn type
@@ -159,10 +159,10 @@ func dumpService(namespace string, args []string) string {
 
 	// Service info
 	appendResourceInfo(&buffer, "ksvc", name, namespace)
-	fmt.Fprintf(&buffer, "%s\n", seperatorHeavy)
+	fmt.Fprintf(&buffer, "%s\n", separatorHeavy)
 	// Service's configuration
 	appendResourceInfo(&buffer, "configuration", name, namespace)
-	fmt.Fprintf(&buffer, "%s\n", seperatorHeavy)
+	fmt.Fprintf(&buffer, "%s\n", separatorHeavy)
 	// Get all revisions for this service
 	appendResourceInfoWithNameSelector(&buffer, "revision", name, namespace, "serving.knative.dev/service")
 	// Get all routes for this service
@@ -218,7 +218,7 @@ func appendResourceInfoWithNameSelector(buffer *bytes.Buffer, kind string, name 
 
 	out, err := RunKubectl(namespace, argsDescribe...)
 	appendCLIOutput(buffer, fmt.Sprintf("kubectl describe %s %s --namespace %s%s", kind, name, namespace, extra), out, err)
-	fmt.Fprintf(buffer, "%s\n", seperatorLight)
+	fmt.Fprintf(buffer, "%s\n", separatorLight)
 	out, err = RunKubectl(namespace, argsGet...)
 	appendCLIOutput(buffer, fmt.Sprintf("kubectl get %s %s --namespace %s -oyaml%s", kind, name, namespace, extra), out, err)
 }

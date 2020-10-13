@@ -32,7 +32,7 @@ var targetsSeparator = "|"
 var targetFieldsSeparator = ","
 var targetFieldsLength = 4
 
-// returns deployed service targets separated by '|' and each target fields seprated by comma
+// returns deployed service targets separated by '|' and each target fields separated by comma
 var targetsJsonPath = "jsonpath={range .status.traffic[*]}{.tag}{','}{.revisionName}{','}{.percent}{','}{.latestRevision}{'|'}{end}"
 
 // TargetFields are used in e2e to store expected fields per traffic target
@@ -254,7 +254,7 @@ func TestTrafficSplit(t *testing.T) {
 			test.ServiceDelete(r, serviceName)
 		},
 	)
-	// test reducing number of targets from traffic blockdd
+	// test reducing number of targets from traffic blocked
 	t.Run("RemoveTag",
 		func(t *testing.T) {
 			t.Log("remove a revision with tag old from traffic block entirely")
@@ -401,7 +401,7 @@ func TestTrafficSplit(t *testing.T) {
 			expectedTargets := []TargetFields{newTargetFields("", rev2, 100, true),
 				newTargetFields("old", rev1, 0, false),
 				// Tagging by revision name adds a new target even though latestReadyRevision==rev2,
-				// because we didn't refer @latest reference, but explcit name of revision.
+				// because we didn't refer @latest reference, but explicit name of revision.
 				// In spec of traffic block (not status) either latestReadyRevision:true or revisionName can be given per target
 				newTargetFields("latest", rev2, 0, false)}
 

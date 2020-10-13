@@ -2,7 +2,7 @@
 
 The Knative Pod Autoscaler (KPA), provides fast, request-based autoscaling
 capabilities. To correctly configure autoscaling to zero for revisions, you must
-modify its paramenters.
+modify its parameters.
 
 `target` defines how many concurrent requests are wanted at a given time (soft
 limit) and is the recommended configuration for autoscaling in Knative.

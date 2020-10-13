@@ -45,7 +45,7 @@ kn service update NAME
       --async                             DEPRECATED: please use --no-wait instead. Do not wait for 'service update' operation to be completed.
       --autoscale-window string           Duration to look back for making auto-scaling decisions. The service is scaled to zero if no request was received in during that time. (eg: 10s)
       --cluster-local                     Specify that the service be private. (--no-cluster-local will make the service publicly available)
-      --cmd string                        Specify command to be used as entrypoint instead of default one. Example: --cmd /app/start or --cmd /app/start --arg myArg to pass aditional arguments.
+      --cmd string                        Specify command to be used as entrypoint instead of default one. Example: --cmd /app/start or --cmd /app/start --arg myArg to pass additional arguments.
       --concurrency-limit int             Hard Limit of concurrent requests to be processed by a single replica.
       --concurrency-target int            Recommendation for when to scale up based on the concurrent number of incoming request. Defaults to --concurrency-limit when given.
       --concurrency-utilization int       Percentage of concurrent requests utilization before scaling up. (default 70)

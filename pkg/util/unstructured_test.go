@@ -38,16 +38,16 @@ func TestToUnstructuredList(t *testing.T) {
 		},
 	}
 	expectedList.Items = []unstructured.Unstructured{createUnstructured("s1"), createUnstructured("s2")}
-	unstructedList, err := ToUnstructuredList(&serviceList)
+	unstructuredList, err := ToUnstructuredList(&serviceList)
 	assert.NilError(t, err)
-	assert.DeepEqual(t, unstructedList, expectedList)
+	assert.DeepEqual(t, unstructuredList, expectedList)
 
 	service1 := createService("s3")
 	expectedList = &unstructured.UnstructuredList{}
 	expectedList.Items = []unstructured.Unstructured{createUnstructured("s3")}
-	unstructedList, err = ToUnstructuredList(&service1)
+	unstructuredList, err = ToUnstructuredList(&service1)
 	assert.NilError(t, err)
-	assert.DeepEqual(t, unstructedList, expectedList)
+	assert.DeepEqual(t, unstructuredList, expectedList)
 }
 
 func createService(name string) servingv1.Service {

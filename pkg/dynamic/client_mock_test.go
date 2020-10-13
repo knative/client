@@ -25,7 +25,7 @@ import (
 
 func TestMockKnDynamicClient(t *testing.T) {
 
-	client := NewMockKnDyanmicClient(t)
+	client := NewMockKnDynamicClient(t)
 
 	recorder := client.Recorder()
 

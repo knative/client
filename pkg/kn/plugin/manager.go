@@ -93,7 +93,7 @@ func NewManager(pluginDir string, lookupInPath bool) *Manager {
 
 // FindPlugin checks if a plugin for the given parts exist and return it.
 // The args given must not contain any options and contain only
-// the comands (like in [ "source", "github" ] for a plugin called 'kn-source-github'
+// the commands (like in [ "source", "github" ] for a plugin called 'kn-source-github'
 // The plugin with the most specific (longest) name is returned or nil if non is found.
 // An error is returned if the lookup fails for some reason like an io error
 func (manager *Manager) FindPlugin(parts []string) (Plugin, error) {

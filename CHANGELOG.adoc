@@ -17,6 +17,11 @@
 |===
 | | Description | PR
 
+| 🐛
+| Fix various misspellings and linter items
+| https://github.com/knative/client/pull/1057[#1057]
+
+
 | 🎁
 | Add Aliases to Help Command and Remove Aliases in Short
 | https://github.com/knative/client/pull/1055[#1055]
@@ -352,7 +357,7 @@
 | https://github.com/knative/client/pull/819[#819]
 
 | 🐛
-| Update help messsage for `kn source apiserver` to reflect the new API
+| Update help message for `kn source apiserver` to reflect the new API
 | https://github.com/knative/client/pull/817[#817]
 
 | 🐛

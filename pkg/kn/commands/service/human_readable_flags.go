@@ -60,7 +60,7 @@ func printKServiceList(kServiceList *servingv1.ServiceList, options hprinters.Pr
 func printKService(kService *servingv1.Service, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	name := kService.Name
 	url := kService.Status.URL
-	lastestRevision := kService.Status.ConfigurationStatusFields.LatestReadyRevisionName
+	latestRevision := kService.Status.ConfigurationStatusFields.LatestReadyRevisionName
 	age := commands.TranslateTimestampSince(kService.CreationTimestamp)
 	conditions := commands.ConditionsValue(kService.Status.Conditions)
 	ready := commands.ReadyCondition(kService.Status.Conditions)
@@ -77,7 +77,7 @@ func printKService(kService *servingv1.Service, options hprinters.PrintOptions) 
 	row.Cells = append(row.Cells,
 		name,
 		url,
-		lastestRevision,
+		latestRevision,
 		age,
 		conditions,
 		ready,

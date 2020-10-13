@@ -17,7 +17,7 @@
 Fixes #
 
 <!--
-Please add an entrty to CHANGELOG.adoc file, too, as part of your Pull Request.
+Please add an entry to CHANGELOG.adoc file, too, as part of your Pull Request.
 
 In the following cases, add a short description of PR to the unreleased section in CHANGELOG.adoc:
 

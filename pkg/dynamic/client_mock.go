@@ -30,8 +30,8 @@ type MockKnDynamicClient struct {
 	recorder *ClientRecorder
 }
 
-// NewMockKnDyanmicClient returns a new mock instance which you need to record for
-func NewMockKnDyanmicClient(t *testing.T, ns ...string) *MockKnDynamicClient {
+// NewMockKnDynamicClient returns a new mock instance which you need to record for
+func NewMockKnDynamicClient(t *testing.T, ns ...string) *MockKnDynamicClient {
 	namespace := "default"
 	if len(ns) > 0 {
 		namespace = ns[0]

@@ -134,7 +134,7 @@ func (c *KnRunResultCollector) printCommands(out io.Writer) {
 	for i, result := range c.results {
 		c.printCommand(out, result)
 		if i < len(c.results)-1 {
-			fmt.Fprintf(out, "┣━%s\n", seperatorHeavy)
+			fmt.Fprintf(out, "┣━%s\n", separatorHeavy)
 		}
 	}
 }

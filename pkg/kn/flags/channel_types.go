@@ -59,7 +59,7 @@ func (i *ChannelTypeFlags) Add(f *pflag.FlagSet) {
 			"Examples: '--type messaging.knative.dev:v1alpha1:KafkaChannel' for specifying explicit Group:Version:Kind.")
 
 	for _, p := range config.GlobalConfig.ChannelTypeMappings() {
-		//user configration might override the default configuration
+		//user configuration might override the default configuration
 		ctypeMappings[p.Alias] = schema.GroupVersionKind{
 			Kind:    p.Kind,
 			Group:   p.Group,

@@ -21,7 +21,7 @@
 // doSomeActionThatWritesToStdOutAndStdErr()
 // stdOut, stdErr := capture.Close()
 //
-// CaptureOutpu() and capture.Close() should always come in pairs as Close() also
+// CaptureOutput() and capture.Close() should always come in pairs as Close() also
 // restores the old streams
 package test
 

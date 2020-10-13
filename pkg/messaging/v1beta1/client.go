@@ -25,7 +25,7 @@ import (
 )
 
 // KnMessagingClient to Eventing Messaging. All methods are relative to
-// the namespace specificied during construction
+// the namespace specified during construction
 type KnMessagingClient interface {
 	// Get the Channels client
 	ChannelsClient() KnChannelsClient
