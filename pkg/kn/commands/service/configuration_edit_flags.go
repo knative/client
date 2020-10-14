@@ -21,8 +21,6 @@ import (
 
 	"github.com/spf13/cobra"
 
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	knflags "knative.dev/client/pkg/kn/flags"
@@ -245,50 +243,6 @@ func (p *ConfigurationEditFlags) Apply(
 		fmt.Fprintf(cmd.OutOrStdout(), "\nWARNING: flags --requests-cpu / --requests-memory are deprecated and going to be removed in future release, please use --request instead.\n\n")
 	}
 
-	limitsResources, err := p.computeResources(p.PodSpecFlags.LimitsFlags)
-	if err != nil {
-		return err
-	}
-	requestsResources, err := p.computeResources(p.PodSpecFlags.RequestsFlags)
-	if err != nil {
-		return err
-	}
-	err = servinglib.UpdateResourcesDeprecated(template, requestsResources, limitsResources)
-	if err != nil {
-		return err
-	}
-
-	requestsToRemove, limitsToRemove, err := p.PodSpecFlags.Resources.Validate()
-	if err != nil {
-		return err
-	}
-
-	err = servinglib.UpdateResources(template, p.PodSpecFlags.Resources.ResourceRequirements, requestsToRemove, limitsToRemove)
-	if err != nil {
-		return err
-	}
-
-	if cmd.Flags().Changed("cmd") {
-		err = servinglib.UpdateContainerCommand(template, p.PodSpecFlags.Command)
-		if err != nil {
-			return err
-		}
-	}
-
-	if cmd.Flags().Changed("arg") {
-		err = servinglib.UpdateContainerArg(template, p.PodSpecFlags.Arg)
-		if err != nil {
-			return err
-		}
-	}
-
-	if cmd.Flags().Changed("port") {
-		err = servinglib.UpdateContainerPort(template, p.PodSpecFlags.Port)
-		if err != nil {
-			return err
-		}
-	}
-
 	// Deprecated "min-scale" in 0.19, updated to "scale-min"
 	if cmd.Flags().Changed("scale-min") || cmd.Flags().Changed("min-scale") {
 		err = servinglib.UpdateMinScale(template, p.MinScale)
@@ -460,32 +414,6 @@ func (p *ConfigurationEditFlags) updateLabels(obj *metav1.ObjectMeta, flagLabels
 	obj.Labels = servinglib.UpdateLabels(obj.Labels, labelsMap, revisionLabelsToRemove)
 
 	return nil
-}
-
-func (p *ConfigurationEditFlags) computeResources(resourceFlags knflags.ResourceFlags) (corev1.ResourceList, error) {
-	resourceList := corev1.ResourceList{}
-
-	if resourceFlags.CPU != "" {
-		cpuQuantity, err := resource.ParseQuantity(resourceFlags.CPU)
-		if err != nil {
-			return corev1.ResourceList{},
-				fmt.Errorf("Error parsing %q: %w", resourceFlags.CPU, err)
-		}
-
-		resourceList[corev1.ResourceCPU] = cpuQuantity
-	}
-
-	if resourceFlags.Memory != "" {
-		memoryQuantity, err := resource.ParseQuantity(resourceFlags.Memory)
-		if err != nil {
-			return corev1.ResourceList{},
-				fmt.Errorf("Error parsing %q: %w", resourceFlags.Memory, err)
-		}
-
-		resourceList[corev1.ResourceMemory] = memoryQuantity
-	}
-
-	return resourceList, nil
 }
 
 // AnyMutation returns true if there are any revision template mutations in the

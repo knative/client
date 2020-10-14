@@ -68,7 +68,7 @@ func GenerateVolumeName(path string) string {
 
 	// the name must start with an alphanumeric character
 	if !unicode.IsLetter(rune(vname[0])) && !unicode.IsNumber(rune(vname[0])) {
-		vname = fmt.Sprintf("k-%s", vname)
+		vname = "k-" + vname
 	}
 
 	// contain at most 63 characters
