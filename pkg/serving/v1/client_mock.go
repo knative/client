@@ -202,6 +202,28 @@ func (c *MockKnServingClient) GetConfiguration(name string) (*servingv1.Configur
 	return call.Result[0].(*servingv1.Configuration), mock.ErrorOrNil(call.Result[1])
 }
 
+// CreateRevision records a call CreateRevision
+func (sr *ServingRecorder) CreateRevision(revision interface{}, err error) {
+	sr.r.Add("CreateRevision", []interface{}{revision}, []interface{}{err})
+}
+
+// CreateRevision creates a new revision
+func (c *MockKnServingClient) CreateRevision(service *servingv1.Revision) error {
+	call := c.recorder.r.VerifyCall("CreateRevision", service)
+	return mock.ErrorOrNil(call.Result[0])
+}
+
+// UpdateRevision records a call UpdateRevision
+func (sr *ServingRecorder) UpdateRevision(revision interface{}, err error) {
+	sr.r.Add("UpdateRevision", []interface{}{revision}, []interface{}{err})
+}
+
+// UpdateRevision updates given revision
+func (c *MockKnServingClient) UpdateRevision(revision *servingv1.Revision) error {
+	call := c.recorder.r.VerifyCall("UpdateRevision", revision)
+	return mock.ErrorOrNil(call.Result[0])
+}
+
 // Check that every recorded method has been called
 func (sr *ServingRecorder) Validate() {
 	sr.r.CheckThatAllRecordedMethodsHaveBeenCalled()
