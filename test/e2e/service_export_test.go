@@ -156,7 +156,6 @@ func TestServiceExport(t *testing.T) {
 				map[string]string{
 					"serving.knative.dev/configuration":           "hello",
 					"serving.knative.dev/configurationGeneration": "1",
-					"serving.knative.dev/route":                   "hello",
 					"serving.knative.dev/routingState":            "active",
 					"serving.knative.dev/service":                 "hello",
 				}),
@@ -226,7 +225,6 @@ func TestServiceExport(t *testing.T) {
 				map[string]string{
 					"serving.knative.dev/configuration":           "hello",
 					"serving.knative.dev/configurationGeneration": "1",
-					"serving.knative.dev/route":                   "hello",
 					"serving.knative.dev/routingState":            "active",
 					"serving.knative.dev/service":                 "hello",
 				}),
@@ -244,7 +242,6 @@ func TestServiceExport(t *testing.T) {
 				map[string]string{
 					"serving.knative.dev/configuration":           "hello",
 					"serving.knative.dev/configurationGeneration": "2",
-					"serving.knative.dev/route":                   "hello",
 					"serving.knative.dev/routingState":            "active",
 					"serving.knative.dev/service":                 "hello",
 				}),
@@ -301,7 +298,6 @@ func TestServiceExport(t *testing.T) {
 				map[string]string{
 					"serving.knative.dev/configuration":           "hello",
 					"serving.knative.dev/configurationGeneration": "2",
-					"serving.knative.dev/route":                   "hello",
 					"serving.knative.dev/routingState":            "active",
 					"serving.knative.dev/service":                 "hello",
 				}),
