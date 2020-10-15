@@ -192,8 +192,8 @@ check_license() {
 
 update_deps() {
   echo "🚒 Update"
-  go mod tidy
-  go mod vendor
+  go mod tidy 2>&1 | grep -v "ignoring symlink" || true
+  go mod vendor 2>&1 |  grep -v "ignoring symlink" || true
 
   # Cleanup
   find "./vendor" \( -name "OWNERS" -o -name "*_test.go" \) -print0 | xargs -0 rm -f
