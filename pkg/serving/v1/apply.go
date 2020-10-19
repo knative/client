@@ -83,7 +83,7 @@ func (cl *knServingClient) patchSimple(currentService *servingv1.Service, uModif
 			return false, err
 		}
 		// TODO: Allow "overwrite" to be configured
-		patch, err = strategicpatch.CreateThreeWayMergePatch(uOriginalService, uModifiedService, uCurrentService, lookupPatchMeta, false)
+		patch, _ = strategicpatch.CreateThreeWayMergePatch(uOriginalService, uModifiedService, uCurrentService, lookupPatchMeta, false)
 	} else {
 		return false, fmt.Errorf("unsupported patch type %s", patchStrategy)
 	}

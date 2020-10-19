@@ -79,7 +79,7 @@ type KnServingClient interface {
 	// here and the current configuration as found on the cluster.
 	// The returned bool indicates whether the service has been changed or whether this operation
 	// was a no-op
-	// An error can indicate a general error or a conflict that occured during the three way merge.
+	// An error can indicate a general error or a conflict that occurred during the three way merge.
 	ApplyService(service *servingv1.Service) (bool, error)
 
 	// PatchService patches a service and returns the patched service
@@ -317,6 +317,7 @@ func (cl *knServingClient) PatchService(name string, patchType types.PatchType, 
 		return nil, err
 	}
 	err = updateServingGvk(service)
+
 	return service, err
 }
 

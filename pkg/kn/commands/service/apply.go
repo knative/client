@@ -74,8 +74,13 @@ func NewServiceApplyCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			hasChanged, err := client.ApplyService(service)
+			if err != nil {
+				return err
+			}
 			if !hasChanged {
 				fmt.Fprintf(cmd.OutOrStdout(), "No changes to apply to service '%s'.\n", service.Name)
+				fmt.Fprintf(cmd.OutOrStdout(), "Service '%s' with revision '%s' is available at URL:\n", service.Name, service.Status.LatestCreatedRevisionName)
+				fmt.Fprintf(cmd.OutOrStdout(), "%s\n", service.Status.URL)
 				return nil
 			}
 			return waitIfRequested(client, service.Name, waitFlags, waitDoing, waitVerb, cmd.OutOrStdout())

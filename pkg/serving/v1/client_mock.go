@@ -107,7 +107,7 @@ func (c *MockKnServingClient) UpdateServiceWithRetry(name string, updateFunc Ser
 
 // Update the given service
 func (sr *ServingRecorder) ApplyService(service interface{}, hasChanged bool, err error) {
-	sr.r.Add("UpdateService", []interface{}{service}, []interface{}{hasChanged, err})
+	sr.r.Add("ApplyService", []interface{}{service}, []interface{}{hasChanged, err})
 }
 
 func (c *MockKnServingClient) ApplyService(service *servingv1.Service) (bool, error) {
