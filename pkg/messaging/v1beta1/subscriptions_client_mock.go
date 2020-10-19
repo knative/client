@@ -37,8 +37,9 @@ func NewMockKnSubscriptionsClient(t *testing.T, ns ...string) *MockKnSubscriptio
 		namespace = ns[0]
 	}
 	return &MockKnSubscriptionsClient{
-		t:        t,
-		recorder: &SubscriptionsRecorder{mock.NewRecorder(t, namespace)},
+		t:         t,
+		recorder:  &SubscriptionsRecorder{mock.NewRecorder(t, namespace)},
+		namespace: namespace,
 	}
 }
 

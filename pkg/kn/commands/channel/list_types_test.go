@@ -38,11 +38,9 @@ const (
 	crdGroup           = "apiextensions.k8s.io"
 	crdVersion         = "v1beta1"
 	crdKind            = "CustomResourceDefinition"
-	crdKinds           = "customresourcedefinitions"
 	testNamespace      = "current"
 	channelLabelValue  = "true"
 	channelListVersion = "v1beta1"
-	channelListKind    = "ChannelList"
 	inMemoryChannel    = "InMemoryChannel"
 )
 
@@ -107,7 +105,9 @@ func TestListBuiltInChannelTypes(t *testing.T) {
 	fakeDynamic := dynamicfake.NewSimpleDynamicClient(runtime.NewScheme())
 	channel, err := listBuiltInChannelTypes(dynamic.NewKnDynamicClient(fakeDynamic, "current"))
 	assert.NilError(t, err)
-	assert.Check(t, channel != nil)
+	if channel == nil {
+		t.Fatal("channel = nil, want not nil")
+	}
 	assert.Equal(t, len(channel.Items), 1)
 }
 
@@ -153,7 +153,7 @@ func TestChannelListTypeErrors(t *testing.T) {
 	dynamicClient := dynamicfakeClient.CreateFakeKnDynamicClient(testNamespace, newChannelCRDObj("InMemoryChannel"))
 	assert.Equal(t, dynamicClient.Namespace(), testNamespace)
 
-	output, err := channelFakeCmd([]string{"channel", "list-types"}, dynamicClient)
+	_, err := channelFakeCmd([]string{"channel", "list-types"}, dynamicClient)
 	assert.Check(t, err != nil)
 	assert.Error(t, err, "can't find specs.names.kind for InMemoryChannel")
 
@@ -164,7 +164,7 @@ func TestChannelListTypeErrors(t *testing.T) {
 		"names":   map[string]interface{}{},
 	}
 	dynamicClient = dynamicfakeClient.CreateFakeKnDynamicClient(testNamespace, obj)
-	output, err = channelFakeCmd([]string{"channel", "list-types"}, dynamicClient)
+	_, err = channelFakeCmd([]string{"channel", "list-types"}, dynamicClient)
 	assert.Check(t, err != nil)
 	assert.Error(t, err, "can't find specs.names.kind for InMemoryChannel")
 
@@ -178,7 +178,7 @@ func TestChannelListTypeErrors(t *testing.T) {
 	}
 
 	dynamicClient = dynamicfakeClient.CreateFakeKnDynamicClient(testNamespace, obj)
-	output, err = channelFakeCmd([]string{"channel", "list-types"}, dynamicClient)
+	_, err = channelFakeCmd([]string{"channel", "list-types"}, dynamicClient)
 	assert.Check(t, err != nil)
 	assert.Error(t, err, ".spec.names.kind accessor error: true is of the type bool, expected string")
 
@@ -189,7 +189,7 @@ func TestChannelListTypeErrors(t *testing.T) {
 	assert.Check(t, err != nil)
 	assert.Error(t, err, "unknown flag: --noheader")
 
-	output, err = channelFakeCmd([]string{"channel", "list-types"}, dynamicClient)
+	output, err := channelFakeCmd([]string{"channel", "list-types"}, dynamicClient)
 	assert.NilError(t, err)
 	assert.Check(t, util.ContainsAll(output[0], "TYPE", "NAME", "DESCRIPTION"))
 	assert.Check(t, util.ContainsAll(output[1], "InMemoryChannel", "InMemoryChannel"))

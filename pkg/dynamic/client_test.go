@@ -343,21 +343,25 @@ func TestListChannelsUsingGVKs(t *testing.T) {
 			newChannelUnstructuredObj("i1", "messaging.knative.dev/v1beta1", "InMemoryChannel"),
 		)
 		assert.Check(t, client.RawClient() != nil)
-		gv := schema.GroupVersion{"messaging.knative.dev", "v1beta1"}
+		gv := schema.GroupVersion{Group: "messaging.knative.dev", Version: "v1beta1"}
 		gvks := []schema.GroupVersionKind{gv.WithKind("InMemoryChannel")}
 
 		s, err := client.ListChannelsUsingGVKs(&gvks)
 		assert.NilError(t, err)
-		assert.Check(t, s != nil)
+		if s == nil {
+			t.Fatal("s = nil, want not nil")
+		}
 		assert.Equal(t, len(s.Items), 1)
-		assert.DeepEqual(t, s.GroupVersionKind(), schema.GroupVersionKind{messaging.GroupName, channelListVersion, channelListKind})
+		assert.DeepEqual(t, s.GroupVersionKind(), schema.GroupVersionKind{Group: messaging.GroupName, Version: channelListVersion, Kind: channelListKind})
 
 		// withType
 		s, err = client.ListChannelsUsingGVKs(&gvks, WithTypeFilter("InMemoryChannel"))
 		assert.NilError(t, err)
-		assert.Check(t, s != nil)
+		if s == nil {
+			t.Fatal("s = nil, want not nil")
+		}
 		assert.Equal(t, len(s.Items), 1)
-		assert.DeepEqual(t, s.GroupVersionKind(), schema.GroupVersionKind{messaging.GroupName, channelListVersion, channelListKind})
+		assert.DeepEqual(t, s.GroupVersionKind(), schema.GroupVersionKind{Group: messaging.GroupName, Version: channelListVersion, Kind: channelListKind})
 	})
 
 }

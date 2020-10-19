@@ -110,7 +110,7 @@ func printSubscriptionListWithNamespace(subscriptionList *messagingv1beta1.Subsc
 	rows := make([]metav1beta1.TableRow, 0, len(subscriptionList.Items))
 
 	// temporary slice for sorting services in non-default namespace
-	var others []metav1beta1.TableRow
+	others := make([]metav1beta1.TableRow, 0, len(rows))
 
 	for _, subscription := range subscriptionList.Items {
 		// Fill in with services in `default` namespace at first
