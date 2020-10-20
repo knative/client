@@ -33,6 +33,16 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+var revisionSpec = servingv1.RevisionSpec{
+	PodSpec: v1.PodSpec{
+		Containers: []v1.Container{{
+			Image: "busybox",
+		}},
+		EnableServiceLinks: ptr.Bool(false),
+	},
+	TimeoutSeconds: ptr.Int64(300),
+}
+
 type testCase struct {
 	name             string
 	latestSvc        *servingv1.Service
@@ -57,11 +67,11 @@ func TestServiceExportError(t *testing.T) {
 func TestServiceExport(t *testing.T) {
 
 	for _, tc := range []testCase{
-		{latestSvc: libtest.GetSvcWithOptions("foo", servingtest.WithConfigSpec(cfg()))},
-		{latestSvc: libtest.GetSvcWithOptions("foo", servingtest.WithConfigSpec(cfg()), servingtest.WithEnv(v1.EnvVar{Name: "a", Value: "mouse"}))},
-		{latestSvc: libtest.GetSvcWithOptions("foo", servingtest.WithConfigSpec(cfg()), libtest.WithRevisionAnnotations(map[string]string{"client.knative.dev/user-image": "busybox:v2"}))},
-		{latestSvc: libtest.GetSvcWithOptions("foo", servingtest.WithConfigSpec(cfg()), servingtest.WithServiceLabel("a", "mouse"), servingtest.WithServiceAnnotation("a", "mouse"))},
-		{latestSvc: libtest.GetSvcWithOptions("foo", servingtest.WithConfigSpec(cfg()), servingtest.WithVolume("secretName", "/mountpath", volumeSource("secretName")))},
+		{latestSvc: libtest.BuildServiceWithOptions("foo", servingtest.WithConfigSpec(buildConfiguration()))},
+		{latestSvc: libtest.BuildServiceWithOptions("foo", servingtest.WithConfigSpec(buildConfiguration()), servingtest.WithEnv(v1.EnvVar{Name: "a", Value: "mouse"}))},
+		{latestSvc: libtest.BuildServiceWithOptions("foo", servingtest.WithConfigSpec(buildConfiguration()), libtest.WithRevisionAnnotations(map[string]string{"client.knative.dev/user-image": "busybox:v2"}))},
+		{latestSvc: libtest.BuildServiceWithOptions("foo", servingtest.WithConfigSpec(buildConfiguration()), servingtest.WithServiceLabel("a", "mouse"), servingtest.WithServiceAnnotation("a", "mouse"))},
+		{latestSvc: libtest.BuildServiceWithOptions("foo", servingtest.WithConfigSpec(buildConfiguration()), servingtest.WithVolume("secretName", "/mountpath", volumeSource("secretName")))},
 	} {
 		exportServiceTest(t, &tc)
 	}
@@ -81,124 +91,124 @@ func exportServiceTest(t *testing.T, tc *testCase) {
 func TestServiceExportwithMultipleRevisions(t *testing.T) {
 	for _, tc := range []testCase{{
 		name: "test 2 revisions with traffic split",
-		latestSvc: libtest.GetSvcWithOptions(
-			"foo", servingtest.WithConfigSpec(cfg()),
+		latestSvc: libtest.BuildServiceWithOptions(
+			"foo", servingtest.WithConfigSpec(buildConfiguration()),
 			libtest.WithRevisionAnnotations(map[string]string{"client.knative.dev/user-image": "busybox:v2"}),
-			libtest.WithTrafficSplit([]string{"foo-rev-1", "latest"}, []int{50, 50}, []string{"", ""}),
+			libtest.WithTrafficSpec([]string{"foo-rev-1", "latest"}, []int{50, 50}, []string{"", ""}),
 		),
-		expectedSvcList: libtest.GetServiceListWithOptions(
-			libtest.WithServices(libtest.GetSvcWithOptions("foo", servingtest.WithConfigSpec(cfg()),
+		expectedSvcList: libtest.BuildServiceListWithOptions(
+			libtest.WithServices(libtest.BuildServiceWithOptions("foo", servingtest.WithConfigSpec(buildConfiguration()),
 				libtest.WithRevisionAnnotations(map[string]string{"client.knative.dev/user-image": "busybox:v1"}),
 				servingtest.WithBYORevisionName("foo-rev-1"),
 			)),
-			libtest.WithServices(libtest.GetSvcWithOptions("foo", servingtest.WithConfigSpec(cfg()),
+			libtest.WithServices(libtest.BuildServiceWithOptions("foo", servingtest.WithConfigSpec(buildConfiguration()),
 				libtest.WithRevisionAnnotations(map[string]string{"client.knative.dev/user-image": "busybox:v2"}),
-				libtest.WithTrafficSplit([]string{"foo-rev-1", "latest"}, []int{50, 50}, []string{"", ""}),
+				libtest.WithTrafficSpec([]string{"foo-rev-1", "latest"}, []int{50, 50}, []string{"", ""}),
 			)),
 		),
-		revisionList: libtest.GetRevisionListWithOptions(
-			libtest.WithRevs(libtest.GetRev("foo-rev-1",
+		revisionList: libtest.BuildRevisionListWithOptions(
+			libtest.WithRevs(*(libtest.BuildRevision("foo-rev-1",
 				servingtest.WithRevisionLabel(apiserving.ServiceLabelKey, "foo"),
 				servingtest.WithRevisionLabel(apiserving.ConfigurationGenerationLabelKey, "1"),
 				servingtest.WithRevisionAnn("client.knative.dev/user-image", "busybox:v1"),
 				servingtest.WithRevisionAnn("serving.knative.dev/lastPinned", "1111132"),
-			)),
-			libtest.WithRevs(libtest.GetRev("foo-rev-2",
+			))),
+			libtest.WithRevs(*(libtest.BuildRevision("foo-rev-2",
 				servingtest.WithRevisionLabel(apiserving.ServiceLabelKey, "foo"),
 				servingtest.WithRevisionLabel(apiserving.ConfigurationGenerationLabelKey, "1"),
 				servingtest.WithRevisionAnn("client.knative.dev/user-image", "busybox:v2"),
-			)),
+			))),
 		),
-		expectedKNExport: libtest.GetKNExportWithOptions(
-			libtest.WithKNRevs(libtest.GetRev("foo-rev-1",
+		expectedKNExport: libtest.BuildKNExportWithOptions(
+			libtest.WithKNRevs(*(libtest.BuildRevision("foo-rev-1",
 				servingtest.WithRevisionLabel(apiserving.ServiceLabelKey, "foo"),
 				servingtest.WithRevisionLabel(apiserving.ConfigurationGenerationLabelKey, "1"),
 				servingtest.WithRevisionAnn("client.knative.dev/user-image", "busybox:v1"),
-			)),
+			))),
 		),
 	}, {
 		name: "test 2 revisions no traffic split",
-		latestSvc: libtest.GetSvcWithOptions(
-			"foo", servingtest.WithConfigSpec(cfg()),
-			libtest.WithTrafficSplit([]string{"latest"}, []int{100}, []string{""}),
+		latestSvc: libtest.BuildServiceWithOptions(
+			"foo", servingtest.WithConfigSpec(buildConfiguration()),
+			libtest.WithTrafficSpec([]string{"latest"}, []int{100}, []string{""}),
 		),
-		expectedSvcList: libtest.GetServiceListWithOptions(
-			libtest.WithServices(libtest.GetSvcWithOptions(
-				"foo", servingtest.WithConfigSpec(cfg()),
-				libtest.WithTrafficSplit([]string{"latest"}, []int{100}, []string{""}),
+		expectedSvcList: libtest.BuildServiceListWithOptions(
+			libtest.WithServices(libtest.BuildServiceWithOptions(
+				"foo", servingtest.WithConfigSpec(buildConfiguration()),
+				libtest.WithTrafficSpec([]string{"latest"}, []int{100}, []string{""}),
 			)),
 		),
-		revisionList: libtest.GetRevisionListWithOptions(
-			libtest.WithRevs(libtest.GetRev("foo-rev-1",
+		revisionList: libtest.BuildRevisionListWithOptions(
+			libtest.WithRevs(*(libtest.BuildRevision("foo-rev-1",
 				servingtest.WithRevisionLabel(apiserving.ConfigurationGenerationLabelKey, "1"),
 				servingtest.WithRevisionLabel(apiserving.ServiceLabelKey, "foo"),
-			)),
-			libtest.WithRevs(libtest.GetRev("foo-rev-2",
+			))),
+			libtest.WithRevs(*(libtest.BuildRevision("foo-rev-2",
 				servingtest.WithRevisionLabel(apiserving.ConfigurationGenerationLabelKey, "2"),
 				servingtest.WithRevisionLabel(apiserving.ServiceLabelKey, "foo"),
-			)),
+			))),
 		),
-		expectedKNExport: libtest.GetKNExportWithOptions(),
+		expectedKNExport: libtest.BuildKNExportWithOptions(),
 	}, {
 		name: "test 3 active revisions with traffic split with no latest revision",
-		latestSvc: libtest.GetSvcWithOptions(
-			"foo", servingtest.WithConfigSpec(cfg()),
+		latestSvc: libtest.BuildServiceWithOptions(
+			"foo", servingtest.WithConfigSpec(buildConfiguration()),
 			servingtest.WithEnv(v1.EnvVar{Name: "a", Value: "mouse"}),
 			servingtest.WithBYORevisionName("foo-rev-3"),
-			libtest.WithTrafficSplit([]string{"foo-rev-1", "foo-rev-2", "foo-rev-3"}, []int{25, 50, 25}, []string{"", "", ""}),
+			libtest.WithTrafficSpec([]string{"foo-rev-1", "foo-rev-2", "foo-rev-3"}, []int{25, 50, 25}, []string{"", "", ""}),
 		),
-		expectedSvcList: libtest.GetServiceListWithOptions(
+		expectedSvcList: libtest.BuildServiceListWithOptions(
 			libtest.WithServices(
-				libtest.GetSvcWithOptions(
-					"foo", servingtest.WithConfigSpec(cfg()),
+				libtest.BuildServiceWithOptions(
+					"foo", servingtest.WithConfigSpec(buildConfiguration()),
 					servingtest.WithEnv(v1.EnvVar{Name: "a", Value: "cat"}),
 					servingtest.WithBYORevisionName("foo-rev-1"),
 				),
 			),
 			libtest.WithServices(
-				libtest.GetSvcWithOptions(
-					"foo", servingtest.WithConfigSpec(cfg()),
+				libtest.BuildServiceWithOptions(
+					"foo", servingtest.WithConfigSpec(buildConfiguration()),
 					servingtest.WithEnv(v1.EnvVar{Name: "a", Value: "dog"}),
 					servingtest.WithBYORevisionName("foo-rev-2"),
 				),
 			),
 			libtest.WithServices(
-				libtest.GetSvcWithOptions(
-					"foo", servingtest.WithConfigSpec(cfg()),
+				libtest.BuildServiceWithOptions(
+					"foo", servingtest.WithConfigSpec(buildConfiguration()),
 					servingtest.WithEnv(v1.EnvVar{Name: "a", Value: "mouse"}),
 					servingtest.WithBYORevisionName("foo-rev-3"),
-					libtest.WithTrafficSplit([]string{"foo-rev-1", "foo-rev-2", "foo-rev-3"}, []int{25, 50, 25}, []string{"", "", ""}),
+					libtest.WithTrafficSpec([]string{"foo-rev-1", "foo-rev-2", "foo-rev-3"}, []int{25, 50, 25}, []string{"", "", ""}),
 				),
 			),
 		),
-		revisionList: libtest.GetRevisionListWithOptions(
-			libtest.WithRevs(libtest.GetRev("foo-rev-1",
+		revisionList: libtest.BuildRevisionListWithOptions(
+			libtest.WithRevs(*(libtest.BuildRevision("foo-rev-1",
 				servingtest.WithRevisionLabel(apiserving.ConfigurationGenerationLabelKey, "1"),
 				servingtest.WithRevisionLabel(apiserving.ServiceLabelKey, "foo"),
 				libtest.WithRevEnv(v1.EnvVar{Name: "a", Value: "cat"}),
-			)),
-			libtest.WithRevs(libtest.GetRev("foo-rev-2",
+			))),
+			libtest.WithRevs(*(libtest.BuildRevision("foo-rev-2",
 				servingtest.WithRevisionLabel(apiserving.ConfigurationGenerationLabelKey, "2"),
 				servingtest.WithRevisionLabel(apiserving.ServiceLabelKey, "foo"),
 				libtest.WithRevEnv(v1.EnvVar{Name: "a", Value: "dog"}),
-			)),
-			libtest.WithRevs(libtest.GetRev("foo-rev-3",
+			))),
+			libtest.WithRevs(*(libtest.BuildRevision("foo-rev-3",
 				servingtest.WithRevisionLabel(apiserving.ConfigurationGenerationLabelKey, "3"),
 				servingtest.WithRevisionLabel(apiserving.ServiceLabelKey, "foo"),
 				libtest.WithRevEnv(v1.EnvVar{Name: "a", Value: "mouse"}),
-			)),
+			))),
 		),
-		expectedKNExport: libtest.GetKNExportWithOptions(
-			libtest.WithKNRevs(libtest.GetRev("foo-rev-1",
+		expectedKNExport: libtest.BuildKNExportWithOptions(
+			libtest.WithKNRevs(*(libtest.BuildRevision("foo-rev-1",
 				servingtest.WithRevisionLabel(apiserving.ConfigurationGenerationLabelKey, "1"),
 				servingtest.WithRevisionLabel(apiserving.ServiceLabelKey, "foo"),
 				libtest.WithRevEnv(v1.EnvVar{Name: "a", Value: "cat"}),
-			)),
-			libtest.WithKNRevs(libtest.GetRev("foo-rev-2",
+			))),
+			libtest.WithKNRevs(*(libtest.BuildRevision("foo-rev-2",
 				servingtest.WithRevisionLabel(apiserving.ConfigurationGenerationLabelKey, "2"),
 				servingtest.WithRevisionLabel(apiserving.ServiceLabelKey, "foo"),
 				libtest.WithRevEnv(v1.EnvVar{Name: "a", Value: "dog"}),
-			)),
+			))),
 		),
 	}} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -241,7 +251,7 @@ func executeServiceExportCommand(t *testing.T, tc *testCase, options ...string) 
 	return executeServiceCommand(client, options...)
 }
 
-func cfg() *servingv1.ConfigurationSpec {
+func buildConfiguration() *servingv1.ConfigurationSpec {
 	c := &servingv1.Configuration{
 		Spec: servingv1.ConfigurationSpec{
 			Template: servingv1.RevisionTemplateSpec{
@@ -251,15 +261,6 @@ func cfg() *servingv1.ConfigurationSpec {
 	}
 	c.SetDefaults(context.Background())
 	return &c.Spec
-}
-
-var revisionSpec = servingv1.RevisionSpec{
-	PodSpec: v1.PodSpec{
-		Containers: []v1.Container{{
-			Image: "busybox",
-		}},
-	},
-	TimeoutSeconds: ptr.Int64(300),
 }
 
 func volumeSource(secretName string) v1.VolumeSource {
