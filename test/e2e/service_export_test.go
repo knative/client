@@ -36,12 +36,6 @@ import (
 	servingtest "knative.dev/serving/pkg/testing/v1"
 )
 
-type expectedServiceOption func(*servingv1.Service)
-type expectedRevisionOption func(*servingv1.Revision)
-type expectedServiceListOption func(*servingv1.ServiceList)
-type expectedKNExportOption func(*clientv1alpha1.Export)
-type podSpecOption func(*corev1.PodSpec)
-
 func TestServiceExport(t *testing.T) {
 	//FIXME: enable once 0.19 is available
 	// see: https://github.com/knative/serving/pull/9685
