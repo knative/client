@@ -447,6 +447,144 @@ func TestServiceUpdateScaleWithMinScaleSet(t *testing.T) {
 	}
 
 }
+
+func TestServiceUpdateScaleWithRange(t *testing.T) {
+	original := newEmptyService()
+
+	action, updated, _, err := fakeServiceUpdate(original, []string{
+		"service", "update", "foo",
+		"--scale", "1..5", "--no-wait"})
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template := updated.Spec.Template
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	actualAnnos := template.Annotations
+	expectedAnnos := []string{
+		"autoscaling.knative.dev/minScale", "1",
+		"autoscaling.knative.dev/maxScale", "5",
+	}
+
+	for i := 0; i < len(expectedAnnos); i += 2 {
+		anno := expectedAnnos[i]
+		if actualAnnos[anno] != expectedAnnos[i+1] {
+			t.Fatalf("Unexpected annotation value for %s : %s (actual) != %s (expected)",
+				anno, actualAnnos[anno], expectedAnnos[i+1])
+		}
+	}
+
+}
+
+func TestServiceUpdateScaleMinWithRange(t *testing.T) {
+	original := newEmptyService()
+
+	action, updated, _, err := fakeServiceUpdate(original, []string{
+		"service", "update", "foo",
+		"--scale", "1..", "--no-wait"})
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template := updated.Spec.Template
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	actualAnnos := template.Annotations
+	expectedAnnos := []string{
+		"autoscaling.knative.dev/minScale", "1",
+	}
+
+	for i := 0; i < len(expectedAnnos); i += 2 {
+		anno := expectedAnnos[i]
+		if actualAnnos[anno] != expectedAnnos[i+1] {
+			t.Fatalf("Unexpected annotation value for %s : %s (actual) != %s (expected)",
+				anno, actualAnnos[anno], expectedAnnos[i+1])
+		}
+	}
+
+}
+
+func TestServiceUpdateScaleMaxWithRange(t *testing.T) {
+	original := newEmptyService()
+
+	action, updated, _, err := fakeServiceUpdate(original, []string{
+		"service", "update", "foo",
+		"--scale", "..5", "--no-wait"})
+
+	if err != nil {
+		t.Fatal(err)
+	} else if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template := updated.Spec.Template
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	actualAnnos := template.Annotations
+	expectedAnnos := []string{
+		"autoscaling.knative.dev/maxScale", "5",
+	}
+
+	for i := 0; i < len(expectedAnnos); i += 2 {
+		anno := expectedAnnos[i]
+		if actualAnnos[anno] != expectedAnnos[i+1] {
+			t.Fatalf("Unexpected annotation value for %s : %s (actual) != %s (expected)",
+				anno, actualAnnos[anno], expectedAnnos[i+1])
+		}
+	}
+
+}
+
+func TestServiceUpdateScaleRangeOnlyMinWrongSeparator(t *testing.T) {
+	original := newEmptyService()
+
+	_, _, _, err := fakeServiceUpdate(original, []string{
+		"service", "update", "foo",
+		"--scale", "1--", "--no-wait"})
+
+	if err == nil {
+		t.Fatal("Expected error, got nil")
+	}
+
+	expectedErrMsg := "Scale must be of the format x..y or x"
+
+	if !strings.Contains(err.Error(), expectedErrMsg) {
+		t.Errorf("Invalid error output, expected: %s, got : '%s'", expectedErrMsg, err)
+	}
+
+}
+
+func TestServiceUpdateScaleRangeOnlyMaxWrongSeparator(t *testing.T) {
+	original := newEmptyService()
+
+	_, _, _, err := fakeServiceUpdate(original, []string{
+		"service", "update", "foo",
+		"--scale", "--1", "--no-wait"})
+
+	if err == nil {
+		t.Fatal("Expected error, got nil")
+	}
+
+	expectedErrMsg := "Scale must be of the format x..y or x"
+
+	if !strings.Contains(err.Error(), expectedErrMsg) {
+		t.Errorf("Invalid error output, expected: %s, got : '%s'", expectedErrMsg, err)
+	}
+}
+
 func TestServiceUpdateEnv(t *testing.T) {
 	orig := newEmptyService()
 

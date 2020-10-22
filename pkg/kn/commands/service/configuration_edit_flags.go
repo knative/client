@@ -15,6 +15,7 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -39,7 +40,7 @@ type ConfigurationEditFlags struct {
 	PodSpecFlags knflags.PodSpecFlags
 
 	// Direct field manipulation
-	Scale                  int
+	Scale                  string
 	MinScale               int
 	MaxScale               int
 	ConcurrencyTarget      int
@@ -88,7 +89,7 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	command.Flags().MarkHidden("max-scale")
 	p.markFlagMakesRevision("max-scale")
 
-	command.Flags().IntVar(&p.Scale, "scale", 0, "Minimum and maximum number of replicas.")
+	command.Flags().StringVar(&p.Scale, "scale", "1", "Minimum and maximum number of replicas. (e.g., 1..5)")
 	p.markFlagMakesRevision("scale")
 
 	command.Flags().IntVar(&p.MinScale, "scale-min", 0, "Minimum number of replicas.")
@@ -358,11 +359,15 @@ func (p *ConfigurationEditFlags) Apply(
 		} else if cmd.Flags().Changed("scale-min") {
 			return fmt.Errorf("only --scale or --scale-min can be specified")
 		} else {
-			err = servinglib.UpdateMaxScale(template, p.Scale)
+			scaleMin, scaleMax, err := p.scaleConversion(p.Scale)
 			if err != nil {
 				return err
 			}
-			err = servinglib.UpdateMinScale(template, p.Scale)
+			err = servinglib.UpdateMaxScale(template, scaleMax)
+			if err != nil {
+				return err
+			}
+			err = servinglib.UpdateMinScale(template, scaleMin)
 			if err != nil {
 				return err
 			}
@@ -559,4 +564,34 @@ func (p *ConfigurationEditFlags) AnyMutation(cmd *cobra.Command) bool {
 		}
 	}
 	return false
+}
+
+// Helper function for --scale
+func (p *ConfigurationEditFlags) scaleConversion(scale string) (scaleMin int, scaleMax int, err error) {
+	if len(scale) <= 2 {
+		if !strings.Contains(scale, "..") {
+			scaleMin, err = strconv.Atoi(scale)
+			if err != nil {
+				return 0, 0, err
+			}
+			scaleMax = scaleMin
+		}
+	} else if strings.Contains(scale, "..") {
+		scaleParts := strings.Split(scale, "..")
+		if scaleParts[0] != "" {
+			scaleMin, err = strconv.Atoi(scaleParts[0])
+			if err != nil {
+				return 0, 0, err
+			}
+		}
+		if scaleParts[1] != "" {
+			scaleMax, err = strconv.Atoi(scaleParts[1])
+			if err != nil {
+				return 0, 0, err
+			}
+		}
+	} else {
+		return 0, 0, errors.New("Scale must be of the format x..y or x")
+	}
+	return scaleMin, scaleMax, err
 }
