@@ -65,7 +65,7 @@ func showUrl(client clientservingv1.KnServingClient, serviceName string, origina
 	url := service.Status.URL.String()
 
 	newRevision := service.Status.LatestReadyRevisionName
-	if originalRevision != "" && originalRevision == newRevision {
+	if (originalRevision != "" && originalRevision == newRevision) || originalRevision == "unchanged" {
 		fmt.Fprintf(out, "Service '%s' with latest revision '%s' (unchanged) is available at URL:\n%s\n", serviceName, newRevision, url)
 	} else {
 		fmt.Fprintf(out, "Service '%s' %s to latest revision '%s' is available at URL:\n%s\n", serviceName, what, newRevision, url)

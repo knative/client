@@ -114,13 +114,16 @@ func setupServiceApplyRecorder(client *knclient.MockKnServingClient, name string
 		assert.Equal(t, svc.Name, name)
 		setUrl(svc, fmt.Sprintf("http://%s.example.com", name))
 	}, hasChanged, nil)
+
+	// Fetch service for URL
+	r.GetService(name, getServiceWithUrl(name, fmt.Sprintf("http://%s.example.com", name)), nil)
+
 	if !hasChanged {
 		return r
 	}
 	// Wait for service to become ready
 	r.WaitForService(name, mock.Any(), wait.NoopMessageCallback(), nil, time.Second)
-	// Fetch service for URL
-	r.GetService(name, getServiceWithUrl(name, fmt.Sprintf("http://%s.example.com", name)), nil)
+
 	return r
 }
 
