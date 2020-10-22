@@ -22,8 +22,6 @@ import (
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/fields"
-	"k8s.io/apimachinery/pkg/types"
-
 	"knative.dev/pkg/apis"
 	"knative.dev/serving/pkg/client/clientset/versioned/scheme"
 
@@ -81,9 +79,6 @@ type KnServingClient interface {
 	// was a no-op
 	// An error can indicate a general error or a conflict that occurred during the three way merge.
 	ApplyService(service *servingv1.Service) (bool, error)
-
-	// PatchService patches a service and returns the patched service
-	PatchService(name string, patchType types.PatchType, patch []byte) (*servingv1.Service, error)
 
 	// Delete a service by name
 	DeleteService(name string, timeout time.Duration) error
@@ -308,17 +303,6 @@ func (cl *knServingClient) ApplyService(modifiedService *servingv1.Service) (boo
 	// Merge with existing service
 	uOriginalService := getOriginalConfiguration(currentService)
 	return cl.patch(modifiedService, currentService, uOriginalService)
-}
-
-// PatchService patches the given service
-func (cl *knServingClient) PatchService(name string, patchType types.PatchType, patch []byte) (*servingv1.Service, error) {
-	service, err := cl.client.Services(cl.namespace).Patch(context.TODO(), name, patchType, patch, v1.PatchOptions{})
-	if err != nil {
-		return nil, err
-	}
-	err = updateServingGvk(service)
-
-	return service, err
 }
 
 // Delete a service by name

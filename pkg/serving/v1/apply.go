@@ -1,12 +1,14 @@
 package v1
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
 
 	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
@@ -97,11 +99,22 @@ func (cl *knServingClient) patchSimple(currentService *servingv1.Service, uModif
 	}
 
 	// Check if the generation has been counted up, only then the backend detected a change
-	savedService, err := cl.PatchService(currentService.Name, patchStrategy, patch)
+	savedService, err := cl.patchService(currentService.Name, patchStrategy, patch)
 	if err != nil {
 		return false, err
 	}
 	return savedService.Generation != savedService.Status.ObservedGeneration, nil
+}
+
+// patchService patches the given service
+func (cl *knServingClient) patchService(name string, patchType types.PatchType, patch []byte) (*servingv1.Service, error) {
+	service, err := cl.client.Services(cl.namespace).Patch(context.TODO(), name, patchType, patch, metav1.PatchOptions{})
+	if err != nil {
+		return nil, err
+	}
+	err = updateServingGvk(service)
+
+	return service, err
 }
 
 func getOriginalConfiguration(service *servingv1.Service) []byte {
