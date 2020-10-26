@@ -41,12 +41,10 @@ run() {
   initialize $@
 
   # Smoke test
-  # eval smoke_test || fail_test
+  eval smoke_test || fail_test
 
   # Integration test
-  # eval integration_test || fail_test
-
-  bash -x $(dirname $0)/tekton-tests.sh
+  eval integration_test || fail_test
 
   success
 }
