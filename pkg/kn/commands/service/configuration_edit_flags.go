@@ -197,7 +197,7 @@ func (p *ConfigurationEditFlags) Apply(
 
 	template := &service.Spec.Template
 
-	err := p.PodSpecFlags.ResolvePodSpec(&template.Spec.PodSpec, cmd)
+	err := p.PodSpecFlags.ResolvePodSpec(&template.Spec.PodSpec, cmd.Flags())
 	if err != nil {
 		return err
 	}

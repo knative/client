@@ -23,7 +23,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	"knative.dev/client/pkg/util"
 
-	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
 
@@ -171,11 +170,11 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
 	return flagNames
 }
 
-func (p *PodSpecFlags) ResolvePodSpec(podSpec *corev1.PodSpec, cmd *cobra.Command) error {
-	//var podSpec = &corev1.PodSpec{Containers: []corev1.Container{{}}}
+// ResolvePodSpec will create corev1.PodSpec based on the flag inputs
+func (p *PodSpecFlags) ResolvePodSpec(podSpec *corev1.PodSpec /*cmd *cobra.Command*/, flags *pflag.FlagSet) error {
 	var err error
 
-	if cmd.Flags().Changed("env") {
+	if flags.Changed("env") {
 		envMap, err := util.MapFromArrayAllowingSingles(p.Env, "=")
 		if err != nil {
 			return fmt.Errorf("Invalid --env: %w", err)
@@ -188,7 +187,7 @@ func (p *PodSpecFlags) ResolvePodSpec(podSpec *corev1.PodSpec, cmd *cobra.Comman
 		}
 	}
 
-	if cmd.Flags().Changed("env-from") {
+	if flags.Changed("env-from") {
 		envFromSourceToUpdate := []string{}
 		envFromSourceToRemove := []string{}
 		for _, name := range p.EnvFrom {
@@ -207,7 +206,7 @@ func (p *PodSpecFlags) ResolvePodSpec(podSpec *corev1.PodSpec, cmd *cobra.Comman
 		}
 	}
 
-	if cmd.Flags().Changed("mount") || cmd.Flags().Changed("volume") {
+	if flags.Changed("mount") || flags.Changed("volume") {
 		mountsToUpdate, mountsToRemove, err := util.OrderedMapAndRemovalListFromArray(p.Mount, "=")
 		if err != nil {
 			return fmt.Errorf("Invalid --mount: %w", err)
@@ -224,25 +223,11 @@ func (p *PodSpecFlags) ResolvePodSpec(podSpec *corev1.PodSpec, cmd *cobra.Comman
 		}
 	}
 
-	if cmd.Flags().Changed("image") {
+	if flags.Changed("image") {
 		err = UpdateImage(podSpec, p.Image.String())
 		if err != nil {
 			return err
 		}
-	}
-
-	if cmd.Flags().Changed("limits-cpu") || cmd.Flags().Changed("limits-memory") {
-		if cmd.Flags().Changed("limit") {
-			return fmt.Errorf("only one of (DEPRECATED) --limits-cpu / --limits-memory and --limit can be specified")
-		}
-		fmt.Fprintf(cmd.OutOrStdout(), "\nWARNING: flags --limits-cpu / --limits-memory are deprecated and going to be removed in future release, please use --limit instead.\n\n")
-	}
-
-	if cmd.Flags().Changed("requests-cpu") || cmd.Flags().Changed("requests-memory") {
-		if cmd.Flags().Changed("request") {
-			return fmt.Errorf("only one of (DEPRECATED) --requests-cpu / --requests-memory and --request can be specified")
-		}
-		fmt.Fprintf(cmd.OutOrStdout(), "\nWARNING: flags --requests-cpu / --requests-memory are deprecated and going to be removed in future release, please use --request instead.\n\n")
 	}
 
 	limitsResources, err := p.computeResources(p.LimitsFlags)
@@ -268,36 +253,36 @@ func (p *PodSpecFlags) ResolvePodSpec(podSpec *corev1.PodSpec, cmd *cobra.Comman
 		return err
 	}
 
-	if cmd.Flags().Changed("cmd") {
+	if flags.Changed("cmd") {
 		err = UpdateContainerCommand(podSpec, p.Command)
 		if err != nil {
 			return err
 		}
 	}
 
-	if cmd.Flags().Changed("arg") {
+	if flags.Changed("arg") {
 		err = UpdateContainerArg(podSpec, p.Arg)
 		if err != nil {
 			return err
 		}
 	}
 
-	if cmd.Flags().Changed("port") {
+	if flags.Changed("port") {
 		err = UpdateContainerPort(podSpec, p.Port)
 		if err != nil {
 			return err
 		}
 	}
 
-	if cmd.Flags().Changed("service-account") {
+	if flags.Changed("service-account") {
 		UpdateServiceAccountName(podSpec, p.ServiceAccountName)
 	}
 
-	if cmd.Flags().Changed("pull-secret") {
+	if flags.Changed("pull-secret") {
 		UpdateImagePullSecrets(podSpec, p.ImagePullSecrets)
 	}
 
-	if cmd.Flags().Changed("user") {
+	if flags.Changed("user") {
 		err = UpdateUser(podSpec, p.User)
 		if err != nil {
 			return err

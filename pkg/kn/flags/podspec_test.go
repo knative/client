@@ -16,6 +16,7 @@ package flags
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
 
 	"github.com/spf13/cobra"
@@ -113,7 +114,7 @@ func TestPodSpecResolve(t *testing.T) {
 		Use: "test",
 		Run: func(cmd *cobra.Command, args []string) {
 			podSpec := &corev1.PodSpec{Containers: []corev1.Container{{}}}
-			err := flags.ResolvePodSpec(podSpec, cmd)
+			err := flags.ResolvePodSpec(podSpec, cmd.Flags())
 			assert.NilError(t, err, "PodSpec cannot be resolved.")
 			assert.DeepEqual(t, expectedPodSpec, *podSpec)
 		},
@@ -130,15 +131,16 @@ func TestPodSpecResolveReturnError(t *testing.T) {
 		Use: "test",
 		Run: func(cmd *cobra.Command, args []string) {
 			podSpec := &corev1.PodSpec{Containers: []corev1.Container{{}}}
-			flags.ResolvePodSpec(podSpec, cmd)
+			err := flags.ResolvePodSpec(podSpec, cmd.Flags())
+			fmt.Fprint(cmd.OutOrStdout(), "Return error: ", err)
 		},
 	}
 	testCmd.SetOut(&outBuf)
 
-	args := []string{"--requests-cpu", "1000m"}
+	args := []string{"--mount", "123456"}
 	testCmd.SetArgs(args)
 	flags.AddFlags(testCmd.Flags())
 	testCmd.Execute()
 	out := outBuf.String()
-	assert.Assert(t, util.ContainsAll(out, "WARNING", "deprecated"))
+	assert.Assert(t, util.ContainsAll(out, "Invalid", "mount"))
 }
