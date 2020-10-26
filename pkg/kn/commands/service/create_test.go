@@ -520,7 +520,8 @@ func TestServiceCreateMaxMinScale(t *testing.T) {
 
 	if err != nil {
 		t.Fatal(err)
-	} else if !action.Matches("create", "services") {
+	}
+	if !action.Matches("create", "services") {
 		t.Fatalf("Bad action %v", action)
 	}
 
@@ -554,7 +555,8 @@ func TestServiceCreateScale(t *testing.T) {
 
 	if err != nil {
 		t.Fatal(err)
-	} else if !action.Matches("create", "services") {
+	}
+	if !action.Matches("create", "services") {
 		t.Fatalf("Bad action %v", action)
 	}
 
@@ -624,7 +626,8 @@ func TestServiceCreateScaleRange(t *testing.T) {
 
 	if err != nil {
 		t.Fatal(err)
-	} else if !action.Matches("create", "services") {
+	}
+	if !action.Matches("create", "services") {
 		t.Fatalf("Bad action %v", action)
 	}
 
@@ -652,7 +655,8 @@ func TestServiceCreateScaleRangeOnlyMin(t *testing.T) {
 
 	if err != nil {
 		t.Fatal(err)
-	} else if !action.Matches("create", "services") {
+	}
+	if !action.Matches("create", "services") {
 		t.Fatalf("Bad action %v", action)
 	}
 
@@ -679,7 +683,8 @@ func TestServiceCreateScaleRangeOnlyMax(t *testing.T) {
 
 	if err != nil {
 		t.Fatal(err)
-	} else if !action.Matches("create", "services") {
+	}
+	if !action.Matches("create", "services") {
 		t.Fatalf("Bad action %v", action)
 	}
 
