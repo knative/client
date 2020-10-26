@@ -91,7 +91,7 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 		"Set the Minimum and Maximum number of replicas. You can use this flag to set both to a single value, "+
 			"or set a range with min/max values, or set either min or max values without specifying the other. "+
 			"Example: --scale 5 (scale-min = 5, scale-max = 5) or --scale 1..5 (scale-min = 1, scale-max = 5) or --scale "+
-			"1.. (scale-min = 1, scale-max = undefined) or --scale ..5 (scale-min = undefined, scale-max = 5")
+			"1.. (scale-min = 1, scale-max = undefined) or --scale ..5 (scale-min = undefined, scale-max = 5)")
 	p.markFlagMakesRevision("scale")
 
 	command.Flags().IntVar(&p.MinScale, "scale-min", 0, "Minimum number of replicas.")
