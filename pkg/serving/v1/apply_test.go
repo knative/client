@@ -209,7 +209,7 @@ metadata:
   name: foo
 spec:
   template:
-    metadata: 
+    metadata:
       name: "bar"
     spec:
       containers:
@@ -226,7 +226,7 @@ spec:
 			expectedMap := &unstructured.Unstructured{}
 			yaml.Unmarshal([]byte(tt.want), &expectedMap)
 			if !reflect.DeepEqual(ud, expectedMap) {
-				t.Errorf("cleanupServiceUnstructured() = %v", cmp.Diff(ud, expectedMap))
+				t.Errorf("cleanupServiceUnstructured(): " + cmp.Diff(ud, expectedMap))
 			}
 		})
 	}

@@ -28,14 +28,14 @@ import (
 )
 
 var applyExample = `
-# Create an initial service with using 'kn service apply', if the service has not 
+# Create an initial service with using 'kn service apply', if the service has not
 # been already created
 kn service apply s0 --image knativesamples/helloworld
 
 # Apply the service again which is a no-operation if none of the options changed
 kn service apply s0 --image knativesamples/helloworld
 
-# Add an environment variable to your service. Note, that you have to always fully 
+# Add an environment variable to your service. Note, that you have to always fully
 # specify all parameters (in contrast to 'kn service update')
 kn service apply s0 --image knativesamples/helloworld --env foo=bar
 
