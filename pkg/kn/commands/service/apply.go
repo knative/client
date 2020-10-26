@@ -27,7 +27,20 @@ import (
 	clientservingv1 "knative.dev/client/pkg/serving/v1"
 )
 
-var apply_example = `
+var applyExample = `
+# Create an initial service with using 'kn service apply', if the service has not 
+# been already created
+kn service apply s0 --image knativesamples/helloworld
+
+# Apply the service again which is a no-operation if none of the options changed
+kn service apply s0 --image knativesamples/helloworld
+
+# Add an environment variable to your service. Note, that you have to always fully 
+# specify all parameters (in contrast to 'kn service update')
+kn service apply s0 --image knativesamples/helloworld --env foo=bar
+
+# Read the service declaration from a file
+kn service apply s0 --filename my-svc.yml
 `
 
 func NewServiceApplyCommand(p *commands.KnParams) *cobra.Command {
@@ -37,7 +50,7 @@ func NewServiceApplyCommand(p *commands.KnParams) *cobra.Command {
 	serviceApplyCommand := &cobra.Command{
 		Use:     "apply NAME",
 		Short:   "Apply a service declaration",
-		Example: apply_example,
+		Example: applyExample,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 && applyFlags.Filename == "" {
 				return errors.New("'service apply' requires the service name given as single argument")

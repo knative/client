@@ -2,7 +2,6 @@ package v1
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"time"
 
@@ -14,7 +13,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/jsonmergepatch"
-	"k8s.io/apimachinery/pkg/util/strategicpatch"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	"knative.dev/client/pkg/util"
@@ -36,11 +34,12 @@ import (
 
 // Helper methods supporting Apply()
 
-// patchStrategy is the patch strategy to us when sending an apply patch
-// This is fixed now to a 'normal' JSON patch, as a strategic merge patch is not supported
-// (yet) for a custom resource definition.
-var patchStrategy = types.MergePatchType
-
+// patch performs a 3-way merge and returns whether the original service has been changed
+// This method uses a simple JSON 3-way merge which has some severe limitations, like that arrays
+// can't be merged. Ideally a strategicpatch merge should be used, which allows a more fine grained
+// way for performing the merge (but this is not supported for custom resources)
+// See issue https://github.com/knative/client/issues/1073 for more details how this method should be
+// improved for a better merge strategy.
 func (cl *knServingClient) patch(modifiedService *servingv1.Service, currentService *servingv1.Service, uOriginalService []byte) (bool, error) {
 	uModifiedService, err := getModifiedConfiguration(modifiedService, true)
 	if err != nil {
@@ -57,14 +56,6 @@ func (cl *knServingClient) patch(modifiedService *servingv1.Service, currentServ
 		}
 		hasChanged, err = cl.patchSimple(currentService, uModifiedService, uOriginalService)
 	}
-
-	// TODO: Introduce a "force" parameter that would do the same as `kn service create --force`
-	// However, if using a ThreeWayJSONMergePatch, then no conflict can happen, so no need yet for `--force`
-	/*
-		if err != nil && (apierrors.IsConflict(err) || apierrors.IsInvalid(err)) && p.Force {
-			patchBytes, patchService, err = p.deleteAndCreate(current, modified, namespace, name)
-		}
-	*/
 	return hasChanged, err
 }
 
@@ -75,21 +66,7 @@ func (cl *knServingClient) patchSimple(currentService *servingv1.Service, uModif
 		return false, err
 	}
 
-	var patch []byte
-	if patchStrategy == types.MergePatchType {
-		patch, err = jsonmergepatch.CreateThreeWayJSONMergePatch(uOriginalService, uModifiedService, uCurrentService)
-	} else if patchStrategy == types.StrategicMergePatchType {
-		// Compute a three way strategic merge patch to send to server.
-		lookupPatchMeta, err := strategicpatch.NewPatchMetaFromStruct(servingv1.Service{})
-		if err != nil {
-			return false, err
-		}
-		// TODO: Allow "overwrite" to be configured
-		patch, _ = strategicpatch.CreateThreeWayMergePatch(uOriginalService, uModifiedService, uCurrentService, lookupPatchMeta, false)
-	} else {
-		return false, fmt.Errorf("unsupported patch type %s", patchStrategy)
-	}
-
+	patch, err := jsonmergepatch.CreateThreeWayJSONMergePatch(uOriginalService, uModifiedService, uCurrentService)
 	if err != nil {
 		return false, err
 	}
@@ -99,7 +76,7 @@ func (cl *knServingClient) patchSimple(currentService *servingv1.Service, uModif
 	}
 
 	// Check if the generation has been counted up, only then the backend detected a change
-	savedService, err := cl.patchService(currentService.Name, patchStrategy, patch)
+	savedService, err := cl.patchService(currentService.Name, types.MergePatchType, patch)
 	if err != nil {
 		return false, err
 	}
@@ -209,8 +186,6 @@ func encodeService(service *servingv1.Service) ([]byte, error) {
 }
 
 func cleanupServiceUnstructured(uService *unstructured.Unstructured) {
-	// Set container name if not set
-	//setUserContainerIfNotSet(uService.Object)
 	clearCreationTimestamps(uService.Object)
 	removeStatus(uService.Object)
 	removeContainerNameAndResourcesIfNotSet(uService.Object)
@@ -223,7 +198,7 @@ func removeContainerNameAndResourcesIfNotSet(uService map[string]interface{}) {
 		return
 	}
 	name, ok := uContainer["name"]
-	if ok && name == "" {
+	if ok && name != "" {
 		delete(uContainer, "name")
 	}
 

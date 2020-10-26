@@ -822,93 +822,61 @@ var serviceJSON = `
   }
 }`
 
-func TestServiceCreateFromYAML(t *testing.T) {
-	tempDir, err := ioutil.TempDir("", "kn-file")
-	defer os.RemoveAll(tempDir)
-	assert.NilError(t, err)
+func TestServiceCreateFromFile(t *testing.T) {
+	testWithServiceFiles(t, func(t *testing.T, tempFile string) {
+		for _, testArgs := range [][]string{
+			{
+				"service", "create", "foo", "--filename", tempFile}, {
+				"service", "create", "--filename", tempFile},
+		} {
+			action, created, _, err := fakeServiceCreate(testArgs, false)
+			assert.NilError(t, err)
+			assert.Assert(t, action.Matches("create", "services"))
 
-	tempFile := filepath.Join(tempDir, "service.yaml")
-	err = ioutil.WriteFile(tempFile, []byte(serviceYAML), os.FileMode(0666))
-	assert.NilError(t, err)
-
-	action, created, _, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--filename", tempFile}, false)
-	assert.NilError(t, err)
-	assert.Assert(t, action.Matches("create", "services"))
-
-	assert.Equal(t, created.Name, "foo")
-	assert.Equal(t, created.Spec.Template.Spec.GetContainer().Image, "gcr.io/foo/bar:baz")
+			assert.Equal(t, created.Name, "foo")
+			assert.Equal(t, created.Spec.Template.Spec.GetContainer().Image, "gcr.io/foo/bar:baz")
+		}
+	})
 }
 
-func TestServiceCreateFromJSON(t *testing.T) {
+func testWithServiceFiles(t *testing.T, testFunction func(t *testing.T, file string)) {
 	tempDir, err := ioutil.TempDir("", "kn-file")
 	defer os.RemoveAll(tempDir)
 	assert.NilError(t, err)
 
-	tempFile := filepath.Join(tempDir, "service.json")
-	err = ioutil.WriteFile(tempFile, []byte(serviceJSON), os.FileMode(0666))
-	assert.NilError(t, err)
-
-	action, created, _, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--filename", tempFile}, false)
-	assert.NilError(t, err)
-	assert.Assert(t, action.Matches("create", "services"))
-
-	assert.Equal(t, created.Name, "foo")
-	assert.Equal(t, created.Spec.Template.Spec.GetContainer().Image, "gcr.io/foo/bar:baz")
-}
-
-func TestServiceCreateFromFileWithName(t *testing.T) {
-	tempDir, err := ioutil.TempDir("", "kn-file")
-	defer os.RemoveAll(tempDir)
-	assert.NilError(t, err)
-
-	tempFile := filepath.Join(tempDir, "service.yaml")
-	err = ioutil.WriteFile(tempFile, []byte(serviceYAML), os.FileMode(0666))
-	assert.NilError(t, err)
-
-	t.Log("no NAME param provided")
-	action, created, _, err := fakeServiceCreate([]string{
-		"service", "create", "--filename", tempFile}, false)
-	assert.NilError(t, err)
-	assert.Assert(t, action.Matches("create", "services"))
-
-	assert.Equal(t, created.Name, "foo")
-	assert.Equal(t, created.Spec.Template.Spec.GetContainer().Image, "gcr.io/foo/bar:baz")
-
-	t.Log("no service.Name provided in file")
-	err = ioutil.WriteFile(tempFile, []byte(strings.ReplaceAll(serviceYAML, "name: foo", "")), os.FileMode(0666))
-	assert.NilError(t, err)
-	action, created, _, err = fakeServiceCreate([]string{
-		"service", "create", "cli-foo", "--filename", tempFile}, false)
-	assert.NilError(t, err)
-	assert.Assert(t, action.Matches("create", "services"))
-
-	assert.Equal(t, created.Name, "cli-foo")
-	assert.Equal(t, created.Spec.Template.Spec.GetContainer().Image, "gcr.io/foo/bar:baz")
+	for _, d := range []struct {
+		filename string
+		content  string
+	}{
+		{"service.yaml",
+			serviceYAML,
+		},
+		{"service.json",
+			serviceJSON,
+		},
+	} {
+		tempFile := filepath.Join(tempDir, d.filename)
+		err = ioutil.WriteFile(tempFile, []byte(d.content), os.FileMode(0666))
+		assert.NilError(t, err)
+		testFunction(t, tempFile)
+	}
 }
 
 func TestServiceCreateFileNameMismatch(t *testing.T) {
-	tempDir, err := ioutil.TempDir("", "kn-file")
-	assert.NilError(t, err)
+	testWithServiceFiles(t, func(t *testing.T, tempFile string) {
+		_, _, _, err := fakeServiceCreate([]string{
+			"service", "create", "anotherFoo", "--filename", tempFile}, false)
+		assert.Assert(t, err != nil)
+		assert.Assert(t, util.ContainsAllIgnoreCase(err.Error(), "provided", "'anotherFoo'", "name", "match", "from", "file", "'foo'"))
 
-	tempFile := filepath.Join(tempDir, "service.json")
-	err = ioutil.WriteFile(tempFile, []byte(serviceJSON), os.FileMode(0666))
-	assert.NilError(t, err)
+		err = ioutil.WriteFile(tempFile, []byte(strings.ReplaceAll(serviceYAML, "name: foo", "")), os.FileMode(0666))
+		assert.NilError(t, err)
+		_, _, _, err = fakeServiceCreate([]string{
+			"service", "create", "--filename", tempFile}, false)
+		assert.Assert(t, err != nil)
+		assert.Assert(t, util.ContainsAllIgnoreCase(err.Error(), "no", "service", "name", "provided", "parameter", "file"))
 
-	t.Log("NAME param nad service.Name differ")
-	_, _, _, err = fakeServiceCreate([]string{
-		"service", "create", "anotherFoo", "--filename", tempFile}, false)
-	assert.Assert(t, err != nil)
-	assert.Assert(t, util.ContainsAllIgnoreCase(err.Error(), "provided", "'anotherFoo'", "name", "match", "from", "file", "'foo'"))
-
-	t.Log("no NAME param & no service.Name provided in file")
-	err = ioutil.WriteFile(tempFile, []byte(strings.ReplaceAll(serviceYAML, "name: foo", "")), os.FileMode(0666))
-	assert.NilError(t, err)
-	_, _, _, err = fakeServiceCreate([]string{
-		"service", "create", "--filename", tempFile}, false)
-	assert.Assert(t, err != nil)
-	assert.Assert(t, util.ContainsAllIgnoreCase(err.Error(), "no", "service", "name", "provided", "parameter", "file"))
+	})
 }
 
 func TestServiceCreateFileError(t *testing.T) {

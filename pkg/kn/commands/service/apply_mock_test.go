@@ -37,8 +37,6 @@ func TestServiceApplyCreateMock(t *testing.T) {
 	// New mock client
 	client := knclient.NewMockKnServiceClient(t)
 
-	//service := createServiceWithImage("foo", "gcr.io/foo/bar:baz")
-
 	r := setupServiceApplyRecorder(client, "foo", nil, apierrors.NewNotFound(servingv1.Resource("service"), "foo"), true)
 
 	// Testing:
@@ -48,6 +46,43 @@ func TestServiceApplyCreateMock(t *testing.T) {
 
 	// Validate that all recorded API methods have been called
 	r.Validate()
+}
+
+func TestServiceApplyCreateFromFileMock(t *testing.T) {
+	testWithServiceFiles(t, func(t *testing.T, file string) {
+		for _, testArgs := range [][]string{
+			{"apply", "foo", "--filename", file},
+			{"apply", "--filename", file},
+		} {
+			client := knclient.NewMockKnServiceClient(t)
+
+			r := setupServiceApplyRecorder(client, "foo", nil, apierrors.NewNotFound(servingv1.Resource("service"), "foo"), true)
+
+			// Testing:
+			output, err := executeServiceCommand(client, testArgs...)
+			assert.NilError(t, err)
+			assert.Assert(t, util.ContainsAll(output, "created", "foo", "http://foo.example.com", "Ready"))
+
+			// Validate that all recorded API methods have been called
+			r.Validate()
+		}
+	})
+}
+
+func TestServiceApplyCreateFromFileMockWithoutName(t *testing.T) {
+	testWithServiceFiles(t, func(t *testing.T, file string) {
+		client := knclient.NewMockKnServiceClient(t)
+
+		r := setupServiceApplyRecorder(client, "foo", nil, apierrors.NewNotFound(servingv1.Resource("service"), "foo"), true)
+
+		// Testing:
+		output, err := executeServiceCommand(client, "apply", "foo", "--filename", file)
+		assert.NilError(t, err)
+		assert.Assert(t, util.ContainsAll(output, "created", "foo", "http://foo.example.com", "Ready"))
+
+		// Validate that all recorded API methods have been called
+		r.Validate()
+	})
 }
 
 func TestServiceApplyUpdateMock(t *testing.T) {

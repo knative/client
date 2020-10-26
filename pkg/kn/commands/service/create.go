@@ -239,6 +239,10 @@ func serviceExists(client clientservingv1.KnServingClient, name string) (bool, e
 func constructService(cmd *cobra.Command, editFlags ConfigurationEditFlags, name string, namespace string) (*servingv1.Service,
 	error) {
 
+	if name == "" || namespace == "" {
+		return nil, errors.New("internal: no name or namespace provided when constructing a service")
+	}
+
 	service := servingv1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,

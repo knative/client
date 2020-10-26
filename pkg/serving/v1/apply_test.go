@@ -1,18 +1,3 @@
-package v1
-
-import (
-	"testing"
-
-	"gotest.tools/assert"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/runtime"
-	clienttesting "k8s.io/client-go/testing"
-	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
-
-	"knative.dev/client/pkg/util"
-)
-
 // Copyright © 2020 The Knative Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,6 +11,25 @@ import (
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+package v1
+
+import (
+	"reflect"
+	"testing"
+
+	"github.com/google/go-cmp/cmp"
+	"gotest.tools/assert"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
+	clienttesting "k8s.io/client-go/testing"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
+	"sigs.k8s.io/yaml"
+
+	"knative.dev/client/pkg/util"
+)
 
 func TestApplyServiceWithNoImage(t *testing.T) {
 	_, client := setup()
@@ -98,4 +102,132 @@ func newServiceWithImage(name string, image string) *servingv1.Service {
 		},
 	}
 	return svc
+}
+
+func TestExtractUserContainer(t *testing.T) {
+	tests := []struct {
+		name    string
+		service string
+		want    string
+	}{
+		{"Simple Service",
+			`
+spec:
+  template:
+    spec:
+      containers:
+        - image: gcr.io/foo/bar:baz
+`,
+			`
+image: gcr.io/foo/bar:baz
+`,
+		},
+		{
+			"No template",
+			`
+spec:
+`,
+			"",
+		}, {
+			"No template spec",
+			`
+spec:
+  template:
+`,
+			"",
+		},
+		{
+			"No template spec containers",
+			`
+spec:
+  template:
+    spec:
+`,
+			"",
+		},
+		{
+			"Empty template spec containers",
+			`
+spec:
+  template:
+    spec:
+      containers: []
+`,
+			"",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var serviceMap map[string]interface{}
+			yaml.Unmarshal([]byte(tt.service), &serviceMap)
+
+			got := extractUserContainer(serviceMap)
+
+			if tt.want == "" {
+				assert.Assert(t, got == nil)
+			} else {
+				var expectedMap map[string]interface{}
+				yaml.Unmarshal([]byte(tt.want), &expectedMap)
+				if !reflect.DeepEqual(got, expectedMap) {
+					t.Errorf("extractUserContainer() = %v, want %v", got, expectedMap)
+				}
+			}
+		})
+	}
+}
+
+func TestCleanupServiceUnstructured(t *testing.T) {
+	tests := []struct {
+		name    string
+		service string
+		want    string
+	}{
+		{"Simple Service with fields to remove",
+			`
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: foo
+  creationTimestamp: "2020-10-22T08:16:37Z"
+spec:
+  template:
+    metadata:
+      name: "bar"
+      creationTimestamp: null
+    spec:
+      containers:
+      - image: gcr.io/foo/bar:baz
+        name: "bla"
+        resources: {}
+status:
+  observedGeneration: 1
+`,
+			`
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: foo
+spec:
+  template:
+    metadata: 
+      name: "bar"
+    spec:
+      containers:
+      - image: gcr.io/foo/bar:baz
+`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ud := &unstructured.Unstructured{}
+			assert.NilError(t, yaml.Unmarshal([]byte(tt.service), ud))
+			cleanupServiceUnstructured(ud)
+
+			expectedMap := &unstructured.Unstructured{}
+			yaml.Unmarshal([]byte(tt.want), &expectedMap)
+			if !reflect.DeepEqual(ud, expectedMap) {
+				t.Errorf("cleanupServiceUnstructured() = %v", cmp.Diff(ud, expectedMap))
+			}
+		})
+	}
 }
