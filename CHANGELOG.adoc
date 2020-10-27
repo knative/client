@@ -17,6 +17,10 @@
 |===
 | | Description | PR
 
+| 🐣
+| Add function ResolvePodSpec and move the utilities to podspec_helper
+| https://github.com/knative/client/pull/1024[#1024]
+
 | 🐛
 | Fix various misspellings and linter items
 | https://github.com/knative/client/pull/1057[#1057]

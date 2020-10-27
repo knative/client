@@ -171,7 +171,7 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
 }
 
 // ResolvePodSpec will create corev1.PodSpec based on the flag inputs
-func (p *PodSpecFlags) ResolvePodSpec(podSpec *corev1.PodSpec /*cmd *cobra.Command*/, flags *pflag.FlagSet) error {
+func (p *PodSpecFlags) ResolvePodSpec(podSpec *corev1.PodSpec, flags *pflag.FlagSet) error {
 	var err error
 
 	if flags.Changed("env") {
