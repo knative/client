@@ -403,7 +403,7 @@ func TestServiceUpdateScaleWithNegativeValue(t *testing.T) {
 		t.Fatal("Expected error, got nil")
 	}
 
-	expectedErrMsg := "expected 0 <= -1 <= 2147483647: autoscaling.knative.dev/maxScale"
+	expectedErrMsg := "expected 0 <= -1 <= 2147483647: autoscaling.knative.dev/minScale"
 
 	if !strings.Contains(err.Error(), expectedErrMsg) {
 		t.Errorf("Invalid error output, expected: %s, got : '%s'", expectedErrMsg, err)

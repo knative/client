@@ -274,13 +274,17 @@ func (p *ConfigurationEditFlags) Apply(
 			if err != nil {
 				return err
 			}
-			err = servinglib.UpdateMaxScale(template, scaleMax)
-			if err != nil {
-				return err
+			if scaleMin != 0 {
+				err = servinglib.UpdateMinScale(template, scaleMin)
+				if err != nil {
+					return err
+				}
 			}
-			err = servinglib.UpdateMinScale(template, scaleMin)
-			if err != nil {
-				return err
+			if scaleMax != 0 {
+				err = servinglib.UpdateMaxScale(template, scaleMax)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}

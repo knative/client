@@ -584,7 +584,7 @@ func TestServiceCreateScaleWithNegativeValue(t *testing.T) {
 	if err == nil {
 		t.Fatal(err)
 	}
-	expectedErrMsg := "expected 0 <= -1 <= 2147483647: autoscaling.knative.dev/maxScale"
+	expectedErrMsg := "expected 0 <= -1 <= 2147483647: autoscaling.knative.dev/minScale"
 	if !strings.Contains(err.Error(), expectedErrMsg) {
 		t.Errorf("Invalid error output, expected: %s, got : '%s'", expectedErrMsg, err)
 	}
@@ -1136,5 +1136,5 @@ func TestServiceCreateFromYAMLWithOverrideError(t *testing.T) {
 	_, _, _, err = fakeServiceCreate([]string{
 		"service", "create", "foo", "--filename", tempFile, "--scale", "-1"}, false)
 	assert.Assert(t, err != nil)
-	assert.Assert(t, util.ContainsAll(err.Error(), "expected", "0", "<=", "2147483647", "autoscaling.knative.dev/maxScale"))
+	assert.Assert(t, util.ContainsAll(err.Error(), "expected 0 <= -1 <= 2147483647: autoscaling.knative.dev/minScale"))
 }
