@@ -37,6 +37,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	clienttesting "k8s.io/client-go/testing"
+	"knative.dev/client/pkg/kn/flags"
 	"knative.dev/serving/pkg/apis/serving"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
@@ -142,7 +143,7 @@ func TestServiceUpdateImageSync(t *testing.T) {
 	orig := newEmptyService()
 
 	template := &orig.Spec.Template
-	err := servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
+	err := flags.UpdateImage(&template.Spec.PodSpec, "gcr.io/foo/bar:baz")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -164,7 +165,7 @@ func TestServiceUpdateImage(t *testing.T) {
 	orig := newEmptyService()
 
 	template := &orig.Spec.Template
-	err := servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
+	err := flags.UpdateImage(&template.Spec.PodSpec, "gcr.io/foo/bar:baz")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -215,7 +216,7 @@ func TestServiceUpdateCommand(t *testing.T) {
 
 	origTemplate := &orig.Spec.Template
 
-	err := servinglib.UpdateContainerCommand(origTemplate, "./start")
+	err := flags.UpdateContainerCommand(&origTemplate.Spec.PodSpec, "./start")
 	assert.NilError(t, err)
 
 	action, updated, _, err := fakeServiceUpdate(orig, []string{
@@ -232,7 +233,7 @@ func TestServiceUpdateArg(t *testing.T) {
 
 	origTemplate := orig.Spec.Template
 
-	err := servinglib.UpdateContainerArg(&origTemplate, []string{"myArg0"})
+	err := flags.UpdateContainerArg(&origTemplate.Spec.PodSpec, []string{"myArg0"})
 	assert.NilError(t, err)
 
 	action, updated, _, err := fakeServiceUpdate(orig, []string{
@@ -456,7 +457,7 @@ func TestServiceUpdateEnv(t *testing.T) {
 		{Name: "OTHEREXISTING"},
 	}
 
-	servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
+	flags.UpdateImage(&template.Spec.PodSpec, "gcr.io/foo/bar:baz")
 
 	action, updated, _, err := fakeServiceUpdate(orig, []string{
 		"service", "update", "foo", "-e", "TARGET=Awesome", "--env", "EXISTING-", "--env=OTHEREXISTING-=whatever", "--no-wait"})
@@ -482,7 +483,7 @@ func TestServiceUpdatePinsToDigestWhenAsked(t *testing.T) {
 
 	template := &orig.Spec.Template
 	delete(template.Annotations, servinglib.UserImageAnnotationKey)
-	err := servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
+	err := flags.UpdateImage(&template.Spec.PodSpec, "gcr.io/foo/bar:baz")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -505,7 +506,7 @@ func TestServiceUpdatePinsToDigestWhenPreviouslyDidSo(t *testing.T) {
 	orig := newEmptyService()
 
 	template := &orig.Spec.Template
-	err := servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
+	err := flags.UpdateImage(&template.Spec.PodSpec, "gcr.io/foo/bar:baz")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -528,7 +529,7 @@ func TestServiceUpdateDoesntPinToDigestWhenUnAsked(t *testing.T) {
 	orig := newEmptyService()
 
 	template := orig.Spec.Template
-	err := servinglib.UpdateImage(&template, "gcr.io/foo/bar:baz")
+	err := flags.UpdateImage(&template.Spec.PodSpec, "gcr.io/foo/bar:baz")
 	assert.NilError(t, err)
 
 	action, updated, _, err := fakeServiceUpdate(orig, []string{
@@ -552,7 +553,7 @@ func TestServiceUpdateDoesntPinToDigestWhenPreviouslyDidnt(t *testing.T) {
 	template := &orig.Spec.Template
 	delete(template.Annotations, servinglib.UserImageAnnotationKey)
 
-	err := servinglib.UpdateImage(template, "gcr.io/foo/bar:baz")
+	err := flags.UpdateImage(&template.Spec.PodSpec, "gcr.io/foo/bar:baz")
 	if err != nil {
 		t.Fatal(err)
 	}

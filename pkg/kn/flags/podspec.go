@@ -16,6 +16,12 @@ package flags
 
 import (
 	"errors"
+	"fmt"
+	"strings"
+
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
+	"knative.dev/client/pkg/util"
 
 	"github.com/spf13/pflag"
 )
@@ -162,4 +168,152 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
 	flagset.Int64VarP(&p.User, "user", "", 0, "The user ID to run the container (e.g., 1001).")
 	flagNames = append(flagNames, "user")
 	return flagNames
+}
+
+// ResolvePodSpec will create corev1.PodSpec based on the flag inputs
+func (p *PodSpecFlags) ResolvePodSpec(podSpec *corev1.PodSpec, flags *pflag.FlagSet) error {
+	var err error
+
+	if flags.Changed("env") {
+		envMap, err := util.MapFromArrayAllowingSingles(p.Env, "=")
+		if err != nil {
+			return fmt.Errorf("Invalid --env: %w", err)
+		}
+
+		envToRemove := util.ParseMinusSuffix(envMap)
+		err = UpdateEnvVars(podSpec, envMap, envToRemove)
+		if err != nil {
+			return err
+		}
+	}
+
+	if flags.Changed("env-from") {
+		envFromSourceToUpdate := []string{}
+		envFromSourceToRemove := []string{}
+		for _, name := range p.EnvFrom {
+			if name == "-" {
+				return fmt.Errorf("\"-\" is not a valid value for \"--env-from\"")
+			} else if strings.HasSuffix(name, "-") {
+				envFromSourceToRemove = append(envFromSourceToRemove, name[:len(name)-1])
+			} else {
+				envFromSourceToUpdate = append(envFromSourceToUpdate, name)
+			}
+		}
+
+		err := UpdateEnvFrom(podSpec, envFromSourceToUpdate, envFromSourceToRemove)
+		if err != nil {
+			return err
+		}
+	}
+
+	if flags.Changed("mount") || flags.Changed("volume") {
+		mountsToUpdate, mountsToRemove, err := util.OrderedMapAndRemovalListFromArray(p.Mount, "=")
+		if err != nil {
+			return fmt.Errorf("Invalid --mount: %w", err)
+		}
+
+		volumesToUpdate, volumesToRemove, err := util.OrderedMapAndRemovalListFromArray(p.Volume, "=")
+		if err != nil {
+			return fmt.Errorf("Invalid --volume: %w", err)
+		}
+
+		err = UpdateVolumeMountsAndVolumes(podSpec, mountsToUpdate, mountsToRemove, volumesToUpdate, volumesToRemove)
+		if err != nil {
+			return err
+		}
+	}
+
+	if flags.Changed("image") {
+		err = UpdateImage(podSpec, p.Image.String())
+		if err != nil {
+			return err
+		}
+	}
+
+	limitsResources, err := p.computeResources(p.LimitsFlags)
+	if err != nil {
+		return err
+	}
+	requestsResources, err := p.computeResources(p.RequestsFlags)
+	if err != nil {
+		return err
+	}
+	err = UpdateResourcesDeprecated(podSpec, requestsResources, limitsResources)
+	if err != nil {
+		return err
+	}
+
+	requestsToRemove, limitsToRemove, err := p.Resources.Validate()
+	if err != nil {
+		return err
+	}
+
+	err = UpdateResources(podSpec, p.Resources.ResourceRequirements, requestsToRemove, limitsToRemove)
+	if err != nil {
+		return err
+	}
+
+	if flags.Changed("cmd") {
+		err = UpdateContainerCommand(podSpec, p.Command)
+		if err != nil {
+			return err
+		}
+	}
+
+	if flags.Changed("arg") {
+		err = UpdateContainerArg(podSpec, p.Arg)
+		if err != nil {
+			return err
+		}
+	}
+
+	if flags.Changed("port") {
+		err = UpdateContainerPort(podSpec, p.Port)
+		if err != nil {
+			return err
+		}
+	}
+
+	if flags.Changed("service-account") {
+		UpdateServiceAccountName(podSpec, p.ServiceAccountName)
+	}
+
+	if flags.Changed("pull-secret") {
+		UpdateImagePullSecrets(podSpec, p.ImagePullSecrets)
+	}
+
+	if flags.Changed("user") {
+		err = UpdateUser(podSpec, p.User)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (p *PodSpecFlags) computeResources(resourceFlags ResourceFlags) (corev1.ResourceList, error) {
+	resourceList := corev1.ResourceList{}
+
+	if resourceFlags.CPU != "" {
+		cpuQuantity, err := resource.ParseQuantity(resourceFlags.CPU)
+		if err != nil {
+			return corev1.ResourceList{},
+				fmt.Errorf("Error parsing %q: %w", resourceFlags.CPU, err)
+		}
+
+		resourceList[corev1.ResourceCPU] = cpuQuantity
+	}
+
+	if resourceFlags.Memory != "" {
+		memoryQuantity, err := resource.ParseQuantity(resourceFlags.Memory)
+		if err != nil {
+			return corev1.ResourceList{},
+				fmt.Errorf("Error parsing %q: %w", resourceFlags.Memory, err)
+		}
+
+		resourceList[corev1.ResourceMemory] = memoryQuantity
+	}
+
+	return resourceList, nil
 }
