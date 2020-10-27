@@ -21,9 +21,9 @@ import (
 
 	"github.com/spf13/cobra"
 	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
-	duckv1 "knative.dev/pkg/apis/duck/v1"
 	"knative.dev/pkg/tracker"
 
+	"knative.dev/client/lib/printing"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/printers"
 )
@@ -85,25 +85,9 @@ func NewBindingDescribeCommand(p *commands.KnParams) *cobra.Command {
 func writeSinkBinding(dw printers.PrefixWriter, binding *v1alpha2.SinkBinding, printDetails bool) {
 	commands.WriteMetadata(dw, &binding.ObjectMeta, printDetails)
 	writeSubject(dw, binding.Namespace, &binding.Spec.Subject)
-	writeSink(dw, binding.Namespace, &binding.Spec.Sink)
+	printing.DescribeSink(dw, "Sink", binding.Namespace, &binding.Spec.Sink)
 	if binding.Spec.CloudEventOverrides != nil && binding.Spec.CloudEventOverrides.Extensions != nil {
 		writeCeOverrides(dw, binding.Spec.CloudEventOverrides.Extensions)
-	}
-}
-
-func writeSink(dw printers.PrefixWriter, namespace string, sink *duckv1.Destination) {
-	subWriter := dw.WriteAttribute("Sink", "")
-	ref := sink.Ref
-	if ref != nil {
-		subWriter.WriteAttribute("Name", sink.Ref.Name)
-		if sink.Ref.Namespace != "" && sink.Ref.Namespace != namespace {
-			subWriter.WriteAttribute("Namespace", sink.Ref.Namespace)
-		}
-		subWriter.WriteAttribute("Resource", fmt.Sprintf("%s (%s)", sink.Ref.Kind, sink.Ref.APIVersion))
-	}
-	uri := sink.URI
-	if uri != nil {
-		subWriter.WriteAttribute("URI", uri.String())
 	}
 }
 

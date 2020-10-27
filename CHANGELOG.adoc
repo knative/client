@@ -18,6 +18,10 @@
 | | Description | PR
 
 | 🐣
+| Uniform multiple writeSink to DescribeSink
+| https://github.com/knative/client/pull/1075[#1075]
+
+| 🐣
 | Add function ResolvePodSpec and move the utilities to podspec_helper
 | https://github.com/knative/client/pull/1024[#1024]
 
