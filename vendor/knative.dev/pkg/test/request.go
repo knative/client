@@ -27,7 +27,10 @@ import (
 	"sync"
 	"time"
 
+	"knative.dev/pkg/test/flags"
+
 	"k8s.io/apimachinery/pkg/util/sets"
+	"k8s.io/client-go/kubernetes"
 	"knative.dev/pkg/test/logging"
 	"knative.dev/pkg/test/spoof"
 )
@@ -57,7 +60,7 @@ func Retrying(rc spoof.ResponseChecker, codes ...int) spoof.ResponseChecker {
 		for _, code := range codes {
 			if resp.StatusCode == code {
 				// Returning (false, nil) causes SpoofingClient.Poll to retry.
-				// sc.logger.Infof("Retrying for code %v", resp.StatusCode)
+				// sc.logger.Info("Retrying for code ", resp.StatusCode)
 				return false, nil
 			}
 		}
@@ -163,7 +166,7 @@ func MatchesAllOf(checkers ...spoof.ResponseChecker) spoof.ResponseChecker {
 // domain to get into the state checked by inState.  Commas in `desc` must be escaped.
 func WaitForEndpointState(
 	ctx context.Context,
-	kubeClient *KubeClient,
+	kubeClient kubernetes.Interface,
 	logf logging.FormatLogger,
 	url *url.URL,
 	inState spoof.ResponseChecker,
@@ -171,7 +174,7 @@ func WaitForEndpointState(
 	resolvable bool,
 	opts ...interface{}) (*spoof.Response, error) {
 	return WaitForEndpointStateWithTimeout(ctx, kubeClient, logf, url, inState,
-		desc, resolvable, Flags.SpoofRequestTimeout, opts...)
+		desc, resolvable, flags.Flags().SpoofRequestTimeout, opts...)
 }
 
 // WaitForEndpointStateWithTimeout will poll an endpoint until inState indicates the state is achieved
@@ -182,7 +185,7 @@ func WaitForEndpointState(
 // domain to get into the state checked by inState.  Commas in `desc` must be escaped.
 func WaitForEndpointStateWithTimeout(
 	ctx context.Context,
-	kubeClient *KubeClient,
+	kubeClient kubernetes.Interface,
 	logf logging.FormatLogger,
 	url *url.URL,
 	inState spoof.ResponseChecker,

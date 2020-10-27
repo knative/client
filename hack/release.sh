@@ -15,9 +15,9 @@
 # limitations under the License.
 
 # Documentation about this script and how to use it can be found
-# at https://github.com/knative/test-infra/tree/master/ci
+# at https://github.com/knative/hack
 
-source $(dirname $0)/../scripts/test-infra/release.sh
+source $(dirname "$0")/../vendor/knative.dev/hack/release.sh
 source $(dirname $0)/build-flags.sh
 
 function build_release() {

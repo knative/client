@@ -69,10 +69,10 @@ func NewLogger(configJSON string, levelOverride string, opts ...zap.Option) (*za
 }
 
 func enrichLoggerWithCommitID(logger *zap.Logger) *zap.SugaredLogger {
-	commmitID, err := changeset.Get()
+	commitID, err := changeset.Get()
 	if err == nil {
 		// Enrich logs with GitHub commit ID.
-		return logger.With(zap.String(logkey.GitHubCommitID, commmitID)).Sugar()
+		return logger.With(zap.String(logkey.GitHubCommitID, commitID)).Sugar()
 	}
 
 	logger.Info("Fetch GitHub commit ID from kodata failed", zap.Error(err))
@@ -238,9 +238,9 @@ func ConfigMapName() string {
 	return "config-logging"
 }
 
-// JsonToLoggingConfig converts a json string of a Config.
-// Returns a non-nil Config always.
-func JsonToLoggingConfig(jsonCfg string) (*Config, error) {
+// JSONToConfig converts a JSON string of a Config.
+// Always returns a non-nil Config.
+func JSONToConfig(jsonCfg string) (*Config, error) {
 	if jsonCfg == "" {
 		return nil, errEmptyJSONLogginString
 	}
@@ -258,8 +258,8 @@ func JsonToLoggingConfig(jsonCfg string) (*Config, error) {
 	return cfg, nil
 }
 
-// LoggingConfigToJson converts a Config to a json string.
-func LoggingConfigToJson(cfg *Config) (string, error) {
+// ConfigToJSON  converts a Config to a JSON string.
+func ConfigToJSON(cfg *Config) (string, error) {
 	if cfg == nil || cfg.LoggingConfig == "" {
 		return "", nil
 	}
