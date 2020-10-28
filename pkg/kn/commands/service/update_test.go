@@ -459,7 +459,7 @@ func TestServiceUpdateScaleWithRange(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	} else if !action.Matches("update", "services") {
-		t.Fatalf("Bad action %v", action)
+		t.Fatal("Bad action ", action)
 	}
 
 	template := updated.Spec.Template
@@ -493,7 +493,7 @@ func TestServiceUpdateScaleMinWithRange(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	} else if !action.Matches("update", "services") {
-		t.Fatalf("Bad action %v", action)
+		t.Fatal("Bad action ", action)
 	}
 
 	template := updated.Spec.Template
@@ -526,7 +526,7 @@ func TestServiceUpdateScaleMaxWithRange(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	} else if !action.Matches("update", "services") {
-		t.Fatalf("Bad action %v", action)
+		t.Fatal("Bad action ", action)
 	}
 
 	template := updated.Spec.Template
