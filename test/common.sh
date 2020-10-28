@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-source $(dirname "$0")/../vendor/knative.dev/hack/library.sh
+source $(dirname "$0")/../vendor/knative.dev/hack/e2e-tests.sh
 
 function cluster_setup() {
   header "Building client"
