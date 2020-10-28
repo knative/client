@@ -747,6 +747,7 @@ github.com/jtolds/gls v4.20.0+incompatible/go.mod h1:QJZ7F/aHp+rZTRtaJ1ow/lLfFfV
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
 github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51/go.mod h1:CzGEWj7cYgsdH8dAjBGEr58BoE7ScuLd+fwFZ44+/x8=
 github.com/kelseyhightower/envconfig v1.3.0/go.mod h1:cccZRl6mQpaq41TPp5QxidR+Sa3axMbJDNb//FQX6Gg=
+github.com/kelseyhightower/envconfig v1.4.0 h1:Im6hONhd3pLkfDFsbRgu68RDNkGF1r3dvMUtDTo2cv8=
 github.com/kelseyhightower/envconfig v1.4.0/go.mod h1:cccZRl6mQpaq41TPp5QxidR+Sa3axMbJDNb//FQX6Gg=
 github.com/kevinburke/ssh_config v0.0.0-20190725054713-01f96b0aa0cd/go.mod h1:CT57kijsi8u/K/BOFA39wgDQJ9CxiF4nAY/ojJ6r6mM=
 github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvWXihfKN4Q=
@@ -1832,8 +1833,8 @@ k8s.io/utils v0.0.0-20200603063816-c1c6865ac451/go.mod h1:jPW/WVKK9YHAvNhRxK0md/
 knative.dev/caching v0.0.0-20190719140829-2032732871ff/go.mod h1:dHXFU6CGlLlbzaWc32g80cR92iuBSpsslDNBWI8C7eg=
 knative.dev/caching v0.0.0-20200116200605-67bca2c83dfa/go.mod h1:dHXFU6CGlLlbzaWc32g80cR92iuBSpsslDNBWI8C7eg=
 knative.dev/caching v0.0.0-20200922173540-a6b8bbd6999a/go.mod h1:P624eQ2AZLjwPBRuSqlnkWjRYoVeGdZ/uGXPrYP/USk=
-knative.dev/eventing v0.18.0 h1:DKRDpIAYZtFt959m4m9oWHnNBBH97yMP+nekrqmjOF8=
-knative.dev/eventing v0.18.0/go.mod h1:Rv5V1Sk/XeG6vdEpRu+zDhEUDg2SgbkOJWRNssUyt50=
+knative.dev/eventing v0.18.4-0.20201027215333-ca80ac848fd5 h1:n0H3hC9XYjWwwaPduqpedDqz6kxgsjtHjaRgB137K/4=
+knative.dev/eventing v0.18.4-0.20201027215333-ca80ac848fd5/go.mod h1:Rv5V1Sk/XeG6vdEpRu+zDhEUDg2SgbkOJWRNssUyt50=
 knative.dev/eventing-contrib v0.6.1-0.20190723221543-5ce18048c08b/go.mod h1:SnXZgSGgMSMLNFTwTnpaOH7hXDzTFtw0J8OmHflNx3g=
 knative.dev/eventing-contrib v0.11.2/go.mod h1:SnXZgSGgMSMLNFTwTnpaOH7hXDzTFtw0J8OmHflNx3g=
 knative.dev/networking v0.0.0-20200922180040-a71b40c69b15 h1:UhUyfzy5VTEdkWXlkJAKLDPkPK9MKNpENfn17rlYtcs=
@@ -1848,8 +1849,10 @@ knative.dev/pkg v0.0.0-20200528142800-1c6815d7e4c9/go.mod h1:QgNZTxnwpB/oSpNcfnL
 knative.dev/pkg v0.0.0-20200711004937-22502028e31a/go.mod h1:AqAJV6rYi8IGikDjJ/9ZQd9qKdkXVlesVnVjwx62YB8=
 knative.dev/pkg v0.0.0-20200922164940-4bf40ad82aab h1:4Q+sGqdN4ecLPZnIJcLDdQArEE9oOtRYiU2J6NPCCjU=
 knative.dev/pkg v0.0.0-20200922164940-4bf40ad82aab/go.mod h1:MCyt5KqLaai6ENUitOgRAQsu7Gw7cAIIiXQ2IS+O0NI=
-knative.dev/serving v0.18.0 h1:rqZm3NNYl2aw/1cK2osFKhToqGGz6UjKOt3jbrjkvu4=
-knative.dev/serving v0.18.0/go.mod h1:9U9j3D5yT7nPyVQFp4cnYugbqxF9LbHZVaxCOhNajFI=
+knative.dev/pkg v0.0.0-20201026165741-2f75016c1368 h1:KzDx2IerB4km4TG4PunacQvuSeWv4TJXTzjZ3ryKZ9o=
+knative.dev/pkg v0.0.0-20201026165741-2f75016c1368/go.mod h1:MCyt5KqLaai6ENUitOgRAQsu7Gw7cAIIiXQ2IS+O0NI=
+knative.dev/serving v0.18.1 h1:Q0ip/VA0xyWRgQeuAlcxOxhKMB6z1T0UntYsIRnVyuw=
+knative.dev/serving v0.18.1/go.mod h1:9U9j3D5yT7nPyVQFp4cnYugbqxF9LbHZVaxCOhNajFI=
 knative.dev/test-infra v0.0.0-20200407185800-1b88cb3b45a5/go.mod h1:xcdUkMJrLlBswIZqL5zCuBFOC22WIPMQoVX1L35i0vQ=
 knative.dev/test-infra v0.0.0-20200505052144-5ea2f705bb55/go.mod h1:WqF1Azka+FxPZ20keR2zCNtiQA1MP9ZB4BH4HuI+SIU=
 knative.dev/test-infra v0.0.0-20200513011557-d03429a76034/go.mod h1:aMif0KXL4g19YCYwsy4Ocjjz5xgPlseYV+B95Oo4JGE=
