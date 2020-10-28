@@ -523,7 +523,7 @@ func TestServiceCreateMaxMinScale(t *testing.T) {
 		t.Fatal(err)
 	}
 	if !action.Matches("create", "services") {
-		t.Fatalf("Bad action %v", action)
+		t.Fatal("Bad action ", action)
 	}
 
 	template := &created.Spec.Template
@@ -558,7 +558,7 @@ func TestServiceCreateScale(t *testing.T) {
 		t.Fatal(err)
 	}
 	if !action.Matches("create", "services") {
-		t.Fatalf("Bad action %v", action)
+		t.Fatal("Bad action ", action)
 	}
 
 	template := &created.Spec.Template
@@ -629,7 +629,7 @@ func TestServiceCreateScaleRange(t *testing.T) {
 		t.Fatal(err)
 	}
 	if !action.Matches("create", "services") {
-		t.Fatalf("Bad action %v", action)
+		t.Fatal("Bad action ", action)
 	}
 
 	template := &created.Spec.Template
@@ -658,7 +658,7 @@ func TestServiceCreateScaleRangeOnlyMin(t *testing.T) {
 		t.Fatal(err)
 	}
 	if !action.Matches("create", "services") {
-		t.Fatalf("Bad action %v", action)
+		t.Fatal("Bad action ", action)
 	}
 
 	template := &created.Spec.Template
@@ -686,7 +686,7 @@ func TestServiceCreateScaleRangeOnlyMax(t *testing.T) {
 		t.Fatal(err)
 	}
 	if !action.Matches("create", "services") {
-		t.Fatalf("Bad action %v", action)
+		t.Fatal("Bad action ", action)
 	}
 
 	template := &created.Spec.Template
