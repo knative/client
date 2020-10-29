@@ -16,13 +16,12 @@ package ping
 
 import (
 	"errors"
-	"fmt"
 	"sort"
 
 	"github.com/spf13/cobra"
 	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
-	duckv1 "knative.dev/pkg/apis/duck/v1"
 
+	"knative.dev/client/lib/printing"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/printers"
 )
@@ -67,7 +66,7 @@ func NewPingDescribeCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			// Revisions summary info
-			writeSink(dw, &pingSource.Spec.Sink)
+			printing.DescribeSink(dw, "Sink", pingSource.Namespace, &pingSource.Spec.Sink)
 			dw.WriteLine()
 			if err := dw.Flush(); err != nil {
 				return err
@@ -95,20 +94,6 @@ func NewPingDescribeCommand(p *commands.KnParams) *cobra.Command {
 	flags.BoolP("verbose", "v", false, "More output.")
 
 	return pingDescribe
-}
-
-func writeSink(dw printers.PrefixWriter, sink *duckv1.Destination) {
-	subWriter := dw.WriteAttribute("Sink", "")
-	ref := sink.Ref
-	if ref != nil {
-		subWriter.WriteAttribute("Name", sink.Ref.Name)
-		subWriter.WriteAttribute("Namespace", sink.Ref.Namespace)
-		subWriter.WriteAttribute("Resource", fmt.Sprintf("%s (%s)", sink.Ref.Kind, sink.Ref.APIVersion))
-	}
-	uri := sink.URI
-	if uri != nil {
-		subWriter.WriteAttribute("URI", uri.String())
-	}
 }
 
 func writePingSource(dw printers.PrefixWriter, source *v1alpha2.PingSource, printDetails bool) {
