@@ -87,11 +87,11 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	command.Flags().MarkHidden("max-scale")
 	p.markFlagMakesRevision("max-scale")
 
-	command.Flags().StringVar(&p.Scale, "scale", "1",
+	command.Flags().StringVar(&p.Scale, "scale", "",
 		"Set the Minimum and Maximum number of replicas. You can use this flag to set both to a single value, "+
 			"or set a range with min/max values, or set either min or max values without specifying the other. "+
 			"Example: --scale 5 (scale-min = 5, scale-max = 5) or --scale 1..5 (scale-min = 1, scale-max = 5) or --scale "+
-			"1.. (scale-min = 1, scale-max = undefined) or --scale ..5 (scale-min = undefined, scale-max = 5)")
+			"1.. (scale-min = 1, scale-max = unchanged) or --scale ..5 (scale-min = unchanged, scale-max = 5)")
 	p.markFlagMakesRevision("scale")
 
 	command.Flags().IntVar(&p.MinScale, "scale-min", 0, "Minimum number of replicas.")
@@ -274,18 +274,15 @@ func (p *ConfigurationEditFlags) Apply(
 			if err != nil {
 				return err
 			}
-			if scaleMin != 0 {
-				err = servinglib.UpdateMinScale(template, scaleMin)
-				if err != nil {
-					return err
-				}
+			err = servinglib.UpdateMinScale(template, scaleMin)
+			if err != nil {
+				return err
 			}
-			if scaleMax != 0 {
-				err = servinglib.UpdateMaxScale(template, scaleMax)
-				if err != nil {
-					return err
-				}
+			err = servinglib.UpdateMaxScale(template, scaleMax)
+			if err != nil {
+				return err
 			}
+
 		}
 	}
 
@@ -443,29 +440,39 @@ func (p *ConfigurationEditFlags) AnyMutation(cmd *cobra.Command) bool {
 // Helper function for --scale
 func (p *ConfigurationEditFlags) scaleConversion(scale string) (scaleMin int, scaleMax int, err error) {
 	if len(scale) <= 2 {
-		if !strings.Contains(scale, "..") {
-			scaleMin, err = strconv.Atoi(scale)
-			if err != nil {
-				return 0, 0, err
-			}
-			scaleMax = scaleMin
-		}
+		scaleMin, scaleMax, err = p.scaleSingleValue(scale)
 	} else if strings.Contains(scale, "..") {
-		scaleParts := strings.Split(scale, "..")
-		if scaleParts[0] != "" {
-			scaleMin, err = strconv.Atoi(scaleParts[0])
-			if err != nil {
-				return 0, 0, err
-			}
-		}
-		if scaleParts[1] != "" {
-			scaleMax, err = strconv.Atoi(scaleParts[1])
-			if err != nil {
-				return 0, 0, err
-			}
-		}
+		scaleMin, scaleMax, err = p.scaleRange(scale)
 	} else {
 		return 0, 0, errors.New("Scale must be of the format x..y or x")
+	}
+	return scaleMin, scaleMax, err
+}
+
+func (p *ConfigurationEditFlags) scaleSingleValue(scale string) (scaleMin int, scaleMax int, err error) {
+	if !strings.Contains(scale, "..") {
+		scaleMin, err = strconv.Atoi(scale)
+		if err != nil {
+			return 0, 0, err
+		}
+		scaleMax = scaleMin
+	}
+	return scaleMin, scaleMax, err
+}
+
+func (p *ConfigurationEditFlags) scaleRange(scale string) (scaleMin int, scaleMax int, err error) {
+	scaleParts := strings.Split(scale, "..")
+	if scaleParts[0] != "" {
+		scaleMin, err = strconv.Atoi(scaleParts[0])
+		if err != nil {
+			return 0, 0, err
+		}
+	}
+	if scaleParts[1] != "" {
+		scaleMax, err = strconv.Atoi(scaleParts[1])
+		if err != nil {
+			return 0, 0, err
+		}
 	}
 	return scaleMin, scaleMax, err
 }
