@@ -18,7 +18,7 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-source $(dirname $0)/../scripts/test-infra/library.sh
+source $(dirname $0)/../vendor/knative.dev/hack/library.sh
 
 "${REPO_ROOT_DIR}"/hack/build.sh --codegen
 if output="$(git status --porcelain)" && [ -z "$output" ]; then

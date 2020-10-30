@@ -1940,6 +1940,7 @@ knative.dev/eventing v0.18.1-0.20201029213834-0535f9b33fe8/go.mod h1:4+DyEOeuGTr
 knative.dev/eventing-contrib v0.6.1-0.20190723221543-5ce18048c08b/go.mod h1:SnXZgSGgMSMLNFTwTnpaOH7hXDzTFtw0J8OmHflNx3g=
 knative.dev/eventing-contrib v0.11.2/go.mod h1:SnXZgSGgMSMLNFTwTnpaOH7hXDzTFtw0J8OmHflNx3g=
 knative.dev/hack v0.0.0-20201027221733-0d7f2f064b7b/go.mod h1:PHt8x8yX5Z9pPquBEfIj0X66f8iWkWfR0S/sarACJrI=
+knative.dev/hack v0.0.0-20201028205534-fe80f1c8af68 h1:ygwpOK8B0PXurq88GHhym2uxKiiMJ+bRFwFeZHqGJNc=
 knative.dev/hack v0.0.0-20201028205534-fe80f1c8af68/go.mod h1:PHt8x8yX5Z9pPquBEfIj0X66f8iWkWfR0S/sarACJrI=
 knative.dev/networking v0.0.0-20201029015534-8ec2eff034d5/go.mod h1:GLUFkkEsNCMHSXZDGHG0EFpiDHkWZWDvWJurG3VV8do=
 knative.dev/networking v0.0.0-20201029132834-0fb5d8bc0634 h1:PWOKjvIetCNvHR302XhGEBb/B2vt4dF1LuAwhKH5ViE=
