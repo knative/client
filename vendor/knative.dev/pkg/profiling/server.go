@@ -56,7 +56,7 @@ func NewHandler(logger *zap.SugaredLogger, enableProfiling bool) *Handler {
 	mux.HandleFunc(pprofPrefix+"symbol", pprof.Symbol)
 	mux.HandleFunc(pprofPrefix+"trace", pprof.Trace)
 
-	logger.Infof("Profiling enabled: %t", enableProfiling)
+	logger.Info("Profiling enabled: ", enableProfiling)
 	return &Handler{
 		enabled: atomic.NewBool(enableProfiling),
 		handler: mux,
@@ -94,7 +94,7 @@ func (h *Handler) UpdateFromConfigMap(configMap *corev1.ConfigMap) {
 	}
 
 	if h.enabled.Swap(enabled) != enabled {
-		h.log.Infof("Profiling enabled: %t", enabled)
+		h.log.Info("Profiling enabled: ", enabled)
 	}
 }
 
