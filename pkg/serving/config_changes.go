@@ -166,7 +166,7 @@ func UpdateServiceAnnotations(service *servingv1.Service, toUpdate map[string]st
 // UpdateRevisionTemplateAnnotations updates annotations for the given Revision Template.
 // Also validates the autoscaling annotation values
 func UpdateRevisionTemplateAnnotations(template *servingv1.RevisionTemplateSpec, toUpdate map[string]string, toRemove []string) error {
-	ctx := context.Background()
+	ctx := context.TODO()
 	autoscalerConfig := servingconfig.FromContextOrDefaults(ctx).Autoscaler
 	autoscalerConfig.AllowZeroInitialScale = true
 	if err := autoscaling.ValidateAnnotations(ctx, autoscalerConfig, toUpdate); err != nil {
