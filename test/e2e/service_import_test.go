@@ -54,7 +54,7 @@ func TestServiceImport(t *testing.T) {
 	serviceImport(r, testFile)
 
 	t.Log("import existing service foo error")
-	serviceImport(r, testFile)
+	serviceImportExistsError(r, testFile)
 
 	t.Log("import service from missing file error")
 	serviceImportFileError(r, testFile+"-missing")
