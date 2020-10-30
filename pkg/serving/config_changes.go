@@ -15,6 +15,7 @@
 package serving
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strconv"
@@ -23,6 +24,7 @@ import (
 
 	"knative.dev/pkg/ptr"
 	"knative.dev/serving/pkg/apis/autoscaling"
+	servingconfig "knative.dev/serving/pkg/apis/config"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	"knative.dev/client/pkg/kn/flags"
@@ -164,7 +166,10 @@ func UpdateServiceAnnotations(service *servingv1.Service, toUpdate map[string]st
 // UpdateRevisionTemplateAnnotations updates annotations for the given Revision Template.
 // Also validates the autoscaling annotation values
 func UpdateRevisionTemplateAnnotations(template *servingv1.RevisionTemplateSpec, toUpdate map[string]string, toRemove []string) error {
-	if err := autoscaling.ValidateAnnotations(true, toUpdate); err != nil {
+	ctx := context.TODO()
+	autoscalerConfig := servingconfig.FromContextOrDefaults(ctx).Autoscaler
+	autoscalerConfig.AllowZeroInitialScale = true
+	if err := autoscaling.ValidateAnnotations(ctx, autoscalerConfig, toUpdate); err != nil {
 		return err
 	}
 	if template.Annotations == nil {
