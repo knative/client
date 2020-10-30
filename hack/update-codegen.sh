@@ -32,4 +32,4 @@ bash "${CODEGEN_PKG}"/generate-groups.sh "deepcopy" \
   --go-header-file "${SCRIPT_ROOT}"/hack/boilerplate.go.txt
 
 # Make sure our dependencies are up-to-date
-${REPO_ROOT}/hack/update-deps.sh
+${SCRIPT_ROOT}/hack/update-deps.sh
