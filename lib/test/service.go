@@ -122,6 +122,7 @@ func ServiceDescribeWithJSONPath(r *KnRunResultCollector, serviceName, jsonpath 
 	return out.Stdout
 }
 
+// ValidateServiceResources validates cpu and mem resources
 func ValidateServiceResources(r *KnRunResultCollector, serviceName string, requestsMemory, requestsCPU, limitsMemory, limitsCPU string) {
 	var err error
 	rlist := corev1.ResourceList{}
@@ -149,8 +150,8 @@ func ValidateServiceResources(r *KnRunResultCollector, serviceName string, reque
 	assert.DeepEqual(r.T(), serviceLimitsResourceList, llist)
 }
 
-//GetServiceFromKNServiceDescribe runs the kn service describe command
-//decodes it into a ksvc and returns it.
+// GetServiceFromKNServiceDescribe runs the kn service describe command
+// decodes it into a ksvc and returns it.
 func GetServiceFromKNServiceDescribe(r *KnRunResultCollector, serviceName string) servingv1.Service {
 	out := r.KnTest().Kn().Run("service", "describe", serviceName, "-ojson")
 	data := json.NewDecoder(strings.NewReader(out.Stdout))
@@ -161,7 +162,7 @@ func GetServiceFromKNServiceDescribe(r *KnRunResultCollector, serviceName string
 	return service
 }
 
-//BuildServiceListWithOptions returns ServiceList with options provided
+// BuildServiceListWithOptions returns ServiceList with options provided
 func BuildServiceListWithOptions(options ...ExpectedServiceListOption) *servingv1.ServiceList {
 	list := &servingv1.ServiceList{
 		TypeMeta: metav1.TypeMeta{
@@ -177,14 +178,14 @@ func BuildServiceListWithOptions(options ...ExpectedServiceListOption) *servingv
 	return list
 }
 
-//WithServices appends the given service to ServiceList
+// WithServices appends the given service to ServiceList
 func WithServices(svc *servingv1.Service) ExpectedServiceListOption {
 	return func(list *servingv1.ServiceList) {
 		list.Items = append(list.Items, *svc)
 	}
 }
 
-//BuildRevisionListWithOptions returns RevisionList with options provided
+// BuildRevisionListWithOptions returns RevisionList with options provided
 func BuildRevisionListWithOptions(options ...ExpectedRevisionListOption) *servingv1.RevisionList {
 	list := &servingv1.RevisionList{
 		TypeMeta: metav1.TypeMeta{
@@ -200,7 +201,7 @@ func BuildRevisionListWithOptions(options ...ExpectedRevisionListOption) *servin
 	return list
 }
 
-//BuildKNExportWithOptions returns Export object with the options provided
+// BuildKNExportWithOptions returns Export object with the options provided
 func BuildKNExportWithOptions(options ...ExpectedKNExportOption) *clientv1alpha1.Export {
 	knExport := &clientv1alpha1.Export{
 		TypeMeta: metav1.TypeMeta{
@@ -216,7 +217,7 @@ func BuildKNExportWithOptions(options ...ExpectedKNExportOption) *clientv1alpha1
 	return knExport
 }
 
-//BuildConfigurationSpec builds servingv1.ConfigurationSpec with the options provided
+// BuildConfigurationSpec builds servingv1.ConfigurationSpec with the options provided
 func BuildConfigurationSpec(co ...servingtest.ConfigOption) *servingv1.ConfigurationSpec {
 	c := &servingv1.Configuration{
 		Spec: servingv1.ConfigurationSpec{
@@ -284,22 +285,22 @@ func BuildRevision(name string, options ...servingtest.RevisionOption) *servingv
 	return rev
 }
 
-// WithRevs appends Revision object to RevisionList
-func WithRevs(rev servingv1.Revision) ExpectedRevisionListOption {
+// WithRevision appends Revision object to RevisionList
+func WithRevision(rev servingv1.Revision) ExpectedRevisionListOption {
 	return func(list *servingv1.RevisionList) {
 		list.Items = append(list.Items, rev)
 	}
 }
 
-// WithKNRevs appends Revision object RevisionList to Kn Export
-func WithKNRevs(rev servingv1.Revision) ExpectedKNExportOption {
+// WithKNRevision appends Revision object RevisionList to Kn Export
+func WithKNRevision(rev servingv1.Revision) ExpectedKNExportOption {
 	return func(export *clientv1alpha1.Export) {
 		export.Spec.Revisions = append(export.Spec.Revisions, rev)
 	}
 }
 
-// WithRevEnv adds env variable to Revision object
-func WithRevEnv(evs ...corev1.EnvVar) servingtest.RevisionOption {
+// WithRevisionEnv adds env variable to Revision object
+func WithRevisionEnv(evs ...corev1.EnvVar) servingtest.RevisionOption {
 	return func(s *servingv1.Revision) {
 		s.Spec.PodSpec.Containers[0].Env = evs
 	}

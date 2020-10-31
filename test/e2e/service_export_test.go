@@ -116,7 +116,7 @@ func TestServiceExport(t *testing.T) {
 		test.WithTrafficSpec([]string{"latest", "hello-rev1"}, []int{98, 2}, []string{"", "candidate"}),
 		servingtest.WithEnv(corev1.EnvVar{Name: "a", Value: "mouse"}),
 	), test.BuildKNExportWithOptions(
-		test.WithKNRevs(*(test.BuildRevision("hello-rev1",
+		test.WithKNRevision(*(test.BuildRevision("hello-rev1",
 			servingtest.WithRevisionAnn("client.knative.dev/user-image", pkgtest.ImagePath("helloworld")),
 			servingtest.WithRevisionAnn("serving.knative.dev/routes", "hello"),
 			servingtest.WithRevisionLabel("serving.knative.dev/configuration", "hello"),
@@ -166,7 +166,7 @@ func TestServiceExport(t *testing.T) {
 		servingtest.WithBYORevisionName("hello-rev3"),
 		servingtest.WithEnv(corev1.EnvVar{Name: "a", Value: "mouse"}, corev1.EnvVar{Name: "b", Value: "cat"}),
 	), test.BuildKNExportWithOptions(
-		test.WithKNRevs(*(test.BuildRevision("hello-rev1",
+		test.WithKNRevision(*(test.BuildRevision("hello-rev1",
 			servingtest.WithRevisionAnn("client.knative.dev/user-image", pkgtest.ImagePath("helloworld")),
 			servingtest.WithRevisionAnn("serving.knative.dev/routes", "hello"),
 			servingtest.WithRevisionLabel("serving.knative.dev/configuration", "hello"),
@@ -175,14 +175,14 @@ func TestServiceExport(t *testing.T) {
 			servingtest.WithRevisionLabel("serving.knative.dev/service", "hello"),
 			test.WithRevisionImage(pkgtest.ImagePath("helloworld")),
 		))),
-		test.WithKNRevs(*(test.BuildRevision("hello-rev2",
+		test.WithKNRevision(*(test.BuildRevision("hello-rev2",
 			servingtest.WithRevisionAnn("serving.knative.dev/routes", "hello"),
 			servingtest.WithRevisionLabel("serving.knative.dev/configuration", "hello"),
 			servingtest.WithRevisionLabel("serving.knative.dev/configurationGeneration", "2"),
 			servingtest.WithRevisionLabel("serving.knative.dev/routingState", "active"),
 			servingtest.WithRevisionLabel("serving.knative.dev/service", "hello"),
 			test.WithRevisionImage(pkgtest.ImagePath("helloworld")),
-			test.WithRevEnv(corev1.EnvVar{Name: "a", Value: "mouse"}),
+			test.WithRevisionEnv(corev1.EnvVar{Name: "a", Value: "mouse"}),
 		))),
 	), "--with-revisions", "--mode", "export", "-o", "yaml")
 
@@ -216,14 +216,14 @@ func TestServiceExport(t *testing.T) {
 		test.WithTrafficSpec([]string{"hello-rev2"}, []int{100}, []string{""}),
 		servingtest.WithEnv(corev1.EnvVar{Name: "a", Value: "mouse"}, corev1.EnvVar{Name: "b", Value: "cat"}),
 	), test.BuildKNExportWithOptions(
-		test.WithKNRevs(*(test.BuildRevision("hello-rev2",
+		test.WithKNRevision(*(test.BuildRevision("hello-rev2",
 			servingtest.WithRevisionAnn("serving.knative.dev/routes", "hello"),
 			servingtest.WithRevisionLabel("serving.knative.dev/configuration", "hello"),
 			servingtest.WithRevisionLabel("serving.knative.dev/configurationGeneration", "2"),
 			servingtest.WithRevisionLabel("serving.knative.dev/routingState", "active"),
 			servingtest.WithRevisionLabel("serving.knative.dev/service", "hello"),
 			test.WithRevisionImage(pkgtest.ImagePath("helloworld")),
-			test.WithRevEnv(corev1.EnvVar{Name: "a", Value: "mouse"}),
+			test.WithRevisionEnv(corev1.EnvVar{Name: "a", Value: "mouse"}),
 		))),
 	), "--with-revisions", "--mode", "export", "-o", "yaml")
 }
