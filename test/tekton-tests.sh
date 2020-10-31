@@ -44,7 +44,7 @@ if (( IS_PROW )); then
   # Configure Docker so that we can create a secret for GCR
   gcloud auth configure-docker
   gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://gcr.io
-  export CONTAINER_REGISTRY=gcr.io/${E2E_PROJECT_ID}/${E2E_BASE_NAME}-e2e-img/${RANDOM}
+  export CONTAINER_REGISTRY=gcr.io/${E2E_PROJECT_ID}/kn-tekton-e2e-img/${RANDOM}
   export DOCKER_CONFIG_JSON=/root/.docker/config.json
 fi
 

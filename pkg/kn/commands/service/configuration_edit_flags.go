@@ -21,8 +21,6 @@ import (
 
 	"github.com/spf13/cobra"
 
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	knflags "knative.dev/client/pkg/kn/flags"
@@ -198,53 +196,10 @@ func (p *ConfigurationEditFlags) Apply(
 	cmd *cobra.Command) error {
 
 	template := &service.Spec.Template
-	if cmd.Flags().Changed("env") {
-		envMap, err := util.MapFromArrayAllowingSingles(p.PodSpecFlags.Env, "=")
-		if err != nil {
-			return fmt.Errorf("Invalid --env: %w", err)
-		}
 
-		envToRemove := util.ParseMinusSuffix(envMap)
-		err = servinglib.UpdateEnvVars(template, envMap, envToRemove)
-		if err != nil {
-			return err
-		}
-	}
-
-	if cmd.Flags().Changed("env-from") {
-		envFromSourceToUpdate := []string{}
-		envFromSourceToRemove := []string{}
-		for _, name := range p.PodSpecFlags.EnvFrom {
-			if name == "-" {
-				return fmt.Errorf("\"-\" is not a valid value for \"--env-from\"")
-			} else if strings.HasSuffix(name, "-") {
-				envFromSourceToRemove = append(envFromSourceToRemove, name[:len(name)-1])
-			} else {
-				envFromSourceToUpdate = append(envFromSourceToUpdate, name)
-			}
-		}
-
-		err := servinglib.UpdateEnvFrom(template, envFromSourceToUpdate, envFromSourceToRemove)
-		if err != nil {
-			return err
-		}
-	}
-
-	if cmd.Flags().Changed("mount") || cmd.Flags().Changed("volume") {
-		mountsToUpdate, mountsToRemove, err := util.OrderedMapAndRemovalListFromArray(p.PodSpecFlags.Mount, "=")
-		if err != nil {
-			return fmt.Errorf("Invalid --mount: %w", err)
-		}
-
-		volumesToUpdate, volumesToRemove, err := util.OrderedMapAndRemovalListFromArray(p.PodSpecFlags.Volume, "=")
-		if err != nil {
-			return fmt.Errorf("Invalid --volume: %w", err)
-		}
-
-		err = servinglib.UpdateVolumeMountsAndVolumes(template, mountsToUpdate, mountsToRemove, volumesToUpdate, volumesToRemove)
-		if err != nil {
-			return err
-		}
+	err := p.PodSpecFlags.ResolvePodSpec(&template.Spec.PodSpec, cmd.Flags())
+	if err != nil {
+		return err
 	}
 
 	name, err := servinglib.GenerateRevisionName(p.RevisionName, service)
@@ -258,10 +213,6 @@ func (p *ConfigurationEditFlags) Apply(
 
 	imageSet := false
 	if cmd.Flags().Changed("image") {
-		err = servinglib.UpdateImage(template, p.PodSpecFlags.Image.String())
-		if err != nil {
-			return err
-		}
 		imageSet = true
 	}
 	_, userImagePresent := template.Annotations[servinglib.UserImageAnnotationKey]
@@ -290,50 +241,6 @@ func (p *ConfigurationEditFlags) Apply(
 			return fmt.Errorf("only one of (DEPRECATED) --requests-cpu / --requests-memory and --request can be specified")
 		}
 		fmt.Fprintf(cmd.OutOrStdout(), "\nWARNING: flags --requests-cpu / --requests-memory are deprecated and going to be removed in future release, please use --request instead.\n\n")
-	}
-
-	limitsResources, err := p.computeResources(p.PodSpecFlags.LimitsFlags)
-	if err != nil {
-		return err
-	}
-	requestsResources, err := p.computeResources(p.PodSpecFlags.RequestsFlags)
-	if err != nil {
-		return err
-	}
-	err = servinglib.UpdateResourcesDeprecated(template, requestsResources, limitsResources)
-	if err != nil {
-		return err
-	}
-
-	requestsToRemove, limitsToRemove, err := p.PodSpecFlags.Resources.Validate()
-	if err != nil {
-		return err
-	}
-
-	err = servinglib.UpdateResources(template, p.PodSpecFlags.Resources.ResourceRequirements, requestsToRemove, limitsToRemove)
-	if err != nil {
-		return err
-	}
-
-	if cmd.Flags().Changed("cmd") {
-		err = servinglib.UpdateContainerCommand(template, p.PodSpecFlags.Command)
-		if err != nil {
-			return err
-		}
-	}
-
-	if cmd.Flags().Changed("arg") {
-		err = servinglib.UpdateContainerArg(template, p.PodSpecFlags.Arg)
-		if err != nil {
-			return err
-		}
-	}
-
-	if cmd.Flags().Changed("port") {
-		err = servinglib.UpdateContainerPort(template, p.PodSpecFlags.Port)
-		if err != nil {
-			return err
-		}
 	}
 
 	// Deprecated "min-scale" in 0.19, updated to "scale-min"
@@ -472,21 +379,6 @@ func (p *ConfigurationEditFlags) Apply(
 
 	}
 
-	if cmd.Flags().Changed("service-account") {
-		err = servinglib.UpdateServiceAccountName(template, p.PodSpecFlags.ServiceAccountName)
-		if err != nil {
-			return err
-		}
-	}
-
-	if cmd.Flags().Changed("pull-secret") {
-		servinglib.UpdateImagePullSecrets(template, p.PodSpecFlags.ImagePullSecrets)
-	}
-
-	if cmd.Flags().Changed("user") {
-		servinglib.UpdateUser(template, p.PodSpecFlags.User)
-	}
-
 	if cmd.Flags().Changed("scale-init") {
 		containsAnnotation := func(annotationList []string, annotation string) bool {
 			for _, element := range annotationList {
@@ -522,32 +414,6 @@ func (p *ConfigurationEditFlags) updateLabels(obj *metav1.ObjectMeta, flagLabels
 	obj.Labels = servinglib.UpdateLabels(obj.Labels, labelsMap, revisionLabelsToRemove)
 
 	return nil
-}
-
-func (p *ConfigurationEditFlags) computeResources(resourceFlags knflags.ResourceFlags) (corev1.ResourceList, error) {
-	resourceList := corev1.ResourceList{}
-
-	if resourceFlags.CPU != "" {
-		cpuQuantity, err := resource.ParseQuantity(resourceFlags.CPU)
-		if err != nil {
-			return corev1.ResourceList{},
-				fmt.Errorf("Error parsing %q: %w", resourceFlags.CPU, err)
-		}
-
-		resourceList[corev1.ResourceCPU] = cpuQuantity
-	}
-
-	if resourceFlags.Memory != "" {
-		memoryQuantity, err := resource.ParseQuantity(resourceFlags.Memory)
-		if err != nil {
-			return corev1.ResourceList{},
-				fmt.Errorf("Error parsing %q: %w", resourceFlags.Memory, err)
-		}
-
-		resourceList[corev1.ResourceMemory] = memoryQuantity
-	}
-
-	return resourceList, nil
 }
 
 // AnyMutation returns true if there are any revision template mutations in the

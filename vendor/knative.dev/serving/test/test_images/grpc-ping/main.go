@@ -18,6 +18,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"io"
 	"log"
 	"net/http"
@@ -44,13 +45,13 @@ func pong(req *ping.Request) *ping.Response {
 type server struct{}
 
 func (s *server) Ping(ctx context.Context, req *ping.Request) (*ping.Response, error) {
-	log.Printf("Received ping: %v", req.Msg)
+	log.Print("Received ping: ", req.Msg)
 
 	time.Sleep(time.Duration(delay) * time.Millisecond)
 
 	resp := pong(req)
 
-	log.Printf("Sending pong: %v", resp.Msg)
+	log.Print("Sending pong: ", resp.Msg)
 	return resp, nil
 }
 
@@ -58,7 +59,7 @@ func (s *server) PingStream(stream ping.PingService_PingStreamServer) error {
 	log.Printf("Starting stream")
 	for {
 		req, err := stream.Recv()
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			log.Printf("Ending stream")
 			return nil
 		}
@@ -67,11 +68,11 @@ func (s *server) PingStream(stream ping.PingService_PingStreamServer) error {
 			return err
 		}
 
-		log.Printf("Received ping: %v", req.Msg)
+		log.Print("Received ping: ", req.Msg)
 
 		resp := pong(req)
 
-		log.Printf("Sending pong: %v", resp.Msg)
+		log.Print("Sending pong: ", resp.Msg)
 		err = stream.Send(resp)
 		if err != nil {
 			log.Print("Failed to send pong: ", err)
@@ -91,7 +92,7 @@ func httpWrapper(g *grpc.Server) http.Handler {
 }
 
 func main() {
-	log.Printf("Starting server on %s", os.Getenv("PORT"))
+	log.Print("Starting server on ", os.Getenv("PORT"))
 
 	delay, _ = strconv.ParseInt(os.Getenv("DELAY"), 10, 64)
 	log.Printf("Using DELAY of %d ms", delay)

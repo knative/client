@@ -46,8 +46,8 @@ type DeliverySpec struct {
 	//  - https://www.iso.org/iso-8601-date-and-time-format.html
 	//  - https://en.wikipedia.org/wiki/ISO_8601
 	//
-	// For linear policy, backoff delay is the time interval between retries.
-	// For exponential policy , backoff delay is backoffDelay*2^<numberOfRetries>.
+	// For linear policy, backoff delay is backoffDelay*<numberOfRetries>.
+	// For exponential policy, backoff delay is backoffDelay*2^<numberOfRetries>.
 	// +optional
 	BackoffDelay *string `json:"backoffDelay,omitempty"`
 }
@@ -60,6 +60,11 @@ func (ds *DeliverySpec) Validate(ctx context.Context) *apis.FieldError {
 	if dlse := ds.DeadLetterSink.Validate(ctx); dlse != nil {
 		errs = errs.Also(dlse).ViaField("deadLetterSink")
 	}
+
+	if ds.Retry != nil && *ds.Retry < 0 {
+		errs = errs.Also(apis.ErrInvalidValue(*ds.Retry, "retry"))
+	}
+
 	if ds.BackoffPolicy != nil {
 		switch *ds.BackoffPolicy {
 		case BackoffPolicyExponential, BackoffPolicyLinear:
@@ -68,6 +73,7 @@ func (ds *DeliverySpec) Validate(ctx context.Context) *apis.FieldError {
 			errs = errs.Also(apis.ErrInvalidValue(*ds.BackoffPolicy, "backoffPolicy"))
 		}
 	}
+
 	if ds.BackoffDelay != nil {
 		_, te := period.Parse(*ds.BackoffDelay)
 		if te != nil {

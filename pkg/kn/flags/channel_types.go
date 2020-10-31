@@ -119,5 +119,4 @@ func (i *ChannelRef) Parse() (*corev1.ObjectReference, error) {
 	default:
 		return nil, fmt.Errorf("Error: incorrect value '%s' for '--channel', must be in the format 'Group:Version:Kind:Name' or configure an alias in kn config and refer as: '--channel ALIAS:NAME'", i.Cref)
 	}
-	return nil, nil
 }

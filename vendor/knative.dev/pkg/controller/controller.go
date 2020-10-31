@@ -207,7 +207,7 @@ type Impl struct {
 
 // ControllerOptions encapsulates options for creating a new controller,
 // including throttling and stats behavior.
-type ControllerOptions struct {
+type ControllerOptions struct { //nolint // for backcompat.
 	WorkQueueName string
 	Logger        *zap.SugaredLogger
 	Reporter      StatsReporter
@@ -270,7 +270,7 @@ func (c *Impl) EnqueueSlowKey(key types.NamespacedName) {
 			safeKey(key), c.workQueue.Len(), c.workQueue.SlowLane().Len())
 }
 
-// EnqueueSlow extracts namesspeced name from the object and enqueues it on the slow
+// EnqueueSlow extracts namespaced name from the object and enqueues it on the slow
 // work queue.
 func (c *Impl) EnqueueSlow(obj interface{}) {
 	object, err := kmeta.DeletionHandlingAccessor(obj)
@@ -505,7 +505,7 @@ func (c *Impl) processNextWorkItem() bool {
 
 	// Embed the key into the logger and attach that to the context we pass
 	// to the Reconciler.
-	logger := c.logger.With(zap.String(logkey.TraceId, uuid.New().String()), zap.String(logkey.Key, keyStr))
+	logger := c.logger.With(zap.String(logkey.TraceID, uuid.New().String()), zap.String(logkey.Key, keyStr))
 	ctx := logging.WithLogger(context.Background(), logger)
 
 	// Run Reconcile, passing it the namespace/name string of the
@@ -582,6 +582,7 @@ func IsPermanentError(err error) bool {
 // Is implements the Is() interface of error. It returns whether the target
 // error can be treated as equivalent to a permanentError.
 func (permanentError) Is(target error) bool {
+	//nolint: errorlint // This check is actually fine.
 	_, ok := target.(permanentError)
 	return ok
 }

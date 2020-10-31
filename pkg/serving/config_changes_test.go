@@ -15,7 +15,6 @@
 package serving
 
 import (
-	"fmt"
 	"reflect"
 	"strconv"
 	"testing"
@@ -73,19 +72,6 @@ func TestUpdateInvalidAutoscalingAnnotations(t *testing.T) {
 	}
 }
 
-func TestUpdateEnvVarsNew(t *testing.T) {
-	template, container := getRevisionTemplate()
-	env := []corev1.EnvVar{
-		{Name: "a", Value: "foo"},
-		{Name: "b", Value: "bar"},
-	}
-	found, err := EnvToMap(env)
-	assert.NilError(t, err)
-	err = UpdateEnvVars(template, found, []string{})
-	assert.NilError(t, err)
-	assert.DeepEqual(t, env, container.Env)
-}
-
 type userImageAnnotCase struct {
 	image  string
 	annot  string
@@ -130,42 +116,6 @@ func TestFreezeImageToDigest(t *testing.T) {
 	container.Image = "gcr.io/foo/bar:latest"
 	FreezeImageToDigest(template, revision)
 	assert.Equal(t, container.Image, "gcr.io/foo/bar@sha256:deadbeef")
-}
-
-func TestUpdateEnvVarsModify(t *testing.T) {
-	revision, container := getRevisionTemplate()
-	container.Env = []corev1.EnvVar{
-		{Name: "a", Value: "foo"}}
-	env := map[string]string{
-		"a": "fancy",
-	}
-	err := UpdateEnvVars(revision, env, []string{})
-	assert.NilError(t, err)
-
-	expected := map[string]string{
-		"a": "fancy",
-	}
-
-	found, err := EnvToMap(container.Env)
-	assert.NilError(t, err)
-	assert.DeepEqual(t, expected, found)
-}
-
-func TestUpdateEnvVarsRemove(t *testing.T) {
-	revision, container := getRevisionTemplate()
-	container.Env = []corev1.EnvVar{
-		{Name: "a", Value: "foo"},
-		{Name: "b", Value: "bar"},
-	}
-	remove := []string{"b"}
-	err := UpdateEnvVars(revision, map[string]string{}, remove)
-	assert.NilError(t, err)
-
-	expected := []corev1.EnvVar{
-		{Name: "a", Value: "foo"},
-	}
-
-	assert.DeepEqual(t, expected, container.Env)
 }
 
 func TestUpdateMinScale(t *testing.T) {
@@ -223,126 +173,29 @@ func TestUpdateConcurrencyLimit(t *testing.T) {
 	assert.ErrorContains(t, err, "invalid")
 }
 
-func TestUpdateContainerImage(t *testing.T) {
-	template, _ := getRevisionTemplate()
-	err := UpdateImage(template, "gcr.io/foo/bar:baz")
-	assert.NilError(t, err)
-	// Verify update is successful or not
-	checkContainerImage(t, template, "gcr.io/foo/bar:baz")
-	// Update template with container image info
-	template.Spec.Containers[0].Image = "docker.io/foo/bar:baz"
-	err = UpdateImage(template, "query.io/foo/bar:baz")
-	assert.NilError(t, err)
-	// Verify that given image overrides the existing container image
-	checkContainerImage(t, template, "query.io/foo/bar:baz")
-}
+// func TestUpdateEnvVarsBoth(t *testing.T) {
+// 	template, container := getRevisionTemplate()
+// 	container.Env = []corev1.EnvVar{
+// 		{Name: "a", Value: "foo"},
+// 		{Name: "c", Value: "caroline"},
+// 		{Name: "d", Value: "byebye"},
+// 	}
+// 	env := map[string]string{
+// 		"a": "fancy",
+// 		"b": "boo",
+// 	}
+// 	remove := []string{"d"}
+// 	err := UpdateEnvVars(template, env, remove)
+// 	assert.NilError(t, err)
 
-func checkContainerImage(t *testing.T, template *servingv1.RevisionTemplateSpec, image string) {
-	if got, want := template.Spec.Containers[0].Image, image; got != want {
-		t.Errorf("Failed to update the container image: got=%s, want=%s", got, want)
-	}
-}
+// 	expected := []corev1.EnvVar{
+// 		{Name: "a", Value: "fancy"},
+// 		{Name: "b", Value: "boo"},
+// 		{Name: "c", Value: "caroline"},
+// 	}
 
-func TestUpdateContainerCommand(t *testing.T) {
-	template, _ := getRevisionTemplate()
-	err := UpdateContainerCommand(template, "/app/start")
-	assert.NilError(t, err)
-	assert.DeepEqual(t, template.Spec.Containers[0].Command, []string{"/app/start"})
-
-	err = UpdateContainerCommand(template, "/app/latest")
-	assert.NilError(t, err)
-	assert.DeepEqual(t, template.Spec.Containers[0].Command, []string{"/app/latest"})
-}
-
-func TestUpdateContainerArg(t *testing.T) {
-	template, _ := getRevisionTemplate()
-	err := UpdateContainerArg(template, []string{"--myArg"})
-	assert.NilError(t, err)
-	assert.DeepEqual(t, template.Spec.Containers[0].Args, []string{"--myArg"})
-
-	err = UpdateContainerArg(template, []string{"myArg1", "--myArg2"})
-	assert.NilError(t, err)
-	assert.DeepEqual(t, template.Spec.Containers[0].Args, []string{"myArg1", "--myArg2"})
-}
-
-func TestUpdateContainerPort(t *testing.T) {
-	template, _ := getRevisionTemplate()
-	for _, tc := range []struct {
-		name    string
-		input   string
-		isErr   bool
-		expPort int32
-		expName string
-	}{{
-		name:    "only port 8888",
-		input:   "8888",
-		expPort: int32(8888),
-	}, {
-		name:    "name and port h2c:8080",
-		input:   "h2c:8080",
-		expPort: int32(8080),
-		expName: "h2c",
-	}, {
-		name:  "error case - not correct format",
-		input: "h2c:800000000000000000",
-		isErr: true,
-	}, {
-		name:  "error case - empty port",
-		input: "h2c:",
-		isErr: true,
-	}, {
-		name:  "error case - wrong format",
-		input: "8080:h2c",
-		isErr: true,
-	}, {
-		name:  "error case - multiple :",
-		input: "h2c:8080:proto",
-		isErr: true,
-	}, {
-		name:    "empty name no error",
-		input:   ":8888",
-		expPort: int32(8888),
-	}} {
-		t.Run(tc.name, func(t *testing.T) {
-			err := UpdateContainerPort(template, tc.input)
-			if tc.isErr {
-				assert.Error(t, err, fmt.Sprintf(PortFormatErr, tc.input))
-			} else {
-				assert.NilError(t, err)
-				assert.Equal(t, template.Spec.Containers[0].Ports[0].ContainerPort, tc.expPort)
-				assert.Equal(t, template.Spec.Containers[0].Ports[0].Name, tc.expName)
-			}
-		})
-	}
-}
-
-func checkUserUpdate(t *testing.T, template *servingv1.RevisionTemplateSpec, user *int64) {
-	assert.DeepEqual(t, template.Spec.Containers[0].SecurityContext.RunAsUser, user)
-}
-
-func TestUpdateEnvVarsBoth(t *testing.T) {
-	template, container := getRevisionTemplate()
-	container.Env = []corev1.EnvVar{
-		{Name: "a", Value: "foo"},
-		{Name: "c", Value: "caroline"},
-		{Name: "d", Value: "byebye"},
-	}
-	env := map[string]string{
-		"a": "fancy",
-		"b": "boo",
-	}
-	remove := []string{"d"}
-	err := UpdateEnvVars(template, env, remove)
-	assert.NilError(t, err)
-
-	expected := []corev1.EnvVar{
-		{Name: "a", Value: "fancy"},
-		{Name: "b", Value: "boo"},
-		{Name: "c", Value: "caroline"},
-	}
-
-	assert.DeepEqual(t, expected, container.Env)
-}
+// 	assert.DeepEqual(t, expected, container.Env)
+// }
 
 func TestUpdateLabelsNew(t *testing.T) {
 	service, template, _ := getService()
@@ -425,158 +278,6 @@ func TestUpdateLabelsRemoveExisting(t *testing.T) {
 
 	actual = template.ObjectMeta.Labels
 	assert.DeepEqual(t, expected, actual)
-}
-
-func TestUpdateEnvFrom(t *testing.T) {
-	template, container := getRevisionTemplate()
-	container.EnvFrom = append(container.EnvFrom,
-		corev1.EnvFromSource{
-			ConfigMapRef: &corev1.ConfigMapEnvSource{
-				LocalObjectReference: corev1.LocalObjectReference{
-					Name: "config-map-existing-name",
-				}}},
-		corev1.EnvFromSource{
-			SecretRef: &corev1.SecretEnvSource{
-				LocalObjectReference: corev1.LocalObjectReference{
-					Name: "secret-existing-name",
-				}}},
-	)
-	UpdateEnvFrom(template,
-		[]string{"config-map:config-map-new-name-1", "secret:secret-new-name-1"},
-		[]string{"config-map:config-map-existing-name", "secret:secret-existing-name"})
-	assert.Equal(t, len(container.EnvFrom), 2)
-	assert.Equal(t, container.EnvFrom[0].ConfigMapRef.Name, "config-map-new-name-1")
-	assert.Equal(t, container.EnvFrom[1].SecretRef.Name, "secret-new-name-1")
-}
-
-func TestUpdateVolumeMountsAndVolumes(t *testing.T) {
-	template, container := getRevisionTemplate()
-	template.Spec.Volumes = append(template.Spec.Volumes,
-		corev1.Volume{
-			Name: "existing-config-map-volume-name-1",
-			VolumeSource: corev1.VolumeSource{
-				ConfigMap: &corev1.ConfigMapVolumeSource{
-					LocalObjectReference: corev1.LocalObjectReference{
-						Name: "existing-config-map-1",
-					}}}},
-		corev1.Volume{
-			Name: "existing-config-map-volume-name-2",
-			VolumeSource: corev1.VolumeSource{
-				ConfigMap: &corev1.ConfigMapVolumeSource{
-					LocalObjectReference: corev1.LocalObjectReference{
-						Name: "existing-config-map-2",
-					}}}},
-		corev1.Volume{
-			Name: "existing-secret-volume-name-1",
-			VolumeSource: corev1.VolumeSource{
-				Secret: &corev1.SecretVolumeSource{
-					SecretName: "existing-secret-1",
-				}}},
-		corev1.Volume{
-			Name: "existing-secret-volume-name-2",
-			VolumeSource: corev1.VolumeSource{
-				Secret: &corev1.SecretVolumeSource{
-					SecretName: "existing-secret-2",
-				}}})
-
-	container.VolumeMounts = append(container.VolumeMounts,
-		corev1.VolumeMount{
-			Name:      "existing-config-map-volume-name-1",
-			ReadOnly:  true,
-			MountPath: "/existing-config-map-1/mount/path",
-		},
-		corev1.VolumeMount{
-			Name:      "existing-config-map-volume-name-2",
-			ReadOnly:  true,
-			MountPath: "/existing-config-map-2/mount/path",
-		},
-		corev1.VolumeMount{
-			Name:      "existing-secret-volume-name-1",
-			ReadOnly:  true,
-			MountPath: "/existing-secret-1/mount/path",
-		},
-		corev1.VolumeMount{
-			Name:      "existing-secret-volume-name-2",
-			ReadOnly:  true,
-			MountPath: "/existing-secret-2/mount/path",
-		},
-	)
-
-	err := UpdateVolumeMountsAndVolumes(template,
-		util.NewOrderedMapWithKVStrings([][]string{{"/new-config-map/mount/path", "new-config-map-volume-name"}}),
-		[]string{},
-		util.NewOrderedMapWithKVStrings([][]string{{"new-config-map-volume-name", "config-map:new-config-map"}}),
-		[]string{})
-	assert.NilError(t, err)
-
-	err = UpdateVolumeMountsAndVolumes(template,
-		util.NewOrderedMapWithKVStrings([][]string{{"/updated-config-map/mount/path", "existing-config-map-volume-name-2"}}),
-		[]string{},
-		util.NewOrderedMapWithKVStrings([][]string{{"existing-config-map-volume-name-2", "config-map:updated-config-map"}}),
-		[]string{})
-	assert.NilError(t, err)
-
-	err = UpdateVolumeMountsAndVolumes(template,
-		util.NewOrderedMapWithKVStrings([][]string{{"/new-secret/mount/path", "new-secret-volume-name"}}),
-		[]string{},
-		util.NewOrderedMapWithKVStrings([][]string{{"new-secret-volume-name", "secret:new-secret"}}),
-		[]string{})
-	assert.NilError(t, err)
-
-	err = UpdateVolumeMountsAndVolumes(template,
-		util.NewOrderedMapWithKVStrings([][]string{{"/updated-secret/mount/path", "existing-secret-volume-name-2"}}),
-		[]string{"/existing-config-map-1/mount/path",
-			"/existing-secret-1/mount/path"},
-		util.NewOrderedMapWithKVStrings([][]string{{"existing-secret-volume-name-2", "secret:updated-secret"}}),
-		[]string{"existing-config-map-volume-name-1",
-			"existing-secret-volume-name-1"})
-	assert.NilError(t, err)
-
-	assert.Equal(t, len(template.Spec.Volumes), 4)
-	assert.Equal(t, len(container.VolumeMounts), 6)
-	assert.Equal(t, template.Spec.Volumes[0].Name, "existing-config-map-volume-name-2")
-	assert.Equal(t, template.Spec.Volumes[0].ConfigMap.Name, "updated-config-map")
-	assert.Equal(t, template.Spec.Volumes[1].Name, "existing-secret-volume-name-2")
-	assert.Equal(t, template.Spec.Volumes[1].Secret.SecretName, "updated-secret")
-	assert.Equal(t, template.Spec.Volumes[2].Name, "new-config-map-volume-name")
-	assert.Equal(t, template.Spec.Volumes[2].ConfigMap.Name, "new-config-map")
-	assert.Equal(t, template.Spec.Volumes[3].Name, "new-secret-volume-name")
-	assert.Equal(t, template.Spec.Volumes[3].Secret.SecretName, "new-secret")
-
-	assert.Equal(t, container.VolumeMounts[0].Name, "existing-config-map-volume-name-2")
-	assert.Equal(t, container.VolumeMounts[0].MountPath, "/existing-config-map-2/mount/path")
-	assert.Equal(t, container.VolumeMounts[1].Name, "existing-secret-volume-name-2")
-	assert.Equal(t, container.VolumeMounts[1].MountPath, "/existing-secret-2/mount/path")
-	assert.Equal(t, container.VolumeMounts[2].Name, "new-config-map-volume-name")
-	assert.Equal(t, container.VolumeMounts[2].MountPath, "/new-config-map/mount/path")
-	assert.Equal(t, container.VolumeMounts[3].Name, "existing-config-map-volume-name-2")
-	assert.Equal(t, container.VolumeMounts[3].MountPath, "/updated-config-map/mount/path")
-	assert.Equal(t, container.VolumeMounts[4].Name, "new-secret-volume-name")
-	assert.Equal(t, container.VolumeMounts[4].MountPath, "/new-secret/mount/path")
-	assert.Equal(t, container.VolumeMounts[5].Name, "existing-secret-volume-name-2")
-	assert.Equal(t, container.VolumeMounts[5].MountPath, "/updated-secret/mount/path")
-}
-
-func TestUpdateServiceAccountName(t *testing.T) {
-	template, _ := getRevisionTemplate()
-	template.Spec.ServiceAccountName = ""
-
-	UpdateServiceAccountName(template, "foo-bar")
-	assert.Equal(t, template.Spec.ServiceAccountName, "foo-bar")
-
-	UpdateServiceAccountName(template, "")
-	assert.Equal(t, template.Spec.ServiceAccountName, "")
-}
-
-func TestUpdateImagePullSecrets(t *testing.T) {
-	template, _ := getRevisionTemplate()
-	template.Spec.ImagePullSecrets = nil
-
-	UpdateImagePullSecrets(template, "quay")
-	assert.Equal(t, template.Spec.ImagePullSecrets[0].Name, "quay")
-
-	UpdateImagePullSecrets(template, " ")
-	assert.Check(t, template.Spec.ImagePullSecrets == nil)
 }
 
 func TestUpdateRevisionTemplateAnnotationsNew(t *testing.T) {
@@ -679,51 +380,6 @@ func TestUpdateAnnotationsRemoveExisting(t *testing.T) {
 
 	actual := service.ObjectMeta.Annotations
 	assert.DeepEqual(t, expected, actual)
-}
-
-func TestGenerateVolumeName(t *testing.T) {
-	actual := []string{
-		"Ab12~`!@#$%^&*()-=_+[]{}|/\\<>,./?:;\"'xZ",
-		"/Ab12~`!@#$%^&*()-=_+[]{}|/\\<>,./?:;\"'xZ/",
-		"",
-		"/",
-		"/path.mypath/",
-		"/.path.mypath",
-	}
-
-	expected := []string{
-		"ab12---------------------------------xz",
-		"ab12---------------------------------xz-",
-		"k-",
-		"k-",
-		"path-mypath-",
-		"k--path-mypath",
-	}
-
-	for i := range actual {
-		actualName := GenerateVolumeName(actual[i])
-		expectedName := appendCheckSum(expected[i], actual[i])
-		assert.Equal(t, actualName, expectedName)
-	}
-
-	// 63 char limit case, no need to append the checksum in expected string
-	expName_63 := "k---ab12---------------------------------xz-ab12--------------n"
-	assert.Equal(t, len(expName_63), 63)
-	assert.Equal(t, GenerateVolumeName("/./Ab12~`!@#$%^&*()-=_+[]{}|/\\<>,./?:;\"'xZ/Ab12~`!@#$%^&*()-=_+[]{}|/\\<>,./?:;\"'xZ/"), expName_63)
-}
-
-func TestUpdateUser(t *testing.T) {
-	template, _ := getRevisionTemplate()
-	err := UpdateUser(template, int64(1001))
-	assert.NilError(t, err)
-
-	checkUserUpdate(t, template, ptr.Int64(int64(1001)))
-
-	template.Spec.Containers[0].SecurityContext.RunAsUser = ptr.Int64(int64(1002))
-	err = UpdateUser(template, int64(1002))
-	assert.NilError(t, err)
-
-	checkUserUpdate(t, template, ptr.Int64(int64(1002)))
 }
 
 //

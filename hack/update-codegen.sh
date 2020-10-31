@@ -30,3 +30,6 @@ bash "${CODEGEN_PKG}"/generate-groups.sh "deepcopy" \
   client:v1alpha1 \
   --output-base "$(dirname "${BASH_SOURCE[0]}")/../../.." \
   --go-header-file "${SCRIPT_ROOT}"/hack/boilerplate.go.txt
+
+# Make sure our dependencies are up-to-date
+${SCRIPT_ROOT}/hack/update-deps.sh

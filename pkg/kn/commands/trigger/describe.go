@@ -16,13 +16,12 @@ package trigger
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/spf13/cobra"
 
 	v1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
-	duckv1 "knative.dev/pkg/apis/duck/v1"
 
+	"knative.dev/client/lib/printing"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/printers"
 )
@@ -74,7 +73,7 @@ func NewTriggerDescribeCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			// Revisions summary info
-			writeSink(dw, &trigger.Spec.Subscriber)
+			printing.DescribeSink(dw, "Sink", trigger.Namespace, &trigger.Spec.Subscriber)
 			dw.WriteLine()
 			if err := dw.Flush(); err != nil {
 				return err
@@ -94,20 +93,6 @@ func NewTriggerDescribeCommand(p *commands.KnParams) *cobra.Command {
 	flags.BoolP("verbose", "v", false, "More output.")
 
 	return triggerDescribe
-}
-
-func writeSink(dw printers.PrefixWriter, sink *duckv1.Destination) {
-	subWriter := dw.WriteAttribute("Sink", "")
-	ref := sink.Ref
-	if ref != nil {
-		subWriter.WriteAttribute("Name", sink.Ref.Name)
-		subWriter.WriteAttribute("Namespace", sink.Ref.Namespace)
-		subWriter.WriteAttribute("Resource", fmt.Sprintf("%s (%s)", sink.Ref.Kind, sink.Ref.APIVersion))
-	}
-	uri := sink.URI
-	if uri != nil {
-		subWriter.WriteAttribute("URI", uri.String())
-	}
 }
 
 func writeTrigger(dw printers.PrefixWriter, trigger *v1beta1.Trigger, printDetails bool) {

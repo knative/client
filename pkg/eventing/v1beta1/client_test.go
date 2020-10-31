@@ -178,7 +178,7 @@ func TestTriggerBuilder(t *testing.T) {
 		b.InjectBroker(true)
 		expected := &metav1.ObjectMeta{
 			Annotations: map[string]string{
-				v1beta1.DeprecatedInjectionAnnotation: "enabled",
+				v1beta1.InjectionAnnotation: "enabled",
 			},
 		}
 		assert.DeepEqual(t, expected.Annotations, b.Build().ObjectMeta.Annotations)
