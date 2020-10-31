@@ -97,11 +97,11 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 			libtest.WithTrafficSpec([]string{"foo-rev-1", "latest"}, []int{50, 50}, []string{"", ""}),
 		),
 		expectedSvcList: libtest.BuildServiceListWithOptions(
-			libtest.WithServices(libtest.BuildServiceWithOptions("foo", servingtest.WithConfigSpec(buildConfiguration()),
+			libtest.WithService(libtest.BuildServiceWithOptions("foo", servingtest.WithConfigSpec(buildConfiguration()),
 				libtest.WithRevisionAnnotations(map[string]string{"client.knative.dev/user-image": "busybox:v1"}),
 				servingtest.WithBYORevisionName("foo-rev-1"),
 			)),
-			libtest.WithServices(libtest.BuildServiceWithOptions("foo", servingtest.WithConfigSpec(buildConfiguration()),
+			libtest.WithService(libtest.BuildServiceWithOptions("foo", servingtest.WithConfigSpec(buildConfiguration()),
 				libtest.WithRevisionAnnotations(map[string]string{"client.knative.dev/user-image": "busybox:v2"}),
 				libtest.WithTrafficSpec([]string{"foo-rev-1", "latest"}, []int{50, 50}, []string{"", ""}),
 			)),
@@ -133,7 +133,7 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 			libtest.WithTrafficSpec([]string{"latest"}, []int{100}, []string{""}),
 		),
 		expectedSvcList: libtest.BuildServiceListWithOptions(
-			libtest.WithServices(libtest.BuildServiceWithOptions(
+			libtest.WithService(libtest.BuildServiceWithOptions(
 				"foo", servingtest.WithConfigSpec(buildConfiguration()),
 				libtest.WithTrafficSpec([]string{"latest"}, []int{100}, []string{""}),
 			)),
@@ -158,21 +158,21 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 			libtest.WithTrafficSpec([]string{"foo-rev-1", "foo-rev-2", "foo-rev-3"}, []int{25, 50, 25}, []string{"", "", ""}),
 		),
 		expectedSvcList: libtest.BuildServiceListWithOptions(
-			libtest.WithServices(
+			libtest.WithService(
 				libtest.BuildServiceWithOptions(
 					"foo", servingtest.WithConfigSpec(buildConfiguration()),
 					servingtest.WithEnv(v1.EnvVar{Name: "a", Value: "cat"}),
 					servingtest.WithBYORevisionName("foo-rev-1"),
 				),
 			),
-			libtest.WithServices(
+			libtest.WithService(
 				libtest.BuildServiceWithOptions(
 					"foo", servingtest.WithConfigSpec(buildConfiguration()),
 					servingtest.WithEnv(v1.EnvVar{Name: "a", Value: "dog"}),
 					servingtest.WithBYORevisionName("foo-rev-2"),
 				),
 			),
-			libtest.WithServices(
+			libtest.WithService(
 				libtest.BuildServiceWithOptions(
 					"foo", servingtest.WithConfigSpec(buildConfiguration()),
 					servingtest.WithEnv(v1.EnvVar{Name: "a", Value: "mouse"}),

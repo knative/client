@@ -178,8 +178,8 @@ func BuildServiceListWithOptions(options ...ExpectedServiceListOption) *servingv
 	return list
 }
 
-// WithServices appends the given service to ServiceList
-func WithServices(svc *servingv1.Service) ExpectedServiceListOption {
+// WithService appends the given service to ServiceList
+func WithService(svc *servingv1.Service) ExpectedServiceListOption {
 	return func(list *servingv1.ServiceList) {
 		list.Items = append(list.Items, *svc)
 	}

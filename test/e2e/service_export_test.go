@@ -72,7 +72,7 @@ func TestServiceExport(t *testing.T) {
 
 	t.Log("export service-revision2 with kubernetes-resources")
 	serviceExportWithServiceList(r, "hello", test.BuildServiceListWithOptions(
-		test.WithServices(test.BuildServiceWithOptions("hello",
+		test.WithService(test.BuildServiceWithOptions("hello",
 			servingtest.WithConfigSpec(test.BuildConfigurationSpec()),
 			servingtest.WithBYORevisionName("hello-rev2"),
 			test.WithTrafficSpec([]string{"latest"}, []int{100}, []string{""}),
@@ -93,7 +93,7 @@ func TestServiceExport(t *testing.T) {
 
 	t.Log("export service-revision2 after tagging kubernetes-resources")
 	serviceExportWithServiceList(r, "hello", test.BuildServiceListWithOptions(
-		test.WithServices(test.BuildServiceWithOptions("hello",
+		test.WithService(test.BuildServiceWithOptions("hello",
 			servingtest.WithConfigSpec(test.BuildConfigurationSpec()),
 			servingtest.WithBYORevisionName("hello-rev1"),
 			test.WithRevisionAnnotations(map[string]string{
@@ -101,7 +101,7 @@ func TestServiceExport(t *testing.T) {
 				"serving.knative.dev/routes":    "hello",
 			}),
 		)),
-		test.WithServices(test.BuildServiceWithOptions("hello",
+		test.WithService(test.BuildServiceWithOptions("hello",
 			servingtest.WithConfigSpec(test.BuildConfigurationSpec()),
 			servingtest.WithBYORevisionName("hello-rev2"),
 			test.WithTrafficSpec([]string{"latest", "hello-rev1"}, []int{98, 2}, []string{"", "candidate"}),
@@ -133,7 +133,7 @@ func TestServiceExport(t *testing.T) {
 
 	t.Log("export service-revision3 with kubernetes-resources")
 	serviceExportWithServiceList(r, "hello", test.BuildServiceListWithOptions(
-		test.WithServices(test.BuildServiceWithOptions("hello",
+		test.WithService(test.BuildServiceWithOptions("hello",
 			servingtest.WithConfigSpec(test.BuildConfigurationSpec()),
 			test.WithRevisionAnnotations(map[string]string{
 				"client.knative.dev/user-image": pkgtest.ImagePath("helloworld"),
@@ -142,7 +142,7 @@ func TestServiceExport(t *testing.T) {
 			servingtest.WithBYORevisionName("hello-rev1"),
 		),
 		),
-		test.WithServices(test.BuildServiceWithOptions("hello",
+		test.WithService(test.BuildServiceWithOptions("hello",
 			servingtest.WithConfigSpec(test.BuildConfigurationSpec()),
 			servingtest.WithBYORevisionName("hello-rev2"),
 			test.WithRevisionAnnotations(map[string]string{
@@ -151,7 +151,7 @@ func TestServiceExport(t *testing.T) {
 			servingtest.WithEnv(corev1.EnvVar{Name: "a", Value: "mouse"}),
 		),
 		),
-		test.WithServices(test.BuildServiceWithOptions("hello",
+		test.WithService(test.BuildServiceWithOptions("hello",
 			servingtest.WithConfigSpec(test.BuildConfigurationSpec()),
 			servingtest.WithBYORevisionName("hello-rev3"),
 			test.WithTrafficSpec([]string{"hello-rev1", "hello-rev2", "hello-rev3"}, []int{30, 30, 40}, []string{"", "", ""}),
@@ -191,7 +191,7 @@ func TestServiceExport(t *testing.T) {
 
 	t.Log("export kubernetes-resources - all traffic to revision 2")
 	serviceExportWithServiceList(r, "hello", test.BuildServiceListWithOptions(
-		test.WithServices(test.BuildServiceWithOptions("hello",
+		test.WithService(test.BuildServiceWithOptions("hello",
 			servingtest.WithConfigSpec(test.BuildConfigurationSpec()),
 			servingtest.WithBYORevisionName("hello-rev2"),
 			test.WithRevisionAnnotations(map[string]string{
@@ -200,7 +200,7 @@ func TestServiceExport(t *testing.T) {
 			servingtest.WithEnv(corev1.EnvVar{Name: "a", Value: "mouse"}),
 		),
 		),
-		test.WithServices(test.BuildServiceWithOptions("hello",
+		test.WithService(test.BuildServiceWithOptions("hello",
 			servingtest.WithConfigSpec(test.BuildConfigurationSpec()),
 			test.WithTrafficSpec([]string{"hello-rev2"}, []int{100}, []string{""}),
 			servingtest.WithBYORevisionName("hello-rev3"),
