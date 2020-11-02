@@ -145,7 +145,7 @@ func createService(client clientservingv1.KnServingClient, service *servingv1.Se
 		return err
 	}
 
-	return waitIfRequested(client, service, waitFlags, "Creating", "created", out)
+	return waitIfRequested(client, service.Name, waitFlags, "Creating", "created", out)
 }
 
 func replaceService(client clientservingv1.KnServingClient, service *servingv1.Service, waitFlags commands.WaitFlags, out io.Writer) error {
@@ -153,23 +153,23 @@ func replaceService(client clientservingv1.KnServingClient, service *servingv1.S
 	if err != nil {
 		return err
 	}
-	return waitIfRequested(client, service, waitFlags, "Replacing", "replaced", out)
+	return waitIfRequested(client, service.Name, waitFlags, "Replacing", "replaced", out)
 }
 
-func waitIfRequested(client clientservingv1.KnServingClient, service *servingv1.Service, waitFlags commands.WaitFlags, verbDoing string, verbDone string, out io.Writer) error {
+func waitIfRequested(client clientservingv1.KnServingClient, serviceName string, waitFlags commands.WaitFlags, verbDoing string, verbDone string, out io.Writer) error {
 	//TODO: deprecated condition should be removed with --async flag
 	if waitFlags.Async {
 		fmt.Fprintf(out, "\nWARNING: flag --async is deprecated and going to be removed in future release, please use --no-wait instead.\n\n")
-		fmt.Fprintf(out, "Service '%s' %s in namespace '%s'.\n", service.Name, verbDone, client.Namespace())
+		fmt.Fprintf(out, "Service '%s' %s in namespace '%s'.\n", serviceName, verbDone, client.Namespace())
 		return nil
 	}
 	if !waitFlags.Wait {
-		fmt.Fprintf(out, "Service '%s' %s in namespace '%s'.\n", service.Name, verbDone, client.Namespace())
+		fmt.Fprintf(out, "Service '%s' %s in namespace '%s'.\n", serviceName, verbDone, client.Namespace())
 		return nil
 	}
 
-	fmt.Fprintf(out, "%s service '%s' in namespace '%s':\n", verbDoing, service.Name, client.Namespace())
-	return waitForServiceToGetReady(client, service.Name, waitFlags.TimeoutInSeconds, verbDone, out)
+	fmt.Fprintf(out, "%s service '%s' in namespace '%s':\n", verbDoing, serviceName, client.Namespace())
+	return waitForServiceToGetReady(client, serviceName, waitFlags.TimeoutInSeconds, verbDone, out)
 }
 
 func prepareAndUpdateService(client clientservingv1.KnServingClient, service *servingv1.Service) error {
@@ -238,6 +238,10 @@ func serviceExists(client clientservingv1.KnServingClient, name string) (bool, e
 // Create service struct from provided options
 func constructService(cmd *cobra.Command, editFlags ConfigurationEditFlags, name string, namespace string) (*servingv1.Service,
 	error) {
+
+	if name == "" || namespace == "" {
+		return nil, errors.New("internal: no name or namespace provided when constructing a service")
+	}
 
 	service := servingv1.Service{
 		ObjectMeta: metav1.ObjectMeta{

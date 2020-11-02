@@ -27,6 +27,7 @@ kn service
 ### SEE ALSO
 
 * [kn](kn.md)	 - kn manages Knative Serving and Eventing resources
+* [kn service apply](kn_service_apply.md)	 - Apply a service declaration
 * [kn service create](kn_service_create.md)	 - Create a service
 * [kn service delete](kn_service_delete.md)	 - Delete services
 * [kn service describe](kn_service_describe.md)	 - Show details of a service

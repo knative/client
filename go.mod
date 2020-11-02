@@ -3,6 +3,7 @@ module knative.dev/client
 go 1.14
 
 require (
+	github.com/google/go-cmp v0.5.2
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.0.1-0.20200715031239-b95db644ed1c
@@ -27,7 +28,6 @@ require (
 // ----------------------------------------------------------------------------------------------
 replace (
 	k8s.io/api => k8s.io/api v0.18.8
-	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.18.8
 	k8s.io/apimachinery => k8s.io/apimachinery v0.18.8
 	k8s.io/cli-runtime => k8s.io/cli-runtime v0.18.8
 	k8s.io/client-go => k8s.io/client-go v0.18.8

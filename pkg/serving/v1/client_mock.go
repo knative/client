@@ -104,6 +104,16 @@ func (c *MockKnServingClient) UpdateServiceWithRetry(name string, updateFunc Ser
 	return updateServiceWithRetry(c, name, updateFunc, maxRetry)
 }
 
+// Update the given service
+func (sr *ServingRecorder) ApplyService(service interface{}, hasChanged bool, err error) {
+	sr.r.Add("ApplyService", []interface{}{service}, []interface{}{hasChanged, err})
+}
+
+func (c *MockKnServingClient) ApplyService(service *servingv1.Service) (bool, error) {
+	call := c.recorder.r.VerifyCall("ApplyService", service)
+	return call.Result[0].(bool), mock.ErrorOrNil(call.Result[1])
+}
+
 // Delete a service by name
 func (sr *ServingRecorder) DeleteService(name, timeout interface{}, err error) {
 	sr.r.Add("DeleteService", []interface{}{name, timeout}, []interface{}{err})

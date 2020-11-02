@@ -681,8 +681,12 @@ func TestServiceCreateWithAutoScaleServiceAnnotationsError(t *testing.T) {
 
 func getServiceWithUrl(name string, urlName string) *servingv1.Service {
 	service := servingv1.Service{}
+	service.Name = name
+	setUrl(&service, urlName)
+	return &service
+}
+
+func setUrl(service *servingv1.Service, urlName string) {
 	url, _ := apis.ParseURL(urlName)
 	service.Status.URL = url
-	service.Name = name
-	return &service
 }
