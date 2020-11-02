@@ -906,7 +906,14 @@ knative.dev/serving/pkg/autoscaler/config/autoscalerconfig
 knative.dev/serving/pkg/client/clientset/versioned/scheme
 knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1
 knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1/fake
+knative.dev/serving/pkg/gc
 knative.dev/serving/pkg/networking
+knative.dev/serving/pkg/reconciler/route/config
+knative.dev/serving/pkg/reconciler/route/domains
+knative.dev/serving/pkg/reconciler/route/resources/labels
+knative.dev/serving/pkg/reconciler/route/resources/names
+knative.dev/serving/pkg/reconciler/service/resources/names
+knative.dev/serving/pkg/testing/v1
 knative.dev/serving/test/test_images/grpc-ping
 knative.dev/serving/test/test_images/grpc-ping/proto
 # sigs.k8s.io/kustomize v2.0.3+incompatible

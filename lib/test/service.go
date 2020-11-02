@@ -15,17 +15,43 @@
 package test
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 
 	"gotest.tools/assert"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	clientv1alpha1 "knative.dev/client/pkg/apis/client/v1alpha1"
+	"knative.dev/pkg/kmeta"
+	"knative.dev/pkg/ptr"
 	pkgtest "knative.dev/pkg/test"
+	"knative.dev/serving/pkg/apis/config"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
+	servingtest "knative.dev/serving/pkg/testing/v1"
 
 	"knative.dev/client/pkg/util"
 )
+
+// ExpectedServiceListOption enables further configuration of a ServiceList.
+type ExpectedServiceListOption func(*servingv1.ServiceList)
+
+// ExpectedRevisionListOption enables further configuration of a RevisionList.
+type ExpectedRevisionListOption func(*servingv1.RevisionList)
+
+// ExpectedKNExportOption enables further configuration of a Export.
+type ExpectedKNExportOption func(*clientv1alpha1.Export)
+
+var revisionSpec = servingv1.RevisionSpec{
+	PodSpec: corev1.PodSpec{
+		Containers: []corev1.Container{{
+			Image: pkgtest.ImagePath("helloworld"),
+		}},
+		EnableServiceLinks: ptr.Bool(false),
+	},
+	TimeoutSeconds: ptr.Int64(config.DefaultRevisionTimeoutSeconds),
+}
 
 // ServiceCreate verifies given service creation in sync mode and also verifies output
 func ServiceCreate(r *KnRunResultCollector, serviceName string) {
@@ -96,6 +122,7 @@ func ServiceDescribeWithJSONPath(r *KnRunResultCollector, serviceName, jsonpath 
 	return out.Stdout
 }
 
+// ValidateServiceResources validates cpu and mem resources
 func ValidateServiceResources(r *KnRunResultCollector, serviceName string, requestsMemory, requestsCPU, limitsMemory, limitsCPU string) {
 	var err error
 	rlist := corev1.ResourceList{}
@@ -123,8 +150,8 @@ func ValidateServiceResources(r *KnRunResultCollector, serviceName string, reque
 	assert.DeepEqual(r.T(), serviceLimitsResourceList, llist)
 }
 
-//GetServiceFromKNServiceDescribe runs the kn service describe command
-//decodes it into a ksvc and returns it.
+// GetServiceFromKNServiceDescribe runs the kn service describe command
+// decodes it into a ksvc and returns it.
 func GetServiceFromKNServiceDescribe(r *KnRunResultCollector, serviceName string) servingv1.Service {
 	out := r.KnTest().Kn().Run("service", "describe", serviceName, "-ojson")
 	data := json.NewDecoder(strings.NewReader(out.Stdout))
@@ -133,4 +160,163 @@ func GetServiceFromKNServiceDescribe(r *KnRunResultCollector, serviceName string
 	err := data.Decode(&service)
 	assert.NilError(r.T(), err)
 	return service
+}
+
+// BuildServiceListWithOptions returns ServiceList with options provided
+func BuildServiceListWithOptions(options ...ExpectedServiceListOption) *servingv1.ServiceList {
+	list := &servingv1.ServiceList{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "List",
+		},
+	}
+
+	for _, fn := range options {
+		fn(list)
+	}
+
+	return list
+}
+
+// WithService appends the given service to ServiceList
+func WithService(svc *servingv1.Service) ExpectedServiceListOption {
+	return func(list *servingv1.ServiceList) {
+		list.Items = append(list.Items, *svc)
+	}
+}
+
+// BuildRevisionListWithOptions returns RevisionList with options provided
+func BuildRevisionListWithOptions(options ...ExpectedRevisionListOption) *servingv1.RevisionList {
+	list := &servingv1.RevisionList{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "List",
+		},
+	}
+
+	for _, fn := range options {
+		fn(list)
+	}
+
+	return list
+}
+
+// BuildKNExportWithOptions returns Export object with the options provided
+func BuildKNExportWithOptions(options ...ExpectedKNExportOption) *clientv1alpha1.Export {
+	knExport := &clientv1alpha1.Export{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "client.knative.dev/v1alpha1",
+			Kind:       "Export",
+		},
+	}
+
+	for _, fn := range options {
+		fn(knExport)
+	}
+
+	return knExport
+}
+
+// BuildConfigurationSpec builds servingv1.ConfigurationSpec with the options provided
+func BuildConfigurationSpec(co ...servingtest.ConfigOption) *servingv1.ConfigurationSpec {
+	c := &servingv1.Configuration{
+		Spec: servingv1.ConfigurationSpec{
+			Template: servingv1.RevisionTemplateSpec{
+				Spec: *revisionSpec.DeepCopy(),
+			},
+		},
+	}
+	for _, opt := range co {
+		opt(c)
+	}
+	c.SetDefaults(context.Background())
+	return &c.Spec
+}
+
+// BuildServiceWithOptions returns ksvc with options provided
+func BuildServiceWithOptions(name string, so ...servingtest.ServiceOption) *servingv1.Service {
+	svc := servingtest.ServiceWithoutNamespace(name, so...)
+	svc.TypeMeta = metav1.TypeMeta{
+		Kind:       "Service",
+		APIVersion: "serving.knative.dev/v1",
+	}
+	svc.Spec.Template.Spec.Containers[0].Resources = corev1.ResourceRequirements{}
+	return svc
+}
+
+// WithTrafficSpec adds route to ksvc
+func WithTrafficSpec(revisions []string, percentages []int, tags []string) servingtest.ServiceOption {
+	return func(svc *servingv1.Service) {
+		var trafficTargets []servingv1.TrafficTarget
+		for i, rev := range revisions {
+			trafficTargets = append(trafficTargets, servingv1.TrafficTarget{
+				Percent: ptr.Int64(int64(percentages[i])),
+			})
+			if tags[i] != "" {
+				trafficTargets[i].Tag = tags[i]
+			}
+			if rev == "latest" {
+				trafficTargets[i].LatestRevision = ptr.Bool(true)
+			} else {
+				trafficTargets[i].RevisionName = rev
+				trafficTargets[i].LatestRevision = ptr.Bool(false)
+			}
+		}
+		svc.Spec.RouteSpec = servingv1.RouteSpec{
+			Traffic: trafficTargets,
+		}
+	}
+}
+
+// BuildRevision returns Revision object with the options provided
+func BuildRevision(name string, options ...servingtest.RevisionOption) *servingv1.Revision {
+	rev := servingtest.Revision("", name, options...)
+	rev.TypeMeta = metav1.TypeMeta{
+		Kind:       "Revision",
+		APIVersion: "serving.knative.dev/v1",
+	}
+	rev.Spec.PodSpec.Containers[0].Name = config.DefaultUserContainerName
+	rev.Spec.PodSpec.EnableServiceLinks = ptr.Bool(false)
+	rev.ObjectMeta.SelfLink = ""
+	rev.ObjectMeta.Namespace = ""
+	rev.ObjectMeta.UID = ""
+	rev.ObjectMeta.Generation = int64(0)
+	rev.Spec.PodSpec.Containers[0].Resources = corev1.ResourceRequirements{}
+	return rev
+}
+
+// WithRevision appends Revision object to RevisionList
+func WithRevision(rev servingv1.Revision) ExpectedRevisionListOption {
+	return func(list *servingv1.RevisionList) {
+		list.Items = append(list.Items, rev)
+	}
+}
+
+// WithKNRevision appends Revision object RevisionList to Kn Export
+func WithKNRevision(rev servingv1.Revision) ExpectedKNExportOption {
+	return func(export *clientv1alpha1.Export) {
+		export.Spec.Revisions = append(export.Spec.Revisions, rev)
+	}
+}
+
+// WithRevisionEnv adds env variable to Revision object
+func WithRevisionEnv(evs ...corev1.EnvVar) servingtest.RevisionOption {
+	return func(s *servingv1.Revision) {
+		s.Spec.PodSpec.Containers[0].Env = evs
+	}
+}
+
+// WithRevisionImage adds revision image to Revision object
+func WithRevisionImage(image string) servingtest.RevisionOption {
+	return func(s *servingv1.Revision) {
+		s.Spec.PodSpec.Containers[0].Image = image
+	}
+}
+
+// WithRevisionAnnotations adds annotation to revision spec in ksvc
+func WithRevisionAnnotations(annotations map[string]string) servingtest.ServiceOption {
+	return func(service *servingv1.Service) {
+		service.Spec.Template.ObjectMeta.Annotations = kmeta.UnionMaps(
+			service.Spec.Template.ObjectMeta.Annotations, annotations)
+	}
 }
