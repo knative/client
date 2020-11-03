@@ -19,8 +19,11 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
 
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"knative.dev/pkg/kmeta"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -103,9 +106,20 @@ func importWithOwnerRef(client clientservingv1.KnServingClient, filename string,
 	}
 
 	// Retrieve current Configuration to be use in OwnerReference
-	currentConf, err := client.GetConfiguration(serviceName)
-	if err != nil {
-		return err
+	retries := 0
+	var currentConf *servingv1.Configuration
+	for {
+		currentConf, err = client.GetConfiguration(serviceName)
+		if err != nil {
+			if apierrors.IsNotFound(err) && retries < 5 {
+				retries++
+				time.Sleep(time.Second)
+				continue
+			} else {
+				return err
+			}
+		}
+		break
 	}
 
 	// Create revision with current Configuration's OwnerReference
@@ -120,7 +134,7 @@ func importWithOwnerRef(client clientservingv1.KnServingClient, filename string,
 		}
 	}
 
-	err = waitIfRequested(client, &export.Spec.Service, waitFlags, "Importing", "imported", out)
+	err = waitIfRequested(client, serviceName, waitFlags, "Importing", "imported", out)
 	if err != nil {
 		return err
 	}
