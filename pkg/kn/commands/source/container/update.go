@@ -24,26 +24,25 @@ import (
 	"knative.dev/client/pkg/kn/commands/flags"
 	knflags "knative.dev/client/pkg/kn/flags"
 
-	corev1 "k8s.io/api/core/v1"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/sources/v1alpha2"
 )
 
-// NewContainerCreateCommand for creating source
-func NewContainerCreateCommand(p *commands.KnParams) *cobra.Command {
+// NewContainerUpdateCommand for managing source update
+func NewContainerUpdateCommand(p *commands.KnParams) *cobra.Command {
 	var podFlags knflags.PodSpecFlags
 	var sinkFlags flags.SinkFlags
 
 	cmd := &cobra.Command{
-		Use:   "create NAME --image IMAGE --sink SINK",
-		Short: "Create a container source",
+		Use:   "update NAME --image IMAGE",
+		Short: "Update a container source",
 		Example: `
-  # Create a ContainerSource 'src' to start a container with image 'docker.io/sample/image' and send messages to service 'mysvc'
-  kn source container create src --image docker.io/sample/image --sink ksvc:mysvc`,
+  # Update a ContainerSource 'src' with a different image uri 'docker.io/sample/newimage'
+  kn source container update src --image docker.io/sample/newimage`,
 
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
-				return errors.New("requires the name of the source to create as single argument")
+				return errors.New("requires the name of the source as single argument")
 			}
 			name := args[0]
 
@@ -60,31 +59,35 @@ func NewContainerCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			objectRef, err := sinkFlags.ResolveSink(dynamicClient, namespace)
+			source, err := srcClient.GetContainerSource(name)
+			if err != nil {
+				return err
+			}
+			if source.GetDeletionTimestamp() != nil {
+				return fmt.Errorf("can't update container source %s because it has been marked for deletion", name)
+			}
+
+			b := v1alpha2.NewContainerSourceBuilderFromExisting(source)
+			podSpec := b.Build().Spec.Template.Spec
+			err = podFlags.ResolvePodSpec(&podSpec, cmd.Flags())
 			if err != nil {
 				return fmt.Errorf(
 					"cannot create ContainerSource '%s' in namespace '%s' "+
 						"because: %s", name, namespace, err)
 			}
+			b.PodSpec(podSpec)
 
-			podSpec := &corev1.PodSpec{Containers: []corev1.Container{{}}}
-			err = podFlags.ResolvePodSpec(podSpec, cmd.Flags())
-			if err != nil {
-				return fmt.Errorf(
-					"cannot create ContainerSource '%s' in namespace '%s' "+
-						"because: %s", name, namespace, err)
+			if cmd.Flags().Changed("sink") {
+				objectRef, err := sinkFlags.ResolveSink(dynamicClient, namespace)
+				if err != nil {
+					return err
+				}
+				b.Sink(*objectRef)
 			}
 
-			b := v1alpha2.NewContainerSourceBuilder(name).Sink(*objectRef).PodSpec(*podSpec)
-			err = srcClient.CreateContainerSource(b.Build())
-			if err != nil {
-				return fmt.Errorf(
-					"cannot create ContainerSource '%s' in namespace '%s' "+
-						"because: %s", name, namespace, err)
-			}
-
+			err = srcClient.UpdateContainerSource(b.Build())
 			if err == nil {
-				fmt.Fprintf(cmd.OutOrStdout(), "ContainerSource '%s' created in namespace '%s'.\n", args[0], namespace)
+				fmt.Fprintf(cmd.OutOrStdout(), "Container source '%s' updated in namespace '%s'.\n", args[0], namespace)
 			}
 
 			return err
@@ -93,7 +96,5 @@ func NewContainerCreateCommand(p *commands.KnParams) *cobra.Command {
 	commands.AddNamespaceFlags(cmd.Flags(), false)
 	podFlags.AddFlags(cmd.Flags())
 	sinkFlags.Add(cmd)
-	cmd.MarkFlagRequired("image")
-	cmd.MarkFlagRequired("sink")
 	return cmd
 }

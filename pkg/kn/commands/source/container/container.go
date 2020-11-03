@@ -24,14 +24,16 @@ import (
 	clientv1alpha2 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha2"
 )
 
-// NewContainerSourceCommand for managing ApiServer source
-func NewContainerSourceCommand(p *commands.KnParams) *cobra.Command {
+// NewContainerCommand for managing Container source
+func NewContainerCommand(p *commands.KnParams) *cobra.Command {
 	containerSourceCmd := &cobra.Command{
-		Use:   "container COMMAND",
+		Use:   "container create|delete|update|list",
 		Short: "Manage container sources",
 	}
 	containerSourceCmd.AddCommand(NewContainerCreateCommand(p))
 	containerSourceCmd.AddCommand(NewContainerDeleteCommand(p))
+	containerSourceCmd.AddCommand(NewContainerUpdateCommand(p))
+	containerSourceCmd.AddCommand(NewContainerListCommand(p))
 	return containerSourceCmd
 }
 

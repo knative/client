@@ -65,7 +65,7 @@ func executeContainerSourceCommand(containerSourceClient clientv1alpha2.KnContai
 		return dynamicClient, nil
 	}
 
-	cmd := NewContainerSourceCommand(knParams)
+	cmd := NewContainerCommand(knParams)
 	cmd.SetArgs(args)
 	cmd.SetOutput(output)
 

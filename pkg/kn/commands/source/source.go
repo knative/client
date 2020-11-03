@@ -20,6 +20,7 @@ import (
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/source/apiserver"
 	"knative.dev/client/pkg/kn/commands/source/binding"
+	"knative.dev/client/pkg/kn/commands/source/container"
 	"knative.dev/client/pkg/kn/commands/source/ping"
 )
 
@@ -34,5 +35,6 @@ func NewSourceCommand(p *commands.KnParams) *cobra.Command {
 	sourceCmd.AddCommand(apiserver.NewAPIServerCommand(p))
 	sourceCmd.AddCommand(ping.NewPingCommand(p))
 	sourceCmd.AddCommand(binding.NewBindingCommand(p))
+	sourceCmd.AddCommand(container.NewContainerCommand(p))
 	return sourceCmd
 }
