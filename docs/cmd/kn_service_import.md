@@ -14,10 +14,10 @@ kn service import FILENAME
 
 ```
 
- # Import a service in YAML format
+ # Import a service from YAML file
  kn service import /path/to/file.yaml
 
- # Import a service in JSON format
+ # Import a service from JSON file
  kn service import /path/to/file.json
 ```
 

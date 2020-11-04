@@ -19,19 +19,19 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"time"
-
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"knative.dev/pkg/kmeta"
-	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	"github.com/spf13/cobra"
+
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/yaml"
-	"knative.dev/client/pkg/kn/commands"
-	clientservingv1 "knative.dev/client/pkg/serving/v1"
+	"k8s.io/client-go/util/retry"
 
 	clientv1alpha1 "knative.dev/client/pkg/apis/client/v1alpha1"
+	"knative.dev/client/pkg/kn/commands"
+	clientservingv1 "knative.dev/client/pkg/serving/v1"
+	"knative.dev/pkg/kmeta"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
 // NewServiceImportCommand returns a new command for importing a service.
@@ -42,10 +42,10 @@ func NewServiceImportCommand(p *commands.KnParams) *cobra.Command {
 		Use:   "import FILENAME",
 		Short: "Import a service and its revisions",
 		Example: `
- # Import a service in YAML format
+ # Import a service from YAML file
  kn service import /path/to/file.yaml
 
- # Import a service in JSON format
+ # Import a service from JSON file
  kn service import /path/to/file.json`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
@@ -85,7 +85,7 @@ func importWithOwnerRef(client clientservingv1.KnServingClient, filename string,
 		return err
 	}
 	if export.Spec.Service.Name == "" {
-		return fmt.Errorf("provided import doesn't content service name, please note that only kn' custom Export format is supported")
+		return fmt.Errorf("provided import file doesn't contain service name, please note that only kn' custom Export format is supported")
 	}
 
 	serviceName := export.Spec.Service.Name
@@ -106,29 +106,18 @@ func importWithOwnerRef(client clientservingv1.KnServingClient, filename string,
 	}
 
 	// Retrieve current Configuration to be use in OwnerReference
-	retries := 0
-	var currentConf *servingv1.Configuration
-	for {
-		currentConf, err = client.GetConfiguration(serviceName)
-		if err != nil {
-			if apierrors.IsNotFound(err) && retries < 5 {
-				retries++
-				time.Sleep(time.Second)
-				continue
-			} else {
-				return err
-			}
-		}
-		break
+	currentConf, err := getConfigurationWithRetry(client, serviceName)
+	if err != nil {
+		return err
 	}
 
 	// Create revision with current Configuration's OwnerReference
 	if len(export.Spec.Revisions) > 0 {
 		for _, r := range export.Spec.Revisions {
-			tmp := r
+			tmp := r.DeepCopy()
 			// OwnerRef ensures that Revisions are recognized by controller
 			tmp.OwnerReferences = []metav1.OwnerReference{*kmeta.NewControllerRef(currentConf)}
-			if err = client.CreateRevision(&tmp); err != nil {
+			if err = client.CreateRevision(tmp); err != nil {
 				return err
 			}
 		}
@@ -138,6 +127,17 @@ func importWithOwnerRef(client clientservingv1.KnServingClient, filename string,
 	if err != nil {
 		return err
 	}
+	return err
+}
 
-	return nil
+func getConfigurationWithRetry(client clientservingv1.KnServingClient, name string) (*servingv1.Configuration, error) {
+	var conf *servingv1.Configuration
+	var err error
+	err = retry.OnError(retry.DefaultBackoff, func(err error) bool {
+		return apierrors.IsNotFound(err)
+	}, func() error {
+		conf, err = client.GetConfiguration(name)
+		return err
+	})
+	return conf, err
 }
