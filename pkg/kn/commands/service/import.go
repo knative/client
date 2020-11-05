@@ -85,7 +85,7 @@ func importWithOwnerRef(client clientservingv1.KnServingClient, filename string,
 		return err
 	}
 	if export.Spec.Service.Name == "" {
-		return fmt.Errorf("provided import file doesn't contain service name, please note that only kn' custom Export format is supported")
+		return fmt.Errorf("provided import file doesn't contain service name, please note that only kn's custom export format is supported")
 	}
 
 	serviceName := export.Spec.Service.Name
