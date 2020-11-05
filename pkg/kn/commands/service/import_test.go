@@ -37,6 +37,8 @@ func TestServiceImportFilenameError(t *testing.T) {
 
 	_, err := executeServiceCommand(client, "import")
 
+	assert.Assert(t, err != nil)
+	assert.Assert(t, util.ContainsAll(err.Error(), "'kn service import'", "requires", "file", "single", "argument"))
 	assert.Error(t, err, "'kn service import' requires filename of import file as single argument")
 	r.Validate()
 }
@@ -52,7 +54,8 @@ func TestServiceImportExistError(t *testing.T) {
 	r.GetService("foo", nil, nil)
 	_, err = executeServiceCommand(client, "import", file)
 
-	assert.ErrorContains(t, err, "because the service already exists")
+	assert.Assert(t, err != nil)
+	assert.Assert(t, util.ContainsAll(err.Error(), "'foo'", "default", "service", "already", "exists"))
 	r.Validate()
 }
 
@@ -72,7 +75,7 @@ func TestServiceImport(t *testing.T) {
 
 	out, err := executeServiceCommand(client, "import", file)
 	assert.NilError(t, err)
-	assert.Assert(t, util.ContainsAll(out, "Service", "imported", "foo"))
+	assert.Assert(t, util.ContainsAll(out, "Service", "'foo'", "default", "imported"))
 	r.Validate()
 }
 
