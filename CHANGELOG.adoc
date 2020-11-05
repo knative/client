@@ -17,6 +17,10 @@
 |===
 | | Description | PR
 
+| 🎁
+| Add channel sink prefix
+| https://github.com/knative/client/pull/1092[#1092]
+
 | 🐣
 | Uniform multiple writeSink to DescribeSink
 | https://github.com/knative/client/pull/1075[#1075]
