@@ -43,8 +43,9 @@ func (i *SinkFlags) AddWithFlagName(cmd *cobra.Command, fname, short string) {
 		cmd.Flags().StringVarP(&i.sink, fname, short, "", "")
 	}
 	cmd.Flag(fname).Usage = "Addressable sink for events. " +
-		"You can specify a broker, Knative service or URI. " +
+		"You can specify a broker, channel, Knative service or URI. " +
 		"Examples: '" + flag + " broker:nest' for a broker 'nest', " +
+		"'" + flag + " channel:pipe' for a channel 'pipe', " +
 		"'" + flag + " https://event.receiver.uri' for an URI with an 'http://' or 'https://' schema, " +
 		"'" + flag + " ksvc:receiver' or simply '" + flag + " receiver' for a Knative service 'receiver'. " +
 		"If a prefix is not provided, it is considered as a Knative service."
@@ -76,6 +77,11 @@ var sinkMappings = map[string]schema.GroupVersionResource{
 		Resource: "services",
 		Group:    "serving.knative.dev",
 		Version:  "v1",
+	},
+	"channel": {
+		Resource: "channels",
+		Group:    "messaging.knative.dev",
+		Version:  "v1beta1",
 	},
 }
 
