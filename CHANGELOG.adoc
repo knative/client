@@ -45,6 +45,10 @@
 | 🎁
 | Add WithLabel list filter to serving client lib
 | https://github.com/knative/client/pull/1054[#1054]
+
+| 🎁
+| Add `kn service export` command (experimental)
+| https://github.com/knative/client/pull/1065[#1065]
 |===
 
 ## v0.18.1 (2020-10-13)
