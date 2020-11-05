@@ -40,7 +40,7 @@ func NewServiceImportCommand(p *commands.KnParams) *cobra.Command {
 
 	command := &cobra.Command{
 		Use:   "import FILENAME",
-		Short: "Import a service and its revisions",
+		Short: "Import a service and its revisions (experimental)",
 		Example: `
  # Import a service from YAML file
  kn service import /path/to/file.yaml

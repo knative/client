@@ -1,10 +1,10 @@
 ## kn service import
 
-Import a service and its revisions
+Import a service and its revisions (experimental)
 
 ### Synopsis
 
-Import a service and its revisions
+Import a service and its revisions (experimental)
 
 ```
 kn service import FILENAME
