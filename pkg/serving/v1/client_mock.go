@@ -208,8 +208,8 @@ func (sr *ServingRecorder) CreateRevision(revision interface{}, err error) {
 }
 
 // CreateRevision creates a new revision
-func (c *MockKnServingClient) CreateRevision(service *servingv1.Revision) error {
-	call := c.recorder.r.VerifyCall("CreateRevision", service)
+func (c *MockKnServingClient) CreateRevision(revision *servingv1.Revision) error {
+	call := c.recorder.r.VerifyCall("CreateRevision", revision)
 	return mock.ErrorOrNil(call.Result[0])
 }
 
