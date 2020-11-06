@@ -129,6 +129,7 @@ github.com/googleapis/gnostic/OpenAPIv2
 github.com/googleapis/gnostic/compiler
 github.com/googleapis/gnostic/extensions
 # github.com/gregjones/httpcache v0.0.0-20190212212710-3befbb6ad0cc
+## explicit
 github.com/gregjones/httpcache
 github.com/gregjones/httpcache/diskcache
 # github.com/grpc-ecosystem/grpc-gateway v1.14.8
@@ -175,6 +176,7 @@ github.com/matttproud/golang_protobuf_extensions/pbutil
 ## explicit
 github.com/mitchellh/go-homedir
 # github.com/mitchellh/mapstructure v1.3.1
+## explicit
 github.com/mitchellh/mapstructure
 # github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd
 github.com/modern-go/concurrent
@@ -219,16 +221,20 @@ github.com/russross/blackfriday/v2
 github.com/shurcooL/sanitized_anchor_name
 # github.com/sirupsen/logrus v1.6.0
 github.com/sirupsen/logrus
+# github.com/smartystreets/assertions v1.0.0
+## explicit
 # github.com/spf13/afero v1.2.2
 github.com/spf13/afero
 github.com/spf13/afero/mem
 # github.com/spf13/cast v1.3.1
+## explicit
 github.com/spf13/cast
 # github.com/spf13/cobra v1.0.1-0.20200715031239-b95db644ed1c
 ## explicit
 github.com/spf13/cobra
 github.com/spf13/cobra/doc
 # github.com/spf13/jwalterweatherman v1.1.0
+## explicit
 github.com/spf13/jwalterweatherman
 # github.com/spf13/pflag v1.0.5
 ## explicit
@@ -463,6 +469,7 @@ gopkg.in/evanphx/json-patch.v4
 # gopkg.in/inf.v0 v0.9.1
 gopkg.in/inf.v0
 # gopkg.in/ini.v1 v1.56.0
+## explicit
 gopkg.in/ini.v1
 # gopkg.in/yaml.v2 v2.3.0
 gopkg.in/yaml.v2
@@ -816,7 +823,7 @@ k8s.io/kube-openapi/pkg/util/sets
 k8s.io/utils/buffer
 k8s.io/utils/integer
 k8s.io/utils/trace
-# knative.dev/eventing v0.18.1-0.20201103105004-c96ac1b0c861
+# knative.dev/eventing v0.18.1-0.20201105172507-a6fc5408cb44
 ## explicit
 knative.dev/eventing/pkg/apis/config
 knative.dev/eventing/pkg/apis/configs
@@ -848,12 +855,12 @@ knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha2/fake
 # knative.dev/hack v0.0.0-20201103151104-3d5abc3a0075
 ## explicit
 knative.dev/hack
-# knative.dev/networking v0.0.0-20201103013404-f79e1df6f035
+# knative.dev/networking v0.0.0-20201103163404-b9f80f4537af
 ## explicit
 knative.dev/networking/pkg
 knative.dev/networking/pkg/apis/networking
 knative.dev/networking/pkg/apis/networking/v1alpha1
-# knative.dev/pkg v0.0.0-20201103155803-bdd7fe1f177c
+# knative.dev/pkg v0.0.0-20201103163404-5514ab0c1fdf
 ## explicit
 knative.dev/pkg/apis
 knative.dev/pkg/apis/duck
@@ -893,7 +900,7 @@ knative.dev/pkg/tracing/config
 knative.dev/pkg/tracing/propagation
 knative.dev/pkg/tracing/propagation/tracecontextb3
 knative.dev/pkg/tracker
-# knative.dev/serving v0.18.1-0.20201103154304-b0eaeb8250a3
+# knative.dev/serving v0.18.1-0.20201106011207-d0773356e613
 ## explicit
 knative.dev/serving/pkg/apis/autoscaling
 knative.dev/serving/pkg/apis/autoscaling/v1alpha1
