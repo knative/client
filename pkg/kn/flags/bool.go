@@ -68,19 +68,6 @@ func ReconcileBoolFlags(f *pflag.FlagSet) error {
 			return
 		}
 
-		// handle async flag
-		if flag.Name == "async" && flag.Changed {
-			if f.Lookup("wait").Changed || f.Lookup("no-wait").Changed {
-				err = fmt.Errorf("only one of (DEPRECATED) --async, --wait and --no-wait may be specified")
-				return
-			}
-			err = checkExplicitFalse(flag, "wait")
-			if err != nil {
-				return
-			}
-			f.Lookup("no-wait").Value.Set("true")
-		}
-
 		// Walk the "no-" versions of the flags. Make sure we didn't set
 		// both, and set the positive value to the opposite of the "no-"
 		// value if it exists.

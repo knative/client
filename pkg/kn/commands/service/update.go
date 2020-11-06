@@ -109,8 +109,7 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			out := cmd.OutOrStdout()
-			//TODO: deprecated condition should be once --async is gone
-			if !waitFlags.Async && waitFlags.Wait {
+			if waitFlags.Wait {
 				fmt.Fprintf(out, "Updating Service '%s' in namespace '%s':\n", args[0], namespace)
 				fmt.Fprintln(out, "")
 				err := waitForService(client, name, out, waitFlags.TimeoutInSeconds)
@@ -120,9 +119,6 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 				fmt.Fprintln(out, "")
 				return showUrl(client, name, latestRevisionBeforeUpdate, "updated", out)
 			} else {
-				if waitFlags.Async {
-					fmt.Fprintf(out, "\nWARNING: flag --async is deprecated and going to be removed in future release, please use --no-wait instead.\n\n")
-				}
 				fmt.Fprintf(out, "Service '%s' updated in namespace '%s'.\n", args[0], namespace)
 			}
 

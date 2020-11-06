@@ -18,6 +18,10 @@
 | | Description | PR
 
 | 🐣
+| Drop deprecated --async flag support
+| https://github.com/knative/client/pull/1094[#1094]
+
+| 🐣
 | Uniform multiple writeSink to DescribeSink
 | https://github.com/knative/client/pull/1075[#1075]
 
