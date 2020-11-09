@@ -47,7 +47,7 @@
 | https://github.com/knative/client/pull/1054[#1054]
 
 | 🎁
-| Add `kn service export` command (experimental)
+| Add `kn service import` command (experimental)
 | https://github.com/knative/client/pull/1065[#1065]
 |===
 
