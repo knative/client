@@ -97,6 +97,12 @@ type KnServingClient interface {
 	// current template.
 	GetBaseRevision(service *servingv1.Service) (*servingv1.Revision, error)
 
+	// Create revision
+	CreateRevision(revision *servingv1.Revision) error
+
+	// Update revision
+	UpdateRevision(revision *servingv1.Revision) error
+
 	// List revisions
 	ListRevisions(opts ...ListConfig) (*servingv1.RevisionList, error)
 
@@ -421,6 +427,24 @@ func getBaseRevision(cl KnServingClient, service *servingv1.Service) (*servingv1
 		return latestCreated, nil
 	}
 	return nil, noBaseRevisionError
+}
+
+// Create a revision
+func (cl *knServingClient) CreateRevision(revision *servingv1.Revision) error {
+	rev, err := cl.client.Revisions(cl.namespace).Create(context.TODO(), revision, v1.CreateOptions{})
+	if err != nil {
+		return clienterrors.GetError(err)
+	}
+	return updateServingGvk(rev)
+}
+
+// Update the given service
+func (cl *knServingClient) UpdateRevision(revision *servingv1.Revision) error {
+	_, err := cl.client.Revisions(cl.namespace).Update(context.TODO(), revision, v1.UpdateOptions{})
+	if err != nil {
+		return err
+	}
+	return updateServingGvk(revision)
 }
 
 // Delete a revision by name

@@ -44,6 +44,7 @@ func NewServiceCommand(p *commands.KnParams) *cobra.Command {
 	serviceCmd.AddCommand(NewServiceUpdateCommand(p))
 	serviceCmd.AddCommand(NewServiceApplyCommand(p))
 	serviceCmd.AddCommand(NewServiceExportCommand(p))
+	serviceCmd.AddCommand(NewServiceImportCommand(p))
 	return serviceCmd
 }
 
