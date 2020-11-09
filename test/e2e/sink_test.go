@@ -49,6 +49,15 @@ func TestSink(t *testing.T) {
 	assert.NilError(t, err)
 	assert.Equal(t, out, "default")
 
+	// create a channel
+	test.ChannelCreate(r, "pipe")
+
+	t.Log("Update Ping source with a sink to the channel")
+	pingSourceUpdateSink(r, "testpingsource0", "channel:pipe")
+	out, err = test.GetResourceFieldsWithJSONPath(t, it, "pingsource", "testpingsource0", jpSinkRefNameInSpec)
+	assert.NilError(t, err)
+	assert.Equal(t, out, "pipe")
+
 	t.Log("delete Ping sources")
 	pingSourceDelete(r, "testpingsource0")
 }
