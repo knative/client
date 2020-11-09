@@ -32,14 +32,13 @@ type waitTestCase struct {
 	isParseErrorExpected bool
 }
 
-//TODO: deprecated test should be removed with --async flag
 func TestAddWaitForReadyDeprecatedFlags(t *testing.T) {
 	for i, tc := range []waitTestCase{
-		{[]string{"--async"}, 60, false, false},
+		{[]string{"--no-wait"}, 60, false, false},
 		{[]string{}, 60, true, false},
 		{[]string{"--wait-timeout=120"}, 120, true, false},
 		// Can't be easily prevented, the timeout is just ignored in this case:
-		{[]string{"--async", "--wait-timeout=120"}, 120, false, false},
+		{[]string{"--no-wait", "--wait-timeout=120"}, 120, false, false},
 		{[]string{"--wait-timeout=bla"}, 0, true, true},
 	} {
 
@@ -58,12 +57,12 @@ func TestAddWaitForReadyDeprecatedFlags(t *testing.T) {
 			continue
 		}
 
-		//  reconcile to ensure wait, no-wait and async behaves as expected
+		//  reconcile to ensure wait, no-wait behave as expected
 		err = knflags.ReconcileBoolFlags(cmd.Flags())
 		assert.NilError(t, err)
 
-		if flags.Async == tc.isWaitExpected {
-			t.Errorf("%d: wrong async mode detected: %t (expected) != %t (actual)", i, tc.isWaitExpected, flags.Async)
+		if flags.Wait != tc.isWaitExpected {
+			t.Errorf("%d: wrong wait mode detected: %t (expected) != %t (actual)", i, tc.isWaitExpected, flags.Wait)
 		}
 		if flags.TimeoutInSeconds != tc.timeoutExpected {
 			t.Errorf("%d: Invalid timeout set. %d (expected) != %d (actual)", i, tc.timeoutExpected, flags.TimeoutInSeconds)
@@ -95,7 +94,7 @@ func TestAddWaitForReadyFlags(t *testing.T) {
 			continue
 		}
 
-		//  reconcile to ensure wait, no-wait and async behaves as expected
+		//  reconcile to ensure wait, no-wait behave as expected
 		err = knflags.ReconcileBoolFlags(cmd.Flags())
 		assert.NilError(t, err)
 		fmt.Println("wait value")

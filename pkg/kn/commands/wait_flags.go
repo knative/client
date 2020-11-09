@@ -33,11 +33,9 @@ type WaitFlags struct {
 	TimeoutInSeconds int
 	// If set then apply resources and wait for completion
 	Wait bool
-	//TODO: deprecated variable should be removed with --async flag
-	Async bool
 }
 
-// Add flags which influence the sync/async behaviour when creating or updating
+// Add flags which influence the wait/no-wait behaviour when creating or updating
 // resources. Set `waitDefault` argument if the default behaviour is synchronous.
 // Use `what` for describing what is waited for.
 func (p *WaitFlags) AddConditionWaitFlags(command *cobra.Command, waitTimeoutDefault int, action, what, until string) {
@@ -48,8 +46,6 @@ func (p *WaitFlags) AddConditionWaitFlags(command *cobra.Command, waitTimeoutDef
 		waitDefault = false
 	}
 
-	//TODO: deprecated flag should be removed in next release
-	command.Flags().BoolVar(&p.Async, "async", !waitDefault, "DEPRECATED: please use --no-wait instead. "+knflags.InvertUsage(waitUsage))
 	knflags.AddBothBoolFlagsUnhidden(command.Flags(), &p.Wait, "wait", "", waitDefault, waitUsage)
 	timeoutUsage := fmt.Sprintf("Seconds to wait before giving up on waiting for %s to be %s.", what, until)
 	command.Flags().IntVar(&p.TimeoutInSeconds, "wait-timeout", waitTimeoutDefault, timeoutUsage)

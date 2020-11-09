@@ -21,7 +21,6 @@ kn revision delete NAME [NAME ...]
 ### Options
 
 ```
-      --async              DEPRECATED: please use --no-wait instead. Do not wait for 'revision delete' operation to be completed. (default true)
   -h, --help               help for delete
   -n, --namespace string   Specify the namespace to operate in.
       --no-wait            Do not wait for 'revision delete' operation to be completed. (default true)
