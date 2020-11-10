@@ -37,7 +37,6 @@
 | Fix various misspellings and linter items
 | https://github.com/knative/client/pull/1057[#1057]
 
-
 | 🎁
 | Add Aliases to Help Command and Remove Aliases in Short
 | https://github.com/knative/client/pull/1055[#1055]
@@ -49,6 +48,10 @@
 | 🎁
 | Add `kn service import` command (experimental)
 | https://github.com/knative/client/pull/1065[#1065]
+
+| 🎁
+| Add arm64 binary to the release
+| https://github.com/knative/client/pull/1106[#1106]
 |===
 
 ## v0.18.1 (2020-10-13)
