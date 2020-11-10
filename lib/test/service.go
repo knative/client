@@ -43,16 +43,6 @@ type ExpectedRevisionListOption func(*servingv1.RevisionList)
 // ExpectedKNExportOption enables further configuration of a Export.
 type ExpectedKNExportOption func(*clientv1alpha1.Export)
 
-var revisionSpec = servingv1.RevisionSpec{
-	PodSpec: corev1.PodSpec{
-		Containers: []corev1.Container{{
-			Image: pkgtest.ImagePath("helloworld"),
-		}},
-		EnableServiceLinks: ptr.Bool(false),
-	},
-	TimeoutSeconds: ptr.Int64(config.DefaultRevisionTimeoutSeconds),
-}
-
 // ServiceCreate verifies given service creation in sync mode and also verifies output
 func ServiceCreate(r *KnRunResultCollector, serviceName string) {
 	out := r.KnTest().Kn().Run("service", "create", serviceName, "--image", pkgtest.ImagePath("helloworld"))
@@ -222,7 +212,7 @@ func BuildConfigurationSpec(co ...servingtest.ConfigOption) *servingv1.Configura
 	c := &servingv1.Configuration{
 		Spec: servingv1.ConfigurationSpec{
 			Template: servingv1.RevisionTemplateSpec{
-				Spec: *revisionSpec.DeepCopy(),
+				Spec: *BuildRevisionSpec(pkgtest.ImagePath("helloworld")),
 			},
 		},
 	}
@@ -231,6 +221,19 @@ func BuildConfigurationSpec(co ...servingtest.ConfigOption) *servingv1.Configura
 	}
 	c.SetDefaults(context.Background())
 	return &c.Spec
+}
+
+// BuildRevisionSpec for provided image
+func BuildRevisionSpec(image string) *servingv1.RevisionSpec {
+	return &servingv1.RevisionSpec{
+		PodSpec: corev1.PodSpec{
+			Containers: []corev1.Container{{
+				Image: image,
+			}},
+			EnableServiceLinks: ptr.Bool(false),
+		},
+		TimeoutSeconds: ptr.Int64(config.DefaultRevisionTimeoutSeconds),
+	}
 }
 
 // BuildServiceWithOptions returns ksvc with options provided
