@@ -40,10 +40,10 @@ function build_release() {
   echo "🚧 🐳 Building the container image"
   ko resolve --strict ${KO_FLAGS} -f config/ > kn-image-location.yaml
   ARTIFACTS_TO_PUBLISH="kn-darwin-amd64 kn-linux-amd64 kn-linux-arm64 kn-windows-amd64.exe kn-image-location.yaml"
-  if type sha256sum >/dev/null 2>&1; then
-    echo "🧮     Checksum:"
-    sha256sum ${ARTIFACTS_TO_PUBLISH}
-  fi
+  sha256sum "${ARTIFACTS_TO_PUBLISH}" > checksums.txt
+  ARTIFACTS_TO_PUBLISH="${ARTIFACTS_TO_PUBLISH} checksums.txt"
+  echo "🧮     Checksum:"
+  cat checksums.txt
 }
 
 main $@
