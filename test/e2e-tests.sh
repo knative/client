@@ -35,6 +35,8 @@ source $(dirname $0)/common.sh
 # Add local dir to have access to built kn
 export PATH=$PATH:${REPO_ROOT_DIR}
 
+# Set eventing version to v0.17.9 to be compatible with configured k8s version
+export KNATIVE_EVENTING_VERSION="0.17.9"
 
 run() {
   # Create cluster

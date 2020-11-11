@@ -21,6 +21,7 @@ import (
 	"gotest.tools/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	eventingv1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
+	messagingv1beta1 "knative.dev/eventing/pkg/apis/messaging/v1beta1"
 	"knative.dev/pkg/apis"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
@@ -70,6 +71,8 @@ func TestSinkFlagAdd(t *testing.T) {
 
 func TestResolve(t *testing.T) {
 	targetExampleCom, err := apis.ParseURL("http://target.example.com")
+	assert.NilError(t, err)
+
 	mysvc := &servingv1.Service{
 		TypeMeta:   metav1.TypeMeta{Kind: "Service", APIVersion: "serving.knative.dev/v1"},
 		ObjectMeta: metav1.ObjectMeta{Name: "mysvc", Namespace: "default"},
@@ -78,8 +81,11 @@ func TestResolve(t *testing.T) {
 		TypeMeta:   metav1.TypeMeta{Kind: "Broker", APIVersion: "eventing.knative.dev/v1beta1"},
 		ObjectMeta: metav1.ObjectMeta{Name: "default", Namespace: "default"},
 	}
+	pipeChannel := &messagingv1beta1.Channel{
+		TypeMeta:   metav1.TypeMeta{Kind: "Channel", APIVersion: "messaging.knative.dev/v1beta1"},
+		ObjectMeta: metav1.ObjectMeta{Name: "pipe", Namespace: "default"},
+	}
 
-	assert.NilError(t, err)
 	cases := []resolveCase{
 		{"ksvc:mysvc", &duckv1.Destination{
 			Ref: &duckv1.KReference{Kind: "Service",
@@ -97,6 +103,16 @@ func TestResolve(t *testing.T) {
 				APIVersion: "eventing.knative.dev/v1beta1",
 				Namespace:  "default",
 				Name:       "default"}}, ""},
+		{"channel:pipe",
+			&duckv1.Destination{
+				Ref: &duckv1.KReference{Kind: "Channel",
+					APIVersion: "messaging.knative.dev/v1beta1",
+					Namespace:  "default",
+					Name:       "pipe",
+				},
+			},
+			""},
+
 		{"http://target.example.com", &duckv1.Destination{
 			URI: targetExampleCom,
 		}, ""},
@@ -104,7 +120,7 @@ func TestResolve(t *testing.T) {
 		{"svc:foo", nil, "please use prefix 'ksvc' for knative service"},
 		{"service:foo", nil, "please use prefix 'ksvc' for knative service"},
 	}
-	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default", mysvc, defaultBroker)
+	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default", mysvc, defaultBroker, pipeChannel)
 	for _, c := range cases {
 		i := &SinkFlags{c.sink}
 		result, err := i.ResolveSink(dynamicClient, "default")
