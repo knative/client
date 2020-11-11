@@ -539,6 +539,19 @@ func TestServiceCreateScaleRangeOnlyMin(t *testing.T) {
 	}
 }
 
+func TestServiceCreateScaleRangeOnlyMinNegative(t *testing.T) {
+	_, _, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
+		"--scale", "-1..", "--no-wait"}, true)
+	if err == nil {
+		t.Fatal(err)
+	}
+	expectedErrMsg := "expected 0 <= -1 <= 2147483647: autoscaling.knative.dev/minScale"
+	if !strings.Contains(err.Error(), expectedErrMsg) {
+		t.Errorf("Invalid error output, expected: %s, got : '%s'", expectedErrMsg, err)
+	}
+}
+
 func TestServiceCreateScaleRangeOnlyMax(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
@@ -564,6 +577,19 @@ func TestServiceCreateScaleRangeOnlyMax(t *testing.T) {
 			t.Fatalf("Unexpected annotation value for %s : %s (actual) != %s (expected)",
 				anno, actualAnnos[anno], expectedAnnos[i+1])
 		}
+	}
+}
+
+func TestServiceCreateScaleRangeOnlyMaxNegative(t *testing.T) {
+	_, _, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
+		"--scale", "..-5", "--no-wait"}, true)
+	if err == nil {
+		t.Fatal(err)
+	}
+	expectedErrMsg := "expected 0 <= -5 <= 2147483647: autoscaling.knative.dev/maxScale"
+	if !strings.Contains(err.Error(), expectedErrMsg) {
+		t.Errorf("Invalid error output, expected: %s, got : '%s'", expectedErrMsg, err)
 	}
 }
 
