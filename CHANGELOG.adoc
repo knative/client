@@ -37,6 +37,9 @@
 | Fix various misspellings and linter items
 | https://github.com/knative/client/pull/1057[#1057]
 
+| 🐛
+| Fix a race condition when using Kubernetes watches
+| https://github.com/knative/client/pull/
 
 | 🎁
 | Add Aliases to Help Command and Remove Aliases in Short
