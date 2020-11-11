@@ -17,41 +17,55 @@
 |===
 | | Description | PR
 
-| 🎁
-| Add channel sink prefix
-| https://github.com/knative/client/pull/1092[#1092]
-
-| 🐣
-| Drop deprecated --async flag support
-| https://github.com/knative/client/pull/1094[#1094]
-
-| 🐣
-| Uniform multiple writeSink to DescribeSink
-| https://github.com/knative/client/pull/1075[#1075]
-
-| 🐣
-| Add function ResolvePodSpec and move the utilities to podspec_helper
-| https://github.com/knative/client/pull/1024[#1024]
-
-| 🐛
-| Fix various misspellings and linter items
-| https://github.com/knative/client/pull/1057[#1057]
-
 | 🐛
 | Fix a race condition when using Kubernetes watches
 | https://github.com/knative/client/pull/1113[#1113]
 
-| 🎁
-| Add Aliases to Help Command and Remove Aliases in Short
-| https://github.com/knative/client/pull/1055[#1055]
+
+### v0.19.0 (2020-11-11)
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🗑
+| Drop deprecated `--requests-cpu,--requests-memory,--limits-cpu,--limits-memory` flags support
+| https://github.com/knative/client/pull/1110[#1110]
 
 | 🎁
-| Add WithLabel list filter to serving client lib
-| https://github.com/knative/client/pull/1054[#1054]
+| Add _arm64_ binary to the release
+| https://github.com/knative/client/pull/1106[#1106]
+
+| 🗑
+| Drop deprecated `--async` flag support
+| https://github.com/knative/client/pull/1094[#1094]
+
+| 🎁
+| Add `channel:` sink prefix
+| https://github.com/knative/client/pull/1092[#1092]
+
+| 🐣
+| Uniform multiple descriptions for sinks
+| https://github.com/knative/client/pull/1075[#1075]
 
 | 🎁
 | Add `kn service import` command (experimental)
 | https://github.com/knative/client/pull/1065[#1065]
+
+| 🎁
+| Add aliases to help commands
+| https://github.com/knative/client/pull/1055[#1055]
+
+| 🎁
+| Add `WithLabel()` list filter to serving client library
+| https://github.com/knative/client/pull/1054[#1054]
+
+| 🐣
+| Refactor to move all `PodSpec` related handling to a single place
+| https://github.com/knative/client/pull/1024[#1024]
+
+| 🎁
+| Add `kn service apply`
+| https://github.com/knative/client/pull/964[#964]
 |===
 
 ## v0.18.1 (2020-10-13)
