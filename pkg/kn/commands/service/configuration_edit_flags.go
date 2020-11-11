@@ -37,7 +37,7 @@ type ConfigurationEditFlags struct {
 	PodSpecFlags knflags.PodSpecFlags
 
 	// Direct field manipulation
-	Scale                  int
+	Scale                  string
 	MinScale               int
 	MaxScale               int
 	ConcurrencyTarget      int
@@ -86,7 +86,11 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	command.Flags().MarkHidden("max-scale")
 	p.markFlagMakesRevision("max-scale")
 
-	command.Flags().IntVar(&p.Scale, "scale", 0, "Minimum and maximum number of replicas.")
+	command.Flags().StringVar(&p.Scale, "scale", "",
+		"Set the Minimum and Maximum number of replicas. You can use this flag to set both to a single value, "+
+			"or set a range with min/max values, or set either min or max values without specifying the other. "+
+			"Example: --scale 5 (scale-min = 5, scale-max = 5) or --scale 1..5 (scale-min = 1, scale-max = 5) or --scale "+
+			"1.. (scale-min = 1, scale-max = unchanged) or --scale ..5 (scale-min = unchanged, scale-max = 5)")
 	p.markFlagMakesRevision("scale")
 
 	command.Flags().IntVar(&p.MinScale, "scale-min", 0, "Minimum number of replicas.")
@@ -264,15 +268,41 @@ func (p *ConfigurationEditFlags) Apply(
 			return fmt.Errorf("only --scale or --scale-max can be specified")
 		} else if cmd.Flags().Changed("scale-min") {
 			return fmt.Errorf("only --scale or --scale-min can be specified")
+		}
+		if strings.Contains(p.Scale, "..") {
+			scaleParts := strings.Split(p.Scale, "..")
+			if scaleParts[0] != "" {
+				scaleMin, err := strconv.Atoi(scaleParts[0])
+				if err != nil {
+					return err
+				}
+				err = servinglib.UpdateMinScale(template, scaleMin)
+				if err != nil {
+					return err
+				}
+			}
+			if scaleParts[1] != "" {
+				scaleMax, err := strconv.Atoi(scaleParts[1])
+				if err != nil {
+					return err
+				}
+				err = servinglib.UpdateMaxScale(template, scaleMax)
+				if err != nil {
+					return err
+				}
+			}
+		} else if scaleMin, err := strconv.Atoi(p.Scale); err == nil {
+			scaleMax := scaleMin
+			err = servinglib.UpdateMaxScale(template, scaleMax)
+			if err != nil {
+				return err
+			}
+			err = servinglib.UpdateMinScale(template, scaleMin)
+			if err != nil {
+				return err
+			}
 		} else {
-			err = servinglib.UpdateMaxScale(template, p.Scale)
-			if err != nil {
-				return err
-			}
-			err = servinglib.UpdateMinScale(template, p.Scale)
-			if err != nil {
-				return err
-			}
+			return fmt.Errorf("Scale must be of the format x..y or x")
 		}
 	}
 
