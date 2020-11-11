@@ -20,7 +20,6 @@ import (
 	"strings"
 
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	"knative.dev/client/pkg/util"
 
 	"github.com/spf13/pflag"
@@ -38,12 +37,11 @@ type PodSpecFlags struct {
 	Command string
 	Arg     []string
 
-	RequestsFlags, LimitsFlags ResourceFlags // TODO: Flag marked deprecated in release v0.15.0, remove in release v0.18.0
-	Resources                  ResourceOptions
-	Port                       string
-	ServiceAccountName         string
-	ImagePullSecrets           string
-	User                       int64
+	Resources          ResourceOptions
+	Port               string
+	ServiceAccountName string
+	ImagePullSecrets   string
+	User               int64
 }
 
 type ResourceFlags struct {
@@ -133,24 +131,6 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
 			"To unset a resource request, append \"-\" to the resource name, e.g. '--request cpu-'.")
 	flagNames = append(flagNames, "request")
 
-	flagset.StringVar(&p.RequestsFlags.CPU, "requests-cpu", "",
-		"DEPRECATED: please use --request instead. The requested CPU (e.g., 250m).")
-	flagNames = append(flagNames, "requests-cpu")
-
-	flagset.StringVar(&p.RequestsFlags.Memory, "requests-memory", "",
-		"DEPRECATED: please use --request instead. The requested memory (e.g., 64Mi).")
-	flagNames = append(flagNames, "requests-memory")
-
-	// TODO: Flag marked deprecated in release v0.15.0, remove in release v0.18.0
-	flagset.StringVar(&p.LimitsFlags.CPU, "limits-cpu", "",
-		"DEPRECATED: please use --limit instead. The limits on the requested CPU (e.g., 1000m).")
-	flagNames = append(flagNames, "limits-cpu")
-
-	// TODO: Flag marked deprecated in release v0.15.0, remove in release v0.18.0
-	flagset.StringVar(&p.LimitsFlags.Memory, "limits-memory", "",
-		"DEPRECATED: please use --limit instead. The limits on the requested memory (e.g., 1024Mi).")
-	flagNames = append(flagNames, "limits-memory")
-
 	flagset.StringVarP(&p.Port, "port", "p", "", "The port where application listens on, in the format 'NAME:PORT', where 'NAME' is optional. Examples: '--port h2c:8080' , '--port 8080'.")
 	flagNames = append(flagNames, "port")
 
@@ -230,19 +210,6 @@ func (p *PodSpecFlags) ResolvePodSpec(podSpec *corev1.PodSpec, flags *pflag.Flag
 		}
 	}
 
-	limitsResources, err := p.computeResources(p.LimitsFlags)
-	if err != nil {
-		return err
-	}
-	requestsResources, err := p.computeResources(p.RequestsFlags)
-	if err != nil {
-		return err
-	}
-	err = UpdateResourcesDeprecated(podSpec, requestsResources, limitsResources)
-	if err != nil {
-		return err
-	}
-
 	requestsToRemove, limitsToRemove, err := p.Resources.Validate()
 	if err != nil {
 		return err
@@ -290,30 +257,4 @@ func (p *PodSpecFlags) ResolvePodSpec(podSpec *corev1.PodSpec, flags *pflag.Flag
 	}
 
 	return nil
-}
-
-func (p *PodSpecFlags) computeResources(resourceFlags ResourceFlags) (corev1.ResourceList, error) {
-	resourceList := corev1.ResourceList{}
-
-	if resourceFlags.CPU != "" {
-		cpuQuantity, err := resource.ParseQuantity(resourceFlags.CPU)
-		if err != nil {
-			return corev1.ResourceList{},
-				fmt.Errorf("Error parsing %q: %w", resourceFlags.CPU, err)
-		}
-
-		resourceList[corev1.ResourceCPU] = cpuQuantity
-	}
-
-	if resourceFlags.Memory != "" {
-		memoryQuantity, err := resource.ParseQuantity(resourceFlags.Memory)
-		if err != nil {
-			return corev1.ResourceList{},
-				fmt.Errorf("Error parsing %q: %w", resourceFlags.Memory, err)
-		}
-
-		resourceList[corev1.ResourceMemory] = memoryQuantity
-	}
-
-	return resourceList, nil
 }

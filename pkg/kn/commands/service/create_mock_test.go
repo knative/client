@@ -445,40 +445,7 @@ func TestServiceCreateWithResources(t *testing.T) {
 	r.Validate()
 }
 
-func TestServiceCreateWithResourcesWarning(t *testing.T) {
-	client := knclient.NewMockKnServiceClient(t)
-
-	r := client.Recorder()
-	r.GetService("foo", nil, errors.NewNotFound(servingv1.Resource("service"), "foo"))
-
-	service := getService("foo")
-	template := &service.Spec.Template
-
-	template.Spec.Containers[0].Resources.Requests = corev1.ResourceList{
-		corev1.ResourceMemory: parseQuantity(t, "64Mi"),
-	}
-
-	template.Spec.Containers[0].Resources.Limits = corev1.ResourceList{
-		corev1.ResourceCPU: parseQuantity(t, "1000m"),
-	}
-
-	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
-	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
-	r.CreateService(service, nil)
-
-	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz",
-		"--requests-memory", "64Mi",
-		"--limits-cpu", "1000m",
-		"--no-wait", "--revision-name=")
-	assert.NilError(t, err)
-	assert.Assert(t, util.ContainsAll(output, "WARNING", "--requests-cpu", "--requests-memory", "deprecated", "removed", "--request", "instead"))
-	assert.Assert(t, util.ContainsAll(output, "WARNING", "--limits-cpu", "--limits-memory", "deprecated", "removed", "--limit", "instead"))
-	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
-
-	r.Validate()
-}
-
-func TestServiceCreateWithResourcesError(t *testing.T) {
+func TestServiceCreateWithDeprecatedResourcesError(t *testing.T) {
 	client := knclient.NewMockKnServiceClient(t)
 	r := client.Recorder()
 
@@ -487,7 +454,7 @@ func TestServiceCreateWithResourcesError(t *testing.T) {
 		"--request", "memory=64Mi",
 		"--no-wait", "--revision-name=")
 	assert.Assert(t, err != nil)
-	assert.Assert(t, util.ContainsAll(output, "only one of", "DEPRECATED", "--requests-cpu", "--requests-memory", "--request", "can be specified"))
+	assert.Assert(t, util.ContainsAll(output, "unknown", "flag", "--requests-memory"))
 
 	r.Validate()
 }
