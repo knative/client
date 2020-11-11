@@ -20,6 +20,7 @@
 | 🐛
 | Fix a race condition when using Kubernetes watches
 | https://github.com/knative/client/pull/1113[#1113]
+|===
 
 ### v0.19.0 (2020-11-11)
 [cols="1,10,3", options="header", width="100%"]
