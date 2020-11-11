@@ -21,10 +21,6 @@
 | Fix a race condition when using Kubernetes watches
 | https://github.com/knative/client/pull/1113[#1113]
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 0c1cc24531dc572c3f7d83d23fb5037deadda2fd
 ### v0.19.0 (2020-11-11)
 [cols="1,10,3", options="header", width="100%"]
 |===
