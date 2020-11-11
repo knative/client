@@ -578,7 +578,7 @@ func TestServiceUpdateRequestsLimitsCPU(t *testing.T) {
 	service := createMockServiceWithResources(t, "250", "64Mi", "1000m", "1024Mi")
 
 	action, updated, _, err := fakeServiceUpdate(service, []string{
-		"service", "update", "foo", "--requests-cpu", "500m", "--limits-cpu", "1000m", "--no-wait"})
+		"service", "update", "foo", "--request", "cpu=500m", "--limit", "cpu=1000m", "--no-wait"})
 	if err != nil {
 		t.Fatal(err)
 	} else if !action.Matches("update", "services") {
@@ -616,7 +616,7 @@ func TestServiceUpdateRequestsLimitsMemory(t *testing.T) {
 	service := createMockServiceWithResources(t, "100m", "64Mi", "1000m", "1024Mi")
 
 	action, updated, _, err := fakeServiceUpdate(service, []string{
-		"service", "update", "foo", "--requests-memory", "128Mi", "--limits-memory", "2048Mi", "--no-wait"})
+		"service", "update", "foo", "--request", "memory=128Mi", "--limit", "memory=2048Mi", "--no-wait"})
 	if err != nil {
 		t.Fatal(err)
 	} else if !action.Matches("update", "services") {
@@ -655,8 +655,8 @@ func TestServiceUpdateRequestsLimitsCPU_and_Memory(t *testing.T) {
 
 	action, updated, _, err := fakeServiceUpdate(service, []string{
 		"service", "update", "foo",
-		"--requests-cpu", "500m", "--limits-cpu", "2000m",
-		"--requests-memory", "128Mi", "--limits-memory", "2048Mi", "--no-wait"})
+		"--request", "cpu=500m,memory=128Mi",
+		"--limit", "cpu=2000m,memory=2048Mi", "--no-wait"})
 	if err != nil {
 		t.Fatal(err)
 	} else if !action.Matches("update", "services") {

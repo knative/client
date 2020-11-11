@@ -224,31 +224,6 @@ func UpdateResources(spec *corev1.PodSpec, resources corev1.ResourceRequirements
 	return nil
 }
 
-// UpdateResourcesDeprecated updates resources as requested
-func UpdateResourcesDeprecated(spec *corev1.PodSpec, requestsResourceList corev1.ResourceList, limitsResourceList corev1.ResourceList) error {
-	container, err := containerOfPodSpec(spec)
-	if err != nil {
-		return err
-	}
-	if container.Resources.Requests == nil {
-		container.Resources.Requests = corev1.ResourceList{}
-	}
-
-	for k, v := range requestsResourceList {
-		container.Resources.Requests[k] = v
-	}
-
-	if container.Resources.Limits == nil {
-		container.Resources.Limits = corev1.ResourceList{}
-	}
-
-	for k, v := range limitsResourceList {
-		container.Resources.Limits[k] = v
-	}
-
-	return nil
-}
-
 // UpdateServiceAccountName updates the service account name used for the corresponding knative service
 func UpdateServiceAccountName(spec *corev1.PodSpec, serviceAccountName string) {
 	serviceAccountName = strings.TrimSpace(serviceAccountName)
