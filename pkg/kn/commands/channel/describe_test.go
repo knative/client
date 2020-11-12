@@ -45,7 +45,7 @@ func TestDescribeChannelErrorCaseNotFound(t *testing.T) {
 func TestDescribeChannel(t *testing.T) {
 	cClient := v1beta1.NewMockKnChannelsClient(t)
 	cRecorder := cClient.Recorder()
-	cRecorder.GetChannel("pipe", createChannel("pipe", &schema.GroupVersionKind{Group: "messaging.knative.dev", Version: "v1beta1", Kind: "InMemoryChannel"}), nil)
+	cRecorder.GetChannel("pipe", createChannel("pipe", "default", &schema.GroupVersionKind{Group: "messaging.knative.dev", Version: "v1beta1", Kind: "InMemoryChannel"}), nil)
 	out, err := executeChannelCommand(cClient, "describe", "pipe")
 	assert.NilError(t, err, "channel should be described")
 	assert.Assert(t, util.ContainsAll(out, "messaging.knative.dev", "v1beta1", "InMemoryChannel", "pipe"))

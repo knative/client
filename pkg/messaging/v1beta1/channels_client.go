@@ -122,10 +122,11 @@ type ChannelBuilder struct {
 }
 
 // NewChannelBuilder for building Channel object
-func NewChannelBuilder(name string) *ChannelBuilder {
+func NewChannelBuilder(name, namespace string) *ChannelBuilder {
 	return &ChannelBuilder{channel: &v1beta1.Channel{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: name,
+			Name:      name,
+			Namespace: namespace,
 		},
 	}}
 }
