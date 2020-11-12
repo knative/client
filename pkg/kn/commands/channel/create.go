@@ -60,7 +60,7 @@ func NewChannelCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			cb := knmessagingv1beta1.NewChannelBuilder(name)
+			cb := knmessagingv1beta1.NewChannelBuilder(name, namespace)
 
 			if cmd.Flag("type").Changed {
 				gvk, err := ctypeFlags.Parse()
