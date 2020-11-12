@@ -56,7 +56,7 @@ func TestGetService(t *testing.T) {
 		func(a clienttesting.Action) (bool, runtime.Object, error) {
 			service := newService(serviceName)
 			name := a.(clienttesting.GetAction).GetName()
-			// Sanity check
+
 			assert.Assert(t, name != "")
 			assert.Equal(t, testNamespace, a.GetNamespace())
 			if name == serviceName {
@@ -192,7 +192,7 @@ func TestDeleteService(t *testing.T) {
 	serving.AddReactor("delete", "services",
 		func(a clienttesting.Action) (bool, runtime.Object, error) {
 			name := a.(clienttesting.DeleteAction).GetName()
-			// Sanity check
+
 			assert.Assert(t, name != "")
 			assert.Equal(t, testNamespace, a.GetNamespace())
 			if name == serviceName {
@@ -244,7 +244,7 @@ func TestGetRevision(t *testing.T) {
 		func(a clienttesting.Action) (bool, runtime.Object, error) {
 			revision := newRevision(revisionName)
 			name := a.(clienttesting.GetAction).GetName()
-			// Sanity check
+
 			assert.Assert(t, name != "")
 			assert.Equal(t, testNamespace, a.GetNamespace())
 			if name == revisionName {
@@ -334,7 +334,7 @@ func TestGetRoute(t *testing.T) {
 		func(a clienttesting.Action) (bool, runtime.Object, error) {
 			route := newRoute(routeName)
 			name := a.(clienttesting.GetAction).GetName()
-			// Sanity check
+
 			assert.Assert(t, name != "")
 			assert.Equal(t, testNamespace, a.GetNamespace())
 			if name == routeName {
@@ -497,7 +497,7 @@ func TestGetConfiguration(t *testing.T) {
 		func(a clienttesting.Action) (bool, runtime.Object, error) {
 			configuration := &servingv1.Configuration{ObjectMeta: metav1.ObjectMeta{Name: configName, Namespace: testNamespace}}
 			name := a.(clienttesting.GetAction).GetName()
-			// Sanity check
+
 			assert.Assert(t, name != "")
 			assert.Equal(t, testNamespace, a.GetNamespace())
 			if name == configName {
