@@ -18,7 +18,11 @@ package broker
 
 import (
 	"errors"
+	"fmt"
 	"io"
+	"strings"
+
+	"k8s.io/cli-runtime/pkg/genericclioptions"
 
 	"github.com/spf13/cobra"
 
@@ -33,10 +37,16 @@ var describeExample = `
   kn broker describe mybroker
 
   # Describe broker 'mybroker' in the 'myproject' namespace
-  kn broker describe mybroker --namespace myproject`
+  kn broker describe mybroker --namespace myproject
+
+  # Print only broker URL
+  kn broker describe mybroker -o url`
 
 // NewBrokerDescribeCommand represents command to describe details of broker instance
 func NewBrokerDescribeCommand(p *commands.KnParams) *cobra.Command {
+
+	// For machine readable output
+	machineReadablePrintFlags := genericclioptions.NewPrintFlags("")
 
 	cmd := &cobra.Command{
 		Use:     "describe NAME",
@@ -62,10 +72,26 @@ func NewBrokerDescribeCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			return describeBroker(cmd.OutOrStdout(), broker, false)
+
+			out := cmd.OutOrStdout()
+
+			if machineReadablePrintFlags.OutputFlagSpecified() {
+				if strings.ToLower(*machineReadablePrintFlags.OutputFormat) == "url" {
+					fmt.Fprintf(out, "%s\n", extractURL(broker))
+					return nil
+				}
+				printer, err := machineReadablePrintFlags.ToPrinter()
+				if err != nil {
+					return err
+				}
+				return printer.PrintObj(broker, out)
+			}
+			return describeBroker(out, broker, false)
 		},
 	}
 	commands.AddNamespaceFlags(cmd.Flags(), false)
+	machineReadablePrintFlags.AddFlags(cmd)
+	cmd.Flag("output").Usage = fmt.Sprintf("Output format. One of: %s.", strings.Join(append(machineReadablePrintFlags.AllowedFormats(), "url"), "|"))
 	return cmd
 }
 
@@ -74,11 +100,15 @@ func describeBroker(out io.Writer, broker *v1beta1.Broker, printDetails bool) er
 	dw := printers.NewPrefixWriter(out)
 	commands.WriteMetadata(dw, &broker.ObjectMeta, printDetails)
 	dw.WriteLine()
-	dw.WriteAttribute("Address", "").WriteAttribute("URL", broker.Status.Address.URL.String())
+	dw.WriteAttribute("Address", "").WriteAttribute("URL", extractURL(broker))
 	dw.WriteLine()
 	commands.WriteConditions(dw, broker.Status.Conditions, printDetails)
 	if err := dw.Flush(); err != nil {
 		return err
 	}
 	return nil
+}
+
+func extractURL(broker *v1beta1.Broker) string {
+	return broker.Status.Address.URL.String()
 }
