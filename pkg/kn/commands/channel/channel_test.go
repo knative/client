@@ -76,6 +76,6 @@ func cleanupChannelMockClient() {
 	channelClientFactory = nil
 }
 
-func createChannel(name string, gvk *schema.GroupVersionKind) *v1beta1.Channel {
-	return clientv1beta1.NewChannelBuilder(name).Type(gvk).Build()
+func createChannel(name, namespace string, gvk *schema.GroupVersionKind) *v1beta1.Channel {
+	return clientv1beta1.NewChannelBuilder(name, namespace).Type(gvk).Build()
 }
