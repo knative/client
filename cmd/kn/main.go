@@ -73,14 +73,14 @@ func run(args []string) error {
 	}
 
 	// temporary setting to parse all flags
-	rootCmd.FParseErrWhitelist = cobra.FParseErrWhitelist{UnknownFlags: true}
+	rootCmd.FParseErrWhitelist = cobra.FParseErrWhitelist{UnknownFlags: true} // wokeignore:rule=whitelist // TODO(#1031)
 	// Strip of all flags to get the non-flag commands only
 	commands, err := stripFlags(rootCmd, args)
 	if err != nil {
 		return err
 	}
 	// reset the temporary setting
-	rootCmd.FParseErrWhitelist = cobra.FParseErrWhitelist{UnknownFlags: false}
+	rootCmd.FParseErrWhitelist = cobra.FParseErrWhitelist{UnknownFlags: false} // wokeignore:rule=whitelist // TODO(#1031)
 
 	// Find plugin with the commands arguments
 	plugin, err := pluginManager.FindPlugin(commands)

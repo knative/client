@@ -160,7 +160,7 @@ func TestUnknownCommands(t *testing.T) {
 	for _, d := range data {
 		args := append([]string{"kn"}, d.givenCmdArgs...)
 		rootCmd, err := root.NewRootCommand(nil)
-		rootCmd.FParseErrWhitelist = cobra.FParseErrWhitelist{UnknownFlags: true}
+		rootCmd.FParseErrWhitelist = cobra.FParseErrWhitelist{UnknownFlags: true} // wokeignore:rule=whitelist // TODO(#1031)
 		os.Args = args
 		assert.NilError(t, err)
 		err = validateRootCommand(rootCmd)
@@ -220,7 +220,7 @@ func TestStripFlags(t *testing.T) {
 
 	for i, f := range data {
 		step := fmt.Sprintf("Check %d", i)
-		cmd := &cobra.Command{FParseErrWhitelist: cobra.FParseErrWhitelist{UnknownFlags: true}}
+		cmd := &cobra.Command{FParseErrWhitelist: cobra.FParseErrWhitelist{UnknownFlags: true}} // wokeignore:rule=whitelist // TODO(#1031)
 		config.AddBootstrapFlags(cmd.Flags())
 		commands, err := stripFlags(cmd, f.givenArgs)
 		assert.DeepEqual(t, commands, f.expectedCommands)

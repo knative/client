@@ -213,10 +213,10 @@ func errorRepeatingRevision(forFlag string, name string) error {
 }
 
 // verifies if user has repeated @latest field in --tag or --traffic flags
-// verifyInputSanity checks:
+// verifyInput checks:
 // - if user has repeated @latest field in --tag or --traffic flags
 // - if provided traffic portion are integers
-func verifyInputSanity(trafficFlags *flags.Traffic) error {
+func verifyInput(trafficFlags *flags.Traffic) error {
 	var latestRevisionTag = false
 	var sum = 0
 
@@ -271,7 +271,7 @@ func verifyInputSanity(trafficFlags *flags.Traffic) error {
 // Compute takes service traffic targets and updates per given traffic flags
 func Compute(cmd *cobra.Command, targets []servingv1.TrafficTarget,
 	trafficFlags *flags.Traffic, serviceName string) ([]servingv1.TrafficTarget, error) {
-	err := verifyInputSanity(trafficFlags)
+	err := verifyInput(trafficFlags)
 	if err != nil {
 		return nil, err
 	}
@@ -293,7 +293,7 @@ func Compute(cmd *cobra.Command, targets []servingv1.TrafficTarget,
 	}
 
 	for _, each := range trafficFlags.RevisionsTags {
-		revision, tag, _ := splitByEqualSign(each) // err is checked in verifyInputSanity
+		revision, tag, _ := splitByEqualSign(each) // err is checked in verifyInput
 
 		// Second precedence: Tag latestRevision
 		if revision == latestRevisionRef {
@@ -338,8 +338,8 @@ func Compute(cmd *cobra.Command, targets []servingv1.TrafficTarget,
 
 		for _, each := range trafficFlags.RevisionsPercentages {
 			// revisionRef works here as either revision or tag as either can be specified on CLI
-			revisionRef, percent, _ := splitByEqualSign(each)  // err is verified in verifyInputSanity
-			percentInt, _ := strconv.ParseInt(percent, 10, 64) // percentInt (for int) is verified in verifyInputSanity
+			revisionRef, percent, _ := splitByEqualSign(each)  // err is verified in verifyInput
+			percentInt, _ := strconv.ParseInt(percent, 10, 64) // percentInt (for int) is verified in verifyInput
 
 			// fourth precedence: set traffic for latest revision
 			if revisionRef == latestRevisionRef {

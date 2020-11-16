@@ -37,7 +37,7 @@ kn options`,
 		SilenceErrors: true,
 		SilenceUsage:  true,
 		// Allow all options
-		FParseErrWhitelist: cobra.FParseErrWhitelist{UnknownFlags: true},
+		FParseErrWhitelist: cobra.FParseErrWhitelist{UnknownFlags: true}, // wokeignore:rule=whitelist // TODO(#1031)
 	}
 	cmd.SetFlagErrorFunc(func(c *cobra.Command, err error) error {
 		return errors.Errorf("%s for '%s'", err.Error(), c.CommandPath())
