@@ -20,7 +20,7 @@ import (
 	"gotest.tools/assert"
 )
 
-// Dummy test to keep code coverage quality gate happy.
+// Test to keep code coverage quality gate happy.
 //
 func TestTestConfig(t *testing.T) {
 	cfg := TestConfig{

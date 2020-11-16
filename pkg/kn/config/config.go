@@ -104,7 +104,7 @@ func BootstrapConfig() error {
 	// initialize the config file to use (obtained via GlobalConfig.ConfigFile())
 	bootstrapFlagSet := flag.NewFlagSet("kn", flag.ContinueOnError)
 	AddBootstrapFlags(bootstrapFlagSet)
-	bootstrapFlagSet.ParseErrorsWhitelist = flag.ParseErrorsWhitelist{UnknownFlags: true}
+	bootstrapFlagSet.ParseErrorsWhitelist = flag.ParseErrorsWhitelist{UnknownFlags: true} // wokeignore:rule=whitelist // TODO(#1031)
 	bootstrapFlagSet.Usage = func() {}
 	err := bootstrapFlagSet.Parse(os.Args)
 	if err != nil && err != flag.ErrHelp {

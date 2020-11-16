@@ -27,11 +27,11 @@ import (
 	"gotest.tools/assert"
 )
 
-type dummyTransport struct {
+type fakeTransport struct {
 	requestDump string
 }
 
-func (d *dummyTransport) RoundTrip(r *http.Request) (*http.Response, error) {
+func (d *fakeTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	dump, err := httputil.DumpRequest(r, true)
 	if err != nil {
 		return nil, fmt.Errorf("dumping request: %v", err)
@@ -53,7 +53,7 @@ func (d *errorTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 
 func TestWritesRequestResponse(t *testing.T) {
 	out := &bytes.Buffer{}
-	dt := &dummyTransport{}
+	dt := &fakeTransport{}
 	transport := NewLoggingTransportWithStream(dt, out)
 
 	body := "{this: is, the: body, of: [the, request]}"
@@ -79,7 +79,7 @@ func TestWritesRequestResponse(t *testing.T) {
 
 func TestElideAuthorizationHeader(t *testing.T) {
 	out := &bytes.Buffer{}
-	transport := NewLoggingTransportWithStream(&dummyTransport{}, out)
+	transport := NewLoggingTransportWithStream(&fakeTransport{}, out)
 	req, _ := http.NewRequest("GET", "http://example.com", nil)
 	req.Header.Set("X-Normal-Header", "la la normal text")
 	req.Header.Set("Authorization", "Bearer: SECRET")
