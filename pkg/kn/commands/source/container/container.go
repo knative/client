@@ -27,13 +27,14 @@ import (
 // NewContainerCommand for managing Container source
 func NewContainerCommand(p *commands.KnParams) *cobra.Command {
 	containerSourceCmd := &cobra.Command{
-		Use:   "container create|delete|update|list",
+		Use:   "container create|delete|update|list|describe",
 		Short: "Manage container sources",
 	}
 	containerSourceCmd.AddCommand(NewContainerCreateCommand(p))
 	containerSourceCmd.AddCommand(NewContainerDeleteCommand(p))
 	containerSourceCmd.AddCommand(NewContainerUpdateCommand(p))
 	containerSourceCmd.AddCommand(NewContainerListCommand(p))
+	containerSourceCmd.AddCommand(NewContainerDescribeCommand(p))
 	return containerSourceCmd
 }
 

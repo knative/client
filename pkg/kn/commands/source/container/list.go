@@ -40,7 +40,6 @@ func NewContainerListCommand(p *commands.KnParams) *cobra.Command {
   kn source apiserver list -o yaml`,
 
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			// TODO: filter list by given source name
 
 			containerClient, err := newContainerSourceClient(p, cmd)
 			if err != nil {
