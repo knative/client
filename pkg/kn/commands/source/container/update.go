@@ -72,7 +72,7 @@ func NewContainerUpdateCommand(p *commands.KnParams) *cobra.Command {
 			err = podFlags.ResolvePodSpec(&podSpec, cmd.Flags())
 			if err != nil {
 				return fmt.Errorf(
-					"cannot create ContainerSource '%s' in namespace '%s' "+
+					"cannot update ContainerSource '%s' in namespace '%s' "+
 						"because: %s", name, namespace, err)
 			}
 			b.PodSpec(podSpec)
@@ -80,7 +80,9 @@ func NewContainerUpdateCommand(p *commands.KnParams) *cobra.Command {
 			if cmd.Flags().Changed("sink") {
 				objectRef, err := sinkFlags.ResolveSink(dynamicClient, namespace)
 				if err != nil {
-					return err
+					return fmt.Errorf(
+						"cannot update ContainerSource '%s' in namespace '%s' "+
+							"because: %s", name, namespace, err)
 				}
 				b.Sink(*objectRef)
 			}

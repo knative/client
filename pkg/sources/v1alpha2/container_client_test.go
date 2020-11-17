@@ -76,6 +76,59 @@ func TestCreateContainerSourceSource(t *testing.T) {
 
 }
 
+func TestGetContainerSource(t *testing.T) {
+	sourcesServer, client := setupFakeContainerSourcesClient()
+
+	sourcesServer.AddReactor("get", "containersources",
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			name := a.(clienttesting.GetAction).GetName()
+			if name == "errorSource" {
+				return true, nil, fmt.Errorf("error while getting Container source %s", name)
+			}
+			return true, newContainerSource(name, "Event"), nil
+		})
+	testsource, err := client.GetContainerSource("foo")
+	assert.NilError(t, err)
+	assert.Equal(t, testsource.Name, "foo")
+	assert.Equal(t, testsource.Spec.Sink.Ref.Name, "foosvc")
+
+	_, err = client.GetContainerSource("errorSource")
+	assert.ErrorContains(t, err, "errorSource")
+}
+
+func TestUpdateContainerSource(t *testing.T) {
+	sourcesServer, client := setupFakeContainerSourcesClient()
+
+	sourcesServer.AddReactor("update", "containersources",
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			updatedSource := a.(clienttesting.UpdateAction).GetObject()
+			name := updatedSource.(metav1.Object).GetName()
+			if name == "errorSource" {
+				return true, nil, fmt.Errorf("error while updating Container source %s", name)
+			}
+			return true, NewContainerSourceBuilderFromExisting(updatedSource.(*v1alpha2.ContainerSource)).Build(), nil
+		})
+	err := client.UpdateContainerSource(newContainerSource("foo", "Event"))
+	assert.NilError(t, err)
+
+	err = client.UpdateContainerSource(newContainerSource("errorSource", "Event"))
+	assert.ErrorContains(t, err, "errorSource")
+}
+
+func TestListContainerSource(t *testing.T) {
+	sourcesServer, client := setupFakeContainerSourcesClient()
+
+	sourcesServer.AddReactor("list", "containersources",
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			cJSource := newContainerSource("testsource", "Event")
+			return true, &v1alpha2.ContainerSourceList{Items: []v1alpha2.ContainerSource{*cJSource}}, nil
+		})
+
+	sourceList, err := client.ListContainerSources()
+	assert.NilError(t, err)
+	assert.Equal(t, len(sourceList.Items), 1)
+}
+
 func newContainerSource(name, container string) *v1alpha2.ContainerSource {
 	b := NewContainerSourceBuilder(name).
 		PodSpec(corev1.PodSpec{}).

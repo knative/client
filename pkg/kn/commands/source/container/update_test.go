@@ -48,3 +48,15 @@ func TestContainerSourceUpdate(t *testing.T) {
 
 	containerRecorder.Validate()
 }
+
+func TestContainerSourceUpdateSinkError(t *testing.T) {
+	containerClient := v1alpha2.NewMockKnContainerSourceClient(t)
+	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default")
+	containerRecorder := containerClient.Recorder()
+	present := createContainerSource("testsource", "docker.io/test/testimg", createSinkv1("svc2", "default"))
+	containerRecorder.GetContainerSource("testsource", present, nil)
+	errorMsg := "cannot update ContainerSource 'testsource' in namespace 'default' because: services.serving.knative.dev \"testsvc\" not found"
+	out, err := executeContainerSourceCommand(containerClient, dynamicClient, "update", "testsource", "--sink", "ksvc:testsvc")
+	assert.Error(t, err, errorMsg)
+	assert.Assert(t, util.ContainsAll(out, errorMsg, "Usage"))
+}

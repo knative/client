@@ -45,10 +45,8 @@ func TestSourceContainer(t *testing.T) {
 	containerSourceCreate(r, "testsource0", "ksvc:testsvc0")
 	containerSourceListOutputName(r, "testsource0")
 
-	t.Log("list sources")
-	output := sourceList(r)
-	assert.Check(t, util.ContainsAll(output, "NAME", "IMAGE", "SINK", "READY"))
-	assert.Check(t, util.ContainsAll(output, "testsource0", "grpc-ping", "ksvc:testsvc0"))
+	t.Log("list container sources")
+	containerSourceList(r, "testsource0")
 
 	t.Log("delete container sources")
 	containerSourceDelete(r, "testsource0")
@@ -76,6 +74,14 @@ func containerSourceListOutputName(r *test.KnRunResultCollector, containerSource
 	out := r.KnTest().Kn().Run("source", "container", "list", "--output", "name")
 	r.AssertNoError(out)
 	assert.Check(r.T(), util.ContainsAll(out.Stdout, containerSources...))
+}
+
+func containerSourceList(r *test.KnRunResultCollector, containerSources ...string) {
+	out := r.KnTest().Kn().Run("source", "container", "list")
+	r.AssertNoError(out)
+	assert.Check(r.T(), util.ContainsAll(out.Stdout, "NAME", "IMAGE", "SINK", "READY"))
+	assert.Check(r.T(), util.ContainsAll(out.Stdout, containerSources...))
+	assert.Check(r.T(), util.ContainsAll(out.Stdout, "grpc-ping", "ksvc:testsvc0"))
 }
 
 func containerSourceCreateMissingSink(r *test.KnRunResultCollector, sourceName string, sink string) {

@@ -32,7 +32,6 @@ import (
 
 var blankConfig clientcmd.ClientConfig
 
-// TODO: Remove that blankConfig hack for tests in favor of overwriting GetConfig()
 func init() {
 	var err error
 	blankConfig, err = clientcmd.NewClientConfigFromBytes([]byte(`kind: Config
