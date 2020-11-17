@@ -34,8 +34,8 @@ import (
 )
 
 const (
-	operation_not_suported_error = "this operation is not supported in gitops mode"
-	ksvc_kind                    = "ksvc"
+	operationNotSuportedError = "this operation is not supported in gitops mode"
+	ksvcKind                  = "ksvc"
 )
 
 // knServingGitOpsClient - kn service client
@@ -58,7 +58,7 @@ func NewKnServingGitOpsClient(namespace, dir string) KnServingClient {
 }
 
 func (cl *knServingGitOpsClient) getKsvcFilePath(name string) string {
-	return filepath.Join(cl.dir, cl.namespace, ksvc_kind, name+".yaml")
+	return filepath.Join(cl.dir, cl.namespace, ksvcKind, name+".yaml")
 }
 
 // Namespace returns the namespace
@@ -90,12 +90,12 @@ func getServiceFromFile(filePath, name string) (*servingv1.Service, error) {
 
 // WatchService is not supported by this client
 func (cl *knServingGitOpsClient) WatchService(name string, timeout time.Duration) (watch.Interface, error) {
-	return nil, fmt.Errorf(operation_not_suported_error)
+	return nil, fmt.Errorf(operationNotSuportedError)
 }
 
 // WatchRevision is not supported by this client
 func (cl *knServingGitOpsClient) WatchRevision(name string, timeout time.Duration) (watch.Interface, error) {
-	return nil, fmt.Errorf(operation_not_suported_error)
+	return nil, fmt.Errorf(operationNotSuportedError)
 }
 
 // ListServices lists the services in the path provided
@@ -121,7 +121,7 @@ func (cl *knServingGitOpsClient) ListServices(config ...ListConfig) (*servingv1.
 			return nil
 
 		// skip non ksvc dir
-		case !strings.Contains(path, ksvc_kind):
+		case !strings.Contains(path, ksvcKind):
 			return filepath.SkipDir
 
 		default:
@@ -153,7 +153,7 @@ func (cl *knServingGitOpsClient) ListServices(config ...ListConfig) (*servingv1.
 // yaml format in the local path provided
 func (cl *knServingGitOpsClient) CreateService(service *servingv1.Service) error {
 	// create dir , if not present
-	namespaceDir := filepath.Join(cl.dir, cl.namespace, ksvc_kind)
+	namespaceDir := filepath.Join(cl.dir, cl.namespace, ksvcKind)
 	if _, err := os.Stat(namespaceDir); os.IsNotExist(err) {
 		os.MkdirAll(namespaceDir, 0777)
 	}
@@ -183,7 +183,7 @@ func (cl *knServingGitOpsClient) UpdateServiceWithRetry(name string, updateFunc 
 
 // ApplyService is not supported by this client
 func (cl *knServingGitOpsClient) ApplyService(modifiedService *servingv1.Service) (bool, error) {
-	return false, fmt.Errorf(operation_not_suported_error)
+	return false, fmt.Errorf(operationNotSuportedError)
 }
 
 // DeleteService removes the file from the local file system
@@ -198,45 +198,45 @@ func (cl *knServingGitOpsClient) WaitForService(name string, timeout time.Durati
 
 // GetConfiguration not supported by this client
 func (cl *knServingGitOpsClient) GetConfiguration(name string) (*servingv1.Configuration, error) {
-	return nil, fmt.Errorf(operation_not_suported_error)
+	return nil, fmt.Errorf(operationNotSuportedError)
 }
 
 // GetRevision not supported by this client
 func (cl *knServingGitOpsClient) GetRevision(name string) (*servingv1.Revision, error) {
-	return nil, fmt.Errorf(operation_not_suported_error)
+	return nil, fmt.Errorf(operationNotSuportedError)
 }
 
 // GetBaseRevision not supported by this client
 func (cl *knServingGitOpsClient) GetBaseRevision(service *servingv1.Service) (*servingv1.Revision, error) {
-	return nil, fmt.Errorf(operation_not_suported_error)
+	return nil, fmt.Errorf(operationNotSuportedError)
 }
 
 // CreateRevision not supported by this client
 func (cl *knServingGitOpsClient) CreateRevision(revision *servingv1.Revision) error {
-	return fmt.Errorf(operation_not_suported_error)
+	return fmt.Errorf(operationNotSuportedError)
 }
 
 // UpdateRevision not supported by this client
 func (cl *knServingGitOpsClient) UpdateRevision(revision *servingv1.Revision) error {
-	return fmt.Errorf(operation_not_suported_error)
+	return fmt.Errorf(operationNotSuportedError)
 }
 
 // DeleteRevision not supported by this client
 func (cl *knServingGitOpsClient) DeleteRevision(name string, timeout time.Duration) error {
-	return fmt.Errorf(operation_not_suported_error)
+	return fmt.Errorf(operationNotSuportedError)
 }
 
 // ListRevisions not supported by this client
 func (cl *knServingGitOpsClient) ListRevisions(config ...ListConfig) (*servingv1.RevisionList, error) {
-	return nil, fmt.Errorf(operation_not_suported_error)
+	return nil, fmt.Errorf(operationNotSuportedError)
 }
 
 // GetRoute not supported by this client
 func (cl *knServingGitOpsClient) GetRoute(name string) (*servingv1.Route, error) {
-	return nil, fmt.Errorf(operation_not_suported_error)
+	return nil, fmt.Errorf(operationNotSuportedError)
 }
 
 // ListRoutes not supported by this client
 func (cl *knServingGitOpsClient) ListRoutes(config ...ListConfig) (*servingv1.RouteList, error) {
-	return nil, fmt.Errorf(operation_not_suported_error)
+	return nil, fmt.Errorf(operationNotSuportedError)
 }

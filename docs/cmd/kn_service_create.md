@@ -48,6 +48,9 @@ kn service create NAME --image IMAGE
   # [https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/]
   # [https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/]
   kn service create s4gpu --image knativesamples/hellocuda-go --request memory=250Mi,cpu=200m --limit nvidia.com/gpu=1
+
+  # Create the service in a local directory instead of kubernetes cluster
+  kn service create gitopstest --image knativesamples/helloworld --in-dir=/user/knfiles
 ```
 
 ### Options
@@ -69,6 +72,7 @@ kn service create NAME --image IMAGE
       --force                             Create service forcefully, replaces existing service if any.
   -h, --help                              help for create
       --image string                      Image to run.
+      --in-dir string                     work on local directory instead of a remote cluster
   -l, --label stringArray                 Labels to set for both Service and Revision. name=value; you may provide this flag any number of times to set multiple labels. To unset, specify the label name followed by a "-" (e.g., name-).
       --label-revision stringArray        Revision label to set. name=value; you may provide this flag any number of times to set multiple labels. To unset, specify the label name followed by a "-" (e.g., name-). This flag takes precedence over the "label" flag.
       --label-service stringArray         Service label to set. name=value; you may provide this flag any number of times to set multiple labels. To unset, specify the label name followed by a "-" (e.g., name-). This flag takes precedence over the "label" flag.

@@ -29,6 +29,7 @@ kn service delete NAME [NAME ...]
 ```
       --all                Delete all services in a namespace.
   -h, --help               help for delete
+      --in-dir string      work on local directory instead of a remote cluster
   -n, --namespace string   Specify the namespace to operate in.
       --no-wait            Do not wait for 'service delete' operation to be completed. (default true)
       --wait               Wait for 'service delete' operation to be completed.

@@ -70,7 +70,10 @@ var create_example = `
   # Create a service with 250MB memory, 200m CPU requests and a GPU resource limit
   # [https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/]
   # [https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/]
-  kn service create s4gpu --image knativesamples/hellocuda-go --request memory=250Mi,cpu=200m --limit nvidia.com/gpu=1`
+  kn service create s4gpu --image knativesamples/hellocuda-go --request memory=250Mi,cpu=200m --limit nvidia.com/gpu=1
+
+  # Create the service in a local directory instead of kubernetes cluster
+  kn service create gitopstest --image knativesamples/helloworld --in-dir=/user/knfiles`
 
 func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 	var editFlags ConfigurationEditFlags
