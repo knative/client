@@ -68,7 +68,7 @@ func executeRevisionCommand(client clientservingv1.KnServingClient, args ...stri
 
 	output := new(bytes.Buffer)
 	knParams.Output = output
-	knParams.NewServingClient = func(namespace string) (clientservingv1.KnServingClient, error) {
+	knParams.NewServingClient = func(namespace string, cmd *cobra.Command) (clientservingv1.KnServingClient, error) {
 		return client, nil
 	}
 	cmd := NewRevisionCommand(knParams)

@@ -48,7 +48,7 @@ func NewServiceListCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			client, err := p.NewServingClient(namespace)
+			client, err := p.NewServingClient(namespace, cmd)
 			if err != nil {
 				return err
 			}
@@ -81,6 +81,7 @@ func NewServiceListCommand(p *commands.KnParams) *cobra.Command {
 		},
 	}
 	commands.AddNamespaceFlags(serviceListCommand.Flags(), true)
+	commands.AddGitOpsFlags(serviceListCommand.Flags())
 	serviceListFlags.AddFlags(serviceListCommand)
 	return serviceListCommand
 }

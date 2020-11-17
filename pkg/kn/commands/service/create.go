@@ -107,7 +107,7 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			client, err := p.NewServingClient(namespace)
+			client, err := p.NewServingClient(namespace, cmd)
 			if err != nil {
 				return err
 			}
@@ -134,6 +134,7 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 		},
 	}
 	commands.AddNamespaceFlags(serviceCreateCommand.Flags(), false)
+	commands.AddGitOpsFlags(serviceCreateCommand.Flags())
 	editFlags.AddCreateFlags(serviceCreateCommand)
 	waitFlags.AddConditionWaitFlags(serviceCreateCommand, commands.WaitDefaultTimeout, "create", "service", "ready")
 	return serviceCreateCommand

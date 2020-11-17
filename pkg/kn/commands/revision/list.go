@@ -59,7 +59,7 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			client, err := p.NewServingClient(namespace)
+			client, err := p.NewServingClient(namespace, cmd)
 			if err != nil {
 				return err
 			}
@@ -94,7 +94,7 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 
 			// Only add temporary annotations if human readable output is requested
 			if !revisionListFlags.GenericPrintFlags.OutputFlagSpecified() {
-				err = enrichRevisionAnnotationsWithServiceData(p.NewServingClient, revisionList)
+				err = enrichRevisionAnnotationsWithServiceData(cmd, p.NewServingClient, revisionList)
 				if err != nil {
 					return err
 				}
@@ -191,14 +191,14 @@ func revisionListSortFunc(revisionList *servingv1.RevisionList) func(i int, j in
 }
 
 // Service factory function for a namespace
-type serviceFactoryFunc func(namespace string) (clientservingv1.KnServingClient, error)
+type serviceFactoryFunc func(namespace string, cmd *cobra.Command) (clientservingv1.KnServingClient, error)
 
 // A function which looks up a service by name
 type serviceGetFunc func(namespace, serviceName string) (*servingv1.Service, error)
 
 // Create revision info with traffic and tag information (if present)
-func enrichRevisionAnnotationsWithServiceData(serviceFactory serviceFactoryFunc, revisionList *servingv1.RevisionList) error {
-	serviceLookup := serviceLookup(serviceFactory)
+func enrichRevisionAnnotationsWithServiceData(cmd *cobra.Command, serviceFactory serviceFactoryFunc, revisionList *servingv1.RevisionList) error {
+	serviceLookup := serviceLookup(cmd, serviceFactory)
 
 	for _, revision := range revisionList.Items {
 		serviceName := revision.Labels[serving.ServiceLabelKey]
@@ -223,7 +223,7 @@ func enrichRevisionAnnotationsWithServiceData(serviceFactory serviceFactoryFunc,
 }
 
 // Create a function for being able to lookup a service for an arbitrary namespace
-func serviceLookup(serviceFactory serviceFactoryFunc) serviceGetFunc {
+func serviceLookup(cmd *cobra.Command, serviceFactory serviceFactoryFunc) serviceGetFunc {
 
 	// Two caches: For service & clients (clients might not be necessary though)
 	serviceCache := make(map[string]*servingv1.Service)
@@ -237,7 +237,7 @@ func serviceLookup(serviceFactory serviceFactoryFunc) serviceGetFunc {
 		client := clientCache[namespace]
 		if client == nil {
 			var err error
-			client, err = serviceFactory(namespace)
+			client, err = serviceFactory(namespace, cmd)
 			if err != nil {
 				return nil, err
 			}

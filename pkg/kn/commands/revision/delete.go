@@ -43,7 +43,7 @@ func NewRevisionDeleteCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			client, err := p.NewServingClient(namespace)
+			client, err := p.NewServingClient(namespace, cmd)
 			if err != nil {
 				return err
 			}

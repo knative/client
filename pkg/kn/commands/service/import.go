@@ -58,7 +58,7 @@ func NewServiceImportCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			client, err := p.NewServingClient(namespace)
+			client, err := p.NewServingClient(namespace, cmd)
 			if err != nil {
 				return err
 			}

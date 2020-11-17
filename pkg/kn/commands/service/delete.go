@@ -62,7 +62,7 @@ func NewServiceDeleteCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			client, err := p.NewServingClient(namespace)
+			client, err := p.NewServingClient(namespace, cmd)
 			if err != nil {
 				return err
 			}
@@ -100,6 +100,7 @@ func NewServiceDeleteCommand(p *commands.KnParams) *cobra.Command {
 	flags := serviceDeleteCommand.Flags()
 	flags.Bool("all", false, "Delete all services in a namespace.")
 	commands.AddNamespaceFlags(serviceDeleteCommand.Flags(), false)
+	commands.AddGitOpsFlags(serviceDeleteCommand.Flags())
 	waitFlags.AddConditionWaitFlags(serviceDeleteCommand, commands.WaitDefaultTimeout, "delete", "service", "deleted")
 	return serviceDeleteCommand
 }

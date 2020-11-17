@@ -68,7 +68,7 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			client, err := p.NewServingClient(namespace)
+			client, err := p.NewServingClient(namespace, cmd)
 			if err != nil {
 				return err
 			}
@@ -131,6 +131,7 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 	}
 
 	commands.AddNamespaceFlags(serviceUpdateCommand.Flags(), false)
+	commands.AddGitOpsFlags(serviceUpdateCommand.Flags())
 	editFlags.AddUpdateFlags(serviceUpdateCommand)
 	waitFlags.AddConditionWaitFlags(serviceUpdateCommand, commands.WaitDefaultTimeout, "update", "service", "ready")
 	trafficFlags.Add(serviceUpdateCommand)
