@@ -22,6 +22,11 @@
 | https://github.com/knative/client/pull/1117[#1117]
 |===
 
+| 🎁
+| Add "url" output format to return broker url in broker describe and channel url in channel describe
+| https://github.com/knative/client/pull/1118[#1118]
+|===
+
 ### v0.19.0 (2020-11-11)
 [cols="1,10,3", options="header", width="100%"]
 |===

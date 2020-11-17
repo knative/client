@@ -17,12 +17,16 @@ package channel
 import (
 	"bytes"
 
+	"knative.dev/pkg/apis"
+	duckv1 "knative.dev/pkg/apis/duck/v1"
+
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/tools/clientcmd"
 	"knative.dev/eventing/pkg/apis/messaging/v1beta1"
 
 	"knative.dev/client/pkg/kn/commands"
 	clientv1beta1 "knative.dev/client/pkg/messaging/v1beta1"
+	eventingduck "knative.dev/eventing/pkg/apis/duck/v1beta1"
 )
 
 // Helper methods
@@ -78,4 +82,18 @@ func cleanupChannelMockClient() {
 
 func createChannel(name, namespace string, gvk *schema.GroupVersionKind) *v1beta1.Channel {
 	return clientv1beta1.NewChannelBuilder(name, namespace).Type(gvk).Build()
+}
+
+func createChannelWithStatus(name string, namespace string, gvk *schema.GroupVersionKind) *v1beta1.Channel {
+	channel := clientv1beta1.NewChannelBuilder(name, namespace).Type(gvk).Build()
+	channel.Status = v1beta1.ChannelStatus{
+		ChannelableStatus: eventingduck.ChannelableStatus{
+			AddressStatus: duckv1.AddressStatus{
+				Address: &duckv1.Addressable{
+					URL: &apis.URL{Scheme: "http", Host: "pipe-channel.test"},
+				},
+			},
+		},
+	}
+	return channel
 }

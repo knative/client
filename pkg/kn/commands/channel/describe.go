@@ -17,6 +17,7 @@ package channel
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -28,6 +29,13 @@ import (
 	"knative.dev/client/pkg/printers"
 )
 
+var describeExample = `
+  # Describe a channel 'pipe'
+  kn channel describe pipe
+
+  # Print only channel URL
+  kn channel describe pipe -o url`
+
 // NewChannelDescribeCommand returns a new command for describe a channel object
 func NewChannelDescribeCommand(p *commands.KnParams) *cobra.Command {
 
@@ -35,11 +43,9 @@ func NewChannelDescribeCommand(p *commands.KnParams) *cobra.Command {
 	machineReadablePrintFlags := genericclioptions.NewPrintFlags("")
 
 	cmd := &cobra.Command{
-		Use:   "describe NAME",
-		Short: "Show details of a channel",
-		Example: `
-  # Describe a channel 'pipe'
-  kn channel describe pipe`,
+		Use:     "describe NAME",
+		Short:   "Show details of a channel",
+		Example: describeExample,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("'kn channel describe' requires the channel name given as single argument")
@@ -59,6 +65,10 @@ func NewChannelDescribeCommand(p *commands.KnParams) *cobra.Command {
 			out := cmd.OutOrStdout()
 
 			if machineReadablePrintFlags.OutputFlagSpecified() {
+				if strings.ToLower(*machineReadablePrintFlags.OutputFormat) == "url" {
+					fmt.Fprintf(out, "%s\n", extractURL(channel))
+					return nil
+				}
 				printer, err := machineReadablePrintFlags.ToPrinter()
 				if err != nil {
 					return err
@@ -92,6 +102,7 @@ func NewChannelDescribeCommand(p *commands.KnParams) *cobra.Command {
 	commands.AddNamespaceFlags(flags, false)
 	flags.BoolP("verbose", "v", false, "More output.")
 	machineReadablePrintFlags.AddFlags(cmd)
+	cmd.Flag("output").Usage = fmt.Sprintf("Output format. One of: %s.", strings.Join(append(machineReadablePrintFlags.AllowedFormats(), "url"), "|"))
 	return cmd
 }
 
@@ -100,6 +111,10 @@ func writeChannel(dw printers.PrefixWriter, channel *messagingv1beta1.Channel, p
 	ctype := fmt.Sprintf("%s (%s)", channel.Spec.ChannelTemplate.Kind, channel.Spec.ChannelTemplate.APIVersion)
 	dw.WriteAttribute("Type", ctype)
 	if channel.Status.Address != nil {
-		dw.WriteAttribute("URL", channel.Status.Address.URL.String())
+		dw.WriteAttribute("URL", extractURL(channel))
 	}
+}
+
+func extractURL(channel *messagingv1beta1.Channel) string {
+	return channel.Status.Address.URL.String()
 }

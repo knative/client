@@ -73,6 +73,19 @@ func TestDescribeError(t *testing.T) {
 	recorder.Validate()
 }
 
+func TestBrokerDescribeURL(t *testing.T) {
+	client := clientv1beta1.NewMockKnEventingClient(t, "mynamespace")
+
+	recorder := client.Recorder()
+	recorder.GetBroker("foo", getBroker(), nil)
+
+	out, err := executeBrokerCommand(client, "describe", "foo", "-o", "url")
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(out, "http://foo-broker.test"))
+
+	recorder.Validate()
+}
+
 func getBroker() *v1beta1.Broker {
 	return &v1beta1.Broker{
 		TypeMeta: v1.TypeMeta{},
