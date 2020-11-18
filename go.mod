@@ -17,16 +17,16 @@ require (
 	golang.org/x/crypto v0.0.0-20201002170205-7f63de1d35b0
 	gopkg.in/ini.v1 v1.56.0 // indirect
 	gotest.tools v2.2.0+incompatible
-	k8s.io/api v0.18.8
-	k8s.io/apimachinery v0.18.8
+	k8s.io/api v0.18.12
+	k8s.io/apimachinery v0.18.12
 	k8s.io/cli-runtime v0.18.8
 	k8s.io/client-go v11.0.1-0.20190805182717-6502b5e7b1b5+incompatible
-	k8s.io/code-generator v0.18.8
-	knative.dev/eventing v0.19.1-0.20201117061051-47ee6e3586ca
+	k8s.io/code-generator v0.18.12
+	knative.dev/eventing v0.19.1-0.20201117202251-be93f9495205
 	knative.dev/hack v0.0.0-20201112185459-01a34c573bd8
-	knative.dev/networking v0.0.0-20201117131851-29d71950ee3d
-	knative.dev/pkg v0.0.0-20201117020252-ab1a398f669c
-	knative.dev/serving v0.19.1-0.20201117120351-3e2a380308b2
+	knative.dev/networking v0.0.0-20201117214051-8e7d4b6f6175
+	knative.dev/pkg v0.0.0-20201117221452-0fccc54273ed
+	knative.dev/serving v0.19.1-0.20201118010952-d68e60811674
 	sigs.k8s.io/yaml v1.2.0
 )
 
