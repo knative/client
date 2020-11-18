@@ -225,11 +225,15 @@ func (c *knEventingClient) CreateBroker(broker *v1beta1.Broker) error {
 
 // GetBroker is used to get an instance of broker
 func (c *knEventingClient) GetBroker(name string) (*v1beta1.Broker, error) {
-	trigger, err := c.client.Brokers(c.namespace).Get(context.TODO(), name, apis_v1.GetOptions{})
+	broker, err := c.client.Brokers(c.namespace).Get(context.TODO(), name, apis_v1.GetOptions{})
 	if err != nil {
 		return nil, kn_errors.GetError(err)
 	}
-	return trigger, nil
+	err = updateEventingGVK(broker)
+	if err != nil {
+		return nil, err
+	}
+	return broker, nil
 }
 
 // WatchBroker is used to create watcher object

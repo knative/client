@@ -86,9 +86,25 @@ func TestBrokerDescribeURL(t *testing.T) {
 	recorder.Validate()
 }
 
+func TestTriggerDescribeMachineReadable(t *testing.T) {
+	client := clientv1beta1.NewMockKnEventingClient(t, "mynamespace")
+
+	recorder := client.Recorder()
+	recorder.GetBroker("foo", getBroker(), nil)
+
+	out, err := executeBrokerCommand(client, "describe", "foo", "-o", "yaml")
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(out, "kind: Broker", "spec:", "status:", "metadata:"))
+
+	recorder.Validate()
+
+}
 func getBroker() *v1beta1.Broker {
 	return &v1beta1.Broker{
-		TypeMeta: v1.TypeMeta{},
+		TypeMeta: v1.TypeMeta{
+			Kind:       "Broker",
+			APIVersion: "eventing.knative.dev/v1beta1",
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "foo",
 			Namespace: "default",
