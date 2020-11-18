@@ -81,9 +81,26 @@ func TestDescribeTriggerWithSinkURI(t *testing.T) {
 	recorder.Validate()
 }
 
+func TestDescribeTriggerMachineReadable(t *testing.T) {
+	client := clientv1beta1.NewMockKnEventingClient(t, "mynamespace")
+
+	recorder := client.Recorder()
+	recorder.GetTrigger("testtrigger", getTriggerSinkRef(), nil)
+
+	output, err := executeTriggerCommand(client, nil, "describe", "testtrigger", "-o", "yaml")
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(output, "kind: Trigger", "spec:", "status:", "metadata:"))
+
+	// Validate that all recorded API methods have been called
+	recorder.Validate()
+}
+
 func getTriggerSinkRef() *v1beta1.Trigger {
 	return &v1beta1.Trigger{
-		TypeMeta: v1.TypeMeta{},
+		TypeMeta: v1.TypeMeta{
+			Kind:       "Trigger",
+			APIVersion: "eventing.knative.dev/v1beta1",
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testtrigger",
 			Namespace: "default",
@@ -110,7 +127,10 @@ func getTriggerSinkRef() *v1beta1.Trigger {
 
 func getTriggerSinkURI() *v1beta1.Trigger {
 	return &v1beta1.Trigger{
-		TypeMeta: v1.TypeMeta{},
+		TypeMeta: v1.TypeMeta{
+			Kind:       "Trigger",
+			APIVersion: "eventing.knative.dev/v1beta1",
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testtrigger",
 			Namespace: "default",

@@ -97,6 +97,10 @@ func (c *knEventingClient) GetTrigger(name string) (*v1beta1.Trigger, error) {
 	if err != nil {
 		return nil, kn_errors.GetError(err)
 	}
+	err = updateEventingGVK(trigger)
+	if err != nil {
+		return nil, err
+	}
 	return trigger, nil
 }
 
