@@ -20,6 +20,9 @@ kn broker describe NAME
   # Describe broker 'mybroker' in the 'myproject' namespace
   kn broker describe mybroker --namespace myproject
 
+  # Describe broker 'mybroker' in YAML format
+  kn broker describe mybroker -o yaml
+
   # Print only broker URL
   kn broker describe mybroker -o url
 ```
