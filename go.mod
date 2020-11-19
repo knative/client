@@ -38,4 +38,5 @@ replace (
 	k8s.io/cli-runtime => k8s.io/cli-runtime v0.18.8
 	k8s.io/client-go => k8s.io/client-go v0.18.8
 	k8s.io/code-generator => k8s.io/code-generator v0.18.8
+	knative.dev/hack => github.com/navidshaikh/hack v0.0.1
 )

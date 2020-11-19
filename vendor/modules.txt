@@ -873,7 +873,7 @@ knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1beta1/fake
 knative.dev/eventing/pkg/client/clientset/versioned/typed/messaging/v1beta1
 knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha2
 knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha2/fake
-# knative.dev/hack v0.0.0-20201112185459-01a34c573bd8
+# knative.dev/hack v0.0.0-20201112185459-01a34c573bd8 => github.com/navidshaikh/hack v0.0.1
 ## explicit
 knative.dev/hack
 # knative.dev/networking v0.0.0-20201117214051-8e7d4b6f6175
@@ -977,3 +977,4 @@ sigs.k8s.io/yaml
 # k8s.io/cli-runtime => k8s.io/cli-runtime v0.18.8
 # k8s.io/client-go => k8s.io/client-go v0.18.8
 # k8s.io/code-generator => k8s.io/code-generator v0.18.8
+# knative.dev/hack => github.com/navidshaikh/hack v0.0.1
