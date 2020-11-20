@@ -18,13 +18,22 @@
 package e2e
 
 import (
+	"strings"
 	"testing"
 	"time"
 
 	"gotest.tools/assert"
+	"k8s.io/apimachinery/pkg/util/wait"
 
 	"knative.dev/client/lib/test"
 	"knative.dev/client/pkg/util"
+)
+
+const (
+	// interval specifies the time between two polls.
+	interval = 10 * time.Second
+	// timeout specifies the timeout for the function PollImmediate to reach a certain status.
+	timeout = 5 * time.Minute
 )
 
 func TestSourcePing(t *testing.T) {
@@ -56,6 +65,11 @@ func TestSourcePing(t *testing.T) {
 	pingSourceCreate(r, "testpingsource2", "* * * * */1", "ping", "ksvc:testsvc0")
 	test.ServiceCreate(r, "testsvc1")
 	pingSourceUpdateSink(r, "testpingsource2", "ksvc:testsvc1")
+	err = waitForPingSourceSinkUpdate(t, it, "testpingsource2", "testsvc1")
+	if err != nil {
+		t.Fatalf("failed to verify if sink is updated for ping source")
+	}
+
 	jpSinkRefNameInSpec := "jsonpath={.spec.sink.ref.name}"
 	out, err := test.GetResourceFieldsWithJSONPath(t, it, "pingsource", "testpingsource2", jpSinkRefNameInSpec)
 	assert.NilError(t, err)
@@ -65,6 +79,16 @@ func TestSourcePing(t *testing.T) {
 	mymsg := "This is a message from Ping."
 	pingSourceCreate(r, "testpingsource3", "*/1 * * * *", mymsg, "ksvc:testsvc1")
 	verifyPingSourceDescribe(r, "testpingsource3", "*/1 * * * *", mymsg, "testsvc1")
+}
+
+func waitForPingSourceSinkUpdate(t *testing.T, it *test.KnTest, name, sink string) error {
+	return wait.PollImmediate(interval, timeout, func() (bool, error) {
+		out, err := test.GetResourceFieldsWithJSONPath(t, it, "pingsource", name, "jsonpath={.spec.sink.ref.name}")
+		if err != nil {
+			return false, err
+		}
+		return strings.Contains(out, sink), nil
+	})
 }
 
 func pingSourceCreate(r *test.KnRunResultCollector, sourceName string, schedule string, data string, sink string) {
