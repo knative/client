@@ -19,6 +19,7 @@ package e2e
 
 import (
 	"testing"
+	"time"
 
 	"gotest.tools/assert"
 
@@ -96,6 +97,7 @@ func pingSourceUpdateSink(r *test.KnRunResultCollector, sourceName string, sink 
 	out := r.KnTest().Kn().Run("source", "ping", "update", sourceName, "--sink", sink)
 	assert.Check(r.T(), util.ContainsAll(out.Stdout, sourceName, "updated", "namespace", r.KnTest().Kn().Namespace()))
 	r.AssertNoError(out)
+	time.Sleep(10 * time.Second)
 }
 
 func verifyPingSourceDescribe(r *test.KnRunResultCollector, sourceName string, schedule string, data string, sink string) {
