@@ -56,6 +56,9 @@ func TestSink(t *testing.T) {
 	pingSourceUpdateSink(r, "testpingsource0", "channel:pipe")
 	out, err = test.GetResourceFieldsWithJSONPath(t, it, "pingsource", "testpingsource0", jpSinkRefNameInSpec)
 	assert.NilError(t, err)
+	desc, err := test.NewKubectl(it.Kn().Namespace()).Run("get", "pingsource", "testpingsource0", "-oyaml", "-n", it.Kn().Namespace())
+	assert.NilError(t, err)
+	t.Logf("ping source describe %s", desc)
 	assert.Equal(t, out, "pipe")
 
 	t.Log("delete Ping sources")
