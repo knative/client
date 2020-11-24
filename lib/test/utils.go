@@ -36,6 +36,14 @@ func GetResourceFieldsWithJSONPath(t *testing.T, it *KnTest, resource, name, jso
 	return out, nil
 }
 
+func KubectlGetResourceYAML(t *testing.T, it *KnTest, resource, name string) (string, error) {
+	out, err := NewKubectl(it.Kn().Namespace()).Run("get", resource, name, "-oyaml", "-n", it.Kn().Namespace())
+	if err != nil {
+		return "", err
+	}
+	return out, nil
+}
+
 // CreateFile creates a file with given name, content, path, fileMode and returns absolute filepath and error if any
 func CreateFile(fileName, fileContent, filePath string, fileMode os.FileMode) (string, error) {
 	file := filepath.Join(filePath, fileName)

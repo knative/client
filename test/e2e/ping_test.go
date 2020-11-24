@@ -58,6 +58,9 @@ func TestSourcePing(t *testing.T) {
 	jpSinkRefNameInSpec := "jsonpath={.spec.sink.ref.name}"
 	out, err := test.GetResourceFieldsWithJSONPath(t, it, "pingsource", "testpingsource2", jpSinkRefNameInSpec)
 	assert.NilError(t, err)
+	getyaml, err := test.KubectlGetResourceYAML(t, it, "pingsource", "testpingsource2")
+	assert.NilError(t, err)
+	t.Logf("ping source get yaml %s", getyaml)
 	assert.Equal(t, out, "testsvc1")
 
 	t.Log("verify Ping source description")
@@ -93,8 +96,8 @@ func pingSourceCreateMissingSink(r *test.KnRunResultCollector, sourceName string
 }
 
 func pingSourceUpdateSink(r *test.KnRunResultCollector, sourceName string, sink string) {
-	out := r.KnTest().Kn().Run("source", "ping", "update", sourceName, "--sink", sink)
-	assert.Check(r.T(), util.ContainsAll(out.Stdout, sourceName, "updated", "namespace", r.KnTest().Kn().Namespace()))
+	out := r.KnTest().Kn().Run("source", "ping", "update", sourceName, "--sink", sink, "--log-http")
+	//assert.Check(r.T(), util.ContainsAll(out.Stdout, sourceName, "updated", "namespace", r.KnTest().Kn().Namespace()))
 	r.AssertNoError(out)
 }
 
