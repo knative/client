@@ -35,6 +35,8 @@ source $(dirname $0)/common.sh
 # Add local dir to have access to built kn
 export PATH=$PATH:${REPO_ROOT_DIR}
 
+# Temp fix until eventing nightly is fixed
+export KNATIVE_EVENTING_VERSION="0.19.1"
 
 run() {
   # Create cluster
