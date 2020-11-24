@@ -16,6 +16,10 @@ package trigger
 
 import (
 	"errors"
+	"fmt"
+	"strings"
+
+	"k8s.io/cli-runtime/pkg/genericclioptions"
 
 	"github.com/spf13/cobra"
 
@@ -26,15 +30,23 @@ import (
 	"knative.dev/client/pkg/printers"
 )
 
+var describeExample = `
+  # Describe a trigger with name 'my-trigger'
+  kn trigger describe my-trigger
+
+  # Describe a trigger 'my-trigger' in YAML format
+  kn trigger describe my-trigger -o yaml`
+
 // NewTriggerDescribeCommand returns a new command for describe a trigger
 func NewTriggerDescribeCommand(p *commands.KnParams) *cobra.Command {
 
-	triggerDescribe := &cobra.Command{
-		Use:   "describe NAME",
-		Short: "Show details of a trigger",
-		Example: `
-  # Describe a trigger with name 'my-trigger'
-  kn trigger describe my-trigger`,
+	// For machine readable output
+	machineReadablePrintFlags := genericclioptions.NewPrintFlags("")
+
+	command := &cobra.Command{
+		Use:     "describe NAME",
+		Short:   "Show details of a trigger",
+		Example: describeExample,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("'kn trigger describe' requires name of the trigger as single argument")
@@ -59,6 +71,16 @@ func NewTriggerDescribeCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			out := cmd.OutOrStdout()
+
+			// Print out machine readable output if requested
+			if machineReadablePrintFlags.OutputFlagSpecified() {
+				printer, err := machineReadablePrintFlags.ToPrinter()
+				if err != nil {
+					return err
+				}
+				return printer.PrintObj(trigger, out)
+			}
+
 			dw := printers.NewPrefixWriter(out)
 
 			printDetails, err := cmd.Flags().GetBool("verbose")
@@ -88,11 +110,12 @@ func NewTriggerDescribeCommand(p *commands.KnParams) *cobra.Command {
 			return nil
 		},
 	}
-	flags := triggerDescribe.Flags()
+	flags := command.Flags()
 	commands.AddNamespaceFlags(flags, false)
 	flags.BoolP("verbose", "v", false, "More output.")
-
-	return triggerDescribe
+	machineReadablePrintFlags.AddFlags(command)
+	command.Flag("output").Usage = fmt.Sprintf("Output format. One of: %s.", strings.Join(machineReadablePrintFlags.AllowedFormats(), "|"))
+	return command
 }
 
 func writeTrigger(dw printers.PrefixWriter, trigger *v1beta1.Trigger, printDetails bool) {
