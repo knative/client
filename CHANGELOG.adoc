@@ -12,7 +12,7 @@
 | https://github.com/knative/client/pull/[#]
 ////
 
-### Unreleased
+### v0.19.1 (2020-11-24)
 [cols="1,10,3", options="header", width="100%"]
 |===
 | | Description | PR
