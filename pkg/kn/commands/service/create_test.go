@@ -482,6 +482,145 @@ func TestServiceCreateScaleWithMinScaleSet(t *testing.T) {
 
 }
 
+func TestServiceCreateScaleRange(t *testing.T) {
+	action, created, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
+		"--scale", "1..5", "--no-wait"}, false)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !action.Matches("create", "services") {
+		t.Fatal("Bad action ", action)
+	}
+
+	template := &created.Spec.Template
+
+	actualAnnos := template.Annotations
+	expectedAnnos := []string{
+		"autoscaling.knative.dev/minScale", "1",
+		"autoscaling.knative.dev/maxScale", "5",
+	}
+
+	for i := 0; i < len(expectedAnnos); i += 2 {
+		anno := expectedAnnos[i]
+		if actualAnnos[anno] != expectedAnnos[i+1] {
+			t.Fatalf("Unexpected annotation value for %s : %s (actual) != %s (expected)",
+				anno, actualAnnos[anno], expectedAnnos[i+1])
+		}
+	}
+}
+
+func TestServiceCreateScaleRangeOnlyMin(t *testing.T) {
+	action, created, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
+		"--scale", "1..", "--no-wait"}, false)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !action.Matches("create", "services") {
+		t.Fatal("Bad action ", action)
+	}
+
+	template := &created.Spec.Template
+
+	actualAnnos := template.Annotations
+	expectedAnnos := []string{
+		"autoscaling.knative.dev/minScale", "1",
+	}
+
+	for i := 0; i < len(expectedAnnos); i += 2 {
+		anno := expectedAnnos[i]
+		if actualAnnos[anno] != expectedAnnos[i+1] {
+			t.Fatalf("Unexpected annotation value for %s : %s (actual) != %s (expected)",
+				anno, actualAnnos[anno], expectedAnnos[i+1])
+		}
+	}
+}
+
+func TestServiceCreateScaleRangeOnlyMinNegative(t *testing.T) {
+	_, _, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
+		"--scale", "-1..", "--no-wait"}, true)
+	if err == nil {
+		t.Fatal(err)
+	}
+	expectedErrMsg := "expected 0 <= -1 <= 2147483647: autoscaling.knative.dev/minScale"
+	if !strings.Contains(err.Error(), expectedErrMsg) {
+		t.Errorf("Invalid error output, expected: %s, got : '%s'", expectedErrMsg, err)
+	}
+}
+
+func TestServiceCreateScaleRangeOnlyMax(t *testing.T) {
+	action, created, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
+		"--scale", "..5", "--no-wait"}, false)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !action.Matches("create", "services") {
+		t.Fatal("Bad action ", action)
+	}
+
+	template := &created.Spec.Template
+
+	actualAnnos := template.Annotations
+	expectedAnnos := []string{
+		"autoscaling.knative.dev/maxScale", "5",
+	}
+
+	for i := 0; i < len(expectedAnnos); i += 2 {
+		anno := expectedAnnos[i]
+		if actualAnnos[anno] != expectedAnnos[i+1] {
+			t.Fatalf("Unexpected annotation value for %s : %s (actual) != %s (expected)",
+				anno, actualAnnos[anno], expectedAnnos[i+1])
+		}
+	}
+}
+
+func TestServiceCreateScaleRangeOnlyMaxNegative(t *testing.T) {
+	_, _, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
+		"--scale", "..-5", "--no-wait"}, true)
+	if err == nil {
+		t.Fatal(err)
+	}
+	expectedErrMsg := "expected 0 <= -5 <= 2147483647: autoscaling.knative.dev/maxScale"
+	if !strings.Contains(err.Error(), expectedErrMsg) {
+		t.Errorf("Invalid error output, expected: %s, got : '%s'", expectedErrMsg, err)
+	}
+}
+
+func TestServiceCreateScaleRangeOnlyMinWrongSeparator(t *testing.T) {
+	_, _, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
+		"--scale", "1--", "--no-wait"}, true)
+	if err == nil {
+		t.Fatal(err)
+	}
+	expectedErrMsg := "Scale must be of the format x..y or x"
+	if !strings.Contains(err.Error(), expectedErrMsg) {
+		t.Errorf("Invalid error output, expected: %s, got : '%s'", expectedErrMsg, err)
+	}
+
+}
+
+func TestServiceCreateScaleRangeOnlyMaxWrongSeparator(t *testing.T) {
+	_, _, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
+		"--scale", "--1", "--no-wait"}, true)
+	if err == nil {
+		t.Fatal(err)
+	}
+	expectedErrMsg := "Scale must be of the format x..y or x"
+	if !strings.Contains(err.Error(), expectedErrMsg) {
+		t.Errorf("Invalid error output, expected: %s, got : '%s'", expectedErrMsg, err)
+	}
+
+}
+
 func TestServiceCreateRequestsLimitsCPUMemory(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
