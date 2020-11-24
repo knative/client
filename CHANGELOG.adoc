@@ -12,6 +12,18 @@
 | https://github.com/knative/client/pull/[#]
 ////
 
+## v0.18.3 (2020-11-24)
+
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🐛
+| Embed the namespace in request body while creating channels
+| https://github.com/knative/client/pull/1117[#1117]
+
+|===
+
 ## v0.18.2 (2020-11-10)
 
 [cols="1,10,3", options="header", width="100%"]
