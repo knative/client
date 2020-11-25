@@ -18,6 +18,10 @@
 | | Description | PR
 
 | 🐛
+| Fix a race condition when using Kubernetes watches
+| https://github.com/knative/client/pull/1113[#1113]
+
+| 🐛
 | Embed the namespace in request body while creating channels
 | https://github.com/knative/client/pull/1117[#1117]
 
