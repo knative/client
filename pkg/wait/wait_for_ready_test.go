@@ -41,15 +41,12 @@ func TestAddWaitForReady(t *testing.T) {
 
 		waitForReady := NewWaitForReady(
 			"blub",
-			func(name string, timeout time.Duration) (watch.Interface, error) {
-				return fakeWatchApi, nil
-			},
 			func(obj runtime.Object) (apis.Conditions, error) {
 				return apis.Conditions(obj.(*servingv1.Service).Status.Conditions), nil
 			})
 		fakeWatchApi.Start()
 		var msgs []string
-		err, _ := waitForReady.Wait("foobar", Options{Timeout: &tc.timeout}, func(_ time.Duration, msg string) {
+		err, _ := waitForReady.Wait(fakeWatchApi, "foobar", Options{Timeout: &tc.timeout}, func(_ time.Duration, msg string) {
 			msgs = append(msgs, msg)
 		})
 		close(fakeWatchApi.eventChan)
@@ -69,8 +66,8 @@ func TestAddWaitForReady(t *testing.T) {
 		// check messages
 		assert.Assert(t, cmp.DeepEqual(tc.messagesExpected, msgs), "%d: Messages expected to be equal", i)
 
-		if fakeWatchApi.StopCalled != 1 {
-			t.Errorf("%d: Exactly one 'stop' should be called, but got %d", i, fakeWatchApi.StopCalled)
+		if fakeWatchApi.StopCalled != 0 {
+			t.Errorf("%d: Exactly zero 'stop' should be called, but got %d", i, fakeWatchApi.StopCalled)
 		}
 
 	}
@@ -82,13 +79,10 @@ func TestAddWaitForDelete(t *testing.T) {
 
 		waitForEvent := NewWaitForEvent(
 			"blub",
-			func(name string, timeout time.Duration) (watch.Interface, error) {
-				return fakeWatchAPI, nil
-			},
 			func(evt *watch.Event) bool { return evt.Type == watch.Deleted })
 		fakeWatchAPI.Start()
 
-		err, _ := waitForEvent.Wait("foobar", Options{Timeout: &tc.timeout}, NoopMessageCallback())
+		err, _ := waitForEvent.Wait(fakeWatchAPI, "foobar", Options{Timeout: &tc.timeout}, NoopMessageCallback())
 		close(fakeWatchAPI.eventChan)
 
 		if tc.errorText == "" && err != nil {
@@ -103,8 +97,8 @@ func TestAddWaitForDelete(t *testing.T) {
 			}
 		}
 
-		if fakeWatchAPI.StopCalled != 1 {
-			t.Errorf("%d: Exactly one 'stop' should be called, but got %d", i, fakeWatchAPI.StopCalled)
+		if fakeWatchAPI.StopCalled != 0 {
+			t.Errorf("%d: Exactly zero 'stop' should be called, but got %d", i, fakeWatchAPI.StopCalled)
 		}
 	}
 }

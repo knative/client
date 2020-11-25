@@ -18,6 +18,10 @@
 |===
 | | Description | PR
 
+| 🐛
+| Fix a race condition when using Kubernetes watches
+| https://github.com/knative/client/pull/1113[#1113]
+
 | 🎁
 | Add kn _s390x_ binary to the release
 | https://github.com/knative/client/pull/1083[#1083]
