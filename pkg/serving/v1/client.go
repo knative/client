@@ -275,12 +275,17 @@ func (cl *knServingClient) DeleteService(serviceName string, timeout time.Durati
 		return cl.deleteService(serviceName, v1.DeletePropagationBackground)
 	}
 	waitC := make(chan error)
+	watcher, err := cl.WatchService(serviceName, timeout)
+	if err != nil {
+		return nil
+	}
+	defer watcher.Stop()
 	go func() {
-		waitForEvent := wait.NewWaitForEvent("service", cl.WatchService, func(evt *watch.Event) bool { return evt.Type == watch.Deleted })
-		err, _ := waitForEvent.Wait(serviceName, wait.Options{Timeout: &timeout}, wait.NoopMessageCallback())
+		waitForEvent := wait.NewWaitForEvent("service", func(evt *watch.Event) bool { return evt.Type == watch.Deleted })
+		err, _ := waitForEvent.Wait(watcher, serviceName, wait.Options{Timeout: &timeout}, wait.NoopMessageCallback())
 		waitC <- err
 	}()
-	err := cl.deleteService(serviceName, v1.DeletePropagationForeground)
+	err = cl.deleteService(serviceName, v1.DeletePropagationForeground)
 	if err != nil {
 		return err
 	}
@@ -302,8 +307,13 @@ func (cl *knServingClient) deleteService(serviceName string, propagationPolicy v
 
 // Wait for a service to become ready, but not longer than provided timeout
 func (cl *knServingClient) WaitForService(name string, timeout time.Duration, msgCallback wait.MessageCallback) (error, time.Duration) {
-	waitForReady := wait.NewWaitForReady("service", cl.WatchService, serviceConditionExtractor)
-	return waitForReady.Wait(name, wait.Options{Timeout: &timeout}, msgCallback)
+	watcher, err := cl.WatchService(name, timeout)
+	if err != nil {
+		return err, timeout
+	}
+	defer watcher.Stop()
+	waitForReady := wait.NewWaitForReady("service", serviceConditionExtractor)
+	return waitForReady.Wait(watcher, name, wait.Options{Timeout: &timeout}, msgCallback)
 }
 
 // Get the configuration for a service
@@ -398,9 +408,14 @@ func (cl *knServingClient) DeleteRevision(name string, timeout time.Duration) er
 		return cl.deleteRevision(name)
 	}
 	waitC := make(chan error)
+	watcher, err := cl.WatchRevision(name, timeout)
+	if err != nil {
+		return err
+	}
+	defer watcher.Stop()
 	go func() {
-		waitForEvent := wait.NewWaitForEvent("revision", cl.WatchRevision, func(evt *watch.Event) bool { return evt.Type == watch.Deleted })
-		err, _ := waitForEvent.Wait(name, wait.Options{Timeout: &timeout}, wait.NoopMessageCallback())
+		waitForEvent := wait.NewWaitForEvent("revision", func(evt *watch.Event) bool { return evt.Type == watch.Deleted })
+		err, _ := waitForEvent.Wait(watcher, name, wait.Options{Timeout: &timeout}, wait.NoopMessageCallback())
 		waitC <- err
 	}()
 	err = cl.deleteRevision(name)

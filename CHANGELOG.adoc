@@ -12,6 +12,21 @@
 | https://github.com/knative/client/pull/[#]
 ////
 
+## v0.18.4 (2020-11-25)
+
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🐛
+| Fix a race condition when using Kubernetes watches
+| https://github.com/knative/client/pull/1113[#1113]
+
+| 🎁
+| Add kn _s390x_ binary to the release
+| https://github.com/knative/client/pull/1083[#1083]
+|===
+
 ## v0.18.3 (2020-11-24)
 
 [cols="1,10,3", options="header", width="100%"]
