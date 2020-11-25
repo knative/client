@@ -12,6 +12,24 @@
 | https://github.com/knative/client/pull/[#]
 ////
 
+### v0.19.1 (2020-11-25)
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🐛
+| Fix a race condition when using Kubernetes watches
+| https://github.com/knative/client/pull/1113[#1113]
+
+| 🐛
+| Embed the namespace in request body while creating channels
+| https://github.com/knative/client/pull/1117[#1117]
+
+| 🎁
+| Add kn _s390x_ binary to the release
+| https://github.com/knative/client/pull/1083[#1083]
+|===
+
 ### v0.19.0 (2020-11-11)
 [cols="1,10,3", options="header", width="100%"]
 |===

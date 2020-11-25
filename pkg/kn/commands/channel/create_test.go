@@ -43,7 +43,7 @@ func TestCreateChannelErrorCaseTypeFormat(t *testing.T) {
 func TestCreateChannelDefaultChannel(t *testing.T) {
 	cClient := v1beta1.NewMockKnChannelsClient(t)
 	cRecorder := cClient.Recorder()
-	cRecorder.CreateChannel(createChannel("pipe", nil), nil)
+	cRecorder.CreateChannel(createChannel("pipe", "default", nil), nil)
 	out, err := executeChannelCommand(cClient, "create", "pipe")
 	assert.NilError(t, err, "channel should be created")
 	assert.Assert(t, util.ContainsAll(out, "created", "pipe", "default"))
@@ -53,7 +53,7 @@ func TestCreateChannelDefaultChannel(t *testing.T) {
 func TestCreateChannelWithTypeFlagInMemoryChannel(t *testing.T) {
 	cClient := v1beta1.NewMockKnChannelsClient(t)
 	cRecorder := cClient.Recorder()
-	cRecorder.CreateChannel(createChannel("pipe", &schema.GroupVersionKind{Group: "messaging.knative.dev", Version: "v1beta1", Kind: "InMemoryChannel"}), nil)
+	cRecorder.CreateChannel(createChannel("pipe", "default", &schema.GroupVersionKind{Group: "messaging.knative.dev", Version: "v1beta1", Kind: "InMemoryChannel"}), nil)
 	out, err := executeChannelCommand(cClient, "create", "pipe", "--type", "imcv1beta1")
 	assert.NilError(t, err, "channel should be created")
 	assert.Assert(t, util.ContainsAll(out, "created", "pipe", "default"))
