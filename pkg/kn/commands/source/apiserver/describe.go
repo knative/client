@@ -18,8 +18,10 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/spf13/cobra"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
 	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
 
 	"knative.dev/client/lib/printing"
@@ -27,14 +29,23 @@ import (
 	"knative.dev/client/pkg/printers"
 )
 
+var describeExample = `
+  # Describe an api-server source with name 'k8sevents'
+  kn source apiserver describe k8sevents
+
+  # Describe an api-server source with name 'k8sevents' in YAML format
+  kn source apiserver describe k8sevents -o yaml`
+
 // NewAPIServerDescribeCommand to describe an ApiServer source object
 func NewAPIServerDescribeCommand(p *commands.KnParams) *cobra.Command {
-	apiServerDescribe := &cobra.Command{
-		Use:   "describe NAME",
-		Short: "Show details of an api-server source",
-		Example: `
-  # Describe an ApiServer source with name 'k8sevents'
-  kn source apiserver describe k8sevents`,
+
+	// For machine readable output
+	machineReadablePrintFlags := genericclioptions.NewPrintFlags("")
+
+	command := &cobra.Command{
+		Use:     "describe NAME",
+		Short:   "Show details of an api-server source",
+		Example: describeExample,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("'kn source apiserver describe' requires name of the source as single argument")
@@ -52,6 +63,15 @@ func NewAPIServerDescribeCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			out := cmd.OutOrStdout()
+
+			// Print out machine readable output if requested
+			if machineReadablePrintFlags.OutputFlagSpecified() {
+				printer, err := machineReadablePrintFlags.ToPrinter()
+				if err != nil {
+					return err
+				}
+				return printer.PrintObj(apiSource, out)
+			}
 			dw := printers.NewPrefixWriter(out)
 
 			printDetails, err := cmd.Flags().GetBool("verbose")
@@ -90,11 +110,12 @@ func NewAPIServerDescribeCommand(p *commands.KnParams) *cobra.Command {
 			return nil
 		},
 	}
-	flags := apiServerDescribe.Flags()
+	flags := command.Flags()
 	commands.AddNamespaceFlags(flags, false)
 	flags.BoolP("verbose", "v", false, "More output.")
-
-	return apiServerDescribe
+	machineReadablePrintFlags.AddFlags(command)
+	command.Flag("output").Usage = fmt.Sprintf("Output format. One of: %s.", strings.Join(machineReadablePrintFlags.AllowedFormats(), "|"))
+	return command
 }
 
 func writeResources(dw printers.PrefixWriter, apiVersionKindSelectors []v1alpha2.APIVersionKindSelector) {

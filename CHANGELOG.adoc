@@ -18,6 +18,10 @@
 | | Description | PR
 
 | 🐛
+| Add machine readable output (-o flag) to kn source apiserver describe
+| https://github.com/knative/client/pull/1146[#1146]
+
+| 🐛
 | Fix a race condition when using Kubernetes watches
 | https://github.com/knative/client/pull/1113[#1113]
 

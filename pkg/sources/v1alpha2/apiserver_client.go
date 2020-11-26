@@ -74,7 +74,10 @@ func (c *apiServerSourcesClient) GetAPIServerSource(name string) (*v1alpha2.ApiS
 	if err != nil {
 		return nil, knerrors.GetError(err)
 	}
-
+	err = updateSourceGVK(apiSource)
+	if err != nil {
+		return nil, err
+	}
 	return apiSource, nil
 }
 
