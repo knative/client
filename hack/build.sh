@@ -268,7 +268,6 @@ has_flag() {
 cross_build() {
   local basedir=$(basedir)
   local ld_flags="$(build_flags $basedir)"
-  local pkg="github.com/knative/client/pkg/kn/commands"
   local failed=0
 
   echo "⚔️ ${S}Compile"
