@@ -50,6 +50,23 @@ func TestSimpleDescribe(t *testing.T) {
 	apiServerRecorder.Validate()
 }
 
+func TestDescribeMachineReadable(t *testing.T) {
+	apiServerClient := v1alpha2.NewMockKnAPIServerSourceClient(t, "mynamespace")
+
+	apiServerRecorder := apiServerClient.Recorder()
+	sampleSource := createAPIServerSource("testsource", "Event", "v1", "testsa", "Reference", map[string]string{"foo": "bar"}, createSinkv1("testsvc", "default"))
+	sampleSource.APIVersion = "sources.knative.dev/v1"
+	sampleSource.Kind = "ApiServerSource"
+	sampleSource.Namespace = "mynamespace"
+	apiServerRecorder.GetAPIServerSource("testsource", sampleSource, nil)
+
+	out, err := executeAPIServerSourceCommand(apiServerClient, nil, "describe", "testsource", "-o", "yaml")
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(out, "kind: ApiServerSource", "spec:", "status:", "metadata:"))
+
+	apiServerRecorder.Validate()
+}
+
 func TestDescribeError(t *testing.T) {
 	apiServerClient := v1alpha2.NewMockKnAPIServerSourceClient(t, "mynamespace")
 
