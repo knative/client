@@ -843,7 +843,7 @@ k8s.io/kube-openapi/pkg/util/sets
 k8s.io/utils/buffer
 k8s.io/utils/integer
 k8s.io/utils/trace
-# knative.dev/eventing v0.19.1-0.20201125093635-713af6a64e4f
+# knative.dev/eventing v0.19.1-0.20201126061635-ca7329ac2ccd
 ## explicit
 knative.dev/eventing/pkg/apis/config
 knative.dev/eventing/pkg/apis/configs
@@ -873,10 +873,10 @@ knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1beta1/fake
 knative.dev/eventing/pkg/client/clientset/versioned/typed/messaging/v1beta1
 knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha2
 knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha2/fake
-# knative.dev/hack v0.0.0-20201120192952-353db687ec5b
+# knative.dev/hack v0.0.0-20201125230335-c46a6498e9ed
 ## explicit
 knative.dev/hack
-# knative.dev/networking v0.0.0-20201125013535-28c37e3cbe53
+# knative.dev/networking v0.0.0-20201125133435-4b21f11ccfa7
 ## explicit
 knative.dev/networking/pkg
 knative.dev/networking/pkg/apis/networking
@@ -921,7 +921,7 @@ knative.dev/pkg/tracing/config
 knative.dev/pkg/tracing/propagation
 knative.dev/pkg/tracing/propagation/tracecontextb3
 knative.dev/pkg/tracker
-# knative.dev/serving v0.19.1-0.20201125131934-decfb2ba8c85
+# knative.dev/serving v0.19.1-0.20201126090435-772caeca629b
 ## explicit
 knative.dev/serving/pkg/apis/autoscaling
 knative.dev/serving/pkg/apis/autoscaling/v1alpha1
