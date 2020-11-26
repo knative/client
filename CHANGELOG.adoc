@@ -22,6 +22,10 @@
 | https://github.com/knative/client/pull/1150[#1150]
 
 | 🎁
+| Add machine readable output (-o flag) to kn source binding describe
+| https://github.com/knative/client/pull/1148[#1148]
+
+| 🐛
 | Add machine readable output (-o flag) to kn source apiserver describe
 | https://github.com/knative/client/pull/1146[#1146]
 

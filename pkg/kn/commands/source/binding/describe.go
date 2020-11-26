@@ -18,8 +18,10 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/spf13/cobra"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
 	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
 	"knative.dev/pkg/tracker"
 
@@ -28,14 +30,23 @@ import (
 	"knative.dev/client/pkg/printers"
 )
 
+var describeExample = `
+  # Describe a sink binding 'mysinkbinding'
+  kn source binding describe mysinkbinding
+
+  # Describe a sink binding 'mysinkbinding' in YAML format
+  kn source binding describe mysinkbinding -o yaml`
+
 // NewBindingDescribeCommand returns a new command for describe a sink binding object
 func NewBindingDescribeCommand(p *commands.KnParams) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "describe NAME",
-		Short: "Show details of a sink binding",
-		Example: `
-  # Describe a sink binding with name 'mysinkbinding'
-  kn source binding describe mysinkbinding`,
+
+	// For machine readable output
+	machineReadablePrintFlags := genericclioptions.NewPrintFlags("")
+
+	command := &cobra.Command{
+		Use:     "describe NAME",
+		Short:   "Show details of a sink binding",
+		Example: describeExample,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("'kn source binding describe' requires name of the sink binding as single argument")
@@ -54,6 +65,15 @@ func NewBindingDescribeCommand(p *commands.KnParams) *cobra.Command {
 
 			out := cmd.OutOrStdout()
 			dw := printers.NewPrefixWriter(out)
+
+			// Print out machine readable output if requested
+			if machineReadablePrintFlags.OutputFlagSpecified() {
+				printer, err := machineReadablePrintFlags.ToPrinter()
+				if err != nil {
+					return err
+				}
+				return printer.PrintObj(binding, out)
+			}
 
 			printDetails, err := cmd.Flags().GetBool("verbose")
 			if err != nil {
@@ -75,11 +95,12 @@ func NewBindingDescribeCommand(p *commands.KnParams) *cobra.Command {
 			return nil
 		},
 	}
-	flags := cmd.Flags()
+	flags := command.Flags()
 	commands.AddNamespaceFlags(flags, false)
 	flags.BoolP("verbose", "v", false, "More output.")
-
-	return cmd
+	machineReadablePrintFlags.AddFlags(command)
+	command.Flag("output").Usage = fmt.Sprintf("Output format. One of: %s.", strings.Join(machineReadablePrintFlags.AllowedFormats(), "|"))
+	return command
 }
 
 func writeSinkBinding(dw printers.PrefixWriter, binding *v1alpha2.SinkBinding, printDetails bool) {

@@ -89,6 +89,10 @@ func (c *knBindingClient) GetSinkBinding(name string) (*v1alpha2.SinkBinding, er
 	if err != nil {
 		return nil, knerrors.GetError(err)
 	}
+	err = updateSinkBindingGvk(binding)
+	if err != nil {
+		return nil, err
+	}
 	return binding, nil
 }
 
