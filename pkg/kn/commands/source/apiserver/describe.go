@@ -18,11 +18,10 @@ import (
 	"errors"
 	"fmt"
 	"sort"
-	"strings"
 
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
-	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
+	"knative.dev/eventing/pkg/apis/sources/v1alpha2"
 
 	"knative.dev/client/lib/printing"
 	"knative.dev/client/pkg/kn/commands"
@@ -114,7 +113,6 @@ func NewAPIServerDescribeCommand(p *commands.KnParams) *cobra.Command {
 	commands.AddNamespaceFlags(flags, false)
 	flags.BoolP("verbose", "v", false, "More output.")
 	machineReadablePrintFlags.AddFlags(command)
-	command.Flag("output").Usage = fmt.Sprintf("Output format. One of: %s.", strings.Join(machineReadablePrintFlags.AllowedFormats(), "|"))
 	return command
 }
 

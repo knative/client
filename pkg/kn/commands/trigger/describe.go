@@ -16,18 +16,14 @@ package trigger
 
 import (
 	"errors"
-	"fmt"
-	"strings"
-
-	"k8s.io/cli-runtime/pkg/genericclioptions"
 
 	"github.com/spf13/cobra"
-
-	v1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
 
 	"knative.dev/client/lib/printing"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/printers"
+	"knative.dev/eventing/pkg/apis/eventing/v1beta1"
 )
 
 var describeExample = `
@@ -114,7 +110,6 @@ func NewTriggerDescribeCommand(p *commands.KnParams) *cobra.Command {
 	commands.AddNamespaceFlags(flags, false)
 	flags.BoolP("verbose", "v", false, "More output.")
 	machineReadablePrintFlags.AddFlags(command)
-	command.Flag("output").Usage = fmt.Sprintf("Output format. One of: %s.", strings.Join(machineReadablePrintFlags.AllowedFormats(), "|"))
 	return command
 }
 
