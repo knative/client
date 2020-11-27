@@ -17,7 +17,11 @@
 |===
 | | Description | PR
 
-| 🐛
+| 🎁
+| Add machine readable output (-o flag) to kn source ping describe
+| https://github.com/knative/client/pull/1150[#1150]
+
+| 🎁
 | Add machine readable output (-o flag) to kn source apiserver describe
 | https://github.com/knative/client/pull/1146[#1146]
 
