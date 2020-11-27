@@ -55,6 +55,18 @@ func TestDescribeURI(t *testing.T) {
 	pingRecorder.Validate()
 }
 
+func TestDescribeMachineReadable(t *testing.T) {
+	pingClient := clientv1alpha2.NewMockKnPingSourceClient(t, "mynamespace")
+
+	pingRecorder := pingClient.Recorder()
+	pingRecorder.GetPingSource("testsource-uri", getPingSourceSinkURI(), nil)
+
+	out, err := executePingSourceCommand(pingClient, nil, "describe", "testsource-uri", "-o", "yaml")
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(out, "kind: PingSource", "spec:", "status:", "metadata:"))
+	pingRecorder.Validate()
+}
+
 func TestDescribeError(t *testing.T) {
 	pingClient := clientv1alpha2.NewMockKnPingSourceClient(t, "mynamespace")
 
@@ -71,7 +83,10 @@ func TestDescribeError(t *testing.T) {
 
 func getPingSourceSinkURI() *v1alpha2.PingSource {
 	return &v1alpha2.PingSource{
-		TypeMeta: metav1.TypeMeta{},
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "PingSource",
+			APIVersion: "sources.knative.dev/v1",
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testsource-uri",
 			Namespace: "mynamespace",

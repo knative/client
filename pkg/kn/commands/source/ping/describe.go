@@ -16,25 +16,36 @@ package ping
 
 import (
 	"errors"
+	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/spf13/cobra"
-	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"knative.dev/eventing/pkg/apis/sources/v1alpha2"
 
 	"knative.dev/client/lib/printing"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/printers"
 )
 
+var describeExample = `
+  # Describe a ping source 'myping'
+  kn source ping describe myping
+
+  # Describe a ping source 'myping' in YAML format
+  kn source ping describe myping -o yaml`
+
 // NewPingDescribeCommand returns a new command for describe a Ping source object
 func NewPingDescribeCommand(p *commands.KnParams) *cobra.Command {
 
-	pingDescribe := &cobra.Command{
-		Use:   "describe NAME",
-		Short: "Show details of a ping source",
-		Example: `
-  # Describe a Ping source with name 'myping'
-  kn source ping describe myping`,
+	// For machine readable output
+	machineReadablePrintFlags := genericclioptions.NewPrintFlags("")
+
+	command := &cobra.Command{
+		Use:     "describe NAME",
+		Short:   "Show details of a ping source",
+		Example: describeExample,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("'kn source ping describe' requires name of the source as single argument")
@@ -52,6 +63,15 @@ func NewPingDescribeCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			out := cmd.OutOrStdout()
+
+			// Print out machine readable output if requested
+			if machineReadablePrintFlags.OutputFlagSpecified() {
+				printer, err := machineReadablePrintFlags.ToPrinter()
+				if err != nil {
+					return err
+				}
+				return printer.PrintObj(pingSource, out)
+			}
 			dw := printers.NewPrefixWriter(out)
 
 			printDetails, err := cmd.Flags().GetBool("verbose")
@@ -89,11 +109,12 @@ func NewPingDescribeCommand(p *commands.KnParams) *cobra.Command {
 			return nil
 		},
 	}
-	flags := pingDescribe.Flags()
+	flags := command.Flags()
 	commands.AddNamespaceFlags(flags, false)
 	flags.BoolP("verbose", "v", false, "More output.")
-
-	return pingDescribe
+	machineReadablePrintFlags.AddFlags(command)
+	command.Flag("output").Usage = fmt.Sprintf("Output format. One of: %s.", strings.Join(machineReadablePrintFlags.AllowedFormats(), "|"))
+	return command
 }
 
 func writePingSource(dw printers.PrefixWriter, source *v1alpha2.PingSource, printDetails bool) {

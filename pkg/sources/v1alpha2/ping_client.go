@@ -18,6 +18,8 @@ import (
 	"context"
 	"fmt"
 
+	knerrors "knative.dev/client/pkg/errors"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"knative.dev/eventing/pkg/apis/sources/v1alpha2"
 
@@ -87,7 +89,15 @@ func (c *pingSourcesClient) DeletePingSource(name string) error {
 }
 
 func (c *pingSourcesClient) GetPingSource(name string) (*v1alpha2.PingSource, error) {
-	return c.client.Get(context.TODO(), name, metav1.GetOptions{})
+	source, err := c.client.Get(context.TODO(), name, metav1.GetOptions{})
+	if err != nil {
+		return nil, knerrors.GetError(err)
+	}
+	err = updateSourceGVK(source)
+	if err != nil {
+		return nil, err
+	}
+	return source, nil
 }
 
 // ListPingSource returns the available Ping sources
