@@ -93,9 +93,24 @@ func TestDescribeWithSinkURI(t *testing.T) {
 	bindingRecorder.Validate()
 }
 
+func TestSinkBindingMachineReadableOutputs(t *testing.T) {
+	bindingClient := clientv1alpha2.NewMockKnSinkBindingClient(t, "mynamespace")
+	bindingRecorder := bindingClient.Recorder()
+
+	bindingRecorder.GetSinkBinding("mybinding", getSinkBindingSource("myapp", map[string]string{"foo": "bar"}, createServiceSink("mysvc", "myservicenamespace")), nil)
+	out, err := executeSinkBindingCommand(bindingClient, nil, "describe", "mybinding", "-o", "yaml")
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(out, "kind: SinkBinding", "spec:", "status:", "metadata:"))
+
+	bindingRecorder.Validate()
+}
+
 func getSinkBindingSource(nameOrSelector string, ceOverrides map[string]string, sink duckv1.Destination) *v1alpha2.SinkBinding {
 	binding := &v1alpha2.SinkBinding{
-		TypeMeta: v1.TypeMeta{},
+		TypeMeta: v1.TypeMeta{
+			Kind:       "SinkBinding",
+			APIVersion: "sources.knative.dev/v1alpha2",
+		},
 		ObjectMeta: v1.ObjectMeta{
 			Name: "mysinkbinding",
 		},
