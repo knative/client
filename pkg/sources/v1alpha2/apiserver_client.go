@@ -104,7 +104,10 @@ func (c *apiServerSourcesClient) UpdateAPIServerSource(apiSource *v1alpha2.ApiSe
 //DeleteAPIServerSource is used to create an instance of ApiServerSource
 func (c *apiServerSourcesClient) DeleteAPIServerSource(name string) error {
 	err := c.client.Delete(context.TODO(), name, metav1.DeleteOptions{})
-	return err
+	if err != nil {
+		return knerrors.GetError(err)
+	}
+	return nil
 }
 
 // Return the client's namespace
