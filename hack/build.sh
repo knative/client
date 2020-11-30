@@ -284,6 +284,8 @@ cross_build() {
   GOOS=windows GOARCH=amd64 go build -mod=vendor -ldflags "${ld_flags}" -o ./kn-windows-amd64.exe ./cmd/... || failed=1
   echo "   Z  kn-linux-s390x"
   GOOS=linux GOARCH=s390x go build -mod=vendor -ldflags "${ld_flags}" -o ./kn-linux-s390x ./cmd/... || failed=1
+  echo "   P  kn-linux-ppc64le"
+  GOOS=linux GOARCH=ppc64le go build -mod=vendor -ldflags "${ld_flags}" -o ./kn-linux-ppc64le ./cmd/... || failed=1
 
   return ${failed}
 }
