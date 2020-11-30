@@ -16,9 +16,7 @@ package ping
 
 import (
 	"errors"
-	"fmt"
 	"sort"
-	"strings"
 
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
@@ -113,7 +111,6 @@ func NewPingDescribeCommand(p *commands.KnParams) *cobra.Command {
 	commands.AddNamespaceFlags(flags, false)
 	flags.BoolP("verbose", "v", false, "More output.")
 	machineReadablePrintFlags.AddFlags(command)
-	command.Flag("output").Usage = fmt.Sprintf("Output format. One of: %s.", strings.Join(machineReadablePrintFlags.AllowedFormats(), "|"))
 	return command
 }
 
