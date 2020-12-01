@@ -18,6 +18,10 @@
 | | Description | PR
 
 | 🐣
+| Removes unnecessary help message introduced for machine-readable outputs for command 'kn source binding describe'
+| https://github.com/knative/client/pull/1158[#1158]
+
+| 🐣
 | Removes unnecessary help message introduced for machine-readable outputs for commands which does not have -o url flag
 | https://github.com/knative/client/pull/1152[#1152]
 
@@ -33,7 +37,7 @@
 | Add machine readable output (-o flag) to kn source binding describe
 | https://github.com/knative/client/pull/1148[#1148]
 
-| 🐛
+| 🎁
 | Add machine readable output (-o flag) to kn source apiserver describe
 | https://github.com/knative/client/pull/1146[#1146]
 
