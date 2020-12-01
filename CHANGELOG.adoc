@@ -17,6 +17,14 @@
 |===
 | | Description | PR
 
+| 🐣
+| Removes unnecessary help message introduced for machine-readable outputs for commands which does not have -o url flag
+| https://github.com/knative/client/pull/1152[#1152]
+
+| 🐣
+| Improve error handling in clients
+| https://github.com/knative/client/pull/1154[#1154]
+
 | 🎁
 | Add machine readable output (-o flag) to kn source ping describe
 | https://github.com/knative/client/pull/1150[#1150]
