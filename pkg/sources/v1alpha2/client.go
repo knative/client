@@ -31,6 +31,9 @@ type KnSourcesClient interface {
 
 	// Get client for ApiServer sources
 	APIServerSourcesClient() KnAPIServerSourcesClient
+
+	// Get client for container sources
+	ContainerSourcesClient() KnContainerSourcesClient
 }
 
 // sourcesClient is a combination of Sources client interface and namespace
@@ -62,6 +65,11 @@ func (c *sourcesClient) SinkBindingClient() KnSinkBindingClient {
 // ApiServerSourcesClient for dealing with ApiServer sources
 func (c *sourcesClient) APIServerSourcesClient() KnAPIServerSourcesClient {
 	return newKnAPIServerSourcesClient(c.client.ApiServerSources(c.namespace), c.namespace)
+}
+
+// ApiServerSourcesClient for dealing with ApiServer sources
+func (c *sourcesClient) ContainerSourcesClient() KnContainerSourcesClient {
+	return newKnContainerSourcesClient(c.client.ContainerSources(c.namespace), c.namespace)
 }
 
 // BuiltInSourcesGVKs returns the GVKs for built in sources

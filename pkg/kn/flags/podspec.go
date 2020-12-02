@@ -153,7 +153,6 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
 // ResolvePodSpec will create corev1.PodSpec based on the flag inputs
 func (p *PodSpecFlags) ResolvePodSpec(podSpec *corev1.PodSpec, flags *pflag.FlagSet) error {
 	var err error
-
 	if flags.Changed("env") {
 		envMap, err := util.MapFromArrayAllowingSingles(p.Env, "=")
 		if err != nil {
