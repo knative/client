@@ -100,8 +100,7 @@ func (c *containerSourcesClient) UpdateContainerSource(containerSrc *v1alpha2.Co
 
 //DeleteContainerSource is used to create an instance of ContainerSource
 func (c *containerSourcesClient) DeleteContainerSource(name string) error {
-	err := c.client.Delete(context.TODO(), name, metav1.DeleteOptions{})
-	return err
+	return c.client.Delete(context.TODO(), name, metav1.DeleteOptions{})
 }
 
 // Return the client's namespace

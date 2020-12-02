@@ -59,12 +59,7 @@ func NewContainerListCommand(p *commands.KnParams) *cobra.Command {
 				listFlags.EnsureWithNamespace()
 			}
 
-			err = listFlags.Print(sourceList, cmd.OutOrStdout())
-			if err != nil {
-				return err
-			}
-
-			return nil
+			return listFlags.Print(sourceList, cmd.OutOrStdout())
 		},
 	}
 	commands.AddNamespaceFlags(listCommand.Flags(), true)

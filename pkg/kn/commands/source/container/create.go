@@ -47,7 +47,6 @@ func NewContainerCreateCommand(p *commands.KnParams) *cobra.Command {
 			}
 			name := args[0]
 
-			// get client
 			srcClient, err := newContainerSourceClient(p, cmd)
 			if err != nil {
 				return err
@@ -83,11 +82,8 @@ func NewContainerCreateCommand(p *commands.KnParams) *cobra.Command {
 						"because: %s", name, namespace, err)
 			}
 
-			if err == nil {
-				fmt.Fprintf(cmd.OutOrStdout(), "ContainerSource '%s' created in namespace '%s'.\n", args[0], namespace)
-			}
-
-			return err
+			fmt.Fprintf(cmd.OutOrStdout(), "ContainerSource '%s' created in namespace '%s'.\n", args[0], namespace)
+			return nil
 		},
 	}
 	commands.AddNamespaceFlags(cmd.Flags(), false)
