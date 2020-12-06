@@ -23,9 +23,9 @@ import (
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
-	"k8s.io/cli-runtime/pkg/printers"
 
 	"knative.dev/client/pkg/wait"
 
@@ -41,39 +41,38 @@ const (
 // knServingGitOpsClient - kn service client
 // to work on a local repo instead of a remote cluster
 type knServingGitOpsClient struct {
-	dir       string
-	namespace string
-	printer   printers.ResourcePrinter
+	dir        string
+	namespace  string
+	fileClient fileOpsClient
 }
+
+type fileOpsClient interface {
+	writeToFile(runtime.Object, string) error
+	readFromFile(string, string) (*servingv1.Service, error)
+	removeFile(string) error
+	listFiles(string) ([]servingv1.Service, error)
+}
+
+type fileClient struct{}
 
 // NewKnServingGitOpsClient returns an instance of the
 // kn service gitops client
-func NewKnServingGitOpsClient(namespace, dir string) KnServingClient {
-	yamlPrinter, _ := genericclioptions.NewJSONYamlPrintFlags().ToPrinter("yaml")
+func NewKnServingGitOpsClient(namespace, dir string) *knServingGitOpsClient {
+	// create dir , if not present
+	namespaceDir := filepath.Join(dir, namespace, ksvcKind)
+	if _, err := os.Stat(namespaceDir); os.IsNotExist(err) {
+		os.MkdirAll(namespaceDir, 0777)
+	}
 	return &knServingGitOpsClient{
-		dir:       dir,
-		namespace: namespace,
-		printer:   yamlPrinter,
+		dir:        dir,
+		namespace:  namespace,
+		fileClient: &fileClient{},
 	}
 }
 
-func (cl *knServingGitOpsClient) getKsvcFilePath(name string) string {
-	return filepath.Join(cl.dir, cl.namespace, ksvcKind, name+".yaml")
-}
-
-// Namespace returns the namespace
-func (cl *knServingGitOpsClient) Namespace() string {
-	return cl.namespace
-}
-
-// GetService returns the knative service for the name
-func (cl *knServingGitOpsClient) GetService(name string) (*servingv1.Service, error) {
-	return getServiceFromFile(cl.getKsvcFilePath(name), name)
-}
-
-func getServiceFromFile(filePath, name string) (*servingv1.Service, error) {
+func (f *fileClient) readFromFile(fileKey, name string) (*servingv1.Service, error) {
 	var svc servingv1.Service
-	file, err := os.Open(filePath)
+	file, err := os.Open(fileKey)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, apierrors.NewNotFound(servingv1.Resource("services"), name)
@@ -84,31 +83,29 @@ func getServiceFromFile(filePath, name string) (*servingv1.Service, error) {
 	if err := decoder.Decode(&svc); err != nil {
 		return nil, err
 	}
-	updateServingGvk(&svc)
+	// updateServingGvk(&svc)
 	return &svc, nil
 }
 
-// WatchService is not supported by this client
-func (cl *knServingGitOpsClient) WatchService(name string, timeout time.Duration) (watch.Interface, error) {
-	return nil, fmt.Errorf(operationNotSuportedError)
+func (f *fileClient) writeToFile(obj runtime.Object, filePath string) error {
+	objFile, err := os.Create(filePath)
+	if err != nil {
+		return err
+	}
+	yamlPrinter, err := genericclioptions.NewJSONYamlPrintFlags().ToPrinter("yaml")
+	if err != nil {
+		return err
+	}
+	return yamlPrinter.PrintObj(obj, objFile)
 }
 
-// WatchRevision is not supported by this client
-func (cl *knServingGitOpsClient) WatchRevision(name string, timeout time.Duration) (watch.Interface, error) {
-	return nil, fmt.Errorf(operationNotSuportedError)
+func (f *fileClient) removeFile(filePath string) error {
+	return os.Remove(filePath)
 }
 
 // ListServices lists the services in the path provided
-func (cl *knServingGitOpsClient) ListServices(config ...ListConfig) (*servingv1.ServiceList, error) {
-	var root string
+func (f *fileClient) listFiles(root string) ([]servingv1.Service, error) {
 	var services []servingv1.Service
-
-	switch cl.namespace {
-	case "":
-		root = cl.dir
-	default:
-		root = filepath.Join(cl.dir, cl.namespace)
-	}
 
 	if err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		switch {
@@ -125,15 +122,57 @@ func (cl *knServingGitOpsClient) ListServices(config ...ListConfig) (*servingv1.
 			return filepath.SkipDir
 
 		default:
-			svc, err := getServiceFromFile(path, "")
+			svc, err := f.readFromFile(path, "")
 			if err != nil {
 				return err
 			}
-			updateServingGvk(svc)
+			// updateServingGvk(svc)
 			services = append(services, *svc)
 			return nil
 		}
 	}); err != nil {
+		return nil, err
+	}
+	return services, nil
+}
+
+func (cl *knServingGitOpsClient) getKsvcFilePath(name string) string {
+	return filepath.Join(cl.dir, cl.namespace, ksvcKind, name+".yaml")
+}
+
+// Namespace returns the namespace
+func (cl *knServingGitOpsClient) Namespace() string {
+	return cl.namespace
+}
+
+// GetService returns the knative service for the name
+func (cl *knServingGitOpsClient) GetService(name string) (*servingv1.Service, error) {
+	return cl.fileClient.readFromFile(cl.getKsvcFilePath(name), name)
+}
+
+// WatchService is not supported by this client
+func (cl *knServingGitOpsClient) WatchService(name string, timeout time.Duration) (watch.Interface, error) {
+	return nil, fmt.Errorf(operationNotSuportedError)
+}
+
+// WatchRevision is not supported by this client
+func (cl *knServingGitOpsClient) WatchRevision(name string, timeout time.Duration) (watch.Interface, error) {
+	return nil, fmt.Errorf(operationNotSuportedError)
+}
+
+// ListServices lists the services in the path provided
+func (cl *knServingGitOpsClient) ListServices(config ...ListConfig) (*servingv1.ServiceList, error) {
+	var root string
+
+	switch cl.namespace {
+	case "":
+		root = cl.dir
+	default:
+		root = filepath.Join(cl.dir, cl.namespace)
+	}
+
+	services, err := cl.fileClient.listFiles(root)
+	if err != nil {
 		return nil, err
 	}
 
@@ -152,17 +191,8 @@ func (cl *knServingGitOpsClient) ListServices(config ...ListConfig) (*servingv1.
 // CreateService saves the knative service spec in
 // yaml format in the local path provided
 func (cl *knServingGitOpsClient) CreateService(service *servingv1.Service) error {
-	// create dir , if not present
-	namespaceDir := filepath.Join(cl.dir, cl.namespace, ksvcKind)
-	if _, err := os.Stat(namespaceDir); os.IsNotExist(err) {
-		os.MkdirAll(namespaceDir, 0777)
-	}
-	serviceFile, err := os.Create(cl.getKsvcFilePath(service.ObjectMeta.Name))
-	if err != nil {
-		return err
-	}
 	updateServingGvk(service)
-	return cl.printer.PrintObj(service, serviceFile)
+	return cl.fileClient.writeToFile(service, cl.getKsvcFilePath(service.ObjectMeta.Name))
 }
 
 // UpdateService updates the service in
@@ -188,7 +218,7 @@ func (cl *knServingGitOpsClient) ApplyService(modifiedService *servingv1.Service
 
 // DeleteService removes the file from the local file system
 func (cl *knServingGitOpsClient) DeleteService(serviceName string, timeout time.Duration) error {
-	return os.Remove(cl.getKsvcFilePath(serviceName))
+	return cl.fileClient.removeFile(cl.getKsvcFilePath(serviceName))
 }
 
 // WaitForService always returns success for this client

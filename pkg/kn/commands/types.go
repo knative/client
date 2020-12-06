@@ -89,7 +89,10 @@ func (params *KnParams) newServingClient(namespace string, cmd *cobra.Command) (
 			return nil, err
 		}
 
-		client, _ := servingv1client.NewForConfig(restConfig)
+		client, err := servingv1client.NewForConfig(restConfig)
+		if err != nil {
+			return nil, err
+		}
 		return clientservingv1.NewKnServingClient(client, namespace), nil
 
 	default:
