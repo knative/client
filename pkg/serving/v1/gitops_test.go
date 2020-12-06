@@ -72,7 +72,7 @@ func (f *fakeFileClient) removeFile(filePath string) error {
 }
 
 func (f *fakeFileClient) listFiles(filepath string) ([]servingv1.Service, error) {
-	var services []servingv1.Service
+	services := make([]servingv1.Service, 0, len(ksvcStore))
 
 	for k, v := range ksvcStore {
 		//only append for requested namespace
