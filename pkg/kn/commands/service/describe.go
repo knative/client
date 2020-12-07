@@ -102,7 +102,7 @@ func NewServiceDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			client, err := p.NewServingClient(namespace, cmd)
+			client, err := newServingClient(p, namespace, cmd.Flag("in-dir").Value.String())
 			if err != nil {
 				return err
 			}

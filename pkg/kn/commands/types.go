@@ -20,8 +20,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/spf13/cobra"
-
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -42,14 +40,15 @@ import (
 
 // KnParams for creating commands. Useful for inserting mocks for testing.
 type KnParams struct {
-	Output             io.Writer
-	KubeCfgPath        string
-	ClientConfig       clientcmd.ClientConfig
-	NewServingClient   func(namespace string, cmd *cobra.Command) (clientservingv1.KnServingClient, error)
-	NewSourcesClient   func(namespace string) (v1alpha2.KnSourcesClient, error)
-	NewEventingClient  func(namespace string) (clienteventingv1beta1.KnEventingClient, error)
-	NewMessagingClient func(namespace string) (clientmessagingv1beta1.KnMessagingClient, error)
-	NewDynamicClient   func(namespace string) (clientdynamic.KnDynamicClient, error)
+	Output                 io.Writer
+	KubeCfgPath            string
+	ClientConfig           clientcmd.ClientConfig
+	NewServingClient       func(namespace string) (clientservingv1.KnServingClient, error)
+	NewGitopsServingClient func(namespace string, dir string) (clientservingv1.KnServingClient, error)
+	NewSourcesClient       func(namespace string) (v1alpha2.KnSourcesClient, error)
+	NewEventingClient      func(namespace string) (clienteventingv1beta1.KnEventingClient, error)
+	NewMessagingClient     func(namespace string) (clientmessagingv1beta1.KnMessagingClient, error)
+	NewDynamicClient       func(namespace string) (clientdynamic.KnDynamicClient, error)
 
 	// General global options
 	LogHTTP bool
@@ -61,6 +60,10 @@ type KnParams struct {
 func (params *KnParams) Initialize() {
 	if params.NewServingClient == nil {
 		params.NewServingClient = params.newServingClient
+	}
+
+	if params.NewGitopsServingClient == nil {
+		params.NewGitopsServingClient = params.newGitopsServingClient
 	}
 
 	if params.NewSourcesClient == nil {
@@ -80,12 +83,7 @@ func (params *KnParams) Initialize() {
 	}
 }
 
-func (params *KnParams) newServingClient(namespace string, cmd *cobra.Command) (clientservingv1.KnServingClient, error) {
-	// return gitops client if 'in-dir' flag is specified
-	if cmd.Flag("in-dir") != nil && cmd.Flag("in-dir").Value.String() != "" {
-		return clientservingv1.NewKnServingGitOpsClient(namespace, cmd.Flag("in-dir").Value.String()), nil
-	}
-
+func (params *KnParams) newServingClient(namespace string) (clientservingv1.KnServingClient, error) {
 	restConfig, err := params.RestConfig()
 	if err != nil {
 		return nil, err
@@ -96,6 +94,10 @@ func (params *KnParams) newServingClient(namespace string, cmd *cobra.Command) (
 		return nil, err
 	}
 	return clientservingv1.NewKnServingClient(client, namespace), nil
+}
+
+func (params *KnParams) newGitopsServingClient(namespace string, dir string) (clientservingv1.KnServingClient, error) {
+	return clientservingv1.NewKnServingGitOpsClient(namespace, dir), nil
 }
 
 func (params *KnParams) newSourcesClient(namespace string) (v1alpha2.KnSourcesClient, error) {

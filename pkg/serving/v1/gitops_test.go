@@ -15,107 +15,29 @@
 package v1
 
 import (
-	"bytes"
 	"context"
-	"io"
 	"os"
-	"sort"
-	"strings"
 	"testing"
 	"time"
 
 	"gotest.tools/assert"
+
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	servingtest "knative.dev/serving/pkg/testing/v1"
-	"sigs.k8s.io/yaml"
-
-	"knative.dev/pkg/ptr"
-	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	libtest "knative.dev/client/lib/test"
+	"knative.dev/pkg/ptr"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
-
-var ksvcStore = make(map[string]*servingv1.Service)
-
-type fakeFileClient struct {
-	b *bytes.Buffer
-}
-
-// newFakeKnServingGitOpsClient returns an instance of the
-// kn service gitops client for testing
-func newFakeKnServingGitOpsClient(namespace, dir string) *knServingGitOpsClient {
-	var b bytes.Buffer
-	return &knServingGitOpsClient{
-		dir:        dir,
-		namespace:  namespace,
-		fileClient: &fakeFileClient{&b},
-	}
-}
-
-func (f *fakeFileClient) writeToFile(filePath string) (io.Writer, error) {
-	return f.b, nil
-}
-
-func storeResult(b *bytes.Buffer, filePath string) error {
-	var svc servingv1.Service
-	if err := yaml.Unmarshal(b.Bytes(), &svc); err != nil {
-		return err
-	}
-	ksvcStore[filePath] = &svc
-	b.Reset()
-	return nil
-}
-
-func (f *fakeFileClient) readFromFile(key string) (io.Reader, error) {
-	svc := ksvcStore[key]
-	if svc == nil {
-		return nil, os.ErrNotExist
-	}
-	byteData, err := yaml.Marshal(svc)
-	if err != nil {
-		return nil, err
-	}
-	return bytes.NewReader(byteData), nil
-}
-
-func (f *fakeFileClient) removeFile(filePath string) error {
-	delete(ksvcStore, filePath)
-	return nil
-}
-
-func (f *fakeFileClient) listFiles(filepath string) ([]servingv1.Service, error) {
-	services := make([]servingv1.Service, 0, len(ksvcStore))
-
-	for k, v := range ksvcStore {
-		//only append for requested namespace
-		if !strings.Contains(k, filepath) {
-			continue
-		}
-		services = append(services, *v)
-	}
-
-	if len(services) == 0 {
-		return nil, nil
-	}
-
-	sort.SliceStable(services, func(i, j int) bool {
-		a := services[i]
-		b := services[j]
-
-		return a.ObjectMeta.Name < b.ObjectMeta.Name
-	})
-
-	return services, nil
-}
 
 func TestGitOpsOperations(t *testing.T) {
 	// create clients
-	fooclient := newFakeKnServingGitOpsClient("foo-ns", "/kn/files")
-	bazclient := newFakeKnServingGitOpsClient("baz-ns", "/kn/files")
-	globalclient := newFakeKnServingGitOpsClient("", "/kn/files")
-	diffClusterClient := newFakeKnServingGitOpsClient("", "/kn/cluster2/files")
+	fooclient := NewKnServingGitOpsClient("foo-ns", "./tmp/kn/files")
+	bazclient := NewKnServingGitOpsClient("baz-ns", "./tmp/kn/files")
+	globalclient := NewKnServingGitOpsClient("", "./tmp/kn/files")
+	diffClusterClient := NewKnServingGitOpsClient("", "./tmp/kn/cluster2/files")
 
 	// set up test services
 	fooSvc := libtest.BuildServiceWithOptions("foo", servingtest.WithConfigSpec(buildConfiguration()))
@@ -126,8 +48,8 @@ func TestGitOpsOperations(t *testing.T) {
 	allServices := getServiceList([]servingv1.Service{*barSvc, *barSvc, *fooSvc})
 
 	t.Run("get file path for foo service in foo namespace", func(t *testing.T) {
-		fp := fooclient.getKsvcFilePath("foo")
-		assert.Equal(t, "/kn/files/foo-ns/ksvc/foo.yaml", fp)
+		fp := fooclient.(*knServingGitOpsClient).getKsvcFilePath("foo")
+		assert.Equal(t, "tmp/kn/files/foo-ns/ksvc/foo.yaml", fp)
 	})
 	t.Run("get namespace for bazclient client", func(t *testing.T) {
 		ns := bazclient.Namespace()
@@ -135,8 +57,6 @@ func TestGitOpsOperations(t *testing.T) {
 	})
 	t.Run("create service foo in foo namespace", func(t *testing.T) {
 		err := fooclient.CreateService(fooSvc)
-		assert.NilError(t, err)
-		err = storeResult(fooclient.fileClient.(*fakeFileClient).b, fooclient.getKsvcFilePath("foo"))
 		assert.NilError(t, err)
 	})
 	t.Run("wait for foo service in foo namespace", func(t *testing.T) {
@@ -152,13 +72,9 @@ func TestGitOpsOperations(t *testing.T) {
 	t.Run("create service bar in foo namespace", func(t *testing.T) {
 		err := fooclient.CreateService(barSvc)
 		assert.NilError(t, err)
-		err = storeResult(fooclient.fileClient.(*fakeFileClient).b, fooclient.getKsvcFilePath("bar"))
-		assert.NilError(t, err)
 	})
 	t.Run("create service bar in baz namespace", func(t *testing.T) {
 		err := bazclient.CreateService(barSvc)
-		assert.NilError(t, err)
-		err = storeResult(bazclient.fileClient.(*fakeFileClient).b, bazclient.getKsvcFilePath("bar"))
 		assert.NilError(t, err)
 	})
 	t.Run("list services in foo namespace", func(t *testing.T) {
@@ -168,8 +84,6 @@ func TestGitOpsOperations(t *testing.T) {
 	})
 	t.Run("create service foo in foo namespace in cluster 2", func(t *testing.T) {
 		err := diffClusterClient.CreateService(fooSvc)
-		assert.NilError(t, err)
-		err = storeResult(diffClusterClient.fileClient.(*fakeFileClient).b, diffClusterClient.getKsvcFilePath("foo"))
 		assert.NilError(t, err)
 	})
 	t.Run("list services in all namespaces in cluster 1", func(t *testing.T) {
@@ -182,13 +96,9 @@ func TestGitOpsOperations(t *testing.T) {
 			return svc, nil
 		}, 1)
 		assert.NilError(t, err)
-		err = storeResult(fooclient.fileClient.(*fakeFileClient).b, fooclient.getKsvcFilePath("foo"))
-		assert.NilError(t, err)
 	})
 	t.Run("update service foo", func(t *testing.T) {
 		err := fooclient.UpdateService(fooUpdateSvc)
-		assert.NilError(t, err)
-		err = storeResult(fooclient.fileClient.(*fakeFileClient).b, fooclient.getKsvcFilePath("foo"))
 		assert.NilError(t, err)
 	})
 	t.Run("check updated service foo", func(t *testing.T) {
@@ -204,59 +114,8 @@ func TestGitOpsOperations(t *testing.T) {
 		_, err := fooclient.GetService("foo")
 		assert.ErrorType(t, err, apierrors.IsNotFound)
 	})
-}
-
-func TestForUnsupportedMessage(t *testing.T) {
-	fooclient := newFakeKnServingGitOpsClient("foo-ns", "/kn/files")
-
-	t.Run("WatchService", func(t *testing.T) {
-		_, err := fooclient.WatchService("foo", 5*time.Second)
-		assert.ErrorContains(t, err, operationNotSuportedError)
-	})
-	t.Run("WatchRevision", func(t *testing.T) {
-		_, err := fooclient.WatchRevision("foo", 5*time.Second)
-		assert.ErrorContains(t, err, operationNotSuportedError)
-	})
-	t.Run("ApplyService", func(t *testing.T) {
-		_, err := fooclient.ApplyService(nil)
-		assert.ErrorContains(t, err, operationNotSuportedError)
-	})
-	t.Run("GetConfiguration", func(t *testing.T) {
-		_, err := fooclient.GetConfiguration("foo")
-		assert.ErrorContains(t, err, operationNotSuportedError)
-	})
-	t.Run("GetRevision", func(t *testing.T) {
-		_, err := fooclient.GetRevision("foo")
-		assert.ErrorContains(t, err, operationNotSuportedError)
-	})
-	t.Run("GetBaseRevision", func(t *testing.T) {
-		_, err := fooclient.GetBaseRevision(nil)
-		assert.ErrorContains(t, err, operationNotSuportedError)
-	})
-	t.Run("CreateRevision", func(t *testing.T) {
-		err := fooclient.CreateRevision(nil)
-		assert.ErrorContains(t, err, operationNotSuportedError)
-	})
-	t.Run("UpdateRevision", func(t *testing.T) {
-		err := fooclient.UpdateRevision(nil)
-		assert.ErrorContains(t, err, operationNotSuportedError)
-	})
-	t.Run("DeleteRevision", func(t *testing.T) {
-		err := fooclient.DeleteRevision("foo", 5*time.Second)
-		assert.ErrorContains(t, err, operationNotSuportedError)
-	})
-	t.Run("ListRevisions", func(t *testing.T) {
-		_, err := fooclient.ListRevisions()
-		assert.ErrorContains(t, err, operationNotSuportedError)
-	})
-	t.Run("ListRoutes", func(t *testing.T) {
-		_, err := fooclient.ListRoutes()
-		assert.ErrorContains(t, err, operationNotSuportedError)
-	})
-	t.Run("GetRoute", func(t *testing.T) {
-		_, err := fooclient.GetRoute("foo")
-		assert.ErrorContains(t, err, operationNotSuportedError)
-	})
+	//clean up
+	os.RemoveAll("./tmp")
 }
 
 func getServiceList(services []servingv1.Service) *servingv1.ServiceList {

@@ -39,7 +39,7 @@ func CreateTestKnCommand(cmd *cobra.Command, knParams *KnParams) (*cobra.Command
 	buf := new(bytes.Buffer)
 	fakeServing := &servingv1fake.FakeServingV1{Fake: &clienttesting.Fake{}}
 	knParams.Output = buf
-	knParams.NewServingClient = func(namespace string, cmd *cobra.Command) (clientservingv1.KnServingClient, error) {
+	knParams.NewServingClient = func(namespace string) (clientservingv1.KnServingClient, error) {
 		return clientservingv1.NewKnServingClient(fakeServing, FakeNamespace), nil
 	}
 	knParams.fixedCurrentNamespace = FakeNamespace
@@ -52,7 +52,7 @@ func CreateSourcesTestKnCommand(cmd *cobra.Command, knParams *KnParams) (*cobra.
 	buf := new(bytes.Buffer)
 	// create fake serving client because the sink of source depends on serving client
 	fakeServing := &servingv1fake.FakeServingV1{Fake: &clienttesting.Fake{}}
-	knParams.NewServingClient = func(namespace string, cmd *cobra.Command) (clientservingv1.KnServingClient, error) {
+	knParams.NewServingClient = func(namespace string) (clientservingv1.KnServingClient, error) {
 		return clientservingv1.NewKnServingClient(fakeServing, FakeNamespace), nil
 	}
 	// create fake sources client

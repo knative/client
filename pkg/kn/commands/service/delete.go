@@ -62,7 +62,7 @@ func NewServiceDeleteCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			client, err := p.NewServingClient(namespace, cmd)
+			client, err := newServingClient(p, namespace, cmd.Flag("in-dir").Value.String())
 			if err != nil {
 				return err
 			}
