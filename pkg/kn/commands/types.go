@@ -81,7 +81,10 @@ func (params *KnParams) Initialize() {
 }
 
 func (params *KnParams) newServingClient(namespace string, cmd *cobra.Command) (clientservingv1.KnServingClient, error) {
-	dir := cmd.Flag("in-dir").Value.String()
+	dir := ""
+	if cmd.Flag("in-dir") != nil {
+		dir = cmd.Flag("in-dir").Value.String()
+	}
 	switch dir {
 	case "":
 		restConfig, err := params.RestConfig()
