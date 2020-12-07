@@ -16,6 +16,7 @@ package v1
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -23,7 +24,6 @@ import (
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 
@@ -47,8 +47,8 @@ type knServingGitOpsClient struct {
 }
 
 type fileOpsClient interface {
-	writeToFile(runtime.Object, string) error
-	readFromFile(string, string) (*servingv1.Service, error)
+	writeToFile(string) (io.Writer, error)
+	readFromFile(string) (io.Reader, error)
 	removeFile(string) error
 	listFiles(string) ([]servingv1.Service, error)
 }
@@ -70,33 +70,12 @@ func NewKnServingGitOpsClient(namespace, dir string) *knServingGitOpsClient {
 	}
 }
 
-func (f *fileClient) readFromFile(fileKey, name string) (*servingv1.Service, error) {
-	var svc servingv1.Service
-	file, err := os.Open(fileKey)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return nil, apierrors.NewNotFound(servingv1.Resource("services"), name)
-		}
-		return nil, err
-	}
-	decoder := yaml.NewYAMLOrJSONDecoder(file, 512)
-	if err := decoder.Decode(&svc); err != nil {
-		return nil, err
-	}
-	// updateServingGvk(&svc)
-	return &svc, nil
+func (f *fileClient) readFromFile(fileKey string) (io.Reader, error) {
+	return os.Open(fileKey)
 }
 
-func (f *fileClient) writeToFile(obj runtime.Object, filePath string) error {
-	objFile, err := os.Create(filePath)
-	if err != nil {
-		return err
-	}
-	yamlPrinter, err := genericclioptions.NewJSONYamlPrintFlags().ToPrinter("yaml")
-	if err != nil {
-		return err
-	}
-	return yamlPrinter.PrintObj(obj, objFile)
+func (f *fileClient) writeToFile(filePath string) (io.Writer, error) {
+	return os.Create(filePath)
 }
 
 func (f *fileClient) removeFile(filePath string) error {
@@ -122,11 +101,10 @@ func (f *fileClient) listFiles(root string) ([]servingv1.Service, error) {
 			return filepath.SkipDir
 
 		default:
-			svc, err := f.readFromFile(path, "")
+			svc, err := readServiceFromFile(f, path, "")
 			if err != nil {
 				return err
 			}
-			// updateServingGvk(svc)
 			services = append(services, *svc)
 			return nil
 		}
@@ -134,6 +112,22 @@ func (f *fileClient) listFiles(root string) ([]servingv1.Service, error) {
 		return nil, err
 	}
 	return services, nil
+}
+
+func readServiceFromFile(f fileOpsClient, fileKey, name string) (*servingv1.Service, error) {
+	var svc servingv1.Service
+	file, err := f.readFromFile(fileKey)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, apierrors.NewNotFound(servingv1.Resource("services"), name)
+		}
+		return nil, err
+	}
+	decoder := yaml.NewYAMLOrJSONDecoder(file, 512)
+	if err := decoder.Decode(&svc); err != nil {
+		return nil, err
+	}
+	return &svc, nil
 }
 
 func (cl *knServingGitOpsClient) getKsvcFilePath(name string) string {
@@ -147,7 +141,7 @@ func (cl *knServingGitOpsClient) Namespace() string {
 
 // GetService returns the knative service for the name
 func (cl *knServingGitOpsClient) GetService(name string) (*servingv1.Service, error) {
-	return cl.fileClient.readFromFile(cl.getKsvcFilePath(name), name)
+	return readServiceFromFile(cl.fileClient, cl.getKsvcFilePath(name), name)
 }
 
 // WatchService is not supported by this client
@@ -192,7 +186,15 @@ func (cl *knServingGitOpsClient) ListServices(config ...ListConfig) (*servingv1.
 // yaml format in the local path provided
 func (cl *knServingGitOpsClient) CreateService(service *servingv1.Service) error {
 	updateServingGvk(service)
-	return cl.fileClient.writeToFile(service, cl.getKsvcFilePath(service.ObjectMeta.Name))
+	w, err := cl.fileClient.writeToFile(cl.getKsvcFilePath(service.ObjectMeta.Name))
+	if err != nil {
+		return err
+	}
+	yamlPrinter, err := genericclioptions.NewJSONYamlPrintFlags().ToPrinter("yaml")
+	if err != nil {
+		return err
+	}
+	return yamlPrinter.PrintObj(service, w)
 }
 
 // UpdateService updates the service in
