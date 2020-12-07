@@ -81,26 +81,21 @@ func (params *KnParams) Initialize() {
 }
 
 func (params *KnParams) newServingClient(namespace string, cmd *cobra.Command) (clientservingv1.KnServingClient, error) {
-	dir := ""
-	if cmd.Flag("in-dir") != nil {
-		dir = cmd.Flag("in-dir").Value.String()
+	// return gitops client if 'in-dir' flag is specified
+	if cmd.Flag("in-dir") != nil && cmd.Flag("in-dir").Value.String() != "" {
+		return clientservingv1.NewKnServingGitOpsClient(namespace, cmd.Flag("in-dir").Value.String()), nil
 	}
-	switch dir {
-	case "":
-		restConfig, err := params.RestConfig()
-		if err != nil {
-			return nil, err
-		}
 
-		client, err := servingv1client.NewForConfig(restConfig)
-		if err != nil {
-			return nil, err
-		}
-		return clientservingv1.NewKnServingClient(client, namespace), nil
-
-	default:
-		return clientservingv1.NewKnServingGitOpsClient(namespace, dir), nil
+	restConfig, err := params.RestConfig()
+	if err != nil {
+		return nil, err
 	}
+
+	client, err := servingv1client.NewForConfig(restConfig)
+	if err != nil {
+		return nil, err
+	}
+	return clientservingv1.NewKnServingClient(client, namespace), nil
 }
 
 func (params *KnParams) newSourcesClient(namespace string) (v1alpha2.KnSourcesClient, error) {
