@@ -16,7 +16,9 @@ package v1
 
 import (
 	"context"
+	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -33,11 +35,15 @@ import (
 )
 
 func TestGitOpsOperations(t *testing.T) {
+	tempDir, err := ioutil.TempDir("", "kn-file")
+	assert.NilError(t, err)
+	cluster1Path := filepath.Join(tempDir, "cluster1")
+	defer os.RemoveAll(tempDir)
 	// create clients
-	fooclient := NewKnServingGitOpsClient("foo-ns", "./tmp/kn/files")
-	bazclient := NewKnServingGitOpsClient("baz-ns", "./tmp/kn/files")
-	globalclient := NewKnServingGitOpsClient("", "./tmp/kn/files")
-	diffClusterClient := NewKnServingGitOpsClient("", "./tmp/kn/cluster2/files")
+	fooclient := NewKnServingGitOpsClient("foo-ns", cluster1Path)
+	bazclient := NewKnServingGitOpsClient("baz-ns", cluster1Path)
+	globalclient := NewKnServingGitOpsClient("", cluster1Path)
+	diffClusterClient := NewKnServingGitOpsClient("", filepath.Join(tempDir, "cluster2"))
 
 	// set up test services
 	fooSvc := libtest.BuildServiceWithOptions("foo", servingtest.WithConfigSpec(buildConfiguration()))
@@ -49,7 +55,7 @@ func TestGitOpsOperations(t *testing.T) {
 
 	t.Run("get file path for foo service in foo namespace", func(t *testing.T) {
 		fp := fooclient.(*knServingGitOpsClient).getKsvcFilePath("foo")
-		assert.Equal(t, "tmp/kn/files/foo-ns/ksvc/foo.yaml", fp)
+		assert.Equal(t, filepath.Join(cluster1Path, "foo-ns/ksvc/foo.yaml"), fp)
 	})
 	t.Run("get namespace for bazclient client", func(t *testing.T) {
 		ns := bazclient.Namespace()
@@ -114,8 +120,6 @@ func TestGitOpsOperations(t *testing.T) {
 		_, err := fooclient.GetService("foo")
 		assert.ErrorType(t, err, apierrors.IsNotFound)
 	})
-	//clean up
-	os.RemoveAll("./tmp")
 }
 
 func getServiceList(services []servingv1.Service) *servingv1.ServiceList {
