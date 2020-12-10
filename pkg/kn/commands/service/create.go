@@ -73,7 +73,9 @@ var create_example = `
   kn service create s4gpu --image knativesamples/hellocuda-go --request memory=250Mi,cpu=200m --limit nvidia.com/gpu=1
 
   # Create the service in offline mode instead of kubernetes cluster
-  kn service create gitopstest --image knativesamples/helloworld --in-dir=/user/knfiles`
+  kn service create gitopstest -n test-ns --image knativesamples/helloworld --target=/user/knfiles
+  kn service create gitopstest --image knativesamples/helloworld --target=/user/knfiles/test.yaml
+  kn service create gitopstest --image knativesamples/helloworld --target=/user/knfiles/test.json`
 
 func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 	var editFlags ConfigurationEditFlags
@@ -109,7 +111,8 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			client, err := newServingClient(p, namespace, cmd.Flag("in-dir").Value.String())
+			targetFlag := cmd.Flag("target").Value.String()
+			client, err := newServingClient(p, namespace, targetFlag)
 			if err != nil {
 				return err
 			}
@@ -125,9 +128,9 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 						"cannot create service '%s' in namespace '%s' "+
 							"because the service already exists and no --force option was given", service.Name, namespace)
 				}
-				err = replaceService(client, service, waitFlags, out)
+				err = replaceService(client, service, waitFlags, out, targetFlag)
 			} else {
-				err = createService(client, service, waitFlags, out)
+				err = createService(client, service, waitFlags, out, targetFlag)
 			}
 			if err != nil {
 				return err
@@ -142,29 +145,28 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 	return serviceCreateCommand
 }
 
-func createService(client clientservingv1.KnServingClient, service *servingv1.Service, waitFlags commands.WaitFlags, out io.Writer) error {
+func createService(client clientservingv1.KnServingClient, service *servingv1.Service, waitFlags commands.WaitFlags, out io.Writer, targetFlag string) error {
 	err := client.CreateService(service)
 	if err != nil {
 		return err
 	}
 
-	return waitIfRequested(client, service.Name, waitFlags, "Creating", "created", out)
+	return waitIfRequested(client, waitFlags, service.Name, "Creating", "created", targetFlag, out)
 }
 
-func replaceService(client clientservingv1.KnServingClient, service *servingv1.Service, waitFlags commands.WaitFlags, out io.Writer) error {
+func replaceService(client clientservingv1.KnServingClient, service *servingv1.Service, waitFlags commands.WaitFlags, out io.Writer, targetFlag string) error {
 	err := prepareAndUpdateService(client, service)
 	if err != nil {
 		return err
 	}
-	return waitIfRequested(client, service.Name, waitFlags, "Replacing", "replaced", out)
+	return waitIfRequested(client, waitFlags, service.Name, "Replacing", "replaced", targetFlag, out)
 }
 
-func waitIfRequested(client clientservingv1.KnServingClient, serviceName string, waitFlags commands.WaitFlags, verbDoing string, verbDone string, out io.Writer) error {
-	if !waitFlags.Wait {
+func waitIfRequested(client clientservingv1.KnServingClient, waitFlags commands.WaitFlags, serviceName, verbDoing, verbDone, targetFlag string, out io.Writer) error {
+	if !waitFlags.Wait || targetFlag != "" {
 		fmt.Fprintf(out, "Service '%s' %s in namespace '%s'.\n", serviceName, verbDone, client.Namespace())
 		return nil
 	}
-
 	fmt.Fprintf(out, "%s service '%s' in namespace '%s':\n", verbDoing, serviceName, client.Namespace())
 	return waitForServiceToGetReady(client, serviceName, waitFlags.TimeoutInSeconds, verbDone, out)
 }

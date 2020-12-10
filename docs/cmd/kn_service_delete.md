@@ -22,6 +22,11 @@ kn service delete NAME [NAME ...]
 
   # Delete all services in 'ns1' namespace
   kn service delete --all -n ns1
+
+  # Delete the services in offline mode instead of kubernetes cluster
+  kn service delete test -n test-ns --target=/user/knfiles
+  kn service delete test --target=/user/knfiles/test.yaml
+  kn service delete test --target=/user/knfiles/test.json
 ```
 
 ### Options
@@ -29,9 +34,9 @@ kn service delete NAME [NAME ...]
 ```
       --all                Delete all services in a namespace.
   -h, --help               help for delete
-      --in-dir string      work on local directory instead of a remote cluster
   -n, --namespace string   Specify the namespace to operate in.
       --no-wait            Do not wait for 'service delete' operation to be completed. (default true)
+      --target string      work on local directory instead of a remote cluster
       --wait               Wait for 'service delete' operation to be completed.
       --wait-timeout int   Seconds to wait before giving up on waiting for service to be deleted. (default 600)
 ```

@@ -50,7 +50,9 @@ kn service create NAME --image IMAGE
   kn service create s4gpu --image knativesamples/hellocuda-go --request memory=250Mi,cpu=200m --limit nvidia.com/gpu=1
 
   # Create the service in offline mode instead of kubernetes cluster
-  kn service create gitopstest --image knativesamples/helloworld --in-dir=/user/knfiles
+  kn service create gitopstest -n test-ns --image knativesamples/helloworld --target=/user/knfiles
+  kn service create gitopstest --image knativesamples/helloworld --target=/user/knfiles/test.yaml
+  kn service create gitopstest --image knativesamples/helloworld --target=/user/knfiles/test.json
 ```
 
 ### Options
@@ -72,7 +74,6 @@ kn service create NAME --image IMAGE
       --force                             Create service forcefully, replaces existing service if any.
   -h, --help                              help for create
       --image string                      Image to run.
-      --in-dir string                     work on local directory instead of a remote cluster
   -l, --label stringArray                 Labels to set for both Service and Revision. name=value; you may provide this flag any number of times to set multiple labels. To unset, specify the label name followed by a "-" (e.g., name-).
       --label-revision stringArray        Revision label to set. name=value; you may provide this flag any number of times to set multiple labels. To unset, specify the label name followed by a "-" (e.g., name-). This flag takes precedence over the "label" flag.
       --label-service stringArray         Service label to set. name=value; you may provide this flag any number of times to set multiple labels. To unset, specify the label name followed by a "-" (e.g., name-). This flag takes precedence over the "label" flag.
@@ -92,6 +93,7 @@ kn service create NAME --image IMAGE
       --scale-max int                     Maximum number of replicas.
       --scale-min int                     Minimum number of replicas.
       --service-account string            Service account name to set. An empty argument ("") clears the service account. The referenced service account must exist in the service's namespace.
+      --target string                     work on local directory instead of a remote cluster
       --user int                          The user ID to run the container (e.g., 1001).
       --volume stringArray                Add a volume from a ConfigMap (prefix cm: or config-map:) or a Secret (prefix secret: or sc:). Example: --volume myvolume=cm:myconfigmap or --volume myvolume=secret:mysecret. You can use this flag multiple times. To unset a ConfigMap/Secret reference, append "-" to the name, e.g. --volume myvolume-.
       --wait                              Wait for 'service create' operation to be completed. (default true)

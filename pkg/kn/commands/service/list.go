@@ -42,13 +42,20 @@ func NewServiceListCommand(p *commands.KnParams) *cobra.Command {
   kn service list -o json
 
   # List service 'web'
-  kn service list web`,
+  kn service list web
+
+  # List the services in offline mode instead of kubernetes cluster
+  kn service list --target=/user/knfiles
+  kn service list --target=/user/knfiles/test.json
+  kn service list --target=/user/knfiles/test.yaml
+  kn service list -n test-ns --target=/user/knfiles`,
+
 		RunE: func(cmd *cobra.Command, args []string) error {
 			namespace, err := p.GetNamespace(cmd)
 			if err != nil {
 				return err
 			}
-			client, err := newServingClient(p, namespace, cmd.Flag("in-dir").Value.String())
+			client, err := newServingClient(p, namespace, cmd.Flag("target").Value.String())
 			if err != nil {
 				return err
 			}

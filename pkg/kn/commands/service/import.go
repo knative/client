@@ -123,7 +123,7 @@ func importWithOwnerRef(client clientservingv1.KnServingClient, filename string,
 		}
 	}
 
-	err = waitIfRequested(client, serviceName, waitFlags, "Importing", "imported", out)
+	err = waitIfRequested(client, waitFlags, serviceName, "Importing", "imported", "", out)
 	if err != nil {
 		return err
 	}

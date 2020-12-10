@@ -79,7 +79,12 @@ var describe_example = `
   kn service describe svc -o yaml
 
   # Print only service URL
-  kn service describe svc -o url`
+  kn service describe svc -o url
+
+  # Describe the services in offline mode instead of kubernetes cluster
+  kn service describe test -n test-ns --target=/user/knfiles
+  kn service describe test --target=/user/knfiles/test.yaml
+  kn service describe test --target=/user/knfiles/test.json`
 
 // NewServiceDescribeCommand returns a new command for describing a service.
 func NewServiceDescribeCommand(p *commands.KnParams) *cobra.Command {
@@ -102,7 +107,7 @@ func NewServiceDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			client, err := newServingClient(p, namespace, cmd.Flag("in-dir").Value.String())
+			client, err := newServingClient(p, namespace, cmd.Flag("target").Value.String())
 			if err != nil {
 				return err
 			}

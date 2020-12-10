@@ -35,15 +35,17 @@ import (
 )
 
 func TestGitOpsOperations(t *testing.T) {
-	tempDir, err := ioutil.TempDir("", "kn-file")
+	c1TempDir, err := ioutil.TempDir("", "kn-files-cluster1")
 	assert.NilError(t, err)
-	cluster1Path := filepath.Join(tempDir, "cluster1")
-	defer os.RemoveAll(tempDir)
+	c2TempDir, err := ioutil.TempDir("", "kn-files-cluster2")
+	assert.NilError(t, err)
+	defer os.RemoveAll(c1TempDir)
+	defer os.RemoveAll(c2TempDir)
 	// create clients
-	fooclient := NewKnServingGitOpsClient("foo-ns", cluster1Path)
-	bazclient := NewKnServingGitOpsClient("baz-ns", cluster1Path)
-	globalclient := NewKnServingGitOpsClient("", cluster1Path)
-	diffClusterClient := NewKnServingGitOpsClient("", filepath.Join(tempDir, "cluster2"))
+	fooclient := NewKnServingGitOpsClient("foo-ns", c1TempDir)
+	bazclient := NewKnServingGitOpsClient("baz-ns", c1TempDir)
+	globalclient := NewKnServingGitOpsClient("", c1TempDir)
+	diffClusterClient := NewKnServingGitOpsClient("", "tmp")
 
 	// set up test services
 	fooSvc := libtest.BuildServiceWithOptions("foo", servingtest.WithConfigSpec(buildConfiguration()))
@@ -55,7 +57,7 @@ func TestGitOpsOperations(t *testing.T) {
 
 	t.Run("get file path for foo service in foo namespace", func(t *testing.T) {
 		fp := fooclient.(*knServingGitOpsClient).getKsvcFilePath("foo")
-		assert.Equal(t, filepath.Join(cluster1Path, "foo-ns/ksvc/foo.yaml"), fp)
+		assert.Equal(t, filepath.Join(c1TempDir, "foo-ns/ksvc/foo.yaml"), fp)
 	})
 	t.Run("get namespace for bazclient client", func(t *testing.T) {
 		ns := bazclient.Namespace()
@@ -88,6 +90,11 @@ func TestGitOpsOperations(t *testing.T) {
 		assert.NilError(t, err)
 		assert.DeepEqual(t, fooserviceList, result)
 	})
+	t.Run("create service without master directory", func(t *testing.T) {
+		err := diffClusterClient.CreateService(fooSvc)
+		assert.ErrorContains(t, err, "directory 'tmp' not present, please create the directory and try again")
+	})
+	diffClusterClient = NewKnServingGitOpsClient("", c2TempDir)
 	t.Run("create service foo in foo namespace in cluster 2", func(t *testing.T) {
 		err := diffClusterClient.CreateService(fooSvc)
 		assert.NilError(t, err)
@@ -118,6 +125,97 @@ func TestGitOpsOperations(t *testing.T) {
 	})
 	t.Run("get service foo", func(t *testing.T) {
 		_, err := fooclient.GetService("foo")
+		assert.ErrorType(t, err, apierrors.IsNotFound)
+	})
+}
+
+func TestGitOpsSingleFile(t *testing.T) {
+	tmpDir, err := ioutil.TempDir("", "singlefile")
+	assert.NilError(t, err)
+	defer os.RemoveAll(tmpDir)
+	// create clients
+	fooclient := NewKnServingGitOpsClient("", filepath.Join(tmpDir, "test.yaml"))
+	barclient := NewKnServingGitOpsClient("", filepath.Join(tmpDir, "test.yml"))
+	bazclient := NewKnServingGitOpsClient("", filepath.Join(tmpDir, "test.json"))
+
+	// set up test services
+	testSvc := libtest.BuildServiceWithOptions("test", servingtest.WithConfigSpec(buildConfiguration()))
+	updateSvc := libtest.BuildServiceWithOptions("test", servingtest.WithConfigSpec(buildConfiguration()), servingtest.WithEnv(corev1.EnvVar{Name: "a", Value: "mouse"}))
+
+	svcList := getServiceList([]servingv1.Service{*updateSvc})
+
+	t.Run("get file path for fooclient", func(t *testing.T) {
+		fp := fooclient.(*knServingGitOpsClient).getKsvcFilePath("test")
+		assert.Equal(t, filepath.Join(tmpDir, "test.yaml"), fp)
+	})
+	t.Run("get namespace for fooclient", func(t *testing.T) {
+		ns := fooclient.Namespace()
+		assert.Equal(t, "", ns)
+	})
+	t.Run("create service in single file mode in different formats", func(t *testing.T) {
+		err := fooclient.CreateService(testSvc)
+		assert.NilError(t, err)
+
+		err = barclient.CreateService(testSvc)
+		assert.NilError(t, err)
+
+		err = bazclient.CreateService(testSvc)
+		assert.NilError(t, err)
+	})
+	t.Run("retrieve services", func(t *testing.T) {
+		result, err := fooclient.GetService("test")
+		assert.NilError(t, err)
+		assert.DeepEqual(t, testSvc, result)
+
+		result, err = barclient.GetService("test")
+		assert.NilError(t, err)
+		assert.DeepEqual(t, testSvc, result)
+
+		result, err = bazclient.GetService("test")
+		assert.NilError(t, err)
+		assert.DeepEqual(t, testSvc, result)
+	})
+	t.Run("update service foo", func(t *testing.T) {
+		err := fooclient.UpdateService(updateSvc)
+		assert.NilError(t, err)
+
+		err = barclient.UpdateService(updateSvc)
+		assert.NilError(t, err)
+
+		err = bazclient.UpdateService(updateSvc)
+		assert.NilError(t, err)
+	})
+	t.Run("list services", func(t *testing.T) {
+		result, err := fooclient.ListServices()
+		assert.NilError(t, err)
+		assert.DeepEqual(t, svcList, result)
+
+		result, err = barclient.ListServices()
+		assert.NilError(t, err)
+		assert.DeepEqual(t, svcList, result)
+
+		result, err = bazclient.ListServices()
+		assert.NilError(t, err)
+		assert.DeepEqual(t, svcList, result)
+	})
+	t.Run("delete service foo", func(t *testing.T) {
+		err := fooclient.DeleteService("test", 5*time.Second)
+		assert.NilError(t, err)
+
+		err = barclient.DeleteService("test", 5*time.Second)
+		assert.NilError(t, err)
+
+		err = bazclient.DeleteService("test", 5*time.Second)
+		assert.NilError(t, err)
+	})
+	t.Run("get service foo", func(t *testing.T) {
+		_, err := fooclient.GetService("test")
+		assert.ErrorType(t, err, apierrors.IsNotFound)
+
+		_, err = barclient.GetService("test")
+		assert.ErrorType(t, err, apierrors.IsNotFound)
+
+		_, err = bazclient.GetService("test")
 		assert.ErrorType(t, err, apierrors.IsNotFound)
 	})
 }

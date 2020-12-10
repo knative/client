@@ -15,6 +15,7 @@
 package v1
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -22,6 +23,7 @@ import (
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 
@@ -36,22 +38,42 @@ const (
 // knServingGitOpsClient - kn service client
 // to work on a local repo instead of a remote cluster
 type knServingGitOpsClient struct {
-	dir       string
-	namespace string
+	dir        string
+	namespace  string
+	fileMode   bool
+	fileFormat string
 	KnServingClient
 }
 
 // NewKnServingGitOpsClient returns an instance of the
 // kn service gitops client
 func NewKnServingGitOpsClient(namespace, dir string) KnServingClient {
+	mode, format := getFileModeAndType(dir)
 	return &knServingGitOpsClient{
-		dir:       dir,
-		namespace: namespace,
+		dir:        dir,
+		namespace:  namespace,
+		fileMode:   mode,
+		fileFormat: format,
 	}
 }
 
 func (cl *knServingGitOpsClient) getKsvcFilePath(name string) string {
+	if cl.fileMode {
+		return cl.dir
+	}
 	return filepath.Join(cl.dir, cl.namespace, ksvcKind, name+".yaml")
+}
+
+func getFileModeAndType(dir string) (bool, string) {
+	switch {
+	case strings.HasSuffix(dir, ".yaml"):
+		return true, "yaml"
+	case strings.HasSuffix(dir, ".yml"):
+		return true, "yaml"
+	case strings.HasSuffix(dir, ".json"):
+		return true, "json"
+	}
+	return false, "yaml"
 }
 
 // Namespace returns the namespace
@@ -66,12 +88,31 @@ func (cl *knServingGitOpsClient) GetService(name string) (*servingv1.Service, er
 
 // ListServices lists the services in the path provided
 func (cl *knServingGitOpsClient) ListServices(config ...ListConfig) (*servingv1.ServiceList, error) {
+	svcs, err := cl.listServicesFromDirectory()
+	if err != nil {
+		return nil, err
+	}
+	typeMeta := metav1.TypeMeta{
+		APIVersion: "v1",
+		Kind:       "List",
+	}
+	serviceList := &servingv1.ServiceList{
+		TypeMeta: typeMeta,
+		Items:    svcs,
+	}
+	return serviceList, nil
+}
+
+func (cl *knServingGitOpsClient) listServicesFromDirectory() ([]servingv1.Service, error) {
+	if cl.fileMode {
+		svc, err := readServiceFromFile(cl.dir, "")
+		return []servingv1.Service{*svc}, err
+	}
 	var services []servingv1.Service
 	root := cl.dir
-	if cl.namespace != "" {
+	if cl.namespace != "" && !cl.fileMode {
 		root = filepath.Join(cl.dir, cl.namespace)
 	}
-
 	if err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		switch {
 		// skip if dir is not ksvc
@@ -79,7 +120,7 @@ func (cl *knServingGitOpsClient) ListServices(config ...ListConfig) (*servingv1.
 			return nil
 
 		// skip non yaml files
-		case !strings.Contains(info.Name(), ".yaml"):
+		case !strings.HasSuffix(info.Name(), ".yaml"):
 			return nil
 
 		// skip non ksvc dir
@@ -97,37 +138,36 @@ func (cl *knServingGitOpsClient) ListServices(config ...ListConfig) (*servingv1.
 	}); err != nil {
 		return nil, err
 	}
-
-	typeMeta := metav1.TypeMeta{
-		APIVersion: "v1",
-		Kind:       "List",
-	}
-	serviceList := &servingv1.ServiceList{
-		TypeMeta: typeMeta,
-		Items:    services,
-	}
-
-	return serviceList, nil
+	return services, nil
 }
 
 // CreateService saves the knative service spec in
 // yaml format in the local path provided
 func (cl *knServingGitOpsClient) CreateService(service *servingv1.Service) error {
-	// create dir , if not present
-	namespaceDir := filepath.Join(cl.dir, cl.namespace, ksvcKind)
-	if _, err := os.Stat(namespaceDir); os.IsNotExist(err) {
-		os.MkdirAll(namespaceDir, 0755)
-	}
 	updateServingGvk(service)
-	w, err := os.Create(cl.getKsvcFilePath(service.ObjectMeta.Name))
+	if cl.fileMode {
+		return writeFile(service, cl.dir, cl.fileFormat)
+	}
+	//check if dir exist
+	if _, err := os.Stat(cl.dir); os.IsNotExist(err) {
+		return fmt.Errorf("directory '%s' not present, please create the directory and try again", cl.dir)
+	}
+	return writeFile(service, cl.getKsvcFilePath(service.ObjectMeta.Name), cl.fileFormat)
+}
+
+func writeFile(obj runtime.Object, fp, format string) error {
+	if _, err := os.Stat(fp); os.IsNotExist(err) {
+		os.MkdirAll(filepath.Dir(fp), 0755)
+	}
+	w, err := os.Create(fp)
 	if err != nil {
 		return err
 	}
-	yamlPrinter, err := genericclioptions.NewJSONYamlPrintFlags().ToPrinter("yaml")
+	yamlPrinter, err := genericclioptions.NewJSONYamlPrintFlags().ToPrinter(format)
 	if err != nil {
 		return err
 	}
-	return yamlPrinter.PrintObj(service, w)
+	return yamlPrinter.PrintObj(obj, w)
 }
 
 // UpdateService updates the service in

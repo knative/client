@@ -41,7 +41,12 @@ func NewServiceDeleteCommand(p *commands.KnParams) *cobra.Command {
   kn service delete svc2 -n ns1
 
   # Delete all services in 'ns1' namespace
-  kn service delete --all -n ns1`,
+  kn service delete --all -n ns1
+
+  # Delete the services in offline mode instead of kubernetes cluster
+  kn service delete test -n test-ns --target=/user/knfiles
+  kn service delete test --target=/user/knfiles/test.yaml
+  kn service delete test --target=/user/knfiles/test.json`,
 
 		RunE: func(cmd *cobra.Command, args []string) error {
 			all, err := cmd.Flags().GetBool("all")
@@ -62,7 +67,7 @@ func NewServiceDeleteCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			client, err := newServingClient(p, namespace, cmd.Flag("in-dir").Value.String())
+			client, err := newServingClient(p, namespace, cmd.Flag("target").Value.String())
 			if err != nil {
 				return err
 			}
