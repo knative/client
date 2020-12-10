@@ -110,7 +110,7 @@ func (cl *knServingGitOpsClient) listServicesFromDirectory() ([]servingv1.Servic
 	}
 	var services []servingv1.Service
 	root := cl.dir
-	if cl.namespace != "" && !cl.fileMode {
+	if cl.namespace != "" {
 		root = filepath.Join(cl.dir, cl.namespace)
 	}
 	if err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
