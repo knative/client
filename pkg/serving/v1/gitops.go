@@ -116,6 +116,9 @@ func (cl *knServingGitOpsClient) listServicesFromDirectory() ([]servingv1.Servic
 	if cl.namespace != "" {
 		root = filepath.Join(cl.dir, cl.namespace)
 	}
+	if _, err := os.Stat(root); err != nil {
+		return nil, err
+	}
 	if err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		switch {
 		// skip if dir is not ksvc
