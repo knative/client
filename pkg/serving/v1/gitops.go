@@ -89,9 +89,6 @@ func (cl *knServingGitOpsClient) GetService(name string) (*servingv1.Service, er
 // ListServices lists the services in the path provided
 func (cl *knServingGitOpsClient) ListServices(config ...ListConfig) (*servingv1.ServiceList, error) {
 	svcs, err := cl.listServicesFromDirectory()
-	if err != nil {
-		return nil, err
-	}
 	typeMeta := metav1.TypeMeta{
 		APIVersion: "v1",
 		Kind:       "List",
@@ -100,13 +97,16 @@ func (cl *knServingGitOpsClient) ListServices(config ...ListConfig) (*servingv1.
 		TypeMeta: typeMeta,
 		Items:    svcs,
 	}
-	return serviceList, nil
+	return serviceList, err
 }
 
 func (cl *knServingGitOpsClient) listServicesFromDirectory() ([]servingv1.Service, error) {
 	if cl.fileMode {
 		svc, err := readServiceFromFile(cl.dir, "")
-		return []servingv1.Service{*svc}, err
+		if err != nil {
+			return nil, err
+		}
+		return []servingv1.Service{*svc}, nil
 	}
 	var services []servingv1.Service
 	root := cl.dir
