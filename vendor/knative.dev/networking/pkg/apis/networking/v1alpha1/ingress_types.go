@@ -100,6 +100,11 @@ type IngressSpec struct {
 	// +optional
 	Rules []IngressRule `json:"rules,omitempty"`
 
+	// HTTPOption is the option of HTTP. It has the following three values:
+	// `HTTPOptionEnabled`, `HTTPOptionDisabled`, `HTTPOptionRedirected`
+	// If it's not specified then it defaults to `HTTPOptionEnabled`.
+	HTTPOption HTTPOption `json:"httpOption,omitempty"`
+
 	// DeprecatedVisibility was used for the fallback when spec.rules.visibility
 	// isn't set.
 	//
@@ -108,6 +113,18 @@ type IngressSpec struct {
 	// +optional
 	DeprecatedVisibility IngressVisibility `json:"visibility,omitempty"`
 }
+
+type HTTPOption string
+
+const (
+	// The knative ingress will be able to serve HTTP connections.
+	HTTPOptionEnabled HTTPOption = "Enabled"
+	// The knative ingress will reject HTTP traffic
+	HTTPOptionDisabled HTTPOption = "Disabled"
+	// The knative will return redirection HTTP status for the clients,
+	// asking the clients to redirect their requests to HTTPS.
+	HTTPOptionRedirected HTTPOption = "Redirected"
+)
 
 // IngressVisibility describes whether the Ingress should be exposed to
 // public gateways or not.
