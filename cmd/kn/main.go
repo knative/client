@@ -179,7 +179,11 @@ func printError(err error) {
 	var runError *runError
 	if !errors.As(err, &runError) {
 		// Print help hint only if its not a runError occurred when executing a command
-		fmt.Fprintf(os.Stderr, "Run '%s --help' for usage\n", extractCommandPathFromErrorMessage(err.Error(), os.Args[0]))
+		// The error message contains pattern 'kn CMDs', thus send 'kn' string to match the pattern.
+		// Sending `os.Args[0]` instead, may result in panics while compiling the regexp, as it
+		// may expand to the absolute path of the kn binary and the path may collide with regexp expressions.
+		// see https://github.com/knative/client/issues/1172
+		fmt.Fprintf(os.Stderr, "Run '%s --help' for usage\n", extractCommandPathFromErrorMessage(err.Error(), "kn"))
 	}
 }
 
