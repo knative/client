@@ -50,7 +50,6 @@ func (is *IngressSpec) Validate(ctx context.Context) *apis.FieldError {
 	for idx, tls := range is.TLS {
 		all = all.Also(tls.Validate(ctx).ViaFieldIndex("tls", idx))
 	}
-	all = all.Also(is.HTTPOption.Validate(ctx))
 	return all
 }
 
@@ -164,17 +163,6 @@ func (t *IngressTLS) Validate(ctx context.Context) *apis.FieldError {
 	}
 	if t.SecretNamespace == "" {
 		all = all.Also(apis.ErrMissingField("secretNamespace"))
-	}
-	return all
-}
-
-// Validate inspects and validates HTTPOption object.
-func (t HTTPOption) Validate(ctx context.Context) (all *apis.FieldError) {
-	switch t {
-	case HTTPOptionEnabled, HTTPOptionDisabled, HTTPOptionRedirected:
-		break
-	default:
-		all = all.Also(apis.ErrInvalidValue(t, "httpOption"))
 	}
 	return all
 }
