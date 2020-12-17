@@ -35,9 +35,7 @@ func (is *IngressSpec) SetDefaults(ctx context.Context) {
 	for i := range is.Rules {
 		is.Rules[i].SetDefaults(ctx)
 	}
-	if is.HTTPOption == "" {
-		is.HTTPOption = HTTPOptionEnabled
-	}
+
 	// Deprecated, do not use.
 	is.DeprecatedVisibility = ""
 }
