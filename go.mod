@@ -24,9 +24,9 @@ require (
 	k8s.io/code-generator v0.18.12
 	knative.dev/eventing v0.19.1-0.20201217221202-9643baffd747
 	knative.dev/hack v0.0.0-20201214230143-4ed1ecb8db24
-	knative.dev/networking v0.0.0-20201218015602-5b9803233324
-	knative.dev/pkg v0.0.0-20201217152402-7226f4f447a8
-	knative.dev/serving v0.19.1-0.20201217202302-f35443fe7801
+	knative.dev/networking v0.0.0-20201218160702-9c60344e49e5
+	knative.dev/pkg v0.0.0-20201218185703-e41409af6cff
+	knative.dev/serving v0.19.1-0.20201218215002-782b7f2851a4
 	sigs.k8s.io/yaml v1.2.0
 )
 
