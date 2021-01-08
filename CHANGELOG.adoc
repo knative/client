@@ -1112,5 +1112,9 @@ Ignore PRs:
 |===
 | | Description | PR
 
+| 🐛
+| Permit revision name in `service apply`
+| https://github.com/knative/client/pull/1185[#1185]
+
 |===
 ////
