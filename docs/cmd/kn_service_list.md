@@ -39,7 +39,7 @@ kn service list
   -n, --namespace string              Specify the namespace to operate in.
       --no-headers                    When using the default output format, don't print headers (default: print headers).
   -o, --output string                 Output format. One of: json|yaml|name|go-template|go-template-file|template|templatefile|jsonpath|jsonpath-file.
-      --target string                 work on local directory instead of a remote cluster
+      --target string                 Work on local directory instead of a remote cluster (experimental)
       --template string               Template string or path to template file to use when -o=go-template, -o=go-template-file. The template format is golang templates [http://golang.org/pkg/text/template/#pkg-overview].
 ```
 
