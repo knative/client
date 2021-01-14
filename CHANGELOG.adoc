@@ -17,6 +17,10 @@
 |===
 | | Description | PR
 
+| 🐛
+| Fix parsing the kn commands from error message
+| https://github.com/knative/client/pull/1174[#1174]
+
 | 🐣
 | Removes unnecessary help message introduced for machine-readable outputs for command 'kn source binding describe'
 | https://github.com/knative/client/pull/1158[#1158]
