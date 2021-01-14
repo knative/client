@@ -112,6 +112,11 @@
 | 🐛
 | Embed the namespace in request body while creating channels
 | https://github.com/knative/client/pull/1117[#1117]
+
+| 🎁
+| Add `--target` flag to support gitops mode (experimental)
+| https://github.com/knative/client/pull/1122[#1122]
+
 |===
 
 ### v0.19.0 (2020-11-11)

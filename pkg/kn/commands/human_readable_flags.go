@@ -117,5 +117,5 @@ func TranslateTimestampSince(timestamp metav1.Time) string {
 
 // AddGitOpsFlags adds flags to enable gitops mode
 func AddGitOpsFlags(flags *pflag.FlagSet) {
-	flags.String("target", "", "work on local directory instead of a remote cluster")
+	flags.String("target", "", "Work on local directory instead of a remote cluster (experimental)")
 }

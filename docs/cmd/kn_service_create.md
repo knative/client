@@ -93,7 +93,7 @@ kn service create NAME --image IMAGE
       --scale-max int                     Maximum number of replicas.
       --scale-min int                     Minimum number of replicas.
       --service-account string            Service account name to set. An empty argument ("") clears the service account. The referenced service account must exist in the service's namespace.
-      --target string                     work on local directory instead of a remote cluster
+      --target string                     Work on local directory instead of a remote cluster (experimental)
       --user int                          The user ID to run the container (e.g., 1001).
       --volume stringArray                Add a volume from a ConfigMap (prefix cm: or config-map:) or a Secret (prefix secret: or sc:). Example: --volume myvolume=cm:myconfigmap or --volume myvolume=secret:mysecret. You can use this flag multiple times. To unset a ConfigMap/Secret reference, append "-" to the name, e.g. --volume myvolume-.
       --wait                              Wait for 'service create' operation to be completed. (default true)

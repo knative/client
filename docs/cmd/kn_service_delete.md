@@ -36,7 +36,7 @@ kn service delete NAME [NAME ...]
   -h, --help               help for delete
   -n, --namespace string   Specify the namespace to operate in.
       --no-wait            Do not wait for 'service delete' operation to be completed. (default true)
-      --target string      work on local directory instead of a remote cluster
+      --target string      Work on local directory instead of a remote cluster (experimental)
       --wait               Wait for 'service delete' operation to be completed.
       --wait-timeout int   Seconds to wait before giving up on waiting for service to be deleted. (default 600)
 ```
