@@ -22,6 +22,11 @@ kn service describe NAME
 
   # Print only service URL
   kn service describe svc -o url
+
+  # Describe the services in offline mode instead of kubernetes cluster
+  kn service describe test -n test-ns --target=/user/knfiles
+  kn service describe test --target=/user/knfiles/test.yaml
+  kn service describe test --target=/user/knfiles/test.json
 ```
 
 ### Options
@@ -31,6 +36,7 @@ kn service describe NAME
   -h, --help                          help for describe
   -n, --namespace string              Specify the namespace to operate in.
   -o, --output string                 Output format. One of: json|yaml|name|go-template|go-template-file|template|templatefile|jsonpath|jsonpath-file|url.
+      --target string                 work on local directory instead of a remote cluster
       --template string               Template string or path to template file to use when -o=go-template, -o=go-template-file. The template format is golang templates [http://golang.org/pkg/text/template/#pkg-overview].
   -v, --verbose                       More output.
 ```

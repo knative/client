@@ -48,7 +48,12 @@ var updateExample = `
   kn service update svc --untag testing --tag @latest=staging
 
   # Add tag 'test' to echo-v3 revision with 10% traffic and rest to latest ready revision of service
-  kn service update svc --tag echo-v3=test --traffic test=10,@latest=90`
+  kn service update svc --tag echo-v3=test --traffic test=10,@latest=90
+
+  # Update the service in offline mode instead of kubernetes cluster
+  kn service update gitopstest -n test-ns --env KEY1=VALUE1 --target=/user/knfiles
+  kn service update gitopstest --env KEY1=VALUE1 --target=/user/knfiles/test.yaml
+  kn service update gitopstest --env KEY1=VALUE1 --target=/user/knfiles/test.json`
 
 func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 	var editFlags ConfigurationEditFlags
@@ -67,8 +72,8 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-
-			client, err := p.NewServingClient(namespace)
+			targetFlag := cmd.Flag("target").Value.String()
+			client, err := newServingClient(p, namespace, targetFlag)
 			if err != nil {
 				return err
 			}
@@ -109,7 +114,7 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			out := cmd.OutOrStdout()
-			if waitFlags.Wait {
+			if waitFlags.Wait && targetFlag == "" {
 				fmt.Fprintf(out, "Updating Service '%s' in namespace '%s':\n", args[0], namespace)
 				fmt.Fprintln(out, "")
 				err := waitForService(client, name, out, waitFlags.TimeoutInSeconds)
@@ -131,6 +136,7 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 	}
 
 	commands.AddNamespaceFlags(serviceUpdateCommand.Flags(), false)
+	commands.AddGitOpsFlags(serviceUpdateCommand.Flags())
 	editFlags.AddUpdateFlags(serviceUpdateCommand)
 	waitFlags.AddConditionWaitFlags(serviceUpdateCommand, commands.WaitDefaultTimeout, "update", "service", "ready")
 	trafficFlags.Add(serviceUpdateCommand)

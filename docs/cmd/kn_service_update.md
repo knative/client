@@ -33,6 +33,11 @@ kn service update NAME
 
   # Add tag 'test' to echo-v3 revision with 10% traffic and rest to latest ready revision of service
   kn service update svc --tag echo-v3=test --traffic test=10,@latest=90
+
+  # Update the service in offline mode instead of kubernetes cluster
+  kn service update gitopstest -n test-ns --env KEY1=VALUE1 --target=/user/knfiles
+  kn service update gitopstest --env KEY1=VALUE1 --target=/user/knfiles/test.yaml
+  kn service update gitopstest --env KEY1=VALUE1 --target=/user/knfiles/test.json
 ```
 
 ### Options
@@ -72,6 +77,7 @@ kn service update NAME
       --scale-min int                     Minimum number of replicas.
       --service-account string            Service account name to set. An empty argument ("") clears the service account. The referenced service account must exist in the service's namespace.
       --tag strings                       Set tag (format: --tag revisionRef=tagName) where revisionRef can be a revision or '@latest' string representing latest ready revision. This flag can be specified multiple times.
+      --target string                     work on local directory instead of a remote cluster
       --traffic strings                   Set traffic distribution (format: --traffic revisionRef=percent) where revisionRef can be a revision or a tag or '@latest' string representing latest ready revision. This flag can be given multiple times with percent summing up to 100%.
       --untag strings                     Untag revision (format: --untag tagName). This flag can be specified multiple times.
       --user int                          The user ID to run the container (e.g., 1001).

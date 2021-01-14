@@ -95,7 +95,7 @@ func NewServiceApplyCommand(p *commands.KnParams) *cobra.Command {
 
 				return showUrl(client, service.Name, "unchanged", "", cmd.OutOrStdout())
 			}
-			return waitIfRequested(client, service.Name, waitFlags, waitDoing, waitVerb, cmd.OutOrStdout())
+			return waitIfRequested(client, waitFlags, service.Name, waitDoing, waitVerb, "", cmd.OutOrStdout())
 		},
 	}
 	commands.AddNamespaceFlags(serviceApplyCommand.Flags(), false)

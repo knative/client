@@ -40,14 +40,15 @@ import (
 
 // KnParams for creating commands. Useful for inserting mocks for testing.
 type KnParams struct {
-	Output             io.Writer
-	KubeCfgPath        string
-	ClientConfig       clientcmd.ClientConfig
-	NewServingClient   func(namespace string) (clientservingv1.KnServingClient, error)
-	NewSourcesClient   func(namespace string) (v1alpha2.KnSourcesClient, error)
-	NewEventingClient  func(namespace string) (clienteventingv1beta1.KnEventingClient, error)
-	NewMessagingClient func(namespace string) (clientmessagingv1beta1.KnMessagingClient, error)
-	NewDynamicClient   func(namespace string) (clientdynamic.KnDynamicClient, error)
+	Output                 io.Writer
+	KubeCfgPath            string
+	ClientConfig           clientcmd.ClientConfig
+	NewServingClient       func(namespace string) (clientservingv1.KnServingClient, error)
+	NewGitopsServingClient func(namespace string, dir string) (clientservingv1.KnServingClient, error)
+	NewSourcesClient       func(namespace string) (v1alpha2.KnSourcesClient, error)
+	NewEventingClient      func(namespace string) (clienteventingv1beta1.KnEventingClient, error)
+	NewMessagingClient     func(namespace string) (clientmessagingv1beta1.KnMessagingClient, error)
+	NewDynamicClient       func(namespace string) (clientdynamic.KnDynamicClient, error)
 
 	// General global options
 	LogHTTP bool
@@ -59,6 +60,10 @@ type KnParams struct {
 func (params *KnParams) Initialize() {
 	if params.NewServingClient == nil {
 		params.NewServingClient = params.newServingClient
+	}
+
+	if params.NewGitopsServingClient == nil {
+		params.NewGitopsServingClient = params.newGitopsServingClient
 	}
 
 	if params.NewSourcesClient == nil {
@@ -84,8 +89,15 @@ func (params *KnParams) newServingClient(namespace string) (clientservingv1.KnSe
 		return nil, err
 	}
 
-	client, _ := servingv1client.NewForConfig(restConfig)
+	client, err := servingv1client.NewForConfig(restConfig)
+	if err != nil {
+		return nil, err
+	}
 	return clientservingv1.NewKnServingClient(client, namespace), nil
+}
+
+func (params *KnParams) newGitopsServingClient(namespace string, dir string) (clientservingv1.KnServingClient, error) {
+	return clientservingv1.NewKnServingGitOpsClient(namespace, dir), nil
 }
 
 func (params *KnParams) newSourcesClient(namespace string) (v1alpha2.KnSourcesClient, error) {

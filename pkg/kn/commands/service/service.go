@@ -74,3 +74,10 @@ func showUrl(client clientservingv1.KnServingClient, serviceName string, origina
 
 	return nil
 }
+
+func newServingClient(p *commands.KnParams, namespace, dir string) (clientservingv1.KnServingClient, error) {
+	if dir != "" {
+		return p.NewGitopsServingClient(namespace, dir)
+	}
+	return p.NewServingClient(namespace)
+}
