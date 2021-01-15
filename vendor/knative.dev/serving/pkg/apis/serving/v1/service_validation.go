@@ -43,11 +43,13 @@ func (s *Service) Validate(ctx context.Context) (errs *apis.FieldError) {
 
 	if apis.IsInUpdate(ctx) {
 		original := apis.GetBaseline(ctx).(*Service)
-		errs = errs.Also(apis.ValidateCreatorAndModifier(original.Spec, s.Spec, original.GetAnnotations(),
-			s.GetAnnotations(), serving.GroupName).ViaField("metadata.annotations"))
-		err := s.Spec.ConfigurationSpec.Template.VerifyNameChange(ctx,
-			&original.Spec.ConfigurationSpec.Template)
-		errs = errs.Also(err.ViaField("spec.template"))
+		errs = errs.Also(
+			apis.ValidateCreatorAndModifier(
+				original.Spec, s.Spec, original.GetAnnotations(),
+				s.GetAnnotations(), serving.GroupName).ViaField("metadata.annotations"))
+		errs = errs.Also(
+			s.Spec.ConfigurationSpec.Template.VerifyNameChange(ctx,
+				&original.Spec.ConfigurationSpec.Template).ViaField("spec.template"))
 	}
 	return errs
 }
@@ -64,7 +66,7 @@ func (ss *ServiceSpec) Validate(ctx context.Context) *apis.FieldError {
 func (s *Service) validateLabels() (errs *apis.FieldError) {
 	for key, val := range s.GetLabels() {
 		switch {
-		case key == network.VisibilityLabelKey || key == serving.VisibilityLabelKeyObsolete:
+		case key == network.VisibilityLabelKey:
 			errs = errs.Also(validateClusterVisibilityLabel(val))
 		case strings.HasPrefix(key, serving.GroupNamePrefix):
 			errs = errs.Also(apis.ErrInvalidKeyName(key, apis.CurrentField))
