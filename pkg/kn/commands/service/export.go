@@ -57,6 +57,13 @@ var IgnoredServiceLabels = []string{
 	"serving.knative.dev/serviceUID",
 }
 
+// IgnoredRevisionLabels defines the label keys which should be removed
+// from revision labels before export
+var IgnoredRevisionLabels = []string{
+	"serving.knative.dev/configUID",
+	"serving.knative.dev/serviceUID",
+}
+
 // NewServiceExportCommand returns a new command for exporting a service.
 func NewServiceExportCommand(p *commands.KnParams) *cobra.Command {
 
@@ -174,7 +181,6 @@ func exportLatestService(latestSvc *servingv1.Service, withRoutes bool) *serving
 
 	stripIgnoredAnnotationsFromService(&exportedSvc)
 	stripIgnoredLabelsFromService(&exportedSvc)
-
 	return &exportedSvc
 }
 
@@ -190,6 +196,7 @@ func exportRevision(revision *servingv1.Revision) servingv1.Revision {
 
 	exportedRevision.Spec = revision.Spec
 	stripIgnoredAnnotationsFromRevision(&exportedRevision)
+	stripIgnoredLabelsFromRevision(&exportedRevision)
 	return exportedRevision
 }
 
@@ -350,5 +357,11 @@ func stripIgnoredAnnotationsFromRevision(revision *servingv1.Revision) {
 func stripIgnoredLabelsFromService(svc *servingv1.Service) {
 	for _, label := range IgnoredServiceLabels {
 		delete(svc.ObjectMeta.Labels, label)
+	}
+}
+
+func stripIgnoredLabelsFromRevision(rev *servingv1.Revision) {
+	for _, label := range IgnoredRevisionLabels {
+		delete(rev.ObjectMeta.Labels, label)
 	}
 }
