@@ -226,9 +226,30 @@ func TestServiceExport(t *testing.T) {
 			test.WithRevisionEnv(corev1.EnvVar{Name: "a", Value: "mouse"}),
 		))),
 	), "--with-revisions", "--mode", "export", "-o", "yaml")
+
+	t.Log("create and export service 'foo' and verify that serviceUID and configUID labels are absent")
+	serviceCreateWithOptions(r, "foo")
+	output := serviceExportOutput(r, "foo", "-o", "json")
+	actSvc := servingv1.Service{}
+	err = json.Unmarshal([]byte(output), &actSvc)
+	assert.NilError(t, err)
+	_, ok := actSvc.Labels["serving.knative.dev/serviceUID"]
+	assert.Equal(t, ok, false)
+	_, ok = actSvc.Labels["serving.knative.dev/configUID"]
+	assert.Equal(t, ok, false)
+	_, ok = actSvc.Spec.ConfigurationSpec.Template.Labels["serving.knative.dev/servingUID"]
+	assert.Equal(t, ok, false)
+	_, ok = actSvc.Spec.ConfigurationSpec.Template.Labels["serving.knative.dev/configUID"]
+	assert.Equal(t, ok, false)
 }
 
-// Private methods
+// serviceExportOutput returns the export output of given service
+func serviceExportOutput(r *test.KnRunResultCollector, serviceName string, options ...string) string {
+	command := []string{"service", "export", serviceName}
+	command = append(command, options...)
+	out := r.KnTest().Kn().Run(command...)
+	return out.Stdout
+}
 
 func serviceExport(r *test.KnRunResultCollector, serviceName string, expService *servingv1.Service, options ...string) {
 	command := []string{"service", "export", serviceName}
@@ -253,8 +274,6 @@ func serviceExportWithRevisionList(r *test.KnRunResultCollector, serviceName str
 	validateExportedServiceandRevisionList(r.T(), r.KnTest(), out.Stdout, expService, knExport)
 	r.AssertNoError(out)
 }
-
-// Private functions
 
 func validateExportedService(t *testing.T, it *test.KnTest, out string, expService *servingv1.Service) {
 	actSvc := servingv1.Service{}
