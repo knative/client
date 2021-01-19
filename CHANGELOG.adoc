@@ -18,52 +18,64 @@
 | | Description | PR
 
 | 🐛
-| Fix parsing the kn commands from error message
+| Fix parsing the `kn` commands from error message
 | https://github.com/knative/client/pull/1174[#1174]
 
 | 🐣
-| Removes unnecessary help message introduced for machine-readable outputs for command 'kn source binding describe'
+| Remove unnecessary help message introduced for machine-readable outputs for command `kn source binding describe`
 | https://github.com/knative/client/pull/1158[#1158]
-
-| 🐣
-| Removes unnecessary help message introduced for machine-readable outputs for commands which does not have -o url flag
-| https://github.com/knative/client/pull/1152[#1152]
 
 | 🐣
 | Improve error handling in clients
 | https://github.com/knative/client/pull/1154[#1154]
 
 | 🎁
-| Add machine readable output (-o flag) to kn source ping describe
+| Build and release binaries for `linux/ppc64le`
+| https://github.com/knative/client/pull/1153[#1153]
+
+| 🐣
+| Remove unnecessary help message introduced for machine-readable outputs for commands which does not have `-o url` flag
+| https://github.com/knative/client/pull/1152[#1152]
+
+| 🎁
+| Add machine readable output options to `kn source ping describe`
 | https://github.com/knative/client/pull/1150[#1150]
 
 | 🎁
-| Add machine readable output (-o flag) to kn source binding describe
+| Add machine readable output options to `kn source binding describe`
 | https://github.com/knative/client/pull/1148[#1148]
 
 | 🎁
-| Add machine readable output (-o flag) to kn source apiserver describe
+| Add machine readable output options to `kn source apiserver describe`
 | https://github.com/knative/client/pull/1146[#1146]
 
-| 🐛
-| Fix a race condition when using Kubernetes watches
-| https://github.com/knative/client/pull/1113[#1113]
+| 🎁
+| Add machine readable output options to `kn broker describe`
+| https://github.com/knative/client/pull/1124[#1124]
+
+| 🎁
+| Add `--target` flag to support gitops mode (experimental)
+| https://github.com/knative/client/pull/1122[#1122]
+
+| 🎁
+| Add machine readable output options to `kn trigger describe`
+| https://github.com/knative/client/pull/1121[#1121]
+
+| 🎁
+| Add `url` output format to return the broker url in `broker describe` and channel url in `channel describe`
+| https://github.com/knative/client/pull/1118[#1118]
 
 | 🐛
 | Embed the namespace in request body while creating channels
 | https://github.com/knative/client/pull/1117[#1117]
 
 | 🎁
-| Add "url" output format to return broker url in broker describe and channel url in channel describe
-| https://github.com/knative/client/pull/1118[#1118]
+| Add ranges to the `--scale` option
+| https://github.com/knative/client/pull/1114[#1114]
 
-| 🎁
-| Add machine readable output (-o flag) to kn broker describe
-| https://github.com/knative/client/pull/1124[#1124]
-
-| 🎁
-| Add machine readable output (-o flag) to kn trigger describe
-| https://github.com/knative/client/pull/1121[#1121]
+| 🐛
+| Fix a race condition when using Kubernetes watches
+| https://github.com/knative/client/pull/1113[#1113]
 |===
 
 ## v0.18.4 (2020-11-26)
@@ -120,7 +132,6 @@
 | 🎁
 | Add `--target` flag to support gitops mode (experimental)
 | https://github.com/knative/client/pull/1122[#1122]
-
 |===
 
 ### v0.19.0 (2020-11-11)
