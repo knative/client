@@ -34,15 +34,34 @@ import (
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
-var IGNORED_SERVICE_ANNOTATIONS = []string{
+// IgnoredServiceAnnotations defines the annotation keys which should be
+// removed from service annotations before export
+var IgnoredServiceAnnotations = []string{
 	"serving.knative.dev/creator",
 	"serving.knative.dev/lastModifier",
 	"kubectl.kubernetes.io/last-applied-configuration",
 }
-var IGNORED_REVISION_ANNOTATIONS = []string{
+
+// IgnoredRevisionAnnotations defines the annotation keys which should be
+// removed from revision annotations before export
+var IgnoredRevisionAnnotations = []string{
 	"serving.knative.dev/lastPinned",
 	"serving.knative.dev/creator",
 	"serving.knative.dev/routingStateModified",
+}
+
+// IgnoredServiceLabels defines the label keys which should be removed
+// from service labels before export
+var IgnoredServiceLabels = []string{
+	"serving.knative.dev/configUID",
+	"serving.knative.dev/serviceUID",
+}
+
+// IgnoredRevisionLabels defines the label keys which should be removed
+// from revision labels before export
+var IgnoredRevisionLabels = []string{
+	"serving.knative.dev/configUID",
+	"serving.knative.dev/serviceUID",
 }
 
 // NewServiceExportCommand returns a new command for exporting a service.
@@ -161,7 +180,7 @@ func exportLatestService(latestSvc *servingv1.Service, withRoutes bool) *serving
 	}
 
 	stripIgnoredAnnotationsFromService(&exportedSvc)
-
+	stripIgnoredLabelsFromService(&exportedSvc)
 	return &exportedSvc
 }
 
@@ -177,6 +196,7 @@ func exportRevision(revision *servingv1.Revision) servingv1.Revision {
 
 	exportedRevision.Spec = revision.Spec
 	stripIgnoredAnnotationsFromRevision(&exportedRevision)
+	stripIgnoredLabelsFromRevision(&exportedRevision)
 	return exportedRevision
 }
 
@@ -323,13 +343,25 @@ func revisionListSortFunc(revisionList *servingv1.RevisionList) func(i int, j in
 }
 
 func stripIgnoredAnnotationsFromService(svc *servingv1.Service) {
-	for _, annotation := range IGNORED_SERVICE_ANNOTATIONS {
+	for _, annotation := range IgnoredServiceAnnotations {
 		delete(svc.ObjectMeta.Annotations, annotation)
 	}
 }
 
 func stripIgnoredAnnotationsFromRevision(revision *servingv1.Revision) {
-	for _, annotation := range IGNORED_REVISION_ANNOTATIONS {
+	for _, annotation := range IgnoredRevisionAnnotations {
 		delete(revision.ObjectMeta.Annotations, annotation)
+	}
+}
+
+func stripIgnoredLabelsFromService(svc *servingv1.Service) {
+	for _, label := range IgnoredServiceLabels {
+		delete(svc.ObjectMeta.Labels, label)
+	}
+}
+
+func stripIgnoredLabelsFromRevision(rev *servingv1.Revision) {
+	for _, label := range IgnoredRevisionLabels {
+		delete(rev.ObjectMeta.Labels, label)
 	}
 }

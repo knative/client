@@ -12,6 +12,16 @@
 | https://github.com/knative/client/pull/[#]
 ////
 
+## Unreleased
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🐣
+| Do not print serviceUID and configUID labels in service export result
+| https://github.com/knative/client/pull/1194[#1194]
+|===
+
 ## v0.20.0 (2021-01-14)
 [cols="1,10,3", options="header", width="100%"]
 |===
