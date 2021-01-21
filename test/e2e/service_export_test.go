@@ -227,7 +227,7 @@ func TestServiceExport(t *testing.T) {
 		))),
 	), "--with-revisions", "--mode", "export", "-o", "yaml")
 
-	t.Log("create and export service 'foo' and verify that serviceUID and configUID labels are absent")
+	t.Log("create and export service 'foo' and verify that serviceUID and configurationUID labels are absent")
 	serviceCreateWithOptions(r, "foo")
 	output := serviceExportOutput(r, "foo", "-o", "json")
 	actSvc := servingv1.Service{}
@@ -235,11 +235,11 @@ func TestServiceExport(t *testing.T) {
 	assert.NilError(t, err)
 	_, ok := actSvc.Labels["serving.knative.dev/serviceUID"]
 	assert.Equal(t, ok, false)
-	_, ok = actSvc.Labels["serving.knative.dev/configUID"]
+	_, ok = actSvc.Labels["serving.knative.dev/configurationUID"]
 	assert.Equal(t, ok, false)
 	_, ok = actSvc.Spec.ConfigurationSpec.Template.Labels["serving.knative.dev/servingUID"]
 	assert.Equal(t, ok, false)
-	_, ok = actSvc.Spec.ConfigurationSpec.Template.Labels["serving.knative.dev/configUID"]
+	_, ok = actSvc.Spec.ConfigurationSpec.Template.Labels["serving.knative.dev/configurationUID"]
 	assert.Equal(t, ok, false)
 }
 

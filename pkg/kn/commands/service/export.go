@@ -53,14 +53,14 @@ var IgnoredRevisionAnnotations = []string{
 // IgnoredServiceLabels defines the label keys which should be removed
 // from service labels before export
 var IgnoredServiceLabels = []string{
-	"serving.knative.dev/configUID",
+	"serving.knative.dev/configurationUID",
 	"serving.knative.dev/serviceUID",
 }
 
 // IgnoredRevisionLabels defines the label keys which should be removed
 // from revision labels before export
 var IgnoredRevisionLabels = []string{
-	"serving.knative.dev/configUID",
+	"serving.knative.dev/configurationUID",
 	"serving.knative.dev/serviceUID",
 }
 
