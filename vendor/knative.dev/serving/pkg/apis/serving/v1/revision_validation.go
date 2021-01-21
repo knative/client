@@ -128,6 +128,8 @@ func (r *Revision) ValidateLabels() (errs *apis.FieldError) {
 		case serving.RoutingStateLabelKey,
 			serving.RouteLabelKey,
 			serving.ServiceLabelKey,
+			serving.ConfigurationUIDLabelKey,
+			serving.ServiceUIDLabelKey,
 			serving.ConfigurationGenerationLabelKey:
 			// Known valid labels.
 		case serving.ConfigurationLabelKey:
