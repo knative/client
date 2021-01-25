@@ -114,8 +114,7 @@ func AddedAndRemovalListsFromArray(m []string) ([]string, []string) {
 func ToTrackerReference(subject, namespace string) (*tracker.Reference, error) {
 	parts := strings.SplitN(subject, ":", 3)
 	if len(parts) < 3 {
-		return nil, fmt.Errorf("invalid subject argument '%s': not in "+
-				"format kind:api/version:nameOrSelector", subject)
+		return nil, fmt.Errorf("invalid subject argument '%s': not in format kind:api/version:nameOrSelector", subject)
 	}
 	kind := parts[0]
 	gv, err := schema.ParseGroupVersion(parts[1])
@@ -145,8 +144,7 @@ func ParseSelector(labelSelector string) (map[string]string, error) {
 	for _, p := range strings.Split(labelSelector, ",") {
 		keyValue := strings.SplitN(p, "=", 2)
 		if len(keyValue) != 2 {
-			return nil, fmt.Errorf("invalid subject label selector '%s', "+
-					"expected format: key1=value,key2=value", labelSelector)
+			return nil, fmt.Errorf("invalid subject label selector '%s', expected format: key1=value,key2=value", labelSelector)
 		}
 		selector[keyValue[0]] = keyValue[1]
 	}
