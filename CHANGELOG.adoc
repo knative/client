@@ -18,6 +18,9 @@
 | | Description | PR
 
 | 🐣
+| Making a toReference public to enable reuse from kn-plugins
+| https://github.com/knative/client/pull/1203[#1203]
+| 🐣
 | Do not print serviceUID and configUID labels in service export result
 | https://github.com/knative/client/pull/1194[#1194]
 |===
