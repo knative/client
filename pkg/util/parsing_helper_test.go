@@ -15,9 +15,12 @@
 package util
 
 import (
+	"fmt"
 	"testing"
 
 	"gotest.tools/assert"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"knative.dev/pkg/tracker"
 )
 
 func TestMapFromArray(t *testing.T) {
@@ -115,4 +118,72 @@ func TestAddedAndRemovalListFromArray(t *testing.T) {
 	addList, removeList = AddedAndRemovalListsFromArray([]string{"addvalue1"})
 	assert.DeepEqual(t, []string{"addvalue1"}, addList)
 	assert.DeepEqual(t, []string{}, removeList)
+}
+
+func TestToTrackerReference(t *testing.T) {
+	testToTrackerReference(t,
+		"Broker:eventing.knative.dev/v1beta1:default", "demo",
+		&tracker.Reference{
+			APIVersion: "eventing.knative.dev/v1beta1",
+			Kind:       "Broker",
+			Namespace:  "demo",
+			Name:       "default",
+			Selector:   nil,
+		}, nil)
+	testToTrackerReference(t,
+		"Broker:eventing.knative.dev/v1beta1:default", "",
+		&tracker.Reference{
+			APIVersion: "eventing.knative.dev/v1beta1",
+			Kind:       "Broker",
+			Namespace:  "",
+			Name:       "default",
+			Selector:   nil,
+		}, nil)
+	testToTrackerReference(t,
+		"Job:batch/v1:app=heartbeat-cron,priority=high", "demo",
+		&tracker.Reference{
+			APIVersion: "batch/v1",
+			Kind:       "Job",
+			Namespace:  "demo",
+			Name:       "",
+			Selector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"app":      "heartbeat-cron",
+					"priority": "high",
+				},
+			},
+		}, nil)
+	testToTrackerReference(t, "", "demo", nil,
+		funcRef(func(t *testing.T, err error) {
+			assert.ErrorContains(t, err, "not in format kind:api/version:nameOrSelector")
+		}))
+	testToTrackerReference(t, "Job:batch/v1:app=acme,cmea", "demo", nil,
+		funcRef(func(t *testing.T, err error) {
+			assert.ErrorContains(t, err, "expected format: key1=value,key2=value")
+		}))
+	testToTrackerReference(t, "Job:batch/v1/next:acme", "demo", nil,
+		funcRef(func(t *testing.T, err error) {
+			assert.ErrorContains(t, err, "unexpected GroupVersion string")
+		}))
+}
+
+func testToTrackerReference(t *testing.T, input, namespace string,
+		expected *tracker.Reference, errMatch *func(*testing.T, error)) {
+	t.Helper()
+	t.Run(fmt.Sprintf("%s:%s", input, namespace), func(t *testing.T) {
+		ref, err := ToTrackerReference(input, namespace)
+		if err != nil {
+			if errMatch != nil {
+				m := *errMatch
+				m(t, err)
+			} else {
+				assert.NilError(t, err, "unexpected error")
+			}
+		}
+		assert.DeepEqual(t, expected, ref)
+	})
+}
+
+func funcRef(ref func(t *testing.T, err error)) *func(*testing.T, error) {
+	return &ref
 }
