@@ -167,8 +167,7 @@ func TestToTrackerReference(t *testing.T) {
 		}))
 }
 
-func testToTrackerReference(t *testing.T, input, namespace string,
-		expected *tracker.Reference, errMatch *func(*testing.T, error)) {
+func testToTrackerReference(t *testing.T, input, namespace string, expected *tracker.Reference, errMatch *func(*testing.T, error)) {
 	t.Helper()
 	t.Run(fmt.Sprintf("%s:%s", input, namespace), func(t *testing.T) {
 		ref, err := ToTrackerReference(input, namespace)
