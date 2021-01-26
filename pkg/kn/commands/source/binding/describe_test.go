@@ -130,7 +130,7 @@ func getSinkBindingSource(nameOrSelector string, ceOverrides map[string]string, 
 	}
 
 	if strings.Contains(nameOrSelector, "=") {
-		selector, _ := parseSelector(nameOrSelector)
+		selector, _ := util.ParseSelector(nameOrSelector)
 		binding.Spec.Subject.Selector = &v1.LabelSelector{
 			MatchLabels: selector,
 		}

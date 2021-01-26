@@ -1,4 +1,4 @@
-// Copyright © 2019 The Knative Authors
+// Copyright © 2019-2021 The Knative Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,6 +17,10 @@ package util
 import (
 	"fmt"
 	"strings"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"knative.dev/pkg/tracker"
 )
 
 // OrderedMapAndRemovalListFromArray creates a list of key-value pair using MapFromArrayAllowingSingles, and a list of removal entries
@@ -102,6 +106,49 @@ func AddedAndRemovalListsFromArray(m []string) ([]string, []string) {
 		}
 	}
 	return stringToAdd, stringToRemove
+}
+
+// ToTrackerReference will parse a subject in form of kind:apiVersion:name for
+// named resources or kind:apiVersion:labelKey1=value1,labelKey2=value2 for
+// matching via a label selector.
+func ToTrackerReference(subject, namespace string) (*tracker.Reference, error) {
+	parts := strings.SplitN(subject, ":", 3)
+	if len(parts) < 3 {
+		return nil, fmt.Errorf("invalid subject argument '%s': not in format kind:api/version:nameOrSelector", subject)
+	}
+	kind := parts[0]
+	gv, err := schema.ParseGroupVersion(parts[1])
+	if err != nil {
+		return nil, err
+	}
+	reference := &tracker.Reference{
+		APIVersion: gv.String(),
+		Kind:       kind,
+		Namespace:  namespace,
+	}
+	if !strings.Contains(parts[2], "=") {
+		reference.Name = parts[2]
+	} else {
+		selector, err := ParseSelector(parts[2])
+		if err != nil {
+			return nil, err
+		}
+		reference.Selector = &metav1.LabelSelector{MatchLabels: selector}
+	}
+	return reference, nil
+}
+
+// ParseSelector will parse a label selector in form of labelKey1=value1,labelKey2=value2.
+func ParseSelector(labelSelector string) (map[string]string, error) {
+	selector := map[string]string{}
+	for _, p := range strings.Split(labelSelector, ",") {
+		keyValue := strings.SplitN(p, "=", 2)
+		if len(keyValue) != 2 {
+			return nil, fmt.Errorf("invalid subject label selector '%s', expected format: key1=value,key2=value", labelSelector)
+		}
+		selector[keyValue[0]] = keyValue[1]
+	}
+	return selector, nil
 }
 
 // mapFromArray takes an array of strings where each item is a (key, value) pair
