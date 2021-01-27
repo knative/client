@@ -82,8 +82,9 @@ func TestListSourceTypes(t *testing.T) {
 		}
 
 		assert.Equal(t, len(uList.Items), 2)
-		assert.Equal(t, uList.Items[0].GetName(), "foo")
-		assert.Equal(t, uList.Items[1].GetName(), "bar")
+		// List of objects is returned in sorted order according to the (ns first, then name)
+		assert.Equal(t, uList.Items[0].GetName(), "bar")
+		assert.Equal(t, uList.Items[1].GetName(), "foo")
 	})
 }
 
