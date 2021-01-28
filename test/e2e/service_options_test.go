@@ -117,7 +117,7 @@ func TestServiceOptions(t *testing.T) {
 	serviceCreateWithOptions(r, "svc5", "--cmd", "/ko-app/helloworld")
 	validateContainerField(r, "svc5", "command", "[\"/ko-app/helloworld\"]")
 	test.ServiceUpdate(r, "svc5", "--arg", "myArg1", "--arg", "--myArg2")
-	validateContainerField(r, "svc5", "args", "[\"myArg1\" \"--myArg2\"]")
+	validateContainerField(r, "svc5", "args", "[\"myArg1\",\"--myArg2\"]")
 	test.ServiceUpdate(r, "svc5", "--arg", "myArg1")
 	validateContainerField(r, "svc5", "args", "[\"myArg1\"]")
 	test.ServiceDelete(r, "svc5")
