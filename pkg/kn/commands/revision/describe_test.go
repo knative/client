@@ -76,9 +76,6 @@ func TestDescribeRevisionYaml(t *testing.T) {
 				}},
 			},
 		},
-		Status: servingv1.RevisionStatus{
-			ServiceName: "foo-service",
-		},
 	}
 
 	action, data, err := fakeRevision([]string{"revision", "describe", "test-rev", "-o", "yaml"}, &expectedRevision)
