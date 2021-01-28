@@ -100,7 +100,7 @@ github.com/evanphx/json-patch
 github.com/fsnotify/fsnotify
 # github.com/ghodss/yaml v1.0.0
 github.com/ghodss/yaml
-# github.com/go-logr/logr v0.1.0
+# github.com/go-logr/logr v0.2.0
 github.com/go-logr/logr
 # github.com/go-openapi/jsonpointer v0.19.3
 github.com/go-openapi/jsonpointer
@@ -143,10 +143,10 @@ github.com/google/gofuzz
 github.com/google/uuid
 # github.com/googleapis/gax-go/v2 v2.0.5
 github.com/googleapis/gax-go/v2
-# github.com/googleapis/gnostic v0.4.0
-github.com/googleapis/gnostic/OpenAPIv2
+# github.com/googleapis/gnostic v0.4.1
 github.com/googleapis/gnostic/compiler
 github.com/googleapis/gnostic/extensions
+github.com/googleapis/gnostic/openapiv2
 # github.com/gregjones/httpcache v0.0.0-20190212212710-3befbb6ad0cc
 ## explicit
 github.com/gregjones/httpcache
@@ -192,7 +192,7 @@ github.com/magiconair/properties
 github.com/mailru/easyjson/buffer
 github.com/mailru/easyjson/jlexer
 github.com/mailru/easyjson/jwriter
-# github.com/matttproud/golang_protobuf_extensions v1.0.1
+# github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369
 github.com/matttproud/golang_protobuf_extensions/pbutil
 # github.com/mitchellh/go-homedir v1.1.0
 ## explicit
@@ -506,14 +506,13 @@ gotest.tools/assert/cmp
 gotest.tools/internal/difflib
 gotest.tools/internal/format
 gotest.tools/internal/source
-# k8s.io/api v0.19.7 => k8s.io/api v0.18.12
+# k8s.io/api v0.19.7
 ## explicit
 k8s.io/api/admissionregistration/v1
 k8s.io/api/admissionregistration/v1beta1
 k8s.io/api/apps/v1
 k8s.io/api/apps/v1beta1
 k8s.io/api/apps/v1beta2
-k8s.io/api/auditregistration/v1alpha1
 k8s.io/api/authentication/v1
 k8s.io/api/authentication/v1beta1
 k8s.io/api/authorization/v1
@@ -524,12 +523,14 @@ k8s.io/api/autoscaling/v2beta2
 k8s.io/api/batch/v1
 k8s.io/api/batch/v1beta1
 k8s.io/api/batch/v2alpha1
+k8s.io/api/certificates/v1
 k8s.io/api/certificates/v1beta1
 k8s.io/api/coordination/v1
 k8s.io/api/coordination/v1beta1
 k8s.io/api/core/v1
 k8s.io/api/discovery/v1alpha1
 k8s.io/api/discovery/v1beta1
+k8s.io/api/events/v1
 k8s.io/api/events/v1beta1
 k8s.io/api/extensions/v1beta1
 k8s.io/api/flowcontrol/v1alpha1
@@ -548,7 +549,7 @@ k8s.io/api/settings/v1alpha1
 k8s.io/api/storage/v1
 k8s.io/api/storage/v1alpha1
 k8s.io/api/storage/v1beta1
-# k8s.io/apimachinery v0.19.7 => k8s.io/apimachinery v0.18.12
+# k8s.io/apimachinery v0.19.7
 ## explicit
 k8s.io/apimachinery/pkg/api/equality
 k8s.io/apimachinery/pkg/api/errors
@@ -599,7 +600,7 @@ k8s.io/apimachinery/pkg/version
 k8s.io/apimachinery/pkg/watch
 k8s.io/apimachinery/third_party/forked/golang/json
 k8s.io/apimachinery/third_party/forked/golang/reflect
-# k8s.io/cli-runtime v0.18.12 => k8s.io/cli-runtime v0.18.12
+# k8s.io/cli-runtime v0.19.7
 ## explicit
 k8s.io/cli-runtime/pkg/genericclioptions
 k8s.io/cli-runtime/pkg/kustomize
@@ -613,7 +614,7 @@ k8s.io/cli-runtime/pkg/kustomize/k8sdeps/transformer/patch
 k8s.io/cli-runtime/pkg/kustomize/k8sdeps/validator
 k8s.io/cli-runtime/pkg/printers
 k8s.io/cli-runtime/pkg/resource
-# k8s.io/client-go v11.0.1-0.20190805182717-6502b5e7b1b5+incompatible => k8s.io/client-go v0.18.12
+# k8s.io/client-go v0.19.7
 ## explicit
 k8s.io/client-go/discovery
 k8s.io/client-go/discovery/cached/disk
@@ -626,7 +627,6 @@ k8s.io/client-go/kubernetes/typed/admissionregistration/v1beta1
 k8s.io/client-go/kubernetes/typed/apps/v1
 k8s.io/client-go/kubernetes/typed/apps/v1beta1
 k8s.io/client-go/kubernetes/typed/apps/v1beta2
-k8s.io/client-go/kubernetes/typed/auditregistration/v1alpha1
 k8s.io/client-go/kubernetes/typed/authentication/v1
 k8s.io/client-go/kubernetes/typed/authentication/v1beta1
 k8s.io/client-go/kubernetes/typed/authorization/v1
@@ -637,12 +637,14 @@ k8s.io/client-go/kubernetes/typed/autoscaling/v2beta2
 k8s.io/client-go/kubernetes/typed/batch/v1
 k8s.io/client-go/kubernetes/typed/batch/v1beta1
 k8s.io/client-go/kubernetes/typed/batch/v2alpha1
+k8s.io/client-go/kubernetes/typed/certificates/v1
 k8s.io/client-go/kubernetes/typed/certificates/v1beta1
 k8s.io/client-go/kubernetes/typed/coordination/v1
 k8s.io/client-go/kubernetes/typed/coordination/v1beta1
 k8s.io/client-go/kubernetes/typed/core/v1
 k8s.io/client-go/kubernetes/typed/discovery/v1alpha1
 k8s.io/client-go/kubernetes/typed/discovery/v1beta1
+k8s.io/client-go/kubernetes/typed/events/v1
 k8s.io/client-go/kubernetes/typed/events/v1beta1
 k8s.io/client-go/kubernetes/typed/extensions/v1beta1
 k8s.io/client-go/kubernetes/typed/flowcontrol/v1alpha1
@@ -695,7 +697,7 @@ k8s.io/client-go/util/jsonpath
 k8s.io/client-go/util/keyutil
 k8s.io/client-go/util/retry
 k8s.io/client-go/util/workqueue
-# k8s.io/code-generator v0.19.7 => k8s.io/code-generator v0.18.12
+# k8s.io/code-generator v0.19.7
 ## explicit
 k8s.io/code-generator
 k8s.io/code-generator/cmd/client-gen
@@ -743,20 +745,20 @@ k8s.io/gengo/parser
 k8s.io/gengo/types
 # k8s.io/klog v1.0.0
 k8s.io/klog
-# k8s.io/klog/v2 v2.0.0
+# k8s.io/klog/v2 v2.2.0
 k8s.io/klog/v2
-# k8s.io/kube-openapi v0.0.0-20200410145947-bcb3869e6f29
+# k8s.io/kube-openapi v0.0.0-20200805222855-6aeccd4b50c6
 k8s.io/kube-openapi/cmd/openapi-gen/args
 k8s.io/kube-openapi/pkg/common
 k8s.io/kube-openapi/pkg/generators
 k8s.io/kube-openapi/pkg/generators/rules
 k8s.io/kube-openapi/pkg/util/proto
 k8s.io/kube-openapi/pkg/util/sets
-# k8s.io/utils v0.0.0-20200603063816-c1c6865ac451
+# k8s.io/utils v0.0.0-20200729134348-d5654de09c73
 k8s.io/utils/buffer
 k8s.io/utils/integer
 k8s.io/utils/trace
-# knative.dev/eventing v0.20.1-0.20210122193254-ff327f0343c6
+# knative.dev/eventing v0.20.1-0.20210127134430-ea452b5b6655
 ## explicit
 knative.dev/eventing/pkg/apis/config
 knative.dev/eventing/pkg/apis/configs
@@ -794,7 +796,7 @@ knative.dev/hack
 knative.dev/networking/pkg
 knative.dev/networking/pkg/apis/networking
 knative.dev/networking/pkg/apis/networking/v1alpha1
-# knative.dev/pkg v0.0.0-20210124203454-7101e9d4f6c6
+# knative.dev/pkg v0.0.0-20210125222030-6040b3af4803
 ## explicit
 knative.dev/pkg/apis
 knative.dev/pkg/apis/duck
@@ -884,14 +886,8 @@ sigs.k8s.io/kustomize/pkg/transformers
 sigs.k8s.io/kustomize/pkg/transformers/config
 sigs.k8s.io/kustomize/pkg/transformers/config/defaultconfig
 sigs.k8s.io/kustomize/pkg/types
-# sigs.k8s.io/structured-merge-diff/v3 v3.0.1-0.20200706213357-43c19bbb7fba
-sigs.k8s.io/structured-merge-diff/v3/value
+# sigs.k8s.io/structured-merge-diff/v4 v4.0.1
+sigs.k8s.io/structured-merge-diff/v4/value
 # sigs.k8s.io/yaml v1.2.0
 ## explicit
 sigs.k8s.io/yaml
-# k8s.io/api => k8s.io/api v0.18.12
-# k8s.io/apimachinery => k8s.io/apimachinery v0.18.12
-# k8s.io/cli-runtime => k8s.io/cli-runtime v0.18.12
-# k8s.io/client-go => k8s.io/client-go v0.18.12
-# k8s.io/code-generator => k8s.io/code-generator v0.18.12
-# k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.18.12

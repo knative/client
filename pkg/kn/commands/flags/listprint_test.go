@@ -25,7 +25,7 @@ import (
 func TestListPrintFlagsFormats(t *testing.T) {
 	flags := NewListPrintFlags(nil)
 	formats := flags.AllowedFormats()
-	expected := []string{"json", "yaml", "name", "go-template", "go-template-file", "template", "templatefile", "jsonpath", "jsonpath-file", "no-headers"}
+	expected := []string{"json", "yaml", "name", "go-template", "go-template-file", "template", "templatefile", "jsonpath", "jsonpath-as-json", "jsonpath-file", "no-headers"}
 	assert.DeepEqual(t, formats, expected)
 }
 
