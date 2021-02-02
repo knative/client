@@ -25,6 +25,13 @@ To use the kn container image:
 - Nightly: `gcr.io/knative-nightly/knative.dev/client/cmd/kn`
 - Latest release: `gcr.io/knative-releases/knative.dev/client/cmd/kn`
 
+To install `kn` using [Homebrew](https://brew.sh):
+
+```bash
+brew tap knative/client
+brew install kn
+```
+
 ### Connecting to your cluster
 
 You'll need a `kubectl`-style config file to connect to your cluster.
