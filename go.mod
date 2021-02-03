@@ -30,4 +30,4 @@ require (
 	sigs.k8s.io/yaml v1.2.0
 )
 
-replace github.com/go-openapi => github.com/go-openapi v0.19.3
+replace github.com/go-openapi/spec => github.com/go-openapi/spec v0.19.3
