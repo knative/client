@@ -299,7 +299,6 @@ go.uber.org/zap/internal/color
 go.uber.org/zap/internal/exit
 go.uber.org/zap/zapcore
 # golang.org/x/crypto v0.0.0-20201002170205-7f63de1d35b0
-## explicit
 golang.org/x/crypto/ssh/terminal
 # golang.org/x/mod v0.3.0
 golang.org/x/mod/module
@@ -324,10 +323,14 @@ golang.org/x/oauth2/jwt
 golang.org/x/sync/semaphore
 # golang.org/x/sys v0.0.0-20201201145000-ef89a241ccb3
 golang.org/x/sys/internal/unsafeheader
+golang.org/x/sys/plan9
 golang.org/x/sys/unix
 golang.org/x/sys/windows
 golang.org/x/sys/windows/registry
 golang.org/x/sys/windows/svc/eventlog
+# golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1
+## explicit
+golang.org/x/term
 # golang.org/x/text v0.3.4
 golang.org/x/text/encoding
 golang.org/x/text/encoding/internal
