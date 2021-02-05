@@ -14,7 +14,7 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.0
-	golang.org/x/crypto v0.0.0-20201002170205-7f63de1d35b0
+	golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1
 	gopkg.in/ini.v1 v1.56.0 // indirect
 	gotest.tools v2.2.0+incompatible
 	k8s.io/api v0.19.7

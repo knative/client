@@ -24,7 +24,7 @@ import (
 
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 )
 
 type templateEngine struct {
@@ -171,7 +171,7 @@ func rpad(s string, padding int) string {
 
 // flagsUsagesCobra formats flags in Cobra style
 func flagsUsagesCobra(f *flag.FlagSet) string {
-	width, _, err := terminal.GetSize(int(os.Stdout.Fd()))
+	width, _, err := term.GetSize(int(os.Stdout.Fd()))
 	if err == nil {
 		return f.FlagUsagesWrapped(width)
 	} else {
