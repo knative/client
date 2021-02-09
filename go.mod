@@ -14,7 +14,7 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.0
-	golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1
+	golang.org/x/term v0.0.0-20201210144234-2321bbc49cbf
 	gopkg.in/ini.v1 v1.56.0 // indirect
 	gotest.tools v2.2.0+incompatible
 	k8s.io/api v0.19.7
@@ -22,11 +22,11 @@ require (
 	k8s.io/cli-runtime v0.19.7
 	k8s.io/client-go v0.19.7
 	k8s.io/code-generator v0.19.7
-	knative.dev/eventing v0.20.1-0.20210127134430-ea452b5b6655
-	knative.dev/hack v0.0.0-20210120165453-8d623a0af457
-	knative.dev/networking v0.0.0-20210123150554-8b522a9049a1
-	knative.dev/pkg v0.0.0-20210125222030-6040b3af4803
-	knative.dev/serving v0.20.1-0.20210123202654-e61294b2ca32
+	knative.dev/eventing v0.20.1-0.20210209112550-3fcb64522f45
+	knative.dev/hack v0.0.0-20210203173706-8368e1f6eacf
+	knative.dev/networking v0.0.0-20210209030528-e24bdfe91d90
+	knative.dev/pkg v0.0.0-20210208175252-a02dcff9ee26
+	knative.dev/serving v0.20.1-0.20210209061117-8751d9125712
 	sigs.k8s.io/yaml v1.2.0
 )
 

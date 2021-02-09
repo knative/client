@@ -124,6 +124,10 @@ type RevisionStatus struct {
 
 	// ServiceName holds the name of a core Kubernetes Service resource that
 	// load balances over the pods backing this Revision.
+	// Deprecated: revision service name is effectively equal to the revision name,
+	// as per #10540.
+	// 0.23 — stop populating
+	// 0.25 — remove.
 	// +optional
 	ServiceName string `json:"serviceName,omitempty"`
 
