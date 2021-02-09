@@ -37,7 +37,7 @@ const (
 
 	// QueueAdminPortName specifies the port name for
 	// health check and lifecycle hooks for queue-proxy.
-	QueueAdminPortName string = "http-queueadm"
+	QueueAdminPortName = "http-queueadm"
 
 	// AutoscalingQueueMetricsPortName specifies the port name to use for metrics
 	// emitted by queue-proxy for autoscaler.
@@ -48,15 +48,8 @@ const (
 	UserQueueMetricsPortName = "http-usermetric"
 )
 
-const (
-	// AnnotationParseErrorTypeMissing is the value of the Type field for
-	// AnnotationParseErrors which indicate an annotation was missing.
-	AnnotationParseErrorTypeMissing = "Missing"
-
-	// AnnotationParseErrorTypeInvalid is the value of the Type field for
-	// AnnotationParseErrors which indicate an annotation was invalid.
-	AnnotationParseErrorTypeInvalid = "Invalid"
-)
+// RoutingState represents states of a revision with regards to serving a route.
+type RoutingState string
 
 const (
 	// RoutingStateUnset is the empty value for routing state, this state is unexpected.
@@ -67,28 +60,12 @@ const (
 	// of revision garbage collection.
 	RoutingStatePending RoutingState = "pending"
 
-	// RoutingStateActive is a state for a revision which are actively referenced by a Route.
+	// RoutingStateActive is a state for a revision which is actively referenced by a Route.
 	RoutingStateActive RoutingState = "active"
 
 	// RoutingStateReserve is a state for a revision which is no longer referenced by a Route,
 	// and is scaled down, but may be rapidly pinned to a route to be made active again.
 	RoutingStateReserve RoutingState = "reserve"
-)
-
-type (
-	// RoutingState represents states of a revision with regards to serving a route.
-	RoutingState string
-
-	// +k8s:deepcopy-gen=false
-
-	// AnnotationParseError is the error type representing failures to parse annotations.
-	AnnotationParseError struct {
-		Type  string
-		Value string
-		Err   error
-	}
-
-	// +k8s:deepcopy-gen=false
 )
 
 // GetContainer returns a pointer to the relevant corev1.Container field.
@@ -157,25 +134,17 @@ func (r *Revision) IsReachable() bool {
 }
 
 // GetProtocol returns the app level network protocol.
-func (r *Revision) GetProtocol() (p net.ProtocolType) {
-	p = net.ProtocolHTTP1
-
+func (r *Revision) GetProtocol() net.ProtocolType {
 	ports := r.Spec.GetContainer().Ports
-	if len(ports) == 0 {
-		return
+	if len(ports) > 0 && ports[0].Name == string(net.ProtocolH2C) {
+		return net.ProtocolH2C
 	}
 
-	if ports[0].Name == string(net.ProtocolH2C) {
-		p = net.ProtocolH2C
-	}
-
-	return
+	return net.ProtocolHTTP1
 }
 
 // IsActivationRequired returns true if activation is required.
 func (rs *RevisionStatus) IsActivationRequired() bool {
-	if c := revisionCondSet.Manage(rs).GetCondition(RevisionConditionActive); c != nil {
-		return c.Status != corev1.ConditionTrue
-	}
-	return false
+	c := revisionCondSet.Manage(rs).GetCondition(RevisionConditionActive)
+	return c != nil && c.Status != corev1.ConditionTrue
 }
