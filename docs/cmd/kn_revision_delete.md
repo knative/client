@@ -12,6 +12,12 @@ kn revision delete NAME [NAME ...]
 
   # Delete a revision 'svc1-abcde' in default namespace
   kn revision delete svc1-abcde
+
+  # Delete all unreferenced revisions
+  kn revision delete --prune-all
+
+  # Delete all unreferenced revisions for a given service 'mysvc'
+  kn revision delete --prune mysvc
 ```
 
 ### Options
@@ -20,6 +26,8 @@ kn revision delete NAME [NAME ...]
   -h, --help               help for delete
   -n, --namespace string   Specify the namespace to operate in.
       --no-wait            Do not wait for 'revision delete' operation to be completed. (default true)
+      --prune string       Remove unreferenced revisions for a given service in a namespace.
+      --prune-all          Remove all unreferenced revisions in a namespace.
       --wait               Wait for 'revision delete' operation to be completed.
       --wait-timeout int   Seconds to wait before giving up on waiting for revision to be deleted. (default 600)
 ```

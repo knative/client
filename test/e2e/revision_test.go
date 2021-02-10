@@ -59,6 +59,25 @@ func TestRevision(t *testing.T) {
 	nonexistRevision := "hello-nonexist"
 	test.RevisionMultipleDelete(r, existRevision1, existRevision2, nonexistRevision)
 
+	t.Log("update hello service and increase revision count to 4")
+	test.ServiceUpdate(r, "hello", "--env", "TARGET=kn", "--port", "8888")
+	t.Log("delete all unreferenced revision from hello service and return no error")
+	unRefRevision := test.FindRevisionByGeneration(r, "hello", 3)
+	test.RevisionDeleteWithPruneOption(r, "hello", unRefRevision)
+
+	t.Log("update hello service and increase revision count to 5")
+	test.ServiceUpdate(r, "hello", "--env", "TARGET=kn", "--port", "9000")
+	t.Log("create hello service and return no error")
+	test.ServiceCreate(r, "hello1")
+	t.Log("update hello1 service and increase revision count to 2")
+	test.ServiceUpdate(r, "hello1", "--env", "TARGET=kn", "--port", "8888")
+	t.Log("delete all unreferenced revisions return no error")
+	unRefRevision1 := test.FindRevisionByGeneration(r, "hello", 4)
+	unRefRevision2 := test.FindRevisionByGeneration(r, "hello1", 1)
+	test.RevisionDeleteWithPruneAllOption(r, unRefRevision1, unRefRevision2)
+	t.Log("delete hello1 service and return no error")
+	test.ServiceDelete(r, "hello1")
+
 	t.Log("delete latest revision from hello service and return no error")
 	revName = test.FindRevision(r, "hello")
 	test.RevisionDelete(r, revName)

@@ -139,3 +139,17 @@ func RevisionListWithService(r *KnRunResultCollector, serviceNames ...string) {
 		}
 	}
 }
+
+// RevisionDeleteWithPruneOption verifies removeing all unreferenced revisions for a given service in sync mode
+func RevisionDeleteWithPruneOption(r *KnRunResultCollector, serviceName, revName string) {
+	out := r.KnTest().Kn().Run("revision", "delete", "--prune", serviceName)
+	assert.Check(r.T(), util.ContainsAll(out.Stdout, "Revision", "deleted", revName, "namespace", r.KnTest().Kn().Namespace()))
+	r.AssertNoError(out)
+}
+
+// RevisionDeleteWithPruneAllOption verifies removeing all unreferenced revision in sync mode
+func RevisionDeleteWithPruneAllOption(r *KnRunResultCollector, revName1, revName2 string) {
+	out := r.KnTest().Kn().Run("revision", "delete", "--prune-all")
+	assert.Check(r.T(), util.ContainsAll(out.Stdout, "Revision", "deleted", revName1, revName1, "namespace", r.KnTest().Kn().Namespace()))
+	r.AssertNoError(out)
+}
