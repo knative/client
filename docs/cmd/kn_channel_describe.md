@@ -2,10 +2,6 @@
 
 Show details of a channel
 
-### Synopsis
-
-Show details of a channel
-
 ```
 kn channel describe NAME
 ```

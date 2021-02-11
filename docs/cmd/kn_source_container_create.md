@@ -2,10 +2,6 @@
 
 Create a container source
 
-### Synopsis
-
-Create a container source
-
 ```
 kn source container create NAME --image IMAGE --sink SINK
 ```

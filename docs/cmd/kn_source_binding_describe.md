@@ -2,10 +2,6 @@
 
 Show details of a sink binding
 
-### Synopsis
-
-Show details of a sink binding
-
 ```
 kn source binding describe NAME
 ```

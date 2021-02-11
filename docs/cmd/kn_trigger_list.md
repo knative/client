@@ -2,10 +2,6 @@
 
 List triggers
 
-### Synopsis
-
-List triggers
-
 ```
 kn trigger list
 ```

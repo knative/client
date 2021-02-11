@@ -2,10 +2,6 @@
 
 Create a trigger
 
-### Synopsis
-
-Create a trigger
-
 ```
 kn trigger create NAME --sink SINK
 ```

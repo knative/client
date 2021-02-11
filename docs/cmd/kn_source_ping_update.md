@@ -2,10 +2,6 @@
 
 Update a ping source
 
-### Synopsis
-
-Update a ping source
-
 ```
 kn source ping update NAME
 ```

@@ -2,10 +2,6 @@
 
 Update an event subscription
 
-### Synopsis
-
-Update an event subscription
-
 ```
 kn subscription update NAME
 ```

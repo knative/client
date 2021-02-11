@@ -2,10 +2,6 @@
 
 Update a trigger
 
-### Synopsis
-
-Update a trigger
-
 ```
 kn trigger update NAME
 ```

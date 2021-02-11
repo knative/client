@@ -2,10 +2,6 @@
 
 Delete revisions
 
-### Synopsis
-
-Delete revisions
-
 ```
 kn revision delete NAME [NAME ...]
 ```

@@ -2,10 +2,6 @@
 
 Update an api-server source
 
-### Synopsis
-
-Update an api-server source
-
 ```
 kn source apiserver update NAME
 ```

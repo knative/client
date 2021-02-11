@@ -2,10 +2,6 @@
 
 Update a container source
 
-### Synopsis
-
-Update a container source
-
 ```
 kn source container update NAME --image IMAGE
 ```

@@ -2,10 +2,6 @@
 
 Apply a service declaration
 
-### Synopsis
-
-Apply a service declaration
-
 ```
 kn service apply NAME
 ```

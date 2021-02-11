@@ -2,10 +2,6 @@
 
 Show details of a subscription
 
-### Synopsis
-
-Show details of a subscription
-
 ```
 kn subscription describe NAME
 ```

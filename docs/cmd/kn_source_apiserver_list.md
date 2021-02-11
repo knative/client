@@ -2,10 +2,6 @@
 
 List api-server sources
 
-### Synopsis
-
-List api-server sources
-
 ```
 kn source apiserver list
 ```

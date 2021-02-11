@@ -2,10 +2,6 @@
 
 Manage container sources
 
-### Synopsis
-
-Manage container sources
-
 ```
 kn source container create|delete|update|list|describe
 ```

@@ -2,10 +2,6 @@
 
 Delete a channel
 
-### Synopsis
-
-Delete a channel
-
 ```
 kn channel delete NAME
 ```

@@ -2,10 +2,6 @@
 
 List event source types
 
-### Synopsis
-
-List event source types
-
 ```
 kn source list-types
 ```

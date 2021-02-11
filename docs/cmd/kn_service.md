@@ -2,10 +2,6 @@
 
 Manage Knative services
 
-### Synopsis
-
-Manage Knative services
-
 ```
 kn service
 ```

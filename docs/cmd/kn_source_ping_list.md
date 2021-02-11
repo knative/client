@@ -2,10 +2,6 @@
 
 List ping sources
 
-### Synopsis
-
-List ping sources
-
 ```
 kn source ping list
 ```

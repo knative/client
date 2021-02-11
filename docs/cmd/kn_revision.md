@@ -2,10 +2,6 @@
 
 Manage service revisions
 
-### Synopsis
-
-Manage service revisions
-
 ```
 kn revision
 ```

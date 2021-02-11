@@ -2,10 +2,6 @@
 
 Show details of a trigger
 
-### Synopsis
-
-Show details of a trigger
-
 ```
 kn trigger describe NAME
 ```

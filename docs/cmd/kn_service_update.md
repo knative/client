@@ -2,10 +2,6 @@
 
 Update a service
 
-### Synopsis
-
-Update a service
-
 ```
 kn service update NAME
 ```

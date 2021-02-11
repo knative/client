@@ -2,10 +2,6 @@
 
 Manage message brokers
 
-### Synopsis
-
-Manage message brokers
-
 ```
 kn broker
 ```

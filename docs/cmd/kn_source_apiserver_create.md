@@ -2,10 +2,6 @@
 
 Create an api-server source
 
-### Synopsis
-
-Create an api-server source
-
 ```
 kn source apiserver create NAME --resource RESOURCE --sink SINK
 ```

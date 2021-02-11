@@ -2,10 +2,6 @@
 
 Create a subscription
 
-### Synopsis
-
-Create a subscription
-
 ```
 kn subscription create NAME
 ```

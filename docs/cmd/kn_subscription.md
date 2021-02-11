@@ -2,10 +2,6 @@
 
 Manage event subscriptions
 
-### Synopsis
-
-Manage event subscriptions
-
 ```
 kn subscription COMMAND
 ```

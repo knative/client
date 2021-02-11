@@ -2,10 +2,6 @@
 
 Create a ping source
 
-### Synopsis
-
-Create a ping source
-
 ```
 kn source ping create NAME --sink SINK
 ```

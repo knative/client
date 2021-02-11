@@ -2,10 +2,6 @@
 
 List services
 
-### Synopsis
-
-List services
-
 ```
 kn service list
 ```

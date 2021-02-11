@@ -2,10 +2,6 @@
 
 Create an event channel
 
-### Synopsis
-
-Create an event channel
-
 ```
 kn channel create NAME
 ```

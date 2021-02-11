@@ -2,10 +2,6 @@
 
 List routes
 
-### Synopsis
-
-List routes
-
 ```
 kn route list NAME
 ```

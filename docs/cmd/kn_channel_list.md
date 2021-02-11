@@ -2,10 +2,6 @@
 
 List channels
 
-### Synopsis
-
-List channels
-
 ```
 kn channel list
 ```

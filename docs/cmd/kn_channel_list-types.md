@@ -2,10 +2,6 @@
 
 List channel types
 
-### Synopsis
-
-List channel types
-
 ```
 kn channel list-types
 ```

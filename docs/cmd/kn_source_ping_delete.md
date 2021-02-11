@@ -2,10 +2,6 @@
 
 Delete a ping source
 
-### Synopsis
-
-Delete a ping source
-
 ```
 kn source ping delete NAME
 ```
