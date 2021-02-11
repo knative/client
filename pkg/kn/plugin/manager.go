@@ -26,7 +26,6 @@ import (
 	"text/template"
 
 	homedir "github.com/mitchellh/go-homedir"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -390,7 +389,7 @@ func findMostSpecificPluginInPath(dir string, parts []string, lookupInPath bool)
 		// Check for the name in plugin directory and PATH (if requested)
 		path, err := findInDirOrPath(name, dir, lookupInPath)
 		if err != nil {
-			return nil, errors.Wrap(err, fmt.Sprintf("cannot lookup plugin %s in directory %s (lookup in path: %t)", name, dir, lookupInPath))
+			return nil, fmt.Errorf("cannot lookup plugin %s in directory %s (lookup in path: %t): %w", name, dir, lookupInPath, err)
 		}
 
 		// Found, return it
@@ -440,7 +439,7 @@ func findInDirOrPath(name string, dir string, lookupInPath bool) (string, error)
 			return path, nil
 		}
 		if !os.IsNotExist(err) {
-			return "", errors.Wrap(err, fmt.Sprintf("i/o error while reading %s", path))
+			return "", fmt.Errorf("i/o error while reading %s: %w", path, err)
 		}
 
 		// Check in PATH if requested
@@ -451,7 +450,7 @@ func findInDirOrPath(name string, dir string, lookupInPath bool) (string, error)
 				return path, nil
 			}
 			if execErr, ok := err.(*exec.Error); !ok || execErr.Unwrap() != exec.ErrNotFound {
-				return "", errors.Wrap(err, fmt.Sprintf("error for looking up %s in path", name))
+				return "", fmt.Errorf("error for looking up %s in path: %w", name, err)
 			}
 		}
 	}

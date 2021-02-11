@@ -15,7 +15,8 @@
 package options
 
 import (
-	"github.com/pkg/errors"
+	"fmt"
+
 	"github.com/spf13/cobra"
 
 	"knative.dev/client/pkg/templates"
@@ -40,7 +41,7 @@ kn options`,
 		FParseErrWhitelist: cobra.FParseErrWhitelist{UnknownFlags: true}, // wokeignore:rule=whitelist // TODO(#1031)
 	}
 	cmd.SetFlagErrorFunc(func(c *cobra.Command, err error) error {
-		return errors.Errorf("%s for '%s'", err.Error(), c.CommandPath())
+		return fmt.Errorf("%s for '%s'", err.Error(), c.CommandPath())
 	})
 	cmd.SetUsageFunc(templates.NewGlobalOptionsFunc())
 	cmd.SetHelpFunc(func(command *cobra.Command, args []string) {

@@ -21,7 +21,6 @@ import (
 	"runtime"
 
 	homedir "github.com/mitchellh/go-homedir"
-	"github.com/pkg/errors"
 	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
@@ -130,7 +129,7 @@ func BootstrapConfig() error {
 			// No config file to read
 			return nil
 		}
-		return errors.Wrap(err, fmt.Sprintf("cannot stat configfile %s", configFile))
+		return fmt.Errorf("cannot stat configfile %s: %w", configFile, err)
 	}
 
 	viper.SetConfigFile(GlobalConfig.ConfigFile())
@@ -249,8 +248,8 @@ func parseSinkMappings() error {
 	if key != "" {
 		err := viper.UnmarshalKey(key, &globalConfig.sinkMappings)
 		if err != nil {
-			return errors.Wrap(err, fmt.Sprintf("error while parsing sink mappings in configuration file %s",
-				viper.ConfigFileUsed()))
+			return fmt.Errorf("error while parsing sink mappings in configuration file %s: %w",
+				viper.ConfigFileUsed(), err)
 		}
 	}
 	return nil
@@ -261,8 +260,8 @@ func parseChannelTypeMappings() error {
 	if viper.IsSet(keyChannelTypeMappings) {
 		err := viper.UnmarshalKey(keyChannelTypeMappings, &globalConfig.channelTypeMappings)
 		if err != nil {
-			return errors.Wrap(err, fmt.Sprintf("error while parsing channel type mappings in configuration file %s",
-				viper.ConfigFileUsed()))
+			return fmt.Errorf("error while parsing channel type mappings in configuration file %s: %w",
+				viper.ConfigFileUsed(), err)
 		}
 	}
 	return nil

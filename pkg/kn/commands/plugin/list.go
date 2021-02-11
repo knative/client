@@ -19,7 +19,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"knative.dev/client/pkg/kn/commands"
@@ -67,7 +66,7 @@ func listPlugins(cmd *cobra.Command, flags pluginListFlags) error {
 
 	pluginsFound, err := factory.ListPlugins()
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("cannot list plugins in %s (lookup plugins in $PATH: %t)", factory.PluginsDir(), factory.LookupInPath()))
+		return fmt.Errorf("cannot list plugins in %s (lookup plugins in $PATH: %t): %w", factory.PluginsDir(), factory.LookupInPath(), err)
 	}
 
 	out := cmd.OutOrStdout()
@@ -107,7 +106,7 @@ func listPlugins(cmd *cobra.Command, flags pluginListFlags) error {
 		eaw.PrintWarningsAndErrors(out)
 	}
 	if eaw.HasErrors() {
-		return errors.Errorf("plugin validation errors")
+		return fmt.Errorf("plugin validation errors")
 	}
 	return nil
 }

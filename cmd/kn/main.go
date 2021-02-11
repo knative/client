@@ -15,6 +15,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 	"os"
@@ -22,7 +23,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"knative.dev/client/pkg/kn/config"
@@ -151,7 +151,7 @@ func validatePlugin(root *cobra.Command, plugin plugin.Plugin) error {
 	if err == nil {
 		if !cmd.HasSubCommands() || // a leaf command can't be overridden
 			cmd.HasSubCommands() && len(args) == 0 { // a group can't be overridden either
-			return errors.Errorf("plugin %s is overriding built-in command '%s' which is not allowed", plugin.Path(), strings.Join(plugin.CommandParts(), " "))
+			return fmt.Errorf("plugin %s is overriding built-in command '%s' which is not allowed", plugin.Path(), strings.Join(plugin.CommandParts(), " "))
 		}
 	}
 	return nil
@@ -165,7 +165,7 @@ func validateRootCommand(cmd *cobra.Command) error {
 	if err == nil && foundCmd.HasSubCommands() && len(innerArgs) > 0 {
 		argsWithoutFlags, err := stripFlags(cmd, innerArgs)
 		if len(argsWithoutFlags) > 0 || err != nil {
-			return errors.Errorf("unknown sub-command '%s' for '%s'. Available sub-commands: %s", innerArgs[0], foundCmd.CommandPath(), strings.Join(root.ExtractSubCommandNames(foundCmd.Commands()), ", "))
+			return fmt.Errorf("unknown sub-command '%s' for '%s'. Available sub-commands: %s", innerArgs[0], foundCmd.CommandPath(), strings.Join(root.ExtractSubCommandNames(foundCmd.Commands()), ", "))
 		}
 		// If no args where given (only flags), then fall through to execute the command itself, which leads to
 		// a more appropriate error message
