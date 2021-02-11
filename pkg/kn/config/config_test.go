@@ -22,7 +22,7 @@ import (
 
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 )
 
 func TestBootstrapConfig(t *testing.T) {

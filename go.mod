@@ -15,7 +15,7 @@ require (
 	github.com/spf13/viper v1.7.1
 	golang.org/x/term v0.0.0-20201210144234-2321bbc49cbf
 	gopkg.in/ini.v1 v1.56.0 // indirect
-	gotest.tools v2.2.0+incompatible
+	gotest.tools/v3 v3.0.3
 	k8s.io/api v0.19.7
 	k8s.io/apimachinery v0.19.7
 	k8s.io/cli-runtime v0.19.7

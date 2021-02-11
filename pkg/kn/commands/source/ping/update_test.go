@@ -19,7 +19,7 @@ import (
 	"testing"
 	"time"
 
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	clientv1alpha2 "knative.dev/client/pkg/sources/v1alpha2"

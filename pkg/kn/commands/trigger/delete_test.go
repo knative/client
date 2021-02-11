@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"testing"
 
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 
 	eventingclientv1beta1 "knative.dev/client/pkg/eventing/v1beta1"
 	"knative.dev/client/pkg/util"

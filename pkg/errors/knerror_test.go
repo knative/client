@@ -17,7 +17,7 @@ package errors
 import (
 	"testing"
 
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 )
 
 func TestNewKNError(t *testing.T) {

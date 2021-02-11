@@ -18,7 +18,7 @@ import (
 	"errors"
 	"testing"
 
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 	api_errors "k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"

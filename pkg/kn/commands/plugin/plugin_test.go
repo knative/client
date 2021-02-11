@@ -17,7 +17,7 @@ package plugin
 import (
 	"testing"
 
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/util"

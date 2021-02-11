@@ -18,7 +18,7 @@ import (
 	"strings"
 	"testing"
 
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	clientservingv1 "knative.dev/client/pkg/serving/v1"

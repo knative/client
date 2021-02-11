@@ -26,7 +26,7 @@ import (
 
 	"knative.dev/client/pkg/util"
 
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 )
 
 func TestPluginIsExecutableUnix(t *testing.T) {

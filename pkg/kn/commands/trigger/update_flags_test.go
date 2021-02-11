@@ -18,7 +18,7 @@ import (
 	"sort"
 	"testing"
 
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 )
 
 func TestGetFilters(t *testing.T) {

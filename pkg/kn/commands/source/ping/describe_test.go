@@ -18,7 +18,7 @@ import (
 	"errors"
 	"testing"
 
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
 	duckv1 "knative.dev/pkg/apis/duck/v1"

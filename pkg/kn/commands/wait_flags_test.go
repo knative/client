@@ -22,7 +22,7 @@ import (
 	knflags "knative.dev/client/pkg/kn/flags"
 
 	"github.com/spf13/cobra"
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 )
 
 type waitTestCase struct {

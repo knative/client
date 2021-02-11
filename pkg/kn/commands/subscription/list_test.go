@@ -20,7 +20,7 @@ import (
 	"strings"
 	"testing"
 
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 	messagingv1beta1 "knative.dev/eventing/pkg/apis/messaging/v1beta1"
 
 	v1beta1 "knative.dev/client/pkg/messaging/v1beta1"

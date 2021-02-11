@@ -6,34 +6,40 @@ import (
 	"go/ast"
 	"text/template"
 
-	"gotest.tools/internal/source"
+	"gotest.tools/v3/internal/source"
 )
 
-// Result of a Comparison.
+// A Result of a Comparison.
 type Result interface {
 	Success() bool
 }
 
-type result struct {
+// StringResult is an implementation of Result that reports the error message
+// string verbatim and does not provide any templating or formatting of the
+// message.
+type StringResult struct {
 	success bool
 	message string
 }
 
-func (r result) Success() bool {
+// Success returns true if the comparison was successful.
+func (r StringResult) Success() bool {
 	return r.success
 }
 
-func (r result) FailureMessage() string {
+// FailureMessage returns the message used to provide additional information
+// about the failure.
+func (r StringResult) FailureMessage() string {
 	return r.message
 }
 
 // ResultSuccess is a constant which is returned by a ComparisonWithResult to
 // indicate success.
-var ResultSuccess = result{success: true}
+var ResultSuccess = StringResult{success: true}
 
 // ResultFailure returns a failed Result with a failure message.
-func ResultFailure(message string) Result {
-	return result{message: message}
+func ResultFailure(message string) StringResult {
+	return StringResult{message: message}
 }
 
 // ResultFromError returns ResultSuccess if err is nil. Otherwise ResultFailure
@@ -46,13 +52,12 @@ func ResultFromError(err error) Result {
 }
 
 type templatedResult struct {
-	success  bool
 	template string
 	data     map[string]interface{}
 }
 
 func (r templatedResult) Success() bool {
-	return r.success
+	return false
 }
 
 func (r templatedResult) FailureMessage(args []ast.Expr) string {

@@ -21,7 +21,7 @@ import (
 	"strings"
 	"testing"
 
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 	"knative.dev/client/pkg/printers"
 	"knative.dev/pkg/apis"
 )

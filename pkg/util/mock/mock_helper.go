@@ -19,7 +19,7 @@ import (
 	"reflect"
 	"testing"
 
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 )
 
 // Recorded method call

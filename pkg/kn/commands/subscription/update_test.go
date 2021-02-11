@@ -19,7 +19,7 @@ package subscription
 import (
 	"testing"
 
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 	"knative.dev/client/pkg/messaging/v1beta1"
 
 	dynamicfake "knative.dev/client/pkg/dynamic/fake"

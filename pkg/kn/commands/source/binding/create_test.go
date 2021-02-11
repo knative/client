@@ -17,7 +17,7 @@ package binding
 import (
 	"testing"
 
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 
 	dynamicfake "knative.dev/client/pkg/dynamic/fake"
 	"knative.dev/client/pkg/sources/v1alpha2"
