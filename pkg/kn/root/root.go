@@ -20,7 +20,6 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
@@ -125,7 +124,7 @@ func NewRootCommand(helpFuncs *template.FuncMap) (*cobra.Command, error) {
 
 	// Add some command context when flags can not be parsed
 	rootCmd.SetFlagErrorFunc(func(c *cobra.Command, err error) error {
-		return errors.Errorf("%s for '%s'", err.Error(), c.CommandPath())
+		return fmt.Errorf("%s for '%s'", err.Error(), c.CommandPath())
 	})
 
 	// For glog parse error. TOO: Check why this is needed
@@ -138,7 +137,7 @@ func validateCommandStructure(cmd *cobra.Command) error {
 	for _, childCmd := range cmd.Commands() {
 		if childCmd.HasSubCommands() {
 			if childCmd.RunE != nil || childCmd.Run != nil {
-				return errors.Errorf("internal: command group '%s' must not enable any direct logic, only leaf commands are allowed to take actions", childCmd.Name())
+				return fmt.Errorf("internal: command group '%s' must not enable any direct logic, only leaf commands are allowed to take actions", childCmd.Name())
 			}
 
 			subCommands := childCmd.Commands()

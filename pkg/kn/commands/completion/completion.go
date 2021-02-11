@@ -15,9 +15,8 @@
 package completion
 
 import (
+	"errors"
 	"os"
-
-	"github.com/pkg/errors"
 
 	"knative.dev/client/pkg/kn/commands"
 

@@ -15,11 +15,11 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 	"time"
 
-	"github.com/pkg/errors"
 	"gotest.tools/assert"
 	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
