@@ -15,6 +15,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -106,7 +107,7 @@ func BootstrapConfig() error {
 	bootstrapFlagSet.ParseErrorsWhitelist = flag.ParseErrorsWhitelist{UnknownFlags: true} // wokeignore:rule=whitelist // TODO(#1031)
 	bootstrapFlagSet.Usage = func() {}
 	err := bootstrapFlagSet.Parse(os.Args)
-	if err != nil && err != flag.ErrHelp {
+	if err != nil && !errors.Is(err, flag.ErrHelp) {
 		return err
 	}
 

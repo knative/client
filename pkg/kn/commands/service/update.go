@@ -87,7 +87,8 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 				var baseRevision *servingv1.Revision
 				if !cmd.Flags().Changed("image") && editFlags.LockToDigest {
 					baseRevision, err = client.GetBaseRevision(service)
-					if _, ok := err.(*clientservingv1.NoBaseRevisionError); ok {
+					var errNoBaseRevision clientservingv1.NoBaseRevisionError
+					if errors.As(err, &errNoBaseRevision) {
 						fmt.Fprintf(cmd.OutOrStdout(), "Warning: No revision found to update image digest")
 					}
 				}
