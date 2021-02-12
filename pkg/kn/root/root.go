@@ -124,7 +124,7 @@ func NewRootCommand(helpFuncs *template.FuncMap) (*cobra.Command, error) {
 
 	// Add some command context when flags can not be parsed
 	rootCmd.SetFlagErrorFunc(func(c *cobra.Command, err error) error {
-		return fmt.Errorf("%s for '%s'", err.Error(), c.CommandPath())
+		return fmt.Errorf("%w for '%s'", err, c.CommandPath())
 	})
 
 	// For glog parse error. TOO: Check why this is needed

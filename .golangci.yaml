@@ -6,6 +6,7 @@ run:
 
 linters:
   enable:
+    - errorlint
     - unconvert
     - prealloc
   disable:

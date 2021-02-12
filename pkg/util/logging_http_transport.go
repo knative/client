@@ -61,7 +61,7 @@ func (t *LoggingHttpTransport) RoundTrip(r *http.Request) (*http.Response, error
 	reqBytes, err := httputil.DumpRequestOut(r, true)
 	if err != nil {
 		fmt.Fprintln(stream, "error dumping request:", err)
-		return nil, fmt.Errorf("dumping request: %v", err)
+		return nil, fmt.Errorf("dumping request: %w", err)
 	}
 	fmt.Fprintln(stream, "===== REQUEST =====")
 	fmt.Fprintln(stream, string(reqBytes))

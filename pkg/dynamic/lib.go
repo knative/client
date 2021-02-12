@@ -50,7 +50,7 @@ func groupFromUnstructured(u *unstructured.Unstructured) (string, error) {
 	content := u.UnstructuredContent()
 	group, found, err := unstructured.NestedString(content, "spec", "group")
 	if err != nil || !found {
-		return "", fmt.Errorf("can't find group for source GVR: %v", err)
+		return "", fmt.Errorf("can't find group for source GVR: %w", err)
 	}
 	return group, nil
 }
@@ -62,7 +62,7 @@ func versionFromUnstructured(u *unstructured.Unstructured) (version string, err 
 		// fallback to .spec.version
 		version, found, err = unstructured.NestedString(content, "spec", "version")
 		if err != nil || !found {
-			return version, fmt.Errorf("can't find version for source GVR: %v", err)
+			return version, fmt.Errorf("can't find version for source GVR: %w", err)
 		}
 	} else {
 		for _, v := range versions {
@@ -86,7 +86,7 @@ func resourceFromUnstructured(u *unstructured.Unstructured) (string, error) {
 	content := u.UnstructuredContent()
 	resource, found, err := unstructured.NestedString(content, "spec", "names", "plural")
 	if err != nil || !found {
-		return "", fmt.Errorf("can't find resource for source GVR: %v", err)
+		return "", fmt.Errorf("can't find resource for source GVR: %w", err)
 	}
 	return resource, nil
 }
@@ -95,7 +95,7 @@ func kindFromUnstructured(u *unstructured.Unstructured) (string, error) {
 	content := u.UnstructuredContent()
 	kind, found, err := unstructured.NestedString(content, "spec", "names", "kind")
 	if !found || err != nil {
-		return "", fmt.Errorf("can't find source kind from source CRD: %v", err)
+		return "", fmt.Errorf("can't find source kind from source CRD: %w", err)
 	}
 	return kind, nil
 }
