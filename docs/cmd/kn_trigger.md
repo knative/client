@@ -2,10 +2,6 @@
 
 Manage event triggers
 
-### Synopsis
-
-Manage event triggers
-
 ```
 kn trigger
 ```

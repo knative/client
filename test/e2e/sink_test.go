@@ -20,7 +20,7 @@ package e2e
 import (
 	"testing"
 
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 
 	"knative.dev/client/lib/test"
 )

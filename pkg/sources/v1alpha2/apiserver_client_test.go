@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"testing"
 
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 	"k8s.io/apimachinery/pkg/runtime"
 	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
 

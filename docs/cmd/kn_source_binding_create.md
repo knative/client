@@ -2,10 +2,6 @@
 
 Create a sink binding
 
-### Synopsis
-
-Create a sink binding
-
 ```
 kn source binding create NAME --subject SUBJECT --sink SINK
 ```

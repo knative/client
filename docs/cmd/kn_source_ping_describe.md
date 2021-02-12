@@ -2,10 +2,6 @@
 
 Show details of a ping source
 
-### Synopsis
-
-Show details of a ping source
-
 ```
 kn source ping describe NAME
 ```

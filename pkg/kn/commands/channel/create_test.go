@@ -17,7 +17,7 @@ package channel
 import (
 	"testing"
 
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"knative.dev/client/pkg/messaging/v1beta1"
 

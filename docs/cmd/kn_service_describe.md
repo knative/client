@@ -2,10 +2,6 @@
 
 Show details of a service
 
-### Synopsis
-
-Show details of a service
-
 ```
 kn service describe NAME
 ```

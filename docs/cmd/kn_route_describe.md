@@ -2,10 +2,6 @@
 
 Show details of a route
 
-### Synopsis
-
-Show details of a route
-
 ```
 kn route describe NAME
 ```

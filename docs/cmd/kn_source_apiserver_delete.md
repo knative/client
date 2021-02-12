@@ -2,10 +2,6 @@
 
 Delete an api-server source
 
-### Synopsis
-
-Delete an api-server source
-
 ```
 kn source apiserver delete NAME
 ```

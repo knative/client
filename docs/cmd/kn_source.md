@@ -2,10 +2,6 @@
 
 Manage event sources
 
-### Synopsis
-
-Manage event sources
-
 ```
 kn source SOURCE|COMMAND
 ```

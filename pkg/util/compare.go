@@ -18,11 +18,11 @@ import (
 	"fmt"
 	"strings"
 
-	"gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert/cmp"
 )
 
 // ContainsAll is a comparison utility, compares given substrings against
-// target string and returns the gotest.tools/assert/cmp.Comparison function.
+// target string and returns the gotest.tools/v3/assert/cmp.Comparison function.
 // Provide target string as first arg, followed by any number of substring as args
 func ContainsAll(target string, substrings ...string) cmp.Comparison {
 	return func() cmp.Result {
@@ -57,7 +57,7 @@ func ContainsAllIgnoreCase(target string, substrings ...string) cmp.Comparison {
 }
 
 // ContainsNone is a comparison utility, compares given substrings against
-// target string and returns the gotest.tools/assert/cmp.Comparison function.
+// target string and returns the gotest.tools/v3/assert/cmp.Comparison function.
 // Provide target string as first arg, followed by any number of substring as args
 func ContainsNone(target string, substrings ...string) cmp.Comparison {
 	return func() cmp.Result {

@@ -9,13 +9,13 @@ require (
 	github.com/mitchellh/mapstructure v1.3.1 // indirect
 	github.com/smartystreets/assertions v1.0.0 // indirect
 	github.com/spf13/cast v1.3.1 // indirect
-	github.com/spf13/cobra v1.0.1-0.20200715031239-b95db644ed1c
+	github.com/spf13/cobra v1.1.3
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5
-	github.com/spf13/viper v1.7.0
+	github.com/spf13/viper v1.7.1
 	golang.org/x/term v0.0.0-20201210144234-2321bbc49cbf
 	gopkg.in/ini.v1 v1.56.0 // indirect
-	gotest.tools v2.2.0+incompatible
+	gotest.tools/v3 v3.0.3
 	k8s.io/api v0.19.7
 	k8s.io/apimachinery v0.19.7
 	k8s.io/cli-runtime v0.19.7

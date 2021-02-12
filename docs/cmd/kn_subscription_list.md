@@ -2,10 +2,6 @@
 
 List subscriptions
 
-### Synopsis
-
-List subscriptions
-
 ```
 kn subscription list
 ```

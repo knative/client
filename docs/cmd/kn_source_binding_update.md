@@ -2,10 +2,6 @@
 
 Update a sink binding
 
-### Synopsis
-
-Update a sink binding
-
 ```
 kn source binding update NAME
 ```

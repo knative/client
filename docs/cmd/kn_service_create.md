@@ -2,10 +2,6 @@
 
 Create a service
 
-### Synopsis
-
-Create a service
-
 ```
 kn service create NAME --image IMAGE
 ```

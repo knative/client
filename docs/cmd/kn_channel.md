@@ -2,10 +2,6 @@
 
 Manage event channels
 
-### Synopsis
-
-Manage event channels
-
 ```
 kn channel COMMAND
 ```

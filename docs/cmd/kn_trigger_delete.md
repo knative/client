@@ -2,10 +2,6 @@
 
 Delete a trigger
 
-### Synopsis
-
-Delete a trigger
-
 ```
 kn trigger delete NAME
 ```

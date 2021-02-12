@@ -2,10 +2,6 @@
 
 List brokers
 
-### Synopsis
-
-List brokers
-
 ```
 kn broker list
 ```

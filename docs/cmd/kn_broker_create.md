@@ -2,10 +2,6 @@
 
 Create a broker
 
-### Synopsis
-
-Create a broker
-
 ```
 kn broker create NAME
 ```

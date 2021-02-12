@@ -2,10 +2,6 @@
 
 Show details of an api-server source
 
-### Synopsis
-
-Show details of an api-server source
-
 ```
 kn source apiserver describe NAME
 ```

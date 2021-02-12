@@ -2,10 +2,6 @@
 
 Manage ping sources
 
-### Synopsis
-
-Manage ping sources
-
 ```
 kn source ping COMMAND
 ```

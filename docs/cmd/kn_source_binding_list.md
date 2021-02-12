@@ -2,10 +2,6 @@
 
 List sink bindings
 
-### Synopsis
-
-List sink bindings
-
 ```
 kn source binding list
 ```

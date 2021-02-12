@@ -2,10 +2,6 @@
 
 Show details of a container source
 
-### Synopsis
-
-Show details of a container source
-
 ```
 kn source container describe NAME
 ```

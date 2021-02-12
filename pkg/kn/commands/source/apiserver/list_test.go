@@ -17,7 +17,7 @@ package apiserver
 import (
 	"testing"
 
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 
 	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
 

@@ -17,7 +17,7 @@ package test
 import (
 	"time"
 
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 
 	"knative.dev/client/pkg/util"
 )

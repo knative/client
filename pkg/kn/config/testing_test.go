@@ -17,7 +17,7 @@ package config
 import (
 	"testing"
 
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 )
 
 // Test to keep code coverage quality gate happy.

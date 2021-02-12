@@ -2,10 +2,6 @@
 
 Delete services
 
-### Synopsis
-
-Delete services
-
 ```
 kn service delete NAME [NAME ...]
 ```

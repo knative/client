@@ -2,10 +2,6 @@
 
 List event sources
 
-### Synopsis
-
-List event sources
-
 ```
 kn source list
 ```

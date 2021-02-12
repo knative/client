@@ -22,7 +22,7 @@ import (
 	"testing"
 
 	"github.com/spf13/cobra"
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 
 	"knative.dev/client/lib/test"
 	"knative.dev/client/pkg/kn/config"

@@ -2,10 +2,6 @@
 
 Delete a sink binding
 
-### Synopsis
-
-Delete a sink binding
-
 ```
 kn source binding delete NAME
 ```

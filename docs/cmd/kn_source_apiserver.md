@@ -2,10 +2,6 @@
 
 Manage Kubernetes api-server sources
 
-### Synopsis
-
-Manage Kubernetes api-server sources
-
 ```
 kn source apiserver COMMAND
 ```

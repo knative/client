@@ -2,10 +2,6 @@
 
 List and describe service routes
 
-### Synopsis
-
-List and describe service routes
-
 ```
 kn route
 ```

@@ -19,7 +19,7 @@ package util
 import (
 	"testing"
 
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 )
 
 func TestGenerateVolumeName(t *testing.T) {

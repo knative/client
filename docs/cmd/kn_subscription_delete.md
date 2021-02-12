@@ -2,10 +2,6 @@
 
 Delete a subscription
 
-### Synopsis
-
-Delete a subscription
-
 ```
 kn subscription delete NAME
 ```

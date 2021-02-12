@@ -2,10 +2,6 @@
 
 Delete a container source
 
-### Synopsis
-
-Delete a container source
-
 ```
 kn source container delete NAME
 ```

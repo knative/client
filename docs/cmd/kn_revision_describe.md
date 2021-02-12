@@ -2,10 +2,6 @@
 
 Show details of a revision
 
-### Synopsis
-
-Show details of a revision
-
 ```
 kn revision describe NAME
 ```

@@ -20,7 +20,7 @@ import (
 	"testing"
 
 	"github.com/spf13/cobra"
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 	corev1 "k8s.io/api/core/v1"
 	"knative.dev/client/pkg/util"
 	"knative.dev/pkg/ptr"

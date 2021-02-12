@@ -2,10 +2,6 @@
 
 Export a service and its revisions
 
-### Synopsis
-
-Export a service and its revisions
-
 ```
 kn service export NAME
 ```

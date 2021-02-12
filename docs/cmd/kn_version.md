@@ -2,10 +2,6 @@
 
 Show the version of this client
 
-### Synopsis
-
-Show the version of this client
-
 ```
 kn version
 ```

@@ -19,7 +19,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 
 	v1 "k8s.io/api/core/v1"
 	libtest "knative.dev/client/lib/test"

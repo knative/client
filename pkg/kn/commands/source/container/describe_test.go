@@ -20,7 +20,7 @@ import (
 	"errors"
 	"testing"
 
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 	"knative.dev/client/pkg/sources/v1alpha2"
 	"knative.dev/client/pkg/util"
 )

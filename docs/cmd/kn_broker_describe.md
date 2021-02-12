@@ -2,10 +2,6 @@
 
 Describe broker
 
-### Synopsis
-
-Describe broker
-
 ```
 kn broker describe NAME
 ```

@@ -28,7 +28,7 @@ import (
 	"knative.dev/client/pkg/util"
 
 	"github.com/spf13/cobra"
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 )
 
 func TestPluginListBasic(t *testing.T) {

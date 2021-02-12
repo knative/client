@@ -2,10 +2,6 @@
 
 Manage sink bindings
 
-### Synopsis
-
-Manage sink bindings
-
 ```
 kn source binding COMMAND
 ```

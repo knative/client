@@ -19,7 +19,7 @@ package container
 import (
 	"testing"
 
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	dynamicfake "knative.dev/client/pkg/dynamic/fake"
 	"knative.dev/client/pkg/sources/v1alpha2"

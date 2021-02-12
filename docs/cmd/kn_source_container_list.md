@@ -2,10 +2,6 @@
 
 List container sources
 
-### Synopsis
-
-List container sources
-
 ```
 kn source container list
 ```
