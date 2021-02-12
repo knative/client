@@ -450,7 +450,7 @@ func findInDirOrPath(name string, dir string, lookupInPath bool) (string, error)
 				// Found in path
 				return path, nil
 			}
-			if errors.Is(err, exec.ErrNotFound) {
+			if !errors.Is(err, exec.ErrNotFound) {
 				return "", fmt.Errorf("error for looking up %s in path: %w", name, err)
 			}
 		}
