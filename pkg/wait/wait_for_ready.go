@@ -114,7 +114,7 @@ func (w *waitForReadyConfig) Wait(watcher watch.Interface, name string, options 
 	floatingTimeout := timeout
 	for {
 		start := time.Now()
-		retry, timeoutReached, err := w.waitForReadyCondition(watcher, start, name, floatingTimeout, options.errorWindowWithDefault(), msgCallback)
+		retry, timeoutReached, err := w.waitForReadyCondition(watcher, start, floatingTimeout, options.errorWindowWithDefault(), msgCallback)
 		if err != nil {
 			return err, time.Since(start)
 		}
@@ -137,7 +137,7 @@ func (w *waitForReadyConfig) Wait(watcher watch.Interface, name string, options 
 // An errorWindow can be specified which takes into account of intermediate "false" ready conditions. So before returning
 // an error, this methods waits for the errorWindow duration and if an "True" or "Unknown" event arrives in the meantime
 // for the "Ready" condition, then the method continues to wait.
-func (w *waitForReadyConfig) waitForReadyCondition(watcher watch.Interface, start time.Time, name string, timeout time.Duration, errorWindow time.Duration, msgCallback MessageCallback) (retry bool, timeoutReached bool, err error) {
+func (w *waitForReadyConfig) waitForReadyCondition(watcher watch.Interface, start time.Time, timeout time.Duration, errorWindow time.Duration, msgCallback MessageCallback) (retry bool, timeoutReached bool, err error) {
 
 	// channel used to transport the error that has been received
 	errChan := make(chan error)
