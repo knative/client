@@ -89,7 +89,7 @@ func NewTriggerUpdateCommand(p *commands.KnParams) *cobra.Command {
 					updated, removed, err := triggerUpdateFlags.GetUpdateFilters()
 					if err != nil {
 						return fmt.Errorf(
-							"cannot update trigger '%s' because %s", name, err)
+							"cannot update trigger '%s' because %w", name, err)
 					}
 					existing := extractFilters(trigger)
 					b.Filters(existing.Merge(updated).Remove(removed))

@@ -109,7 +109,7 @@ func sinkFromUnstructured(u *unstructured.Unstructured) (*duckv1.Destination, er
 	content := u.UnstructuredContent()
 	sink, found, err := unstructured.NestedFieldCopy(content, "spec", "sink")
 	if err != nil {
-		return nil, fmt.Errorf("cant find sink in given unstructured object at spec.sink field: %v", err)
+		return nil, fmt.Errorf("cant find sink in given unstructured object at spec.sink field: %w", err)
 	}
 
 	if !found {
@@ -118,12 +118,12 @@ func sinkFromUnstructured(u *unstructured.Unstructured) (*duckv1.Destination, er
 
 	sinkM, err := json.Marshal(sink)
 	if err != nil {
-		return nil, fmt.Errorf("error marshaling sink %v: %v", sink, err)
+		return nil, fmt.Errorf("error marshaling sink %v: %w", sink, err)
 	}
 
 	var sinkD duckv1.Destination
 	if err := json.Unmarshal(sinkM, &sinkD); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal source sink: %v", err)
+		return nil, fmt.Errorf("failed to unmarshal source sink: %w", err)
 	}
 
 	return &sinkD, nil
@@ -133,17 +133,17 @@ func conditionsFromUnstructured(u *unstructured.Unstructured) (*duckv1.Condition
 	content := u.UnstructuredContent()
 	conds, found, err := unstructured.NestedFieldCopy(content, "status", "conditions")
 	if !found || err != nil {
-		return nil, fmt.Errorf("cant find conditions in given unstructured object at status.conditions field: %v", err)
+		return nil, fmt.Errorf("cant find conditions in given unstructured object at status.conditions field: %w", err)
 	}
 
 	condsM, err := json.Marshal(conds)
 	if err != nil {
-		return nil, fmt.Errorf("error marshaling conditions %v: %v", conds, err)
+		return nil, fmt.Errorf("error marshaling conditions %v: %w", conds, err)
 	}
 
 	var condsD duckv1.Conditions
 	if err := json.Unmarshal(condsM, &condsD); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal source status conditions: %v", err)
+		return nil, fmt.Errorf("failed to unmarshal source status conditions: %w", err)
 	}
 
 	return &condsD, nil

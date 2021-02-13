@@ -67,7 +67,7 @@ func UpdateMaxScale(template *servingv1.RevisionTemplateSpec, max int) error {
 func UpdateAutoscaleWindow(template *servingv1.RevisionTemplateSpec, window string) error {
 	_, err := time.ParseDuration(window)
 	if err != nil {
-		return fmt.Errorf("invalid duration for 'autoscale-window': %v", err)
+		return fmt.Errorf("invalid duration for 'autoscale-window': %w", err)
 	}
 	return UpdateRevisionTemplateAnnotation(template, autoscaling.WindowAnnotationKey, window)
 }

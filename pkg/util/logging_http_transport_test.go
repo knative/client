@@ -34,7 +34,7 @@ type fakeTransport struct {
 func (d *fakeTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	dump, err := httputil.DumpRequest(r, true)
 	if err != nil {
-		return nil, fmt.Errorf("dumping request: %v", err)
+		return nil, fmt.Errorf("dumping request: %w", err)
 	}
 	d.requestDump = string(dump)
 	return &http.Response{

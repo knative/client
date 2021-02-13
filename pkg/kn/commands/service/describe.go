@@ -283,7 +283,7 @@ func getRevisionDescriptions(client clientservingv1.KnServingClient, service *se
 	for _, target := range trafficTargets {
 		revision, err := extractRevisionFromTarget(client, target)
 		if err != nil {
-			return nil, fmt.Errorf("cannot extract revision from service %s: %v", service.Name, err)
+			return nil, fmt.Errorf("cannot extract revision from service %s: %w", service.Name, err)
 		}
 		revisionsSeen.Insert(revision.Name)
 		desc, err := newRevisionDesc(*revision, &target, service)
@@ -353,7 +353,7 @@ func completeWithUntargetedRevisions(client clientservingv1.KnServingClient, ser
 func newRevisionDesc(revision servingv1.Revision, target *servingv1.TrafficTarget, service *servingv1.Service) (*revisionDesc, error) {
 	generation, err := strconv.ParseInt(revision.Labels[serving.ConfigurationGenerationLabelKey], 0, 0)
 	if err != nil {
-		return nil, fmt.Errorf("cannot extract configuration generation for revision %s: %v", revision.Name, err)
+		return nil, fmt.Errorf("cannot extract configuration generation for revision %s: %w", revision.Name, err)
 	}
 	revisionDesc := revisionDesc{
 		revision:                &revision,

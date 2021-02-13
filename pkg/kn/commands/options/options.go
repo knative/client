@@ -41,7 +41,7 @@ kn options`,
 		FParseErrWhitelist: cobra.FParseErrWhitelist{UnknownFlags: true}, // wokeignore:rule=whitelist // TODO(#1031)
 	}
 	cmd.SetFlagErrorFunc(func(c *cobra.Command, err error) error {
-		return fmt.Errorf("%s for '%s'", err.Error(), c.CommandPath())
+		return fmt.Errorf("%w for '%s'", err, c.CommandPath())
 	})
 	cmd.SetUsageFunc(templates.NewGlobalOptionsFunc())
 	cmd.SetHelpFunc(func(command *cobra.Command, args []string) {

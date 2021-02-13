@@ -15,6 +15,7 @@
 package plugin
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -449,7 +450,7 @@ func findInDirOrPath(name string, dir string, lookupInPath bool) (string, error)
 				// Found in path
 				return path, nil
 			}
-			if execErr, ok := err.(*exec.Error); !ok || execErr.Unwrap() != exec.ErrNotFound {
+			if !errors.Is(err, exec.ErrNotFound) {
 				return "", fmt.Errorf("error for looking up %s in path: %w", name, err)
 			}
 		}

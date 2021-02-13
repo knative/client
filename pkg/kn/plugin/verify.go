@@ -15,6 +15,7 @@
 package plugin
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -83,7 +84,7 @@ func verifyPath(path string, seenPlugins map[string]string, eaw VerificationErro
 	// Verify that plugin actually exists
 	fileInfo, err := os.Stat(path)
 	if err != nil {
-		if err == os.ErrNotExist {
+		if errors.Is(err, os.ErrNotExist) {
 			return eaw.AddError("cannot find plugin in %s", path)
 		}
 		return eaw.AddError("cannot stat %s: %v", path, err)

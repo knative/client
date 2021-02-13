@@ -15,6 +15,7 @@
 package errors
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
@@ -52,17 +53,17 @@ func GetError(err error) error {
 	case isNoRouteToHostError(err):
 		return newNoRouteToHost(err.Error())
 	default:
-		apiStatus, ok := err.(api_errors.APIStatus)
-		if !ok {
+		var errAPIStatus api_errors.APIStatus
+		if !errors.As(err, &errAPIStatus) {
 			return err
 		}
-		if apiStatus.Status().Details == nil {
+		if errAPIStatus.Status().Details == nil {
 			return err
 		}
 		var knerr *KNError
-		if isCRDError(apiStatus) {
-			knerr = newInvalidCRD(apiStatus.Status().Details.Group)
-			knerr.Status = apiStatus
+		if isCRDError(errAPIStatus) {
+			knerr = newInvalidCRD(errAPIStatus.Status().Details.Group)
+			knerr.Status = errAPIStatus
 			return knerr
 		}
 		return err
@@ -71,8 +72,9 @@ func GetError(err error) error {
 
 // IsForbiddenError returns true if given error can be converted to API status and of type forbidden access else false
 func IsForbiddenError(err error) bool {
-	if status, ok := err.(api_errors.APIStatus); ok {
-		return status.Status().Code == int32(http.StatusForbidden)
+	var errAPIStatus api_errors.APIStatus
+	if !errors.As(err, &errAPIStatus) {
+		return false
 	}
-	return false
+	return errAPIStatus.Status().Code == int32(http.StatusForbidden)
 }
