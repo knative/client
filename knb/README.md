@@ -8,7 +8,7 @@ CLI tool to enhance plugin build experience for [Knative Client](https://github.
 go build
 ```
 
-### Install 
+### Install
 ```bash
 go get knative.dev/client/knb
 ```
@@ -17,19 +17,19 @@ go get knative.dev/client/knb
 
 ##### Create custom `kn` distribution
 
-The `knb` can be used to generate enhanced `kn` source files with inlined plugins. 
+The `knb` can be used to generate enhanced `kn` source files with inlined plugins.
 
 Create configuration file `.kn.yaml` in a root directory of `knative/client` that should specify at least `name, module, version` coordinates of the plugin.
-The `plugin distro` will generated the required go files and add dependency to `go.mod`. 
+The `plugin distro` will generated the required go files and add dependency to `go.mod`.
 
 Required:
-* name 
-* module - go module name to be used for import and in go.mod file 
-* version - accepted values are git tag or branch name of go module  
+* name
+* module - go module name to be used for import and in go.mod file
+* version - accepted values are git tag or branch name of go module.
 
 Optional:
 * pluginImportPath - import path override, default `$module/plugin`
-* replace - go module replacement defined by `module,version`
+* replace - go module replacement defined by `module,version`.
 
 Example of `.kn.yaml`
 ```yaml
@@ -55,7 +55,7 @@ Build `kn`
 ./hack/build.sh
 ```
 
-##### Enable plugin inline feature 
+##### Enable plugin inline feature
 
 The `knb` can be used to generate required go files to inline any `kn` plugin.
 
