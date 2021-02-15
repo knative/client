@@ -40,7 +40,7 @@ func NewPluginInitCmd() *cobra.Command {
 			}
 			outputFile := filepath.Join(outputDir, "plugin.go")
 			if _, err := os.Stat(outputFile); err == nil {
-				return fmt.Errorf("file '%s' already exists\n", outputFile)
+				return fmt.Errorf("file '%s' already exists", outputFile)
 			}
 			fmt.Println("Generating plugin inline file:")
 			f, err := os.Create(outputFile)
