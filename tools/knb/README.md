@@ -10,7 +10,7 @@ go build
 
 ### Install
 ```bash
-go get knative.dev/client/knb
+go get knative.dev/client/tools/knb
 ```
 
 ### Usage

@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"os"
 
-	"knative.dev/client/knb/pkg/root"
+	"knative.dev/client/tools/knb/pkg/root"
 )
 
 func main() {

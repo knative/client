@@ -17,7 +17,7 @@ limitations under the License.
 package root
 
 import (
-	"knative.dev/client/knb/pkg/plugin"
+	"knative.dev/client/tools/knb/pkg/plugin"
 
 	"github.com/spf13/cobra"
 )
