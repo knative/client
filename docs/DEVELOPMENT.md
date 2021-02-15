@@ -13,7 +13,7 @@ meet these requirements, you can make changes and
 [build your own version of Knative Client](#building-knative-client)!
 
 Before submitting a PR, see also
-[contribution guide](https://www.knative.dev/contributing/).
+[contribution guide](https://knative.dev/community/contributing/).
 
 ### Sign up for GitHub
 
