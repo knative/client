@@ -25,6 +25,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// NewPluginInitCmd represents plugin init command
 func NewPluginInitCmd() *cobra.Command {
 	plugin := &Plugin{}
 	var outputDir string
@@ -39,7 +40,7 @@ func NewPluginInitCmd() *cobra.Command {
 			}
 			outputFile := filepath.Join(outputDir, "plugin.go")
 			if _, err := os.Stat(outputFile); err == nil {
-				return fmt.Errorf("File '%s' already exists\n", outputFile)
+				return fmt.Errorf("file '%s' already exists\n", outputFile)
 			}
 			fmt.Println("Generating plugin inline file:")
 			f, err := os.Create(outputFile)

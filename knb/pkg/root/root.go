@@ -22,6 +22,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// NewKnBuilderCmd represent root command level
 func NewKnBuilderCmd() *cobra.Command {
 	var rootCmd = &cobra.Command{
 		Use:           "knb",

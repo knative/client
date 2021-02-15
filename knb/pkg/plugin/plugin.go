@@ -18,6 +18,7 @@ package plugin
 
 import "github.com/spf13/cobra"
 
+// Plugin represents plugin configuration data struct
 type Plugin struct {
 	Name             string
 	Description      string
@@ -31,6 +32,7 @@ type Plugin struct {
 	CmdParts []string
 }
 
+// NewPluginCmd represents plugin command group
 func NewPluginCmd() *cobra.Command {
 	var pluginCmd = &cobra.Command{
 		Use:   "plugin",

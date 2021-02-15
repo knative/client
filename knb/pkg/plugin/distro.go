@@ -31,10 +31,12 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+// DistroConfig represents yaml configuration struct
 type DistroConfig struct {
 	Plugins []Plugin `yaml:"plugins"`
 }
 
+// NewDistroGenerateCmd represents plugin distro command
 func NewDistroGenerateCmd() *cobra.Command {
 	var config string
 	var generateCmd = &cobra.Command{
@@ -69,7 +71,7 @@ func NewDistroGenerateCmd() *cobra.Command {
 				if importPath == "" {
 					importPath = p.Module + "/plugin"
 				}
-				if err := AppendImport(registerFile, importPath); err != nil {
+				if err := appendImport(registerFile, importPath); err != nil {
 					return err
 				}
 				_, err := exec.Command("go", "mod", "edit", "-require", p.Module+"@"+p.Version).Output()
@@ -98,7 +100,10 @@ func NewDistroGenerateCmd() *cobra.Command {
 	return generateCmd
 }
 
-func AppendImport(file, importPath string) error {
+// appendImport adds specified importPath to plugin registration file.
+// New file is initialized if it doesn't exist.
+// Warning message is displayed if the plugin import is already present.
+func appendImport(file, importPath string) error {
 	if _, err := os.Stat(file); os.IsNotExist(err) {
 		f, err := os.Create(file)
 		if err != nil {
