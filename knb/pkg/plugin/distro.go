@@ -76,7 +76,7 @@ func NewDistroGenerateCmd() *cobra.Command {
 				}
 				_, err := exec.Command("go", "mod", "edit", "-require", p.Module+"@"+p.Version).Output()
 				if err != nil {
-					return fmt.Errorf("go mod edit -require failed: %s", err.Error())
+					return fmt.Errorf("go mod edit -require failed: %w", err)
 				}
 				fmt.Println("✔  go.mod require updated")
 
@@ -84,14 +84,14 @@ func NewDistroGenerateCmd() *cobra.Command {
 					for _, r := range p.Replace {
 						_, err := exec.Command("go", "mod", "edit", "-replace", r.Module+"="+r.Module+"@"+r.Version).Output()
 						if err != nil {
-							return fmt.Errorf("go mod edit -replace failed: %s", err.Error())
+							return fmt.Errorf("go mod edit -replace failed: %w", err)
 						}
 						fmt.Println("✔  go.mod replace updated")
 					}
 				}
 			}
 			if err := exec.Command("gofmt", "-s", "-w", registerFile).Run(); err != nil {
-				return fmt.Errorf("gofmt failed: %s", err.Error())
+				return fmt.Errorf("gofmt failed: %w", err)
 			}
 			return nil
 		},
@@ -129,7 +129,7 @@ func appendImport(file, importPath string) error {
 	hook := "// Add #plugins# import here. Don't remove this line, it triggers an automatic replacement."
 	content = bytes.Replace(content, []byte(hook), []byte(fmt.Sprintf("%s\n    _ \"%s\"", hook, importPath)), 1)
 	fmt.Println("✔  " + importPath + " added to plugin_register.go")
-	return ioutil.WriteFile(file, content, 644)
+	return ioutil.WriteFile(file, content, 0644)
 }
 
 var registerTemplate = `
