@@ -37,8 +37,9 @@ func RouteListHandlers(h hprinters.PrintHandler) {
 // printKRouteList populates the Knative route list table rows
 func printKRouteList(kRouteList *servingv1.RouteList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	rows := make([]metav1beta1.TableRow, 0, len(kRouteList.Items))
-	for _, ksvc := range kRouteList.Items {
-		r, err := printRoute(&ksvc, options)
+	for i := range kRouteList.Items {
+		ksvc := &kRouteList.Items[i]
+		r, err := printRoute(ksvc, options)
 		if err != nil {
 			return nil, err
 		}

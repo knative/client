@@ -85,8 +85,9 @@ func printChannelList(channelList *messagingv1beta1.ChannelList, options hprinte
 		return channelList.Items[i].GetName() < channelList.Items[j].GetName()
 	})
 
-	for _, item := range channelList.Items {
-		row, err := printChannel(&item, options)
+	for i := range channelList.Items {
+		item := &channelList.Items[i]
+		row, err := printChannel(item, options)
 		if err != nil {
 			return nil, err
 		}
@@ -103,10 +104,11 @@ func printChannelListWithNamespace(channelList *messagingv1beta1.ChannelList, op
 	// temporary slice for sorting services in non-default namespace
 	others := make([]metav1beta1.TableRow, 0, len(rows))
 
-	for _, channel := range channelList.Items {
+	for i := range channelList.Items {
+		channel := &channelList.Items[i]
 		// Fill in with services in `default` namespace at first
 		if channel.Namespace == "default" {
-			r, err := printChannel(&channel, options)
+			r, err := printChannel(channel, options)
 			if err != nil {
 				return nil, err
 			}
@@ -114,7 +116,7 @@ func printChannelListWithNamespace(channelList *messagingv1beta1.ChannelList, op
 			continue
 		}
 		// put other services in temporary slice
-		r, err := printChannel(&channel, options)
+		r, err := printChannel(channel, options)
 		if err != nil {
 			return nil, err
 		}

@@ -127,8 +127,9 @@ func printSourceList(sourceList *clientduck.SourceList, options printers.PrintOp
 	sort.SliceStable(sourceList.Items, func(i, j int) bool {
 		return sourceList.Items[i].Name < sourceList.Items[j].Name
 	})
-	for _, source := range sourceList.Items {
-		row, err := printSource(&source, options)
+	for i := range sourceList.Items {
+		source := &sourceList.Items[i]
+		row, err := printSource(source, options)
 		if err != nil {
 			return nil, err
 		}

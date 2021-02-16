@@ -46,8 +46,9 @@ func ServiceListHandlers(h hprinters.PrintHandler) {
 func printKServiceList(kServiceList *servingv1.ServiceList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	rows := make([]metav1beta1.TableRow, 0, len(kServiceList.Items))
 
-	for _, ksvc := range kServiceList.Items {
-		r, err := printKService(&ksvc, options)
+	for i := range kServiceList.Items {
+		ksvc := &kServiceList.Items[i]
+		r, err := printKService(ksvc, options)
 		if err != nil {
 			return nil, err
 		}

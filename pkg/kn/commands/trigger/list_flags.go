@@ -77,10 +77,11 @@ func printTriggerListWithNamespace(triggerList *v1beta1.TriggerList, options hpr
 	// temporary slice for sorting services in non-default namespace
 	others := []metav1beta1.TableRow{}
 
-	for _, trigger := range triggerList.Items {
+	for i := range triggerList.Items {
+		trigger := &triggerList.Items[i]
 		// Fill in with services in `default` namespace at first
 		if trigger.Namespace == "default" {
-			r, err := printTrigger(&trigger, options)
+			r, err := printTrigger(trigger, options)
 			if err != nil {
 				return nil, err
 			}
@@ -88,7 +89,7 @@ func printTriggerListWithNamespace(triggerList *v1beta1.TriggerList, options hpr
 			continue
 		}
 		// put other services in temporary slice
-		r, err := printTrigger(&trigger, options)
+		r, err := printTrigger(trigger, options)
 		if err != nil {
 			return nil, err
 		}
@@ -111,8 +112,9 @@ func printTriggerList(triggerList *v1beta1.TriggerList, options hprinters.PrintO
 		return printTriggerListWithNamespace(triggerList, options)
 	}
 
-	for _, trigger := range triggerList.Items {
-		r, err := printTrigger(&trigger, options)
+	for i := range triggerList.Items {
+		trigger := &triggerList.Items[i]
+		r, err := printTrigger(trigger, options)
 		if err != nil {
 			return nil, err
 		}

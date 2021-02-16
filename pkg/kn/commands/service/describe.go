@@ -280,7 +280,8 @@ func getRevisionDescriptions(client clientservingv1.KnServingClient, service *se
 
 	trafficTargets := service.Status.Traffic
 	var err error
-	for _, target := range trafficTargets {
+	for i := range trafficTargets {
+		target := trafficTargets[i]
 		revision, err := extractRevisionFromTarget(client, target)
 		if err != nil {
 			return nil, fmt.Errorf("cannot extract revision from service %s: %w", service.Name, err)

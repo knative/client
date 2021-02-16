@@ -112,8 +112,9 @@ func printSourceList(sourceList *v1alpha2.PingSourceList, options hprinters.Prin
 		return sourceList.Items[i].GetName() < sourceList.Items[j].GetName()
 	})
 
-	for _, item := range sourceList.Items {
-		row, err := printSource(&item, options)
+	for i := range sourceList.Items {
+		item := &sourceList.Items[i]
+		row, err := printSource(item, options)
 		if err != nil {
 			return nil, err
 		}
@@ -130,10 +131,11 @@ func printSourceListWithNamespace(sourceList *v1alpha2.PingSourceList, options h
 	// temporary slice for sorting services in non-default namespace
 	others := make([]metav1beta1.TableRow, 0, len(rows))
 
-	for _, source := range sourceList.Items {
+	for i := range sourceList.Items {
+		source := &sourceList.Items[i]
 		// Fill in with services in `default` namespace at first
 		if source.Namespace == "default" {
-			r, err := printSource(&source, options)
+			r, err := printSource(source, options)
 			if err != nil {
 				return nil, err
 			}
@@ -141,7 +143,7 @@ func printSourceListWithNamespace(sourceList *v1alpha2.PingSourceList, options h
 			continue
 		}
 		// put other services in temporary slice
-		r, err := printSource(&source, options)
+		r, err := printSource(source, options)
 		if err != nil {
 			return nil, err
 		}
