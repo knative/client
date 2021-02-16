@@ -107,7 +107,7 @@ func processPlugin(p Plugin, registerFile string) error {
 }
 
 // processModuleRequire adds provided plugin module to go.mod require section
-func processModuleRequire(plugin Plugin) (error) {
+func processModuleRequire(plugin Plugin) error {
 	_, err := exec.Command("go", "mod", "edit", "-require", plugin.Module+"@"+plugin.Version).Output()
 	if err != nil {
 		return fmt.Errorf("go mod edit -require failed: %w", err)
@@ -161,4 +161,3 @@ func appendImport(file, importPath string) error {
 	fmt.Println("✔  " + importPath + " added to plugin_register.go")
 	return ioutil.WriteFile(file, content, 0644)
 }
-

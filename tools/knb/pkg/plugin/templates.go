@@ -95,5 +95,3 @@ func (p *inlinedPlugin) CommandParts() []string {
 func (p *inlinedPlugin) Path() string {
 	return ""
 }`
-
-
