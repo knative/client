@@ -17,7 +17,7 @@ limitations under the License.
 package util
 
 import (
-	"crypto/sha1"
+	"crypto/sha1" //nolint:gosec // Weak crypto is fine here, we use it for generating unique keys.
 	"fmt"
 	"strings"
 	"unicode"
@@ -81,6 +81,7 @@ func GenerateVolumeName(path string) string {
 }
 
 func appendCheckSum(sanitizedString, path string) string {
+	//nolint:gosec // Weak crypto is fine here, we use it for generating unique keys.
 	checkSum := sha1.Sum([]byte(path))
 	shortCheckSum := checkSum[0:4]
 	return fmt.Sprintf("%s-%x", sanitizedString, shortCheckSum)
