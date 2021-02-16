@@ -71,7 +71,7 @@ func NewDistroGenerateCmd() *cobra.Command {
 					return err
 				}
 			}
-
+			//nolint:gosec // Expected go cmd.
 			if err := exec.Command("gofmt", "-s", "-w", registerFile).Run(); err != nil {
 				return fmt.Errorf("gofmt failed: %w", err)
 			}
@@ -108,6 +108,7 @@ func processPlugin(p Plugin, registerFile string) error {
 
 // processModuleRequire adds provided plugin module to go.mod require section
 func processModuleRequire(plugin Plugin) error {
+	//nolint:gosec // Expected go cmd.
 	_, err := exec.Command("go", "mod", "edit", "-require", plugin.Module+"@"+plugin.Version).Output()
 	if err != nil {
 		return fmt.Errorf("go mod edit -require failed: %w", err)
@@ -120,6 +121,7 @@ func processModuleRequire(plugin Plugin) error {
 func processModuleReplace(plugin Plugin) error {
 	if len(plugin.Replace) > 0 {
 		for _, r := range plugin.Replace {
+			//nolint:gosec // Expected go cmd.
 			_, err := exec.Command("go", "mod", "edit", "-replace", r.Module+"="+r.Module+"@"+r.Version).Output()
 			if err != nil {
 				return fmt.Errorf("go mod edit -replace failed: %w", err)
@@ -159,5 +161,6 @@ func appendImport(file, importPath string) error {
 	hook := "// Add #plugins# import here. Don't remove this line, it triggers an automatic replacement."
 	content = bytes.Replace(content, []byte(hook), []byte(fmt.Sprintf("%s\n    _ \"%s\"", hook, importPath)), 1)
 	fmt.Println("✔  " + importPath + " added to plugin_register.go")
+	//nolint:gosec // Generate file keeps the same permissions as rest of sources.
 	return ioutil.WriteFile(file, content, 0644)
 }
