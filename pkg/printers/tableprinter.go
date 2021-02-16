@@ -90,7 +90,7 @@ func printRowsForHandlerEntry(output io.Writer, handler *handlerEntry, obj runti
 
 	if results[1].IsNil() {
 		rows := results[0].Interface().([]metav1beta1.TableRow)
-		printRows(output, rows, options)
+		printRows(output, rows)
 		return nil
 	}
 	return results[1].Interface().(error)
@@ -104,7 +104,7 @@ func printHeader(columnNames []string, w io.Writer) error {
 }
 
 // printRows writes the provided rows to output.
-func printRows(output io.Writer, rows []metav1beta1.TableRow, options PrintOptions) {
+func printRows(output io.Writer, rows []metav1beta1.TableRow) {
 	for _, row := range rows {
 		for i, cell := range row.Cells {
 			if i != 0 {

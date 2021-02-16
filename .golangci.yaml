@@ -8,6 +8,13 @@ linters:
   enable:
     - errorlint
     - unconvert
+    - unparam
     - prealloc
   disable:
     - errcheck
+
+issues:
+  exclude-rules:
+    - path: test # Excludes /test, *_test.go etc.
+      linters:
+        - unparam

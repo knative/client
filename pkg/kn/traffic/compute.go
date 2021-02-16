@@ -83,7 +83,7 @@ func (e ServiceTraffic) isTagPresent(tag string) bool {
 	return false
 }
 
-func (e ServiceTraffic) untagRevision(tag string, serviceName string) bool {
+func (e ServiceTraffic) untagRevision(tag string) bool {
 	for i, target := range e {
 		if target.Tag == tag {
 			e[i].Tag = ""
@@ -281,7 +281,7 @@ func Compute(cmd *cobra.Command, targets []servingv1.TrafficTarget,
 	// First precedence: Untag revisions
 	var errTagNames []string
 	for _, tag := range trafficFlags.UntagRevisions {
-		tagExists := traffic.untagRevision(tag, serviceName)
+		tagExists := traffic.untagRevision(tag)
 		if !tagExists {
 			errTagNames = append(errTagNames, tag)
 		}

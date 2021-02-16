@@ -132,7 +132,7 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 
 		},
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			return preCheck(cmd, args)
+			return preCheck(cmd)
 		},
 	}
 
@@ -144,7 +144,7 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 	return serviceUpdateCommand
 }
 
-func preCheck(cmd *cobra.Command, args []string) error {
+func preCheck(cmd *cobra.Command) error {
 	if cmd.Flags().NFlag() == 0 {
 		return fmt.Errorf("flag(s) not set\nUsage: %s", cmd.Use)
 	}

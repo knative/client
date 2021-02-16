@@ -77,14 +77,11 @@ func NewWatcher(watchFunc watchF, c rest.Interface, ns string, resource string, 
 	polling := &pollingWatcher{
 		c, ns, resource, name, timeout, make(chan bool), make(chan watch.Event), &sync.WaitGroup{},
 		newTickerPollInterval(time.Second), nativePoll(c, ns, resource, name)}
-	err = polling.start()
-	if err != nil {
-		return nil, err
-	}
+	polling.start()
 	return polling, nil
 }
 
-func (w *pollingWatcher) start() error {
+func (w *pollingWatcher) start() {
 	w.wg.Add(1)
 
 	go func() {
@@ -149,7 +146,6 @@ func (w *pollingWatcher) start() error {
 			}
 		}
 	}()
-	return nil
 }
 
 func (w *pollingWatcher) ResultChan() <-chan watch.Event {

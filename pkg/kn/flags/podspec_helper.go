@@ -43,22 +43,19 @@ func (vt VolumeSourceType) String() string {
 	return names[vt]
 }
 
-func containerOfPodSpec(spec *corev1.PodSpec) (*corev1.Container, error) {
+func containerOfPodSpec(spec *corev1.PodSpec) *corev1.Container {
 	if len(spec.Containers) == 0 {
 		newContainer := corev1.Container{}
 		spec.Containers = append(spec.Containers, newContainer)
 	}
-	return &spec.Containers[0], nil
+	return &spec.Containers[0]
 }
 
 // UpdateEnvVars gives the configuration all the env var values listed in the given map of
 // vars.  Does not touch any environment variables not mentioned, but it can add
 // new env vars and change the values of existing ones, then sort by env key name.
 func UpdateEnvVars(spec *corev1.PodSpec, toUpdate map[string]string, toRemove []string) error {
-	container, err := containerOfPodSpec(spec)
-	if err != nil {
-		return err
-	}
+	container := containerOfPodSpec(spec)
 	updated := updateEnvVarsFromMap(container.Env, toUpdate)
 	updated = removeEnvVars(updated, toRemove)
 	// Sort by env key name
@@ -72,10 +69,7 @@ func UpdateEnvVars(spec *corev1.PodSpec, toUpdate map[string]string, toRemove []
 
 // UpdateEnvFrom updates envFrom
 func UpdateEnvFrom(spec *corev1.PodSpec, toUpdate []string, toRemove []string) error {
-	container, err := containerOfPodSpec(spec)
-	if err != nil {
-		return err
-	}
+	container := containerOfPodSpec(spec)
 	envFrom, err := updateEnvFrom(container.EnvFrom, toUpdate)
 	if err != nil {
 		return err
@@ -87,12 +81,9 @@ func UpdateEnvFrom(spec *corev1.PodSpec, toUpdate []string, toRemove []string) e
 // UpdateVolumeMountsAndVolumes updates the configuration for volume mounts and volumes.
 func UpdateVolumeMountsAndVolumes(spec *corev1.PodSpec,
 	mountsToUpdate *util.OrderedMap, mountsToRemove []string, volumesToUpdate *util.OrderedMap, volumesToRemove []string) error {
-	container, err := containerOfPodSpec(spec)
-	if err != nil {
-		return err
-	}
+	container := containerOfPodSpec(spec)
 
-	volumeSourceInfoByName, mountsToUpdate, err := reviseVolumeInfoAndMountsToUpdate(spec.Volumes, mountsToUpdate, volumesToUpdate)
+	volumeSourceInfoByName, mountsToUpdate, err := reviseVolumeInfoAndMountsToUpdate(mountsToUpdate, volumesToUpdate)
 	if err != nil {
 		return err
 	}
@@ -118,43 +109,32 @@ func UpdateVolumeMountsAndVolumes(spec *corev1.PodSpec,
 // UpdateImage a given image
 func UpdateImage(spec *corev1.PodSpec, image string) error {
 	// When not setting the image to a digest, add the user image annotation.
-	container, err := containerOfPodSpec(spec)
-	if err != nil {
-		return err
-	}
+	container := containerOfPodSpec(spec)
 	container.Image = image
 	return nil
 }
 
 // UpdateContainerCommand updates container with a given argument
 func UpdateContainerCommand(spec *corev1.PodSpec, command string) error {
-	container, err := containerOfPodSpec(spec)
-	if err != nil {
-		return err
-	}
+	container := containerOfPodSpec(spec)
 	container.Command = []string{command}
 	return nil
 }
 
 // UpdateContainerArg updates container with a given argument
 func UpdateContainerArg(spec *corev1.PodSpec, arg []string) error {
-	container, err := containerOfPodSpec(spec)
-	if err != nil {
-		return err
-	}
+	container := containerOfPodSpec(spec)
 	container.Args = arg
 	return nil
 }
 
 // UpdateContainerPort updates container with a given name:port
 func UpdateContainerPort(spec *corev1.PodSpec, port string) error {
-	container, err := containerOfPodSpec(spec)
-	if err != nil {
-		return err
-	}
+	container := containerOfPodSpec(spec)
 
 	var containerPort int64
 	var name string
+	var err error
 
 	elements := strings.SplitN(port, ":", 2)
 	if len(elements) == 2 {
@@ -180,10 +160,7 @@ func UpdateContainerPort(spec *corev1.PodSpec, port string) error {
 
 // UpdateUser updates container with a given user id
 func UpdateUser(spec *corev1.PodSpec, user int64) error {
-	container, err := containerOfPodSpec(spec)
-	if err != nil {
-		return err
-	}
+	container := containerOfPodSpec(spec)
 	container.SecurityContext = &corev1.SecurityContext{
 		RunAsUser: &user,
 	}
@@ -192,10 +169,7 @@ func UpdateUser(spec *corev1.PodSpec, user int64) error {
 
 // UpdateResources updates container resources for given revision spec
 func UpdateResources(spec *corev1.PodSpec, resources corev1.ResourceRequirements, requestsToRemove, limitsToRemove []string) error {
-	container, err := containerOfPodSpec(spec)
-	if err != nil {
-		return err
-	}
+	container := containerOfPodSpec(spec)
 
 	if container.Resources.Requests == nil {
 		container.Resources.Requests = corev1.ResourceList{}
@@ -522,8 +496,7 @@ func existsVolumeNameInVolumeMounts(volumeName string, volumeMounts []corev1.Vol
 
 // =======================================================================================
 
-func reviseVolumeInfoAndMountsToUpdate(volumes []corev1.Volume, mountsToUpdate *util.OrderedMap,
-	volumesToUpdate *util.OrderedMap) (*util.OrderedMap, *util.OrderedMap, error) {
+func reviseVolumeInfoAndMountsToUpdate(mountsToUpdate *util.OrderedMap, volumesToUpdate *util.OrderedMap) (*util.OrderedMap, *util.OrderedMap, error) {
 	volumeSourceInfoByName := util.NewOrderedMap() //make(map[string]*volumeSourceInfo)
 	mountsToUpdateRevised := util.NewOrderedMap()  //make(map[string]string)
 

@@ -70,7 +70,7 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			params, err = appendRevisionNameFilter(params, client, args)
+			params, err = appendRevisionNameFilter(params, args)
 			if err != nil {
 				return err
 			}
@@ -131,7 +131,7 @@ func appendServiceFilter(lConfig []clientservingv1.ListConfig, client clientserv
 }
 
 // If an additional name is given append this as a revision name filter to the given list
-func appendRevisionNameFilter(lConfigs []clientservingv1.ListConfig, client clientservingv1.KnServingClient, args []string) ([]clientservingv1.ListConfig, error) {
+func appendRevisionNameFilter(lConfigs []clientservingv1.ListConfig, args []string) ([]clientservingv1.ListConfig, error) {
 
 	switch len(args) {
 	case 0:
