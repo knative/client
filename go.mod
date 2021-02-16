@@ -28,5 +28,3 @@ require (
 	knative.dev/serving v0.20.1-0.20210210103320-ebc658424a0d
 	sigs.k8s.io/yaml v1.2.0
 )
-
-replace github.com/go-openapi/spec => github.com/go-openapi/spec v0.19.3
