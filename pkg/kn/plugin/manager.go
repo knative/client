@@ -232,6 +232,7 @@ func (manager *Manager) LookupInPath() bool {
 
 // Execute the plugin with the given arguments
 func (plugin *plugin) Execute(args []string) error {
+	//nolint:gosec // Passing the arguments through is expected, the plugins are trusted.
 	cmd := exec.Command(plugin.path, args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

@@ -102,8 +102,9 @@ func ListHandlers(h hprinters.PrintHandler) {
 func printBrokerList(kServiceList *v1beta1.BrokerList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	rows := make([]metav1beta1.TableRow, 0, len(kServiceList.Items))
 
-	for _, ksvc := range kServiceList.Items {
-		r, err := printBroker(&ksvc, options)
+	for i := range kServiceList.Items {
+		ksvc := &kServiceList.Items[i]
+		r, err := printBroker(ksvc, options)
 		if err != nil {
 			return nil, err
 		}

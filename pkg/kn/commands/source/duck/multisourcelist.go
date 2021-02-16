@@ -89,8 +89,9 @@ func toSource(u *unstructured.Unstructured) Source {
 func ToSourceList(uList *unstructured.UnstructuredList) *SourceList {
 	dsl := SourceList{Items: []Source{}}
 	//dsl.Items = make(Source, 0, len(uList.Items))
-	for _, u := range uList.Items {
-		dsl.Items = append(dsl.Items, toSource(&u))
+	for i := range uList.Items {
+		u := &uList.Items[i]
+		dsl.Items = append(dsl.Items, toSource(u))
 	}
 	// set empty group, version and non empty kind
 	dsl.APIVersion, dsl.Kind = schema.GroupVersion{}.WithKind(DSListKind).ToAPIVersionAndKind()

@@ -7,9 +7,10 @@ run:
 linters:
   enable:
     - errorlint
+    - gosec
+    - prealloc
     - unconvert
     - unparam
-    - prealloc
   disable:
     - errcheck
 
@@ -17,4 +18,5 @@ issues:
   exclude-rules:
     - path: test # Excludes /test, *_test.go etc.
       linters:
+        - gosec
         - unparam

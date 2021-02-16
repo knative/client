@@ -56,8 +56,9 @@ func RevisionListHandlers(h hprinters.PrintHandler) {
 func printRevisionList(revisionList *servingv1.RevisionList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 
 	rows := make([]metav1beta1.TableRow, 0, len(revisionList.Items))
-	for _, rev := range revisionList.Items {
-		r, err := printRevision(&rev, options)
+	for i := range revisionList.Items {
+		rev := &revisionList.Items[i]
+		r, err := printRevision(rev, options)
 		if err != nil {
 			return nil, err
 		}

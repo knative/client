@@ -94,8 +94,9 @@ func printSubscriptionList(subscriptionList *messagingv1beta1.SubscriptionList, 
 		return subscriptionList.Items[i].GetName() < subscriptionList.Items[j].GetName()
 	})
 
-	for _, item := range subscriptionList.Items {
-		row, err := printSubscription(&item, options)
+	for i := range subscriptionList.Items {
+		item := &subscriptionList.Items[i]
+		row, err := printSubscription(item, options)
 		if err != nil {
 			return nil, err
 		}
@@ -112,10 +113,11 @@ func printSubscriptionListWithNamespace(subscriptionList *messagingv1beta1.Subsc
 	// temporary slice for sorting services in non-default namespace
 	others := make([]metav1beta1.TableRow, 0, len(rows))
 
-	for _, subscription := range subscriptionList.Items {
+	for i := range subscriptionList.Items {
+		subscription := &subscriptionList.Items[i]
 		// Fill in with services in `default` namespace at first
 		if subscription.Namespace == "default" {
-			r, err := printSubscription(&subscription, options)
+			r, err := printSubscription(subscription, options)
 			if err != nil {
 				return nil, err
 			}
@@ -123,7 +125,7 @@ func printSubscriptionListWithNamespace(subscriptionList *messagingv1beta1.Subsc
 			continue
 		}
 		// put other services in temporary slice
-		r, err := printSubscription(&subscription, options)
+		r, err := printSubscription(subscription, options)
 		if err != nil {
 			return nil, err
 		}

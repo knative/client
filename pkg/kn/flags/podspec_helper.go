@@ -249,8 +249,9 @@ func removeEnvVars(env []corev1.EnvVar, toRemove []string) []corev1.EnvVar {
 func updateEnvFrom(envFromSources []corev1.EnvFromSource, toUpdate []string) ([]corev1.EnvFromSource, error) {
 	existingNameSet := make(map[string]bool)
 
-	for _, envSrc := range envFromSources {
-		if canonicalName, err := getCanonicalNameFromEnvFromSource(&envSrc); err == nil {
+	for i := range envFromSources {
+		envSrc := &envFromSources[i]
+		if canonicalName, err := getCanonicalNameFromEnvFromSource(envSrc); err == nil {
 			existingNameSet[canonicalName] = true
 		}
 	}

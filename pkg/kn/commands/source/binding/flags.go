@@ -85,8 +85,9 @@ func printSinkBinding(binding *v1alpha2.SinkBinding, options hprinters.PrintOpti
 func printSinkBindingList(sinkBindingList *v1alpha2.SinkBindingList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 
 	rows := make([]metav1beta1.TableRow, 0, len(sinkBindingList.Items))
-	for _, binding := range sinkBindingList.Items {
-		r, err := printSinkBinding(&binding, options)
+	for i := range sinkBindingList.Items {
+		binding := &sinkBindingList.Items[i]
+		r, err := printSinkBinding(binding, options)
 		if err != nil {
 			return nil, err
 		}

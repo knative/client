@@ -36,6 +36,7 @@ type revisionTemplContext struct {
 func (c *revisionTemplContext) Random(l int) string {
 	chars := make([]string, 0, l)
 	for i := 0; i < l; i++ {
+		//nolint:gosec // Weak crypto is fine here, we use it for generating unique keys.
 		chars = append(chars, charChoices[rand.Int()%len(charChoices)])
 	}
 	return strings.Join(chars, "")
