@@ -20,16 +20,19 @@ import "github.com/spf13/cobra"
 
 // Plugin represents plugin configuration data struct
 type Plugin struct {
-	Name             string
-	Description      string
-	Module           string
-	Version          string
-	PluginImportPath string
-	Replace          []struct {
-		Module  string
-		Version string
-	}
-	CmdParts []string
+	Name             string    `yaml:"name"`
+	Description      string    `yaml:"description,omitempty"`
+	Module           string    `yaml:"module"`
+	Version          string    `yaml:"version"`
+	PluginImportPath string    `yaml:"pluginImportPath,omitempty"`
+	CmdParts         []string  `yaml:"cmdParts,omitempty"`
+	Replace          []Replace `yaml:"replace,omitempty"`
+}
+
+// Plugin represents go module replacement declaration
+type Replace struct {
+	Module  string `yaml:"module"`
+	Version string `yaml:"version"`
 }
 
 // NewPluginCmd represents plugin command group
