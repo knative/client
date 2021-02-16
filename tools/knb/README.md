@@ -17,19 +17,10 @@ go get knative.dev/client/tools/knb
 
 ##### Create custom `kn` distribution
 
-The `knb` can be used to generate enhanced `kn` source files with inlined plugins.
+The `knb` can be used to generate enhanced customized `kn` source files with inlined plugins.
 
 Create configuration file `.kn.yaml` in a root directory of `knative/client` that should specify at least `name, module, version` coordinates of the plugin.
-The `plugin distro` will generated the required go files and add dependency to `go.mod`.
-
-Required:
-* name
-* module - go module name to be used for import and in go.mod file
-* version - accepted values are git tag or branch name of go module.
-
-Optional:
-* pluginImportPath - import path override, default `$module/plugin`
-* replace - go module replacement defined by `module,version`.
+Executing `knb plugin distro` command will generate the required go files and add dependency to `go.mod`.
 
 Example of `.kn.yaml`
 ```yaml
@@ -39,9 +30,18 @@ plugins:
     pluginImportPath: knative.dev/kn-plugin-source-kafka/plugin
     version: v0.19.0
     replace:
-      - module: foo.bar
-        version: v0.0.1
+      - module: golang.org/x/sys
+        version: v0.0.0-20200302150141-5c8b2ff67527
 ```
+
+Required:
+* name
+* module - go module name to be used for import and in go.mod file
+* version - accepted values are git tag or branch name of go module.
+
+Optional:
+* pluginImportPath - import path override, default `$module/plugin`
+* replace - go module replacement defined by `module,version`.
 
 
 Execute command
