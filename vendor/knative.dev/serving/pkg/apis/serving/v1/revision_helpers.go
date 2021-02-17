@@ -20,7 +20,6 @@ import (
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/util/clock"
 	net "knative.dev/networking/pkg/apis/networking"
 	"knative.dev/pkg/kmeta"
 	"knative.dev/serving/pkg/apis/serving"
@@ -89,7 +88,7 @@ func (rs *RevisionSpec) GetContainer() *corev1.Container {
 
 // SetRoutingState sets the routingState label on this Revision and updates the
 // routingStateModified annotation.
-func (r *Revision) SetRoutingState(state RoutingState, clock clock.Clock) {
+func (r *Revision) SetRoutingState(state RoutingState, tm time.Time) {
 	stateStr := string(state)
 	if t := r.Annotations[serving.RoutingStateModifiedAnnotationKey]; t != "" &&
 		r.Labels[serving.RoutingStateLabelKey] == stateStr {
@@ -101,13 +100,14 @@ func (r *Revision) SetRoutingState(state RoutingState, clock clock.Clock) {
 
 	r.Annotations = kmeta.UnionMaps(r.Annotations,
 		map[string]string{
-			serving.RoutingStateModifiedAnnotationKey: RoutingStateModifiedString(clock),
-		})
+			serving.RoutingStateModifiedAnnotationKey: RoutingStateModifiedString(tm),
+		},
+	)
 }
 
 // RoutingStateModifiedString gives a formatted now timestamp.
-func RoutingStateModifiedString(clock clock.Clock) string {
-	return clock.Now().UTC().Format(time.RFC3339)
+func RoutingStateModifiedString(t time.Time) string {
+	return t.UTC().Format(time.RFC3339)
 }
 
 // GetRoutingState retrieves the RoutingState label.
