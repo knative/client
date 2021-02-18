@@ -1,9 +1,4 @@
 approvers:
-- sixolet
-- cppforlife
-- rhuss
 - maximilien
-- navidshaikh
-# TOC members as a fallback
-- mattmoor
-- evankanderson
+- client-wg-leads
+- toc
