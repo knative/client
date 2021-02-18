@@ -67,12 +67,14 @@ func TestServiceExport(t *testing.T) {
 		{latestSvc: libtest.BuildServiceWithOptions("foo", servingtest.WithConfigSpec(buildConfiguration()), servingtest.WithServiceLabel("a", "mouse"), servingtest.WithServiceAnnotation("a", "mouse"))},
 		{latestSvc: libtest.BuildServiceWithOptions("foo", servingtest.WithConfigSpec(buildConfiguration()), servingtest.WithVolume("secretName", "/mountpath", volumeSource("secretName")))},
 	} {
+		exportServiceTestForReplay(t, &tc)
+		tc.expectedKNExport = libtest.BuildKNExportWithOptions()
 		exportServiceTest(t, &tc)
 	}
 }
 
-func exportServiceTest(t *testing.T, tc *testCase) {
-	output, err := executeServiceExportCommand(t, tc, "export", tc.latestSvc.ObjectMeta.Name, "-o", "yaml")
+func exportServiceTestForReplay(t *testing.T, tc *testCase) {
+	output, err := executeServiceExportCommand(t, tc, "export", tc.latestSvc.ObjectMeta.Name, "--mode", "replay", "-o", "yaml")
 	assert.NilError(t, err)
 
 	actSvc := servingv1.Service{}
@@ -80,6 +82,19 @@ func exportServiceTest(t *testing.T, tc *testCase) {
 	assert.NilError(t, err)
 
 	assert.DeepEqual(t, tc.latestSvc, &actSvc)
+}
+
+func exportServiceTest(t *testing.T, tc *testCase) {
+	output, err := executeServiceExportCommand(t, tc, "export", tc.latestSvc.ObjectMeta.Name, "--mode", "export", "-o", "json")
+	assert.NilError(t, err)
+
+	tc.expectedKNExport.Spec.Service = *tc.latestSvc
+
+	actKNExport := &clientv1alpha1.Export{}
+	err = json.Unmarshal([]byte(output), actKNExport)
+	assert.NilError(t, err)
+
+	assert.DeepEqual(t, tc.expectedKNExport, actKNExport)
 }
 
 func TestServiceExportwithMultipleRevisions(t *testing.T) {
