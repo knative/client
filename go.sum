@@ -1306,8 +1306,8 @@ k8s.io/utils v0.0.0-20200729134348-d5654de09c73/go.mod h1:jPW/WVKK9YHAvNhRxK0md/
 k8s.io/utils v0.0.0-20210111153108-fddb29f9d009 h1:0T5IaWHO3sJTEmCP6mUlBvMukxPKUQWqiI/YuiBNMiQ=
 k8s.io/utils v0.0.0-20210111153108-fddb29f9d009/go.mod h1:jPW/WVKK9YHAvNhRxK0md/EJ228hCsBRufyofKtW8HA=
 knative.dev/caching v0.0.0-20210215030244-1212288570f0/go.mod h1:rAPalJe9Lx3jHffJpackk5WjZYl3j2QvXUgw0GPllxQ=
-knative.dev/eventing v0.20.1-0.20210216203459-ef5f61dadd7d h1:Dyv3HEqSMTGZj9bZJrQBo4Eruc3dABjVM9+zAaS6V50=
-knative.dev/eventing v0.20.1-0.20210216203459-ef5f61dadd7d/go.mod h1:3XibpVIriBFW31rn4uFQlTzqZgyKHgD4CTJHBwEPrUQ=
+knative.dev/eventing v0.20.1-0.20210219125302-4e5bdf97930a h1:3cqlUxlZ6M+EZA80OTroRXz7XNNImc4Qix01jqOA1Bo=
+knative.dev/eventing v0.20.1-0.20210219125302-4e5bdf97930a/go.mod h1:JjbVEOTJJHqo9CTxbTfrMn018hG8fOr3UfBoCJ7KWaA=
 knative.dev/hack v0.0.0-20210203173706-8368e1f6eacf h1:u4cY4jr2LYvhoz/1HBWEPsMiLkm0HMdDTfmmw1RE8zE=
 knative.dev/hack v0.0.0-20210203173706-8368e1f6eacf/go.mod h1:PHt8x8yX5Z9pPquBEfIj0X66f8iWkWfR0S/sarACJrI=
 knative.dev/networking v0.0.0-20210215030235-088986a1c2a3/go.mod h1:pmAMQjMqQUxpK0UyjE71KljMs6rwDMVIAlvrZsU3I6Y=
@@ -1317,9 +1317,9 @@ knative.dev/pkg v0.0.0-20210212203835-448ae657fb5f/go.mod h1:TJSdebQOWX5N2bszohO
 knative.dev/pkg v0.0.0-20210215165523-84c98f3c3e7a/go.mod h1:TJSdebQOWX5N2bszohOYVi0H1QtXbtlYLuMghAFBMhY=
 knative.dev/pkg v0.0.0-20210216013737-584933f8280b h1:2v+GBBenjPXhtk3KX/YqxCQVBU6o/AaRkkqE58lgFRQ=
 knative.dev/pkg v0.0.0-20210216013737-584933f8280b/go.mod h1:TJSdebQOWX5N2bszohOYVi0H1QtXbtlYLuMghAFBMhY=
-knative.dev/reconciler-test v0.0.0-20210215155505-fe22009753f9/go.mod h1:vB3GnWUdlkvtmoVUP9anmh82S1QC/LJKtOrAMA1COtw=
-knative.dev/serving v0.20.1-0.20210217010702-7aa62c5bebdf h1:aLjH83TzI5GJOSFEz1pGZD0oa3Q2feE82sFdq/4tp5s=
-knative.dev/serving v0.20.1-0.20210217010702-7aa62c5bebdf/go.mod h1:PU9k1Y6YMG27XQldEu5agNkcebvSafUXKXPircQYCsE=
+knative.dev/reconciler-test v0.0.0-20210216030508-77f50054d024/go.mod h1:RP/K5xJylB72Go6eAsXYEsQHp4zCCNMNjmsqhvq7wko=
+knative.dev/serving v0.20.1-0.20210219075403-2516dae3d46e h1:nPwnrjTsPdf4eVlhHDPckURcKIZwe4lXoiIeMHcQ6TU=
+knative.dev/serving v0.20.1-0.20210219075403-2516dae3d46e/go.mod h1:PU9k1Y6YMG27XQldEu5agNkcebvSafUXKXPircQYCsE=
 modernc.org/cc v1.0.0/go.mod h1:1Sk4//wdnYJiUIxnW8ddKpaOJCF37yAdqYnkxUpaYxw=
 modernc.org/golex v1.0.0/go.mod h1:b/QX9oBD/LhixY6NDh+IdGv17hgB+51fET1i2kPSmvk=
 modernc.org/mathutil v1.0.0/go.mod h1:wU0vUrJsVWBZ4P6e7xtFJEhFSNsfRLJ8H458uRjg03k=
