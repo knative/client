@@ -40,6 +40,11 @@
 | 🎁
 | Add context.Context parameter to API function
 | https://github.com/knative/client/pull/1274[#1274]
+
+| 🎁
+| Add `kn domain` commands to manage DomainMapping
+| https://github.com/knative/client/pull/1267[#1267]
+
 |===
 
 ## v0.21.0 (2021-02-23)
