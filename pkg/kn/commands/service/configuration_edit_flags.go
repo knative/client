@@ -140,11 +140,12 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 			"precedence over the \"label\" flag.")
 	p.markFlagMakesRevision("label-revision")
 
-	command.Flags().StringVar(&p.RevisionName, "revision-name", "{{.Service}}-{{.Random 5}}-{{.Generation}}",
+	command.Flags().StringVar(&p.RevisionName, "revision-name", "",
 		"The revision name to set. Must start with the service name and a dash as a prefix. "+
 			"Empty revision name will result in the server generating a name for the revision. "+
 			"Accepts golang templates, allowing {{.Service}} for the service name, "+
-			"{{.Generation}} for the generation, and {{.Random [n]}} for n random consonants.")
+			"{{.Generation}} for the generation, and {{.Random [n]}} for n random consonants "+
+			"(e.g. {{.Service}}-{{.Random 5}}-{{.Generation}})")
 	p.markFlagMakesRevision("revision-name")
 
 	knflags.AddBothBoolFlagsUnhidden(command.Flags(), &p.LockToDigest, "lock-to-digest", "", true,
@@ -206,30 +207,31 @@ func (p *ConfigurationEditFlags) Apply(
 		return err
 	}
 
-	name, err := servinglib.GenerateRevisionName(p.RevisionName, service)
-	if err != nil {
-		return err
+	name := ""
+	if p.RevisionName != "" {
+		name, err = servinglib.GenerateRevisionName(p.RevisionName, service)
+		if err != nil {
+			return err
+		}
+
+		if p.AnyMutation(cmd) {
+			template.Name = name
+		}
 	}
 
-	if p.AnyMutation(cmd) {
-		template.Name = name
-	}
-
-	imageSet := false
-	if cmd.Flags().Changed("image") {
-		imageSet = true
-	}
 	_, userImagePresent := template.Annotations[servinglib.UserImageAnnotationKey]
 	freezeMode := userImagePresent || cmd.Flags().Changed("lock-to-digest")
 	if p.LockToDigest && p.AnyMutation(cmd) && freezeMode {
 		servinglib.SetUserImageAnnot(template)
-		if !imageSet {
+		if !cmd.Flags().Changed("image") {
 			err = servinglib.FreezeImageToDigest(template, baseRevision)
 			if err != nil {
 				return err
 			}
 		}
-	} else if !p.LockToDigest {
+	}
+
+	if !p.LockToDigest {
 		servinglib.UnsetUserImageAnnot(template)
 	}
 
