@@ -101,6 +101,7 @@ func TestPrepareConfig(t *testing.T) {
 type typeTestCase struct {
 	kubeCfgPath   string
 	kubeContext   string
+	kubeCluster   string
 	explicitPath  string
 	expectedError string
 }
@@ -111,17 +112,20 @@ func TestGetClientConfig(t *testing.T) {
 		{
 			"",
 			"",
+			"",
 			clientcmd.NewDefaultClientConfigLoadingRules().ExplicitPath,
 			"",
 		},
 		{
 			"/testing/assets/kube-config-01.yml",
 			"foo",
+			"bar",
 			"",
 			fmt.Sprintf("config file '%s' can not be found", "/testing/assets/kube-config-01.yml"),
 		},
 		{
 			multiConfigs,
+			"",
 			"",
 			"",
 			fmt.Sprintf("can not find config file. '%s' looks like a path. Please use the env var KUBECONFIG if you want to check for multiple configuration files", multiConfigs),
@@ -143,10 +147,11 @@ func TestGetClientConfig(t *testing.T) {
 			configAccess := clientConfig.ConfigAccess()
 			assert.Assert(t, configAccess.GetExplicitFile() == tc.explicitPath)
 
-			if len(tc.kubeContext) > 0 {
+			if tc.kubeContext != "" {
 				config, err := clientConfig.RawConfig()
 				assert.NilError(t, err)
-				assert.Assert(t, config.CurrentContext == "foo")
+				assert.Assert(t, config.CurrentContext == tc.kubeContext)
+				assert.Assert(t, config.Contexts[tc.kubeContext].Cluster == tc.kubeCluster)
 			}
 		}
 	}

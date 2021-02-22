@@ -43,6 +43,7 @@ type KnParams struct {
 	Output                 io.Writer
 	KubeCfgPath            string
 	KubeContext            string
+	KubeCluster            string
 	ClientConfig           clientcmd.ClientConfig
 	NewServingClient       func(namespace string) (clientservingv1.KnServingClient, error)
 	NewGitopsServingClient func(namespace string, dir string) (clientservingv1.KnServingClient, error)
@@ -171,6 +172,9 @@ func (params *KnParams) GetClientConfig() (clientcmd.ClientConfig, error) {
 	configOverrides := &clientcmd.ConfigOverrides{}
 	if params.KubeContext != "" {
 		configOverrides.CurrentContext = params.KubeContext
+	}
+	if params.KubeCluster != "" {
+		configOverrides.Context.Cluster = params.KubeCluster
 	}
 	if len(params.KubeCfgPath) == 0 {
 		return clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, configOverrides), nil

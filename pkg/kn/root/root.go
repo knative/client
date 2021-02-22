@@ -77,6 +77,7 @@ func NewRootCommand(helpFuncs *template.FuncMap) (*cobra.Command, error) {
 	// Global flags
 	rootCmd.PersistentFlags().StringVar(&p.KubeCfgPath, "kubeconfig", "", "kubectl configuration file (default: ~/.kube/config)")
 	rootCmd.PersistentFlags().StringVar(&p.KubeContext, "context", "", "name of the kubeconfig context to use")
+	rootCmd.PersistentFlags().StringVar(&p.KubeCluster, "cluster", "", "name of the kubeconfig cluster to use")
 	flags.AddBothBoolFlags(rootCmd.PersistentFlags(), &p.LogHTTP, "log-http", "", false, "log http traffic")
 
 	// Grouped commands
