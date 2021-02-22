@@ -169,7 +169,7 @@ func (params *KnParams) RestConfig() (*rest.Config, error) {
 func (params *KnParams) GetClientConfig() (clientcmd.ClientConfig, error) {
 	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
 	configOverrides := &clientcmd.ConfigOverrides{}
-	if len(params.KubeContext) > 0 {
+	if params.KubeContext != "" {
 		configOverrides.CurrentContext = params.KubeContext
 	}
 	if len(params.KubeCfgPath) == 0 {
