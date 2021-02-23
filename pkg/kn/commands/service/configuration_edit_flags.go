@@ -104,7 +104,6 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 
 	knflags.AddBothBoolFlagsUnhidden(command.Flags(), &p.ClusterLocal, "cluster-local", "", false,
 		"Specify that the service be private. (--no-cluster-local will make the service publicly available)")
-	
 
 	command.Flags().IntVar(&p.ConcurrencyTarget, "concurrency-target", 0,
 		"Recommendation for when to scale up based on the concurrent number of incoming request. "+
