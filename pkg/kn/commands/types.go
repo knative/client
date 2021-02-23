@@ -42,6 +42,8 @@ import (
 type KnParams struct {
 	Output                 io.Writer
 	KubeCfgPath            string
+	KubeContext            string
+	KubeCluster            string
 	ClientConfig           clientcmd.ClientConfig
 	NewServingClient       func(namespace string) (clientservingv1.KnServingClient, error)
 	NewGitopsServingClient func(namespace string, dir string) (clientservingv1.KnServingClient, error)
@@ -167,14 +169,21 @@ func (params *KnParams) RestConfig() (*rest.Config, error) {
 // GetClientConfig gets ClientConfig from KubeCfgPath
 func (params *KnParams) GetClientConfig() (clientcmd.ClientConfig, error) {
 	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
+	configOverrides := &clientcmd.ConfigOverrides{}
+	if params.KubeContext != "" {
+		configOverrides.CurrentContext = params.KubeContext
+	}
+	if params.KubeCluster != "" {
+		configOverrides.Context.Cluster = params.KubeCluster
+	}
 	if len(params.KubeCfgPath) == 0 {
-		return clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, &clientcmd.ConfigOverrides{}), nil
+		return clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, configOverrides), nil
 	}
 
 	_, err := os.Stat(params.KubeCfgPath)
 	if err == nil {
 		loadingRules.ExplicitPath = params.KubeCfgPath
-		return clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, &clientcmd.ConfigOverrides{}), nil
+		return clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, configOverrides), nil
 	}
 
 	if !os.IsNotExist(err) {
@@ -183,8 +192,8 @@ func (params *KnParams) GetClientConfig() (clientcmd.ClientConfig, error) {
 
 	paths := filepath.SplitList(params.KubeCfgPath)
 	if len(paths) > 1 {
-		return nil, fmt.Errorf("Can not find config file. '%s' looks like a path. "+
+		return nil, fmt.Errorf("can not find config file. '%s' looks like a path. "+
 			"Please use the env var KUBECONFIG if you want to check for multiple configuration files", params.KubeCfgPath)
 	}
-	return nil, fmt.Errorf("Config file '%s' can not be found", params.KubeCfgPath)
+	return nil, fmt.Errorf("config file '%s' can not be found", params.KubeCfgPath)
 }

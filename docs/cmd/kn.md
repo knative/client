@@ -11,7 +11,9 @@ kn is the command line interface for managing Knative Serving and Eventing resou
 ### Options
 
 ```
+      --cluster string      name of the kubeconfig cluster to use
       --config string       kn configuration file (default: ~/.config/kn/config.yaml)
+      --context string      name of the kubeconfig context to use
   -h, --help                help for kn
       --kubeconfig string   kubectl configuration file (default: ~/.kube/config)
       --log-http            log http traffic
