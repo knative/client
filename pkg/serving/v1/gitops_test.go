@@ -188,6 +188,7 @@ func TestGitOpsSingleFile(t *testing.T) {
 
 		changed, err = bazclient.UpdateService(updateSvc)
 		assert.NilError(t, err)
+		assert.Assert(t, changed)
 	})
 	t.Run("list services", func(t *testing.T) {
 		result, err := fooclient.ListServices()
