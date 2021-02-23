@@ -62,10 +62,12 @@ func fakeServiceUpdate(original *servingv1.Service, args []string) (
 			if !ok {
 				return true, nil, fmt.Errorf("wrong kind of action %v", action)
 			}
-			updated, ok = updateAction.GetObject().(*servingv1.Service)
+			given, ok := updateAction.GetObject().(*servingv1.Service)
 			if !ok {
 				return true, nil, errors.New("was passed the wrong object")
 			}
+			updated = given.DeepCopy()
+			updated.Generation = given.Generation + 1
 			return true, updated, nil
 		})
 	fakeServing.AddReactor("get", "services",

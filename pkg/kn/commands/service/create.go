@@ -155,9 +155,13 @@ func createService(client clientservingv1.KnServingClient, service *servingv1.Se
 }
 
 func replaceService(client clientservingv1.KnServingClient, service *servingv1.Service, waitFlags commands.WaitFlags, out io.Writer, targetFlag string) error {
-	err := prepareAndUpdateService(client, service)
+	changed, err := prepareAndUpdateService(client, service)
 	if err != nil {
 		return err
+	}
+	if !changed {
+		fmt.Fprintf(out, "Service '%s' replaced in namespace '%s' (unchanged).\n", service.Name, client.Namespace())
+		return nil
 	}
 	return waitIfRequested(client, waitFlags, service.Name, "Replacing", "replaced", targetFlag, out)
 }
@@ -171,12 +175,12 @@ func waitIfRequested(client clientservingv1.KnServingClient, waitFlags commands.
 	return waitForServiceToGetReady(client, serviceName, waitFlags.TimeoutInSeconds, verbDone, out)
 }
 
-func prepareAndUpdateService(client clientservingv1.KnServingClient, service *servingv1.Service) error {
+func prepareAndUpdateService(client clientservingv1.KnServingClient, service *servingv1.Service) (bool, error) {
 	var retries = 0
 	for {
 		existingService, err := client.GetService(service.Name)
 		if err != nil {
-			return err
+			return false, err
 		}
 
 		// Copy over some annotations that we want to keep around. Erase others
@@ -200,16 +204,16 @@ func prepareAndUpdateService(client clientservingv1.KnServingClient, service *se
 		}
 
 		service.ResourceVersion = existingService.ResourceVersion
-		err = client.UpdateService(service)
+		changed, err := client.UpdateService(service)
 		if err != nil {
 			// Retry to update when a resource version conflict exists
 			if apierrors.IsConflict(err) && retries < MaxUpdateRetries {
 				retries++
 				continue
 			}
-			return err
+			return changed, err
 		}
-		return nil
+		return changed, nil
 	}
 }
 

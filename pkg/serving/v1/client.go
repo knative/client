@@ -62,12 +62,12 @@ type KnServingClient interface {
 
 	// UpdateService updates the given service. For a more robust variant with automatic
 	// conflict resolution see UpdateServiceWithRetry
-	UpdateService(service *servingv1.Service) error
+	UpdateService(service *servingv1.Service) (bool, error)
 
 	// UpdateServiceWithRetry updates service and retries if there is a version conflict.
 	// The updateFunc receives a deep copy of the existing service and can add update it in
-	// place.
-	UpdateServiceWithRetry(name string, updateFunc ServiceUpdateFunc, nrRetries int) error
+	// place. Return if the service creates a new generation or not
+	UpdateServiceWithRetry(name string, updateFunc ServiceUpdateFunc, nrRetries int) (bool, error)
 
 	// Apply a service's definition to the cluster. The full service declaration needs to be provided,
 	// which is different to UpdateService which can also do a partial update. If the given
@@ -241,36 +241,37 @@ func (cl *knServingClient) CreateService(service *servingv1.Service) error {
 }
 
 // Update the given service
-func (cl *knServingClient) UpdateService(service *servingv1.Service) error {
-	_, err := cl.client.Services(cl.namespace).Update(context.TODO(), service, v1.UpdateOptions{})
+func (cl *knServingClient) UpdateService(service *servingv1.Service) (bool, error) {
+	updated, err := cl.client.Services(cl.namespace).Update(context.TODO(), service, v1.UpdateOptions{})
 	if err != nil {
-		return err
+		return false, err
 	}
-	return updateServingGvk(service)
+	changed := service.ObjectMeta.Generation != updated.ObjectMeta.Generation
+	return changed, updateServingGvk(service)
 }
 
 // Update the given service with a retry in case of a conflict
-func (cl *knServingClient) UpdateServiceWithRetry(name string, updateFunc ServiceUpdateFunc, nrRetries int) error {
+func (cl *knServingClient) UpdateServiceWithRetry(name string, updateFunc ServiceUpdateFunc, nrRetries int) (bool, error) {
 	return updateServiceWithRetry(cl, name, updateFunc, nrRetries)
 }
 
 // Extracted to be usable with the Mocking client
-func updateServiceWithRetry(cl KnServingClient, name string, updateFunc ServiceUpdateFunc, nrRetries int) error {
+func updateServiceWithRetry(cl KnServingClient, name string, updateFunc ServiceUpdateFunc, nrRetries int) (bool, error) {
 	var retries = 0
 	for {
 		service, err := cl.GetService(name)
 		if err != nil {
-			return err
+			return false, err
 		}
 		if service.GetDeletionTimestamp() != nil {
-			return fmt.Errorf("can't update service %s because it has been marked for deletion", name)
+			return false, fmt.Errorf("can't update service %s because it has been marked for deletion", name)
 		}
 		updatedService, err := updateFunc(service.DeepCopy())
 		if err != nil {
-			return err
+			return false, err
 		}
 
-		err = cl.UpdateService(updatedService)
+		changed, err := cl.UpdateService(updatedService)
 		if err != nil {
 			// Retry to update when a resource version conflict exists
 			if apierrors.IsConflict(err) && retries < nrRetries {
@@ -279,9 +280,9 @@ func updateServiceWithRetry(cl KnServingClient, name string, updateFunc ServiceU
 				time.Sleep(time.Second)
 				continue
 			}
-			return fmt.Errorf("giving up after %d retries: %w", nrRetries, err)
+			return false, fmt.Errorf("giving up after %d retries: %w", nrRetries, err)
 		}
-		return nil
+		return changed, nil
 	}
 }
 

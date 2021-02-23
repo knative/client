@@ -131,7 +131,7 @@ func recordServiceUpdateWithSuccess(r *clientservingv1.ServingRecorder, svcName 
 	r.GetService(svcName, nil, errors.NewNotFound(servingv1.Resource("service"), svcName))
 	r.CreateService(newService, nil)
 	r.GetService(svcName, newService, nil)
-	r.UpdateService(updatedService, nil)
+	r.UpdateService(updatedService, true, nil)
 }
 
 func TestServiceUpdateEnvFromAddingWithConfigMap(t *testing.T) {
@@ -283,7 +283,7 @@ func TestServiceUpdateEnvFromRemovalWithConfigMap(t *testing.T) {
 	r.GetService(svcName, updatedService1, nil)
 	//r.UpdateService(updatedService2, nil) // since an error happens, update is not triggered here
 	r.GetService(svcName, updatedService2, nil)
-	r.UpdateService(updatedService3, nil)
+	r.UpdateService(updatedService3, true, nil)
 
 	output, err := executeServiceCommand(client,
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",
@@ -372,7 +372,7 @@ func TestServiceUpdateEnvFromRemovalWithEmptyName(t *testing.T) {
 	r.CreateService(newService, nil)
 	r.GetService(svcName, newService, nil)
 	r.GetService(svcName, newService, nil)
-	r.UpdateService(updatedService1, nil)
+	r.UpdateService(updatedService1, true, nil)
 
 	output, err := executeServiceCommand(client,
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",
@@ -625,11 +625,11 @@ func TestServiceUpdateEnvFromRemovalWithSecret(t *testing.T) {
 	r.GetService(svcName, nil, errors.NewNotFound(servingv1.Resource("service"), svcName))
 	r.CreateService(newService, nil)
 	r.GetService(svcName, newService, nil)
-	r.UpdateService(updatedService1, nil)
+	r.UpdateService(updatedService1, true, nil)
 	r.GetService(svcName, updatedService1, nil)
 	//r.UpdateService(updatedService2, nil) // since an error happens, update is not triggered here
 	r.GetService(svcName, updatedService2, nil)
-	r.UpdateService(updatedService3, nil)
+	r.UpdateService(updatedService3, true, nil)
 
 	output, err := executeServiceCommand(client,
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",
@@ -1383,9 +1383,9 @@ func TestServiceUpdateWithRemovingMount(t *testing.T) {
 	r.GetService(svcName, nil, errors.NewNotFound(servingv1.Resource("service"), svcName))
 	r.CreateService(newService, nil)
 	r.GetService(svcName, newService, nil)
-	r.UpdateService(updatedService1, nil)
+	r.UpdateService(updatedService1, true, nil)
 	r.GetService(svcName, updatedService1, nil)
-	r.UpdateService(updatedService2, nil)
+	r.UpdateService(updatedService2, true, nil)
 
 	output, err := executeServiceCommand(client,
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",

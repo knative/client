@@ -172,7 +172,7 @@ func (w *waitForReadyConfig) waitForReadyCondition(watcher watch.Interface, star
 				return false, false, err
 			}
 
-			// Skip event if generations has not yet been consolidated, regardless of type.
+			// Skip events if generations has not yet been consolidated, regardless of type.
 			// Wait for the next event to come in until the generations align
 			if !inSync {
 				continue
@@ -189,9 +189,7 @@ func (w *waitForReadyConfig) waitForReadyCondition(watcher watch.Interface, star
 			//  resource version. All following watch events are for all changes that occurred after the resource
 			//  version the watch started at."
 			if event.Type != watch.Modified {
-				// When the generation is already synced by the controller but no MODIFIED event
-				// was sent, then no modification happened. Hence we are good and can return immediately.
-				return false, false, nil
+				continue
 			}
 
 			conditions, err := w.conditionsExtractor(event.Object)
