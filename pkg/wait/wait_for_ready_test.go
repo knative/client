@@ -156,10 +156,10 @@ func pMessages(max int) []string {
 func peNormal(name string) ([]watch.Event, int) {
 	messages := pMessages(2)
 	return []watch.Event{
-		{Type: watch.Added, Object: CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "", messages[0])},
-		{Type: watch.Modified, Object: CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "", messages[0])},
-		{Type: watch.Modified, Object: CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionTrue, "", messages[1])},
-		{Type: watch.Modified, Object: CreateTestServiceWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "", "")},
+		{Type: watch.Added, Object: CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "", messages[0], 1, 2)},
+		{Type: watch.Modified, Object: CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "", messages[0], 2, 2)},
+		{Type: watch.Modified, Object: CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionTrue, "", messages[1], 2, 2)},
+		{Type: watch.Modified, Object: CreateTestServiceWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "", "", 2, 2)},
 	}, len(messages)
 }
 
