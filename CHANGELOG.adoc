@@ -23,7 +23,7 @@
 
 | ✨
 | Enable _errorlint_, _gosec_ and _unparam_ linter
-| https://github.com/knative/client/pull/1234[#1223]
+| https://github.com/knative/client/pull/1223[#1223]
 
 | 🐣
 | Drop `pkg/errors` dependency and replace with stdlib usage
