@@ -90,17 +90,17 @@ func (c *MockKnServingClient) CreateService(service *servingv1.Service) error {
 }
 
 // Update the given service
-func (sr *ServingRecorder) UpdateService(service interface{}, err error) {
-	sr.r.Add("UpdateService", []interface{}{service}, []interface{}{err})
+func (sr *ServingRecorder) UpdateService(service interface{}, hasChanged bool, err error) {
+	sr.r.Add("UpdateService", []interface{}{service}, []interface{}{hasChanged, err})
 }
 
-func (c *MockKnServingClient) UpdateService(service *servingv1.Service) error {
+func (c *MockKnServingClient) UpdateService(service *servingv1.Service) (bool, error) {
 	call := c.recorder.r.VerifyCall("UpdateService", service)
-	return mock.ErrorOrNil(call.Result[0])
+	return call.Result[0].(bool), mock.ErrorOrNil(call.Result[1])
 }
 
 // Delegate to shared retry method
-func (c *MockKnServingClient) UpdateServiceWithRetry(name string, updateFunc ServiceUpdateFunc, maxRetry int) error {
+func (c *MockKnServingClient) UpdateServiceWithRetry(name string, updateFunc ServiceUpdateFunc, maxRetry int) (bool, error) {
 	return updateServiceWithRetry(c, name, updateFunc, maxRetry)
 }
 

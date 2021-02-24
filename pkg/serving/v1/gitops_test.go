@@ -105,13 +105,15 @@ func TestGitOpsOperations(t *testing.T) {
 		assert.DeepEqual(t, allServices, result)
 	})
 	t.Run("update service with retry foo", func(t *testing.T) {
-		err := fooclient.UpdateServiceWithRetry("foo", func(svc *servingv1.Service) (*servingv1.Service, error) {
+		changed, err := fooclient.UpdateServiceWithRetry("foo", func(svc *servingv1.Service) (*servingv1.Service, error) {
 			return svc, nil
 		}, 1)
+		assert.Assert(t, changed)
 		assert.NilError(t, err)
 	})
 	t.Run("update service foo", func(t *testing.T) {
-		err := fooclient.UpdateService(fooUpdateSvc)
+		changed, err := fooclient.UpdateService(fooUpdateSvc)
+		assert.Assert(t, changed)
 		assert.NilError(t, err)
 	})
 	t.Run("check updated service foo", func(t *testing.T) {
@@ -176,14 +178,17 @@ func TestGitOpsSingleFile(t *testing.T) {
 		assert.DeepEqual(t, testSvc, result)
 	})
 	t.Run("update service foo", func(t *testing.T) {
-		err := fooclient.UpdateService(updateSvc)
+		changed, err := fooclient.UpdateService(updateSvc)
 		assert.NilError(t, err)
+		assert.Assert(t, changed)
 
-		err = barclient.UpdateService(updateSvc)
+		changed, err = barclient.UpdateService(updateSvc)
 		assert.NilError(t, err)
+		assert.Assert(t, changed)
 
-		err = bazclient.UpdateService(updateSvc)
+		changed, err = bazclient.UpdateService(updateSvc)
 		assert.NilError(t, err)
+		assert.Assert(t, changed)
 	})
 	t.Run("list services", func(t *testing.T) {
 		result, err := fooclient.ListServices()

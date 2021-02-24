@@ -37,6 +37,10 @@
 | 🐣
 | Do not print `serviceUID` and `configUID` labels in service export results
 | https://github.com/knative/client/pull/1194[#1194]
+
+| ✨
+| Use server-side generated revision names by default now. For BYO revision names use `--revision-name` for service commands
+| https://github.com/knative/client/issues/1240[#1240]
 |===
 
 ## v0.20.0 (2021-01-14)

@@ -178,17 +178,17 @@ func writeFile(obj runtime.Object, fp, format string) error {
 
 // UpdateService updates the service in
 // the local directory
-func (cl *knServingGitOpsClient) UpdateService(service *servingv1.Service) error {
+func (cl *knServingGitOpsClient) UpdateService(service *servingv1.Service) (bool, error) {
 	// check if file exist
 	if _, err := cl.GetService(service.ObjectMeta.Name); err != nil {
-		return err
+		return false, err
 	}
 	// replace file
-	return cl.CreateService(service)
+	return true, cl.CreateService(service)
 }
 
 // UpdateServiceWithRetry updates the service in the local directory
-func (cl *knServingGitOpsClient) UpdateServiceWithRetry(name string, updateFunc ServiceUpdateFunc, nrRetries int) error {
+func (cl *knServingGitOpsClient) UpdateServiceWithRetry(name string, updateFunc ServiceUpdateFunc, nrRetries int) (bool, error) {
 	return updateServiceWithRetry(cl, name, updateFunc, nrRetries)
 }
 

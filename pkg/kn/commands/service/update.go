@@ -109,12 +109,19 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			// Do the actual update with retry in case of conflicts
-			err = client.UpdateServiceWithRetry(name, updateFunc, MaxUpdateRetries)
+			changed, err := client.UpdateServiceWithRetry(name, updateFunc, MaxUpdateRetries)
 			if err != nil {
 				return err
 			}
-
 			out := cmd.OutOrStdout()
+
+			// No need to wait if not changed
+			if !changed {
+				fmt.Fprintf(out, "Service '%s' updated in namespace '%s'.\n", args[0], namespace)
+				fmt.Fprintln(out, "No new revision has been created.")
+				return nil
+			}
+
 			if waitFlags.Wait && targetFlag == "" {
 				fmt.Fprintf(out, "Updating Service '%s' in namespace '%s':\n", args[0], namespace)
 				fmt.Fprintln(out, "")

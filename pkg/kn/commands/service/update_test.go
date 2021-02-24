@@ -62,10 +62,12 @@ func fakeServiceUpdate(original *servingv1.Service, args []string) (
 			if !ok {
 				return true, nil, fmt.Errorf("wrong kind of action %v", action)
 			}
-			updated, ok = updateAction.GetObject().(*servingv1.Service)
+			given, ok := updateAction.GetObject().(*servingv1.Service)
 			if !ok {
 				return true, nil, errors.New("was passed the wrong object")
 			}
+			updated = given.DeepCopy()
+			updated.Generation = given.Generation + 1
 			return true, updated, nil
 		})
 	fakeServing.AddReactor("get", "services",
@@ -271,7 +273,7 @@ func TestServiceUpdateRevisionNameGenerated(t *testing.T) {
 
 	// Test prefix added by command
 	action, updated, _, err := fakeServiceUpdate(orig, []string{
-		"service", "update", "foo", "--image", "gcr.io/foo/quux:xyzzy", "--namespace", "bar", "--no-wait"})
+		"service", "update", "foo", "--image", "gcr.io/foo/quux:xyzzy", "--namespace", "bar", "--no-wait", "--revision-name", "{{.Service}}-{{.Random 5}}-{{.Generation}}"})
 	assert.NilError(t, err)
 	if !action.Matches("update", "services") {
 		t.Fatalf("Bad action %v", action)
@@ -280,6 +282,24 @@ func TestServiceUpdateRevisionNameGenerated(t *testing.T) {
 	template = updated.Spec.Template
 	assert.Assert(t, strings.HasPrefix(template.Name, "foo-"))
 	assert.Assert(t, !(template.Name == "foo-asdf"))
+}
+
+func TestServiceUpdateRevisionNameDefault(t *testing.T) {
+	orig := newEmptyService()
+
+	template := orig.Spec.Template
+	template.Name = "foo-asdf"
+
+	// Test prefix added by command
+	action, updated, _, err := fakeServiceUpdate(orig, []string{
+		"service", "update", "foo", "--image", "gcr.io/foo/quux:xyzzy"})
+	assert.NilError(t, err)
+	if !action.Matches("update", "services") {
+		t.Fatalf("Bad action %v", action)
+	}
+
+	template = updated.Spec.Template
+	assert.Assert(t, cmp.Equal(template.Name, ""))
 }
 
 func TestServiceUpdateRevisionNameCleared(t *testing.T) {

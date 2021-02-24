@@ -137,6 +137,9 @@ func TestServiceCreateImage(t *testing.T) {
 		!strings.Contains(output, commands.FakeNamespace) {
 		t.Fatalf("wrong stdout message: %v", output)
 	}
+
+	// No revision name set by default
+	assert.Assert(t, template.Name == "")
 }
 
 func TestServiceCreateWithMultipleImages(t *testing.T) {

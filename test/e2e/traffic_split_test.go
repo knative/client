@@ -292,7 +292,7 @@ func TestTrafficSplit(t *testing.T) {
 			serviceCreateWithOptions(r, serviceName, "--revision-name", rev1)
 
 			// existing state: traffic block having two targets
-			test.ServiceUpdate(r, serviceName, "--env", "TARGET=v2")
+			test.ServiceUpdate(r, serviceName, "--env", "TARGET=v2", "--revision-name", serviceName+"-rev-2")
 
 			// desired state: tag non-@latest revision with two tags and 50-50% traffic each
 			test.ServiceUpdate(r, serviceName,

@@ -157,27 +157,29 @@ func TestCreateService(t *testing.T) {
 func TestUpdateService(t *testing.T) {
 	serving, client := setup()
 	serviceUpdate := newService("update-service")
+	serviceUpdate.ObjectMeta.Generation = 2
 
 	serving.AddReactor("update", "services",
 		func(a clienttesting.Action) (bool, runtime.Object, error) {
 			assert.Equal(t, testNamespace, a.GetNamespace())
 			name := a.(clienttesting.UpdateAction).GetObject().(metav1.Object).GetName()
 			if name == serviceUpdate.Name {
-				serviceUpdate.Generation = 3
-				return true, serviceUpdate, nil
+				serviceReturn := newService("update-service")
+				serviceReturn.Generation = 3
+				return true, serviceReturn, nil
 			}
 			return true, nil, fmt.Errorf("error while updating service %s", name)
 		})
 
 	t.Run("updating a service without error", func(t *testing.T) {
-		err := client.UpdateService(serviceUpdate)
+		changed, err := client.UpdateService(serviceUpdate)
 		assert.NilError(t, err)
-		assert.Equal(t, int64(3), serviceUpdate.Generation)
+		assert.Assert(t, changed)
 		validateGroupVersionKind(t, serviceUpdate)
 	})
 
 	t.Run("updating a service with error", func(t *testing.T) {
-		err := client.UpdateService(newService("unknown"))
+		_, err := client.UpdateService(newService("unknown"))
 		assert.ErrorContains(t, err, "unknown")
 	})
 }

@@ -51,7 +51,7 @@ func TestRevision(t *testing.T) {
 	test.RevisionListWithService(r, "hello")
 
 	t.Log("update hello service and increase revision count to 3")
-	test.ServiceUpdate(r, "hello", "--env", "TARGET=kn", "--port", "8888")
+	test.ServiceUpdate(r, "hello", "--env", "TARGET=kn", "--port", "9000")
 
 	t.Log("delete three revisions with one revision a nonexistent")
 	existRevision1 := test.FindRevisionByGeneration(r, "hello", 1)
