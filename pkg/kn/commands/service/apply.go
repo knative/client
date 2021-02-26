@@ -24,6 +24,8 @@ import (
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	"knative.dev/client/pkg/kn/commands"
+	"knative.dev/client/pkg/kn/commands/flags"
+	"knative.dev/client/pkg/kn/traffic"
 	clientservingv1 "knative.dev/client/pkg/serving/v1"
 )
 
@@ -46,6 +48,7 @@ kn service apply s0 --filename my-svc.yml
 func NewServiceApplyCommand(p *commands.KnParams) *cobra.Command {
 	var applyFlags ConfigurationEditFlags
 	var waitFlags commands.WaitFlags
+	var trafficFlags flags.Traffic
 
 	serviceApplyCommand := &cobra.Command{
 		Use:     "apply NAME",
@@ -75,15 +78,28 @@ func NewServiceApplyCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
+			if trafficFlags.Changed(cmd) {
+				service.Spec.Traffic, err = traffic.Compute(cmd, service.Spec.Traffic, &trafficFlags, service.Name)
+				if err != nil {
+					return err
+				}
+			}
 
 			client, err := p.NewServingClient(namespace)
 			if err != nil {
 				return err
 			}
 
-			waitDoing, waitVerb, err := examineServiceForApply(cmd, client, service.Name)
-			if err != nil {
+			waitDoing, waitVerb := "Applying", "applied"
+			if isCreate, err := examineServiceForApply(cmd, client, service.Name); err != nil {
 				return err
+			} else if isCreate {
+				waitDoing, waitVerb = "Creating", "created"
+				if len(service.Spec.Traffic) > 1 {
+					// traffic configuration is obviously incorrect at this point because there is no pre-existing
+					// service and thus there cannot be multiple targets.
+					return errors.New("multiple traffic targets are impossible when creating a service")
+				}
 			}
 
 			hasChanged, err := client.ApplyService(service)
@@ -101,16 +117,17 @@ func NewServiceApplyCommand(p *commands.KnParams) *cobra.Command {
 	commands.AddNamespaceFlags(serviceApplyCommand.Flags(), false)
 	applyFlags.AddCreateFlags(serviceApplyCommand)
 	waitFlags.AddConditionWaitFlags(serviceApplyCommand, commands.WaitDefaultTimeout, "apply", "service", "ready")
+	trafficFlags.Add(serviceApplyCommand)
 	return serviceApplyCommand
 }
 
-func examineServiceForApply(cmd *cobra.Command, client clientservingv1.KnServingClient, serviceName string) (string, string, error) {
+func examineServiceForApply(cmd *cobra.Command, client clientservingv1.KnServingClient, serviceName string) (bool, error) {
 	currentService, err := client.GetService(serviceName)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
-			return "Creating", "created", nil
+			return true, nil
 		}
-		return "", "", err
+		return false, err
 	}
 
 	annotationMap := currentService.Annotations
@@ -119,5 +136,5 @@ func examineServiceForApply(cmd *cobra.Command, client clientservingv1.KnServing
 			fmt.Fprintf(cmd.OutOrStdout(), "Warning: 'kn service apply' should be used only for services created by 'kn service apply'\n")
 		}
 	}
-	return "Applying", "applied", nil
+	return false, nil
 }

@@ -48,6 +48,30 @@ func TestServiceApplyCreateMock(t *testing.T) {
 	r.Validate()
 }
 
+func TestServiceApplyCreateMockTraffic(t *testing.T) {
+	t.Run("invalidErr", func(t *testing.T) {
+		client := knclient.NewMockKnServiceClient(t)
+
+		r := client.Recorder()
+		r.GetService("foo", nil, apierrors.NewNotFound(servingv1.Resource("service"), "foo"))
+
+		_, err := executeServiceCommand(client, "apply", "foo", "--image", "gcr.io/foo/bar:baz", "--traffic", "@latest=10,bar=90")
+		assert.ErrorContains(t, err, "multiple traffic targets are impossible when creating a service")
+		r.Validate()
+	})
+
+	t.Run("valid", func(t *testing.T) {
+		client := knclient.NewMockKnServiceClient(t)
+
+		r := setupServiceApplyRecorder(client, "foo", nil, apierrors.NewNotFound(servingv1.Resource("service"), "foo"), true)
+		// the traffic arg here isn't super meaningful, but it's not _wrong_ -- permit it
+		output, err := executeServiceCommand(client, "apply", "foo", "--image", "gcr.io/foo/bar:baz", "--traffic", "@latest=100")
+		assert.NilError(t, err)
+		assert.Assert(t, util.ContainsAll(output, "created", "foo", "http://foo.example.com", "Ready"))
+		r.Validate()
+	})
+}
+
 func TestServiceApplyCreateFromFileMock(t *testing.T) {
 	testWithServiceFiles(t, func(t *testing.T, file string) {
 		for _, testArgs := range [][]string{
@@ -95,6 +119,23 @@ func TestServiceApplyUpdateMock(t *testing.T) {
 
 	// Testing:
 	output, err := executeServiceCommand(client, "apply", "foo", "--image", "gcr.io/foo/bar:baz")
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(output, "applied", "foo", "http://foo.example.com", "Ready"))
+
+	// Validate that all recorded API methods have been called
+	r.Validate()
+}
+
+func TestServiceApplyUpdateMockWithTraffic(t *testing.T) {
+	// New mock client
+	client := knclient.NewMockKnServiceClient(t)
+
+	service := createServiceWithImage("foo", "gcr.io/foo/bar:baz")
+
+	r := setupServiceApplyRecorder(client, "foo", service, nil, true)
+
+	// Testing:
+	output, err := executeServiceCommand(client, "apply", "foo", "--image", "gcr.io/foo/bar:baz", "--traffic", "@latest=10,foo=90")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "applied", "foo", "http://foo.example.com", "Ready"))
 

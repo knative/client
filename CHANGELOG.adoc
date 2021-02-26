@@ -1263,5 +1263,9 @@ Ignore PRs:
 |===
 | | Description | PR
 
+| 🎁
+| Add traffic flags to `service apply`
+| https://github.com/knative/client/pull/1187[#1187]
+
 |===
 ////
