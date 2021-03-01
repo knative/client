@@ -69,7 +69,9 @@ func TestServiceExport(t *testing.T) {
 	} {
 		exportServiceTestForReplay(t, &tc)
 		tc.expectedKNExport = libtest.BuildKNExportWithOptions()
-		exportServiceTest(t, &tc)
+		exportServiceTest(t, &tc, true)
+		//test default
+		exportServiceTest(t, &tc, false)
 	}
 }
 
@@ -84,8 +86,12 @@ func exportServiceTestForReplay(t *testing.T, tc *testCase) {
 	assert.DeepEqual(t, tc.latestSvc, &actSvc)
 }
 
-func exportServiceTest(t *testing.T, tc *testCase) {
-	output, err := executeServiceExportCommand(t, tc, "export", tc.latestSvc.ObjectMeta.Name, "--mode", "export", "-o", "json")
+func exportServiceTest(t *testing.T, tc *testCase, addMode bool) {
+	args := []string{"export", tc.latestSvc.ObjectMeta.Name, "-o", "json"}
+	if addMode {
+		args = append(args, []string{"--mode", "export"}...)
+	}
+	output, err := executeServiceExportCommand(t, tc, args...)
 	assert.NilError(t, err)
 
 	tc.expectedKNExport.Spec.Service = *tc.latestSvc

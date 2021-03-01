@@ -65,6 +65,11 @@ var IgnoredRevisionLabels = []string{
 	"serving.knative.dev/serviceUID",
 }
 
+const (
+	ModeReplay = "replay"
+	ModeExport = "export"
+)
+
 // NewServiceExportCommand returns a new command for exporting a service.
 func NewServiceExportCommand(p *commands.KnParams) *cobra.Command {
 
@@ -136,21 +141,19 @@ func exportService(cmd *cobra.Command, service *servingv1.Service, client client
 	}
 
 	switch mode {
-	case "export":
-		knExport, err := exportForKNImport(service.DeepCopy(), client, withRevisions)
-		if err != nil {
-			return err
-		}
-		//print kn export
-		if err := printer.PrintObj(knExport, cmd.OutOrStdout()); err != nil {
-			return err
-		}
-	default:
+	case ModeReplay:
 		svcList, err := exportServiceListForReplay(service.DeepCopy(), client, withRevisions)
 		if err != nil {
 			return err
 		}
 		return printer.PrintObj(svcList, cmd.OutOrStdout())
+	default:
+		knExport, err := exportForKNImport(service.DeepCopy(), client, withRevisions)
+		if err != nil {
+			return err
+		}
+		//print kn export
+		return printer.PrintObj(knExport, cmd.OutOrStdout())
 	}
 	return nil
 }
