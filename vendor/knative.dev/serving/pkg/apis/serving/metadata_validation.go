@@ -24,33 +24,27 @@ import (
 
 	"k8s.io/apimachinery/pkg/api/equality"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/sets"
 
 	"knative.dev/pkg/apis"
 	"knative.dev/serving/pkg/apis/autoscaling"
 	"knative.dev/serving/pkg/apis/config"
 )
 
-var (
-	allowedAnnotations = sets.NewString(
-		CreatorAnnotation,
-		ForceUpgradeAnnotationKey,
-		RevisionLastPinnedAnnotationKey,
-		RevisionPreservedAnnotationKey,
-		RolloutDurationKey,
-		RoutesAnnotationKey,
-		RoutingStateModifiedAnnotationKey,
-		UpdaterAnnotation,
-	)
-)
-
-// ValidateObjectMetadata validates that `metadata` stanza of the
+// ValidateObjectMetadata validates that the `metadata` stanza of the
 // resources is correct.
-func ValidateObjectMetadata(ctx context.Context, meta metav1.Object) *apis.FieldError {
-	return apis.ValidateObjectMetadata(meta).
-		Also(autoscaling.ValidateAnnotations(ctx, config.FromContextOrDefaults(ctx).Autoscaler, meta.GetAnnotations()).
-			Also(validateKnativeAnnotations(meta.GetAnnotations())).
-			ViaField("annotations"))
+// If `allowAutoscalingAnnotations` is true autoscaling annotations, if
+// present, are validated. If `allowAutoscalingAnnotations` is false
+// autoscaling annotations are validated not to be present.
+func ValidateObjectMetadata(ctx context.Context, meta metav1.Object, allowAutoscalingAnnotations bool) *apis.FieldError {
+	errs := apis.ValidateObjectMetadata(meta)
+
+	if allowAutoscalingAnnotations {
+		errs = errs.Also(autoscaling.ValidateAnnotations(ctx, config.FromContextOrDefaults(ctx).Autoscaler, meta.GetAnnotations()).ViaField("annotations"))
+	} else {
+		errs = errs.Also(ValidateHasNoAutoscalingAnnotation(meta.GetAnnotations()).ViaField("annotations"))
+	}
+
+	return errs
 }
 
 // ValidateRolloutDurationAnnotation validates the rollout duration annotation.
@@ -76,15 +70,6 @@ func ValidateRolloutDurationAnnotation(annos map[string]string) (errs *apis.Fiel
 				Message: fmt.Sprintf("rolloutDuration=%s must be positive", v),
 				Paths:   []string{RolloutDurationKey},
 			})
-		}
-	}
-	return errs
-}
-
-func validateKnativeAnnotations(annotations map[string]string) (errs *apis.FieldError) {
-	for key := range annotations {
-		if !allowedAnnotations.Has(key) && strings.HasPrefix(key, GroupNamePrefix) {
-			errs = errs.Also(apis.ErrInvalidKeyName(key, apis.CurrentField))
 		}
 	}
 	return errs
