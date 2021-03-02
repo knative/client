@@ -21,6 +21,14 @@
 | Update CRDs API version to `v1`
 | https://github.com/knative/client/issues/1248[#1248]
 
+| 🐛
+| Fix kn export to always honor mode irrespective of revisions flag and have Export as the default mode
+| https://github.com/knative/client/pull/1212[#1212]
+
+| 🎁
+| Add `BUILT-IN` column to `kn source list-types`
+| https://github.com/knative/client/pull/1246[#1246]
+
 |===
 
 ## v0.21.0 (2021-02-23)
