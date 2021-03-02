@@ -26,8 +26,9 @@
 | https://github.com/knative/client/pull/1212[#1212]
 
 | 🎁
-| Add `BUILT-IN` column to `kn source list-types`
+| Add S column to specify built-in sources in kn source list-types
 | https://github.com/knative/client/pull/1246[#1246]
+|===
 
 |===
 
