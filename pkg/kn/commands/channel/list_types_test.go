@@ -36,7 +36,7 @@ import (
 
 const (
 	crdGroup           = "apiextensions.k8s.io"
-	crdVersion         = "v1beta1"
+	crdVersion         = "v1"
 	crdKind            = "CustomResourceDefinition"
 	testNamespace      = "current"
 	channelLabelValue  = "true"
