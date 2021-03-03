@@ -140,22 +140,20 @@ func exportService(cmd *cobra.Command, service *servingv1.Service, client client
 		return err
 	}
 
-	switch mode {
-	case ModeReplay:
+	if mode == ModeReplay {
 		svcList, err := exportServiceListForReplay(service.DeepCopy(), client, withRevisions)
 		if err != nil {
 			return err
 		}
 		return printer.PrintObj(svcList, cmd.OutOrStdout())
-	default:
-		knExport, err := exportForKNImport(service.DeepCopy(), client, withRevisions)
-		if err != nil {
-			return err
-		}
-		//print kn export
-		return printer.PrintObj(knExport, cmd.OutOrStdout())
 	}
-	return nil
+	// default is export mode
+	knExport, err := exportForKNImport(service.DeepCopy(), client, withRevisions)
+	if err != nil {
+		return err
+	}
+	//print kn export
+	return printer.PrintObj(knExport, cmd.OutOrStdout())
 }
 
 func exportLatestService(latestSvc *servingv1.Service, withRoutes bool) *servingv1.Service {
