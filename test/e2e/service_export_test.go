@@ -60,7 +60,7 @@ func TestServiceExport(t *testing.T) {
 		servingtest.WithConfigSpec(test.BuildConfigurationSpec()),
 		servingtest.WithBYORevisionName("hello-rev1"),
 		test.WithRevisionAnnotations(map[string]string{"client.knative.dev/user-image": pkgtest.ImagePath("helloworld")}),
-	), "-o", "json")
+	), "--mode", "replay", "-o", "json")
 
 	t.Log("update service - add env variable")
 	test.ServiceUpdate(r, "hello", "--env", "a=mouse", "--revision-name", "rev2", "--no-lock-to-digest")
@@ -68,7 +68,7 @@ func TestServiceExport(t *testing.T) {
 		servingtest.WithConfigSpec(test.BuildConfigurationSpec()),
 		servingtest.WithBYORevisionName("hello-rev2"),
 		servingtest.WithEnv(corev1.EnvVar{Name: "a", Value: "mouse"}),
-	), "-o", "json")
+	), "--mode", "replay", "-o", "json")
 
 	t.Log("export service-revision2 with kubernetes-resources")
 	serviceExportWithServiceList(r, "hello", test.BuildServiceListWithOptions(
