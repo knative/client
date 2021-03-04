@@ -12,6 +12,17 @@
 | https://github.com/knative/client/pull/[#]
 ////
 
+## (Unreleased)
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| ✨
+| Update CRDs API version to `v1`
+| https://github.com/knative/client/issues/1248[#1248]
+
+|===
+
 ## v0.21.0 (2021-02-23)
 [cols="1,10,3", options="header", width="100%"]
 |===
