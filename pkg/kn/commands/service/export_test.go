@@ -56,12 +56,6 @@ func TestServiceExportError(t *testing.T) {
 
 	_, err := executeServiceExportCommand(t, tc, "export", tc.latestSvc.ObjectMeta.Name)
 	assert.Error(t, err, "'kn service export' requires output format")
-
-	_, err = executeServiceExportCommand(t, tc, "export", tc.latestSvc.ObjectMeta.Name, "--with-revisions", "-o", "json")
-	assert.Error(t, err, "'kn service export --with-revisions' requires a mode, please specify one of replay|export")
-
-	_, err = executeServiceExportCommand(t, tc, "export", tc.latestSvc.ObjectMeta.Name, "--with-revisions", "--mode", "k8s", "-o", "yaml")
-	assert.Error(t, err, "'kn service export --with-revisions' requires a mode, please specify one of replay|export")
 }
 
 func TestServiceExport(t *testing.T) {
@@ -73,12 +67,16 @@ func TestServiceExport(t *testing.T) {
 		{latestSvc: libtest.BuildServiceWithOptions("foo", servingtest.WithConfigSpec(buildConfiguration()), servingtest.WithServiceLabel("a", "mouse"), servingtest.WithServiceAnnotation("a", "mouse"))},
 		{latestSvc: libtest.BuildServiceWithOptions("foo", servingtest.WithConfigSpec(buildConfiguration()), servingtest.WithVolume("secretName", "/mountpath", volumeSource("secretName")))},
 	} {
-		exportServiceTest(t, &tc)
+		exportServiceTestForReplay(t, &tc)
+		tc.expectedKNExport = libtest.BuildKNExportWithOptions()
+		exportServiceTest(t, &tc, true)
+		//test default
+		exportServiceTest(t, &tc, false)
 	}
 }
 
-func exportServiceTest(t *testing.T, tc *testCase) {
-	output, err := executeServiceExportCommand(t, tc, "export", tc.latestSvc.ObjectMeta.Name, "-o", "yaml")
+func exportServiceTestForReplay(t *testing.T, tc *testCase) {
+	output, err := executeServiceExportCommand(t, tc, "export", tc.latestSvc.ObjectMeta.Name, "--mode", "replay", "-o", "yaml")
 	assert.NilError(t, err)
 
 	actSvc := servingv1.Service{}
@@ -86,6 +84,23 @@ func exportServiceTest(t *testing.T, tc *testCase) {
 	assert.NilError(t, err)
 
 	assert.DeepEqual(t, tc.latestSvc, &actSvc)
+}
+
+func exportServiceTest(t *testing.T, tc *testCase, addMode bool) {
+	args := []string{"export", tc.latestSvc.ObjectMeta.Name, "-o", "json"}
+	if addMode {
+		args = append(args, []string{"--mode", "export"}...)
+	}
+	output, err := executeServiceExportCommand(t, tc, args...)
+	assert.NilError(t, err)
+
+	tc.expectedKNExport.Spec.Service = *tc.latestSvc
+
+	actKNExport := &clientv1alpha1.Export{}
+	err = json.Unmarshal([]byte(output), actKNExport)
+	assert.NilError(t, err)
+
+	assert.DeepEqual(t, tc.expectedKNExport, actKNExport)
 }
 
 func TestServiceExportwithMultipleRevisions(t *testing.T) {
