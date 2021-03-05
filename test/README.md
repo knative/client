@@ -7,18 +7,18 @@ This directory contains e2e tests and testing docs:
 
 ## Running unit tests
 
-To run all unit tests:
+To run all unit tests locally:
 
 ```bash
 $ hack/build.sh -t
 ```
 
-_By default `go test` will not run [the e2e tests](#running-e2e-tests-locally),
+_By default `go test` will not run [the e2e tests](#running-e2e-tests),
 which need [`-tags=e2e`](#running-end-to-end-tests) to be enabled._
 
-## Running e2e tests locally
+## Running E2E tests
 
-To run [the e2e tests](./e2e) , you need to have a
+To run [the e2e tests](./e2e) locally, you need to have:
 
 1. [Running knative environment.](../docs/DEVELOPMENT.md#create-a-cluster)
 2. `kn` binary in the \$PATH.
@@ -34,7 +34,7 @@ Run all e2e tests:
 $ test/local-e2e-tests.sh
 ```
 
-### Running e2e tests selectively
+### Running E2E tests selectively
 
 To run only serving specific e2e tests locally, use
 
@@ -66,6 +66,12 @@ mode, use
 ```bash
 test/local-e2e-tests.sh -short
 ```
+### E2E tests prow jobs
+
+Two e2e tests prow jobs are run in CI:
+
+1. [pull-knative-client-integration-tests](https://prow.knative.dev/job-history/gs/knative-prow/pr-logs/directory/pull-knative-client-integration-tests): Runs client e2e tests with the nightly build of serving and eventing.
+2. [pull-knative-client-integration-tests-latest-release](https://prow.knative.dev/job-history/gs/knative-prow/pr-logs/directory/pull-knative-client-integration-tests-latest-release): Runs client e2e tests with the latest release of serving and eventing. The latest release version can be configured [here](presubmit-integration-tests-latest-release.sh).
 
 ## Test images
 
