@@ -16,7 +16,7 @@
 
 set -o pipefail
 
-source_dirs="cmd pkg test lib"
+source_dirs="cmd pkg test lib tools"
 
 # Store for later
 if [ -z "$1" ]; then
