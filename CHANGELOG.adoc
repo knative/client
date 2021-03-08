@@ -30,8 +30,6 @@
 | https://github.com/knative/client/pull/1246[#1246]
 |===
 
-|===
-
 ## v0.21.0 (2021-02-23)
 [cols="1,10,3", options="header", width="100%"]
 |===

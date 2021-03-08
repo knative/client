@@ -16,6 +16,8 @@ cover.html
 /kn
 /kn-*
 
+tools/knb/knb
+
 # emacs tempfiles
 \#*
 *~
