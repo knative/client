@@ -21,7 +21,78 @@ function cluster_setup() {
   ${REPO_ROOT_DIR}/hack/build.sh -f || return 1
 }
 
+function install_istio() {
+  header "Installing Istio (${KNATIVE_NET_ISTIO_RELEASE})"
+
+  if [[ -z "${ISTIO_VERSION:-}" ]]; then
+    readonly ISTIO_VERSION="stable"
+  fi
+
+#  if [[ -z "${NET_ISTIO_COMMIT:-}" ]]; then
+#    NET_ISTIO_COMMIT=$(head -n 1 ${1} | grep "# Generated when HEAD was" | sed 's/^.* //')
+#    echo "Got NET_ISTIO_COMMIT from ${1}: ${NET_ISTIO_COMMIT}"
+#  fi
+#
+#  # TODO: remove this when all the net-istio.yaml in use contain a commit ID
+#  if [[ -z "${NET_ISTIO_COMMIT:-}" ]]; then
+#    NET_ISTIO_COMMIT="8102cd3d32f05be1c58260a9717d532a4a6d2f60"
+#    echo "Hard coded NET_ISTIO_COMMIT: ${NET_ISTIO_COMMIT}"
+#  fi
+
+  # And checkout the setup script based on that commit.
+  local NET_ISTIO_DIR=$(mktemp -d)
+  (
+    cd $NET_ISTIO_DIR \
+      && git init \
+      && git remote add origin https://github.com/knative-sandbox/net-istio.git \
+      && git fetch --depth 1 origin $KNATIVE_NET_ISTIO_RELEASE \
+      && git checkout FETCH_HEAD
+  )
+
+  ISTIO_PROFILE="istio"
+  if [[ -n "${KIND:-}" ]]; then
+    ISTIO_PROFILE+="-kind"
+  else
+    ISTIO_PROFILE+="-ci"
+  fi
+#  if [[ $MESH -eq 0 ]]; then
+#    ISTIO_PROFILE+="-no"
+#  fi
+  ISTIO_PROFILE+="-no-mesh"
+  ISTIO_PROFILE+=".yaml"
+
+  if [[ -n "${CLUSTER_DOMAIN:-}" ]]; then
+    sed -ie "s/cluster\.local/${CLUSTER_DOMAIN}/g" ${NET_ISTIO_DIR}/third_party/istio-${ISTIO_VERSION}/${ISTIO_PROFILE}
+  fi
+
+  echo ">> Installing Istio"
+  echo "Istio version: ${ISTIO_VERSION}"
+  echo "Istio profile: ${ISTIO_PROFILE}"
+  ${NET_ISTIO_DIR}/third_party/istio-${ISTIO_VERSION}/install-istio.sh ${ISTIO_PROFILE}
+
+#  if [[ -n "${1:-}" ]]; then
+#    echo ">> Installing net-istio"
+#    echo "net-istio original YAML: ${1}"
+#    # Create temp copy in which we replace knative-serving by the test's system namespace.
+#    local YAML_NAME=$(mktemp -p $TMP_DIR --suffix=.$(basename "$1"))
+#    sed "s/namespace: \"*${KNATIVE_DEFAULT_NAMESPACE}\"*/namespace: ${SYSTEM_NAMESPACE}/g" ${1} > ${YAML_NAME}
+#    echo "net-istio patched YAML: $YAML_NAME"
+#    ko apply -f "${YAML_NAME}" --selector=networking.knative.dev/ingress-provider=istio || return 1
+#
+#    CONFIGURE_ISTIO=${NET_ISTIO_DIR}/third_party/istio-${ISTIO_VERSION}/extras/configure-istio.sh
+#    if [[ -f "$CONFIGURE_ISTIO" ]]; then
+#      $CONFIGURE_ISTIO
+#    else
+#      echo "configure-istio.sh not found; skipping."
+#    fi
+#
+#    UNINSTALL_LIST+=( "${YAML_NAME}" )
+#  fi
+}
+
 function knative_setup() {
+  install_istio
+
   local serving_version=${KNATIVE_SERVING_VERSION:-latest}
   header "Installing Knative Serving (${serving_version})"
 
