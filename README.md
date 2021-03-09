@@ -3,7 +3,7 @@
 [![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white)](https://pkg.go.dev/knative.dev/client)
 [![Go Report Card](https://goreportcard.com/badge/knative/client)](https://goreportcard.com/report/knative/client)
 [![Releases](https://img.shields.io/github/release-pre/knative/client.svg)](https://github.com/knative/client/releases)
-[![LICENSE](https://img.shields.io/github/license/knative/client.svg)](https://github.com/knative/client/blob/master/LICENSE)
+[![LICENSE](https://img.shields.io/github/license/knative/client.svg)](https://github.com/knative/client/blob/main/LICENSE)
 [![Slack Status](https://img.shields.io/badge/slack-join_chat-white.svg?logo=slack&style=social)](https://knative.slack.com)
 
 The Knative client `kn` is your door to the [Knative](https://knative.dev)
@@ -25,9 +25,9 @@ line or from within scripts.
 
 
 This client uses the
-[Knative Serving](https://github.com/knative/docs/blob/master/docs/serving/spec/knative-api-specification-1.0.md)
+[Knative Serving](https://github.com/knative/docs/blob/main/docs/serving/spec/knative-api-specification-1.0.md)
 and
-[Knative Eventing](https://github.com/knative/eventing/tree/master/docs/spec)
+[Knative Eventing](https://github.com/knative/eventing/tree/main/docs/spec)
 APIs exclusively so that it will work with any Knative installation, even those
 that are not Kubernetes based. It does not help with _installing_ Knative itself
 though. Please refer to the various

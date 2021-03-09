@@ -90,7 +90,7 @@ func TestGitOpsOperations(t *testing.T) {
 		assert.NilError(t, err)
 		assert.DeepEqual(t, fooserviceList, result)
 	})
-	t.Run("create service without master directory", func(t *testing.T) {
+	t.Run("create service without tmp directory", func(t *testing.T) {
 		err := diffClusterClient.CreateService(fooSvc)
 		assert.ErrorContains(t, err, "directory 'tmp' not present, please create the directory and try again")
 	})
