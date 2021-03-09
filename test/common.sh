@@ -38,6 +38,9 @@ function install_istio() {
 #    NET_ISTIO_COMMIT="8102cd3d32f05be1c58260a9717d532a4a6d2f60"
 #    echo "Hard coded NET_ISTIO_COMMIT: ${NET_ISTIO_COMMIT}"
 #  fi
+  LATEST_NET_ISTIO_RELEASE_VERSION=$(
+  curl -L --silent "https://api.github.com/repos/knative/net-istio/releases" | grep '"tag_name"' \
+    | cut -f2 -d: | sed "s/[^v0-9.]//g" | sort | tail -n1)
 
   # And checkout the setup script based on that commit.
   local NET_ISTIO_DIR=$(mktemp -d)
@@ -45,7 +48,7 @@ function install_istio() {
     cd $NET_ISTIO_DIR \
       && git init \
       && git remote add origin https://github.com/knative-sandbox/net-istio.git \
-      && git fetch --depth 1 origin $KNATIVE_NET_ISTIO_RELEASE \
+      && git fetch --depth 1 origin $LATEST_NET_ISTIO_RELEASE_VERSION \
       && git checkout FETCH_HEAD
   )
 
