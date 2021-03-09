@@ -22,22 +22,11 @@ function cluster_setup() {
 }
 
 function install_istio() {
-  header "Installing Istio (${KNATIVE_NET_ISTIO_RELEASE})"
-
   if [[ -z "${ISTIO_VERSION:-}" ]]; then
     readonly ISTIO_VERSION="stable"
   fi
+  header "Installing Istio ${ISTIO_VERSION}"
 
-#  if [[ -z "${NET_ISTIO_COMMIT:-}" ]]; then
-#    NET_ISTIO_COMMIT=$(head -n 1 ${1} | grep "# Generated when HEAD was" | sed 's/^.* //')
-#    echo "Got NET_ISTIO_COMMIT from ${1}: ${NET_ISTIO_COMMIT}"
-#  fi
-#
-#  # TODO: remove this when all the net-istio.yaml in use contain a commit ID
-#  if [[ -z "${NET_ISTIO_COMMIT:-}" ]]; then
-#    NET_ISTIO_COMMIT="8102cd3d32f05be1c58260a9717d532a4a6d2f60"
-#    echo "Hard coded NET_ISTIO_COMMIT: ${NET_ISTIO_COMMIT}"
-#  fi
   LATEST_NET_ISTIO_RELEASE_VERSION=$(
   curl -L --silent "https://api.github.com/repos/knative/net-istio/releases" | grep '"tag_name"' \
     | cut -f2 -d: | sed "s/[^v0-9.]//g" | sort | tail -n1)
