@@ -25,6 +25,9 @@
 | Fix kn export to always honor mode irrespective of revisions flag and have Export as the default mode
 | https://github.com/knative/client/pull/1212[#1212]
 
+| 🎁
+| Add S column to specify built-in sources in kn source list-types
+| https://github.com/knative/client/pull/1246[#1246]
 |===
 
 ## v0.21.0 (2021-02-23)

@@ -39,7 +39,7 @@ func TestSourceListTypes(t *testing.T) {
 
 	t.Log("List available source types")
 	output := sourceListTypes(r)
-	assert.Check(t, util.ContainsAll(output, "TYPE", "NAME", "DESCRIPTION", "Ping", "ApiServer"))
+	assert.Check(t, util.ContainsAll(output, "TYPE", "S", "NAME", "DESCRIPTION", "Ping", "ApiServer"))
 
 	t.Log("List available source types in YAML format")
 
