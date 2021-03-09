@@ -80,7 +80,7 @@ Two e2e tests prow jobs are run in CI:
 The [`upload-test-images.sh`](./upload-test-images.sh) script can be used to
 build and push the test images used by the e2e tests. The script
 expects your environment to be setup as described in
-[DEVELOPMENT.md](https://github.com/knative/serving/blob/master/DEVELOPMENT.md#install-requirements).
+[DEVELOPMENT.md](https://github.com/knative/serving/blob/main/DEVELOPMENT.md#install-requirements).
 
 To run the script for all end to end test images:
 

@@ -8,7 +8,7 @@ _This guide is not complete and has still many gaps that we are going to fill ov
 
 ## Flow
 
-The journey starts at [main.go](https://github.com/knative/client/blob/master/cmd/kn/main.go) which is the entry point when you call `kn`.
+The journey starts at [main.go](https://github.com/knative/client/blob/main/cmd/kn/main.go) which is the entry point when you call `kn`.
 You find here the main control flow, which can be roughly divided into three phases:
 
   - _Bootstrap_ is about retrieving essential configuration parameters from command-line flags, and a configuration file.
@@ -68,7 +68,7 @@ For testing purposes, `config.GlobalConfig` can be replaced by a mock implementa
 
 ## Flags
 
-_This section will hold some information about how flag parsing of commands is supposed to work, including using helper functions for enforcing the conventions defined in [cli conventions](https://github.com/knative/client/blob/master/conventions/cli.md)_
+_This section will hold some information about how flag parsing of commands is supposed to work, including using helper functions for enforcing the conventions defined in [cli conventions](https://github.com/knative/client/blob/main/conventions/cli.md)_
 
 ## Clients for accessing the backend
 

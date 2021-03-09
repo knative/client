@@ -559,7 +559,7 @@
 | https://github.com/knative/client/pull/834[#834]
 
 | 🐣
-| Update and expanded https://github.com/knative/client/blob/master/conventions/cli.md[CLI convention document]
+| Update and expanded https://github.com/knative/client/blob/main/conventions/cli.md[CLI convention document]
 | https://github.com/knative/client/pull/831[#831]
 
 | 🐛
