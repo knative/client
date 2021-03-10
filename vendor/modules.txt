@@ -803,6 +803,10 @@ knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha2/fake
 # knative.dev/hack v0.0.0-20210309141825-9b73a256fd9a
 ## explicit
 knative.dev/hack
+# knative.dev/net-istio v0.21.0
+## explicit
+knative.dev/net-istio/third_party/
+knative.dev/net-istio/third_party/istio-stable
 # knative.dev/networking v0.0.0-20210309014425-42a36acc98a9
 ## explicit
 knative.dev/networking/pkg
