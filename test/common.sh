@@ -21,6 +21,8 @@ function cluster_setup() {
   ${REPO_ROOT_DIR}/hack/build.sh -f || return 1
 }
 
+# Copied from knative/serving setup script:
+# https://github.com/knative/serving/blob/main/test/e2e-networking-library.sh#L17
 function install_istio() {
   if [[ -z "${ISTIO_VERSION:-}" ]]; then
     readonly ISTIO_VERSION="stable"
@@ -31,7 +33,7 @@ function install_istio() {
   curl -L --silent "https://api.github.com/repos/knative/net-istio/releases" | grep '"tag_name"' \
     | cut -f2 -d: | sed "s/[^v0-9.]//g" | sort | tail -n1)
 
-  # And checkout the setup script based on that commit.
+  # And checkout the setup script based on that release
   local NET_ISTIO_DIR=$(mktemp -d)
   (
     cd $NET_ISTIO_DIR \
@@ -41,17 +43,9 @@ function install_istio() {
       && git checkout FETCH_HEAD
   )
 
-  ISTIO_PROFILE="istio"
-  if [[ -n "${KIND:-}" ]]; then
-    ISTIO_PROFILE+="-kind"
-  else
-    ISTIO_PROFILE+="-ci"
+  if [[ -z "${ISTIO_PROFILE:-}" ]]; then
+    readonly ISTIO_PROFILE="istio-ci-no-mesh.yaml"
   fi
-#  if [[ $MESH -eq 0 ]]; then
-#    ISTIO_PROFILE+="-no"
-#  fi
-  ISTIO_PROFILE+="-no-mesh"
-  ISTIO_PROFILE+=".yaml"
 
   if [[ -n "${CLUSTER_DOMAIN:-}" ]]; then
     sed -ie "s/cluster\.local/${CLUSTER_DOMAIN}/g" ${NET_ISTIO_DIR}/third_party/istio-${ISTIO_VERSION}/${ISTIO_PROFILE}
@@ -62,24 +56,6 @@ function install_istio() {
   echo "Istio profile: ${ISTIO_PROFILE}"
   ${NET_ISTIO_DIR}/third_party/istio-${ISTIO_VERSION}/install-istio.sh ${ISTIO_PROFILE}
 
-#  if [[ -n "${1:-}" ]]; then
-#    echo ">> Installing net-istio"
-#    echo "net-istio original YAML: ${1}"
-#    # Create temp copy in which we replace knative-serving by the test's system namespace.
-#    local YAML_NAME=$(mktemp -p $TMP_DIR --suffix=.$(basename "$1"))
-#    sed "s/namespace: \"*${KNATIVE_DEFAULT_NAMESPACE}\"*/namespace: ${SYSTEM_NAMESPACE}/g" ${1} > ${YAML_NAME}
-#    echo "net-istio patched YAML: $YAML_NAME"
-#    ko apply -f "${YAML_NAME}" --selector=networking.knative.dev/ingress-provider=istio || return 1
-#
-#    CONFIGURE_ISTIO=${NET_ISTIO_DIR}/third_party/istio-${ISTIO_VERSION}/extras/configure-istio.sh
-#    if [[ -f "$CONFIGURE_ISTIO" ]]; then
-#      $CONFIGURE_ISTIO
-#    else
-#      echo "configure-istio.sh not found; skipping."
-#    fi
-#
-#    UNINSTALL_LIST+=( "${YAML_NAME}" )
-#  fi
 }
 
 function knative_setup() {
