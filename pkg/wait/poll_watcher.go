@@ -27,6 +27,8 @@ import (
 	"k8s.io/client-go/rest"
 )
 
+const pollInterval = time.Second
+
 // PollInterval determines when you should poll.  Useful to mock out, or for
 // replacing with exponential backoff later.
 type PollInterval interface {
@@ -76,7 +78,7 @@ func NewWatcher(watchFunc watchF, c rest.Interface, ns string, resource string, 
 	}
 	polling := &pollingWatcher{
 		c, ns, resource, name, timeout, make(chan bool), make(chan watch.Event), &sync.WaitGroup{},
-		newTickerPollInterval(time.Second), nativePoll(c, ns, resource, name)}
+		newTickerPollInterval(pollInterval), nativePoll(c, ns, resource, name)}
 	polling.start()
 	return polling, nil
 }

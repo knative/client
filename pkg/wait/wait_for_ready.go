@@ -111,20 +111,20 @@ func NoopMessageCallback() MessageCallback {
 func (w *waitForReadyConfig) Wait(watcher watch.Interface, name string, options Options, msgCallback MessageCallback) (error, time.Duration) {
 
 	timeout := options.timeoutWithDefault()
-	floatingTimeout := timeout
+	timeoutTimer := time.NewTimer(timeout)
 	for {
 		start := time.Now()
-		retry, timeoutReached, err := w.waitForReadyCondition(watcher, start, floatingTimeout, options.errorWindowWithDefault(), msgCallback)
+		retry, timeoutReached, err := w.waitForReadyCondition(watcher, start, timeoutTimer, options.errorWindowWithDefault(), msgCallback)
 		if err != nil {
 			return err, time.Since(start)
 		}
-		floatingTimeout = floatingTimeout - time.Since(start)
-		if timeoutReached || floatingTimeout < 0 {
+		if timeoutReached {
 			return fmt.Errorf("timeout: %s '%s' not ready after %d seconds", w.kind, name, int(timeout/time.Second)), time.Since(start)
 		}
 
 		if retry {
-			// restart loop
+			// sleep to prevent CPU pegging and restart the loop
+			time.Sleep(pollInterval)
 			continue
 		}
 		return nil, time.Since(start)
@@ -137,7 +137,9 @@ func (w *waitForReadyConfig) Wait(watcher watch.Interface, name string, options 
 // An errorWindow can be specified which takes into account of intermediate "false" ready conditions. So before returning
 // an error, this methods waits for the errorWindow duration and if an "True" or "Unknown" event arrives in the meantime
 // for the "Ready" condition, then the method continues to wait.
-func (w *waitForReadyConfig) waitForReadyCondition(watcher watch.Interface, start time.Time, timeout time.Duration, errorWindow time.Duration, msgCallback MessageCallback) (retry bool, timeoutReached bool, err error) {
+func (w *waitForReadyConfig) waitForReadyCondition(
+	watcher watch.Interface, start time.Time, timeoutTimer *time.Timer, errorWindow time.Duration, msgCallback MessageCallback,
+) (retry bool, timeoutReached bool, err error) {
 
 	// channel used to transport the error that has been received
 	errChan := make(chan error)
@@ -154,7 +156,7 @@ func (w *waitForReadyConfig) waitForReadyCondition(watcher watch.Interface, star
 
 	for {
 		select {
-		case <-time.After(timeout):
+		case <-timeoutTimer.C:
 			// We reached a timeout without receiving a "Ready" == "True" event
 			return false, true, nil
 		case err = <-errChan:
@@ -163,7 +165,8 @@ func (w *waitForReadyConfig) waitForReadyCondition(watcher watch.Interface, star
 			return false, false, err
 		case event, ok := <-watcher.ResultChan():
 			if !ok || event.Object == nil {
-				return true, false, nil
+				// retry only if the channel is still open
+				return ok, false, nil
 			}
 
 			// Check whether resource is in sync already (meta.generation == status.observedGeneration)
@@ -236,15 +239,12 @@ func (w *waitForEvent) Wait(watcher watch.Interface, name string, options Option
 	timeout := options.timeoutWithDefault()
 	start := time.Now()
 	// channel used to transport the error
-	errChan := make(chan error)
 	timer := time.NewTimer(timeout)
 	defer timer.Stop()
 	for {
 		select {
 		case <-timer.C:
 			return fmt.Errorf("timeout: %s '%s' not ready after %d seconds", w.kind, name, int(timeout/time.Second)), time.Since(start)
-		case err := <-errChan:
-			return err, time.Since(start)
 		case event := <-watcher.ResultChan():
 			if w.eventDone(&event) {
 				return nil, time.Since(start)
