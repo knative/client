@@ -17,6 +17,10 @@
 |===
 | | Description | PR
 
+| 🎁
+| Add `--prune` & `--prune-all` options to delete the unreferenced revisions
+| https://github.com/knative/client/pull/1217[#1217]
+
 | ✨
 | Update CRDs API version to `v1`
 | https://github.com/knative/client/issues/1248[#1248]
