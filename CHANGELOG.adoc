@@ -17,6 +17,10 @@
 |===
 | | Description | PR
 
+| ✨
+| Add support for namespace for all commands that takes a --sink option
+| https://github.com/knative/client/pull/1264[#1264]
+
 | 🎁
 | Add `--prune` & `--prune-all` options to delete the unreferenced revisions
 | https://github.com/knative/client/pull/1217[#1217]

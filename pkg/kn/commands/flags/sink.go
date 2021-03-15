@@ -46,6 +46,7 @@ func (i *SinkFlags) AddWithFlagName(cmd *cobra.Command, fname, short string) {
 		"You can specify a broker, channel, Knative service or URI. " +
 		"Examples: '" + flag + " broker:nest' for a broker 'nest', " +
 		"'" + flag + " channel:pipe' for a channel 'pipe', " +
+		"'" + flag + " ksvc:mysvc:mynamespace' for a Knative service 'mysvc' in another namespace 'mynamespace', " +
 		"'" + flag + " https://event.receiver.uri' for an URI with an 'http://' or 'https://' schema, " +
 		"'" + flag + " ksvc:receiver' or simply '" + flag + " receiver' for a Knative service 'receiver'. " +
 		"If a prefix is not provided, it is considered as a Knative service."
@@ -92,8 +93,7 @@ func (i *SinkFlags) ResolveSink(knclient clientdynamic.KnDynamicClient, namespac
 	if i.sink == "" {
 		return nil, nil
 	}
-
-	prefix, name := parseSink(i.sink)
+	prefix, name, ns := parseSink(i.sink)
 	if prefix == "" {
 		// URI target
 		uri, err := apis.ParseURL(name)
@@ -108,6 +108,9 @@ func (i *SinkFlags) ResolveSink(knclient clientdynamic.KnDynamicClient, namespac
 			return nil, fmt.Errorf("unsupported sink prefix: '%s', please use prefix 'ksvc' for knative service", prefix)
 		}
 		return nil, fmt.Errorf("unsupported sink prefix: '%s'", prefix)
+	}
+	if ns != "" {
+		namespace = ns
 	}
 	obj, err := client.Resource(typ).Namespace(namespace).Get(context.TODO(), name, metav1.GetOptions{})
 	if err != nil {
@@ -125,17 +128,20 @@ func (i *SinkFlags) ResolveSink(knclient clientdynamic.KnDynamicClient, namespac
 	return destination, nil
 }
 
-// parseSink takes the string given by the user into the prefix and the name of
+// parseSink takes the string given by the user into the prefix, name and namespace of
 // the object. If the user put a URI instead, the prefix is empty and the name
 // is the whole URI.
-func parseSink(sink string) (string, string) {
-	parts := strings.SplitN(sink, ":", 2)
-	if len(parts) == 1 {
-		return "ksvc", parts[0]
-	} else if parts[0] == "http" || parts[0] == "https" {
-		return "", sink
-	} else {
-		return parts[0], parts[1]
+func parseSink(sink string) (string, string, string) {
+	parts := strings.SplitN(sink, ":", 3)
+	switch {
+	case len(parts) == 1:
+		return "ksvc", parts[0], ""
+	case parts[0] == "http" || parts[0] == "https":
+		return "", sink, ""
+	case len(parts) == 3:
+		return parts[0], parts[1], parts[2]
+	default:
+		return parts[0], parts[1], ""
 	}
 }
 
