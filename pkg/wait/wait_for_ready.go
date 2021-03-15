@@ -112,6 +112,7 @@ func (w *waitForReadyConfig) Wait(watcher watch.Interface, name string, options 
 
 	timeout := options.timeoutWithDefault()
 	timeoutTimer := time.NewTimer(timeout)
+	defer timeoutTimer.Stop()
 	for {
 		start := time.Now()
 		retry, timeoutReached, err := w.waitForReadyCondition(watcher, start, timeoutTimer, options.errorWindowWithDefault(), msgCallback)
