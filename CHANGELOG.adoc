@@ -17,6 +17,10 @@
 |===
 | | Description | PR
 
+| 🐛
+| Fix memory leak on closed watch channel
+| https://github.com/knative/client/pull/1263[#1263]
+
 | 🎁
 | Add `--prune` & `--prune-all` options to delete the unreferenced revisions
 | https://github.com/knative/client/pull/1217[#1217]
