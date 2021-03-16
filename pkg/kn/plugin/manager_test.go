@@ -280,20 +280,25 @@ func TestPluginList(t *testing.T) {
 	pluginList, err := ctx.pluginManager.ListPlugins()
 	assert.NilError(t, err)
 	assert.Assert(t, pluginList != nil)
-	assert.Equal(t, len(pluginList), 2, "both plugins found (in dir + in path)")
-	assert.Equal(t, pluginList[0].Name(), "kn-aa-path-test", "first plugin is alphabetically smallest (list is sorted)")
-	assert.DeepEqual(t, pluginList[0].CommandParts(), []string{"aa", "path", "test"})
-	assert.Equal(t, pluginList[1].Name(), "kn-zz-test_in_dir", "second plugin is alphabetically greater (list is sorted)")
-	assert.DeepEqual(t, pluginList[1].CommandParts(), []string{"zz", "test-in-dir"})
-
+	// The condition workarounds false-positive SA5011: Possible nil pointer dereference
+	if pluginList != nil {
+		assert.Equal(t, len(pluginList), 2, "both plugins found (in dir + in path)")
+		assert.Equal(t, pluginList[0].Name(), "kn-aa-path-test", "first plugin is alphabetically smallest (list is sorted)")
+		assert.DeepEqual(t, pluginList[0].CommandParts(), []string{"aa", "path", "test"})
+		assert.Equal(t, pluginList[1].Name(), "kn-zz-test_in_dir", "second plugin is alphabetically greater (list is sorted)")
+		assert.DeepEqual(t, pluginList[1].CommandParts(), []string{"zz", "test-in-dir"})
+	}
 	// Disable lookup --> Only one plugin found
 	ctx.pluginManager.lookupInPath = false
 	pluginList, err = ctx.pluginManager.ListPlugins()
 	assert.NilError(t, err)
 	assert.Assert(t, pluginList != nil)
-	assert.Equal(t, len(pluginList), 1, "1 plugin found (in dir)")
-	assert.Equal(t, pluginList[0].Name(), "kn-zz-test_in_dir", "second plugin is alphabetically greater (list is sorted)")
-	assert.DeepEqual(t, pluginList[0].CommandParts(), []string{"zz", "test-in-dir"})
+	// The condition workarounds false-positive SA5011: Possible nil pointer dereference
+	if pluginList != nil {
+		assert.Equal(t, len(pluginList), 1, "1 plugin found (in dir)")
+		assert.Equal(t, pluginList[0].Name(), "kn-zz-test_in_dir", "second plugin is alphabetically greater (list is sorted)")
+		assert.DeepEqual(t, pluginList[0].CommandParts(), []string{"zz", "test-in-dir"})
+	}
 }
 
 // ====================================================================
