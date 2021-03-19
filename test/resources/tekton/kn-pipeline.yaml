@@ -40,6 +40,8 @@ spec:
     params:
     - name: url
       value: "https://github.com/knative/client"
+    - name: revision
+      value: "main"
   - name: buildah-build
     taskRef:
       name: buildah
