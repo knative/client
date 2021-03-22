@@ -3,7 +3,7 @@
 Show details of a domain mapping
 
 ```
-kn domain describe FQDN
+kn domain describe NAME
 ```
 
 ### Options

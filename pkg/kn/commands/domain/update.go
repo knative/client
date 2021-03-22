@@ -29,7 +29,7 @@ import (
 func NewDomainMappingUpdateCommand(p *commands.KnParams) *cobra.Command {
 	var refFlags flags.SinkFlags
 	cmd := &cobra.Command{
-		Use:   "update FQDN",
+		Use:   "update NAME",
 		Short: "Update a domain mapping",
 		Example: `
   # Update a domain mappings 'hello.example.com' for Knative service 'hello'
@@ -43,14 +43,17 @@ func NewDomainMappingUpdateCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
+
 			client, err := p.NewServingV1alpha1Client(namespace)
 			if err != nil {
 				return err
 			}
+
 			toUpdate, err := client.GetDomainMapping(name)
 			if err != nil {
 				return err
 			}
+
 			if toUpdate.GetDeletionTimestamp() != nil {
 				return fmt.Errorf("can't update domain mapping '%s' because it has been marked for deletion", name)
 			}
@@ -59,6 +62,7 @@ func NewDomainMappingUpdateCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
+
 			destination, err := refFlags.ResolveSink(dynamicClient, namespace)
 			if err != nil {
 				return err

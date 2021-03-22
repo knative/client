@@ -27,7 +27,7 @@ import (
 // NewDomainMappingDeleteCommand to create event channels
 func NewDomainMappingDeleteCommand(p *commands.KnParams) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "delete FQDN",
+		Use:   "delete NAME",
 		Short: "Delete a domain mapping",
 		Example: `
   # Delete domain mappings 'hello.example.com'
@@ -37,6 +37,7 @@ func NewDomainMappingDeleteCommand(p *commands.KnParams) *cobra.Command {
 				return errors.New("'kn domain delete' requires the domain name given as single argument")
 			}
 			name := args[0]
+
 			namespace, err := p.GetNamespace(cmd)
 			if err != nil {
 				return err

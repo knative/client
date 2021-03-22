@@ -62,10 +62,12 @@ func NewKnServingClient(client clientv1alpha1.ServingV1alpha1Interface, namespac
 	}
 }
 
+// Namespace in which this client is operating for
 func (cl *knServingClient) Namespace() string {
 	return cl.namespace
 }
 
+// GetDomainMapping gets DomainMapping by name
 func (cl *knServingClient) GetDomainMapping(name string) (*servingv1alpha1.DomainMapping, error) {
 	dm, err := cl.client.DomainMappings(cl.namespace).Get(context.TODO(), name, v1.GetOptions{})
 	if err != nil {
@@ -78,6 +80,7 @@ func (cl *knServingClient) GetDomainMapping(name string) (*servingv1alpha1.Domai
 	return dm, nil
 }
 
+// CreateDomainMapping creates provided DomainMapping
 func (cl *knServingClient) CreateDomainMapping(domainMapping *servingv1alpha1.DomainMapping) error {
 	_, err := cl.client.DomainMappings(cl.namespace).Create(context.TODO(), domainMapping, v1.CreateOptions{})
 	if err != nil {
@@ -86,6 +89,7 @@ func (cl *knServingClient) CreateDomainMapping(domainMapping *servingv1alpha1.Do
 	return updateServingGvk(domainMapping)
 }
 
+// UpdateDomainMapping updates provided DomainMapping
 func (cl *knServingClient) UpdateDomainMapping(domainMapping *servingv1alpha1.DomainMapping) error {
 	_, err := cl.client.DomainMappings(cl.namespace).Update(context.TODO(), domainMapping, v1.UpdateOptions{})
 	if err != nil {
@@ -94,6 +98,7 @@ func (cl *knServingClient) UpdateDomainMapping(domainMapping *servingv1alpha1.Do
 	return updateServingGvk(domainMapping)
 }
 
+// DeleteDomainMapping deletes DomainMapping by name
 func (cl *knServingClient) DeleteDomainMapping(name string) error {
 	err := cl.client.DomainMappings(cl.namespace).Delete(context.TODO(), name, v1.DeleteOptions{})
 	if err != nil {
@@ -102,6 +107,7 @@ func (cl *knServingClient) DeleteDomainMapping(name string) error {
 	return nil
 }
 
+// ListDomainMappings lists all DomainMappings
 func (cl *knServingClient) ListDomainMappings() (*servingv1alpha1.DomainMappingList, error) {
 	domainMappingList, err := cl.client.DomainMappings(cl.namespace).List(context.TODO(), v1.ListOptions{})
 	if err != nil {

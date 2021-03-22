@@ -15,6 +15,7 @@
 package domain
 
 import (
+	"errors"
 	"testing"
 
 	"gotest.tools/v3/assert"
@@ -36,6 +37,20 @@ func TestDomainMappingDelete(t *testing.T) {
 
 	servingRecorder.Validate()
 }
+
+func TestDomainMappingDeleteNotFound(t *testing.T) {
+	client := v1alpha1.NewMockKnServiceClient(t)
+
+	servingRecorder := client.Recorder()
+	servingRecorder.DeleteDomainMapping("foo.bar", errors.New("domainmappings.serving.knative.dev \"foo.bar\" not found"))
+
+	_, err := executeDomainCommand(client, nil, "delete", "foo.bar")
+	assert.ErrorContains(t, err, "not found")
+	assert.Assert(t, util.ContainsAll(err.Error(), "domainmappings.serving.knative.dev", "\"foo.bar\"", "not", "found"))
+
+	servingRecorder.Validate()
+}
+
 func TestDomainMappingDeleteWithError(t *testing.T) {
 	client := v1alpha1.NewMockKnServiceClient(t)
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient(client.Namespace(), createService("foo"))

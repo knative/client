@@ -41,21 +41,25 @@ func NewDomainMappingListCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
+			if namespace == "" {
+				listFlags.EnsureWithNamespace()
+			}
+
 			client, err := p.NewServingV1alpha1Client(namespace)
 			if err != nil {
 				return err
 			}
+
 			domainMappingList, err := client.ListDomainMappings()
 			if err != nil {
 				return err
 			}
+
 			if len(domainMappingList.Items) == 0 {
 				fmt.Fprintf(cmd.OutOrStdout(), "No domain mapping found.\n")
 				return nil
 			}
-			if namespace == "" {
-				listFlags.EnsureWithNamespace()
-			}
+
 			return listFlags.Print(domainMappingList, cmd.OutOrStdout())
 		},
 	}

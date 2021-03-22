@@ -16,6 +16,9 @@ package domain
 
 import (
 	"bytes"
+	"testing"
+
+	"gotest.tools/v3/assert"
 
 	"github.com/spf13/cobra"
 
@@ -34,9 +37,7 @@ import (
 // Helper methods
 var blankConfig clientcmd.ClientConfig
 
-func init() {
-	var err error
-	blankConfig, err = clientcmd.NewClientConfigFromBytes([]byte(`kind: Config
+const kubeConfig = `kind: Config
 version: v1
 users:
 - name: u
@@ -49,11 +50,27 @@ contexts:
   context:
     user: u
     cluster: c
-current-context: x
-`))
+current-context: x`
+
+func init() {
+	var err error
+	blankConfig, err = clientcmd.NewClientConfigFromBytes([]byte(kubeConfig))
 	if err != nil {
 		panic(err)
 	}
+}
+
+func TestDomainCommand(t *testing.T) {
+	knParams := &commands.KnParams{}
+	domainCmd := NewDomainCommand(knParams)
+	assert.Equal(t, domainCmd.Name(), "domain")
+	assert.Equal(t, domainCmd.Use, "domain COMMAND")
+	var subCommands []string
+	for _, cmd := range domainCmd.Commands() {
+		subCommands = append(subCommands, cmd.Name())
+	}
+	expectedSubCommands := []string{"create", "delete", "describe", "list", "update"}
+	assert.DeepEqual(t, subCommands, expectedSubCommands)
 }
 
 func executeDomainCommand(client clientservingv1alpha1.KnServingClient, dynamicClient kndynamic.KnDynamicClient, args ...string) (string, error) {

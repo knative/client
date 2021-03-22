@@ -30,7 +30,7 @@ import (
 func NewDomainMappingCreateCommand(p *commands.KnParams) *cobra.Command {
 	var refFlags flags.SinkFlags
 	cmd := &cobra.Command{
-		Use:   "create FQDN",
+		Use:   "create NAME",
 		Short: "Create a domain mapping",
 		Example: `
   # Create a domain mappings 'hello.example.com' for Knative service 'hello'

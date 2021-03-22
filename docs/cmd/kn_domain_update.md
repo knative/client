@@ -3,7 +3,7 @@
 Update a domain mapping
 
 ```
-kn domain update FQDN
+kn domain update NAME
 ```
 
 ### Examples

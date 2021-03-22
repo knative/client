@@ -28,12 +28,12 @@ import (
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
-// NewDomainMappingDescribe represents 'kn route describe' command
-func NewDomainMappingDescribe(p *commands.KnParams) *cobra.Command {
+// NewDomainMappingDescribeCommand represents 'kn route describe' command
+func NewDomainMappingDescribeCommand(p *commands.KnParams) *cobra.Command {
 	// For machine readable output
 	machineReadablePrintFlags := genericclioptions.NewPrintFlags("")
 	cmd := &cobra.Command{
-		Use:   "describe FQDN",
+		Use:   "describe NAME",
 		Short: "Show details of a domain mapping",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {

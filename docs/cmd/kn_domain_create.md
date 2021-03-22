@@ -3,7 +3,7 @@
 Create a domain mapping
 
 ```
-kn domain create FQDN
+kn domain create NAME
 ```
 
 ### Examples

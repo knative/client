@@ -28,7 +28,7 @@ func NewDomainCommand(p *commands.KnParams) *cobra.Command {
 		Aliases: []string{"domains"},
 	}
 	domainCmd.AddCommand(NewDomainMappingCreateCommand(p))
-	domainCmd.AddCommand(NewDomainMappingDescribe(p))
+	domainCmd.AddCommand(NewDomainMappingDescribeCommand(p))
 	domainCmd.AddCommand(NewDomainMappingUpdateCommand(p))
 	domainCmd.AddCommand(NewDomainMappingDeleteCommand(p))
 	domainCmd.AddCommand(NewDomainMappingListCommand(p))

@@ -3,7 +3,7 @@
 Delete a domain mapping
 
 ```
-kn domain delete FQDN
+kn domain delete NAME
 ```
 
 ### Examples
