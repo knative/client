@@ -65,7 +65,7 @@ func TestDomainCommand(t *testing.T) {
 	domainCmd := NewDomainCommand(knParams)
 	assert.Equal(t, domainCmd.Name(), "domain")
 	assert.Equal(t, domainCmd.Use, "domain COMMAND")
-	var subCommands []string
+	subCommands := make([]string, 0, len(domainCmd.Commands()))
 	for _, cmd := range domainCmd.Commands() {
 		subCommands = append(subCommands, cmd.Name())
 	}
