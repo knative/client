@@ -11,7 +11,7 @@ kn domain update NAME
 ```
 
   # Update a domain mappings 'hello.example.com' for Knative service 'hello'
-  kn domain create hello.example.com --ref hello
+  kn domain create hello.example.com --refFlags hello
 ```
 
 ### Options
@@ -19,7 +19,7 @@ kn domain update NAME
 ```
   -h, --help               help for update
   -n, --namespace string   Specify the namespace to operate in.
-      --ref string         Addressable target reference for Domain Mapping. You can specify a Knative Service name.
+      --ref string         Addressable target reference for Domain Mapping. You can specify a Knative service, a Knative soute or a Kubernetes service.Examples: '--ref ksvc:hello' or simply '--ref hello' for a Knative service 'hello', '--ref kroute:hello' for a Knative route 'hello', '--ref svc:hello' for a Kubernetes service 'hello'. If a prefix is not provided, it is considered as a Knative service.
 ```
 
 ### Options inherited from parent commands

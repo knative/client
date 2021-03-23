@@ -22,18 +22,17 @@ import (
 
 	knerrors "knative.dev/client/pkg/errors"
 	"knative.dev/client/pkg/kn/commands"
-	"knative.dev/client/pkg/kn/commands/flags"
 )
 
 // NewDomainMappingUpdateCommand to create event channels
 func NewDomainMappingUpdateCommand(p *commands.KnParams) *cobra.Command {
-	var refFlags flags.SinkFlags
+	var refFlags RefFlags
 	cmd := &cobra.Command{
 		Use:   "update NAME",
 		Short: "Update a domain mapping",
 		Example: `
   # Update a domain mappings 'hello.example.com' for Knative service 'hello'
-  kn domain create hello.example.com --ref hello`,
+  kn domain create hello.example.com --refFlags hello`,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
 				return errors.New("'kn domain create' requires the domain name given as single argument")
@@ -63,11 +62,11 @@ func NewDomainMappingUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			destination, err := refFlags.ResolveSink(dynamicClient, namespace)
+			reference, err := refFlags.Resolve(dynamicClient, namespace)
 			if err != nil {
 				return err
 			}
-			toUpdate.Spec.Ref = *destination.Ref
+			toUpdate.Spec.Ref = *reference
 
 			err = client.UpdateDomainMapping(toUpdate)
 			if err != nil {
@@ -79,8 +78,7 @@ func NewDomainMappingUpdateCommand(p *commands.KnParams) *cobra.Command {
 		},
 	}
 	commands.AddNamespaceFlags(cmd.Flags(), false)
-	refFlags.AddWithFlagName(cmd, "ref", "")
-	cmd.Flag("ref").Usage = "Addressable target reference for Domain Mapping. You can specify a Knative Service name."
-	cmd.MarkFlagRequired("ref")
+	refFlags.Add(cmd)
+	cmd.MarkFlagRequired("refFlags")
 	return cmd
 }
