@@ -35,7 +35,7 @@ import (
 func TestApplyServiceWithNoImage(t *testing.T) {
 	_, client := setup()
 	serviceFaulty := newService("faulty-service")
-	_, err := client.ApplyService(context.TODO(), serviceFaulty)
+	_, err := client.ApplyService(context.Background(), serviceFaulty)
 	assert.Assert(t, err != nil)
 	assert.Assert(t, util.ContainsAll(err.Error(), "image name"))
 }
@@ -56,7 +56,7 @@ func TestApplyServiceCreate(t *testing.T) {
 			return true, serviceNew, nil
 		})
 
-	hasChanged, err := client.ApplyService(context.TODO(), serviceNew)
+	hasChanged, err := client.ApplyService(context.Background(), serviceNew)
 	assert.NilError(t, err)
 	assert.Assert(t, hasChanged, "service has changed")
 }
@@ -80,7 +80,7 @@ func TestApplyServiceUpdate(t *testing.T) {
 			return true, serviceNew, nil
 		})
 
-	hasChanged, err := client.ApplyService(context.TODO(), serviceNew)
+	hasChanged, err := client.ApplyService(context.Background(), serviceNew)
 	assert.NilError(t, err)
 	assert.Assert(t, hasChanged, "service has changed")
 }

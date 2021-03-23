@@ -60,73 +60,73 @@ func TestGitOpsOperations(t *testing.T) {
 		assert.Equal(t, filepath.Join(c1TempDir, "foo-ns/ksvc/foo.yaml"), fp)
 	})
 	t.Run("get namespace for bazclient client", func(t *testing.T) {
-		ns := bazclient.Namespace(context.TODO())
+		ns := bazclient.Namespace(context.Background())
 		assert.Equal(t, "baz-ns", ns)
 	})
 	t.Run("create service foo in foo namespace", func(t *testing.T) {
-		err := fooclient.CreateService(context.TODO(), fooSvc)
+		err := fooclient.CreateService(context.Background(), fooSvc)
 		assert.NilError(t, err)
 	})
 	t.Run("wait for foo service in foo namespace", func(t *testing.T) {
-		err, d := fooclient.WaitForService(context.TODO(), "foo", 5*time.Second, nil)
+		err, d := fooclient.WaitForService(context.Background(), "foo", 5*time.Second, nil)
 		assert.NilError(t, err)
 		assert.Equal(t, 1*time.Second, d)
 	})
 	t.Run("get service foo", func(t *testing.T) {
-		result, err := fooclient.GetService(context.TODO(), "foo")
+		result, err := fooclient.GetService(context.Background(), "foo")
 		assert.NilError(t, err)
 		assert.DeepEqual(t, fooSvc, result)
 	})
 	t.Run("create service bar in foo namespace", func(t *testing.T) {
-		err := fooclient.CreateService(context.TODO(), barSvc)
+		err := fooclient.CreateService(context.Background(), barSvc)
 		assert.NilError(t, err)
 	})
 	t.Run("create service bar in baz namespace", func(t *testing.T) {
-		err := bazclient.CreateService(context.TODO(), barSvc)
+		err := bazclient.CreateService(context.Background(), barSvc)
 		assert.NilError(t, err)
 	})
 	t.Run("list services in foo namespace", func(t *testing.T) {
-		result, err := fooclient.ListServices(context.TODO())
+		result, err := fooclient.ListServices(context.Background())
 		assert.NilError(t, err)
 		assert.DeepEqual(t, fooserviceList, result)
 	})
 	t.Run("create service without tmp directory", func(t *testing.T) {
-		err := diffClusterClient.CreateService(context.TODO(), fooSvc)
+		err := diffClusterClient.CreateService(context.Background(), fooSvc)
 		assert.ErrorContains(t, err, "directory 'tmp' not present, please create the directory and try again")
 	})
 	diffClusterClient = NewKnServingGitOpsClient("", c2TempDir)
 	t.Run("create service foo in foo namespace in cluster 2", func(t *testing.T) {
-		err := diffClusterClient.CreateService(context.TODO(), fooSvc)
+		err := diffClusterClient.CreateService(context.Background(), fooSvc)
 		assert.NilError(t, err)
 	})
 	t.Run("list services in all namespaces in cluster 1", func(t *testing.T) {
-		result, err := globalclient.ListServices(context.TODO())
+		result, err := globalclient.ListServices(context.Background())
 		assert.NilError(t, err)
 		assert.DeepEqual(t, allServices, result)
 	})
 	t.Run("update service with retry foo", func(t *testing.T) {
-		changed, err := fooclient.UpdateServiceWithRetry(context.TODO(), "foo", func(svc *servingv1.Service) (*servingv1.Service, error) {
+		changed, err := fooclient.UpdateServiceWithRetry(context.Background(), "foo", func(svc *servingv1.Service) (*servingv1.Service, error) {
 			return svc, nil
 		}, 1)
 		assert.Assert(t, changed)
 		assert.NilError(t, err)
 	})
 	t.Run("update service foo", func(t *testing.T) {
-		changed, err := fooclient.UpdateService(context.TODO(), fooUpdateSvc)
+		changed, err := fooclient.UpdateService(context.Background(), fooUpdateSvc)
 		assert.Assert(t, changed)
 		assert.NilError(t, err)
 	})
 	t.Run("check updated service foo", func(t *testing.T) {
-		result, err := fooclient.GetService(context.TODO(), "foo")
+		result, err := fooclient.GetService(context.Background(), "foo")
 		assert.NilError(t, err)
 		assert.DeepEqual(t, fooUpdateSvc, result)
 	})
 	t.Run("delete service foo", func(t *testing.T) {
-		err := fooclient.DeleteService(context.TODO(), "foo", 5*time.Second)
+		err := fooclient.DeleteService(context.Background(), "foo", 5*time.Second)
 		assert.NilError(t, err)
 	})
 	t.Run("get service foo", func(t *testing.T) {
-		_, err := fooclient.GetService(context.TODO(), "foo")
+		_, err := fooclient.GetService(context.Background(), "foo")
 		assert.ErrorType(t, err, apierrors.IsNotFound)
 	})
 }
@@ -151,76 +151,76 @@ func TestGitOpsSingleFile(t *testing.T) {
 		assert.Equal(t, filepath.Join(tmpDir, "test.yaml"), fp)
 	})
 	t.Run("get namespace for fooclient", func(t *testing.T) {
-		ns := fooclient.Namespace(context.TODO())
+		ns := fooclient.Namespace(context.Background())
 		assert.Equal(t, "", ns)
 	})
 	t.Run("create service in single file mode in different formats", func(t *testing.T) {
-		err := fooclient.CreateService(context.TODO(), testSvc)
+		err := fooclient.CreateService(context.Background(), testSvc)
 		assert.NilError(t, err)
 
-		err = barclient.CreateService(context.TODO(), testSvc)
+		err = barclient.CreateService(context.Background(), testSvc)
 		assert.NilError(t, err)
 
-		err = bazclient.CreateService(context.TODO(), testSvc)
+		err = bazclient.CreateService(context.Background(), testSvc)
 		assert.NilError(t, err)
 	})
 	t.Run("retrieve services", func(t *testing.T) {
-		result, err := fooclient.GetService(context.TODO(), "test")
+		result, err := fooclient.GetService(context.Background(), "test")
 		assert.NilError(t, err)
 		assert.DeepEqual(t, testSvc, result)
 
-		result, err = barclient.GetService(context.TODO(), "test")
+		result, err = barclient.GetService(context.Background(), "test")
 		assert.NilError(t, err)
 		assert.DeepEqual(t, testSvc, result)
 
-		result, err = bazclient.GetService(context.TODO(), "test")
+		result, err = bazclient.GetService(context.Background(), "test")
 		assert.NilError(t, err)
 		assert.DeepEqual(t, testSvc, result)
 	})
 	t.Run("update service foo", func(t *testing.T) {
-		changed, err := fooclient.UpdateService(context.TODO(), updateSvc)
+		changed, err := fooclient.UpdateService(context.Background(), updateSvc)
 		assert.NilError(t, err)
 		assert.Assert(t, changed)
 
-		changed, err = barclient.UpdateService(context.TODO(), updateSvc)
+		changed, err = barclient.UpdateService(context.Background(), updateSvc)
 		assert.NilError(t, err)
 		assert.Assert(t, changed)
 
-		changed, err = bazclient.UpdateService(context.TODO(), updateSvc)
+		changed, err = bazclient.UpdateService(context.Background(), updateSvc)
 		assert.NilError(t, err)
 		assert.Assert(t, changed)
 	})
 	t.Run("list services", func(t *testing.T) {
-		result, err := fooclient.ListServices(context.TODO())
+		result, err := fooclient.ListServices(context.Background())
 		assert.NilError(t, err)
 		assert.DeepEqual(t, svcList, result)
 
-		result, err = barclient.ListServices(context.TODO())
+		result, err = barclient.ListServices(context.Background())
 		assert.NilError(t, err)
 		assert.DeepEqual(t, svcList, result)
 
-		result, err = bazclient.ListServices(context.TODO())
+		result, err = bazclient.ListServices(context.Background())
 		assert.NilError(t, err)
 		assert.DeepEqual(t, svcList, result)
 	})
 	t.Run("delete service foo", func(t *testing.T) {
-		err := fooclient.DeleteService(context.TODO(), "test", 5*time.Second)
+		err := fooclient.DeleteService(context.Background(), "test", 5*time.Second)
 		assert.NilError(t, err)
 
-		err = barclient.DeleteService(context.TODO(), "test", 5*time.Second)
+		err = barclient.DeleteService(context.Background(), "test", 5*time.Second)
 		assert.NilError(t, err)
 
-		err = bazclient.DeleteService(context.TODO(), "test", 5*time.Second)
+		err = bazclient.DeleteService(context.Background(), "test", 5*time.Second)
 		assert.NilError(t, err)
 	})
 	t.Run("get service foo", func(t *testing.T) {
-		_, err := fooclient.GetService(context.TODO(), "test")
+		_, err := fooclient.GetService(context.Background(), "test")
 		assert.ErrorType(t, err, apierrors.IsNotFound)
 
-		_, err = barclient.GetService(context.TODO(), "test")
+		_, err = barclient.GetService(context.Background(), "test")
 		assert.ErrorType(t, err, apierrors.IsNotFound)
 
-		_, err = bazclient.GetService(context.TODO(), "test")
+		_, err = bazclient.GetService(context.Background(), "test")
 		assert.ErrorType(t, err, apierrors.IsNotFound)
 	})
 }

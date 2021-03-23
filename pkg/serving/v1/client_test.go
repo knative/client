@@ -67,7 +67,7 @@ func TestGetService(t *testing.T) {
 		})
 
 	t.Run("get known service by name returns service", func(t *testing.T) {
-		service, err := client.GetService(context.TODO(), serviceName)
+		service, err := client.GetService(context.Background(), serviceName)
 		assert.NilError(t, err)
 		assert.Equal(t, serviceName, service.Name, "service name should be equal")
 		validateGroupVersionKind(t, service)
@@ -75,7 +75,7 @@ func TestGetService(t *testing.T) {
 
 	t.Run("get unknown service name returns error", func(t *testing.T) {
 		nonExistingServiceName := "service-that-does-not-exist"
-		service, err := client.GetService(context.TODO(), nonExistingServiceName)
+		service, err := client.GetService(context.Background(), nonExistingServiceName)
 		assert.Assert(t, service == nil, "no service should be returned")
 		assert.ErrorContains(t, err, "not found")
 		assert.ErrorContains(t, err, nonExistingServiceName)
@@ -106,7 +106,7 @@ func TestListService(t *testing.T) {
 				return true, &servingv1.ServiceList{Items: []servingv1.Service{*service1, *service2, *service3, *service4, *service5}}, nil
 			})
 
-		listServices, err := client.ListServices(context.TODO())
+		listServices, err := client.ListServices(context.Background())
 		assert.NilError(t, err)
 		assert.Assert(t, len(listServices.Items) == 5)
 		assert.Equal(t, listServices.Items[0].Name, "service-1")
@@ -115,7 +115,7 @@ func TestListService(t *testing.T) {
 		validateGroupVersionKind(t, &listServices.Items[0])
 		validateGroupVersionKind(t, &listServices.Items[1])
 
-		listFilteredServices, err := client.ListServices(context.TODO(), WithLabel(labelKey, labelValue))
+		listFilteredServices, err := client.ListServices(context.Background(), WithLabel(labelKey, labelValue))
 		assert.NilError(t, err)
 		assert.Assert(t, len(listFilteredServices.Items) == 2)
 		assert.Equal(t, listFilteredServices.Items[0].Name, "service-3-with-label")
@@ -143,14 +143,14 @@ func TestCreateService(t *testing.T) {
 		})
 
 	t.Run("create service without error creates a new service", func(t *testing.T) {
-		err := client.CreateService(context.TODO(), serviceNew)
+		err := client.CreateService(context.Background(), serviceNew)
 		assert.NilError(t, err)
 		assert.Equal(t, serviceNew.Generation, int64(2))
 		validateGroupVersionKind(t, serviceNew)
 	})
 
 	t.Run("create service with an error returns an error object", func(t *testing.T) {
-		err := client.CreateService(context.TODO(), newService("unknown"))
+		err := client.CreateService(context.Background(), newService("unknown"))
 		assert.ErrorContains(t, err, "unknown")
 	})
 }
@@ -173,14 +173,14 @@ func TestUpdateService(t *testing.T) {
 		})
 
 	t.Run("updating a service without error", func(t *testing.T) {
-		changed, err := client.UpdateService(context.TODO(), serviceUpdate)
+		changed, err := client.UpdateService(context.Background(), serviceUpdate)
 		assert.NilError(t, err)
 		assert.Assert(t, changed)
 		validateGroupVersionKind(t, serviceUpdate)
 	})
 
 	t.Run("updating a service with error", func(t *testing.T) {
-		_, err := client.UpdateService(context.TODO(), newService("unknown"))
+		_, err := client.UpdateService(context.Background(), newService("unknown"))
 		assert.ErrorContains(t, err, "unknown")
 	})
 }
@@ -216,12 +216,12 @@ func TestDeleteService(t *testing.T) {
 		})
 
 	t.Run("delete existing service returns no error", func(t *testing.T) {
-		err := client.DeleteService(context.TODO(), serviceName, time.Duration(10)*time.Second)
+		err := client.DeleteService(context.Background(), serviceName, time.Duration(10)*time.Second)
 		assert.NilError(t, err)
 	})
 
 	t.Run("trying to delete non-existing service returns error", func(t *testing.T) {
-		err := client.DeleteService(context.TODO(), nonExistingServiceName, time.Duration(10)*time.Second)
+		err := client.DeleteService(context.Background(), nonExistingServiceName, time.Duration(10)*time.Second)
 		assert.ErrorContains(t, err, "not found")
 		assert.ErrorContains(t, err, nonExistingServiceName)
 	})
@@ -257,14 +257,14 @@ func TestGetRevision(t *testing.T) {
 		})
 
 	t.Run("get existing revision returns revision and no error", func(t *testing.T) {
-		revision, err := client.GetRevision(context.TODO(), revisionName)
+		revision, err := client.GetRevision(context.Background(), revisionName)
 		assert.NilError(t, err)
 		assert.Equal(t, revisionName, revision.Name)
 		validateGroupVersionKind(t, revision)
 	})
 
 	t.Run("trying to get a revision with a name that does not exist returns an error", func(t *testing.T) {
-		revision, err := client.GetRevision(context.TODO(), notExistingRevisionName)
+		revision, err := client.GetRevision(context.Background(), notExistingRevisionName)
 		assert.Assert(t, revision == nil)
 		assert.ErrorContains(t, err, notExistingRevisionName)
 		assert.ErrorContains(t, err, "not found")
@@ -283,7 +283,7 @@ func TestListRevisions(t *testing.T) {
 
 	t.Run("list revisions returns a list of revisions and no error", func(t *testing.T) {
 
-		revisions, err := client.ListRevisions(context.TODO())
+		revisions, err := client.ListRevisions(context.Background())
 		assert.NilError(t, err)
 
 		assert.Assert(t, len(revisions.Items) == 2)
@@ -318,7 +318,7 @@ func TestListRevisionForService(t *testing.T) {
 
 	t.Run("list revisions for a service returns a list of revisions associated with this this service and no error",
 		func(t *testing.T) {
-			revisions, err := client.ListRevisions(context.TODO(), WithService(serviceName))
+			revisions, err := client.ListRevisions(context.Background(), WithService(serviceName))
 			assert.NilError(t, err)
 
 			assert.Assert(t, cmp.Len(revisions.Items, 1))
@@ -347,7 +347,7 @@ func TestGetRoute(t *testing.T) {
 		})
 
 	t.Run("get known route by name returns route", func(t *testing.T) {
-		route, err := client.GetRoute(context.TODO(), routeName)
+		route, err := client.GetRoute(context.Background(), routeName)
 		assert.NilError(t, err)
 		assert.Equal(t, routeName, route.Name, "route name should be equal")
 		validateGroupVersionKind(t, route)
@@ -355,7 +355,7 @@ func TestGetRoute(t *testing.T) {
 
 	t.Run("get unknown route name returns error", func(t *testing.T) {
 		nonExistingRouteName := "r@ute-that-d$es-n#t-exist"
-		route, err := client.GetRoute(context.TODO(), nonExistingRouteName)
+		route, err := client.GetRoute(context.Background(), nonExistingRouteName)
 		assert.Assert(t, route == nil, "no route should be returned")
 		assert.ErrorContains(t, err, "not found")
 		assert.ErrorContains(t, err, nonExistingRouteName)
@@ -384,7 +384,7 @@ func TestListRoutes(t *testing.T) {
 
 	t.Run("list routes returns a list of routes and no error", func(t *testing.T) {
 
-		routes, err := client.ListRoutes(context.TODO())
+		routes, err := client.ListRoutes(context.Background())
 		assert.NilError(t, err)
 
 		assert.Assert(t, len(routes.Items) == 3)
@@ -399,7 +399,7 @@ func TestListRoutes(t *testing.T) {
 
 	t.Run("list routes with a name filter a list with one route and no error", func(t *testing.T) {
 
-		routes, err := client.ListRoutes(context.TODO(), WithName(singleRouteName))
+		routes, err := client.ListRoutes(context.Background(), WithName(singleRouteName))
 		assert.NilError(t, err)
 
 		assert.Assert(t, len(routes.Items) == 1)
@@ -433,7 +433,7 @@ func TestWaitForService(t *testing.T) {
 		})
 
 	t.Run("wait on a service to become ready with success", func(t *testing.T) {
-		err, duration := client.WaitForService(context.TODO(), serviceName, 60*time.Second, wait.NoopMessageCallback())
+		err, duration := client.WaitForService(context.Background(), serviceName, 60*time.Second, wait.NoopMessageCallback())
 		assert.NilError(t, err)
 		assert.Assert(t, duration > 0)
 	})
@@ -478,7 +478,7 @@ func TestGetBaseRevision(t *testing.T) {
 		service.Spec.Template.Spec.Containers = []corev1.Container{{}}
 		service.Spec.Template.Spec.Containers[0].Image = c.templateImage
 
-		r, err := client.GetBaseRevision(context.TODO(), &service)
+		r, err := client.GetBaseRevision(context.Background(), &service)
 		if err == nil {
 			assert.Equal(t, r.Spec.Containers[0].Image, c.foundRevisionImage)
 		} else {
@@ -510,14 +510,14 @@ func TestGetConfiguration(t *testing.T) {
 		})
 
 	t.Run("getting existing configuration returns configuration and no error", func(t *testing.T) {
-		configuration, err := client.GetConfiguration(context.TODO(), configName)
+		configuration, err := client.GetConfiguration(context.Background(), configName)
 		assert.NilError(t, err)
 		assert.Equal(t, configName, configuration.Name)
 		validateGroupVersionKind(t, configuration)
 	})
 
 	t.Run("trying to get a configuration with a name that does not exist returns an error", func(t *testing.T) {
-		configuration, err := client.GetConfiguration(context.TODO(), notExistingConfigurationName)
+		configuration, err := client.GetConfiguration(context.Background(), notExistingConfigurationName)
 		assert.Assert(t, configuration == nil)
 		assert.ErrorContains(t, err, notExistingConfigurationName)
 		assert.ErrorContains(t, err, "not found")
