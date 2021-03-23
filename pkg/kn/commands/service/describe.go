@@ -15,6 +15,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -112,7 +113,7 @@ func NewServiceDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			service, err := client.GetService(serviceName)
+			service, err := client.GetService(context.TODO(), serviceName)
 			if err != nil {
 				return err
 			}
@@ -318,7 +319,7 @@ func completeWithLatestRevisions(client clientservingv1.KnServingClient, service
 			continue
 		}
 		revisionsSeen.Insert(revisionName)
-		rev, err := client.GetRevision(revisionName)
+		rev, err := client.GetRevision(context.TODO(), revisionName)
 		if err != nil {
 			return nil, err
 		}
@@ -332,7 +333,7 @@ func completeWithLatestRevisions(client clientservingv1.KnServingClient, service
 }
 
 func completeWithUntargetedRevisions(client clientservingv1.KnServingClient, service *servingv1.Service, revisionsSeen sets.String, descs []*revisionDesc) ([]*revisionDesc, error) {
-	revisions, err := client.ListRevisions(clientservingv1.WithService(service.Name))
+	revisions, err := client.ListRevisions(context.TODO(), clientservingv1.WithService(service.Name))
 	if err != nil {
 		return nil, err
 	}
@@ -387,13 +388,13 @@ func extractRevisionFromTarget(client clientservingv1.KnServingClient, target se
 		if configurationName == "" {
 			return nil, fmt.Errorf("neither RevisionName nor ConfigurationName set")
 		}
-		configuration, err := client.GetConfiguration(configurationName)
+		configuration, err := client.GetConfiguration(context.TODO(), configurationName)
 		if err != nil {
 			return nil, err
 		}
 		revisionName = configuration.Status.LatestCreatedRevisionName
 	}
-	return client.GetRevision(revisionName)
+	return client.GetRevision(context.TODO(), revisionName)
 }
 
 func extractURL(service *servingv1.Service) string {

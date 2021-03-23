@@ -50,7 +50,7 @@ func (cl *knServingClient) patch(modifiedService *servingv1.Service, currentServ
 		if i > 1 {
 			time.Sleep(1 * time.Second)
 		}
-		currentService, err = cl.GetService(currentService.Name)
+		currentService, err = cl.GetService(context.TODO(), currentService.Name)
 		if err != nil {
 			return false, err
 		}

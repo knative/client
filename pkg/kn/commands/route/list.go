@@ -15,6 +15,7 @@
 package route
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -57,9 +58,9 @@ func NewRouteListCommand(p *commands.KnParams) *cobra.Command {
 			var routeList *servingv1.RouteList
 			switch len(args) {
 			case 0:
-				routeList, err = client.ListRoutes()
+				routeList, err = client.ListRoutes(context.TODO())
 			case 1:
-				routeList, err = client.ListRoutes(clientservingv1.WithName(args[0]))
+				routeList, err = client.ListRoutes(context.TODO(), clientservingv1.WithName(args[0]))
 			default:
 				return errors.New("'kn route list' accepts only one additional argument")
 			}

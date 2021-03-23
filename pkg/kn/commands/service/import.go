@@ -15,6 +15,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -97,10 +98,10 @@ func importWithOwnerRef(client clientservingv1.KnServingClient, filename string,
 	}
 	if svcExists {
 		return fmt.Errorf("cannot import service '%s' in namespace '%s' because the service already exists",
-			serviceName, client.Namespace())
+			serviceName, client.Namespace(context.TODO()))
 	}
 
-	err = client.CreateService(&export.Spec.Service)
+	err = client.CreateService(context.TODO(), &export.Spec.Service)
 	if err != nil {
 		return err
 	}
@@ -117,7 +118,7 @@ func importWithOwnerRef(client clientservingv1.KnServingClient, filename string,
 			tmp := r.DeepCopy()
 			// OwnerRef ensures that Revisions are recognized by controller
 			tmp.OwnerReferences = []metav1.OwnerReference{*kmeta.NewControllerRef(currentConf)}
-			if err = client.CreateRevision(tmp); err != nil {
+			if err = client.CreateRevision(context.TODO(), tmp); err != nil {
 				return err
 			}
 		}
@@ -136,7 +137,7 @@ func getConfigurationWithRetry(client clientservingv1.KnServingClient, name stri
 	err = retry.OnError(retry.DefaultBackoff, func(err error) bool {
 		return apierrors.IsNotFound(err)
 	}, func() error {
-		conf, err = client.GetConfiguration(name)
+		conf, err = client.GetConfiguration(context.TODO(), name)
 		return err
 	})
 	return conf, err

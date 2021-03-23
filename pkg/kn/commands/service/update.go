@@ -15,6 +15,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -86,7 +87,7 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 				latestRevisionBeforeUpdate = service.Status.LatestReadyRevisionName
 				var baseRevision *servingv1.Revision
 				if !cmd.Flags().Changed("image") && editFlags.LockToDigest {
-					baseRevision, err = client.GetBaseRevision(service)
+					baseRevision, err = client.GetBaseRevision(context.TODO(), service)
 					var errNoBaseRevision clientservingv1.NoBaseRevisionError
 					if errors.As(err, &errNoBaseRevision) {
 						fmt.Fprintf(cmd.OutOrStdout(), "Warning: No revision found to update image digest")
@@ -109,7 +110,7 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			// Do the actual update with retry in case of conflicts
-			changed, err := client.UpdateServiceWithRetry(name, updateFunc, MaxUpdateRetries)
+			changed, err := client.UpdateServiceWithRetry(context.TODO(), name, updateFunc, MaxUpdateRetries)
 			if err != nil {
 				return err
 			}

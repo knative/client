@@ -15,6 +15,7 @@
 package v1
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -77,17 +78,17 @@ func getFileModeAndType(dir string) (bool, string) {
 }
 
 // Namespace returns the namespace
-func (cl *knServingGitOpsClient) Namespace() string {
+func (cl *knServingGitOpsClient) Namespace(context.Context) string {
 	return cl.namespace
 }
 
 // GetService returns the knative service for the name
-func (cl *knServingGitOpsClient) GetService(name string) (*servingv1.Service, error) {
+func (cl *knServingGitOpsClient) GetService(ctx context.Context, name string) (*servingv1.Service, error) {
 	return readServiceFromFile(cl.getKsvcFilePath(name), name)
 }
 
 // ListServices lists the services in the path provided
-func (cl *knServingGitOpsClient) ListServices(config ...ListConfig) (*servingv1.ServiceList, error) {
+func (cl *knServingGitOpsClient) ListServices(ctx context.Context, opts ...ListConfig) (*servingv1.ServiceList, error) {
 	svcs, err := cl.listServicesFromDirectory()
 	if err != nil {
 		return nil, err
@@ -149,7 +150,7 @@ func (cl *knServingGitOpsClient) listServicesFromDirectory() ([]servingv1.Servic
 
 // CreateService saves the knative service spec in
 // yaml format in the local path provided
-func (cl *knServingGitOpsClient) CreateService(service *servingv1.Service) error {
+func (cl *knServingGitOpsClient) CreateService(ctx context.Context, service *servingv1.Service) error {
 	updateServingGvk(service)
 	if cl.fileMode {
 		return writeFile(service, cl.dir, cl.fileFormat)
@@ -178,27 +179,27 @@ func writeFile(obj runtime.Object, fp, format string) error {
 
 // UpdateService updates the service in
 // the local directory
-func (cl *knServingGitOpsClient) UpdateService(service *servingv1.Service) (bool, error) {
+func (cl *knServingGitOpsClient) UpdateService(ctx context.Context, service *servingv1.Service) (bool, error) {
 	// check if file exist
-	if _, err := cl.GetService(service.ObjectMeta.Name); err != nil {
+	if _, err := cl.GetService(context.TODO(), service.ObjectMeta.Name); err != nil {
 		return false, err
 	}
 	// replace file
-	return true, cl.CreateService(service)
+	return true, cl.CreateService(context.TODO(), service)
 }
 
 // UpdateServiceWithRetry updates the service in the local directory
-func (cl *knServingGitOpsClient) UpdateServiceWithRetry(name string, updateFunc ServiceUpdateFunc, nrRetries int) (bool, error) {
+func (cl *knServingGitOpsClient) UpdateServiceWithRetry(ctx context.Context, name string, updateFunc ServiceUpdateFunc, nrRetries int) (bool, error) {
 	return updateServiceWithRetry(cl, name, updateFunc, nrRetries)
 }
 
 // DeleteService removes the file from the local file system
-func (cl *knServingGitOpsClient) DeleteService(serviceName string, timeout time.Duration) error {
+func (cl *knServingGitOpsClient) DeleteService(ctx context.Context, serviceName string, timeout time.Duration) error {
 	return os.Remove(cl.getKsvcFilePath(serviceName))
 }
 
 // WaitForService always returns success for this client
-func (cl *knServingGitOpsClient) WaitForService(name string, timeout time.Duration, msgCallback wait.MessageCallback) (error, time.Duration) {
+func (cl *knServingGitOpsClient) WaitForService(ctx context.Context, name string, timeout time.Duration, msgCallback wait.MessageCallback) (error, time.Duration) {
 	return nil, 1 * time.Second
 }
 

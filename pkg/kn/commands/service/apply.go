@@ -15,6 +15,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -86,7 +87,7 @@ func NewServiceApplyCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			hasChanged, err := client.ApplyService(service)
+			hasChanged, err := client.ApplyService(context.TODO(), service)
 			if err != nil {
 				return err
 			}
@@ -105,7 +106,7 @@ func NewServiceApplyCommand(p *commands.KnParams) *cobra.Command {
 }
 
 func examineServiceForApply(cmd *cobra.Command, client clientservingv1.KnServingClient, serviceName string) (string, string, error) {
-	currentService, err := client.GetService(serviceName)
+	currentService, err := client.GetService(context.TODO(), serviceName)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			return "Creating", "created", nil

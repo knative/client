@@ -15,6 +15,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -110,7 +111,7 @@ func NewServiceExportCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			service, err := client.GetService(serviceName)
+			service, err := client.GetService(context.TODO(), serviceName)
 			if err != nil {
 				return err
 			}
@@ -290,7 +291,7 @@ func getRevisionsToExport(latestSvc *servingv1.Service, client clientservingv1.K
 	revsMap := getRoutedRevisions(latestSvc)
 
 	// Query for list with filters
-	revisionList, err := client.ListRevisions(clientservingv1.WithService(latestSvc.ObjectMeta.Name))
+	revisionList, err := client.ListRevisions(context.TODO(), clientservingv1.WithService(latestSvc.ObjectMeta.Name))
 	if err != nil {
 		return nil, nil, err
 	}

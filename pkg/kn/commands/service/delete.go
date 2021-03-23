@@ -15,6 +15,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -89,7 +90,7 @@ func NewServiceDeleteCommand(p *commands.KnParams) *cobra.Command {
 				if waitFlags.Wait {
 					timeout = time.Duration(waitFlags.TimeoutInSeconds) * time.Second
 				}
-				err = client.DeleteService(name, timeout)
+				err = client.DeleteService(context.TODO(), name, timeout)
 				if err != nil {
 					errs = append(errs, err.Error())
 				} else {
@@ -111,7 +112,7 @@ func NewServiceDeleteCommand(p *commands.KnParams) *cobra.Command {
 }
 
 func getServiceNames(client clientservingv1.KnServingClient) ([]string, error) {
-	serviceList, err := client.ListServices()
+	serviceList, err := client.ListServices(context.TODO())
 	if err != nil {
 		return []string{}, err
 	}

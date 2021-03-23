@@ -15,6 +15,7 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"sort"
 
@@ -100,9 +101,9 @@ func getServiceInfo(args []string, client clientservingv1.KnServingClient) (*ser
 	)
 	switch len(args) {
 	case 0:
-		serviceList, err = client.ListServices()
+		serviceList, err = client.ListServices(context.TODO())
 	case 1:
-		serviceList, err = client.ListServices(clientservingv1.WithName(args[0]))
+		serviceList, err = client.ListServices(context.TODO(), clientservingv1.WithName(args[0]))
 	default:
 		return nil, fmt.Errorf("'kn service list' accepts maximum 1 argument")
 	}

@@ -15,6 +15,7 @@
 package route
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -48,7 +49,7 @@ func NewRouteDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			route, err := client.GetRoute(args[0])
+			route, err := client.GetRoute(context.TODO(), args[0])
 			if err != nil {
 				return err
 			}

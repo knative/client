@@ -15,6 +15,7 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"time"
@@ -49,7 +50,7 @@ func NewServiceCommand(p *commands.KnParams) *cobra.Command {
 }
 
 func waitForService(client clientservingv1.KnServingClient, serviceName string, out io.Writer, timeout int) error {
-	err, duration := client.WaitForService(serviceName, time.Duration(timeout)*time.Second, wait.SimpleMessageCallback(out))
+	err, duration := client.WaitForService(context.TODO(), serviceName, time.Duration(timeout)*time.Second, wait.SimpleMessageCallback(out))
 	if err != nil {
 		return err
 	}
@@ -58,9 +59,9 @@ func waitForService(client clientservingv1.KnServingClient, serviceName string, 
 }
 
 func showUrl(client clientservingv1.KnServingClient, serviceName string, originalRevision string, what string, out io.Writer) error {
-	service, err := client.GetService(serviceName)
+	service, err := client.GetService(context.TODO(), serviceName)
 	if err != nil {
-		return fmt.Errorf("cannot fetch service '%s' in namespace '%s' for extracting the URL: %w", serviceName, client.Namespace(), err)
+		return fmt.Errorf("cannot fetch service '%s' in namespace '%s' for extracting the URL: %w", serviceName, client.Namespace(context.TODO()), err)
 	}
 
 	url := service.Status.URL.String()

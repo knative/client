@@ -15,6 +15,7 @@
 package revision
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"strconv"
@@ -76,7 +77,7 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			// Query for list with filters
-			revisionList, err := client.ListRevisions(params...)
+			revisionList, err := client.ListRevisions(context.TODO(), params...)
 			if err != nil {
 				return err
 			}
@@ -123,7 +124,7 @@ func appendServiceFilter(lConfig []clientservingv1.ListConfig, client clientserv
 	serviceName := cmd.Flag("service").Value.String()
 
 	// Verify that service exists first
-	_, err := client.GetService(serviceName)
+	_, err := client.GetService(context.TODO(), serviceName)
 	if err != nil {
 		return nil, err
 	}
@@ -244,7 +245,7 @@ func serviceLookup(serviceFactory serviceFactoryFunc) serviceGetFunc {
 			clientCache[namespace] = client
 		}
 
-		service, err := client.GetService(serviceName)
+		service, err := client.GetService(context.TODO(), serviceName)
 		if err != nil {
 			return nil, err
 		}

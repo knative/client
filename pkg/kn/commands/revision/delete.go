@@ -15,6 +15,7 @@
 package revision
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -84,7 +85,7 @@ func NewRevisionDeleteCommand(p *commands.KnParams) *cobra.Command {
 				if waitFlags.Wait {
 					timeout = time.Duration(waitFlags.TimeoutInSeconds) * time.Second
 				}
-				err = client.DeleteRevision(name, timeout)
+				err = client.DeleteRevision(context.TODO(), name, timeout)
 				if err != nil {
 					errs = append(errs, err.Error())
 				} else {
@@ -107,7 +108,7 @@ func NewRevisionDeleteCommand(p *commands.KnParams) *cobra.Command {
 
 // Return unreferenced revision names
 func getUnreferencedRevisionNames(lConfig []v1.ListConfig, client v1.KnServingClient) ([]string, error) {
-	revisionList, err := client.ListRevisions(lConfig...)
+	revisionList, err := client.ListRevisions(context.TODO(), lConfig...)
 	if err != nil {
 		return []string{}, err
 	}

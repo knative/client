@@ -15,6 +15,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -146,7 +147,7 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 }
 
 func createService(client clientservingv1.KnServingClient, service *servingv1.Service, waitFlags commands.WaitFlags, out io.Writer, targetFlag string) error {
-	err := client.CreateService(service)
+	err := client.CreateService(context.TODO(), service)
 	if err != nil {
 		return err
 	}
@@ -160,7 +161,7 @@ func replaceService(client clientservingv1.KnServingClient, service *servingv1.S
 		return err
 	}
 	if !changed {
-		fmt.Fprintf(out, "Service '%s' replaced in namespace '%s' (unchanged).\n", service.Name, client.Namespace())
+		fmt.Fprintf(out, "Service '%s' replaced in namespace '%s' (unchanged).\n", service.Name, client.Namespace(context.TODO()))
 		return nil
 	}
 	return waitIfRequested(client, waitFlags, service.Name, "Replacing", "replaced", targetFlag, out)
@@ -168,17 +169,17 @@ func replaceService(client clientservingv1.KnServingClient, service *servingv1.S
 
 func waitIfRequested(client clientservingv1.KnServingClient, waitFlags commands.WaitFlags, serviceName, verbDoing, verbDone, targetFlag string, out io.Writer) error {
 	if !waitFlags.Wait || targetFlag != "" {
-		fmt.Fprintf(out, "Service '%s' %s in namespace '%s'.\n", serviceName, verbDone, client.Namespace())
+		fmt.Fprintf(out, "Service '%s' %s in namespace '%s'.\n", serviceName, verbDone, client.Namespace(context.TODO()))
 		return nil
 	}
-	fmt.Fprintf(out, "%s service '%s' in namespace '%s':\n", verbDoing, serviceName, client.Namespace())
+	fmt.Fprintf(out, "%s service '%s' in namespace '%s':\n", verbDoing, serviceName, client.Namespace(context.TODO()))
 	return waitForServiceToGetReady(client, serviceName, waitFlags.TimeoutInSeconds, verbDone, out)
 }
 
 func prepareAndUpdateService(client clientservingv1.KnServingClient, service *servingv1.Service) (bool, error) {
 	var retries = 0
 	for {
-		existingService, err := client.GetService(service.Name)
+		existingService, err := client.GetService(context.TODO(), service.Name)
 		if err != nil {
 			return false, err
 		}
@@ -204,7 +205,7 @@ func prepareAndUpdateService(client clientservingv1.KnServingClient, service *se
 		}
 
 		service.ResourceVersion = existingService.ResourceVersion
-		changed, err := client.UpdateService(service)
+		changed, err := client.UpdateService(context.TODO(), service)
 		if err != nil {
 			// Retry to update when a resource version conflict exists
 			if apierrors.IsConflict(err) && retries < MaxUpdateRetries {
@@ -228,7 +229,7 @@ func waitForServiceToGetReady(client clientservingv1.KnServingClient, name strin
 }
 
 func serviceExists(client clientservingv1.KnServingClient, name string) (bool, error) {
-	_, err := client.GetService(name)
+	_, err := client.GetService(context.TODO(), name)
 	if apierrors.IsNotFound(err) {
 		return false, nil
 	}
