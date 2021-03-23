@@ -40,26 +40,26 @@ import (
 // way for performing the merge (but this is not supported for custom resources)
 // See issue https://github.com/knative/client/issues/1073 for more details how this method should be
 // improved for a better merge strategy.
-func (cl *knServingClient) patch(modifiedService *servingv1.Service, currentService *servingv1.Service, uOriginalService []byte) (bool, error) {
+func (cl *knServingClient) patch(ctx context.Context, modifiedService *servingv1.Service, currentService *servingv1.Service, uOriginalService []byte) (bool, error) {
 	uModifiedService, err := getModifiedConfiguration(modifiedService, true)
 	if err != nil {
 		return false, err
 	}
-	hasChanged, err := cl.patchSimple(currentService, uModifiedService, uOriginalService)
+	hasChanged, err := cl.patchSimple(ctx, currentService, uModifiedService, uOriginalService)
 	for i := 1; i <= 5 && apierrors.IsConflict(err); i++ {
 		if i > 1 {
 			time.Sleep(1 * time.Second)
 		}
-		currentService, err = cl.GetService(context.TODO(), currentService.Name)
+		currentService, err = cl.GetService(ctx, currentService.Name)
 		if err != nil {
 			return false, err
 		}
-		hasChanged, err = cl.patchSimple(currentService, uModifiedService, uOriginalService)
+		hasChanged, err = cl.patchSimple(ctx, currentService, uModifiedService, uOriginalService)
 	}
 	return hasChanged, err
 }
 
-func (cl *knServingClient) patchSimple(currentService *servingv1.Service, uModifiedService []byte, uOriginalService []byte) (bool, error) {
+func (cl *knServingClient) patchSimple(ctx context.Context, currentService *servingv1.Service, uModifiedService []byte, uOriginalService []byte) (bool, error) {
 	// Serialize the current configuration of the object from the server.
 	uCurrentService, err := encodeService(currentService)
 	if err != nil {
@@ -76,7 +76,7 @@ func (cl *knServingClient) patchSimple(currentService *servingv1.Service, uModif
 	}
 
 	// Check if the generation has been counted up, only then the backend detected a change
-	savedService, err := cl.patchService(currentService.Name, types.MergePatchType, patch)
+	savedService, err := cl.patchService(ctx, currentService.Name, types.MergePatchType, patch)
 	if err != nil {
 		return false, err
 	}
@@ -84,8 +84,8 @@ func (cl *knServingClient) patchSimple(currentService *servingv1.Service, uModif
 }
 
 // patchService patches the given service
-func (cl *knServingClient) patchService(name string, patchType types.PatchType, patch []byte) (*servingv1.Service, error) {
-	service, err := cl.client.Services(cl.namespace).Patch(context.TODO(), name, patchType, patch, metav1.PatchOptions{})
+func (cl *knServingClient) patchService(ctx context.Context, name string, patchType types.PatchType, patch []byte) (*servingv1.Service, error) {
+	service, err := cl.client.Services(cl.namespace).Patch(ctx, name, patchType, patch, metav1.PatchOptions{})
 	if err != nil {
 		return nil, err
 	}

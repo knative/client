@@ -181,16 +181,16 @@ func writeFile(obj runtime.Object, fp, format string) error {
 // the local directory
 func (cl *knServingGitOpsClient) UpdateService(ctx context.Context, service *servingv1.Service) (bool, error) {
 	// check if file exist
-	if _, err := cl.GetService(context.TODO(), service.ObjectMeta.Name); err != nil {
+	if _, err := cl.GetService(ctx, service.ObjectMeta.Name); err != nil {
 		return false, err
 	}
 	// replace file
-	return true, cl.CreateService(context.TODO(), service)
+	return true, cl.CreateService(ctx, service)
 }
 
 // UpdateServiceWithRetry updates the service in the local directory
 func (cl *knServingGitOpsClient) UpdateServiceWithRetry(ctx context.Context, name string, updateFunc ServiceUpdateFunc, nrRetries int) (bool, error) {
-	return updateServiceWithRetry(cl, name, updateFunc, nrRetries)
+	return updateServiceWithRetry(ctx, cl, name, updateFunc, nrRetries)
 }
 
 // DeleteService removes the file from the local file system

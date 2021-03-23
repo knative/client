@@ -102,7 +102,7 @@ func (c *MockKnServingClient) UpdateService(ctx context.Context, service *servin
 
 // Delegate to shared retry method
 func (c *MockKnServingClient) UpdateServiceWithRetry(ctx context.Context, name string, updateFunc ServiceUpdateFunc, maxRetry int) (bool, error) {
-	return updateServiceWithRetry(c, name, updateFunc, maxRetry)
+	return updateServiceWithRetry(ctx, c, name, updateFunc, maxRetry)
 }
 
 // Update the given service
@@ -194,7 +194,7 @@ func (sr *ServingRecorder) GetConfiguration(name string, config *servingv1.Confi
 
 // GetBaseRevision returns the base revision
 func (c *MockKnServingClient) GetBaseRevision(ctx context.Context, service *servingv1.Service) (*servingv1.Revision, error) {
-	return getBaseRevision(c, service)
+	return getBaseRevision(ctx, c, service)
 }
 
 // GetConfiguration returns a configuration looked up by name
