@@ -260,7 +260,7 @@ func (c *knEventingClient) DeleteBroker(name string, timeout time.Duration) erro
 	defer watcher.Stop()
 	go func() {
 		waitForEvent := wait.NewWaitForEvent("broker", func(evt *watch.Event) bool { return evt.Type == watch.Deleted })
-		err, _ := waitForEvent.Wait(watcher, name, wait.Options{Timeout: &timeout}, wait.NoopMessageCallback())
+		err, _ := waitForEvent.Wait(context.TODO(), watcher, name, wait.Options{Timeout: &timeout}, wait.NoopMessageCallback())
 		waitC <- err
 	}()
 	err = c.deleteBroker(name, apis_v1.DeletePropagationForeground)

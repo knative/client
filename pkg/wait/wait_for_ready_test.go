@@ -15,6 +15,7 @@
 package wait
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -46,7 +47,7 @@ func TestAddWaitForReady(t *testing.T) {
 			})
 		fakeWatchApi.Start()
 		var msgs []string
-		err, _ := waitForReady.Wait(fakeWatchApi, "foobar", Options{Timeout: &tc.timeout}, func(_ time.Duration, msg string) {
+		err, _ := waitForReady.Wait(context.Background(), fakeWatchApi, "foobar", Options{Timeout: &tc.timeout}, func(_ time.Duration, msg string) {
 			msgs = append(msgs, msg)
 		})
 		close(fakeWatchApi.eventChan)
@@ -82,7 +83,7 @@ func TestAddWaitForDelete(t *testing.T) {
 			func(evt *watch.Event) bool { return evt.Type == watch.Deleted })
 		fakeWatchAPI.Start()
 
-		err, _ := waitForEvent.Wait(fakeWatchAPI, "foobar", Options{Timeout: &tc.timeout}, NoopMessageCallback())
+		err, _ := waitForEvent.Wait(context.Background(), fakeWatchAPI, "foobar", Options{Timeout: &tc.timeout}, NoopMessageCallback())
 		close(fakeWatchAPI.eventChan)
 
 		if tc.errorText == "" && err != nil {
