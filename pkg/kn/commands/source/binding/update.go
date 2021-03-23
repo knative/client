@@ -68,7 +68,7 @@ func NewBindingUpdateCommand(p *commands.KnParams) *cobra.Command {
 
 			b := v1alpha12.NewSinkBindingBuilderFromExisting(source)
 			if cmd.Flags().Changed("sink") {
-				destination, err := sinkFlags.ResolveSink(dynamicClient, namespace)
+				destination, err := sinkFlags.ResolveSink(cmd.Context(), dynamicClient, namespace)
 				if err != nil {
 					return err
 				}

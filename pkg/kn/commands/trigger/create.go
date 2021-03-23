@@ -63,7 +63,7 @@ func NewTriggerCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			objectRef, err := sinkFlags.ResolveSink(dynamicClient, namespace)
+			objectRef, err := sinkFlags.ResolveSink(cmd.Context(), dynamicClient, namespace)
 			if err != nil {
 				return fmt.Errorf(
 					"cannot create trigger '%s' in namespace '%s' "+

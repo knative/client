@@ -60,7 +60,7 @@ func NewServiceListCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			serviceList, err := getServiceInfo(args, client)
+			serviceList, err := getServiceInfo(cmd.Context(), args, client)
 			if err != nil {
 				return err
 			}
@@ -94,16 +94,16 @@ func NewServiceListCommand(p *commands.KnParams) *cobra.Command {
 	return serviceListCommand
 }
 
-func getServiceInfo(args []string, client clientservingv1.KnServingClient) (*servingv1.ServiceList, error) {
+func getServiceInfo(ctx context.Context, args []string, client clientservingv1.KnServingClient) (*servingv1.ServiceList, error) {
 	var (
 		serviceList *servingv1.ServiceList
 		err         error
 	)
 	switch len(args) {
 	case 0:
-		serviceList, err = client.ListServices(context.TODO())
+		serviceList, err = client.ListServices(ctx)
 	case 1:
-		serviceList, err = client.ListServices(context.TODO(), clientservingv1.WithName(args[0]))
+		serviceList, err = client.ListServices(ctx, clientservingv1.WithName(args[0]))
 	default:
 		return nil, fmt.Errorf("'kn service list' accepts maximum 1 argument")
 	}

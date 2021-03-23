@@ -15,7 +15,6 @@
 package service
 
 import (
-	"context"
 	"errors"
 	"fmt"
 
@@ -87,7 +86,7 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 				latestRevisionBeforeUpdate = service.Status.LatestReadyRevisionName
 				var baseRevision *servingv1.Revision
 				if !cmd.Flags().Changed("image") && editFlags.LockToDigest {
-					baseRevision, err = client.GetBaseRevision(context.TODO(), service)
+					baseRevision, err = client.GetBaseRevision(cmd.Context(), service)
 					var errNoBaseRevision clientservingv1.NoBaseRevisionError
 					if errors.As(err, &errNoBaseRevision) {
 						fmt.Fprintf(cmd.OutOrStdout(), "Warning: No revision found to update image digest")
@@ -110,7 +109,7 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			// Do the actual update with retry in case of conflicts
-			changed, err := client.UpdateServiceWithRetry(context.TODO(), name, updateFunc, MaxUpdateRetries)
+			changed, err := client.UpdateServiceWithRetry(cmd.Context(), name, updateFunc, MaxUpdateRetries)
 			if err != nil {
 				return err
 			}
@@ -126,12 +125,12 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 			if waitFlags.Wait && targetFlag == "" {
 				fmt.Fprintf(out, "Updating Service '%s' in namespace '%s':\n", args[0], namespace)
 				fmt.Fprintln(out, "")
-				err := waitForService(client, name, out, waitFlags.TimeoutInSeconds)
+				err := waitForService(cmd.Context(), client, name, out, waitFlags.TimeoutInSeconds)
 				if err != nil {
 					return err
 				}
 				fmt.Fprintln(out, "")
-				return showUrl(client, name, latestRevisionBeforeUpdate, "updated", out)
+				return showUrl(cmd.Context(), client, name, latestRevisionBeforeUpdate, "updated", out)
 			} else {
 				fmt.Fprintf(out, "Service '%s' updated in namespace '%s'.\n", args[0], namespace)
 			}

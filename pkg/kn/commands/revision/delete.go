@@ -69,7 +69,7 @@ func NewRevisionDeleteCommand(p *commands.KnParams) *cobra.Command {
 				params = append(params, v1.WithService(pruneFilter))
 			}
 			if prune || pruneAll {
-				args, err = getUnreferencedRevisionNames(params, client)
+				args, err = getUnreferencedRevisionNames(cmd.Context(), params, client)
 				if err != nil {
 					return err
 				}
@@ -85,7 +85,7 @@ func NewRevisionDeleteCommand(p *commands.KnParams) *cobra.Command {
 				if waitFlags.Wait {
 					timeout = time.Duration(waitFlags.TimeoutInSeconds) * time.Second
 				}
-				err = client.DeleteRevision(context.TODO(), name, timeout)
+				err = client.DeleteRevision(cmd.Context(), name, timeout)
 				if err != nil {
 					errs = append(errs, err.Error())
 				} else {
@@ -107,8 +107,8 @@ func NewRevisionDeleteCommand(p *commands.KnParams) *cobra.Command {
 }
 
 // Return unreferenced revision names
-func getUnreferencedRevisionNames(lConfig []v1.ListConfig, client v1.KnServingClient) ([]string, error) {
-	revisionList, err := client.ListRevisions(context.TODO(), lConfig...)
+func getUnreferencedRevisionNames(ctx context.Context, lConfig []v1.ListConfig, client v1.KnServingClient) ([]string, error) {
+	revisionList, err := client.ListRevisions(ctx, lConfig...)
 	if err != nil {
 		return []string{}, err
 	}

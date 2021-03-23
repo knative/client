@@ -15,7 +15,6 @@
 package service
 
 import (
-	"context"
 	"errors"
 	"fmt"
 
@@ -87,16 +86,16 @@ func NewServiceApplyCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			hasChanged, err := client.ApplyService(context.TODO(), service)
+			hasChanged, err := client.ApplyService(cmd.Context(), service)
 			if err != nil {
 				return err
 			}
 			if !hasChanged {
 				fmt.Fprintf(cmd.OutOrStdout(), "No changes to apply to service '%s'.\n", service.Name)
 
-				return showUrl(client, service.Name, "unchanged", "", cmd.OutOrStdout())
+				return showUrl(cmd.Context(), client, service.Name, "unchanged", "", cmd.OutOrStdout())
 			}
-			return waitIfRequested(client, waitFlags, service.Name, waitDoing, waitVerb, "", cmd.OutOrStdout())
+			return waitIfRequested(cmd.Context(), client, waitFlags, service.Name, waitDoing, waitVerb, "", cmd.OutOrStdout())
 		},
 	}
 	commands.AddNamespaceFlags(serviceApplyCommand.Flags(), false)
@@ -106,7 +105,7 @@ func NewServiceApplyCommand(p *commands.KnParams) *cobra.Command {
 }
 
 func examineServiceForApply(cmd *cobra.Command, client clientservingv1.KnServingClient, serviceName string) (string, string, error) {
-	currentService, err := client.GetService(context.TODO(), serviceName)
+	currentService, err := client.GetService(cmd.Context(), serviceName)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			return "Creating", "created", nil

@@ -69,19 +69,19 @@ func NewSubscriptionUpdateCommand(p *commands.KnParams) *cobra.Command {
 
 			sb := knmessagingv1beta1.NewSubscriptionBuilderFromExisting(foundSub)
 
-			sub, err := subscriberFlag.ResolveSink(dynamicClient, namespace)
+			sub, err := subscriberFlag.ResolveSink(cmd.Context(), dynamicClient, namespace)
 			if err != nil {
 				return err
 			}
 			sb.Subscriber(sub)
 
-			rep, err := replyFlag.ResolveSink(dynamicClient, namespace)
+			rep, err := replyFlag.ResolveSink(cmd.Context(), dynamicClient, namespace)
 			if err != nil {
 				return err
 			}
 			sb.Reply(rep)
 
-			ds, err := dlsFlag.ResolveSink(dynamicClient, namespace)
+			ds, err := dlsFlag.ResolveSink(cmd.Context(), dynamicClient, namespace)
 			if err != nil {
 				return err
 			}

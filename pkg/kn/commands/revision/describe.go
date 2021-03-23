@@ -15,7 +15,6 @@
 package revision
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -58,7 +57,7 @@ func NewRevisionDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			revision, err := client.GetRevision(context.TODO(), args[0])
+			revision, err := client.GetRevision(cmd.Context(), args[0])
 			if err != nil {
 				return err
 			}
@@ -77,7 +76,7 @@ func NewRevisionDescribeCommand(p *commands.KnParams) *cobra.Command {
 			var service *servingv1.Service
 			serviceName, ok := revision.Labels[serving.ServiceLabelKey]
 			if printDetails && ok {
-				service, err = client.GetService(context.TODO(), serviceName)
+				service, err = client.GetService(cmd.Context(), serviceName)
 				if err != nil {
 					return err
 				}

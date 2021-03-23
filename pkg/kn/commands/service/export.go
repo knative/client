@@ -111,7 +111,7 @@ func NewServiceExportCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			service, err := client.GetService(context.TODO(), serviceName)
+			service, err := client.GetService(cmd.Context(), serviceName)
 			if err != nil {
 				return err
 			}
@@ -142,14 +142,14 @@ func exportService(cmd *cobra.Command, service *servingv1.Service, client client
 	}
 
 	if mode == ModeReplay {
-		svcList, err := exportServiceListForReplay(service.DeepCopy(), client, withRevisions)
+		svcList, err := exportServiceListForReplay(cmd.Context(), service.DeepCopy(), client, withRevisions)
 		if err != nil {
 			return err
 		}
 		return printer.PrintObj(svcList, cmd.OutOrStdout())
 	}
 	// default is export mode
-	knExport, err := exportForKNImport(service.DeepCopy(), client, withRevisions)
+	knExport, err := exportForKNImport(cmd.Context(), service.DeepCopy(), client, withRevisions)
 	if err != nil {
 		return err
 	}
@@ -220,13 +220,13 @@ func constructServiceFromRevision(latestSvc *servingv1.Service, revision *servin
 	return exportedSvc
 }
 
-func exportServiceListForReplay(latestSvc *servingv1.Service, client clientservingv1.KnServingClient, withRevisions bool) (runtime.Object, error) {
+func exportServiceListForReplay(ctx context.Context, latestSvc *servingv1.Service, client clientservingv1.KnServingClient, withRevisions bool) (runtime.Object, error) {
 	if !withRevisions {
 		return exportLatestService(latestSvc, false), nil
 	}
 	var exportedSvcItems []servingv1.Service
 
-	revisionList, revsMap, err := getRevisionsToExport(latestSvc, client)
+	revisionList, revsMap, err := getRevisionsToExport(ctx, latestSvc, client)
 	if err != nil {
 		return nil, err
 	}
@@ -253,11 +253,11 @@ func exportServiceListForReplay(latestSvc *servingv1.Service, client clientservi
 	return exportedSvcList, nil
 }
 
-func exportForKNImport(latestSvc *servingv1.Service, client clientservingv1.KnServingClient, withRevisions bool) (*clientv1alpha1.Export, error) {
+func exportForKNImport(ctx context.Context, latestSvc *servingv1.Service, client clientservingv1.KnServingClient, withRevisions bool) (*clientv1alpha1.Export, error) {
 	var exportedRevItems []servingv1.Revision
 	revisionHistoryCount := 0
 	if withRevisions {
-		revisionList, revsMap, err := getRevisionsToExport(latestSvc, client)
+		revisionList, revsMap, err := getRevisionsToExport(ctx, latestSvc, client)
 		if err != nil {
 			return nil, err
 		}
@@ -286,12 +286,12 @@ func exportForKNImport(latestSvc *servingv1.Service, client clientservingv1.KnSe
 	return knExport, nil
 }
 
-func getRevisionsToExport(latestSvc *servingv1.Service, client clientservingv1.KnServingClient) (*servingv1.RevisionList, map[string]bool, error) {
+func getRevisionsToExport(ctx context.Context, latestSvc *servingv1.Service, client clientservingv1.KnServingClient) (*servingv1.RevisionList, map[string]bool, error) {
 	//get revisions to export from traffic
 	revsMap := getRoutedRevisions(latestSvc)
 
 	// Query for list with filters
-	revisionList, err := client.ListRevisions(context.TODO(), clientservingv1.WithService(latestSvc.ObjectMeta.Name))
+	revisionList, err := client.ListRevisions(ctx, clientservingv1.WithService(latestSvc.ObjectMeta.Name))
 	if err != nil {
 		return nil, nil, err
 	}

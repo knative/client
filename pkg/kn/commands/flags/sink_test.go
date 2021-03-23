@@ -15,6 +15,7 @@
 package flags
 
 import (
+	"context"
 	"testing"
 
 	"github.com/spf13/cobra"
@@ -123,7 +124,7 @@ func TestResolve(t *testing.T) {
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default", mysvc, defaultBroker, pipeChannel)
 	for _, c := range cases {
 		i := &SinkFlags{c.sink}
-		result, err := i.ResolveSink(dynamicClient, "default")
+		result, err := i.ResolveSink(context.Background(), dynamicClient, "default")
 		if c.destination != nil {
 			assert.DeepEqual(t, result, c.destination)
 			assert.NilError(t, err)
@@ -167,7 +168,7 @@ func TestResolveWithNamespace(t *testing.T) {
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("my-namespace", mysvc, defaultBroker, pipeChannel)
 	for _, c := range cases {
 		i := &SinkFlags{c.sink}
-		result, err := i.ResolveSink(dynamicClient, "default")
+		result, err := i.ResolveSink(context.Background(), dynamicClient, "default")
 		if c.destination != nil {
 			assert.DeepEqual(t, result, c.destination)
 			assert.Equal(t, c.destination.Ref.Namespace, "my-namespace")

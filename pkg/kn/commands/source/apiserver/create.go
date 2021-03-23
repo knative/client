@@ -56,7 +56,7 @@ func NewAPIServerCreateCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			objectRef, err := sinkFlags.ResolveSink(dynamicClient, namespace)
+			objectRef, err := sinkFlags.ResolveSink(cmd.Context(), dynamicClient, namespace)
 			if err != nil {
 				return fmt.Errorf(
 					"cannot create ApiServerSource '%s' in namespace '%s' "+

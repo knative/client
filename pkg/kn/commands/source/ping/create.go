@@ -59,7 +59,7 @@ func NewPingCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			destination, err := sinkFlags.ResolveSink(dynamicClient, namespace)
+			destination, err := sinkFlags.ResolveSink(cmd.Context(), dynamicClient, namespace)
 			if err != nil {
 				return err
 			}

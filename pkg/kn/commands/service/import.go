@@ -64,7 +64,7 @@ func NewServiceImportCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			return importWithOwnerRef(client, filename, cmd.OutOrStdout(), waitFlags)
+			return importWithOwnerRef(cmd.Context(), client, filename, cmd.OutOrStdout(), waitFlags)
 		},
 	}
 	flags := command.Flags()
@@ -74,7 +74,7 @@ func NewServiceImportCommand(p *commands.KnParams) *cobra.Command {
 	return command
 }
 
-func importWithOwnerRef(client clientservingv1.KnServingClient, filename string, out io.Writer, waitFlags commands.WaitFlags) error {
+func importWithOwnerRef(ctx context.Context, client clientservingv1.KnServingClient, filename string, out io.Writer, waitFlags commands.WaitFlags) error {
 	var export clientv1alpha1.Export
 	file, err := os.Open(filename)
 	if err != nil {
@@ -92,22 +92,22 @@ func importWithOwnerRef(client clientservingv1.KnServingClient, filename string,
 	serviceName := export.Spec.Service.Name
 
 	// Return error if service already exists
-	svcExists, err := serviceExists(client, serviceName)
+	svcExists, err := serviceExists(ctx, client, serviceName)
 	if err != nil {
 		return err
 	}
 	if svcExists {
 		return fmt.Errorf("cannot import service '%s' in namespace '%s' because the service already exists",
-			serviceName, client.Namespace(context.TODO()))
+			serviceName, client.Namespace(ctx))
 	}
 
-	err = client.CreateService(context.TODO(), &export.Spec.Service)
+	err = client.CreateService(ctx, &export.Spec.Service)
 	if err != nil {
 		return err
 	}
 
 	// Retrieve current Configuration to be use in OwnerReference
-	currentConf, err := getConfigurationWithRetry(client, serviceName)
+	currentConf, err := getConfigurationWithRetry(ctx, client, serviceName)
 	if err != nil {
 		return err
 	}
@@ -118,26 +118,26 @@ func importWithOwnerRef(client clientservingv1.KnServingClient, filename string,
 			tmp := r.DeepCopy()
 			// OwnerRef ensures that Revisions are recognized by controller
 			tmp.OwnerReferences = []metav1.OwnerReference{*kmeta.NewControllerRef(currentConf)}
-			if err = client.CreateRevision(context.TODO(), tmp); err != nil {
+			if err = client.CreateRevision(ctx, tmp); err != nil {
 				return err
 			}
 		}
 	}
 
-	err = waitIfRequested(client, waitFlags, serviceName, "Importing", "imported", "", out)
+	err = waitIfRequested(ctx, client, waitFlags, serviceName, "Importing", "imported", "", out)
 	if err != nil {
 		return err
 	}
 	return err
 }
 
-func getConfigurationWithRetry(client clientservingv1.KnServingClient, name string) (*servingv1.Configuration, error) {
+func getConfigurationWithRetry(ctx context.Context, client clientservingv1.KnServingClient, name string) (*servingv1.Configuration, error) {
 	var conf *servingv1.Configuration
 	var err error
 	err = retry.OnError(retry.DefaultBackoff, func(err error) bool {
 		return apierrors.IsNotFound(err)
 	}, func() error {
-		conf, err = client.GetConfiguration(context.TODO(), name)
+		conf, err = client.GetConfiguration(ctx, name)
 		return err
 	})
 	return conf, err

@@ -79,19 +79,19 @@ func NewSubscriptionCreateCommand(p *commands.KnParams) *cobra.Command {
 			}
 			sb.Channel(cref)
 
-			sub, err := subscriberFlag.ResolveSink(dynamicClient, namespace)
+			sub, err := subscriberFlag.ResolveSink(cmd.Context(), dynamicClient, namespace)
 			if err != nil {
 				return err
 			}
 			sb.Subscriber(sub)
 
-			rep, err := replyFlag.ResolveSink(dynamicClient, namespace)
+			rep, err := replyFlag.ResolveSink(cmd.Context(), dynamicClient, namespace)
 			if err != nil {
 				return err
 			}
 			sb.Reply(rep)
 
-			ds, err := dlsFlag.ResolveSink(dynamicClient, namespace)
+			ds, err := dlsFlag.ResolveSink(cmd.Context(), dynamicClient, namespace)
 			if err != nil {
 				return err
 			}

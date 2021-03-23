@@ -74,7 +74,7 @@ func NewPingUpdateCommand(p *commands.KnParams) *cobra.Command {
 				b.JsonData(updateFlags.data)
 			}
 			if cmd.Flags().Changed("sink") {
-				destination, err := sinkFlags.ResolveSink(dynamicClient, namespace)
+				destination, err := sinkFlags.ResolveSink(cmd.Context(), dynamicClient, namespace)
 				if err != nil {
 					return err
 				}
