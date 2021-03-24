@@ -15,6 +15,7 @@
 package v1alpha2
 
 import (
+	context2 "context"
 	"fmt"
 	"testing"
 
@@ -30,7 +31,7 @@ import (
 func setupPingSourcesClient(t *testing.T) (sources fake.FakeSourcesV1alpha2, client KnPingSourcesClient) {
 	sources = fake.FakeSourcesV1alpha2{Fake: &clienttesting.Fake{}}
 	client = NewKnSourcesClient(&sources, "test-ns").PingSourcesClient()
-	assert.Equal(t, client.Namespace(), "test-ns")
+	assert.Equal(t, client.Namespace(context2.TODO()), "test-ns")
 	return
 }
 
@@ -47,14 +48,14 @@ func TestCreatePingSource(t *testing.T) {
 			return true, newSource, nil
 		})
 
-	err := client.CreatePingSource(newPingSource("testsource", "mysvc"))
+	err := client.CreatePingSource(context2.TODO(), newPingSource("testsource", "mysvc"))
 	assert.NilError(t, err)
 
-	err = client.CreatePingSource(newPingSource("testsource", ""))
+	err = client.CreatePingSource(context2.TODO(), newPingSource("testsource", ""))
 	assert.ErrorContains(t, err, "sink")
 	assert.ErrorContains(t, err, "required")
 
-	err = client.CreatePingSource(newPingSource("errorSource", "mysvc"))
+	err = client.CreatePingSource(context2.TODO(), newPingSource("errorSource", "mysvc"))
 	assert.ErrorContains(t, err, "errorSource")
 }
 
@@ -71,10 +72,10 @@ func TestUpdatePingSource(t *testing.T) {
 			return true, NewPingSourceBuilderFromExisting(newSource.(*v1alpha2.PingSource)).Build(), nil
 		})
 
-	err := client.UpdatePingSource(newPingSource("testsource", ""))
+	err := client.UpdatePingSource(context2.TODO(), newPingSource("testsource", ""))
 	assert.NilError(t, err)
 
-	err = client.UpdatePingSource(newPingSource("errorSource", ""))
+	err = client.UpdatePingSource(context2.TODO(), newPingSource("errorSource", ""))
 	assert.ErrorContains(t, err, "errorSource")
 }
 
@@ -90,10 +91,10 @@ func TestDeletePingSource(t *testing.T) {
 			return true, nil, nil
 		})
 
-	err := client.DeletePingSource("testsource")
+	err := client.DeletePingSource(context2.TODO(), "testsource")
 	assert.NilError(t, err)
 
-	err = client.DeletePingSource("errorSource")
+	err = client.DeletePingSource(context2.TODO(), "errorSource")
 	assert.ErrorContains(t, err, "errorSource")
 }
 
@@ -109,12 +110,12 @@ func TestGetPingSource(t *testing.T) {
 			return true, newPingSource(name, "mysvc"), nil
 		})
 
-	source, err := client.GetPingSource("testsource")
+	source, err := client.GetPingSource(context2.TODO(), "testsource")
 	assert.NilError(t, err)
 	assert.Equal(t, source.Name, "testsource")
 	assert.Equal(t, source.Spec.Sink.Ref.Name, "mysvc")
 
-	_, err = client.GetPingSource("errorSource")
+	_, err = client.GetPingSource(context2.TODO(), "errorSource")
 	assert.ErrorContains(t, err, "errorSource")
 }
 
@@ -127,7 +128,7 @@ func TestListPingSource(t *testing.T) {
 			return true, &v1alpha2.PingSourceList{Items: []v1alpha2.PingSource{*cJSource}}, nil
 		})
 
-	sourceList, err := client.ListPingSource()
+	sourceList, err := client.ListPingSource(context2.TODO())
 	assert.NilError(t, err)
 	assert.Equal(t, len(sourceList.Items), 1)
 }

@@ -31,23 +31,23 @@ import (
 type KnPingSourcesClient interface {
 
 	// GetPingSource fetches a Ping source by its name
-	GetPingSource(name string) (*v1alpha2.PingSource, error)
+	GetPingSource(ctx context.Context, name string) (*v1alpha2.PingSource, error)
 
 	// CreatePingSource creates a Ping source
-	CreatePingSource(pingSource *v1alpha2.PingSource) error
+	CreatePingSource(ctx context.Context, pingSource *v1alpha2.PingSource) error
 
 	// UpdatePingSource updates a Ping source
-	UpdatePingSource(pingSource *v1alpha2.PingSource) error
+	UpdatePingSource(ctx context.Context, pingSource *v1alpha2.PingSource) error
 
 	// DeletePingSource deletes a Ping source
-	DeletePingSource(name string) error
+	DeletePingSource(ctx context.Context, name string) error
 
 	// ListPingSource lists all Ping sources
 	// TODO: Support list configs like in service list
-	ListPingSource() (*v1alpha2.PingSourceList, error)
+	ListPingSource(ctx context.Context) (*v1alpha2.PingSourceList, error)
 
 	// Get namespace for this source
-	Namespace() string
+	Namespace(ctx context.Context) string
 }
 
 // knSourcesClient is a combination of Sources client interface and namespace
@@ -67,11 +67,11 @@ func newKnPingSourcesClient(client clientv1alpha2.PingSourceInterface, namespace
 }
 
 // Get the namespace for which this client has been created
-func (c *pingSourcesClient) Namespace() string {
+func (c *pingSourcesClient) Namespace(context.Context) string {
 	return c.namespace
 }
 
-func (c *pingSourcesClient) CreatePingSource(pingsource *v1alpha2.PingSource) error {
+func (c *pingSourcesClient) CreatePingSource(ctx context.Context, pingsource *v1alpha2.PingSource) error {
 	if pingsource.Spec.Sink.Ref == nil && pingsource.Spec.Sink.URI == nil {
 		return fmt.Errorf("a sink is required for creating a source")
 	}
@@ -82,7 +82,7 @@ func (c *pingSourcesClient) CreatePingSource(pingsource *v1alpha2.PingSource) er
 	return nil
 }
 
-func (c *pingSourcesClient) UpdatePingSource(pingSource *v1alpha2.PingSource) error {
+func (c *pingSourcesClient) UpdatePingSource(ctx context.Context, pingSource *v1alpha2.PingSource) error {
 	_, err := c.client.Update(context.TODO(), pingSource, metav1.UpdateOptions{})
 	if err != nil {
 		return knerrors.GetError(err)
@@ -90,7 +90,7 @@ func (c *pingSourcesClient) UpdatePingSource(pingSource *v1alpha2.PingSource) er
 	return nil
 }
 
-func (c *pingSourcesClient) DeletePingSource(name string) error {
+func (c *pingSourcesClient) DeletePingSource(ctx context.Context, name string) error {
 	err := c.client.Delete(context.TODO(), name, metav1.DeleteOptions{})
 	if err != nil {
 		return knerrors.GetError(err)
@@ -98,7 +98,7 @@ func (c *pingSourcesClient) DeletePingSource(name string) error {
 	return nil
 }
 
-func (c *pingSourcesClient) GetPingSource(name string) (*v1alpha2.PingSource, error) {
+func (c *pingSourcesClient) GetPingSource(ctx context.Context, name string) (*v1alpha2.PingSource, error) {
 	source, err := c.client.Get(context.TODO(), name, metav1.GetOptions{})
 	if err != nil {
 		return nil, knerrors.GetError(err)
@@ -111,7 +111,7 @@ func (c *pingSourcesClient) GetPingSource(name string) (*v1alpha2.PingSource, er
 }
 
 // ListPingSource returns the available Ping sources
-func (c *pingSourcesClient) ListPingSource() (*v1alpha2.PingSourceList, error) {
+func (c *pingSourcesClient) ListPingSource(context.Context) (*v1alpha2.PingSourceList, error) {
 	sourceList, err := c.client.List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return nil, knerrors.GetError(err)

@@ -15,6 +15,7 @@
 package v1alpha2
 
 import (
+	context2 "context"
 	"testing"
 
 	"knative.dev/eventing/pkg/apis/sources/v1alpha2"
@@ -33,10 +34,10 @@ func TestMockKnPingSourceClient(t *testing.T) {
 	recorder.DeletePingSource("hello", nil)
 
 	// Call all service
-	client.GetPingSource("hello")
-	client.CreatePingSource(&v1alpha2.PingSource{})
-	client.UpdatePingSource(&v1alpha2.PingSource{})
-	client.DeletePingSource("hello")
+	client.GetPingSource(context2.TODO(), "hello")
+	client.CreatePingSource(context2.TODO(), &v1alpha2.PingSource{})
+	client.UpdatePingSource(context2.TODO(), &v1alpha2.PingSource{})
+	client.DeletePingSource(context2.TODO(), "hello")
 
 	// Validate
 	recorder.Validate()

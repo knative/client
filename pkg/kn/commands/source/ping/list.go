@@ -15,6 +15,7 @@
 package ping
 
 import (
+	context2 "context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -45,7 +46,7 @@ func NewPingListCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			sourceList, err := pingClient.ListPingSource()
+			sourceList, err := pingClient.ListPingSource(context2.TODO())
 			if err != nil {
 				return err
 			}
@@ -55,7 +56,7 @@ func NewPingListCommand(p *commands.KnParams) *cobra.Command {
 				return nil
 			}
 
-			if pingClient.Namespace() == "" {
+			if pingClient.Namespace(context2.TODO()) == "" {
 				listFlags.EnsureWithNamespace()
 			}
 

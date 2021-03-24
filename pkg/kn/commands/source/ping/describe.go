@@ -15,6 +15,7 @@
 package ping
 
 import (
+	context2 "context"
 	"errors"
 	"sort"
 
@@ -55,7 +56,7 @@ func NewPingDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			pingSource, err := pingSourceClient.GetPingSource(name)
+			pingSource, err := pingSourceClient.GetPingSource(context2.TODO(), name)
 			if err != nil {
 				return err
 			}
