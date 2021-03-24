@@ -199,7 +199,7 @@ type serviceGetFunc func(namespace, serviceName string) (*servingv1.Service, err
 
 // Create revision info with traffic and tag information (if present)
 func enrichRevisionAnnotationsWithServiceData(ctx context.Context, serviceFactory serviceFactoryFunc, revisionList *servingv1.RevisionList) error {
-	serviceLookup := serviceLookup(serviceFactory, ctx)
+	serviceLookup := serviceLookup(ctx, serviceFactory)
 
 	for _, revision := range revisionList.Items {
 		serviceName := revision.Labels[serving.ServiceLabelKey]
@@ -224,7 +224,7 @@ func enrichRevisionAnnotationsWithServiceData(ctx context.Context, serviceFactor
 }
 
 // Create a function for being able to lookup a service for an arbitrary namespace
-func serviceLookup(serviceFactory serviceFactoryFunc, ctx context.Context) serviceGetFunc {
+func serviceLookup(ctx context.Context, serviceFactory serviceFactoryFunc) serviceGetFunc {
 
 	// Two caches: For service & clients (clients might not be necessary though)
 	serviceCache := make(map[string]*servingv1.Service)
