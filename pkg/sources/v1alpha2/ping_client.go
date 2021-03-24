@@ -75,7 +75,7 @@ func (c *pingSourcesClient) CreatePingSource(ctx context.Context, pingsource *v1
 	if pingsource.Spec.Sink.Ref == nil && pingsource.Spec.Sink.URI == nil {
 		return fmt.Errorf("a sink is required for creating a source")
 	}
-	_, err := c.client.Create(context.TODO(), pingsource, metav1.CreateOptions{})
+	_, err := c.client.Create(ctx, pingsource, metav1.CreateOptions{})
 	if err != nil {
 		return knerrors.GetError(err)
 	}
@@ -83,7 +83,7 @@ func (c *pingSourcesClient) CreatePingSource(ctx context.Context, pingsource *v1
 }
 
 func (c *pingSourcesClient) UpdatePingSource(ctx context.Context, pingSource *v1alpha2.PingSource) error {
-	_, err := c.client.Update(context.TODO(), pingSource, metav1.UpdateOptions{})
+	_, err := c.client.Update(ctx, pingSource, metav1.UpdateOptions{})
 	if err != nil {
 		return knerrors.GetError(err)
 	}
@@ -91,7 +91,7 @@ func (c *pingSourcesClient) UpdatePingSource(ctx context.Context, pingSource *v1
 }
 
 func (c *pingSourcesClient) DeletePingSource(ctx context.Context, name string) error {
-	err := c.client.Delete(context.TODO(), name, metav1.DeleteOptions{})
+	err := c.client.Delete(ctx, name, metav1.DeleteOptions{})
 	if err != nil {
 		return knerrors.GetError(err)
 	}
@@ -99,7 +99,7 @@ func (c *pingSourcesClient) DeletePingSource(ctx context.Context, name string) e
 }
 
 func (c *pingSourcesClient) GetPingSource(ctx context.Context, name string) (*v1alpha2.PingSource, error) {
-	source, err := c.client.Get(context.TODO(), name, metav1.GetOptions{})
+	source, err := c.client.Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return nil, knerrors.GetError(err)
 	}
@@ -111,8 +111,8 @@ func (c *pingSourcesClient) GetPingSource(ctx context.Context, name string) (*v1
 }
 
 // ListPingSource returns the available Ping sources
-func (c *pingSourcesClient) ListPingSource(context.Context) (*v1alpha2.PingSourceList, error) {
-	sourceList, err := c.client.List(context.TODO(), metav1.ListOptions{})
+func (c *pingSourcesClient) ListPingSource(ctx context.Context) (*v1alpha2.PingSourceList, error) {
+	sourceList, err := c.client.List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, knerrors.GetError(err)
 	}
