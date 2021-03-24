@@ -72,7 +72,7 @@ func (c *subscriptionsClient) Namespace(context.Context) string {
 
 // GetSubscription gets Subscription by its name
 func (c *subscriptionsClient) GetSubscription(ctx context.Context, name string) (*v1beta1.Subscription, error) {
-	subscription, err := c.client.Get(context.TODO(), name, metav1.GetOptions{})
+	subscription, err := c.client.Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return nil, knerrors.GetError(err)
 	}
@@ -85,24 +85,24 @@ func (c *subscriptionsClient) GetSubscription(ctx context.Context, name string) 
 
 // CreateSubscription creates Subscription with given spec
 func (c *subscriptionsClient) CreateSubscription(ctx context.Context, subscription *v1beta1.Subscription) error {
-	_, err := c.client.Create(context.TODO(), subscription, metav1.CreateOptions{})
+	_, err := c.client.Create(ctx, subscription, metav1.CreateOptions{})
 	return knerrors.GetError(err)
 }
 
 // UpdateSubscription creates Subscription with given spec
 func (c *subscriptionsClient) UpdateSubscription(ctx context.Context, subscription *v1beta1.Subscription) error {
-	_, err := c.client.Update(context.TODO(), subscription, metav1.UpdateOptions{})
+	_, err := c.client.Update(ctx, subscription, metav1.UpdateOptions{})
 	return knerrors.GetError(err)
 }
 
 // DeleteSubscription deletes Subscription by its name
 func (c *subscriptionsClient) DeleteSubscription(ctx context.Context, name string) error {
-	return knerrors.GetError(c.client.Delete(context.TODO(), name, metav1.DeleteOptions{}))
+	return knerrors.GetError(c.client.Delete(ctx, name, metav1.DeleteOptions{}))
 }
 
 // ListSubscription lists subscriptions in configured namespace
-func (c *subscriptionsClient) ListSubscription(context.Context) (*v1beta1.SubscriptionList, error) {
-	subscriptionList, err := c.client.List(context.TODO(), metav1.ListOptions{})
+func (c *subscriptionsClient) ListSubscription(ctx context.Context) (*v1beta1.SubscriptionList, error) {
+	subscriptionList, err := c.client.List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, knerrors.GetError(err)
 	}
