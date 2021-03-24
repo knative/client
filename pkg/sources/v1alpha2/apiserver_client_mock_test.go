@@ -15,7 +15,7 @@
 package v1alpha2
 
 import (
-	context2 "context"
+	"context"
 	"testing"
 
 	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
@@ -34,10 +34,10 @@ func TestMockKnAPIServerSourceClient(t *testing.T) {
 	recorder.DeleteAPIServerSource("hello", nil)
 
 	// Call all service
-	client.GetAPIServerSource(context2.TODO(), "hello")
-	client.CreateAPIServerSource(context2.TODO(), &v1alpha2.ApiServerSource{})
-	client.UpdateAPIServerSource(context2.TODO(), &v1alpha2.ApiServerSource{})
-	client.DeleteAPIServerSource(context2.TODO(), "hello")
+	client.GetAPIServerSource(context.Background(), "hello")
+	client.CreateAPIServerSource(context.Background(), &v1alpha2.ApiServerSource{})
+	client.UpdateAPIServerSource(context.Background(), &v1alpha2.ApiServerSource{})
+	client.DeleteAPIServerSource(context.Background(), "hello")
 
 	// Validate
 	recorder.Validate()
