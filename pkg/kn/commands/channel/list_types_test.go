@@ -16,7 +16,7 @@ limitations under the License.
 package channel
 
 import (
-	context2 "context"
+	"context"
 	"strings"
 	"testing"
 
@@ -64,7 +64,7 @@ func channelFakeCmd(args []string, dynamicClient clientdynamic.KnDynamicClient, 
 
 func TestChannelListTypesNoChannelInstalled(t *testing.T) {
 	dynamicClient := dynamicfakeClient.CreateFakeKnDynamicClient(testNamespace)
-	assert.Equal(t, dynamicClient.Namespace(context2.TODO()), testNamespace)
+	assert.Equal(t, dynamicClient.Namespace(context.Background()), testNamespace)
 
 	_, err := channelFakeCmd([]string{"channel", "list-types"}, dynamicClient)
 	assert.Check(t, err != nil)
@@ -73,7 +73,7 @@ func TestChannelListTypesNoChannelInstalled(t *testing.T) {
 
 func TestChannelListTypesErrorDynamicClient(t *testing.T) {
 	dynamicClient := dynamicfakeClient.CreateFakeKnDynamicClient("")
-	assert.Check(t, dynamicClient.Namespace(context2.TODO()) != testNamespace)
+	assert.Check(t, dynamicClient.Namespace(context.Background()) != testNamespace)
 
 	_, err := channelFakeCmd([]string{"channel", "list-types"}, dynamicClient)
 	assert.Check(t, err != nil)
@@ -84,7 +84,7 @@ func TestChannelListTypes(t *testing.T) {
 	dynamicClient := dynamicfakeClient.CreateFakeKnDynamicClient(testNamespace,
 		newChannelCRDObjWithSpec("InMemoryChannel", "messaging.knative.dev", "v1beta1", "InMemoryChannel"),
 	)
-	assert.Equal(t, dynamicClient.Namespace(context2.TODO()), testNamespace)
+	assert.Equal(t, dynamicClient.Namespace(context.Background()), testNamespace)
 	output, err := channelFakeCmd([]string{"channel", "list-types"}, dynamicClient)
 	assert.NilError(t, err)
 	assert.Check(t, util.ContainsAll(output[0], "TYPE", "NAME", "DESCRIPTION"))
@@ -95,7 +95,7 @@ func TestChannelListTypesNoHeaders(t *testing.T) {
 	dynamicClient := dynamicfakeClient.CreateFakeKnDynamicClient(testNamespace,
 		newChannelCRDObjWithSpec("InMemoryChannel", "messaging.knative.dev", "v1beta1", "InMemoryChannel"),
 	)
-	assert.Equal(t, dynamicClient.Namespace(context2.TODO()), testNamespace)
+	assert.Equal(t, dynamicClient.Namespace(context.Background()), testNamespace)
 	output, err := channelFakeCmd([]string{"channel", "list-types", "--no-headers"}, dynamicClient)
 	assert.NilError(t, err)
 	assert.Check(t, util.ContainsNone(output[0], "TYPE", "NAME", "DESCRIPTION"))
@@ -104,7 +104,7 @@ func TestChannelListTypesNoHeaders(t *testing.T) {
 
 func TestListBuiltInChannelTypes(t *testing.T) {
 	fakeDynamic := dynamicfake.NewSimpleDynamicClient(runtime.NewScheme())
-	channel, err := listBuiltInChannelTypes(context2.TODO(), dynamic.NewKnDynamicClient(fakeDynamic, "current"))
+	channel, err := listBuiltInChannelTypes(context.Background(), dynamic.NewKnDynamicClient(fakeDynamic, "current"))
 	assert.NilError(t, err)
 	if channel == nil {
 		t.Fatal("channel = nil, want not nil")
@@ -152,7 +152,7 @@ func newChannelCRDObj(name string) *unstructured.Unstructured {
 
 func TestChannelListTypeErrors(t *testing.T) {
 	dynamicClient := dynamicfakeClient.CreateFakeKnDynamicClient(testNamespace, newChannelCRDObj("InMemoryChannel"))
-	assert.Equal(t, dynamicClient.Namespace(context2.TODO()), testNamespace)
+	assert.Equal(t, dynamicClient.Namespace(context.Background()), testNamespace)
 
 	_, err := channelFakeCmd([]string{"channel", "list-types"}, dynamicClient)
 	assert.Check(t, err != nil)

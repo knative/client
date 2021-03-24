@@ -81,7 +81,7 @@ func TestSourceListTypesNoHeaders(t *testing.T) {
 
 func TestListBuiltInSourceTypes(t *testing.T) {
 	fakeDynamic := dynamicfake.NewSimpleDynamicClient(runtime.NewScheme())
-	sources, err := listBuiltInSourceTypes(context.TODO(), clientdynamic.NewKnDynamicClient(fakeDynamic, "current"))
+	sources, err := listBuiltInSourceTypes(context.Background(), clientdynamic.NewKnDynamicClient(fakeDynamic, "current"))
 	assert.NilError(t, err)
 	if sources == nil {
 		t.Fatal("sources = nil, want not nil")
