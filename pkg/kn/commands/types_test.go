@@ -15,7 +15,7 @@
 package commands
 
 import (
-	context2 "context"
+	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -203,7 +203,7 @@ func TestNewSourcesClient(t *testing.T) {
 		}
 
 		if sourcesClient != nil {
-			assert.Assert(t, sourcesClient.SinkBindingClient().Namespace(context2.TODO()) == namespace)
+			assert.Assert(t, sourcesClient.SinkBindingClient().Namespace(context.Background()) == namespace)
 			assert.Assert(t, sourcesClient.PingSourcesClient().Namespace() == namespace)
 		}
 	}
@@ -304,7 +304,7 @@ func TestNewMessagingClient(t *testing.T) {
 		}
 
 		if msgClient != nil {
-			assert.Assert(t, msgClient.ChannelsClient().Namespace(cmd.Context()) == namespace)
+			assert.Assert(t, msgClient.ChannelsClient().Namespace(context.Background()) == namespace)
 		}
 	}
 }
