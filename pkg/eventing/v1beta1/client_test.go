@@ -15,7 +15,7 @@
 package v1beta1
 
 import (
-	context2 "context"
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -56,10 +56,10 @@ func TestDeleteTrigger(t *testing.T) {
 			return true, nil, nil
 		})
 
-	err := client.DeleteTrigger(context2.TODO(), name)
+	err := client.DeleteTrigger(context.Background(), name)
 	assert.NilError(t, err)
 
-	err = client.DeleteTrigger(context2.TODO(), "errorTrigger")
+	err = client.DeleteTrigger(context.Background(), "errorTrigger")
 	assert.ErrorContains(t, err, "errorTrigger")
 }
 
@@ -81,12 +81,12 @@ func TestCreateTrigger(t *testing.T) {
 		})
 
 	t.Run("create trigger without error", func(t *testing.T) {
-		err := client.CreateTrigger(context2.TODO(), objNew)
+		err := client.CreateTrigger(context.Background(), objNew)
 		assert.NilError(t, err)
 	})
 
 	t.Run("create trigger with an error returns an error object", func(t *testing.T) {
-		err := client.CreateTrigger(context2.TODO(), newTrigger("unknown"))
+		err := client.CreateTrigger(context.Background(), newTrigger("unknown"))
 		assert.ErrorContains(t, err, "unknown")
 	})
 }
@@ -104,12 +104,12 @@ func TestGetTrigger(t *testing.T) {
 			return true, newTrigger(name), nil
 		})
 
-	trigger, err := client.GetTrigger(context2.TODO(), name)
+	trigger, err := client.GetTrigger(context.Background(), name)
 	assert.NilError(t, err)
 	assert.Equal(t, trigger.Name, name)
 	assert.Equal(t, trigger.Spec.Broker, "default")
 
-	_, err = client.GetTrigger(context2.TODO(), "errorTrigger")
+	_, err = client.GetTrigger(context.Background(), "errorTrigger")
 	assert.ErrorContains(t, err, "errorTrigger")
 }
 
@@ -126,7 +126,7 @@ func TestListTrigger(t *testing.T) {
 				return true, &v1beta1.TriggerList{Items: []v1beta1.Trigger{*trigger1, *trigger2}}, nil
 			})
 
-		listTriggers, err := client.ListTriggers(context2.TODO())
+		listTriggers, err := client.ListTriggers(context.Background())
 		assert.NilError(t, err)
 		assert.Assert(t, len(listTriggers.Items) == 2)
 		assert.Equal(t, listTriggers.Items[0].Name, "trigger-1")
@@ -210,12 +210,12 @@ func TestBrokerCreate(t *testing.T) {
 		})
 
 	t.Run("create broker without error", func(t *testing.T) {
-		err := client.CreateBroker(context2.TODO(), objNew)
+		err := client.CreateBroker(context.Background(), objNew)
 		assert.NilError(t, err)
 	})
 
 	t.Run("create broker with an error returns an error object", func(t *testing.T) {
-		err := client.CreateBroker(context2.TODO(), newBroker("unknown"))
+		err := client.CreateBroker(context.Background(), newBroker("unknown"))
 		assert.ErrorContains(t, err, "unknown")
 	})
 }
@@ -233,11 +233,11 @@ func TestBrokerGet(t *testing.T) {
 			return true, newBroker(name), nil
 		})
 
-	broker, err := client.GetBroker(context2.TODO(), name)
+	broker, err := client.GetBroker(context.Background(), name)
 	assert.NilError(t, err)
 	assert.Equal(t, broker.Name, name)
 
-	_, err = client.GetBroker(context2.TODO(), "errorBroker")
+	_, err = client.GetBroker(context.Background(), "errorBroker")
 	assert.ErrorContains(t, err, "errorBroker")
 }
 
@@ -254,10 +254,10 @@ func TestBrokerDelete(t *testing.T) {
 			return true, nil, nil
 		})
 
-	err := client.DeleteBroker(context2.TODO(), name, 0)
+	err := client.DeleteBroker(context.Background(), name, 0)
 	assert.NilError(t, err)
 
-	err = client.DeleteBroker(context2.TODO(), "errorBroker", 0)
+	err = client.DeleteBroker(context.Background(), "errorBroker", 0)
 	assert.ErrorContains(t, err, "errorBroker", 0)
 }
 
@@ -286,10 +286,10 @@ func TestBrokerDeleteWithWait(t *testing.T) {
 			return true, w, nil
 		})
 
-	err := client.DeleteBroker(context2.TODO(), name, time.Duration(10)*time.Second)
+	err := client.DeleteBroker(context.Background(), name, time.Duration(10)*time.Second)
 	assert.NilError(t, err)
 
-	err = client.DeleteBroker(context2.TODO(), "errorBroker", time.Duration(10)*time.Second)
+	err = client.DeleteBroker(context.Background(), "errorBroker", time.Duration(10)*time.Second)
 	assert.ErrorContains(t, err, "errorBroker", time.Duration(10)*time.Second)
 }
 
@@ -306,7 +306,7 @@ func TestBrokerList(t *testing.T) {
 				return true, &v1beta1.BrokerList{Items: []v1beta1.Broker{*broker1, *broker2}}, nil
 			})
 
-		brokerList, err := client.ListBrokers(context2.TODO())
+		brokerList, err := client.ListBrokers(context.Background())
 		assert.NilError(t, err)
 		assert.Assert(t, len(brokerList.Items) == 2)
 		assert.Equal(t, brokerList.Items[0].Name, "foo1")
