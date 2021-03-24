@@ -15,6 +15,7 @@
 package apiserver
 
 import (
+	context2 "context"
 	"errors"
 	"fmt"
 
@@ -47,7 +48,7 @@ func NewAPIServerDeleteCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			err = apiSourceClient.DeleteAPIServerSource(name)
+			err = apiSourceClient.DeleteAPIServerSource(context2.TODO(), name)
 			if err != nil {
 				return err
 			}

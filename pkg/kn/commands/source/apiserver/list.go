@@ -15,6 +15,7 @@
 package apiserver
 
 import (
+	context2 "context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -45,7 +46,7 @@ func NewAPIServerListCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			sourceList, err := apiSourceClient.ListAPIServerSource()
+			sourceList, err := apiSourceClient.ListAPIServerSource(context2.TODO())
 			if err != nil {
 				return err
 			}
@@ -55,7 +56,7 @@ func NewAPIServerListCommand(p *commands.KnParams) *cobra.Command {
 				return nil
 			}
 
-			if apiSourceClient.Namespace() == "" {
+			if apiSourceClient.Namespace(context2.TODO()) == "" {
 				listFlags.EnsureWithNamespace()
 			}
 
