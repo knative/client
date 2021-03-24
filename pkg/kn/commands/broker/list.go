@@ -17,7 +17,6 @@ limitations under the License.
 package broker
 
 import (
-	context2 "context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -58,7 +57,7 @@ func NewBrokerListCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			brokerList, err := eventingClient.ListBrokers(context2.TODO())
+			brokerList, err := eventingClient.ListBrokers(cmd.Context())
 			if err != nil {
 				return err
 			}

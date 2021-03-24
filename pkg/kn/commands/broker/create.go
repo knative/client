@@ -17,7 +17,6 @@ limitations under the License.
 package broker
 
 import (
-	context2 "context"
 	"errors"
 	"fmt"
 
@@ -61,7 +60,7 @@ func NewBrokerCreateCommand(p *commands.KnParams) *cobra.Command {
 				NewBrokerBuilder(name).
 				Namespace(namespace)
 
-			err = eventingClient.CreateBroker(context2.TODO(), brokerBuilder.Build())
+			err = eventingClient.CreateBroker(cmd.Context(), brokerBuilder.Build())
 			if err != nil {
 				return fmt.Errorf(
 					"cannot create broker '%s' in namespace '%s' "+

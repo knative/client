@@ -17,7 +17,6 @@ limitations under the License.
 package broker
 
 import (
-	context2 "context"
 	"errors"
 	"fmt"
 	"time"
@@ -62,7 +61,7 @@ func NewBrokerDeleteCommand(p *commands.KnParams) *cobra.Command {
 			if waitFlags.Wait {
 				timeout = time.Duration(waitFlags.TimeoutInSeconds) * time.Second
 			}
-			err = eventingClient.DeleteBroker(context2.TODO(), name, timeout)
+			err = eventingClient.DeleteBroker(cmd.Context(), name, timeout)
 			if err != nil {
 				return fmt.Errorf(
 					"cannot delete broker '%s' in namespace '%s' "+

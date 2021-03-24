@@ -15,7 +15,6 @@
 package trigger
 
 import (
-	context2 "context"
 	"errors"
 	"fmt"
 
@@ -47,7 +46,7 @@ func NewTriggerDeleteCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			err = eventingClient.DeleteTrigger(context2.TODO(), name)
+			err = eventingClient.DeleteTrigger(cmd.Context(), name)
 			if err != nil {
 				return err
 			}

@@ -17,7 +17,6 @@ limitations under the License.
 package broker
 
 import (
-	context2 "context"
 	"errors"
 	"fmt"
 	"io"
@@ -72,7 +71,7 @@ func NewBrokerDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			broker, err := eventingClient.GetBroker(context2.TODO(), name)
+			broker, err := eventingClient.GetBroker(cmd.Context(), name)
 			if err != nil {
 				return err
 			}
