@@ -15,6 +15,7 @@
 package source
 
 import (
+	context2 "context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -51,7 +52,7 @@ func NewListTypesCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			sourceListTypes, err := dynamicClient.ListSourcesTypes()
+			sourceListTypes, err := dynamicClient.ListSourcesTypes(context2.TODO())
 			switch {
 			case knerrors.IsForbiddenError(err):
 				if sourceListTypes, err = listBuiltInSourceTypes(dynamicClient); err != nil {
@@ -88,7 +89,7 @@ func listBuiltInSourceTypes(d dynamic.KnDynamicClient) (*unstructured.Unstructur
 	uList := unstructured.UnstructuredList{}
 	gvks := sourcesv1alpha2.BuiltInSourcesGVKs()
 	for _, gvk := range gvks {
-		_, err = d.ListSourcesUsingGVKs(&[]schema.GroupVersionKind{gvk})
+		_, err = d.ListSourcesUsingGVKs(context2.TODO(), &[]schema.GroupVersionKind{gvk})
 		if err != nil {
 			continue
 		}

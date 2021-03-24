@@ -254,7 +254,7 @@ func TestNewDynamicClient(t *testing.T) {
 		}
 
 		if dynamicClient != nil {
-			assert.Assert(t, dynamicClient.Namespace() == namespace)
+			assert.Assert(t, dynamicClient.Namespace(context.TODO()) == namespace)
 		}
 	}
 }

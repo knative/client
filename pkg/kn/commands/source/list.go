@@ -15,6 +15,7 @@
 package source
 
 import (
+	context2 "context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -61,12 +62,12 @@ func NewListCommand(p *commands.KnParams) *cobra.Command {
 				filters = append(filters, dynamic.WithTypeFilter(filter))
 			}
 
-			sourceList, err := dynamicClient.ListSources(filters...)
+			sourceList, err := dynamicClient.ListSources(context2.TODO(), filters...)
 
 			switch {
 			case knerrors.IsForbiddenError(err):
 				gvks := sourcesv1alpha2.BuiltInSourcesGVKs()
-				if sourceList, err = dynamicClient.ListSourcesUsingGVKs(&gvks, filters...); err != nil {
+				if sourceList, err = dynamicClient.ListSourcesUsingGVKs(context2.TODO(), &gvks, filters...); err != nil {
 					return knerrors.GetError(err)
 				}
 			case err != nil:
