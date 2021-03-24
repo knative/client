@@ -15,7 +15,6 @@
 package apiserver
 
 import (
-	context2 "context"
 	"errors"
 	"fmt"
 
@@ -61,7 +60,7 @@ func NewAPIServerUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			source, err := sourcesClient.GetAPIServerSource(context2.TODO(), name)
+			source, err := sourcesClient.GetAPIServerSource(cmd.Context(), name)
 			if err != nil {
 				return err
 			}
@@ -103,7 +102,7 @@ func NewAPIServerUpdateCommand(p *commands.KnParams) *cobra.Command {
 				b.CloudEventOverrides(ceOverridesMap, ceOverridesToRemove)
 			}
 
-			err = sourcesClient.UpdateAPIServerSource(context2.TODO(), b.Build())
+			err = sourcesClient.UpdateAPIServerSource(cmd.Context(), b.Build())
 			if err == nil {
 				fmt.Fprintf(cmd.OutOrStdout(), "ApiServer source '%s' updated in namespace '%s'.\n", args[0], namespace)
 			}

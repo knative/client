@@ -15,7 +15,6 @@
 package apiserver
 
 import (
-	context2 "context"
 	"errors"
 	"fmt"
 
@@ -51,7 +50,7 @@ func NewAPIServerCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			namespace := apiSourceClient.Namespace(context2.TODO())
+			namespace := apiSourceClient.Namespace(cmd.Context())
 
 			dynamicClient, err := p.NewDynamicClient(namespace)
 			if err != nil {
@@ -82,7 +81,7 @@ func NewAPIServerCreateCommand(p *commands.KnParams) *cobra.Command {
 				Resources(resources).
 				CloudEventOverrides(ceOverridesMap, ceOverridesToRemove)
 
-			err = apiSourceClient.CreateAPIServerSource(context2.TODO(), b.Build())
+			err = apiSourceClient.CreateAPIServerSource(cmd.Context(), b.Build())
 
 			if err != nil {
 				return fmt.Errorf(

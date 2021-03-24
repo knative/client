@@ -15,7 +15,6 @@
 package apiserver
 
 import (
-	context2 "context"
 	"errors"
 	"fmt"
 	"sort"
@@ -57,7 +56,7 @@ func NewAPIServerDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			apiSource, err := apiSourceClient.GetAPIServerSource(context2.TODO(), name)
+			apiSource, err := apiSourceClient.GetAPIServerSource(cmd.Context(), name)
 			if err != nil {
 				return err
 			}
