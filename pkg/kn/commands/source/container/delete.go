@@ -17,7 +17,6 @@ limitations under the License.
 package container
 
 import (
-	context2 "context"
 	"errors"
 	"fmt"
 
@@ -51,7 +50,7 @@ func NewContainerDeleteCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			err = srcClient.DeleteContainerSource(name, context2.TODO())
+			err = srcClient.DeleteContainerSource(name, cmd.Context())
 			if err != nil {
 				return err
 			}

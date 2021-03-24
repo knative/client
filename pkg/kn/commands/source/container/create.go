@@ -17,7 +17,6 @@ limitations under the License.
 package container
 
 import (
-	context2 "context"
 	"errors"
 	"fmt"
 
@@ -53,7 +52,7 @@ func NewContainerCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			namespace := srcClient.Namespace(context2.TODO())
+			namespace := srcClient.Namespace(cmd.Context())
 
 			dynamicClient, err := p.NewDynamicClient(namespace)
 			if err != nil {
@@ -76,7 +75,7 @@ func NewContainerCreateCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			b := v1alpha2.NewContainerSourceBuilder(name).Sink(*objectRef).PodSpec(*podSpec)
-			err = srcClient.CreateContainerSource(context2.TODO(), b.Build())
+			err = srcClient.CreateContainerSource(cmd.Context(), b.Build())
 			if err != nil {
 				return fmt.Errorf(
 					"cannot create ContainerSource '%s' in namespace '%s' "+

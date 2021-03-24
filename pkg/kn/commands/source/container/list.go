@@ -17,7 +17,6 @@ limitations under the License.
 package container
 
 import (
-	context2 "context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -46,7 +45,7 @@ func NewContainerListCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			sourceList, err := containerClient.ListContainerSources(context2.TODO())
+			sourceList, err := containerClient.ListContainerSources(cmd.Context())
 			if err != nil {
 				return err
 			}
@@ -56,7 +55,7 @@ func NewContainerListCommand(p *commands.KnParams) *cobra.Command {
 				return nil
 			}
 
-			if containerClient.Namespace(context2.TODO()) == "" {
+			if containerClient.Namespace(cmd.Context()) == "" {
 				listFlags.EnsureWithNamespace()
 			}
 
