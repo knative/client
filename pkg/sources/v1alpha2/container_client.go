@@ -70,7 +70,7 @@ func newKnContainerSourcesClient(client clientv1alpha2.ContainerSourceInterface,
 
 //GetContainerSource returns containerSrc object if present
 func (c *containerSourcesClient) GetContainerSource(ctx context.Context, name string) (*v1alpha2.ContainerSource, error) {
-	containerSrc, err := c.client.Get(context.TODO(), name, metav1.GetOptions{})
+	containerSrc, err := c.client.Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return nil, knerrors.GetError(err)
 	}
@@ -80,7 +80,7 @@ func (c *containerSourcesClient) GetContainerSource(ctx context.Context, name st
 
 //CreateContainerSource is used to create an instance of ContainerSource
 func (c *containerSourcesClient) CreateContainerSource(ctx context.Context, containerSrc *v1alpha2.ContainerSource) error {
-	_, err := c.client.Create(context.TODO(), containerSrc, metav1.CreateOptions{})
+	_, err := c.client.Create(ctx, containerSrc, metav1.CreateOptions{})
 	if err != nil {
 		return knerrors.GetError(err)
 	}
@@ -90,7 +90,7 @@ func (c *containerSourcesClient) CreateContainerSource(ctx context.Context, cont
 
 //UpdateContainerSource is used to update an instance of ContainerSource
 func (c *containerSourcesClient) UpdateContainerSource(ctx context.Context, containerSrc *v1alpha2.ContainerSource) error {
-	_, err := c.client.Update(context.TODO(), containerSrc, metav1.UpdateOptions{})
+	_, err := c.client.Update(ctx, containerSrc, metav1.UpdateOptions{})
 	if err != nil {
 		return knerrors.GetError(err)
 	}
@@ -100,7 +100,7 @@ func (c *containerSourcesClient) UpdateContainerSource(ctx context.Context, cont
 
 //DeleteContainerSource is used to create an instance of ContainerSource
 func (c *containerSourcesClient) DeleteContainerSource(name string, ctx context.Context) error {
-	return c.client.Delete(context.TODO(), name, metav1.DeleteOptions{})
+	return c.client.Delete(ctx, name, metav1.DeleteOptions{})
 }
 
 // Return the client's namespace
@@ -109,8 +109,8 @@ func (c *containerSourcesClient) Namespace(context.Context) string {
 }
 
 // ListContainerSource returns the available container sources
-func (c *containerSourcesClient) ListContainerSources(context.Context) (*v1alpha2.ContainerSourceList, error) {
-	sourceList, err := c.client.List(context.TODO(), metav1.ListOptions{})
+func (c *containerSourcesClient) ListContainerSources(ctx context.Context) (*v1alpha2.ContainerSourceList, error) {
+	sourceList, err := c.client.List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, knerrors.GetError(err)
 	}
