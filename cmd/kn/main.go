@@ -16,6 +16,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math/rand"
 	"os"
@@ -24,8 +25,6 @@ import (
 	"strings"
 	"syscall"
 	"time"
-
-	"github.com/pkg/errors"
 
 	"github.com/spf13/cobra"
 
