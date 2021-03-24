@@ -17,7 +17,6 @@ limitations under the License.
 package subscription
 
 import (
-	context2 "context"
 	"errors"
 	"fmt"
 
@@ -44,12 +43,12 @@ func NewSubscriptionDeleteCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			err = subscriptionClient.DeleteSubscription(context2.TODO(), name)
+			err = subscriptionClient.DeleteSubscription(cmd.Context(), name)
 			if err != nil {
 				return err
 			}
 
-			fmt.Fprintf(cmd.OutOrStdout(), "Subscription '%s' deleted in namespace '%s'.\n", name, subscriptionClient.Namespace(context2.TODO()))
+			fmt.Fprintf(cmd.OutOrStdout(), "Subscription '%s' deleted in namespace '%s'.\n", name, subscriptionClient.Namespace(cmd.Context()))
 			return nil
 		},
 	}
