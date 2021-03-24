@@ -15,7 +15,6 @@
 package ping
 
 import (
-	context2 "context"
 	"errors"
 	"fmt"
 
@@ -42,12 +41,12 @@ func NewPingDeleteCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			err = pingClient.DeletePingSource(context2.TODO(), name)
+			err = pingClient.DeletePingSource(cmd.Context(), name)
 			if err != nil {
 				return err
 			}
 
-			fmt.Fprintf(cmd.OutOrStdout(), "Ping source '%s' deleted in namespace '%s'.\n", name, pingClient.Namespace(context2.TODO()))
+			fmt.Fprintf(cmd.OutOrStdout(), "Ping source '%s' deleted in namespace '%s'.\n", name, pingClient.Namespace(cmd.Context()))
 			return nil
 		},
 	}

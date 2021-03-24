@@ -15,7 +15,6 @@
 package ping
 
 import (
-	context2 "context"
 	"errors"
 	"fmt"
 
@@ -59,7 +58,7 @@ func NewPingUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			source, err := pingSourceClient.GetPingSource(context2.TODO(), name)
+			source, err := pingSourceClient.GetPingSource(cmd.Context(), name)
 			if err != nil {
 				return err
 			}
@@ -91,9 +90,9 @@ func NewPingUpdateCommand(p *commands.KnParams) *cobra.Command {
 				b.CloudEventOverrides(ceOverridesMap, ceOverridesToRemove)
 			}
 
-			err = pingSourceClient.UpdatePingSource(context2.TODO(), b.Build())
+			err = pingSourceClient.UpdatePingSource(cmd.Context(), b.Build())
 			if err == nil {
-				fmt.Fprintf(cmd.OutOrStdout(), "Ping source '%s' updated in namespace '%s'.\n", name, pingSourceClient.Namespace(context2.TODO()))
+				fmt.Fprintf(cmd.OutOrStdout(), "Ping source '%s' updated in namespace '%s'.\n", name, pingSourceClient.Namespace(cmd.Context()))
 			}
 			return err
 		},

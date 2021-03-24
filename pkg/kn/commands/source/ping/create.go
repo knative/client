@@ -15,7 +15,6 @@
 package ping
 
 import (
-	context2 "context"
 	"errors"
 	"fmt"
 
@@ -71,14 +70,14 @@ func NewPingCreateCommand(p *commands.KnParams) *cobra.Command {
 			}
 			ceOverridesToRemove := util.ParseMinusSuffix(ceOverridesMap)
 
-			err = pingSourceClient.CreatePingSource(context2.TODO(), v1alpha2.NewPingSourceBuilder(name).
+			err = pingSourceClient.CreatePingSource(cmd.Context(), v1alpha2.NewPingSourceBuilder(name).
 				Schedule(updateFlags.schedule).
 				JsonData(updateFlags.data).
 				Sink(*destination).
 				CloudEventOverrides(ceOverridesMap, ceOverridesToRemove).
 				Build())
 			if err == nil {
-				fmt.Fprintf(cmd.OutOrStdout(), "Ping source '%s' created in namespace '%s'.\n", args[0], pingSourceClient.Namespace(context2.TODO()))
+				fmt.Fprintf(cmd.OutOrStdout(), "Ping source '%s' created in namespace '%s'.\n", args[0], pingSourceClient.Namespace(cmd.Context()))
 			}
 			return err
 		},
