@@ -15,7 +15,6 @@
 package binding
 
 import (
-	context2 "context"
 	"errors"
 	"fmt"
 
@@ -42,12 +41,12 @@ func NewBindingDeleteCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			err = bindingClient.DeleteSinkBinding(context2.TODO(), name)
+			err = bindingClient.DeleteSinkBinding(cmd.Context(), name)
 			if err != nil {
 				return err
 			}
 
-			fmt.Fprintf(cmd.OutOrStdout(), "Sink binding '%s' deleted in namespace '%s'.\n", name, bindingClient.Namespace(context2.TODO()))
+			fmt.Fprintf(cmd.OutOrStdout(), "Sink binding '%s' deleted in namespace '%s'.\n", name, bindingClient.Namespace(cmd.Context()))
 			return nil
 		},
 	}

@@ -15,7 +15,6 @@
 package binding
 
 import (
-	context2 "context"
 	"errors"
 	"fmt"
 
@@ -59,7 +58,7 @@ func NewBindingUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			source, err := sinkBindingClient.GetSinkBinding(context2.TODO(), name)
+			source, err := sinkBindingClient.GetSinkBinding(cmd.Context(), name)
 			if err != nil {
 				return err
 			}
@@ -94,9 +93,9 @@ func NewBindingUpdateCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			err = sinkBindingClient.UpdateSinkBinding(context2.TODO(), binding)
+			err = sinkBindingClient.UpdateSinkBinding(cmd.Context(), binding)
 			if err == nil {
-				fmt.Fprintf(cmd.OutOrStdout(), "Sink binding '%s' updated in namespace '%s'.\n", name, sinkBindingClient.Namespace(context2.TODO()))
+				fmt.Fprintf(cmd.OutOrStdout(), "Sink binding '%s' updated in namespace '%s'.\n", name, sinkBindingClient.Namespace(cmd.Context()))
 			}
 			return err
 		},
