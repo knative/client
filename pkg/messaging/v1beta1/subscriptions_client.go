@@ -33,22 +33,22 @@ import (
 type KnSubscriptionsClient interface {
 
 	// GetSubscription returns a Subscription by its name
-	GetSubscription(name string) (*v1beta1.Subscription, error)
+	GetSubscription(ctx context.Context, name string) (*v1beta1.Subscription, error)
 
 	// CreteSubscription creates a Subscription with given spec
-	CreateSubscription(subscription *v1beta1.Subscription) error
+	CreateSubscription(ctx context.Context, subscription *v1beta1.Subscription) error
 
 	// UpdateSubscription updates a Subscription with given spec
-	UpdateSubscription(subscription *v1beta1.Subscription) error
+	UpdateSubscription(ctx context.Context, subscription *v1beta1.Subscription) error
 
 	// DeleteSubscription deletes a Subscription by its name
-	DeleteSubscription(name string) error
+	DeleteSubscription(ctx context.Context, name string) error
 
 	// ListSubscription lists all Subscriptions
-	ListSubscription() (*v1beta1.SubscriptionList, error)
+	ListSubscription(ctx context.Context) (*v1beta1.SubscriptionList, error)
 
 	// Namespace returns the namespace for this subscription client
-	Namespace() string
+	Namespace(ctx context.Context) string
 }
 
 // subscriptionsClient struct holds the client interface and namespace
@@ -66,12 +66,12 @@ func newKnSubscriptionsClient(client clientv1beta1.SubscriptionInterface, namesp
 }
 
 // Get the namespace for which this client is created
-func (c *subscriptionsClient) Namespace() string {
+func (c *subscriptionsClient) Namespace(context.Context) string {
 	return c.namespace
 }
 
 // GetSubscription gets Subscription by its name
-func (c *subscriptionsClient) GetSubscription(name string) (*v1beta1.Subscription, error) {
+func (c *subscriptionsClient) GetSubscription(ctx context.Context, name string) (*v1beta1.Subscription, error) {
 	subscription, err := c.client.Get(context.TODO(), name, metav1.GetOptions{})
 	if err != nil {
 		return nil, knerrors.GetError(err)
@@ -84,24 +84,24 @@ func (c *subscriptionsClient) GetSubscription(name string) (*v1beta1.Subscriptio
 }
 
 // CreateSubscription creates Subscription with given spec
-func (c *subscriptionsClient) CreateSubscription(subscription *v1beta1.Subscription) error {
+func (c *subscriptionsClient) CreateSubscription(ctx context.Context, subscription *v1beta1.Subscription) error {
 	_, err := c.client.Create(context.TODO(), subscription, metav1.CreateOptions{})
 	return knerrors.GetError(err)
 }
 
 // UpdateSubscription creates Subscription with given spec
-func (c *subscriptionsClient) UpdateSubscription(subscription *v1beta1.Subscription) error {
+func (c *subscriptionsClient) UpdateSubscription(ctx context.Context, subscription *v1beta1.Subscription) error {
 	_, err := c.client.Update(context.TODO(), subscription, metav1.UpdateOptions{})
 	return knerrors.GetError(err)
 }
 
 // DeleteSubscription deletes Subscription by its name
-func (c *subscriptionsClient) DeleteSubscription(name string) error {
+func (c *subscriptionsClient) DeleteSubscription(ctx context.Context, name string) error {
 	return knerrors.GetError(c.client.Delete(context.TODO(), name, metav1.DeleteOptions{}))
 }
 
 // ListSubscription lists subscriptions in configured namespace
-func (c *subscriptionsClient) ListSubscription() (*v1beta1.SubscriptionList, error) {
+func (c *subscriptionsClient) ListSubscription(context.Context) (*v1beta1.SubscriptionList, error) {
 	subscriptionList, err := c.client.List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return nil, knerrors.GetError(err)

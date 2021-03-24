@@ -17,6 +17,7 @@ limitations under the License.
 package subscription
 
 import (
+	context2 "context"
 	"errors"
 	"fmt"
 
@@ -54,7 +55,7 @@ func NewSubscriptionDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			subscription, err := client.GetSubscription(name)
+			subscription, err := client.GetSubscription(context2.TODO(), name)
 			if err != nil {
 				return knerrors.GetError(err)
 			}

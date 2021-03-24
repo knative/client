@@ -17,6 +17,7 @@ limitations under the License.
 package subscription
 
 import (
+	context2 "context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -47,7 +48,7 @@ func NewSubscriptionListCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			subscriptionList, err := client.ListSubscription()
+			subscriptionList, err := client.ListSubscription(context2.TODO())
 			if err != nil {
 				return err
 			}
@@ -57,7 +58,7 @@ func NewSubscriptionListCommand(p *commands.KnParams) *cobra.Command {
 				return nil
 			}
 
-			if client.Namespace() == "" {
+			if client.Namespace(context2.TODO()) == "" {
 				listFlags.EnsureWithNamespace()
 			}
 
