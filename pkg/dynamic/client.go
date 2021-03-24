@@ -101,7 +101,7 @@ func (c *knDynamicClient) ListCRDs(ctx context.Context, options metav1.ListOptio
 		Resource: crdKinds,
 	}
 
-	uList, err := c.client.Resource(gvr).List(context.TODO(), options)
+	uList, err := c.client.Resource(gvr).List(ctx, options)
 	if err != nil {
 		return nil, err
 	}
@@ -110,20 +110,20 @@ func (c *knDynamicClient) ListCRDs(ctx context.Context, options metav1.ListOptio
 }
 
 // ListSourcesTypes returns installed knative eventing sources CRDs
-func (c *knDynamicClient) ListSourcesTypes(context.Context) (*unstructured.UnstructuredList, error) {
+func (c *knDynamicClient) ListSourcesTypes(ctx context.Context) (*unstructured.UnstructuredList, error) {
 	options := metav1.ListOptions{}
 	sourcesLabels := labels.Set{sourcesLabelKey: sourcesLabelValue}
 	options.LabelSelector = sourcesLabels.String()
-	return c.ListCRDs(context.TODO(), options)
+	return c.ListCRDs(ctx, options)
 }
 
 // ListChannelsTypes returns installed knative channel CRDs
-func (c *knDynamicClient) ListChannelsTypes(context.Context) (*unstructured.UnstructuredList, error) {
+func (c *knDynamicClient) ListChannelsTypes(ctx context.Context) (*unstructured.UnstructuredList, error) {
 	var ChannelTypeList unstructured.UnstructuredList
 	options := metav1.ListOptions{}
 	channelsLabels := labels.Set{messaging.SubscribableDuckVersionAnnotation: channelLabelValue}
 	options.LabelSelector = channelsLabels.String()
-	uList, err := c.ListCRDs(context.TODO(), options)
+	uList, err := c.ListCRDs(ctx, options)
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +153,7 @@ func (c *knDynamicClient) ListSources(ctx context.Context, types ...WithType) (*
 		sourceList unstructured.UnstructuredList
 		options    metav1.ListOptions
 	)
-	sourceTypes, err := c.ListSourcesTypes(context.TODO())
+	sourceTypes, err := c.ListSourcesTypes(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +162,7 @@ func (c *knDynamicClient) ListSources(ctx context.Context, types ...WithType) (*
 		return nil, errors.New("no sources found on the backend, please verify the installation")
 	}
 
-	namespace := c.Namespace(context.TODO())
+	namespace := c.Namespace(ctx)
 	filters := WithTypes(types).List()
 	// For each source type available, find out each source types objects
 	for i := range sourceTypes.Items {
@@ -184,7 +184,7 @@ func (c *knDynamicClient) ListSources(ctx context.Context, types ...WithType) (*
 		}
 
 		// list objects of source type with this GVR
-		sList, err := c.client.Resource(gvr).Namespace(namespace).List(context.TODO(), options)
+		sList, err := c.client.Resource(gvr).Namespace(namespace).List(ctx, options)
 		if err != nil {
 			return nil, err
 		}
@@ -209,7 +209,7 @@ func (c *knDynamicClient) ListSourcesUsingGVKs(ctx context.Context, gvks *[]sche
 		sourceList unstructured.UnstructuredList
 		options    metav1.ListOptions
 	)
-	namespace := c.Namespace(context.TODO())
+	namespace := c.Namespace(ctx)
 	filters := WithTypes(types).List()
 
 	for _, gvk := range *gvks {
@@ -220,7 +220,7 @@ func (c *knDynamicClient) ListSourcesUsingGVKs(ctx context.Context, gvks *[]sche
 		gvr := gvk.GroupVersion().WithResource(strings.ToLower(gvk.Kind) + "s")
 
 		// list objects of source type with this GVR
-		sList, err := c.client.Resource(gvr).Namespace(namespace).List(context.TODO(), options)
+		sList, err := c.client.Resource(gvr).Namespace(namespace).List(ctx, options)
 		if err != nil {
 			return nil, err
 		}
@@ -245,7 +245,7 @@ func (c *knDynamicClient) ListChannelsUsingGVKs(ctx context.Context, gvks *[]sch
 		channelList unstructured.UnstructuredList
 		options     metav1.ListOptions
 	)
-	namespace := c.Namespace(context.TODO())
+	namespace := c.Namespace(ctx)
 	filters := WithTypes(types).List()
 
 	for _, gvk := range *gvks {
@@ -256,7 +256,7 @@ func (c *knDynamicClient) ListChannelsUsingGVKs(ctx context.Context, gvks *[]sch
 		gvr := gvk.GroupVersion().WithResource(strings.ToLower(gvk.Kind) + "s")
 
 		// list objects of channel type with this GVR
-		cList, err := c.client.Resource(gvr).Namespace(namespace).List(context.TODO(), options)
+		cList, err := c.client.Resource(gvr).Namespace(namespace).List(ctx, options)
 		if err != nil {
 			return nil, err
 		}
