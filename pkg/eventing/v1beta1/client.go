@@ -241,9 +241,8 @@ func (c *knEventingClient) GetBroker(ctx context.Context, name string) (*v1beta1
 }
 
 // WatchBroker is used to create watcher object
-func (c *knEventingClient) WatchBroker(name string, timeout time.Duration) (watch.Interface, error) {
-	return wait.NewWatcher(c.client.Brokers(c.namespace).Watch,
-		c.client.RESTClient(), c.namespace, "brokers", name, timeout)
+func (c *knEventingClient) WatchBroker(ctx context.Context, name string, timeout time.Duration) (watch.Interface, error) {
+	return wait.NewWatcher(ctx, c.client.Brokers(c.namespace).Watch, c.client.RESTClient(), c.namespace, "brokers", name, timeout)
 }
 
 // DeleteBroker is used to delete an instance of broker and wait for completion until given timeout
@@ -253,7 +252,7 @@ func (c *knEventingClient) DeleteBroker(ctx context.Context, name string, timeou
 		return c.deleteBroker(ctx, name, apis_v1.DeletePropagationBackground)
 	}
 	waitC := make(chan error)
-	watcher, err := c.WatchBroker(name, timeout)
+	watcher, err := c.WatchBroker(ctx, name, timeout)
 	if err != nil {
 		return nil
 	}

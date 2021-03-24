@@ -197,14 +197,12 @@ func (cl *knServingClient) GetService(ctx context.Context, name string) (*servin
 	return service, nil
 }
 
-func (cl *knServingClient) WatchService(name string, timeout time.Duration) (watch.Interface, error) {
-	return wait.NewWatcher(cl.client.Services(cl.namespace).Watch,
-		cl.client.RESTClient(), cl.namespace, "services", name, timeout)
+func (cl *knServingClient) WatchService(ctx context.Context, name string, timeout time.Duration) (watch.Interface, error) {
+	return wait.NewWatcher(ctx, cl.client.Services(cl.namespace).Watch, cl.client.RESTClient(), cl.namespace, "services", name, timeout)
 }
 
-func (cl *knServingClient) WatchRevision(name string, timeout time.Duration) (watch.Interface, error) {
-	return wait.NewWatcher(cl.client.Revisions(cl.namespace).Watch,
-		cl.client.RESTClient(), cl.namespace, "revision", name, timeout)
+func (cl *knServingClient) WatchRevision(ctx context.Context, name string, timeout time.Duration) (watch.Interface, error) {
+	return wait.NewWatcher(ctx, cl.client.Revisions(cl.namespace).Watch, cl.client.RESTClient(), cl.namespace, "revision", name, timeout)
 }
 
 // List services
@@ -320,7 +318,7 @@ func (cl *knServingClient) DeleteService(ctx context.Context, serviceName string
 		return cl.deleteService(ctx, serviceName, v1.DeletePropagationBackground)
 	}
 	waitC := make(chan error)
-	watcher, err := cl.WatchService(serviceName, timeout)
+	watcher, err := cl.WatchService(ctx, serviceName, timeout)
 	if err != nil {
 		return nil
 	}
@@ -352,7 +350,7 @@ func (cl *knServingClient) deleteService(ctx context.Context, serviceName string
 
 // Wait for a service to become ready, but not longer than provided timeout
 func (cl *knServingClient) WaitForService(ctx context.Context, name string, timeout time.Duration, msgCallback wait.MessageCallback) (error, time.Duration) {
-	watcher, err := cl.WatchService(name, timeout)
+	watcher, err := cl.WatchService(ctx, name, timeout)
 	if err != nil {
 		return err, timeout
 	}
@@ -471,7 +469,7 @@ func (cl *knServingClient) DeleteRevision(ctx context.Context, name string, time
 		return cl.deleteRevision(ctx, name)
 	}
 	waitC := make(chan error)
-	watcher, err := cl.WatchRevision(name, timeout)
+	watcher, err := cl.WatchRevision(ctx, name, timeout)
 	if err != nil {
 		return err
 	}
