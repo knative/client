@@ -89,7 +89,7 @@ var sinkMappings = map[string]schema.GroupVersionResource{
 // ResolveSink returns the Destination referred to by the flags in the acceptor.
 // It validates that any object the user is referring to exists.
 func (i *SinkFlags) ResolveSink(ctx context.Context, knclient clientdynamic.KnDynamicClient, namespace string) (*duckv1.Destination, error) {
-	client := knclient.RawClient(context.TODO())
+	client := knclient.RawClient()
 	if i.sink == "" {
 		return nil, nil
 	}

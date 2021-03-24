@@ -70,7 +70,7 @@ type KnDynamicClient interface {
 	ListChannelsUsingGVKs(context.Context, *[]schema.GroupVersionKind, ...WithType) (*unstructured.UnstructuredList, error)
 
 	// RawClient returns the raw dynamic client interface
-	RawClient(ctx context.Context) dynamic.Interface
+	RawClient() dynamic.Interface
 }
 
 // knDynamicClient is a combination of client-go Dynamic client interface and namespace
@@ -141,7 +141,7 @@ func (c *knDynamicClient) ListChannelsTypes(ctx context.Context) (*unstructured.
 	return &ChannelTypeList, nil
 }
 
-func (c knDynamicClient) RawClient(context.Context) dynamic.Interface {
+func (c knDynamicClient) RawClient() dynamic.Interface {
 	return c.client
 }
 

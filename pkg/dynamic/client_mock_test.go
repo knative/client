@@ -42,7 +42,7 @@ func TestMockKnDynamicClient(t *testing.T) {
 	client.ListSourcesTypes(context.Background())
 	client.ListChannelsTypes(context.Background())
 	client.ListSources(context.Background(), WithTypeFilter("blub"))
-	client.RawClient(context.Background())
+	client.RawClient()
 	client.ListSourcesUsingGVKs(context.Background(), &[]schema.GroupVersionKind{}, WithTypeFilter("blub"))
 	client.ListChannelsUsingGVKs(context.Background(), &[]schema.GroupVersionKind{}, WithTypeFilter("blub"))
 

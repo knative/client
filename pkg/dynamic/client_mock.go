@@ -111,7 +111,7 @@ func (dr *ClientRecorder) RawClient(dynamicInterface dynamic.Interface) {
 }
 
 // RawClient creates a client
-func (c *MockKnDynamicClient) RawClient(context.Context) (dynamicInterface dynamic.Interface) {
+func (c *MockKnDynamicClient) RawClient() (dynamicInterface dynamic.Interface) {
 	call := c.recorder.r.VerifyCall("RawClient")
 	return call.Result[0].(dynamic.Interface)
 }
