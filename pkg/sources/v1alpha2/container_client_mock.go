@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha2
 
 import (
+	"context"
 	"testing"
 
 	"knative.dev/client/pkg/util/mock"
@@ -57,7 +58,7 @@ func (c *MockKnContainerSourceClient) Recorder() *ConainterSourceRecorder {
 }
 
 // Namespace of this client
-func (c *MockKnContainerSourceClient) Namespace() string {
+func (c *MockKnContainerSourceClient) Namespace(context.Context) string {
 	return c.recorder.r.Namespace()
 }
 
@@ -67,7 +68,7 @@ func (sr *ConainterSourceRecorder) CreateContainerSource(binding interface{}, er
 }
 
 // CreateContainerSource performs a previously recorded action
-func (c *MockKnContainerSourceClient) CreateContainerSource(binding *v1alpha2.ContainerSource) error {
+func (c *MockKnContainerSourceClient) CreateContainerSource(ctx context.Context, binding *v1alpha2.ContainerSource) error {
 	call := c.recorder.r.VerifyCall("CreateContainerSource", binding)
 	return mock.ErrorOrNil(call.Result[0])
 }
@@ -78,7 +79,7 @@ func (sr *ConainterSourceRecorder) GetContainerSource(name interface{}, binding 
 }
 
 // GetContainerSource performs a previously recorded action
-func (c *MockKnContainerSourceClient) GetContainerSource(name string) (*v1alpha2.ContainerSource, error) {
+func (c *MockKnContainerSourceClient) GetContainerSource(ctx context.Context, name string) (*v1alpha2.ContainerSource, error) {
 	call := c.recorder.r.VerifyCall("GetContainerSource", name)
 	return call.Result[0].(*v1alpha2.ContainerSource), mock.ErrorOrNil(call.Result[1])
 }
@@ -89,7 +90,7 @@ func (sr *ConainterSourceRecorder) DeleteContainerSource(name interface{}, err e
 }
 
 // DeleteContainerSource performs a previously recorded action, failing if non has been registered
-func (c *MockKnContainerSourceClient) DeleteContainerSource(name string) error {
+func (c *MockKnContainerSourceClient) DeleteContainerSource(name string, ctx context.Context) error {
 	call := c.recorder.r.VerifyCall("DeleteContainerSource", name)
 	return mock.ErrorOrNil(call.Result[0])
 }
@@ -100,7 +101,7 @@ func (sr *ConainterSourceRecorder) ListContainerSources(bindingList *v1alpha2.Co
 }
 
 // ListContainerSources performs a previously recorded action
-func (c *MockKnContainerSourceClient) ListContainerSources() (*v1alpha2.ContainerSourceList, error) {
+func (c *MockKnContainerSourceClient) ListContainerSources(context.Context) (*v1alpha2.ContainerSourceList, error) {
 	call := c.recorder.r.VerifyCall("ListContainerSources")
 	return call.Result[0].(*v1alpha2.ContainerSourceList), mock.ErrorOrNil(call.Result[1])
 }
@@ -111,7 +112,7 @@ func (sr *ConainterSourceRecorder) UpdateContainerSource(binding interface{}, er
 }
 
 // UpdateContainerSource performs a previously recorded action
-func (c *MockKnContainerSourceClient) UpdateContainerSource(binding *v1alpha2.ContainerSource) error {
+func (c *MockKnContainerSourceClient) UpdateContainerSource(ctx context.Context, containerSrc *v1alpha2.ContainerSource) error {
 	call := c.recorder.r.VerifyCall("UpdateContainerSource")
 	return mock.ErrorOrNil(call.Result[0])
 }

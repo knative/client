@@ -17,6 +17,7 @@ limitations under the License.
 package container
 
 import (
+	context2 "context"
 	"errors"
 	"sort"
 
@@ -47,7 +48,7 @@ func NewContainerDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			source, err := sourceClient.GetContainerSource(name)
+			source, err := sourceClient.GetContainerSource(context2.TODO(), name)
 			if err != nil {
 				return err
 			}

@@ -17,6 +17,7 @@ limitations under the License.
 package container
 
 import (
+	context2 "context"
 	"errors"
 	"fmt"
 
@@ -52,14 +53,14 @@ func NewContainerUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			namespace := srcClient.Namespace()
+			namespace := srcClient.Namespace(context2.TODO())
 
 			dynamicClient, err := p.NewDynamicClient(namespace)
 			if err != nil {
 				return err
 			}
 
-			source, err := srcClient.GetContainerSource(name)
+			source, err := srcClient.GetContainerSource(context2.TODO(), name)
 			if err != nil {
 				return err
 			}
@@ -87,7 +88,7 @@ func NewContainerUpdateCommand(p *commands.KnParams) *cobra.Command {
 				b.Sink(*objectRef)
 			}
 
-			err = srcClient.UpdateContainerSource(b.Build())
+			err = srcClient.UpdateContainerSource(context2.TODO(), b.Build())
 			if err != nil {
 				return fmt.Errorf(
 					"cannot update ContainerSource '%s' in namespace '%s' "+
