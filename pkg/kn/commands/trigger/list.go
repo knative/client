@@ -15,6 +15,7 @@
 package trigger
 
 import (
+	context2 "context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -46,7 +47,7 @@ func NewTriggerListCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			triggerList, err := client.ListTriggers()
+			triggerList, err := client.ListTriggers(context2.TODO())
 			if err != nil {
 				return err
 			}

@@ -15,6 +15,7 @@
 package trigger
 
 import (
+	context2 "context"
 	"errors"
 	"fmt"
 
@@ -96,7 +97,7 @@ func NewTriggerCreateCommand(p *commands.KnParams) *cobra.Command {
 				}
 			}
 
-			err = eventingClient.CreateTrigger(triggerBuilder.Build())
+			err = eventingClient.CreateTrigger(context2.TODO(), triggerBuilder.Build())
 			if err != nil {
 				return fmt.Errorf(
 					"cannot create trigger '%s' in namespace '%s' "+

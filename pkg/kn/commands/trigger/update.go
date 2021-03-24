@@ -15,6 +15,7 @@
 package trigger
 
 import (
+	context2 "context"
 	"errors"
 	"fmt"
 
@@ -71,7 +72,7 @@ func NewTriggerUpdateCommand(p *commands.KnParams) *cobra.Command {
 
 			var retries = 0
 			for {
-				trigger, err := eventingClient.GetTrigger(name)
+				trigger, err := eventingClient.GetTrigger(context2.TODO(), name)
 				if err != nil {
 					return err
 				}
@@ -104,7 +105,7 @@ func NewTriggerUpdateCommand(p *commands.KnParams) *cobra.Command {
 						URI: destination.URI,
 					})
 				}
-				err = eventingClient.UpdateTrigger(b.Build())
+				err = eventingClient.UpdateTrigger(context2.TODO(), b.Build())
 				if err != nil {
 					if apierrors.IsConflict(err) && retries < MaxUpdateRetries {
 						retries++

@@ -36,25 +36,25 @@ import (
 // namespace specified during construction
 type KnEventingClient interface {
 	// Namespace in which this client is operating for
-	Namespace() string
+	Namespace(ctx context.Context) string
 	// CreateTrigger is used to create an instance of trigger
-	CreateTrigger(trigger *v1beta1.Trigger) error
+	CreateTrigger(ctx context.Context, trigger *v1beta1.Trigger) error
 	// DeleteTrigger is used to delete an instance of trigger
-	DeleteTrigger(name string) error
+	DeleteTrigger(ctx context.Context, name string) error
 	// GetTrigger is used to get an instance of trigger
-	GetTrigger(name string) (*v1beta1.Trigger, error)
+	GetTrigger(ctx context.Context, name string) (*v1beta1.Trigger, error)
 	// ListTrigger returns list of trigger CRDs
-	ListTriggers() (*v1beta1.TriggerList, error)
+	ListTriggers(ctx context.Context) (*v1beta1.TriggerList, error)
 	// UpdateTrigger is used to update an instance of trigger
-	UpdateTrigger(trigger *v1beta1.Trigger) error
+	UpdateTrigger(ctx context.Context, trigger *v1beta1.Trigger) error
 	// CreateBroker is used to create an instance of broker
-	CreateBroker(broker *v1beta1.Broker) error
+	CreateBroker(ctx context.Context, broker *v1beta1.Broker) error
 	// GetBroker is used to get an instance of broker
-	GetBroker(name string) (*v1beta1.Broker, error)
+	GetBroker(ctx context.Context, name string) (*v1beta1.Broker, error)
 	// DeleteBroker is used to delete an instance of broker
-	DeleteBroker(name string, timeout time.Duration) error
+	DeleteBroker(ctx context.Context, name string, timeout time.Duration) error
 	// ListBroker returns list of broker CRDs
-	ListBrokers() (*v1beta1.BrokerList, error)
+	ListBrokers(ctx context.Context) (*v1beta1.BrokerList, error)
 }
 
 // KnEventingClient is a combination of Sources client interface and namespace
@@ -74,7 +74,7 @@ func NewKnEventingClient(client client_v1beta1.EventingV1beta1Interface, namespa
 }
 
 //CreateTrigger is used to create an instance of trigger
-func (c *knEventingClient) CreateTrigger(trigger *v1beta1.Trigger) error {
+func (c *knEventingClient) CreateTrigger(ctx context.Context, trigger *v1beta1.Trigger) error {
 	_, err := c.client.Triggers(c.namespace).Create(context.TODO(), trigger, meta_v1.CreateOptions{})
 	if err != nil {
 		return kn_errors.GetError(err)
@@ -83,7 +83,7 @@ func (c *knEventingClient) CreateTrigger(trigger *v1beta1.Trigger) error {
 }
 
 //DeleteTrigger is used to delete an instance of trigger
-func (c *knEventingClient) DeleteTrigger(name string) error {
+func (c *knEventingClient) DeleteTrigger(ctx context.Context, name string) error {
 	err := c.client.Triggers(c.namespace).Delete(context.TODO(), name, apis_v1.DeleteOptions{})
 	if err != nil {
 		return kn_errors.GetError(err)
@@ -92,7 +92,7 @@ func (c *knEventingClient) DeleteTrigger(name string) error {
 }
 
 //GetTrigger is used to get an instance of trigger
-func (c *knEventingClient) GetTrigger(name string) (*v1beta1.Trigger, error) {
+func (c *knEventingClient) GetTrigger(ctx context.Context, name string) (*v1beta1.Trigger, error) {
 	trigger, err := c.client.Triggers(c.namespace).Get(context.TODO(), name, apis_v1.GetOptions{})
 	if err != nil {
 		return nil, kn_errors.GetError(err)
@@ -104,7 +104,7 @@ func (c *knEventingClient) GetTrigger(name string) (*v1beta1.Trigger, error) {
 	return trigger, nil
 }
 
-func (c *knEventingClient) ListTriggers() (*v1beta1.TriggerList, error) {
+func (c *knEventingClient) ListTriggers(context.Context) (*v1beta1.TriggerList, error) {
 	triggerList, err := c.client.Triggers(c.namespace).List(context.TODO(), apis_v1.ListOptions{})
 	if err != nil {
 		return nil, kn_errors.GetError(err)
@@ -128,7 +128,7 @@ func (c *knEventingClient) ListTriggers() (*v1beta1.TriggerList, error) {
 }
 
 //CreateTrigger is used to create an instance of trigger
-func (c *knEventingClient) UpdateTrigger(trigger *v1beta1.Trigger) error {
+func (c *knEventingClient) UpdateTrigger(ctx context.Context, trigger *v1beta1.Trigger) error {
 	_, err := c.client.Triggers(c.namespace).Update(context.TODO(), trigger, meta_v1.UpdateOptions{})
 	if err != nil {
 		return kn_errors.GetError(err)
@@ -137,7 +137,7 @@ func (c *knEventingClient) UpdateTrigger(trigger *v1beta1.Trigger) error {
 }
 
 // Return the client's namespace
-func (c *knEventingClient) Namespace() string {
+func (c *knEventingClient) Namespace(context.Context) string {
 	return c.namespace
 }
 
@@ -219,7 +219,7 @@ func (b *TriggerBuilder) Build() *v1beta1.Trigger {
 }
 
 // CreateBroker is used to create an instance of broker
-func (c *knEventingClient) CreateBroker(broker *v1beta1.Broker) error {
+func (c *knEventingClient) CreateBroker(ctx context.Context, broker *v1beta1.Broker) error {
 	_, err := c.client.Brokers(c.namespace).Create(context.TODO(), broker, meta_v1.CreateOptions{})
 	if err != nil {
 		return kn_errors.GetError(err)
@@ -228,7 +228,7 @@ func (c *knEventingClient) CreateBroker(broker *v1beta1.Broker) error {
 }
 
 // GetBroker is used to get an instance of broker
-func (c *knEventingClient) GetBroker(name string) (*v1beta1.Broker, error) {
+func (c *knEventingClient) GetBroker(ctx context.Context, name string) (*v1beta1.Broker, error) {
 	broker, err := c.client.Brokers(c.namespace).Get(context.TODO(), name, apis_v1.GetOptions{})
 	if err != nil {
 		return nil, kn_errors.GetError(err)
@@ -248,7 +248,7 @@ func (c *knEventingClient) WatchBroker(name string, timeout time.Duration) (watc
 
 // DeleteBroker is used to delete an instance of broker and wait for completion until given timeout
 // For `timeout == 0` delete is performed async without any wait
-func (c *knEventingClient) DeleteBroker(name string, timeout time.Duration) error {
+func (c *knEventingClient) DeleteBroker(ctx context.Context, name string, timeout time.Duration) error {
 	if timeout == 0 {
 		return c.deleteBroker(name, apis_v1.DeletePropagationBackground)
 	}
@@ -280,7 +280,7 @@ func (c *knEventingClient) deleteBroker(name string, propagationPolicy apis_v1.D
 }
 
 // ListBrokers is used to retrieve the list of broker instances
-func (c *knEventingClient) ListBrokers() (*v1beta1.BrokerList, error) {
+func (c *knEventingClient) ListBrokers(context.Context) (*v1beta1.BrokerList, error) {
 	brokerList, err := c.client.Brokers(c.namespace).List(context.TODO(), apis_v1.ListOptions{})
 	if err != nil {
 		return nil, kn_errors.GetError(err)

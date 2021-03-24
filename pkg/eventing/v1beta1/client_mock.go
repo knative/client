@@ -15,6 +15,7 @@
 package v1beta1
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -55,7 +56,7 @@ func (c *MockKnEventingClient) Recorder() *EventingRecorder {
 }
 
 // Namespace of this client
-func (c *MockKnEventingClient) Namespace() string {
+func (c *MockKnEventingClient) Namespace(context.Context) string {
 	return c.recorder.r.Namespace()
 }
 
@@ -65,7 +66,7 @@ func (sr *EventingRecorder) CreateTrigger(trigger interface{}, err error) {
 }
 
 // CreateTrigger performs a previously recorded action
-func (c *MockKnEventingClient) CreateTrigger(trigger *v1beta1.Trigger) error {
+func (c *MockKnEventingClient) CreateTrigger(ctx context.Context, trigger *v1beta1.Trigger) error {
 	call := c.recorder.r.VerifyCall("CreateTrigger", trigger)
 	return mock.ErrorOrNil(call.Result[0])
 }
@@ -76,7 +77,7 @@ func (sr *EventingRecorder) GetTrigger(name interface{}, trigger *v1beta1.Trigge
 }
 
 // GetTrigger performs a previously recorded action
-func (c *MockKnEventingClient) GetTrigger(name string) (*v1beta1.Trigger, error) {
+func (c *MockKnEventingClient) GetTrigger(ctx context.Context, name string) (*v1beta1.Trigger, error) {
 	call := c.recorder.r.VerifyCall("GetTrigger", name)
 	return call.Result[0].(*v1beta1.Trigger), mock.ErrorOrNil(call.Result[1])
 }
@@ -87,7 +88,7 @@ func (sr *EventingRecorder) DeleteTrigger(name interface{}, err error) {
 }
 
 // DeleteTrigger performs a previously recorded action, failing if non has been registered
-func (c *MockKnEventingClient) DeleteTrigger(name string) error {
+func (c *MockKnEventingClient) DeleteTrigger(ctx context.Context, name string) error {
 	call := c.recorder.r.VerifyCall("DeleteTrigger", name)
 	return mock.ErrorOrNil(call.Result[0])
 }
@@ -98,7 +99,7 @@ func (sr *EventingRecorder) ListTriggers(triggerList *v1beta1.TriggerList, err e
 }
 
 // ListTriggers performs a previously recorded action
-func (c *MockKnEventingClient) ListTriggers() (*v1beta1.TriggerList, error) {
+func (c *MockKnEventingClient) ListTriggers(context.Context) (*v1beta1.TriggerList, error) {
 	call := c.recorder.r.VerifyCall("ListTriggers")
 	return call.Result[0].(*v1beta1.TriggerList), mock.ErrorOrNil(call.Result[1])
 }
@@ -109,7 +110,7 @@ func (sr *EventingRecorder) UpdateTrigger(trigger interface{}, err error) {
 }
 
 // UpdateTrigger performs a previously recorded action
-func (c *MockKnEventingClient) UpdateTrigger(trigger *v1beta1.Trigger) error {
+func (c *MockKnEventingClient) UpdateTrigger(ctx context.Context, trigger *v1beta1.Trigger) error {
 	call := c.recorder.r.VerifyCall("UpdateTrigger")
 	return mock.ErrorOrNil(call.Result[0])
 }
@@ -120,7 +121,7 @@ func (sr *EventingRecorder) CreateBroker(broker interface{}, err error) {
 }
 
 // CreateBroker performs a previously recorded action
-func (c *MockKnEventingClient) CreateBroker(broker *v1beta1.Broker) error {
+func (c *MockKnEventingClient) CreateBroker(ctx context.Context, broker *v1beta1.Broker) error {
 	call := c.recorder.r.VerifyCall("CreateBroker", broker)
 	return mock.ErrorOrNil(call.Result[0])
 }
@@ -131,7 +132,7 @@ func (sr *EventingRecorder) GetBroker(name interface{}, broker *v1beta1.Broker, 
 }
 
 // GetBroker performs a previously recorded action
-func (c *MockKnEventingClient) GetBroker(name string) (*v1beta1.Broker, error) {
+func (c *MockKnEventingClient) GetBroker(ctx context.Context, name string) (*v1beta1.Broker, error) {
 	call := c.recorder.r.VerifyCall("GetBroker", name)
 	return call.Result[0].(*v1beta1.Broker), mock.ErrorOrNil(call.Result[1])
 }
@@ -142,7 +143,7 @@ func (sr *EventingRecorder) DeleteBroker(name, timeout interface{}, err error) {
 }
 
 // DeleteBroker performs a previously recorded action, failing if non has been registered
-func (c *MockKnEventingClient) DeleteBroker(name string, timeout time.Duration) error {
+func (c *MockKnEventingClient) DeleteBroker(ctx context.Context, name string, timeout time.Duration) error {
 	call := c.recorder.r.VerifyCall("DeleteBroker", name, timeout)
 	return mock.ErrorOrNil(call.Result[0])
 }
@@ -153,7 +154,7 @@ func (sr *EventingRecorder) ListBrokers(brokerList *v1beta1.BrokerList, err erro
 }
 
 // ListBrokers performs a previously recorded action
-func (c *MockKnEventingClient) ListBrokers() (*v1beta1.BrokerList, error) {
+func (c *MockKnEventingClient) ListBrokers(context.Context) (*v1beta1.BrokerList, error) {
 	call := c.recorder.r.VerifyCall("ListBrokers")
 	return call.Result[0].(*v1beta1.BrokerList), mock.ErrorOrNil(call.Result[1])
 }

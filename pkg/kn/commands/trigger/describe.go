@@ -15,6 +15,7 @@
 package trigger
 
 import (
+	context2 "context"
 	"errors"
 
 	"github.com/spf13/cobra"
@@ -61,7 +62,7 @@ func NewTriggerDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			trigger, err := eventingClient.GetTrigger(name)
+			trigger, err := eventingClient.GetTrigger(context2.TODO(), name)
 			if err != nil {
 				return err
 			}
