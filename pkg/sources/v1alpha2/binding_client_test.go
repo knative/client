@@ -15,6 +15,7 @@
 package v1alpha2
 
 import (
+	context2 "context"
 	"fmt"
 	"testing"
 
@@ -50,10 +51,10 @@ func TestDeleteSinkBinding(t *testing.T) {
 			return true, nil, nil
 		})
 
-	err := client.DeleteSinkBinding(name)
+	err := client.DeleteSinkBinding(context2.TODO(), name)
 	assert.NilError(t, err)
 
-	err = client.DeleteSinkBinding("errorSinkBinding")
+	err = client.DeleteSinkBinding(context2.TODO(), "errorSinkBinding")
 	assert.ErrorContains(t, err, "errorSinkBinding")
 }
 
@@ -75,12 +76,12 @@ func TestCreateSinkBinding(t *testing.T) {
 		})
 
 	t.Run("create binding without error", func(t *testing.T) {
-		err := client.CreateSinkBinding(objNew)
+		err := client.CreateSinkBinding(context2.TODO(), objNew)
 		assert.NilError(t, err)
 	})
 
 	t.Run("create binding with an error returns an error object", func(t *testing.T) {
-		err := client.CreateSinkBinding(newSinkBinding("unknown", "mysvc", "mypings"))
+		err := client.CreateSinkBinding(context2.TODO(), newSinkBinding("unknown", "mysvc", "mypings"))
 		assert.ErrorContains(t, err, "unknown")
 	})
 }
@@ -98,13 +99,13 @@ func TestGetSinkBinding(t *testing.T) {
 			return true, newSinkBinding(name, "mysvc", "myping"), nil
 		})
 
-	binding, err := client.GetSinkBinding(name)
+	binding, err := client.GetSinkBinding(context2.TODO(), name)
 	assert.NilError(t, err)
 	assert.Equal(t, binding.Name, name)
 	assert.Equal(t, binding.Spec.Sink.Ref.Name, "mysvc")
 	assert.Equal(t, binding.Spec.Subject.Name, "myping")
 
-	_, err = client.GetSinkBinding("errorSinkBinding")
+	_, err = client.GetSinkBinding(context2.TODO(), "errorSinkBinding")
 	assert.ErrorContains(t, err, "errorSinkBinding")
 }
 
@@ -121,7 +122,7 @@ func TestListSinkBinding(t *testing.T) {
 				return true, &v1alpha2.SinkBindingList{Items: []v1alpha2.SinkBinding{*binding1, *binding2}}, nil
 			})
 
-		listSinkBindings, err := client.ListSinkBindings()
+		listSinkBindings, err := client.ListSinkBindings(context2.TODO())
 		assert.NilError(t, err)
 		assert.Assert(t, len(listSinkBindings.Items) == 2)
 		assert.Equal(t, listSinkBindings.Items[0].Name, "binding-1")

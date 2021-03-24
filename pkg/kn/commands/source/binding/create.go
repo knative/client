@@ -15,6 +15,7 @@
 package binding
 
 import (
+	context2 "context"
 	"errors"
 	"fmt"
 
@@ -85,9 +86,9 @@ func NewBindingCreateCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			err = sinkBindingClient.CreateSinkBinding(binding)
+			err = sinkBindingClient.CreateSinkBinding(context2.TODO(), binding)
 			if err == nil {
-				fmt.Fprintf(cmd.OutOrStdout(), "Sink binding '%s' created in namespace '%s'.\n", args[0], sinkBindingClient.Namespace())
+				fmt.Fprintf(cmd.OutOrStdout(), "Sink binding '%s' created in namespace '%s'.\n", args[0], sinkBindingClient.Namespace(context2.TODO()))
 			}
 			return err
 		},

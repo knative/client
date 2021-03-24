@@ -15,6 +15,7 @@
 package binding
 
 import (
+	context2 "context"
 	"errors"
 	"fmt"
 	"sort"
@@ -57,7 +58,7 @@ func NewBindingDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			binding, err := bindingClient.GetSinkBinding(name)
+			binding, err := bindingClient.GetSinkBinding(context2.TODO(), name)
 			if err != nil {
 				return err
 			}

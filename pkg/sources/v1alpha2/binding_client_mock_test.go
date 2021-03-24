@@ -15,6 +15,7 @@
 package v1alpha2
 
 import (
+	context2 "context"
 	"testing"
 
 	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
@@ -33,11 +34,11 @@ func TestMockKnClient(t *testing.T) {
 	recorder.UpdateSinkBinding(&v1alpha2.SinkBinding{}, nil)
 
 	// Call all service
-	client.GetSinkBinding("hello")
-	client.CreateSinkBinding(&v1alpha2.SinkBinding{})
-	client.DeleteSinkBinding("hello")
-	client.ListSinkBindings()
-	client.UpdateSinkBinding(&v1alpha2.SinkBinding{})
+	client.GetSinkBinding(context2.TODO(), "hello")
+	client.CreateSinkBinding(context2.TODO(), &v1alpha2.SinkBinding{})
+	client.DeleteSinkBinding(context2.TODO(), "hello")
+	client.ListSinkBindings(context2.TODO())
+	client.UpdateSinkBinding(context2.TODO(), &v1alpha2.SinkBinding{})
 
 	// Validate
 	recorder.Validate()

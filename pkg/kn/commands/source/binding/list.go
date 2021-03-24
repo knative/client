@@ -15,6 +15,7 @@
 package binding
 
 import (
+	context2 "context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -44,7 +45,7 @@ func NewBindingListCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			sourceList, err := bindingClient.ListSinkBindings()
+			sourceList, err := bindingClient.ListSinkBindings(context2.TODO())
 			if err != nil {
 				return err
 			}
@@ -54,7 +55,7 @@ func NewBindingListCommand(p *commands.KnParams) *cobra.Command {
 				return nil
 			}
 
-			if bindingClient.Namespace() == "" {
+			if bindingClient.Namespace(context2.TODO()) == "" {
 				listFlags.EnsureWithNamespace()
 			}
 
