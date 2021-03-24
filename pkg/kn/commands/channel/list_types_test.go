@@ -104,7 +104,7 @@ func TestChannelListTypesNoHeaders(t *testing.T) {
 
 func TestListBuiltInChannelTypes(t *testing.T) {
 	fakeDynamic := dynamicfake.NewSimpleDynamicClient(runtime.NewScheme())
-	channel, err := listBuiltInChannelTypes(dynamic.NewKnDynamicClient(fakeDynamic, "current"))
+	channel, err := listBuiltInChannelTypes(context2.TODO(), dynamic.NewKnDynamicClient(fakeDynamic, "current"))
 	assert.NilError(t, err)
 	if channel == nil {
 		t.Fatal("channel = nil, want not nil")
