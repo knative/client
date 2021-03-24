@@ -304,7 +304,7 @@ func TestNewMessagingClient(t *testing.T) {
 		}
 
 		if msgClient != nil {
-			assert.Assert(t, msgClient.ChannelsClient().Namespace(context2.TODO()) == namespace)
+			assert.Assert(t, msgClient.ChannelsClient().Namespace(cmd.Context()) == namespace)
 		}
 	}
 }
