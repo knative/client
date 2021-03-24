@@ -204,7 +204,7 @@ func TestNewSourcesClient(t *testing.T) {
 
 		if sourcesClient != nil {
 			assert.Assert(t, sourcesClient.SinkBindingClient().Namespace(context.Background()) == namespace)
-			assert.Assert(t, sourcesClient.PingSourcesClient().Namespace(context.TODO()) == namespace)
+			assert.Assert(t, sourcesClient.PingSourcesClient().Namespace(context.Background()) == namespace)
 		}
 	}
 }
