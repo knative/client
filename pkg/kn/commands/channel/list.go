@@ -15,6 +15,7 @@
 package channel
 
 import (
+	context2 "context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -46,7 +47,7 @@ func NewChannelListCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			channelList, err := client.ListChannel()
+			channelList, err := client.ListChannel(context2.TODO())
 			if err != nil {
 				return err
 			}
@@ -56,7 +57,7 @@ func NewChannelListCommand(p *commands.KnParams) *cobra.Command {
 				return nil
 			}
 
-			if client.Namespace() == "" {
+			if client.Namespace(context2.TODO()) == "" {
 				listFlags.EnsureWithNamespace()
 			}
 

@@ -15,6 +15,7 @@
 package channel
 
 import (
+	context2 "context"
 	"errors"
 	"fmt"
 
@@ -41,12 +42,12 @@ func NewChannelDeleteCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			err = channelClient.DeleteChannel(name)
+			err = channelClient.DeleteChannel(context2.TODO(), name)
 			if err != nil {
 				return err
 			}
 
-			fmt.Fprintf(cmd.OutOrStdout(), "Channel '%s' deleted in namespace '%s'.\n", name, channelClient.Namespace())
+			fmt.Fprintf(cmd.OutOrStdout(), "Channel '%s' deleted in namespace '%s'.\n", name, channelClient.Namespace(context2.TODO()))
 			return nil
 		},
 	}

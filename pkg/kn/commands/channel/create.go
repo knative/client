@@ -15,6 +15,7 @@
 package channel
 
 import (
+	context2 "context"
 	"errors"
 	"fmt"
 
@@ -70,7 +71,7 @@ func NewChannelCreateCommand(p *commands.KnParams) *cobra.Command {
 				cb.Type(gvk)
 			}
 
-			err = client.CreateChannel(cb.Build())
+			err = client.CreateChannel(context2.TODO(), cb.Build())
 			if err != nil {
 				return knerrors.GetError(err)
 			}

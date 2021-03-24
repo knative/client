@@ -15,6 +15,7 @@
 package channel
 
 import (
+	context2 "context"
 	"errors"
 	"fmt"
 	"strings"
@@ -57,7 +58,7 @@ func NewChannelDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			channel, err := client.GetChannel(name)
+			channel, err := client.GetChannel(context2.TODO(), name)
 			if err != nil {
 				return knerrors.GetError(err)
 			}
