@@ -16,6 +16,7 @@ package wait
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -33,6 +34,23 @@ type waitForReadyTestCase struct {
 	timeout          time.Duration
 	errorText        string
 	messagesExpected []string
+}
+
+func TestWaitCancellation(t *testing.T) {
+	fakeWatchApi := NewFakeWatch([]watch.Event{})
+	fakeWatchApi.Start()
+	wfe := NewWaitForEvent("foobar", func(e *watch.Event) bool {
+		return false
+	})
+	timeout := time.Second * 5
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go func() {
+		time.Sleep(time.Millisecond * 500)
+		cancel()
+	}()
+	err, _ := wfe.Wait(ctx, fakeWatchApi, "foobar", Options{Timeout: &timeout}, NoopMessageCallback())
+	assert.Assert(t, errors.Is(err, context.Canceled))
 }
 
 func TestAddWaitForReady(t *testing.T) {
