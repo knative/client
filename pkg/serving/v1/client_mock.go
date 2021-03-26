@@ -56,7 +56,7 @@ func (c *MockKnServingClient) Recorder() *ServingRecorder {
 }
 
 // Namespace of this client
-func (c *MockKnServingClient) Namespace(context.Context) string {
+func (c *MockKnServingClient) Namespace() string {
 	return c.recorder.r.Namespace()
 }
 

@@ -47,7 +47,7 @@ type KnPingSourcesClient interface {
 	ListPingSource(ctx context.Context) (*v1alpha2.PingSourceList, error)
 
 	// Get namespace for this source
-	Namespace(ctx context.Context) string
+	Namespace() string
 }
 
 // knSourcesClient is a combination of Sources client interface and namespace
@@ -67,7 +67,7 @@ func newKnPingSourcesClient(client clientv1alpha2.PingSourceInterface, namespace
 }
 
 // Get the namespace for which this client has been created
-func (c *pingSourcesClient) Namespace(context.Context) string {
+func (c *pingSourcesClient) Namespace() string {
 	return c.namespace
 }
 

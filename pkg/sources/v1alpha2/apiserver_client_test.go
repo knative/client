@@ -34,7 +34,7 @@ var testAPIServerSourceNamespace = "test-ns"
 func setupAPIServerSourcesClient(t *testing.T) (fakeSources fake.FakeSourcesV1alpha2, client KnAPIServerSourcesClient) {
 	fakeSources = fake.FakeSourcesV1alpha2{Fake: &clienttesting.Fake{}}
 	client = NewKnSourcesClient(&fakeSources, testAPIServerSourceNamespace).APIServerSourcesClient()
-	assert.Equal(t, client.Namespace(context.Background()), testAPIServerSourceNamespace)
+	assert.Equal(t, client.Namespace(), testAPIServerSourceNamespace)
 	return
 }
 

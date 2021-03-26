@@ -56,7 +56,7 @@ func (c *MockKnEventingClient) Recorder() *EventingRecorder {
 }
 
 // Namespace of this client
-func (c *MockKnEventingClient) Namespace(context.Context) string {
+func (c *MockKnEventingClient) Namespace() string {
 	return c.recorder.r.Namespace()
 }
 

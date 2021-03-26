@@ -38,7 +38,7 @@ const testNamespace = "current"
 
 func TestNamespace(t *testing.T) {
 	client := createFakeKnDynamicClient(testNamespace, newSourceCRDObj("foo"))
-	assert.Equal(t, client.Namespace(context.Background()), testNamespace)
+	assert.Equal(t, client.Namespace(), testNamespace)
 }
 
 func TestListCRDs(t *testing.T) {

@@ -36,7 +36,7 @@ import (
 // namespace specified during construction
 type KnSinkBindingClient interface {
 	// Namespace in which this client is operating for
-	Namespace(ctx context.Context) string
+	Namespace() string
 	// CreateSinkBinding is used to create an instance of binding
 	CreateSinkBinding(ctx context.Context, binding *v1alpha2.SinkBinding) error
 	// DeleteSinkBinding is used to delete an instance of binding
@@ -129,7 +129,7 @@ func (c *knBindingClient) UpdateSinkBinding(ctx context.Context, binding *v1alph
 }
 
 // Return the client's namespace
-func (c *knBindingClient) Namespace(context.Context) string {
+func (c *knBindingClient) Namespace() string {
 	return c.namespace
 }
 

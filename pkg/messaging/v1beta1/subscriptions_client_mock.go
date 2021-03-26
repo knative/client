@@ -58,7 +58,7 @@ func (c *MockKnSubscriptionsClient) Recorder() *SubscriptionsRecorder {
 }
 
 // Namespace of this client
-func (c *MockKnSubscriptionsClient) Namespace(context.Context) string {
+func (c *MockKnSubscriptionsClient) Namespace() string {
 	return c.recorder.r.Namespace()
 }
 

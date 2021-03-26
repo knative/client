@@ -55,7 +55,7 @@ func (c *MockKnAPIServerSourceClient) Recorder() *APIServerSourcesRecorder {
 }
 
 // Namespace of this client
-func (c *MockKnAPIServerSourceClient) Namespace(context.Context) string {
+func (c *MockKnAPIServerSourceClient) Namespace() string {
 	return c.recorder.r.Namespace()
 }
 

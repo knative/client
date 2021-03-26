@@ -36,7 +36,7 @@ import (
 // namespace specified during construction
 type KnEventingClient interface {
 	// Namespace in which this client is operating for
-	Namespace(ctx context.Context) string
+	Namespace() string
 	// CreateTrigger is used to create an instance of trigger
 	CreateTrigger(ctx context.Context, trigger *v1beta1.Trigger) error
 	// DeleteTrigger is used to delete an instance of trigger
@@ -137,7 +137,7 @@ func (c *knEventingClient) UpdateTrigger(ctx context.Context, trigger *v1beta1.T
 }
 
 // Return the client's namespace
-func (c *knEventingClient) Namespace(context.Context) string {
+func (c *knEventingClient) Namespace() string {
 	return c.namespace
 }
 

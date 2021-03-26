@@ -95,7 +95,7 @@ func NewBindingUpdateCommand(p *commands.KnParams) *cobra.Command {
 			}
 			err = sinkBindingClient.UpdateSinkBinding(cmd.Context(), binding)
 			if err == nil {
-				fmt.Fprintf(cmd.OutOrStdout(), "Sink binding '%s' updated in namespace '%s'.\n", name, sinkBindingClient.Namespace(cmd.Context()))
+				fmt.Fprintf(cmd.OutOrStdout(), "Sink binding '%s' updated in namespace '%s'.\n", name, sinkBindingClient.Namespace())
 			}
 			return err
 		},

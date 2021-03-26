@@ -52,7 +52,7 @@ func NewContainerCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			namespace := srcClient.Namespace(cmd.Context())
+			namespace := srcClient.Namespace()
 
 			dynamicClient, err := p.NewDynamicClient(namespace)
 			if err != nil {

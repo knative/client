@@ -50,7 +50,7 @@ func NewAPIServerCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			namespace := apiSourceClient.Namespace(cmd.Context())
+			namespace := apiSourceClient.Namespace()
 
 			dynamicClient, err := p.NewDynamicClient(namespace)
 			if err != nil {

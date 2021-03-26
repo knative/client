@@ -78,7 +78,7 @@ func getFileModeAndType(dir string) (bool, string) {
 }
 
 // Namespace returns the namespace
-func (cl *knServingGitOpsClient) Namespace(context.Context) string {
+func (cl *knServingGitOpsClient) Namespace() string {
 	return cl.namespace
 }
 

@@ -54,7 +54,7 @@ func (c *MockKnPingSourceClient) Recorder() *PingSourcesRecorder {
 }
 
 // Namespace of this client
-func (c *MockKnPingSourceClient) Namespace(context.Context) string {
+func (c *MockKnPingSourceClient) Namespace() string {
 	return c.recorder.r.Namespace()
 }
 

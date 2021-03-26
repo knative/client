@@ -48,7 +48,7 @@ type KnSubscriptionsClient interface {
 	ListSubscription(ctx context.Context) (*v1beta1.SubscriptionList, error)
 
 	// Namespace returns the namespace for this subscription client
-	Namespace(ctx context.Context) string
+	Namespace() string
 }
 
 // subscriptionsClient struct holds the client interface and namespace
@@ -66,7 +66,7 @@ func newKnSubscriptionsClient(client clientv1beta1.SubscriptionInterface, namesp
 }
 
 // Get the namespace for which this client is created
-func (c *subscriptionsClient) Namespace(context.Context) string {
+func (c *subscriptionsClient) Namespace() string {
 	return c.namespace
 }
 

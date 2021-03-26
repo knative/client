@@ -54,7 +54,7 @@ func (c *MockKnChannelsClient) Recorder() *ChannelsRecorder {
 }
 
 // Namespace of this client
-func (c *MockKnChannelsClient) Namespace(context.Context) string {
+func (c *MockKnChannelsClient) Namespace() string {
 	return c.recorder.r.Namespace()
 }
 

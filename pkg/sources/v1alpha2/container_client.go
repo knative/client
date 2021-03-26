@@ -49,7 +49,7 @@ type KnContainerSourcesClient interface {
 	ListContainerSources(ctx context.Context) (*v1alpha2.ContainerSourceList, error)
 
 	// Get namespace for this client
-	Namespace(ctx context.Context) string
+	Namespace() string
 }
 
 // knSourcesClient is a combination of Sources client interface and namespace
@@ -104,7 +104,7 @@ func (c *containerSourcesClient) DeleteContainerSource(name string, ctx context.
 }
 
 // Return the client's namespace
-func (c *containerSourcesClient) Namespace(context.Context) string {
+func (c *containerSourcesClient) Namespace() string {
 	return c.namespace
 }
 

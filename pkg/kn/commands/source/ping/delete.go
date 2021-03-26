@@ -46,7 +46,7 @@ func NewPingDeleteCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			fmt.Fprintf(cmd.OutOrStdout(), "Ping source '%s' deleted in namespace '%s'.\n", name, pingClient.Namespace(cmd.Context()))
+			fmt.Fprintf(cmd.OutOrStdout(), "Ping source '%s' deleted in namespace '%s'.\n", name, pingClient.Namespace())
 			return nil
 		},
 	}

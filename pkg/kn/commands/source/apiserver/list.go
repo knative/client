@@ -55,7 +55,7 @@ func NewAPIServerListCommand(p *commands.KnParams) *cobra.Command {
 				return nil
 			}
 
-			if apiSourceClient.Namespace(cmd.Context()) == "" {
+			if apiSourceClient.Namespace() == "" {
 				listFlags.EnsureWithNamespace()
 			}
 

@@ -55,7 +55,7 @@ func NewContainerListCommand(p *commands.KnParams) *cobra.Command {
 				return nil
 			}
 
-			if containerClient.Namespace(cmd.Context()) == "" {
+			if containerClient.Namespace() == "" {
 				listFlags.EnsureWithNamespace()
 			}
 

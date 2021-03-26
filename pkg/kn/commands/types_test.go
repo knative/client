@@ -203,8 +203,8 @@ func TestNewSourcesClient(t *testing.T) {
 		}
 
 		if sourcesClient != nil {
-			assert.Assert(t, sourcesClient.SinkBindingClient().Namespace(context.Background()) == namespace)
-			assert.Assert(t, sourcesClient.PingSourcesClient().Namespace(context.Background()) == namespace)
+			assert.Assert(t, sourcesClient.SinkBindingClient().Namespace() == namespace)
+			assert.Assert(t, sourcesClient.PingSourcesClient().Namespace() == namespace)
 		}
 	}
 }
@@ -254,7 +254,7 @@ func TestNewDynamicClient(t *testing.T) {
 		}
 
 		if dynamicClient != nil {
-			assert.Assert(t, dynamicClient.Namespace(context.Background()) == namespace)
+			assert.Assert(t, dynamicClient.Namespace() == namespace)
 		}
 	}
 }
@@ -304,7 +304,7 @@ func TestNewMessagingClient(t *testing.T) {
 		}
 
 		if msgClient != nil {
-			assert.Assert(t, msgClient.ChannelsClient().Namespace(context.Background()) == namespace)
+			assert.Assert(t, msgClient.ChannelsClient().Namespace() == namespace)
 		}
 	}
 }

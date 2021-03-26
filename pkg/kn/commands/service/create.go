@@ -161,7 +161,7 @@ func replaceService(ctx context.Context, client clientservingv1.KnServingClient,
 		return err
 	}
 	if !changed {
-		fmt.Fprintf(out, "Service '%s' replaced in namespace '%s' (unchanged).\n", service.Name, client.Namespace(ctx))
+		fmt.Fprintf(out, "Service '%s' replaced in namespace '%s' (unchanged).\n", service.Name, client.Namespace())
 		return nil
 	}
 	return waitIfRequested(ctx, client, waitFlags, service.Name, "Replacing", "replaced", targetFlag, out)
@@ -169,10 +169,10 @@ func replaceService(ctx context.Context, client clientservingv1.KnServingClient,
 
 func waitIfRequested(ctx context.Context, client clientservingv1.KnServingClient, waitFlags commands.WaitFlags, serviceName string, verbDoing string, verbDone string, targetFlag string, out io.Writer) error {
 	if !waitFlags.Wait || targetFlag != "" {
-		fmt.Fprintf(out, "Service '%s' %s in namespace '%s'.\n", serviceName, verbDone, client.Namespace(ctx))
+		fmt.Fprintf(out, "Service '%s' %s in namespace '%s'.\n", serviceName, verbDone, client.Namespace())
 		return nil
 	}
-	fmt.Fprintf(out, "%s service '%s' in namespace '%s':\n", verbDoing, serviceName, client.Namespace(ctx))
+	fmt.Fprintf(out, "%s service '%s' in namespace '%s':\n", verbDoing, serviceName, client.Namespace())
 	return waitForServiceToGetReady(ctx, client, serviceName, waitFlags.TimeoutInSeconds, verbDone, out)
 }
 

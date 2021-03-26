@@ -55,7 +55,7 @@ func NewPingListCommand(p *commands.KnParams) *cobra.Command {
 				return nil
 			}
 
-			if pingClient.Namespace(cmd.Context()) == "" {
+			if pingClient.Namespace() == "" {
 				listFlags.EnsureWithNamespace()
 			}
 

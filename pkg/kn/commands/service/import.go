@@ -98,7 +98,7 @@ func importWithOwnerRef(ctx context.Context, client clientservingv1.KnServingCli
 	}
 	if svcExists {
 		return fmt.Errorf("cannot import service '%s' in namespace '%s' because the service already exists",
-			serviceName, client.Namespace(ctx))
+			serviceName, client.Namespace())
 	}
 
 	err = client.CreateService(ctx, &export.Spec.Service)

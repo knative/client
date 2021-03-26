@@ -49,7 +49,7 @@ type KnAPIServerSourcesClient interface {
 	ListAPIServerSource(ctx context.Context) (*v1alpha2.ApiServerSourceList, error)
 
 	// Get namespace for this client
-	Namespace(ctx context.Context) string
+	Namespace() string
 }
 
 // knSourcesClient is a combination of Sources client interface and namespace
@@ -111,7 +111,7 @@ func (c *apiServerSourcesClient) DeleteAPIServerSource(ctx context.Context, name
 }
 
 // Return the client's namespace
-func (c *apiServerSourcesClient) Namespace(context.Context) string {
+func (c *apiServerSourcesClient) Namespace() string {
 	return c.namespace
 }
 

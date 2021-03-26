@@ -77,7 +77,7 @@ func NewPingCreateCommand(p *commands.KnParams) *cobra.Command {
 				CloudEventOverrides(ceOverridesMap, ceOverridesToRemove).
 				Build())
 			if err == nil {
-				fmt.Fprintf(cmd.OutOrStdout(), "Ping source '%s' created in namespace '%s'.\n", args[0], pingSourceClient.Namespace(cmd.Context()))
+				fmt.Fprintf(cmd.OutOrStdout(), "Ping source '%s' created in namespace '%s'.\n", args[0], pingSourceClient.Namespace())
 			}
 			return err
 		},

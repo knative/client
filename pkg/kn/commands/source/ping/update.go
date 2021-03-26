@@ -92,7 +92,7 @@ func NewPingUpdateCommand(p *commands.KnParams) *cobra.Command {
 
 			err = pingSourceClient.UpdatePingSource(cmd.Context(), b.Build())
 			if err == nil {
-				fmt.Fprintf(cmd.OutOrStdout(), "Ping source '%s' updated in namespace '%s'.\n", name, pingSourceClient.Namespace(cmd.Context()))
+				fmt.Fprintf(cmd.OutOrStdout(), "Ping source '%s' updated in namespace '%s'.\n", name, pingSourceClient.Namespace())
 			}
 			return err
 		},

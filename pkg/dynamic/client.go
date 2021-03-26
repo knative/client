@@ -49,7 +49,7 @@ const (
 // namespace specified during construction
 type KnDynamicClient interface {
 	// Namespace in which this client is operating for
-	Namespace(ctx context.Context) string
+	Namespace() string
 
 	// ListCRDs returns list of CRDs with their type and name
 	ListCRDs(ctx context.Context, options metav1.ListOptions) (*unstructured.UnstructuredList, error)
@@ -88,7 +88,7 @@ func NewKnDynamicClient(client dynamic.Interface, namespace string) KnDynamicCli
 }
 
 // Return the client's namespace
-func (c *knDynamicClient) Namespace(context.Context) string {
+func (c *knDynamicClient) Namespace() string {
 	return c.namespace
 }
 
@@ -162,7 +162,7 @@ func (c *knDynamicClient) ListSources(ctx context.Context, types ...WithType) (*
 		return nil, errors.New("no sources found on the backend, please verify the installation")
 	}
 
-	namespace := c.Namespace(ctx)
+	namespace := c.Namespace()
 	filters := WithTypes(types).List()
 	// For each source type available, find out each source types objects
 	for i := range sourceTypes.Items {
@@ -209,7 +209,7 @@ func (c *knDynamicClient) ListSourcesUsingGVKs(ctx context.Context, gvks *[]sche
 		sourceList unstructured.UnstructuredList
 		options    metav1.ListOptions
 	)
-	namespace := c.Namespace(ctx)
+	namespace := c.Namespace()
 	filters := WithTypes(types).List()
 
 	for _, gvk := range *gvks {
@@ -245,7 +245,7 @@ func (c *knDynamicClient) ListChannelsUsingGVKs(ctx context.Context, gvks *[]sch
 		channelList unstructured.UnstructuredList
 		options     metav1.ListOptions
 	)
-	namespace := c.Namespace(ctx)
+	namespace := c.Namespace()
 	filters := WithTypes(types).List()
 
 	for _, gvk := range *gvks {

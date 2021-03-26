@@ -56,7 +56,7 @@ func NewChannelListCommand(p *commands.KnParams) *cobra.Command {
 				return nil
 			}
 
-			if client.Namespace(cmd.Context()) == "" {
+			if client.Namespace() == "" {
 				listFlags.EnsureWithNamespace()
 			}
 

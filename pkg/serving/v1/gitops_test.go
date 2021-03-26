@@ -60,7 +60,7 @@ func TestGitOpsOperations(t *testing.T) {
 		assert.Equal(t, filepath.Join(c1TempDir, "foo-ns/ksvc/foo.yaml"), fp)
 	})
 	t.Run("get namespace for bazclient client", func(t *testing.T) {
-		ns := bazclient.Namespace(context.Background())
+		ns := bazclient.Namespace()
 		assert.Equal(t, "baz-ns", ns)
 	})
 	t.Run("create service foo in foo namespace", func(t *testing.T) {
@@ -151,7 +151,7 @@ func TestGitOpsSingleFile(t *testing.T) {
 		assert.Equal(t, filepath.Join(tmpDir, "test.yaml"), fp)
 	})
 	t.Run("get namespace for fooclient", func(t *testing.T) {
-		ns := fooclient.Namespace(context.Background())
+		ns := fooclient.Namespace()
 		assert.Equal(t, "", ns)
 	})
 	t.Run("create service in single file mode in different formats", func(t *testing.T) {

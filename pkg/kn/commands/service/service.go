@@ -61,7 +61,7 @@ func waitForService(ctx context.Context, client clientservingv1.KnServingClient,
 func showUrl(ctx context.Context, client clientservingv1.KnServingClient, serviceName string, originalRevision string, what string, out io.Writer) error {
 	service, err := client.GetService(ctx, serviceName)
 	if err != nil {
-		return fmt.Errorf("cannot fetch service '%s' in namespace '%s' for extracting the URL: %w", serviceName, client.Namespace(ctx), err)
+		return fmt.Errorf("cannot fetch service '%s' in namespace '%s' for extracting the URL: %w", serviceName, client.Namespace(), err)
 	}
 
 	url := service.Status.URL.String()

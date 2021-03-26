@@ -46,7 +46,7 @@ func NewChannelDeleteCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			fmt.Fprintf(cmd.OutOrStdout(), "Channel '%s' deleted in namespace '%s'.\n", name, channelClient.Namespace(cmd.Context()))
+			fmt.Fprintf(cmd.OutOrStdout(), "Channel '%s' deleted in namespace '%s'.\n", name, channelClient.Namespace())
 			return nil
 		},
 	}

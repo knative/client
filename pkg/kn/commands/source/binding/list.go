@@ -54,7 +54,7 @@ func NewBindingListCommand(p *commands.KnParams) *cobra.Command {
 				return nil
 			}
 
-			if bindingClient.Namespace(cmd.Context()) == "" {
+			if bindingClient.Namespace() == "" {
 				listFlags.EnsureWithNamespace()
 			}
 

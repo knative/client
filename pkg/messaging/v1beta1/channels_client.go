@@ -41,7 +41,7 @@ type KnChannelsClient interface {
 	ListChannel(ctx context.Context) (*v1beta1.ChannelList, error)
 
 	// Namespace returns the namespace for this channel client
-	Namespace(ctx context.Context) string
+	Namespace() string
 }
 
 // channelsClient struct holds the client interface and namespace
@@ -59,7 +59,7 @@ func newKnChannelsClient(client clientv1beta1.ChannelInterface, namespace string
 }
 
 // Get the namespace for which this client is created
-func (c *channelsClient) Namespace(context.Context) string {
+func (c *channelsClient) Namespace() string {
 	return c.namespace
 }
 

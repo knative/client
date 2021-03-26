@@ -49,7 +49,7 @@ type ServiceUpdateFunc func(origService *servingv1.Service) (*servingv1.Service,
 type KnServingClient interface {
 
 	// Namespace in which this client is operating for
-	Namespace(ctx context.Context) string
+	Namespace() string
 
 	// Get a service by its unique name
 	GetService(ctx context.Context, name string) (*servingv1.Service, error)
@@ -180,7 +180,7 @@ func NewKnServingClient(client clientv1.ServingV1Interface, namespace string) Kn
 }
 
 // Return the client's namespace
-func (cl *knServingClient) Namespace(context.Context) string {
+func (cl *knServingClient) Namespace() string {
 	return cl.namespace
 }
 

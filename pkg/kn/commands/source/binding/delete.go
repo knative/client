@@ -46,7 +46,7 @@ func NewBindingDeleteCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			fmt.Fprintf(cmd.OutOrStdout(), "Sink binding '%s' deleted in namespace '%s'.\n", name, bindingClient.Namespace(cmd.Context()))
+			fmt.Fprintf(cmd.OutOrStdout(), "Sink binding '%s' deleted in namespace '%s'.\n", name, bindingClient.Namespace())
 			return nil
 		},
 	}

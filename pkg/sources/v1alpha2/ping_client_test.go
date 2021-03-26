@@ -31,7 +31,7 @@ import (
 func setupPingSourcesClient(t *testing.T) (sources fake.FakeSourcesV1alpha2, client KnPingSourcesClient) {
 	sources = fake.FakeSourcesV1alpha2{Fake: &clienttesting.Fake{}}
 	client = NewKnSourcesClient(&sources, "test-ns").PingSourcesClient()
-	assert.Equal(t, client.Namespace(context.Background()), "test-ns")
+	assert.Equal(t, client.Namespace(), "test-ns")
 	return
 }
 

@@ -48,7 +48,7 @@ func NewSubscriptionDeleteCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			fmt.Fprintf(cmd.OutOrStdout(), "Subscription '%s' deleted in namespace '%s'.\n", name, subscriptionClient.Namespace(cmd.Context()))
+			fmt.Fprintf(cmd.OutOrStdout(), "Subscription '%s' deleted in namespace '%s'.\n", name, subscriptionClient.Namespace())
 			return nil
 		},
 	}
