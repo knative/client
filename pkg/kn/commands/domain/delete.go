@@ -48,7 +48,7 @@ func NewDomainMappingDeleteCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			err = client.DeleteDomainMapping(name)
+			err = client.DeleteDomainMapping(cmd.Context(), name)
 			if err != nil {
 				return knerrors.GetError(err)
 			}

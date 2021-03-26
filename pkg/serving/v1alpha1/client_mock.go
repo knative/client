@@ -15,6 +15,7 @@
 package v1alpha1
 
 import (
+	"context"
 	"testing"
 
 	"knative.dev/client/pkg/util/mock"
@@ -65,7 +66,7 @@ func (sr *ServingRecorder) GetDomainMapping(name interface{}, domainMapping *ser
 }
 
 // GetDomainMapping mock function
-func (c *MockKnServingClient) GetDomainMapping(name string) (*servingv1alpha1.DomainMapping, error) {
+func (c *MockKnServingClient) GetDomainMapping(ctx context.Context, name string) (*servingv1alpha1.DomainMapping, error) {
 	call := c.recorder.r.VerifyCall("GetDomainMapping", name)
 	return call.Result[0].(*servingv1alpha1.DomainMapping), mock.ErrorOrNil(call.Result[1])
 }
@@ -76,7 +77,7 @@ func (sr *ServingRecorder) CreateDomainMapping(domainMapping interface{}, err er
 }
 
 // CreateDomainMapping mock function
-func (c *MockKnServingClient) CreateDomainMapping(domainMapping *servingv1alpha1.DomainMapping) error {
+func (c *MockKnServingClient) CreateDomainMapping(ctx context.Context, domainMapping *servingv1alpha1.DomainMapping) error {
 	call := c.recorder.r.VerifyCall("CreateDomainMapping", domainMapping)
 	return mock.ErrorOrNil(call.Result[0])
 }
@@ -87,7 +88,7 @@ func (sr *ServingRecorder) UpdateDomainMapping(domainMapping interface{}, err er
 }
 
 // UpdateDomainMapping mock function
-func (c *MockKnServingClient) UpdateDomainMapping(domainMapping *servingv1alpha1.DomainMapping) error {
+func (c *MockKnServingClient) UpdateDomainMapping(ctx context.Context, domainMapping *servingv1alpha1.DomainMapping) error {
 	call := c.recorder.r.VerifyCall("UpdateDomainMapping", domainMapping)
 	return mock.ErrorOrNil(call.Result[0])
 }
@@ -98,7 +99,7 @@ func (sr *ServingRecorder) DeleteDomainMapping(name string, err error) {
 }
 
 // DeleteDomainMapping mock function
-func (c *MockKnServingClient) DeleteDomainMapping(name string) error {
+func (c *MockKnServingClient) DeleteDomainMapping(ctx context.Context, name string) error {
 	call := c.recorder.r.VerifyCall("DeleteDomainMapping", name)
 	return mock.ErrorOrNil(call.Result[0])
 }
@@ -109,7 +110,7 @@ func (sr *ServingRecorder) ListDomainMappings(domainMappingList *servingv1alpha1
 }
 
 // ListDomainMappings mock function
-func (c *MockKnServingClient) ListDomainMappings() (*servingv1alpha1.DomainMappingList, error) {
+func (c *MockKnServingClient) ListDomainMappings(ctx context.Context) (*servingv1alpha1.DomainMappingList, error) {
 	call := c.recorder.r.VerifyCall("ListDomainMappings")
 	return call.Result[0].(*servingv1alpha1.DomainMappingList), mock.ErrorOrNil(call.Result[1])
 }

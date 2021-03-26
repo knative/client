@@ -34,19 +34,19 @@ type KnServingClient interface {
 	Namespace() string
 
 	// GetDomainMapping
-	GetDomainMapping(name string) (*servingv1alpha1.DomainMapping, error)
+	GetDomainMapping(ctx context.Context, name string) (*servingv1alpha1.DomainMapping, error)
 
 	// CreateDomainMapping
-	CreateDomainMapping(domainMapping *servingv1alpha1.DomainMapping) error
+	CreateDomainMapping(ctx context.Context, domainMapping *servingv1alpha1.DomainMapping) error
 
 	// UpdateDomainMapping
-	UpdateDomainMapping(domainMapping *servingv1alpha1.DomainMapping) error
+	UpdateDomainMapping(ctx context.Context, domainMapping *servingv1alpha1.DomainMapping) error
 
 	// DeleteDomainMapping
-	DeleteDomainMapping(name string) error
+	DeleteDomainMapping(ctx context.Context, name string) error
 
 	// ListDomainMappings
-	ListDomainMappings() (*servingv1alpha1.DomainMappingList, error)
+	ListDomainMappings(ctx context.Context) (*servingv1alpha1.DomainMappingList, error)
 }
 
 type knServingClient struct {
@@ -68,8 +68,8 @@ func (cl *knServingClient) Namespace() string {
 }
 
 // GetDomainMapping gets DomainMapping by name
-func (cl *knServingClient) GetDomainMapping(name string) (*servingv1alpha1.DomainMapping, error) {
-	dm, err := cl.client.DomainMappings(cl.namespace).Get(context.TODO(), name, v1.GetOptions{})
+func (cl *knServingClient) GetDomainMapping(ctx context.Context, name string) (*servingv1alpha1.DomainMapping, error) {
+	dm, err := cl.client.DomainMappings(cl.namespace).Get(ctx, name, v1.GetOptions{})
 	if err != nil {
 		return nil, knerrors.GetError(err)
 	}
@@ -81,8 +81,8 @@ func (cl *knServingClient) GetDomainMapping(name string) (*servingv1alpha1.Domai
 }
 
 // CreateDomainMapping creates provided DomainMapping
-func (cl *knServingClient) CreateDomainMapping(domainMapping *servingv1alpha1.DomainMapping) error {
-	_, err := cl.client.DomainMappings(cl.namespace).Create(context.TODO(), domainMapping, v1.CreateOptions{})
+func (cl *knServingClient) CreateDomainMapping(ctx context.Context, domainMapping *servingv1alpha1.DomainMapping) error {
+	_, err := cl.client.DomainMappings(cl.namespace).Create(ctx, domainMapping, v1.CreateOptions{})
 	if err != nil {
 		return knerrors.GetError(err)
 	}
@@ -90,8 +90,8 @@ func (cl *knServingClient) CreateDomainMapping(domainMapping *servingv1alpha1.Do
 }
 
 // UpdateDomainMapping updates provided DomainMapping
-func (cl *knServingClient) UpdateDomainMapping(domainMapping *servingv1alpha1.DomainMapping) error {
-	_, err := cl.client.DomainMappings(cl.namespace).Update(context.TODO(), domainMapping, v1.UpdateOptions{})
+func (cl *knServingClient) UpdateDomainMapping(ctx context.Context, domainMapping *servingv1alpha1.DomainMapping) error {
+	_, err := cl.client.DomainMappings(cl.namespace).Update(ctx, domainMapping, v1.UpdateOptions{})
 	if err != nil {
 		return knerrors.GetError(err)
 	}
@@ -99,8 +99,8 @@ func (cl *knServingClient) UpdateDomainMapping(domainMapping *servingv1alpha1.Do
 }
 
 // DeleteDomainMapping deletes DomainMapping by name
-func (cl *knServingClient) DeleteDomainMapping(name string) error {
-	err := cl.client.DomainMappings(cl.namespace).Delete(context.TODO(), name, v1.DeleteOptions{})
+func (cl *knServingClient) DeleteDomainMapping(ctx context.Context, name string) error {
+	err := cl.client.DomainMappings(cl.namespace).Delete(ctx, name, v1.DeleteOptions{})
 	if err != nil {
 		return knerrors.GetError(err)
 	}
@@ -108,8 +108,8 @@ func (cl *knServingClient) DeleteDomainMapping(name string) error {
 }
 
 // ListDomainMappings lists all DomainMappings
-func (cl *knServingClient) ListDomainMappings() (*servingv1alpha1.DomainMappingList, error) {
-	domainMappingList, err := cl.client.DomainMappings(cl.namespace).List(context.TODO(), v1.ListOptions{})
+func (cl *knServingClient) ListDomainMappings(ctx context.Context) (*servingv1alpha1.DomainMappingList, error) {
+	domainMappingList, err := cl.client.DomainMappings(cl.namespace).List(ctx, v1.ListOptions{})
 	if err != nil {
 		return nil, knerrors.GetError(err)
 	}

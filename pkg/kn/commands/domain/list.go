@@ -50,7 +50,7 @@ func NewDomainMappingListCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			domainMappingList, err := client.ListDomainMappings()
+			domainMappingList, err := client.ListDomainMappings(cmd.Context())
 			if err != nil {
 				return err
 			}

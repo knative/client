@@ -16,6 +16,7 @@ package domain
 
 import (
 	"bytes"
+	"context"
 	"testing"
 
 	"gotest.tools/v3/assert"
@@ -130,7 +131,7 @@ func TestResolve(t *testing.T) {
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default", myksvc, mykroute, myksvcInOther, mykrouteInOther)
 	for _, c := range cases {
 		i := &RefFlags{c.ref}
-		result, err := i.Resolve(dynamicClient, "default")
+		result, err := i.Resolve(context.Background(), dynamicClient, "default")
 		if c.destination != nil {
 			assert.DeepEqual(t, result, c.destination)
 			assert.NilError(t, err)

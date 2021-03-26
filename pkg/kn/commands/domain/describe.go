@@ -49,7 +49,7 @@ func NewDomainMappingDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			domainMapping, err := client.GetDomainMapping(args[0])
+			domainMapping, err := client.GetDomainMapping(cmd.Context(), args[0])
 			if err != nil {
 				return err
 			}

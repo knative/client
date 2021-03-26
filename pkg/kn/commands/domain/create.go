@@ -48,7 +48,7 @@ func NewDomainMappingCreateCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			reference, err := refFlags.Resolve(dynamicClient, namespace)
+			reference, err := refFlags.Resolve(cmd.Context(), dynamicClient, namespace)
 			if err != nil {
 				return err
 			}
@@ -61,7 +61,7 @@ func NewDomainMappingCreateCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			err = client.CreateDomainMapping(builder.Build())
+			err = client.CreateDomainMapping(cmd.Context(), builder.Build())
 			if err != nil {
 				return knerrors.GetError(err)
 			}

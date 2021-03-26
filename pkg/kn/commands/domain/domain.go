@@ -70,7 +70,7 @@ func (f *RefFlags) Add(cmd *cobra.Command) {
 		"If referring to a Knative service in another namespace, 'ksvc:name:namespace' combination must be provided explicitly."
 }
 
-func (f RefFlags) Resolve(knclient clientdynamic.KnDynamicClient, namespace string) (*duckv1.KReference, error) {
+func (f RefFlags) Resolve(ctx context.Context, knclient clientdynamic.KnDynamicClient, namespace string) (*duckv1.KReference, error) {
 	client := knclient.RawClient()
 	if f.reference == "" {
 		return nil, nil
@@ -84,7 +84,7 @@ func (f RefFlags) Resolve(knclient clientdynamic.KnDynamicClient, namespace stri
 	if refNamespace != "" {
 		namespace = refNamespace
 	}
-	obj, err := client.Resource(gvr).Namespace(namespace).Get(context.TODO(), name, metav1.GetOptions{})
+	obj, err := client.Resource(gvr).Namespace(namespace).Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}

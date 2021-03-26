@@ -15,6 +15,7 @@
 package v1alpha1
 
 import (
+	"context"
 	"testing"
 
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
@@ -34,11 +35,12 @@ func TestMockKnClient(t *testing.T) {
 	recorder.ListDomainMappings(&v1alpha1.DomainMappingList{}, nil)
 
 	// Call all services
-	client.GetDomainMapping("hello.foo.bar")
-	client.CreateDomainMapping(&v1alpha1.DomainMapping{})
-	client.DeleteDomainMapping("hello.foo.bar")
-	client.UpdateDomainMapping(&v1alpha1.DomainMapping{})
-	client.ListDomainMappings()
+	ctx := context.Background()
+	client.GetDomainMapping(ctx, "hello.foo.bar")
+	client.CreateDomainMapping(ctx, &v1alpha1.DomainMapping{})
+	client.DeleteDomainMapping(ctx, "hello.foo.bar")
+	client.UpdateDomainMapping(ctx, &v1alpha1.DomainMapping{})
+	client.ListDomainMappings(ctx)
 
 	// Validate
 	recorder.Validate()

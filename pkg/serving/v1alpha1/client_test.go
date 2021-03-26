@@ -15,6 +15,7 @@
 package v1alpha1
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -62,7 +63,7 @@ func TestGetDomainMapping(t *testing.T) {
 		})
 
 	t.Run("get domain mapping by name returns object", func(t *testing.T) {
-		domainMapping, err := client.GetDomainMapping(domainName)
+		domainMapping, err := client.GetDomainMapping(context.Background(), domainName)
 		assert.NilError(t, err)
 		assert.Equal(t, domainName, domainMapping.Name, "domain mapping name should be equal")
 		validateGroupVersionKind(t, domainMapping)
@@ -70,7 +71,7 @@ func TestGetDomainMapping(t *testing.T) {
 
 	t.Run("get non-existing domain mapping by name returns error", func(t *testing.T) {
 		nonExistingName := "does-not-exist"
-		service, err := client.GetDomainMapping(nonExistingName)
+		service, err := client.GetDomainMapping(context.Background(), nonExistingName)
 		assert.Assert(t, service == nil, "no domain mapping should be returned")
 		assert.ErrorContains(t, err, "not found")
 		assert.ErrorContains(t, err, nonExistingName)
@@ -94,14 +95,14 @@ func TestCreateDomainMapping(t *testing.T) {
 		})
 
 	t.Run("create domain mapping without error creates a new object", func(t *testing.T) {
-		err := client.CreateDomainMapping(domainMapping)
+		err := client.CreateDomainMapping(context.Background(), domainMapping)
 		assert.NilError(t, err)
 		assert.Equal(t, domainMapping.Generation, int64(2))
 		validateGroupVersionKind(t, domainMapping)
 	})
 
 	t.Run("create  domain mapping with an error returns an error object", func(t *testing.T) {
-		err := client.CreateDomainMapping(createDomainMapping("unknown", createServiceRef(serviceName, testNamespace)))
+		err := client.CreateDomainMapping(context.Background(), createDomainMapping("unknown", createServiceRef(serviceName, testNamespace)))
 		assert.ErrorContains(t, err, "unknown")
 	})
 }
@@ -126,13 +127,13 @@ func TestUpdateDomainMapping(t *testing.T) {
 		})
 
 	t.Run("update domain mapping without error", func(t *testing.T) {
-		err := client.UpdateDomainMapping(domainMappingUpdate)
+		err := client.UpdateDomainMapping(context.Background(), domainMappingUpdate)
 		assert.NilError(t, err)
 		validateGroupVersionKind(t, domainMappingUpdate)
 	})
 
 	t.Run("update domain mapping with error", func(t *testing.T) {
-		err := client.UpdateDomainMapping(createDomainMapping("unknown", createServiceRef(serviceName, testNamespace)))
+		err := client.UpdateDomainMapping(context.Background(), createDomainMapping("unknown", createServiceRef(serviceName, testNamespace)))
 		assert.ErrorContains(t, err, "unknown")
 	})
 }
@@ -153,13 +154,13 @@ func TestDeleteDomainMapping(t *testing.T) {
 		})
 
 	t.Run("delete domain mapping returns no error", func(t *testing.T) {
-		err := client.DeleteDomainMapping(domainName)
+		err := client.DeleteDomainMapping(context.Background(), domainName)
 		assert.NilError(t, err)
 	})
 
 	t.Run("delete non-existing domain mapping returns error", func(t *testing.T) {
 		nonExistingName := "does-not-exist"
-		err := client.DeleteDomainMapping(nonExistingName)
+		err := client.DeleteDomainMapping(context.Background(), nonExistingName)
 		assert.ErrorContains(t, err, "not found")
 		assert.ErrorContains(t, err, nonExistingName)
 		assert.ErrorType(t, err, &errors.StatusError{})
@@ -177,7 +178,7 @@ func TestListDomainMappings(t *testing.T) {
 				assert.Equal(t, testNamespace, a.GetNamespace())
 				return true, &servingv1alpha1.DomainMappingList{Items: []servingv1alpha1.DomainMapping{*dm1, *dm2, *dm3}}, nil
 			})
-		listServices, err := client.ListDomainMappings()
+		listServices, err := client.ListDomainMappings(context.Background())
 		assert.NilError(t, err)
 		assert.Assert(t, len(listServices.Items) == 3)
 		assert.Equal(t, listServices.Items[0].Name, "dm-1")

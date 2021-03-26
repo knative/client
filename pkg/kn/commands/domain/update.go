@@ -48,7 +48,7 @@ func NewDomainMappingUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			toUpdate, err := client.GetDomainMapping(name)
+			toUpdate, err := client.GetDomainMapping(cmd.Context(), name)
 			if err != nil {
 				return err
 			}
@@ -62,13 +62,13 @@ func NewDomainMappingUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			reference, err := refFlags.Resolve(dynamicClient, namespace)
+			reference, err := refFlags.Resolve(cmd.Context(), dynamicClient, namespace)
 			if err != nil {
 				return err
 			}
 			toUpdate.Spec.Ref = *reference
 
-			err = client.UpdateDomainMapping(toUpdate)
+			err = client.UpdateDomainMapping(cmd.Context(), toUpdate)
 			if err != nil {
 				return knerrors.GetError(err)
 			}
