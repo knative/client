@@ -42,7 +42,9 @@ func TestWaitCancellation(t *testing.T) {
 	wfe := NewWaitForEvent("foobar", func(e *watch.Event) bool {
 		return false
 	})
+
 	timeout := time.Second * 5
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	go func() {
@@ -50,6 +52,20 @@ func TestWaitCancellation(t *testing.T) {
 		cancel()
 	}()
 	err, _ := wfe.Wait(ctx, fakeWatchApi, "foobar", Options{Timeout: &timeout}, NoopMessageCallback())
+	assert.Assert(t, errors.Is(err, context.Canceled))
+
+	ctx, cancel = context.WithCancel(context.Background())
+	defer cancel()
+	go func() {
+		time.Sleep(time.Millisecond * 500)
+		cancel()
+	}()
+	wfr := NewWaitForReady(
+		"blub",
+		func(obj runtime.Object) (apis.Conditions, error) {
+			return apis.Conditions(obj.(*servingv1.Service).Status.Conditions), nil
+		})
+	err, _ = wfr.Wait(ctx, fakeWatchApi, "foobar", Options{Timeout: &timeout}, NoopMessageCallback())
 	assert.Assert(t, errors.Is(err, context.Canceled))
 }
 
