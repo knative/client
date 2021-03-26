@@ -38,13 +38,14 @@ func TestMockKnDynamicClient(t *testing.T) {
 	recorder.ListSourcesUsingGVKs(mock.Any(), mock.Any(), nil, nil)
 	recorder.ListChannelsUsingGVKs(mock.Any(), mock.Any(), nil, nil)
 
-	client.ListCRDs(context.Background(), metav1.ListOptions{})
-	client.ListSourcesTypes(context.Background())
-	client.ListChannelsTypes(context.Background())
-	client.ListSources(context.Background(), WithTypeFilter("blub"))
+	ctx := context.Background()
+	client.ListCRDs(ctx, metav1.ListOptions{})
+	client.ListSourcesTypes(ctx)
+	client.ListChannelsTypes(ctx)
+	client.ListSources(ctx, WithTypeFilter("blub"))
 	client.RawClient()
-	client.ListSourcesUsingGVKs(context.Background(), &[]schema.GroupVersionKind{}, WithTypeFilter("blub"))
-	client.ListChannelsUsingGVKs(context.Background(), &[]schema.GroupVersionKind{}, WithTypeFilter("blub"))
+	client.ListSourcesUsingGVKs(ctx, &[]schema.GroupVersionKind{}, WithTypeFilter("blub"))
+	client.ListChannelsUsingGVKs(ctx, &[]schema.GroupVersionKind{}, WithTypeFilter("blub"))
 
 	// Validate
 	recorder.Validate()

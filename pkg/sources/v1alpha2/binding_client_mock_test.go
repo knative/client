@@ -34,11 +34,12 @@ func TestMockKnClient(t *testing.T) {
 	recorder.UpdateSinkBinding(&v1alpha2.SinkBinding{}, nil)
 
 	// Call all service
-	client.GetSinkBinding(context.Background(), "hello")
-	client.CreateSinkBinding(context.Background(), &v1alpha2.SinkBinding{})
-	client.DeleteSinkBinding(context.Background(), "hello")
-	client.ListSinkBindings(context.Background())
-	client.UpdateSinkBinding(context.Background(), &v1alpha2.SinkBinding{})
+	ctx := context.Background()
+	client.GetSinkBinding(ctx, "hello")
+	client.CreateSinkBinding(ctx, &v1alpha2.SinkBinding{})
+	client.DeleteSinkBinding(ctx, "hello")
+	client.ListSinkBindings(ctx)
+	client.UpdateSinkBinding(ctx, &v1alpha2.SinkBinding{})
 
 	// Validate
 	recorder.Validate()

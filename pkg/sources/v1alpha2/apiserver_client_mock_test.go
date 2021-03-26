@@ -34,10 +34,11 @@ func TestMockKnAPIServerSourceClient(t *testing.T) {
 	recorder.DeleteAPIServerSource("hello", nil)
 
 	// Call all service
-	client.GetAPIServerSource(context.Background(), "hello")
-	client.CreateAPIServerSource(context.Background(), &v1alpha2.ApiServerSource{})
-	client.UpdateAPIServerSource(context.Background(), &v1alpha2.ApiServerSource{})
-	client.DeleteAPIServerSource(context.Background(), "hello")
+	ctx := context.Background()
+	client.GetAPIServerSource(ctx, "hello")
+	client.CreateAPIServerSource(ctx, &v1alpha2.ApiServerSource{})
+	client.UpdateAPIServerSource(ctx, &v1alpha2.ApiServerSource{})
+	client.DeleteAPIServerSource(ctx, "hello")
 
 	// Validate
 	recorder.Validate()
