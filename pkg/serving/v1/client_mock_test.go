@@ -15,6 +15,7 @@
 package v1
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -50,22 +51,23 @@ func TestMockKnClient(t *testing.T) {
 	recorder.GetConfiguration("hello", nil, nil)
 
 	// Call all services
-	client.GetService("hello")
-	client.ListServices(WithName("blub"))
-	client.ListServices(WithLabel("foo", "bar"))
-	client.CreateService(&servingv1.Service{})
-	client.UpdateService(&servingv1.Service{})
-	client.ApplyService(&servingv1.Service{})
-	client.DeleteService("hello", time.Duration(10)*time.Second)
-	client.WaitForService("hello", time.Duration(10)*time.Second, wait.NoopMessageCallback())
-	client.GetRevision("hello")
-	client.ListRevisions(WithName("blub"))
-	client.CreateRevision(&servingv1.Revision{})
-	client.UpdateRevision(&servingv1.Revision{})
-	client.DeleteRevision("hello", time.Duration(10)*time.Second)
-	client.GetRoute("hello")
-	client.ListRoutes(WithName("blub"))
-	client.GetConfiguration("hello")
+	ctx := context.Background()
+	client.GetService(ctx, "hello")
+	client.ListServices(ctx, WithName("blub"))
+	client.ListServices(ctx, WithLabel("foo", "bar"))
+	client.CreateService(ctx, &servingv1.Service{})
+	client.UpdateService(ctx, &servingv1.Service{})
+	client.ApplyService(ctx, &servingv1.Service{})
+	client.DeleteService(ctx, "hello", time.Duration(10)*time.Second)
+	client.WaitForService(ctx, "hello", time.Duration(10)*time.Second, wait.NoopMessageCallback())
+	client.GetRevision(ctx, "hello")
+	client.ListRevisions(ctx, WithName("blub"))
+	client.CreateRevision(ctx, &servingv1.Revision{})
+	client.UpdateRevision(ctx, &servingv1.Revision{})
+	client.DeleteRevision(ctx, "hello", time.Duration(10)*time.Second)
+	client.GetRoute(ctx, "hello")
+	client.ListRoutes(ctx, WithName("blub"))
+	client.GetConfiguration(ctx, "hello")
 
 	// Validate
 	recorder.Validate()

@@ -58,7 +58,7 @@ func NewPingUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			source, err := pingSourceClient.GetPingSource(name)
+			source, err := pingSourceClient.GetPingSource(cmd.Context(), name)
 			if err != nil {
 				return err
 			}
@@ -74,7 +74,7 @@ func NewPingUpdateCommand(p *commands.KnParams) *cobra.Command {
 				b.JsonData(updateFlags.data)
 			}
 			if cmd.Flags().Changed("sink") {
-				destination, err := sinkFlags.ResolveSink(dynamicClient, namespace)
+				destination, err := sinkFlags.ResolveSink(cmd.Context(), dynamicClient, namespace)
 				if err != nil {
 					return err
 				}
@@ -90,7 +90,7 @@ func NewPingUpdateCommand(p *commands.KnParams) *cobra.Command {
 				b.CloudEventOverrides(ceOverridesMap, ceOverridesToRemove)
 			}
 
-			err = pingSourceClient.UpdatePingSource(b.Build())
+			err = pingSourceClient.UpdatePingSource(cmd.Context(), b.Build())
 			if err == nil {
 				fmt.Fprintf(cmd.OutOrStdout(), "Ping source '%s' updated in namespace '%s'.\n", name, pingSourceClient.Namespace())
 			}

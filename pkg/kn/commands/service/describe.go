@@ -15,6 +15,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -112,7 +113,7 @@ func NewServiceDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			service, err := client.GetService(serviceName)
+			service, err := client.GetService(cmd.Context(), serviceName)
 			if err != nil {
 				return err
 			}
@@ -136,7 +137,7 @@ func NewServiceDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			revisionDescs, err := getRevisionDescriptions(client, service, printDetails)
+			revisionDescs, err := getRevisionDescriptions(cmd.Context(), client, service, printDetails)
 			if err != nil {
 				return err
 			}
@@ -274,7 +275,7 @@ func formatBullet(percentage int64, status corev1.ConditionStatus) string {
 
 // Call the backend to query revisions for the given service and build up
 // the view objects used for output
-func getRevisionDescriptions(client clientservingv1.KnServingClient, service *servingv1.Service, withDetails bool) ([]*revisionDesc, error) {
+func getRevisionDescriptions(ctx context.Context, client clientservingv1.KnServingClient, service *servingv1.Service, withDetails bool) ([]*revisionDesc, error) {
 	revisionsSeen := sets.NewString()
 	revisionDescs := []*revisionDesc{}
 
@@ -282,7 +283,7 @@ func getRevisionDescriptions(client clientservingv1.KnServingClient, service *se
 	var err error
 	for i := range trafficTargets {
 		target := trafficTargets[i]
-		revision, err := extractRevisionFromTarget(client, target)
+		revision, err := extractRevisionFromTarget(ctx, client, target)
 		if err != nil {
 			return nil, fmt.Errorf("cannot extract revision from service %s: %w", service.Name, err)
 		}
@@ -293,11 +294,11 @@ func getRevisionDescriptions(client clientservingv1.KnServingClient, service *se
 		}
 		revisionDescs = append(revisionDescs, desc)
 	}
-	if revisionDescs, err = completeWithLatestRevisions(client, service, revisionsSeen, revisionDescs); err != nil {
+	if revisionDescs, err = completeWithLatestRevisions(ctx, client, service, revisionsSeen, revisionDescs); err != nil {
 		return nil, err
 	}
 	if withDetails {
-		if revisionDescs, err = completeWithUntargetedRevisions(client, service, revisionsSeen, revisionDescs); err != nil {
+		if revisionDescs, err = completeWithUntargetedRevisions(ctx, client, service, revisionsSeen, revisionDescs); err != nil {
 			return nil, err
 		}
 	}
@@ -312,13 +313,13 @@ func orderByConfigurationGeneration(descs []*revisionDesc) []*revisionDesc {
 	return descs
 }
 
-func completeWithLatestRevisions(client clientservingv1.KnServingClient, service *servingv1.Service, revisionsSeen sets.String, descs []*revisionDesc) ([]*revisionDesc, error) {
+func completeWithLatestRevisions(ctx context.Context, client clientservingv1.KnServingClient, service *servingv1.Service, revisionsSeen sets.String, descs []*revisionDesc) ([]*revisionDesc, error) {
 	for _, revisionName := range []string{service.Status.LatestCreatedRevisionName, service.Status.LatestReadyRevisionName} {
 		if revisionName == "" || revisionsSeen.Has(revisionName) {
 			continue
 		}
 		revisionsSeen.Insert(revisionName)
-		rev, err := client.GetRevision(revisionName)
+		rev, err := client.GetRevision(ctx, revisionName)
 		if err != nil {
 			return nil, err
 		}
@@ -331,8 +332,8 @@ func completeWithLatestRevisions(client clientservingv1.KnServingClient, service
 	return descs, nil
 }
 
-func completeWithUntargetedRevisions(client clientservingv1.KnServingClient, service *servingv1.Service, revisionsSeen sets.String, descs []*revisionDesc) ([]*revisionDesc, error) {
-	revisions, err := client.ListRevisions(clientservingv1.WithService(service.Name))
+func completeWithUntargetedRevisions(ctx context.Context, client clientservingv1.KnServingClient, service *servingv1.Service, revisionsSeen sets.String, descs []*revisionDesc) ([]*revisionDesc, error) {
+	revisions, err := client.ListRevisions(ctx, clientservingv1.WithService(service.Name))
 	if err != nil {
 		return nil, err
 	}
@@ -380,20 +381,20 @@ func addTargetInfo(desc *revisionDesc, target *servingv1.TrafficTarget) {
 	}
 }
 
-func extractRevisionFromTarget(client clientservingv1.KnServingClient, target servingv1.TrafficTarget) (*servingv1.Revision, error) {
+func extractRevisionFromTarget(ctx context.Context, client clientservingv1.KnServingClient, target servingv1.TrafficTarget) (*servingv1.Revision, error) {
 	var revisionName = target.RevisionName
 	if revisionName == "" {
 		configurationName := target.ConfigurationName
 		if configurationName == "" {
 			return nil, fmt.Errorf("neither RevisionName nor ConfigurationName set")
 		}
-		configuration, err := client.GetConfiguration(configurationName)
+		configuration, err := client.GetConfiguration(ctx, configurationName)
 		if err != nil {
 			return nil, err
 		}
 		revisionName = configuration.Status.LatestCreatedRevisionName
 	}
-	return client.GetRevision(revisionName)
+	return client.GetRevision(ctx, revisionName)
 }
 
 func extractURL(service *servingv1.Service) string {

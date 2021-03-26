@@ -15,6 +15,7 @@
 package dynamic
 
 import (
+	"context"
 	"testing"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -37,13 +38,14 @@ func TestMockKnDynamicClient(t *testing.T) {
 	recorder.ListSourcesUsingGVKs(mock.Any(), mock.Any(), nil, nil)
 	recorder.ListChannelsUsingGVKs(mock.Any(), mock.Any(), nil, nil)
 
-	client.ListCRDs(metav1.ListOptions{})
-	client.ListSourcesTypes()
-	client.ListChannelsTypes()
-	client.ListSources(WithTypeFilter("blub"))
+	ctx := context.Background()
+	client.ListCRDs(ctx, metav1.ListOptions{})
+	client.ListSourcesTypes(ctx)
+	client.ListChannelsTypes(ctx)
+	client.ListSources(ctx, WithTypeFilter("blub"))
 	client.RawClient()
-	client.ListSourcesUsingGVKs(&[]schema.GroupVersionKind{}, WithTypeFilter("blub"))
-	client.ListChannelsUsingGVKs(&[]schema.GroupVersionKind{}, WithTypeFilter("blub"))
+	client.ListSourcesUsingGVKs(ctx, &[]schema.GroupVersionKind{}, WithTypeFilter("blub"))
+	client.ListChannelsUsingGVKs(ctx, &[]schema.GroupVersionKind{}, WithTypeFilter("blub"))
 
 	// Validate
 	recorder.Validate()

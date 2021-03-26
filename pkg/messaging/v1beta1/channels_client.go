@@ -29,16 +29,16 @@ import (
 type KnChannelsClient interface {
 
 	// GetChannel returns a Channel by its name
-	GetChannel(name string) (*v1beta1.Channel, error)
+	GetChannel(ctx context.Context, name string) (*v1beta1.Channel, error)
 
 	// CreteChannel creates a Channel with given spec
-	CreateChannel(channel *v1beta1.Channel) error
+	CreateChannel(ctx context.Context, channel *v1beta1.Channel) error
 
 	// DeleteChannel deletes a Channel by its name
-	DeleteChannel(name string) error
+	DeleteChannel(ctx context.Context, name string) error
 
 	// ListChannel lists all Channels
-	ListChannel() (*v1beta1.ChannelList, error)
+	ListChannel(ctx context.Context) (*v1beta1.ChannelList, error)
 
 	// Namespace returns the namespace for this channel client
 	Namespace() string
@@ -64,8 +64,8 @@ func (c *channelsClient) Namespace() string {
 }
 
 // GetChannel gets Channel by its name
-func (c *channelsClient) GetChannel(name string) (*v1beta1.Channel, error) {
-	channel, err := c.client.Get(context.TODO(), name, metav1.GetOptions{})
+func (c *channelsClient) GetChannel(ctx context.Context, name string) (*v1beta1.Channel, error) {
+	channel, err := c.client.Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return nil, knerrors.GetError(err)
 	}
@@ -77,19 +77,19 @@ func (c *channelsClient) GetChannel(name string) (*v1beta1.Channel, error) {
 }
 
 // CreateChannel creates Channel with given spec
-func (c *channelsClient) CreateChannel(channel *v1beta1.Channel) error {
-	_, err := c.client.Create(context.TODO(), channel, metav1.CreateOptions{})
+func (c *channelsClient) CreateChannel(ctx context.Context, channel *v1beta1.Channel) error {
+	_, err := c.client.Create(ctx, channel, metav1.CreateOptions{})
 	return knerrors.GetError(err)
 }
 
 // DeleteChannel deletes Channel by its name
-func (c *channelsClient) DeleteChannel(name string) error {
-	return knerrors.GetError(c.client.Delete(context.TODO(), name, metav1.DeleteOptions{}))
+func (c *channelsClient) DeleteChannel(ctx context.Context, name string) error {
+	return knerrors.GetError(c.client.Delete(ctx, name, metav1.DeleteOptions{}))
 }
 
 // ListChannel lists channels in configured namespace
-func (c *channelsClient) ListChannel() (*v1beta1.ChannelList, error) {
-	channelList, err := c.client.List(context.TODO(), metav1.ListOptions{})
+func (c *channelsClient) ListChannel(ctx context.Context) (*v1beta1.ChannelList, error) {
+	channelList, err := c.client.List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, knerrors.GetError(err)
 	}

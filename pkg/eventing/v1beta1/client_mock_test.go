@@ -15,6 +15,7 @@
 package v1beta1
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -40,16 +41,17 @@ func TestMockKnClient(t *testing.T) {
 	recorder.ListBrokers(nil, nil)
 
 	// Call all service
-	client.GetTrigger("hello")
-	client.CreateTrigger(&v1beta1.Trigger{})
-	client.DeleteTrigger("hello")
-	client.ListTriggers()
-	client.UpdateTrigger(&v1beta1.Trigger{})
+	ctx := context.Background()
+	client.GetTrigger(ctx, "hello")
+	client.CreateTrigger(ctx, &v1beta1.Trigger{})
+	client.DeleteTrigger(ctx, "hello")
+	client.ListTriggers(ctx)
+	client.UpdateTrigger(ctx, &v1beta1.Trigger{})
 
-	client.CreateBroker(&v1beta1.Broker{})
-	client.GetBroker("foo")
-	client.DeleteBroker("foo", time.Duration(10)*time.Second)
-	client.ListBrokers()
+	client.CreateBroker(ctx, &v1beta1.Broker{})
+	client.GetBroker(ctx, "foo")
+	client.DeleteBroker(ctx, "foo", time.Duration(10)*time.Second)
+	client.ListBrokers(ctx)
 
 	// Validate
 	recorder.Validate()

@@ -46,7 +46,7 @@ func NewTriggerDeleteCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			err = eventingClient.DeleteTrigger(name)
+			err = eventingClient.DeleteTrigger(cmd.Context(), name)
 			if err != nil {
 				return err
 			}

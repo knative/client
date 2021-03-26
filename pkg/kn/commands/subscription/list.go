@@ -47,7 +47,7 @@ func NewSubscriptionListCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			subscriptionList, err := client.ListSubscription()
+			subscriptionList, err := client.ListSubscription(cmd.Context())
 			if err != nil {
 				return err
 			}

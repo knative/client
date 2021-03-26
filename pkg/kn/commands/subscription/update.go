@@ -62,32 +62,32 @@ func NewSubscriptionUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			foundSub, err := client.GetSubscription(name)
+			foundSub, err := client.GetSubscription(cmd.Context(), name)
 			if err != nil {
 				return err
 			}
 
 			sb := knmessagingv1beta1.NewSubscriptionBuilderFromExisting(foundSub)
 
-			sub, err := subscriberFlag.ResolveSink(dynamicClient, namespace)
+			sub, err := subscriberFlag.ResolveSink(cmd.Context(), dynamicClient, namespace)
 			if err != nil {
 				return err
 			}
 			sb.Subscriber(sub)
 
-			rep, err := replyFlag.ResolveSink(dynamicClient, namespace)
+			rep, err := replyFlag.ResolveSink(cmd.Context(), dynamicClient, namespace)
 			if err != nil {
 				return err
 			}
 			sb.Reply(rep)
 
-			ds, err := dlsFlag.ResolveSink(dynamicClient, namespace)
+			ds, err := dlsFlag.ResolveSink(cmd.Context(), dynamicClient, namespace)
 			if err != nil {
 				return err
 			}
 			sb.DeadLetterSink(ds)
 
-			err = client.UpdateSubscription(sb.Build())
+			err = client.UpdateSubscription(cmd.Context(), sb.Build())
 			if err != nil {
 				return knerrors.GetError(err)
 			}

@@ -36,6 +36,10 @@
 | 🎁
 | Add S column to specify built-in sources in kn source list-types
 | https://github.com/knative/client/pull/1246[#1246]
+
+| 🎁
+| Add context.Context parameter to API function
+| https://github.com/knative/client/pull/1274[#1274]
 |===
 
 ## v0.21.0 (2021-02-23)

@@ -16,6 +16,7 @@ limitations under the License.
 package channel
 
 import (
+	"context"
 	"strings"
 	"testing"
 
@@ -103,7 +104,7 @@ func TestChannelListTypesNoHeaders(t *testing.T) {
 
 func TestListBuiltInChannelTypes(t *testing.T) {
 	fakeDynamic := dynamicfake.NewSimpleDynamicClient(runtime.NewScheme())
-	channel, err := listBuiltInChannelTypes(dynamic.NewKnDynamicClient(fakeDynamic, "current"))
+	channel, err := listBuiltInChannelTypes(context.Background(), dynamic.NewKnDynamicClient(fakeDynamic, "current"))
 	assert.NilError(t, err)
 	if channel == nil {
 		t.Fatal("channel = nil, want not nil")

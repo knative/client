@@ -41,7 +41,7 @@ func NewPingDeleteCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			err = pingClient.DeletePingSource(name)
+			err = pingClient.DeletePingSource(cmd.Context(), name)
 			if err != nil {
 				return err
 			}
