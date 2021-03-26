@@ -57,21 +57,17 @@ var refMappings = map[string]schema.GroupVersionResource{
 		Group:    "serving.knative.dev",
 		Version:  "v1",
 	},
-	"svc": {
-		Resource: "services",
-		Group:    "",
-		Version:  "v1",
-	},
 }
 
 func (f *RefFlags) Add(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&f.reference, "ref", "", "")
 	cmd.Flag("ref").Usage = "Addressable target reference for Domain Mapping. " +
-		"You can specify a Knative service, a Knative soute or a Kubernetes service." +
-		"Examples: '--ref ksvc:hello' or simply '--ref hello' for a Knative service 'hello', " +
-		"'--ref kroute:hello' for a Knative route 'hello', " +
-		"'--ref svc:hello' for a Kubernetes service 'hello'. " +
-		"If a prefix is not provided, it is considered as a Knative service."
+		"You can specify a Knative service, a Knative route. " +
+		"Examples: '--ref' ksvc:hello' or simply '--ref hello' for a Knative service 'hello', " +
+		"'--ref' kroute:hello' for a Knative route 'hello'. " +
+		"'--ref ksvc:mysvc:mynamespace' for a Knative service 'mysvc' in another namespace 'mynamespace', " +
+		"If a prefix is not provided, it is considered as a Knative service in the current namespace. " +
+		"If referring to a Knative service in another namespace, 'ksvc:name:namespace' combination must be provided explicitly."
 }
 
 func (f RefFlags) Resolve(knclient clientdynamic.KnDynamicClient, namespace string) (*duckv1.KReference, error) {
@@ -80,10 +76,13 @@ func (f RefFlags) Resolve(knclient clientdynamic.KnDynamicClient, namespace stri
 		return nil, nil
 	}
 
-	prefix, name := parseType(f.reference)
+	prefix, name, refNamespace := parseType(f.reference)
 	gvr, ok := refMappings[prefix]
 	if !ok {
 		return nil, fmt.Errorf("unsupported sink prefix: '%s'", prefix)
+	}
+	if refNamespace != "" {
+		namespace = refNamespace
 	}
 	obj, err := client.Resource(gvr).Namespace(namespace).Get(context.TODO(), name, metav1.GetOptions{})
 	if err != nil {
@@ -99,11 +98,14 @@ func (f RefFlags) Resolve(knclient clientdynamic.KnDynamicClient, namespace stri
 	return result, nil
 }
 
-func parseType(ref string) (string, string) {
-	parts := strings.SplitN(ref, ":", 2)
-	if len(parts) == 1 {
-		return "ksvc", parts[0]
-	} else {
-		return parts[0], parts[1]
+func parseType(ref string) (string, string, string) {
+	parts := strings.SplitN(ref, ":", 3)
+	switch {
+	case len(parts) == 1:
+		return "ksvc", parts[0], ""
+	case len(parts) == 3:
+		return parts[0], parts[1], parts[2]
+	default:
+		return parts[0], parts[1], ""
 	}
 }

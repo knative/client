@@ -18,8 +18,6 @@ import (
 	"bytes"
 	"testing"
 
-	v1 "k8s.io/api/core/v1"
-
 	"gotest.tools/v3/assert"
 
 	"github.com/spf13/cobra"
@@ -83,41 +81,53 @@ type resolveCase struct {
 }
 
 func TestResolve(t *testing.T) {
-	mysvc := &servingv1.Service{
+	myksvc := &servingv1.Service{
 		TypeMeta:   metav1.TypeMeta{Kind: "Service", APIVersion: "serving.knative.dev/v1"},
-		ObjectMeta: metav1.ObjectMeta{Name: "mysvc", Namespace: "default"},
+		ObjectMeta: metav1.ObjectMeta{Name: "myksvc", Namespace: "default"},
 	}
-	myroute := &servingv1.Route{
+	mykroute := &servingv1.Route{
 		TypeMeta:   metav1.TypeMeta{Kind: "Route", APIVersion: "serving.knative.dev/v1"},
-		ObjectMeta: metav1.ObjectMeta{Name: "myroute", Namespace: "default"},
+		ObjectMeta: metav1.ObjectMeta{Name: "mykroute", Namespace: "default"},
 	}
-	mykubesvc := &v1.Service{
-		TypeMeta:   metav1.TypeMeta{Kind: "Service", APIVersion: "v1"},
-		ObjectMeta: metav1.ObjectMeta{Name: "mykubesvc", Namespace: "default"},
+	myksvcInOther := &servingv1.Service{
+		TypeMeta:   metav1.TypeMeta{Kind: "Service", APIVersion: "serving.knative.dev/v1"},
+		ObjectMeta: metav1.ObjectMeta{Name: "myksvc", Namespace: "other"},
+	}
+	mykrouteInOther := &servingv1.Route{
+		TypeMeta:   metav1.TypeMeta{Kind: "Route", APIVersion: "serving.knative.dev/v1"},
+		ObjectMeta: metav1.ObjectMeta{Name: "mykroute", Namespace: "other"},
 	}
 
 	cases := []resolveCase{
-		{"mysvc", &duckv1.KReference{Kind: "Service",
+		// Test 'name' is considered as Knative service
+		{"myksvc", &duckv1.KReference{Kind: "Service",
 			APIVersion: "serving.knative.dev/v1",
 			Namespace:  "default",
-			Name:       "mysvc"}, ""},
-		{"ksvc:mysvc", &duckv1.KReference{Kind: "Service",
+			Name:       "myksvc"}, ""},
+		// Test 'type:name' format
+		{"ksvc:myksvc", &duckv1.KReference{Kind: "Service",
 			APIVersion: "serving.knative.dev/v1",
 			Namespace:  "default",
-			Name:       "mysvc"}, ""},
-		{"kroute:myroute", &duckv1.KReference{Kind: "Route",
+			Name:       "myksvc"}, ""},
+		{"kroute:mykroute", &duckv1.KReference{Kind: "Route",
 			APIVersion: "serving.knative.dev/v1",
 			Namespace:  "default",
-			Name:       "myroute"}, ""},
-		{"svc:mykubesvc", &duckv1.KReference{Kind: "Service",
-			APIVersion: "v1",
-			Namespace:  "default",
-			Name:       "mykubesvc"}, ""},
+			Name:       "mykroute"}, ""},
+		// Test 'type:name:namespace' format
+		{"ksvc:myksvc:other", &duckv1.KReference{Kind: "Service",
+			APIVersion: "serving.knative.dev/v1",
+			Namespace:  "other",
+			Name:       "myksvc"}, ""},
+		{"kroute:mykroute:other", &duckv1.KReference{Kind: "Route",
+			APIVersion: "serving.knative.dev/v1",
+			Namespace:  "other",
+			Name:       "mykroute"}, ""},
 
 		{"k8ssvc:foo", nil, "unsupported sink prefix: 'k8ssvc'"},
+		{"svc:foo", nil, "unsupported sink prefix: 'svc'"},
 		{"service:foo", nil, "unsupported sink prefix: 'service'"},
 	}
-	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default", mysvc, myroute, mykubesvc)
+	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default", myksvc, mykroute, myksvcInOther, mykrouteInOther)
 	for _, c := range cases {
 		i := &RefFlags{c.ref}
 		result, err := i.Resolve(dynamicClient, "default")
