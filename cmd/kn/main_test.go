@@ -15,7 +15,6 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -296,7 +295,7 @@ func TestRun(t *testing.T) {
 	})()
 
 	capture := test.CaptureOutput(t)
-	err := run(context.Background(), os.Args[1:])
+	err := run(os.Args[1:])
 	out, _ := capture.Close()
 
 	assert.NilError(t, err)

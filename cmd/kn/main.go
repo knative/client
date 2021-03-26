@@ -15,15 +15,12 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"math/rand"
 	"os"
-	"os/signal"
 	"regexp"
 	"strings"
-	"syscall"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -38,26 +35,8 @@ func init() {
 }
 
 func main() {
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-
-	go func() {
-		<-sigs
-		cancel()
-		<-sigs
-		os.Exit(137)
-	}()
-
-	err := run(ctx, os.Args[1:])
+	err := run(os.Args[1:])
 	if err != nil && len(os.Args) > 1 {
-		if errors.Is(err, context.Canceled) {
-			os.Exit(130)
-			return
-		}
 		printError(err)
 		// This is the only point from where to exit when an error occurs
 		os.Exit(1)
@@ -76,7 +55,7 @@ func (e *runError) Error() string {
 }
 
 // Run the main program. Args are the args as given on the command line (excluding the program name itself)
-func run(ctx context.Context, args []string) error {
+func run(args []string) error {
 	// Parse config & plugin flags early to read in configuration file
 	// and bind to viper. After that you can access all configuration and
 	// global options via methods on config.GlobalConfig
@@ -128,7 +107,7 @@ func run(ctx context.Context, args []string) error {
 			return err
 		}
 		// Execute kn root command, args are taken from os.Args directly
-		return rootCmd.ExecuteContext(ctx)
+		return rootCmd.Execute()
 	}
 }
 
