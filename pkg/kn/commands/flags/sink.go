@@ -48,8 +48,9 @@ func (i *SinkFlags) AddWithFlagName(cmd *cobra.Command, fname, short string) {
 		"'" + flag + " channel:pipe' for a channel 'pipe', " +
 		"'" + flag + " ksvc:mysvc:mynamespace' for a Knative service 'mysvc' in another namespace 'mynamespace', " +
 		"'" + flag + " https://event.receiver.uri' for an URI with an 'http://' or 'https://' schema, " +
-		"'" + flag + " ksvc:receiver' or simply '" + flag + " receiver' for a Knative service 'receiver'. " +
-		"If a prefix is not provided, it is considered as a Knative service."
+		"'" + flag + " ksvc:receiver' or simply '" + flag + " receiver' for a Knative service 'receiver' in the current namespace. " +
+		"If a prefix is not provided, it is considered as a Knative service in the current namespace. " +
+		"If referring to a Knative service in another namespace, 'ksvc:name:namespace' combination must be provided explicitly."
 
 	for _, p := range config.GlobalConfig.SinkMappings() {
 		//user configuration might override the default configuration
@@ -107,7 +108,7 @@ func (i *SinkFlags) ResolveSink(ctx context.Context, knclient clientdynamic.KnDy
 		if prefix == "svc" || prefix == "service" {
 			return nil, fmt.Errorf("unsupported sink prefix: '%s', please use prefix 'ksvc' for knative service", prefix)
 		}
-		return nil, fmt.Errorf("unsupported sink prefix: '%s'", prefix)
+		return nil, fmt.Errorf("unsupported sink prefix: '%s', if referring to a knative service in another namespace, 'ksvc:name:namespace' combination must be provided explicitly", prefix)
 	}
 	if ns != "" {
 		namespace = ns
