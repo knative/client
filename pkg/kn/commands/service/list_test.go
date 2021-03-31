@@ -15,6 +15,7 @@
 package service
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 
@@ -56,6 +57,27 @@ func TestListEmpty(t *testing.T) {
 	} else if output[0] != "No services found." {
 		t.Errorf("Bad output %s", output[0])
 	}
+}
+
+func TestListEmptyWithJSON(t *testing.T) {
+	action, output, err := fakeServiceList([]string{"service", "list", "-o", "json"}, &servingv1.ServiceList{})
+	assert.NilError(t, err)
+	if action == nil {
+		t.Errorf("No action")
+	} else if !action.Matches("list", "services") {
+		t.Errorf("Bad action %v", action)
+	}
+
+	var result servingv1.ServiceList
+	err = json.Unmarshal([]byte(strings.Join(output[:], "\n")), &result)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, result, servingv1.ServiceList{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "serving.knative.dev/v1",
+			Kind:       "ServiceList",
+		},
+		Items: []servingv1.Service{},
+	})
 }
 
 func TestGetEmpty(t *testing.T) {

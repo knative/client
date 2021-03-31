@@ -81,8 +81,14 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
+			output, err := cmd.LocalFlags().GetString("output")
+			if err != nil {
+				fmt.Fprintf(cmd.OutOrStdout(), "output option not set properly\n")
+				return nil
+			}
+
 			// Stop if nothing found
-			if len(revisionList.Items) == 0 {
+			if output == "" && len(revisionList.Items) == 0 {
 				fmt.Fprintf(cmd.OutOrStdout(), "No revisions found.\n")
 				return nil
 			}
