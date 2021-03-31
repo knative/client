@@ -46,7 +46,7 @@ func NewChannelListCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			channelList, err := client.ListChannel()
+			channelList, err := client.ListChannel(cmd.Context())
 			if err != nil {
 				return err
 			}

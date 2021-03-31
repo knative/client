@@ -59,7 +59,7 @@ func NewPingCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			destination, err := sinkFlags.ResolveSink(dynamicClient, namespace)
+			destination, err := sinkFlags.ResolveSink(cmd.Context(), dynamicClient, namespace)
 			if err != nil {
 				return err
 			}
@@ -70,13 +70,12 @@ func NewPingCreateCommand(p *commands.KnParams) *cobra.Command {
 			}
 			ceOverridesToRemove := util.ParseMinusSuffix(ceOverridesMap)
 
-			err = pingSourceClient.CreatePingSource(
-				v1alpha2.NewPingSourceBuilder(name).
-					Schedule(updateFlags.schedule).
-					JsonData(updateFlags.data).
-					Sink(*destination).
-					CloudEventOverrides(ceOverridesMap, ceOverridesToRemove).
-					Build())
+			err = pingSourceClient.CreatePingSource(cmd.Context(), v1alpha2.NewPingSourceBuilder(name).
+				Schedule(updateFlags.schedule).
+				JsonData(updateFlags.data).
+				Sink(*destination).
+				CloudEventOverrides(ceOverridesMap, ceOverridesToRemove).
+				Build())
 			if err == nil {
 				fmt.Fprintf(cmd.OutOrStdout(), "Ping source '%s' created in namespace '%s'.\n", args[0], pingSourceClient.Namespace())
 			}

@@ -15,6 +15,7 @@
 package v1alpha2
 
 import (
+	"context"
 	"testing"
 
 	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
@@ -64,7 +65,7 @@ func (sr *EventingRecorder) CreateSinkBinding(binding interface{}, err error) {
 }
 
 // CreateSinkBinding performs a previously recorded action
-func (c *MockKnSinkBindingClient) CreateSinkBinding(binding *v1alpha2.SinkBinding) error {
+func (c *MockKnSinkBindingClient) CreateSinkBinding(ctx context.Context, binding *v1alpha2.SinkBinding) error {
 	call := c.recorder.r.VerifyCall("CreateSinkBinding", binding)
 	return mock.ErrorOrNil(call.Result[0])
 }
@@ -75,7 +76,7 @@ func (sr *EventingRecorder) GetSinkBinding(name interface{}, binding *v1alpha2.S
 }
 
 // GetSinkBinding performs a previously recorded action
-func (c *MockKnSinkBindingClient) GetSinkBinding(name string) (*v1alpha2.SinkBinding, error) {
+func (c *MockKnSinkBindingClient) GetSinkBinding(ctx context.Context, name string) (*v1alpha2.SinkBinding, error) {
 	call := c.recorder.r.VerifyCall("GetSinkBinding", name)
 	return call.Result[0].(*v1alpha2.SinkBinding), mock.ErrorOrNil(call.Result[1])
 }
@@ -86,7 +87,7 @@ func (sr *EventingRecorder) DeleteSinkBinding(name interface{}, err error) {
 }
 
 // DeleteSinkBinding performs a previously recorded action, failing if non has been registered
-func (c *MockKnSinkBindingClient) DeleteSinkBinding(name string) error {
+func (c *MockKnSinkBindingClient) DeleteSinkBinding(ctx context.Context, name string) error {
 	call := c.recorder.r.VerifyCall("DeleteSinkBinding", name)
 	return mock.ErrorOrNil(call.Result[0])
 }
@@ -97,7 +98,7 @@ func (sr *EventingRecorder) ListSinkBindings(bindingList *v1alpha2.SinkBindingLi
 }
 
 // ListSinkBindings performs a previously recorded action
-func (c *MockKnSinkBindingClient) ListSinkBindings() (*v1alpha2.SinkBindingList, error) {
+func (c *MockKnSinkBindingClient) ListSinkBindings(context.Context) (*v1alpha2.SinkBindingList, error) {
 	call := c.recorder.r.VerifyCall("ListSinkBindings")
 	return call.Result[0].(*v1alpha2.SinkBindingList), mock.ErrorOrNil(call.Result[1])
 }
@@ -108,7 +109,7 @@ func (sr *EventingRecorder) UpdateSinkBinding(binding interface{}, err error) {
 }
 
 // UpdateSinkBinding performs a previously recorded action
-func (c *MockKnSinkBindingClient) UpdateSinkBinding(binding *v1alpha2.SinkBinding) error {
+func (c *MockKnSinkBindingClient) UpdateSinkBinding(ctx context.Context, binding *v1alpha2.SinkBinding) error {
 	call := c.recorder.r.VerifyCall("UpdateSinkBinding")
 	return mock.ErrorOrNil(call.Result[0])
 }

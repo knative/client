@@ -45,7 +45,7 @@ func NewContainerListCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			sourceList, err := containerClient.ListContainerSources()
+			sourceList, err := containerClient.ListContainerSources(cmd.Context())
 			if err != nil {
 				return err
 			}

@@ -50,7 +50,7 @@ func NewContainerDeleteCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			err = srcClient.DeleteContainerSource(name)
+			err = srcClient.DeleteContainerSource(name, cmd.Context())
 			if err != nil {
 				return err
 			}

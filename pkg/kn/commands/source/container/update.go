@@ -59,7 +59,7 @@ func NewContainerUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			source, err := srcClient.GetContainerSource(name)
+			source, err := srcClient.GetContainerSource(cmd.Context(), name)
 			if err != nil {
 				return err
 			}
@@ -78,7 +78,7 @@ func NewContainerUpdateCommand(p *commands.KnParams) *cobra.Command {
 			b.PodSpec(podSpec)
 
 			if cmd.Flags().Changed("sink") {
-				objectRef, err := sinkFlags.ResolveSink(dynamicClient, namespace)
+				objectRef, err := sinkFlags.ResolveSink(cmd.Context(), dynamicClient, namespace)
 				if err != nil {
 					return fmt.Errorf(
 						"cannot update ContainerSource '%s' in namespace '%s' "+
@@ -87,7 +87,7 @@ func NewContainerUpdateCommand(p *commands.KnParams) *cobra.Command {
 				b.Sink(*objectRef)
 			}
 
-			err = srcClient.UpdateContainerSource(b.Build())
+			err = srcClient.UpdateContainerSource(cmd.Context(), b.Build())
 			if err != nil {
 				return fmt.Errorf(
 					"cannot update ContainerSource '%s' in namespace '%s' "+

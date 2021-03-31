@@ -48,8 +48,9 @@ func (i *SinkFlags) AddWithFlagName(cmd *cobra.Command, fname, short string) {
 		"'" + flag + " channel:pipe' for a channel 'pipe', " +
 		"'" + flag + " ksvc:mysvc:mynamespace' for a Knative service 'mysvc' in another namespace 'mynamespace', " +
 		"'" + flag + " https://event.receiver.uri' for an URI with an 'http://' or 'https://' schema, " +
-		"'" + flag + " ksvc:receiver' or simply '" + flag + " receiver' for a Knative service 'receiver'. " +
-		"If a prefix is not provided, it is considered as a Knative service."
+		"'" + flag + " ksvc:receiver' or simply '" + flag + " receiver' for a Knative service 'receiver' in the current namespace. " +
+		"If a prefix is not provided, it is considered as a Knative service in the current namespace. " +
+		"If referring to a Knative service in another namespace, 'ksvc:name:namespace' combination must be provided explicitly."
 
 	for _, p := range config.GlobalConfig.SinkMappings() {
 		//user configuration might override the default configuration
@@ -88,7 +89,7 @@ var sinkMappings = map[string]schema.GroupVersionResource{
 
 // ResolveSink returns the Destination referred to by the flags in the acceptor.
 // It validates that any object the user is referring to exists.
-func (i *SinkFlags) ResolveSink(knclient clientdynamic.KnDynamicClient, namespace string) (*duckv1.Destination, error) {
+func (i *SinkFlags) ResolveSink(ctx context.Context, knclient clientdynamic.KnDynamicClient, namespace string) (*duckv1.Destination, error) {
 	client := knclient.RawClient()
 	if i.sink == "" {
 		return nil, nil
@@ -107,12 +108,12 @@ func (i *SinkFlags) ResolveSink(knclient clientdynamic.KnDynamicClient, namespac
 		if prefix == "svc" || prefix == "service" {
 			return nil, fmt.Errorf("unsupported sink prefix: '%s', please use prefix 'ksvc' for knative service", prefix)
 		}
-		return nil, fmt.Errorf("unsupported sink prefix: '%s'", prefix)
+		return nil, fmt.Errorf("unsupported sink prefix: '%s', if referring to a knative service in another namespace, 'ksvc:name:namespace' combination must be provided explicitly", prefix)
 	}
 	if ns != "" {
 		namespace = ns
 	}
-	obj, err := client.Resource(typ).Namespace(namespace).Get(context.TODO(), name, metav1.GetOptions{})
+	obj, err := client.Resource(typ).Namespace(namespace).Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}

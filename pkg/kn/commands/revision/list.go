@@ -15,6 +15,7 @@
 package revision
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"strconv"
@@ -76,7 +77,7 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			// Query for list with filters
-			revisionList, err := client.ListRevisions(params...)
+			revisionList, err := client.ListRevisions(cmd.Context(), params...)
 			if err != nil {
 				return err
 			}
@@ -94,7 +95,7 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 
 			// Only add temporary annotations if human readable output is requested
 			if !revisionListFlags.GenericPrintFlags.OutputFlagSpecified() {
-				err = enrichRevisionAnnotationsWithServiceData(p.NewServingClient, revisionList)
+				err = enrichRevisionAnnotationsWithServiceData(cmd.Context(), p.NewServingClient, revisionList)
 				if err != nil {
 					return err
 				}
@@ -123,7 +124,7 @@ func appendServiceFilter(lConfig []clientservingv1.ListConfig, client clientserv
 	serviceName := cmd.Flag("service").Value.String()
 
 	// Verify that service exists first
-	_, err := client.GetService(serviceName)
+	_, err := client.GetService(cmd.Context(), serviceName)
 	if err != nil {
 		return nil, err
 	}
@@ -197,8 +198,8 @@ type serviceFactoryFunc func(namespace string) (clientservingv1.KnServingClient,
 type serviceGetFunc func(namespace, serviceName string) (*servingv1.Service, error)
 
 // Create revision info with traffic and tag information (if present)
-func enrichRevisionAnnotationsWithServiceData(serviceFactory serviceFactoryFunc, revisionList *servingv1.RevisionList) error {
-	serviceLookup := serviceLookup(serviceFactory)
+func enrichRevisionAnnotationsWithServiceData(ctx context.Context, serviceFactory serviceFactoryFunc, revisionList *servingv1.RevisionList) error {
+	serviceLookup := serviceLookup(ctx, serviceFactory)
 
 	for _, revision := range revisionList.Items {
 		serviceName := revision.Labels[serving.ServiceLabelKey]
@@ -223,7 +224,7 @@ func enrichRevisionAnnotationsWithServiceData(serviceFactory serviceFactoryFunc,
 }
 
 // Create a function for being able to lookup a service for an arbitrary namespace
-func serviceLookup(serviceFactory serviceFactoryFunc) serviceGetFunc {
+func serviceLookup(ctx context.Context, serviceFactory serviceFactoryFunc) serviceGetFunc {
 
 	// Two caches: For service & clients (clients might not be necessary though)
 	serviceCache := make(map[string]*servingv1.Service)
@@ -244,7 +245,7 @@ func serviceLookup(serviceFactory serviceFactoryFunc) serviceGetFunc {
 			clientCache[namespace] = client
 		}
 
-		service, err := client.GetService(serviceName)
+		service, err := client.GetService(ctx, serviceName)
 		if err != nil {
 			return nil, err
 		}

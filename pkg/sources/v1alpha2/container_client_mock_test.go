@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha2
 
 import (
+	"context"
 	"testing"
 
 	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
@@ -35,11 +36,12 @@ func TestMockKnConatinerSourceClient(t *testing.T) {
 	recorder.UpdateContainerSource(&v1alpha2.ContainerSource{}, nil)
 
 	// Call all service
-	client.GetContainerSource("hello")
-	client.CreateContainerSource(&v1alpha2.ContainerSource{})
-	client.DeleteContainerSource("hello")
-	client.ListContainerSources()
-	client.UpdateContainerSource(&v1alpha2.ContainerSource{})
+	ctx := context.Background()
+	client.GetContainerSource(ctx, "hello")
+	client.CreateContainerSource(ctx, &v1alpha2.ContainerSource{})
+	client.DeleteContainerSource("hello", ctx)
+	client.ListContainerSources(ctx)
+	client.UpdateContainerSource(ctx, &v1alpha2.ContainerSource{})
 
 	// Validate
 	recorder.Validate()

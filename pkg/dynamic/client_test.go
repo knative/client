@@ -15,6 +15,7 @@
 package dynamic
 
 import (
+	"context"
 	"strings"
 	"testing"
 
@@ -50,7 +51,7 @@ func TestListCRDs(t *testing.T) {
 
 	t.Run("List CRDs with match", func(t *testing.T) {
 		options := metav1.ListOptions{}
-		uList, err := client.ListCRDs(options)
+		uList, err := client.ListCRDs(context.Background(), options)
 		assert.NilError(t, err)
 		assert.Equal(t, len(uList.Items), 2)
 	})
@@ -59,7 +60,7 @@ func TestListCRDs(t *testing.T) {
 		options := metav1.ListOptions{}
 		sourcesLabels := labels.Set{"duck.knative.dev/source": "true1"}
 		options.LabelSelector = sourcesLabels.String()
-		uList, err := client.ListCRDs(options)
+		uList, err := client.ListCRDs(context.Background(), options)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -76,7 +77,7 @@ func TestListSourceTypes(t *testing.T) {
 	)
 
 	t.Run("List source types", func(t *testing.T) {
-		uList, err := client.ListSourcesTypes()
+		uList, err := client.ListSourcesTypes(context.Background())
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -93,14 +94,14 @@ func TestListSources(t *testing.T) {
 		obj := newSourceCRDObj("foo")
 		client := createFakeKnDynamicClient(testNamespace, obj)
 		assert.Check(t, client.RawClient() != nil)
-		_, err := client.ListSources()
+		_, err := client.ListSources(context.Background())
 		assert.Check(t, err != nil)
 		assert.Check(t, util.ContainsAll(err.Error(), "can't", "find", "source", "kind", "CRD"))
 	})
 
 	t.Run("sources not installed", func(t *testing.T) {
 		client := createFakeKnDynamicClient(testNamespace)
-		_, err := client.ListSources()
+		_, err := client.ListSources(context.Background())
 		assert.Check(t, err != nil)
 		assert.Check(t, util.ContainsAll(err.Error(), "no sources", "found", "backend", "verify", "installation"))
 	})
@@ -109,7 +110,7 @@ func TestListSources(t *testing.T) {
 		client := createFakeKnDynamicClient(testNamespace,
 			newSourceCRDObjWithSpec("pingsources", "sources.knative.dev", "v1alpha1", "PingSource"),
 		)
-		sources, err := client.ListSources()
+		sources, err := client.ListSources(context.Background())
 		assert.NilError(t, err)
 		assert.Equal(t, len(sources.Items), 0)
 	})
@@ -122,7 +123,7 @@ func TestListSources(t *testing.T) {
 			newSourceUnstructuredObj("a1", "sources.knative.dev/v1alpha1", "ApiServerSource"),
 			newSourceUnstructuredObj("c1", "sources.knative.dev/v1alpha1", "CronJobSource"),
 		)
-		sources, err := client.ListSources(WithTypeFilter("pingsource"), WithTypeFilter("ApiServerSource"))
+		sources, err := client.ListSources(context.Background(), WithTypeFilter("pingsource"), WithTypeFilter("ApiServerSource"))
 		assert.NilError(t, err)
 		assert.Equal(t, len(sources.Items), 2)
 		assert.DeepEqual(t, sources.GroupVersionKind(), schema.GroupVersionKind{Group: sourceListGroup, Version: sourceListVersion, Kind: sourceListKind})
@@ -133,7 +134,7 @@ func TestListSourcesUsingGVKs(t *testing.T) {
 	t.Run("No GVKs given", func(t *testing.T) {
 		client := createFakeKnDynamicClient(testNamespace)
 		assert.Check(t, client.RawClient() != nil)
-		s, err := client.ListSourcesUsingGVKs(nil)
+		s, err := client.ListSourcesUsingGVKs(context.Background(), nil)
 		assert.NilError(t, err)
 		assert.Check(t, s == nil)
 	})
@@ -149,7 +150,7 @@ func TestListSourcesUsingGVKs(t *testing.T) {
 		gv := schema.GroupVersion{Group: "sources.knative.dev", Version: "v1alpha1"}
 		gvks := []schema.GroupVersionKind{gv.WithKind("ApiServerSource"), gv.WithKind("PingSource")}
 
-		s, err := client.ListSourcesUsingGVKs(&gvks)
+		s, err := client.ListSourcesUsingGVKs(context.Background(), &gvks)
 		assert.NilError(t, err)
 		if s == nil {
 			t.Fatal("s = nil, want not nil")
@@ -158,7 +159,7 @@ func TestListSourcesUsingGVKs(t *testing.T) {
 		assert.DeepEqual(t, s.GroupVersionKind(), schema.GroupVersionKind{Group: sourceListGroup, Version: sourceListVersion, Kind: sourceListKind})
 
 		// withType
-		s, err = client.ListSourcesUsingGVKs(&gvks, WithTypeFilter("PingSource"))
+		s, err = client.ListSourcesUsingGVKs(context.Background(), &gvks, WithTypeFilter("PingSource"))
 		assert.NilError(t, err)
 		if s == nil {
 			t.Fatal("s = nil, want not nil")
@@ -306,7 +307,7 @@ func TestListChannelsTypes(t *testing.T) {
 			newChannelCRDObjWithSpec("InMemoryChannel", "messaging.knative.dev", "v1beta1", "InMemoryChannel"),
 		)
 
-		uList, err := client.ListChannelsTypes()
+		uList, err := client.ListChannelsTypes(context.Background())
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -319,7 +320,7 @@ func TestListChannelsTypes(t *testing.T) {
 			testNamespace,
 			newChannelCRDObj("foo"),
 		)
-		uList, err := client.ListChannelsTypes()
+		uList, err := client.ListChannelsTypes(context.Background())
 		assert.Check(t, err == nil)
 		if err != nil {
 			t.Fatal(err)
@@ -333,7 +334,7 @@ func TestListChannelsUsingGVKs(t *testing.T) {
 	t.Run("No GVKs given", func(t *testing.T) {
 		client := createFakeKnDynamicClient(testNamespace)
 		assert.Check(t, client.RawClient() != nil)
-		s, err := client.ListChannelsUsingGVKs(nil)
+		s, err := client.ListChannelsUsingGVKs(context.Background(), nil)
 		assert.NilError(t, err)
 		assert.Check(t, s == nil)
 	})
@@ -347,7 +348,7 @@ func TestListChannelsUsingGVKs(t *testing.T) {
 		gv := schema.GroupVersion{Group: "messaging.knative.dev", Version: "v1beta1"}
 		gvks := []schema.GroupVersionKind{gv.WithKind("InMemoryChannel")}
 
-		s, err := client.ListChannelsUsingGVKs(&gvks)
+		s, err := client.ListChannelsUsingGVKs(context.Background(), &gvks)
 		assert.NilError(t, err)
 		if s == nil {
 			t.Fatal("s = nil, want not nil")
@@ -356,7 +357,7 @@ func TestListChannelsUsingGVKs(t *testing.T) {
 		assert.DeepEqual(t, s.GroupVersionKind(), schema.GroupVersionKind{Group: messaging.GroupName, Version: channelListVersion, Kind: channelListKind})
 
 		// withType
-		s, err = client.ListChannelsUsingGVKs(&gvks, WithTypeFilter("InMemoryChannel"))
+		s, err = client.ListChannelsUsingGVKs(context.Background(), &gvks, WithTypeFilter("InMemoryChannel"))
 		assert.NilError(t, err)
 		if s == nil {
 			t.Fatal("s = nil, want not nil")

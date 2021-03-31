@@ -55,7 +55,7 @@ func NewPingDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			pingSource, err := pingSourceClient.GetPingSource(name)
+			pingSource, err := pingSourceClient.GetPingSource(cmd.Context(), name)
 			if err != nil {
 				return err
 			}

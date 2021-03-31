@@ -15,6 +15,7 @@
 package v1alpha2
 
 import (
+	"context"
 	"testing"
 
 	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
@@ -64,7 +65,7 @@ func (sr *APIServerSourcesRecorder) GetAPIServerSource(name interface{}, apiServ
 }
 
 // GetAPIServerSource performs a previously recorded action, failing if non has been registered
-func (c *MockKnAPIServerSourceClient) GetAPIServerSource(name string) (*v1alpha2.ApiServerSource, error) {
+func (c *MockKnAPIServerSourceClient) GetAPIServerSource(ctx context.Context, name string) (*v1alpha2.ApiServerSource, error) {
 	call := c.recorder.r.VerifyCall("GetApiServerSource", name)
 	return call.Result[0].(*v1alpha2.ApiServerSource), mock.ErrorOrNil(call.Result[1])
 }
@@ -75,7 +76,7 @@ func (sr *APIServerSourcesRecorder) CreateAPIServerSource(apiServerSource interf
 }
 
 // CreateAPIServerSource performs a previously recorded action, failing if non has been registered
-func (c *MockKnAPIServerSourceClient) CreateAPIServerSource(apiServerSource *v1alpha2.ApiServerSource) error {
+func (c *MockKnAPIServerSourceClient) CreateAPIServerSource(ctx context.Context, apiServerSource *v1alpha2.ApiServerSource) error {
 	call := c.recorder.r.VerifyCall("CreateApiServerSource", apiServerSource)
 	return mock.ErrorOrNil(call.Result[0])
 }
@@ -86,7 +87,7 @@ func (sr *APIServerSourcesRecorder) UpdateAPIServerSource(apiServerSource interf
 }
 
 // UpdateAPIServerSource performs a previously recorded action, failing if non has been registered
-func (c *MockKnAPIServerSourceClient) UpdateAPIServerSource(apiServerSource *v1alpha2.ApiServerSource) error {
+func (c *MockKnAPIServerSourceClient) UpdateAPIServerSource(ctx context.Context, apiServerSource *v1alpha2.ApiServerSource) error {
 	call := c.recorder.r.VerifyCall("UpdateAPIServerSource", apiServerSource)
 	return mock.ErrorOrNil(call.Result[0])
 }
@@ -97,7 +98,7 @@ func (sr *APIServerSourcesRecorder) DeleteAPIServerSource(name interface{}, err 
 }
 
 // DeleteAPIServerSource performs a previously recorded action, failing if non has been registered
-func (c *MockKnAPIServerSourceClient) DeleteAPIServerSource(name string) error {
+func (c *MockKnAPIServerSourceClient) DeleteAPIServerSource(ctx context.Context, name string) error {
 	call := c.recorder.r.VerifyCall("DeleteAPIServerSource", name)
 	return mock.ErrorOrNil(call.Result[0])
 }
@@ -108,7 +109,7 @@ func (sr *APIServerSourcesRecorder) ListAPIServerSource(apiJobSourceList *v1alph
 }
 
 // ListAPIServerSource performs a previously recorded action, failing if non has been registered
-func (c *MockKnAPIServerSourceClient) ListAPIServerSource() (*v1alpha2.ApiServerSourceList, error) {
+func (c *MockKnAPIServerSourceClient) ListAPIServerSource(context.Context) (*v1alpha2.ApiServerSourceList, error) {
 	call := c.recorder.r.VerifyCall("ListAPIServerSource")
 	return call.Result[0].(*v1alpha2.ApiServerSourceList), mock.ErrorOrNil(call.Result[1])
 }

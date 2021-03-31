@@ -37,6 +37,10 @@
 | Add S column to specify built-in sources in kn source list-types
 | https://github.com/knative/client/pull/1246[#1246]
 
+| 🎁
+| Add context.Context parameter to API function
+| https://github.com/knative/client/pull/1274[#1274]
+
 |🐛
 | Respect `-o` in `service list` and `revision list` in case if no services/revisions present
 | https://github.com/knative/client/pull/1276[#1276]

@@ -15,6 +15,7 @@
 package wait
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"time"
@@ -47,7 +48,7 @@ type Wait interface {
 	// Wait on resource the resource with this name
 	// and write event messages for unknown event to the status writer.
 	// Returns an error (if any) and the overall time it took to wait
-	Wait(watcher watch.Interface, name string, options Options, msgCallback MessageCallback) (error, time.Duration)
+	Wait(ctx context.Context, watcher watch.Interface, name string, options Options, msgCallback MessageCallback) (error, time.Duration)
 }
 
 type Options struct {
@@ -108,13 +109,13 @@ func NoopMessageCallback() MessageCallback {
 // (e.g. "service"), `timeout` is a timeout after which the watch should be cancelled if no
 // target state has been entered yet and `out` is used for printing out status messages
 // msgCallback gets called for every event with an 'Ready' condition == UNKNOWN with the event's message.
-func (w *waitForReadyConfig) Wait(watcher watch.Interface, name string, options Options, msgCallback MessageCallback) (error, time.Duration) {
+func (w *waitForReadyConfig) Wait(ctx context.Context, watcher watch.Interface, name string, options Options, msgCallback MessageCallback) (error, time.Duration) {
 
 	timeout := options.timeoutWithDefault()
 	floatingTimeout := timeout
 	for {
 		start := time.Now()
-		retry, timeoutReached, err := w.waitForReadyCondition(watcher, start, floatingTimeout, options.errorWindowWithDefault(), msgCallback)
+		retry, timeoutReached, err := w.waitForReadyCondition(ctx, watcher, start, floatingTimeout, options.errorWindowWithDefault(), msgCallback)
 		if err != nil {
 			return err, time.Since(start)
 		}
@@ -137,7 +138,7 @@ func (w *waitForReadyConfig) Wait(watcher watch.Interface, name string, options 
 // An errorWindow can be specified which takes into account of intermediate "false" ready conditions. So before returning
 // an error, this methods waits for the errorWindow duration and if an "True" or "Unknown" event arrives in the meantime
 // for the "Ready" condition, then the method continues to wait.
-func (w *waitForReadyConfig) waitForReadyCondition(watcher watch.Interface, start time.Time, timeout time.Duration, errorWindow time.Duration, msgCallback MessageCallback) (retry bool, timeoutReached bool, err error) {
+func (w *waitForReadyConfig) waitForReadyCondition(ctx context.Context, watcher watch.Interface, start time.Time, timeout time.Duration, errorWindow time.Duration, msgCallback MessageCallback) (retry bool, timeoutReached bool, err error) {
 
 	// channel used to transport the error that has been received
 	errChan := make(chan error)
@@ -154,6 +155,8 @@ func (w *waitForReadyConfig) waitForReadyCondition(watcher watch.Interface, star
 
 	for {
 		select {
+		case <-ctx.Done():
+			return false, false, ctx.Err()
 		case <-time.After(timeout):
 			// We reached a timeout without receiving a "Ready" == "True" event
 			return false, true, nil
@@ -232,7 +235,7 @@ func (w *waitForReadyConfig) waitForReadyCondition(watcher watch.Interface, star
 }
 
 // Wait until the expected EventDone is satisfied
-func (w *waitForEvent) Wait(watcher watch.Interface, name string, options Options, msgCallback MessageCallback) (error, time.Duration) {
+func (w *waitForEvent) Wait(ctx context.Context, watcher watch.Interface, name string, options Options, msgCallback MessageCallback) (error, time.Duration) {
 	timeout := options.timeoutWithDefault()
 	start := time.Now()
 	// channel used to transport the error
@@ -241,6 +244,8 @@ func (w *waitForEvent) Wait(watcher watch.Interface, name string, options Option
 	defer timer.Stop()
 	for {
 		select {
+		case <-ctx.Done():
+			return ctx.Err(), time.Since(start)
 		case <-timer.C:
 			return fmt.Errorf("timeout: %s '%s' not ready after %d seconds", w.kind, name, int(timeout/time.Second)), time.Since(start)
 		case err := <-errChan:

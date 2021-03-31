@@ -57,7 +57,7 @@ func NewBrokerListCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			brokerList, err := eventingClient.ListBrokers()
+			brokerList, err := eventingClient.ListBrokers(cmd.Context())
 			if err != nil {
 				return err
 			}

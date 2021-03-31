@@ -15,6 +15,7 @@
 package v1alpha2
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -49,10 +50,10 @@ func TestDeleteApiServerSource(t *testing.T) {
 			return true, nil, nil
 		})
 
-	err := client.DeleteAPIServerSource("foo")
+	err := client.DeleteAPIServerSource(context.Background(), "foo")
 	assert.NilError(t, err)
 
-	err = client.DeleteAPIServerSource("errorSource")
+	err = client.DeleteAPIServerSource(context.Background(), "errorSource")
 	assert.ErrorContains(t, err, "errorSource")
 }
 
@@ -68,10 +69,10 @@ func TestCreateApiServerSource(t *testing.T) {
 			}
 			return true, newSource, nil
 		})
-	err := client.CreateAPIServerSource(newAPIServerSource("foo", "Event"))
+	err := client.CreateAPIServerSource(context.Background(), newAPIServerSource("foo", "Event"))
 	assert.NilError(t, err)
 
-	err = client.CreateAPIServerSource(newAPIServerSource("errorSource", "Event"))
+	err = client.CreateAPIServerSource(context.Background(), newAPIServerSource("errorSource", "Event"))
 	assert.ErrorContains(t, err, "errorSource")
 
 }
@@ -87,12 +88,12 @@ func TestGetApiServerSource(t *testing.T) {
 			}
 			return true, newAPIServerSource(name, "Event"), nil
 		})
-	testsource, err := client.GetAPIServerSource("foo")
+	testsource, err := client.GetAPIServerSource(context.Background(), "foo")
 	assert.NilError(t, err)
 	assert.Equal(t, testsource.Name, "foo")
 	assert.Equal(t, testsource.Spec.Sink.Ref.Name, "foosvc")
 
-	_, err = client.GetAPIServerSource("errorSource")
+	_, err = client.GetAPIServerSource(context.Background(), "errorSource")
 	assert.ErrorContains(t, err, "errorSource")
 }
 
@@ -108,10 +109,10 @@ func TestUpdateApiServerSource(t *testing.T) {
 			}
 			return true, NewAPIServerSourceBuilderFromExisting(updatedSource.(*v1alpha2.ApiServerSource)).Build(), nil
 		})
-	err := client.UpdateAPIServerSource(newAPIServerSource("foo", "Event"))
+	err := client.UpdateAPIServerSource(context.Background(), newAPIServerSource("foo", "Event"))
 	assert.NilError(t, err)
 
-	err = client.UpdateAPIServerSource(newAPIServerSource("errorSource", "Event"))
+	err = client.UpdateAPIServerSource(context.Background(), newAPIServerSource("errorSource", "Event"))
 	assert.ErrorContains(t, err, "errorSource")
 }
 
@@ -124,7 +125,7 @@ func TestListAPIServerSource(t *testing.T) {
 			return true, &v1alpha2.ApiServerSourceList{Items: []v1alpha2.ApiServerSource{*cJSource}}, nil
 		})
 
-	sourceList, err := client.ListAPIServerSource()
+	sourceList, err := client.ListAPIServerSource(context.Background())
 	assert.NilError(t, err)
 	assert.Equal(t, len(sourceList.Items), 1)
 }

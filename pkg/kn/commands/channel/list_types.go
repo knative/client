@@ -16,6 +16,7 @@ limitations under the License.
 package channel
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -51,10 +52,10 @@ func NewChannelListTypesCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			channelListTypes, err := dynamicClient.ListChannelsTypes()
+			channelListTypes, err := dynamicClient.ListChannelsTypes(cmd.Context())
 			switch {
 			case knerrors.IsForbiddenError(err):
-				if channelListTypes, err = listBuiltInChannelTypes(dynamicClient); err != nil {
+				if channelListTypes, err = listBuiltInChannelTypes(cmd.Context(), dynamicClient); err != nil {
 					return knerrors.GetError(err)
 				}
 			case err != nil:
@@ -83,12 +84,12 @@ func NewChannelListTypesCommand(p *commands.KnParams) *cobra.Command {
 	return listTypesCommand
 }
 
-func listBuiltInChannelTypes(d dynamic.KnDynamicClient) (*unstructured.UnstructuredList, error) {
+func listBuiltInChannelTypes(ctx context.Context, d dynamic.KnDynamicClient) (*unstructured.UnstructuredList, error) {
 	var err error
 	uList := unstructured.UnstructuredList{}
 	gvks := messagingv1beta1.BuiltInChannelGVKs()
 	for _, gvk := range gvks {
-		_, err = d.ListChannelsUsingGVKs(&[]schema.GroupVersionKind{gvk})
+		_, err = d.ListChannelsUsingGVKs(ctx, &[]schema.GroupVersionKind{gvk})
 		if err != nil {
 			continue
 		}

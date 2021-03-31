@@ -70,7 +70,7 @@ func NewChannelCreateCommand(p *commands.KnParams) *cobra.Command {
 				cb.Type(gvk)
 			}
 
-			err = client.CreateChannel(cb.Build())
+			err = client.CreateChannel(cmd.Context(), cb.Build())
 			if err != nil {
 				return knerrors.GetError(err)
 			}

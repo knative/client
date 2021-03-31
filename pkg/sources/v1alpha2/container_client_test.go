@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha2
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -49,10 +50,10 @@ func TestDeleteContainerSourceSource(t *testing.T) {
 			return true, nil, nil
 		})
 
-	err := client.DeleteContainerSource("foo")
+	err := client.DeleteContainerSource("foo", context.Background())
 	assert.NilError(t, err)
 
-	err = client.DeleteContainerSource("errorSource")
+	err = client.DeleteContainerSource("errorSource", context.Background())
 	assert.ErrorContains(t, err, "errorSource")
 }
 
@@ -68,10 +69,10 @@ func TestCreateContainerSourceSource(t *testing.T) {
 			}
 			return true, newSource, nil
 		})
-	err := client.CreateContainerSource(newContainerSource("foo", "Event"))
+	err := client.CreateContainerSource(context.Background(), newContainerSource("foo", "Event"))
 	assert.NilError(t, err)
 
-	err = client.CreateContainerSource(newContainerSource("errorSource", "Event"))
+	err = client.CreateContainerSource(context.Background(), newContainerSource("errorSource", "Event"))
 	assert.ErrorContains(t, err, "errorSource")
 
 }
@@ -87,12 +88,12 @@ func TestGetContainerSource(t *testing.T) {
 			}
 			return true, newContainerSource(name, "Event"), nil
 		})
-	testsource, err := client.GetContainerSource("foo")
+	testsource, err := client.GetContainerSource(context.Background(), "foo")
 	assert.NilError(t, err)
 	assert.Equal(t, testsource.Name, "foo")
 	assert.Equal(t, testsource.Spec.Sink.Ref.Name, "foosvc")
 
-	_, err = client.GetContainerSource("errorSource")
+	_, err = client.GetContainerSource(context.Background(), "errorSource")
 	assert.ErrorContains(t, err, "errorSource")
 }
 
@@ -108,10 +109,10 @@ func TestUpdateContainerSource(t *testing.T) {
 			}
 			return true, NewContainerSourceBuilderFromExisting(updatedSource.(*v1alpha2.ContainerSource)).Build(), nil
 		})
-	err := client.UpdateContainerSource(newContainerSource("foo", "Event"))
+	err := client.UpdateContainerSource(context.Background(), newContainerSource("foo", "Event"))
 	assert.NilError(t, err)
 
-	err = client.UpdateContainerSource(newContainerSource("errorSource", "Event"))
+	err = client.UpdateContainerSource(context.Background(), newContainerSource("errorSource", "Event"))
 	assert.ErrorContains(t, err, "errorSource")
 }
 
@@ -124,7 +125,7 @@ func TestListContainerSource(t *testing.T) {
 			return true, &v1alpha2.ContainerSourceList{Items: []v1alpha2.ContainerSource{*cJSource}}, nil
 		})
 
-	sourceList, err := client.ListContainerSources()
+	sourceList, err := client.ListContainerSources(context.Background())
 	assert.NilError(t, err)
 	assert.Equal(t, len(sourceList.Items), 1)
 }

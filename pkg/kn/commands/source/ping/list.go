@@ -45,7 +45,7 @@ func NewPingListCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			sourceList, err := pingClient.ListPingSource()
+			sourceList, err := pingClient.ListPingSource(cmd.Context())
 			if err != nil {
 				return err
 			}

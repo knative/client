@@ -57,7 +57,7 @@ func NewBindingDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			binding, err := bindingClient.GetSinkBinding(name)
+			binding, err := bindingClient.GetSinkBinding(cmd.Context(), name)
 			if err != nil {
 				return err
 			}

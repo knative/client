@@ -47,7 +47,7 @@ func NewAPIServerDeleteCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			err = apiSourceClient.DeleteAPIServerSource(name)
+			err = apiSourceClient.DeleteAPIServerSource(cmd.Context(), name)
 			if err != nil {
 				return err
 			}

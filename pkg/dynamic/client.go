@@ -52,22 +52,22 @@ type KnDynamicClient interface {
 	Namespace() string
 
 	// ListCRDs returns list of CRDs with their type and name
-	ListCRDs(options metav1.ListOptions) (*unstructured.UnstructuredList, error)
+	ListCRDs(ctx context.Context, options metav1.ListOptions) (*unstructured.UnstructuredList, error)
 
 	// ListSourcesTypes returns list of eventing sources CRDs
-	ListSourcesTypes() (*unstructured.UnstructuredList, error)
+	ListSourcesTypes(ctx context.Context) (*unstructured.UnstructuredList, error)
 
 	// ListSources returns list of available source objects
-	ListSources(types ...WithType) (*unstructured.UnstructuredList, error)
+	ListSources(ctx context.Context, types ...WithType) (*unstructured.UnstructuredList, error)
 
 	// ListSourcesUsingGVKs returns list of available source objects using given list of GVKs
-	ListSourcesUsingGVKs(*[]schema.GroupVersionKind, ...WithType) (*unstructured.UnstructuredList, error)
+	ListSourcesUsingGVKs(context.Context, *[]schema.GroupVersionKind, ...WithType) (*unstructured.UnstructuredList, error)
 
 	// ListChannelsTypes returns installed knative channel CRDs
-	ListChannelsTypes() (*unstructured.UnstructuredList, error)
+	ListChannelsTypes(ctx context.Context) (*unstructured.UnstructuredList, error)
 
 	// ListChannelsUsingGVKs returns list of available channel objects using given list of GVKs
-	ListChannelsUsingGVKs(*[]schema.GroupVersionKind, ...WithType) (*unstructured.UnstructuredList, error)
+	ListChannelsUsingGVKs(context.Context, *[]schema.GroupVersionKind, ...WithType) (*unstructured.UnstructuredList, error)
 
 	// RawClient returns the raw dynamic client interface
 	RawClient() dynamic.Interface
@@ -94,14 +94,14 @@ func (c *knDynamicClient) Namespace() string {
 
 // TODO(navidshaikh): Use ListConfigs here instead of ListOptions
 // ListCRDs returns list of installed CRDs in the cluster and filters based on the given options
-func (c *knDynamicClient) ListCRDs(options metav1.ListOptions) (*unstructured.UnstructuredList, error) {
+func (c *knDynamicClient) ListCRDs(ctx context.Context, options metav1.ListOptions) (*unstructured.UnstructuredList, error) {
 	gvr := schema.GroupVersionResource{
 		Group:    crdGroup,
 		Version:  crdVersion,
 		Resource: crdKinds,
 	}
 
-	uList, err := c.client.Resource(gvr).List(context.TODO(), options)
+	uList, err := c.client.Resource(gvr).List(ctx, options)
 	if err != nil {
 		return nil, err
 	}
@@ -110,20 +110,20 @@ func (c *knDynamicClient) ListCRDs(options metav1.ListOptions) (*unstructured.Un
 }
 
 // ListSourcesTypes returns installed knative eventing sources CRDs
-func (c *knDynamicClient) ListSourcesTypes() (*unstructured.UnstructuredList, error) {
+func (c *knDynamicClient) ListSourcesTypes(ctx context.Context) (*unstructured.UnstructuredList, error) {
 	options := metav1.ListOptions{}
 	sourcesLabels := labels.Set{sourcesLabelKey: sourcesLabelValue}
 	options.LabelSelector = sourcesLabels.String()
-	return c.ListCRDs(options)
+	return c.ListCRDs(ctx, options)
 }
 
 // ListChannelsTypes returns installed knative channel CRDs
-func (c *knDynamicClient) ListChannelsTypes() (*unstructured.UnstructuredList, error) {
+func (c *knDynamicClient) ListChannelsTypes(ctx context.Context) (*unstructured.UnstructuredList, error) {
 	var ChannelTypeList unstructured.UnstructuredList
 	options := metav1.ListOptions{}
 	channelsLabels := labels.Set{messaging.SubscribableDuckVersionAnnotation: channelLabelValue}
 	options.LabelSelector = channelsLabels.String()
-	uList, err := c.ListCRDs(options)
+	uList, err := c.ListCRDs(ctx, options)
 	if err != nil {
 		return nil, err
 	}
@@ -148,12 +148,12 @@ func (c knDynamicClient) RawClient() dynamic.Interface {
 // ListSources returns list of available sources objects
 // Provide the list of source types as for example: WithTypes("pingsource", "apiserversource"...) to list
 // only given types of source objects
-func (c *knDynamicClient) ListSources(types ...WithType) (*unstructured.UnstructuredList, error) {
+func (c *knDynamicClient) ListSources(ctx context.Context, types ...WithType) (*unstructured.UnstructuredList, error) {
 	var (
 		sourceList unstructured.UnstructuredList
 		options    metav1.ListOptions
 	)
-	sourceTypes, err := c.ListSourcesTypes()
+	sourceTypes, err := c.ListSourcesTypes(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -184,7 +184,7 @@ func (c *knDynamicClient) ListSources(types ...WithType) (*unstructured.Unstruct
 		}
 
 		// list objects of source type with this GVR
-		sList, err := c.client.Resource(gvr).Namespace(namespace).List(context.TODO(), options)
+		sList, err := c.client.Resource(gvr).Namespace(namespace).List(ctx, options)
 		if err != nil {
 			return nil, err
 		}
@@ -200,7 +200,7 @@ func (c *knDynamicClient) ListSources(types ...WithType) (*unstructured.Unstruct
 }
 
 // ListSourcesUsingGVKs returns list of available source objects using given list of GVKs
-func (c *knDynamicClient) ListSourcesUsingGVKs(gvks *[]schema.GroupVersionKind, types ...WithType) (*unstructured.UnstructuredList, error) {
+func (c *knDynamicClient) ListSourcesUsingGVKs(ctx context.Context, gvks *[]schema.GroupVersionKind, types ...WithType) (*unstructured.UnstructuredList, error) {
 	if gvks == nil {
 		return nil, nil
 	}
@@ -220,7 +220,7 @@ func (c *knDynamicClient) ListSourcesUsingGVKs(gvks *[]schema.GroupVersionKind, 
 		gvr := gvk.GroupVersion().WithResource(strings.ToLower(gvk.Kind) + "s")
 
 		// list objects of source type with this GVR
-		sList, err := c.client.Resource(gvr).Namespace(namespace).List(context.TODO(), options)
+		sList, err := c.client.Resource(gvr).Namespace(namespace).List(ctx, options)
 		if err != nil {
 			return nil, err
 		}
@@ -236,7 +236,7 @@ func (c *knDynamicClient) ListSourcesUsingGVKs(gvks *[]schema.GroupVersionKind, 
 }
 
 // ListChannelsUsingGVKs returns list of available channel objects using given list of GVKs
-func (c *knDynamicClient) ListChannelsUsingGVKs(gvks *[]schema.GroupVersionKind, types ...WithType) (*unstructured.UnstructuredList, error) {
+func (c *knDynamicClient) ListChannelsUsingGVKs(ctx context.Context, gvks *[]schema.GroupVersionKind, types ...WithType) (*unstructured.UnstructuredList, error) {
 	if gvks == nil {
 		return nil, nil
 	}
@@ -256,7 +256,7 @@ func (c *knDynamicClient) ListChannelsUsingGVKs(gvks *[]schema.GroupVersionKind,
 		gvr := gvk.GroupVersion().WithResource(strings.ToLower(gvk.Kind) + "s")
 
 		// list objects of channel type with this GVR
-		cList, err := c.client.Resource(gvr).Namespace(namespace).List(context.TODO(), options)
+		cList, err := c.client.Resource(gvr).Namespace(namespace).List(ctx, options)
 		if err != nil {
 			return nil, err
 		}

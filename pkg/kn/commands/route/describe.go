@@ -48,7 +48,7 @@ func NewRouteDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			route, err := client.GetRoute(args[0])
+			route, err := client.GetRoute(cmd.Context(), args[0])
 			if err != nil {
 				return err
 			}

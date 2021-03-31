@@ -47,7 +47,7 @@ func NewContainerDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			source, err := sourceClient.GetContainerSource(name)
+			source, err := sourceClient.GetContainerSource(cmd.Context(), name)
 			if err != nil {
 				return err
 			}
