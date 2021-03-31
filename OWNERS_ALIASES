@@ -5,6 +5,13 @@ aliases:
   - markusthoemmes
   - mattmoor
   - rhuss
+  client-reviewers:
+  - itsmurugappan
   client-wg-leads:
-  - rhuss
   - navidshaikh
+  - rhuss
+  client-writers:
+  - dsimansk
+  - maximilien
+  - navidshaikh
+  - rhuss

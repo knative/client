@@ -1,7 +1,5 @@
 approvers:
-- maximilien
-- dsimansk
-- client-wg-leads
+- client-writers
 - toc
 reviewers:
-- itsmurugappan
+- client-reviewers
