@@ -865,6 +865,8 @@ knative.dev/serving/pkg/autoscaler/config/autoscalerconfig
 knative.dev/serving/pkg/client/clientset/versioned/scheme
 knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1
 knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1/fake
+knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1
+knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake
 knative.dev/serving/pkg/gc
 knative.dev/serving/pkg/networking
 knative.dev/serving/pkg/reconciler/route/config

@@ -27,6 +27,7 @@ import (
 	messagingv1beta1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/messaging/v1beta1"
 	sourcesv1alpha2client "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha2"
 	servingv1client "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1"
+	servingv1alpha1client "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
 
 	"knative.dev/client/pkg/sources/v1alpha2"
 	"knative.dev/client/pkg/util"
@@ -36,21 +37,23 @@ import (
 	clienteventingv1beta1 "knative.dev/client/pkg/eventing/v1beta1"
 	clientmessagingv1beta1 "knative.dev/client/pkg/messaging/v1beta1"
 	clientservingv1 "knative.dev/client/pkg/serving/v1"
+	clientservingv1alpha1 "knative.dev/client/pkg/serving/v1alpha1"
 )
 
 // KnParams for creating commands. Useful for inserting mocks for testing.
 type KnParams struct {
-	Output                 io.Writer
-	KubeCfgPath            string
-	KubeContext            string
-	KubeCluster            string
-	ClientConfig           clientcmd.ClientConfig
-	NewServingClient       func(namespace string) (clientservingv1.KnServingClient, error)
-	NewGitopsServingClient func(namespace string, dir string) (clientservingv1.KnServingClient, error)
-	NewSourcesClient       func(namespace string) (v1alpha2.KnSourcesClient, error)
-	NewEventingClient      func(namespace string) (clienteventingv1beta1.KnEventingClient, error)
-	NewMessagingClient     func(namespace string) (clientmessagingv1beta1.KnMessagingClient, error)
-	NewDynamicClient       func(namespace string) (clientdynamic.KnDynamicClient, error)
+	Output                   io.Writer
+	KubeCfgPath              string
+	KubeContext              string
+	KubeCluster              string
+	ClientConfig             clientcmd.ClientConfig
+	NewServingClient         func(namespace string) (clientservingv1.KnServingClient, error)
+	NewServingV1alpha1Client func(namespace string) (clientservingv1alpha1.KnServingClient, error)
+	NewGitopsServingClient   func(namespace string, dir string) (clientservingv1.KnServingClient, error)
+	NewSourcesClient         func(namespace string) (v1alpha2.KnSourcesClient, error)
+	NewEventingClient        func(namespace string) (clienteventingv1beta1.KnEventingClient, error)
+	NewMessagingClient       func(namespace string) (clientmessagingv1beta1.KnMessagingClient, error)
+	NewDynamicClient         func(namespace string) (clientdynamic.KnDynamicClient, error)
 
 	// General global options
 	LogHTTP bool
@@ -62,6 +65,10 @@ type KnParams struct {
 func (params *KnParams) Initialize() {
 	if params.NewServingClient == nil {
 		params.NewServingClient = params.newServingClient
+	}
+
+	if params.NewServingV1alpha1Client == nil {
+		params.NewServingV1alpha1Client = params.newServingClientV1alpha1
 	}
 
 	if params.NewGitopsServingClient == nil {
@@ -96,6 +103,19 @@ func (params *KnParams) newServingClient(namespace string) (clientservingv1.KnSe
 		return nil, err
 	}
 	return clientservingv1.NewKnServingClient(client, namespace), nil
+}
+
+func (params *KnParams) newServingClientV1alpha1(namespace string) (clientservingv1alpha1.KnServingClient, error) {
+	restConfig, err := params.RestConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	client, err := servingv1alpha1client.NewForConfig(restConfig)
+	if err != nil {
+		return nil, err
+	}
+	return clientservingv1alpha1.NewKnServingClient(client, namespace), nil
 }
 
 func (params *KnParams) newGitopsServingClient(namespace string, dir string) (clientservingv1.KnServingClient, error) {
