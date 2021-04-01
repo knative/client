@@ -137,6 +137,11 @@ func (c *ChannelBuilder) Type(gvk *schema.GroupVersionKind) *ChannelBuilder {
 		return c
 	}
 
+	c.channel.TypeMeta = metav1.TypeMeta{
+		APIVersion: gvk.GroupVersion().String(),
+		Kind:       gvk.Kind,
+	}
+
 	spec := &messagingv1.ChannelTemplateSpec{}
 	spec.Kind = gvk.Kind
 	spec.APIVersion = gvk.GroupVersion().String()

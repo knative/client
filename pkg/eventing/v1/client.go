@@ -190,11 +190,17 @@ type TriggerBuilder struct {
 
 // NewTriggerBuilder for building trigger object
 func NewTriggerBuilder(name string) *TriggerBuilder {
-	return &TriggerBuilder{trigger: &eventingv1.Trigger{
+	trigger := &eventingv1.Trigger{
+		TypeMeta: meta_v1.TypeMeta{
+			Kind: "Trigger",
+		},
 		ObjectMeta: meta_v1.ObjectMeta{
 			Name: name,
 		},
-	}}
+	}
+
+	_ = updateEventingGVK(trigger)
+	return &TriggerBuilder{trigger: trigger}
 }
 
 // NewTriggerBuilderFromExisting for building the object from existing Trigger object
@@ -348,11 +354,17 @@ type BrokerBuilder struct {
 
 // NewBrokerBuilder for building broker object
 func NewBrokerBuilder(name string) *BrokerBuilder {
-	return &BrokerBuilder{broker: &eventingv1.Broker{
+	broker := &eventingv1.Broker{
+		TypeMeta: meta_v1.TypeMeta{
+			Kind: "Broker",
+		},
 		ObjectMeta: meta_v1.ObjectMeta{
 			Name: name,
 		},
-	}}
+	}
+
+	_ = updateEventingGVK(broker)
+	return &BrokerBuilder{broker: broker}
 }
 
 // Namespace for broker builder

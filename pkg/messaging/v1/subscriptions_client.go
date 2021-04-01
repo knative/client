@@ -173,6 +173,10 @@ type SubscriptionBuilder struct {
 // NewSubscriptionBuilder for building Subscription object
 func NewSubscriptionBuilder(name string) *SubscriptionBuilder {
 	return &SubscriptionBuilder{subscription: &messagingv1.Subscription{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: messagingv1.SchemeGroupVersion.String(),
+			Kind:       "Subscription",
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
 		},

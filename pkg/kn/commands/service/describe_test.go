@@ -15,6 +15,7 @@
 package service
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -53,24 +54,41 @@ func TestServiceDescribeBasic(t *testing.T) {
 	expectedService := createTestServiceWithServiceAccount("foo", []string{"rev1"}, "default-sa", goodConditions())
 
 	// Get service & revision
-	r.GetService("foo", &expectedService, nil)
 	rev1 := createTestRevision("rev1", 1, goodConditions())
-	r.GetRevision("rev1", &rev1, nil)
 
 	// Testing:
-	output, err := executeServiceCommand(client, "describe", "foo")
-	assert.NilError(t, err)
+	t.Run("default output", func(t *testing.T) {
+		r.GetService("foo", &expectedService, nil)
+		r.GetRevision("rev1", &rev1, nil)
 
-	validateServiceOutput(t, "foo", output)
-	assert.Assert(t, util.ContainsAll(output, "123456"))
-	assert.Assert(t, util.ContainsAll(output, "Annotations:", "anno1=aval1, anno2=aval2, anno3="))
-	assert.Assert(t, cmp.Regexp(`(?m)\s*Annotations:.*\.\.\.$`, output))
-	assert.Assert(t, util.ContainsAll(output, "Labels:", "label1=lval1, label2=lval2\n"))
-	assert.Assert(t, util.ContainsAll(output, "[1]"))
-	assert.Assert(t, cmp.Regexp("Service Account: \\s+default-sa", output))
-	assert.Assert(t, util.ContainsAll(output, "Replicas:", "0/1"))
+		output, err := executeServiceCommand(client, "describe", "foo")
+		assert.NilError(t, err)
 
-	assert.Equal(t, strings.Count(output, "rev1"), 1)
+		validateServiceOutput(t, "foo", output)
+		assert.Assert(t, util.ContainsAll(output, "123456"))
+		assert.Assert(t, util.ContainsAll(output, "Annotations:", "anno1=aval1, anno2=aval2, anno3="))
+		assert.Assert(t, cmp.Regexp(`(?m)\s*Annotations:.*\.\.\.$`, output))
+		assert.Assert(t, util.ContainsAll(output, "Labels:", "label1=lval1, label2=lval2\n"))
+		assert.Assert(t, util.ContainsAll(output, "[1]"))
+		assert.Assert(t, cmp.Regexp("Service Account: \\s+default-sa", output))
+		assert.Assert(t, util.ContainsAll(output, "Replicas:", "0/1"))
+
+		assert.Equal(t, strings.Count(output, "rev1"), 1)
+	})
+
+	t.Run("json format output", func(t *testing.T) {
+		r.GetService("foo", &expectedService, nil)
+
+		output, err := executeServiceCommand(client, "describe", "foo", "-o", "json")
+		assert.NilError(t, err)
+
+		result := servingv1.Service{}
+		err = json.Unmarshal([]byte(output), &result)
+		assert.NilError(t, err)
+		assert.Equal(t, expectedService.APIVersion, result.APIVersion)
+		assert.Equal(t, expectedService.Kind, result.Kind)
+		assert.Equal(t, expectedService.Name, result.Name)
+	})
 
 	// Validate that all recorded API methods have been called
 	r.Validate()

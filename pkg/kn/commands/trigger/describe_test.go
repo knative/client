@@ -15,6 +15,7 @@
 package trigger
 
 import (
+	"encoding/json"
 	"errors"
 	"testing"
 
@@ -34,17 +35,33 @@ func TestSimpleDescribe(t *testing.T) {
 	client := clientv1beta1.NewMockKnEventingClient(t, "mynamespace")
 
 	recorder := client.Recorder()
-	recorder.GetTrigger("testtrigger", getTriggerSinkRef(), nil)
+	trigger := getTriggerSinkRef()
 
-	out, err := executeTriggerCommand(client, nil, "describe", "testtrigger")
-	assert.NilError(t, err)
+	t.Run("default output", func(t *testing.T) {
+		recorder.GetTrigger("testtrigger", trigger, nil)
 
-	assert.Assert(t, cmp.Regexp("Name:\\s+testtrigger", out))
-	assert.Assert(t, cmp.Regexp("Namespace:\\s+default", out))
+		out, err := executeTriggerCommand(client, nil, "describe", "testtrigger")
+		assert.NilError(t, err)
 
-	assert.Assert(t, util.ContainsAll(out, "Broker:", "mybroker"))
-	assert.Assert(t, util.ContainsAll(out, "Filter:", "type", "foo.type.knative", "source", "src.eventing.knative"))
-	assert.Assert(t, util.ContainsAll(out, "Sink:", "Service", "myservicenamespace", "mysvc"))
+		assert.Assert(t, cmp.Regexp("Name:\\s+testtrigger", out))
+		assert.Assert(t, cmp.Regexp("Namespace:\\s+default", out))
+
+		assert.Assert(t, util.ContainsAll(out, "Broker:", "mybroker"))
+		assert.Assert(t, util.ContainsAll(out, "Filter:", "type", "foo.type.knative", "source", "src.eventing.knative"))
+		assert.Assert(t, util.ContainsAll(out, "Sink:", "Service", "myservicenamespace", "mysvc"))
+	})
+
+	t.Run("json format output", func(t *testing.T) {
+		recorder.GetTrigger("testtrigger", trigger, nil)
+
+		out, err := executeTriggerCommand(client, nil, "describe", "testtrigger", "-o", "json")
+		assert.NilError(t, err)
+
+		result := &v1beta1.Trigger{}
+		err = json.Unmarshal([]byte(out), result)
+		assert.NilError(t, err)
+		assert.DeepEqual(t, trigger, result)
+	})
 
 	// Validate that all recorded API methods have been called
 	recorder.Validate()
