@@ -3,7 +3,7 @@ module knative.dev/client
 go 1.15
 
 require (
-	github.com/google/go-cmp v0.5.4
+	github.com/google/go-cmp v0.5.5
 	github.com/gregjones/httpcache v0.0.0-20190212212710-3befbb6ad0cc // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.3.1 // indirect
@@ -21,11 +21,11 @@ require (
 	k8s.io/cli-runtime v0.19.7
 	k8s.io/client-go v0.19.7
 	k8s.io/code-generator v0.19.7
-	knative.dev/eventing v0.21.1-0.20210312002228-3b427377abe0
-	knative.dev/hack v0.0.0-20210309141825-9b73a256fd9a
-	knative.dev/networking v0.0.0-20210311190926-430a689490e6
-	knative.dev/pkg v0.0.0-20210311174826-40488532be3f
-	knative.dev/serving v0.21.1-0.20210311225828-1583394c61cb
+	knative.dev/eventing v0.21.1-0.20210331231822-8f35d42544e0
+	knative.dev/hack v0.0.0-20210325223819-b6ab329907d3
+	knative.dev/networking v0.0.0-20210331064822-999a7708876c
+	knative.dev/pkg v0.0.0-20210331065221-952fdd90dbb0
+	knative.dev/serving v0.21.1-0.20210401115722-fc58a32f0ef6
 	sigs.k8s.io/yaml v1.2.0
 )
 
