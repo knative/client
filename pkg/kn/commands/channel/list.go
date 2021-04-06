@@ -16,6 +16,7 @@ package channel
 
 import (
 	"fmt"
+
 	"knative.dev/client/pkg/util"
 	"knative.dev/eventing/pkg/apis/messaging/v1beta1"
 

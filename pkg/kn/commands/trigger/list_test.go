@@ -15,9 +15,10 @@
 package trigger
 
 import (
-	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
 	"strings"
 	"testing"
+
+	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
 
 	"gotest.tools/v3/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

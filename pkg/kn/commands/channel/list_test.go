@@ -15,8 +15,9 @@
 package channel
 
 import (
-	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
 	"testing"
+
+	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
 
 	"gotest.tools/v3/assert"
 	"k8s.io/apimachinery/pkg/runtime/schema"

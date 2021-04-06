@@ -18,6 +18,7 @@ package subscription
 
 import (
 	"fmt"
+
 	"knative.dev/client/pkg/util"
 	messagingv1beta1 "knative.dev/eventing/pkg/apis/messaging/v1beta1"
 	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"

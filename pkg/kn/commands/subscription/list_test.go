@@ -17,9 +17,10 @@ limitations under the License.
 package subscription
 
 import (
-	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
 	"strings"
 	"testing"
+
+	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
 
 	"gotest.tools/v3/assert"
 	messagingv1beta1 "knative.dev/eventing/pkg/apis/messaging/v1beta1"
