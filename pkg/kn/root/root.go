@@ -20,6 +20,8 @@ import (
 	"strings"
 	"text/template"
 
+	"knative.dev/client/pkg/kn/commands/domain"
+
 	"github.com/spf13/cobra"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
@@ -88,6 +90,7 @@ func NewRootCommand(helpFuncs *template.FuncMap) (*cobra.Command, error) {
 				service.NewServiceCommand(p),
 				revision.NewRevisionCommand(p),
 				route.NewRouteCommand(p),
+				domain.NewDomainCommand(p),
 			},
 		},
 		{

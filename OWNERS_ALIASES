@@ -12,7 +12,11 @@ aliases:
   client-wg-leads:
   - navidshaikh
   - rhuss
+  client-reviewers:
+  - itsmurugappan
   client-writers:
+  - dsimansk
+  - maximilien
   - navidshaikh
   - rhuss
   conformance-wg-leads:
