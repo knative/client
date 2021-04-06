@@ -6,6 +6,14 @@ Show details of a domain mapping
 kn domain describe NAME
 ```
 
+### Examples
+
+```
+
+  # Show details of for the domain 'hello.example.com'
+  kn domain describe hello.example.com
+```
+
 ### Options
 
 ```
