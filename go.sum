@@ -1323,8 +1323,8 @@ knative.dev/pkg v0.0.0-20210331062321-6317ec6066f4/go.mod h1:PD5g8hUCXq6iR3tILjm
 knative.dev/pkg v0.0.0-20210331065221-952fdd90dbb0 h1:z05hcB4br0qz7JdwIoUSTXLTF+7ThuJ+R6NFfXd1Y4Q=
 knative.dev/pkg v0.0.0-20210331065221-952fdd90dbb0/go.mod h1:PD5g8hUCXq6iR3tILjmZeJBvQfXGnHMPKryq54qHJhg=
 knative.dev/reconciler-test v0.0.0-20210329214021-2a67496462a4/go.mod h1:qLfJMHc0i9ENTSet/SUp/FcQm4QVfNTX8ZC//aVQN0M=
-knative.dev/serving v0.21.1-0.20210401115722-fc58a32f0ef6 h1:eXinNd46GLQHm5wAYX6Sqonj3E2dFZ+C48xumv1DjTg=
-knative.dev/serving v0.21.1-0.20210401115722-fc58a32f0ef6/go.mod h1:20yuZH4F7cvoovC2Pi1uQBoIbOjllapVSKDkWAXkItA=
+knative.dev/serving v0.22.0 h1:7l7PglDjVA2McFoQNgPvChBrn2koEsvlB+f7LU8bnJk=
+knative.dev/serving v0.22.0/go.mod h1:20yuZH4F7cvoovC2Pi1uQBoIbOjllapVSKDkWAXkItA=
 modernc.org/cc v1.0.0/go.mod h1:1Sk4//wdnYJiUIxnW8ddKpaOJCF37yAdqYnkxUpaYxw=
 modernc.org/golex v1.0.0/go.mod h1:b/QX9oBD/LhixY6NDh+IdGv17hgB+51fET1i2kPSmvk=
 modernc.org/mathutil v1.0.0/go.mod h1:wU0vUrJsVWBZ4P6e7xtFJEhFSNsfRLJ8H458uRjg03k=
