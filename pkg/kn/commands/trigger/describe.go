@@ -61,7 +61,7 @@ func NewTriggerDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			trigger, err := eventingClient.GetTrigger(name)
+			trigger, err := eventingClient.GetTrigger(cmd.Context(), name)
 			if err != nil {
 				return err
 			}

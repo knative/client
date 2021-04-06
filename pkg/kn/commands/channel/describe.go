@@ -57,7 +57,7 @@ func NewChannelDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			channel, err := client.GetChannel(name)
+			channel, err := client.GetChannel(cmd.Context(), name)
 			if err != nil {
 				return knerrors.GetError(err)
 			}

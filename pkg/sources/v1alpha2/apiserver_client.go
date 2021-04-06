@@ -33,20 +33,20 @@ import (
 type KnAPIServerSourcesClient interface {
 
 	// Get an ApiServerSource by name
-	GetAPIServerSource(name string) (*v1alpha2.ApiServerSource, error)
+	GetAPIServerSource(ctx context.Context, name string) (*v1alpha2.ApiServerSource, error)
 
 	// Create an ApiServerSource by object
-	CreateAPIServerSource(apiSource *v1alpha2.ApiServerSource) error
+	CreateAPIServerSource(ctx context.Context, apiSource *v1alpha2.ApiServerSource) error
 
 	// Update an ApiServerSource by object
-	UpdateAPIServerSource(apiSource *v1alpha2.ApiServerSource) error
+	UpdateAPIServerSource(ctx context.Context, apiSource *v1alpha2.ApiServerSource) error
 
 	// Delete an ApiServerSource by name
-	DeleteAPIServerSource(name string) error
+	DeleteAPIServerSource(ctx context.Context, name string) error
 
 	// List ApiServerSource
 	// TODO: Support list configs like in service list
-	ListAPIServerSource() (*v1alpha2.ApiServerSourceList, error)
+	ListAPIServerSource(ctx context.Context) (*v1alpha2.ApiServerSourceList, error)
 
 	// Get namespace for this client
 	Namespace() string
@@ -69,8 +69,8 @@ func newKnAPIServerSourcesClient(client clientv1alpha2.ApiServerSourceInterface,
 }
 
 //GetAPIServerSource returns apiSource object if present
-func (c *apiServerSourcesClient) GetAPIServerSource(name string) (*v1alpha2.ApiServerSource, error) {
-	apiSource, err := c.client.Get(context.TODO(), name, metav1.GetOptions{})
+func (c *apiServerSourcesClient) GetAPIServerSource(ctx context.Context, name string) (*v1alpha2.ApiServerSource, error) {
+	apiSource, err := c.client.Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return nil, knerrors.GetError(err)
 	}
@@ -82,8 +82,8 @@ func (c *apiServerSourcesClient) GetAPIServerSource(name string) (*v1alpha2.ApiS
 }
 
 //CreateAPIServerSource is used to create an instance of ApiServerSource
-func (c *apiServerSourcesClient) CreateAPIServerSource(apiSource *v1alpha2.ApiServerSource) error {
-	_, err := c.client.Create(context.TODO(), apiSource, metav1.CreateOptions{})
+func (c *apiServerSourcesClient) CreateAPIServerSource(ctx context.Context, apiSource *v1alpha2.ApiServerSource) error {
+	_, err := c.client.Create(ctx, apiSource, metav1.CreateOptions{})
 	if err != nil {
 		return knerrors.GetError(err)
 	}
@@ -92,8 +92,8 @@ func (c *apiServerSourcesClient) CreateAPIServerSource(apiSource *v1alpha2.ApiSe
 }
 
 //UpdateAPIServerSource is used to update an instance of ApiServerSource
-func (c *apiServerSourcesClient) UpdateAPIServerSource(apiSource *v1alpha2.ApiServerSource) error {
-	_, err := c.client.Update(context.TODO(), apiSource, metav1.UpdateOptions{})
+func (c *apiServerSourcesClient) UpdateAPIServerSource(ctx context.Context, apiSource *v1alpha2.ApiServerSource) error {
+	_, err := c.client.Update(ctx, apiSource, metav1.UpdateOptions{})
 	if err != nil {
 		return knerrors.GetError(err)
 	}
@@ -102,8 +102,8 @@ func (c *apiServerSourcesClient) UpdateAPIServerSource(apiSource *v1alpha2.ApiSe
 }
 
 //DeleteAPIServerSource is used to create an instance of ApiServerSource
-func (c *apiServerSourcesClient) DeleteAPIServerSource(name string) error {
-	err := c.client.Delete(context.TODO(), name, metav1.DeleteOptions{})
+func (c *apiServerSourcesClient) DeleteAPIServerSource(ctx context.Context, name string) error {
+	err := c.client.Delete(ctx, name, metav1.DeleteOptions{})
 	if err != nil {
 		return knerrors.GetError(err)
 	}
@@ -116,8 +116,8 @@ func (c *apiServerSourcesClient) Namespace() string {
 }
 
 // ListAPIServerSource returns the available ApiServer type sources
-func (c *apiServerSourcesClient) ListAPIServerSource() (*v1alpha2.ApiServerSourceList, error) {
-	sourceList, err := c.client.List(context.TODO(), metav1.ListOptions{})
+func (c *apiServerSourcesClient) ListAPIServerSource(ctx context.Context) (*v1alpha2.ApiServerSourceList, error) {
+	sourceList, err := c.client.List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, knerrors.GetError(err)
 	}

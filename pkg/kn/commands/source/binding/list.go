@@ -44,7 +44,7 @@ func NewBindingListCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			sourceList, err := bindingClient.ListSinkBindings()
+			sourceList, err := bindingClient.ListSinkBindings(cmd.Context())
 			if err != nil {
 				return err
 			}

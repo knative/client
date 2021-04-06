@@ -59,7 +59,7 @@ func NewBindingCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			destination, err := sinkFlags.ResolveSink(dynamicClient, namespace)
+			destination, err := sinkFlags.ResolveSink(cmd.Context(), dynamicClient, namespace)
 			if err != nil {
 				return err
 			}
@@ -85,7 +85,7 @@ func NewBindingCreateCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			err = sinkBindingClient.CreateSinkBinding(binding)
+			err = sinkBindingClient.CreateSinkBinding(cmd.Context(), binding)
 			if err == nil {
 				fmt.Fprintf(cmd.OutOrStdout(), "Sink binding '%s' created in namespace '%s'.\n", args[0], sinkBindingClient.Namespace())
 			}

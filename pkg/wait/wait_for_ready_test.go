@@ -15,6 +15,8 @@
 package wait
 
 import (
+	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -34,6 +36,39 @@ type waitForReadyTestCase struct {
 	messagesExpected []string
 }
 
+func TestWaitCancellation(t *testing.T) {
+	fakeWatchApi := NewFakeWatch([]watch.Event{})
+	fakeWatchApi.Start()
+	wfe := NewWaitForEvent("foobar", func(e *watch.Event) bool {
+		return false
+	})
+
+	timeout := time.Second * 5
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go func() {
+		time.Sleep(time.Millisecond * 500)
+		cancel()
+	}()
+	err, _ := wfe.Wait(ctx, fakeWatchApi, "foobar", Options{Timeout: &timeout}, NoopMessageCallback())
+	assert.Assert(t, errors.Is(err, context.Canceled))
+
+	ctx, cancel = context.WithCancel(context.Background())
+	defer cancel()
+	go func() {
+		time.Sleep(time.Millisecond * 500)
+		cancel()
+	}()
+	wfr := NewWaitForReady(
+		"blub",
+		func(obj runtime.Object) (apis.Conditions, error) {
+			return apis.Conditions(obj.(*servingv1.Service).Status.Conditions), nil
+		})
+	err, _ = wfr.Wait(ctx, fakeWatchApi, "foobar", Options{Timeout: &timeout}, NoopMessageCallback())
+	assert.Assert(t, errors.Is(err, context.Canceled))
+}
+
 func TestAddWaitForReady(t *testing.T) {
 
 	for i, tc := range prepareTestCases("test-service") {
@@ -46,7 +81,7 @@ func TestAddWaitForReady(t *testing.T) {
 			})
 		fakeWatchApi.Start()
 		var msgs []string
-		err, _ := waitForReady.Wait(fakeWatchApi, "foobar", Options{Timeout: &tc.timeout}, func(_ time.Duration, msg string) {
+		err, _ := waitForReady.Wait(context.Background(), fakeWatchApi, "foobar", Options{Timeout: &tc.timeout}, func(_ time.Duration, msg string) {
 			msgs = append(msgs, msg)
 		})
 		close(fakeWatchApi.eventChan)
@@ -82,7 +117,7 @@ func TestAddWaitForDelete(t *testing.T) {
 			func(evt *watch.Event) bool { return evt.Type == watch.Deleted })
 		fakeWatchAPI.Start()
 
-		err, _ := waitForEvent.Wait(fakeWatchAPI, "foobar", Options{Timeout: &tc.timeout}, NoopMessageCallback())
+		err, _ := waitForEvent.Wait(context.Background(), fakeWatchAPI, "foobar", Options{Timeout: &tc.timeout}, NoopMessageCallback())
 		close(fakeWatchAPI.eventChan)
 
 		if tc.errorText == "" && err != nil {

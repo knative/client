@@ -46,7 +46,7 @@ func NewTriggerListCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			triggerList, err := client.ListTriggers()
+			triggerList, err := client.ListTriggers(cmd.Context())
 			if err != nil {
 				return err
 			}

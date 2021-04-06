@@ -21,6 +21,10 @@
 | Fix memory leak on closed watch channel
 | https://github.com/knative/client/pull/1263[#1263]
 
+| ✨
+| Add support for namespace for all commands that takes a --sink option
+| https://github.com/knative/client/pull/1264[#1264]
+
 | 🎁
 | Add `--prune` & `--prune-all` options to delete the unreferenced revisions
 | https://github.com/knative/client/pull/1217[#1217]
@@ -36,6 +40,15 @@
 | 🎁
 | Add S column to specify built-in sources in kn source list-types
 | https://github.com/knative/client/pull/1246[#1246]
+
+| 🎁
+| Add context.Context parameter to API function
+| https://github.com/knative/client/pull/1274[#1274]
+
+| 🎁
+| Add `kn domain` commands to manage DomainMapping
+| https://github.com/knative/client/pull/1267[#1267]
+
 |===
 
 ## v0.21.0 (2021-02-23)

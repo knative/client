@@ -46,9 +46,11 @@ func (i *SinkFlags) AddWithFlagName(cmd *cobra.Command, fname, short string) {
 		"You can specify a broker, channel, Knative service or URI. " +
 		"Examples: '" + flag + " broker:nest' for a broker 'nest', " +
 		"'" + flag + " channel:pipe' for a channel 'pipe', " +
+		"'" + flag + " ksvc:mysvc:mynamespace' for a Knative service 'mysvc' in another namespace 'mynamespace', " +
 		"'" + flag + " https://event.receiver.uri' for an URI with an 'http://' or 'https://' schema, " +
-		"'" + flag + " ksvc:receiver' or simply '" + flag + " receiver' for a Knative service 'receiver'. " +
-		"If a prefix is not provided, it is considered as a Knative service."
+		"'" + flag + " ksvc:receiver' or simply '" + flag + " receiver' for a Knative service 'receiver' in the current namespace. " +
+		"If a prefix is not provided, it is considered as a Knative service in the current namespace. " +
+		"If referring to a Knative service in another namespace, 'ksvc:name:namespace' combination must be provided explicitly."
 
 	for _, p := range config.GlobalConfig.SinkMappings() {
 		//user configuration might override the default configuration
@@ -87,13 +89,12 @@ var sinkMappings = map[string]schema.GroupVersionResource{
 
 // ResolveSink returns the Destination referred to by the flags in the acceptor.
 // It validates that any object the user is referring to exists.
-func (i *SinkFlags) ResolveSink(knclient clientdynamic.KnDynamicClient, namespace string) (*duckv1.Destination, error) {
+func (i *SinkFlags) ResolveSink(ctx context.Context, knclient clientdynamic.KnDynamicClient, namespace string) (*duckv1.Destination, error) {
 	client := knclient.RawClient()
 	if i.sink == "" {
 		return nil, nil
 	}
-
-	prefix, name := parseSink(i.sink)
+	prefix, name, ns := parseSink(i.sink)
 	if prefix == "" {
 		// URI target
 		uri, err := apis.ParseURL(name)
@@ -107,9 +108,12 @@ func (i *SinkFlags) ResolveSink(knclient clientdynamic.KnDynamicClient, namespac
 		if prefix == "svc" || prefix == "service" {
 			return nil, fmt.Errorf("unsupported sink prefix: '%s', please use prefix 'ksvc' for knative service", prefix)
 		}
-		return nil, fmt.Errorf("unsupported sink prefix: '%s'", prefix)
+		return nil, fmt.Errorf("unsupported sink prefix: '%s', if referring to a knative service in another namespace, 'ksvc:name:namespace' combination must be provided explicitly", prefix)
 	}
-	obj, err := client.Resource(typ).Namespace(namespace).Get(context.TODO(), name, metav1.GetOptions{})
+	if ns != "" {
+		namespace = ns
+	}
+	obj, err := client.Resource(typ).Namespace(namespace).Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -125,17 +129,20 @@ func (i *SinkFlags) ResolveSink(knclient clientdynamic.KnDynamicClient, namespac
 	return destination, nil
 }
 
-// parseSink takes the string given by the user into the prefix and the name of
+// parseSink takes the string given by the user into the prefix, name and namespace of
 // the object. If the user put a URI instead, the prefix is empty and the name
 // is the whole URI.
-func parseSink(sink string) (string, string) {
-	parts := strings.SplitN(sink, ":", 2)
-	if len(parts) == 1 {
-		return "ksvc", parts[0]
-	} else if parts[0] == "http" || parts[0] == "https" {
-		return "", sink
-	} else {
-		return parts[0], parts[1]
+func parseSink(sink string) (string, string, string) {
+	parts := strings.SplitN(sink, ":", 3)
+	switch {
+	case len(parts) == 1:
+		return "ksvc", parts[0], ""
+	case parts[0] == "http" || parts[0] == "https":
+		return "", sink, ""
+	case len(parts) == 3:
+		return parts[0], parts[1], parts[2]
+	default:
+		return parts[0], parts[1], ""
 	}
 }
 

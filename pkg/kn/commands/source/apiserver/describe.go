@@ -56,7 +56,7 @@ func NewAPIServerDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			apiSource, err := apiSourceClient.GetAPIServerSource(name)
+			apiSource, err := apiSourceClient.GetAPIServerSource(cmd.Context(), name)
 			if err != nil {
 				return err
 			}

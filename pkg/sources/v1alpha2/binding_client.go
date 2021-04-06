@@ -38,15 +38,15 @@ type KnSinkBindingClient interface {
 	// Namespace in which this client is operating for
 	Namespace() string
 	// CreateSinkBinding is used to create an instance of binding
-	CreateSinkBinding(binding *v1alpha2.SinkBinding) error
+	CreateSinkBinding(ctx context.Context, binding *v1alpha2.SinkBinding) error
 	// DeleteSinkBinding is used to delete an instance of binding
-	DeleteSinkBinding(name string) error
+	DeleteSinkBinding(ctx context.Context, name string) error
 	// GetSinkBinding is used to get an instance of binding
-	GetSinkBinding(name string) (*v1alpha2.SinkBinding, error)
+	GetSinkBinding(ctx context.Context, name string) (*v1alpha2.SinkBinding, error)
 	// ListSinkBinding returns list of binding CRDs
-	ListSinkBindings() (*v1alpha2.SinkBindingList, error)
+	ListSinkBindings(ctx context.Context) (*v1alpha2.SinkBindingList, error)
 	// UpdateSinkBinding is used to update an instance of binding
-	UpdateSinkBinding(binding *v1alpha2.SinkBinding) error
+	UpdateSinkBinding(ctx context.Context, binding *v1alpha2.SinkBinding) error
 }
 
 // KnSinkBindingClient is a combination of Sources client interface and namespace
@@ -66,8 +66,8 @@ func newKnSinkBindingClient(client clientv1alpha2.SinkBindingInterface, namespac
 }
 
 //CreateSinkBinding is used to create an instance of binding
-func (c *knBindingClient) CreateSinkBinding(binding *v1alpha2.SinkBinding) error {
-	_, err := c.client.Create(context.TODO(), binding, metav1.CreateOptions{})
+func (c *knBindingClient) CreateSinkBinding(ctx context.Context, binding *v1alpha2.SinkBinding) error {
+	_, err := c.client.Create(ctx, binding, metav1.CreateOptions{})
 	if err != nil {
 		return knerrors.GetError(err)
 	}
@@ -75,8 +75,8 @@ func (c *knBindingClient) CreateSinkBinding(binding *v1alpha2.SinkBinding) error
 }
 
 //DeleteSinkBinding is used to delete an instance of binding
-func (c *knBindingClient) DeleteSinkBinding(name string) error {
-	err := c.client.Delete(context.TODO(), name, apisv1.DeleteOptions{})
+func (c *knBindingClient) DeleteSinkBinding(ctx context.Context, name string) error {
+	err := c.client.Delete(ctx, name, apisv1.DeleteOptions{})
 	if err != nil {
 		return knerrors.GetError(err)
 	}
@@ -84,8 +84,8 @@ func (c *knBindingClient) DeleteSinkBinding(name string) error {
 }
 
 //GetSinkBinding is used to get an instance of binding
-func (c *knBindingClient) GetSinkBinding(name string) (*v1alpha2.SinkBinding, error) {
-	binding, err := c.client.Get(context.TODO(), name, apisv1.GetOptions{})
+func (c *knBindingClient) GetSinkBinding(ctx context.Context, name string) (*v1alpha2.SinkBinding, error) {
+	binding, err := c.client.Get(ctx, name, apisv1.GetOptions{})
 	if err != nil {
 		return nil, knerrors.GetError(err)
 	}
@@ -96,8 +96,8 @@ func (c *knBindingClient) GetSinkBinding(name string) (*v1alpha2.SinkBinding, er
 	return binding, nil
 }
 
-func (c *knBindingClient) ListSinkBindings() (*v1alpha2.SinkBindingList, error) {
-	bindingList, err := c.client.List(context.TODO(), apisv1.ListOptions{})
+func (c *knBindingClient) ListSinkBindings(ctx context.Context) (*v1alpha2.SinkBindingList, error) {
+	bindingList, err := c.client.List(ctx, apisv1.ListOptions{})
 	if err != nil {
 		return nil, knerrors.GetError(err)
 	}
@@ -120,8 +120,8 @@ func (c *knBindingClient) ListSinkBindings() (*v1alpha2.SinkBindingList, error) 
 }
 
 //CreateSinkBinding is used to create an instance of binding
-func (c *knBindingClient) UpdateSinkBinding(binding *v1alpha2.SinkBinding) error {
-	_, err := c.client.Update(context.TODO(), binding, metav1.UpdateOptions{})
+func (c *knBindingClient) UpdateSinkBinding(ctx context.Context, binding *v1alpha2.SinkBinding) error {
+	_, err := c.client.Update(ctx, binding, metav1.UpdateOptions{})
 	if err != nil {
 		return knerrors.GetError(err)
 	}

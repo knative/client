@@ -59,7 +59,7 @@ func NewContainerCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			objectRef, err := sinkFlags.ResolveSink(dynamicClient, namespace)
+			objectRef, err := sinkFlags.ResolveSink(cmd.Context(), dynamicClient, namespace)
 			if err != nil {
 				return fmt.Errorf(
 					"cannot create ContainerSource '%s' in namespace '%s' "+
@@ -75,7 +75,7 @@ func NewContainerCreateCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			b := v1alpha2.NewContainerSourceBuilder(name).Sink(*objectRef).PodSpec(*podSpec)
-			err = srcClient.CreateContainerSource(b.Build())
+			err = srcClient.CreateContainerSource(cmd.Context(), b.Build())
 			if err != nil {
 				return fmt.Errorf(
 					"cannot create ContainerSource '%s' in namespace '%s' "+

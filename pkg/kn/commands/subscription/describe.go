@@ -54,7 +54,7 @@ func NewSubscriptionDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			subscription, err := client.GetSubscription(name)
+			subscription, err := client.GetSubscription(cmd.Context(), name)
 			if err != nil {
 				return knerrors.GetError(err)
 			}

@@ -45,7 +45,7 @@ func NewAPIServerListCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			sourceList, err := apiSourceClient.ListAPIServerSource()
+			sourceList, err := apiSourceClient.ListAPIServerSource(cmd.Context())
 			if err != nil {
 				return err
 			}

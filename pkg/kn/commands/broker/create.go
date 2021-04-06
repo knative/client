@@ -60,7 +60,7 @@ func NewBrokerCreateCommand(p *commands.KnParams) *cobra.Command {
 				NewBrokerBuilder(name).
 				Namespace(namespace)
 
-			err = eventingClient.CreateBroker(brokerBuilder.Build())
+			err = eventingClient.CreateBroker(cmd.Context(), brokerBuilder.Build())
 			if err != nil {
 				return fmt.Errorf(
 					"cannot create broker '%s' in namespace '%s' "+

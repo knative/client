@@ -71,7 +71,7 @@ func NewBrokerDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			broker, err := eventingClient.GetBroker(name)
+			broker, err := eventingClient.GetBroker(cmd.Context(), name)
 			if err != nil {
 				return err
 			}
