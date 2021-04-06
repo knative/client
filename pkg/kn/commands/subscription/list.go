@@ -18,6 +18,9 @@ package subscription
 
 import (
 	"fmt"
+	"knative.dev/client/pkg/util"
+	messagingv1beta1 "knative.dev/eventing/pkg/apis/messaging/v1beta1"
+	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
 
 	"github.com/spf13/cobra"
 
@@ -52,7 +55,14 @@ func NewSubscriptionListCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			if subscriptionList == nil || len(subscriptionList.Items) == 0 {
+			if subscriptionList == nil {
+				subscriptionList = &messagingv1beta1.SubscriptionList{}
+				err := util.UpdateGroupVersionKindWithScheme(subscriptionList, messagingv1beta1.SchemeGroupVersion, scheme.Scheme)
+				if err != nil {
+					return err
+				}
+			}
+			if !listFlags.GenericPrintFlags.OutputFlagSpecified() && len(subscriptionList.Items) == 0 {
 				fmt.Fprintf(cmd.OutOrStdout(), "No subscriptions found.\n")
 				return nil
 			}

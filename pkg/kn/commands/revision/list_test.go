@@ -15,7 +15,6 @@
 package revision
 
 import (
-	"encoding/json"
 	"strings"
 	"testing"
 
@@ -69,17 +68,7 @@ func TestRevisionListEmptyWithJSON(t *testing.T) {
 	} else if !action.Matches("list", "revisions") {
 		t.Errorf("Bad action %v", action)
 	}
-
-	var result servingv1.RevisionList
-	err = json.Unmarshal([]byte(strings.Join(output[:], "\n")), &result)
-	assert.NilError(t, err)
-	assert.DeepEqual(t, result, servingv1.RevisionList{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: "serving.knative.dev/v1",
-			Kind:       "RevisionList",
-		},
-		Items: []servingv1.Revision{},
-	})
+	assert.Assert(t, util.ContainsAll(strings.Join(output[:], "\n"), "\"apiVersion\": \"serving.knative.dev/v1\"", "\"items\": [],", "\"kind\": \"RevisionList\""))
 }
 
 func TestRevisionListEmptyByName(t *testing.T) {

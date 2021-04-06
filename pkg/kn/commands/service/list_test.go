@@ -15,7 +15,6 @@
 package service
 
 import (
-	"encoding/json"
 	"strings"
 	"testing"
 
@@ -68,16 +67,7 @@ func TestListEmptyWithJSON(t *testing.T) {
 		t.Errorf("Bad action %v", action)
 	}
 
-	var result servingv1.ServiceList
-	err = json.Unmarshal([]byte(strings.Join(output[:], "\n")), &result)
-	assert.NilError(t, err)
-	assert.DeepEqual(t, result, servingv1.ServiceList{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: "serving.knative.dev/v1",
-			Kind:       "ServiceList",
-		},
-		Items: []servingv1.Service{},
-	})
+	assert.Assert(t, util.ContainsAll(strings.Join(output[:], "\n"), "\"apiVersion\": \"serving.knative.dev/v1\"", "\"items\": [],", "\"kind\": \"ServiceList\""))
 }
 
 func TestGetEmpty(t *testing.T) {

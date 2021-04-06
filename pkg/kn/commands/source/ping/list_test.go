@@ -15,6 +15,7 @@
 package ping
 
 import (
+	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
 	"testing"
 
 	"gotest.tools/v3/assert"
@@ -55,6 +56,21 @@ func TestListPingJobSourceEmpty(t *testing.T) {
 	assert.NilError(t, err, "Sources should be listed")
 	assert.Assert(t, util.ContainsNone(out, "NAME", "SCHEDULE", "SINK", "AGE", "CONDITIONS", "READY", "REASON"))
 	assert.Assert(t, util.ContainsAll(out, "No", "Ping", "source", "found"))
+
+	pingRecorder.Validate()
+}
+
+func TestListPingJobSourceEmptyWithJsonOutput(t *testing.T) {
+	pingClient := clientv1alpha2.NewMockKnPingSourceClient(t)
+
+	pingRecorder := pingClient.Recorder()
+	cJSourceList := v1alpha2.PingSourceList{}
+	_ = util.UpdateGroupVersionKindWithScheme(&cJSourceList, v1alpha2.SchemeGroupVersion, scheme.Scheme)
+	pingRecorder.ListPingSource(&cJSourceList, nil)
+
+	out, err := executePingSourceCommand(pingClient, nil, "list", "-o", "json")
+	assert.NilError(t, err, "Sources should be listed")
+	assert.Assert(t, util.ContainsAll(out, "\"apiVersion\": \"sources.knative.dev/v1alpha2\"", "\"items\": []", "\"kind\": \"PingSourceList\""))
 
 	pingRecorder.Validate()
 }

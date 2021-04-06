@@ -59,6 +59,18 @@ func TestSourceListTypesNoSourcesInstalled(t *testing.T) {
 	assert.Check(t, util.ContainsAll(err.Error(), "no sources", "found", "backend", "verify", "installation"))
 }
 
+func TestSourceListTypesNoSourcesWithJsonOutput(t *testing.T) {
+	output, err := sourceFakeCmd([]string{"source", "list-types", "-o", "json"},
+		&unstructured.Unstructured{
+			Object: map[string]interface{}{
+				"apiVersion": "apiextensions.k8s.io/v1",
+				"kind":       "CustomResourceDefinitionList",
+			},
+		})
+	assert.NilError(t, err)
+	assert.Check(t, util.ContainsAll(strings.Join(output[:], "\n"), "\"apiVersion\": \"apiextensions.k8s.io/v1\"", "\"items\": []", "\"kind\": \"CustomResourceDefinitionList\""))
+}
+
 func TestSourceListTypes(t *testing.T) {
 	output, err := sourceFakeCmd([]string{"source", "list-types"},
 		newSourceCRDObjWithSpec("pingsources", "sources.knative.dev", "v1alpha1", "PingSource"),
@@ -93,6 +105,15 @@ func TestSourceListNoSourcesInstalled(t *testing.T) {
 	_, err := sourceFakeCmd([]string{"source", "list"})
 	assert.Check(t, err != nil)
 	assert.Check(t, util.ContainsAll(err.Error(), "no sources", "found", "backend", "verify", "installation"))
+}
+
+func TestSourceListEmpty(t *testing.T) {
+	output, err := sourceFakeCmd([]string{"source", "list", "-o", "json"},
+		newSourceCRDObjWithSpec("pingsources", "sources.knative.dev", "v1alpha1", "PingSource"),
+	)
+	assert.NilError(t, err)
+	outputJson := strings.Join(output[:], "\n")
+	assert.Assert(t, util.ContainsAll(outputJson, "\"apiVersion\": \"client.knative.dev/v1alpha1\"", "\"items\": [],", "\"kind\": \"SourceList\""))
 }
 
 func TestSourceList(t *testing.T) {

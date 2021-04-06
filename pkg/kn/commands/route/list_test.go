@@ -57,6 +57,19 @@ func TestListEmpty(t *testing.T) {
 	}
 }
 
+func TestListEmptyWithJsonOutput(t *testing.T) {
+	action, output, err := fakeRouteList([]string{"route", "list", "-o", "json"}, &servingv1.RouteList{})
+	assert.NilError(t, err)
+	if action == nil {
+		t.Errorf("No action")
+	} else if !action.Matches("list", "routes") {
+		t.Errorf("Bad action %v", action)
+	}
+
+	outputJson := strings.Join(output[:], "\n")
+	assert.Assert(t, util.ContainsAll(outputJson, "\"apiVersion\": \"serving.knative.dev/v1\"", "\"items\": [],", "\"kind\": \"RouteList\""))
+}
+
 func TestRouteListDefaultOutput(t *testing.T) {
 	route1 := createMockRouteSingleTarget("foo", "foo-01234", 100)
 	route2 := createMockRouteSingleTarget("bar", "bar-98765", 100)

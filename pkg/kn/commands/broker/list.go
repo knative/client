@@ -61,7 +61,7 @@ func NewBrokerListCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if len(brokerList.Items) == 0 {
+			if !brokerListFlags.GenericPrintFlags.OutputFlagSpecified() && len(brokerList.Items) == 0 {
 				fmt.Fprintf(cmd.OutOrStdout(), "No brokers found.\n")
 				return nil
 			}

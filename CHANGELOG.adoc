@@ -42,7 +42,7 @@
 | https://github.com/knative/client/pull/1274[#1274]
 
 |🐛
-| Respect `-o` in `service list` and `revision list` in case if no services/revisions present
+| Respect `-o` in `list` commands in case if no data present
 | https://github.com/knative/client/pull/1276[#1276]
 |===
 

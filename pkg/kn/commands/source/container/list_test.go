@@ -17,6 +17,7 @@ limitations under the License.
 package container
 
 import (
+	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
 	"testing"
 
 	"gotest.tools/v3/assert"
@@ -55,6 +56,21 @@ func TestListContainerSourceEmpty(t *testing.T) {
 	assert.NilError(t, err, "Sources should be listed")
 	assert.Assert(t, util.ContainsNone(out, "NAME", "IMAGE", "SINK", "AGE", "CONDITIONS", "READY", "REASON"))
 	assert.Assert(t, util.ContainsAll(out, "No", "Container", "source", "found"))
+
+	containerRecorder.Validate()
+}
+
+func TestListContainerSourceEmptyWithJsonOutput(t *testing.T) {
+	containerClient := v1alpha22.NewMockKnContainerSourceClient(t)
+
+	containerRecorder := containerClient.Recorder()
+	sampleSourceList := v1alpha2.ContainerSourceList{}
+	_ = util.UpdateGroupVersionKindWithScheme(&sampleSourceList, v1alpha2.SchemeGroupVersion, scheme.Scheme)
+	containerRecorder.ListContainerSources(&sampleSourceList, nil)
+
+	out, err := executeContainerSourceCommand(containerClient, nil, "list", "-o", "json")
+	assert.NilError(t, err, "Sources should be listed")
+	assert.Assert(t, util.ContainsAll(out, "\"apiVersion\": \"sources.knative.dev/v1alpha2\"", "\"items\": []", "\"kind\": \"ContainerSourceList\""))
 
 	containerRecorder.Validate()
 }

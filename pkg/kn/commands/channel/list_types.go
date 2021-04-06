@@ -62,8 +62,16 @@ func NewChannelListTypesCommand(p *commands.KnParams) *cobra.Command {
 				return knerrors.GetError(err)
 			}
 
-			if channelListTypes == nil || len(channelListTypes.Items) == 0 {
+			if channelListTypes == nil {
+				channelListTypes = &unstructured.UnstructuredList{}
+			}
+			if !listTypesFlags.GenericPrintFlags.OutputFlagSpecified() && len(channelListTypes.Items) == 0 {
 				return fmt.Errorf("no channels found on the backend, please verify the installation")
+			}
+
+			if channelListTypes.GroupVersionKind().Empty() {
+				channelListTypes.SetAPIVersion("apiextensions.k8s.io/v1")
+				channelListTypes.SetKind("CustomResourceDefinitionList")
 			}
 
 			printer, err := listTypesFlags.ToPrinter()
