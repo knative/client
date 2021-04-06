@@ -17,6 +17,10 @@
 |===
 | | Description | PR
 
+| 🐛
+| Fix memory leak on closed watch channel
+| https://github.com/knative/client/pull/1263[#1263]
+
 | ✨
 | Add support for namespace for all commands that takes a --sink option
 | https://github.com/knative/client/pull/1264[#1264]
