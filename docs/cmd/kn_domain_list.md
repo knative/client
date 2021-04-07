@@ -14,7 +14,7 @@ kn domain list
   kn domain list
 
   # List all domain mappings in JSON output format
-  kn revision list -o json
+  kn domain list -o json
 ```
 
 ### Options

@@ -17,38 +17,47 @@
 |===
 | | Description | PR
 
-| ✨
-| Add support for namespace for all commands that takes a --sink option
-| https://github.com/knative/client/pull/1264[#1264]
-
-| 🎁
-| Add `--prune` & `--prune-all` options to delete the unreferenced revisions
-| https://github.com/knative/client/pull/1217[#1217]
-
-| ✨
-| Update CRDs API version to `v1`
-| https://github.com/knative/client/issues/1248[#1248]
-
-| 🐛
-| Fix kn export to always honor mode irrespective of revisions flag and have Export as the default mode
-| https://github.com/knative/client/pull/1212[#1212]
-
-| 🎁
-| Add S column to specify built-in sources in kn source list-types
-| https://github.com/knative/client/pull/1246[#1246]
-
-| 🎁
-| Add context.Context parameter to API function
-| https://github.com/knative/client/pull/1274[#1274]
-
-| 🎁
-| Add `kn domain` commands to manage DomainMapping
-| https://github.com/knative/client/pull/1267[#1267]
-
-
 |🐛
 | Respect `-o` in `list` commands in case if no data present
 | https://github.com/knative/client/pull/1276[#1276]
+|===
+
+## v0.22.0 (2021-04-06)
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🎁
+| Add `context.Context` parameter to API functions
+| https://github.com/knative/client/pull/1274[#1274]
+
+| 🎁
+| Add `kn domain` CRUD commands to manage domain mappings
+| https://github.com/knative/client/pull/1267[#1267]
+
+| ✨
+| Add support for namespaces for all commands that takes a `--sink` option
+| https://github.com/knative/client/pull/1264[#1264]
+
+| 🐛
+| Fix memory leak on closed watch channel
+| https://github.com/knative/client/pull/1263[#1263]
+
+| ✨
+| Update `CustomResourceDefinition`'s API version to `v1`
+| https://github.com/knative/client/issues/1248[#1248]
+
+| 🎁
+| Add `S` column to specify built-in sources in `kn source list-types`
+| https://github.com/knative/client/pull/1246[#1246]
+
+| 🎁
+| Add `--prune` and `--prune-all` options to delete the unreferenced revisions
+| https://github.com/knative/client/pull/1217[#1217]
+
+| 🐛
+| Fix `kn export` to always honor mode irrespective of revisions flag and have _Export_ as the default mode
+| https://github.com/knative/client/pull/1212[#1212]
 |===
 
 ## v0.21.0 (2021-02-23)

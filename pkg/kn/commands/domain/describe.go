@@ -35,6 +35,9 @@ func NewDomainMappingDescribeCommand(p *commands.KnParams) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "describe NAME",
 		Short: "Show details of a domain mapping",
+		Example: `
+  # Show details of for the domain 'hello.example.com'
+  kn domain describe hello.example.com`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("'kn domain describe' requires name of the domain mapping as single argument")
