@@ -36,10 +36,10 @@ func NewChannelCreateCommand(p *commands.KnParams) *cobra.Command {
   # Create a channel 'pipe' with default setting for channel configuration
   kn channel create pipe
 
-  # Create a channel 'imc1' of type InMemoryChannel using inbuilt alias 'imcv1beta1'
-  kn channel create imc1 --type imcv1beta1
+  # Create a channel 'imc1' of type InMemoryChannel using inbuilt alias 'imc'
+  kn channel create imc1 --type imc
   # same as above without using inbuilt alias but providing explicit GVK
-  kn channel create imc1 --type messaging.knative.dev:v1beta1:InMemoryChannel
+  kn channel create imc1 --type messaging.knative.dev:v1:InMemoryChannel
 
   # Create a channel 'k1' of type KafkaChannel
   kn channel create k1 --type messaging.knative.dev:v1alpha1:KafkaChannel`,

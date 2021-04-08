@@ -19,15 +19,15 @@ import (
 
 	"gotest.tools/v3/assert"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	messagingv1 "knative.dev/eventing/pkg/apis/messaging/v1"
 
-	v1beta1 "knative.dev/client/pkg/messaging/v1"
+	clientmessagingv1 "knative.dev/client/pkg/messaging/v1"
+	messagingv1 "knative.dev/eventing/pkg/apis/messaging/v1"
 
 	"knative.dev/client/pkg/util"
 )
 
 func TestChannelListNoChannelsFound(t *testing.T) {
-	cClient := v1beta1.NewMockKnChannelsClient(t)
+	cClient := clientmessagingv1.NewMockKnChannelsClient(t)
 	cRecorder := cClient.Recorder()
 	cRecorder.ListChannel(nil, nil)
 	out, err := executeChannelCommand(cClient, "list")
@@ -37,12 +37,12 @@ func TestChannelListNoChannelsFound(t *testing.T) {
 }
 
 func TestChannelList(t *testing.T) {
-	cClient := v1beta1.NewMockKnChannelsClient(t)
+	cClient := clientmessagingv1.NewMockKnChannelsClient(t)
 	cRecorder := cClient.Recorder()
 	clist := &messagingv1.ChannelList{}
 	clist.Items = []messagingv1.Channel{
-		*createChannel("c0", "default", &schema.GroupVersionKind{Group: "messaging.knative.dev", Version: "v1beta1", Kind: "InMemoryChannel"}),
-		*createChannel("c1", "default", &schema.GroupVersionKind{Group: "messaging.knative.dev", Version: "v1beta1", Kind: "InMemoryChannel"}),
+		*createChannel("c0", "default", &schema.GroupVersionKind{Group: "messaging.knative.dev", Version: "v1", Kind: "InMemoryChannel"}),
+		*createChannel("c1", "default", &schema.GroupVersionKind{Group: "messaging.knative.dev", Version: "v1", Kind: "InMemoryChannel"}),
 	}
 	cRecorder.ListChannel(clist, nil)
 	out, err := executeChannelCommand(cClient, "list")

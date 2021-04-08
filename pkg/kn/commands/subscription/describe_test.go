@@ -51,9 +51,9 @@ func TestDescribeSubscription(t *testing.T) {
 	assert.NilError(t, err, "subscription should be described")
 	assert.Assert(t, util.ContainsAll(out,
 		"sub0",
-		"Channel", "imc0", "messaging.knative.dev", "v1beta1", "InMemoryChannel",
+		"Channel", "imc0", "messaging.knative.dev", "v1", "InMemoryChannel",
 		"Subscriber", "ksvc0", "serving.knative.dev", "v1", "Service",
-		"Reply", "b0", "eventing.knative.dev", "v1beta1", "Broker",
+		"Reply", "b0", "eventing.knative.dev", "v1", "Broker",
 		"DeadLetterSink", "b1"))
 	cRecorder.Validate()
 }

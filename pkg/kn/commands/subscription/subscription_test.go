@@ -98,7 +98,7 @@ func createSubscription(name, channel, subscriber, reply, dls string) *messaging
 
 func createIMCObjectReference(channel string) *corev1.ObjectReference {
 	return &corev1.ObjectReference{
-		APIVersion: "messaging.knative.dev/v1beta1",
+		APIVersion: "messaging.knative.dev/v1",
 		Kind:       "InMemoryChannel",
 		Name:       channel,
 	}

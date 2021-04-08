@@ -175,8 +175,8 @@ func TestListSourcesUsingGVKs(t *testing.T) {
 func createFakeKnDynamicClient(testNamespace string, objects ...runtime.Object) KnDynamicClient {
 	scheme := runtime.NewScheme()
 	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "serving.knative.dev", Version: "v1alpha1", Kind: "Service"}, &servingv1.Service{})
-	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "eventing.knative.dev", Version: "v1alpha1", Kind: "Broker"}, &eventingv1.Broker{})
-	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "messaging.knative.dev", Version: "v1beta1", Kind: "Channel"}, &messagingv1.Channel{})
+	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "eventing.knative.dev", Version: "v1", Kind: "Broker"}, &eventingv1.Broker{})
+	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "messaging.knative.dev", Version: "v1", Kind: "Channel"}, &messagingv1.Channel{})
 	client := dynamicfake.NewSimpleDynamicClient(scheme, objects...)
 	return NewKnDynamicClient(client, testNamespace)
 }
@@ -303,8 +303,8 @@ func TestListChannelsTypes(t *testing.T) {
 	t.Run("List channel types", func(t *testing.T) {
 		client := createFakeKnDynamicClient(
 			testNamespace,
-			newChannelCRDObjWithSpec("Channel", "messaging.knative.dev", "v1beta1", "Channel"),
-			newChannelCRDObjWithSpec("InMemoryChannel", "messaging.knative.dev", "v1beta1", "InMemoryChannel"),
+			newChannelCRDObjWithSpec("Channel", "messaging.knative.dev", "v1", "Channel"),
+			newChannelCRDObjWithSpec("InMemoryChannel", "messaging.knative.dev", "v1", "InMemoryChannel"),
 		)
 
 		uList, err := client.ListChannelsTypes(context.Background())
@@ -341,11 +341,11 @@ func TestListChannelsUsingGVKs(t *testing.T) {
 
 	t.Run("channel list with given GVKs", func(t *testing.T) {
 		client := createFakeKnDynamicClient(testNamespace,
-			newChannelCRDObjWithSpec("InMemoryChannel", "messaging.knative.dev", "v1beta1", "InMemoryChannel"),
-			newChannelUnstructuredObj("i1", "messaging.knative.dev/v1beta1", "InMemoryChannel"),
+			newChannelCRDObjWithSpec("InMemoryChannel", "messaging.knative.dev", "v1", "InMemoryChannel"),
+			newChannelUnstructuredObj("i1", "messaging.knative.dev/v1", "InMemoryChannel"),
 		)
 		assert.Check(t, client.RawClient() != nil)
-		gv := schema.GroupVersion{Group: "messaging.knative.dev", Version: "v1beta1"}
+		gv := schema.GroupVersion{Group: "messaging.knative.dev", Version: "v1"}
 		gvks := []schema.GroupVersionKind{gv.WithKind("InMemoryChannel")}
 
 		s, err := client.ListChannelsUsingGVKs(context.Background(), &gvks)

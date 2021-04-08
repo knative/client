@@ -37,11 +37,6 @@ type ChannelRef struct {
 
 // ctypeMappings maps aliases used for channel types to their GroupVersionKind
 var ctypeMappings = map[string]schema.GroupVersionKind{
-	"imcv1beta1": {
-		Group:   "messaging.knative.dev",
-		Version: "v1beta1",
-		Kind:    "InMemoryChannel",
-	},
 	"imc": {
 		Group:   "messaging.knative.dev",
 		Version: "v1",

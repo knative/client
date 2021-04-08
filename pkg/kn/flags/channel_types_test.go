@@ -40,12 +40,6 @@ type channelRefFlagsTestCase struct {
 func TestChannelTypesFlags(t *testing.T) {
 	cases := []*channelTypeFlagsTestCase{
 		{
-			"inbuilt alias 'imcv1beta1' case",
-			"imcv1beta1",
-			&schema.GroupVersionKind{Group: "messaging.knative.dev", Kind: "InMemoryChannel", Version: "v1beta1"},
-			"",
-		},
-		{
 			"inbuilt alias 'imc' case",
 			"imc",
 			&schema.GroupVersionKind{Group: "messaging.knative.dev", Kind: "InMemoryChannel", Version: "v1"},
@@ -95,12 +89,6 @@ func TestChannelTypesFlags(t *testing.T) {
 
 func TestChannelRefFlags(t *testing.T) {
 	cases := []*channelRefFlagsTestCase{
-		{
-			"inbuilt alias imcv1beta1 case",
-			"imcv1beta1:i1",
-			&corev1.ObjectReference{APIVersion: "messaging.knative.dev/v1beta1", Kind: "InMemoryChannel", Name: "i1"},
-			"",
-		},
 		{
 			"inbuilt alias 'imc' case",
 			"imc:i2",

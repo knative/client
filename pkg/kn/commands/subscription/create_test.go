@@ -72,7 +72,7 @@ func TestCreateSubscription(t *testing.T) {
 		nil)
 
 	out, err := executeSubscriptionCommand(cClient, dynamicClient, "create", "sub0",
-		"--channel", "imcv1beta1:imc0",
+		"--channel", "imc:imc0",
 		"--sink", "ksvc0",
 		"--sink-reply", "broker:b0",
 		"--sink-dead-letter", "broker:b1")
