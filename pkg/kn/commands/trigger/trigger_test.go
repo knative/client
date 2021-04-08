@@ -18,12 +18,12 @@ import (
 	"bytes"
 
 	"k8s.io/client-go/tools/clientcmd"
-	v1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
+	v1beta1 "knative.dev/eventing/pkg/apis/eventing/v1"
 	"knative.dev/pkg/apis"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 
 	clientdynamic "knative.dev/client/pkg/dynamic"
-	eventclientv1beta1 "knative.dev/client/pkg/eventing/v1beta1"
+	eventclientv1beta1 "knative.dev/client/pkg/eventing/v1"
 	"knative.dev/client/pkg/kn/commands"
 )
 

@@ -23,7 +23,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"k8s.io/cli-runtime/pkg/genericclioptions"
-	messagingv1beta1 "knative.dev/eventing/pkg/apis/messaging/v1beta1"
+	messagingv1 "knative.dev/eventing/pkg/apis/messaging/v1"
 
 	"knative.dev/client/lib/printing"
 	knerrors "knative.dev/client/pkg/errors"
@@ -98,7 +98,7 @@ func NewSubscriptionDescribeCommand(p *commands.KnParams) *cobra.Command {
 	return cmd
 }
 
-func writeSubscription(dw printers.PrefixWriter, subscription *messagingv1beta1.Subscription, printDetails bool) {
+func writeSubscription(dw printers.PrefixWriter, subscription *messagingv1.Subscription, printDetails bool) {
 	commands.WriteMetadata(dw, &subscription.ObjectMeta, printDetails)
 	ctype := fmt.Sprintf("%s:%s (%s)", subscription.Spec.Channel.Kind, subscription.Spec.Channel.Name, subscription.Spec.Channel.APIVersion)
 	dw.WriteAttribute("Channel", ctype)

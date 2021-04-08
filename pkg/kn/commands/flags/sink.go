@@ -72,7 +72,7 @@ var sinkMappings = map[string]schema.GroupVersionResource{
 	"broker": {
 		Resource: "brokers",
 		Group:    "eventing.knative.dev",
-		Version:  "v1beta1",
+		Version:  "v1",
 	},
 	// Shorthand alias for service
 	"ksvc": {
@@ -83,7 +83,7 @@ var sinkMappings = map[string]schema.GroupVersionResource{
 	"channel": {
 		Resource: "channels",
 		Group:    "messaging.knative.dev",
-		Version:  "v1beta1",
+		Version:  "v1",
 	},
 }
 

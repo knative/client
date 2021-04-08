@@ -40,7 +40,7 @@ const (
 	sourceListVersion  = "v1alpha1"
 	sourceListKind     = "SourceList"
 	channelLabelValue  = "true"
-	channelListVersion = "v1beta1"
+	channelListVersion = "v1"
 	channelListKind    = "ChannelList"
 	channelKind        = "Channel"
 )

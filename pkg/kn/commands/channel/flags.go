@@ -26,7 +26,7 @@ import (
 	"knative.dev/client/pkg/printers"
 	hprinters "knative.dev/client/pkg/printers"
 
-	messagingv1beta1 "knative.dev/eventing/pkg/apis/messaging/v1beta1"
+	messagingv1 "knative.dev/eventing/pkg/apis/messaging/v1"
 )
 
 var channelTypeDescription = map[string]string{
@@ -50,7 +50,7 @@ func ListHandlers(h hprinters.PrintHandler) {
 }
 
 // printChannel populates a single row of Channel list
-func printChannel(channel *messagingv1beta1.Channel, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+func printChannel(channel *messagingv1.Channel, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	row := metav1beta1.TableRow{
 		Object: runtime.RawExtension{Object: channel},
 	}
@@ -74,7 +74,7 @@ func printChannel(channel *messagingv1beta1.Channel, options hprinters.PrintOpti
 }
 
 // printChannelList populates the Channel list table rows
-func printChannelList(channelList *messagingv1beta1.ChannelList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+func printChannelList(channelList *messagingv1.ChannelList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	if options.AllNamespaces {
 		return printChannelListWithNamespace(channelList, options)
 	}
@@ -98,7 +98,7 @@ func printChannelList(channelList *messagingv1beta1.ChannelList, options hprinte
 }
 
 // printChannelListWithNamespace populates the knative service table rows with namespace column
-func printChannelListWithNamespace(channelList *messagingv1beta1.ChannelList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+func printChannelListWithNamespace(channelList *messagingv1.ChannelList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	rows := make([]metav1beta1.TableRow, 0, len(channelList.Items))
 
 	// temporary slice for sorting services in non-default namespace

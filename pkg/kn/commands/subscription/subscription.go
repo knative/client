@@ -20,10 +20,10 @@ import (
 	"github.com/spf13/cobra"
 
 	"k8s.io/client-go/tools/clientcmd"
-	clientv1beta1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/messaging/v1beta1"
+	clientv1beta1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/messaging/v1"
 
 	"knative.dev/client/pkg/kn/commands"
-	messagingv1beta1 "knative.dev/client/pkg/messaging/v1beta1"
+	messagingv1 "knative.dev/client/pkg/messaging/v1"
 )
 
 // NewSubscriptionCommand to manage event subscriptions
@@ -41,9 +41,9 @@ func NewSubscriptionCommand(p *commands.KnParams) *cobra.Command {
 	return subscriptionCmd
 }
 
-var subscriptionClientFactory func(config clientcmd.ClientConfig, namespace string) (messagingv1beta1.KnSubscriptionsClient, error)
+var subscriptionClientFactory func(config clientcmd.ClientConfig, namespace string) (messagingv1.KnSubscriptionsClient, error)
 
-func newSubscriptionClient(p *commands.KnParams, cmd *cobra.Command) (messagingv1beta1.KnSubscriptionsClient, error) {
+func newSubscriptionClient(p *commands.KnParams, cmd *cobra.Command) (messagingv1.KnSubscriptionsClient, error) {
 	namespace, err := p.GetNamespace(cmd)
 	if err != nil {
 		return nil, err
@@ -67,5 +67,5 @@ func newSubscriptionClient(p *commands.KnParams, cmd *cobra.Command) (messagingv
 		return nil, err
 	}
 
-	return messagingv1beta1.NewKnMessagingClient(client, namespace).SubscriptionsClient(), nil
+	return messagingv1.NewKnMessagingClient(client, namespace).SubscriptionsClient(), nil
 }

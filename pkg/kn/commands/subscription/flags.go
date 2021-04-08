@@ -26,7 +26,7 @@ import (
 	"knative.dev/client/pkg/kn/commands/flags"
 	hprinters "knative.dev/client/pkg/printers"
 
-	messagingv1beta1 "knative.dev/eventing/pkg/apis/messaging/v1beta1"
+	messagingv1 "knative.dev/eventing/pkg/apis/messaging/v1"
 )
 
 // ListHandlers handles printing human readable table for `kn subscription list` command's output
@@ -46,7 +46,7 @@ func ListHandlers(h hprinters.PrintHandler) {
 }
 
 // printSubscription populates a single row of Subscription list
-func printSubscription(subscription *messagingv1beta1.Subscription, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+func printSubscription(subscription *messagingv1.Subscription, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	row := metav1beta1.TableRow{
 		Object: runtime.RawExtension{Object: subscription},
 	}
@@ -83,7 +83,7 @@ func printSubscription(subscription *messagingv1beta1.Subscription, options hpri
 }
 
 // printSubscriptionList populates the Subscription list table rows
-func printSubscriptionList(subscriptionList *messagingv1beta1.SubscriptionList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+func printSubscriptionList(subscriptionList *messagingv1.SubscriptionList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	if options.AllNamespaces {
 		return printSubscriptionListWithNamespace(subscriptionList, options)
 	}
@@ -107,7 +107,7 @@ func printSubscriptionList(subscriptionList *messagingv1beta1.SubscriptionList, 
 }
 
 // printSubscriptionListWithNamespace populates the knative service table rows with namespace column
-func printSubscriptionListWithNamespace(subscriptionList *messagingv1beta1.SubscriptionList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+func printSubscriptionListWithNamespace(subscriptionList *messagingv1.SubscriptionList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	rows := make([]metav1beta1.TableRow, 0, len(subscriptionList.Items))
 
 	// temporary slice for sorting services in non-default namespace

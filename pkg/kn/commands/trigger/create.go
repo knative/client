@@ -22,7 +22,7 @@ import (
 
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 
-	clientv1beta1 "knative.dev/client/pkg/eventing/v1beta1"
+	clientv1beta1 "knative.dev/client/pkg/eventing/v1"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
 )

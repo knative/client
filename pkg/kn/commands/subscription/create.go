@@ -26,7 +26,7 @@ import (
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
 	knflags "knative.dev/client/pkg/kn/flags"
-	knmessagingv1beta1 "knative.dev/client/pkg/messaging/v1beta1"
+	knmessagingv1 "knative.dev/client/pkg/messaging/v1"
 )
 
 // NewSubscriptionCreateCommand to create event subscriptions
@@ -71,7 +71,7 @@ func NewSubscriptionCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			sb := knmessagingv1beta1.NewSubscriptionBuilder(name)
+			sb := knmessagingv1.NewSubscriptionBuilder(name)
 
 			cref, err := crefFlag.Parse()
 			if err != nil {

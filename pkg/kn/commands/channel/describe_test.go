@@ -20,8 +20,8 @@ import (
 
 	"gotest.tools/v3/assert"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"knative.dev/client/pkg/messaging/v1beta1"
 
+	v1beta1 "knative.dev/client/pkg/messaging/v1"
 	"knative.dev/client/pkg/util"
 )
 
@@ -45,17 +45,17 @@ func TestDescribeChannelErrorCaseNotFound(t *testing.T) {
 func TestDescribeChannel(t *testing.T) {
 	cClient := v1beta1.NewMockKnChannelsClient(t)
 	cRecorder := cClient.Recorder()
-	cRecorder.GetChannel("pipe", createChannel("pipe", "default", &schema.GroupVersionKind{Group: "messaging.knative.dev", Version: "v1beta1", Kind: "InMemoryChannel"}), nil)
+	cRecorder.GetChannel("pipe", createChannel("pipe", "default", &schema.GroupVersionKind{Group: "messaging.knative.dev", Version: "v1", Kind: "InMemoryChannel"}), nil)
 	out, err := executeChannelCommand(cClient, "describe", "pipe")
 	assert.NilError(t, err, "channel should be described")
-	assert.Assert(t, util.ContainsAll(out, "messaging.knative.dev", "v1beta1", "InMemoryChannel", "pipe"))
+	assert.Assert(t, util.ContainsAll(out, "messaging.knative.dev", "v1", "InMemoryChannel", "pipe"))
 	cRecorder.Validate()
 }
 
 func TestDescribeChannelURL(t *testing.T) {
 	cClient := v1beta1.NewMockKnChannelsClient(t)
 	cRecorder := cClient.Recorder()
-	cRecorder.GetChannel("pipe", createChannelWithStatus("pipe", "default", &schema.GroupVersionKind{Group: "messaging.knative.dev", Version: "v1beta1", Kind: "InMemoryChannel"}), nil)
+	cRecorder.GetChannel("pipe", createChannelWithStatus("pipe", "default", &schema.GroupVersionKind{Group: "messaging.knative.dev", Version: "v1", Kind: "InMemoryChannel"}), nil)
 	out, err := executeChannelCommand(cClient, "describe", "pipe", "-o", "url")
 	assert.NilError(t, err, "channel should be described with url as output")
 	assert.Assert(t, util.ContainsAll(out, "pipe-channel.test"))
