@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1beta1
+package v1
 
 import (
 	"context"
 	"testing"
 	"time"
 
-	v1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
+	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
 
 	"knative.dev/client/pkg/util/mock"
 )
@@ -66,20 +66,20 @@ func (sr *EventingRecorder) CreateTrigger(trigger interface{}, err error) {
 }
 
 // CreateTrigger performs a previously recorded action
-func (c *MockKnEventingClient) CreateTrigger(ctx context.Context, trigger *v1beta1.Trigger) error {
+func (c *MockKnEventingClient) CreateTrigger(ctx context.Context, trigger *eventingv1.Trigger) error {
 	call := c.recorder.r.VerifyCall("CreateTrigger", trigger)
 	return mock.ErrorOrNil(call.Result[0])
 }
 
 // GetTrigger records a call for GetTrigger with the expected object or error. Either trigger or err should be nil
-func (sr *EventingRecorder) GetTrigger(name interface{}, trigger *v1beta1.Trigger, err error) {
+func (sr *EventingRecorder) GetTrigger(name interface{}, trigger *eventingv1.Trigger, err error) {
 	sr.r.Add("GetTrigger", []interface{}{name}, []interface{}{trigger, err})
 }
 
 // GetTrigger performs a previously recorded action
-func (c *MockKnEventingClient) GetTrigger(ctx context.Context, name string) (*v1beta1.Trigger, error) {
+func (c *MockKnEventingClient) GetTrigger(ctx context.Context, name string) (*eventingv1.Trigger, error) {
 	call := c.recorder.r.VerifyCall("GetTrigger", name)
-	return call.Result[0].(*v1beta1.Trigger), mock.ErrorOrNil(call.Result[1])
+	return call.Result[0].(*eventingv1.Trigger), mock.ErrorOrNil(call.Result[1])
 }
 
 // DeleteTrigger records a call for DeleteTrigger with the expected error (nil if none)
@@ -94,14 +94,14 @@ func (c *MockKnEventingClient) DeleteTrigger(ctx context.Context, name string) e
 }
 
 // ListTriggers records a call for ListTriggers with the expected result and error (nil if none)
-func (sr *EventingRecorder) ListTriggers(triggerList *v1beta1.TriggerList, err error) {
+func (sr *EventingRecorder) ListTriggers(triggerList *eventingv1.TriggerList, err error) {
 	sr.r.Add("ListTriggers", nil, []interface{}{triggerList, err})
 }
 
 // ListTriggers performs a previously recorded action
-func (c *MockKnEventingClient) ListTriggers(context.Context) (*v1beta1.TriggerList, error) {
+func (c *MockKnEventingClient) ListTriggers(context.Context) (*eventingv1.TriggerList, error) {
 	call := c.recorder.r.VerifyCall("ListTriggers")
-	return call.Result[0].(*v1beta1.TriggerList), mock.ErrorOrNil(call.Result[1])
+	return call.Result[0].(*eventingv1.TriggerList), mock.ErrorOrNil(call.Result[1])
 }
 
 // UpdateTrigger records a call for ListTriggers with the expected result and error (nil if none)
@@ -110,7 +110,7 @@ func (sr *EventingRecorder) UpdateTrigger(trigger interface{}, err error) {
 }
 
 // UpdateTrigger performs a previously recorded action
-func (c *MockKnEventingClient) UpdateTrigger(ctx context.Context, trigger *v1beta1.Trigger) error {
+func (c *MockKnEventingClient) UpdateTrigger(ctx context.Context, trigger *eventingv1.Trigger) error {
 	call := c.recorder.r.VerifyCall("UpdateTrigger")
 	return mock.ErrorOrNil(call.Result[0])
 }
@@ -121,20 +121,20 @@ func (sr *EventingRecorder) CreateBroker(broker interface{}, err error) {
 }
 
 // CreateBroker performs a previously recorded action
-func (c *MockKnEventingClient) CreateBroker(ctx context.Context, broker *v1beta1.Broker) error {
+func (c *MockKnEventingClient) CreateBroker(ctx context.Context, broker *eventingv1.Broker) error {
 	call := c.recorder.r.VerifyCall("CreateBroker", broker)
 	return mock.ErrorOrNil(call.Result[0])
 }
 
 // GetBroker records a call for GetBroker with the expected object or error. Either trigger or err should be nil
-func (sr *EventingRecorder) GetBroker(name interface{}, broker *v1beta1.Broker, err error) {
+func (sr *EventingRecorder) GetBroker(name interface{}, broker *eventingv1.Broker, err error) {
 	sr.r.Add("GetBroker", []interface{}{name}, []interface{}{broker, err})
 }
 
 // GetBroker performs a previously recorded action
-func (c *MockKnEventingClient) GetBroker(ctx context.Context, name string) (*v1beta1.Broker, error) {
+func (c *MockKnEventingClient) GetBroker(ctx context.Context, name string) (*eventingv1.Broker, error) {
 	call := c.recorder.r.VerifyCall("GetBroker", name)
-	return call.Result[0].(*v1beta1.Broker), mock.ErrorOrNil(call.Result[1])
+	return call.Result[0].(*eventingv1.Broker), mock.ErrorOrNil(call.Result[1])
 }
 
 // DeleteBroker records a call for DeleteBroker with the expected error (nil if none)
@@ -149,14 +149,14 @@ func (c *MockKnEventingClient) DeleteBroker(ctx context.Context, name string, ti
 }
 
 // ListBrokers records a call for ListBrokers with the expected result and error (nil if none)
-func (sr *EventingRecorder) ListBrokers(brokerList *v1beta1.BrokerList, err error) {
+func (sr *EventingRecorder) ListBrokers(brokerList *eventingv1.BrokerList, err error) {
 	sr.r.Add("ListBrokers", nil, []interface{}{brokerList, err})
 }
 
 // ListBrokers performs a previously recorded action
-func (c *MockKnEventingClient) ListBrokers(context.Context) (*v1beta1.BrokerList, error) {
+func (c *MockKnEventingClient) ListBrokers(context.Context) (*eventingv1.BrokerList, error) {
 	call := c.recorder.r.VerifyCall("ListBrokers")
-	return call.Result[0].(*v1beta1.BrokerList), mock.ErrorOrNil(call.Result[1])
+	return call.Result[0].(*eventingv1.BrokerList), mock.ErrorOrNil(call.Result[1])
 }
 
 // Validate validates whether every recorded action has been called

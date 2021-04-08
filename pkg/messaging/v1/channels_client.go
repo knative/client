@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1beta1
+package v1
 
 import (
 	"context"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"knative.dev/eventing/pkg/apis/messaging/v1beta1"
-	clientv1beta1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/messaging/v1beta1"
+	messagingv1 "knative.dev/eventing/pkg/apis/messaging/v1"
+	clientmessagingv1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/messaging/v1"
 
 	knerrors "knative.dev/client/pkg/errors"
 )
@@ -29,16 +29,16 @@ import (
 type KnChannelsClient interface {
 
 	// GetChannel returns a Channel by its name
-	GetChannel(ctx context.Context, name string) (*v1beta1.Channel, error)
+	GetChannel(ctx context.Context, name string) (*messagingv1.Channel, error)
 
 	// CreteChannel creates a Channel with given spec
-	CreateChannel(ctx context.Context, channel *v1beta1.Channel) error
+	CreateChannel(ctx context.Context, channel *messagingv1.Channel) error
 
 	// DeleteChannel deletes a Channel by its name
 	DeleteChannel(ctx context.Context, name string) error
 
 	// ListChannel lists all Channels
-	ListChannel(ctx context.Context) (*v1beta1.ChannelList, error)
+	ListChannel(ctx context.Context) (*messagingv1.ChannelList, error)
 
 	// Namespace returns the namespace for this channel client
 	Namespace() string
@@ -46,12 +46,12 @@ type KnChannelsClient interface {
 
 // channelsClient struct holds the client interface and namespace
 type channelsClient struct {
-	client    clientv1beta1.ChannelInterface
+	client    clientmessagingv1.ChannelInterface
 	namespace string
 }
 
 // newKnChannelsClient returns kn channels client
-func newKnChannelsClient(client clientv1beta1.ChannelInterface, namespace string) KnChannelsClient {
+func newKnChannelsClient(client clientmessagingv1.ChannelInterface, namespace string) KnChannelsClient {
 	return &channelsClient{
 		client:    client,
 		namespace: namespace,
@@ -64,7 +64,7 @@ func (c *channelsClient) Namespace() string {
 }
 
 // GetChannel gets Channel by its name
-func (c *channelsClient) GetChannel(ctx context.Context, name string) (*v1beta1.Channel, error) {
+func (c *channelsClient) GetChannel(ctx context.Context, name string) (*messagingv1.Channel, error) {
 	channel, err := c.client.Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return nil, knerrors.GetError(err)
@@ -77,7 +77,7 @@ func (c *channelsClient) GetChannel(ctx context.Context, name string) (*v1beta1.
 }
 
 // CreateChannel creates Channel with given spec
-func (c *channelsClient) CreateChannel(ctx context.Context, channel *v1beta1.Channel) error {
+func (c *channelsClient) CreateChannel(ctx context.Context, channel *messagingv1.Channel) error {
 	_, err := c.client.Create(ctx, channel, metav1.CreateOptions{})
 	return knerrors.GetError(err)
 }
@@ -88,7 +88,7 @@ func (c *channelsClient) DeleteChannel(ctx context.Context, name string) error {
 }
 
 // ListChannel lists channels in configured namespace
-func (c *channelsClient) ListChannel(ctx context.Context) (*v1beta1.ChannelList, error) {
+func (c *channelsClient) ListChannel(ctx context.Context) (*messagingv1.ChannelList, error) {
 	channelList, err := c.client.List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, knerrors.GetError(err)
@@ -97,14 +97,14 @@ func (c *channelsClient) ListChannel(ctx context.Context) (*v1beta1.ChannelList,
 	return updateChannelListGVK(channelList)
 }
 
-func updateChannelListGVK(channelList *v1beta1.ChannelList) (*v1beta1.ChannelList, error) {
+func updateChannelListGVK(channelList *messagingv1.ChannelList) (*messagingv1.ChannelList, error) {
 	channelListNew := channelList.DeepCopy()
 	err := updateMessagingGVK(channelListNew)
 	if err != nil {
 		return nil, err
 	}
 
-	channelListNew.Items = make([]v1beta1.Channel, len(channelList.Items))
+	channelListNew.Items = make([]messagingv1.Channel, len(channelList.Items))
 	for idx, channel := range channelList.Items {
 		channelClone := channel.DeepCopy()
 		err := updateMessagingGVK(channelClone)
@@ -118,12 +118,12 @@ func updateChannelListGVK(channelList *v1beta1.ChannelList) (*v1beta1.ChannelLis
 
 // ChannelBuilder is for building the Channel object
 type ChannelBuilder struct {
-	channel *v1beta1.Channel
+	channel *messagingv1.Channel
 }
 
 // NewChannelBuilder for building Channel object
 func NewChannelBuilder(name, namespace string) *ChannelBuilder {
-	return &ChannelBuilder{channel: &v1beta1.Channel{
+	return &ChannelBuilder{channel: &messagingv1.Channel{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
@@ -137,7 +137,7 @@ func (c *ChannelBuilder) Type(gvk *schema.GroupVersionKind) *ChannelBuilder {
 		return c
 	}
 
-	spec := &v1beta1.ChannelTemplateSpec{}
+	spec := &messagingv1.ChannelTemplateSpec{}
 	spec.Kind = gvk.Kind
 	spec.APIVersion = gvk.GroupVersion().String()
 	c.channel.Spec.ChannelTemplate = spec
@@ -145,6 +145,6 @@ func (c *ChannelBuilder) Type(gvk *schema.GroupVersionKind) *ChannelBuilder {
 }
 
 // Build returns the Channel object from the builder
-func (c *ChannelBuilder) Build() *v1beta1.Channel {
+func (c *ChannelBuilder) Build() *messagingv1.Channel {
 	return c.channel
 }

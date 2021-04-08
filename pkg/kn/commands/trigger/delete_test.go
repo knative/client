@@ -20,7 +20,7 @@ import (
 
 	"gotest.tools/v3/assert"
 
-	eventingclientv1beta1 "knative.dev/client/pkg/eventing/v1beta1"
+	eventingclientv1beta1 "knative.dev/client/pkg/eventing/v1"
 	"knative.dev/client/pkg/util"
 )
 

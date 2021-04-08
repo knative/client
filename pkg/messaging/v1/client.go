@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1beta1
+package v1
 
 import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	messagingv1beta1 "knative.dev/eventing/pkg/apis/messaging/v1beta1"
+	messagingv1 "knative.dev/eventing/pkg/apis/messaging/v1"
 	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
-	clientv1beta1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/messaging/v1beta1"
+	clientv1beta1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/messaging/v1"
 
 	"knative.dev/client/pkg/util"
 )
@@ -36,12 +36,12 @@ type KnMessagingClient interface {
 
 // messagingClient holds Messaging client interface and namespace
 type messagingClient struct {
-	client    clientv1beta1.MessagingV1beta1Interface
+	client    clientv1beta1.MessagingV1Interface
 	namespace string
 }
 
 // NewKnMessagingClient for managing all eventing messaging types
-func NewKnMessagingClient(client clientv1beta1.MessagingV1beta1Interface, namespace string) KnMessagingClient {
+func NewKnMessagingClient(client clientv1beta1.MessagingV1Interface, namespace string) KnMessagingClient {
 	return &messagingClient{
 		client:    client,
 		namespace: namespace,
@@ -60,12 +60,12 @@ func (c *messagingClient) SubscriptionsClient() KnSubscriptionsClient {
 
 // update GVK of object
 func updateMessagingGVK(obj runtime.Object) error {
-	return util.UpdateGroupVersionKindWithScheme(obj, messagingv1beta1.SchemeGroupVersion, scheme.Scheme)
+	return util.UpdateGroupVersionKindWithScheme(obj, messagingv1.SchemeGroupVersion, scheme.Scheme)
 }
 
 // BuiltInChannelGVKs returns the GVKs for built in channel
 func BuiltInChannelGVKs() []schema.GroupVersionKind {
 	return []schema.GroupVersionKind{
-		messagingv1beta1.SchemeGroupVersion.WithKind("InMemoryChannel"),
+		messagingv1.SchemeGroupVersion.WithKind("InMemoryChannel"),
 	}
 }

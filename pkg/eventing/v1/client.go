@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1beta1
+package v1
 
 import (
 	"context"
@@ -22,9 +22,9 @@ import (
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
-	v1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
+	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
 	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
-	client_v1beta1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1beta1"
+	clientv1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 
 	kn_errors "knative.dev/client/pkg/errors"
@@ -38,35 +38,35 @@ type KnEventingClient interface {
 	// Namespace in which this client is operating for
 	Namespace() string
 	// CreateTrigger is used to create an instance of trigger
-	CreateTrigger(ctx context.Context, trigger *v1beta1.Trigger) error
+	CreateTrigger(ctx context.Context, trigger *eventingv1.Trigger) error
 	// DeleteTrigger is used to delete an instance of trigger
 	DeleteTrigger(ctx context.Context, name string) error
 	// GetTrigger is used to get an instance of trigger
-	GetTrigger(ctx context.Context, name string) (*v1beta1.Trigger, error)
+	GetTrigger(ctx context.Context, name string) (*eventingv1.Trigger, error)
 	// ListTrigger returns list of trigger CRDs
-	ListTriggers(ctx context.Context) (*v1beta1.TriggerList, error)
+	ListTriggers(ctx context.Context) (*eventingv1.TriggerList, error)
 	// UpdateTrigger is used to update an instance of trigger
-	UpdateTrigger(ctx context.Context, trigger *v1beta1.Trigger) error
+	UpdateTrigger(ctx context.Context, trigger *eventingv1.Trigger) error
 	// CreateBroker is used to create an instance of broker
-	CreateBroker(ctx context.Context, broker *v1beta1.Broker) error
+	CreateBroker(ctx context.Context, broker *eventingv1.Broker) error
 	// GetBroker is used to get an instance of broker
-	GetBroker(ctx context.Context, name string) (*v1beta1.Broker, error)
+	GetBroker(ctx context.Context, name string) (*eventingv1.Broker, error)
 	// DeleteBroker is used to delete an instance of broker
 	DeleteBroker(ctx context.Context, name string, timeout time.Duration) error
 	// ListBroker returns list of broker CRDs
-	ListBrokers(ctx context.Context) (*v1beta1.BrokerList, error)
+	ListBrokers(ctx context.Context) (*eventingv1.BrokerList, error)
 }
 
 // KnEventingClient is a combination of Sources client interface and namespace
 // Temporarily help to add sources dependencies
 // May be changed when adding real sources features
 type knEventingClient struct {
-	client    client_v1beta1.EventingV1beta1Interface
+	client    clientv1.EventingV1Interface
 	namespace string
 }
 
 // NewKnEventingClient is to invoke Eventing Sources Client API to create object
-func NewKnEventingClient(client client_v1beta1.EventingV1beta1Interface, namespace string) KnEventingClient {
+func NewKnEventingClient(client clientv1.EventingV1Interface, namespace string) KnEventingClient {
 	return &knEventingClient{
 		client:    client,
 		namespace: namespace,
@@ -74,7 +74,7 @@ func NewKnEventingClient(client client_v1beta1.EventingV1beta1Interface, namespa
 }
 
 //CreateTrigger is used to create an instance of trigger
-func (c *knEventingClient) CreateTrigger(ctx context.Context, trigger *v1beta1.Trigger) error {
+func (c *knEventingClient) CreateTrigger(ctx context.Context, trigger *eventingv1.Trigger) error {
 	_, err := c.client.Triggers(c.namespace).Create(ctx, trigger, meta_v1.CreateOptions{})
 	if err != nil {
 		return kn_errors.GetError(err)
@@ -92,7 +92,7 @@ func (c *knEventingClient) DeleteTrigger(ctx context.Context, name string) error
 }
 
 //GetTrigger is used to get an instance of trigger
-func (c *knEventingClient) GetTrigger(ctx context.Context, name string) (*v1beta1.Trigger, error) {
+func (c *knEventingClient) GetTrigger(ctx context.Context, name string) (*eventingv1.Trigger, error) {
 	trigger, err := c.client.Triggers(c.namespace).Get(ctx, name, apis_v1.GetOptions{})
 	if err != nil {
 		return nil, kn_errors.GetError(err)
@@ -104,7 +104,7 @@ func (c *knEventingClient) GetTrigger(ctx context.Context, name string) (*v1beta
 	return trigger, nil
 }
 
-func (c *knEventingClient) ListTriggers(ctx context.Context) (*v1beta1.TriggerList, error) {
+func (c *knEventingClient) ListTriggers(ctx context.Context) (*eventingv1.TriggerList, error) {
 	triggerList, err := c.client.Triggers(c.namespace).List(ctx, apis_v1.ListOptions{})
 	if err != nil {
 		return nil, kn_errors.GetError(err)
@@ -115,7 +115,7 @@ func (c *knEventingClient) ListTriggers(ctx context.Context) (*v1beta1.TriggerLi
 		return nil, err
 	}
 
-	triggerListNew.Items = make([]v1beta1.Trigger, len(triggerList.Items))
+	triggerListNew.Items = make([]eventingv1.Trigger, len(triggerList.Items))
 	for idx, trigger := range triggerList.Items {
 		triggerClone := trigger.DeepCopy()
 		err := updateEventingGVK(triggerClone)
@@ -128,7 +128,7 @@ func (c *knEventingClient) ListTriggers(ctx context.Context) (*v1beta1.TriggerLi
 }
 
 //CreateTrigger is used to create an instance of trigger
-func (c *knEventingClient) UpdateTrigger(ctx context.Context, trigger *v1beta1.Trigger) error {
+func (c *knEventingClient) UpdateTrigger(ctx context.Context, trigger *eventingv1.Trigger) error {
 	_, err := c.client.Triggers(c.namespace).Update(ctx, trigger, meta_v1.UpdateOptions{})
 	if err != nil {
 		return kn_errors.GetError(err)
@@ -141,19 +141,19 @@ func (c *knEventingClient) Namespace() string {
 	return c.namespace
 }
 
-// update with the v1beta1 group + version
+// update with the eventingv1 group + version
 func updateEventingGVK(obj runtime.Object) error {
-	return util.UpdateGroupVersionKindWithScheme(obj, v1beta1.SchemeGroupVersion, scheme.Scheme)
+	return util.UpdateGroupVersionKindWithScheme(obj, eventingv1.SchemeGroupVersion, scheme.Scheme)
 }
 
 // TriggerBuilder is for building the trigger
 type TriggerBuilder struct {
-	trigger *v1beta1.Trigger
+	trigger *eventingv1.Trigger
 }
 
 // NewTriggerBuilder for building trigger object
 func NewTriggerBuilder(name string) *TriggerBuilder {
-	return &TriggerBuilder{trigger: &v1beta1.Trigger{
+	return &TriggerBuilder{trigger: &eventingv1.Trigger{
 		ObjectMeta: meta_v1.ObjectMeta{
 			Name: name,
 		},
@@ -161,7 +161,7 @@ func NewTriggerBuilder(name string) *TriggerBuilder {
 }
 
 // NewTriggerBuilderFromExisting for building the object from existing Trigger object
-func NewTriggerBuilderFromExisting(trigger *v1beta1.Trigger) *TriggerBuilder {
+func NewTriggerBuilderFromExisting(trigger *eventingv1.Trigger) *TriggerBuilder {
 	return &TriggerBuilder{trigger: trigger.DeepCopy()}
 }
 
@@ -187,10 +187,10 @@ func (b *TriggerBuilder) Broker(broker string) *TriggerBuilder {
 // InjectBroker to add annotation to setup default broker
 func (b *TriggerBuilder) InjectBroker(inject bool) *TriggerBuilder {
 	if inject {
-		meta_v1.SetMetaDataAnnotation(&b.trigger.ObjectMeta, v1beta1.InjectionAnnotation, "enabled")
+		meta_v1.SetMetaDataAnnotation(&b.trigger.ObjectMeta, eventingv1.InjectionAnnotation, "enabled")
 	} else {
-		if meta_v1.HasAnnotation(b.trigger.ObjectMeta, v1beta1.InjectionAnnotation) {
-			delete(b.trigger.ObjectMeta.Annotations, v1beta1.InjectionAnnotation)
+		if meta_v1.HasAnnotation(b.trigger.ObjectMeta, eventingv1.InjectionAnnotation) {
+			delete(b.trigger.ObjectMeta.Annotations, eventingv1.InjectionAnnotation)
 		}
 	}
 	return b
@@ -198,15 +198,15 @@ func (b *TriggerBuilder) InjectBroker(inject bool) *TriggerBuilder {
 
 func (b *TriggerBuilder) Filters(filters map[string]string) *TriggerBuilder {
 	if len(filters) == 0 {
-		b.trigger.Spec.Filter = &v1beta1.TriggerFilter{}
+		b.trigger.Spec.Filter = &eventingv1.TriggerFilter{}
 		return b
 	}
 	filter := b.trigger.Spec.Filter
 	if filter == nil {
-		filter = &v1beta1.TriggerFilter{}
+		filter = &eventingv1.TriggerFilter{}
 		b.trigger.Spec.Filter = filter
 	}
-	filter.Attributes = v1beta1.TriggerFilterAttributes{}
+	filter.Attributes = eventingv1.TriggerFilterAttributes{}
 	for k, v := range filters {
 		filter.Attributes[k] = v
 	}
@@ -214,12 +214,12 @@ func (b *TriggerBuilder) Filters(filters map[string]string) *TriggerBuilder {
 }
 
 // Build to return an instance of trigger object
-func (b *TriggerBuilder) Build() *v1beta1.Trigger {
+func (b *TriggerBuilder) Build() *eventingv1.Trigger {
 	return b.trigger
 }
 
 // CreateBroker is used to create an instance of broker
-func (c *knEventingClient) CreateBroker(ctx context.Context, broker *v1beta1.Broker) error {
+func (c *knEventingClient) CreateBroker(ctx context.Context, broker *eventingv1.Broker) error {
 	_, err := c.client.Brokers(c.namespace).Create(ctx, broker, meta_v1.CreateOptions{})
 	if err != nil {
 		return kn_errors.GetError(err)
@@ -228,7 +228,7 @@ func (c *knEventingClient) CreateBroker(ctx context.Context, broker *v1beta1.Bro
 }
 
 // GetBroker is used to get an instance of broker
-func (c *knEventingClient) GetBroker(ctx context.Context, name string) (*v1beta1.Broker, error) {
+func (c *knEventingClient) GetBroker(ctx context.Context, name string) (*eventingv1.Broker, error) {
 	broker, err := c.client.Brokers(c.namespace).Get(ctx, name, apis_v1.GetOptions{})
 	if err != nil {
 		return nil, kn_errors.GetError(err)
@@ -279,7 +279,7 @@ func (c *knEventingClient) deleteBroker(ctx context.Context, name string, propag
 }
 
 // ListBrokers is used to retrieve the list of broker instances
-func (c *knEventingClient) ListBrokers(ctx context.Context) (*v1beta1.BrokerList, error) {
+func (c *knEventingClient) ListBrokers(ctx context.Context) (*eventingv1.BrokerList, error) {
 	brokerList, err := c.client.Brokers(c.namespace).List(ctx, apis_v1.ListOptions{})
 	if err != nil {
 		return nil, kn_errors.GetError(err)
@@ -290,7 +290,7 @@ func (c *knEventingClient) ListBrokers(ctx context.Context) (*v1beta1.BrokerList
 		return nil, err
 	}
 
-	brokerListNew.Items = make([]v1beta1.Broker, len(brokerList.Items))
+	brokerListNew.Items = make([]eventingv1.Broker, len(brokerList.Items))
 	for idx, trigger := range brokerList.Items {
 		triggerClone := trigger.DeepCopy()
 		err := updateEventingGVK(triggerClone)
@@ -304,12 +304,12 @@ func (c *knEventingClient) ListBrokers(ctx context.Context) (*v1beta1.BrokerList
 
 // BrokerBuilder is for building the broker
 type BrokerBuilder struct {
-	broker *v1beta1.Broker
+	broker *eventingv1.Broker
 }
 
 // NewBrokerBuilder for building broker object
 func NewBrokerBuilder(name string) *BrokerBuilder {
-	return &BrokerBuilder{broker: &v1beta1.Broker{
+	return &BrokerBuilder{broker: &eventingv1.Broker{
 		ObjectMeta: meta_v1.ObjectMeta{
 			Name: name,
 		},
@@ -323,6 +323,6 @@ func (b *BrokerBuilder) Namespace(ns string) *BrokerBuilder {
 }
 
 // Build to return an instance of broker object
-func (b *BrokerBuilder) Build() *v1beta1.Broker {
+func (b *BrokerBuilder) Build() *eventingv1.Broker {
 	return b.broker
 }

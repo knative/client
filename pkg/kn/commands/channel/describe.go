@@ -22,7 +22,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"k8s.io/cli-runtime/pkg/genericclioptions"
-	messagingv1beta1 "knative.dev/eventing/pkg/apis/messaging/v1beta1"
+	messagingv1 "knative.dev/eventing/pkg/apis/messaging/v1"
 
 	knerrors "knative.dev/client/pkg/errors"
 	"knative.dev/client/pkg/kn/commands"
@@ -106,7 +106,7 @@ func NewChannelDescribeCommand(p *commands.KnParams) *cobra.Command {
 	return cmd
 }
 
-func writeChannel(dw printers.PrefixWriter, channel *messagingv1beta1.Channel, printDetails bool) {
+func writeChannel(dw printers.PrefixWriter, channel *messagingv1.Channel, printDetails bool) {
 	commands.WriteMetadata(dw, &channel.ObjectMeta, printDetails)
 	ctype := fmt.Sprintf("%s (%s)", channel.Spec.ChannelTemplate.Kind, channel.Spec.ChannelTemplate.APIVersion)
 	dw.WriteAttribute("Type", ctype)
@@ -115,6 +115,6 @@ func writeChannel(dw printers.PrefixWriter, channel *messagingv1beta1.Channel, p
 	}
 }
 
-func extractURL(channel *messagingv1beta1.Channel) string {
+func extractURL(channel *messagingv1.Channel) string {
 	return channel.Status.Address.URL.String()
 }

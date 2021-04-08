@@ -21,9 +21,9 @@ import (
 	"testing"
 
 	"gotest.tools/v3/assert"
-	messagingv1beta1 "knative.dev/eventing/pkg/apis/messaging/v1beta1"
+	messagingv1 "knative.dev/eventing/pkg/apis/messaging/v1"
 
-	v1beta1 "knative.dev/client/pkg/messaging/v1beta1"
+	v1beta1 "knative.dev/client/pkg/messaging/v1"
 	"knative.dev/client/pkg/util"
 )
 
@@ -40,8 +40,8 @@ func TestSubscriptionListNoSubscriptionsFound(t *testing.T) {
 func TestSubscriptionList(t *testing.T) {
 	cClient := v1beta1.NewMockKnSubscriptionsClient(t)
 	cRecorder := cClient.Recorder()
-	clist := &messagingv1beta1.SubscriptionList{}
-	clist.Items = []messagingv1beta1.Subscription{
+	clist := &messagingv1.SubscriptionList{}
+	clist.Items = []messagingv1.Subscription{
 		*createSubscription("s0", "imc0", "ksvc0", "b00", "b01"),
 		*createSubscription("s1", "imc1", "ksvc1", "b10", "b11"),
 		*createSubscription("s2", "imc2", "ksvc2", "b20", "b21"),

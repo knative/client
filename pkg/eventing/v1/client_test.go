@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1beta1
+package v1
 
 import (
 	"context"
@@ -29,16 +29,16 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	client_testing "k8s.io/client-go/testing"
 	"knative.dev/client/pkg/wait"
-	v1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
-	"knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1beta1/fake"
+	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
+	"knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1/fake"
 	"knative.dev/pkg/apis"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 )
 
 var testNamespace = "test-ns"
 
-func setup() (fakeSvr fake.FakeEventingV1beta1, client KnEventingClient) {
-	fakeE := fake.FakeEventingV1beta1{Fake: &client_testing.Fake{}}
+func setup() (fakeSvr fake.FakeEventingV1, client KnEventingClient) {
+	fakeE := fake.FakeEventingV1{Fake: &client_testing.Fake{}}
 	cli := NewKnEventingClient(&fakeE, testNamespace)
 	return fakeE, cli
 }
@@ -123,7 +123,7 @@ func TestListTrigger(t *testing.T) {
 		serving.AddReactor("list", "triggers",
 			func(a client_testing.Action) (bool, runtime.Object, error) {
 				assert.Equal(t, testNamespace, a.GetNamespace())
-				return true, &v1beta1.TriggerList{Items: []v1beta1.Trigger{*trigger1, *trigger2}}, nil
+				return true, &eventingv1.TriggerList{Items: []eventingv1.Trigger{*trigger1, *trigger2}}, nil
 			})
 
 		listTriggers, err := client.ListTriggers(context.Background())
@@ -142,8 +142,8 @@ func TestTriggerBuilder(t *testing.T) {
 		b := NewTriggerBuilderFromExisting(a.Build())
 		assert.DeepEqual(t, b.Build(), a.Build())
 		b.Filters(map[string]string{"type": "new"})
-		expected := &v1beta1.TriggerFilter{
-			Attributes: v1beta1.TriggerFilterAttributes{
+		expected := &eventingv1.TriggerFilter{
+			Attributes: eventingv1.TriggerFilterAttributes{
 				"type": "new",
 			},
 		}
@@ -154,8 +154,8 @@ func TestTriggerBuilder(t *testing.T) {
 		b := NewTriggerBuilderFromExisting(a.Build())
 		assert.DeepEqual(t, b.Build(), a.Build())
 		b.Filters(map[string]string{"type": "new", "source": "bar"})
-		expected := &v1beta1.TriggerFilter{
-			Attributes: v1beta1.TriggerFilterAttributes{
+		expected := &eventingv1.TriggerFilter{
+			Attributes: eventingv1.TriggerFilterAttributes{
 				"type":   "new",
 				"source": "bar",
 			},
@@ -167,7 +167,7 @@ func TestTriggerBuilder(t *testing.T) {
 		b := NewTriggerBuilderFromExisting(a.Build())
 		assert.DeepEqual(t, b.Build(), a.Build())
 		b.Filters(nil)
-		expected := &v1beta1.TriggerFilter{}
+		expected := &eventingv1.TriggerFilter{}
 		assert.DeepEqual(t, expected, b.Build().Spec.Filter)
 
 		b.Filters((make(map[string]string)))
@@ -179,7 +179,7 @@ func TestTriggerBuilder(t *testing.T) {
 		b.InjectBroker(true)
 		expected := &metav1.ObjectMeta{
 			Annotations: map[string]string{
-				v1beta1.InjectionAnnotation: "enabled",
+				eventingv1.InjectionAnnotation: "enabled",
 			},
 		}
 		assert.DeepEqual(t, expected.Annotations, b.Build().ObjectMeta.Annotations)
@@ -279,7 +279,7 @@ func TestBrokerDeleteWithWait(t *testing.T) {
 			watchAction := a.(client_testing.WatchAction)
 			name, found := watchAction.GetWatchRestrictions().Fields.RequiresExactMatch("metadata.name")
 			if !found {
-				return true, nil, errors.NewNotFound(v1beta1.Resource("broker"), name)
+				return true, nil, errors.NewNotFound(eventingv1.Resource("broker"), name)
 			}
 			w := wait.NewFakeWatch(getBrokerDeleteEvents("fooBroker"))
 			w.Start()
@@ -303,7 +303,7 @@ func TestBrokerList(t *testing.T) {
 		serving.AddReactor("list", "brokers",
 			func(a client_testing.Action) (bool, runtime.Object, error) {
 				assert.Equal(t, testNamespace, a.GetNamespace())
-				return true, &v1beta1.BrokerList{Items: []v1beta1.Broker{*broker1, *broker2}}, nil
+				return true, &eventingv1.BrokerList{Items: []eventingv1.Broker{*broker1, *broker2}}, nil
 			})
 
 		brokerList, err := client.ListBrokers(context.Background())
@@ -314,7 +314,7 @@ func TestBrokerList(t *testing.T) {
 	})
 }
 
-func newTrigger(name string) *v1beta1.Trigger {
+func newTrigger(name string) *eventingv1.Trigger {
 	return NewTriggerBuilder(name).
 		Namespace(testNamespace).
 		Broker("default").
@@ -322,7 +322,7 @@ func newTrigger(name string) *v1beta1.Trigger {
 		Build()
 }
 
-func newBroker(name string) *v1beta1.Broker {
+func newBroker(name string) *eventingv1.Broker {
 	return NewBrokerBuilder(name).
 		Namespace(testNamespace).
 		Build()

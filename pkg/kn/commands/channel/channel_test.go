@@ -22,11 +22,11 @@ import (
 
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/tools/clientcmd"
-	"knative.dev/eventing/pkg/apis/messaging/v1beta1"
+	messagingv1 "knative.dev/eventing/pkg/apis/messaging/v1"
 
 	"knative.dev/client/pkg/kn/commands"
-	clientv1beta1 "knative.dev/client/pkg/messaging/v1beta1"
-	eventingduck "knative.dev/eventing/pkg/apis/duck/v1beta1"
+	clientv1beta1 "knative.dev/client/pkg/messaging/v1"
+	eventingduck "knative.dev/eventing/pkg/apis/duck/v1"
 )
 
 // Helper methods
@@ -80,13 +80,13 @@ func cleanupChannelMockClient() {
 	channelClientFactory = nil
 }
 
-func createChannel(name, namespace string, gvk *schema.GroupVersionKind) *v1beta1.Channel {
+func createChannel(name, namespace string, gvk *schema.GroupVersionKind) *messagingv1.Channel {
 	return clientv1beta1.NewChannelBuilder(name, namespace).Type(gvk).Build()
 }
 
-func createChannelWithStatus(name string, namespace string, gvk *schema.GroupVersionKind) *v1beta1.Channel {
+func createChannelWithStatus(name string, namespace string, gvk *schema.GroupVersionKind) *messagingv1.Channel {
 	channel := clientv1beta1.NewChannelBuilder(name, namespace).Type(gvk).Build()
-	channel.Status = v1beta1.ChannelStatus{
+	channel.Status = messagingv1.ChannelStatus{
 		ChannelableStatus: eventingduck.ChannelableStatus{
 			AddressStatus: duckv1.AddressStatus{
 				Address: &duckv1.Addressable{

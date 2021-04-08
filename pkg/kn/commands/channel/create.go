@@ -23,7 +23,7 @@ import (
 	knerrors "knative.dev/client/pkg/errors"
 	"knative.dev/client/pkg/kn/commands"
 	knflags "knative.dev/client/pkg/kn/flags"
-	knmessagingv1beta1 "knative.dev/client/pkg/messaging/v1beta1"
+	knmessagingv1 "knative.dev/client/pkg/messaging/v1"
 )
 
 // NewChannelCreateCommand to create event channels
@@ -60,7 +60,7 @@ func NewChannelCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			cb := knmessagingv1beta1.NewChannelBuilder(name, namespace)
+			cb := knmessagingv1.NewChannelBuilder(name, namespace)
 
 			if cmd.Flag("type").Changed {
 				gvk, err := ctypeFlags.Parse()

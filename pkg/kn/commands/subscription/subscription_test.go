@@ -22,14 +22,14 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/clientcmd"
-	eventingv1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
-	"knative.dev/eventing/pkg/apis/messaging/v1beta1"
+	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
+	messagingv1 "knative.dev/eventing/pkg/apis/messaging/v1"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	kndynamic "knative.dev/client/pkg/dynamic"
 	"knative.dev/client/pkg/kn/commands"
-	clientv1beta1 "knative.dev/client/pkg/messaging/v1beta1"
+	clientv1 "knative.dev/client/pkg/messaging/v1"
 )
 
 // Helper methods
@@ -58,7 +58,7 @@ current-context: x
 	}
 }
 
-func executeSubscriptionCommand(subscriptionClient clientv1beta1.KnSubscriptionsClient, dynamicClient kndynamic.KnDynamicClient, args ...string) (string, error) {
+func executeSubscriptionCommand(subscriptionClient clientv1.KnSubscriptionsClient, dynamicClient kndynamic.KnDynamicClient, args ...string) (string, error) {
 	knParams := &commands.KnParams{}
 	knParams.ClientConfig = blankConfig
 
@@ -72,7 +72,7 @@ func executeSubscriptionCommand(subscriptionClient clientv1beta1.KnSubscriptions
 	cmd.SetArgs(args)
 	cmd.SetOutput(output)
 
-	subscriptionClientFactory = func(config clientcmd.ClientConfig, namespace string) (clientv1beta1.KnSubscriptionsClient, error) {
+	subscriptionClientFactory = func(config clientcmd.ClientConfig, namespace string) (clientv1.KnSubscriptionsClient, error) {
 		return subscriptionClient, nil
 	}
 	defer cleanupSubscriptionMockClient()
@@ -86,8 +86,8 @@ func cleanupSubscriptionMockClient() {
 	subscriptionClientFactory = nil
 }
 
-func createSubscription(name, channel, subscriber, reply, dls string) *v1beta1.Subscription {
-	return clientv1beta1.
+func createSubscription(name, channel, subscriber, reply, dls string) *messagingv1.Subscription {
+	return clientv1.
 		NewSubscriptionBuilder(name).
 		Channel(createIMCObjectReference(channel)).
 		Subscriber(createServiceSink(subscriber)).
@@ -125,7 +125,7 @@ func createBrokerSink(broker string) *duckv1.Destination {
 	return &duckv1.Destination{
 		Ref: &duckv1.KReference{
 			Kind:       "Broker",
-			APIVersion: "eventing.knative.dev/v1beta1",
+			APIVersion: "eventing.knative.dev/v1",
 			Name:       broker,
 			Namespace:  "default",
 		},
@@ -139,9 +139,9 @@ func createService(name string) *servingv1.Service {
 	}
 }
 
-func createBroker(name string) *eventingv1beta1.Broker {
-	return &eventingv1beta1.Broker{
-		TypeMeta:   metav1.TypeMeta{Kind: "Broker", APIVersion: "eventing.knative.dev/v1beta1"},
+func createBroker(name string) *eventingv1.Broker {
+	return &eventingv1.Broker{
+		TypeMeta:   metav1.TypeMeta{Kind: "Broker", APIVersion: "eventing.knative.dev/v1"},
 		ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: "default"},
 	}
 }

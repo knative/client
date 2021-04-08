@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1beta1
+package v1
 
 import (
 	"context"
 	"testing"
 
-	"knative.dev/eventing/pkg/apis/messaging/v1beta1"
+	messagingv1 "knative.dev/eventing/pkg/apis/messaging/v1"
 
 	"knative.dev/client/pkg/util/mock"
 )
@@ -64,20 +64,20 @@ func (sr *ChannelsRecorder) CreateChannel(channels interface{}, err error) {
 }
 
 // CreateChannel performs a previously recorded action, failing if non has been registered
-func (c *MockKnChannelsClient) CreateChannel(ctx context.Context, channels *v1beta1.Channel) error {
+func (c *MockKnChannelsClient) CreateChannel(ctx context.Context, channels *messagingv1.Channel) error {
 	call := c.recorder.r.VerifyCall("CreateChannel", channels)
 	return mock.ErrorOrNil(call.Result[0])
 }
 
 // GetChannel records a call for GetChannel with the expected object or error. Either channels or err should be nil
-func (sr *ChannelsRecorder) GetChannel(name interface{}, channels *v1beta1.Channel, err error) {
+func (sr *ChannelsRecorder) GetChannel(name interface{}, channels *messagingv1.Channel, err error) {
 	sr.r.Add("GetChannel", []interface{}{name}, []interface{}{channels, err})
 }
 
 // GetChannel performs a previously recorded action, failing if non has been registered
-func (c *MockKnChannelsClient) GetChannel(ctx context.Context, name string) (*v1beta1.Channel, error) {
+func (c *MockKnChannelsClient) GetChannel(ctx context.Context, name string) (*messagingv1.Channel, error) {
 	call := c.recorder.r.VerifyCall("GetChannel", name)
-	return call.Result[0].(*v1beta1.Channel), mock.ErrorOrNil(call.Result[1])
+	return call.Result[0].(*messagingv1.Channel), mock.ErrorOrNil(call.Result[1])
 }
 
 // DeleteChannel records a call for DeleteChannel with the expected error (nil if none)
@@ -92,14 +92,14 @@ func (c *MockKnChannelsClient) DeleteChannel(ctx context.Context, name string) e
 }
 
 // ListChannel records a call for ListChannel with the expected error (nil if none)
-func (sr *ChannelsRecorder) ListChannel(channelsList *v1beta1.ChannelList, err error) {
+func (sr *ChannelsRecorder) ListChannel(channelsList *messagingv1.ChannelList, err error) {
 	sr.r.Add("ListChannel", []interface{}{}, []interface{}{channelsList, err})
 }
 
 // ListChannel performs a previously recorded action, failing if non has been registered
-func (c *MockKnChannelsClient) ListChannel(context.Context) (*v1beta1.ChannelList, error) {
+func (c *MockKnChannelsClient) ListChannel(context.Context) (*messagingv1.ChannelList, error) {
 	call := c.recorder.r.VerifyCall("ListChannel")
-	return call.Result[0].(*v1beta1.ChannelList), mock.ErrorOrNil(call.Result[1])
+	return call.Result[0].(*messagingv1.ChannelList), mock.ErrorOrNil(call.Result[1])
 }
 
 // Validates validates whether every recorded action has been called

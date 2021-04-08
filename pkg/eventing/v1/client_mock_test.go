@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1beta1
+package v1
 
 import (
 	"context"
 	"testing"
 	"time"
 
-	v1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
+	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
 )
 
 func TestMockKnClient(t *testing.T) {
@@ -30,12 +30,12 @@ func TestMockKnClient(t *testing.T) {
 
 	// Record all services
 	recorder.GetTrigger("hello", nil, nil)
-	recorder.CreateTrigger(&v1beta1.Trigger{}, nil)
+	recorder.CreateTrigger(&eventingv1.Trigger{}, nil)
 	recorder.DeleteTrigger("hello", nil)
 	recorder.ListTriggers(nil, nil)
-	recorder.UpdateTrigger(&v1beta1.Trigger{}, nil)
+	recorder.UpdateTrigger(&eventingv1.Trigger{}, nil)
 
-	recorder.CreateBroker(&v1beta1.Broker{}, nil)
+	recorder.CreateBroker(&eventingv1.Broker{}, nil)
 	recorder.GetBroker("foo", nil, nil)
 	recorder.DeleteBroker("foo", time.Duration(10)*time.Second, nil)
 	recorder.ListBrokers(nil, nil)
@@ -43,12 +43,12 @@ func TestMockKnClient(t *testing.T) {
 	// Call all service
 	ctx := context.Background()
 	client.GetTrigger(ctx, "hello")
-	client.CreateTrigger(ctx, &v1beta1.Trigger{})
+	client.CreateTrigger(ctx, &eventingv1.Trigger{})
 	client.DeleteTrigger(ctx, "hello")
 	client.ListTriggers(ctx)
-	client.UpdateTrigger(ctx, &v1beta1.Trigger{})
+	client.UpdateTrigger(ctx, &eventingv1.Trigger{})
 
-	client.CreateBroker(ctx, &v1beta1.Broker{})
+	client.CreateBroker(ctx, &eventingv1.Broker{})
 	client.GetBroker(ctx, "foo")
 	client.DeleteBroker(ctx, "foo", time.Duration(10)*time.Second)
 	client.ListBrokers(ctx)

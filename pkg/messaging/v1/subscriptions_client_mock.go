@@ -14,13 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1beta1
+package v1
 
 import (
 	"context"
 	"testing"
 
-	"knative.dev/eventing/pkg/apis/messaging/v1beta1"
+	messagingv1 "knative.dev/eventing/pkg/apis/messaging/v1"
 
 	"knative.dev/client/pkg/util/mock"
 )
@@ -68,20 +68,20 @@ func (sr *SubscriptionsRecorder) CreateSubscription(subscription interface{}, er
 }
 
 // CreateSubscription performs a previously recorded action, failing if non has been registered
-func (c *MockKnSubscriptionsClient) CreateSubscription(ctx context.Context, subscription *v1beta1.Subscription) error {
+func (c *MockKnSubscriptionsClient) CreateSubscription(ctx context.Context, subscription *messagingv1.Subscription) error {
 	call := c.recorder.r.VerifyCall("CreateSubscription", subscription)
 	return mock.ErrorOrNil(call.Result[0])
 }
 
 // GetSubscription records a call for GetSubscription with the expected object or error. Either subscriptions or err should be nil
-func (sr *SubscriptionsRecorder) GetSubscription(name interface{}, subscription *v1beta1.Subscription, err error) {
+func (sr *SubscriptionsRecorder) GetSubscription(name interface{}, subscription *messagingv1.Subscription, err error) {
 	sr.r.Add("GetSubscription", []interface{}{name}, []interface{}{subscription, err})
 }
 
 // GetSubscription performs a previously recorded action, failing if non has been registered
-func (c *MockKnSubscriptionsClient) GetSubscription(ctx context.Context, name string) (*v1beta1.Subscription, error) {
+func (c *MockKnSubscriptionsClient) GetSubscription(ctx context.Context, name string) (*messagingv1.Subscription, error) {
 	call := c.recorder.r.VerifyCall("GetSubscription", name)
-	return call.Result[0].(*v1beta1.Subscription), mock.ErrorOrNil(call.Result[1])
+	return call.Result[0].(*messagingv1.Subscription), mock.ErrorOrNil(call.Result[1])
 }
 
 // DeleteSubscription records a call for DeleteSubscription with the expected error (nil if none)
@@ -96,14 +96,14 @@ func (c *MockKnSubscriptionsClient) DeleteSubscription(ctx context.Context, name
 }
 
 // ListSubscription records a call for ListSubscription with the expected error (nil if none)
-func (sr *SubscriptionsRecorder) ListSubscription(subscriptionsList *v1beta1.SubscriptionList, err error) {
+func (sr *SubscriptionsRecorder) ListSubscription(subscriptionsList *messagingv1.SubscriptionList, err error) {
 	sr.r.Add("ListSubscription", []interface{}{}, []interface{}{subscriptionsList, err})
 }
 
 // ListSubscription performs a previously recorded action, failing if non has been registered
-func (c *MockKnSubscriptionsClient) ListSubscription(context.Context) (*v1beta1.SubscriptionList, error) {
+func (c *MockKnSubscriptionsClient) ListSubscription(context.Context) (*messagingv1.SubscriptionList, error) {
 	call := c.recorder.r.VerifyCall("ListSubscription")
-	return call.Result[0].(*v1beta1.SubscriptionList), mock.ErrorOrNil(call.Result[1])
+	return call.Result[0].(*messagingv1.SubscriptionList), mock.ErrorOrNil(call.Result[1])
 }
 
 // UpdateSubscription records a call for CreateSubscription with the expected error
@@ -112,7 +112,7 @@ func (sr *SubscriptionsRecorder) UpdateSubscription(subscription interface{}, er
 }
 
 // UpdateSubscription performs a previously recorded action, failing if non has been registered
-func (c *MockKnSubscriptionsClient) UpdateSubscription(ctx context.Context, subscription *v1beta1.Subscription) error {
+func (c *MockKnSubscriptionsClient) UpdateSubscription(ctx context.Context, subscription *messagingv1.Subscription) error {
 	call := c.recorder.r.VerifyCall("UpdateSubscription", subscription)
 	return mock.ErrorOrNil(call.Result[0])
 }

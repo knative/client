@@ -26,7 +26,7 @@ import (
 	knerrors "knative.dev/client/pkg/errors"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
-	messagingv1beta1 "knative.dev/client/pkg/messaging/v1beta1"
+	messagingv1 "knative.dev/client/pkg/messaging/v1"
 )
 
 // NewChannelListTypesCommand defines and processes `kn channel list-types`
@@ -87,7 +87,7 @@ func NewChannelListTypesCommand(p *commands.KnParams) *cobra.Command {
 func listBuiltInChannelTypes(ctx context.Context, d dynamic.KnDynamicClient) (*unstructured.UnstructuredList, error) {
 	var err error
 	uList := unstructured.UnstructuredList{}
-	gvks := messagingv1beta1.BuiltInChannelGVKs()
+	gvks := messagingv1.BuiltInChannelGVKs()
 	for _, gvk := range gvks {
 		_, err = d.ListChannelsUsingGVKs(ctx, &[]schema.GroupVersionKind{gvk})
 		if err != nil {

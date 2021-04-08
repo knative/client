@@ -19,8 +19,8 @@ import (
 
 	"gotest.tools/v3/assert"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"knative.dev/client/pkg/messaging/v1beta1"
 
+	v1beta1 "knative.dev/client/pkg/messaging/v1"
 	"knative.dev/client/pkg/util"
 )
 

@@ -20,14 +20,14 @@ import (
 	"testing"
 
 	"gotest.tools/v3/assert"
-	"knative.dev/client/pkg/messaging/v1beta1"
 
 	dynamicfake "knative.dev/client/pkg/dynamic/fake"
+	clientmessagingv1 "knative.dev/client/pkg/messaging/v1"
 	"knative.dev/client/pkg/util"
 )
 
 func TestCreateSubscriptionErrorCase(t *testing.T) {
-	cClient := v1beta1.NewMockKnSubscriptionsClient(t)
+	cClient := clientmessagingv1.NewMockKnSubscriptionsClient(t)
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default")
 
 	cRecorder := cClient.Recorder()
@@ -37,7 +37,7 @@ func TestCreateSubscriptionErrorCase(t *testing.T) {
 }
 
 func TestCreateSubscriptionErrorCaseRequiredChannelFlag(t *testing.T) {
-	cClient := v1beta1.NewMockKnSubscriptionsClient(t)
+	cClient := clientmessagingv1.NewMockKnSubscriptionsClient(t)
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default")
 
 	cRecorder := cClient.Recorder()
@@ -47,7 +47,7 @@ func TestCreateSubscriptionErrorCaseRequiredChannelFlag(t *testing.T) {
 }
 
 func TestCreateSubscriptionErrorCaseChannelFormat(t *testing.T) {
-	cClient := v1beta1.NewMockKnSubscriptionsClient(t)
+	cClient := clientmessagingv1.NewMockKnSubscriptionsClient(t)
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default")
 
 	cRecorder := cClient.Recorder()
@@ -57,7 +57,7 @@ func TestCreateSubscriptionErrorCaseChannelFormat(t *testing.T) {
 }
 
 func TestCreateSubscription(t *testing.T) {
-	cClient := v1beta1.NewMockKnSubscriptionsClient(t)
+	cClient := clientmessagingv1.NewMockKnSubscriptionsClient(t)
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default",
 		createService("ksvc0"),
 		createBroker("b0"),
