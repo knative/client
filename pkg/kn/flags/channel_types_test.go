@@ -116,7 +116,7 @@ func TestChannelRefFlags(t *testing.T) {
 		{
 			"default channel type prefix case",
 			"c1",
-			&corev1.ObjectReference{APIVersion: "messaging.knative.dev/v1beta1", Kind: "Channel", Name: "c1"},
+			&corev1.ObjectReference{APIVersion: "messaging.knative.dev/v1", Kind: "Channel", Name: "c1"},
 			"",
 		},
 		{

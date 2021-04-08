@@ -18,6 +18,8 @@ import (
 	"fmt"
 	"strings"
 
+	messagingv1 "knative.dev/eventing/pkg/apis/messaging/v1"
+
 	"github.com/spf13/pflag"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -103,9 +105,9 @@ func (i *ChannelRef) Add(f *pflag.FlagSet) {
 func (i *ChannelRef) Parse() (*corev1.ObjectReference, error) {
 	parts := strings.Split(i.Cref, ":")
 	switch len(parts) {
-	// if no prefix is given, defer to "messaging.knative.dev/v1beta1:Channel"
+	// if no prefix is given, defer to "messaging.knative.dev/v1:Channel"
 	case 1:
-		return &corev1.ObjectReference{Kind: "Channel", APIVersion: "messaging.knative.dev/v1beta1", Name: parts[0]}, nil
+		return &corev1.ObjectReference{Kind: "Channel", APIVersion: messagingv1.SchemeGroupVersion.String(), Name: parts[0]}, nil
 	case 2:
 		if typ, ok := ctypeMappings[parts[0]]; ok {
 			return &corev1.ObjectReference{Kind: typ.Kind, APIVersion: typ.GroupVersion().String(), Name: parts[1]}, nil
