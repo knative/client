@@ -20,9 +20,9 @@ import (
 
 	"k8s.io/client-go/tools/clientcmd"
 
-	clientv1beta1 "knative.dev/client/pkg/eventing/v1beta1"
+	clientv1beta1 "knative.dev/client/pkg/eventing/v1"
 	"knative.dev/client/pkg/kn/commands"
-	v1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
+	v1beta1 "knative.dev/eventing/pkg/apis/eventing/v1"
 )
 
 // Helper methods

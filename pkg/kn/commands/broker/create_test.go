@@ -21,7 +21,7 @@ import (
 
 	"gotest.tools/v3/assert"
 
-	clienteventingv1beta1 "knative.dev/client/pkg/eventing/v1beta1"
+	clienteventingv1 "knative.dev/client/pkg/eventing/v1"
 	"knative.dev/client/pkg/util"
 )
 
@@ -30,7 +30,7 @@ var (
 )
 
 func TestBrokerCreate(t *testing.T) {
-	eventingClient := clienteventingv1beta1.NewMockKnEventingClient(t)
+	eventingClient := clienteventingv1.NewMockKnEventingClient(t)
 
 	eventingRecorder := eventingClient.Recorder()
 	eventingRecorder.CreateBroker(createBroker(brokerName), nil)
@@ -43,7 +43,7 @@ func TestBrokerCreate(t *testing.T) {
 }
 
 func TestBrokerCreateWithError(t *testing.T) {
-	eventingClient := clienteventingv1beta1.NewMockKnEventingClient(t)
+	eventingClient := clienteventingv1.NewMockKnEventingClient(t)
 
 	_, err := executeBrokerCommand(eventingClient, "create")
 	assert.ErrorContains(t, err, "broker create")

@@ -41,7 +41,7 @@ const (
 	crdKind            = "CustomResourceDefinition"
 	testNamespace      = "current"
 	channelLabelValue  = "true"
-	channelListVersion = "v1beta1"
+	channelListVersion = "v1"
 	inMemoryChannel    = "InMemoryChannel"
 )
 
@@ -91,7 +91,7 @@ func TestChannelListTypesErrorDynamicClient(t *testing.T) {
 
 func TestChannelListTypes(t *testing.T) {
 	dynamicClient := dynamicfakeClient.CreateFakeKnDynamicClient(testNamespace,
-		newChannelCRDObjWithSpec("InMemoryChannel", "messaging.knative.dev", "v1beta1", "InMemoryChannel"),
+		newChannelCRDObjWithSpec("InMemoryChannel", "messaging.knative.dev", "v1", "InMemoryChannel"),
 	)
 	assert.Equal(t, dynamicClient.Namespace(), testNamespace)
 	output, err := channelFakeCmd([]string{"channel", "list-types"}, dynamicClient)
@@ -102,7 +102,7 @@ func TestChannelListTypes(t *testing.T) {
 
 func TestChannelListTypesNoHeaders(t *testing.T) {
 	dynamicClient := dynamicfakeClient.CreateFakeKnDynamicClient(testNamespace,
-		newChannelCRDObjWithSpec("InMemoryChannel", "messaging.knative.dev", "v1beta1", "InMemoryChannel"),
+		newChannelCRDObjWithSpec("InMemoryChannel", "messaging.knative.dev", "v1", "InMemoryChannel"),
 	)
 	assert.Equal(t, dynamicClient.Namespace(), testNamespace)
 	output, err := channelFakeCmd([]string{"channel", "list-types", "--no-headers"}, dynamicClient)
@@ -193,7 +193,7 @@ func TestChannelListTypeErrors(t *testing.T) {
 	assert.Error(t, err, ".spec.names.kind accessor error: true is of the type bool, expected string")
 
 	dynamicClient = dynamicfakeClient.CreateFakeKnDynamicClient(testNamespace,
-		newChannelCRDObjWithSpec("InMemoryChannel", "messaging.knative.dev", "v1beta1", "InMemoryChannel"),
+		newChannelCRDObjWithSpec("InMemoryChannel", "messaging.knative.dev", "v1", "InMemoryChannel"),
 	)
 	_, err = channelFakeCmd([]string{"channel", "list-types", "--noheader"}, dynamicClient)
 	assert.Check(t, err != nil)

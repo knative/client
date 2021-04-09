@@ -22,13 +22,13 @@ import (
 
 	"gotest.tools/v3/assert"
 
-	clienteventingv1beta1 "knative.dev/client/pkg/eventing/v1beta1"
+	clienteventingv1 "knative.dev/client/pkg/eventing/v1"
 	"knative.dev/client/pkg/util"
-	v1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
+	v1beta1 "knative.dev/eventing/pkg/apis/eventing/v1"
 )
 
 func TestBrokerList(t *testing.T) {
-	eventingClient := clienteventingv1beta1.NewMockKnEventingClient(t)
+	eventingClient := clienteventingv1.NewMockKnEventingClient(t)
 	eventingRecorder := eventingClient.Recorder()
 
 	broker1 := createBroker("foo1")
@@ -50,7 +50,7 @@ func TestBrokerList(t *testing.T) {
 }
 
 func TestBrokerListEmpty(t *testing.T) {
-	eventingClient := clienteventingv1beta1.NewMockKnEventingClient(t)
+	eventingClient := clienteventingv1.NewMockKnEventingClient(t)
 	eventingRecorder := eventingClient.Recorder()
 
 	eventingRecorder.ListBrokers(&v1beta1.BrokerList{}, nil)
@@ -76,7 +76,7 @@ func TestBrokerListEmptyWithJSON(t *testing.T) {
 }
 
 func TestTriggerListAllNamespace(t *testing.T) {
-	eventingClient := clienteventingv1beta1.NewMockKnEventingClient(t)
+	eventingClient := clienteventingv1.NewMockKnEventingClient(t)
 	eventingRecorder := eventingClient.Recorder()
 
 	broker1 := createBrokerWithNamespace("foo1", "default1")

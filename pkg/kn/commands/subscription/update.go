@@ -25,7 +25,7 @@ import (
 	knerrors "knative.dev/client/pkg/errors"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
-	knmessagingv1beta1 "knative.dev/client/pkg/messaging/v1beta1"
+	knmessagingv1 "knative.dev/client/pkg/messaging/v1"
 )
 
 // NewSubscriptionUpdateCommand to update event subscriptions
@@ -67,7 +67,7 @@ func NewSubscriptionUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			sb := knmessagingv1beta1.NewSubscriptionBuilderFromExisting(foundSub)
+			sb := knmessagingv1.NewSubscriptionBuilderFromExisting(foundSub)
 
 			sub, err := subscriberFlag.ResolveSink(cmd.Context(), dynamicClient, namespace)
 			if err != nil {

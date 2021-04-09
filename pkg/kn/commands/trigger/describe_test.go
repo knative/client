@@ -22,11 +22,11 @@ import (
 	"gotest.tools/v3/assert/cmp"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	v1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
+	v1beta1 "knative.dev/eventing/pkg/apis/eventing/v1"
 	"knative.dev/pkg/apis"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 
-	clientv1beta1 "knative.dev/client/pkg/eventing/v1beta1"
+	clientv1beta1 "knative.dev/client/pkg/eventing/v1"
 	"knative.dev/client/pkg/util"
 )
 
@@ -99,7 +99,7 @@ func getTriggerSinkRef() *v1beta1.Trigger {
 	return &v1beta1.Trigger{
 		TypeMeta: v1.TypeMeta{
 			Kind:       "Trigger",
-			APIVersion: "eventing.knative.dev/v1beta1",
+			APIVersion: "eventing.knative.dev/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testtrigger",
@@ -129,7 +129,7 @@ func getTriggerSinkURI() *v1beta1.Trigger {
 	return &v1beta1.Trigger{
 		TypeMeta: v1.TypeMeta{
 			Kind:       "Trigger",
-			APIVersion: "eventing.knative.dev/v1beta1",
+			APIVersion: "eventing.knative.dev/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testtrigger",

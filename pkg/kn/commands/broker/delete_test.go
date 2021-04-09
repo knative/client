@@ -22,14 +22,14 @@ import (
 
 	"gotest.tools/v3/assert"
 
-	clienteventingv1beta1 "knative.dev/client/pkg/eventing/v1beta1"
+	clienteventingv1 "knative.dev/client/pkg/eventing/v1"
 	"knative.dev/client/pkg/util"
 	"knative.dev/client/pkg/util/mock"
 )
 
 func TestBrokerDelete(t *testing.T) {
 	brokerName := "foo"
-	eventingClient := clienteventingv1beta1.NewMockKnEventingClient(t)
+	eventingClient := clienteventingv1.NewMockKnEventingClient(t)
 
 	eventingRecorder := eventingClient.Recorder()
 	eventingRecorder.DeleteBroker(brokerName, mock.Any(), nil)
@@ -43,7 +43,7 @@ func TestBrokerDelete(t *testing.T) {
 
 func TestBrokerWithDelete(t *testing.T) {
 	brokerName := "foo"
-	eventingClient := clienteventingv1beta1.NewMockKnEventingClient(t)
+	eventingClient := clienteventingv1.NewMockKnEventingClient(t)
 
 	eventingRecorder := eventingClient.Recorder()
 	eventingRecorder.DeleteBroker(brokerName, mock.Any(), fmt.Errorf("broker %s not found", brokerName))
