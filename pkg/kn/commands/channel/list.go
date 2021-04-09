@@ -18,7 +18,7 @@ import (
 	"fmt"
 
 	"knative.dev/client/pkg/util"
-	"knative.dev/eventing/pkg/apis/messaging/v1beta1"
+	v1beta1 "knative.dev/eventing/pkg/apis/messaging/v1beta1"
 
 	"github.com/spf13/cobra"
 	"knative.dev/client/pkg/kn/commands"
