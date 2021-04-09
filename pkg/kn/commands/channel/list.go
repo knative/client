@@ -18,7 +18,7 @@ import (
 	"fmt"
 
 	"knative.dev/client/pkg/util"
-	v1beta1 "knative.dev/eventing/pkg/apis/messaging/v1beta1"
+	messagingv1 "knative.dev/eventing/pkg/apis/messaging/v1"
 
 	"github.com/spf13/cobra"
 	"knative.dev/client/pkg/kn/commands"
@@ -55,8 +55,8 @@ func NewChannelListCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			if channelList == nil {
-				channelList = &v1beta1.ChannelList{}
-				err := util.UpdateGroupVersionKindWithScheme(channelList, v1beta1.SchemeGroupVersion, scheme.Scheme)
+				channelList = &messagingv1.ChannelList{}
+				err := util.UpdateGroupVersionKindWithScheme(channelList, messagingv1.SchemeGroupVersion, scheme.Scheme)
 				if err != nil {
 					return err
 				}

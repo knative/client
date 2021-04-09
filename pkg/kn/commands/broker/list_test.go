@@ -62,7 +62,7 @@ func TestBrokerListEmpty(t *testing.T) {
 }
 
 func TestBrokerListEmptyWithJSON(t *testing.T) {
-	eventingClient := clienteventingv1beta1.NewMockKnEventingClient(t)
+	eventingClient := clienteventingv1.NewMockKnEventingClient(t)
 	eventingRecorder := eventingClient.Recorder()
 	brokerList := &v1beta1.BrokerList{}
 	brokerList.APIVersion = "eventing.knative.dev/v1beta1"

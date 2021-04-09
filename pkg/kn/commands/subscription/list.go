@@ -20,7 +20,7 @@ import (
 	"fmt"
 
 	"knative.dev/client/pkg/util"
-	messagingv1beta1 "knative.dev/eventing/pkg/apis/messaging/v1beta1"
+	messagingv1 "knative.dev/eventing/pkg/apis/messaging/v1"
 	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
 
 	"github.com/spf13/cobra"
@@ -57,8 +57,8 @@ func NewSubscriptionListCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			if subscriptionList == nil {
-				subscriptionList = &messagingv1beta1.SubscriptionList{}
-				err := util.UpdateGroupVersionKindWithScheme(subscriptionList, messagingv1beta1.SchemeGroupVersion, scheme.Scheme)
+				subscriptionList = &messagingv1.SubscriptionList{}
+				err := util.UpdateGroupVersionKindWithScheme(subscriptionList, messagingv1.SchemeGroupVersion, scheme.Scheme)
 				if err != nil {
 					return err
 				}

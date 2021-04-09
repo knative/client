@@ -42,12 +42,12 @@ func TestSubscriptionListNoSubscriptionsFound(t *testing.T) {
 func TestSubscriptionListNoSubscriptionsWithJsonOutput(t *testing.T) {
 	cClient := v1beta1.NewMockKnSubscriptionsClient(t)
 	cRecorder := cClient.Recorder()
-	clist := &messagingv1beta1.SubscriptionList{}
-	_ = util.UpdateGroupVersionKindWithScheme(clist, messagingv1beta1.SchemeGroupVersion, scheme.Scheme)
+	clist := &messagingv1.SubscriptionList{}
+	_ = util.UpdateGroupVersionKindWithScheme(clist, messagingv1.SchemeGroupVersion, scheme.Scheme)
 	cRecorder.ListSubscription(clist, nil)
 	out, err := executeSubscriptionCommand(cClient, nil, "list", "-o", "json")
 	assert.NilError(t, err)
-	assert.Check(t, util.ContainsAll(out, "\"apiVersion\": \"messaging.knative.dev/v1beta1\"", "\"items\": []", "\"kind\": \"SubscriptionList\""))
+	assert.Check(t, util.ContainsAll(out, "\"apiVersion\": \"messaging.knative.dev/v1\"", "\"items\": []", "\"kind\": \"SubscriptionList\""))
 	cRecorder.Validate()
 }
 

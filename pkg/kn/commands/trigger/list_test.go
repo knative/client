@@ -28,7 +28,6 @@ import (
 	clienteventingv1 "knative.dev/client/pkg/eventing/v1"
 	clientservingv1 "knative.dev/client/pkg/serving/v1"
 	"knative.dev/client/pkg/util"
-	v1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
 )
 
 func TestTriggerList(t *testing.T) {
@@ -73,14 +72,14 @@ func TestTriggerListEmpty(t *testing.T) {
 }
 
 func TestTriggerListEmptyWithJsonOutput(t *testing.T) {
-	eventingClient := clienteventingv1beta1.NewMockKnEventingClient(t)
+	eventingClient := clienteventingv1.NewMockKnEventingClient(t)
 	eventingRecorder := eventingClient.Recorder()
-	triggerList := &eventingv1beta1.TriggerList{}
-	util.UpdateGroupVersionKindWithScheme(triggerList, v1beta1.SchemeGroupVersion, scheme.Scheme)
+	triggerList := &eventingv1.TriggerList{}
+	util.UpdateGroupVersionKindWithScheme(triggerList, eventingv1.SchemeGroupVersion, scheme.Scheme)
 	eventingRecorder.ListTriggers(triggerList, nil)
 	output, err := executeTriggerCommand(eventingClient, nil, "list", "-o", "json")
 	assert.NilError(t, err)
-	assert.Assert(t, util.ContainsAll(output, " \"apiVersion\": \"eventing.knative.dev/v1beta1\"", "\"kind\": \"TriggerList\"", "\"items\": [],"))
+	assert.Assert(t, util.ContainsAll(output, " \"apiVersion\": \"eventing.knative.dev/v1\"", "\"kind\": \"TriggerList\"", "\"items\": [],"))
 
 	eventingRecorder.Validate()
 }
