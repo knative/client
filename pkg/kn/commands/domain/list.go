@@ -55,7 +55,7 @@ func NewDomainMappingListCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			if len(domainMappingList.Items) == 0 {
+			if !listFlags.GenericPrintFlags.OutputFlagSpecified() && len(domainMappingList.Items) == 0 {
 				fmt.Fprintf(cmd.OutOrStdout(), "No domain mapping found.\n")
 				return nil
 			}
