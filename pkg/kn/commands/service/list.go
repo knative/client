@@ -64,7 +64,9 @@ func NewServiceListCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if len(serviceList.Items) == 0 {
+
+			// Stop if nothing found
+			if !serviceListFlags.GenericPrintFlags.OutputFlagSpecified() && len(serviceList.Items) == 0 {
 				fmt.Fprintf(cmd.OutOrStdout(), "No services found.\n")
 				return nil
 			}

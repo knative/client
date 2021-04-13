@@ -17,6 +17,8 @@ package apiserver
 import (
 	"testing"
 
+	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
+
 	"gotest.tools/v3/assert"
 
 	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
@@ -55,6 +57,21 @@ func TestListAPIServerSourceEmpty(t *testing.T) {
 	assert.NilError(t, err, "Sources should be listed")
 	assert.Assert(t, util.ContainsNone(out, "NAME", "RESOURCES", "SINK", "AGE", "CONDITIONS", "READY", "REASON"))
 	assert.Assert(t, util.ContainsAll(out, "No", "ApiServer", "source", "found"))
+
+	apiServerRecorder.Validate()
+}
+
+func TestListAPIServerSourceEmptyWithJsonOutput(t *testing.T) {
+	apiServerClient := v1alpha22.NewMockKnAPIServerSourceClient(t)
+
+	apiServerRecorder := apiServerClient.Recorder()
+	sampleSourceList := v1alpha2.ApiServerSourceList{}
+	_ = util.UpdateGroupVersionKindWithScheme(&sampleSourceList, v1alpha2.SchemeGroupVersion, scheme.Scheme)
+	apiServerRecorder.ListAPIServerSource(&sampleSourceList, nil)
+
+	out, err := executeAPIServerSourceCommand(apiServerClient, nil, "list", "-o", "json")
+	assert.NilError(t, err, "Sources should be listed")
+	assert.Assert(t, util.ContainsAll(out, "\"apiVersion\": \"sources.knative.dev/v1alpha2\"", "\"items\": []", "\"kind\": \"ApiServerSourceList\""))
 
 	apiServerRecorder.Validate()
 }

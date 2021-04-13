@@ -83,7 +83,7 @@ func NewRevisionListCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			// Stop if nothing found
-			if len(revisionList.Items) == 0 {
+			if !revisionListFlags.GenericPrintFlags.OutputFlagSpecified() && len(revisionList.Items) == 0 {
 				fmt.Fprintf(cmd.OutOrStdout(), "No revisions found.\n")
 				return nil
 			}

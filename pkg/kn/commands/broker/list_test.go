@@ -61,6 +61,20 @@ func TestBrokerListEmpty(t *testing.T) {
 	eventingRecorder.Validate()
 }
 
+func TestBrokerListEmptyWithJSON(t *testing.T) {
+	eventingClient := clienteventingv1.NewMockKnEventingClient(t)
+	eventingRecorder := eventingClient.Recorder()
+	brokerList := &v1beta1.BrokerList{}
+	brokerList.APIVersion = "eventing.knative.dev/v1beta1"
+	brokerList.Kind = "BrokerList"
+	eventingRecorder.ListBrokers(brokerList, nil)
+	output, err := executeBrokerCommand(eventingClient, "list", "-o", "json")
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(output, "\"apiVersion\": \"eventing.knative.dev/v1beta1\"", "\"items\": [],", "\"kind\": \"BrokerList\""))
+
+	eventingRecorder.Validate()
+}
+
 func TestTriggerListAllNamespace(t *testing.T) {
 	eventingClient := clienteventingv1.NewMockKnEventingClient(t)
 	eventingRecorder := eventingClient.Recorder()

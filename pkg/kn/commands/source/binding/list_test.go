@@ -17,6 +17,8 @@ package binding
 import (
 	"testing"
 
+	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
+
 	"gotest.tools/v3/assert"
 	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
 
@@ -55,6 +57,21 @@ func TestListBindingEmpty(t *testing.T) {
 	assert.NilError(t, err, "Sources should be listed")
 	assert.Assert(t, util.ContainsNone(out, "NAME", "SUBJECT", "SINK", "AGE", "CONDITIONS", "READY", "REASON"))
 	assert.Assert(t, util.ContainsAll(out, "No", "sink binding", "found"))
+
+	bindingRecorder.Validate()
+}
+
+func TestListBindingEmptyWithJsonOutput(t *testing.T) {
+	bindingClient := clientv1alpha2.NewMockKnSinkBindingClient(t)
+
+	bindingRecorder := bindingClient.Recorder()
+	bindingList := v1alpha2.SinkBindingList{}
+	_ = util.UpdateGroupVersionKindWithScheme(&bindingList, v1alpha2.SchemeGroupVersion, scheme.Scheme)
+	bindingRecorder.ListSinkBindings(&bindingList, nil)
+
+	out, err := executeSinkBindingCommand(bindingClient, nil, "list", "-o", "json")
+	assert.NilError(t, err, "Sources should be listed")
+	assert.Assert(t, util.ContainsAll(out, "\"apiVersion\": \"sources.knative.dev/v1alpha2\"", "\"items\": []", "\"kind\": \"SinkBindingList\""))
 
 	bindingRecorder.Validate()
 }

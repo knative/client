@@ -62,8 +62,17 @@ func NewListTypesCommand(p *commands.KnParams) *cobra.Command {
 				return knerrors.GetError(err)
 			}
 
-			if sourceListTypes == nil || len(sourceListTypes.Items) == 0 {
+			if sourceListTypes == nil {
+				sourceListTypes = &unstructured.UnstructuredList{}
+			}
+
+			if !listTypesFlags.GenericPrintFlags.OutputFlagSpecified() && len(sourceListTypes.Items) == 0 {
 				return fmt.Errorf("no sources found on the backend, please verify the installation")
+			}
+
+			if sourceListTypes.GroupVersionKind().Empty() {
+				sourceListTypes.SetAPIVersion("apiextensions.k8s.io/v1")
+				sourceListTypes.SetKind("CustomResourceDefinitionList")
 			}
 
 			printer, err := listTypesFlags.ToPrinter()

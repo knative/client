@@ -58,6 +58,18 @@ func TestListEmpty(t *testing.T) {
 	}
 }
 
+func TestListEmptyWithJSON(t *testing.T) {
+	action, output, err := fakeServiceList([]string{"service", "list", "-o", "json"}, &servingv1.ServiceList{})
+	assert.NilError(t, err)
+	if action == nil {
+		t.Errorf("No action")
+	} else if !action.Matches("list", "services") {
+		t.Errorf("Bad action %v", action)
+	}
+
+	assert.Assert(t, util.ContainsAll(strings.Join(output[:], "\n"), "\"apiVersion\": \"serving.knative.dev/v1\"", "\"items\": [],", "\"kind\": \"ServiceList\""))
+}
+
 func TestGetEmpty(t *testing.T) {
 	action, _, err := fakeServiceList([]string{"service", "list", "name"}, &servingv1.ServiceList{})
 	assert.NilError(t, err)

@@ -66,7 +66,7 @@ func NewRouteListCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if len(routeList.Items) == 0 {
+			if !routeListFlags.GenericPrintFlags.OutputFlagSpecified() && len(routeList.Items) == 0 {
 				fmt.Fprintf(cmd.OutOrStdout(), "No routes found.\n")
 				return nil
 			}

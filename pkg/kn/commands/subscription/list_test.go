@@ -20,6 +20,8 @@ import (
 	"strings"
 	"testing"
 
+	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
+
 	"gotest.tools/v3/assert"
 	messagingv1 "knative.dev/eventing/pkg/apis/messaging/v1"
 
@@ -34,6 +36,18 @@ func TestSubscriptionListNoSubscriptionsFound(t *testing.T) {
 	out, err := executeSubscriptionCommand(cClient, nil, "list")
 	assert.NilError(t, err)
 	assert.Check(t, util.ContainsAll(out, "No subscriptions found"))
+	cRecorder.Validate()
+}
+
+func TestSubscriptionListNoSubscriptionsWithJsonOutput(t *testing.T) {
+	cClient := v1beta1.NewMockKnSubscriptionsClient(t)
+	cRecorder := cClient.Recorder()
+	clist := &messagingv1.SubscriptionList{}
+	_ = util.UpdateGroupVersionKindWithScheme(clist, messagingv1.SchemeGroupVersion, scheme.Scheme)
+	cRecorder.ListSubscription(clist, nil)
+	out, err := executeSubscriptionCommand(cClient, nil, "list", "-o", "json")
+	assert.NilError(t, err)
+	assert.Check(t, util.ContainsAll(out, "\"apiVersion\": \"messaging.knative.dev/v1\"", "\"items\": []", "\"kind\": \"SubscriptionList\""))
 	cRecorder.Validate()
 }
 

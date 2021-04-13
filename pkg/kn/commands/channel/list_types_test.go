@@ -71,6 +71,15 @@ func TestChannelListTypesNoChannelInstalled(t *testing.T) {
 	assert.Check(t, util.ContainsAll(err.Error(), "no channels found on the backend, please verify the installation"))
 }
 
+func TestChannelListTypesNoChannelWithJsonOutput(t *testing.T) {
+	dynamicClient := dynamicfakeClient.CreateFakeKnDynamicClient(testNamespace)
+	assert.Equal(t, dynamicClient.Namespace(), testNamespace)
+
+	output, err := channelFakeCmd([]string{"channel", "list-types", "-o", "json"}, dynamicClient)
+	assert.NilError(t, err)
+	assert.Check(t, util.ContainsAll(strings.Join(output[:], "\n"), "\"apiVersion\": \"apiextensions.k8s.io/v1\"", "\"items\": []", "\"kind\": \"CustomResourceDefinitionList\""))
+}
+
 func TestChannelListTypesErrorDynamicClient(t *testing.T) {
 	dynamicClient := dynamicfakeClient.CreateFakeKnDynamicClient("")
 	assert.Check(t, dynamicClient.Namespace() != testNamespace)

@@ -17,10 +17,13 @@ package channel
 import (
 	"fmt"
 
-	"github.com/spf13/cobra"
+	"knative.dev/client/pkg/util"
+	messagingv1 "knative.dev/eventing/pkg/apis/messaging/v1"
 
+	"github.com/spf13/cobra"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
+	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
 )
 
 // NewChannelListCommand is for listing channel objects
@@ -51,7 +54,14 @@ func NewChannelListCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			if channelList == nil || len(channelList.Items) == 0 {
+			if channelList == nil {
+				channelList = &messagingv1.ChannelList{}
+				err := util.UpdateGroupVersionKindWithScheme(channelList, messagingv1.SchemeGroupVersion, scheme.Scheme)
+				if err != nil {
+					return err
+				}
+			}
+			if !listFlags.GenericPrintFlags.OutputFlagSpecified() && len(channelList.Items) == 0 {
 				fmt.Fprintf(cmd.OutOrStdout(), "No channels found.\n")
 				return nil
 			}
