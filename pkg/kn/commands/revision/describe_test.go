@@ -120,6 +120,7 @@ func TestDescribeRevisionBasic(t *testing.T) {
 	}
 
 	assert.Assert(t, util.ContainsAll(data, "Image:", "gcr.io/test/image", "++ Ready", "Port:", "8080"))
+	assert.Assert(t, util.ContainsAll(data, "Replicas:", "0/1"))
 	assert.Assert(t, util.ContainsAll(data, "EnvFrom:", "cm:test1, cm:test2"))
 }
 
@@ -161,6 +162,8 @@ func createTestRevision(revision string, gen int64) servingv1.Revision {
 			},
 		},
 		Status: servingv1.RevisionStatus{
+			ActualReplicas:        0,
+			DesiredReplicas:       1,
 			DeprecatedImageDigest: "gcr.io/test/image@" + imageDigest,
 			Status: duckv1.Status{
 				Conditions: goodConditions(),

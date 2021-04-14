@@ -221,6 +221,7 @@ func writeRevisions(dw printers.PrefixWriter, revisions []*revisionDesc, printDe
 			section.WriteAttribute("Error", ready.Reason)
 		}
 		revision.WriteImage(section, revisionDesc.revision)
+		revision.WriteReplicas(section, revisionDesc.revision)
 		if printDetails {
 			revision.WritePort(section, revisionDesc.revision)
 			revision.WriteEnv(section, revisionDesc.revision, printDetails)
