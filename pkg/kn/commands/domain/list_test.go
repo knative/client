@@ -23,6 +23,7 @@ import (
 	"knative.dev/client/pkg/serving/v1alpha1"
 	"knative.dev/client/pkg/util"
 	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
+	"knative.dev/serving/pkg/client/clientset/versioned/scheme"
 )
 
 func TestDomainMappingList(t *testing.T) {
@@ -54,5 +55,20 @@ func TestDomainMappingListEmpty(t *testing.T) {
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(out, "No", "domain", "mapping", "found"))
 
+	servingRecorder.Validate()
+}
+
+func TestChannelListEmptyWithOutputSet(t *testing.T) {
+	client := v1alpha1.NewMockKnServiceClient(t)
+
+	servingRecorder := client.Recorder()
+	domainMappingList := &servingv1alpha1.DomainMappingList{}
+	err := util.UpdateGroupVersionKindWithScheme(domainMappingList, servingv1alpha1.SchemeGroupVersion, scheme.Scheme)
+	assert.NilError(t, err)
+	servingRecorder.ListDomainMappings(domainMappingList, nil)
+
+	out, err := executeDomainCommand(client, nil, "list", "-o", "json")
+	assert.NilError(t, err)
+	assert.Check(t, util.ContainsAll(out, "\"apiVersion\": \""+servingv1alpha1.SchemeGroupVersion.String()+"\"", "\"kind\": \"DomainMappingList\"", "\"items\": []"))
 	servingRecorder.Validate()
 }
