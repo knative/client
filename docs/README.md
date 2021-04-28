@@ -1,6 +1,6 @@
 # kn
 
-`kn` is the Knative command-line interface (CLI).
+`kn` is the Knative command line interface (CLI).
 
 ## Getting Started
 
@@ -12,7 +12,7 @@ You can grab the latest nightly binary executable for:
 - [Linux](https://storage.googleapis.com/knative-nightly/client/latest/kn-linux-amd64)
 - [Windows](https://storage.googleapis.com/knative-nightly/client/latest/kn-windows-amd64.exe)
 
-Please put it on your system path, and make sure it's executable.
+Add the binary to the system PATH and ensure that it is executable.
 
 Alternatively, check out the client repository, and type:
 
@@ -62,7 +62,7 @@ they are found or add prefixes for Knative eventing sink mappings.
 
 You can customize your `kn` CLI setup by creating a `config.yaml` configuration file. You can either provide the configuration via a `--config` flag or is picked up from a default location. The default configuration location conforms to the [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html) and is different for Unix systems and Windows systems. If `XDG_CONFIG_HOME` env var is set, the default config location `kn` looks for is `$XDG_CONFIG_HOME/kn`, otherwise the file is looked up under the home directory of the user at `$HOME/.config/kn/config.yaml`. For Windows systems, the default `kn` configuration location is `%APPDATA%\kn`.
 
-`kn` does not create a default configuration file, nor does it write into an existing configuration file.
+`kn` does not create a configuration file on its own, nor does it write into an existing configuration file. When `kn` does not find a configuration file it uses the default values described below.
 
 ### Options
 
