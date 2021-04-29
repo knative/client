@@ -14,20 +14,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1
+package v1beta1
 
 import (
-	"context"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
-func (s *Subscription) SetDefaults(ctx context.Context) {
-	s.Spec.SetDefaults(ctx)
-}
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+type ChannelTemplateSpec struct {
+	metav1.TypeMeta `json:",inline"`
 
-func (ss *SubscriptionSpec) SetDefaults(ctx context.Context) {
-	// HACK if a channel ref is a kafka channel ref, we need to hack it around to use only v1beta1
-	//  TODO(slinkydeveloper) REMOVE AFTER 0.22 release
-	if ss.Channel.Kind == "KafkaChannel" && ss.Channel.APIVersion == "messaging.knative.dev/v1alpha1" {
-		ss.Channel.APIVersion = "messaging.knative.dev/v1beta1"
-	}
+	// Spec defines the Spec to use for each channel created. Passed
+	// in verbatim to the Channel CRD as Spec section.
+	// +optional
+	Spec *runtime.RawExtension `json:"spec,omitempty"`
 }

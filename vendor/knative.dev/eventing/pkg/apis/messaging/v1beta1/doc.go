@@ -14,20 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1
+// Api versions allow the api contract for a resource to be changed while keeping
+// backward compatibility by support multiple concurrent versions
+// of the same resource
 
-import (
-	"context"
-)
-
-func (s *Subscription) SetDefaults(ctx context.Context) {
-	s.Spec.SetDefaults(ctx)
-}
-
-func (ss *SubscriptionSpec) SetDefaults(ctx context.Context) {
-	// HACK if a channel ref is a kafka channel ref, we need to hack it around to use only v1beta1
-	//  TODO(slinkydeveloper) REMOVE AFTER 0.22 release
-	if ss.Channel.Kind == "KafkaChannel" && ss.Channel.APIVersion == "messaging.knative.dev/v1alpha1" {
-		ss.Channel.APIVersion = "messaging.knative.dev/v1beta1"
-	}
-}
+// Package v1beta1 is the v1beta1 version of the API.
+// +k8s:deepcopy-gen=package
+// +groupName=messaging.knative.dev
+package v1beta1

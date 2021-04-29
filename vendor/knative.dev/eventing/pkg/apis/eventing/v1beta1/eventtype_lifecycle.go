@@ -19,7 +19,6 @@ package v1beta1
 import (
 	corev1 "k8s.io/api/core/v1"
 
-	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
 	"knative.dev/pkg/apis"
 )
 
@@ -85,7 +84,7 @@ func (et *EventTypeStatus) MarkBrokerNotConfigured() {
 		"BrokerNotConfigured", "Broker has not yet been reconciled.")
 }
 
-func (et *EventTypeStatus) PropagateBrokerStatus(bs *eventingv1.BrokerStatus) {
+func (et *EventTypeStatus) PropagateBrokerStatus(bs *BrokerStatus) {
 	bc := bs.GetConditionSet().Manage(bs).GetTopLevelCondition()
 	if bc == nil {
 		et.MarkBrokerNotConfigured()

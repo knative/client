@@ -76,6 +76,7 @@ github.com/census-instrumentation/opencensus-proto/gen-go/trace/v1
 # github.com/cespare/xxhash/v2 v2.1.1
 github.com/cespare/xxhash/v2
 # github.com/cloudevents/sdk-go/v2 v2.4.1
+## explicit
 github.com/cloudevents/sdk-go/v2
 github.com/cloudevents/sdk-go/v2/binding
 github.com/cloudevents/sdk-go/v2/binding/format
@@ -204,6 +205,10 @@ github.com/mitchellh/mapstructure
 github.com/modern-go/concurrent
 # github.com/modern-go/reflect2 v1.0.1
 github.com/modern-go/reflect2
+# github.com/onsi/ginkgo v1.14.2
+## explicit
+# github.com/onsi/gomega v1.10.4
+## explicit
 # github.com/openzipkin/zipkin-go v0.2.5
 github.com/openzipkin/zipkin-go/model
 # github.com/pelletier/go-toml v1.8.0
@@ -766,22 +771,26 @@ k8s.io/kube-openapi/pkg/util/sets
 k8s.io/utils/buffer
 k8s.io/utils/integer
 k8s.io/utils/trace
-# knative.dev/eventing v0.22.1-0.20210427180853-474fb5b41c3b
+# knative.dev/eventing v0.22.1
 ## explicit
 knative.dev/eventing/pkg/apis/config
 knative.dev/eventing/pkg/apis/duck
 knative.dev/eventing/pkg/apis/duck/v1
+knative.dev/eventing/pkg/apis/duck/v1beta1
 knative.dev/eventing/pkg/apis/eventing
 knative.dev/eventing/pkg/apis/eventing/v1
 knative.dev/eventing/pkg/apis/eventing/v1beta1
 knative.dev/eventing/pkg/apis/flows
 knative.dev/eventing/pkg/apis/flows/v1
+knative.dev/eventing/pkg/apis/flows/v1beta1
 knative.dev/eventing/pkg/apis/messaging
 knative.dev/eventing/pkg/apis/messaging/config
 knative.dev/eventing/pkg/apis/messaging/v1
+knative.dev/eventing/pkg/apis/messaging/v1beta1
 knative.dev/eventing/pkg/apis/sources
 knative.dev/eventing/pkg/apis/sources/config
 knative.dev/eventing/pkg/apis/sources/v1
+knative.dev/eventing/pkg/apis/sources/v1alpha1
 knative.dev/eventing/pkg/apis/sources/v1alpha2
 knative.dev/eventing/pkg/apis/sources/v1beta1
 knative.dev/eventing/pkg/apis/sources/v1beta2
@@ -794,12 +803,12 @@ knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha2/fake
 # knative.dev/hack v0.0.0-20210428122153-93ad9129c268
 ## explicit
 knative.dev/hack
-# knative.dev/networking v0.0.0-20210428014353-796a80097840
+# knative.dev/networking v0.0.0-20210428161254-1ad047ce063f
 ## explicit
 knative.dev/networking/pkg
 knative.dev/networking/pkg/apis/networking
 knative.dev/networking/pkg/apis/networking/v1alpha1
-# knative.dev/pkg v0.0.0-20210428023153-5a308fa62139
+# knative.dev/pkg v0.0.0-20210428141353-878c85083565
 ## explicit
 knative.dev/pkg/apis
 knative.dev/pkg/apis/duck
@@ -843,7 +852,7 @@ knative.dev/pkg/tracing/config
 knative.dev/pkg/tracing/propagation
 knative.dev/pkg/tracing/propagation/tracecontextb3
 knative.dev/pkg/tracker
-# knative.dev/serving v0.22.1-0.20210428070553-6ed3b03f1545
+# knative.dev/serving v0.22.1-0.20210429080154-1c96334cb5cc
 ## explicit
 knative.dev/serving/pkg/apis/autoscaling
 knative.dev/serving/pkg/apis/autoscaling/v1alpha1

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1
+package v1beta1
 
 import (
 	"context"
@@ -27,12 +27,7 @@ import (
 )
 
 func (s *Subscription) Validate(ctx context.Context) *apis.FieldError {
-	errs := s.Spec.Validate(ctx).ViaField("spec")
-	if apis.IsInUpdate(ctx) {
-		original := apis.GetBaseline(ctx).(*Subscription)
-		errs = errs.Also(s.CheckImmutableFields(ctx, original))
-	}
-	return errs
+	return s.Spec.Validate(ctx).ViaField("spec")
 }
 
 func (ss *SubscriptionSpec) Validate(ctx context.Context) *apis.FieldError {

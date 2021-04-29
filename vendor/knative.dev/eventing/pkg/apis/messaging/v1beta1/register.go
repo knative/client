@@ -17,7 +17,7 @@ limitations under the License.
 package v1beta1
 
 import (
-	"knative.dev/eventing/pkg/apis/eventing"
+	"knative.dev/eventing/pkg/apis/messaging"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -25,7 +25,7 @@ import (
 )
 
 // SchemeGroupVersion is group version used to register these objects
-var SchemeGroupVersion = schema.GroupVersion{Group: eventing.GroupName, Version: "v1beta1"}
+var SchemeGroupVersion = schema.GroupVersion{Group: messaging.GroupName, Version: "v1beta1"}
 
 // Kind takes an unqualified kind and returns back a Group qualified GroupKind
 func Kind(kind string) schema.GroupKind {
@@ -45,12 +45,12 @@ var (
 // Adds the list of known types to Scheme.
 func addKnownTypes(scheme *runtime.Scheme) error {
 	scheme.AddKnownTypes(SchemeGroupVersion,
-		&Broker{},
-		&BrokerList{},
-		&EventType{},
-		&EventTypeList{},
-		&Trigger{},
-		&TriggerList{},
+		&InMemoryChannel{},
+		&InMemoryChannelList{},
+		&Subscription{},
+		&SubscriptionList{},
+		&Channel{},
+		&ChannelList{},
 	)
 	metav1.AddToGroupVersion(scheme, SchemeGroupVersion)
 	return nil
