@@ -19,6 +19,8 @@ import (
 	"fmt"
 	"strings"
 
+	sourcesv1beta2 "knative.dev/eventing/pkg/apis/sources/v1beta2"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -163,7 +165,7 @@ func findSink(source *unstructured.Unstructured) string {
 			return knflags.SinkToString(binding.Spec.Sink)
 		}
 	case "PingSource":
-		var pingSource sourcesv1.PingSource
+		var pingSource sourcesv1beta2.PingSource
 		if err := duck.FromUnstructured(source, &pingSource); err == nil {
 			return knflags.SinkToString(pingSource.Spec.Sink)
 		}
@@ -193,7 +195,7 @@ func isReady(source *unstructured.Unstructured) string {
 			return commands.ReadyCondition(tSource.Status.Conditions)
 		}
 	case "PingSource":
-		var tSource sourcesv1.PingSource
+		var tSource sourcesv1beta2.PingSource
 		if err := duck.FromUnstructured(source, &tSource); err == nil {
 			return commands.ReadyCondition(tSource.Status.Conditions)
 		}
