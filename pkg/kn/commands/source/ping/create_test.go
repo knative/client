@@ -29,7 +29,7 @@ import (
 
 func TestSimpleCreatePingSource(t *testing.T) {
 	mysvc := &servingv1.Service{
-		TypeMeta:   metav1.TypeMeta{Kind: "Service", APIVersion: "serving.knative.dev/v1beta2"},
+		TypeMeta:   metav1.TypeMeta{Kind: "Service", APIVersion: "serving.knative.dev/v1"},
 		ObjectMeta: metav1.ObjectMeta{Name: "mysvc", Namespace: "default"},
 	}
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default", mysvc)
