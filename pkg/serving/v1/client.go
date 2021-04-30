@@ -197,12 +197,12 @@ func (cl *knServingClient) GetService(ctx context.Context, name string) (*servin
 	return service, nil
 }
 
-func (cl *knServingClient) WatchService(ctx context.Context, name string, timeout time.Duration) (watch.Interface, error) {
-	return wait.NewWatcher(ctx, cl.client.Services(cl.namespace).Watch, cl.client.RESTClient(), cl.namespace, "services", name, timeout)
+func (cl *knServingClient) WatchServiceWithVersion(ctx context.Context, name string, initialVersion string, timeout time.Duration) (watch.Interface, error) {
+	return wait.NewWatcherWithVersion(ctx, cl.client.Services(cl.namespace).Watch, cl.client.RESTClient(), cl.namespace, "services", name, initialVersion, timeout)
 }
 
-func (cl *knServingClient) WatchRevision(ctx context.Context, name string, timeout time.Duration) (watch.Interface, error) {
-	return wait.NewWatcher(ctx, cl.client.Revisions(cl.namespace).Watch, cl.client.RESTClient(), cl.namespace, "revision", name, timeout)
+func (cl *knServingClient) WatchRevisionWithVersion(ctx context.Context, name string, initialVersion string, timeout time.Duration) (watch.Interface, error) {
+	return wait.NewWatcherWithVersion(ctx, cl.client.Revisions(cl.namespace).Watch, cl.client.RESTClient(), cl.namespace, "revision", name, initialVersion, timeout)
 }
 
 // List services
@@ -314,24 +314,28 @@ func (cl *knServingClient) ApplyService(ctx context.Context, modifiedService *se
 // Param `timeout` represents a duration to wait for a delete op to finish.
 // For `timeout == 0` delete is performed async without any wait.
 func (cl *knServingClient) DeleteService(ctx context.Context, serviceName string, timeout time.Duration) error {
+	service, err := cl.GetService(ctx, serviceName)
+	if err != nil {
+		return err
+	}
+	if service.GetDeletionTimestamp() != nil {
+		return fmt.Errorf("can't delete service '%s' because it has been already marked for deletion", serviceName)
+	}
 	if timeout == 0 {
 		return cl.deleteService(ctx, serviceName, v1.DeletePropagationBackground)
 	}
+
 	waitC := make(chan error)
-	watcher, err := cl.WatchService(ctx, serviceName, timeout)
-	if err != nil {
-		return nil
-	}
-	defer watcher.Stop()
 	go func() {
-		waitForEvent := wait.NewWaitForEvent("service", func(evt *watch.Event) bool { return evt.Type == watch.Deleted })
-		err, _ := waitForEvent.Wait(ctx, watcher, serviceName, wait.Options{Timeout: &timeout}, wait.NoopMessageCallback())
+		waitForEvent := wait.NewWaitForEvent("service", cl.WatchServiceWithVersion, func(evt *watch.Event) bool { return evt.Type == watch.Deleted })
+		err, _ := waitForEvent.Wait(ctx, serviceName, service.ResourceVersion, wait.Options{Timeout: &timeout}, wait.NoopMessageCallback())
 		waitC <- err
 	}()
 	err = cl.deleteService(ctx, serviceName, v1.DeletePropagationForeground)
 	if err != nil {
 		return err
 	}
+
 	return <-waitC
 }
 
@@ -350,13 +354,16 @@ func (cl *knServingClient) deleteService(ctx context.Context, serviceName string
 
 // Wait for a service to become ready, but not longer than provided timeout
 func (cl *knServingClient) WaitForService(ctx context.Context, name string, timeout time.Duration, msgCallback wait.MessageCallback) (error, time.Duration) {
-	watcher, err := cl.WatchService(ctx, name, timeout)
+	waitForReady := wait.NewWaitForReady("service", cl.WatchServiceWithVersion, serviceConditionExtractor)
+
+	service, err := cl.GetService(ctx, name)
 	if err != nil {
-		return err, timeout
+		if apierrors.IsNotFound(err) {
+			return waitForReady.Wait(ctx, name, "", wait.Options{Timeout: &timeout}, msgCallback)
+		}
+		return err, 0
 	}
-	defer watcher.Stop()
-	waitForReady := wait.NewWaitForReady("service", serviceConditionExtractor)
-	return waitForReady.Wait(ctx, watcher, name, wait.Options{Timeout: &timeout}, msgCallback)
+	return waitForReady.Wait(ctx, name, service.ResourceVersion, wait.Options{Timeout: &timeout}, msgCallback)
 }
 
 // Get the configuration for a service
@@ -469,14 +476,9 @@ func (cl *knServingClient) DeleteRevision(ctx context.Context, name string, time
 		return cl.deleteRevision(ctx, name)
 	}
 	waitC := make(chan error)
-	watcher, err := cl.WatchRevision(ctx, name, timeout)
-	if err != nil {
-		return err
-	}
-	defer watcher.Stop()
 	go func() {
-		waitForEvent := wait.NewWaitForEvent("revision", func(evt *watch.Event) bool { return evt.Type == watch.Deleted })
-		err, _ := waitForEvent.Wait(ctx, watcher, name, wait.Options{Timeout: &timeout}, wait.NoopMessageCallback())
+		waitForEvent := wait.NewWaitForEvent("revision", cl.WatchRevisionWithVersion, func(evt *watch.Event) bool { return evt.Type == watch.Deleted })
+		err, _ := waitForEvent.Wait(ctx, name, revision.ResourceVersion, wait.Options{Timeout: &timeout}, wait.NoopMessageCallback())
 		waitC <- err
 	}()
 	err = cl.deleteRevision(ctx, name)
