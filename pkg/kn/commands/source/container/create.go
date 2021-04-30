@@ -26,7 +26,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	"knative.dev/client/pkg/kn/commands"
-	"knative.dev/client/pkg/sources/v1"
+	v1 "knative.dev/client/pkg/sources/v1"
 )
 
 // NewContainerCreateCommand for creating source

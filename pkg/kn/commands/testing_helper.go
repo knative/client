@@ -24,7 +24,7 @@ import (
 
 	"knative.dev/client/pkg/kn/flags"
 	clientservingv1 "knative.dev/client/pkg/serving/v1"
-	"knative.dev/client/pkg/sources/v1"
+	v1 "knative.dev/client/pkg/sources/v1"
 
 	dynamicfake "k8s.io/client-go/dynamic/fake"
 	sourcesv1fake "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1/fake"

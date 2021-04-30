@@ -25,7 +25,7 @@ import (
 	knflags "knative.dev/client/pkg/kn/flags"
 
 	"knative.dev/client/pkg/kn/commands"
-	"knative.dev/client/pkg/sources/v1"
+	v1 "knative.dev/client/pkg/sources/v1"
 )
 
 // NewContainerUpdateCommand for managing source update

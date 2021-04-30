@@ -23,7 +23,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	clienttesting "k8s.io/client-go/testing"
-	"knative.dev/eventing/pkg/apis/sources/v1"
+	v1 "knative.dev/eventing/pkg/apis/sources/v1"
 	"knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1/fake"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 )

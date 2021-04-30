@@ -29,7 +29,7 @@ import (
 	servingv1client "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1"
 	servingv1alpha1client "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
 
-	"knative.dev/client/pkg/sources/v1"
+	v1 "knative.dev/client/pkg/sources/v1"
 	"knative.dev/client/pkg/util"
 
 	clientdynamic "knative.dev/client/pkg/dynamic"

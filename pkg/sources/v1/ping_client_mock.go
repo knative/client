@@ -18,9 +18,8 @@ import (
 	"context"
 	"testing"
 
-	"knative.dev/eventing/pkg/apis/sources/v1"
-
 	"knative.dev/client/pkg/util/mock"
+	v1 "knative.dev/eventing/pkg/apis/sources/v1"
 )
 
 type MockKnPingSourceClient struct {

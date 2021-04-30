@@ -21,7 +21,7 @@ import (
 	knerrors "knative.dev/client/pkg/errors"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"knative.dev/eventing/pkg/apis/sources/v1"
+	v1 "knative.dev/eventing/pkg/apis/sources/v1"
 
 	clientv1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1"
 	duckv1 "knative.dev/pkg/apis/duck/v1"

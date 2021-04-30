@@ -20,7 +20,7 @@ import (
 	clientv1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1"
 
 	"knative.dev/client/pkg/kn/commands"
-	"knative.dev/client/pkg/sources/v1"
+	v1 "knative.dev/client/pkg/sources/v1"
 )
 
 // NewAPIServerCommand for managing ApiServer source

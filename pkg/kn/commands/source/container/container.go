@@ -20,7 +20,7 @@ import (
 	"github.com/spf13/cobra"
 	"k8s.io/client-go/tools/clientcmd"
 	"knative.dev/client/pkg/kn/commands"
-	"knative.dev/client/pkg/sources/v1"
+	v1 "knative.dev/client/pkg/sources/v1"
 	clientv1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1"
 )
 

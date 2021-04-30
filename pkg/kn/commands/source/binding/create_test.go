@@ -20,7 +20,7 @@ import (
 	"gotest.tools/v3/assert"
 
 	dynamicfake "knative.dev/client/pkg/dynamic/fake"
-	"knative.dev/client/pkg/sources/v1"
+	v1 "knative.dev/client/pkg/sources/v1"
 
 	"knative.dev/client/pkg/util"
 )

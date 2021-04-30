@@ -18,7 +18,7 @@ import (
 	"context"
 	"testing"
 
-	"knative.dev/eventing/pkg/apis/sources/v1"
+	v1 "knative.dev/eventing/pkg/apis/sources/v1"
 )
 
 func TestMockKnPingSourceClient(t *testing.T) {
