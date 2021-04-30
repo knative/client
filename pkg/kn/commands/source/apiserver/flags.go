@@ -21,9 +21,9 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
+	sourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"
 
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
@@ -49,8 +49,8 @@ type APIServerSourceUpdateFlags struct {
 }
 
 // getAPIServerVersionKindSelector is to construct an array of resources.
-func (f *APIServerSourceUpdateFlags) getAPIServerVersionKindSelector() ([]v1alpha2.APIVersionKindSelector, error) {
-	resourceList := make([]v1alpha2.APIVersionKindSelector, 0, len(f.Resources))
+func (f *APIServerSourceUpdateFlags) getAPIServerVersionKindSelector() ([]sourcesv1.APIVersionKindSelector, error) {
+	resourceList := make([]sourcesv1.APIVersionKindSelector, 0, len(f.Resources))
 	for _, r := range f.Resources {
 		resourceSpec, err := getValidAPIVersionKindSelector(r)
 		if err != nil {
@@ -62,19 +62,19 @@ func (f *APIServerSourceUpdateFlags) getAPIServerVersionKindSelector() ([]v1alph
 }
 
 // updateExistingAPIVersionKindSelectorArray is to update an array of resources.
-func (f *APIServerSourceUpdateFlags) updateExistingAPIVersionKindSelectorArray(existing []v1alpha2.APIVersionKindSelector) ([]v1alpha2.APIVersionKindSelector, error) {
+func (f *APIServerSourceUpdateFlags) updateExistingAPIVersionKindSelectorArray(existing []sourcesv1.APIVersionKindSelector) ([]sourcesv1.APIVersionKindSelector, error) {
 	added, removed, err := f.getUpdateAPIVersionKindSelectorArray()
 	if err != nil {
 		return nil, err
 	}
 
 	if existing == nil {
-		existing = []v1alpha2.APIVersionKindSelector{}
+		existing = []sourcesv1.APIVersionKindSelector{}
 	}
 
 	existing = append(existing, added...)
 
-	var updated []v1alpha2.APIVersionKindSelector
+	var updated []sourcesv1.APIVersionKindSelector
 OUTER:
 	for _, ref := range existing {
 		for i, item := range removed {
@@ -98,7 +98,7 @@ OUTER:
 }
 
 // getUpdateAPIVersionKindSelectorArray is to construct an array of resources for update action.
-func (f *APIServerSourceUpdateFlags) getUpdateAPIVersionKindSelectorArray() ([]v1alpha2.APIVersionKindSelector, []v1alpha2.APIVersionKindSelector, error) {
+func (f *APIServerSourceUpdateFlags) getUpdateAPIVersionKindSelectorArray() ([]sourcesv1.APIVersionKindSelector, []sourcesv1.APIVersionKindSelector, error) {
 	addedArray, removedArray := util.AddedAndRemovalListsFromArray(f.Resources)
 	added, err := constructAPIVersionKindSelector(addedArray)
 	if err != nil {
@@ -111,8 +111,8 @@ func (f *APIServerSourceUpdateFlags) getUpdateAPIVersionKindSelectorArray() ([]v
 	return added, removed, nil
 }
 
-func constructAPIVersionKindSelector(s []string) ([]v1alpha2.APIVersionKindSelector, error) {
-	array := make([]v1alpha2.APIVersionKindSelector, 0)
+func constructAPIVersionKindSelector(s []string) ([]sourcesv1.APIVersionKindSelector, error) {
+	array := make([]sourcesv1.APIVersionKindSelector, 0)
 	for _, r := range s {
 		resourceSpec, err := getValidAPIVersionKindSelector(r)
 		if err != nil {
@@ -124,7 +124,7 @@ func constructAPIVersionKindSelector(s []string) ([]v1alpha2.APIVersionKindSelec
 }
 
 //getValidAPIVersionKindSelector is to parse resource spec from a string
-func getValidAPIVersionKindSelector(resource string) (*v1alpha2.APIVersionKindSelector, error) {
+func getValidAPIVersionKindSelector(resource string) (*sourcesv1.APIVersionKindSelector, error) {
 	var err error
 
 	parts := strings.SplitN(resource, resourceSplitChar, 3)
@@ -142,7 +142,7 @@ func getValidAPIVersionKindSelector(resource string) (*v1alpha2.APIVersionKindSe
 	if err != nil {
 		return nil, err
 	}
-	return &v1alpha2.APIVersionKindSelector{Kind: kind, APIVersion: version, LabelSelector: labelSelector}, nil
+	return &sourcesv1.APIVersionKindSelector{Kind: kind, APIVersion: version, LabelSelector: labelSelector}, nil
 }
 
 //Add is to set parameters
@@ -160,8 +160,8 @@ func (f *APIServerSourceUpdateFlags) Add(cmd *cobra.Command) {
 	cmd.Flags().StringArrayVar(&f.Resources,
 		"resource",
 		[]string{},
-		`Specification for which events to listen, in the format Kind:APIVersion:LabelSelector, e.g. "Event:v1:key=value".
-"LabelSelector" is a list of comma separated key value pairs. "LabelSelector" can be omitted, e.g. "Event:v1".`)
+		`Specification for which events to listen, in the format Kind:APIVersion:LabelSelector, e.g. "Event:sourcesv1:key=value".
+"LabelSelector" is a list of comma separated key value pairs. "LabelSelector" can be omitted, e.g. "Event:sourcesv1".`)
 	cmd.Flags().StringArrayVar(&f.ceOverrides,
 		"ce-override",
 		[]string{},
@@ -188,7 +188,7 @@ func APIServerSourceListHandlers(h hprinters.PrintHandler) {
 }
 
 // printSource populates a single row of source apiserver list table
-func printSource(source *v1alpha2.ApiServerSource, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+func printSource(source *sourcesv1.ApiServerSource, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	row := metav1beta1.TableRow{
 		Object: runtime.RawExtension{Object: source},
 	}
@@ -204,7 +204,7 @@ func printSource(source *v1alpha2.ApiServerSource, options hprinters.PrintOption
 	}
 
 	// Not moving to SinkToString() as it references v1beta1.Destination
-	// This source is going to be moved/removed soon to v1, so no need to move
+	// This source is going to be moved/removed soon to sourcesv1, so no need to move
 	// it now
 	sink := flags.SinkToString(source.Spec.Sink)
 
@@ -216,7 +216,7 @@ func printSource(source *v1alpha2.ApiServerSource, options hprinters.PrintOption
 	return []metav1beta1.TableRow{row}, nil
 }
 
-func apiVersionKindSelectorToString(apiVersionKindSelector v1alpha2.APIVersionKindSelector) string {
+func apiVersionKindSelectorToString(apiVersionKindSelector sourcesv1.APIVersionKindSelector) string {
 	lTxt := labelSelectorToString(apiVersionKindSelector.LabelSelector)
 	if lTxt != "" {
 		lTxt = ":" + lTxt
@@ -224,7 +224,7 @@ func apiVersionKindSelectorToString(apiVersionKindSelector v1alpha2.APIVersionKi
 	return fmt.Sprintf("%s:%s%s", apiVersionKindSelector.Kind, apiVersionKindSelector.APIVersion, lTxt)
 }
 
-func labelSelectorToString(labelSelector *v1.LabelSelector) string {
+func labelSelectorToString(labelSelector *metav1.LabelSelector) string {
 	if labelSelector == nil {
 		return ""
 	}
@@ -249,7 +249,7 @@ func labelSelectorToString(labelSelector *v1.LabelSelector) string {
 }
 
 // printSourceList populates the source apiserver list table rows
-func printSourceList(sourceList *v1alpha2.ApiServerSourceList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+func printSourceList(sourceList *sourcesv1.ApiServerSourceList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	if options.AllNamespaces {
 		return printSourceListWithNamespace(sourceList, options)
 	}
@@ -273,7 +273,7 @@ func printSourceList(sourceList *v1alpha2.ApiServerSourceList, options hprinters
 }
 
 // printSourceListWithNamespace populates the knative service table rows with namespace column
-func printSourceListWithNamespace(sourceList *v1alpha2.ApiServerSourceList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+func printSourceListWithNamespace(sourceList *sourcesv1.ApiServerSourceList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	rows := make([]metav1beta1.TableRow, 0, len(sourceList.Items))
 
 	// temporary slice for sorting services in non-default namespace
@@ -306,8 +306,8 @@ func printSourceListWithNamespace(sourceList *v1alpha2.ApiServerSourceList, opti
 	return append(rows, others...), nil
 }
 
-func extractLabelSelector(parts []string) (*v1.LabelSelector, error) {
-	var labelSelector *v1.LabelSelector
+func extractLabelSelector(parts []string) (*metav1.LabelSelector, error) {
+	var labelSelector *metav1.LabelSelector
 	if len(parts) >= 3 && len(parts[2]) > 0 {
 		labelParts := strings.Split(parts[2], labelSplitChar)
 
@@ -319,7 +319,7 @@ func extractLabelSelector(parts []string) (*v1.LabelSelector, error) {
 			}
 			labels[keyValueParts[0]] = keyValueParts[1]
 		}
-		labelSelector = &v1.LabelSelector{MatchLabels: labels}
+		labelSelector = &metav1.LabelSelector{MatchLabels: labels}
 	}
 	return labelSelector, nil
 }

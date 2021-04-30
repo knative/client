@@ -20,11 +20,11 @@ import (
 
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
-	"knative.dev/eventing/pkg/apis/sources/v1alpha2"
 
 	"knative.dev/client/lib/printing"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/printers"
+	v1 "knative.dev/eventing/pkg/apis/sources/v1"
 )
 
 var describeExample = `
@@ -114,10 +114,10 @@ func NewPingDescribeCommand(p *commands.KnParams) *cobra.Command {
 	return command
 }
 
-func writePingSource(dw printers.PrefixWriter, source *v1alpha2.PingSource, printDetails bool) {
+func writePingSource(dw printers.PrefixWriter, source *v1.PingSource, printDetails bool) {
 	commands.WriteMetadata(dw, &source.ObjectMeta, printDetails)
 	dw.WriteAttribute("Schedule", source.Spec.Schedule)
-	dw.WriteAttribute("Data", source.Spec.JsonData)
+	dw.WriteAttribute("Data", source.Spec.Data)
 }
 
 func writeCeOverrides(dw printers.PrefixWriter, ceOverrides map[string]string) {

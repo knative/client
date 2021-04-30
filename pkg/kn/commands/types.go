@@ -25,11 +25,11 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	eventingv1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1"
 	messagingv1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/messaging/v1"
-	sourcesv1alpha2client "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha2"
+	sourcesv1client "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1"
 	servingv1client "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1"
 	servingv1alpha1client "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
 
-	"knative.dev/client/pkg/sources/v1alpha2"
+	"knative.dev/client/pkg/sources/v1"
 	"knative.dev/client/pkg/util"
 
 	clientdynamic "knative.dev/client/pkg/dynamic"
@@ -50,7 +50,7 @@ type KnParams struct {
 	NewServingClient         func(namespace string) (clientservingv1.KnServingClient, error)
 	NewServingV1alpha1Client func(namespace string) (clientservingv1alpha1.KnServingClient, error)
 	NewGitopsServingClient   func(namespace string, dir string) (clientservingv1.KnServingClient, error)
-	NewSourcesClient         func(namespace string) (v1alpha2.KnSourcesClient, error)
+	NewSourcesClient         func(namespace string) (v1.KnSourcesClient, error)
 	NewEventingClient        func(namespace string) (clienteventingv1.KnEventingClient, error)
 	NewMessagingClient       func(namespace string) (clientmessagingv1.KnMessagingClient, error)
 	NewDynamicClient         func(namespace string) (clientdynamic.KnDynamicClient, error)
@@ -122,14 +122,14 @@ func (params *KnParams) newGitopsServingClient(namespace string, dir string) (cl
 	return clientservingv1.NewKnServingGitOpsClient(namespace, dir), nil
 }
 
-func (params *KnParams) newSourcesClient(namespace string) (v1alpha2.KnSourcesClient, error) {
+func (params *KnParams) newSourcesClient(namespace string) (v1.KnSourcesClient, error) {
 	restConfig, err := params.RestConfig()
 	if err != nil {
 		return nil, err
 	}
 
-	client, _ := sourcesv1alpha2client.NewForConfig(restConfig)
-	return v1alpha2.NewKnSourcesClient(client, namespace), nil
+	client, _ := sourcesv1client.NewForConfig(restConfig)
+	return v1.NewKnSourcesClient(client, namespace), nil
 }
 
 func (params *KnParams) newEventingClient(namespace string) (clienteventingv1.KnEventingClient, error) {

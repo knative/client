@@ -12,33 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1alpha2
+package v1
 
 import (
 	"context"
 	"testing"
 
-	"knative.dev/eventing/pkg/apis/sources/v1alpha2"
+	v1 "knative.dev/eventing/pkg/apis/sources/v1"
 )
 
-func TestMockKnPingSourceClient(t *testing.T) {
+func TestMockKnAPIServerSourceClient(t *testing.T) {
 
-	client := NewMockKnPingSourceClient(t)
+	client := NewMockKnAPIServerSourceClient(t)
 
 	recorder := client.Recorder()
 
 	// Record all services
-	recorder.GetPingSource("hello", nil, nil)
-	recorder.CreatePingSource(&v1alpha2.PingSource{}, nil)
-	recorder.UpdatePingSource(&v1alpha2.PingSource{}, nil)
-	recorder.DeletePingSource("hello", nil)
+	recorder.GetAPIServerSource("hello", nil, nil)
+	recorder.CreateAPIServerSource(&v1.ApiServerSource{}, nil)
+	recorder.UpdateAPIServerSource(&v1.ApiServerSource{}, nil)
+	recorder.DeleteAPIServerSource("hello", nil)
 
 	// Call all service
 	ctx := context.Background()
-	client.GetPingSource(ctx, "hello")
-	client.CreatePingSource(ctx, &v1alpha2.PingSource{})
-	client.UpdatePingSource(ctx, &v1alpha2.PingSource{})
-	client.DeletePingSource(ctx, "hello")
+	client.GetAPIServerSource(ctx, "hello")
+	client.CreateAPIServerSource(ctx, &v1.ApiServerSource{})
+	client.UpdateAPIServerSource(ctx, &v1.ApiServerSource{})
+	client.DeleteAPIServerSource(ctx, "hello")
 
 	// Validate
 	recorder.Validate()

@@ -25,7 +25,7 @@ import (
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
 	"knative.dev/client/pkg/kn/commands/source/duck"
-	sourcesv1alpha2 "knative.dev/client/pkg/sources/v1alpha2"
+	sourcesv1 "knative.dev/client/pkg/sources/v1"
 )
 
 const (
@@ -72,7 +72,7 @@ func NewListCommand(p *commands.KnParams) *cobra.Command {
 
 			switch {
 			case knerrors.IsForbiddenError(err):
-				gvks := sourcesv1alpha2.BuiltInSourcesGVKs()
+				gvks := sourcesv1.BuiltInSourcesGVKs()
 				if sourceList, err = dynamicClient.ListSourcesUsingGVKs(cmd.Context(), &gvks, filters...); err != nil {
 					return knerrors.GetError(err)
 				}

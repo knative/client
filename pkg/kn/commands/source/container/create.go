@@ -26,7 +26,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	"knative.dev/client/pkg/kn/commands"
-	"knative.dev/client/pkg/sources/v1alpha2"
+	"knative.dev/client/pkg/sources/v1"
 )
 
 // NewContainerCreateCommand for creating source
@@ -74,7 +74,7 @@ func NewContainerCreateCommand(p *commands.KnParams) *cobra.Command {
 						"because: %s", name, namespace, err)
 			}
 
-			b := v1alpha2.NewContainerSourceBuilder(name).Sink(*objectRef).PodSpec(*podSpec)
+			b := v1.NewContainerSourceBuilder(name).Sink(*objectRef).PodSpec(*podSpec)
 			err = srcClient.CreateContainerSource(cmd.Context(), b.Build())
 			if err != nil {
 				return fmt.Errorf(

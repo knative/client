@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1alpha2
+package v1
 
 import (
 	"context"
@@ -21,9 +21,9 @@ import (
 	knerrors "knative.dev/client/pkg/errors"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"knative.dev/eventing/pkg/apis/sources/v1alpha2"
+	"knative.dev/eventing/pkg/apis/sources/v1"
 
-	clientv1alpha2 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha2"
+	clientv1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 )
 
@@ -31,20 +31,20 @@ import (
 type KnPingSourcesClient interface {
 
 	// GetPingSource fetches a Ping source by its name
-	GetPingSource(ctx context.Context, name string) (*v1alpha2.PingSource, error)
+	GetPingSource(ctx context.Context, name string) (*v1.PingSource, error)
 
 	// CreatePingSource creates a Ping source
-	CreatePingSource(ctx context.Context, pingSource *v1alpha2.PingSource) error
+	CreatePingSource(ctx context.Context, pingSource *v1.PingSource) error
 
 	// UpdatePingSource updates a Ping source
-	UpdatePingSource(ctx context.Context, pingSource *v1alpha2.PingSource) error
+	UpdatePingSource(ctx context.Context, pingSource *v1.PingSource) error
 
 	// DeletePingSource deletes a Ping source
 	DeletePingSource(ctx context.Context, name string) error
 
 	// ListPingSource lists all Ping sources
 	// TODO: Support list configs like in service list
-	ListPingSource(ctx context.Context) (*v1alpha2.PingSourceList, error)
+	ListPingSource(ctx context.Context) (*v1.PingSourceList, error)
 
 	// Get namespace for this source
 	Namespace() string
@@ -54,12 +54,12 @@ type KnPingSourcesClient interface {
 // Temporarily help to add sources dependencies
 // May be changed when adding real sources features
 type pingSourcesClient struct {
-	client    clientv1alpha2.PingSourceInterface
+	client    clientv1.PingSourceInterface
 	namespace string
 }
 
 // NewKnSourcesClient is to invoke Eventing Sources Client API to create object
-func newKnPingSourcesClient(client clientv1alpha2.PingSourceInterface, namespace string) KnPingSourcesClient {
+func newKnPingSourcesClient(client clientv1.PingSourceInterface, namespace string) KnPingSourcesClient {
 	return &pingSourcesClient{
 		client:    client,
 		namespace: namespace,
@@ -71,7 +71,7 @@ func (c *pingSourcesClient) Namespace() string {
 	return c.namespace
 }
 
-func (c *pingSourcesClient) CreatePingSource(ctx context.Context, pingsource *v1alpha2.PingSource) error {
+func (c *pingSourcesClient) CreatePingSource(ctx context.Context, pingsource *v1.PingSource) error {
 	if pingsource.Spec.Sink.Ref == nil && pingsource.Spec.Sink.URI == nil {
 		return fmt.Errorf("a sink is required for creating a source")
 	}
@@ -82,7 +82,7 @@ func (c *pingSourcesClient) CreatePingSource(ctx context.Context, pingsource *v1
 	return nil
 }
 
-func (c *pingSourcesClient) UpdatePingSource(ctx context.Context, pingSource *v1alpha2.PingSource) error {
+func (c *pingSourcesClient) UpdatePingSource(ctx context.Context, pingSource *v1.PingSource) error {
 	_, err := c.client.Update(ctx, pingSource, metav1.UpdateOptions{})
 	if err != nil {
 		return knerrors.GetError(err)
@@ -98,7 +98,7 @@ func (c *pingSourcesClient) DeletePingSource(ctx context.Context, name string) e
 	return nil
 }
 
-func (c *pingSourcesClient) GetPingSource(ctx context.Context, name string) (*v1alpha2.PingSource, error) {
+func (c *pingSourcesClient) GetPingSource(ctx context.Context, name string) (*v1.PingSource, error) {
 	source, err := c.client.Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return nil, knerrors.GetError(err)
@@ -111,7 +111,7 @@ func (c *pingSourcesClient) GetPingSource(ctx context.Context, name string) (*v1
 }
 
 // ListPingSource returns the available Ping sources
-func (c *pingSourcesClient) ListPingSource(ctx context.Context) (*v1alpha2.PingSourceList, error) {
+func (c *pingSourcesClient) ListPingSource(ctx context.Context) (*v1.PingSourceList, error) {
 	sourceList, err := c.client.List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, knerrors.GetError(err)
@@ -120,14 +120,14 @@ func (c *pingSourcesClient) ListPingSource(ctx context.Context) (*v1alpha2.PingS
 	return updatePingSourceListGVK(sourceList)
 }
 
-func updatePingSourceListGVK(sourceList *v1alpha2.PingSourceList) (*v1alpha2.PingSourceList, error) {
+func updatePingSourceListGVK(sourceList *v1.PingSourceList) (*v1.PingSourceList, error) {
 	sourceListNew := sourceList.DeepCopy()
 	err := updateSourceGVK(sourceListNew)
 	if err != nil {
 		return nil, err
 	}
 
-	sourceListNew.Items = make([]v1alpha2.PingSource, len(sourceList.Items))
+	sourceListNew.Items = make([]v1.PingSource, len(sourceList.Items))
 	for idx, source := range sourceList.Items {
 		sourceClone := source.DeepCopy()
 		err := updateSourceGVK(sourceClone)
@@ -142,18 +142,18 @@ func updatePingSourceListGVK(sourceList *v1alpha2.PingSourceList) (*v1alpha2.Pin
 // Builder for building up Ping sources
 
 type PingSourceBuilder struct {
-	pingSource *v1alpha2.PingSource
+	pingSource *v1.PingSource
 }
 
 func NewPingSourceBuilder(name string) *PingSourceBuilder {
-	return &PingSourceBuilder{pingSource: &v1alpha2.PingSource{
+	return &PingSourceBuilder{pingSource: &v1.PingSource{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
 		},
 	}}
 }
 
-func NewPingSourceBuilderFromExisting(pingsource *v1alpha2.PingSource) *PingSourceBuilder {
+func NewPingSourceBuilderFromExisting(pingsource *v1.PingSource) *PingSourceBuilder {
 	return &PingSourceBuilder{pingSource: pingsource.DeepCopy()}
 }
 
@@ -162,8 +162,8 @@ func (b *PingSourceBuilder) Schedule(schedule string) *PingSourceBuilder {
 	return b
 }
 
-func (b *PingSourceBuilder) JsonData(data string) *PingSourceBuilder {
-	b.pingSource.Spec.JsonData = data
+func (b *PingSourceBuilder) Data(data string) *PingSourceBuilder {
+	b.pingSource.Spec.Data = data
 	return b
 }
 
@@ -193,6 +193,6 @@ func (b *PingSourceBuilder) CloudEventOverrides(ceo map[string]string, toRemove 
 	return b
 }
 
-func (b *PingSourceBuilder) Build() *v1alpha2.PingSource {
+func (b *PingSourceBuilder) Build() *v1.PingSource {
 	return b.pingSource
 }

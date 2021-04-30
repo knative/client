@@ -19,7 +19,7 @@ import (
 
 	"gotest.tools/v3/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
+	v1 "knative.dev/eventing/pkg/apis/sources/v1"
 )
 
 func TestGetAPIServerResourceArray(t *testing.T) {
@@ -31,7 +31,7 @@ func TestGetAPIServerResourceArray(t *testing.T) {
 		}
 		created, _ := createFlag.getAPIServerVersionKindSelector()
 
-		wanted := []v1alpha2.APIVersionKindSelector{{
+		wanted := []v1.APIVersionKindSelector{{
 			Kind:          "Service",
 			APIVersion:    "serving.knative.dev/v1",
 			LabelSelector: createLabelSelector("key1", "val1"),
@@ -46,7 +46,7 @@ func TestGetAPIServerResourceArray(t *testing.T) {
 			Resources:          []string{"Service:serving.knative.dev/v1"},
 		}
 		created, _ := createFlag.getAPIServerVersionKindSelector()
-		wanted := []v1alpha2.APIVersionKindSelector{{
+		wanted := []v1.APIVersionKindSelector{{
 			Kind:       "Service",
 			APIVersion: "serving.knative.dev/v1",
 		}}
@@ -60,7 +60,7 @@ func TestGetAPIServerResourceArray(t *testing.T) {
 			Resources:          []string{"Event:v1", "Pod:v2:key1=val1,key2=val2"},
 		}
 		created, _ := createFlag.getAPIServerVersionKindSelector()
-		wanted := []v1alpha2.APIVersionKindSelector{{
+		wanted := []v1.APIVersionKindSelector{{
 			Kind:       "Event",
 			APIVersion: "v1",
 		}, {
@@ -79,7 +79,7 @@ func TestGetAPIServerResourceArray(t *testing.T) {
 		}
 		created, _ := createFlag.getAPIServerVersionKindSelector()
 
-		wanted := []v1alpha2.APIVersionKindSelector{{
+		wanted := []v1.APIVersionKindSelector{{
 			Kind:       "Event",
 			APIVersion: "v1",
 		}, {
@@ -131,11 +131,11 @@ func TestGetUpdateAPIServerResourceArray(t *testing.T) {
 			Resources:          []string{"Event:v1", "Pod:v2-"},
 		}
 		added, removed, _ := createFlag.getUpdateAPIVersionKindSelectorArray()
-		addwanted := []v1alpha2.APIVersionKindSelector{{
+		addwanted := []v1.APIVersionKindSelector{{
 			Kind:       "Event",
 			APIVersion: "v1",
 		}}
-		removewanted := []v1alpha2.APIVersionKindSelector{{
+		removewanted := []v1.APIVersionKindSelector{{
 			Kind:       "Pod",
 			APIVersion: "v2",
 		}}
@@ -149,12 +149,12 @@ func TestGetUpdateAPIServerResourceArray(t *testing.T) {
 		}
 		added, removed, _ = createFlag.getUpdateAPIVersionKindSelectorArray()
 
-		removewanted = []v1alpha2.APIVersionKindSelector{{
+		removewanted = []v1.APIVersionKindSelector{{
 			Kind:          "Event",
 			APIVersion:    "v1",
 			LabelSelector: createLabelSelector("key1", "val1", "key2", "val2"),
 		}}
-		addwanted = []v1alpha2.APIVersionKindSelector{{
+		addwanted = []v1.APIVersionKindSelector{{
 			Kind:       "Pod",
 			APIVersion: "v1",
 		}}
@@ -164,7 +164,7 @@ func TestGetUpdateAPIServerResourceArray(t *testing.T) {
 }
 
 func TestUpdateExistingAPIServerResourceArray(t *testing.T) {
-	existing := []v1alpha2.APIVersionKindSelector{{
+	existing := []v1.APIVersionKindSelector{{
 		Kind:       "Event",
 		APIVersion: "v1",
 	}, {
@@ -179,7 +179,7 @@ func TestUpdateExistingAPIServerResourceArray(t *testing.T) {
 			Resources:          []string{"Deployment:v1:key1=val1,key2=val2", "Pod:v1-"},
 		}
 		updated, _ := createFlag.updateExistingAPIVersionKindSelectorArray(existing)
-		updatedWanted := []v1alpha2.APIVersionKindSelector{{
+		updatedWanted := []v1.APIVersionKindSelector{{
 			Kind:       "Event",
 			APIVersion: "v1",
 		}, {

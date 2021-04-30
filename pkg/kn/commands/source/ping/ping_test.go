@@ -18,12 +18,12 @@ import (
 	"bytes"
 
 	"k8s.io/client-go/tools/clientcmd"
-	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
-	v1 "knative.dev/pkg/apis/duck/v1"
+	sourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"
+	duckv1 "knative.dev/pkg/apis/duck/v1"
 
 	kndynamic "knative.dev/client/pkg/dynamic"
 	"knative.dev/client/pkg/kn/commands"
-	clientv1alpha2 "knative.dev/client/pkg/sources/v1alpha2"
+	clientv1 "knative.dev/client/pkg/sources/v1"
 )
 
 // Helper methods
@@ -53,7 +53,7 @@ current-context: x
 	}
 }
 
-func executePingSourceCommand(pingSourceClient clientv1alpha2.KnPingSourcesClient, dynamicClient kndynamic.KnDynamicClient, args ...string) (string, error) {
+func executePingSourceCommand(pingSourceClient clientv1.KnPingSourcesClient, dynamicClient kndynamic.KnDynamicClient, args ...string) (string, error) {
 	knParams := &commands.KnParams{}
 	knParams.ClientConfig = blankConfig
 
@@ -67,7 +67,7 @@ func executePingSourceCommand(pingSourceClient clientv1alpha2.KnPingSourcesClien
 	cmd.SetArgs(args)
 	cmd.SetOutput(output)
 
-	pingSourceClientFactory = func(config clientcmd.ClientConfig, namespace string) (clientv1alpha2.KnPingSourcesClient, error) {
+	pingSourceClientFactory = func(config clientcmd.ClientConfig, namespace string) (clientv1.KnPingSourcesClient, error) {
 		return pingSourceClient, nil
 	}
 	defer cleanupPingMockClient()
@@ -81,13 +81,13 @@ func cleanupPingMockClient() {
 	pingSourceClientFactory = nil
 }
 
-func createPingSource(name, schedule, data, service string, ceOverridesMap map[string]string) *v1alpha2.PingSource {
-	sink := &v1.Destination{
-		Ref: &v1.KReference{Name: service, Kind: "Service", APIVersion: "serving.knative.dev/v1", Namespace: "default"},
+func createPingSource(name, schedule, data, service string, ceOverridesMap map[string]string) *sourcesv1.PingSource {
+	sink := &duckv1.Destination{
+		Ref: &duckv1.KReference{Name: service, Kind: "Service", APIVersion: "serving.knative.dev/v1", Namespace: "default"},
 	}
-	return clientv1alpha2.NewPingSourceBuilder(name).
+	return clientv1.NewPingSourceBuilder(name).
 		Schedule(schedule).
-		JsonData(data).
+		Data(data).
 		Sink(*sink).
 		CloudEventOverrides(ceOverridesMap, []string{}).
 		Build()

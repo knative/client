@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha2
+package v1
 
 import (
 	"context"
@@ -24,9 +24,9 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	knerrors "knative.dev/client/pkg/errors"
 	"knative.dev/client/pkg/util"
-	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
+	v1 "knative.dev/eventing/pkg/apis/sources/v1"
 	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
-	clientv1alpha2 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha2"
+	clientv1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 )
 
@@ -34,19 +34,19 @@ import (
 type KnContainerSourcesClient interface {
 
 	// Get an ContainerSource by name
-	GetContainerSource(ctx context.Context, name string) (*v1alpha2.ContainerSource, error)
+	GetContainerSource(ctx context.Context, name string) (*v1.ContainerSource, error)
 
 	// Create an ContainerSource by object
-	CreateContainerSource(ctx context.Context, containerSrc *v1alpha2.ContainerSource) error
+	CreateContainerSource(ctx context.Context, containerSrc *v1.ContainerSource) error
 
 	// Update an ContainerSource by object
-	UpdateContainerSource(ctx context.Context, containerSrc *v1alpha2.ContainerSource) error
+	UpdateContainerSource(ctx context.Context, containerSrc *v1.ContainerSource) error
 
 	// Delete an ContainerSource by name
 	DeleteContainerSource(name string, ctx context.Context) error
 
 	// List ContainerSource
-	ListContainerSources(ctx context.Context) (*v1alpha2.ContainerSourceList, error)
+	ListContainerSources(ctx context.Context) (*v1.ContainerSourceList, error)
 
 	// Get namespace for this client
 	Namespace() string
@@ -56,12 +56,12 @@ type KnContainerSourcesClient interface {
 // Temporarily help to add sources dependencies
 // May be changed when adding real sources features
 type containerSourcesClient struct {
-	client    clientv1alpha2.ContainerSourceInterface
+	client    clientv1.ContainerSourceInterface
 	namespace string
 }
 
 // newKnContainerSourcesClient is to invoke Eventing Sources Client API to create object
-func newKnContainerSourcesClient(client clientv1alpha2.ContainerSourceInterface, namespace string) KnContainerSourcesClient {
+func newKnContainerSourcesClient(client clientv1.ContainerSourceInterface, namespace string) KnContainerSourcesClient {
 	return &containerSourcesClient{
 		client:    client,
 		namespace: namespace,
@@ -69,7 +69,7 @@ func newKnContainerSourcesClient(client clientv1alpha2.ContainerSourceInterface,
 }
 
 //GetContainerSource returns containerSrc object if present
-func (c *containerSourcesClient) GetContainerSource(ctx context.Context, name string) (*v1alpha2.ContainerSource, error) {
+func (c *containerSourcesClient) GetContainerSource(ctx context.Context, name string) (*v1.ContainerSource, error) {
 	containerSrc, err := c.client.Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return nil, knerrors.GetError(err)
@@ -79,7 +79,7 @@ func (c *containerSourcesClient) GetContainerSource(ctx context.Context, name st
 }
 
 //CreateContainerSource is used to create an instance of ContainerSource
-func (c *containerSourcesClient) CreateContainerSource(ctx context.Context, containerSrc *v1alpha2.ContainerSource) error {
+func (c *containerSourcesClient) CreateContainerSource(ctx context.Context, containerSrc *v1.ContainerSource) error {
 	_, err := c.client.Create(ctx, containerSrc, metav1.CreateOptions{})
 	if err != nil {
 		return knerrors.GetError(err)
@@ -89,7 +89,7 @@ func (c *containerSourcesClient) CreateContainerSource(ctx context.Context, cont
 }
 
 //UpdateContainerSource is used to update an instance of ContainerSource
-func (c *containerSourcesClient) UpdateContainerSource(ctx context.Context, containerSrc *v1alpha2.ContainerSource) error {
+func (c *containerSourcesClient) UpdateContainerSource(ctx context.Context, containerSrc *v1.ContainerSource) error {
 	_, err := c.client.Update(ctx, containerSrc, metav1.UpdateOptions{})
 	if err != nil {
 		return knerrors.GetError(err)
@@ -109,7 +109,7 @@ func (c *containerSourcesClient) Namespace() string {
 }
 
 // ListContainerSource returns the available container sources
-func (c *containerSourcesClient) ListContainerSources(ctx context.Context) (*v1alpha2.ContainerSourceList, error) {
+func (c *containerSourcesClient) ListContainerSources(ctx context.Context) (*v1.ContainerSourceList, error) {
 	sourceList, err := c.client.List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, knerrors.GetError(err)
@@ -121,7 +121,7 @@ func (c *containerSourcesClient) ListContainerSources(ctx context.Context) (*v1a
 		return nil, err
 	}
 
-	containerListNew.Items = make([]v1alpha2.ContainerSource, len(sourceList.Items))
+	containerListNew.Items = make([]v1.ContainerSource, len(sourceList.Items))
 	for idx, binding := range sourceList.Items {
 		bindingClone := binding.DeepCopy()
 		err := updateSinkBindingGvk(bindingClone)
@@ -134,19 +134,19 @@ func (c *containerSourcesClient) ListContainerSources(ctx context.Context) (*v1a
 	return containerListNew, nil
 }
 
-// update with the v1alpha2 group + version
+// update with the v1 group + version
 func updateContainerSourceGvk(obj runtime.Object) error {
-	return util.UpdateGroupVersionKindWithScheme(obj, v1alpha2.SchemeGroupVersion, scheme.Scheme)
+	return util.UpdateGroupVersionKindWithScheme(obj, v1.SchemeGroupVersion, scheme.Scheme)
 }
 
 // ContainerSourceBuilder is for building the source
 type ContainerSourceBuilder struct {
-	ContainerSource *v1alpha2.ContainerSource
+	ContainerSource *v1.ContainerSource
 }
 
 // NewContainerSourceBuilder for building Container source object
 func NewContainerSourceBuilder(name string) *ContainerSourceBuilder {
-	return &ContainerSourceBuilder{ContainerSource: &v1alpha2.ContainerSource{
+	return &ContainerSourceBuilder{ContainerSource: &v1.ContainerSource{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
 		},
@@ -154,7 +154,7 @@ func NewContainerSourceBuilder(name string) *ContainerSourceBuilder {
 }
 
 // NewContainerSourceBuilderFromExisting for building the object from existing ContainerSource object
-func NewContainerSourceBuilderFromExisting(ContainerSource *v1alpha2.ContainerSource) *ContainerSourceBuilder {
+func NewContainerSourceBuilderFromExisting(ContainerSource *v1.ContainerSource) *ContainerSourceBuilder {
 	return &ContainerSourceBuilder{ContainerSource: ContainerSource.DeepCopy()}
 }
 
@@ -165,7 +165,7 @@ func (b *ContainerSourceBuilder) Sink(sink duckv1.Destination) *ContainerSourceB
 }
 
 // Build the ContainerSource object
-func (b *ContainerSourceBuilder) Build() *v1alpha2.ContainerSource {
+func (b *ContainerSourceBuilder) Build() *v1.ContainerSource {
 	return b.ContainerSource
 }
 

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1alpha2
+package v1
 
 import (
 	"context"
@@ -22,9 +22,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
+	v1 "knative.dev/eventing/pkg/apis/sources/v1"
 	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
-	clientv1alpha2 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha2"
+	clientv1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 	"knative.dev/pkg/tracker"
 
@@ -38,27 +38,27 @@ type KnSinkBindingClient interface {
 	// Namespace in which this client is operating for
 	Namespace() string
 	// CreateSinkBinding is used to create an instance of binding
-	CreateSinkBinding(ctx context.Context, binding *v1alpha2.SinkBinding) error
+	CreateSinkBinding(ctx context.Context, binding *v1.SinkBinding) error
 	// DeleteSinkBinding is used to delete an instance of binding
 	DeleteSinkBinding(ctx context.Context, name string) error
 	// GetSinkBinding is used to get an instance of binding
-	GetSinkBinding(ctx context.Context, name string) (*v1alpha2.SinkBinding, error)
+	GetSinkBinding(ctx context.Context, name string) (*v1.SinkBinding, error)
 	// ListSinkBinding returns list of binding CRDs
-	ListSinkBindings(ctx context.Context) (*v1alpha2.SinkBindingList, error)
+	ListSinkBindings(ctx context.Context) (*v1.SinkBindingList, error)
 	// UpdateSinkBinding is used to update an instance of binding
-	UpdateSinkBinding(ctx context.Context, binding *v1alpha2.SinkBinding) error
+	UpdateSinkBinding(ctx context.Context, binding *v1.SinkBinding) error
 }
 
 // KnSinkBindingClient is a combination of Sources client interface and namespace
 // Temporarily help to add sources dependencies
 // May be changed when adding real sources features
 type knBindingClient struct {
-	client    clientv1alpha2.SinkBindingInterface
+	client    clientv1.SinkBindingInterface
 	namespace string
 }
 
 // NewKnSourcesClient is to invoke Eventing Sources Client API to create object
-func newKnSinkBindingClient(client clientv1alpha2.SinkBindingInterface, namespace string) KnSinkBindingClient {
+func newKnSinkBindingClient(client clientv1.SinkBindingInterface, namespace string) KnSinkBindingClient {
 	return &knBindingClient{
 		client:    client,
 		namespace: namespace,
@@ -66,7 +66,7 @@ func newKnSinkBindingClient(client clientv1alpha2.SinkBindingInterface, namespac
 }
 
 //CreateSinkBinding is used to create an instance of binding
-func (c *knBindingClient) CreateSinkBinding(ctx context.Context, binding *v1alpha2.SinkBinding) error {
+func (c *knBindingClient) CreateSinkBinding(ctx context.Context, binding *v1.SinkBinding) error {
 	_, err := c.client.Create(ctx, binding, metav1.CreateOptions{})
 	if err != nil {
 		return knerrors.GetError(err)
@@ -84,7 +84,7 @@ func (c *knBindingClient) DeleteSinkBinding(ctx context.Context, name string) er
 }
 
 //GetSinkBinding is used to get an instance of binding
-func (c *knBindingClient) GetSinkBinding(ctx context.Context, name string) (*v1alpha2.SinkBinding, error) {
+func (c *knBindingClient) GetSinkBinding(ctx context.Context, name string) (*v1.SinkBinding, error) {
 	binding, err := c.client.Get(ctx, name, apisv1.GetOptions{})
 	if err != nil {
 		return nil, knerrors.GetError(err)
@@ -96,7 +96,7 @@ func (c *knBindingClient) GetSinkBinding(ctx context.Context, name string) (*v1a
 	return binding, nil
 }
 
-func (c *knBindingClient) ListSinkBindings(ctx context.Context) (*v1alpha2.SinkBindingList, error) {
+func (c *knBindingClient) ListSinkBindings(ctx context.Context) (*v1.SinkBindingList, error) {
 	bindingList, err := c.client.List(ctx, apisv1.ListOptions{})
 	if err != nil {
 		return nil, knerrors.GetError(err)
@@ -107,7 +107,7 @@ func (c *knBindingClient) ListSinkBindings(ctx context.Context) (*v1alpha2.SinkB
 		return nil, err
 	}
 
-	bindingListNew.Items = make([]v1alpha2.SinkBinding, len(bindingList.Items))
+	bindingListNew.Items = make([]v1.SinkBinding, len(bindingList.Items))
 	for idx, binding := range bindingList.Items {
 		bindingClone := binding.DeepCopy()
 		err := updateSinkBindingGvk(bindingClone)
@@ -120,7 +120,7 @@ func (c *knBindingClient) ListSinkBindings(ctx context.Context) (*v1alpha2.SinkB
 }
 
 //CreateSinkBinding is used to create an instance of binding
-func (c *knBindingClient) UpdateSinkBinding(ctx context.Context, binding *v1alpha2.SinkBinding) error {
+func (c *knBindingClient) UpdateSinkBinding(ctx context.Context, binding *v1.SinkBinding) error {
 	_, err := c.client.Update(ctx, binding, metav1.UpdateOptions{})
 	if err != nil {
 		return knerrors.GetError(err)
@@ -133,14 +133,14 @@ func (c *knBindingClient) Namespace() string {
 	return c.namespace
 }
 
-// update with the v1alpha2 group + version
+// update with the v1 group + version
 func updateSinkBindingGvk(obj runtime.Object) error {
-	return util.UpdateGroupVersionKindWithScheme(obj, v1alpha2.SchemeGroupVersion, scheme.Scheme)
+	return util.UpdateGroupVersionKindWithScheme(obj, v1.SchemeGroupVersion, scheme.Scheme)
 }
 
 // SinkBindingBuilder is for building the binding
 type SinkBindingBuilder struct {
-	binding        *v1alpha2.SinkBinding
+	binding        *v1.SinkBinding
 	sGvk           *schema.GroupVersionKind
 	sName          string
 	sLabelSelector map[string]string
@@ -152,7 +152,7 @@ type SinkBindingBuilder struct {
 
 // NewSinkBindingBuilder for building binding object
 func NewSinkBindingBuilder(name string) *SinkBindingBuilder {
-	return &SinkBindingBuilder{binding: &v1alpha2.SinkBinding{
+	return &SinkBindingBuilder{binding: &v1.SinkBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
 		},
@@ -160,7 +160,7 @@ func NewSinkBindingBuilder(name string) *SinkBindingBuilder {
 }
 
 // NewSinkBindingBuilderFromExisting for building the object from existing SinkBinding object
-func NewSinkBindingBuilderFromExisting(binding *v1alpha2.SinkBinding) *SinkBindingBuilder {
+func NewSinkBindingBuilderFromExisting(binding *v1.SinkBinding) *SinkBindingBuilder {
 	return &SinkBindingBuilder{binding: binding.DeepCopy()}
 }
 
@@ -231,7 +231,7 @@ func (b *SinkBindingBuilder) CloudEventOverrides(ceo map[string]string, toRemove
 }
 
 // Build to return an instance of binding object
-func (b *SinkBindingBuilder) Build() (*v1alpha2.SinkBinding, error) {
+func (b *SinkBindingBuilder) Build() (*v1.SinkBinding, error) {
 	// If set directly, return the sink binding directly
 	if b.subject != nil {
 		b.binding.Spec.Subject = *b.subject

@@ -22,7 +22,7 @@ import (
 
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
-	"knative.dev/client/pkg/sources/v1alpha2"
+	"knative.dev/client/pkg/sources/v1"
 	"knative.dev/client/pkg/util"
 )
 
@@ -70,9 +70,9 @@ func NewPingCreateCommand(p *commands.KnParams) *cobra.Command {
 			}
 			ceOverridesToRemove := util.ParseMinusSuffix(ceOverridesMap)
 
-			err = pingSourceClient.CreatePingSource(cmd.Context(), v1alpha2.NewPingSourceBuilder(name).
+			err = pingSourceClient.CreatePingSource(cmd.Context(), v1.NewPingSourceBuilder(name).
 				Schedule(updateFlags.schedule).
-				JsonData(updateFlags.data).
+				Data(updateFlags.data).
 				Sink(*destination).
 				CloudEventOverrides(ceOverridesMap, ceOverridesToRemove).
 				Build())

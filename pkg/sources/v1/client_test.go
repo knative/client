@@ -12,20 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1alpha2
+package v1
 
 import (
 	"testing"
 
 	"gotest.tools/v3/assert"
 
-	sourcesv1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
+	sourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"
 )
 
 func TestBuiltInSourcesGVks(t *testing.T) {
 	gvks := BuiltInSourcesGVKs()
 	for _, each := range gvks {
-		assert.DeepEqual(t, each.GroupVersion(), sourcesv1alpha2.SchemeGroupVersion)
+		assert.DeepEqual(t, each.GroupVersion(), sourcesv1.SchemeGroupVersion)
 	}
 	assert.Equal(t, len(gvks), 4)
 }

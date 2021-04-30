@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1alpha2
+package v1
 
 import (
 	"context"
@@ -21,18 +21,18 @@ import (
 
 	"gotest.tools/v3/assert"
 	"k8s.io/apimachinery/pkg/runtime"
-	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
+	v1 "knative.dev/eventing/pkg/apis/sources/v1"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clienttesting "k8s.io/client-go/testing"
-	fake "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha2/fake"
+	fake "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1/fake"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 )
 
 var testAPIServerSourceNamespace = "test-ns"
 
-func setupAPIServerSourcesClient(t *testing.T) (fakeSources fake.FakeSourcesV1alpha2, client KnAPIServerSourcesClient) {
-	fakeSources = fake.FakeSourcesV1alpha2{Fake: &clienttesting.Fake{}}
+func setupAPIServerSourcesClient(t *testing.T) (fakeSources fake.FakeSourcesV1, client KnAPIServerSourcesClient) {
+	fakeSources = fake.FakeSourcesV1{Fake: &clienttesting.Fake{}}
 	client = NewKnSourcesClient(&fakeSources, testAPIServerSourceNamespace).APIServerSourcesClient()
 	assert.Equal(t, client.Namespace(), testAPIServerSourceNamespace)
 	return
@@ -107,7 +107,7 @@ func TestUpdateApiServerSource(t *testing.T) {
 			if name == "errorSource" {
 				return true, nil, fmt.Errorf("error while updating ApiServer source %s", name)
 			}
-			return true, NewAPIServerSourceBuilderFromExisting(updatedSource.(*v1alpha2.ApiServerSource)).Build(), nil
+			return true, NewAPIServerSourceBuilderFromExisting(updatedSource.(*v1.ApiServerSource)).Build(), nil
 		})
 	err := client.UpdateAPIServerSource(context.Background(), newAPIServerSource("foo", "Event"))
 	assert.NilError(t, err)
@@ -122,7 +122,7 @@ func TestListAPIServerSource(t *testing.T) {
 	sourcesServer.AddReactor("list", "apiserversources",
 		func(a clienttesting.Action) (bool, runtime.Object, error) {
 			cJSource := newAPIServerSource("testsource", "Event")
-			return true, &v1alpha2.ApiServerSourceList{Items: []v1alpha2.ApiServerSource{*cJSource}}, nil
+			return true, &v1.ApiServerSourceList{Items: []v1.ApiServerSource{*cJSource}}, nil
 		})
 
 	sourceList, err := client.ListAPIServerSource(context.Background())
@@ -130,7 +130,7 @@ func TestListAPIServerSource(t *testing.T) {
 	assert.Equal(t, len(sourceList.Items), 1)
 }
 
-func newAPIServerSource(name, resource string) *v1alpha2.ApiServerSource {
+func newAPIServerSource(name, resource string) *v1.ApiServerSource {
 	b := NewAPIServerSourceBuilder(name).
 		ServiceAccount("testsa").
 		EventMode("Reference").
@@ -143,7 +143,7 @@ func newAPIServerSource(name, resource string) *v1alpha2.ApiServerSource {
 			}})
 
 	if resource != "" {
-		b.Resources([]v1alpha2.APIVersionKindSelector{{
+		b.Resources([]v1.APIVersionKindSelector{{
 			APIVersion: "v1",
 			Kind:       resource,
 		}})

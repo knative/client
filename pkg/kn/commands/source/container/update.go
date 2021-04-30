@@ -25,7 +25,7 @@ import (
 	knflags "knative.dev/client/pkg/kn/flags"
 
 	"knative.dev/client/pkg/kn/commands"
-	"knative.dev/client/pkg/sources/v1alpha2"
+	"knative.dev/client/pkg/sources/v1"
 )
 
 // NewContainerUpdateCommand for managing source update
@@ -67,7 +67,7 @@ func NewContainerUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return fmt.Errorf("can't update container source %s because it has been marked for deletion", name)
 			}
 
-			b := v1alpha2.NewContainerSourceBuilderFromExisting(source)
+			b := v1.NewContainerSourceBuilderFromExisting(source)
 			podSpec := b.Build().Spec.Template.Spec
 			err = podFlags.ResolvePodSpec(&podSpec, cmd.Flags())
 			if err != nil {

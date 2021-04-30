@@ -22,12 +22,12 @@ import (
 	"gotest.tools/v3/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	clientv1alpha2 "knative.dev/client/pkg/sources/v1alpha2"
+	clientv1 "knative.dev/client/pkg/sources/v1"
 	"knative.dev/client/pkg/util"
 )
 
 func TestSimplePingUpdate(t *testing.T) {
-	pingSourceClient := clientv1alpha2.NewMockKnPingSourceClient(t)
+	pingSourceClient := clientv1.NewMockKnPingSourceClient(t)
 	pingRecorder := pingSourceClient.Recorder()
 	pingRecorder.GetPingSource("testsource", createPingSource("testsource", "* * * * */1", "maxwell", "mysvc", nil), nil)
 	pingRecorder.UpdatePingSource(createPingSource("testsource", "* * * * */3", "maxwell", "mysvc", nil), nil)
@@ -40,7 +40,7 @@ func TestSimplePingUpdate(t *testing.T) {
 }
 
 func TestSimplePingUpdateCEOverrides(t *testing.T) {
-	pingSourceClient := clientv1alpha2.NewMockKnPingSourceClient(t)
+	pingSourceClient := clientv1.NewMockKnPingSourceClient(t)
 	pingRecorder := pingSourceClient.Recorder()
 	ceOverrideMap := map[string]string{"bla": "blub", "foo": "bar"}
 	ceOverrideMapUpdated := map[string]string{"foo": "baz", "new": "ceoverride"}
@@ -55,7 +55,7 @@ func TestSimplePingUpdateCEOverrides(t *testing.T) {
 }
 
 func TestUpdateError(t *testing.T) {
-	pingClient := clientv1alpha2.NewMockKnPingSourceClient(t, "mynamespace")
+	pingClient := clientv1.NewMockKnPingSourceClient(t, "mynamespace")
 
 	pingRecorder := pingClient.Recorder()
 	pingRecorder.GetPingSource("testsource", nil, errors.New("no Ping source testsource"))
@@ -68,7 +68,7 @@ func TestUpdateError(t *testing.T) {
 }
 
 func TestPingUpdateDeletionTimestampNotNil(t *testing.T) {
-	pingSourceClient := clientv1alpha2.NewMockKnPingSourceClient(t)
+	pingSourceClient := clientv1.NewMockKnPingSourceClient(t)
 	present := createPingSource("test", "", "", "", nil)
 	present.DeletionTimestamp = &v1.Time{Time: time.Now()}
 	pingRecorder := pingSourceClient.Recorder()

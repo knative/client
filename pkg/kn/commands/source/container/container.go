@@ -20,8 +20,8 @@ import (
 	"github.com/spf13/cobra"
 	"k8s.io/client-go/tools/clientcmd"
 	"knative.dev/client/pkg/kn/commands"
-	"knative.dev/client/pkg/sources/v1alpha2"
-	clientv1alpha2 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha2"
+	"knative.dev/client/pkg/sources/v1"
+	clientv1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1"
 )
 
 // NewContainerCommand for managing Container source
@@ -38,9 +38,9 @@ func NewContainerCommand(p *commands.KnParams) *cobra.Command {
 	return containerSourceCmd
 }
 
-var containerSourceClientFactory func(config clientcmd.ClientConfig, namespace string) (v1alpha2.KnContainerSourcesClient, error)
+var containerSourceClientFactory func(config clientcmd.ClientConfig, namespace string) (v1.KnContainerSourcesClient, error)
 
-func newContainerSourceClient(p *commands.KnParams, cmd *cobra.Command) (v1alpha2.KnContainerSourcesClient, error) {
+func newContainerSourceClient(p *commands.KnParams, cmd *cobra.Command) (v1.KnContainerSourcesClient, error) {
 	namespace, err := p.GetNamespace(cmd)
 	if err != nil {
 		return nil, err
@@ -59,10 +59,10 @@ func newContainerSourceClient(p *commands.KnParams, cmd *cobra.Command) (v1alpha
 		return nil, err
 	}
 
-	client, err := clientv1alpha2.NewForConfig(clientConfig)
+	client, err := clientv1.NewForConfig(clientConfig)
 	if err != nil {
 		return nil, err
 	}
 
-	return v1alpha2.NewKnSourcesClient(client, namespace).ContainerSourcesClient(), nil
+	return v1.NewKnSourcesClient(client, namespace).ContainerSourcesClient(), nil
 }

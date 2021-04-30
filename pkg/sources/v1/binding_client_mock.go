@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1alpha2
+package v1
 
 import (
 	"context"
 	"testing"
 
-	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
+	v1 "knative.dev/eventing/pkg/apis/sources/v1"
 
 	"knative.dev/client/pkg/util/mock"
 )
@@ -65,20 +65,20 @@ func (sr *EventingRecorder) CreateSinkBinding(binding interface{}, err error) {
 }
 
 // CreateSinkBinding performs a previously recorded action
-func (c *MockKnSinkBindingClient) CreateSinkBinding(ctx context.Context, binding *v1alpha2.SinkBinding) error {
+func (c *MockKnSinkBindingClient) CreateSinkBinding(ctx context.Context, binding *v1.SinkBinding) error {
 	call := c.recorder.r.VerifyCall("CreateSinkBinding", binding)
 	return mock.ErrorOrNil(call.Result[0])
 }
 
 // GetSinkBinding records a call for GetSinkBinding with the expected object or error. Either binding or err should be nil
-func (sr *EventingRecorder) GetSinkBinding(name interface{}, binding *v1alpha2.SinkBinding, err error) {
+func (sr *EventingRecorder) GetSinkBinding(name interface{}, binding *v1.SinkBinding, err error) {
 	sr.r.Add("GetSinkBinding", []interface{}{name}, []interface{}{binding, err})
 }
 
 // GetSinkBinding performs a previously recorded action
-func (c *MockKnSinkBindingClient) GetSinkBinding(ctx context.Context, name string) (*v1alpha2.SinkBinding, error) {
+func (c *MockKnSinkBindingClient) GetSinkBinding(ctx context.Context, name string) (*v1.SinkBinding, error) {
 	call := c.recorder.r.VerifyCall("GetSinkBinding", name)
-	return call.Result[0].(*v1alpha2.SinkBinding), mock.ErrorOrNil(call.Result[1])
+	return call.Result[0].(*v1.SinkBinding), mock.ErrorOrNil(call.Result[1])
 }
 
 // DeleteSinkBinding records a call for DeleteSinkBinding with the expected error (nil if none)
@@ -93,14 +93,14 @@ func (c *MockKnSinkBindingClient) DeleteSinkBinding(ctx context.Context, name st
 }
 
 // ListSinkBindings records a call for ListSinkBindings with the expected result and error (nil if none)
-func (sr *EventingRecorder) ListSinkBindings(bindingList *v1alpha2.SinkBindingList, err error) {
+func (sr *EventingRecorder) ListSinkBindings(bindingList *v1.SinkBindingList, err error) {
 	sr.r.Add("ListSinkBindings", nil, []interface{}{bindingList, err})
 }
 
 // ListSinkBindings performs a previously recorded action
-func (c *MockKnSinkBindingClient) ListSinkBindings(context.Context) (*v1alpha2.SinkBindingList, error) {
+func (c *MockKnSinkBindingClient) ListSinkBindings(context.Context) (*v1.SinkBindingList, error) {
 	call := c.recorder.r.VerifyCall("ListSinkBindings")
-	return call.Result[0].(*v1alpha2.SinkBindingList), mock.ErrorOrNil(call.Result[1])
+	return call.Result[0].(*v1.SinkBindingList), mock.ErrorOrNil(call.Result[1])
 }
 
 // UpdateSinkBinding records a call for ListSinkBindings with the expected result and error (nil if none)
@@ -109,7 +109,7 @@ func (sr *EventingRecorder) UpdateSinkBinding(binding interface{}, err error) {
 }
 
 // UpdateSinkBinding performs a previously recorded action
-func (c *MockKnSinkBindingClient) UpdateSinkBinding(ctx context.Context, binding *v1alpha2.SinkBinding) error {
+func (c *MockKnSinkBindingClient) UpdateSinkBinding(ctx context.Context, binding *v1.SinkBinding) error {
 	call := c.recorder.r.VerifyCall("UpdateSinkBinding")
 	return mock.ErrorOrNil(call.Result[0])
 }

@@ -14,13 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha2
+package v1
 
 import (
 	"context"
 	"testing"
 
-	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
+	v1 "knative.dev/eventing/pkg/apis/sources/v1"
 )
 
 func TestMockKnConatinerSourceClient(t *testing.T) {
@@ -30,18 +30,18 @@ func TestMockKnConatinerSourceClient(t *testing.T) {
 
 	// Record all services
 	recorder.GetContainerSource("hello", nil, nil)
-	recorder.CreateContainerSource(&v1alpha2.ContainerSource{}, nil)
+	recorder.CreateContainerSource(&v1.ContainerSource{}, nil)
 	recorder.DeleteContainerSource("hello", nil)
 	recorder.ListContainerSources(nil, nil)
-	recorder.UpdateContainerSource(&v1alpha2.ContainerSource{}, nil)
+	recorder.UpdateContainerSource(&v1.ContainerSource{}, nil)
 
 	// Call all service
 	ctx := context.Background()
 	client.GetContainerSource(ctx, "hello")
-	client.CreateContainerSource(ctx, &v1alpha2.ContainerSource{})
+	client.CreateContainerSource(ctx, &v1.ContainerSource{})
 	client.DeleteContainerSource("hello", ctx)
 	client.ListContainerSources(ctx)
-	client.UpdateContainerSource(ctx, &v1alpha2.ContainerSource{})
+	client.UpdateContainerSource(ctx, &v1.ContainerSource{})
 
 	// Validate
 	recorder.Validate()

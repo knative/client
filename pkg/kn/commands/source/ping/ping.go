@@ -17,10 +17,10 @@ package ping
 import (
 	"github.com/spf13/cobra"
 	"k8s.io/client-go/tools/clientcmd"
-	v1alpha2 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha2"
+	v1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1"
 
 	"knative.dev/client/pkg/kn/commands"
-	clientv1alpha2 "knative.dev/client/pkg/sources/v1alpha2"
+	clientv1 "knative.dev/client/pkg/sources/v1"
 )
 
 // NewPingCommand is the root command for all Ping source related commands
@@ -37,9 +37,9 @@ func NewPingCommand(p *commands.KnParams) *cobra.Command {
 	return pingImporterCmd
 }
 
-var pingSourceClientFactory func(config clientcmd.ClientConfig, namespace string) (clientv1alpha2.KnPingSourcesClient, error)
+var pingSourceClientFactory func(config clientcmd.ClientConfig, namespace string) (clientv1.KnPingSourcesClient, error)
 
-func newPingSourceClient(p *commands.KnParams, cmd *cobra.Command) (clientv1alpha2.KnPingSourcesClient, error) {
+func newPingSourceClient(p *commands.KnParams, cmd *cobra.Command) (clientv1.KnPingSourcesClient, error) {
 	namespace, err := p.GetNamespace(cmd)
 	if err != nil {
 		return nil, err
@@ -58,10 +58,10 @@ func newPingSourceClient(p *commands.KnParams, cmd *cobra.Command) (clientv1alph
 		return nil, err
 	}
 
-	client, err := v1alpha2.NewForConfig(clientConfig)
+	client, err := v1.NewForConfig(clientConfig)
 	if err != nil {
 		return nil, err
 	}
 
-	return clientv1alpha2.NewKnSourcesClient(client, namespace).PingSourcesClient(), nil
+	return clientv1.NewKnSourcesClient(client, namespace).PingSourcesClient(), nil
 }

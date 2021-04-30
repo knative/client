@@ -22,7 +22,7 @@ import (
 
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
-	"knative.dev/client/pkg/sources/v1alpha2"
+	"knative.dev/client/pkg/sources/v1"
 	"knative.dev/client/pkg/util"
 )
 
@@ -68,7 +68,7 @@ func NewAPIServerUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return fmt.Errorf("can't update apiserver source %s because it has been marked for deletion", name)
 			}
 
-			b := v1alpha2.NewAPIServerSourceBuilderFromExisting(source)
+			b := v1.NewAPIServerSourceBuilderFromExisting(source)
 			if cmd.Flags().Changed("service-account") {
 				b.ServiceAccount(updateFlags.ServiceAccountName)
 			}

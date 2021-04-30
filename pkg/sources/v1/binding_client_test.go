@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1alpha2
+package v1
 
 import (
 	"context"
@@ -24,16 +24,16 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	clienttesting "k8s.io/client-go/testing"
-	"knative.dev/eventing/pkg/apis/sources/v1alpha2"
-	"knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha2/fake"
+	v1 "knative.dev/eventing/pkg/apis/sources/v1"
+	"knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1/fake"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 	"knative.dev/pkg/tracker"
 )
 
 var testNamespace = "test-ns"
 
-func setup() (fakeSvr fake.FakeSourcesV1alpha2, client KnSinkBindingClient) {
-	fakeE := fake.FakeSourcesV1alpha2{Fake: &clienttesting.Fake{}}
+func setup() (fakeSvr fake.FakeSourcesV1, client KnSinkBindingClient) {
+	fakeE := fake.FakeSourcesV1{Fake: &clienttesting.Fake{}}
 	cli := NewKnSourcesClient(&fakeE, "test-ns").SinkBindingClient()
 	return fakeE, cli
 }
@@ -119,7 +119,7 @@ func TestListSinkBinding(t *testing.T) {
 		serving.AddReactor("list", "sinkbindings",
 			func(a clienttesting.Action) (bool, runtime.Object, error) {
 				assert.Equal(t, testNamespace, a.GetNamespace())
-				return true, &v1alpha2.SinkBindingList{Items: []v1alpha2.SinkBinding{*binding1, *binding2}}, nil
+				return true, &v1.SinkBindingList{Items: []v1.SinkBinding{*binding1, *binding2}}, nil
 			})
 
 		listSinkBindings, err := client.ListSinkBindings(context.Background())
@@ -253,7 +253,7 @@ func TestSinkBindingBuilderForSubjectDirect(t *testing.T) {
 	assert.Assert(t, subject.Selector == nil)
 }
 
-func newSinkBinding(name, sinkService, pingName string) *v1alpha2.SinkBinding {
+func newSinkBinding(name, sinkService, pingName string) *v1.SinkBinding {
 	sink := &duckv1.Destination{
 		Ref: &duckv1.KReference{Name: sinkService, Kind: "Service", Namespace: "default", APIVersion: "serving.knative.dev/v1"},
 	}

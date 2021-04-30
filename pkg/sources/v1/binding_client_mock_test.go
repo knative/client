@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1alpha2
+package v1
 
 import (
 	"context"
 	"testing"
 
-	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
+	v1 "knative.dev/eventing/pkg/apis/sources/v1"
 )
 
 func TestMockKnClient(t *testing.T) {
@@ -28,18 +28,18 @@ func TestMockKnClient(t *testing.T) {
 
 	// Record all services
 	recorder.GetSinkBinding("hello", nil, nil)
-	recorder.CreateSinkBinding(&v1alpha2.SinkBinding{}, nil)
+	recorder.CreateSinkBinding(&v1.SinkBinding{}, nil)
 	recorder.DeleteSinkBinding("hello", nil)
 	recorder.ListSinkBindings(nil, nil)
-	recorder.UpdateSinkBinding(&v1alpha2.SinkBinding{}, nil)
+	recorder.UpdateSinkBinding(&v1.SinkBinding{}, nil)
 
 	// Call all service
 	ctx := context.Background()
 	client.GetSinkBinding(ctx, "hello")
-	client.CreateSinkBinding(ctx, &v1alpha2.SinkBinding{})
+	client.CreateSinkBinding(ctx, &v1.SinkBinding{})
 	client.DeleteSinkBinding(ctx, "hello")
 	client.ListSinkBindings(ctx)
-	client.UpdateSinkBinding(ctx, &v1alpha2.SinkBinding{})
+	client.UpdateSinkBinding(ctx, &v1.SinkBinding{})
 
 	// Validate
 	recorder.Validate()

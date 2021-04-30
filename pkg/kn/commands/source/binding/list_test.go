@@ -20,19 +20,19 @@ import (
 	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
 
 	"gotest.tools/v3/assert"
-	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
+	v1 "knative.dev/eventing/pkg/apis/sources/v1"
 
-	clientv1alpha2 "knative.dev/client/pkg/sources/v1alpha2"
+	clientv1 "knative.dev/client/pkg/sources/v1"
 	"knative.dev/client/pkg/util"
 )
 
 func TestListBindingSimple(t *testing.T) {
-	bindingClient := clientv1alpha2.NewMockKnSinkBindingClient(t)
+	bindingClient := clientv1.NewMockKnSinkBindingClient(t)
 
 	bindingRecorder := bindingClient.Recorder()
 	binding := createSinkBinding("testbinding", "mysvc", deploymentGvk, "mydeploy", "default", nil)
-	bindingList := v1alpha2.SinkBindingList{
-		Items: []v1alpha2.SinkBinding{
+	bindingList := v1.SinkBindingList{
+		Items: []v1.SinkBinding{
 			*binding,
 		},
 	}
@@ -47,10 +47,10 @@ func TestListBindingSimple(t *testing.T) {
 }
 
 func TestListBindingEmpty(t *testing.T) {
-	bindingClient := clientv1alpha2.NewMockKnSinkBindingClient(t)
+	bindingClient := clientv1.NewMockKnSinkBindingClient(t)
 
 	bindingRecorder := bindingClient.Recorder()
-	bindingList := v1alpha2.SinkBindingList{}
+	bindingList := v1.SinkBindingList{}
 	bindingRecorder.ListSinkBindings(&bindingList, nil)
 
 	out, err := executeSinkBindingCommand(bindingClient, nil, "list")
@@ -62,16 +62,16 @@ func TestListBindingEmpty(t *testing.T) {
 }
 
 func TestListBindingEmptyWithJsonOutput(t *testing.T) {
-	bindingClient := clientv1alpha2.NewMockKnSinkBindingClient(t)
+	bindingClient := clientv1.NewMockKnSinkBindingClient(t)
 
 	bindingRecorder := bindingClient.Recorder()
-	bindingList := v1alpha2.SinkBindingList{}
-	_ = util.UpdateGroupVersionKindWithScheme(&bindingList, v1alpha2.SchemeGroupVersion, scheme.Scheme)
+	bindingList := v1.SinkBindingList{}
+	_ = util.UpdateGroupVersionKindWithScheme(&bindingList, v1.SchemeGroupVersion, scheme.Scheme)
 	bindingRecorder.ListSinkBindings(&bindingList, nil)
 
 	out, err := executeSinkBindingCommand(bindingClient, nil, "list", "-o", "json")
 	assert.NilError(t, err, "Sources should be listed")
-	assert.Assert(t, util.ContainsAll(out, "\"apiVersion\": \"sources.knative.dev/v1alpha2\"", "\"items\": []", "\"kind\": \"SinkBindingList\""))
+	assert.Assert(t, util.ContainsAll(out, "\"apiVersion\": \"sources.knative.dev/v1\"", "\"items\": []", "\"kind\": \"SinkBindingList\""))
 
 	bindingRecorder.Validate()
 }

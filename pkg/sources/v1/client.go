@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1alpha2
+package v1
 
 import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	sourcesv1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
-	clientv1alpha2 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha2"
+	sourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"
+	clientv1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1"
 )
 
 // KnSinkBindingClient to Eventing Sources. All methods are relative to the
@@ -40,12 +40,12 @@ type KnSourcesClient interface {
 // Temporarily help to add sources dependencies
 // May be changed when adding real sources features
 type sourcesClient struct {
-	client    clientv1alpha2.SourcesV1alpha2Interface
+	client    clientv1.SourcesV1Interface
 	namespace string
 }
 
 // NewKnSourcesClient for managing all eventing built-in sources
-func NewKnSourcesClient(client clientv1alpha2.SourcesV1alpha2Interface, namespace string) KnSourcesClient {
+func NewKnSourcesClient(client clientv1.SourcesV1Interface, namespace string) KnSourcesClient {
 	return &sourcesClient{
 		client:    client,
 		namespace: namespace,
@@ -75,9 +75,9 @@ func (c *sourcesClient) ContainerSourcesClient() KnContainerSourcesClient {
 // BuiltInSourcesGVKs returns the GVKs for built in sources
 func BuiltInSourcesGVKs() []schema.GroupVersionKind {
 	return []schema.GroupVersionKind{
-		sourcesv1alpha2.SchemeGroupVersion.WithKind("ApiServerSource"),
-		sourcesv1alpha2.SchemeGroupVersion.WithKind("ContainerSource"),
-		sourcesv1alpha2.SchemeGroupVersion.WithKind("PingSource"),
-		sourcesv1alpha2.SchemeGroupVersion.WithKind("SinkBinding"),
+		sourcesv1.SchemeGroupVersion.WithKind("ApiServerSource"),
+		sourcesv1.SchemeGroupVersion.WithKind("ContainerSource"),
+		sourcesv1.SchemeGroupVersion.WithKind("PingSource"),
+		sourcesv1.SchemeGroupVersion.WithKind("SinkBinding"),
 	}
 }

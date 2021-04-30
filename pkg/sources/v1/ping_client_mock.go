@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1alpha2
+package v1
 
 import (
 	"context"
 	"testing"
 
-	"knative.dev/eventing/pkg/apis/sources/v1alpha2"
+	"knative.dev/eventing/pkg/apis/sources/v1"
 
 	"knative.dev/client/pkg/util/mock"
 )
@@ -64,20 +64,20 @@ func (sr *PingSourcesRecorder) CreatePingSource(pingSource interface{}, err erro
 }
 
 // CreatePingSource performs a previously recorded action, failing if non has been registered
-func (c *MockKnPingSourceClient) CreatePingSource(ctx context.Context, pingSource *v1alpha2.PingSource) error {
+func (c *MockKnPingSourceClient) CreatePingSource(ctx context.Context, pingSource *v1.PingSource) error {
 	call := c.recorder.r.VerifyCall("CreatePingSource", pingSource)
 	return mock.ErrorOrNil(call.Result[0])
 }
 
 // GetPingSource records a call for GetPingSource with the expected object or error. Either pingsource or err should be nil
-func (sr *PingSourcesRecorder) GetPingSource(name interface{}, pingSource *v1alpha2.PingSource, err error) {
+func (sr *PingSourcesRecorder) GetPingSource(name interface{}, pingSource *v1.PingSource, err error) {
 	sr.r.Add("GetPingSource", []interface{}{name}, []interface{}{pingSource, err})
 }
 
 // GetPingSource performs a previously recorded action, failing if non has been registered
-func (c *MockKnPingSourceClient) GetPingSource(ctx context.Context, name string) (*v1alpha2.PingSource, error) {
+func (c *MockKnPingSourceClient) GetPingSource(ctx context.Context, name string) (*v1.PingSource, error) {
 	call := c.recorder.r.VerifyCall("GetPingSource", name)
-	return call.Result[0].(*v1alpha2.PingSource), mock.ErrorOrNil(call.Result[1])
+	return call.Result[0].(*v1.PingSource), mock.ErrorOrNil(call.Result[1])
 }
 
 // UpdatePingSource records a call for UpdatePingSource with the expected error (nil if none)
@@ -86,7 +86,7 @@ func (sr *PingSourcesRecorder) UpdatePingSource(pingSource interface{}, err erro
 }
 
 // UpdatePingSource performs a previously recorded action, failing if non has been registered
-func (c *MockKnPingSourceClient) UpdatePingSource(ctx context.Context, pingSource *v1alpha2.PingSource) error {
+func (c *MockKnPingSourceClient) UpdatePingSource(ctx context.Context, pingSource *v1.PingSource) error {
 	call := c.recorder.r.VerifyCall("UpdatePingSource", pingSource)
 	return mock.ErrorOrNil(call.Result[0])
 }
@@ -103,14 +103,14 @@ func (c *MockKnPingSourceClient) DeletePingSource(ctx context.Context, name stri
 }
 
 // ListPingSource records a call for ListPingSource with the expected error (nil if none)
-func (sr *PingSourcesRecorder) ListPingSource(pingSourceList *v1alpha2.PingSourceList, err error) {
+func (sr *PingSourcesRecorder) ListPingSource(pingSourceList *v1.PingSourceList, err error) {
 	sr.r.Add("ListPingSource", []interface{}{}, []interface{}{pingSourceList, err})
 }
 
 // ListPingSource performs a previously recorded action, failing if non has been registered
-func (c *MockKnPingSourceClient) ListPingSource(context.Context) (*v1alpha2.PingSourceList, error) {
+func (c *MockKnPingSourceClient) ListPingSource(context.Context) (*v1.PingSourceList, error) {
 	call := c.recorder.r.VerifyCall("ListPingSource")
-	return call.Result[0].(*v1alpha2.PingSourceList), mock.ErrorOrNil(call.Result[1])
+	return call.Result[0].(*v1.PingSourceList), mock.ErrorOrNil(call.Result[1])
 }
 
 // Validates validates whether every recorded action has been called

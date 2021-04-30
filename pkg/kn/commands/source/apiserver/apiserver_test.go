@@ -18,11 +18,11 @@ import (
 	"bytes"
 
 	"k8s.io/client-go/tools/clientcmd"
-	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
+	v1 "knative.dev/eventing/pkg/apis/sources/v1"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 
 	kndynamic "knative.dev/client/pkg/dynamic"
-	clientv1alpha2 "knative.dev/client/pkg/sources/v1alpha2"
+	clientv1 "knative.dev/client/pkg/sources/v1"
 
 	"knative.dev/client/pkg/kn/commands"
 )
@@ -52,7 +52,7 @@ current-context: x
 	}
 }
 
-func executeAPIServerSourceCommand(apiServerSourceClient clientv1alpha2.KnAPIServerSourcesClient, dynamicClient kndynamic.KnDynamicClient, args ...string) (string, error) {
+func executeAPIServerSourceCommand(apiServerSourceClient clientv1.KnAPIServerSourcesClient, dynamicClient kndynamic.KnDynamicClient, args ...string) (string, error) {
 	knParams := &commands.KnParams{}
 	knParams.ClientConfig = blankConfig
 
@@ -66,7 +66,7 @@ func executeAPIServerSourceCommand(apiServerSourceClient clientv1alpha2.KnAPISer
 	cmd.SetArgs(args)
 	cmd.SetOutput(output)
 
-	apiServerSourceClientFactory = func(config clientcmd.ClientConfig, namespace string) (clientv1alpha2.KnAPIServerSourcesClient, error) {
+	apiServerSourceClientFactory = func(config clientcmd.ClientConfig, namespace string) (clientv1.KnAPIServerSourcesClient, error) {
 		return apiServerSourceClient, nil
 	}
 	defer cleanupAPIServerMockClient()
@@ -80,13 +80,13 @@ func cleanupAPIServerMockClient() {
 	apiServerSourceClientFactory = nil
 }
 
-func createAPIServerSource(name, resourceKind, resourceVersion, serviceAccount, mode string, ceOverrides map[string]string, sink duckv1.Destination) *v1alpha2.ApiServerSource {
-	resources := []v1alpha2.APIVersionKindSelector{{
+func createAPIServerSource(name, resourceKind, resourceVersion, serviceAccount, mode string, ceOverrides map[string]string, sink duckv1.Destination) *v1.ApiServerSource {
+	resources := []v1.APIVersionKindSelector{{
 		APIVersion: resourceVersion,
 		Kind:       resourceKind,
 	}}
 
-	return clientv1alpha2.NewAPIServerSourceBuilder(name).
+	return clientv1.NewAPIServerSourceBuilder(name).
 		Resources(resources).
 		ServiceAccount(serviceAccount).
 		EventMode(mode).

@@ -22,13 +22,13 @@ import (
 
 	"gotest.tools/v3/assert"
 
-	"knative.dev/client/pkg/sources/v1alpha2"
+	"knative.dev/client/pkg/sources/v1"
 	"knative.dev/client/pkg/util"
 )
 
 func TestContainerSourceDelete(t *testing.T) {
 
-	containerClient := v1alpha2.NewMockKnContainerSourceClient(t, "testns")
+	containerClient := v1.NewMockKnContainerSourceClient(t, "testns")
 	containerRecorder := containerClient.Recorder()
 
 	containerRecorder.DeleteContainerSource("testsource", nil)
@@ -42,7 +42,7 @@ func TestContainerSourceDelete(t *testing.T) {
 
 func TestDeleteWithError(t *testing.T) {
 
-	containerClient := v1alpha2.NewMockKnContainerSourceClient(t, "mynamespace")
+	containerClient := v1.NewMockKnContainerSourceClient(t, "mynamespace")
 	containerRecorder := containerClient.Recorder()
 
 	containerRecorder.DeleteContainerSource("testsource", errors.New("container source testsource not found"))

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha2
+package v1
 
 import (
 	"context"
@@ -26,13 +26,13 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	clienttesting "k8s.io/client-go/testing"
-	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
-	fake "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha2/fake"
+	v1 "knative.dev/eventing/pkg/apis/sources/v1"
+	fake "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1/fake"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 )
 
-func setupFakeContainerSourcesClient() (fakeSvr fake.FakeSourcesV1alpha2, client KnContainerSourcesClient) {
-	fakeE := fake.FakeSourcesV1alpha2{Fake: &clienttesting.Fake{}}
+func setupFakeContainerSourcesClient() (fakeSvr fake.FakeSourcesV1, client KnContainerSourcesClient) {
+	fakeE := fake.FakeSourcesV1{Fake: &clienttesting.Fake{}}
 	cli := NewKnSourcesClient(&fakeE, "test-ns").ContainerSourcesClient()
 	return fakeE, cli
 }
@@ -107,7 +107,7 @@ func TestUpdateContainerSource(t *testing.T) {
 			if name == "errorSource" {
 				return true, nil, fmt.Errorf("error while updating Container source %s", name)
 			}
-			return true, NewContainerSourceBuilderFromExisting(updatedSource.(*v1alpha2.ContainerSource)).Build(), nil
+			return true, NewContainerSourceBuilderFromExisting(updatedSource.(*v1.ContainerSource)).Build(), nil
 		})
 	err := client.UpdateContainerSource(context.Background(), newContainerSource("foo", "Event"))
 	assert.NilError(t, err)
@@ -122,7 +122,7 @@ func TestListContainerSource(t *testing.T) {
 	sourcesServer.AddReactor("list", "containersources",
 		func(a clienttesting.Action) (bool, runtime.Object, error) {
 			cJSource := newContainerSource("testsource", "Event")
-			return true, &v1alpha2.ContainerSourceList{Items: []v1alpha2.ContainerSource{*cJSource}}, nil
+			return true, &v1.ContainerSourceList{Items: []v1.ContainerSource{*cJSource}}, nil
 		})
 
 	sourceList, err := client.ListContainerSources(context.Background())
@@ -130,7 +130,7 @@ func TestListContainerSource(t *testing.T) {
 	assert.Equal(t, len(sourceList.Items), 1)
 }
 
-func newContainerSource(name, container string) *v1alpha2.ContainerSource {
+func newContainerSource(name, container string) *v1.ContainerSource {
 	b := NewContainerSourceBuilder(name).
 		PodSpec(corev1.PodSpec{}).
 		Sink(duckv1.Destination{
