@@ -22,19 +22,19 @@ import (
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	dynamicfake "knative.dev/client/pkg/dynamic/fake"
-	clientsourcesv1 "knative.dev/client/pkg/sources/v1"
+	clientsourcesv1beta2 "knative.dev/client/pkg/sources/v1beta2"
 
 	"knative.dev/client/pkg/util"
 )
 
 func TestSimpleCreatePingSource(t *testing.T) {
 	mysvc := &servingv1.Service{
-		TypeMeta:   metav1.TypeMeta{Kind: "Service", APIVersion: "serving.knative.dev/v1"},
+		TypeMeta:   metav1.TypeMeta{Kind: "Service", APIVersion: "serving.knative.dev/v1beta2"},
 		ObjectMeta: metav1.ObjectMeta{Name: "mysvc", Namespace: "default"},
 	}
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default", mysvc)
 
-	pingClient := clientsourcesv1.NewMockKnPingSourceClient(t)
+	pingClient := clientsourcesv1beta2.NewMockKnPingSourceClient(t)
 
 	pingRecorder := pingClient.Recorder()
 	pingRecorder.CreatePingSource(createPingSource("testsource", "* * * * */2", "maxwell", "mysvc", map[string]string{"bla": "blub", "foo": "bar"}), nil)
@@ -47,7 +47,7 @@ func TestSimpleCreatePingSource(t *testing.T) {
 }
 
 func TestNoSinkError(t *testing.T) {
-	pingClient := clientsourcesv1.NewMockKnPingSourceClient(t)
+	pingClient := clientsourcesv1beta2.NewMockKnPingSourceClient(t)
 
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default")
 

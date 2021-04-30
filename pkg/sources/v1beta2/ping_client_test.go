@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1
+package v1beta2
 
 import (
 	"context"
@@ -23,13 +23,13 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	clienttesting "k8s.io/client-go/testing"
-	v1 "knative.dev/eventing/pkg/apis/sources/v1"
-	"knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1/fake"
+	sourcesv1beta2 "knative.dev/eventing/pkg/apis/sources/v1beta2"
+	"knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1beta2/fake"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 )
 
-func setupPingSourcesClient(t *testing.T) (sources fake.FakeSourcesV1, client KnPingSourcesClient) {
-	sources = fake.FakeSourcesV1{Fake: &clienttesting.Fake{}}
+func setupPingSourcesClient(t *testing.T) (sources fake.FakeSourcesV1beta2, client KnPingSourcesClient) {
+	sources = fake.FakeSourcesV1beta2{Fake: &clienttesting.Fake{}}
 	client = NewKnSourcesClient(&sources, "test-ns").PingSourcesClient()
 	assert.Equal(t, client.Namespace(), "test-ns")
 	return
@@ -69,7 +69,7 @@ func TestUpdatePingSource(t *testing.T) {
 			if name == "errorSource" {
 				return true, nil, fmt.Errorf("error while updating pingsource %s", name)
 			}
-			return true, NewPingSourceBuilderFromExisting(newSource.(*v1.PingSource)).Build(), nil
+			return true, NewPingSourceBuilderFromExisting(newSource.(*sourcesv1beta2.PingSource)).Build(), nil
 		})
 
 	err := client.UpdatePingSource(context.Background(), newPingSource("testsource", ""))
@@ -125,7 +125,7 @@ func TestListPingSource(t *testing.T) {
 	sourcesServer.AddReactor("list", "pingsources",
 		func(a clienttesting.Action) (bool, runtime.Object, error) {
 			cJSource := newPingSource("testsource", "mysvc")
-			return true, &v1.PingSourceList{Items: []v1.PingSource{*cJSource}}, nil
+			return true, &sourcesv1beta2.PingSourceList{Items: []sourcesv1beta2.PingSource{*cJSource}}, nil
 		})
 
 	sourceList, err := client.ListPingSource(context.Background())
@@ -133,7 +133,7 @@ func TestListPingSource(t *testing.T) {
 	assert.Equal(t, len(sourceList.Items), 1)
 }
 
-func newPingSource(name string, sink string) *v1.PingSource {
+func newPingSource(name string, sink string) *sourcesv1beta2.PingSource {
 	b := NewPingSourceBuilder(name).
 		Schedule("* * * * *").
 		Data("mydata").

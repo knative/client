@@ -17,6 +17,7 @@ package commands
 import (
 	"fmt"
 	"io"
+
 	"os"
 	"path/filepath"
 
@@ -26,10 +27,10 @@ import (
 	eventingv1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1"
 	messagingv1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/messaging/v1"
 	sourcesv1client "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1"
+	sourcesv1beta2client "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1beta2"
 	servingv1client "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1"
 	servingv1alpha1client "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
 
-	v1 "knative.dev/client/pkg/sources/v1"
 	"knative.dev/client/pkg/util"
 
 	clientdynamic "knative.dev/client/pkg/dynamic"
@@ -38,6 +39,8 @@ import (
 	clientmessagingv1 "knative.dev/client/pkg/messaging/v1"
 	clientservingv1 "knative.dev/client/pkg/serving/v1"
 	clientservingv1alpha1 "knative.dev/client/pkg/serving/v1alpha1"
+	clientsourcesv1 "knative.dev/client/pkg/sources/v1"
+	clientsourcesv1beta2 "knative.dev/client/pkg/sources/v1beta2"
 )
 
 // KnParams for creating commands. Useful for inserting mocks for testing.
@@ -50,7 +53,8 @@ type KnParams struct {
 	NewServingClient         func(namespace string) (clientservingv1.KnServingClient, error)
 	NewServingV1alpha1Client func(namespace string) (clientservingv1alpha1.KnServingClient, error)
 	NewGitopsServingClient   func(namespace string, dir string) (clientservingv1.KnServingClient, error)
-	NewSourcesClient         func(namespace string) (v1.KnSourcesClient, error)
+	NewSourcesClient         func(namespace string) (clientsourcesv1.KnSourcesClient, error)
+	NewSourcesV1beta2Client  func(namespace string) (clientsourcesv1beta2.KnSourcesClient, error)
 	NewEventingClient        func(namespace string) (clienteventingv1.KnEventingClient, error)
 	NewMessagingClient       func(namespace string) (clientmessagingv1.KnMessagingClient, error)
 	NewDynamicClient         func(namespace string) (clientdynamic.KnDynamicClient, error)
@@ -122,14 +126,24 @@ func (params *KnParams) newGitopsServingClient(namespace string, dir string) (cl
 	return clientservingv1.NewKnServingGitOpsClient(namespace, dir), nil
 }
 
-func (params *KnParams) newSourcesClient(namespace string) (v1.KnSourcesClient, error) {
+func (params *KnParams) newSourcesClient(namespace string) (clientsourcesv1.KnSourcesClient, error) {
 	restConfig, err := params.RestConfig()
 	if err != nil {
 		return nil, err
 	}
 
 	client, _ := sourcesv1client.NewForConfig(restConfig)
-	return v1.NewKnSourcesClient(client, namespace), nil
+	return clientsourcesv1.NewKnSourcesClient(client, namespace), nil
+}
+
+func (params *KnParams) newSourcesClientV1beta2(namespace string) (clientsourcesv1beta2.KnSourcesClient, error) {
+	restConfig, err := params.RestConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	client, _ := sourcesv1beta2client.NewForConfig(restConfig)
+	return clientsourcesv1beta2.NewKnSourcesClient(client, namespace), nil
 }
 
 func (params *KnParams) newEventingClient(namespace string) (clienteventingv1.KnEventingClient, error) {

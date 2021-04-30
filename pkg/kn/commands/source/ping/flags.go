@@ -19,13 +19,13 @@ import (
 	"sort"
 
 	"github.com/spf13/cobra"
-	metav1beta1 "k8s.io/apimachinery/pkg/apis/meta/v1beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	"knative.dev/client/pkg/kn/commands"
 	hprinters "knative.dev/client/pkg/printers"
 
-	v1 "knative.dev/eventing/pkg/apis/sources/v1"
+	sourcesv1beta2 "knative.dev/eventing/pkg/apis/sources/v1beta2"
 )
 
 type pingUpdateFlags struct {
@@ -53,7 +53,7 @@ func (c *pingUpdateFlags) addFlags(cmd *cobra.Command) {
 
 // PingListHandlers handles printing human readable table for `kn source ping list` command's output
 func PingSourceListHandlers(h hprinters.PrintHandler) {
-	sourceColumnDefinitions := []metav1beta1.TableColumnDefinition{
+	sourceColumnDefinitions := []metav1.TableColumnDefinition{
 		{Name: "Namespace", Type: "string", Description: "Namespace of the Ping source", Priority: 0},
 		{Name: "Name", Type: "string", Description: "Name of the Ping source", Priority: 1},
 		{Name: "Schedule", Type: "string", Description: "Schedule of the Ping source", Priority: 1},
@@ -68,8 +68,8 @@ func PingSourceListHandlers(h hprinters.PrintHandler) {
 }
 
 // printSource populates a single row of Ping source list
-func printSource(source *v1.PingSource, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
-	row := metav1beta1.TableRow{
+func printSource(source *sourcesv1beta2.PingSource, options hprinters.PrintOptions) ([]metav1.TableRow, error) {
+	row := metav1.TableRow{
 		Object: runtime.RawExtension{Object: source},
 	}
 
@@ -80,8 +80,8 @@ func printSource(source *v1.PingSource, options hprinters.PrintOptions) ([]metav
 	ready := commands.ReadyCondition(source.Status.Conditions)
 	reason := commands.NonReadyConditionReason(source.Status.Conditions)
 
-	// Not moving to SinkToString() as it references v1beta1.Destination
-	// This source is going to be moved/removed soon to v1, so no need to move
+	// Not moving to SinkToString() as it references v1beta2beta1.Destination
+	// This source is going to be moved/removed soon to v1beta2, so no need to move
 	// it now
 	var sink string
 	if source.Spec.Sink.Ref != nil {
@@ -97,16 +97,16 @@ func printSource(source *v1.PingSource, options hprinters.PrintOptions) ([]metav
 	}
 
 	row.Cells = append(row.Cells, name, schedule, sink, age, conditions, ready, reason)
-	return []metav1beta1.TableRow{row}, nil
+	return []metav1.TableRow{row}, nil
 }
 
 // printSourceList populates the Ping source list table rows
-func printSourceList(sourceList *v1.PingSourceList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+func printSourceList(sourceList *sourcesv1beta2.PingSourceList, options hprinters.PrintOptions) ([]metav1.TableRow, error) {
 	if options.AllNamespaces {
 		return printSourceListWithNamespace(sourceList, options)
 	}
 
-	rows := make([]metav1beta1.TableRow, 0, len(sourceList.Items))
+	rows := make([]metav1.TableRow, 0, len(sourceList.Items))
 
 	sort.SliceStable(sourceList.Items, func(i, j int) bool {
 		return sourceList.Items[i].GetName() < sourceList.Items[j].GetName()
@@ -125,11 +125,11 @@ func printSourceList(sourceList *v1.PingSourceList, options hprinters.PrintOptio
 }
 
 // printSourceListWithNamespace populates the knative service table rows with namespace column
-func printSourceListWithNamespace(sourceList *v1.PingSourceList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
-	rows := make([]metav1beta1.TableRow, 0, len(sourceList.Items))
+func printSourceListWithNamespace(sourceList *sourcesv1beta2.PingSourceList, options hprinters.PrintOptions) ([]metav1.TableRow, error) {
+	rows := make([]metav1.TableRow, 0, len(sourceList.Items))
 
 	// temporary slice for sorting services in non-default namespace
-	others := make([]metav1beta1.TableRow, 0, len(rows))
+	others := make([]metav1.TableRow, 0, len(rows))
 
 	for i := range sourceList.Items {
 		source := &sourceList.Items[i]

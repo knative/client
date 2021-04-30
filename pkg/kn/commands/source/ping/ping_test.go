@@ -18,12 +18,12 @@ import (
 	"bytes"
 
 	"k8s.io/client-go/tools/clientcmd"
-	sourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"
+	sourcesv1beta2 "knative.dev/eventing/pkg/apis/sources/v1beta2"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 
 	kndynamic "knative.dev/client/pkg/dynamic"
 	"knative.dev/client/pkg/kn/commands"
-	clientv1 "knative.dev/client/pkg/sources/v1"
+	clientv1beta2 "knative.dev/client/pkg/sources/v1beta2"
 )
 
 // Helper methods
@@ -34,7 +34,7 @@ var blankConfig clientcmd.ClientConfig
 func init() {
 	var err error
 	blankConfig, err = clientcmd.NewClientConfigFromBytes([]byte(`kind: Config
-version: v1
+version: v1beta2
 users:
 - name: u
 clusters:
@@ -53,7 +53,7 @@ current-context: x
 	}
 }
 
-func executePingSourceCommand(pingSourceClient clientv1.KnPingSourcesClient, dynamicClient kndynamic.KnDynamicClient, args ...string) (string, error) {
+func executePingSourceCommand(pingSourceClient clientv1beta2.KnPingSourcesClient, dynamicClient kndynamic.KnDynamicClient, args ...string) (string, error) {
 	knParams := &commands.KnParams{}
 	knParams.ClientConfig = blankConfig
 
@@ -67,7 +67,7 @@ func executePingSourceCommand(pingSourceClient clientv1.KnPingSourcesClient, dyn
 	cmd.SetArgs(args)
 	cmd.SetOutput(output)
 
-	pingSourceClientFactory = func(config clientcmd.ClientConfig, namespace string) (clientv1.KnPingSourcesClient, error) {
+	pingSourceClientFactory = func(config clientcmd.ClientConfig, namespace string) (clientv1beta2.KnPingSourcesClient, error) {
 		return pingSourceClient, nil
 	}
 	defer cleanupPingMockClient()
@@ -81,11 +81,11 @@ func cleanupPingMockClient() {
 	pingSourceClientFactory = nil
 }
 
-func createPingSource(name, schedule, data, service string, ceOverridesMap map[string]string) *sourcesv1.PingSource {
+func createPingSource(name, schedule, data, service string, ceOverridesMap map[string]string) *sourcesv1beta2.PingSource {
 	sink := &duckv1.Destination{
 		Ref: &duckv1.KReference{Name: service, Kind: "Service", APIVersion: "serving.knative.dev/v1", Namespace: "default"},
 	}
-	return clientv1.NewPingSourceBuilder(name).
+	return clientv1beta2.NewPingSourceBuilder(name).
 		Schedule(schedule).
 		Data(data).
 		Sink(*sink).

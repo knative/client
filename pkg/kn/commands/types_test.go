@@ -203,6 +203,57 @@ func TestNewSourcesClient(t *testing.T) {
 
 		if sourcesClient != nil {
 			assert.Assert(t, sourcesClient.SinkBindingClient().Namespace() == namespace)
+			assert.Assert(t, sourcesClient.ContainerSourcesClient().Namespace() == namespace)
+			assert.Assert(t, sourcesClient.APIServerSourcesClient().Namespace() == namespace)
+		}
+	}
+}
+
+func TestNewSourcesV1beta2Client(t *testing.T) {
+	basic, err := clientcmd.NewClientConfigFromBytes([]byte(BASIC_KUBECONFIG))
+	namespace := "test"
+	if err != nil {
+		t.Error(err)
+	}
+	for i, tc := range []configTestCase{
+		{
+			clientcmd.NewDefaultClientConfig(clientcmdapi.Config{}, &clientcmd.ConfigOverrides{}),
+			"no kubeconfig has been provided, please use a valid configuration to connect to the cluster",
+			false,
+		},
+		{
+			basic,
+			"",
+			false,
+		},
+		{ // Test that the cast to wrap the http client in a logger works
+			basic,
+			"",
+			true,
+		},
+	} {
+		p := &KnParams{
+			ClientConfig: tc.clientConfig,
+			LogHTTP:      tc.logHttp,
+		}
+
+		sourcesClient, err := p.newSourcesClientV1beta2(namespace)
+
+		switch len(tc.expectedErrString) {
+		case 0:
+			if err != nil {
+				t.Errorf("%d: unexpected error: %s", i, err.Error())
+			}
+		default:
+			if err == nil {
+				t.Errorf("%d: wrong error detected: %s (expected) != %s (actual)", i, tc.expectedErrString, err)
+			}
+			if !strings.Contains(err.Error(), tc.expectedErrString) {
+				t.Errorf("%d: wrong error detected: %s (expected) != %s (actual)", i, tc.expectedErrString, err.Error())
+			}
+		}
+
+		if sourcesClient != nil {
 			assert.Assert(t, sourcesClient.PingSourcesClient().Namespace() == namespace)
 		}
 	}

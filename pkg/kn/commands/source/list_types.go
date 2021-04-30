@@ -18,6 +18,8 @@ import (
 	"context"
 	"fmt"
 
+	"knative.dev/client/pkg/sources"
+
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -26,7 +28,6 @@ import (
 	knerrors "knative.dev/client/pkg/errors"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
-	sourcesv1 "knative.dev/client/pkg/sources/v1"
 )
 
 // NewListTypesCommand defines and processes `kn source list-types`
@@ -96,7 +97,7 @@ func NewListTypesCommand(p *commands.KnParams) *cobra.Command {
 func listBuiltInSourceTypes(ctx context.Context, d dynamic.KnDynamicClient) (*unstructured.UnstructuredList, error) {
 	var err error
 	uList := unstructured.UnstructuredList{}
-	gvks := sourcesv1.BuiltInSourcesGVKs()
+	gvks := sources.BuiltInSourcesGVKs()
 	for _, gvk := range gvks {
 		_, err = d.ListSourcesUsingGVKs(ctx, &[]schema.GroupVersionKind{gvk})
 		if err != nil {

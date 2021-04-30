@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1
+package v1beta2
 
 import (
 	"context"
 	"testing"
 
-	v1 "knative.dev/eventing/pkg/apis/sources/v1"
+	sourcesv1beta2 "knative.dev/eventing/pkg/apis/sources/v1beta2"
 )
 
 func TestMockKnPingSourceClient(t *testing.T) {
@@ -29,15 +29,15 @@ func TestMockKnPingSourceClient(t *testing.T) {
 
 	// Record all services
 	recorder.GetPingSource("hello", nil, nil)
-	recorder.CreatePingSource(&v1.PingSource{}, nil)
-	recorder.UpdatePingSource(&v1.PingSource{}, nil)
+	recorder.CreatePingSource(&sourcesv1beta2.PingSource{}, nil)
+	recorder.UpdatePingSource(&sourcesv1beta2.PingSource{}, nil)
 	recorder.DeletePingSource("hello", nil)
 
 	// Call all service
 	ctx := context.Background()
 	client.GetPingSource(ctx, "hello")
-	client.CreatePingSource(ctx, &v1.PingSource{})
-	client.UpdatePingSource(ctx, &v1.PingSource{})
+	client.CreatePingSource(ctx, &sourcesv1beta2.PingSource{})
+	client.UpdatePingSource(ctx, &sourcesv1beta2.PingSource{})
 	client.DeletePingSource(ctx, "hello")
 
 	// Validate

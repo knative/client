@@ -20,16 +20,16 @@ import (
 
 	"gotest.tools/v3/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	v1 "knative.dev/eventing/pkg/apis/sources/v1"
+	sourcesv1beta "knative.dev/eventing/pkg/apis/sources/v1beta2"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 
-	clientv1 "knative.dev/client/pkg/sources/v1"
+	clientv1beta2 "knative.dev/client/pkg/sources/v1beta2"
 	"knative.dev/client/pkg/util"
 	"knative.dev/pkg/apis"
 )
 
 func TestDescribeRef(t *testing.T) {
-	pingClient := clientv1.NewMockKnPingSourceClient(t, "mynamespace")
+	pingClient := clientv1beta2.NewMockKnPingSourceClient(t, "mynamespace")
 
 	pingRecorder := pingClient.Recorder()
 	pingRecorder.GetPingSource("testping",
@@ -43,7 +43,7 @@ func TestDescribeRef(t *testing.T) {
 }
 
 func TestDescribeURI(t *testing.T) {
-	pingClient := clientv1.NewMockKnPingSourceClient(t, "mynamespace")
+	pingClient := clientv1beta2.NewMockKnPingSourceClient(t, "mynamespace")
 
 	pingRecorder := pingClient.Recorder()
 	pingRecorder.GetPingSource("testsource-uri", getPingSourceSinkURI(), nil)
@@ -56,7 +56,7 @@ func TestDescribeURI(t *testing.T) {
 }
 
 func TestDescribeMachineReadable(t *testing.T) {
-	pingClient := clientv1.NewMockKnPingSourceClient(t, "mynamespace")
+	pingClient := clientv1beta2.NewMockKnPingSourceClient(t, "mynamespace")
 
 	pingRecorder := pingClient.Recorder()
 	pingRecorder.GetPingSource("testsource-uri", getPingSourceSinkURI(), nil)
@@ -68,7 +68,7 @@ func TestDescribeMachineReadable(t *testing.T) {
 }
 
 func TestDescribeError(t *testing.T) {
-	pingClient := clientv1.NewMockKnPingSourceClient(t, "mynamespace")
+	pingClient := clientv1beta2.NewMockKnPingSourceClient(t, "mynamespace")
 
 	pingRecorder := pingClient.Recorder()
 	pingRecorder.GetPingSource("testsource", nil, errors.New("no Ping source testsource"))
@@ -81,17 +81,17 @@ func TestDescribeError(t *testing.T) {
 
 }
 
-func getPingSourceSinkURI() *v1.PingSource {
-	return &v1.PingSource{
+func getPingSourceSinkURI() *sourcesv1beta.PingSource {
+	return &sourcesv1beta.PingSource{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "PingSource",
-			APIVersion: "sources.knative.dev/v1",
+			APIVersion: "sources.knative.dev/v1beta2",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testsource-uri",
 			Namespace: "mynamespace",
 		},
-		Spec: v1.PingSourceSpec{
+		Spec: sourcesv1beta.PingSourceSpec{
 			Schedule: "1 2 3 4 5",
 			Data:     "honeymoon",
 			SourceSpec: duckv1.SourceSpec{
@@ -103,6 +103,6 @@ func getPingSourceSinkURI() *v1.PingSource {
 				},
 			},
 		},
-		Status: v1.PingSourceStatus{},
+		Status: sourcesv1beta.PingSourceStatus{},
 	}
 }

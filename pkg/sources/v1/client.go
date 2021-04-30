@@ -15,17 +15,12 @@
 package v1
 
 import (
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	sourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"
 	clientv1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1"
 )
 
 // KnSinkBindingClient to Eventing Sources. All methods are relative to the
 // namespace specified during construction
 type KnSourcesClient interface {
-	// Get client for Ping sources
-	PingSourcesClient() KnPingSourcesClient
-
 	// Get client for sink binding sources
 	SinkBindingClient() KnSinkBindingClient
 
@@ -52,11 +47,6 @@ func NewKnSourcesClient(client clientv1.SourcesV1Interface, namespace string) Kn
 	}
 }
 
-// Get the client for dealing with Ping sources
-func (c *sourcesClient) PingSourcesClient() KnPingSourcesClient {
-	return newKnPingSourcesClient(c.client.PingSources(c.namespace), c.namespace)
-}
-
 // ApiServerSourcesClient for dealing with ApiServer sources
 func (c *sourcesClient) SinkBindingClient() KnSinkBindingClient {
 	return newKnSinkBindingClient(c.client.SinkBindings(c.namespace), c.namespace)
@@ -70,14 +60,4 @@ func (c *sourcesClient) APIServerSourcesClient() KnAPIServerSourcesClient {
 // ApiServerSourcesClient for dealing with ApiServer sources
 func (c *sourcesClient) ContainerSourcesClient() KnContainerSourcesClient {
 	return newKnContainerSourcesClient(c.client.ContainerSources(c.namespace), c.namespace)
-}
-
-// BuiltInSourcesGVKs returns the GVKs for built in sources
-func BuiltInSourcesGVKs() []schema.GroupVersionKind {
-	return []schema.GroupVersionKind{
-		sourcesv1.SchemeGroupVersion.WithKind("ApiServerSource"),
-		sourcesv1.SchemeGroupVersion.WithKind("ContainerSource"),
-		sourcesv1.SchemeGroupVersion.WithKind("PingSource"),
-		sourcesv1.SchemeGroupVersion.WithKind("SinkBinding"),
-	}
 }

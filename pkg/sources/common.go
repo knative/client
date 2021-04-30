@@ -1,4 +1,4 @@
-// Copyright © 2020 The Knative Authors
+// Copyright © 2021 The Knative Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,20 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1
+package sources
 
 import (
-	"testing"
-
-	"gotest.tools/v3/assert"
-
-	sourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	v1 "knative.dev/eventing/pkg/apis/sources/v1"
+	"knative.dev/eventing/pkg/apis/sources/v1beta2"
 )
 
-func TestBuiltInSourcesGVks(t *testing.T) {
-	gvks := BuiltInSourcesGVKs()
-	for _, each := range gvks {
-		assert.DeepEqual(t, each.GroupVersion(), sourcesv1.SchemeGroupVersion)
+// BuiltInSourcesGVKs returns the GVKs for built in sources
+func BuiltInSourcesGVKs() []schema.GroupVersionKind {
+	return []schema.GroupVersionKind{
+		v1.SchemeGroupVersion.WithKind("ApiServerSource"),
+		v1.SchemeGroupVersion.WithKind("ContainerSource"),
+		v1.SchemeGroupVersion.WithKind("SinkBinding"),
+		v1beta2.SchemeGroupVersion.WithKind("PingSource"),
 	}
-	assert.Equal(t, len(gvks), 4)
 }

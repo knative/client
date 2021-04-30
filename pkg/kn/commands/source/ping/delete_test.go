@@ -19,14 +19,14 @@ import (
 	"testing"
 
 	"gotest.tools/v3/assert"
-	clientsourcesv1 "knative.dev/client/pkg/sources/v1"
+	clientsourcesv1beta2 "knative.dev/client/pkg/sources/v1beta2"
 
 	"knative.dev/client/pkg/util"
 )
 
 func TestSimpleDelete(t *testing.T) {
 
-	pingClient := clientsourcesv1.NewMockKnPingSourceClient(t, "mynamespace")
+	pingClient := clientsourcesv1beta2.NewMockKnPingSourceClient(t, "mynamespace")
 
 	pingRecorder := pingClient.Recorder()
 	pingRecorder.DeletePingSource("testsource", nil)
@@ -40,7 +40,7 @@ func TestSimpleDelete(t *testing.T) {
 
 func TestDeleteWithError(t *testing.T) {
 
-	pingClient := clientsourcesv1.NewMockKnPingSourceClient(t, "mynamespace")
+	pingClient := clientsourcesv1beta2.NewMockKnPingSourceClient(t, "mynamespace")
 
 	pingRecorder := pingClient.Recorder()
 	pingRecorder.DeletePingSource("testsource", errors.New("no such Ping source testsource"))
