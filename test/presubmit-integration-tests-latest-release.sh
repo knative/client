@@ -18,6 +18,6 @@
 # integration tests against Knative Serving / Eventing of a specific version.
 
 export KNATIVE_SERVING_VERSION="0.22.0"
-export KNATIVE_EVENTING_VERSION="0.22.0"
+export KNATIVE_EVENTING_VERSION="0.22.1"
 
 $(dirname $0)/presubmit-tests.sh --integration-tests

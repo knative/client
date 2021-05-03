@@ -24,7 +24,7 @@ import (
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	dynamicfake "knative.dev/client/pkg/dynamic/fake"
-	"knative.dev/client/pkg/sources/v1alpha2"
+	v1 "knative.dev/client/pkg/sources/v1"
 	"knative.dev/client/pkg/util"
 )
 
@@ -34,7 +34,7 @@ func TestCreateContainerSource(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "testsvc", Namespace: "default"},
 	}
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default", testsvc)
-	containerClient := v1alpha2.NewMockKnContainerSourceClient(t)
+	containerClient := v1.NewMockKnContainerSourceClient(t)
 
 	containerRecorder := containerClient.Recorder()
 	containerRecorder.CreateContainerSource(createContainerSource("testsource", "docker.io/test/testimg", createSinkv1("testsvc", "default")), nil)
@@ -48,7 +48,7 @@ func TestCreateContainerSource(t *testing.T) {
 
 func TestSinkNotFoundError(t *testing.T) {
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default")
-	containerClient := v1alpha2.NewMockKnContainerSourceClient(t)
+	containerClient := v1.NewMockKnContainerSourceClient(t)
 	errorMsg := "cannot create ContainerSource 'testsource' in namespace 'default' because: services.serving.knative.dev \"testsvc\" not found"
 	out, err := executeContainerSourceCommand(containerClient, dynamicClient, "create", "testsource", "--image", "docker.io/test/testimg", "--sink", "ksvc:testsvc")
 	assert.Error(t, err, errorMsg)
@@ -56,7 +56,7 @@ func TestSinkNotFoundError(t *testing.T) {
 }
 
 func TestNoSinkError(t *testing.T) {
-	containerClient := v1alpha2.NewMockKnContainerSourceClient(t)
+	containerClient := v1.NewMockKnContainerSourceClient(t)
 	_, err := executeContainerSourceCommand(containerClient, nil, "create", "testsource", "--image", "docker.io/test/testimg")
 	assert.ErrorContains(t, err, "required flag(s)", "sink", "not set")
 }

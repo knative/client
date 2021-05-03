@@ -80,14 +80,14 @@ func TestGVRFromUnstructured(t *testing.T) {
 }
 
 func TestUnstructuredCRDFromGVK(t *testing.T) {
-	u := UnstructuredCRDFromGVK(schema.GroupVersionKind{Group: "sources.knative.dev", Version: "v1alpha2", Kind: "ApiServerSource"})
+	u := UnstructuredCRDFromGVK(schema.GroupVersionKind{Group: "sources.knative.dev", Version: "v1", Kind: "ApiServerSource"})
 	g, err := groupFromUnstructured(u)
 	assert.NilError(t, err)
 	assert.Equal(t, g, "sources.knative.dev")
 
 	v, err := versionFromUnstructured(u)
 	assert.NilError(t, err)
-	assert.Equal(t, v, "v1alpha2")
+	assert.Equal(t, v, "v1")
 
 	k, err := kindFromUnstructured(u)
 	assert.NilError(t, err)

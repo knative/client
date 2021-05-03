@@ -24,12 +24,12 @@ import (
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	dynamicfake "knative.dev/client/pkg/dynamic/fake"
-	clientsourcesv1alpha1 "knative.dev/client/pkg/sources/v1alpha2"
+	clientsourcesv1 "knative.dev/client/pkg/sources/v1"
 	"knative.dev/client/pkg/util"
 )
 
 func TestSimpleBindingUpdate(t *testing.T) {
-	sinkBindingClient := clientsourcesv1alpha1.NewMockKnSinkBindingClient(t)
+	sinkBindingClient := clientsourcesv1.NewMockKnSinkBindingClient(t)
 
 	mysvc := createService("myscv")
 	othersvc := createService("othersvc")
@@ -58,7 +58,7 @@ func createService(name string) *servingv1.Service {
 }
 
 func TestUpdateError(t *testing.T) {
-	sinkBindingClient := clientsourcesv1alpha1.NewMockKnSinkBindingClient(t)
+	sinkBindingClient := clientsourcesv1.NewMockKnSinkBindingClient(t)
 	bindingRecorder := sinkBindingClient.Recorder()
 	bindingRecorder.GetSinkBinding("testbinding", nil, errors.New("no such binding testbinding"))
 
@@ -70,7 +70,7 @@ func TestUpdateError(t *testing.T) {
 }
 
 func TestBindingUpdateDeletionTimestampNotNil(t *testing.T) {
-	sinkBindingClient := clientsourcesv1alpha1.NewMockKnSinkBindingClient(t)
+	sinkBindingClient := clientsourcesv1.NewMockKnSinkBindingClient(t)
 	bindingRecorder := sinkBindingClient.Recorder()
 	present := createSinkBinding("testbinding", "", deploymentGvk, "", "default", nil)
 	present.DeletionTimestamp = &v1.Time{Time: time.Now()}

@@ -20,7 +20,7 @@ import (
 
 	"gotest.tools/v3/assert"
 
-	"knative.dev/client/pkg/sources/v1alpha2"
+	v1 "knative.dev/client/pkg/sources/v1"
 	"knative.dev/client/pkg/util"
 	"knative.dev/pkg/apis"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
@@ -35,7 +35,7 @@ var (
 )
 
 func TestSimpleDescribe(t *testing.T) {
-	apiServerClient := v1alpha2.NewMockKnAPIServerSourceClient(t, "mynamespace")
+	apiServerClient := v1.NewMockKnAPIServerSourceClient(t, "mynamespace")
 
 	apiServerRecorder := apiServerClient.Recorder()
 	sampleSource := createAPIServerSource("testsource", "Event", "v1", "testsa", "Reference", map[string]string{"foo": "bar"}, createSinkv1("testsvc", "default"))
@@ -51,7 +51,7 @@ func TestSimpleDescribe(t *testing.T) {
 }
 
 func TestDescribeMachineReadable(t *testing.T) {
-	apiServerClient := v1alpha2.NewMockKnAPIServerSourceClient(t, "mynamespace")
+	apiServerClient := v1.NewMockKnAPIServerSourceClient(t, "mynamespace")
 
 	apiServerRecorder := apiServerClient.Recorder()
 	sampleSource := createAPIServerSource("testsource", "Event", "v1", "testsa", "Reference", map[string]string{"foo": "bar"}, createSinkv1("testsvc", "default"))
@@ -68,7 +68,7 @@ func TestDescribeMachineReadable(t *testing.T) {
 }
 
 func TestDescribeError(t *testing.T) {
-	apiServerClient := v1alpha2.NewMockKnAPIServerSourceClient(t, "mynamespace")
+	apiServerClient := v1.NewMockKnAPIServerSourceClient(t, "mynamespace")
 
 	apiServerRecorder := apiServerClient.Recorder()
 	apiServerRecorder.GetAPIServerSource("testsource", nil, errors.New("no apiserver source testsource"))
@@ -81,7 +81,7 @@ func TestDescribeError(t *testing.T) {
 }
 
 func TestDescribeWithSinkURI(t *testing.T) {
-	apiServerClient := v1alpha2.NewMockKnAPIServerSourceClient(t, "mynamespace")
+	apiServerClient := v1.NewMockKnAPIServerSourceClient(t, "mynamespace")
 
 	apiServerRecorder := apiServerClient.Recorder()
 	sampleSource := createAPIServerSource("testsource", "Event", "v1", "testsa", "Reference", map[string]string{"foo": "bar"}, sinkURI)

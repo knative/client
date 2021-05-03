@@ -24,12 +24,12 @@ import (
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	dynamicfake "knative.dev/client/pkg/dynamic/fake"
-	"knative.dev/client/pkg/sources/v1alpha2"
+	v1 "knative.dev/client/pkg/sources/v1"
 	"knative.dev/client/pkg/util"
 )
 
 func TestApiServerSourceUpdate(t *testing.T) {
-	apiServerClient := v1alpha2.NewMockKnAPIServerSourceClient(t)
+	apiServerClient := v1.NewMockKnAPIServerSourceClient(t)
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default", &servingv1.Service{
 		TypeMeta:   metav1.TypeMeta{Kind: "Service", APIVersion: "serving.knative.dev/v1"},
 		ObjectMeta: metav1.ObjectMeta{Name: "svc2", Namespace: "default"},
@@ -51,7 +51,7 @@ func TestApiServerSourceUpdate(t *testing.T) {
 }
 
 func TestApiServerSourceUpdateDeletionTimestampNotNil(t *testing.T) {
-	apiServerClient := v1alpha2.NewMockKnAPIServerSourceClient(t)
+	apiServerClient := v1.NewMockKnAPIServerSourceClient(t)
 	apiServerRecorder := apiServerClient.Recorder()
 
 	present := createAPIServerSource("testsource", "Event", "v1", "testsa1", "Ref", nil, createSinkv1("svc1", "default"))

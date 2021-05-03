@@ -19,11 +19,11 @@ import (
 
 	"github.com/spf13/cobra"
 	"k8s.io/client-go/tools/clientcmd"
-	v1alpha2 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1alpha2"
+	v1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1"
 	"knative.dev/pkg/tracker"
 
 	"knative.dev/client/pkg/kn/commands"
-	clientsourcesv1alpha1 "knative.dev/client/pkg/sources/v1alpha2"
+	clientsourcesv1alpha1 "knative.dev/client/pkg/sources/v1"
 )
 
 // NewBindingCommand is the root command for all binding related commands
@@ -63,7 +63,7 @@ func newSinkBindingClient(p *commands.KnParams, cmd *cobra.Command) (clientsourc
 		return nil, err
 	}
 
-	client, err := v1alpha2.NewForConfig(clientConfig)
+	client, err := v1.NewForConfig(clientConfig)
 	if err != nil {
 		return nil, err
 	}

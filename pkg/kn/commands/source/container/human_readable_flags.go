@@ -21,7 +21,7 @@ import (
 	"strings"
 
 	"k8s.io/apimachinery/pkg/runtime"
-	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
+	v1 "knative.dev/eventing/pkg/apis/sources/v1"
 
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
@@ -48,7 +48,7 @@ func ContainerSourceListHandlers(h hprinters.PrintHandler) {
 }
 
 // printSource populates a single row of source apiserver list table
-func printSource(source *v1alpha2.ContainerSource, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+func printSource(source *v1.ContainerSource, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	row := metav1beta1.TableRow{
 		Object: runtime.RawExtension{Object: source},
 	}
@@ -74,7 +74,7 @@ func printSource(source *v1alpha2.ContainerSource, options hprinters.PrintOption
 }
 
 // printSourceList populates the source apiserver list table rows
-func printSourceList(sourceList *v1alpha2.ContainerSourceList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+func printSourceList(sourceList *v1.ContainerSourceList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	if options.AllNamespaces {
 		return printSourceListWithNamespace(sourceList, options)
 	}
@@ -98,7 +98,7 @@ func printSourceList(sourceList *v1alpha2.ContainerSourceList, options hprinters
 }
 
 // printSourceListWithNamespace populates the knative service table rows with namespace column
-func printSourceListWithNamespace(sourceList *v1alpha2.ContainerSourceList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+func printSourceListWithNamespace(sourceList *v1.ContainerSourceList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	rows := make([]metav1beta1.TableRow, 0, len(sourceList.Items))
 
 	// temporary slice for sorting services in non-default namespace

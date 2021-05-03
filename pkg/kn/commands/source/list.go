@@ -17,6 +17,8 @@ package source
 import (
 	"fmt"
 
+	"knative.dev/client/pkg/sources"
+
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -25,7 +27,6 @@ import (
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
 	"knative.dev/client/pkg/kn/commands/source/duck"
-	sourcesv1alpha2 "knative.dev/client/pkg/sources/v1alpha2"
 )
 
 const (
@@ -72,7 +73,7 @@ func NewListCommand(p *commands.KnParams) *cobra.Command {
 
 			switch {
 			case knerrors.IsForbiddenError(err):
-				gvks := sourcesv1alpha2.BuiltInSourcesGVKs()
+				gvks := sources.BuiltInSourcesGVKs()
 				if sourceList, err = dynamicClient.ListSourcesUsingGVKs(cmd.Context(), &gvks, filters...); err != nil {
 					return knerrors.GetError(err)
 				}

@@ -22,7 +22,7 @@ import (
 
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
-	"knative.dev/client/pkg/sources/v1alpha2"
+	sourcesv1beta2 "knative.dev/client/pkg/sources/v1beta2"
 	"knative.dev/client/pkg/util"
 )
 
@@ -66,12 +66,12 @@ func NewPingUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return fmt.Errorf("can't update ping source %s because it has been marked for deletion", name)
 			}
 
-			b := v1alpha2.NewPingSourceBuilderFromExisting(source)
+			b := sourcesv1beta2.NewPingSourceBuilderFromExisting(source)
 			if cmd.Flags().Changed("schedule") {
 				b.Schedule(updateFlags.schedule)
 			}
 			if cmd.Flags().Changed("data") {
-				b.JsonData(updateFlags.data)
+				b.Data(updateFlags.data)
 			}
 			if cmd.Flags().Changed("sink") {
 				destination, err := sinkFlags.ResolveSink(cmd.Context(), dynamicClient, namespace)

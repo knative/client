@@ -21,12 +21,12 @@ import (
 	"testing"
 
 	"gotest.tools/v3/assert"
-	"knative.dev/client/pkg/sources/v1alpha2"
+	v1 "knative.dev/client/pkg/sources/v1"
 	"knative.dev/client/pkg/util"
 )
 
 func TestDescribeError(t *testing.T) {
-	containerClient := v1alpha2.NewMockKnContainerSourceClient(t, "mynamespace")
+	containerClient := v1.NewMockKnContainerSourceClient(t, "mynamespace")
 
 	containerRecorder := containerClient.Recorder()
 	containerRecorder.GetContainerSource("testsource", nil, errors.New("no container source testsource"))
@@ -39,7 +39,7 @@ func TestDescribeError(t *testing.T) {
 }
 
 func TestSimpleDescribe(t *testing.T) {
-	containerClient := v1alpha2.NewMockKnContainerSourceClient(t, "mynamespace")
+	containerClient := v1.NewMockKnContainerSourceClient(t, "mynamespace")
 
 	containerRecorder := containerClient.Recorder()
 	sampleSource := createContainerSource("testsource", "docker.io/test/testimg", createSinkv1("testsvc", "default"))

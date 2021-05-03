@@ -22,7 +22,7 @@ import (
 
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
-	"knative.dev/client/pkg/sources/v1alpha2"
+	v1 "knative.dev/client/pkg/sources/v1"
 	"knative.dev/client/pkg/util"
 )
 
@@ -74,7 +74,7 @@ func NewAPIServerCreateCommand(p *commands.KnParams) *cobra.Command {
 			}
 			ceOverridesToRemove := util.ParseMinusSuffix(ceOverridesMap)
 
-			b := v1alpha2.NewAPIServerSourceBuilder(name).
+			b := v1.NewAPIServerSourceBuilder(name).
 				ServiceAccount(updateFlags.ServiceAccountName).
 				EventMode(updateFlags.Mode).
 				Sink(*objectRef).
