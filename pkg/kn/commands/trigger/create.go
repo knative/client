@@ -22,7 +22,7 @@ import (
 
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 
-	clientv1beta1 "knative.dev/client/pkg/eventing/v1beta1"
+	clientv1beta1 "knative.dev/client/pkg/eventing/v1"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
 )
@@ -63,7 +63,7 @@ func NewTriggerCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			objectRef, err := sinkFlags.ResolveSink(dynamicClient, namespace)
+			objectRef, err := sinkFlags.ResolveSink(cmd.Context(), dynamicClient, namespace)
 			if err != nil {
 				return fmt.Errorf(
 					"cannot create trigger '%s' in namespace '%s' "+
@@ -96,7 +96,7 @@ func NewTriggerCreateCommand(p *commands.KnParams) *cobra.Command {
 				}
 			}
 
-			err = eventingClient.CreateTrigger(triggerBuilder.Build())
+			err = eventingClient.CreateTrigger(cmd.Context(), triggerBuilder.Build())
 			if err != nil {
 				return fmt.Errorf(
 					"cannot create trigger '%s' in namespace '%s' "+

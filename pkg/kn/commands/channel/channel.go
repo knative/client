@@ -19,8 +19,8 @@ import (
 
 	"k8s.io/client-go/tools/clientcmd"
 	"knative.dev/client/pkg/kn/commands"
-	messagingv1beta1 "knative.dev/client/pkg/messaging/v1beta1"
-	clientv1beta1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/messaging/v1beta1"
+	messagingv1 "knative.dev/client/pkg/messaging/v1"
+	clientv1beta1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/messaging/v1"
 )
 
 // NewChannelCommand to manage event channels
@@ -38,9 +38,9 @@ func NewChannelCommand(p *commands.KnParams) *cobra.Command {
 	return channelCmd
 }
 
-var channelClientFactory func(config clientcmd.ClientConfig, namespace string) (messagingv1beta1.KnChannelsClient, error)
+var channelClientFactory func(config clientcmd.ClientConfig, namespace string) (messagingv1.KnChannelsClient, error)
 
-func newChannelClient(p *commands.KnParams, cmd *cobra.Command) (messagingv1beta1.KnChannelsClient, error) {
+func newChannelClient(p *commands.KnParams, cmd *cobra.Command) (messagingv1.KnChannelsClient, error) {
 	namespace, err := p.GetNamespace(cmd)
 	if err != nil {
 		return nil, err
@@ -64,5 +64,5 @@ func newChannelClient(p *commands.KnParams, cmd *cobra.Command) (messagingv1beta
 		return nil, err
 	}
 
-	return messagingv1beta1.NewKnMessagingClient(client, namespace).ChannelsClient(), nil
+	return messagingv1.NewKnMessagingClient(client, namespace).ChannelsClient(), nil
 }

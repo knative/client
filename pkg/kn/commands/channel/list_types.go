@@ -16,6 +16,7 @@ limitations under the License.
 package channel
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -25,7 +26,7 @@ import (
 	knerrors "knative.dev/client/pkg/errors"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
-	messagingv1beta1 "knative.dev/client/pkg/messaging/v1beta1"
+	messagingv1 "knative.dev/client/pkg/messaging/v1"
 )
 
 // NewChannelListTypesCommand defines and processes `kn channel list-types`
@@ -51,18 +52,26 @@ func NewChannelListTypesCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			channelListTypes, err := dynamicClient.ListChannelsTypes()
+			channelListTypes, err := dynamicClient.ListChannelsTypes(cmd.Context())
 			switch {
 			case knerrors.IsForbiddenError(err):
-				if channelListTypes, err = listBuiltInChannelTypes(dynamicClient); err != nil {
+				if channelListTypes, err = listBuiltInChannelTypes(cmd.Context(), dynamicClient); err != nil {
 					return knerrors.GetError(err)
 				}
 			case err != nil:
 				return knerrors.GetError(err)
 			}
 
-			if channelListTypes == nil || len(channelListTypes.Items) == 0 {
+			if channelListTypes == nil {
+				channelListTypes = &unstructured.UnstructuredList{}
+			}
+			if !listTypesFlags.GenericPrintFlags.OutputFlagSpecified() && len(channelListTypes.Items) == 0 {
 				return fmt.Errorf("no channels found on the backend, please verify the installation")
+			}
+
+			if channelListTypes.GroupVersionKind().Empty() {
+				channelListTypes.SetAPIVersion("apiextensions.k8s.io/v1")
+				channelListTypes.SetKind("CustomResourceDefinitionList")
 			}
 
 			printer, err := listTypesFlags.ToPrinter()
@@ -83,12 +92,12 @@ func NewChannelListTypesCommand(p *commands.KnParams) *cobra.Command {
 	return listTypesCommand
 }
 
-func listBuiltInChannelTypes(d dynamic.KnDynamicClient) (*unstructured.UnstructuredList, error) {
+func listBuiltInChannelTypes(ctx context.Context, d dynamic.KnDynamicClient) (*unstructured.UnstructuredList, error) {
 	var err error
 	uList := unstructured.UnstructuredList{}
-	gvks := messagingv1beta1.BuiltInChannelGVKs()
+	gvks := messagingv1.BuiltInChannelGVKs()
 	for _, gvk := range gvks {
-		_, err = d.ListChannelsUsingGVKs(&[]schema.GroupVersionKind{gvk})
+		_, err = d.ListChannelsUsingGVKs(ctx, &[]schema.GroupVersionKind{gvk})
 		if err != nil {
 			continue
 		}

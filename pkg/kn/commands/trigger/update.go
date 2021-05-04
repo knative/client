@@ -21,10 +21,10 @@ import (
 	"github.com/spf13/cobra"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
-	v1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
+	v1beta1 "knative.dev/eventing/pkg/apis/eventing/v1"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 
-	clientv1beta1 "knative.dev/client/pkg/eventing/v1beta1"
+	clientv1beta1 "knative.dev/client/pkg/eventing/v1"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
 	"knative.dev/client/pkg/util"
@@ -71,7 +71,7 @@ func NewTriggerUpdateCommand(p *commands.KnParams) *cobra.Command {
 
 			var retries = 0
 			for {
-				trigger, err := eventingClient.GetTrigger(name)
+				trigger, err := eventingClient.GetTrigger(cmd.Context(), name)
 				if err != nil {
 					return err
 				}
@@ -95,7 +95,7 @@ func NewTriggerUpdateCommand(p *commands.KnParams) *cobra.Command {
 					b.Filters(existing.Merge(updated).Remove(removed))
 				}
 				if cmd.Flags().Changed("sink") {
-					destination, err := sinkFlags.ResolveSink(dynamicClient, namespace)
+					destination, err := sinkFlags.ResolveSink(cmd.Context(), dynamicClient, namespace)
 					if err != nil {
 						return err
 					}
@@ -104,7 +104,7 @@ func NewTriggerUpdateCommand(p *commands.KnParams) *cobra.Command {
 						URI: destination.URI,
 					})
 				}
-				err = eventingClient.UpdateTrigger(b.Build())
+				err = eventingClient.UpdateTrigger(cmd.Context(), b.Build())
 				if err != nil {
 					if apierrors.IsConflict(err) && retries < MaxUpdateRetries {
 						retries++

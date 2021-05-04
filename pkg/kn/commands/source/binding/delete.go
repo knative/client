@@ -41,7 +41,7 @@ func NewBindingDeleteCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			err = bindingClient.DeleteSinkBinding(name)
+			err = bindingClient.DeleteSinkBinding(cmd.Context(), name)
 			if err != nil {
 				return err
 			}

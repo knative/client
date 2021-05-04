@@ -156,6 +156,9 @@ function wait_until_object_does_not_exist() {
 }
 
 # Waits until all pods are running in the given namespace.
+# This function handles some edge cases that `kubectl wait` does not support,
+# and it provides nice debug info on the state of the pod if it failed,
+# that’s why we have this long bash function instead of using `kubectl wait`.
 # Parameters: $1 - namespace.
 function wait_until_pods_running() {
   echo -n "Waiting until all pods in namespace $1 are up"
@@ -163,7 +166,7 @@ function wait_until_pods_running() {
   for i in {1..150}; do  # timeout after 5 minutes
     # List all pods. Ignore Terminating pods as those have either been replaced through
     # a deployment or terminated on purpose (through chaosduck for example).
-    local pods="$(kubectl get pods --no-headers -n $1 2>/dev/null | grep -v Terminating)"
+    local pods="$(kubectl get pods --no-headers -n $1 | grep -v Terminating)"
     # All pods must be running (ignore ImagePull error to allow the pod to retry)
     local not_running_pods=$(echo "${pods}" | grep -v Running | grep -v Completed | grep -v ErrImagePull | grep -v ImagePullBackOff)
     if [[ -n "${pods}" ]] && [[ -z "${not_running_pods}" ]]; then
@@ -787,18 +790,18 @@ function shellcheck_new_files() {
 function latest_version() {
   # This function works "best effort" and works on Prow but not necessarily locally.
   # The problem is finding the latest release. If a release occurs on the same commit which
-  # was branched from master, then the tag will be an ancestor to any commit derived from master.
+  # was branched from main, then the tag will be an ancestor to any commit derived from main.
   # That was the original logic. Additionally in a release branch, the tag is always an ancestor.
-  # However, if the release commit ends up not the first commit from master, then the tag is not
-  # an ancestor of master, so we can't use `git describe` to find the most recent versioned tag. So
+  # However, if the release commit ends up not the first commit from main, then the tag is not
+  # an ancestor of main, so we can't use `git describe` to find the most recent versioned tag. So
   # we just sort all the tags and find the newest versioned one.
-  # But when running locally, we cannot(?) know if the current branch is a fork of master or a fork
+  # But when running locally, we cannot(?) know if the current branch is a fork of main or a fork
   # of a release branch. That's where this function will malfunction when the last release did not
   # occur on the first commit -- it will try to run the upgrade tests from an older version instead
   # of the most recent release.
   # Workarounds include:
   # Tag the first commit of the release branch. Say release-0.75 released v0.75.0 from the second commit
-  # Then tag the first commit in common between master and release-0.75 with `v0.75`.
+  # Then tag the first commit in common between main and release-0.75 with `v0.75`.
   # Always name your local fork master or main.
   if [ $(current_branch) = "master" ] || [ $(current_branch) = "main" ]; then
     # For main branch, simply use git tag without major version, this will work even

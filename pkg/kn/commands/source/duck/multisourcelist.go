@@ -19,11 +19,13 @@ import (
 	"fmt"
 	"strings"
 
+	sourcesv1beta2 "knative.dev/eventing/pkg/apis/sources/v1beta2"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	sourcesv1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
+	sourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"
 	duck "knative.dev/pkg/apis/duck"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 
@@ -153,17 +155,17 @@ func conditionsFromUnstructured(u *unstructured.Unstructured) (*duckv1.Condition
 func findSink(source *unstructured.Unstructured) string {
 	switch source.GetKind() {
 	case "ApiServerSource":
-		var apiSource sourcesv1alpha2.ApiServerSource
+		var apiSource sourcesv1.ApiServerSource
 		if err := duck.FromUnstructured(source, &apiSource); err == nil {
 			return knflags.SinkToString(apiSource.Spec.Sink)
 		}
 	case "SinkBinding":
-		var binding sourcesv1alpha2.SinkBinding
+		var binding sourcesv1.SinkBinding
 		if err := duck.FromUnstructured(source, &binding); err == nil {
 			return knflags.SinkToString(binding.Spec.Sink)
 		}
 	case "PingSource":
-		var pingSource sourcesv1alpha2.PingSource
+		var pingSource sourcesv1beta2.PingSource
 		if err := duck.FromUnstructured(source, &pingSource); err == nil {
 			return knflags.SinkToString(pingSource.Spec.Sink)
 		}
@@ -183,17 +185,17 @@ func findSink(source *unstructured.Unstructured) string {
 func isReady(source *unstructured.Unstructured) string {
 	switch source.GetKind() {
 	case "ApiServerSource":
-		var tSource sourcesv1alpha2.ApiServerSource
+		var tSource sourcesv1.ApiServerSource
 		if err := duck.FromUnstructured(source, &tSource); err == nil {
 			return commands.ReadyCondition(tSource.Status.Conditions)
 		}
 	case "SinkBinding":
-		var tSource sourcesv1alpha2.SinkBinding
+		var tSource sourcesv1.SinkBinding
 		if err := duck.FromUnstructured(source, &tSource); err == nil {
 			return commands.ReadyCondition(tSource.Status.Conditions)
 		}
 	case "PingSource":
-		var tSource sourcesv1alpha2.PingSource
+		var tSource sourcesv1beta2.PingSource
 		if err := duck.FromUnstructured(source, &tSource); err == nil {
 			return commands.ReadyCondition(tSource.Status.Conditions)
 		}

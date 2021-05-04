@@ -46,11 +46,11 @@ func NewTriggerListCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			triggerList, err := client.ListTriggers()
+			triggerList, err := client.ListTriggers(cmd.Context())
 			if err != nil {
 				return err
 			}
-			if len(triggerList.Items) == 0 {
+			if !triggerListFlags.GenericPrintFlags.OutputFlagSpecified() && len(triggerList.Items) == 0 {
 				fmt.Fprintf(cmd.OutOrStdout(), "No triggers found.\n")
 				return nil
 			}

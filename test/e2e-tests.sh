@@ -37,7 +37,7 @@ export PATH=$PATH:${REPO_ROOT_DIR}
 
 run() {
   # Create cluster
-  initialize $@
+  initialize $@ --skip-istio-addon
 
   # Smoke test
   eval smoke_test || fail_test
@@ -54,11 +54,17 @@ integration_test() {
   go_test_e2e -timeout=45m ./test/e2e || fail_test
 }
 
+smoke_test_clean_up(){
+  kubectl delete ns $ns
+  kubectl delete ns $ns1
+}
+
 smoke_test() {
   header "Running smoke tests"
 
   # Test namespace
   ns="kne2esmoketests"
+  ns1="kne2esmoketest"
 
   # Test image
   img=${KO_DOCKER_REPO}/helloworld
@@ -66,7 +72,8 @@ smoke_test() {
   set -x
 
   kubectl create ns $ns || fail_test
-  trap "kubectl delete ns $ns" EXIT
+  kubectl create ns $ns1 || fail_test
+  trap smoke_test_clean_up EXIT
 
   sleep 4 # Wait for the namespace to get initialized by kube-controller-manager
 
@@ -89,6 +96,11 @@ smoke_test() {
   ./kn service list -n $ns | grep -q svc1 || fail_test
   ./kn service delete svc1 -n $ns || fail_test
   ./kn source list-types || fail_test
+  ./kn service create mysvc --image $img -e TARGET=Knative -n $ns1 || fail_test
+  ./kn source ping create my-ping -n $ns --schedule "*/2 * * * *" --data '{ value: "hello" }' --sink ksvc:mysvc:$ns1 || fail_test
+  [[ "$(./kn source ping describe my-ping -n $ns -o=jsonpath={.spec.sink.ref.namespace})" != "$ns1" ]] && fail_test
+  ./kn source ping delete my-ping -n $ns || fail_test
+  ./kn service delete mysvc -n $ns1 || fail_test
 
   set +x
 }

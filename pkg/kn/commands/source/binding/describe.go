@@ -21,7 +21,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
-	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
+	v1 "knative.dev/eventing/pkg/apis/sources/v1"
 	"knative.dev/pkg/tracker"
 
 	"knative.dev/client/lib/printing"
@@ -57,7 +57,7 @@ func NewBindingDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			binding, err := bindingClient.GetSinkBinding(name)
+			binding, err := bindingClient.GetSinkBinding(cmd.Context(), name)
 			if err != nil {
 				return err
 			}
@@ -101,7 +101,7 @@ func NewBindingDescribeCommand(p *commands.KnParams) *cobra.Command {
 	return command
 }
 
-func writeSinkBinding(dw printers.PrefixWriter, binding *v1alpha2.SinkBinding, printDetails bool) {
+func writeSinkBinding(dw printers.PrefixWriter, binding *v1.SinkBinding, printDetails bool) {
 	commands.WriteMetadata(dw, &binding.ObjectMeta, printDetails)
 	writeSubject(dw, binding.Namespace, &binding.Spec.Subject)
 	printing.DescribeSink(dw, "Sink", binding.Namespace, &binding.Spec.Sink)

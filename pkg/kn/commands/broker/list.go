@@ -27,7 +27,7 @@ import (
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
 	hprinters "knative.dev/client/pkg/printers"
-	"knative.dev/eventing/pkg/apis/eventing/v1beta1"
+	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
 )
 
 var listExample = `
@@ -57,11 +57,11 @@ func NewBrokerListCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			brokerList, err := eventingClient.ListBrokers()
+			brokerList, err := eventingClient.ListBrokers(cmd.Context())
 			if err != nil {
 				return err
 			}
-			if len(brokerList.Items) == 0 {
+			if !brokerListFlags.GenericPrintFlags.OutputFlagSpecified() && len(brokerList.Items) == 0 {
 				fmt.Fprintf(cmd.OutOrStdout(), "No brokers found.\n")
 				return nil
 			}
@@ -99,7 +99,7 @@ func ListHandlers(h hprinters.PrintHandler) {
 }
 
 // printBrokerList populates the broker list table rows
-func printBrokerList(kServiceList *v1beta1.BrokerList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+func printBrokerList(kServiceList *eventingv1.BrokerList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	rows := make([]metav1beta1.TableRow, 0, len(kServiceList.Items))
 
 	for i := range kServiceList.Items {
@@ -114,7 +114,7 @@ func printBrokerList(kServiceList *v1beta1.BrokerList, options hprinters.PrintOp
 }
 
 // printBroker populates the broker table rows
-func printBroker(broker *v1beta1.Broker, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+func printBroker(broker *eventingv1.Broker, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	name := broker.Name
 	url := broker.Status.Address.URL
 	age := commands.TranslateTimestampSince(broker.CreationTimestamp)

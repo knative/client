@@ -22,7 +22,7 @@ import (
 
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
-	"knative.dev/client/pkg/sources/v1alpha2"
+	sourcesv1beta2 "knative.dev/client/pkg/sources/v1beta2"
 	"knative.dev/client/pkg/util"
 )
 
@@ -58,7 +58,7 @@ func NewPingUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			source, err := pingSourceClient.GetPingSource(name)
+			source, err := pingSourceClient.GetPingSource(cmd.Context(), name)
 			if err != nil {
 				return err
 			}
@@ -66,15 +66,15 @@ func NewPingUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return fmt.Errorf("can't update ping source %s because it has been marked for deletion", name)
 			}
 
-			b := v1alpha2.NewPingSourceBuilderFromExisting(source)
+			b := sourcesv1beta2.NewPingSourceBuilderFromExisting(source)
 			if cmd.Flags().Changed("schedule") {
 				b.Schedule(updateFlags.schedule)
 			}
 			if cmd.Flags().Changed("data") {
-				b.JsonData(updateFlags.data)
+				b.Data(updateFlags.data)
 			}
 			if cmd.Flags().Changed("sink") {
-				destination, err := sinkFlags.ResolveSink(dynamicClient, namespace)
+				destination, err := sinkFlags.ResolveSink(cmd.Context(), dynamicClient, namespace)
 				if err != nil {
 					return err
 				}
@@ -90,7 +90,7 @@ func NewPingUpdateCommand(p *commands.KnParams) *cobra.Command {
 				b.CloudEventOverrides(ceOverridesMap, ceOverridesToRemove)
 			}
 
-			err = pingSourceClient.UpdatePingSource(b.Build())
+			err = pingSourceClient.UpdatePingSource(cmd.Context(), b.Build())
 			if err == nil {
 				fmt.Fprintf(cmd.OutOrStdout(), "Ping source '%s' updated in namespace '%s'.\n", name, pingSourceClient.Namespace())
 			}

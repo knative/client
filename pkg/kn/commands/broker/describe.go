@@ -26,7 +26,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	v1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
+	v1beta1 "knative.dev/eventing/pkg/apis/eventing/v1"
 
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/printers"
@@ -71,7 +71,7 @@ func NewBrokerDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			broker, err := eventingClient.GetBroker(name)
+			broker, err := eventingClient.GetBroker(cmd.Context(), name)
 			if err != nil {
 				return err
 			}

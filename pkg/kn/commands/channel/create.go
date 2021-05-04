@@ -23,7 +23,7 @@ import (
 	knerrors "knative.dev/client/pkg/errors"
 	"knative.dev/client/pkg/kn/commands"
 	knflags "knative.dev/client/pkg/kn/flags"
-	knmessagingv1beta1 "knative.dev/client/pkg/messaging/v1beta1"
+	knmessagingv1 "knative.dev/client/pkg/messaging/v1"
 )
 
 // NewChannelCreateCommand to create event channels
@@ -36,10 +36,10 @@ func NewChannelCreateCommand(p *commands.KnParams) *cobra.Command {
   # Create a channel 'pipe' with default setting for channel configuration
   kn channel create pipe
 
-  # Create a channel 'imc1' of type InMemoryChannel using inbuilt alias 'imcv1beta1'
-  kn channel create imc1 --type imcv1beta1
+  # Create a channel 'imc1' of type InMemoryChannel using inbuilt alias 'imc'
+  kn channel create imc1 --type imc
   # same as above without using inbuilt alias but providing explicit GVK
-  kn channel create imc1 --type messaging.knative.dev:v1beta1:InMemoryChannel
+  kn channel create imc1 --type messaging.knative.dev:v1:InMemoryChannel
 
   # Create a channel 'k1' of type KafkaChannel
   kn channel create k1 --type messaging.knative.dev:v1alpha1:KafkaChannel`,
@@ -60,7 +60,7 @@ func NewChannelCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			cb := knmessagingv1beta1.NewChannelBuilder(name, namespace)
+			cb := knmessagingv1.NewChannelBuilder(name, namespace)
 
 			if cmd.Flag("type").Changed {
 				gvk, err := ctypeFlags.Parse()
@@ -70,7 +70,7 @@ func NewChannelCreateCommand(p *commands.KnParams) *cobra.Command {
 				cb.Type(gvk)
 			}
 
-			err = client.CreateChannel(cb.Build())
+			err = client.CreateChannel(cmd.Context(), cb.Build())
 			if err != nil {
 				return knerrors.GetError(err)
 			}

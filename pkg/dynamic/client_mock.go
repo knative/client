@@ -15,6 +15,7 @@
 package dynamic
 
 import (
+	"context"
 	"testing"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -66,7 +67,7 @@ func (dr *ClientRecorder) ListCRDs(options interface{}, ulist *unstructured.Unst
 }
 
 // ListCRDs returns list of installed CRDs in the cluster and filters based on the given options
-func (c *MockKnDynamicClient) ListCRDs(options metav1.ListOptions) (*unstructured.UnstructuredList, error) {
+func (c *MockKnDynamicClient) ListCRDs(ctx context.Context, options metav1.ListOptions) (*unstructured.UnstructuredList, error) {
 	call := c.recorder.r.VerifyCall("ListCRDs", options)
 	return call.Result[0].(*unstructured.UnstructuredList), mock.ErrorOrNil(call.Result[1])
 }
@@ -77,7 +78,7 @@ func (dr *ClientRecorder) ListSourcesTypes(ulist *unstructured.UnstructuredList,
 }
 
 // ListSourcesTypes returns installed knative eventing sources CRDs
-func (c *MockKnDynamicClient) ListSourcesTypes() (*unstructured.UnstructuredList, error) {
+func (c *MockKnDynamicClient) ListSourcesTypes(context.Context) (*unstructured.UnstructuredList, error) {
 	call := c.recorder.r.VerifyCall("ListSourcesTypes")
 	return call.Result[0].(*unstructured.UnstructuredList), mock.ErrorOrNil(call.Result[1])
 }
@@ -88,7 +89,7 @@ func (dr *ClientRecorder) ListChannelsTypes(ulist *unstructured.UnstructuredList
 }
 
 // ListChannelsTypes returns installed knative messaging CRDs
-func (c *MockKnDynamicClient) ListChannelsTypes() (*unstructured.UnstructuredList, error) {
+func (c *MockKnDynamicClient) ListChannelsTypes(context.Context) (*unstructured.UnstructuredList, error) {
 	call := c.recorder.r.VerifyCall("ListChannelsTypes")
 	return call.Result[0].(*unstructured.UnstructuredList), mock.ErrorOrNil(call.Result[1])
 }
@@ -99,7 +100,7 @@ func (dr *ClientRecorder) ListSources(types interface{}, ulist *unstructured.Uns
 }
 
 // ListSources returns list of available sources objects
-func (c *MockKnDynamicClient) ListSources(types ...WithType) (*unstructured.UnstructuredList, error) {
+func (c *MockKnDynamicClient) ListSources(ctx context.Context, types ...WithType) (*unstructured.UnstructuredList, error) {
 	call := c.recorder.r.VerifyCall("ListSources")
 	return call.Result[0].(*unstructured.UnstructuredList), mock.ErrorOrNil(call.Result[1])
 }
@@ -121,7 +122,7 @@ func (dr *ClientRecorder) ListSourcesUsingGVKs(gvks interface{}, types interface
 }
 
 // ListSourcesUsingGVKs returns list of available source objects using given list of GVKs
-func (c *MockKnDynamicClient) ListSourcesUsingGVKs(gvks *[]schema.GroupVersionKind, types ...WithType) (*unstructured.UnstructuredList, error) {
+func (c *MockKnDynamicClient) ListSourcesUsingGVKs(ctx context.Context, gvks *[]schema.GroupVersionKind, types ...WithType) (*unstructured.UnstructuredList, error) {
 	call := c.recorder.r.VerifyCall("ListSourcesUsingGVKs")
 	return call.Result[0].(*unstructured.UnstructuredList), mock.ErrorOrNil(call.Result[1])
 }
@@ -137,7 +138,7 @@ func (dr *ClientRecorder) ListChannelsUsingGVKs(gvks interface{}, types interfac
 }
 
 // ListChannelsUsingGVKs returns list of available channel objects using given list of GVKs
-func (c *MockKnDynamicClient) ListChannelsUsingGVKs(gvks *[]schema.GroupVersionKind, types ...WithType) (*unstructured.UnstructuredList, error) {
+func (c *MockKnDynamicClient) ListChannelsUsingGVKs(ctx context.Context, gvks *[]schema.GroupVersionKind, types ...WithType) (*unstructured.UnstructuredList, error) {
 	call := c.recorder.r.VerifyCall("ListChannelsUsingGVKs")
 	return call.Result[0].(*unstructured.UnstructuredList), mock.ErrorOrNil(call.Result[1])
 }

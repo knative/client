@@ -57,7 +57,7 @@ func NewRevisionDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			revision, err := client.GetRevision(args[0])
+			revision, err := client.GetRevision(cmd.Context(), args[0])
 			if err != nil {
 				return err
 			}
@@ -76,7 +76,7 @@ func NewRevisionDescribeCommand(p *commands.KnParams) *cobra.Command {
 			var service *servingv1.Service
 			serviceName, ok := revision.Labels[serving.ServiceLabelKey]
 			if printDetails && ok {
-				service, err = client.GetService(serviceName)
+				service, err = client.GetService(cmd.Context(), serviceName)
 				if err != nil {
 					return err
 				}
@@ -96,6 +96,7 @@ func describe(w io.Writer, revision *servingv1.Revision, service *servingv1.Serv
 	dw := printers.NewPrefixWriter(w)
 	commands.WriteMetadata(dw, &revision.ObjectMeta, printDetails)
 	WriteImage(dw, revision)
+	WriteReplicas(dw, revision)
 	WritePort(dw, revision)
 	WriteEnv(dw, revision, printDetails)
 	WriteEnvFrom(dw, revision, printDetails)
@@ -199,6 +200,14 @@ func WriteEnvFrom(dw printers.PrefixWriter, revision *servingv1.Revision, printD
 	envFrom := stringifyEnvFrom(revision)
 	if envFrom != nil {
 		commands.WriteSliceDesc(dw, envFrom, "EnvFrom", printDetails)
+	}
+}
+
+func WriteReplicas(dw printers.PrefixWriter, revision *servingv1.Revision) {
+	actualReplicas := revision.Status.ActualReplicas
+	desiredReplicas := revision.Status.DesiredReplicas
+	if actualReplicas != 0 || desiredReplicas != 0 {
+		dw.WriteAttribute("Replicas", fmt.Sprintf("%d/%d", actualReplicas, desiredReplicas))
 	}
 }
 

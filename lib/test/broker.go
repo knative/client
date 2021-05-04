@@ -19,12 +19,12 @@ import (
 	"time"
 
 	"k8s.io/apimachinery/pkg/util/wait"
-	"knative.dev/eventing/pkg/apis/eventing/v1beta1"
+	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
 )
 
 // LabelNamespaceForDefaultBroker adds label 'knative-eventing-injection=enabled' to the configured namespace
 func LabelNamespaceForDefaultBroker(r *KnRunResultCollector) error {
-	cmd := []string{"label", "namespace", r.KnTest().Kn().Namespace(), v1beta1.InjectionAnnotation + "=enabled"}
+	cmd := []string{"label", "namespace", r.KnTest().Kn().Namespace(), eventingv1.InjectionAnnotation + "=enabled"}
 	_, err := Kubectl{}.Run(cmd...)
 
 	if err != nil {
@@ -43,7 +43,7 @@ func LabelNamespaceForDefaultBroker(r *KnRunResultCollector) error {
 
 // UnlabelNamespaceForDefaultBroker removes label 'knative-eventing-injection=enabled' from the configured namespace
 func UnlabelNamespaceForDefaultBroker(r *KnRunResultCollector) {
-	cmd := []string{"label", "namespace", r.KnTest().Kn().Namespace(), v1beta1.InjectionAnnotation + "-"}
+	cmd := []string{"label", "namespace", r.KnTest().Kn().Namespace(), eventingv1.InjectionAnnotation + "-"}
 	_, err := Kubectl{}.Run(cmd...)
 	if err != nil {
 		r.T().Fatalf("error executing '%s': %s", strings.Join(cmd, " "), err.Error())

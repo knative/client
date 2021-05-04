@@ -21,8 +21,8 @@ import (
 	"testing"
 
 	"gotest.tools/v3/assert"
-	"knative.dev/client/pkg/messaging/v1beta1"
 
+	v1beta1 "knative.dev/client/pkg/messaging/v1"
 	"knative.dev/client/pkg/util"
 )
 
@@ -51,9 +51,9 @@ func TestDescribeSubscription(t *testing.T) {
 	assert.NilError(t, err, "subscription should be described")
 	assert.Assert(t, util.ContainsAll(out,
 		"sub0",
-		"Channel", "imc0", "messaging.knative.dev", "v1beta1", "InMemoryChannel",
+		"Channel", "imc0", "messaging.knative.dev", "v1", "InMemoryChannel",
 		"Subscriber", "ksvc0", "serving.knative.dev", "v1", "Service",
-		"Reply", "b0", "eventing.knative.dev", "v1beta1", "Broker",
+		"Reply", "b0", "eventing.knative.dev", "v1", "Broker",
 		"DeadLetterSink", "b1"))
 	cRecorder.Validate()
 }

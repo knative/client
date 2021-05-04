@@ -22,13 +22,13 @@ import (
 	"gotest.tools/v3/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	dynamicfake "knative.dev/client/pkg/dynamic/fake"
-	"knative.dev/client/pkg/sources/v1alpha2"
+	v1 "knative.dev/client/pkg/sources/v1"
 	"knative.dev/client/pkg/util"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
 func TestContainerSourceUpdate(t *testing.T) {
-	containerClient := v1alpha2.NewMockKnContainerSourceClient(t)
+	containerClient := v1.NewMockKnContainerSourceClient(t)
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default", &servingv1.Service{
 		TypeMeta:   metav1.TypeMeta{Kind: "Service", APIVersion: "serving.knative.dev/v1"},
 		ObjectMeta: metav1.ObjectMeta{Name: "svc2", Namespace: "default"},
@@ -50,7 +50,7 @@ func TestContainerSourceUpdate(t *testing.T) {
 }
 
 func TestContainerSourceUpdateSinkError(t *testing.T) {
-	containerClient := v1alpha2.NewMockKnContainerSourceClient(t)
+	containerClient := v1.NewMockKnContainerSourceClient(t)
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default")
 	containerRecorder := containerClient.Recorder()
 	present := createContainerSource("testsource", "docker.io/test/testimg", createSinkv1("svc2", "default"))

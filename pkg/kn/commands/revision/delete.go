@@ -15,30 +15,46 @@
 package revision
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
-
 	"knative.dev/client/pkg/kn/commands"
+	v1 "knative.dev/client/pkg/serving/v1"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
 // NewRevisionDeleteCommand represent 'revision delete' command
 func NewRevisionDeleteCommand(p *commands.KnParams) *cobra.Command {
 	var waitFlags commands.WaitFlags
-
+	// prune filter, used with "-p"
+	var pruneFilter string
+	var pruneAll bool
 	RevisionDeleteCommand := &cobra.Command{
 		Use:   "delete NAME [NAME ...]",
 		Short: "Delete revisions",
 		Example: `
   # Delete a revision 'svc1-abcde' in default namespace
-  kn revision delete svc1-abcde`,
+  kn revision delete svc1-abcde
+
+  # Delete all unreferenced revisions
+  kn revision delete --prune-all
+
+  # Delete all unreferenced revisions for a given service 'mysvc'
+  kn revision delete --prune mysvc`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if len(args) < 1 {
+			prune := cmd.Flags().Changed("prune")
+			argsLen := len(args)
+			if argsLen < 1 && !pruneAll && !prune {
 				return errors.New("'kn revision delete' requires one or more revision name")
 			}
+			if argsLen > 0 && pruneAll {
+				return errors.New("'kn revision delete' with --prune-all flag requires no arguments")
+			}
+
 			namespace, err := p.GetNamespace(cmd)
 			if err != nil {
 				return err
@@ -47,6 +63,21 @@ func NewRevisionDeleteCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
+			// Create list filters
+			var params []v1.ListConfig
+			if prune {
+				params = append(params, v1.WithService(pruneFilter))
+			}
+			if prune || pruneAll {
+				args, err = getUnreferencedRevisionNames(cmd.Context(), params, client)
+				if err != nil {
+					return err
+				}
+				if len(args) == 0 {
+					fmt.Fprintf(cmd.OutOrStdout(), "No unreferenced revisions found.\n")
+					return nil
+				}
+			}
 
 			errs := []string{}
 			for _, name := range args {
@@ -54,7 +85,7 @@ func NewRevisionDeleteCommand(p *commands.KnParams) *cobra.Command {
 				if waitFlags.Wait {
 					timeout = time.Duration(waitFlags.TimeoutInSeconds) * time.Second
 				}
-				err = client.DeleteRevision(name, timeout)
+				err = client.DeleteRevision(cmd.Context(), name, timeout)
 				if err != nil {
 					errs = append(errs, err.Error())
 				} else {
@@ -67,7 +98,27 @@ func NewRevisionDeleteCommand(p *commands.KnParams) *cobra.Command {
 			return nil
 		},
 	}
+	flags := RevisionDeleteCommand.Flags()
+	flags.StringVar(&pruneFilter, "prune", "", "Remove unreferenced revisions for a given service in a namespace.")
+	flags.BoolVar(&pruneAll, "prune-all", false, "Remove all unreferenced revisions in a namespace.")
 	commands.AddNamespaceFlags(RevisionDeleteCommand.Flags(), false)
 	waitFlags.AddConditionWaitFlags(RevisionDeleteCommand, commands.WaitDefaultTimeout, "delete", "revision", "deleted")
 	return RevisionDeleteCommand
+}
+
+// Return unreferenced revision names
+func getUnreferencedRevisionNames(ctx context.Context, lConfig []v1.ListConfig, client v1.KnServingClient) ([]string, error) {
+	revisionList, err := client.ListRevisions(ctx, lConfig...)
+	if err != nil {
+		return []string{}, err
+	}
+	// Sort revisions by namespace, service, generation (in this order)
+	sortRevisions(revisionList)
+	revisionNames := []string{}
+	for _, revision := range revisionList.Items {
+		if revision.GetRoutingState() != servingv1.RoutingStateActive {
+			revisionNames = append(revisionNames, revision.Name)
+		}
+	}
+	return revisionNames, nil
 }

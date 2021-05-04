@@ -209,7 +209,7 @@ function run_unit_tests() {
 
 # Default unit test runner that runs all go tests in the repo.
 function default_unit_test_runner() {
-  report_go_test -race ./...
+  report_go_test -race -count 1 ./...
 }
 
 # Run integration tests. If there's no `integration_tests` function, run the
@@ -295,6 +295,15 @@ function main() {
     if [[ "${DOCKER_IN_DOCKER_ENABLED}" == "true" ]]; then
       echo ">> docker version"
       docker version
+    fi
+    if type java > /dev/null; then
+      echo ">> java version"
+      java -version
+      echo "JAVA_HOME: $JAVA_HOME"
+    fi
+    if type mvn > /dev/null; then
+      echo ">> maven version"
+      mvn --version
     fi
   fi
 

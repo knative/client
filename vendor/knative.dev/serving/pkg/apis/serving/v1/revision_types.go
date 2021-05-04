@@ -32,7 +32,7 @@ import (
 // references a container image. Revisions are created by updates to a
 // Configuration.
 //
-// See also: https://github.com/knative/serving/blob/master/docs/spec/overview.md#revision
+// See also: https://github.com/knative/serving/blob/main/docs/spec/overview.md#revision
 type Revision struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional
@@ -64,6 +64,7 @@ var (
 // RevisionTemplateSpec describes the data a revision should have when created from a template.
 // Based on: https://github.com/kubernetes/api/blob/e771f807/core/v1/types.go#L3179-L3190
 type RevisionTemplateSpec struct {
+	// +kubebuilder:pruning:PreserveUnknownFields
 	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
@@ -157,6 +158,13 @@ type RevisionStatus struct {
 	// ref: http://bit.ly/image-digests
 	// +optional
 	ContainerStatuses []ContainerStatus `json:"containerStatuses,omitempty"`
+
+	// ActualReplicas reflects the amount of ready pods running this revision.
+	// +optional
+	ActualReplicas int32 `json:"actualReplicas,omitempty"`
+	// DesiredReplicas reflects the desired amount of pods running this revision.
+	// +optional
+	DesiredReplicas int32 `json:"desiredReplicas,omitempty"`
 }
 
 // ContainerStatus holds the information of container name and image digest value

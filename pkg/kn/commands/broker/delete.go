@@ -61,7 +61,7 @@ func NewBrokerDeleteCommand(p *commands.KnParams) *cobra.Command {
 			if waitFlags.Wait {
 				timeout = time.Duration(waitFlags.TimeoutInSeconds) * time.Second
 			}
-			err = eventingClient.DeleteBroker(name, timeout)
+			err = eventingClient.DeleteBroker(cmd.Context(), name, timeout)
 			if err != nil {
 				return fmt.Errorf(
 					"cannot delete broker '%s' in namespace '%s' "+

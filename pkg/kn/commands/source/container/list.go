@@ -45,12 +45,12 @@ func NewContainerListCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			sourceList, err := containerClient.ListContainerSources()
+			sourceList, err := containerClient.ListContainerSources(cmd.Context())
 			if err != nil {
 				return err
 			}
 
-			if len(sourceList.Items) == 0 {
+			if !listFlags.GenericPrintFlags.OutputFlagSpecified() && len(sourceList.Items) == 0 {
 				fmt.Fprintf(cmd.OutOrStdout(), "No Container source found.\n")
 				return nil
 			}

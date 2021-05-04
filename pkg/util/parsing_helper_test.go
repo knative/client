@@ -122,18 +122,18 @@ func TestAddedAndRemovalListFromArray(t *testing.T) {
 
 func TestToTrackerReference(t *testing.T) {
 	testToTrackerReference(t,
-		"Broker:eventing.knative.dev/v1beta1:default", "demo",
+		"Broker:eventing.knative.dev/v1:default", "demo",
 		&tracker.Reference{
-			APIVersion: "eventing.knative.dev/v1beta1",
+			APIVersion: "eventing.knative.dev/v1",
 			Kind:       "Broker",
 			Namespace:  "demo",
 			Name:       "default",
 			Selector:   nil,
 		}, nil)
 	testToTrackerReference(t,
-		"Broker:eventing.knative.dev/v1beta1:default", "",
+		"Broker:eventing.knative.dev/v1:default", "",
 		&tracker.Reference{
-			APIVersion: "eventing.knative.dev/v1beta1",
+			APIVersion: "eventing.knative.dev/v1",
 			Kind:       "Broker",
 			Namespace:  "",
 			Name:       "default",

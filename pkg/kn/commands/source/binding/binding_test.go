@@ -19,12 +19,12 @@ import (
 
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/tools/clientcmd"
-	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
-	v1 "knative.dev/pkg/apis/duck/v1"
+	sourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"
+	duckv1 "knative.dev/pkg/apis/duck/v1"
 
 	kndynamic "knative.dev/client/pkg/dynamic"
 	"knative.dev/client/pkg/kn/commands"
-	clientv1alpha2 "knative.dev/client/pkg/sources/v1alpha2"
+	clientv1 "knative.dev/client/pkg/sources/v1"
 )
 
 // Helper methods
@@ -57,7 +57,7 @@ current-context: x
 	}
 }
 
-func executeSinkBindingCommand(sinkBindingClient clientv1alpha2.KnSinkBindingClient, dynamicClient kndynamic.KnDynamicClient, args ...string) (string, error) {
+func executeSinkBindingCommand(sinkBindingClient clientv1.KnSinkBindingClient, dynamicClient kndynamic.KnDynamicClient, args ...string) (string, error) {
 	knParams := &commands.KnParams{}
 	knParams.ClientConfig = blankConfig
 
@@ -71,7 +71,7 @@ func executeSinkBindingCommand(sinkBindingClient clientv1alpha2.KnSinkBindingCli
 	cmd.SetArgs(args)
 	cmd.SetOutput(output)
 
-	sinkBindingClientFactory = func(config clientcmd.ClientConfig, namespace string) (clientv1alpha2.KnSinkBindingClient, error) {
+	sinkBindingClientFactory = func(config clientcmd.ClientConfig, namespace string) (clientv1.KnSinkBindingClient, error) {
 		return sinkBindingClient, nil
 	}
 	defer cleanupSinkBindingClient()
@@ -85,9 +85,9 @@ func cleanupSinkBindingClient() {
 	sinkBindingClientFactory = nil
 }
 
-func createSinkBinding(name, service string, subjectGvk schema.GroupVersionKind, subjectName, namespace string, ceOverrides map[string]string) *v1alpha2.SinkBinding {
+func createSinkBinding(name, service string, subjectGvk schema.GroupVersionKind, subjectName, namespace string, ceOverrides map[string]string) *sourcesv1.SinkBinding {
 	sink := createServiceSink(service, namespace)
-	builder := clientv1alpha2.NewSinkBindingBuilder(name).
+	builder := clientv1.NewSinkBindingBuilder(name).
 		Namespace("default").
 		Sink(&sink).
 		SubjectGVK(&subjectGvk).
@@ -99,9 +99,9 @@ func createSinkBinding(name, service string, subjectGvk schema.GroupVersionKind,
 	return binding
 }
 
-func createServiceSink(service, namespace string) v1.Destination {
-	return v1.Destination{
-		Ref: &v1.KReference{Name: service,
+func createServiceSink(service, namespace string) duckv1.Destination {
+	return duckv1.Destination{
+		Ref: &duckv1.KReference{Name: service,
 			Kind:       "Service",
 			APIVersion: "serving.knative.dev/v1",
 			Namespace:  namespace,

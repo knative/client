@@ -25,7 +25,7 @@ import (
 	knflags "knative.dev/client/pkg/kn/flags"
 
 	"knative.dev/client/pkg/kn/commands"
-	"knative.dev/client/pkg/sources/v1alpha2"
+	v1 "knative.dev/client/pkg/sources/v1"
 )
 
 // NewContainerUpdateCommand for managing source update
@@ -59,7 +59,7 @@ func NewContainerUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			source, err := srcClient.GetContainerSource(name)
+			source, err := srcClient.GetContainerSource(cmd.Context(), name)
 			if err != nil {
 				return err
 			}
@@ -67,7 +67,7 @@ func NewContainerUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return fmt.Errorf("can't update container source %s because it has been marked for deletion", name)
 			}
 
-			b := v1alpha2.NewContainerSourceBuilderFromExisting(source)
+			b := v1.NewContainerSourceBuilderFromExisting(source)
 			podSpec := b.Build().Spec.Template.Spec
 			err = podFlags.ResolvePodSpec(&podSpec, cmd.Flags())
 			if err != nil {
@@ -78,7 +78,7 @@ func NewContainerUpdateCommand(p *commands.KnParams) *cobra.Command {
 			b.PodSpec(podSpec)
 
 			if cmd.Flags().Changed("sink") {
-				objectRef, err := sinkFlags.ResolveSink(dynamicClient, namespace)
+				objectRef, err := sinkFlags.ResolveSink(cmd.Context(), dynamicClient, namespace)
 				if err != nil {
 					return fmt.Errorf(
 						"cannot update ContainerSource '%s' in namespace '%s' "+
@@ -87,7 +87,7 @@ func NewContainerUpdateCommand(p *commands.KnParams) *cobra.Command {
 				b.Sink(*objectRef)
 			}
 
-			err = srcClient.UpdateContainerSource(b.Build())
+			err = srcClient.UpdateContainerSource(cmd.Context(), b.Build())
 			if err != nil {
 				return fmt.Errorf(
 					"cannot update ContainerSource '%s' in namespace '%s' "+

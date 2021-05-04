@@ -24,6 +24,4 @@ func (s *Subscription) SetDefaults(ctx context.Context) {
 	s.Spec.SetDefaults(ctx)
 }
 
-func (ss *SubscriptionSpec) SetDefaults(ctx context.Context) {
-	// TODO anything?
-}
+func (ss *SubscriptionSpec) SetDefaults(ctx context.Context) {}

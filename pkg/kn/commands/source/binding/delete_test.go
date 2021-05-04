@@ -20,13 +20,13 @@ import (
 
 	"gotest.tools/v3/assert"
 
-	"knative.dev/client/pkg/sources/v1alpha2"
+	v1 "knative.dev/client/pkg/sources/v1"
 	"knative.dev/client/pkg/util"
 )
 
 func TestSimpleDelete(t *testing.T) {
 
-	bindingClient := v1alpha2.NewMockKnSinkBindingClient(t, "mynamespace")
+	bindingClient := v1.NewMockKnSinkBindingClient(t, "mynamespace")
 
 	bindingRecorder := bindingClient.Recorder()
 	bindingRecorder.DeleteSinkBinding("mybinding", nil)
@@ -40,7 +40,7 @@ func TestSimpleDelete(t *testing.T) {
 
 func TestDeleteWithError(t *testing.T) {
 
-	bindingClient := v1alpha2.NewMockKnSinkBindingClient(t, "mynamespace")
+	bindingClient := v1.NewMockKnSinkBindingClient(t, "mynamespace")
 
 	bindingRecorder := bindingClient.Recorder()
 	bindingRecorder.DeleteSinkBinding("mybinding", errors.New("no such sink binding mybinding"))

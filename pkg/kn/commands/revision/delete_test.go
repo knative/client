@@ -25,9 +25,7 @@ import (
 	clienttesting "k8s.io/client-go/testing"
 
 	"knative.dev/client/pkg/kn/commands"
-	clientservingv1 "knative.dev/client/pkg/serving/v1"
 	"knative.dev/client/pkg/util"
-	"knative.dev/client/pkg/util/mock"
 	"knative.dev/client/pkg/wait"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
@@ -103,24 +101,4 @@ func getRevisionDeleteEvents(name string) []watch.Event {
 		{Type: watch.Added, Object: &servingv1.Revision{ObjectMeta: metav1.ObjectMeta{Name: name}}},
 		{Type: watch.Deleted, Object: &servingv1.Revision{ObjectMeta: metav1.ObjectMeta{Name: name}}},
 	}
-}
-
-func TestRevisionDeleteCheckErrorForNotFoundRevisionsMock(t *testing.T) {
-	// New mock client
-	client := clientservingv1.NewMockKnServiceClient(t)
-
-	// Recording:
-	r := client.Recorder()
-
-	r.DeleteRevision("foo", mock.Any(), nil)
-	r.DeleteRevision("bar", mock.Any(), errors.New("revisions.serving.knative.dev \"bar\" not found."))
-	r.DeleteRevision("baz", mock.Any(), errors.New("revisions.serving.knative.dev \"baz\" not found."))
-
-	output, err := executeRevisionCommand(client, "delete", "foo", "bar", "baz")
-	if err == nil {
-		t.Fatal("Expected revision not found error, returned nil")
-	}
-	assert.Assert(t, util.ContainsAll(output, "'foo' deleted", "\"bar\" not found", "\"baz\" not found"))
-
-	r.Validate()
 }

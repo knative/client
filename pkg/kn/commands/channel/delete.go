@@ -41,7 +41,7 @@ func NewChannelDeleteCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			err = channelClient.DeleteChannel(name)
+			err = channelClient.DeleteChannel(cmd.Context(), name)
 			if err != nil {
 				return err
 			}

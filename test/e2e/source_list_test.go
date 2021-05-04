@@ -39,12 +39,12 @@ func TestSourceListTypes(t *testing.T) {
 
 	t.Log("List available source types")
 	output := sourceListTypes(r)
-	assert.Check(t, util.ContainsAll(output, "TYPE", "NAME", "DESCRIPTION", "Ping", "ApiServer"))
+	assert.Check(t, util.ContainsAll(output, "TYPE", "S", "NAME", "DESCRIPTION", "Ping", "ApiServer"))
 
 	t.Log("List available source types in YAML format")
 
 	output = sourceListTypes(r, "-oyaml")
-	assert.Check(t, util.ContainsAll(output, "apiextensions.k8s.io/v1beta1", "CustomResourceDefinition", "Ping", "ApiServer"))
+	assert.Check(t, util.ContainsAll(output, "apiextensions.k8s.io/v1", "CustomResourceDefinition", "Ping", "ApiServer"))
 }
 
 func TestSourceList(t *testing.T) {
@@ -88,7 +88,7 @@ func TestSourceList(t *testing.T) {
 	output = sourceList(r, "--type", "testapisource0")
 	assert.Check(t, util.ContainsAll(output, "No", "sources", "found."))
 	output = sourceList(r, "--type", "TestSource", "-oyaml")
-	assert.Check(t, util.ContainsAll(output, "No", "sources", "found."))
+	assert.Check(t, util.ContainsAll(output, "apiVersion", "client.knative.dev/v1alpha1", "items", "[]", "kind", "SourceList"))
 
 	t.Log("List available source in YAML format")
 	output = sourceList(r, "--type", "PingSource,ApiServerSource", "-oyaml")

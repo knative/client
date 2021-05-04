@@ -44,12 +44,12 @@ func NewBindingListCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			sourceList, err := bindingClient.ListSinkBindings()
+			sourceList, err := bindingClient.ListSinkBindings(cmd.Context())
 			if err != nil {
 				return err
 			}
 
-			if len(sourceList.Items) == 0 {
+			if !listFlags.GenericPrintFlags.OutputFlagSpecified() && len(sourceList.Items) == 0 {
 				fmt.Fprintf(cmd.OutOrStdout(), "No sink binding found.\n")
 				return nil
 			}

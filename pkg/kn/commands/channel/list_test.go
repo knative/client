@@ -17,17 +17,19 @@ package channel
 import (
 	"testing"
 
+	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
+
 	"gotest.tools/v3/assert"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	messagingv1beta1 "knative.dev/eventing/pkg/apis/messaging/v1beta1"
 
-	v1beta1 "knative.dev/client/pkg/messaging/v1beta1"
+	clientmessagingv1 "knative.dev/client/pkg/messaging/v1"
+	messagingv1 "knative.dev/eventing/pkg/apis/messaging/v1"
 
 	"knative.dev/client/pkg/util"
 )
 
 func TestChannelListNoChannelsFound(t *testing.T) {
-	cClient := v1beta1.NewMockKnChannelsClient(t)
+	cClient := clientmessagingv1.NewMockKnChannelsClient(t)
 	cRecorder := cClient.Recorder()
 	cRecorder.ListChannel(nil, nil)
 	out, err := executeChannelCommand(cClient, "list")
@@ -36,13 +38,36 @@ func TestChannelListNoChannelsFound(t *testing.T) {
 	cRecorder.Validate()
 }
 
-func TestChannelList(t *testing.T) {
-	cClient := v1beta1.NewMockKnChannelsClient(t)
+func TestChannelListNoChannelsFoundWithOutputSet(t *testing.T) {
+	cClient := clientmessagingv1.NewMockKnChannelsClient(t)
 	cRecorder := cClient.Recorder()
-	clist := &messagingv1beta1.ChannelList{}
-	clist.Items = []messagingv1beta1.Channel{
-		*createChannel("c0", "default", &schema.GroupVersionKind{Group: "messaging.knative.dev", Version: "v1beta1", Kind: "InMemoryChannel"}),
-		*createChannel("c1", "default", &schema.GroupVersionKind{Group: "messaging.knative.dev", Version: "v1beta1", Kind: "InMemoryChannel"}),
+	cRecorder.ListChannel(nil, nil)
+	out, err := executeChannelCommand(cClient, "list", "-o", "json")
+	assert.NilError(t, err)
+	assert.Check(t, util.ContainsAll(out, "\"apiVersion\": \"messaging.knative.dev/v1\"", "\"kind\": \"ChannelList\"", "\"items\": []"))
+	cRecorder.Validate()
+}
+
+func TestChannelListEmptyWithOutputSet(t *testing.T) {
+	cClient := clientmessagingv1.NewMockKnChannelsClient(t)
+	cRecorder := cClient.Recorder()
+	channelList := &messagingv1.ChannelList{}
+	err := util.UpdateGroupVersionKindWithScheme(channelList, messagingv1.SchemeGroupVersion, scheme.Scheme)
+	assert.NilError(t, err)
+	cRecorder.ListChannel(channelList, nil)
+	out, err := executeChannelCommand(cClient, "list", "-o", "json")
+	assert.NilError(t, err)
+	assert.Check(t, util.ContainsAll(out, "\"apiVersion\": \"messaging.knative.dev/v1\"", "\"kind\": \"ChannelList\"", "\"items\": []"))
+	cRecorder.Validate()
+}
+
+func TestChannelList(t *testing.T) {
+	cClient := clientmessagingv1.NewMockKnChannelsClient(t)
+	cRecorder := cClient.Recorder()
+	clist := &messagingv1.ChannelList{}
+	clist.Items = []messagingv1.Channel{
+		*createChannel("c0", "default", &schema.GroupVersionKind{Group: "messaging.knative.dev", Version: "v1", Kind: "InMemoryChannel"}),
+		*createChannel("c1", "default", &schema.GroupVersionKind{Group: "messaging.knative.dev", Version: "v1", Kind: "InMemoryChannel"}),
 	}
 	cRecorder.ListChannel(clist, nil)
 	out, err := executeChannelCommand(cClient, "list")

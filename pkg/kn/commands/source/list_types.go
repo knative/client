@@ -15,7 +15,10 @@
 package source
 
 import (
+	"context"
 	"fmt"
+
+	"knative.dev/client/pkg/sources"
 
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -25,7 +28,6 @@ import (
 	knerrors "knative.dev/client/pkg/errors"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
-	sourcesv1alpha2 "knative.dev/client/pkg/sources/v1alpha2"
 )
 
 // NewListTypesCommand defines and processes `kn source list-types`
@@ -51,18 +53,27 @@ func NewListTypesCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			sourceListTypes, err := dynamicClient.ListSourcesTypes()
+			sourceListTypes, err := dynamicClient.ListSourcesTypes(cmd.Context())
 			switch {
 			case knerrors.IsForbiddenError(err):
-				if sourceListTypes, err = listBuiltInSourceTypes(dynamicClient); err != nil {
+				if sourceListTypes, err = listBuiltInSourceTypes(cmd.Context(), dynamicClient); err != nil {
 					return knerrors.GetError(err)
 				}
 			case err != nil:
 				return knerrors.GetError(err)
 			}
 
-			if sourceListTypes == nil || len(sourceListTypes.Items) == 0 {
+			if sourceListTypes == nil {
+				sourceListTypes = &unstructured.UnstructuredList{}
+			}
+
+			if !listTypesFlags.GenericPrintFlags.OutputFlagSpecified() && len(sourceListTypes.Items) == 0 {
 				return fmt.Errorf("no sources found on the backend, please verify the installation")
+			}
+
+			if sourceListTypes.GroupVersionKind().Empty() {
+				sourceListTypes.SetAPIVersion("apiextensions.k8s.io/v1")
+				sourceListTypes.SetKind("CustomResourceDefinitionList")
 			}
 
 			printer, err := listTypesFlags.ToPrinter()
@@ -83,12 +94,12 @@ func NewListTypesCommand(p *commands.KnParams) *cobra.Command {
 	return listTypesCommand
 }
 
-func listBuiltInSourceTypes(d dynamic.KnDynamicClient) (*unstructured.UnstructuredList, error) {
+func listBuiltInSourceTypes(ctx context.Context, d dynamic.KnDynamicClient) (*unstructured.UnstructuredList, error) {
 	var err error
 	uList := unstructured.UnstructuredList{}
-	gvks := sourcesv1alpha2.BuiltInSourcesGVKs()
+	gvks := sources.BuiltInSourcesGVKs()
 	for _, gvk := range gvks {
-		_, err = d.ListSourcesUsingGVKs(&[]schema.GroupVersionKind{gvk})
+		_, err = d.ListSourcesUsingGVKs(ctx, &[]schema.GroupVersionKind{gvk})
 		if err != nil {
 			continue
 		}

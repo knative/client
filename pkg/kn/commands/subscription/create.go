@@ -26,7 +26,7 @@ import (
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
 	knflags "knative.dev/client/pkg/kn/flags"
-	knmessagingv1beta1 "knative.dev/client/pkg/messaging/v1beta1"
+	knmessagingv1 "knative.dev/client/pkg/messaging/v1"
 )
 
 // NewSubscriptionCreateCommand to create event subscriptions
@@ -71,7 +71,7 @@ func NewSubscriptionCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			sb := knmessagingv1beta1.NewSubscriptionBuilder(name)
+			sb := knmessagingv1.NewSubscriptionBuilder(name)
 
 			cref, err := crefFlag.Parse()
 			if err != nil {
@@ -79,25 +79,25 @@ func NewSubscriptionCreateCommand(p *commands.KnParams) *cobra.Command {
 			}
 			sb.Channel(cref)
 
-			sub, err := subscriberFlag.ResolveSink(dynamicClient, namespace)
+			sub, err := subscriberFlag.ResolveSink(cmd.Context(), dynamicClient, namespace)
 			if err != nil {
 				return err
 			}
 			sb.Subscriber(sub)
 
-			rep, err := replyFlag.ResolveSink(dynamicClient, namespace)
+			rep, err := replyFlag.ResolveSink(cmd.Context(), dynamicClient, namespace)
 			if err != nil {
 				return err
 			}
 			sb.Reply(rep)
 
-			ds, err := dlsFlag.ResolveSink(dynamicClient, namespace)
+			ds, err := dlsFlag.ResolveSink(cmd.Context(), dynamicClient, namespace)
 			if err != nil {
 				return err
 			}
 			sb.DeadLetterSink(ds)
 
-			err = client.CreateSubscription(sb.Build())
+			err = client.CreateSubscription(cmd.Context(), sb.Build())
 			if err != nil {
 				return knerrors.GetError(err)
 			}

@@ -43,7 +43,7 @@ func NewSubscriptionDeleteCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			err = subscriptionClient.DeleteSubscription(name)
+			err = subscriptionClient.DeleteSubscription(cmd.Context(), name)
 			if err != nil {
 				return err
 			}

@@ -20,14 +20,13 @@ import (
 	"testing"
 
 	"gotest.tools/v3/assert"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	sourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"
 	"knative.dev/pkg/apis"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
-	"knative.dev/pkg/apis/duck/v1alpha1"
 	"knative.dev/pkg/tracker"
 
-	clientv1alpha2 "knative.dev/client/pkg/sources/v1alpha2"
+	clientv1 "knative.dev/client/pkg/sources/v1"
 	"knative.dev/client/pkg/util"
 )
 
@@ -40,7 +39,7 @@ var (
 )
 
 func TestSimpleDescribeWitName(t *testing.T) {
-	bindingClient := clientv1alpha2.NewMockKnSinkBindingClient(t, "mynamespace")
+	bindingClient := clientv1.NewMockKnSinkBindingClient(t, "mynamespace")
 
 	bindingRecorder := bindingClient.Recorder()
 	bindingRecorder.GetSinkBinding("mybinding", getSinkBindingSource("myapp", map[string]string{"foo": "bar"}, createServiceSink("mysvc", "myservicenamespace")), nil)
@@ -54,7 +53,7 @@ func TestSimpleDescribeWitName(t *testing.T) {
 }
 
 func TestSimpleDescribeWithSelector(t *testing.T) {
-	bindingClient := clientv1alpha2.NewMockKnSinkBindingClient(t, "mynamespace")
+	bindingClient := clientv1.NewMockKnSinkBindingClient(t, "mynamespace")
 
 	bindingRecorder := bindingClient.Recorder()
 	bindingRecorder.GetSinkBinding("mybinding", getSinkBindingSource("app=myapp,type=test", nil, createServiceSink("mysvc", "myservicenamespace")), nil)
@@ -68,7 +67,7 @@ func TestSimpleDescribeWithSelector(t *testing.T) {
 }
 
 func TestDescribeError(t *testing.T) {
-	bindingClient := clientv1alpha2.NewMockKnSinkBindingClient(t, "mynamespace")
+	bindingClient := clientv1.NewMockKnSinkBindingClient(t, "mynamespace")
 
 	bindingRecorder := bindingClient.Recorder()
 	bindingRecorder.GetSinkBinding("mybinding", nil, errors.New("no sink binding mybinding found"))
@@ -81,7 +80,7 @@ func TestDescribeError(t *testing.T) {
 }
 
 func TestDescribeWithSinkURI(t *testing.T) {
-	bindingClient := clientv1alpha2.NewMockKnSinkBindingClient(t, "mynamespace")
+	bindingClient := clientv1.NewMockKnSinkBindingClient(t, "mynamespace")
 
 	bindingRecorder := bindingClient.Recorder()
 	bindingRecorder.GetSinkBinding("mybinding", getSinkBindingSource("myapp", map[string]string{"foo": "bar"}, sinkURI), nil)
@@ -94,7 +93,7 @@ func TestDescribeWithSinkURI(t *testing.T) {
 }
 
 func TestSinkBindingMachineReadableOutputs(t *testing.T) {
-	bindingClient := clientv1alpha2.NewMockKnSinkBindingClient(t, "mynamespace")
+	bindingClient := clientv1.NewMockKnSinkBindingClient(t, "mynamespace")
 	bindingRecorder := bindingClient.Recorder()
 
 	bindingRecorder.GetSinkBinding("mybinding", getSinkBindingSource("myapp", map[string]string{"foo": "bar"}, createServiceSink("mysvc", "myservicenamespace")), nil)
@@ -105,20 +104,20 @@ func TestSinkBindingMachineReadableOutputs(t *testing.T) {
 	bindingRecorder.Validate()
 }
 
-func getSinkBindingSource(nameOrSelector string, ceOverrides map[string]string, sink duckv1.Destination) *v1alpha2.SinkBinding {
-	binding := &v1alpha2.SinkBinding{
-		TypeMeta: v1.TypeMeta{
+func getSinkBindingSource(nameOrSelector string, ceOverrides map[string]string, sink duckv1.Destination) *sourcesv1.SinkBinding {
+	binding := &sourcesv1.SinkBinding{
+		TypeMeta: metav1.TypeMeta{
 			Kind:       "SinkBinding",
-			APIVersion: "sources.knative.dev/v1alpha2",
+			APIVersion: "sources.knative.dev/v1",
 		},
-		ObjectMeta: v1.ObjectMeta{
+		ObjectMeta: metav1.ObjectMeta{
 			Name: "mysinkbinding",
 		},
-		Spec: v1alpha2.SinkBindingSpec{
+		Spec: sourcesv1.SinkBindingSpec{
 			SourceSpec: duckv1.SourceSpec{
 				Sink: sink,
 			},
-			BindingSpec: v1alpha1.BindingSpec{
+			BindingSpec: duckv1.BindingSpec{
 				Subject: tracker.Reference{
 					APIVersion: "apps/v1",
 					Kind:       "Deployment",
@@ -126,12 +125,12 @@ func getSinkBindingSource(nameOrSelector string, ceOverrides map[string]string, 
 				},
 			},
 		},
-		Status: v1alpha2.SinkBindingStatus{},
+		Status: sourcesv1.SinkBindingStatus{},
 	}
 
 	if strings.Contains(nameOrSelector, "=") {
 		selector, _ := util.ParseSelector(nameOrSelector)
-		binding.Spec.Subject.Selector = &v1.LabelSelector{
+		binding.Spec.Subject.Selector = &metav1.LabelSelector{
 			MatchLabels: selector,
 		}
 	} else {

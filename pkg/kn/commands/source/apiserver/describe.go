@@ -21,11 +21,11 @@ import (
 
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
-	"knative.dev/eventing/pkg/apis/sources/v1alpha2"
 
 	"knative.dev/client/lib/printing"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/printers"
+	v1 "knative.dev/eventing/pkg/apis/sources/v1"
 )
 
 var describeExample = `
@@ -56,7 +56,7 @@ func NewAPIServerDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			apiSource, err := apiSourceClient.GetAPIServerSource(name)
+			apiSource, err := apiSourceClient.GetAPIServerSource(cmd.Context(), name)
 			if err != nil {
 				return err
 			}
@@ -116,7 +116,7 @@ func NewAPIServerDescribeCommand(p *commands.KnParams) *cobra.Command {
 	return command
 }
 
-func writeResources(dw printers.PrefixWriter, apiVersionKindSelectors []v1alpha2.APIVersionKindSelector) {
+func writeResources(dw printers.PrefixWriter, apiVersionKindSelectors []v1.APIVersionKindSelector) {
 	subWriter := dw.WriteAttribute("Resources", "")
 	for _, resource := range apiVersionKindSelectors {
 		subWriter.WriteAttribute("Kind", fmt.Sprintf("%s (%s)", resource.Kind, resource.APIVersion))
@@ -126,7 +126,7 @@ func writeResources(dw printers.PrefixWriter, apiVersionKindSelectors []v1alpha2
 	}
 }
 
-func writeAPIServerSource(dw printers.PrefixWriter, source *v1alpha2.ApiServerSource, printDetails bool) {
+func writeAPIServerSource(dw printers.PrefixWriter, source *v1.ApiServerSource, printDetails bool) {
 	commands.WriteMetadata(dw, &source.ObjectMeta, printDetails)
 	dw.WriteAttribute("ServiceAccountName", source.Spec.ServiceAccountName)
 	dw.WriteAttribute("EventMode", source.Spec.EventMode)

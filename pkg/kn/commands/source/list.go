@@ -17,14 +17,22 @@ package source
 import (
 	"fmt"
 
-	"github.com/spf13/cobra"
+	"knative.dev/client/pkg/sources"
 
+	"github.com/spf13/cobra"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"knative.dev/client/pkg/dynamic"
 	knerrors "knative.dev/client/pkg/errors"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
 	"knative.dev/client/pkg/kn/commands/source/duck"
-	sourcesv1alpha2 "knative.dev/client/pkg/sources/v1alpha2"
+)
+
+const (
+	sourceListGroup   = "client.knative.dev"
+	sourceListVersion = "v1alpha1"
+	sourceListKind    = "SourceList"
 )
 
 var listExample = `
@@ -61,21 +69,28 @@ func NewListCommand(p *commands.KnParams) *cobra.Command {
 				filters = append(filters, dynamic.WithTypeFilter(filter))
 			}
 
-			sourceList, err := dynamicClient.ListSources(filters...)
+			sourceList, err := dynamicClient.ListSources(cmd.Context(), filters...)
 
 			switch {
 			case knerrors.IsForbiddenError(err):
-				gvks := sourcesv1alpha2.BuiltInSourcesGVKs()
-				if sourceList, err = dynamicClient.ListSourcesUsingGVKs(&gvks, filters...); err != nil {
+				gvks := sources.BuiltInSourcesGVKs()
+				if sourceList, err = dynamicClient.ListSourcesUsingGVKs(cmd.Context(), &gvks, filters...); err != nil {
 					return knerrors.GetError(err)
 				}
 			case err != nil:
 				return knerrors.GetError(err)
 			}
 
-			if sourceList == nil || len(sourceList.Items) == 0 {
+			if sourceList == nil {
+				sourceList = &unstructured.UnstructuredList{}
+			}
+			if !listFlags.GenericPrintFlags.OutputFlagSpecified() && len(sourceList.Items) == 0 {
 				fmt.Fprintf(cmd.OutOrStdout(), "No sources found.\n")
 				return nil
+			}
+
+			if sourceList.GroupVersionKind().Empty() {
+				sourceList.SetGroupVersionKind(schema.GroupVersionKind{Group: sourceListGroup, Version: sourceListVersion, Kind: sourceListKind})
 			}
 			// empty namespace indicates all namespaces flag is specified
 			if namespace == "" {

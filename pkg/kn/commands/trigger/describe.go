@@ -23,7 +23,7 @@ import (
 	"knative.dev/client/lib/printing"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/printers"
-	"knative.dev/eventing/pkg/apis/eventing/v1beta1"
+	v1beta1 "knative.dev/eventing/pkg/apis/eventing/v1"
 )
 
 var describeExample = `
@@ -61,7 +61,7 @@ func NewTriggerDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			trigger, err := eventingClient.GetTrigger(name)
+			trigger, err := eventingClient.GetTrigger(cmd.Context(), name)
 			if err != nil {
 				return err
 			}

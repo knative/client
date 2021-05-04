@@ -60,6 +60,17 @@ func TestRevisionListEmpty(t *testing.T) {
 	}
 }
 
+func TestRevisionListEmptyWithJSON(t *testing.T) {
+	action, output, err := fakeRevisionList([]string{"revision", "list", "-o", "json"}, &servingv1.RevisionList{})
+	assert.NilError(t, err)
+	if action == nil {
+		t.Errorf("No action")
+	} else if !action.Matches("list", "revisions") {
+		t.Errorf("Bad action %v", action)
+	}
+	assert.Assert(t, util.ContainsAll(strings.Join(output[:], "\n"), "\"apiVersion\": \"serving.knative.dev/v1\"", "\"items\": [],", "\"kind\": \"RevisionList\""))
+}
+
 func TestRevisionListEmptyByName(t *testing.T) {
 	action, _, err := fakeRevisionList([]string{"revision", "list", "name"}, &servingv1.RevisionList{})
 	assert.NilError(t, err)

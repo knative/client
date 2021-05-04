@@ -45,12 +45,12 @@ func NewPingListCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			sourceList, err := pingClient.ListPingSource()
+			sourceList, err := pingClient.ListPingSource(cmd.Context())
 			if err != nil {
 				return err
 			}
 
-			if len(sourceList.Items) == 0 {
+			if !listFlags.GenericPrintFlags.OutputFlagSpecified() && len(sourceList.Items) == 0 {
 				fmt.Fprintf(cmd.OutOrStdout(), "No Ping source found.\n")
 				return nil
 			}

@@ -21,11 +21,11 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/clientcmd"
-	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
+	v1 "knative.dev/eventing/pkg/apis/sources/v1"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 
 	kndynamic "knative.dev/client/pkg/dynamic"
-	clientv1alpha2 "knative.dev/client/pkg/sources/v1alpha2"
+	clientv1 "knative.dev/client/pkg/sources/v1"
 
 	"knative.dev/client/pkg/kn/commands"
 )
@@ -54,7 +54,7 @@ current-context: x
 	}
 }
 
-func executeContainerSourceCommand(containerSourceClient clientv1alpha2.KnContainerSourcesClient, dynamicClient kndynamic.KnDynamicClient, args ...string) (string, error) {
+func executeContainerSourceCommand(containerSourceClient clientv1.KnContainerSourcesClient, dynamicClient kndynamic.KnDynamicClient, args ...string) (string, error) {
 	knParams := &commands.KnParams{}
 	knParams.ClientConfig = blankConfig
 
@@ -68,7 +68,7 @@ func executeContainerSourceCommand(containerSourceClient clientv1alpha2.KnContai
 	cmd.SetArgs(args)
 	cmd.SetOutput(output)
 
-	containerSourceClientFactory = func(config clientcmd.ClientConfig, namespace string) (clientv1alpha2.KnContainerSourcesClient, error) {
+	containerSourceClientFactory = func(config clientcmd.ClientConfig, namespace string) (clientv1.KnContainerSourcesClient, error) {
 		return containerSourceClient, nil
 	}
 	defer cleanupContainerServerMockClient()
@@ -82,8 +82,8 @@ func cleanupContainerServerMockClient() {
 	containerSourceClientFactory = nil
 }
 
-func createContainerSource(name, image string, sink duckv1.Destination) *v1alpha2.ContainerSource {
-	return clientv1alpha2.NewContainerSourceBuilder(name).
+func createContainerSource(name, image string, sink duckv1.Destination) *v1.ContainerSource {
+	return clientv1.NewContainerSourceBuilder(name).
 		PodSpec(corev1.PodSpec{
 			Containers: []corev1.Container{{
 				Image: image,

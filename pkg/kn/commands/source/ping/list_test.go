@@ -17,21 +17,23 @@ package ping
 import (
 	"testing"
 
+	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
+
 	"gotest.tools/v3/assert"
 
-	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
+	sourcesv1beta2 "knative.dev/eventing/pkg/apis/sources/v1beta2"
 
-	clientv1alpha2 "knative.dev/client/pkg/sources/v1alpha2"
+	clientv1beta2 "knative.dev/client/pkg/sources/v1beta2"
 	"knative.dev/client/pkg/util"
 )
 
 func TestListPingSource(t *testing.T) {
-	pingClient := clientv1alpha2.NewMockKnPingSourceClient(t)
+	pingClient := clientv1beta2.NewMockKnPingSourceClient(t)
 
 	pingRecorder := pingClient.Recorder()
 	cJSource := createPingSource("testsource", "* * * * */2", "maxwell", "mysvc", nil)
-	cJSourceList := v1alpha2.PingSourceList{}
-	cJSourceList.Items = []v1alpha2.PingSource{*cJSource}
+	cJSourceList := sourcesv1beta2.PingSourceList{}
+	cJSourceList.Items = []sourcesv1beta2.PingSource{*cJSource}
 
 	pingRecorder.ListPingSource(&cJSourceList, nil)
 
@@ -44,10 +46,10 @@ func TestListPingSource(t *testing.T) {
 }
 
 func TestListPingJobSourceEmpty(t *testing.T) {
-	pingClient := clientv1alpha2.NewMockKnPingSourceClient(t)
+	pingClient := clientv1beta2.NewMockKnPingSourceClient(t)
 
 	pingRecorder := pingClient.Recorder()
-	cJSourceList := v1alpha2.PingSourceList{}
+	cJSourceList := sourcesv1beta2.PingSourceList{}
 
 	pingRecorder.ListPingSource(&cJSourceList, nil)
 
@@ -55,6 +57,21 @@ func TestListPingJobSourceEmpty(t *testing.T) {
 	assert.NilError(t, err, "Sources should be listed")
 	assert.Assert(t, util.ContainsNone(out, "NAME", "SCHEDULE", "SINK", "AGE", "CONDITIONS", "READY", "REASON"))
 	assert.Assert(t, util.ContainsAll(out, "No", "Ping", "source", "found"))
+
+	pingRecorder.Validate()
+}
+
+func TestListPingJobSourceEmptyWithJsonOutput(t *testing.T) {
+	pingClient := clientv1beta2.NewMockKnPingSourceClient(t)
+
+	pingRecorder := pingClient.Recorder()
+	cJSourceList := sourcesv1beta2.PingSourceList{}
+	_ = util.UpdateGroupVersionKindWithScheme(&cJSourceList, sourcesv1beta2.SchemeGroupVersion, scheme.Scheme)
+	pingRecorder.ListPingSource(&cJSourceList, nil)
+
+	out, err := executePingSourceCommand(pingClient, nil, "list", "-o", "json")
+	assert.NilError(t, err, "Sources should be listed")
+	assert.Assert(t, util.ContainsAll(out, "\"apiVersion\": \"sources.knative.dev/v1beta2\"", "\"items\": []", "\"kind\": \"PingSourceList\""))
 
 	pingRecorder.Validate()
 }

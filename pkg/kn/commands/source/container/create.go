@@ -26,7 +26,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	"knative.dev/client/pkg/kn/commands"
-	"knative.dev/client/pkg/sources/v1alpha2"
+	v1 "knative.dev/client/pkg/sources/v1"
 )
 
 // NewContainerCreateCommand for creating source
@@ -59,7 +59,7 @@ func NewContainerCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			objectRef, err := sinkFlags.ResolveSink(dynamicClient, namespace)
+			objectRef, err := sinkFlags.ResolveSink(cmd.Context(), dynamicClient, namespace)
 			if err != nil {
 				return fmt.Errorf(
 					"cannot create ContainerSource '%s' in namespace '%s' "+
@@ -74,8 +74,8 @@ func NewContainerCreateCommand(p *commands.KnParams) *cobra.Command {
 						"because: %s", name, namespace, err)
 			}
 
-			b := v1alpha2.NewContainerSourceBuilder(name).Sink(*objectRef).PodSpec(*podSpec)
-			err = srcClient.CreateContainerSource(b.Build())
+			b := v1.NewContainerSourceBuilder(name).Sink(*objectRef).PodSpec(*podSpec)
+			err = srcClient.CreateContainerSource(cmd.Context(), b.Build())
 			if err != nil {
 				return fmt.Errorf(
 					"cannot create ContainerSource '%s' in namespace '%s' "+

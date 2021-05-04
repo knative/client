@@ -27,6 +27,8 @@ import (
 	"k8s.io/client-go/rest"
 )
 
+const pollInterval = time.Second
+
 // PollInterval determines when you should poll.  Useful to mock out, or for
 // replacing with exponential backoff later.
 type PollInterval interface {
@@ -69,14 +71,14 @@ func newTickerPollInterval(d time.Duration) *tickerPollInterval {
 
 // NewWatcher makes a watch.Interface on the given resource in the client,
 // falling back to polling if the server does not support Watch.
-func NewWatcher(watchFunc watchF, c rest.Interface, ns string, resource string, name string, timeout time.Duration) (watch.Interface, error) {
-	native, err := nativeWatch(watchFunc, name, timeout)
+func NewWatcher(ctx context.Context, watchFunc watchF, c rest.Interface, ns string, resource string, name string, timeout time.Duration) (watch.Interface, error) {
+	native, err := nativeWatch(ctx, watchFunc, name, timeout)
 	if err == nil {
 		return native, nil
 	}
 	polling := &pollingWatcher{
 		c, ns, resource, name, timeout, make(chan bool), make(chan watch.Event), &sync.WaitGroup{},
-		newTickerPollInterval(time.Second), nativePoll(c, ns, resource, name)}
+		newTickerPollInterval(pollInterval), nativePoll(ctx, c, ns, resource, name)}
 	polling.start()
 	return polling, nil
 }
@@ -159,18 +161,18 @@ func (w *pollingWatcher) Stop() {
 	close(w.done)
 }
 
-func nativeWatch(watchFunc watchF, name string, timeout time.Duration) (watch.Interface, error) {
+func nativeWatch(ctx context.Context, watchFunc watchF, name string, timeout time.Duration) (watch.Interface, error) {
 	opts := v1.ListOptions{
 		FieldSelector: fields.OneTermEqualSelector("metadata.name", name).String(),
 	}
 	opts.Watch = true
 	addWatchTimeout(&opts, timeout)
-	return watchFunc(context.TODO(), opts)
+	return watchFunc(ctx, opts)
 }
 
-func nativePoll(c rest.Interface, ns, resource, name string) func() (runtime.Object, error) {
+func nativePoll(ctx context.Context, c rest.Interface, ns, resource, name string) func() (runtime.Object, error) {
 	return func() (runtime.Object, error) {
-		return c.Get().Namespace(ns).Resource(resource).Name(name).Do(context.TODO()).Get()
+		return c.Get().Namespace(ns).Resource(resource).Name(name).Do(ctx).Get()
 	}
 }
 

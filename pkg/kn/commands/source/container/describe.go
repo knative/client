@@ -25,7 +25,7 @@ import (
 	"knative.dev/client/lib/printing"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/printers"
-	v1alpha2 "knative.dev/eventing/pkg/apis/sources/v1alpha2"
+	v1 "knative.dev/eventing/pkg/apis/sources/v1"
 )
 
 // NewContainerDescribeCommand to describe an Container source object
@@ -47,7 +47,7 @@ func NewContainerDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			source, err := sourceClient.GetContainerSource(name)
+			source, err := sourceClient.GetContainerSource(cmd.Context(), name)
 			if err != nil {
 				return err
 			}
@@ -97,7 +97,7 @@ func NewContainerDescribeCommand(p *commands.KnParams) *cobra.Command {
 	return apiServerDescribe
 }
 
-func writeContainerSource(dw printers.PrefixWriter, source *v1alpha2.ContainerSource, printDetails bool) {
+func writeContainerSource(dw printers.PrefixWriter, source *v1.ContainerSource, printDetails bool) {
 	commands.WriteMetadata(dw, &source.ObjectMeta, printDetails)
 	writeContainer(dw, &source.Spec.Template.Spec.Containers[0])
 }

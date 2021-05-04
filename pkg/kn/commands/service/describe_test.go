@@ -68,6 +68,7 @@ func TestServiceDescribeBasic(t *testing.T) {
 	assert.Assert(t, util.ContainsAll(output, "Labels:", "label1=lval1, label2=lval2\n"))
 	assert.Assert(t, util.ContainsAll(output, "[1]"))
 	assert.Assert(t, cmp.Regexp("Service Account: \\s+default-sa", output))
+	assert.Assert(t, util.ContainsAll(output, "Replicas:", "0/1"))
 
 	assert.Equal(t, strings.Count(output, "rev1"), 1)
 
@@ -762,6 +763,8 @@ func createTestRevision(revision string, gen int64, conditions duckv1.Conditions
 			},
 		},
 		Status: servingv1.RevisionStatus{
+			ActualReplicas:        0,
+			DesiredReplicas:       1,
 			DeprecatedImageDigest: "gcr.io/test/image@" + imageDigest,
 			Status: duckv1.Status{
 				Conditions: conditions,
