@@ -265,7 +265,6 @@ func (w *waitForEvent) Wait(ctx context.Context, name string, initialVersion str
 		case <-timer.C:
 			return fmt.Errorf("timeout: %s '%s' not ready after %d seconds", w.kind, name, int(timeout/time.Second)), time.Since(start)
 		case event := <-watcher.ResultChan():
-			fmt.Println("Event: " + event.Type)
 			if w.eventDone(&event) {
 				return nil, time.Since(start)
 			}
