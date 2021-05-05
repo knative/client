@@ -154,6 +154,7 @@ github.com/cockroachdb/datadriven v0.0.0-20190809214429-80d97fb3cbaa/go.mod h1:z
 github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd/go.mod h1:sE/e/2PUdi/liOCUjSTXgM1o87ZssimdTWN964YiIeI=
 github.com/containerd/containerd v1.3.0/go.mod h1:bC6axHOhabU15QhwfG7w5PipXdVtMXFTttgp+kVtyUA=
 github.com/containerd/stargz-snapshotter/estargz v0.0.0-20201223015020-a9a0c2d64694/go.mod h1:E9uVkkBKf0EaC39j2JVW9EzdNhYvpz6eQIjILHebruk=
+github.com/containerd/stargz-snapshotter/estargz v0.4.1/go.mod h1:x7Q9dg9QYb4+ELgxmo4gBUeJB0tl5dqH1Sdz0nJU1QM=
 github.com/coreos/bbolt v1.3.2/go.mod h1:iRUV2dpdMOn7Bo10OQBFzIJO9kkE559Wcmn+qkEiiKk=
 github.com/coreos/etcd v3.3.10+incompatible/go.mod h1:uF7uidLiAD3TWHmW31ZFd/JWoc32PjwdhPthX9715RE=
 github.com/coreos/etcd v3.3.13+incompatible/go.mod h1:uF7uidLiAD3TWHmW31ZFd/JWoc32PjwdhPthX9715RE=
@@ -349,9 +350,10 @@ github.com/google/go-cmp v0.5.3/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/
 github.com/google/go-cmp v0.5.4/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/gNBxE=
 github.com/google/go-cmp v0.5.5 h1:Khx7svrCpmxxtHBq5j2mp/xVjsi8hQMfNLvJFAlrGgU=
 github.com/google/go-cmp v0.5.5/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/gNBxE=
-github.com/google/go-containerregistry v0.4.1-0.20210128200529-19c2b639fab1 h1:o2ykCuuhHeUwtzNg89pH2hi+821aqjLWkaREVR3ziTQ=
 github.com/google/go-containerregistry v0.4.1-0.20210128200529-19c2b639fab1/go.mod h1:GU9FUA/X9rd2cV3ZoUNaWihp27tki6/38EsVzL2Dyzc=
-github.com/google/go-containerregistry/pkg/authn/k8schain v0.0.0-20210129212729-5c4818de4025/go.mod h1:n9wRxRfKkHy6ZFyj0jJQHw11P+mGLnED4sqegwrXxDk=
+github.com/google/go-containerregistry v0.5.0 h1:eb9sinv4PKm0AUwQGov0mvIdA4pyBGjRofxN4tWnMwM=
+github.com/google/go-containerregistry v0.5.0/go.mod h1:Ct15B4yir3PLOP5jsy0GNeYVaIZs/MK/Jz5any1wFW0=
+github.com/google/go-containerregistry/pkg/authn/k8schain v0.0.0-20210430144454-9cf3ed4ac182/go.mod h1:n9wRxRfKkHy6ZFyj0jJQHw11P+mGLnED4sqegwrXxDk=
 github.com/google/go-github/v27 v27.0.6/go.mod h1:/0Gr8pJ55COkmv+S/yPKCczSkUPIM/LnFyubufRNIS0=
 github.com/google/go-querystring v1.0.0/go.mod h1:odCYkC5MyYFN7vkCjXpyrEuKhc/BUO6wN/zVPAxq5ck=
 github.com/google/gofuzz v1.0.0/go.mod h1:dBl0BpW6vV/+mYPU4Po3pmUjxk6FQPldtuIdl/M65Eg=
@@ -1282,8 +1284,8 @@ k8s.io/utils v0.0.0-20200729134348-d5654de09c73/go.mod h1:jPW/WVKK9YHAvNhRxK0md/
 k8s.io/utils v0.0.0-20210111153108-fddb29f9d009 h1:0T5IaWHO3sJTEmCP6mUlBvMukxPKUQWqiI/YuiBNMiQ=
 k8s.io/utils v0.0.0-20210111153108-fddb29f9d009/go.mod h1:jPW/WVKK9YHAvNhRxK0md/EJ228hCsBRufyofKtW8HA=
 knative.dev/caching v0.0.0-20210428140754-1fab472d2faf/go.mod h1:CLQDWuBhkGnC3Pq/3G56qMP14dPt+Y4QmBEe3it44HM=
-knative.dev/eventing v0.22.1-0.20210429210955-8db3bcf9e1ee h1:X5qEx97GO9WHq1ipgIiSPn/fboseyrGJ0e48wtQIZ70=
-knative.dev/eventing v0.22.1-0.20210429210955-8db3bcf9e1ee/go.mod h1:p7FKFj0dYMKI1Ji0GSKdRg2YzLMWVXABm0QHN2RtkSI=
+knative.dev/eventing v0.22.1-0.20210505162953-768b7d116d03 h1:+j+URI0eEGWZ+cnC2S02xZ/P2ufT2IhrMmzweuZGkLM=
+knative.dev/eventing v0.22.1-0.20210505162953-768b7d116d03/go.mod h1:p7FKFj0dYMKI1Ji0GSKdRg2YzLMWVXABm0QHN2RtkSI=
 knative.dev/hack v0.0.0-20210325223819-b6ab329907d3/go.mod h1:PHt8x8yX5Z9pPquBEfIj0X66f8iWkWfR0S/sarACJrI=
 knative.dev/hack v0.0.0-20210427190353-86f9adc0c8e2/go.mod h1:PHt8x8yX5Z9pPquBEfIj0X66f8iWkWfR0S/sarACJrI=
 knative.dev/hack v0.0.0-20210428122153-93ad9129c268 h1:lBIj9Epd9UQ55NEaHzAdY/UZbuaegCdGPKVC2+Z68Q0=
@@ -1296,8 +1298,8 @@ knative.dev/pkg v0.0.0-20210428023153-5a308fa62139/go.mod h1:7Xmwv60SD68lc4mpbKv
 knative.dev/pkg v0.0.0-20210428141353-878c85083565 h1:4I8Pm2IlSJbdJ1R9fC18kOlZlfCZkB59JraRGratgnY=
 knative.dev/pkg v0.0.0-20210428141353-878c85083565/go.mod h1:fIl4l4OmZodkElyaHoT0LCF5wT+3+P/kinawQ4XlLtE=
 knative.dev/reconciler-test v0.0.0-20210428195854-3db87491edb3/go.mod h1:yZihS1XoBt7oxU6Jq+U2hMKmUvfKFEaj3vMqOMBt/tI=
-knative.dev/serving v0.22.1-0.20210430010955-101c6f1efa8d h1:vhX3mD/O6pe3/4rDcoDM4xiKZLYmFF3VDLJ3soj2ofY=
-knative.dev/serving v0.22.1-0.20210430010955-101c6f1efa8d/go.mod h1:DbOx36OhWSfitWJLoqqhdl6H2NEqOrB2Bp7JP61PM08=
+knative.dev/serving v0.22.1-0.20210505154753-2d4e4a1eff9d h1:le2jX6mbc6g0kBtZgDGRyeGWsSVvwZeaLNlzOWqjvsQ=
+knative.dev/serving v0.22.1-0.20210505154753-2d4e4a1eff9d/go.mod h1:eeyZQ8josGr2tus9RG9hkPIB1ITXXjkPojh7RmEazig=
 modernc.org/cc v1.0.0/go.mod h1:1Sk4//wdnYJiUIxnW8ddKpaOJCF37yAdqYnkxUpaYxw=
 modernc.org/golex v1.0.0/go.mod h1:b/QX9oBD/LhixY6NDh+IdGv17hgB+51fET1i2kPSmvk=
 modernc.org/mathutil v1.0.0/go.mod h1:wU0vUrJsVWBZ4P6e7xtFJEhFSNsfRLJ8H458uRjg03k=
