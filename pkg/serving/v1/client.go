@@ -316,7 +316,7 @@ func (cl *knServingClient) ApplyService(ctx context.Context, modifiedService *se
 func (cl *knServingClient) DeleteService(ctx context.Context, serviceName string, timeout time.Duration) error {
 	service, err := cl.GetService(ctx, serviceName)
 	if err != nil {
-		return nil
+		return err
 	}
 	if service.GetDeletionTimestamp() != nil {
 		return fmt.Errorf("can't delete service '%s' because it has been already marked for deletion", serviceName)
