@@ -63,6 +63,12 @@ func NewKnTest() (*KnTest, error) {
 		return nil, err
 	}
 
+	sa := "default"
+	err = WaitForSa(sa, ns)
+	if err != nil {
+		return nil, err
+	}
+
 	return &KnTest{
 		namespace: ns,
 		kn:        Kn{ns},
@@ -177,6 +183,15 @@ func CurrentDir(t *testing.T) string {
 	return dir
 }
 
+// WaitForSa wait until service account is created
+func WaitForSa(serviceaccount string, namespace string) error {
+	created := checkServiceAccount(serviceaccount, namespace, MaxRetries)
+	if !created {
+		return fmt.Errorf("error creating serviceaccount %s, timed out after %d retries", serviceaccount, MaxRetries)
+	}
+	return nil
+}
+
 // Private functions
 
 func checkNamespace(namespace string, created bool, maxRetries int) bool {
@@ -226,4 +241,20 @@ func matchRegexp(matchingRegexp, actual string) (bool, error) {
 		return false, fmt.Errorf("failed to match regexp %q: %w", matchingRegexp, err)
 	}
 	return matched, nil
+}
+
+func checkServiceAccount(serviceaccount string, namespace string, maxRetries int) bool {
+	retries := 0
+	for retries < MaxRetries {
+		output, _ := Kubectl{}.Run("get", "serviceaccount", serviceaccount, "-n", namespace)
+
+		// check for service account created
+		if strings.Contains(output, serviceaccount) {
+			return true
+		}
+
+		retries++
+		time.Sleep(RetrySleepDuration)
+	}
+	return false
 }
