@@ -39,9 +39,9 @@ spec:
       workspace: shared-workspace
     params:
     - name: url
-      value: "https://github.com/knative/client"
+      value: "https://github.com/mgencur/knative-client"
     - name: revision
-      value: "main"
+      value: "fully_qualified_test_images"
   - name: buildah-build
     taskRef:
       name: buildah
