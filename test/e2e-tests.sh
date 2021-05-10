@@ -36,23 +36,22 @@ source $(dirname $0)/common.sh
 export PATH=$PATH:${REPO_ROOT_DIR}
 
 run() {
-  $(dirname $0)/tekton-tests.sh
-#  # Create cluster
-#  initialize $@ --skip-istio-addon
-#
-#  # Smoke test
-#  eval smoke_test || fail_test
-#
-#  # Integration test
-#  eval integration_test || fail_test
+  # Create cluster
+  initialize $@ --skip-istio-addon
+
+  # Smoke test
+  eval smoke_test || fail_test
+
+  # Integration test
+  eval integration_test || fail_test
 
   success
 }
 
 integration_test() {
   header "Running tests for Knative Serving $KNATIVE_SERVING_VERSION and Eventing $KNATIVE_EVENTING_VERSION"
-
-  go_test_e2e -timeout=45m ./test/e2e || fail_test
+  $(dirname $0)/tekton-tests.sh
+  #go_test_e2e -timeout=45m ./test/e2e || fail_test
 }
 
 smoke_test_clean_up(){
