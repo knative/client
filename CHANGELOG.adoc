@@ -20,6 +20,10 @@
 |🐛
 | Respect `-o` in `list` commands in case if no data present
 | https://github.com/knative/client/pull/1276[#1276]
+
+| 🐣
+| Fix for serviceaccounts "default" not found flaky issue
+| https://github.com/knative/client/pull/1306[#1306]
 |===
 
 ## v0.22.0 (2021-04-06)
