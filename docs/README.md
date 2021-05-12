@@ -126,19 +126,17 @@ The `eventing:` top-level configuration section holds configuration options that
 
 * `sink-mappings` defines prefixes to refer to Kubernetes _Addressable_ resources as
    used in `--sink` kind of options. `sink-mappings refers to an array of individual mapping definitions that you can configure with these fields:
-   - `prefix`: Prefix you want to describe your sink as. `ksvc`
-      (`serving.knative.dev/v1`), `broker` (`eventing.knative.dev/v1`) and `channel` (`messaging.knative.dev/v1`) are predefined prefixes. Values in the configuration file can override these predefined prefixes.
-      - `group`: The APIGroup of Kubernetes resource.
-      - `version`: The version of Kubernetes resources.
-      - `resource`: The plural name of Kubernetes resources (for example:
-         `services`).
+   - `prefix`: Prefix you want to describe your sink as. `ksvc` (`serving.knative.dev/v1`), `broker` (`eventing.knative.dev/v1`) and `channel` (`messaging.knative.dev/v1`) are predefined prefixes. Values in the configuration file can override these predefined prefixes.
+   - `group`: The APIGroup of Kubernetes resource.
+   - `version`: The version of Kubernetes resources.
+   - `resource`: The plural name of Kubernetes resources (for example: `services`).
 
 * `channel-type-mappings` can be used to define aliases for custom channel types that can be used wherever a channel type is required (as in `kn channel create --type`). This configuration section defines an array of entries with the following fields:
    - `alias`: The name that can be used as the type
    - `group`: The APIGroup of the channel CRD.
    - `version`: The version of the channel CRD.
    - `kind`: Kind of the channel CRD (e.g. `KafkaChannel`)
-   -
+  
 ## Commands
 
 - See the [generated documentation](cmd/kn.md)
