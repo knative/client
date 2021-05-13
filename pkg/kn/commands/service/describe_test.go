@@ -763,8 +763,8 @@ func createTestRevision(revision string, gen int64, conditions duckv1.Conditions
 			},
 		},
 		Status: servingv1.RevisionStatus{
-			ActualReplicas:        0,
-			DesiredReplicas:       1,
+			ActualReplicas:        ptr.Int32(0),
+			DesiredReplicas:       ptr.Int32(1),
 			DeprecatedImageDigest: "gcr.io/test/image@" + imageDigest,
 			Status: duckv1.Status{
 				Conditions: conditions,

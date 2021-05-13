@@ -20,6 +20,8 @@ import (
 	"testing"
 	"time"
 
+	"knative.dev/pkg/ptr"
+
 	"gotest.tools/v3/assert"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/equality"
@@ -106,7 +108,7 @@ func TestDescribeRevisionYaml(t *testing.T) {
 }
 
 func TestDescribeRevisionBasic(t *testing.T) {
-	expectedRevision := createTestRevision("test-rev", 3)
+	expectedRevision := createTestRevision("test-rev", 3, ptr.Int32(1))
 
 	action, data, err := fakeRevision([]string{"revision", "describe", "test-rev"}, &expectedRevision)
 	if err != nil {
@@ -120,11 +122,29 @@ func TestDescribeRevisionBasic(t *testing.T) {
 	}
 
 	assert.Assert(t, util.ContainsAll(data, "Image:", "gcr.io/test/image", "++ Ready", "Port:", "8080"))
-	assert.Assert(t, util.ContainsAll(data, "Replicas:", "0/1"))
+	assert.Assert(t, util.ContainsAll(data, "Replicas:", "1/1"))
 	assert.Assert(t, util.ContainsAll(data, "EnvFrom:", "cm:test1, cm:test2"))
 }
 
-func createTestRevision(revision string, gen int64) servingv1.Revision {
+func TestDescribeRevisionReplicas(t *testing.T) {
+	expectedRevision := createTestRevision("test-rev", 3, ptr.Int32(1))
+	_, data, err := fakeRevision([]string{"revision", "describe", "test-rev"}, &expectedRevision)
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(data, "Replicas:", "1/1"))
+
+	expectedRevision = createTestRevision("test-rev", 3, ptr.Int32(0))
+	_, data, err = fakeRevision([]string{"revision", "describe", "test-rev"}, &expectedRevision)
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(data, "Replicas:", "0/0"))
+
+	expectedRevision = createTestRevision("test-rev", 3, nil)
+	_, data, err = fakeRevision([]string{"revision", "describe", "test-rev"}, &expectedRevision)
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsNone(data, "Replicas:"))
+
+}
+
+func createTestRevision(revision string, gen int64, replicas *int32) servingv1.Revision {
 	labels := make(map[string]string)
 	labels[apiserving.ConfigurationGenerationLabelKey] = fmt.Sprintf("%d", gen)
 
@@ -162,8 +182,8 @@ func createTestRevision(revision string, gen int64) servingv1.Revision {
 			},
 		},
 		Status: servingv1.RevisionStatus{
-			ActualReplicas:        0,
-			DesiredReplicas:       1,
+			ActualReplicas:        replicas,
+			DesiredReplicas:       replicas,
 			DeprecatedImageDigest: "gcr.io/test/image@" + imageDigest,
 			Status: duckv1.Status{
 				Conditions: goodConditions(),

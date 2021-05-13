@@ -206,8 +206,8 @@ func WriteEnvFrom(dw printers.PrefixWriter, revision *servingv1.Revision, printD
 func WriteReplicas(dw printers.PrefixWriter, revision *servingv1.Revision) {
 	actualReplicas := revision.Status.ActualReplicas
 	desiredReplicas := revision.Status.DesiredReplicas
-	if actualReplicas != 0 || desiredReplicas != 0 {
-		dw.WriteAttribute("Replicas", fmt.Sprintf("%d/%d", actualReplicas, desiredReplicas))
+	if actualReplicas != nil && desiredReplicas != nil {
+		dw.WriteAttribute("Replicas", fmt.Sprintf("%d/%d", *actualReplicas, *desiredReplicas))
 	}
 }
 
