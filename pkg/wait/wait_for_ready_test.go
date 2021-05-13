@@ -17,6 +17,7 @@ package wait
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -163,6 +164,60 @@ func TestAddWaitForReadyWithChannelClose(t *testing.T) {
 		}
 
 	}
+}
+
+func TestWaitTimeout(t *testing.T) {
+	fakeWatchApi := NewFakeWatch([]watch.Event{})
+	timeout := time.Second * 3
+	wfe := NewWaitForEvent("foobar",
+		func(ctx context.Context, name string, initialVersion string, timeout time.Duration) (watch.Interface, error) {
+			return fakeWatchApi, nil
+		},
+		func(e *watch.Event) bool {
+			return false
+		})
+
+	err, _ := wfe.Wait(context.Background(), "foobar", "", Options{Timeout: &timeout}, NoopMessageCallback())
+	assert.ErrorContains(t, err, "not ready")
+	assert.Assert(t, fakeWatchApi.StopCalled == 1)
+
+	fakeWatchApi = NewFakeWatch([]watch.Event{})
+	wfr := NewWaitForReady(
+		"blub",
+		func(ctx context.Context, name string, initialVersion string, timeout time.Duration) (watch.Interface, error) {
+			return fakeWatchApi, nil
+		},
+		func(obj runtime.Object) (apis.Conditions, error) {
+			return apis.Conditions(obj.(*servingv1.Service).Status.Conditions), nil
+		})
+	err, _ = wfr.Wait(context.Background(), "foobar", "", Options{Timeout: &timeout}, NoopMessageCallback())
+	assert.ErrorContains(t, err, "not ready")
+	assert.Assert(t, fakeWatchApi.StopCalled == 1)
+}
+
+func TestWaitWatchError(t *testing.T) {
+	timeout := time.Second * 3
+	wfe := NewWaitForEvent("foobar",
+		func(ctx context.Context, name string, initialVersion string, timeout time.Duration) (watch.Interface, error) {
+			return nil, fmt.Errorf("error creating watcher")
+		},
+		func(e *watch.Event) bool {
+			return false
+		})
+
+	err, _ := wfe.Wait(context.Background(), "foobar", "", Options{Timeout: &timeout}, NoopMessageCallback())
+	assert.ErrorContains(t, err, "error creating watcher")
+
+	wfr := NewWaitForReady(
+		"blub",
+		func(ctx context.Context, name string, initialVersion string, timeout time.Duration) (watch.Interface, error) {
+			return nil, fmt.Errorf("error creating watcher")
+		},
+		func(obj runtime.Object) (apis.Conditions, error) {
+			return apis.Conditions(obj.(*servingv1.Service).Status.Conditions), nil
+		})
+	err, _ = wfr.Wait(context.Background(), "foobar", "", Options{Timeout: &timeout}, NoopMessageCallback())
+	assert.ErrorContains(t, err, "error creating watcher")
 }
 
 func TestAddWaitForDelete(t *testing.T) {
