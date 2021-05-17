@@ -38,7 +38,7 @@
 | https://github.com/knative/client/pull/1299[#1299]
 
 | ✨
-| Update Eventing Source API `PingSource` to v1beta2
+| Update Eventing Source `PingSource` API to v1beta2
 | https://github.com/knative/client/pull/1299[#1299]
 
 | 🐛
