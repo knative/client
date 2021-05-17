@@ -1,5 +1,6 @@
 approvers:
 - client-writers
 - technical-oversight-committee
+- knative-release-leads
 reviewers:
 - client-reviewers
