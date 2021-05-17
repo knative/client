@@ -4,5 +4,5 @@ approvers:
 - rhuss
 - maximilien
 # TOC members as a fallback
-- mattmoor
-- evankanderson
+- technical-oversight-committee
+- knative-release-leads
