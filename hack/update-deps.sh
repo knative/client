@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright 2019 The Knative Authors
+# Copyright 2020 The Knative Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,6 +18,6 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-# GO111MODULE used so that it works no matter if someone has this repo
-# cloned under $GOPATH or not
-GO111MODULE=on go mod vendor
+source $(dirname $0)/../vendor/knative.dev/hack/library.sh
+
+go_update_deps "$@"

@@ -20,7 +20,8 @@ import (
 	"strings"
 	"testing"
 
-	"gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	"gotest.tools/v3/assert/cmp"
 )
 
 type containsAllTestCase struct {
@@ -28,6 +29,13 @@ type containsAllTestCase struct {
 	substrings []string
 	success    bool
 	missing    []string
+}
+
+type containsNoneTestCase struct {
+	target     string
+	substrings []string
+	success    bool
+	contains   []string
 }
 
 func TestContainsAll(t *testing.T) {
@@ -55,16 +63,96 @@ func TestContainsAll(t *testing.T) {
 			success:    true,
 		},
 	} {
-		comparison := ContainsAll(tc.target, tc.substrings...)
-		result := comparison()
+		result := ContainsAll(tc.target, tc.substrings...)()
 		if result.Success() != tc.success {
 			t.Errorf("%d: Expecting %s to contain %s", i, tc.target, tc.substrings)
 		}
 		if !tc.success {
 			message := fmt.Sprintf("\nActual output: %s\nMissing strings: %s", tc.target, strings.Join(tc.missing[:], ", "))
 			if !reflect.DeepEqual(result, cmp.ResultFailure(message)) {
+				t.Errorf("%d: Incorrect error message returned\nGot: %v\nExpecting: %s", i, result, message)
+			}
+		}
+	}
+}
+
+func TestContainsIgnoreCase(t *testing.T) {
+	for i, tc := range []containsAllTestCase{
+		{
+			target:     "NAME SERVICE AGE CONDITIONS READY REASON",
+			substrings: []string{"reason", "age"},
+			success:    true,
+		},
+		{
+			"No resources found.",
+			[]string{"NAME", "AGE"},
+			false,
+			[]string{"name", "age"},
+		},
+		{
+			"NAME SERVICE AGE CONDITIONS READY REASON",
+			[]string{"name", "url", "domain", "ready"},
+			false,
+			[]string{"url", "domain"},
+		},
+	} {
+		result := ContainsAllIgnoreCase(tc.target, tc.substrings...)()
+		if result.Success() != tc.success {
+			t.Errorf("%d: Expecting %s to contain %s", i, tc.target, tc.substrings)
+		}
+		if !tc.success {
+			message := fmt.Sprintf("\nActual output (lower-cased): %s\nMissing strings (lower-cased): %s", strings.ToLower(tc.target), strings.ToLower(strings.Join(tc.missing[:], ", ")))
+			if !reflect.DeepEqual(result, cmp.ResultFailure(message)) {
+				t.Errorf("%d: Incorrect error message returned\n. Got: %v\nExpecting: %s", i, result, message)
+			}
+		}
+	}
+}
+
+func TestContainsNone(t *testing.T) {
+	for i, tc := range []containsNoneTestCase{
+		{
+			target:     "NAME SERVICE AGE CONDITIONS",
+			substrings: []string{"REASON", "READY", "foo", "bar"},
+			success:    true,
+		},
+		{
+			"NAME SERVICE AGE CONDITIONS READY REASON",
+			[]string{"foo", "bar", "NAME", "AGE"},
+			false,
+			[]string{"NAME", "AGE"},
+		},
+		{
+			"No resources found",
+			[]string{"NAME", "URL", "DOMAIN", "READY", "resources"},
+			false,
+			[]string{"resources"},
+		},
+		{
+			target:     "Sword!",
+			substrings: []string{},
+			success:    true,
+		},
+	} {
+		comparison := ContainsNone(tc.target, tc.substrings...)
+		result := comparison()
+		if result.Success() != tc.success {
+			t.Errorf("%d: Expecting %s to contain %s", i, tc.target, tc.substrings)
+		}
+		if !tc.success {
+			message := fmt.Sprintf("\nActual output: %s\nContains strings: %s", tc.target, strings.Join(tc.contains[:], ", "))
+			if !reflect.DeepEqual(result, cmp.ResultFailure(message)) {
 				t.Errorf("%d: Incorrect error message returned\nExpecting: %s", i, message)
 			}
 		}
 	}
+}
+
+func TestSliceContainsIgnoreCase(t *testing.T) {
+	assert.Equal(t,
+		SliceContainsIgnoreCase([]string{"FOO", "bar"}, "foo"),
+		true)
+	assert.Equal(t,
+		SliceContainsIgnoreCase([]string{"BAR", "bar"}, "foo"),
+		false)
 }

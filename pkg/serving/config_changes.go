@@ -15,154 +15,183 @@
 package serving
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"strconv"
+	"strings"
+	"time"
 
-	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
-	servingv1beta1 "github.com/knative/serving/pkg/apis/serving/v1beta1"
-	corev1 "k8s.io/api/core/v1"
+	"knative.dev/pkg/ptr"
+	"knative.dev/serving/pkg/apis/autoscaling"
+	servingconfig "knative.dev/serving/pkg/apis/config"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
+
+	"knative.dev/client/pkg/kn/flags"
 )
 
-// Give the configuration all the env var values listed in the given map of
-// vars.  Does not touch any environment variables not mentioned, but it can add
-// new env vars and change the values of existing ones.
-func UpdateEnvVars(template *servingv1alpha1.RevisionTemplateSpec, vars map[string]string) error {
-	container, err := extractContainer(template)
-	if err != nil {
-		return err
+// VolumeSourceType is a type standing for enumeration of ConfigMap and Secret
+type VolumeSourceType int
+
+// Enumeration of volume source types: ConfigMap or Secret
+const (
+	ConfigMapVolumeSourceType VolumeSourceType = iota
+	SecretVolumeSourceType
+	PortFormatErr = "the port specification '%s' is not valid. Please provide in the format 'NAME:PORT', where 'NAME' is optional. Examples: '--port h2c:8080' , '--port 8080'."
+)
+
+var (
+	UserImageAnnotationKey = "client.knative.dev/user-image"
+	ApiTooOldError         = errors.New("the service is using too old of an API format for the operation")
+)
+
+func (vt VolumeSourceType) String() string {
+	names := [...]string{"config-map", "secret"}
+	if vt < ConfigMapVolumeSourceType || vt > SecretVolumeSourceType {
+		return "unknown"
 	}
-	container.Env = updateEnvVarsFromMap(container.Env, vars)
+	return names[vt]
+}
+
+// UpdateMinScale updates min scale annotation
+func UpdateMinScale(template *servingv1.RevisionTemplateSpec, min int) error {
+	return UpdateRevisionTemplateAnnotation(template, autoscaling.MinScaleAnnotationKey, strconv.Itoa(min))
+}
+
+// UpdateMaxScale updates max scale annotation
+func UpdateMaxScale(template *servingv1.RevisionTemplateSpec, max int) error {
+	return UpdateRevisionTemplateAnnotation(template, autoscaling.MaxScaleAnnotationKey, strconv.Itoa(max))
+}
+
+// UpdateAutoscaleWindow updates the autoscale window annotation
+func UpdateAutoscaleWindow(template *servingv1.RevisionTemplateSpec, window string) error {
+	_, err := time.ParseDuration(window)
+	if err != nil {
+		return fmt.Errorf("invalid duration for 'autoscale-window': %w", err)
+	}
+	return UpdateRevisionTemplateAnnotation(template, autoscaling.WindowAnnotationKey, window)
+}
+
+// UpdateConcurrencyTarget updates container concurrency annotation
+func UpdateConcurrencyTarget(template *servingv1.RevisionTemplateSpec, target int) error {
+	return UpdateRevisionTemplateAnnotation(template, autoscaling.TargetAnnotationKey, strconv.Itoa(target))
+}
+
+// UpdateConcurrencyUtilization updates container target utilization percentage annotation
+func UpdateConcurrencyUtilization(template *servingv1.RevisionTemplateSpec, target int) error {
+	return UpdateRevisionTemplateAnnotation(template, autoscaling.TargetUtilizationPercentageKey, strconv.Itoa(target))
+}
+
+// UpdateConcurrencyLimit updates container concurrency limit
+func UpdateConcurrencyLimit(template *servingv1.RevisionTemplateSpec, limit int64) error {
+	if limit < 0 {
+		return fmt.Errorf("invalid concurrency-limit %d (must not be less than 0)", limit)
+	}
+	template.Spec.ContainerConcurrency = ptr.Int64(limit)
 	return nil
 }
 
-// Update min and max scale annotation if larger than 0
-func UpdateConcurrencyConfiguration(template *servingv1alpha1.RevisionTemplateSpec, minScale int, maxScale int, target int, limit int) {
-	if minScale != 0 {
-		UpdateAnnotation(template, "autoscaling.knative.dev/minScale", strconv.Itoa(minScale))
-	}
-	if maxScale != 0 {
-		UpdateAnnotation(template, "autoscaling.knative.dev/maxScale", strconv.Itoa(maxScale))
-	}
-	if target != 0 {
-		UpdateAnnotation(template, "autoscaling.knative.dev/target", strconv.Itoa(target))
-	}
-
-	if limit != 0 {
-		template.Spec.ContainerConcurrency = servingv1beta1.RevisionContainerConcurrencyType(limit)
-	}
+// UnsetUserImageAnnot removes the user image annotation
+func UnsetUserImageAnnot(template *servingv1.RevisionTemplateSpec) {
+	delete(template.Annotations, UserImageAnnotationKey)
 }
 
-// Updater (or add) an annotation to the given service
-func UpdateAnnotation(template *servingv1alpha1.RevisionTemplateSpec, annotation string, value string) {
-	annoMap := template.Annotations
-	if annoMap == nil {
-		annoMap = make(map[string]string)
-		template.Annotations = annoMap
-	}
-	annoMap[annotation] = value
-}
-
-// Utility function to translate between the API list form of env vars, and the
-// more convenient map form.
-func EnvToMap(vars []corev1.EnvVar) (map[string]string, error) {
-	result := map[string]string{}
-	for _, envVar := range vars {
-		_, present := result[envVar.Name]
-		if present {
-			return nil, fmt.Errorf("env var name present more than once: %v", envVar.Name)
+// SetUserImageAnnot sets the user image annotation if the image isn't by-digest already.
+func SetUserImageAnnot(template *servingv1.RevisionTemplateSpec) {
+	// If the current image isn't by-digest, set the user-image annotation to it
+	// so we remember what it was.
+	currentContainer, _ := ContainerOfRevisionTemplate(template)
+	ui := currentContainer.Image
+	if strings.Contains(ui, "@") {
+		prev, ok := template.Annotations[UserImageAnnotationKey]
+		if ok {
+			ui = prev
 		}
-		result[envVar.Name] = envVar.Value
 	}
-	return result, nil
+	if template.Annotations == nil {
+		template.Annotations = make(map[string]string)
+	}
+	template.Annotations[UserImageAnnotationKey] = ui
 }
 
-// Update a given image
-func UpdateImage(template *servingv1alpha1.RevisionTemplateSpec, image string) error {
-	container, err := extractContainer(template)
+// FreezeImageToDigest sets the image on the template to the image digest of the base revision.
+func FreezeImageToDigest(template *servingv1.RevisionTemplateSpec, baseRevision *servingv1.Revision) error {
+	if baseRevision == nil {
+		return nil
+	}
+
+	currentContainer, err := ContainerOfRevisionTemplate(template)
 	if err != nil {
 		return err
 	}
-	container.Image = image
-	return nil
-}
 
-// UpdateContainerPort updates container with a give port
-func UpdateContainerPort(template *servingv1alpha1.RevisionTemplateSpec, port int32) error {
-	container, err := extractContainer(template)
+	baseContainer, err := ContainerOfRevisionSpec(&baseRevision.Spec)
 	if err != nil {
 		return err
 	}
-	container.Ports = []corev1.ContainerPort{{
-		ContainerPort: port,
-	}}
+	if currentContainer.Image != baseContainer.Image {
+		return fmt.Errorf("could not freeze image to digest since current revision contains unexpected image")
+	}
+
+	if baseRevision.Status.DeprecatedImageDigest != "" {
+		return flags.UpdateImage(&template.Spec.PodSpec, baseRevision.Status.DeprecatedImageDigest)
+	}
 	return nil
 }
 
-func UpdateResources(template *servingv1alpha1.RevisionTemplateSpec, requestsResourceList corev1.ResourceList, limitsResourceList corev1.ResourceList) error {
-	container, err := extractContainer(template)
-	if err != nil {
+// UpdateLabels updates the labels by adding items from `add` then removing any items from `remove`
+func UpdateLabels(labelsMap map[string]string, add map[string]string, remove []string) map[string]string {
+	if labelsMap == nil {
+		labelsMap = map[string]string{}
+	}
+
+	for key, value := range add {
+		labelsMap[key] = value
+	}
+	for _, key := range remove {
+		delete(labelsMap, key)
+	}
+
+	return labelsMap
+}
+
+// UpdateServiceAnnotations updates annotations for the given Service Metadata.
+func UpdateServiceAnnotations(service *servingv1.Service, toUpdate map[string]string, toRemove []string) error {
+	if service.Annotations == nil && len(toUpdate) > 0 {
+		service.Annotations = make(map[string]string)
+	}
+	return updateAnnotations(service.Annotations, toUpdate, toRemove)
+}
+
+// UpdateRevisionTemplateAnnotations updates annotations for the given Revision Template.
+// Also validates the autoscaling annotation values
+func UpdateRevisionTemplateAnnotations(template *servingv1.RevisionTemplateSpec, toUpdate map[string]string, toRemove []string) error {
+	ctx := context.TODO()
+	autoscalerConfig := servingconfig.FromContextOrDefaults(ctx).Autoscaler
+	autoscalerConfig.AllowZeroInitialScale = true
+	if err := autoscaling.ValidateAnnotations(ctx, autoscalerConfig, toUpdate); err != nil {
 		return err
 	}
-	if container.Resources.Requests == nil {
-		container.Resources.Requests = corev1.ResourceList{}
+	if template.Annotations == nil {
+		template.Annotations = make(map[string]string)
 	}
+	return updateAnnotations(template.Annotations, toUpdate, toRemove)
+}
 
-	for k, v := range requestsResourceList {
-		container.Resources.Requests[k] = v
-	}
-
-	if container.Resources.Limits == nil {
-		container.Resources.Limits = corev1.ResourceList{}
-	}
-
-	for k, v := range limitsResourceList {
-		container.Resources.Limits[k] = v
-	}
-
-	return nil
+// UpdateRevisionTemplateAnnotation updates an annotation for the given Revision Template.
+// Also validates the autoscaling annotation values
+func UpdateRevisionTemplateAnnotation(template *servingv1.RevisionTemplateSpec, annotation string, value string) error {
+	return UpdateRevisionTemplateAnnotations(template, map[string]string{annotation: value}, []string{})
 }
 
 // =======================================================================================
 
-func usesOldV1alpha1ContainerField(revision *servingv1alpha1.RevisionTemplateSpec) bool {
-	return revision.Spec.DeprecatedContainer != nil
-}
-
-func extractContainer(template *servingv1alpha1.RevisionTemplateSpec) (*corev1.Container, error) {
-	if usesOldV1alpha1ContainerField(template) {
-		return template.Spec.DeprecatedContainer, nil
+func updateAnnotations(annotations map[string]string, toUpdate map[string]string, toRemove []string) error {
+	for key, value := range toUpdate {
+		annotations[key] = value
 	}
-	containers := template.Spec.Containers
-	if len(containers) == 0 {
-		return nil, fmt.Errorf("internal: no container set in spec.template.spec.containers")
+	for _, key := range toRemove {
+		delete(annotations, key)
 	}
-	if len(containers) > 1 {
-		return nil, fmt.Errorf("internal: can't extract container for updating environment"+
-			" variables as the configuration contains "+
-			"more than one container (i.e. %d containers)", len(containers))
-	}
-	return &containers[0], nil
-}
-
-func updateEnvVarsFromMap(env []corev1.EnvVar, vars map[string]string) []corev1.EnvVar {
-	set := make(map[string]bool)
-	for i := range env {
-		envVar := &env[i]
-		value, present := vars[envVar.Name]
-		if present {
-			envVar.Value = value
-			set[envVar.Name] = true
-		}
-	}
-	for name, value := range vars {
-		if !set[name] {
-			env = append(
-				env,
-				corev1.EnvVar{
-					Name:  name,
-					Value: value,
-				})
-		}
-	}
-	return env
+	return nil
 }

@@ -1,13 +1,9 @@
 ## kn revision
 
-Revision command group
-
-### Synopsis
-
-Revision command group
+Manage service revisions
 
 ```
-kn revision [flags]
+kn revision
 ```
 
 ### Options
@@ -19,14 +15,17 @@ kn revision [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string       config file (default is $HOME/.kn/config.yaml)
-      --kubeconfig string   kubectl config file (default is $HOME/.kube/config)
+      --cluster string      name of the kubeconfig cluster to use
+      --config string       kn configuration file (default: ~/.config/kn/config.yaml)
+      --context string      name of the kubeconfig context to use
+      --kubeconfig string   kubectl configuration file (default: ~/.kube/config)
+      --log-http            log http traffic
 ```
 
 ### SEE ALSO
 
-* [kn](kn.md)	 - Knative client
-* [kn revision delete](kn_revision_delete.md)	 - Delete a revision.
-* [kn revision describe](kn_revision_describe.md)	 - Describe revisions.
-* [kn revision list](kn_revision_list.md)	 - List available revisions.
+* [kn](kn.md)	 - kn manages Knative Serving and Eventing resources
+* [kn revision delete](kn_revision_delete.md)	 - Delete revisions
+* [kn revision describe](kn_revision_describe.md)	 - Show details of a revision
+* [kn revision list](kn_revision_list.md)	 - List revisions
 

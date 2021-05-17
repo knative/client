@@ -18,31 +18,34 @@ import (
 	"fmt"
 	"time"
 
-	hprinters "github.com/knative/client/pkg/printers"
-	"github.com/knative/pkg/apis"
-	duckv1beta1 "github.com/knative/pkg/apis/duck/v1beta1"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/duration"
+	hprinters "knative.dev/client/pkg/printers"
+	"knative.dev/pkg/apis"
+	duckv1 "knative.dev/pkg/apis/duck/v1"
 )
 
 // HumanPrintFlags provides default flags necessary for printing.
 // Given the following flag values, a printer can be requested that knows
 // how to handle printing based on these values.
 type HumanPrintFlags struct {
+	WithNamespace bool
+	NoHeaders     bool
 	//TODO: Add more flags as required
 }
 
 // AllowedFormats returns more customized formating options
 func (f *HumanPrintFlags) AllowedFormats() []string {
 	// TODO: Add more formats eg: wide
-	return []string{""}
+	return []string{"no-headers"}
 }
 
 // ToPrinter receives returns a printer capable of
 // handling human-readable output.
 func (f *HumanPrintFlags) ToPrinter(getHandlerFunc func(h hprinters.PrintHandler)) (hprinters.ResourcePrinter, error) {
-	p := hprinters.NewTablePrinter(hprinters.PrintOptions{})
+	p := hprinters.NewTablePrinter(hprinters.PrintOptions{AllNamespaces: f.WithNamespace, NoHeaders: f.NoHeaders})
 	getHandlerFunc(p)
 	return p, nil
 }
@@ -50,6 +53,7 @@ func (f *HumanPrintFlags) ToPrinter(getHandlerFunc func(h hprinters.PrintHandler
 // AddFlags receives a *cobra.Command reference and binds
 // flags related to human-readable printing to it
 func (f *HumanPrintFlags) AddFlags(c *cobra.Command) {
+	c.Flags().BoolVar(&f.NoHeaders, "no-headers", false, "When using the default output format, don't print headers (default: print headers).")
 	//TODO: Add more flags as required
 }
 
@@ -59,10 +63,13 @@ func NewHumanPrintFlags() *HumanPrintFlags {
 	return &HumanPrintFlags{}
 }
 
-// Private functions
+// EnsureWithNamespace sets the "WithNamespace" humanreadable option to true.
+func (f *HumanPrintFlags) EnsureWithNamespace() {
+	f.WithNamespace = true
+}
 
 // conditionsValue returns the True conditions count among total conditions
-func ConditionsValue(conditions duckv1beta1.Conditions) string {
+func ConditionsValue(conditions duckv1.Conditions) string {
 	var ok int
 	for _, condition := range conditions {
 		if condition.Status == "True" {
@@ -73,7 +80,7 @@ func ConditionsValue(conditions duckv1beta1.Conditions) string {
 }
 
 // readyCondition returns status of resource's Ready type condition
-func ReadyCondition(conditions duckv1beta1.Conditions) string {
+func ReadyCondition(conditions duckv1.Conditions) string {
 	for _, condition := range conditions {
 		if condition.Type == apis.ConditionReady {
 			return string(condition.Status)
@@ -82,7 +89,9 @@ func ReadyCondition(conditions duckv1beta1.Conditions) string {
 	return "<unknown>"
 }
 
-func NonReadyConditionReason(conditions duckv1beta1.Conditions) string {
+// NonReadyConditionReason returns formatted string of
+// reason and message for non ready conditions
+func NonReadyConditionReason(conditions duckv1.Conditions) string {
 	for _, condition := range conditions {
 		if condition.Type == apis.ConditionReady {
 			if string(condition.Status) == "True" {
@@ -91,7 +100,7 @@ func NonReadyConditionReason(conditions duckv1beta1.Conditions) string {
 			if condition.Message != "" {
 				return fmt.Sprintf("%s : %s", condition.Reason, condition.Message)
 			}
-			return string(condition.Reason)
+			return condition.Reason
 		}
 	}
 	return "<unknown>"
@@ -104,4 +113,9 @@ func TranslateTimestampSince(timestamp metav1.Time) string {
 		return "<unknown>"
 	}
 	return duration.HumanDuration(time.Since(timestamp.Time))
+}
+
+// AddGitOpsFlags adds flags to enable gitops mode
+func AddGitOpsFlags(flags *pflag.FlagSet) {
+	flags.String("target", "", "Work on local directory instead of a remote cluster (experimental)")
 }

@@ -16,7 +16,7 @@
 
 set -o pipefail
 
-source_dirs="cmd pkg test"
+source_dirs="cmd pkg test lib tools"
 
 # Store for later
 if [ -z "$1" ]; then
@@ -27,11 +27,6 @@ fi
 
 set -eu
 
-# Temporary fix for iTerm issue https://gitlab.com/gnachman/iterm2/issues/7901
-S=""
-if [ -n "${ITERM_PROFILE:-}" ]; then
-  S=" "
-fi
 # Run build
 run() {
   # Switch on modules unconditionally
@@ -47,38 +42,67 @@ run() {
   fi
 
   if $(has_flag --watch -w); then
+    # Build and test first
+    go_build
+
+    if $(has_flag --test -t); then
+       go_test
+    fi
+
+    # Go in endless loop, to be stopped with CTRL-C
     watch
-    # No exit, needs to be stopped with CTRL-C anyways
   fi
 
-  if $(has_flag -u --update); then
-    # Update dependencies
-    update_deps
+  # Fast mode: Only compile and maybe run test
+  if $(has_flag --fast -f); then
+    go_build
+
+    if $(has_flag --test -t); then
+       go_test
+    fi
+    exit 0
   fi
 
-  if ! $(has_flag --fast -f); then
-
-    # Format source code and cleanup imports
-    source_format
-
-    # Generate docs
-    # Check for license headers
-    check_license
-
-    # Auto generate cli docs
-    generate_docs
-  fi
-
-  # Run build
-  go_build
-
-  # Run tests
-  if  $(has_flag --test -t) || ! $(has_flag --fast -f); then
+  # Run only tests
+  if $(has_flag --test -t); then
     go_test
+    exit 0
   fi
+
+  # Run only codegen
+  if $(has_flag --codegen -c); then
+    codegen
+    exit 0
+  fi
+
+  # Cross compile only
+  if $(has_flag --all -x); then
+    cross_build || (echo "✋ Cross platform build failed" && exit 1)
+    exit 0
+  fi
+
+  # Default flow
+  codegen
+  go_build
+  go_test
 
   echo "────────────────────────────────────────────"
   ./kn version
+}
+
+
+codegen() {
+  # Update dependencies
+  update_deps
+
+  # Format source code and cleanup imports
+  source_format
+
+  # Check for license headers
+  check_license
+
+  # Auto generate cli docs
+  generate_docs
 }
 
 go_fmt() {
@@ -86,38 +110,49 @@ go_fmt() {
   find $(echo $source_dirs) -name "*.go" -print0 | xargs -0 gofmt -s -w
 }
 
+# Run a go tool, get it first if necessary.
+run_go_tool() {
+  local tool=$2
+  local install_failed=0
+  if [ -z "$(which ${tool})" ]; then
+    local temp_dir="$(mktemp -d)"
+    pushd "${temp_dir}" > /dev/null 2>&1
+    GOFLAGS="" go get "$1" || install_failed=1
+    popd > /dev/null 2>&1
+    rm -rf "${temp_dir}"
+  fi
+  (( install_failed )) && return ${install_failed}
+  shift 2
+  ${tool} "$@"
+}
+
+
 source_format() {
   set +e
-  which goimports >/dev/null 2>&1
-  if [ $? -ne 0 ]; then
-     echo "✋ No 'goimports' found. Please use"
-     echo "✋   go get golang.org/x/tools/cmd/goimports"
-     echo "✋ to enable import cleanup. Import cleanup skipped."
-
-     # Run go fmt instead
-     go_fmt
-  else
-     echo "🧽 ${S}Format"
-     goimports -w $(echo $source_dirs)
-     find $(echo $source_dirs) -name "*.go" -print0 | xargs -0 gofmt -s -w
-  fi
+  run_go_tool golang.org/x/tools/cmd/goimports goimports -w $(echo $source_dirs)
+  find $(echo $source_dirs) -name "*.go" -print0 | xargs -0 gofmt -s -w
   set -e
 }
 
 go_build() {
   echo "🚧 Compile"
-  source "./hack/build-flags.sh"
-  go build -mod=vendor -ldflags "$(build_flags .)" -o kn ./cmd/...
+  go build -mod=vendor -ldflags "$(build_flags $(basedir))" -o kn ./cmd/...
 }
 
 go_test() {
   local test_output=$(mktemp /tmp/kn-client-test-output.XXXXXX)
-  local red="[31m"
-  local reset="[39m"
 
-  echo "🧪 ${S}Test"
+  local red=""
+  local reset=""
+  # Use color only when a terminal is set
+  if [ -t 1 ]; then
+    red="[31m"
+    reset="[39m"
+  fi
+
+  echo "🧪 ${X}Test"
   set +e
-  go test -v ./pkg/... >$test_output 2>&1
+  go test -v ./cmd/... ./pkg/... >$test_output 2>&1
   local err=$?
   if [ $err -ne 0 ]; then
     echo "🔥 ${red}Failure${reset}"
@@ -135,7 +170,7 @@ check_license() {
 
   local check_output=$(mktemp /tmp/kn-client-licence-check.XXXXXX)
   for ext in "${extensions_to_check[@]}"; do
-    find . -name "*.$ext" -a \! -path "./vendor/*" -a \! -path "./.*" -print0 |
+    find . -name "*.$ext" -a \! -path "./vendor/*" -a \! -path "./.*" -a \! -path "./third_party/*" -print0 |
       while IFS= read -r -d '' path; do
         for rword in "${required_keywords[@]}"; do
           if ! grep -q "$rword" "$path"; then
@@ -156,8 +191,8 @@ check_license() {
 
 
 update_deps() {
-  echo "🕸️ ${S}Update"
-  go mod vendor
+  echo "🚒 Update"
+  $(basedir)/hack/update-deps.sh
 }
 
 generate_docs() {
@@ -189,7 +224,7 @@ watch() {
     set -e
 
     echo "🔁 Watch"
-    fswatch $fswatch_opts | xargs -n1 -I{} $command
+    fswatch $fswatch_opts | xargs -n1 -I{} sh -c "$command && echo 👌 OK"
 }
 
 # Dir where this script is located
@@ -230,6 +265,51 @@ has_flag() {
     echo 'false'
 }
 
+cross_build() {
+  local basedir=$(basedir)
+  local ld_flags="$(build_flags $basedir)"
+  local failed=0
+
+  echo "⚔️ ${S}Compile"
+
+  export CGO_ENABLED=0
+  echo "   🐧 kn-linux-amd64"
+  GOOS=linux GOARCH=amd64 go build -mod=vendor -ldflags "${ld_flags}" -o ./kn-linux-amd64 ./cmd/... || failed=1
+  echo "   💪 kn-linux-arm64"
+  GOOS=linux GOARCH=arm64 go build -mod=vendor -ldflags "${ld_flags}" -o ./kn-linux-arm64 ./cmd/... || failed=1
+  echo "   🍏 kn-darwin-amd64"
+  GOOS=darwin GOARCH=amd64 go build -mod=vendor -ldflags "${ld_flags}" -o ./kn-darwin-amd64 ./cmd/... || failed=1
+  echo "   🎠 kn-windows-amd64.exe"
+  GOOS=windows GOARCH=amd64 go build -mod=vendor -ldflags "${ld_flags}" -o ./kn-windows-amd64.exe ./cmd/... || failed=1
+  echo "   Z  kn-linux-s390x"
+  GOOS=linux GOARCH=s390x go build -mod=vendor -ldflags "${ld_flags}" -o ./kn-linux-s390x ./cmd/... || failed=1
+  echo "   P  kn-linux-ppc64le"
+  GOOS=linux GOARCH=ppc64le go build -mod=vendor -ldflags "${ld_flags}" -o ./kn-linux-ppc64le ./cmd/... || failed=1
+
+  return ${failed}
+}
+
+# Spaced fillers needed for certain emojis in certain terminals
+S=""
+X=""
+
+# Calculate space fixing variables S and X
+apply_emoji_fixes() {
+  # Temporary fix for iTerm issue https://gitlab.com/gnachman/iterm2/issues/7901
+  if [ -n "${ITERM_PROFILE:-}" ]; then
+    S=" "
+    # This issue has been fixed with iTerm2 3.3.7, so let's check for this
+    # We can remove this code altogether if iTerm2 3.3.7 is in common usage everywhere
+    if [ -n "${TERM_PROGRAM_VERSION}" ]; then
+      args=$(echo $TERM_PROGRAM_VERSION | sed -e 's#[^0-9]*\([0-9]*\)[.]\([0-9]*\)[.]\([0-9]*\)\([0-9A-Za-z-]*\)#\1 \2 \3#')
+      expanded=$(printf '%03d%03d%03d' $args)
+      if [ $expanded -lt "003003007" ]; then
+        X=" "
+      fi
+    fi
+  fi
+}
+
 # Display a help message.
 display_help() {
     local command="${1:-}"
@@ -240,11 +320,11 @@ Usage: $(basename $BASH_SOURCE) [... options ...]
 
 with the following options:
 
--f  --fast                    Only compile (without formatting, testing, doc generation)
+-f  --fast                    Only compile (without dep update, formatting, testing, doc gen)
 -t  --test                    Run tests when used with --fast or --watch
--i  --imports                 Organize and cleanup imports
--u  --update                  Update dependencies before compiling
+-c  --codegen                 Runs formatting, doc gen and update without compiling/testing
 -w  --watch                   Watch for source changes and recompile in fast mode
+-x  --all                     Only build cross platform binaries without code-generation/testing
 -h  --help                    Display this help message
     --verbose                 More output
     --debug                   Debug information for this script (set -x)
@@ -256,10 +336,13 @@ ln -s $(basedir)/hack/build.sh /usr/local/bin/kn_build.sh
 
 Examples:
 
-* Compile, format, tests, docs:  build.sh
-* Compile only:                  build.sh --fast
-* Compile with tests:            build.sh -f -t
-* Automatice recompilation:      build.sh --watch
+* Update deps, format, license check,
+  gen docs, compile, test: ........... build.sh
+* Compile only: ...................... build.sh --fast
+* Run only tests: .................... build.sh --test
+* Compile with tests: ................ build.sh -f -t
+* Automatic recompilation: ........... build.sh --watch
+* Build cross platform binaries: ..... build.sh --all
 EOT
 }
 
@@ -267,5 +350,11 @@ if $(has_flag --debug); then
     export PS4='+($(basename ${BASH_SOURCE[0]}):${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
     set -x
 fi
+
+# Shared funcs with CI
+source $(basedir)/hack/build-flags.sh
+
+# Fixe emoji labels for certain terminals
+apply_emoji_fixes
 
 run $*

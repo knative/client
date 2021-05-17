@@ -18,16 +18,17 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/knative/client/pkg/kn/commands"
-	"github.com/knative/client/pkg/util"
-	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
-	"github.com/knative/serving/pkg/apis/serving/v1beta1"
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 	"k8s.io/apimachinery/pkg/runtime"
 	client_testing "k8s.io/client-go/testing"
+	"knative.dev/pkg/ptr"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
+
+	"knative.dev/client/pkg/kn/commands"
+	"knative.dev/client/pkg/util"
 )
 
-func fakeRouteList(args []string, response *v1alpha1.RouteList) (action client_testing.Action, output []string, err error) {
+func fakeRouteList(args []string, response *servingv1.RouteList) (action client_testing.Action, output []string, err error) {
 	knParams := &commands.KnParams{}
 	cmd, fakeServing, buf := commands.CreateTestKnCommand(NewRouteCommand(knParams), knParams)
 	fakeServing.AddReactor("*", "*",
@@ -45,83 +46,105 @@ func fakeRouteList(args []string, response *v1alpha1.RouteList) (action client_t
 }
 
 func TestListEmpty(t *testing.T) {
-	action, output, err := fakeRouteList([]string{"route", "list"}, &v1alpha1.RouteList{})
-	if err != nil {
-		t.Error(err)
-		return
-	}
+	action, output, err := fakeRouteList([]string{"route", "list"}, &servingv1.RouteList{})
+	assert.NilError(t, err)
 	if action == nil {
 		t.Errorf("No action")
 	} else if !action.Matches("list", "routes") {
 		t.Errorf("Bad action %v", action)
-	} else if output[0] != "No resources found." {
+	} else if output[0] != "No routes found." {
 		t.Errorf("Bad output %s", output[0])
 	}
+}
+
+func TestListEmptyWithJsonOutput(t *testing.T) {
+	action, output, err := fakeRouteList([]string{"route", "list", "-o", "json"}, &servingv1.RouteList{})
+	assert.NilError(t, err)
+	if action == nil {
+		t.Errorf("No action")
+	} else if !action.Matches("list", "routes") {
+		t.Errorf("Bad action %v", action)
+	}
+
+	outputJson := strings.Join(output[:], "\n")
+	assert.Assert(t, util.ContainsAll(outputJson, "\"apiVersion\": \"serving.knative.dev/v1\"", "\"items\": [],", "\"kind\": \"RouteList\""))
 }
 
 func TestRouteListDefaultOutput(t *testing.T) {
 	route1 := createMockRouteSingleTarget("foo", "foo-01234", 100)
 	route2 := createMockRouteSingleTarget("bar", "bar-98765", 100)
-	routeList := &v1alpha1.RouteList{Items: []v1alpha1.Route{*route1, *route2}}
+	routeList := &servingv1.RouteList{Items: []servingv1.Route{*route1, *route2}}
 	action, output, err := fakeRouteList([]string{"route", "list"}, routeList)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err)
 	if action == nil {
 		t.Errorf("No action")
 	} else if !action.Matches("list", "routes") {
 		t.Errorf("Bad action %v", action)
 	}
-	assert.Check(t, util.ContainsAll(output[0], "NAME", "URL", "AGE", "CONDITIONS", "TRAFFIC"))
-	assert.Check(t, util.ContainsAll(output[1], "foo", "100% -> foo-01234"))
-	assert.Check(t, util.ContainsAll(output[2], "bar", "100% -> bar-98765"))
+	assert.Check(t, util.ContainsAll(output[0], "NAME", "URL", "READY"))
+	assert.Check(t, util.ContainsAll(output[1], "foo"))
+	assert.Check(t, util.ContainsAll(output[2], "bar"))
+}
+
+func TestRouteListDefaultOutputNoHeaders(t *testing.T) {
+	route1 := createMockRouteSingleTarget("foo", "foo-01234", 100)
+	route2 := createMockRouteSingleTarget("bar", "bar-98765", 100)
+	routeList := &servingv1.RouteList{Items: []servingv1.Route{*route1, *route2}}
+	action, output, err := fakeRouteList([]string{"route", "list", "--no-headers"}, routeList)
+	assert.NilError(t, err)
+	if action == nil {
+		t.Errorf("No action")
+	} else if !action.Matches("list", "routes") {
+		t.Errorf("Bad action %v", action)
+	}
+
+	assert.Check(t, util.ContainsNone(output[0], "NAME", "URL", "READY"))
+	assert.Check(t, util.ContainsAll(output[0], "foo"))
+	assert.Check(t, util.ContainsAll(output[1], "bar"))
+
 }
 
 func TestRouteListWithTwoTargetsOutput(t *testing.T) {
 	route := createMockRouteTwoTarget("foo", "foo-01234", "foo-98765", 20, 80)
-	routeList := &v1alpha1.RouteList{Items: []v1alpha1.Route{*route}}
+	routeList := &servingv1.RouteList{Items: []servingv1.Route{*route}}
 	action, output, err := fakeRouteList([]string{"route", "list"}, routeList)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err)
 	if action == nil {
 		t.Errorf("No action")
 	} else if !action.Matches("list", "routes") {
 		t.Errorf("Bad action %v", action)
 	}
-	assert.Check(t, util.ContainsAll(output[0], "NAME", "URL", "AGE", "CONDITIONS", "TRAFFIC"))
-	assert.Check(t, util.ContainsAll(output[1], "foo", "20% -> foo-01234, 80% -> foo-98765"))
+	assert.Check(t, util.ContainsAll(output[0], "NAME", "URL", "READY"))
+	assert.Check(t, util.ContainsAll(output[1], "foo"))
 }
 
-func createMockRouteMeta(name string) *v1alpha1.Route {
-	route := &v1alpha1.Route{}
+func createMockRouteMeta(name string) *servingv1.Route {
+	route := &servingv1.Route{}
 	route.Kind = "Route"
-	route.APIVersion = "knative.dev/v1alpha1"
+	route.APIVersion = "serving.knative.dev/v1"
 	route.Name = name
 	route.Namespace = commands.FakeNamespace
 	return route
 }
 
-func createMockTrafficTarget(revision string, percent int) *v1alpha1.TrafficTarget {
-	return &v1alpha1.TrafficTarget{
-		TrafficTarget: v1beta1.TrafficTarget{
-			RevisionName: revision,
-			Percent:      percent,
-		},
+func createMockTrafficTarget(revision string, percent int) *servingv1.TrafficTarget {
+	return &servingv1.TrafficTarget{
+		RevisionName: revision,
+		Percent:      ptr.Int64(int64(percent)),
 	}
 }
 
-func createMockRouteSingleTarget(name, revision string, percent int) *v1alpha1.Route {
+func createMockRouteSingleTarget(name, revision string, percent int) *servingv1.Route {
 	route := createMockRouteMeta(name)
 	target := createMockTrafficTarget(revision, percent)
-	route.Status.Traffic = []v1alpha1.TrafficTarget{*target}
+	route.Status.Traffic = []servingv1.TrafficTarget{*target}
 	return route
 }
 
-func createMockRouteTwoTarget(name string, rev1, rev2 string, percent1, percent2 int) *v1alpha1.Route {
+func createMockRouteTwoTarget(name string, rev1, rev2 string, percent1, percent2 int) *servingv1.Route {
 	route := createMockRouteMeta(name)
 	target1 := createMockTrafficTarget(rev1, percent1)
 	target2 := createMockTrafficTarget(rev2, percent2)
-	route.Status.Traffic = []v1alpha1.TrafficTarget{*target1, *target2}
+	route.Status.Traffic = []servingv1.TrafficTarget{*target1, *target2}
 	return route
 }

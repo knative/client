@@ -15,33 +15,31 @@
 package route
 
 import (
-	"fmt"
-
-	"github.com/knative/client/pkg/kn/commands"
-	hprinters "github.com/knative/client/pkg/printers"
-	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	metav1beta1 "k8s.io/apimachinery/pkg/apis/meta/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
+
+	"knative.dev/client/pkg/kn/commands"
+	hprinters "knative.dev/client/pkg/printers"
 )
 
 // RouteListHandlers adds print handlers for route list command
 func RouteListHandlers(h hprinters.PrintHandler) {
 	kRouteColumnDefinitions := []metav1beta1.TableColumnDefinition{
-		{Name: "Name", Type: "string", Description: "Name of the Knative route."},
-		{Name: "URL", Type: "string", Description: "URL of the Knative route."},
-		{Name: "Age", Type: "string", Description: "Age of the Knative route."},
-		{Name: "Conditions", Type: "string", Description: "Conditions describing statuses of route components."},
-		{Name: "Traffic", Type: "integer", Description: "Traffic configured for route."},
+		{Name: "Name", Type: "string", Description: "Name of the Knative route.", Priority: 1},
+		{Name: "URL", Type: "string", Description: "URL of the Knative route.", Priority: 1},
+		{Name: "READY", Type: "string", Description: "Ready condition status of the Knative route.", Priority: 1},
 	}
 	h.TableHandler(kRouteColumnDefinitions, printRoute)
 	h.TableHandler(kRouteColumnDefinitions, printKRouteList)
 }
 
 // printKRouteList populates the Knative route list table rows
-func printKRouteList(kRouteList *servingv1alpha1.RouteList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+func printKRouteList(kRouteList *servingv1.RouteList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	rows := make([]metav1beta1.TableRow, 0, len(kRouteList.Items))
-	for _, ksvc := range kRouteList.Items {
-		r, err := printRoute(&ksvc, options)
+	for i := range kRouteList.Items {
+		ksvc := &kRouteList.Items[i]
+		r, err := printRoute(ksvc, options)
 		if err != nil {
 			return nil, err
 		}
@@ -51,32 +49,16 @@ func printKRouteList(kRouteList *servingv1alpha1.RouteList, options hprinters.Pr
 }
 
 // printRoute populates the Knative route table rows
-func printRoute(route *servingv1alpha1.Route, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+func printRoute(route *servingv1.Route, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	name := route.Name
 	url := route.Status.URL
-	age := commands.TranslateTimestampSince(route.CreationTimestamp)
-	conditions := commands.ConditionsValue(route.Status.Conditions)
-	traffic := calculateTraffic(route.Status.Traffic)
+	ready := commands.ReadyCondition(route.Status.Conditions)
 	row := metav1beta1.TableRow{
 		Object: runtime.RawExtension{Object: route},
 	}
 	row.Cells = append(row.Cells,
 		name,
 		url,
-		age,
-		conditions,
-		traffic)
+		ready)
 	return []metav1beta1.TableRow{row}, nil
-}
-
-func calculateTraffic(targets []servingv1alpha1.TrafficTarget) string {
-	var traffic string
-	for _, target := range targets {
-		if len(traffic) > 0 {
-			traffic = fmt.Sprintf("%s, %d%% -> %s", traffic, target.Percent, target.RevisionName)
-		} else {
-			traffic = fmt.Sprintf("%d%% -> %s", target.Percent, target.RevisionName)
-		}
-	}
-	return traffic
 }

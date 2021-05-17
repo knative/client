@@ -41,9 +41,12 @@ func NewTablePrinter(options PrintOptions) *HumanReadablePrinter {
 
 // PrintObj prints the obj in a human-friendly format according to the type of the obj.
 func (h *HumanReadablePrinter) PrintObj(obj runtime.Object, output io.Writer) error {
-	w, found := output.(*tabwriter.Writer)
-	if !found {
-		w = GetNewTabWriter(output)
+	if obj == nil {
+		return nil
+	}
+
+	if _, found := output.(*tabwriter.Writer); !found {
+		w := NewTabWriter(output)
 		output = w
 		defer w.Flush()
 	}
@@ -74,15 +77,20 @@ func printRowsForHandlerEntry(output io.Writer, handler *handlerEntry, obj runti
 		return results[1].Interface().(error)
 	}
 
-	var headers []string
-	for _, column := range handler.columnDefinitions {
-		headers = append(headers, strings.ToUpper(column.Name))
+	if !options.NoHeaders {
+		var headers []string
+		for _, column := range handler.columnDefinitions {
+			if !options.AllNamespaces && column.Priority == 0 {
+				continue
+			}
+			headers = append(headers, strings.ToUpper(column.Name))
+		}
+		printHeader(headers, output)
 	}
-	printHeader(headers, output)
 
 	if results[1].IsNil() {
 		rows := results[0].Interface().([]metav1beta1.TableRow)
-		printRows(output, rows, options)
+		printRows(output, rows)
 		return nil
 	}
 	return results[1].Interface().(error)
@@ -96,7 +104,7 @@ func printHeader(columnNames []string, w io.Writer) error {
 }
 
 // printRows writes the provided rows to output.
-func printRows(output io.Writer, rows []metav1beta1.TableRow, options PrintOptions) {
+func printRows(output io.Writer, rows []metav1beta1.TableRow) {
 	for _, row := range rows {
 		for i, cell := range row.Cells {
 			if i != 0 {

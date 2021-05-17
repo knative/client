@@ -24,15 +24,16 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"k8s.io/cli-runtime/pkg/genericclioptions/printers"
+	"k8s.io/cli-runtime/pkg/printers"
 )
 
 // templates are logically optional for specifying a format.
 // this allows a user to specify a template format value
 // as --output=jsonpath=
 var jsonFormats = map[string]bool{
-	"jsonpath":      true,
-	"jsonpath-file": true,
+	"jsonpath":         true,
+	"jsonpath-file":    true,
+	"jsonpath-as-json": true,
 }
 
 // JSONPathPrintFlags provides default flags necessary for template printing.
@@ -105,6 +106,11 @@ func (f *JSONPathPrintFlags) ToPrinter(templateFormat string) (printers.Resource
 	}
 
 	p.AllowMissingKeys(allowMissingKeys)
+
+	if templateFormat == "jsonpath-as-json" {
+		p.EnableJSONOutput(true)
+	}
+
 	return p, nil
 }
 

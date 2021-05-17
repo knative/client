@@ -15,24 +15,41 @@
 package revision
 
 import (
+	"errors"
 	"testing"
 
-	"github.com/knative/client/pkg/kn/commands"
-	"github.com/knative/client/pkg/util"
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	client_testing "k8s.io/client-go/testing"
+	"k8s.io/apimachinery/pkg/watch"
+	clienttesting "k8s.io/client-go/testing"
+
+	"knative.dev/client/pkg/kn/commands"
+	"knative.dev/client/pkg/util"
+	"knative.dev/client/pkg/wait"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
-func fakeRevisionDelete(args []string) (action client_testing.Action, name string, output string, err error) {
+func fakeRevisionDelete(args []string) (action clienttesting.Action, name string, output string, err error) {
 	knParams := &commands.KnParams{}
 	cmd, fakeServing, buf := commands.CreateTestKnCommand(NewRevisionCommand(knParams), knParams)
 	fakeServing.AddReactor("delete", "revisions",
-		func(a client_testing.Action) (bool, runtime.Object, error) {
-			deleteAction, _ := a.(client_testing.DeleteAction)
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			deleteAction, _ := a.(clienttesting.DeleteAction)
 			action = deleteAction
 			name = deleteAction.GetName()
 			return true, nil, nil
+		})
+	fakeServing.AddWatchReactor("revisions",
+		func(a clienttesting.Action) (bool, watch.Interface, error) {
+			watchAction := a.(clienttesting.WatchAction)
+			_, found := watchAction.GetWatchRestrictions().Fields.RequiresExactMatch("metadata.name")
+			if !found {
+				return true, nil, errors.New("no field selector on metadata.name found")
+			}
+			w := wait.NewFakeWatch(getRevisionDeleteEvents("test-revision"))
+			w.Start()
+			return true, w, nil
 		})
 	cmd.SetArgs(args)
 	err = cmd.Execute()
@@ -58,4 +75,30 @@ func TestRevisionDelete(t *testing.T) {
 		t.Errorf("Bad revision name returned after delete.")
 	}
 	assert.Check(t, util.ContainsAll(output, "Revision", revName, "deleted", "namespace", commands.FakeNamespace))
+}
+
+func TestMultipleRevisionDelete(t *testing.T) {
+	revName1 := "foo-12345"
+	revName2 := "foo-67890"
+	revName3 := "foo-abcde"
+	action, _, output, err := fakeRevisionDelete([]string{"revision", "delete", revName1, revName2, revName3})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	if action == nil {
+		t.Errorf("No action")
+	} else if !action.Matches("delete", "revisions") {
+		t.Errorf("Bad action %v", action)
+	}
+	assert.Check(t, util.ContainsAll(output, "Revision", revName1, "deleted", "namespace", commands.FakeNamespace))
+	assert.Check(t, util.ContainsAll(output, "Revision", revName2, "deleted", "namespace", commands.FakeNamespace))
+	assert.Check(t, util.ContainsAll(output, "Revision", revName3, "deleted", "namespace", commands.FakeNamespace))
+}
+
+func getRevisionDeleteEvents(name string) []watch.Event {
+	return []watch.Event{
+		{Type: watch.Added, Object: &servingv1.Revision{ObjectMeta: metav1.ObjectMeta{Name: name}}},
+		{Type: watch.Deleted, Object: &servingv1.Revision{ObjectMeta: metav1.ObjectMeta{Name: name}}},
+	}
 }

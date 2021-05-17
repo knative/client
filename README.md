@@ -1,46 +1,65 @@
-# Knative Client
+# Kn
 
-This section outlines best practices for the Knative developer experience, is a reference for Knative CLI
-implementation, and a reference for Knative client libraries.
+[![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white)](https://pkg.go.dev/knative.dev/client)
+[![Go Report Card](https://goreportcard.com/badge/knative/client)](https://goreportcard.com/report/knative/client)
+[![Releases](https://img.shields.io/github/release-pre/knative/client.svg)](https://github.com/knative/client/releases)
+[![LICENSE](https://img.shields.io/github/license/knative/client.svg)](https://github.com/knative/client/blob/main/LICENSE)
+[![Slack Status](https://img.shields.io/badge/slack-join_chat-white.svg?logo=slack&style=social)](https://knative.slack.com)
+[![codecov](https://codecov.io/gh/knative/client/branch/main/graph/badge.svg)](https://codecov.io/gh/knative/client)
 
-The goals of the Knative Client are to:
+The Knative client `kn` is your door to the [Knative](https://knative.dev)
+world. It allows you to create Knative resources interactively from the command
+line or from within scripts.
 
-1. Follow the Knative [serving](https://github.com/knative/serving) and [eventing](https://github.com/knative/eventing) APIs
-2. Be scriptable to allow users to create different Knative workflows
-3. Expose useful Golang packages to allow integration into other programs or CLIs or plugins
-4. Use consistent verbs, nouns, and flags for various commands
-5. Be easily extended via a plugin mechanism (similar to `kubectl`) to allow for experimentation and customization
+`kn` offers you:
 
-# Docs
+- Full support for managing all features of
+  [Knative Serving](https://github.com/knative/serving) (services, revisions,
+  traffic splits)
+- Growing support for [Knative eventing](https://github.com/knative/eventing),
+  closely following its development (managing of sources & triggers)
+- A plugin architecture similar to that of `kubectl` plugins
+- A thin client-specific API in golang which helps with tasks like synchronously
+  waiting on Knative service write operations.
+- An easy integration of Knative into Tekton Pipelines by using
+  [`kn` in a Tekton `Task`](https://github.com/tektoncd/catalog/tree/master/task/kn).
 
-Start with the [user's guide](docs/README.md) to learn more. You can read about common use cases, get detailed documentation on each command, and learn how to extend the `kn` CLI. For more information, access the following links:
 
-* [User's guide](docs/README.md)
-* [Basic workflows](docs/workflows.md) (use cases)
-* [Generated documentation](docs/cmd/kn.md)
+This client uses the
+[Knative Serving](https://github.com/knative/docs/blob/main/docs/serving/spec/knative-api-specification-1.0.md)
+and
+[Knative Eventing](https://github.com/knative/eventing/tree/main/docs/spec)
+APIs exclusively so that it will work with any Knative installation, even those
+that are not Kubernetes based. It does not help with _installing_ Knative itself
+though. Please refer to the various
+[Knative installation options](https://knative.dev/docs/install/) for how to
+install Knative with its prerequisites.
 
-**Bash auto completion:**
+## Documentation
 
-Run the following command to enable BASH auto-completion:
+Start with the [user's guide](docs/README.md) to learn more. You can read about
+common use cases, get detailed documentation on each command, and learn how to
+extend the `kn` CLI. For more information, have a look at:
 
-```sh
-$ source <(kn completion)
-```
+- [User guide](docs/README.md)
+  - Installation - How to install `kn` and run on your machine
+  - Examples - Use case based examples
+  - FAQ (_to come._)
+- [Reference Manual](docs/cmd/kn.md) - all possible commands and options with
+  usage examples
 
-Use TAB to list available sub-commands:
+## Developers
 
-```sh
-$ kn <TAB>
-completion revision service version
+We love contributions! Please refer to
+[CONTRIBUTING](https://knative.dev/contributing/) for more information on how to
+best contributed to contribute to Knative.
 
-$ kn revision <TAB>
-describe get
-```
+For code contributions it as easy as picking an
+[issue](https://github.com/knative/client/issues) (look out for
+"kind/good-first-issue"), briefly comment that you would like to work on it,
+code, test, code and finally submit a
+[PR](https://github.com/knative/client/pulls) which will trigger the review
+process.
 
-# Developers
-
-If you would like to contribute, please see
-[CONTRIBUTING](https://knative.dev/contributing/)
-for more information.
-
-To build `kn`, see our [Development](DEVELOPMENT.md) guide.
+More details on how to build and test can be found in the
+[Developer guide](docs/DEVELOPMENT.md).

@@ -10,10 +10,13 @@
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
+cover.html
 
 # kn binary itself, if you want to `go build cmd/kn` in the top dir.
 /kn
 /kn-*
+
+tools/knb/knb
 
 # emacs tempfiles
 \#*
@@ -39,3 +42,5 @@ tags
 # VSCode specific
 .vscode
 
+# Operating system temporary files
+.DS_Store

@@ -1,4 +1,4 @@
-// Copyright © 2019 The Knative Authors
+// Copyright © 2021 The Knative Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,296 +15,152 @@
 package v1alpha1
 
 import (
-	"fmt"
-	"time"
+	"context"
 
-	"github.com/knative/pkg/apis"
-	"k8s.io/apimachinery/pkg/fields"
+	duckv1 "knative.dev/pkg/apis/duck/v1"
 
-	"github.com/knative/client/pkg/serving"
-	"github.com/knative/client/pkg/wait"
-
-	api_serving "github.com/knative/serving/pkg/apis/serving"
-	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
-	client_v1alpha1 "github.com/knative/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
+	knerrors "knative.dev/client/pkg/errors"
+	"knative.dev/client/pkg/util"
+	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
+	"knative.dev/serving/pkg/client/clientset/versioned/scheme"
+	clientv1alpha1 "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
 )
 
-// Kn interface to serving. All methods are relative to the
-// namespace specified during construction
-type KnClient interface {
+// KnServingClient to work with Serving v1alpha1 resources
+type KnServingClient interface {
+	// Namespace in which this client is operating for
+	Namespace() string
 
-	// Get a service by its unique name
-	GetService(name string) (*v1alpha1.Service, error)
+	// GetDomainMapping
+	GetDomainMapping(ctx context.Context, name string) (*servingv1alpha1.DomainMapping, error)
 
-	// List services
-	ListServices(opts ...ListConfig) (*v1alpha1.ServiceList, error)
+	// CreateDomainMapping
+	CreateDomainMapping(ctx context.Context, domainMapping *servingv1alpha1.DomainMapping) error
 
-	// Create a new service
-	CreateService(service *v1alpha1.Service) error
+	// UpdateDomainMapping
+	UpdateDomainMapping(ctx context.Context, domainMapping *servingv1alpha1.DomainMapping) error
 
-	// Update the given service
-	UpdateService(service *v1alpha1.Service) error
+	// DeleteDomainMapping
+	DeleteDomainMapping(ctx context.Context, name string) error
 
-	// Delete a service by name
-	DeleteService(name string) error
-
-	// Wait for a service to become ready, but not longer than provided timeout
-	WaitForService(name string, timeout time.Duration) error
-
-	// Get a revision by name
-	GetRevision(name string) (*v1alpha1.Revision, error)
-
-	// List revisions
-	ListRevisions(opts ...ListConfig) (*v1alpha1.RevisionList, error)
-
-	// Delete a revision
-	DeleteRevision(name string) error
-
-	// Get a route by its unique name
-	GetRoute(name string) (*v1alpha1.Route, error)
-
-	// List routes
-	ListRoutes(opts ...ListConfig) (*v1alpha1.RouteList, error)
+	// ListDomainMappings
+	ListDomainMappings(ctx context.Context) (*servingv1alpha1.DomainMappingList, error)
 }
 
-type listConfig struct {
-	// Labels to filter on
-	Labels labels.Set
-
-	// Labels to filter on
-	Fields fields.Set
-}
-
-// Config function for builder pattern
-type ListConfig func(config *listConfig)
-
-type ListConfigs []ListConfig
-
-// add selectors to a list options
-func (opts ListConfigs) toListOptions() v1.ListOptions {
-	listConfig := listConfig{labels.Set{}, fields.Set{}}
-	for _, f := range opts {
-		f(&listConfig)
-	}
-	options := v1.ListOptions{}
-	if len(listConfig.Fields) > 0 {
-		options.FieldSelector = listConfig.Fields.String()
-	}
-	if len(listConfig.Labels) > 0 {
-		options.LabelSelector = listConfig.Labels.String()
-	}
-	return options
-}
-
-// Filter list on the provided name
-func WithName(name string) ListConfig {
-	return func(lo *listConfig) {
-		lo.Fields["metadata.name"] = name
-	}
-}
-
-// Filter on the service name
-func WithService(service string) ListConfig {
-	return func(lo *listConfig) {
-		lo.Labels[api_serving.ServiceLabelKey] = service
-	}
-}
-
-type knClient struct {
-	client    client_v1alpha1.ServingV1alpha1Interface
+type knServingClient struct {
+	client    clientv1alpha1.ServingV1alpha1Interface
 	namespace string
 }
 
-// Create a new client facade for the provided namespace
-func NewKnServingClient(client client_v1alpha1.ServingV1alpha1Interface, namespace string) KnClient {
-	return &knClient{
+// NewKnServingClient create a new client facade for the provided namespace
+func NewKnServingClient(client clientv1alpha1.ServingV1alpha1Interface, namespace string) KnServingClient {
+	return &knServingClient{
 		client:    client,
 		namespace: namespace,
 	}
 }
 
-// Get a service by its unique name
-func (cl *knClient) GetService(name string) (*v1alpha1.Service, error) {
-	service, err := cl.client.Services(cl.namespace).Get(name, v1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
-	err = serving.UpdateGroupVersionKind(service, v1alpha1.SchemeGroupVersion)
-	if err != nil {
-		return nil, err
-	}
-	return service, nil
+// Namespace in which this client is operating for
+func (cl *knServingClient) Namespace() string {
+	return cl.namespace
 }
 
-// List services
-func (cl *knClient) ListServices(config ...ListConfig) (*v1alpha1.ServiceList, error) {
-	serviceList, err := cl.client.Services(cl.namespace).List(ListConfigs(config).toListOptions())
+// GetDomainMapping gets DomainMapping by name
+func (cl *knServingClient) GetDomainMapping(ctx context.Context, name string) (*servingv1alpha1.DomainMapping, error) {
+	dm, err := cl.client.DomainMappings(cl.namespace).Get(ctx, name, v1.GetOptions{})
+	if err != nil {
+		return nil, knerrors.GetError(err)
+	}
+	err = updateServingGvk(dm)
 	if err != nil {
 		return nil, err
 	}
-	serviceListNew := serviceList.DeepCopy()
-	err = updateServingGvk(serviceListNew)
-	if err != nil {
-		return nil, err
-	}
+	return dm, nil
+}
 
-	serviceListNew.Items = make([]v1alpha1.Service, len(serviceList.Items))
-	for idx, service := range serviceList.Items {
-		serviceClone := service.DeepCopy()
-		err := updateServingGvk(serviceClone)
+// CreateDomainMapping creates provided DomainMapping
+func (cl *knServingClient) CreateDomainMapping(ctx context.Context, domainMapping *servingv1alpha1.DomainMapping) error {
+	_, err := cl.client.DomainMappings(cl.namespace).Create(ctx, domainMapping, v1.CreateOptions{})
+	if err != nil {
+		return knerrors.GetError(err)
+	}
+	return updateServingGvk(domainMapping)
+}
+
+// UpdateDomainMapping updates provided DomainMapping
+func (cl *knServingClient) UpdateDomainMapping(ctx context.Context, domainMapping *servingv1alpha1.DomainMapping) error {
+	_, err := cl.client.DomainMappings(cl.namespace).Update(ctx, domainMapping, v1.UpdateOptions{})
+	if err != nil {
+		return knerrors.GetError(err)
+	}
+	return updateServingGvk(domainMapping)
+}
+
+// DeleteDomainMapping deletes DomainMapping by name
+func (cl *knServingClient) DeleteDomainMapping(ctx context.Context, name string) error {
+	err := cl.client.DomainMappings(cl.namespace).Delete(ctx, name, v1.DeleteOptions{})
+	if err != nil {
+		return knerrors.GetError(err)
+	}
+	return nil
+}
+
+// ListDomainMappings lists all DomainMappings
+func (cl *knServingClient) ListDomainMappings(ctx context.Context) (*servingv1alpha1.DomainMappingList, error) {
+	domainMappingList, err := cl.client.DomainMappings(cl.namespace).List(ctx, v1.ListOptions{})
+	if err != nil {
+		return nil, knerrors.GetError(err)
+	}
+	dmListNew := domainMappingList.DeepCopy()
+	err = updateServingGvk(dmListNew)
+	if err != nil {
+		return nil, err
+	}
+	dmListNew.Items = make([]servingv1alpha1.DomainMapping, len(domainMappingList.Items))
+	for idx, domainMapping := range domainMappingList.Items {
+		domainMappingClone := domainMapping.DeepCopy()
+		err := updateServingGvk(domainMappingClone)
 		if err != nil {
 			return nil, err
 		}
-		serviceListNew.Items[idx] = *serviceClone
+		dmListNew.Items[idx] = *domainMappingClone
 	}
-	return serviceListNew, nil
+	return dmListNew, nil
 }
 
-// Create a new service
-func (cl *knClient) CreateService(service *v1alpha1.Service) error {
-	_, err := cl.client.Services(cl.namespace).Create(service)
-	if err != nil {
-		return err
-	}
-	return updateServingGvk(service)
-}
-
-// Update the given service
-func (cl *knClient) UpdateService(service *v1alpha1.Service) error {
-	_, err := cl.client.Services(cl.namespace).Update(service)
-	if err != nil {
-		return err
-	}
-	return updateServingGvk(service)
-}
-
-// Delete a service by name
-func (cl *knClient) DeleteService(serviceName string) error {
-	return cl.client.Services(cl.namespace).Delete(
-		serviceName,
-		&v1.DeleteOptions{},
-	)
-}
-
-// Wait for a service to become ready, but not longer than provided timeout
-func (cl *knClient) WaitForService(name string, timeout time.Duration) error {
-	waitForReady := newServiceWaitForReady(cl.client.Services(cl.namespace).Watch)
-	return waitForReady.Wait(name, timeout)
-}
-
-// Get a revision by name
-func (cl *knClient) GetRevision(name string) (*v1alpha1.Revision, error) {
-	revision, err := cl.client.Revisions(cl.namespace).Get(name, v1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
-	err = updateServingGvk(revision)
-	if err != nil {
-		return nil, err
-	}
-	return revision, nil
-}
-
-// Delete a revision by name
-func (cl *knClient) DeleteRevision(name string) error {
-	return cl.client.Revisions(cl.namespace).Delete(name, &v1.DeleteOptions{})
-}
-
-// List revisions
-func (cl *knClient) ListRevisions(config ...ListConfig) (*v1alpha1.RevisionList, error) {
-	revisionList, err := cl.client.Revisions(cl.namespace).List(ListConfigs(config).toListOptions())
-	if err != nil {
-		return nil, err
-	}
-	return updateServingGvkForRevisionList(revisionList)
-}
-
-// Get a route by its unique name
-func (cl *knClient) GetRoute(name string) (*v1alpha1.Route, error) {
-	route, err := cl.client.Routes(cl.namespace).Get(name, v1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
-	err = serving.UpdateGroupVersionKind(route, v1alpha1.SchemeGroupVersion)
-	if err != nil {
-		return nil, err
-	}
-	return route, nil
-}
-
-// List routes
-func (cl *knClient) ListRoutes(config ...ListConfig) (*v1alpha1.RouteList, error) {
-	routeList, err := cl.client.Routes(cl.namespace).List(ListConfigs(config).toListOptions())
-	if err != nil {
-		return nil, err
-	}
-	return updateServingGvkForRouteList(routeList)
-}
-
-// update all the list + all items contained in the list with
-// the proper GroupVersionKind specific to Knative serving
-func updateServingGvkForRevisionList(revisionList *v1alpha1.RevisionList) (*v1alpha1.RevisionList, error) {
-	revisionListNew := revisionList.DeepCopy()
-	err := updateServingGvk(revisionListNew)
-	if err != nil {
-		return nil, err
-	}
-
-	revisionListNew.Items = make([]v1alpha1.Revision, len(revisionList.Items))
-	for idx := range revisionList.Items {
-		revision := revisionList.Items[idx].DeepCopy()
-		err := updateServingGvk(revision)
-		if err != nil {
-			return nil, err
-		}
-		revisionListNew.Items[idx] = *revision
-	}
-	return revisionListNew, nil
-}
-
-// update all the list + all items contained in the list with
-// the proper GroupVersionKind specific to Knative serving
-func updateServingGvkForRouteList(routeList *v1alpha1.RouteList) (*v1alpha1.RouteList, error) {
-	routeListNew := routeList.DeepCopy()
-	err := updateServingGvk(routeListNew)
-	if err != nil {
-		return nil, err
-	}
-
-	routeListNew.Items = make([]v1alpha1.Route, len(routeList.Items))
-	for idx := range routeList.Items {
-		revision := routeList.Items[idx].DeepCopy()
-		err := updateServingGvk(revision)
-		if err != nil {
-			return nil, err
-		}
-		routeListNew.Items[idx] = *revision
-	}
-	return routeListNew, nil
-}
-
-// update with the v1alpha1 group + version
 func updateServingGvk(obj runtime.Object) error {
-	return serving.UpdateGroupVersionKind(obj, v1alpha1.SchemeGroupVersion)
+	return util.UpdateGroupVersionKindWithScheme(obj, servingv1alpha1.SchemeGroupVersion, scheme.Scheme)
 }
 
-// Create wait arguments for a Knative service which can be used to wait for
-// a create/update options to be finished
-// Can be used by `service_create` and `service_update`, hence this extra file
-func newServiceWaitForReady(watch wait.WatchFunc) wait.WaitForReady {
-	return wait.NewWaitForReady(
-		"service",
-		watch,
-		serviceConditionExtractor)
+// DomainMappingBuilder is for building the domainMapping
+type DomainMappingBuilder struct {
+	domainMapping *servingv1alpha1.DomainMapping
 }
 
-func serviceConditionExtractor(obj runtime.Object) (apis.Conditions, error) {
-	service, ok := obj.(*v1alpha1.Service)
-	if !ok {
-		return nil, fmt.Errorf("%v is not a service", obj)
-	}
-	return apis.Conditions(service.Status.Conditions), nil
+// NewDomainMappingBuilder for building domainMapping object
+func NewDomainMappingBuilder(name string) *DomainMappingBuilder {
+	return &DomainMappingBuilder{domainMapping: &servingv1alpha1.DomainMapping{
+		ObjectMeta: v1.ObjectMeta{
+			Name: name,
+		},
+	}}
+}
+
+// Namespace for domainMapping builder
+func (b *DomainMappingBuilder) Namespace(ns string) *DomainMappingBuilder {
+	b.domainMapping.Namespace = ns
+	return b
+}
+
+// Reference for domainMapping builder
+func (b *DomainMappingBuilder) Reference(reference duckv1.KReference) *DomainMappingBuilder {
+	b.domainMapping.Spec.Ref = reference
+	return b
+}
+
+// Build to return an instance of domainMapping object
+func (b *DomainMappingBuilder) Build() *servingv1alpha1.DomainMapping {
+	return b.domainMapping
 }

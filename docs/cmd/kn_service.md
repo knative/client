@@ -1,13 +1,9 @@
 ## kn service
 
-Service command group
-
-### Synopsis
-
-Service command group
+Manage Knative services
 
 ```
-kn service [flags]
+kn service
 ```
 
 ### Options
@@ -19,16 +15,22 @@ kn service [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string       config file (default is $HOME/.kn/config.yaml)
-      --kubeconfig string   kubectl config file (default is $HOME/.kube/config)
+      --cluster string      name of the kubeconfig cluster to use
+      --config string       kn configuration file (default: ~/.config/kn/config.yaml)
+      --context string      name of the kubeconfig context to use
+      --kubeconfig string   kubectl configuration file (default: ~/.kube/config)
+      --log-http            log http traffic
 ```
 
 ### SEE ALSO
 
-* [kn](kn.md)	 - Knative client
-* [kn service create](kn_service_create.md)	 - Create a service.
-* [kn service delete](kn_service_delete.md)	 - Delete a service.
-* [kn service describe](kn_service_describe.md)	 - Describe available services.
-* [kn service list](kn_service_list.md)	 - List available services.
-* [kn service update](kn_service_update.md)	 - Update a service.
+* [kn](kn.md)	 - kn manages Knative Serving and Eventing resources
+* [kn service apply](kn_service_apply.md)	 - Apply a service declaration
+* [kn service create](kn_service_create.md)	 - Create a service
+* [kn service delete](kn_service_delete.md)	 - Delete services
+* [kn service describe](kn_service_describe.md)	 - Show details of a service
+* [kn service export](kn_service_export.md)	 - Export a service and its revisions
+* [kn service import](kn_service_import.md)	 - Import a service and its revisions (experimental)
+* [kn service list](kn_service_list.md)	 - List services
+* [kn service update](kn_service_update.md)	 - Update a service
 

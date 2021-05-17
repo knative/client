@@ -1,13 +1,9 @@
 ## kn revision delete
 
-Delete a revision.
-
-### Synopsis
-
-Delete a revision.
+Delete revisions
 
 ```
-kn revision delete NAME [flags]
+kn revision delete NAME [NAME ...]
 ```
 
 ### Examples
@@ -16,23 +12,37 @@ kn revision delete NAME [flags]
 
   # Delete a revision 'svc1-abcde' in default namespace
   kn revision delete svc1-abcde
+
+  # Delete all unreferenced revisions
+  kn revision delete --prune-all
+
+  # Delete all unreferenced revisions for a given service 'mysvc'
+  kn revision delete --prune mysvc
 ```
 
 ### Options
 
 ```
   -h, --help               help for delete
-  -n, --namespace string   List the requested object(s) in given namespace.
+  -n, --namespace string   Specify the namespace to operate in.
+      --no-wait            Do not wait for 'revision delete' operation to be completed. (default true)
+      --prune string       Remove unreferenced revisions for a given service in a namespace.
+      --prune-all          Remove all unreferenced revisions in a namespace.
+      --wait               Wait for 'revision delete' operation to be completed.
+      --wait-timeout int   Seconds to wait before giving up on waiting for revision to be deleted. (default 600)
 ```
 
 ### Options inherited from parent commands
 
 ```
-      --config string       config file (default is $HOME/.kn/config.yaml)
-      --kubeconfig string   kubectl config file (default is $HOME/.kube/config)
+      --cluster string      name of the kubeconfig cluster to use
+      --config string       kn configuration file (default: ~/.config/kn/config.yaml)
+      --context string      name of the kubeconfig context to use
+      --kubeconfig string   kubectl configuration file (default: ~/.kube/config)
+      --log-http            log http traffic
 ```
 
 ### SEE ALSO
 
-* [kn revision](kn_revision.md)	 - Revision command group
+* [kn revision](kn_revision.md)	 - Manage service revisions
 

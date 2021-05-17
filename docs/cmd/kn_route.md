@@ -1,13 +1,9 @@
 ## kn route
 
-Route command group
-
-### Synopsis
-
-Route command group
+List and describe service routes
 
 ```
-kn route [flags]
+kn route
 ```
 
 ### Options
@@ -19,13 +15,16 @@ kn route [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string       config file (default is $HOME/.kn/config.yaml)
-      --kubeconfig string   kubectl config file (default is $HOME/.kube/config)
+      --cluster string      name of the kubeconfig cluster to use
+      --config string       kn configuration file (default: ~/.config/kn/config.yaml)
+      --context string      name of the kubeconfig context to use
+      --kubeconfig string   kubectl configuration file (default: ~/.kube/config)
+      --log-http            log http traffic
 ```
 
 ### SEE ALSO
 
-* [kn](kn.md)	 - Knative client
-* [kn route describe](kn_route_describe.md)	 - Describe available route.
-* [kn route list](kn_route_list.md)	 - List available routes.
+* [kn](kn.md)	 - kn manages Knative Serving and Eventing resources
+* [kn route describe](kn_route_describe.md)	 - Show details of a route
+* [kn route list](kn_route_list.md)	 - List routes
 

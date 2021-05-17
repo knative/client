@@ -1,15 +1,1152 @@
 # Changelog
 
-// Template:
+// Asciidoc template for a single table row. Copy the lines
+// within //// ... //// over into the current, unreleased version
+// table, select the proper icon (see legend at the bottom of this documents)
+// and adapt the link to point to your pull request. Please dont forget
+// the empty line separators.
+
 ////
+| 🎁🐛🐣🗑️✨
+|
+| https://github.com/knative/client/pull/[#]
+////
+
+## (Unreleased)
 [cols="1,10,3", options="header", width="100%"]
 |===
 | | Description | PR
-| 🎁🐛🧽🗑️
-|
-| https://github.com/knative/client/pull/[#]
+
+|🐛
+| Respect `-o` in `list` commands in case if no data present
+| https://github.com/knative/client/pull/1276[#1276]
+
+| 🐣
+| Fix for serviceaccounts "default" not found flaky issue
+| https://github.com/knative/client/pull/1306[#1306]
 |===
-////
+
+## v0.22.0 (2021-04-06)
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🎁
+| Add `context.Context` parameter to API functions
+| https://github.com/knative/client/pull/1274[#1274]
+
+| 🎁
+| Add `kn domain` CRUD commands to manage domain mappings
+| https://github.com/knative/client/pull/1267[#1267]
+
+| ✨
+| Add support for namespaces for all commands that takes a `--sink` option
+| https://github.com/knative/client/pull/1264[#1264]
+
+| 🐛
+| Fix memory leak on closed watch channel
+| https://github.com/knative/client/pull/1263[#1263]
+
+| ✨
+| Update `CustomResourceDefinition`'s API version to `v1`
+| https://github.com/knative/client/issues/1248[#1248]
+
+| 🎁
+| Add `S` column to specify built-in sources in `kn source list-types`
+| https://github.com/knative/client/pull/1246[#1246]
+
+| 🎁
+| Add `--prune` and `--prune-all` options to delete the unreferenced revisions
+| https://github.com/knative/client/pull/1217[#1217]
+
+| 🐛
+| Fix `kn export` to always honor mode irrespective of revisions flag and have _Export_ as the default mode
+| https://github.com/knative/client/pull/1212[#1212]
+|===
+
+## v0.21.0 (2021-02-23)
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🎁
+| Add `--context` and `--cluster` flags to choose specific context from kubeconfig
+| https://github.com/knative/client/pull/1234[#1234]
+
+| ✨
+| Enable _errorlint_, _gosec_ and _unparam_ linter
+| https://github.com/knative/client/pull/1223[#1223]
+
+| 🐣
+| Drop `pkg/errors` dependency and replace with stdlib usage
+| https://github.com/knative/client/pull/1221[#1221]
+
+
+| 🐣
+| Making a `toReference` public to enable reuse from kn plugins
+| https://github.com/knative/client/pull/1203[#1203]
+
+| 🐣
+| Do not print `serviceUID` and `configUID` labels in service export results
+| https://github.com/knative/client/pull/1194[#1194]
+
+| ✨
+| Use server-side generated revision names by default now. For BYO revision names use `--revision-name` for service commands
+| https://github.com/knative/client/issues/1240[#1240]
+|===
+
+## v0.20.0 (2021-01-14)
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🐛
+| Fix parsing the `kn` commands from error message
+| https://github.com/knative/client/pull/1174[#1174]
+
+| 🐣
+| Remove unnecessary help message introduced for machine-readable outputs for command `kn source binding describe`
+| https://github.com/knative/client/pull/1158[#1158]
+
+| 🐣
+| Improve error handling in clients
+| https://github.com/knative/client/pull/1154[#1154]
+
+| 🎁
+| Build and release binaries for `linux/ppc64le`
+| https://github.com/knative/client/pull/1153[#1153]
+
+| 🐣
+| Remove unnecessary help message introduced for machine-readable outputs for commands which does not have `-o url` flag
+| https://github.com/knative/client/pull/1152[#1152]
+
+| 🎁
+| Add machine readable output options to `kn source ping describe`
+| https://github.com/knative/client/pull/1150[#1150]
+
+| 🎁
+| Add machine readable output options to `kn source binding describe`
+| https://github.com/knative/client/pull/1148[#1148]
+
+| 🎁
+| Add machine readable output options to `kn source apiserver describe`
+| https://github.com/knative/client/pull/1146[#1146]
+
+| 🎁
+| Add machine readable output options to `kn broker describe`
+| https://github.com/knative/client/pull/1124[#1124]
+
+| 🎁
+| Add `--target` flag to support gitops mode (experimental)
+| https://github.com/knative/client/pull/1122[#1122]
+
+| 🎁
+| Add machine readable output options to `kn trigger describe`
+| https://github.com/knative/client/pull/1121[#1121]
+
+| 🎁
+| Add `url` output format to return the broker url in `broker describe` and channel url in `channel describe`
+| https://github.com/knative/client/pull/1118[#1118]
+
+| 🐛
+| Embed the namespace in request body while creating channels
+| https://github.com/knative/client/pull/1117[#1117]
+
+| 🎁
+| Add ranges to the `--scale` option
+| https://github.com/knative/client/pull/1114[#1114]
+
+| 🐛
+| Fix a race condition when using Kubernetes watches
+| https://github.com/knative/client/pull/1113[#1113]
+|===
+
+## v0.18.4 (2020-11-26)
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🐛
+| Fix a race condition when using Kubernetes watches
+| https://github.com/knative/client/pull/1113[#1113]
+
+| 🎁
+| Add kn _s390x_ binary to the release
+| https://github.com/knative/client/pull/1083[#1083]
+|===
+
+### v0.19.1 (2020-11-25)
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🐛
+| Fix a race condition when using Kubernetes watches
+| https://github.com/knative/client/pull/1113[#1113]
+
+| 🐛
+| Embed the namespace in request body while creating channels
+| https://github.com/knative/client/pull/1117[#1117]
+
+| 🎁
+| Add kn _s390x_ binary to the release
+| https://github.com/knative/client/pull/1083[#1083]
+|===
+
+## v0.18.3 (2020-11-24)
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🐛
+| Embed the namespace in request body while creating channels
+| https://github.com/knative/client/pull/1117[#1117]
+|===
+
+## v0.17.4 (2020-11-24)
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🐛
+| Embed the namespace in request body while creating channels
+| https://github.com/knative/client/pull/1117[#1117]
+
+| 🎁
+| Add `--target` flag to support gitops mode (experimental)
+| https://github.com/knative/client/pull/1122[#1122]
+|===
+
+### v0.19.0 (2020-11-11)
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🗑
+| Drop deprecated `--requests-cpu,--requests-memory,--limits-cpu,--limits-memory` flags support
+| https://github.com/knative/client/pull/1110[#1110]
+
+| 🎁
+| Add _arm64_ binary to the release
+| https://github.com/knative/client/pull/1106[#1106]
+
+| 🗑
+| Drop deprecated `--async` flag support
+| https://github.com/knative/client/pull/1094[#1094]
+
+| 🎁
+| Add `channel:` sink prefix
+| https://github.com/knative/client/pull/1092[#1092]
+
+| 🐣
+| Uniform multiple descriptions for sinks
+| https://github.com/knative/client/pull/1075[#1075]
+
+| 🎁
+| Add `kn service import` command (experimental)
+| https://github.com/knative/client/pull/1065[#1065]
+
+| 🎁
+| Add aliases to help commands
+| https://github.com/knative/client/pull/1055[#1055]
+
+| 🎁
+| Add `WithLabel()` list filter to serving client library
+| https://github.com/knative/client/pull/1054[#1054]
+
+| 🐣
+| Refactor to move all `PodSpec` related handling to a single place
+| https://github.com/knative/client/pull/1024[#1024]
+
+| 🎁
+| Add `kn service apply`
+| https://github.com/knative/client/pull/964[#964]
+|===
+
+## v0.17.3 (2020-11-10)
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🎁
+| Add channel sink prefix
+| https://github.com/knatiive/client/pull/1092[#1092]
+|===
+
+## v0.18.2 (2020-11-10)
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🎁
+| Add channel sink prefix
+| https://github.com/knative/client/pull/1092[#1092]
+|===
+
+## v0.18.1 (2020-10-13)
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🎁
+| Add WithLabel list filter to serving client lib
+| https://github.com/knative/client/pull/1054[#1054]
+
+| 🐛
+| Fix for test flake when sync waiting and an intermediate error occurs
+| https://github.com/knative/client/pull/1052[#1052]
+|===
+
+## v0.17.2 (2020-10-12)
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🎁
+| Add WithLabel list filter to serving client lib
+| https://github.com/knative/client/pull/1054[#1054]
+
+| 🐛
+| Fix for test flake when sync waiting and an intermediate error occurs
+| https://github.com/knative/client/pull/1052[#1052]
+|===
+
+## v0.18.0 (2020-10-07)
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🎁
+| Add aliases for commands (plural forms, `ksvc`, `ls`)
+| https://github.com/knative/client/pull/1041[#1041]
+
+| 🎁
+| Add `--annotation-service` and `--annotation-revision` to `kn service create/update`
+| https://github.com/knative/client/pull/1029[#1029]
+
+| 🎁
+| Add `channel list-types` command
+| https://github.com/knative/client/pull/1027[#1027]
+
+| ✨
+| Update Knative Serving and Eventing dependencies to 0.18
+| https://github.com/knative/client/pull/1025[#1025]
+
+| 🐛
+| Fix autoscaling annotations in service metadata
+| https://github.com/knative/client/pull/1021[#1021]
+
+| 🎁
+| Add `kn subscription` command
+| https://github.com/knative/client/pull/1013[#1013]
+
+| 🐛
+| Fix `kn service export` example documentation
+| https://github.com/knative/client/pull/1006[#1006]
+
+| 🎁
+| Add support for service's initial scale via the `--scale-init` flag
+| https://github.com/knative/client/pull/990[#990]
+|===
+
+## v0.17.1 (2020-10-07)
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🐛
+| Added back functionality to deprecated `--max-scale` and `--min-scale`
+| https://github.com/knative/client/pull/1010[#1010]
+
+| 🎁
+| Add `kn subscription` commands
+| https://github.com/knative/client/pull/1013[#1013]
+
+| 🐛
+| Fix channel create example with inbuilt alias for `imcv1beta1`
+| https://github.com/knative/client/pull/1005[#1005]
+|===
+
+## v0.17.0 (2020-08-26)
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| ✨
+| `kn source list` output now has client custom GVK set as `{Group: client.knative.dev, Version: v1alpha1, Kind: SourceList}`
+| https://github.com/knative/client/pull/980[#980]
+
+| 🐛
+| Fix client side volume name generation
+| https://github.com/knative/client/pull/975[#975]
+
+| 🐣
+| Build test images for e2e tests, add `.ko.yaml` specifying base image
+| https://github.com/knative/client/pull/974[#974]
+
+| 🎁
+| Add mock test client for dynamic client
+| https://github.com/knative/client/pull/972[#972]
+
+| 🐛
+| Fix exit code for `kn service delete` and `kn revision delete` failures
+| https://github.com/knative/client/pull/971[#971]
+
+| 🎁
+| Manage Knative Eventing channels
+| https://github.com/knative/client/pull/967[#967]
+
+| 🐣
+| Allow the kn test image to be customized via environment variable
+| https://github.com/knative/client/pull/957[#957]
+
+| 🎁
+| Fix Missing `NAMESPACE` column header for `kn source list -A`
+| https://github.com/knative/client/pull/951[#951]
+
+| 🐣
+| List in-built source if CRD access is restricted
+| https://github.com/knative/client/pull/948[#948]
+
+| 🐣
+| Separate PodSpecFlags from Service ConfigurationEditFlags
+| https://github.com/knative/client/pull/943[#943]
+
+| 🎁
+| Add support to combine `kn service create --filename` with other options
+| https://github.com/knative/client/pull/937[#937]
+
+| 🎁
+| Add support for internal plugins
+| https://github.com/knative/client/pull/902[#902]
+|===
+
+## v0.16.1 (2020-08-25)
+
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| ✨
+| `kn source list` output now has client custom GVK set as `{Group: client.knative.dev, Version: v1alpha1, Kind: SourceList}` (backport)
+| https://github.com/knative/client/pull/980[#980]
+
+| 🐛
+| Fix client side volume name generation (backport)
+| https://github.com/knative/client/pull/975[#975]
+
+| 🐛
+| Fix exit code for `kn service delete` and `kn revision delete` failures (backport)
+| https://github.com/knative/client/pull/971[#971]
+
+| 🐛
+| fix(tekton e2e): Refer tasks from new tekton catalog task structure (backport)
+| https://github.com/knative/client/pull/966[#966]
+
+| 🐛
+| Fix missing NAMESPACE column header for 'kn source list -A' (backport)
+| https://github.com/knative/client/pull/951[#951]
+
+| 🐛
+| fix(kn source list): list inbuilt sources if crd access is restricted (backport)
+| https://github.com/knative/client/pull/948[#948]
+
+| 🎁
+| Add support for internal plugins (backport)
+| https://github.com/knative/client/pull/902[#902]
+|===
+
+## v0.16.0 (2020-07-14)
+
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🎁
+| Add available plugins to help messages
+| https://github.com/knative/client/pull/929[#929]
+
+| 🎁
+| Add E2E test cases for `kn source list`
+| https://github.com/knative/client/pull/924[#924]
+
+| 🎁
+| Add sugar controller to E2E tests
+| https://github.com/knative/client/pull/920[#920]
+
+| 🎁
+| Add support for internal plugins
+| https://github.com/knative/client/pull/880[#880]
+
+| 🎁
+| Add "url" output format to return service url in service describe
+| https://github.com/knative/client/pull/916[#916]
+
+| 🐣
+| Refactor port field to accept port name and port
+| https://github.com/knative/client/pull/915[#915]
+
+| 🎁
+| Add `--scale` for setting `--min-scale` and `--max-scale` to the same value
+| https://github.com/knative/client/pull/914[#914]
+
+| 🎁
+| Add `--filename` flag to `service create` command
+| https://github.com/knative/client/pull/913[#913]
+
+| ✨
+| Find sink and ready conditions for untyped sources
+| https://github.com/knative/client/pull/911[#911]
+
+| 🐛
+| Add mandatory ``--sink` to PingSource command's name
+| https://github.com/knative/client/pull/903[#903]
+
+| 🐛
+| Fix panic for `kn source apiserver` and `kn source binding` describe with sink URI
+| https://github.com/knative/client/pull/901[#901]
+
+| 🐛
+| Fix panic for `kn trigger describe` with sink URI
+| https://github.com/knative/client/pull/900[#900]
+
+| ✨
+| New sink prefix "ksvc" and drop support for "svc", "service" prefixes for knative service
+| https://github.com/knative/client/pull/896[#896]
+
+| 🎁
+| Add CRUD commands to manage Broker resource
+| https://github.com/knative/client/pull/894[#894]
+
+| 🎁
+| Group commands in usage output with `kn --help`
+| https://github.com/knative/client/pull/887[#887]
+
+| 🎁
+| Add `kn export` type `Export`
+| https://github.com/knative/client/pull/866[#856]
+|===
+
+## v0.15.2 (2020-06-16)
+
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🐛
+| Fix build.sh for macOS users
+| https://github.com/knative/client/pull/883[#883]
+
+| 🐛
+| Return error message when using --untag with nonexistent tag
+| https://github.com/knative/client/pull/880[#880]
+
+| ✨
+| Update go.mod to specify the module is go1.14
+| https://github.com/knative/client/pull/866[#866]
+|===
+
+## v0.15.1 (2020-06-03)
+
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🐛
+| Update flag names to `--request` and `--limit`
+| https://github.com/knative/client/pull/872[#872]
+
+| 🐛
+| Fix `kn source -h`
+| https://github.com/knative/client/pull/846[#846]
+
+| ✨
+| Update to Knative serving and eventing 0.15.0
+| https://github.com/knative/client/pull/810[#810]
+
+| 🎁
+| Add `--ce-override` flag for apiserver and ping sources
+| https://github.com/knative/client/pull/865[#865]
+
+| 🐣
+| Check `deletionTimestamp` for `kn revision delete`
+| https://github.com/knative/client/pull/860[#860]
+
+| 🎁
+| Add `--requests` and `--limits` flags for resource requirements
+| https://github.com/knative/client/pull/859[#859]
+
+| 🐣
+| Replaced non-standard errors package with standard library functions
+| https://github.com/knative/client/pull/853[#853]
+
+| 🐛
+| Fix Panic for `kn source ping` describe with Sink URI
+| https://github.com/knative/client/pull/848[#848]
+
+| 🎁
+| Add `kn service delete --all`
+| https://github.com/knative/client/pull/836[#836]
+
+| 🎁
+| Allow plugins to extend all command groups
+| https://github.com/knative/client/pull/834[#834]
+
+| 🐣
+| Update and expanded https://github.com/knative/client/blob/main/conventions/cli.md[CLI convention document]
+| https://github.com/knative/client/pull/831[#831]
+
+| 🐛
+| Skip `LatestReadyRevisionName` if revision is `Pending` or `Unknown`
+| https://github.com/knative/client/pull/825[#825]
+
+| 🎁
+| Add `--with-revisions` to `kn export` to allow a direct export of revisions
+| https://github.com/knative/client/pull/819[#819]
+
+| 🐛
+| Update help message for `kn source apiserver` to reflect the new API
+| https://github.com/knative/client/pull/817[#817]
+
+| 🐛
+| Check `DeleteTimestamp` before updating resource
+| https://github.com/knative/client/pull/805[#805]
+|===
+
+## v0.14.0 (2020-04-21)
+
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| ✨
+| Moved to ApiServerSource v1alpha2 API version
+| https://github.com/knative/client/pull/810[#810]
+
+| ✨
+| Update to Knative serving and eventing 0.14.0
+| https://github.com/knative/client/pull/810[#810]
+
+| 🎁
+| Add `-a` flag as an alias for `--annotation`
+| https://github.com/knative/client/pull/782[#782]
+|===
+
+## v0.13.2 (2020-04-15)
+
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🐛
+| Make wait, no-wait and async flags per bool var CLI convention
+| https://github.com/knative/client/pull/802[#802]
+
+| 🐛
+| Fix showing repetitive revisions in service describe
+| https://github.com/knative/client/pull/790[#790]
+
+| 🎁
+| Add `--concurrency-utilization` option for service `create` and `update`
+| https://github.com/knative/client/pull/788[#788]
+
+| 🐛
+| Correct error message when updating service
+| https://github.com/knative/client/pull/778[#778]
+
+| 🐛
+| Add support for `-o name` for "list" operations
+| https://github.com/knative/client/pull/775[#775], https://github.com/knative/client/pull/799[#799]
+
+| 🐛
+| Fix plugin lookup with file ext on Windows
+| https://github.com/knative/client/pull/774[#774]
+
+| 🐣
+| Don't wait for delete operations to be completed by default
+| https://github.com/knative/client/pull/770[#770]
+
+| 🐣
+| Refactor "e2e" common code into `lib/test`
+| https://github.com/knative/client/pull/765[#765]
+
+
+|===
+
+## v0.13.1 (2020-03-25)
+
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🐛
+| Fix filter delete for trigger update command
+| https://github.com/knative/client/pull/746[#746]
+
+| 🐛
+| Fix trigger create --filter flag to be optional
+| https://github.com/knative/client/pull/745[#745]
+
+| 🐛
+| Fix plugin execution for Windows.
+| https://github.com/knative/client/pull/738[#738]
+
+| 🐛
+| Fix default config path on Windows
+| https://github.com/knative/client/pull/752[#752]
+|===
+
+## v0.13.0 (2020-03-11)
+
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🎁
+| Add a flag `--inject-broker` to `kn trigger create`
+| https://github.com/knative/client/pull/726[#726]
+
+| 🐛
+| Improve reporting for missing `kubeconfig` and error connecting to the cluster
+| https://github.com/knative/client/pull/725[#725]
+
+| 🎁
+| Add JSON/YAML output format for `kn version`
+| https://github.com/knative/client/pull/709[#709]
+
+| 🐣
+| Replace `kn source cronjob` with `kn source ping`. `--schedule` is not mandatory anymore and defaults to "* * * * *" (every minute)
+| https://github.com/knative/client/issues/705[#705]
+
+| ✨
+| Update to Knative serving 0.13.0 and Knative eventing 0.13.1
+| https://github.com/knative/client/issues/705[#705]
+
+| 🎁
+| Add `--label-service` and `--label-revision` to specify where to put labels for `kn service`
+| https://github.com/knative/client/pull/703[#703]
+
+| 🐛
+| Fix wait on `Ready` condition by filtering out synthetic events
+| https://github.com/knative/client/pull/701[#701]
+
+| ✨
+| Add `--wait` and `--no-wait` to `kn service delete` and change synchronous deletion
+| https://github.com/knative/client/pull/682[#682]
+
+| 🎁
+| Add `--user` flag to `kn service` for specifying the user id to run the container
+| https://github.com/knative/client/pull/679[#679]
+
+| 🎁
+| Add configuration of sink prefixes for `kn source`
+| https://github.com/knative/client/pull/676[#676]
+
+| 🎁
+| Add `kn service export` for exporting a service
+| https://github.com/knative/client/pull/669[#669]
+
+| 🎁
+| Adopt to XDG specification to `XDG_CONFIG_HOME` for default config location
+| https://github.com/knative/client/pull/668[#668]
+
+| ✨
+| Add better error tracking for E2E tests
+| https://github.com/knative/client/pull/667[#667]
+
+| 🎁
+| Add `kn source list`
+| https://github.com/knative/client/pull/666[#666]
+
+| ✨
+| Improve help message when no command is given
+| https://github.com/knative/client/pull/664[#664]
+
+| ✨
+| Update list headers for `kn trigger` and `kn source`
+| https://github.com/knative/client/pull/658[#658]
+
+| ✨
+| Support multiple revisions on `kn revision delete`
+| https://github.com/knative/client/pull/657[#657]
+
+| 🐛
+| Fix `--image` flag to only allow single occurrence in `kn service`
+| https://github.com/knative/client/pull/647[#647]
+
+| 🎁
+| Add E2E test for `kn trigger`
+| https://github.com/knative/client/pull/645[#645]
+
+| 🎁
+| Add error window when waiting for `Ready` condition to become `true`
+| https://github.com/knative/client/pull/644[#644]
+
+| 🎁
+| Add human-readable `kn route describe`
+| https://github.com/knative/client/pull/643[#643]
+
+| ✨
+| Update API to use `serving.knative.dev/v1`
+| https://github.com/knative/client/pull/640[#640]
+
+| ✨
+| Add `no-wait` instead of `--async` and add a deprecation warning
+| https://github.com/knative/client/pull/639[#639]
+
+| 🎁
+| Add E2E test for `cmd` and `arg` option for `kn service`
+| https://github.com/knative/client/pull/637[#637]
+
+| 🎁
+| Add `--cmd` and `--arg` for customization of the container entry point
+| https://github.com/knative/client/pull/635[#635]
+
+| 🎁
+| Add E2E test for `kn source binding`
+| https://github.com/knative/client/pull/634[#634]
+
+| 🐛
+| Show `envFrom` in `kn service describe`
+| https://github.com/knative/client/pull/630[#630]
+
+| 🎁
+| Add `--cluster-local` and `--no-cluster-local` flags for `kn service`
+| https://github.com/knative/client/pull/629[#629]
+|===
+
+## v0.12.0 (2020-01-29)
+
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🎁
+| Add `kn source binding` CRUD support for managing sink bindings
+| https://github.com/knative/client/pull/625[#625]
+
+| 🎁
+| Update to Knative eventing v0.12.0
+| https://github.com/knative/client/pull/621[#621]
+
+| ✨️
+| Update to Knative serving v0.12.0
+| https://github.com/knative/client/pull/618[#618]
+
+| 🎁
+| Add `--pull-secret` for specifying pull secrets
+| https://github.com/knative/client/pull/617[#617]
+
+| ✨
+| Improve error handling when no command is given
+| https://github.com/knative/client/pull/615[#615]
+
+| 🎁
+| Add `--autoscale-window` for service commands
+| https://github.com/knative/client/pull/614[#614]
+
+| ✨
+| Add checks for namespace creation instead of waiting
+| https://github.com/knative/client/pull/611[#611]
+
+| 🐛
+| Fix mandatory `kn trigger` filter
+| https://github.com/knative/client/pull/603[#603]
+
+| 🎁
+| Add E2E tests for CronJob source
+| https://github.com/knative/client/pull/599[#599]
+
+| 🐛
+| Fix handling of map-like options
+| https://github.com/knative/client/pull/592[#592]
+
+| 🎁
+| Add E2E tests for plugins
+| https://github.com/knative/client/pull/591[#591]
+
+| 🐛
+| Fix misleading error message when verb is bad
+| https://github.com/knative/client/pull/589[#589]
+
+| 🎁
+| Add traffic and tag information to `kn revision list`
+| https://github.com/knative/client/pull/581[#581]
+
+| 🐛️
+| Fix duplicate key check in trigger filter option
+| https://github.com/knative/client/pull/575[#575]
+|===
+
+## v0.11.0 (2019-12-17)
+
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+
+| 🎁
+| Add `kn trigger update` for updating triggers
+| https://github.com/knative/client/pull/562[#562]
+
+| 🎁
+| Add `kn source cronjob list` for listing CronJob sources
+| https://github.com/knative/client/pull/559[#559]
+
+| 🎁
+| Add `kn source apiserver list` for listing ApiServer sources
+| https://github.com/knative/client/pull/559[#559]
+
+| 🎁
+| Add `kn trigger list` for listing triggers
+| https://github.com/knative/client/pull/558[#558]
+
+| 🎁
+| Add `kn source apiserver create/delete/update/describe` for managing ApiServer sources
+| https://github.com/knative/client/pull/556[#556]
+
+| ✨
+| Update to Knative eventing dependency to 0.11.0
+| https://github.com/knative/client/pull/546[#546]
+
+| ✨
+| Update to Knative serving dependency to 0.11.0
+| https://github.com/knative/client/pull/545[#545]
+
+| ✨
+| Move cluster URL to `--verbose` for `service describe`
+| https://github.com/knative/client/pull/543[#543]
+
+| 🎁
+| Add `kn source cronjob create/delete/update/describe` for managing CronJob sources
+| https://github.com/knative/client/pull/542[#542]
+
+| 🎁
+| Add `kn trigger create/delete` for managing Eventing triggers
+| https://github.com/knative/client/pull/541[#541]
+
+| 🎁
+| Eventing setup in CI
+| https://github.com/knative/client/pull/538[#538]
+
+| 🎁
+| Add `kn source list-types` for showing available Eventing sources
+| https://github.com/knative/client/pull/536[#536]
+
+| 🐛
+| Update to Go 1.13
+| https://github.com/knative/client/pull/535[#535]
+
+| 🎁
+| Add CI tests for using Kn with Tekton
+| https://github.com/knative/client/pull/528[#528]
+
+| ✨
+| Update version information for eventing dependencies
+| https://github.com/knative/client/pull/495[#495]
+
+| ✨
+| Support multiple NAMEs on kn service delete
+| https://github.com/knative/client/pull/492[#492]
+
+| ✨
+| Add polling fallback for watching on service readiness
+| https://github.com/knative/client/pull/491[#491]
+
+| 🎁
+| Add dependencies for eventing
+| https://github.com/knative/client/pull/470[#470]
+|===
+
+## v0.10.0 (2019-11-06)
+
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| ✨
+| Update Knative serving dependency to 0.10.0
+| https://github.com/knative/client/pull/474[#474]
+
+| 🎁
+| Add Support for envFrom and volumeMounts
+| https://github.com/knative/client/pull/393[#393]
+
+| 🎁
+| Human-readable revision describe
+| https://github.com/knative/client/pull/475[#475]
+
+| 🎁
+| Print ServiceAccount in service describe output
+| https://github.com/knative/client/pull/472[#472]
+
+| 🎁
+| Add zsh completion
+| https://github.com/knative/client/pull/476[#476]
+|===
+
+## v0.9.0 (2019-10-29)
+
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| ✨
+| Update to Knative serving dependency to 0.9.0
+| https://github.com/knative/client/pull/458[#458]
+
+| ✨
+| Add revision information to service list
+| https://github.com/knative/client/pull/441[#441]
+
+| 🐛
+| Remove zsh completion
+| https://github.com/knative/client/pull/439[#439]
+
+| 🎁
+| Update build.sh -w to add a message when compilation succeeded
+| https://github.com/knative/client/pull/432[#432]
+
+| ✨
+| Add more progress information during service create/update
+| https://github.com/knative/client/pull/431[#431]
+
+| ✨
+| Change plugins configuration name to use `-` (dash) instead of camel case
+| https://github.com/knative/client/pull/428[#428]
+
+| 🎁
+| Add `--annotation` flag for service create and update
+| https://github.com/knative/client/pull/422[#422]
+
+| ✨
+| Restructure documentation
+| https://github.com/knative/client/pull/421[#421]
+
+| ✨
+| Refine `route list` output
+| https://github.com/knative/client/pull/407[#407]
+
+| 🎁
+| Add `--service-account` flag
+| https://github.com/knative/client/pull/401[#401]
+
+| 🐛
+| Add environment variables in alphabetical order for service create/update
+| https://github.com/knative/client/pull/389[#389]
+
+| 🐛
+| Retain the request body when logging HTTP
+| https://github.com/knative/client/pull/378[#378]
+
+| ✨
+| Adds support for building cross platform binaries
+| https://github.com/knative/client/pull/371[#371]
+
+| ✨
+| Update `version` command shows supported Serving and API versions
+| https://github.com/knative/client/pull/370[#370]
+
+| 🐛
+| Add portable plugin executable check for Windows
+| https://github.com/knative/client/pull/367[#367]
+
+| 🎁
+| Print `NAMESPACE` column as the first column when `--all-namespaces` is specified
+| https://github.com/knative/client/pull/366[#366]
+
+| 🎁
+| Add support for `-A` variant for `--all-namespaces`
+| https://github.com/knative/client/pull/356[#356]
+
+| 🎁
+| Wrap help messages to terminal size
+| https://github.com/knative/client/pull/351[#351]
+
+| ✨
+| Change bool flags to the paired `--foo` and `--no-foo` format
+| https://github.com/knative/client/pull/346[#346]
+
+| 🎁
+| Support traffic splitting and tagging targets
+| https://github.com/knative/client/pull/345[#345]
+
+| 🐛
+| Only test in watch mode if passed test flag
+| https://github.com/knative/client/pull/343[#343]
+
+| 🎁
+| Add `Service` and `Revision` labels
+| https://github.com/knative/client/pull/342[#342]
+
+| 🎁
+| Add `creator` annotation on create `--force`
+| https://github.com/knative/client/pull/331[#341]
+
+| 🎁
+| List revisions sorted by configuration generation
+| https://github.com/knative/client/pull/332[#332]
+
+| 🎁
+| Add documentation for traffic splitting and tagging targets
+| https://github.com/knative/client/pull/331[#331]
+
+| 🐛
+| `kn service list` lists services sorted by alphabetical order
+| https://github.com/knative/client/pull/330[#330]
+
+| 🎁
+| Add `--log-http` option
+| https://github.com/knative/client/pull/326[#326]
+
+| 🐛
+| Report an error if no flag(s) set in service update
+| https://github.com/knative/client/pull/318[#318]
+
+| ✨
+| Improve create service error message
+| https://github.com/knative/client/pull/312[#312]
+
+| 🎁
+| Introduce test mock library for `KnServingClient` library call
+| https://github.com/knative/client/pull/306[#306]
+
+| 🐛
+| Fix error when no current namespace is set
+| https://github.com/knative/client/pull/305[#305]
+
+| 🎁
+| Add E2E tests for `Service`, `Revision`, `Route`
+| https://github.com/knative/client/pull/291[#291]
+
+| 🎁
+| Add `--revision-name` flag
+| https://github.com/knative/client/pull/282[#282]
+
+| 🐛
+| Validate scale and container concurrency options when updating configuration resource
+| https://github.com/knative/client/pull/279[#279]
+
+| 🎁
+| Wait for service to become ready with `kn service update` (same behaviour as for `kn service create`)
+| https://github.com/knative/client/pull/271[#271]
+
+| 🎁
+| Add `--no-headers` flag for `list` commands
+| https://github.com/knative/client/pull/262[#262]
+
+| 🎁
+| `kn service describe`
+| https://github.com/knative/client/pull/252[#252]
+
+| 🎁
+| Add plugin support similar to `kubectl` plugins.
+| https://github.com/knative/client/pull/249[#249]
+
+| 🐛
+| Better error handling when providing wrong kubeconfig option
+| https://github.com/knative/client/pull/222[#222]
+|===
 
 ## v0.2.0 (2019-07-10)
 
@@ -29,19 +1166,19 @@
 | Dynamically set GroupVersionKind via schema lookup
 | https://github.com/knative/client/pull/134[#134]
 
-| 🧽
+| ✨
 | Introduce a `KnClient` interface
 | https://github.com/knative/client/pull/134[#134]
 
 | 🐛
 | Retry update operation on an optimistic lock failure
-| https://github.com/knative/client/pull/[#240]
+| https://github.com/knative/client/pull/240[#240]
 
 | 🎁
 | Add `kn route list`
 | https://github.com/knative/client/pull/202[#202]
 
-| 🧽
+| ✨
 | Improved error message when no command is given
 | https://github.com/knative/client/pull/218[#218]
 
@@ -65,7 +1202,7 @@
 | Add goimport to `build.sh`
 | https://github.com/knative/client/pull/186[#186]
 
-| 🧽
+| ✨
 | Wait for service to become ready with `kn service create`
 | https://github.com/knative/client/pull/156[#156]
 
@@ -73,19 +1210,19 @@
 | Add shell based smoke tests
 | https://github.com/knative/client/pull/183[#183]
 
-| 🧽
+| ✨
 | Use current namespace from `.kube/config` as default
 | https://github.com/knative/client/pull/172[#172]
 
-| 🧽
+| ✨
 | Add `--force` to `kn service create` for replacing existing service
 | https://github.com/knative/client/pull/79[#79]
 
-| 🧽
+| ✨
 | Add `kn revision list --service <srv>`
 | https://github.com/knative/client/pull/194[#194]
 
-| 🧽
+| ✨
 | Add success message to `kn service update`
 | https://github.com/knative/client/pull/169[#169]
 
@@ -97,15 +1234,15 @@
 | Add Golang based E2E tests
 | https://github.com/knative/client/pull/121[#121]
 
-| 🧽
+| ✨
 | Rename `kn revision get` to `kn revision list`
 | https://github.com/knative/client/pull/180[#180]
 
-| 🧽
+| ✨
 | Rename `kn service get` to `kn service list`
 | https://github.com/knative/client/pull/179[#179]
 
-| 🧽
+| ✨
 | Refactoring to use sub-packages
 | https://github.com/knative/client/pull/66[#66]
 
@@ -113,7 +1250,7 @@
 | Add `--test`, `--fast`, `--update` to `build.sh`
 | https://github.com/knative/client/pull/149[#149]
 
-| 🧽️
+| ✨️
 | Update to Knative serving 0.6.0
 | https://github.com/knative/client/pull/129[#129]
 
@@ -157,7 +1294,7 @@
 |===
 
 '''
-_Legend_ :  🎁 Feature - 🐛 Fix - 🧽 Update - 🗑️ Remove
+_Legend_ :  🎁 Feature - 🐛 Fix - ✨ Update - 🐣 Refactoring - 🗑️ Remove
 
 ////
 ---------------------------------------------
@@ -166,4 +1303,17 @@ Ignore PRs:
 12
 45
 ---------------------------------------------
+////
+
+// Asciidoc Template for a new release table. Add this after creating a release
+// to collect new changelog entries
+////
+
+## v0.XX.0 (unreleased)
+
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+|===
 ////

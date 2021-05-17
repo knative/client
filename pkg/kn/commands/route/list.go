@@ -15,21 +15,25 @@
 package route
 
 import (
+	"errors"
 	"fmt"
 
-	"github.com/knative/client/pkg/kn/commands"
-	v1alpha12 "github.com/knative/client/pkg/serving/v1alpha1"
+	"knative.dev/client/pkg/kn/commands"
+	clientservingv1 "knative.dev/client/pkg/serving/v1"
 
-	"github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"github.com/spf13/cobra"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
+
+	"knative.dev/client/pkg/kn/commands/flags"
 )
 
 // NewrouteListCommand represents 'kn route list' command
 func NewRouteListCommand(p *commands.KnParams) *cobra.Command {
-	routeListFlags := NewRouteListFlags()
+	routeListFlags := flags.NewListPrintFlags(RouteListHandlers)
 	routeListCommand := &cobra.Command{
-		Use:   "list NAME",
-		Short: "List available routes.",
+		Use:     "list NAME",
+		Short:   "List routes",
+		Aliases: []string{"ls"},
 		Example: `
   # List all routes
   kn route list
@@ -37,7 +41,7 @@ func NewRouteListCommand(p *commands.KnParams) *cobra.Command {
   # List route 'web' in namespace 'dev'
   kn route list web -n dev
 
-  # List all routes in yaml format
+  # List all routes in YAML format
   kn route list -o yaml`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
@@ -45,32 +49,28 @@ func NewRouteListCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			client, err := p.NewClient(namespace)
+			client, err := p.NewServingClient(namespace)
 			if err != nil {
 				return err
 			}
 
-			var routeList *v1alpha1.RouteList
+			var routeList *servingv1.RouteList
 			switch len(args) {
 			case 0:
-				routeList, err = client.ListRoutes()
+				routeList, err = client.ListRoutes(cmd.Context())
 			case 1:
-				routeList, err = client.ListRoutes(v1alpha12.WithName(args[0]))
+				routeList, err = client.ListRoutes(cmd.Context(), clientservingv1.WithName(args[0]))
 			default:
-				return fmt.Errorf("'kn route list' accepts maximum 1 argument.")
+				return errors.New("'kn route list' accepts only one additional argument")
 			}
 			if err != nil {
 				return err
 			}
-			if len(routeList.Items) == 0 {
-				fmt.Fprintf(cmd.OutOrStdout(), "No resources found.\n")
+			if !routeListFlags.GenericPrintFlags.OutputFlagSpecified() && len(routeList.Items) == 0 {
+				fmt.Fprintf(cmd.OutOrStdout(), "No routes found.\n")
 				return nil
 			}
-			printer, err := routeListFlags.ToPrinter()
-			if err != nil {
-				return err
-			}
-			err = printer.PrintObj(routeList, cmd.OutOrStdout())
+			err = routeListFlags.Print(routeList, cmd.OutOrStdout())
 			if err != nil {
 				return err
 			}

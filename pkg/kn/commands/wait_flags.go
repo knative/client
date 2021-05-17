@@ -18,24 +18,35 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+
+	knflags "knative.dev/client/pkg/kn/flags"
 )
+
+// Default time out to use when waiting for reconciliation. It is deliberately very long as it is expected that
+// the service doesn't stay in `Unknown` status very long and eventually ends up as `False` or `True` in a timely
+// manner
+const WaitDefaultTimeout = 600
 
 // Flags for tuning wait behaviour
 type WaitFlags struct {
 	// Timeout in seconds for how long to wait for a command to return
 	TimeoutInSeconds int
-
-	// If set then just apply resources and don't wait
-	Async bool
+	// If set then apply resources and wait for completion
+	Wait bool
 }
 
-// Add flags which influence the sync/async behaviour when creating or updating
+// Add flags which influence the wait/no-wait behaviour when creating or updating
 // resources. Set `waitDefault` argument if the default behaviour is synchronous.
 // Use `what` for describing what is waited for.
-func (p *WaitFlags) AddConditionWaitFlags(command *cobra.Command, waitTimeoutDefault int, what string) {
-	waitUsage := fmt.Sprintf("Create %s and don't wait for it to become ready.", what)
-	command.Flags().BoolVar(&p.Async, "async", false, waitUsage)
+func (p *WaitFlags) AddConditionWaitFlags(command *cobra.Command, waitTimeoutDefault int, action, what, until string) {
+	waitUsage := fmt.Sprintf("Wait for '%s %s' operation to be completed.", what, action)
+	waitDefault := true
+	// Special-case 'delete' command so it comes back to the user immediately
+	if action == "delete" {
+		waitDefault = false
+	}
 
-	timeoutUsage := fmt.Sprintf("Seconds to wait before giving up on waiting for %s to be ready.", what)
+	knflags.AddBothBoolFlagsUnhidden(command.Flags(), &p.Wait, "wait", "", waitDefault, waitUsage)
+	timeoutUsage := fmt.Sprintf("Seconds to wait before giving up on waiting for %s to be %s.", what, until)
 	command.Flags().IntVar(&p.TimeoutInSeconds, "wait-timeout", waitTimeoutDefault, timeoutUsage)
 }

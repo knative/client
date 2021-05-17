@@ -21,12 +21,14 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/spf13/pflag"
 
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/client-go/discovery"
+	diskcached "k8s.io/client-go/discovery/cached/disk"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/restmapper"
 	"k8s.io/client-go/tools/clientcmd"
@@ -39,6 +41,7 @@ const (
 	flagContext          = "context"
 	flagNamespace        = "namespace"
 	flagAPIServer        = "server"
+	flagTLSServerName    = "tls-server-name"
 	flagInsecure         = "insecure-skip-tls-verify"
 	flagCertFile         = "client-certificate"
 	flagKeyFile          = "client-key"
@@ -49,10 +52,12 @@ const (
 	flagUsername         = "username"
 	flagPassword         = "password"
 	flagTimeout          = "request-timeout"
-	flagHTTPCacheDir     = "cache-dir"
+	flagCacheDir         = "cache-dir"
 )
 
-var defaultCacheDir = filepath.Join(homedir.HomeDir(), ".kube", "http-cache")
+var (
+	defaultCacheDir = filepath.Join(homedir.HomeDir(), ".kube", "cache")
+)
 
 // RESTClientGetter is an interface that the ConfigFlags describe to provide an easier way to mock for commands
 // and eliminate the direct coupling to a struct type.  Users may wish to duplicate this type in their own packages
@@ -82,6 +87,7 @@ type ConfigFlags struct {
 	Context          *string
 	Namespace        *string
 	APIServer        *string
+	TLSServerName    *string
 	Insecure         *bool
 	CertFile         *string
 	KeyFile          *string
@@ -92,6 +98,13 @@ type ConfigFlags struct {
 	Username         *string
 	Password         *string
 	Timeout          *string
+
+	clientConfig clientcmd.ClientConfig
+	lock         sync.Mutex
+	// If set to true, will use persistent client config and
+	// propagate the config to the places that need it, rather than
+	// loading the config multiple times
+	usePersistentConfig bool
 }
 
 // ToRESTConfig implements RESTClientGetter.
@@ -106,6 +119,13 @@ func (f *ConfigFlags) ToRESTConfig() (*rest.Config, error) {
 // Returns an interactive clientConfig if the password flag is enabled,
 // or a non-interactive clientConfig otherwise.
 func (f *ConfigFlags) ToRawKubeConfigLoader() clientcmd.ClientConfig {
+	if f.usePersistentConfig {
+		return f.toRawKubePersistentConfigLoader()
+	}
+	return f.toRawKubeConfigLoader()
+}
+
+func (f *ConfigFlags) toRawKubeConfigLoader() clientcmd.ClientConfig {
 	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
 	// use the standard defaults for this client command
 	// DEPRECATED: remove and replace with something more accurate
@@ -144,6 +164,9 @@ func (f *ConfigFlags) ToRawKubeConfigLoader() clientcmd.ClientConfig {
 	if f.APIServer != nil {
 		overrides.ClusterInfo.Server = *f.APIServer
 	}
+	if f.TLSServerName != nil {
+		overrides.ClusterInfo.TLSServerName = *f.TLSServerName
+	}
 	if f.CAFile != nil {
 		overrides.ClusterInfo.CertificateAuthority = *f.CAFile
 	}
@@ -169,16 +192,24 @@ func (f *ConfigFlags) ToRawKubeConfigLoader() clientcmd.ClientConfig {
 		overrides.Timeout = *f.Timeout
 	}
 
-	var clientConfig clientcmd.ClientConfig
-
 	// we only have an interactive prompt when a password is allowed
 	if f.Password == nil {
-		clientConfig = clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, overrides)
-	} else {
-		clientConfig = clientcmd.NewInteractiveDeferredLoadingClientConfig(loadingRules, overrides, os.Stdin)
+		return &clientConfig{clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, overrides)}
+	}
+	return &clientConfig{clientcmd.NewInteractiveDeferredLoadingClientConfig(loadingRules, overrides, os.Stdin)}
+}
+
+// toRawKubePersistentConfigLoader binds config flag values to config overrides
+// Returns a persistent clientConfig for propagation.
+func (f *ConfigFlags) toRawKubePersistentConfigLoader() clientcmd.ClientConfig {
+	f.lock.Lock()
+	defer f.lock.Unlock()
+
+	if f.clientConfig == nil {
+		f.clientConfig = f.toRawKubeConfigLoader()
 	}
 
-	return clientConfig
+	return f.clientConfig
 }
 
 // ToDiscoveryClient implements RESTClientGetter.
@@ -195,15 +226,17 @@ func (f *ConfigFlags) ToDiscoveryClient() (discovery.CachedDiscoveryInterface, e
 	// double it just so we don't end up here again for a while.  This config is only used for discovery.
 	config.Burst = 100
 
-	// retrieve a user-provided value for the "cache-dir"
-	// defaulting to ~/.kube/http-cache if no user-value is given.
-	httpCacheDir := defaultCacheDir
-	if f.CacheDir != nil {
-		httpCacheDir = *f.CacheDir
-	}
+	cacheDir := defaultCacheDir
 
-	discoveryCacheDir := computeDiscoverCacheDir(filepath.Join(homedir.HomeDir(), ".kube", "cache", "discovery"), config.Host)
-	return discovery.NewCachedDiscoveryClientForConfig(config, discoveryCacheDir, httpCacheDir, time.Duration(10*time.Minute))
+	// retrieve a user-provided value for the "cache-dir"
+	// override httpCacheDir and discoveryCacheDir if user-value is given.
+	if f.CacheDir != nil {
+		cacheDir = *f.CacheDir
+	}
+	httpCacheDir := filepath.Join(cacheDir, "http")
+	discoveryCacheDir := computeDiscoverCacheDir(filepath.Join(cacheDir, "discovery"), config.Host)
+
+	return diskcached.NewCachedDiscoveryClientForConfig(config, discoveryCacheDir, httpCacheDir, time.Duration(10*time.Minute))
 }
 
 // ToRESTMapper returns a mapper.
@@ -224,7 +257,7 @@ func (f *ConfigFlags) AddFlags(flags *pflag.FlagSet) {
 		flags.StringVar(f.KubeConfig, "kubeconfig", *f.KubeConfig, "Path to the kubeconfig file to use for CLI requests.")
 	}
 	if f.CacheDir != nil {
-		flags.StringVar(f.CacheDir, flagHTTPCacheDir, *f.CacheDir, "Default HTTP cache directory")
+		flags.StringVar(f.CacheDir, flagCacheDir, *f.CacheDir, "Default cache directory")
 	}
 
 	// add config options
@@ -265,6 +298,9 @@ func (f *ConfigFlags) AddFlags(flags *pflag.FlagSet) {
 	if f.APIServer != nil {
 		flags.StringVarP(f.APIServer, flagAPIServer, "s", *f.APIServer, "The address and port of the Kubernetes API server")
 	}
+	if f.TLSServerName != nil {
+		flags.StringVar(f.TLSServerName, flagTLSServerName, *f.TLSServerName, "Server name to use for server certificate validation. If it is not provided, the hostname used to contact the server is used")
+	}
 	if f.Insecure != nil {
 		flags.BoolVar(f.Insecure, flagInsecure, *f.Insecure, "If true, the server's certificate will not be checked for validity. This will make your HTTPS connections insecure")
 	}
@@ -285,7 +321,7 @@ func (f *ConfigFlags) WithDeprecatedPasswordFlag() *ConfigFlags {
 }
 
 // NewConfigFlags returns ConfigFlags with default values set
-func NewConfigFlags() *ConfigFlags {
+func NewConfigFlags(usePersistentConfig bool) *ConfigFlags {
 	impersonateGroup := []string{}
 	insecure := false
 
@@ -300,12 +336,15 @@ func NewConfigFlags() *ConfigFlags {
 		Context:          stringptr(""),
 		Namespace:        stringptr(""),
 		APIServer:        stringptr(""),
+		TLSServerName:    stringptr(""),
 		CertFile:         stringptr(""),
 		KeyFile:          stringptr(""),
 		CAFile:           stringptr(""),
 		BearerToken:      stringptr(""),
 		Impersonate:      stringptr(""),
 		ImpersonateGroup: &impersonateGroup,
+
+		usePersistentConfig: usePersistentConfig,
 	}
 }
 

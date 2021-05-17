@@ -38,7 +38,6 @@ type PrintHandler interface {
 type handlerEntry struct {
 	columnDefinitions []metav1beta1.TableColumnDefinition
 	printFunc         reflect.Value
-	args              []reflect.Value
 }
 
 // HumanReadablePrinter is an implementation of ResourcePrinter which attempts to provide
@@ -74,9 +73,7 @@ func (h *HumanReadablePrinter) GenerateTable(obj runtime.Object, options PrintOp
 		return nil, results[1].Interface().(error)
 	}
 
-	var columns []metav1beta1.TableColumnDefinition
-
-	columns = make([]metav1beta1.TableColumnDefinition, 0, len(handler.columnDefinitions))
+	columns := make([]metav1beta1.TableColumnDefinition, 0, len(handler.columnDefinitions))
 	for i := range handler.columnDefinitions {
 		columns = append(columns, handler.columnDefinitions[i])
 	}
@@ -106,7 +103,7 @@ func (h *HumanReadablePrinter) GenerateTable(obj runtime.Object, options PrintOp
 func (h *HumanReadablePrinter) TableHandler(columnDefinitions []metav1beta1.TableColumnDefinition, printFunc interface{}) error {
 	printFuncValue := reflect.ValueOf(printFunc)
 	if err := ValidateRowPrintHandlerFunc(printFuncValue); err != nil {
-		utilruntime.HandleError(fmt.Errorf("unable to register print function: %v", err))
+		utilruntime.HandleError(fmt.Errorf("unable to register print function: %w", err))
 		return err
 	}
 	entry := &handlerEntry{

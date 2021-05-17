@@ -14,31 +14,40 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-source $(dirname $0)/../vendor/github.com/knative/test-infra/scripts/release.sh
+# Documentation about this script and how to use it can be found
+# at https://github.com/knative/hack
+
+source $(dirname $0)/../vendor/knative.dev/hack/release.sh
 source $(dirname $0)/build-flags.sh
 
 function build_release() {
   local ld_flags="$(build_flags $(dirname $0)/..)"
-  local pkg="github.com/knative/client/pkg/kn/commands"
+  local pkg="knative.dev/client/pkg/kn/commands"
   local version="${TAG}"
   # Use vYYYYMMDD-<hash>-local for the version string, if not passed.
   [[ -z "${version}" ]] && version="v${BUILD_TAG}-local"
 
   export GO111MODULE=on
   export CGO_ENABLED=0
-  echo "🚧 🐧 Building for Linux"
+  echo "🚧 🐧 Building for Linux (amd64)"
   GOOS=linux GOARCH=amd64 go build -mod=vendor -ldflags "${ld_flags}" -o ./kn-linux-amd64 ./cmd/...
+  echo "🚧 💪 Building for Linux (arm64)"
+  GOOS=linux GOARCH=arm64 go build -mod=vendor -ldflags "${ld_flags}" -o ./kn-linux-arm64 ./cmd/...
   echo "🚧 🍏 Building for macOS"
   GOOS=darwin GOARCH=amd64 go build -mod=vendor -ldflags "${ld_flags}" -o ./kn-darwin-amd64 ./cmd/...
   echo "🚧 🎠 Building for Windows"
   GOOS=windows GOARCH=amd64 go build -mod=vendor -ldflags "${ld_flags}" -o ./kn-windows-amd64.exe ./cmd/...
+  echo "🚧 Z  Building for Linux(s390x)"
+  GOOS=linux GOARCH=s390x go build -mod=vendor -ldflags "${ld_flags}" -o ./kn-linux-s390x ./cmd/...
+  echo "🚧 P  Building for Linux (ppc64le)"
+  GOOS=linux GOARCH=ppc64le go build -mod=vendor -ldflags "${ld_flags}" -o ./kn-linux-ppc64le ./cmd/...
   echo "🚧 🐳 Building the container image"
   ko resolve ${KO_FLAGS} -f config/ > kn-image-location.yaml
-  ARTIFACTS_TO_PUBLISH="kn-darwin-amd64 kn-linux-amd64 kn-windows-amd64.exe kn-image-location.yaml"
-  if type sha256sum >/dev/null 2>&1; then
-    echo "🧮     Checksum:"
-    sha256sum ${ARTIFACTS_TO_PUBLISH}
-  fi
+  ARTIFACTS_TO_PUBLISH="kn-darwin-amd64 kn-linux-amd64 kn-linux-arm64 kn-windows-amd64.exe kn-linux-s390x kn-linux-ppc64le kn-image-location.yaml"
+  sha256sum ${ARTIFACTS_TO_PUBLISH} > checksums.txt
+  ARTIFACTS_TO_PUBLISH="${ARTIFACTS_TO_PUBLISH} checksums.txt"
+  echo "🧮     Checksum:"
+  cat checksums.txt
 }
 
 main $@

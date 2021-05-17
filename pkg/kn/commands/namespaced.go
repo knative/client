@@ -17,6 +17,7 @@ package commands
 import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 // AddNamespaceFlags adds the namespace-related flags:
@@ -27,12 +28,13 @@ func AddNamespaceFlags(flags *pflag.FlagSet, allowAll bool) {
 		"namespace",
 		"n",
 		"",
-		"List the requested object(s) in given namespace.",
+		"Specify the namespace to operate in.",
 	)
 
 	if allowAll {
-		flags.Bool(
+		flags.BoolP(
 			"all-namespaces",
+			"A",
 			false,
 			"If present, list the requested object(s) across all namespaces. Namespace in current context is ignored even if specified with --namespace.",
 		)
@@ -42,7 +44,7 @@ func AddNamespaceFlags(flags *pflag.FlagSet, allowAll bool) {
 // GetNamespace returns namespace from command specified by flag
 func (params *KnParams) GetNamespace(cmd *cobra.Command) (string, error) {
 	namespace := cmd.Flag("namespace").Value.String()
-	// check value of all-namepace only if its defined
+	// check value of all-namespaces only if its defined
 	if cmd.Flags().Lookup("all-namespaces") != nil {
 		all, err := cmd.Flags().GetBool("all-namespaces")
 		if err != nil {
@@ -52,23 +54,32 @@ func (params *KnParams) GetNamespace(cmd *cobra.Command) (string, error) {
 			return "", nil
 		}
 	}
-	// if all-namepaces=False or namespace not given, use default namespace
+	// if all-namespaces=False or namespace not given, use default namespace
 	if namespace == "" {
 		var err error
 		namespace, err = params.CurrentNamespace()
 		if err != nil {
-			return "", err
+			if !clientcmd.IsEmptyConfig(err) {
+				return "", err
+			}
+			// If no current namespace is set use "default"
+			namespace = "default"
 		}
 	}
 	return namespace, nil
 }
 
+// CurrentNamespace returns the current namespace which is either provided as option or picked up from kubeconfig
 func (params *KnParams) CurrentNamespace() (string, error) {
+	var err error
 	if params.fixedCurrentNamespace != "" {
 		return params.fixedCurrentNamespace, nil
 	}
 	if params.ClientConfig == nil {
-		params.ClientConfig = params.GetClientConfig()
+		params.ClientConfig, err = params.GetClientConfig()
+		if err != nil {
+			return "", err
+		}
 	}
 	name, _, err := params.ClientConfig.Namespace()
 	return name, err

@@ -17,17 +17,27 @@
 package e2e
 
 import (
-	"strings"
 	"testing"
+
+	"gotest.tools/v3/assert"
+
+	"knative.dev/client/lib/test"
+	"knative.dev/client/pkg/util"
 )
 
 func TestVersion(t *testing.T) {
-	env := buildEnv(t)
-	kn := kn{t, env.Namespace, Logger{}}
+	t.Parallel()
 
-	out, _ := kn.RunWithOpts([]string{"version"}, runOpts{NoNamespace: true})
+	it, err := test.NewKnTest()
+	assert.NilError(t, err)
+	defer func() {
+		assert.NilError(t, it.Teardown())
+	}()
 
-	if !strings.Contains(out, "Version") {
-		t.Fatalf("Expected to find client version")
-	}
+	r := test.NewKnRunResultCollector(t, it)
+	defer r.DumpIfFailed()
+
+	out := r.KnTest().Kn().RunNoNamespace("version")
+	r.AssertNoError(out)
+	assert.Check(t, util.ContainsAll(out.Stdout, "Version"))
 }

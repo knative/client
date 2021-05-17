@@ -15,17 +15,43 @@
 package revision
 
 import (
-	"github.com/knative/client/pkg/kn/commands"
 	"github.com/spf13/cobra"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
+
+	"knative.dev/client/pkg/kn/commands"
 )
 
 func NewRevisionCommand(p *commands.KnParams) *cobra.Command {
 	revisionCmd := &cobra.Command{
-		Use:   "revision",
-		Short: "Revision command group",
+		Use:     "revision",
+		Short:   "Manage service revisions",
+		Aliases: []string{"revisions"},
 	}
 	revisionCmd.AddCommand(NewRevisionListCommand(p))
 	revisionCmd.AddCommand(NewRevisionDescribeCommand(p))
 	revisionCmd.AddCommand(NewRevisionDeleteCommand(p))
 	return revisionCmd
+}
+
+// ============================================
+// Shared revision functions:
+
+// Extract traffic and tags for given revision from a service
+func trafficAndTagsForRevision(revision string, service *servingv1.Service) (int64, []string) {
+	if len(service.Status.Traffic) == 0 {
+		return 0, nil
+	}
+	var percent int64
+	var tags []string
+	for _, target := range service.Status.Traffic {
+		if target.RevisionName == revision {
+			if target.Percent != nil {
+				percent += *target.Percent
+			}
+			if target.Tag != "" {
+				tags = append(tags, target.Tag)
+			}
+		}
+	}
+	return percent, tags
 }

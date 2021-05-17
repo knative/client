@@ -16,226 +16,434 @@ package serving
 
 import (
 	"reflect"
+	"strconv"
 	"testing"
 
-	"github.com/knative/serving/pkg/apis/serving/v1beta1"
+	"gotest.tools/v3/assert"
 
-	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
+	"knative.dev/pkg/ptr"
+	"knative.dev/serving/pkg/apis/autoscaling"
+
+	"knative.dev/client/pkg/util"
+
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
 func TestUpdateAutoscalingAnnotations(t *testing.T) {
-	template := &servingv1alpha1.RevisionTemplateSpec{}
-	UpdateConcurrencyConfiguration(template, 10, 100, 1000, 1000)
+	template := &servingv1.RevisionTemplateSpec{}
+	updateConcurrencyConfiguration(template, 10, 100, 1000, 1000, 50)
 	annos := template.Annotations
-	if annos["autoscaling.knative.dev/minScale"] != "10" {
+	if annos[autoscaling.MinScaleAnnotationKey] != "10" {
 		t.Error("minScale failed")
 	}
-	if annos["autoscaling.knative.dev/maxScale"] != "100" {
+	if annos[autoscaling.MaxScaleAnnotationKey] != "100" {
 		t.Error("maxScale failed")
 	}
-	if annos["autoscaling.knative.dev/target"] != "1000" {
+	if annos[autoscaling.TargetAnnotationKey] != "1000" {
 		t.Error("target failed")
 	}
-	if template.Spec.ContainerConcurrency != 1000 {
+	if *template.Spec.ContainerConcurrency != int64(1000) {
 		t.Error("limit failed")
 	}
 }
 
-func TestUpdateEnvVarsNew(t *testing.T) {
-	template, container := getV1alpha1RevisionTemplateWithOldFields()
-	testUpdateEnvVarsNew(t, template, container)
-	assertNoV1alpha1(t, template)
-
-	template, container = getV1alpha1Config()
-	testUpdateEnvVarsNew(t, template, container)
-	assertNoV1alpha1Old(t, template)
-}
-
-func testUpdateEnvVarsNew(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, container *corev1.Container) {
-	env := map[string]string{
-		"a": "foo",
-		"b": "bar",
+func TestUpdateInvalidAutoscalingAnnotations(t *testing.T) {
+	template := &servingv1.RevisionTemplateSpec{}
+	updateConcurrencyConfiguration(template, 10, 100, 1000, 1000, 50)
+	// Update with invalid concurrency options
+	updateConcurrencyConfiguration(template, -1, -1, 0, -1, 200)
+	annos := template.Annotations
+	if annos[autoscaling.MinScaleAnnotationKey] != "10" {
+		t.Error("minScale failed")
 	}
-	err := UpdateEnvVars(template, env)
-	if err != nil {
-		t.Fatal(err)
+	if annos[autoscaling.MaxScaleAnnotationKey] != "100" {
+		t.Error("maxScale failed")
 	}
-	found, err := EnvToMap(container.Env)
-	if err != nil {
-		t.Fatal(err)
+	if annos[autoscaling.TargetAnnotationKey] != "1000" {
+		t.Error("target failed")
 	}
-	if !reflect.DeepEqual(env, found) {
-		t.Fatalf("Env did not match expected %v found %v", env, found)
+	if annos[autoscaling.TargetUtilizationPercentageKey] != "50" {
+		t.Error("concurrency utilization failed")
+	}
+	if *template.Spec.ContainerConcurrency != 1000 {
+		t.Error("limit failed")
 	}
 }
 
-func TestUpdateEnvVarsAppendOld(t *testing.T) {
-	template, container := getV1alpha1RevisionTemplateWithOldFields()
-	testUpdateEnvVarsAppendOld(t, template, container)
-	assertNoV1alpha1(t, template)
-
-	template, container = getV1alpha1Config()
-	testUpdateEnvVarsAppendOld(t, template, container)
-	assertNoV1alpha1Old(t, template)
+type userImageAnnotCase struct {
+	image  string
+	annot  string
+	result string
+	set    bool
 }
 
-func testUpdateEnvVarsAppendOld(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, container *corev1.Container) {
-	container.Env = []corev1.EnvVar{
-		{Name: "a", Value: "foo"},
+func TestSetUserImageAnnot(t *testing.T) {
+	cases := []userImageAnnotCase{
+		{"foo/bar", "", "foo/bar", true},
+		{"foo/bar@sha256:asdfsf", "", "foo/bar@sha256:asdfsf", true},
+		{"foo/bar@sha256:asdf", "foo/bar", "foo/bar", true},
+		{"foo/bar", "baz/quux", "foo/bar", true},
+		{"foo/bar", "", "", false},
+		{"foo/bar", "baz/quux", "", false},
 	}
-	env := map[string]string{
-		"b": "bar",
-	}
-	err := UpdateEnvVars(template, env)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	expected := map[string]string{
-		"a": "foo",
-		"b": "bar",
-	}
-
-	found, err := EnvToMap(container.Env)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !reflect.DeepEqual(expected, found) {
-		t.Fatalf("Env did not match expected %v, found %v", env, found)
-	}
-}
-
-func TestUpdateEnvVarsModify(t *testing.T) {
-	template, container := getV1alpha1RevisionTemplateWithOldFields()
-	testUpdateEnvVarsModify(t, template, container)
-	assertNoV1alpha1(t, template)
-
-	template, container = getV1alpha1Config()
-	testUpdateEnvVarsModify(t, template, container)
-	assertNoV1alpha1Old(t, template)
-}
-
-func testUpdateEnvVarsModify(t *testing.T, revision *servingv1alpha1.RevisionTemplateSpec, container *corev1.Container) {
-	container.Env = []corev1.EnvVar{
-		{Name: "a", Value: "foo"}}
-	env := map[string]string{
-		"a": "fancy",
-	}
-	err := UpdateEnvVars(revision, env)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	expected := map[string]string{
-		"a": "fancy",
-	}
-
-	found, err := EnvToMap(container.Env)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !reflect.DeepEqual(expected, found) {
-		t.Fatalf("Env did not match expected %v, found %v", env, found)
+	for _, c := range cases {
+		template, container := getRevisionTemplate()
+		if c.annot == "" {
+			template.Annotations = nil
+		} else {
+			template.Annotations = map[string]string{
+				UserImageAnnotationKey: c.annot,
+			}
+		}
+		container.Image = c.image
+		if c.set {
+			SetUserImageAnnot(template)
+		} else {
+			UnsetUserImageAnnot(template)
+		}
+		assert.Equal(t, template.Annotations[UserImageAnnotationKey], c.result)
 	}
 }
 
-func TestUpdateContainerPort(t *testing.T) {
-	template, _ := getV1alpha1Config()
-	err := UpdateContainerPort(template, 8888)
-	if err != nil {
-		t.Fatal(err)
-	}
+func TestFreezeImageToDigest(t *testing.T) {
+	template, container := getRevisionTemplate()
+	revision := &servingv1.Revision{}
+	revision.Spec = template.Spec
+	revision.ObjectMeta = template.ObjectMeta
+	revision.Status.DeprecatedImageDigest = "gcr.io/foo/bar@sha256:deadbeef"
+	container.Image = "gcr.io/foo/bar:latest"
+	FreezeImageToDigest(template, revision)
+	assert.Equal(t, container.Image, "gcr.io/foo/bar@sha256:deadbeef")
+}
+
+func TestUpdateMinScale(t *testing.T) {
+	template, _ := getRevisionTemplate()
+	err := UpdateMinScale(template, 10)
+	assert.NilError(t, err)
 	// Verify update is successful or not
-	checkPortUpdate(t, template, 8888)
-	// update template with container port info
-	template.Spec.Containers[0].Ports[0].ContainerPort = 9090
-	err = UpdateContainerPort(template, 80)
-	if err != nil {
-		t.Fatal(err)
-	}
-	// Verify that given port overrides the existing container port
-	checkPortUpdate(t, template, 80)
+	checkAnnotationValueInt(t, template, autoscaling.MinScaleAnnotationKey, 10)
+	// Update with invalid value
+	err = UpdateMinScale(template, -1)
+	assert.ErrorContains(t, err, "minScale")
 }
 
-func checkPortUpdate(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, port int32) {
-	if len(template.Spec.Containers) != 1 || template.Spec.Containers[0].Ports[0].ContainerPort != port {
-		t.Error("Failed to update the container port")
+func TestUpdateMaxScale(t *testing.T) {
+	template, _ := getRevisionTemplate()
+	err := UpdateMaxScale(template, 10)
+	assert.NilError(t, err)
+	// Verify update is successful or not
+	checkAnnotationValueInt(t, template, autoscaling.MaxScaleAnnotationKey, 10)
+	// Update with invalid value
+	err = UpdateMaxScale(template, -1)
+	assert.ErrorContains(t, err, "maxScale")
+}
+
+func TestAutoscaleWindow(t *testing.T) {
+	template, _ := getRevisionTemplate()
+	err := UpdateAutoscaleWindow(template, "10s")
+	assert.NilError(t, err)
+	// Verify update is successful or not
+	checkAnnotationValue(t, template, autoscaling.WindowAnnotationKey, "10s")
+	// Update with invalid value
+	err = UpdateAutoscaleWindow(template, "blub")
+	assert.Check(t, util.ContainsAll(err.Error(), "invalid duration", "autoscale-window"))
+}
+
+func TestUpdateConcurrencyTarget(t *testing.T) {
+	template, _ := getRevisionTemplate()
+	err := UpdateConcurrencyTarget(template, 10)
+	assert.NilError(t, err)
+	// Verify update is successful or not
+	checkAnnotationValueInt(t, template, autoscaling.TargetAnnotationKey, 10)
+	// Update with invalid value
+	err = UpdateConcurrencyTarget(template, -1)
+	assert.ErrorContains(t, err, "should be at least 0.01")
+}
+
+func TestUpdateConcurrencyLimit(t *testing.T) {
+	template, _ := getRevisionTemplate()
+	err := UpdateConcurrencyLimit(template, 10)
+	assert.NilError(t, err)
+	// Verify update is successful or not
+	checkContainerConcurrency(t, template, ptr.Int64(int64(10)))
+	// Update with invalid value
+	err = UpdateConcurrencyLimit(template, -1)
+	assert.ErrorContains(t, err, "invalid")
+}
+
+// func TestUpdateEnvVarsBoth(t *testing.T) {
+// 	template, container := getRevisionTemplate()
+// 	container.Env = []corev1.EnvVar{
+// 		{Name: "a", Value: "foo"},
+// 		{Name: "c", Value: "caroline"},
+// 		{Name: "d", Value: "byebye"},
+// 	}
+// 	env := map[string]string{
+// 		"a": "fancy",
+// 		"b": "boo",
+// 	}
+// 	remove := []string{"d"}
+// 	err := UpdateEnvVars(template, env, remove)
+// 	assert.NilError(t, err)
+
+// 	expected := []corev1.EnvVar{
+// 		{Name: "a", Value: "fancy"},
+// 		{Name: "b", Value: "boo"},
+// 		{Name: "c", Value: "caroline"},
+// 	}
+
+// 	assert.DeepEqual(t, expected, container.Env)
+// }
+
+func TestUpdateLabelsNew(t *testing.T) {
+	service, template, _ := getService()
+
+	labels := map[string]string{
+		"a": "foo",
+		"b": "bar",
+	}
+
+	service.ObjectMeta.Labels = UpdateLabels(service.ObjectMeta.Labels, labels, []string{})
+	template.ObjectMeta.Labels = UpdateLabels(template.ObjectMeta.Labels, labels, []string{})
+
+	actual := service.ObjectMeta.Labels
+	if !reflect.DeepEqual(labels, actual) {
+		t.Fatalf("Service labels did not match expected %v found %v", labels, actual)
+	}
+
+	actual = template.ObjectMeta.Labels
+	if !reflect.DeepEqual(labels, actual) {
+		t.Fatalf("Template labels did not match expected %v found %v", labels, actual)
 	}
 }
 
-func TestUpdateEnvVarsBoth(t *testing.T) {
-	template, container := getV1alpha1RevisionTemplateWithOldFields()
-	testUpdateEnvVarsBoth(t, template, container)
-	assertNoV1alpha1(t, template)
+func TestUpdateLabelsExisting(t *testing.T) {
+	service, template, _ := getService()
+	service.ObjectMeta.Labels = map[string]string{"a": "foo", "b": "bar"}
+	template.ObjectMeta.Labels = map[string]string{"a": "foo", "b": "bar"}
 
-	template, container = getV1alpha1Config()
-	testUpdateEnvVarsBoth(t, template, container)
-	assertNoV1alpha1Old(t, template)
+	labels := map[string]string{
+		"a": "notfoo",
+		"c": "bat",
+		"d": "",
+	}
+	tlabels := map[string]string{
+		"a": "notfoo",
+		"c": "bat",
+		"d": "",
+		"r": "poo",
+	}
+
+	service.ObjectMeta.Labels = UpdateLabels(service.ObjectMeta.Labels, labels, []string{})
+	template.ObjectMeta.Labels = UpdateLabels(template.ObjectMeta.Labels, tlabels, []string{})
+
+	expectedServiceLabel := map[string]string{
+		"a": "notfoo",
+		"b": "bar",
+		"c": "bat",
+		"d": "",
+	}
+	expectedRevLabel := map[string]string{
+		"a": "notfoo",
+		"b": "bar",
+		"c": "bat",
+		"d": "",
+		"r": "poo",
+	}
+
+	actual := service.ObjectMeta.Labels
+	assert.DeepEqual(t, expectedServiceLabel, actual)
+
+	actual = template.ObjectMeta.Labels
+	assert.DeepEqual(t, expectedRevLabel, actual)
 }
 
-func testUpdateEnvVarsBoth(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec, container *corev1.Container) {
-	container.Env = []corev1.EnvVar{
-		{Name: "a", Value: "foo"},
-		{Name: "c", Value: "caroline"}}
-	env := map[string]string{
-		"a": "fancy",
-		"b": "boo",
-	}
-	err := UpdateEnvVars(template, env)
-	if err != nil {
-		t.Fatal(err)
-	}
+func TestUpdateLabelsRemoveExisting(t *testing.T) {
+	service, template, _ := getService()
+	service.ObjectMeta.Labels = map[string]string{"a": "foo", "b": "bar"}
+	template.ObjectMeta.Labels = map[string]string{"a": "foo", "b": "bar"}
+
+	remove := []string{"b"}
+	service.ObjectMeta.Labels = UpdateLabels(service.ObjectMeta.Labels, map[string]string{}, remove)
+	template.ObjectMeta.Labels = UpdateLabels(template.ObjectMeta.Labels, map[string]string{}, remove)
 
 	expected := map[string]string{
-		"a": "fancy",
-		"b": "boo",
-		"c": "caroline",
+		"a": "foo",
 	}
 
-	found, err := EnvToMap(container.Env)
-	if err != nil {
-		t.Fatal(err)
+	actual := service.ObjectMeta.Labels
+	assert.DeepEqual(t, expected, actual)
+
+	actual = template.ObjectMeta.Labels
+	assert.DeepEqual(t, expected, actual)
+}
+
+func TestUpdateRevisionTemplateAnnotationsNew(t *testing.T) {
+	_, template, _ := getService()
+
+	annotations := map[string]string{
+		autoscaling.InitialScaleAnnotationKey: "1",
+		autoscaling.MaxScaleAnnotationKey:     "2",
 	}
-	if !reflect.DeepEqual(expected, found) {
-		t.Fatalf("Env did not match expected %v, found %v", env, found)
+	err := UpdateRevisionTemplateAnnotations(template, annotations, []string{})
+	assert.NilError(t, err)
+
+	actual := template.ObjectMeta.Annotations
+	assert.DeepEqual(t, annotations, actual)
+}
+
+func TestUpdateRevisionTemplateAnnotationsExisting(t *testing.T) {
+	_, template, _ := getService()
+	template.ObjectMeta.Annotations = map[string]string{
+		autoscaling.InitialScaleAnnotationKey: "1",
+		autoscaling.MaxScaleAnnotationKey:     "2",
+	}
+
+	annotations := map[string]string{
+		autoscaling.InitialScaleAnnotationKey: "5",
+		autoscaling.MaxScaleAnnotationKey:     "10",
+	}
+	err := UpdateRevisionTemplateAnnotations(template, annotations, []string{})
+	assert.NilError(t, err)
+
+	actual := template.ObjectMeta.Annotations
+	assert.DeepEqual(t, annotations, actual)
+}
+
+func TestUpdateRevisionTemplateAnnotationsRemoveExisting(t *testing.T) {
+	_, template, _ := getService()
+	template.ObjectMeta.Annotations = map[string]string{
+		autoscaling.InitialScaleAnnotationKey: "1",
+		autoscaling.MaxScaleAnnotationKey:     "2",
+	}
+	expectedAnnotations := map[string]string{
+		autoscaling.InitialScaleAnnotationKey: "1",
+	}
+	remove := []string{autoscaling.MaxScaleAnnotationKey}
+	err := UpdateRevisionTemplateAnnotations(template, map[string]string{}, remove)
+	assert.NilError(t, err)
+
+	actual := template.ObjectMeta.Annotations
+	assert.DeepEqual(t, expectedAnnotations, actual)
+}
+
+func TestUpdateAnnotationsNew(t *testing.T) {
+	service, _, _ := getService()
+
+	annotations := map[string]string{
+		"a": "foo",
+		"b": "bar",
+	}
+	err := UpdateServiceAnnotations(service, annotations, []string{})
+	assert.NilError(t, err)
+
+	actual := service.ObjectMeta.Annotations
+	if !reflect.DeepEqual(annotations, actual) {
+		t.Fatalf("Service annotations did not match expected %v found %v", annotations, actual)
 	}
 }
 
+func TestUpdateAnnotationsExisting(t *testing.T) {
+	service, _, _ := getService()
+	service.ObjectMeta.Annotations = map[string]string{"a": "foo", "b": "bar"}
+
+	annotations := map[string]string{
+		"a": "notfoo",
+		"c": "bat",
+		"d": "",
+	}
+	err := UpdateServiceAnnotations(service, annotations, []string{})
+	assert.NilError(t, err)
+	expected := map[string]string{
+		"a": "notfoo",
+		"b": "bar",
+		"c": "bat",
+		"d": "",
+	}
+
+	actual := service.ObjectMeta.Annotations
+	assert.DeepEqual(t, expected, actual)
+}
+
+func TestUpdateAnnotationsRemoveExisting(t *testing.T) {
+	service, _, _ := getService()
+	service.ObjectMeta.Annotations = map[string]string{"a": "foo", "b": "bar"}
+
+	remove := []string{"b"}
+	err := UpdateServiceAnnotations(service, map[string]string{}, remove)
+	assert.NilError(t, err)
+	expected := map[string]string{
+		"a": "foo",
+	}
+
+	actual := service.ObjectMeta.Annotations
+	assert.DeepEqual(t, expected, actual)
+}
+
+//
 // =========================================================================================================
 
-func getV1alpha1RevisionTemplateWithOldFields() (*servingv1alpha1.RevisionTemplateSpec, *corev1.Container) {
-	container := &corev1.Container{}
-	template := &servingv1alpha1.RevisionTemplateSpec{
-		Spec: servingv1alpha1.RevisionSpec{
-			DeprecatedContainer: container,
+func getRevisionTemplate() (*servingv1.RevisionTemplateSpec, *corev1.Container) {
+	template := &servingv1.RevisionTemplateSpec{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "template-foo",
+			Namespace: "default",
 		},
-	}
-	return template, container
-}
-
-func getV1alpha1Config() (*servingv1alpha1.RevisionTemplateSpec, *corev1.Container) {
-	containers := []corev1.Container{{}}
-	template := &servingv1alpha1.RevisionTemplateSpec{
-		Spec: servingv1alpha1.RevisionSpec{
-			RevisionSpec: v1beta1.RevisionSpec{
-				PodSpec: v1beta1.PodSpec{
-					Containers: containers,
-				},
+		Spec: servingv1.RevisionSpec{
+			PodSpec: corev1.PodSpec{
+				Containers: []corev1.Container{{}},
 			},
 		},
 	}
-	return template, &containers[0]
+	return template, &template.Spec.Containers[0]
 }
 
-func assertNoV1alpha1Old(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec) {
-	if template.Spec.DeprecatedContainer != nil {
-		t.Error("Assuming only new v1alpha1 fields but found spec.container")
+func getService() (*servingv1.Service, *servingv1.RevisionTemplateSpec, *corev1.Container) {
+	template, container := getRevisionTemplate()
+	service := &servingv1.Service{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Service",
+			APIVersion: "serving.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "foo",
+			Namespace: "default",
+		},
+		Spec: servingv1.ServiceSpec{
+			ConfigurationSpec: servingv1.ConfigurationSpec{
+				Template: *template,
+			},
+		},
+	}
+	return service, template, container
+}
+
+func checkAnnotationValueInt(t *testing.T, template *servingv1.RevisionTemplateSpec, key string, value int) {
+	anno := template.GetAnnotations()
+	if v, ok := anno[key]; !ok && v != strconv.Itoa(value) {
+		t.Errorf("Failed to update %s annotation key: got=%s, want=%d", key, v, value)
 	}
 }
 
-func assertNoV1alpha1(t *testing.T, template *servingv1alpha1.RevisionTemplateSpec) {
-	if template.Spec.Containers != nil {
-		t.Error("Assuming only old v1alpha1 fields but found spec.template")
+func checkAnnotationValue(t *testing.T, template *servingv1.RevisionTemplateSpec, key string, value string) {
+	anno := template.GetAnnotations()
+	if v, ok := anno[key]; !ok && v != value {
+		t.Errorf("Failed to update %s annotation key: got=%s, want=%s", key, v, value)
 	}
+}
+
+func checkContainerConcurrency(t *testing.T, template *servingv1.RevisionTemplateSpec, value *int64) {
+	if got, want := *template.Spec.ContainerConcurrency, *value; got != want {
+		t.Errorf("Failed to update containerConcurrency value: got=%d, want=%d", got, want)
+	}
+}
+
+func updateConcurrencyConfiguration(template *servingv1.RevisionTemplateSpec, minScale, maxScale, target, limit, utilization int) {
+	UpdateMinScale(template, minScale)
+	UpdateMaxScale(template, maxScale)
+	UpdateConcurrencyTarget(template, target)
+	UpdateConcurrencyLimit(template, int64(limit))
+	UpdateConcurrencyUtilization(template, utilization)
 }
