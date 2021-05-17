@@ -12,18 +12,47 @@
 | https://github.com/knative/client/pull/[#]
 ////
 
-## (Unreleased)
+## v0.23.0 (2021-05-18)
 [cols="1,10,3", options="header", width="100%"]
 |===
 | | Description | PR
 
-|🐛
+| ✨
+| Update Eventing Sources `APIServerSource, ContainerSource, SinkBinding` API to v1
+| https://github.com/knative/client/pull/1299[#1299]
+
+| ✨
+| Update Eventing Source API `PingSource` to v1beta2
+| https://github.com/knative/client/pull/1299[#1299]
+
+| 🐛
 | Respect `-o` in `list` commands in case if no data present
 | https://github.com/knative/client/pull/1276[#1276]
 
 | 🐣
 | Fix for serviceaccounts "default" not found flaky issue
 | https://github.com/knative/client/pull/1306[#1306]
+
+| 🎁
+| Add number of instances to describe command
+| https://github.com/knative/client/pull/1289[#1289]
+
+| 🐛
+| Fix number of instances *int32 type in describe commands
+| https://github.com/knative/client/pull/1312[#1312]
+
+| 🐛
+| Use fully qualified test images
+| https://github.com/knative/client/pull/1307[#1307]
+
+| ✨
+| Drop --strict flag on ko
+| https://github.com/knative/client/pull/1295[#1295]
+
+| 🐛
+| Fix documentation of the configuration options
+| https://github.com/knative/client/pull/1297[#1297]
+
 |===
 
 ## v0.22.0 (2021-04-06)
