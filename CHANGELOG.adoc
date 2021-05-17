@@ -53,6 +53,10 @@
 | Fix documentation of the configuration options
 | https://github.com/knative/client/pull/1297[#1297]
 
+| ✨
+| Refactor waiting loop to use resourceVersion
+| https://github.com/knative/client/pull/1301[#1301]
+
 |===
 
 ## v0.22.0 (2021-04-06)
