@@ -5,6 +5,7 @@
 [![Releases](https://img.shields.io/github/release-pre/knative/client.svg)](https://github.com/knative/client/releases)
 [![LICENSE](https://img.shields.io/github/license/knative/client.svg)](https://github.com/knative/client/blob/main/LICENSE)
 [![Slack Status](https://img.shields.io/badge/slack-join_chat-white.svg?logo=slack&style=social)](https://knative.slack.com)
+[![codecov](https://codecov.io/gh/knative/client/branch/main/graph/badge.svg)](https://codecov.io/gh/knative/client)
 
 The Knative client `kn` is your door to the [Knative](https://knative.dev)
 world. It allows you to create Knative resources interactively from the command
