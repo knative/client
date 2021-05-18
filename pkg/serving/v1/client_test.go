@@ -192,15 +192,6 @@ func TestDeleteService(t *testing.T) {
 		nonExistingServiceName = "no-service"
 	)
 
-	serving.AddReactor("get", "services",
-		func(a clienttesting.Action) (bool, runtime.Object, error) {
-			name := a.(clienttesting.GetAction).GetName()
-			if name == serviceName {
-				// Don't handle existing service, just continue to next
-				return false, nil, nil
-			}
-			return true, nil, errors.NewNotFound(servingv1.Resource("service"), name)
-		})
 	serving.AddReactor("delete", "services",
 		func(a clienttesting.Action) (bool, runtime.Object, error) {
 			name := a.(clienttesting.DeleteAction).GetName()
@@ -210,7 +201,7 @@ func TestDeleteService(t *testing.T) {
 			if name == serviceName {
 				return true, nil, nil
 			}
-			return false, nil, nil
+			return true, nil, errors.NewNotFound(servingv1.Resource("service"), name)
 		})
 	serving.AddWatchReactor("services",
 		func(a clienttesting.Action) (bool, watch.Interface, error) {
@@ -231,7 +222,6 @@ func TestDeleteService(t *testing.T) {
 
 	t.Run("trying to delete non-existing service returns error", func(t *testing.T) {
 		err := client.DeleteService(context.Background(), nonExistingServiceName, time.Duration(10)*time.Second)
-		println(err.Error())
 		assert.ErrorContains(t, err, "not found")
 		assert.ErrorContains(t, err, nonExistingServiceName)
 	})

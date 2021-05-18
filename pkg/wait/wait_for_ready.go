@@ -28,16 +28,14 @@ import (
 
 // Callbacks and configuration used while waiting
 type waitForReadyConfig struct {
-	watchMaker          WatchMaker
 	conditionsExtractor ConditionsExtractor
 	kind                string
 }
 
 // Callbacks and configuration used while waiting for event
 type waitForEvent struct {
-	watchMaker WatchMaker
-	eventDone  EventDone
-	kind       string
+	eventDone EventDone
+	kind      string
 }
 
 // EventDone is a marker to stop actual waiting on given event state
@@ -50,7 +48,7 @@ type Wait interface {
 	// Wait on resource the resource with this name
 	// and write event messages for unknown event to the status writer.
 	// Returns an error (if any) and the overall time it took to wait
-	Wait(ctx context.Context, name string, initialVersion string, options Options, msgCallback MessageCallback) (error, time.Duration)
+	Wait(ctx context.Context, watcher watch.Interface, name string, options Options, msgCallback MessageCallback) (error, time.Duration)
 }
 
 type Options struct {
@@ -63,7 +61,7 @@ type Options struct {
 }
 
 // Create watch which is used when waiting for Ready condition
-type WatchMaker func(ctx context.Context, name string, initialVersion string, timeout time.Duration) (watch.Interface, error)
+type WatchMaker func(name string, timeout time.Duration) (watch.Interface, error)
 
 // Extract conditions from a runtime object
 type ConditionsExtractor func(obj runtime.Object) (apis.Conditions, error)
@@ -72,21 +70,19 @@ type ConditionsExtractor func(obj runtime.Object) (apis.Conditions, error)
 type MessageCallback func(durationSinceState time.Duration, message string)
 
 // NewWaitForReady waits until the condition is set to Ready == True
-func NewWaitForReady(kind string, watchMaker WatchMaker, extractor ConditionsExtractor) Wait {
+func NewWaitForReady(kind string, extractor ConditionsExtractor) Wait {
 	return &waitForReadyConfig{
 		kind:                kind,
-		watchMaker:          watchMaker,
 		conditionsExtractor: extractor,
 	}
 }
 
 // NewWaitForEvent creates a Wait object which waits until a specific event (i.e. when
 // the EventDone function returns true)
-func NewWaitForEvent(kind string, watchMaker WatchMaker, eventDone EventDone) Wait {
+func NewWaitForEvent(kind string, eventDone EventDone) Wait {
 	return &waitForEvent{
-		kind:       kind,
-		watchMaker: watchMaker,
-		eventDone:  eventDone,
+		kind:      kind,
+		eventDone: eventDone,
 	}
 }
 
@@ -113,13 +109,14 @@ func NoopMessageCallback() MessageCallback {
 // (e.g. "service"), `timeout` is a timeout after which the watch should be cancelled if no
 // target state has been entered yet and `out` is used for printing out status messages
 // msgCallback gets called for every event with an 'Ready' condition == UNKNOWN with the event's message.
-func (w *waitForReadyConfig) Wait(ctx context.Context, name string, initialVersion string, options Options, msgCallback MessageCallback) (error, time.Duration) {
+func (w *waitForReadyConfig) Wait(ctx context.Context, watcher watch.Interface, name string, options Options, msgCallback MessageCallback) (error, time.Duration) {
+
 	timeout := options.timeoutWithDefault()
 	timeoutTimer := time.NewTimer(timeout)
 	defer timeoutTimer.Stop()
 	for {
 		start := time.Now()
-		retry, timeoutReached, err := w.waitForReadyCondition(ctx, name, initialVersion, start, timeoutTimer, options.errorWindowWithDefault(), options, msgCallback)
+		retry, timeoutReached, err := w.waitForReadyCondition(ctx, watcher, start, timeoutTimer, options.errorWindowWithDefault(), msgCallback)
 
 		if err != nil {
 			return err, time.Since(start)
@@ -143,14 +140,10 @@ func (w *waitForReadyConfig) Wait(ctx context.Context, name string, initialVersi
 // An errorWindow can be specified which takes into account of intermediate "false" ready conditions. So before returning
 // an error, this methods waits for the errorWindow duration and if an "True" or "Unknown" event arrives in the meantime
 // for the "Ready" condition, then the method continues to wait.
-func (w *waitForReadyConfig) waitForReadyCondition(ctx context.Context, name string, initialVersion string, start time.Time,
-	timeoutTimer *time.Timer, errorWindow time.Duration, options Options, msgCallback MessageCallback) (retry bool, timeoutReached bool, err error) {
+func (w *waitForReadyConfig) waitForReadyCondition(
+	ctx context.Context, watcher watch.Interface, start time.Time, timeoutTimer *time.Timer, errorWindow time.Duration, msgCallback MessageCallback,
+) (retry bool, timeoutReached bool, err error) {
 
-	watcher, err := w.watchMaker(ctx, name, initialVersion, options.timeoutWithDefault())
-	if err != nil {
-		return false, false, err
-	}
-	defer watcher.Stop()
 	// channel used to transport the error that has been received
 	errChan := make(chan error)
 
@@ -177,7 +170,8 @@ func (w *waitForReadyConfig) waitForReadyCondition(ctx context.Context, name str
 			return false, false, err
 		case event, ok := <-watcher.ResultChan():
 			if !ok || event.Object == nil {
-				return true, false, nil
+				// retry only if the channel is still open
+				return ok, false, nil
 			}
 
 			// Check whether resource is in sync already (meta.generation == status.observedGeneration)
@@ -246,13 +240,7 @@ func (w *waitForReadyConfig) waitForReadyCondition(ctx context.Context, name str
 }
 
 // Wait until the expected EventDone is satisfied
-func (w *waitForEvent) Wait(ctx context.Context, name string, initialVersion string, options Options, msgCallback MessageCallback) (error, time.Duration) {
-	watcher, err := w.watchMaker(ctx, name, initialVersion, options.timeoutWithDefault())
-	if err != nil {
-		return err, 0
-	}
-	defer watcher.Stop()
-
+func (w *waitForEvent) Wait(ctx context.Context, watcher watch.Interface, name string, options Options, msgCallback MessageCallback) (error, time.Duration) {
 	timeout := options.timeoutWithDefault()
 	start := time.Now()
 	// channel used to transport the error

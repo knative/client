@@ -16,7 +16,6 @@ package v1
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	apis_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -242,27 +241,25 @@ func (c *knEventingClient) GetBroker(ctx context.Context, name string) (*eventin
 }
 
 // WatchBroker is used to create watcher object
-func (c *knEventingClient) WatchBroker(ctx context.Context, name string, initialVersion string, timeout time.Duration) (watch.Interface, error) {
-	return wait.NewWatcherWithVersion(ctx, c.client.Brokers(c.namespace).Watch, c.client.RESTClient(), c.namespace, "brokers", name, initialVersion, timeout)
+func (c *knEventingClient) WatchBroker(ctx context.Context, name string, timeout time.Duration) (watch.Interface, error) {
+	return wait.NewWatcher(ctx, c.client.Brokers(c.namespace).Watch, c.client.RESTClient(), c.namespace, "brokers", name, timeout)
 }
 
 // DeleteBroker is used to delete an instance of broker and wait for completion until given timeout
 // For `timeout == 0` delete is performed async without any wait
 func (c *knEventingClient) DeleteBroker(ctx context.Context, name string, timeout time.Duration) error {
-	broker, err := c.GetBroker(ctx, name)
-	if err != nil {
-		return err
-	}
-	if broker.GetDeletionTimestamp() != nil {
-		return fmt.Errorf("can't delete broker '%s' because it has been already marked for deletion", name)
-	}
 	if timeout == 0 {
 		return c.deleteBroker(ctx, name, apis_v1.DeletePropagationBackground)
 	}
 	waitC := make(chan error)
+	watcher, err := c.WatchBroker(ctx, name, timeout)
+	if err != nil {
+		return nil
+	}
+	defer watcher.Stop()
 	go func() {
-		waitForEvent := wait.NewWaitForEvent("broker", c.WatchBroker, func(evt *watch.Event) bool { return evt.Type == watch.Deleted })
-		err, _ := waitForEvent.Wait(ctx, name, broker.ResourceVersion, wait.Options{Timeout: &timeout}, wait.NoopMessageCallback())
+		waitForEvent := wait.NewWaitForEvent("broker", func(evt *watch.Event) bool { return evt.Type == watch.Deleted })
+		err, _ := waitForEvent.Wait(ctx, watcher, name, wait.Options{Timeout: &timeout}, wait.NoopMessageCallback())
 		waitC <- err
 	}()
 	err = c.deleteBroker(ctx, name, apis_v1.DeletePropagationForeground)

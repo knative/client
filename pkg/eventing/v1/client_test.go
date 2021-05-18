@@ -245,21 +245,13 @@ func TestBrokerDelete(t *testing.T) {
 	var name = "fooBroker"
 	server, client := setup()
 
-	server.AddReactor("get", "brokers",
-		func(a client_testing.Action) (bool, runtime.Object, error) {
-			name := a.(client_testing.GetAction).GetName()
-			if name == "notFound" {
-				return true, nil, errors.NewNotFound(eventingv1.Resource("broker"), "notFound")
-			}
-			return false, nil, nil
-		})
 	server.AddReactor("delete", "brokers",
 		func(a client_testing.Action) (bool, runtime.Object, error) {
 			name := a.(client_testing.DeleteAction).GetName()
 			if name == "errorBroker" {
 				return true, nil, fmt.Errorf("error while deleting broker %s", name)
 			}
-			return false, nil, nil
+			return true, nil, nil
 		})
 
 	err := client.DeleteBroker(context.Background(), name, 0)
@@ -267,10 +259,6 @@ func TestBrokerDelete(t *testing.T) {
 
 	err = client.DeleteBroker(context.Background(), "errorBroker", 0)
 	assert.ErrorContains(t, err, "errorBroker", 0)
-
-	err = client.DeleteBroker(context.Background(), "notFound", 0)
-	assert.ErrorContains(t, err, "not found", 0)
-	assert.ErrorContains(t, err, "notFound", 0)
 }
 
 func TestBrokerDeleteWithWait(t *testing.T) {
