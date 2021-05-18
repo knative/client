@@ -30,10 +30,6 @@
 | https://github.com/knative/client/pull/1306[#1306]
 
 | ✨
-| Refactor waiting loop to use resourceVersion
-| https://github.com/knative/client/pull/1301[#1301]
-
-| ✨
 | Update Eventing Sources `APIServerSource, ContainerSource, SinkBinding` API to v1
 | https://github.com/knative/client/pull/1299[#1299]
 
