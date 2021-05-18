@@ -17,7 +17,6 @@ package wait
 import (
 	"context"
 	"errors"
-	"fmt"
 	"testing"
 	"time"
 
@@ -40,13 +39,9 @@ type waitForReadyTestCase struct {
 func TestWaitCancellation(t *testing.T) {
 	fakeWatchApi := NewFakeWatch([]watch.Event{})
 	fakeWatchApi.Start()
-	wfe := NewWaitForEvent("foobar",
-		func(ctx context.Context, name string, initialVersion string, timeout time.Duration) (watch.Interface, error) {
-			return fakeWatchApi, nil
-		},
-		func(e *watch.Event) bool {
-			return false
-		})
+	wfe := NewWaitForEvent("foobar", func(e *watch.Event) bool {
+		return false
+	})
 
 	timeout := time.Second * 5
 
@@ -56,7 +51,7 @@ func TestWaitCancellation(t *testing.T) {
 		time.Sleep(time.Millisecond * 500)
 		cancel()
 	}()
-	err, _ := wfe.Wait(ctx, "foobar", "", Options{Timeout: &timeout}, NoopMessageCallback())
+	err, _ := wfe.Wait(ctx, fakeWatchApi, "foobar", Options{Timeout: &timeout}, NoopMessageCallback())
 	assert.Assert(t, errors.Is(err, context.Canceled))
 
 	ctx, cancel = context.WithCancel(context.Background())
@@ -67,13 +62,10 @@ func TestWaitCancellation(t *testing.T) {
 	}()
 	wfr := NewWaitForReady(
 		"blub",
-		func(ctx context.Context, name string, initialVersion string, timeout time.Duration) (watch.Interface, error) {
-			return fakeWatchApi, nil
-		},
 		func(obj runtime.Object) (apis.Conditions, error) {
 			return apis.Conditions(obj.(*servingv1.Service).Status.Conditions), nil
 		})
-	err, _ = wfr.Wait(ctx, "foobar", "", Options{Timeout: &timeout}, NoopMessageCallback())
+	err, _ = wfr.Wait(ctx, fakeWatchApi, "foobar", Options{Timeout: &timeout}, NoopMessageCallback())
 	assert.Assert(t, errors.Is(err, context.Canceled))
 }
 
@@ -81,17 +73,15 @@ func TestAddWaitForReady(t *testing.T) {
 
 	for i, tc := range prepareTestCases("test-service") {
 		fakeWatchApi := NewFakeWatch(tc.events)
+
 		waitForReady := NewWaitForReady(
 			"blub",
-			func(ctx context.Context, name string, initialVersion string, timeout time.Duration) (watch.Interface, error) {
-				return fakeWatchApi, nil
-			},
 			func(obj runtime.Object) (apis.Conditions, error) {
 				return apis.Conditions(obj.(*servingv1.Service).Status.Conditions), nil
 			})
 		fakeWatchApi.Start()
 		var msgs []string
-		err, _ := waitForReady.Wait(context.Background(), "foobar", "", Options{Timeout: &tc.timeout}, func(_ time.Duration, msg string) {
+		err, _ := waitForReady.Wait(context.Background(), fakeWatchApi, "foobar", Options{Timeout: &tc.timeout}, func(_ time.Duration, msg string) {
 			msgs = append(msgs, msg)
 		})
 		close(fakeWatchApi.eventChan)
@@ -111,113 +101,11 @@ func TestAddWaitForReady(t *testing.T) {
 		// check messages
 		assert.Assert(t, cmp.DeepEqual(tc.messagesExpected, msgs), "%d: Messages expected to be equal", i)
 
-		if fakeWatchApi.StopCalled != 1 {
-			t.Errorf("%d: Exactly one 'stop' should be called, but got %d", i, fakeWatchApi.StopCalled)
+		if fakeWatchApi.StopCalled != 0 {
+			t.Errorf("%d: Exactly zero 'stop' should be called, but got %d", i, fakeWatchApi.StopCalled)
 		}
 
 	}
-}
-
-func TestAddWaitForReadyWithChannelClose(t *testing.T) {
-	for i, tc := range prepareTestCases("test-service") {
-		fakeWatchApi := NewFakeWatch(tc.events)
-		counter := 0
-		waitForReady := NewWaitForReady(
-			"blub",
-			func(ctx context.Context, name string, initialVersion string, timeout time.Duration) (watch.Interface, error) {
-				if counter == 0 {
-					close(fakeWatchApi.eventChan)
-					counter++
-					return fakeWatchApi, nil
-				}
-				fakeWatchApi.eventChan = make(chan watch.Event)
-				fakeWatchApi.Start()
-				return fakeWatchApi, nil
-			},
-			func(obj runtime.Object) (apis.Conditions, error) {
-				return apis.Conditions(obj.(*servingv1.Service).Status.Conditions), nil
-			})
-		var msgs []string
-
-		err, _ := waitForReady.Wait(context.Background(), "foobar", "", Options{Timeout: &tc.timeout}, func(_ time.Duration, msg string) {
-			msgs = append(msgs, msg)
-		})
-		close(fakeWatchApi.eventChan)
-
-		if tc.errorText == "" && err != nil {
-			t.Errorf("%d: Error received %v", i, err)
-			continue
-		}
-		if tc.errorText != "" {
-			if err == nil {
-				t.Errorf("%d: No error but expected one", i)
-			} else {
-				assert.ErrorContains(t, err, tc.errorText)
-			}
-		}
-
-		// check messages
-		assert.Assert(t, cmp.DeepEqual(tc.messagesExpected, msgs), "%d: Messages expected to be equal", i)
-
-		if fakeWatchApi.StopCalled != 2 {
-			t.Errorf("%d: Exactly one 'stop' should be called, but got %d", i, fakeWatchApi.StopCalled)
-		}
-
-	}
-}
-
-func TestWaitTimeout(t *testing.T) {
-	fakeWatchApi := NewFakeWatch([]watch.Event{})
-	timeout := time.Second * 3
-	wfe := NewWaitForEvent("foobar",
-		func(ctx context.Context, name string, initialVersion string, timeout time.Duration) (watch.Interface, error) {
-			return fakeWatchApi, nil
-		},
-		func(e *watch.Event) bool {
-			return false
-		})
-
-	err, _ := wfe.Wait(context.Background(), "foobar", "", Options{Timeout: &timeout}, NoopMessageCallback())
-	assert.ErrorContains(t, err, "not ready")
-	assert.Assert(t, fakeWatchApi.StopCalled == 1)
-
-	fakeWatchApi = NewFakeWatch([]watch.Event{})
-	wfr := NewWaitForReady(
-		"blub",
-		func(ctx context.Context, name string, initialVersion string, timeout time.Duration) (watch.Interface, error) {
-			return fakeWatchApi, nil
-		},
-		func(obj runtime.Object) (apis.Conditions, error) {
-			return apis.Conditions(obj.(*servingv1.Service).Status.Conditions), nil
-		})
-	err, _ = wfr.Wait(context.Background(), "foobar", "", Options{Timeout: &timeout}, NoopMessageCallback())
-	assert.ErrorContains(t, err, "not ready")
-	assert.Assert(t, fakeWatchApi.StopCalled == 1)
-}
-
-func TestWaitWatchError(t *testing.T) {
-	timeout := time.Second * 3
-	wfe := NewWaitForEvent("foobar",
-		func(ctx context.Context, name string, initialVersion string, timeout time.Duration) (watch.Interface, error) {
-			return nil, fmt.Errorf("error creating watcher")
-		},
-		func(e *watch.Event) bool {
-			return false
-		})
-
-	err, _ := wfe.Wait(context.Background(), "foobar", "", Options{Timeout: &timeout}, NoopMessageCallback())
-	assert.ErrorContains(t, err, "error creating watcher")
-
-	wfr := NewWaitForReady(
-		"blub",
-		func(ctx context.Context, name string, initialVersion string, timeout time.Duration) (watch.Interface, error) {
-			return nil, fmt.Errorf("error creating watcher")
-		},
-		func(obj runtime.Object) (apis.Conditions, error) {
-			return apis.Conditions(obj.(*servingv1.Service).Status.Conditions), nil
-		})
-	err, _ = wfr.Wait(context.Background(), "foobar", "", Options{Timeout: &timeout}, NoopMessageCallback())
-	assert.ErrorContains(t, err, "error creating watcher")
 }
 
 func TestAddWaitForDelete(t *testing.T) {
@@ -226,13 +114,10 @@ func TestAddWaitForDelete(t *testing.T) {
 
 		waitForEvent := NewWaitForEvent(
 			"blub",
-			func(ctx context.Context, name string, initialVersion string, timeout time.Duration) (watch.Interface, error) {
-				return fakeWatchAPI, nil
-			},
 			func(evt *watch.Event) bool { return evt.Type == watch.Deleted })
 		fakeWatchAPI.Start()
 
-		err, _ := waitForEvent.Wait(context.Background(), "foobar", "", Options{Timeout: &tc.timeout}, NoopMessageCallback())
+		err, _ := waitForEvent.Wait(context.Background(), fakeWatchAPI, "foobar", Options{Timeout: &tc.timeout}, NoopMessageCallback())
 		close(fakeWatchAPI.eventChan)
 
 		if tc.errorText == "" && err != nil {
@@ -247,8 +132,8 @@ func TestAddWaitForDelete(t *testing.T) {
 			}
 		}
 
-		if fakeWatchAPI.StopCalled != 1 {
-			t.Errorf("%d: Exactly one 'stop' should be called, but got %d", i, fakeWatchAPI.StopCalled)
+		if fakeWatchAPI.StopCalled != 0 {
+			t.Errorf("%d: Exactly zero 'stop' should be called, but got %d", i, fakeWatchAPI.StopCalled)
 		}
 	}
 }
@@ -257,10 +142,10 @@ func TestAddWaitForDelete(t *testing.T) {
 func prepareTestCases(name string) []waitForReadyTestCase {
 	return []waitForReadyTestCase{
 		errorTest(name),
-		tc(peNormal, name, 5*time.Second, ""),
-		tc(peWrongGeneration, name, 5*time.Second, "timeout"),
-		tc(peTimeout, name, 5*time.Second, "timeout"),
-		tc(peReadyFalseWithinErrorWindow, name, 5*time.Second, ""),
+		tc(peNormal, name, time.Second, ""),
+		tc(peWrongGeneration, name, 1*time.Second, "timeout"),
+		tc(peTimeout, name, time.Second, "timeout"),
+		tc(peReadyFalseWithinErrorWindow, name, time.Second, ""),
 	}
 }
 
@@ -279,7 +164,7 @@ func errorTest(name string) waitForReadyTestCase {
 
 	return waitForReadyTestCase{
 		events:           events,
-		timeout:          5 * time.Second,
+		timeout:          3 * time.Second,
 		errorText:        "FakeError",
 		messagesExpected: []string{"msg1", "Test Error"},
 	}
