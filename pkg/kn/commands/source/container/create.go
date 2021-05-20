@@ -19,6 +19,7 @@ package container
 import (
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 	"knative.dev/client/pkg/kn/commands/flags"
@@ -67,7 +68,7 @@ func NewContainerCreateCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			podSpec := &corev1.PodSpec{Containers: []corev1.Container{{}}}
-			err = podFlags.ResolvePodSpec(podSpec, cmd.Flags())
+			err = podFlags.ResolvePodSpec(podSpec, cmd.Flags(), os.Args)
 			if err != nil {
 				return fmt.Errorf(
 					"cannot create ContainerSource '%s' in namespace '%s' "+

@@ -16,7 +16,6 @@ package flags
 
 import (
 	"fmt"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -53,15 +52,65 @@ func containerOfPodSpec(spec *corev1.PodSpec) *corev1.Container {
 
 // UpdateEnvVars gives the configuration all the env var values listed in the given map of
 // vars.  Does not touch any environment variables not mentioned, but it can add
-// new env vars and change the values of existing ones, then sort by env key name.
-func UpdateEnvVars(spec *corev1.PodSpec, toUpdate map[string]string, toRemove []string) error {
+// new env vars and change the values of existing ones.
+func UpdateEnvVars(spec *corev1.PodSpec, args, envs, envsValueFrom []string) error {
 	container := containerOfPodSpec(spec)
-	updated := updateEnvVarsFromMap(container.Env, toUpdate)
-	updated = removeEnvVars(updated, toRemove)
-	// Sort by env key name
-	sort.SliceStable(updated, func(i, j int) bool {
-		return updated[i].Name < updated[j].Name
-	})
+
+	envToUpdate, envToRemove, err := util.OrderedMapAndRemovalListFromArray(envs, "=")
+	if err != nil {
+		return fmt.Errorf("Invalid --env: %w", err)
+	}
+
+	envValueFromToUpdate, envValueFromToRemove, err := util.OrderedMapAndRemovalListFromArray(envsValueFrom, "=")
+	if err != nil {
+		return fmt.Errorf("Invalid --env-value-from: %w", err)
+	}
+
+	envsIndex := 0
+	envsValueFromIndex := 0
+	allEnvsToUpdate := util.NewOrderedMap()
+
+	for _, arg := range args {
+		if len(envs) > 0 && strings.HasPrefix(arg, envs[envsIndex]) {
+			// envs are stored as NAME=value
+			parsedEnv := strings.SplitN(envs[envsIndex], "=", 2)
+			if len(parsedEnv) == 2 {
+				value, ok := envToUpdate.GetString(parsedEnv[0])
+				if ok {
+					allEnvsToUpdate.Set(parsedEnv[0], corev1.EnvVar{
+						Name:  parsedEnv[0],
+						Value: value,
+					})
+					if envsIndex < len(envs)-1 {
+						envsIndex++
+					}
+				}
+			}
+		} else if len(envsValueFrom) > 0 && strings.HasPrefix(arg, envsValueFrom[envsValueFromIndex]) {
+			// envs are stored as NAME=secret:sercretName:key or
+			parsedEnv := strings.SplitN(envsValueFrom[envsValueFromIndex], "=", 2)
+			if len(parsedEnv) == 2 {
+				value, ok := envValueFromToUpdate.GetString(parsedEnv[0])
+				if ok {
+					envVarSource, err := createEnvVarSource(value)
+					if err != nil {
+						return err
+					}
+					allEnvsToUpdate.Set(parsedEnv[0], corev1.EnvVar{
+						Name:      parsedEnv[0],
+						ValueFrom: envVarSource,
+					})
+					if envsValueFromIndex < len(envsValueFrom)-1 {
+						envsValueFromIndex++
+					}
+				}
+			}
+		}
+	}
+
+	updated := updateEnvVarsFromMap(container.Env, allEnvsToUpdate)
+	updated = removeEnvVars(updated, append(envToRemove, envValueFromToRemove...))
+
 	container.Env = updated
 
 	return nil
@@ -217,18 +266,20 @@ func UpdateImagePullSecrets(spec *corev1.PodSpec, pullsecrets string) {
 }
 
 // =======================================================================================
-func updateEnvVarsFromMap(env []corev1.EnvVar, toUpdate map[string]string) []corev1.EnvVar {
-	set := sets.NewString()
+func updateEnvVarsFromMap(env []corev1.EnvVar, toUpdate *util.OrderedMap) []corev1.EnvVar {
+	updated := sets.NewString()
+
 	for i := range env {
-		envVar := &env[i]
-		if val, ok := toUpdate[envVar.Name]; ok {
-			envVar.Value = val
-			set.Insert(envVar.Name)
+		object, present := toUpdate.Get(env[i].Name)
+		if present {
+			env[i] = object.(corev1.EnvVar)
+			updated.Insert(env[i].Name)
 		}
 	}
-	for name, val := range toUpdate {
-		if !set.Has(name) {
-			env = append(env, corev1.EnvVar{Name: name, Value: val})
+	it := toUpdate.Iterator()
+	for name, envVar, ok := it.Next(); ok; name, envVar, ok = it.Next() {
+		if !updated.Has(name) {
+			env = append(env, envVar.(corev1.EnvVar))
 		}
 	}
 	return env
@@ -246,6 +297,50 @@ func removeEnvVars(env []corev1.EnvVar, toRemove []string) []corev1.EnvVar {
 	return env
 }
 
+func createEnvVarSource(spec string) (*corev1.EnvVarSource, error) {
+	slices := strings.SplitN(spec, ":", 3)
+	if len(slices) != 3 {
+		return nil, fmt.Errorf("argument requires a value in form \"resourceType:name:key\" where \"resourceType\" can be one of \"config-map\" (\"cm\") or \"secret\" (\"sc\"); got %q", spec)
+	}
+
+	typeString := strings.TrimSpace(slices[0])
+	sourceName := strings.TrimSpace(slices[1])
+	sourceKey := strings.TrimSpace(slices[2])
+
+	var sourceType string
+	envVarSource := corev1.EnvVarSource{}
+
+	switch typeString {
+	case "config-map", "cm":
+		sourceType = "ConfigMap"
+		envVarSource.ConfigMapKeyRef = &corev1.ConfigMapKeySelector{
+			LocalObjectReference: corev1.LocalObjectReference{
+				Name: sourceName,
+			},
+			Key: sourceKey}
+	case "secret", "sc":
+		sourceType = "Secret"
+		envVarSource.SecretKeyRef = &corev1.SecretKeySelector{
+			LocalObjectReference: corev1.LocalObjectReference{
+				Name: sourceName,
+			},
+			Key: sourceKey}
+	default:
+		return nil, fmt.Errorf("unsupported env source type \"%q\"; supported source types are \"config-map\" (\"cm\") and \"secret\" (\"sc\")", slices[0])
+	}
+
+	if len(sourceName) == 0 {
+		return nil, fmt.Errorf("the name of %s cannot be an empty string", sourceType)
+	}
+
+	if len(sourceKey) == 0 {
+		return nil, fmt.Errorf("the key referenced by resource %s \"%s\" cannot be an empty string", sourceType, sourceName)
+	}
+
+	return &envVarSource, nil
+}
+
+// =======================================================================================
 func updateEnvFrom(envFromSources []corev1.EnvFromSource, toUpdate []string) ([]corev1.EnvFromSource, error) {
 	existingNameSet := make(map[string]bool)
 

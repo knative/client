@@ -16,6 +16,7 @@ package service
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 
@@ -199,7 +200,7 @@ func (p *ConfigurationEditFlags) Apply(
 
 	template := &service.Spec.Template
 
-	err := p.PodSpecFlags.ResolvePodSpec(&template.Spec.PodSpec, cmd.Flags())
+	err := p.PodSpecFlags.ResolvePodSpec(&template.Spec.PodSpec, cmd.Flags(), os.Args)
 	if err != nil {
 		return err
 	}

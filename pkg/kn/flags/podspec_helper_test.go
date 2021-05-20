@@ -35,15 +35,139 @@ func getPodSpec() (*corev1.PodSpec, *corev1.Container) {
 
 func TestUpdateEnvVarsNew(t *testing.T) {
 	spec, _ := getPodSpec()
-	env := []corev1.EnvVar{
+	expected := []corev1.EnvVar{
 		{Name: "a", Value: "foo"},
 		{Name: "b", Value: "bar"},
 	}
-	found, err := util.EnvToMap(env)
+	argsEnv := []string{
+		"a=foo",
+		"b=bar",
+	}
+	args := append([]string{"command"}, argsEnv...)
+	err := UpdateEnvVars(spec, args, argsEnv, []string{})
 	assert.NilError(t, err)
-	err = UpdateEnvVars(spec, found, []string{})
+	assert.DeepEqual(t, expected, spec.Containers[0].Env)
+}
+
+func TestUpdateEnvVarsValueFromNew(t *testing.T) {
+	spec, _ := getPodSpec()
+	expected := []corev1.EnvVar{
+		{Name: "a", ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "foo",
+				},
+				Key: "key",
+			},
+		}},
+		{Name: "b", ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "bar",
+				},
+				Key: "key2",
+			},
+		}},
+		{Name: "c", ValueFrom: &corev1.EnvVarSource{
+			ConfigMapKeyRef: &corev1.ConfigMapKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "baz",
+				},
+				Key: "key3",
+			},
+		}},
+		{Name: "d", ValueFrom: &corev1.EnvVarSource{
+			ConfigMapKeyRef: &corev1.ConfigMapKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "goo",
+				},
+				Key: "key4",
+			},
+		}},
+	}
+	argsEnvValueFrom := []string{
+		"a=secret:foo:key",
+		"b=sc:bar:key2",
+		"c=config-map:baz:key3",
+		"d=cm:goo:key4",
+	}
+	args := append([]string{"command"}, argsEnvValueFrom...)
+	err := UpdateEnvVars(spec, args, []string{}, argsEnvValueFrom)
 	assert.NilError(t, err)
-	assert.DeepEqual(t, env, spec.Containers[0].Env)
+	assert.DeepEqual(t, expected, spec.Containers[0].Env)
+}
+
+func TestUpdateEnvVarsAllNew(t *testing.T) {
+	spec, _ := getPodSpec()
+	expected := []corev1.EnvVar{
+		{Name: "a", ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "foo",
+				},
+				Key: "key",
+			},
+		}},
+		{Name: "b", ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "bar",
+				},
+				Key: "key2",
+			},
+		}},
+		{Name: "c", Value: "baz"},
+		{Name: "d", Value: "goo"},
+	}
+	argsEnvValueFrom := []string{
+		"a=secret:foo:key",
+		"b=sc:bar:key2",
+	}
+	argsEnv := []string{
+		"c=baz",
+		"d=goo",
+	}
+
+	args := append([]string{"command"}, append(argsEnvValueFrom, argsEnv...)...)
+	err := UpdateEnvVars(spec, args, argsEnv, argsEnvValueFrom)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, expected, spec.Containers[0].Env)
+}
+
+func TestUpdateEnvVarsValueFromValidate(t *testing.T) {
+	spec, _ := getPodSpec()
+	wrongInput := [][]string{
+		{"foo=foo"},
+		{"foo=bar:"},
+		{"foo=foo:bar"},
+		{"foo=foo:bar:"},
+		{"foo=foo:bar:baz"},
+		{"foo=secret"},
+		{"foo=sec"},
+		{"foo=secret:"},
+		{"foo=sec:"},
+		{"foo=secret:name"},
+		{"foo=sec:name"},
+		{"foo=secret:name"},
+		{"foo=sec:name:"},
+		{"foo=config-map"},
+		{"foo=cm"},
+		{"foo=config-map:"},
+		{"foo=cm:"},
+		{"foo=config-map:name"},
+		{"foo=cm:name"},
+		{"foo=config-map:name:"},
+		{"foo=cm:name:"},
+	}
+
+	for _, input := range wrongInput {
+		args := append([]string{"command"}, input...)
+		err := UpdateEnvVars(spec, args, []string{}, input)
+		fmt.Println()
+		msg := fmt.Sprintf("input \"%s\" should fail, as it is not valid entry for containers.env.valueFrom", input[0])
+		assert.ErrorContains(t, err, " ", msg)
+	}
+
 }
 
 func TestUpdateEnvFrom(t *testing.T) {
@@ -313,19 +437,86 @@ func TestUpdateEnvVarsModify(t *testing.T) {
 	spec, container := getPodSpec()
 	container.Env = []corev1.EnvVar{
 		{Name: "a", Value: "foo"}}
-	env := map[string]string{
-		"a": "fancy",
-	}
-	err := UpdateEnvVars(spec, env, []string{})
-	assert.NilError(t, err)
 
-	expected := map[string]string{
-		"a": "fancy",
+	expected := []corev1.EnvVar{
+		{Name: "a", Value: "bar"},
+	}
+	argsEnv := []string{
+		"a=bar",
+	}
+	args := append([]string{"command"}, argsEnv...)
+	err := UpdateEnvVars(spec, args, argsEnv, []string{})
+	assert.NilError(t, err)
+	assert.DeepEqual(t, expected, container.Env)
+}
+
+func TestUpdateEnvVarsValueFromModify(t *testing.T) {
+	spec, container := getPodSpec()
+	container.Env = []corev1.EnvVar{
+		{Name: "a", ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "foo",
+				},
+				Key: "key",
+			},
+		}},
 	}
 
-	found, err := util.EnvToMap(container.Env)
+	expected := []corev1.EnvVar{
+		{Name: "a", ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "bar",
+				},
+				Key: "key2",
+			},
+		}},
+	}
+	argsEnvValueFrom := []string{
+		"a=secret:bar:key2",
+	}
+	args := append([]string{"command"}, argsEnvValueFrom...)
+	err := UpdateEnvVars(spec, args, []string{}, argsEnvValueFrom)
 	assert.NilError(t, err)
-	assert.DeepEqual(t, expected, found)
+	assert.DeepEqual(t, expected, container.Env)
+}
+
+func TestUpdateEnvVarsAllModify(t *testing.T) {
+	spec, container := getPodSpec()
+	container.Env = []corev1.EnvVar{
+		{Name: "a", ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "foo",
+				},
+				Key: "key",
+			},
+		}},
+		{Name: "b", Value: "bar"},
+	}
+
+	expected := []corev1.EnvVar{
+		{Name: "a", ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "bar",
+				},
+				Key: "key2",
+			},
+		}},
+		{Name: "b", Value: "goo"},
+	}
+	argsEnvValueFrom := []string{
+		"a=secret:bar:key2",
+	}
+	argsEnv := []string{
+		"b=goo",
+	}
+	args := append([]string{"command"}, append(argsEnvValueFrom, argsEnv...)...)
+	err := UpdateEnvVars(spec, args, argsEnv, argsEnvValueFrom)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, expected, container.Env)
 }
 
 func TestUpdateEnvVarsRemove(t *testing.T) {
@@ -334,12 +525,102 @@ func TestUpdateEnvVarsRemove(t *testing.T) {
 		{Name: "a", Value: "foo"},
 		{Name: "b", Value: "bar"},
 	}
-	remove := []string{"b"}
-	err := UpdateEnvVars(spec, map[string]string{}, remove)
+	remove := []string{"b-"}
+	args := append([]string{"command"}, remove...)
+	err := UpdateEnvVars(spec, args, remove, []string{})
 	assert.NilError(t, err)
 
 	expected := []corev1.EnvVar{
 		{Name: "a", Value: "foo"},
+	}
+
+	assert.DeepEqual(t, expected, container.Env)
+}
+
+func TestUpdateEnvVarsValueFromRemove(t *testing.T) {
+	spec, container := getPodSpec()
+	container.Env = []corev1.EnvVar{
+		{Name: "a", ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "foo",
+				},
+				Key: "key",
+			},
+		}},
+		{Name: "b", ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "bar",
+				},
+				Key: "key2",
+			},
+		}},
+	}
+	remove := []string{"b-"}
+	args := append([]string{"command"}, remove...)
+	err := UpdateEnvVars(spec, args, []string{}, remove)
+	assert.NilError(t, err)
+
+	expected := []corev1.EnvVar{
+		{Name: "a", ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "foo",
+				},
+				Key: "key",
+			},
+		}},
+	}
+
+	assert.DeepEqual(t, expected, container.Env)
+}
+
+func TestUpdateEnvVarsAllRemove(t *testing.T) {
+	spec, container := getPodSpec()
+	container.Env = []corev1.EnvVar{
+		{Name: "a", ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "foo",
+				},
+				Key: "key",
+			},
+		}},
+		{Name: "b", ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "bar",
+				},
+				Key: "key2",
+			},
+		}},
+		{Name: "c", Value: "baz"},
+		{Name: "d", Value: "goo"},
+	}
+	argsEnvValueFrom := []string{
+		"a=secret:foo:key",
+		"b-",
+	}
+	argsEnv := []string{
+		"c=baz",
+		"d-",
+	}
+
+	args := append([]string{"command"}, append(argsEnvValueFrom, argsEnv...)...)
+	err := UpdateEnvVars(spec, args, argsEnv, argsEnvValueFrom)
+	assert.NilError(t, err)
+
+	expected := []corev1.EnvVar{
+		{Name: "a", ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "foo",
+				},
+				Key: "key",
+			},
+		}},
+		{Name: "c", Value: "baz"},
 	}
 
 	assert.DeepEqual(t, expected, container.Env)

@@ -19,6 +19,7 @@ package container
 import (
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 	"knative.dev/client/pkg/kn/commands/flags"
@@ -69,7 +70,7 @@ func NewContainerUpdateCommand(p *commands.KnParams) *cobra.Command {
 
 			b := v1.NewContainerSourceBuilderFromExisting(source)
 			podSpec := b.Build().Spec.Template.Spec
-			err = podFlags.ResolvePodSpec(&podSpec, cmd.Flags())
+			err = podFlags.ResolvePodSpec(&podSpec, cmd.Flags(), os.Args)
 			if err != nil {
 				return fmt.Errorf(
 					"cannot update ContainerSource '%s' in namespace '%s' "+
