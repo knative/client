@@ -28,6 +28,7 @@ import (
 	"knative.dev/serving/pkg/apis/autoscaling"
 
 	"gotest.tools/v3/assert"
+	corev1 "k8s.io/api/core/v1"
 
 	"knative.dev/client/lib/test"
 	"knative.dev/client/pkg/util"
@@ -43,11 +44,12 @@ func TestServiceOptions(t *testing.T) {
 		assert.NilError(t, it.Teardown())
 	}()
 
+	kubectl := test.NewKubectl(it.Namespace())
 	r := test.NewKnRunResultCollector(t, it)
 
-	t.Log("create and validate service with concurrency options")
 	defer r.DumpIfFailed()
 
+	t.Log("create and validate service with concurrency options")
 	serviceCreateWithOptions(r, "svc1", "--concurrency-limit", "250", "--concurrency-target", "300", "--concurrency-utilization", "50")
 	validateServiceConcurrencyTarget(r, "svc1", "300")
 	validateServiceConcurrencyLimit(r, "svc1", "250")
@@ -178,6 +180,55 @@ func TestServiceOptions(t *testing.T) {
 	serviceCreateWithOptions(r, "svc14", "--annotation-revision", "rev=helloworld-rev")
 	validateServiceAndRevisionAnnotations(r, "svc14", nil, map[string]string{"rev": "helloworld-rev"})
 	test.ServiceDelete(r, "svc14")
+
+	t.Log("create and validate service env vars")
+	env := []corev1.EnvVar{
+		{Name: "EXAMPLE", Value: "foo"},
+		{Name: "EXAMPLE2", Value: "bar"},
+	}
+	serviceCreateWithOptions(r, "svc15", "--env", "EXAMPLE=foo", "--env", "EXAMPLE2=bar")
+	validateServiceEnvVariables(r, "svc15", env)
+	test.ServiceDelete(r, "svc15")
+
+	t.Log("create and validate service env-value-from vars")
+	_, err = kubectl.Run("create", "-n", it.Namespace(), "configmap", "test-cm", "--from-literal=key=value")
+	assert.NilError(t, err)
+	env2 := []corev1.EnvVar{
+		{Name: "EXAMPLE", ValueFrom: &corev1.EnvVarSource{
+			ConfigMapKeyRef: &corev1.ConfigMapKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "test-cm",
+				},
+				Key: "key",
+			},
+		}},
+	}
+	serviceCreateWithOptions(r, "svc16", "--env-value-from", "EXAMPLE=cm:test-cm:key")
+	validateServiceEnvVariables(r, "svc16", env2)
+	test.ServiceDelete(r, "svc16")
+	_, err = kubectl.Run("delete", "-n", it.Namespace(), "configmap", "test-cm")
+	assert.NilError(t, err)
+
+	t.Log("create and validate service env vars and env-value-from vars")
+	_, err = kubectl.Run("create", "-n", it.Namespace(), "configmap", "test-cm2", "--from-literal=key=value")
+	assert.NilError(t, err)
+	env3 := []corev1.EnvVar{
+		{Name: "EXAMPLE", Value: "foo"},
+		{Name: "EXAMPLE2", ValueFrom: &corev1.EnvVarSource{
+			ConfigMapKeyRef: &corev1.ConfigMapKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "test-cm2",
+				},
+				Key: "key",
+			},
+		}},
+		{Name: "EXAMPLE3", Value: "bar"},
+	}
+	serviceCreateWithOptions(r, "svc17", "--env", "EXAMPLE=foo", "--env-value-from", "EXAMPLE2=config-map:test-cm2:key", "--env", "EXAMPLE3=bar")
+	validateServiceEnvVariables(r, "svc17", env3)
+	test.ServiceDelete(r, "svc17")
+	_, err = kubectl.Run("delete", "-n", it.Namespace(), "configmap", "test-cm2")
+	assert.NilError(t, err)
 }
 
 func serviceCreateWithOptions(r *test.KnRunResultCollector, serviceName string, options ...string) {
@@ -314,4 +365,20 @@ func validatePort(r *test.KnRunResultCollector, serviceName string, portNumber i
 	svc := test.GetServiceFromKNServiceDescribe(r, serviceName)
 	assert.Equal(r.T(), svc.Spec.Template.Spec.Containers[0].Ports[0].ContainerPort, portNumber)
 	assert.Equal(r.T(), svc.Spec.Template.Spec.Containers[0].Ports[0].Name, portName)
+}
+
+func validateServiceEnvVariables(r *test.KnRunResultCollector, serviceName string, envVar []corev1.EnvVar) {
+	svc := test.GetServiceFromKNServiceDescribe(r, serviceName)
+	for i, env := range svc.Spec.Template.Spec.Containers[0].Env {
+		assert.Equal(r.T(), env.Name, envVar[i].Name)
+		if envVar[i].ValueFrom != nil {
+			if envVar[i].ValueFrom.ConfigMapKeyRef != nil {
+				assert.Equal(r.T(), env.ValueFrom.ConfigMapKeyRef.Key, envVar[i].ValueFrom.ConfigMapKeyRef.Key)
+			} else if envVar[i].ValueFrom.SecretKeyRef != nil {
+				assert.Equal(r.T(), env.ValueFrom.SecretKeyRef.Key, envVar[i].ValueFrom.SecretKeyRef.Key)
+			}
+		} else {
+			assert.Equal(r.T(), env.Value, envVar[i].Value)
+		}
+	}
 }
