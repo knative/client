@@ -19,7 +19,6 @@ package v1
 import (
 	"context"
 
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	eventingduckv1 "knative.dev/eventing/pkg/apis/duck/v1"
 	messagingv1 "knative.dev/eventing/pkg/apis/messaging/v1"
@@ -149,7 +148,7 @@ func NewSubscriptionBuilderFromExisting(subs *messagingv1.Subscription) *Subscri
 }
 
 // Channel sets the channel reference for this subscription
-func (s *SubscriptionBuilder) Channel(channel *corev1.ObjectReference) *SubscriptionBuilder {
+func (s *SubscriptionBuilder) Channel(channel *duckv1.KReference) *SubscriptionBuilder {
 	if channel == nil {
 		return s
 	}

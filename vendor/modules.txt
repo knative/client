@@ -207,6 +207,7 @@ github.com/modern-go/reflect2
 # github.com/openzipkin/zipkin-go v0.2.5
 github.com/openzipkin/zipkin-go/model
 # github.com/pelletier/go-toml v1.8.0
+## explicit
 github.com/pelletier/go-toml
 # github.com/peterbourgon/diskv v2.0.1+incompatible
 github.com/peterbourgon/diskv
@@ -766,7 +767,7 @@ k8s.io/kube-openapi/pkg/util/sets
 k8s.io/utils/buffer
 k8s.io/utils/integer
 k8s.io/utils/trace
-# knative.dev/eventing v0.23.0
+# knative.dev/eventing v0.23.1-0.20210524085620-e48c80d7f969
 ## explicit
 knative.dev/eventing/pkg/apis/config
 knative.dev/eventing/pkg/apis/duck
@@ -794,12 +795,12 @@ knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1beta2/fake
 # knative.dev/hack v0.0.0-20210428122153-93ad9129c268
 ## explicit
 knative.dev/hack
-# knative.dev/networking v0.0.0-20210512050647-ace2d3306f0b
+# knative.dev/networking v0.0.0-20210520062317-b2552eca09f7
 ## explicit
 knative.dev/networking/pkg
 knative.dev/networking/pkg/apis/networking
 knative.dev/networking/pkg/apis/networking/v1alpha1
-# knative.dev/pkg v0.0.0-20210510175900-4564797bf3b7
+# knative.dev/pkg v0.0.0-20210520062216-e749d6a2ad0e
 ## explicit
 knative.dev/pkg/apis
 knative.dev/pkg/apis/duck
@@ -842,7 +843,7 @@ knative.dev/pkg/tracing/config
 knative.dev/pkg/tracing/propagation
 knative.dev/pkg/tracing/propagation/tracecontextb3
 knative.dev/pkg/tracker
-# knative.dev/serving v0.23.0
+# knative.dev/serving v0.23.1-0.20210522031118-9cd446ead73f
 ## explicit
 knative.dev/serving/pkg/apis/autoscaling
 knative.dev/serving/pkg/apis/autoscaling/v1alpha1

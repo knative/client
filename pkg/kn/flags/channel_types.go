@@ -18,10 +18,11 @@ import (
 	"fmt"
 	"strings"
 
+	duckv1 "knative.dev/pkg/apis/duck/v1"
+
 	messagingv1 "knative.dev/eventing/pkg/apis/messaging/v1"
 
 	"github.com/spf13/pflag"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	"knative.dev/client/pkg/kn/config"
@@ -97,22 +98,22 @@ func (i *ChannelRef) Add(f *pflag.FlagSet) {
 }
 
 // Parse parses the CLI value for channel ref flag and populates object reference or return error
-func (i *ChannelRef) Parse() (*corev1.ObjectReference, error) {
+func (i *ChannelRef) Parse() (*duckv1.KReference, error) {
 	parts := strings.Split(i.Cref, ":")
 	switch len(parts) {
 	// if no prefix is given, defer to "messaging.knative.dev/v1:Channel"
 	case 1:
-		return &corev1.ObjectReference{Kind: "Channel", APIVersion: messagingv1.SchemeGroupVersion.String(), Name: parts[0]}, nil
+		return &duckv1.KReference{Kind: "Channel", APIVersion: messagingv1.SchemeGroupVersion.String(), Name: parts[0]}, nil
 	case 2:
 		if typ, ok := ctypeMappings[parts[0]]; ok {
-			return &corev1.ObjectReference{Kind: typ.Kind, APIVersion: typ.GroupVersion().String(), Name: parts[1]}, nil
+			return &duckv1.KReference{Kind: typ.Kind, APIVersion: typ.GroupVersion().String(), Name: parts[1]}, nil
 		}
 		return nil, fmt.Errorf("Error: unknown alias '%s' for '--channel', please configure the alias in kn config or specify in the format '--channel Group:Version:Kind:Name'", parts[0])
 	case 4:
 		if parts[0] == "" || parts[1] == "" || parts[2] == "" || parts[3] == "" {
 			return nil, fmt.Errorf("Error: incorrect value '%s' for '--channel', must be in the format 'Group:Version:Kind:Name' or configure an alias in kn config and refer as: '--channel ALIAS:NAME'", i.Cref)
 		}
-		return &corev1.ObjectReference{Kind: parts[2], APIVersion: parts[0] + "/" + parts[1], Name: parts[3]}, nil
+		return &duckv1.KReference{Kind: parts[2], APIVersion: parts[0] + "/" + parts[1], Name: parts[3]}, nil
 	default:
 		return nil, fmt.Errorf("Error: incorrect value '%s' for '--channel', must be in the format 'Group:Version:Kind:Name' or configure an alias in kn config and refer as: '--channel ALIAS:NAME'", i.Cref)
 	}

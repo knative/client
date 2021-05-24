@@ -7,6 +7,7 @@ require (
 	github.com/gregjones/httpcache v0.0.0-20190212212710-3befbb6ad0cc // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.3.1 // indirect
+	github.com/pelletier/go-toml v1.8.0 // indirect
 	github.com/smartystreets/assertions v1.0.0 // indirect
 	github.com/spf13/cast v1.3.1 // indirect
 	github.com/spf13/cobra v1.1.3
@@ -21,11 +22,11 @@ require (
 	k8s.io/cli-runtime v0.19.7
 	k8s.io/client-go v0.19.7
 	k8s.io/code-generator v0.19.7
-	knative.dev/eventing v0.23.0
+	knative.dev/eventing v0.23.1-0.20210524085620-e48c80d7f969
 	knative.dev/hack v0.0.0-20210428122153-93ad9129c268
-	knative.dev/networking v0.0.0-20210512050647-ace2d3306f0b
-	knative.dev/pkg v0.0.0-20210510175900-4564797bf3b7
-	knative.dev/serving v0.23.0
+	knative.dev/networking v0.0.0-20210520062317-b2552eca09f7
+	knative.dev/pkg v0.0.0-20210520062216-e749d6a2ad0e
+	knative.dev/serving v0.23.1-0.20210522031118-9cd446ead73f
 	sigs.k8s.io/yaml v1.2.0
 )
 
