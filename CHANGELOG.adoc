@@ -1351,5 +1351,9 @@ Ignore PRs:
 |===
 | | Description | PR
 
+| 🎁
+| Add `env-value-from` flag & keep order of env vars in created/updated Services
+| https://github.com/knative/client/pull/1328[#1328]
+
 |===
 ////
