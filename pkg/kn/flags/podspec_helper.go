@@ -53,58 +53,38 @@ func containerOfPodSpec(spec *corev1.PodSpec) *corev1.Container {
 // UpdateEnvVars gives the configuration all the env var values listed in the given map of
 // vars.  Does not touch any environment variables not mentioned, but it can add
 // new env vars and change the values of existing ones.
-func UpdateEnvVars(spec *corev1.PodSpec, args, envs, envsValueFrom []string) error {
+func UpdateEnvVars(spec *corev1.PodSpec,
+	allArgs []string, envToUpdate *util.OrderedMap, envToRemove []string, envValueFromToUpdate *util.OrderedMap, envValueFromToRemove []string) error {
 	container := containerOfPodSpec(spec)
 
-	envToUpdate, envToRemove, err := util.OrderedMapAndRemovalListFromArray(envs, "=")
-	if err != nil {
-		return fmt.Errorf("Invalid --env: %w", err)
-	}
-
-	envValueFromToUpdate, envValueFromToRemove, err := util.OrderedMapAndRemovalListFromArray(envsValueFrom, "=")
-	if err != nil {
-		return fmt.Errorf("Invalid --env-value-from: %w", err)
-	}
-
-	envsIndex := 0
-	envsValueFromIndex := 0
 	allEnvsToUpdate := util.NewOrderedMap()
 
-	for _, arg := range args {
-		if len(envs) > 0 && strings.HasPrefix(arg, envs[envsIndex]) {
-			// envs are stored as NAME=value
-			parsedEnv := strings.SplitN(envs[envsIndex], "=", 2)
-			if len(parsedEnv) == 2 {
-				value, ok := envToUpdate.GetString(parsedEnv[0])
-				if ok {
-					allEnvsToUpdate.Set(parsedEnv[0], corev1.EnvVar{
-						Name:  parsedEnv[0],
-						Value: value,
-					})
-					if envsIndex < len(envs)-1 {
-						envsIndex++
-					}
-				}
+	envIterator := envToUpdate.Iterator()
+	envValueFromIterator := envValueFromToUpdate.Iterator()
+
+	envKey, envValue, envExists := envIterator.NextString()
+	envValueFromKey, envValueFromValue, envValueFromExists := envValueFromIterator.NextString()
+	for _, arg := range allArgs {
+		// envs are stored as NAME=value
+		if envExists &&
+			(strings.HasPrefix(arg, envKey+"="+envValue) || strings.HasPrefix(arg, "-e="+envKey+"="+envValue) || strings.HasPrefix(arg, "--env="+envKey+"="+envValue)) {
+			allEnvsToUpdate.Set(envKey, corev1.EnvVar{
+				Name:  envKey,
+				Value: envValue,
+			})
+			envKey, envValue, envExists = envIterator.NextString()
+		} else if envValueFromExists &&
+			(strings.HasPrefix(arg, envValueFromKey+"="+envValueFromValue) || strings.HasPrefix(arg, "--env-value-from="+envValueFromKey+"="+envValueFromValue)) {
+			// envs are stored as NAME=secret:sercretName:key or NAME=config-map:cmName:key
+			envVarSource, err := createEnvVarSource(envValueFromValue)
+			if err != nil {
+				return err
 			}
-		} else if len(envsValueFrom) > 0 && strings.HasPrefix(arg, envsValueFrom[envsValueFromIndex]) {
-			// envs are stored as NAME=secret:sercretName:key or
-			parsedEnv := strings.SplitN(envsValueFrom[envsValueFromIndex], "=", 2)
-			if len(parsedEnv) == 2 {
-				value, ok := envValueFromToUpdate.GetString(parsedEnv[0])
-				if ok {
-					envVarSource, err := createEnvVarSource(value)
-					if err != nil {
-						return err
-					}
-					allEnvsToUpdate.Set(parsedEnv[0], corev1.EnvVar{
-						Name:      parsedEnv[0],
-						ValueFrom: envVarSource,
-					})
-					if envsValueFromIndex < len(envsValueFrom)-1 {
-						envsValueFromIndex++
-					}
-				}
-			}
+			allEnvsToUpdate.Set(envValueFromKey, corev1.EnvVar{
+				Name:      envValueFromKey,
+				ValueFrom: envVarSource,
+			})
+			envValueFromKey, envValueFromValue, envValueFromExists = envValueFromIterator.NextString()
 		}
 	}
 

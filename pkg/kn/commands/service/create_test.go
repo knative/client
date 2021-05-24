@@ -207,9 +207,18 @@ func TestServiceCreateArg(t *testing.T) {
 }
 
 func TestServiceCreateEnv(t *testing.T) {
-	action, created, _, err := fakeServiceCreate([]string{
+
+	// we need to temporary reset os.Args, becase it is being used for evaluation
+	// of order of envs set by --env and --env-value-from
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+
+	args := []string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
-		"-e", "A=DOGS", "--env", "B=WOLVES", "--env=EMPTY", "--no-wait"}, false)
+		"-e", "A=DOGS", "--env", "B=WOLVES", "--env", "EMPTY=", "--no-wait"}
+	os.Args = args
+
+	action, created, _, err := fakeServiceCreate(args, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -708,15 +717,28 @@ func TestServiceCreateImageForce(t *testing.T) {
 }
 
 func TestServiceCreateEnvForce(t *testing.T) {
-	_, _, _, err := fakeServiceCreate([]string{
+
+	// we need to temporary reset os.Args, becase it is being used for evaluation
+	// of order of envs set by --env and --env-value-from
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+
+	args := []string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:v1",
-		"-e", "A=DOGS", "--env", "B=WOLVES", "--no-wait"}, false)
+		"-e", "A=DOGS", "--env", "B=WOLVES", "--no-wait"}
+	os.Args = args
+
+	_, _, _, err := fakeServiceCreate(args, false)
 	if err != nil {
 		t.Fatal(err)
 	}
-	action, created, output, err := fakeServiceCreate([]string{
+
+	args = []string{
 		"service", "create", "foo", "--force", "--image", "gcr.io/foo/bar:v2",
-		"-e", "A=CATS", "--env", "B=LIONS", "--no-wait"}, false)
+		"-e", "A=CATS", "--env", "B=LIONS", "--no-wait"}
+	os.Args = args
+
+	action, created, output, err := fakeServiceCreate(args, false)
 
 	if err != nil {
 		t.Fatal(err)
@@ -961,8 +983,16 @@ func TestServiceCreateFromYAMLWithOverride(t *testing.T) {
 	expectedEnvVars := map[string]string{
 		"TARGET": "Go Sample v1",
 		"FOO":    "BAR"}
-	action, created, _, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--filename", tempFile, "--env", "FOO=BAR"}, false)
+
+	// we need to temporary reset os.Args, becase it is being used for evaluation
+	// of order of envs set by --env and --env-value-from
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+
+	args := []string{"service", "create", "foo", "--filename", tempFile, "--env", "FOO=BAR"}
+	os.Args = args
+
+	action, created, _, err := fakeServiceCreate(args, false)
 	assert.NilError(t, err)
 	assert.Assert(t, action.Matches("create", "services"))
 	assert.Equal(t, created.Name, "foo")
@@ -975,8 +1005,11 @@ func TestServiceCreateFromYAMLWithOverride(t *testing.T) {
 	expectedEnvVars = map[string]string{
 		"TARGET": "FOOBAR",
 		"FOO":    "BAR"}
-	action, created, _, err = fakeServiceCreate([]string{
-		"service", "create", "foo", "--filename", tempFile, "--env", "TARGET=FOOBAR", "--env", "FOO=BAR"}, false)
+
+	args = []string{"service", "create", "foo", "--filename", tempFile, "--env", "TARGET=FOOBAR", "--env", "FOO=BAR"}
+	os.Args = args
+
+	action, created, _, err = fakeServiceCreate(args, false)
 	assert.NilError(t, err)
 	assert.Assert(t, action.Matches("create", "services"))
 	assert.Equal(t, created.Name, "foo")
@@ -988,8 +1021,11 @@ func TestServiceCreateFromYAMLWithOverride(t *testing.T) {
 	// Remove existing env vars
 	expectedEnvVars = map[string]string{
 		"FOO": "BAR"}
-	action, created, _, err = fakeServiceCreate([]string{
-		"service", "create", "foo", "--filename", tempFile, "--env", "TARGET-", "--env", "FOO=BAR"}, false)
+
+	args = []string{"service", "create", "foo", "--filename", tempFile, "--env", "TARGET-", "--env", "FOO=BAR"}
+	os.Args = args
+
+	action, created, _, err = fakeServiceCreate(args, false)
 	assert.NilError(t, err)
 	assert.Assert(t, action.Matches("create", "services"))
 	assert.Equal(t, created.Name, "foo")
@@ -1001,8 +1037,12 @@ func TestServiceCreateFromYAMLWithOverride(t *testing.T) {
 	// Multiple edit flags
 	expectedAnnotations := map[string]string{
 		"foo": "bar"}
-	action, created, _, err = fakeServiceCreate([]string{"service", "create", "foo", "--filename", tempFile,
-		"--service-account", "foo", "--cmd", "/foo/bar", "-a", "foo=bar"}, false)
+
+	args = []string{"service", "create", "foo", "--filename", tempFile,
+		"--service-account", "foo", "--cmd", "/foo/bar", "-a", "foo=bar"}
+	os.Args = args
+
+	action, created, _, err = fakeServiceCreate(args, false)
 	assert.NilError(t, err)
 	assert.Assert(t, action.Matches("create", "services"))
 	assert.Equal(t, created.Name, "foo")

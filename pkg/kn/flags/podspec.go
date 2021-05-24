@@ -163,7 +163,17 @@ func (p *PodSpecFlags) ResolvePodSpec(podSpec *corev1.PodSpec, flags *pflag.Flag
 	var err error
 
 	if flags.Changed("env") || flags.Changed("env-value-from") {
-		err = UpdateEnvVars(podSpec, allArgs, p.Env, p.EnvValueFrom)
+		envToUpdate, envToRemove, err := util.OrderedMapAndRemovalListFromArray(p.Env, "=")
+		if err != nil {
+			return fmt.Errorf("Invalid --env: %w", err)
+		}
+
+		envValueFromToUpdate, envValueFromToRemove, err := util.OrderedMapAndRemovalListFromArray(p.EnvValueFrom, "=")
+		if err != nil {
+			return fmt.Errorf("Invalid --env-value-from: %w", err)
+		}
+
+		err = UpdateEnvVars(podSpec, allArgs, envToUpdate, envToRemove, envValueFromToUpdate, envValueFromToRemove)
 		if err != nil {
 			return err
 		}

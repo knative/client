@@ -43,8 +43,10 @@ func TestUpdateEnvVarsNew(t *testing.T) {
 		"a=foo",
 		"b=bar",
 	}
+	envToUpdate, envToRemove, err := util.OrderedMapAndRemovalListFromArray(argsEnv, "=")
+	assert.NilError(t, err)
 	args := append([]string{"command"}, argsEnv...)
-	err := UpdateEnvVars(spec, args, argsEnv, []string{})
+	err = UpdateEnvVars(spec, args, envToUpdate, envToRemove, util.NewOrderedMap(), []string{})
 	assert.NilError(t, err)
 	assert.DeepEqual(t, expected, spec.Containers[0].Env)
 }
@@ -92,7 +94,9 @@ func TestUpdateEnvVarsValueFromNew(t *testing.T) {
 		"d=cm:goo:key4",
 	}
 	args := append([]string{"command"}, argsEnvValueFrom...)
-	err := UpdateEnvVars(spec, args, []string{}, argsEnvValueFrom)
+	envValueFromToUpdate, envValueFromToRemove, err := util.OrderedMapAndRemovalListFromArray(argsEnvValueFrom, "=")
+	assert.NilError(t, err)
+	err = UpdateEnvVars(spec, args, util.NewOrderedMap(), []string{}, envValueFromToUpdate, envValueFromToRemove)
 	assert.NilError(t, err)
 	assert.DeepEqual(t, expected, spec.Containers[0].Env)
 }
@@ -129,14 +133,18 @@ func TestUpdateEnvVarsAllNew(t *testing.T) {
 	}
 
 	args := append([]string{"command"}, append(argsEnvValueFrom, argsEnv...)...)
-	err := UpdateEnvVars(spec, args, argsEnv, argsEnvValueFrom)
+	envToUpdate, envToRemove, err := util.OrderedMapAndRemovalListFromArray(argsEnv, "=")
+	assert.NilError(t, err)
+	envValueFromToUpdate, envValueFromToRemove, err := util.OrderedMapAndRemovalListFromArray(argsEnvValueFrom, "=")
+	assert.NilError(t, err)
+	err = UpdateEnvVars(spec, args, envToUpdate, envToRemove, envValueFromToUpdate, envValueFromToRemove)
 	assert.NilError(t, err)
 	assert.DeepEqual(t, expected, spec.Containers[0].Env)
 }
 
 func TestUpdateEnvVarsValueFromValidate(t *testing.T) {
 	spec, _ := getPodSpec()
-	wrongInput := [][]string{
+	envValueFromWrongInput := [][]string{
 		{"foo=foo"},
 		{"foo=bar:"},
 		{"foo=foo:bar"},
@@ -160,9 +168,11 @@ func TestUpdateEnvVarsValueFromValidate(t *testing.T) {
 		{"foo=cm:name:"},
 	}
 
-	for _, input := range wrongInput {
+	for _, input := range envValueFromWrongInput {
 		args := append([]string{"command"}, input...)
-		err := UpdateEnvVars(spec, args, []string{}, input)
+		envValueFromToUpdate, envValueFromToRemove, err := util.OrderedMapAndRemovalListFromArray(input, "=")
+		assert.NilError(t, err)
+		err = UpdateEnvVars(spec, args, util.NewOrderedMap(), []string{}, envValueFromToUpdate, envValueFromToRemove)
 		fmt.Println()
 		msg := fmt.Sprintf("input \"%s\" should fail, as it is not valid entry for containers.env.valueFrom", input[0])
 		assert.ErrorContains(t, err, " ", msg)
@@ -445,7 +455,9 @@ func TestUpdateEnvVarsModify(t *testing.T) {
 		"a=bar",
 	}
 	args := append([]string{"command"}, argsEnv...)
-	err := UpdateEnvVars(spec, args, argsEnv, []string{})
+	envToUpdate, envToRemove, err := util.OrderedMapAndRemovalListFromArray(argsEnv, "=")
+	assert.NilError(t, err)
+	err = UpdateEnvVars(spec, args, envToUpdate, envToRemove, util.NewOrderedMap(), []string{})
 	assert.NilError(t, err)
 	assert.DeepEqual(t, expected, container.Env)
 }
@@ -477,7 +489,9 @@ func TestUpdateEnvVarsValueFromModify(t *testing.T) {
 		"a=secret:bar:key2",
 	}
 	args := append([]string{"command"}, argsEnvValueFrom...)
-	err := UpdateEnvVars(spec, args, []string{}, argsEnvValueFrom)
+	envValueFromToUpdate, envValueFromToRemove, err := util.OrderedMapAndRemovalListFromArray(argsEnvValueFrom, "=")
+	assert.NilError(t, err)
+	err = UpdateEnvVars(spec, args, util.NewOrderedMap(), []string{}, envValueFromToUpdate, envValueFromToRemove)
 	assert.NilError(t, err)
 	assert.DeepEqual(t, expected, container.Env)
 }
@@ -514,7 +528,11 @@ func TestUpdateEnvVarsAllModify(t *testing.T) {
 		"b=goo",
 	}
 	args := append([]string{"command"}, append(argsEnvValueFrom, argsEnv...)...)
-	err := UpdateEnvVars(spec, args, argsEnv, argsEnvValueFrom)
+	envToUpdate, envToRemove, err := util.OrderedMapAndRemovalListFromArray(argsEnv, "=")
+	assert.NilError(t, err)
+	envValueFromToUpdate, envValueFromToRemove, err := util.OrderedMapAndRemovalListFromArray(argsEnvValueFrom, "=")
+	assert.NilError(t, err)
+	err = UpdateEnvVars(spec, args, envToUpdate, envToRemove, envValueFromToUpdate, envValueFromToRemove)
 	assert.NilError(t, err)
 	assert.DeepEqual(t, expected, container.Env)
 }
@@ -527,7 +545,9 @@ func TestUpdateEnvVarsRemove(t *testing.T) {
 	}
 	remove := []string{"b-"}
 	args := append([]string{"command"}, remove...)
-	err := UpdateEnvVars(spec, args, remove, []string{})
+	envToUpdate, envToRemove, err := util.OrderedMapAndRemovalListFromArray(remove, "=")
+	assert.NilError(t, err)
+	err = UpdateEnvVars(spec, args, envToUpdate, envToRemove, util.NewOrderedMap(), []string{})
 	assert.NilError(t, err)
 
 	expected := []corev1.EnvVar{
@@ -559,7 +579,9 @@ func TestUpdateEnvVarsValueFromRemove(t *testing.T) {
 	}
 	remove := []string{"b-"}
 	args := append([]string{"command"}, remove...)
-	err := UpdateEnvVars(spec, args, []string{}, remove)
+	envValueFromToUpdate, envValueFromToRemove, err := util.OrderedMapAndRemovalListFromArray(remove, "=")
+	assert.NilError(t, err)
+	err = UpdateEnvVars(spec, args, util.NewOrderedMap(), []string{}, envValueFromToUpdate, envValueFromToRemove)
 	assert.NilError(t, err)
 
 	expected := []corev1.EnvVar{
@@ -608,7 +630,11 @@ func TestUpdateEnvVarsAllRemove(t *testing.T) {
 	}
 
 	args := append([]string{"command"}, append(argsEnvValueFrom, argsEnv...)...)
-	err := UpdateEnvVars(spec, args, argsEnv, argsEnvValueFrom)
+	envToUpdate, envToRemove, err := util.OrderedMapAndRemovalListFromArray(argsEnv, "=")
+	assert.NilError(t, err)
+	envValueFromToUpdate, envValueFromToRemove, err := util.OrderedMapAndRemovalListFromArray(argsEnvValueFrom, "=")
+	assert.NilError(t, err)
+	err = UpdateEnvVars(spec, args, envToUpdate, envToRemove, envValueFromToUpdate, envValueFromToRemove)
 	assert.NilError(t, err)
 
 	expected := []corev1.EnvVar{
