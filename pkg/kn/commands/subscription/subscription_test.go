@@ -19,7 +19,6 @@ package subscription
 import (
 	"bytes"
 
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/clientcmd"
 	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
@@ -89,15 +88,15 @@ func cleanupSubscriptionMockClient() {
 func createSubscription(name, channel, subscriber, reply, dls string) *messagingv1.Subscription {
 	return clientv1.
 		NewSubscriptionBuilder(name).
-		Channel(createIMCObjectReference(channel)).
+		Channel(createIMCKReference(channel)).
 		Subscriber(createServiceSink(subscriber)).
 		Reply(createBrokerSink(reply)).
 		DeadLetterSink(createBrokerSink(dls)).
 		Build()
 }
 
-func createIMCObjectReference(channel string) *corev1.ObjectReference {
-	return &corev1.ObjectReference{
+func createIMCKReference(channel string) *duckv1.KReference {
+	return &duckv1.KReference{
 		APIVersion: "messaging.knative.dev/v1",
 		Kind:       "InMemoryChannel",
 		Name:       channel,

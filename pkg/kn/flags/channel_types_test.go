@@ -19,8 +19,9 @@ import (
 
 	"github.com/spf13/pflag"
 	"gotest.tools/v3/assert"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+
+	duckv1 "knative.dev/pkg/apis/duck/v1"
 )
 
 type channelTypeFlagsTestCase struct {
@@ -33,7 +34,7 @@ type channelTypeFlagsTestCase struct {
 type channelRefFlagsTestCase struct {
 	name              string
 	arg               string
-	expectedObjectRef *corev1.ObjectReference
+	expectedObjectRef *duckv1.KReference
 	expectedErrText   string
 }
 
@@ -92,19 +93,19 @@ func TestChannelRefFlags(t *testing.T) {
 		{
 			"inbuilt alias 'imc' case",
 			"imc:i2",
-			&corev1.ObjectReference{APIVersion: "messaging.knative.dev/v1", Kind: "InMemoryChannel", Name: "i2"},
+			&duckv1.KReference{APIVersion: "messaging.knative.dev/v1", Kind: "InMemoryChannel", Name: "i2"},
 			"",
 		},
 		{
 			"explicit GVK case",
 			"messaging.knative.dev:v1alpha1:KafkaChannel:k1",
-			&corev1.ObjectReference{APIVersion: "messaging.knative.dev/v1alpha1", Kind: "KafkaChannel", Name: "k1"},
+			&duckv1.KReference{APIVersion: "messaging.knative.dev/v1alpha1", Kind: "KafkaChannel", Name: "k1"},
 			"",
 		},
 		{
 			"default channel type prefix case",
 			"c1",
-			&corev1.ObjectReference{APIVersion: "messaging.knative.dev/v1", Kind: "Channel", Name: "c1"},
+			&duckv1.KReference{APIVersion: "messaging.knative.dev/v1", Kind: "Channel", Name: "c1"},
 			"",
 		},
 		{
