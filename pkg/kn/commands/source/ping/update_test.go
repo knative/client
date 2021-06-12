@@ -39,15 +39,16 @@ func TestSimplePingUpdate(t *testing.T) {
 	pingRecorder.Validate()
 }
 
+//TestSimplePingUpdateCEOverrides updates ce override, schedule, data and sink
 func TestSimplePingUpdateCEOverrides(t *testing.T) {
 	pingSourceClient := sourcesv1beta2.NewMockKnPingSourceClient(t)
 	pingRecorder := pingSourceClient.Recorder()
 	ceOverrideMap := map[string]string{"bla": "blub", "foo": "bar"}
 	ceOverrideMapUpdated := map[string]string{"foo": "baz", "new": "ceoverride"}
 	pingRecorder.GetPingSource("testsource", createPingSource("testsource", "* * * * */1", "maxwell", "mysvc", ceOverrideMap), nil)
-	pingRecorder.UpdatePingSource(createPingSource("testsource", "* * * * */3", "maxwell", "mysvc", ceOverrideMapUpdated), nil)
+	pingRecorder.UpdatePingSource(createPingSource("testsource", "* * * * */3", "updated-data", "mysvc", ceOverrideMapUpdated), nil)
 
-	out, err := executePingSourceCommand(pingSourceClient, nil, "update", "--schedule", "* * * * */3", "testsource", "--ce-override", "bla-", "--ce-override", "foo=baz", "--ce-override", "new=ceoverride")
+	out, err := executePingSourceCommand(pingSourceClient, nil, "update", "--schedule", "* * * * */3", "testsource", "--data", "updated-data", "--ce-override", "bla-", "--ce-override", "foo=baz", "--ce-override", "new=ceoverride")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(out, "updated", "default", "testsource"))
 
@@ -58,9 +59,12 @@ func TestUpdateError(t *testing.T) {
 	pingClient := sourcesv1beta2.NewMockKnPingSourceClient(t, "mynamespace")
 
 	pingRecorder := pingClient.Recorder()
+	pingRecorder.GetPingSource("", nil, errors.New("name of Ping source required"))
 	pingRecorder.GetPingSource("testsource", nil, errors.New("no Ping source testsource"))
 
-	out, err := executePingSourceCommand(pingClient, nil, "update", "testsource")
+	out, err := executePingSourceCommand(pingClient, nil, "update", "")
+	assert.Error(t, err, "name of Ping source required")
+	out, err = executePingSourceCommand(pingClient, nil, "update", "testsource")
 	assert.ErrorContains(t, err, "testsource")
 	assert.Assert(t, util.ContainsAll(out, "Usage", "testsource"))
 
