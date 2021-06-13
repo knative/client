@@ -16,6 +16,12 @@
 
 source $(dirname $0)/../vendor/knative.dev/hack/e2e-tests.sh
 
+export INGRESS_CLASS=${INGRESS_CLASS:-istio.ingress.networking.knative.dev}
+
+function is_ingress_class() {
+  [[ "${INGRESS_CLASS}" == *"${1}"* ]]
+}
+
 function cluster_setup() {
   header "Building client"
   ${REPO_ROOT_DIR}/hack/build.sh -f || return 1
@@ -59,7 +65,9 @@ function install_istio() {
 }
 
 function knative_setup() {
-  install_istio
+  if is_ingress_class istio; then
+    install_istio
+  fi
 
   local serving_version=${KNATIVE_SERVING_VERSION:-latest}
   header "Installing Knative Serving (${serving_version})"
@@ -78,6 +86,11 @@ function knative_setup() {
     kubectl apply --filename https://storage.googleapis.com/knative-releases/serving/previous/v${serving_version}/serving-domainmapping-crds.yaml
     kubectl apply --filename https://storage.googleapis.com/knative-releases/serving/previous/v${serving_version}/serving-domainmapping.yaml
     wait_until_pods_running knative-serving || return 1
+  fi
+
+  if ! is_ingress_class istio; then
+    kubectl patch configmap/config-network -n knative-serving \
+      --type merge -p '{"data": {"ingress.class":"'${INGRESS_CLASS}'"}}'
   fi
 
   local eventing_version=${KNATIVE_EVENTING_VERSION:-latest}
