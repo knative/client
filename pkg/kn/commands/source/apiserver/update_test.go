@@ -72,8 +72,8 @@ func TestApiServerUpdateError(t *testing.T) {
 	//check for name
 	argMissingMsg := "requires the name of the source as single argument"
 	apiServerRecorder.GetAPIServerSource("", nil, errors.New(argMissingMsg))
-	_, err := executeAPIServerSourceCommand(apiServerClient, nil, "update", "", "--resource", "Event:v1:key1=value1", "--service-account", "testsa", "--sink", "ksvc:testsvc", "--mode", "Reference")
-	assert.Error(t, err, argMissingMsg)
+	_, err := executeAPIServerSourceCommand(apiServerClient, nil, "update", "")
+	assert.ErrorContains(t, err, argMissingMsg)
 
 	//check if sink is missing
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default", &servingv1.Service{
