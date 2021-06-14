@@ -26,6 +26,19 @@ import (
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
+var GvrToListKind = map[schema.GroupVersionResource]string{
+	{Group: "apiextensions.k8s.io", Version: "v1", Resource: "customresourcedefinitions"}: "CustomResourceDefinitionList",
+	{Group: "sources.knative.dev", Version: "v1", Resource: "apiserversources"}:           "ApiServerSourceList",
+	{Group: "sources.knative.dev", Version: "v1", Resource: "containersources"}:           "ContainerSourceList",
+	{Group: "sources.knative.dev", Version: "v1", Resource: "sinkbindings"}:               "SinkBindingList",
+	{Group: "sources.knative.dev", Version: "v1beta2", Resource: "pingsources"}:           "PingSourceList",
+	{Group: "sources.knative.dev", Version: "v1alpha1", Resource: "kafkasources"}:         "KafkaSourceList",
+	{Group: "eventing.knative.dev", Version: "v1", Resource: "brokers"}:                   "BrokerList",
+	{Group: "eventing.knative.dev", Version: "v1", Resource: "subscriptions"}:             "SubscriptionList",
+	{Group: "eventing.knative.dev", Version: "v1", Resource: "channels"}:                  "ChannelList",
+	{Group: "messaging.knative.dev", Version: "v1", Resource: "inmemorychannels"}:         "InMemoryChannelsList",
+}
+
 // CreateFakeKnDynamicClient gives you a dynamic client for testing containing the given objects.
 func CreateFakeKnDynamicClient(testNamespace string, objects ...runtime.Object) dynamic.KnDynamicClient {
 	scheme := runtime.NewScheme()
@@ -35,6 +48,6 @@ func CreateFakeKnDynamicClient(testNamespace string, objects ...runtime.Object) 
 	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "eventing.knative.dev", Version: "v1", Kind: "Broker"}, &eventingv1.Broker{})
 	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "eventing.knative.dev", Version: "v1", Kind: "Subscription"}, &messagingv1.Subscription{})
 	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "messaging.knative.dev", Version: "v1", Kind: "Channel"}, &messagingv1.Channel{})
-	client := dynamicfake.NewSimpleDynamicClient(scheme, objects...)
+	client := dynamicfake.NewSimpleDynamicClientWithCustomListKinds(scheme, GvrToListKind, objects...)
 	return dynamic.NewKnDynamicClient(client, testNamespace)
 }

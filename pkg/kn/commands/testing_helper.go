@@ -17,6 +17,8 @@ package commands
 import (
 	"bytes"
 
+	"knative.dev/client/pkg/dynamic/fake"
+
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/runtime"
 	clienttesting "k8s.io/client-go/testing"
@@ -69,7 +71,7 @@ func CreateSourcesTestKnCommand(cmd *cobra.Command, knParams *KnParams) (*cobra.
 // CreateDynamicTestKnCommand helper for creating test commands using dynamic client
 func CreateDynamicTestKnCommand(cmd *cobra.Command, knParams *KnParams, objects ...runtime.Object) (*cobra.Command, *dynamicfake.FakeDynamicClient, *bytes.Buffer) {
 	buf := new(bytes.Buffer)
-	fakeDynamic := dynamicfake.NewSimpleDynamicClient(runtime.NewScheme(), objects...)
+	fakeDynamic := dynamicfake.NewSimpleDynamicClientWithCustomListKinds(runtime.NewScheme(), fake.GvrToListKind, objects...)
 	knParams.Output = buf
 	knParams.NewDynamicClient = func(namespace string) (clientdynamic.KnDynamicClient, error) {
 		return clientdynamic.NewKnDynamicClient(fakeDynamic, FakeNamespace), nil
