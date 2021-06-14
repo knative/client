@@ -38,13 +38,13 @@ func TestApiServerSourceUpdate(t *testing.T) {
 
 	apiServerRecorder := apiServerClient.Recorder()
 
-	present := createAPIServerSource("testsource", "Event", "v1", "testsa1", "Reference", map[string]string{"bla": "blub", "foo": "bar"}, createSinkv1("svc1", "default"))
+	present := createAPIServerSource("testsource", "testsa1", "Reference", []string{"Event"}, []string{"v1"}, map[string]string{"bla": "blub", "foo": "bar"}, createSinkv1("svc1", "default"))
 	apiServerRecorder.GetAPIServerSource("testsource", present, nil)
 
-	updated := createAPIServerSource("testsource", "Event", "v1", "testsa2", "Reference", map[string]string{"foo": "baz"}, createSinkv1("svc2", "default"))
+	updated := createAPIServerSource("testsource", "testsa2", "Reference", []string{"Event", "Pod"}, []string{"v1", "v1"}, map[string]string{"foo": "baz"}, createSinkv1("svc2", "default"))
 	apiServerRecorder.UpdateAPIServerSource(updated, nil)
 
-	output, err := executeAPIServerSourceCommand(apiServerClient, dynamicClient, "update", "testsource", "--service-account", "testsa2", "--sink", "ksvc:svc2", "--ce-override", "bla-", "--ce-override", "foo=baz", "--mode", "Reference")
+	output, err := executeAPIServerSourceCommand(apiServerClient, dynamicClient, "update", "testsource", "--service-account", "testsa2", "--sink", "ksvc:svc2", "--ce-override", "bla-", "--ce-override", "foo=baz", "--mode", "Reference", "--resource", "Pod:v1")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "testsource", "updated", "default"))
 
@@ -55,7 +55,7 @@ func TestApiServerSourceUpdateDeletionTimestampNotNil(t *testing.T) {
 	apiServerClient := v1.NewMockKnAPIServerSourceClient(t)
 	apiServerRecorder := apiServerClient.Recorder()
 
-	present := createAPIServerSource("testsource", "Event", "v1", "testsa1", "Ref", nil, createSinkv1("svc1", "default"))
+	present := createAPIServerSource("testsource", "testsa1", "Ref", []string{"Event"}, []string{"v1"}, nil, createSinkv1("svc1", "default"))
 	present.DeletionTimestamp = &metav1.Time{Time: time.Now()}
 	apiServerRecorder.GetAPIServerSource("testsource", present, nil)
 
@@ -81,7 +81,7 @@ func TestApiServerUpdateError(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "svc2", Namespace: "default"},
 	})
 
-	present := createAPIServerSource("testsource", "Event", "v1", "testsa1", "Reference", map[string]string{"bla": "blub", "foo": "bar"}, createSinkv1("svc1", "default"))
+	present := createAPIServerSource("testsource", "testsa1", "Reference", []string{"Event"}, []string{"v1"}, map[string]string{"bla": "blub", "foo": "bar"}, createSinkv1("svc1", "default"))
 	apiServerRecorder.GetAPIServerSource("testsource", present, nil)
 	sinkMissingMsg := "services.serving.knative.dev \"svc3\" not found"
 	apiServerRecorder.UpdateAPIServerSource("", errors.New(sinkMissingMsg))

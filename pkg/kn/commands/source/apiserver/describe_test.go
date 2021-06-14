@@ -38,7 +38,7 @@ func TestSimpleDescribe(t *testing.T) {
 	apiServerClient := v1.NewMockKnAPIServerSourceClient(t, "mynamespace")
 
 	apiServerRecorder := apiServerClient.Recorder()
-	sampleSource := createAPIServerSource("testsource", "Event", "v1", "testsa", "Reference", map[string]string{"foo": "bar"}, createSinkv1("testsvc", "default"))
+	sampleSource := createAPIServerSource("testsource", "testsa", "Reference", []string{"Event"}, []string{"v1"}, map[string]string{"foo": "bar"}, createSinkv1("testsvc", "default"))
 	sampleSource.Namespace = "mynamespace"
 	apiServerRecorder.GetAPIServerSource("testsource", sampleSource, nil)
 
@@ -54,7 +54,7 @@ func TestDescribeMachineReadable(t *testing.T) {
 	apiServerClient := v1.NewMockKnAPIServerSourceClient(t, "mynamespace")
 
 	apiServerRecorder := apiServerClient.Recorder()
-	sampleSource := createAPIServerSource("testsource", "Event", "v1", "testsa", "Reference", map[string]string{"foo": "bar"}, createSinkv1("testsvc", "default"))
+	sampleSource := createAPIServerSource("testsource", "testsa", "Reference", []string{"Event"}, []string{"v1"}, map[string]string{"foo": "bar"}, createSinkv1("testsvc", "default"))
 	sampleSource.APIVersion = "sources.knative.dev/v1"
 	sampleSource.Kind = "ApiServerSource"
 	sampleSource.Namespace = "mynamespace"
@@ -71,8 +71,12 @@ func TestDescribeError(t *testing.T) {
 	apiServerClient := v1.NewMockKnAPIServerSourceClient(t, "mynamespace")
 
 	apiServerRecorder := apiServerClient.Recorder()
+	argMissingMsg := "requires the name of the source as single argument"
+	apiServerRecorder.GetAPIServerSource("", nil, errors.New(argMissingMsg))
 	apiServerRecorder.GetAPIServerSource("testsource", nil, errors.New("no apiserver source testsource"))
 
+	_, err := executeAPIServerSourceCommand(apiServerClient, nil, "describe", "")
+	assert.Error(t, err, argMissingMsg)
 	out, err := executeAPIServerSourceCommand(apiServerClient, nil, "describe", "testsource")
 	assert.ErrorContains(t, err, "testsource")
 	assert.Assert(t, util.ContainsAll(out, "Usage", "testsource"))
@@ -84,7 +88,7 @@ func TestDescribeWithSinkURI(t *testing.T) {
 	apiServerClient := v1.NewMockKnAPIServerSourceClient(t, "mynamespace")
 
 	apiServerRecorder := apiServerClient.Recorder()
-	sampleSource := createAPIServerSource("testsource", "Event", "v1", "testsa", "Reference", map[string]string{"foo": "bar"}, sinkURI)
+	sampleSource := createAPIServerSource("testsource", "testsa", "Reference", []string{"Event"}, []string{"v1"}, map[string]string{"foo": "bar"}, sinkURI)
 	sampleSource.Namespace = "mynamespace"
 	apiServerRecorder.GetAPIServerSource("testsource", sampleSource, nil)
 

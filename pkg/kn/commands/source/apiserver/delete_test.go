@@ -39,11 +39,15 @@ func TestApiServerSourceDelete(t *testing.T) {
 }
 
 func TestDeleteWithError(t *testing.T) {
-
 	apiServerClient := v1.NewMockKnAPIServerSourceClient(t, "mynamespace")
 	apiServerRecorder := apiServerClient.Recorder()
 
+	argMissingMsg := "requires the name of the source as single argument"
+	apiServerRecorder.DeleteAPIServerSource("", errors.New(argMissingMsg))
 	apiServerRecorder.DeleteAPIServerSource("testsource", errors.New("apiserver source testsource not found"))
+
+	_, err := executeAPIServerSourceCommand(apiServerClient, nil, "delete", "")
+	assert.Error(t, err, argMissingMsg)
 
 	out, err := executeAPIServerSourceCommand(apiServerClient, nil, "delete", "testsource")
 	assert.ErrorContains(t, err, "testsource")

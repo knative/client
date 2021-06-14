@@ -80,11 +80,15 @@ func cleanupAPIServerMockClient() {
 	apiServerSourceClientFactory = nil
 }
 
-func createAPIServerSource(name, resourceKind, resourceVersion, serviceAccount, mode string, ceOverrides map[string]string, sink duckv1.Destination) *v1.ApiServerSource {
-	resources := []v1.APIVersionKindSelector{{
-		APIVersion: resourceVersion,
-		Kind:       resourceKind,
-	}}
+func createAPIServerSource(name, serviceAccount, mode string, resourceKind, resourceVersion []string, ceOverrides map[string]string, sink duckv1.Destination) *v1.ApiServerSource {
+	resources := make([]v1.APIVersionKindSelector, len(resourceKind))
+
+	for i, r := range resourceKind {
+		resources[i] = v1.APIVersionKindSelector{
+			APIVersion: resourceVersion[i],
+			Kind:       r,
+		}
+	}
 
 	return clientv1.NewAPIServerSourceBuilder(name).
 		Resources(resources).

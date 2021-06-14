@@ -31,7 +31,7 @@ func TestListAPIServerSource(t *testing.T) {
 	apiServerClient := v12.NewMockKnAPIServerSourceClient(t)
 
 	apiServerRecorder := apiServerClient.Recorder()
-	sampleSource := createAPIServerSource("testsource", "Event", "v1", "testsa", "Reference", nil, createSinkv1("testsvc", "default"))
+	sampleSource := createAPIServerSource("testsource", "testsa", "Reference", []string{"Event"}, []string{"v1"}, nil, createSinkv1("testsvc", "default"))
 	sampleSourceList := v1.ApiServerSourceList{}
 	sampleSourceList.Items = []v1.ApiServerSource{*sampleSource}
 
