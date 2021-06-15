@@ -15,39 +15,30 @@
 package fake
 
 import (
-	v1 "k8s.io/api/core/v1"
+	"context"
+
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	dynamicfake "k8s.io/client-go/dynamic/fake"
 
 	"knative.dev/client/pkg/dynamic"
+
 	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
 	messagingv1 "knative.dev/eventing/pkg/apis/messaging/v1"
+	sourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"
+	sourcesv1beta2 "knative.dev/eventing/pkg/apis/sources/v1beta2"
+	dynamicclientfake "knative.dev/pkg/injection/clients/dynamicclient/fake"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
-
-var GvrToListKind = map[schema.GroupVersionResource]string{
-	{Group: "apiextensions.k8s.io", Version: "v1", Resource: "customresourcedefinitions"}: "CustomResourceDefinitionList",
-	{Group: "sources.knative.dev", Version: "v1", Resource: "apiserversources"}:           "ApiServerSourceList",
-	{Group: "sources.knative.dev", Version: "v1", Resource: "containersources"}:           "ContainerSourceList",
-	{Group: "sources.knative.dev", Version: "v1", Resource: "sinkbindings"}:               "SinkBindingList",
-	{Group: "sources.knative.dev", Version: "v1beta2", Resource: "pingsources"}:           "PingSourceList",
-	{Group: "sources.knative.dev", Version: "v1alpha1", Resource: "kafkasources"}:         "KafkaSourceList",
-	{Group: "eventing.knative.dev", Version: "v1", Resource: "brokers"}:                   "BrokerList",
-	{Group: "eventing.knative.dev", Version: "v1", Resource: "subscriptions"}:             "SubscriptionList",
-	{Group: "eventing.knative.dev", Version: "v1", Resource: "channels"}:                  "ChannelList",
-	{Group: "messaging.knative.dev", Version: "v1", Resource: "inmemorychannels"}:         "InMemoryChannelsList",
-}
 
 // CreateFakeKnDynamicClient gives you a dynamic client for testing containing the given objects.
 func CreateFakeKnDynamicClient(testNamespace string, objects ...runtime.Object) dynamic.KnDynamicClient {
 	scheme := runtime.NewScheme()
-	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "Service"}, &v1.Service{})
-	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "serving.knative.dev", Version: "v1", Kind: "Service"}, &servingv1.Service{})
-	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "serving.knative.dev", Version: "v1", Kind: "Route"}, &servingv1.Route{})
-	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "eventing.knative.dev", Version: "v1", Kind: "Broker"}, &eventingv1.Broker{})
-	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "eventing.knative.dev", Version: "v1", Kind: "Subscription"}, &messagingv1.Subscription{})
-	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "messaging.knative.dev", Version: "v1", Kind: "Channel"}, &messagingv1.Channel{})
-	client := dynamicfake.NewSimpleDynamicClientWithCustomListKinds(scheme, GvrToListKind, objects...)
-	return dynamic.NewKnDynamicClient(client, testNamespace)
+	servingv1.AddToScheme(scheme)
+	eventingv1.AddToScheme(scheme)
+	messagingv1.AddToScheme(scheme)
+	sourcesv1.AddToScheme(scheme)
+	sourcesv1beta2.AddToScheme(scheme)
+	apiextensionsv1.AddToScheme(scheme)
+	_, dynamicClient := dynamicclientfake.With(context.TODO(), scheme, objects...)
+	return dynamic.NewKnDynamicClient(dynamicClient, testNamespace)
 }

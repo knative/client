@@ -560,6 +560,10 @@ k8s.io/api/scheduling/v1beta1
 k8s.io/api/storage/v1
 k8s.io/api/storage/v1alpha1
 k8s.io/api/storage/v1beta1
+# k8s.io/apiextensions-apiserver v0.20.7
+## explicit
+k8s.io/apiextensions-apiserver/pkg/apis/apiextensions
+k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1
 # k8s.io/apimachinery v0.20.7
 ## explicit
 k8s.io/apimachinery/pkg/api/equality
@@ -770,6 +774,7 @@ k8s.io/kube-openapi/pkg/util/sets
 # k8s.io/utils v0.0.0-20210111153108-fddb29f9d009
 k8s.io/utils/buffer
 k8s.io/utils/integer
+k8s.io/utils/pointer
 k8s.io/utils/trace
 # knative.dev/eventing v0.23.1-0.20210614135520-b0b32c47d7d3
 ## explicit
@@ -823,6 +828,7 @@ knative.dev/pkg/hack
 knative.dev/pkg/hash
 knative.dev/pkg/injection
 knative.dev/pkg/injection/clients/dynamicclient
+knative.dev/pkg/injection/clients/dynamicclient/fake
 knative.dev/pkg/kmeta
 knative.dev/pkg/kmp
 knative.dev/pkg/leaderelection
@@ -848,6 +854,7 @@ knative.dev/pkg/tracing/config
 knative.dev/pkg/tracing/propagation
 knative.dev/pkg/tracing/propagation/tracecontextb3
 knative.dev/pkg/tracker
+knative.dev/pkg/unstructured
 # knative.dev/serving v0.23.1-0.20210614141420-380a090c2039
 ## explicit
 knative.dev/serving/pkg/apis/autoscaling

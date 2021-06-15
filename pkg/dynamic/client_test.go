@@ -20,15 +20,20 @@ import (
 	"testing"
 
 	"gotest.tools/v3/assert"
+
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	dynamicfake "k8s.io/client-go/dynamic/fake"
+
 	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
 	"knative.dev/eventing/pkg/apis/messaging"
 	messagingv1 "knative.dev/eventing/pkg/apis/messaging/v1"
+	sourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"
+	sourcesv1beta2 "knative.dev/eventing/pkg/apis/sources/v1beta2"
+	dynamicclientfake "knative.dev/pkg/injection/clients/dynamicclient/fake"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	"knative.dev/client/pkg/util"
@@ -171,28 +176,18 @@ func TestListSourcesUsingGVKs(t *testing.T) {
 
 }
 
-var gvrToListKind = map[schema.GroupVersionResource]string{
-	{Group: "apiextensions.k8s.io", Version: "v1", Resource: "customresourcedefinitions"}: "CustomResourceDefinitionList",
-	{Group: "sources.knative.dev", Version: "v1", Resource: "apiserversources"}:           "ApiServerSourceList",
-	{Group: "sources.knative.dev", Version: "v1", Resource: "containersources"}:           "ContainerSourceList",
-	{Group: "sources.knative.dev", Version: "v1", Resource: "sinkbindings"}:               "SinkBindingList",
-	{Group: "sources.knative.dev", Version: "v1beta2", Resource: "pingsources"}:           "PingSourceList",
-	{Group: "sources.knative.dev", Version: "v1alpha1", Resource: "kafkasources"}:         "KafkaSourceList",
-	{Group: "eventing.knative.dev", Version: "v1", Resource: "brokers"}:                   "BrokerList",
-	{Group: "eventing.knative.dev", Version: "v1", Resource: "subscriptions"}:             "SubscriptionList",
-	{Group: "eventing.knative.dev", Version: "v1", Resource: "channels"}:                  "ChannelList",
-	{Group: "messaging.knative.dev", Version: "v1", Resource: "inmemorychannels"}:         "InMemoryChannelsList",
-}
-
 // createFakeKnDynamicClient gives you a dynamic client for testing containing the given objects.
 // See also the one in the fake package. Duplicated here to avoid a dependency loop.
 func createFakeKnDynamicClient(testNamespace string, objects ...runtime.Object) KnDynamicClient {
 	scheme := runtime.NewScheme()
-	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "serving.knative.dev", Version: "v1alpha1", Kind: "Service"}, &servingv1.Service{})
-	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "eventing.knative.dev", Version: "v1", Kind: "Broker"}, &eventingv1.Broker{})
-	scheme.AddKnownTypeWithName(schema.GroupVersionKind{Group: "messaging.knative.dev", Version: "v1", Kind: "Channel"}, &messagingv1.Channel{})
-	client := dynamicfake.NewSimpleDynamicClientWithCustomListKinds(scheme, gvrToListKind, objects...)
-	return NewKnDynamicClient(client, testNamespace)
+	servingv1.AddToScheme(scheme)
+	eventingv1.AddToScheme(scheme)
+	messagingv1.AddToScheme(scheme)
+	sourcesv1.AddToScheme(scheme)
+	sourcesv1beta2.AddToScheme(scheme)
+	apiextensionsv1.AddToScheme(scheme)
+	_, dynamicClient := dynamicclientfake.With(context.TODO(), scheme, objects...)
+	return NewKnDynamicClient(dynamicClient, testNamespace)
 }
 
 func newSourceCRDObj(name string) *unstructured.Unstructured {

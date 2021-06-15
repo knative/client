@@ -26,8 +26,6 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	dynamicfake "k8s.io/client-go/dynamic/fake"
-	clientdynamic "knative.dev/client/pkg/dynamic"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/util"
 )
@@ -75,8 +73,8 @@ func TestSourceListTypesNoSourcesWithJsonOutput(t *testing.T) {
 
 func TestSourceListTypes(t *testing.T) {
 	output, err := sourceFakeCmd([]string{"source", "list-types"},
-		newSourceCRDObjWithSpec("pingsources", "sources.knative.dev", "v1alpha1", "PingSource"),
-		newSourceCRDObjWithSpec("apiserversources", "sources.knative.dev", "v1alpha1", "ApiServerSource"),
+		newSourceCRDObjWithSpec("pingsources", "sources.knative.dev", "v1beta2", "PingSource"),
+		newSourceCRDObjWithSpec("apiserversources", "sources.knative.dev", "v1", "ApiServerSource"),
 	)
 	assert.NilError(t, err)
 	assert.Check(t, util.ContainsAll(output[0], "TYPE", "S", "NAME", "DESCRIPTION"))
@@ -94,8 +92,7 @@ func TestSourceListTypesNoHeaders(t *testing.T) {
 }
 
 func TestListBuiltInSourceTypes(t *testing.T) {
-	fakeDynamic := dynamicfake.NewSimpleDynamicClientWithCustomListKinds(runtime.NewScheme(), fake.GvrToListKind)
-	sources, err := listBuiltInSourceTypes(context.Background(), clientdynamic.NewKnDynamicClient(fakeDynamic, "current"))
+	sources, err := listBuiltInSourceTypes(context.Background(), fake.CreateFakeKnDynamicClient("current"))
 	assert.NilError(t, err)
 	if sources == nil {
 		t.Fatal("sources = nil, want not nil")

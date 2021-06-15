@@ -17,6 +17,7 @@ require (
 	gopkg.in/ini.v1 v1.56.0 // indirect
 	gotest.tools/v3 v3.0.3
 	k8s.io/api v0.20.7
+	k8s.io/apiextensions-apiserver v0.20.7
 	k8s.io/apimachinery v0.20.7
 	k8s.io/cli-runtime v0.20.7
 	k8s.io/client-go v0.20.7
