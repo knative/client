@@ -7,7 +7,6 @@ require (
 	github.com/gregjones/httpcache v0.0.0-20190212212710-3befbb6ad0cc // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.3.1 // indirect
-	github.com/pelletier/go-toml v1.8.0 // indirect
 	github.com/smartystreets/assertions v1.0.0 // indirect
 	github.com/spf13/cast v1.3.1 // indirect
 	github.com/spf13/cobra v1.1.3
@@ -17,16 +16,17 @@ require (
 	golang.org/x/term v0.0.0-20201210144234-2321bbc49cbf
 	gopkg.in/ini.v1 v1.56.0 // indirect
 	gotest.tools/v3 v3.0.3
-	k8s.io/api v0.19.7
-	k8s.io/apimachinery v0.19.7
-	k8s.io/cli-runtime v0.19.7
-	k8s.io/client-go v0.19.7
-	k8s.io/code-generator v0.19.7
-	knative.dev/eventing v0.23.1-0.20210603165844-0ca9a9c8c1f2
-	knative.dev/hack v0.0.0-20210601210329-de04b70e00d0
-	knative.dev/networking v0.0.0-20210603073844-5521a8b92648
-	knative.dev/pkg v0.0.0-20210602095030-0e61d6763dd6
-	knative.dev/serving v0.23.1-0.20210603181344-68a1b38b50b0
+	k8s.io/api v0.20.7
+	k8s.io/apiextensions-apiserver v0.20.7
+	k8s.io/apimachinery v0.20.7
+	k8s.io/cli-runtime v0.20.7
+	k8s.io/client-go v0.20.7
+	k8s.io/code-generator v0.20.7
+	knative.dev/eventing v0.23.1-0.20210614135520-b0b32c47d7d3
+	knative.dev/hack v0.0.0-20210614141220-66ab1a098940
+	knative.dev/networking v0.0.0-20210614195820-29c1fb2f824d
+	knative.dev/pkg v0.0.0-20210614053220-ed09cd052101
+	knative.dev/serving v0.23.1-0.20210614141420-380a090c2039
 	sigs.k8s.io/yaml v1.2.0
 )
 

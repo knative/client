@@ -92,6 +92,11 @@ run() {
 
 
 codegen() {
+  #TODO: Workaround to update go-licenses until prow-tests image is updated
+  local temp_dir="$(mktemp -d)"
+  pushd "${temp_dir}" > /dev/null 2>&1
+  GO111MODULE=on go get github.com/google/go-licenses@latest || return 1
+  popd > /dev/null 2>&1
   # Update dependencies
   update_deps
 

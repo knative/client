@@ -25,10 +25,8 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	dynamicfake "k8s.io/client-go/dynamic/fake"
 	dynamicfakeClient "knative.dev/client/pkg/dynamic/fake"
 
-	"knative.dev/client/pkg/dynamic"
 	clientdynamic "knative.dev/client/pkg/dynamic"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/util"
@@ -112,8 +110,7 @@ func TestChannelListTypesNoHeaders(t *testing.T) {
 }
 
 func TestListBuiltInChannelTypes(t *testing.T) {
-	fakeDynamic := dynamicfake.NewSimpleDynamicClient(runtime.NewScheme())
-	channel, err := listBuiltInChannelTypes(context.Background(), dynamic.NewKnDynamicClient(fakeDynamic, "current"))
+	channel, err := listBuiltInChannelTypes(context.Background(), dynamicfakeClient.CreateFakeKnDynamicClient("current"))
 	assert.NilError(t, err)
 	if channel == nil {
 		t.Fatal("channel = nil, want not nil")
