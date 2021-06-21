@@ -65,15 +65,16 @@ func TestApiServerSourceUpdateDeletionTimestampNotNil(t *testing.T) {
 	assert.ErrorContains(t, err, "apiserver")
 }
 
-func TestApiServerUpdateError(t *testing.T) {
+func TestApiServerUpdateErrorForNoArgs(t *testing.T) {
+	apiServerClient := v1.NewMockKnAPIServerSourceClient(t)
+	argMissingMsg := "requires the name of the source as single argument"
+	_, err := executeAPIServerSourceCommand(apiServerClient, nil, "update")
+	assert.Error(t, err, argMissingMsg)
+}
+
+func TestApiServerUpdateSinkMissingError(t *testing.T) {
 	apiServerClient := v1.NewMockKnAPIServerSourceClient(t)
 	apiServerRecorder := apiServerClient.Recorder()
-
-	//check for name
-	argMissingMsg := "requires the name of the source as single argument"
-	apiServerRecorder.GetAPIServerSource("", nil, errors.New(argMissingMsg))
-	_, err := executeAPIServerSourceCommand(apiServerClient, nil, "update", "")
-	assert.ErrorContains(t, err, argMissingMsg)
 
 	//check if sink is missing
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default", &servingv1.Service{
@@ -86,6 +87,6 @@ func TestApiServerUpdateError(t *testing.T) {
 	sinkMissingMsg := "services.serving.knative.dev \"svc3\" not found"
 	apiServerRecorder.UpdateAPIServerSource("", errors.New(sinkMissingMsg))
 
-	_, err = executeAPIServerSourceCommand(apiServerClient, dynamicClient, "update", "testsource", "--service-account", "testsa2", "--sink", "ksvc:svc3", "--ce-override", "bla-", "--ce-override", "foo=baz")
+	_, err := executeAPIServerSourceCommand(apiServerClient, dynamicClient, "update", "testsource", "--service-account", "testsa2", "--sink", "ksvc:svc3", "--ce-override", "bla-", "--ce-override", "foo=baz")
 	assert.Error(t, err, sinkMissingMsg)
 }
