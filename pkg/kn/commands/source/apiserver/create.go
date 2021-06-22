@@ -83,12 +83,6 @@ func NewAPIServerCreateCommand(p *commands.KnParams) *cobra.Command {
 
 			err = apiSourceClient.CreateAPIServerSource(cmd.Context(), b.Build())
 
-			if err != nil {
-				return fmt.Errorf(
-					"cannot create ApiServerSource '%s' in namespace '%s' "+
-						"because: %s", name, namespace, err)
-			}
-
 			if err == nil {
 				fmt.Fprintf(cmd.OutOrStdout(), "ApiServer source '%s' created in namespace '%s'.\n", args[0], namespace)
 			}
