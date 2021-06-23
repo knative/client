@@ -164,26 +164,6 @@ func (b *ContainerSourceBuilder) Sink(sink duckv1.Destination) *ContainerSourceB
 	return b
 }
 
-func (b *ContainerSourceBuilder) CloudEventOverrides(ceo map[string]string, toRemove []string) *ContainerSourceBuilder {
-	if ceo == nil && len(toRemove) == 0 {
-		return b
-	}
-
-	ceOverrides := b.ContainerSource.Spec.CloudEventOverrides
-	if ceOverrides == nil {
-		ceOverrides = &duckv1.CloudEventOverrides{Extensions: map[string]string{}}
-		b.ContainerSource.Spec.CloudEventOverrides = ceOverrides
-	}
-	for k, v := range ceo {
-		ceOverrides.Extensions[k] = v
-	}
-	for _, r := range toRemove {
-		delete(ceOverrides.Extensions, r)
-	}
-
-	return b
-}
-
 // Build the ContainerSource object
 func (b *ContainerSourceBuilder) Build() *v1.ContainerSource {
 	return b.ContainerSource
