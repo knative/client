@@ -42,14 +42,27 @@ func TestSimpleDescribe(t *testing.T) {
 	containerClient := v1.NewMockKnContainerSourceClient(t, "mynamespace")
 
 	containerRecorder := containerClient.Recorder()
-	sampleSource := createContainerSource("testsource", "docker.io/test/testimg", createSinkv1("testsvc", "default"))
+	sampleSource := createContainerSource(
+		"testsource", "docker.io/test/testimg",
+		createSinkv1("testsvc", "default"),
+		map[string]string{"bla": "blub", "foo": "bar"},
+		[]string{"env1=evalue1"},
+		[]string{"baz"},
+	)
 	sampleSource.Namespace = "mynamespace"
 	containerRecorder.GetContainerSource("testsource", sampleSource, nil)
 
 	out, err := executeContainerSourceCommand(containerClient, nil, "describe", "testsource")
 	assert.NilError(t, err)
-	assert.Assert(t, util.ContainsAll(out, "testsource", "docker.io/test/testimg", "testsvc"))
+	assert.Assert(t, util.ContainsAll(out, "testsource", "docker.io/test/testimg", "testsvc", "bla", "foo", "env1", "baz"))
 	assert.Assert(t, util.ContainsNone(out, "URI"))
 
 	containerRecorder.Validate()
+}
+
+func TestContainerDescribeErrorForNoArgs(t *testing.T) {
+	containerClient := v1.NewMockKnContainerSourceClient(t, "mynamespace")
+	argMissingMsg := "'kn source container describe' requires name of the source as single argument"
+	_, err := executeContainerSourceCommand(containerClient, nil, "describe")
+	assert.Error(t, err, argMissingMsg)
 }

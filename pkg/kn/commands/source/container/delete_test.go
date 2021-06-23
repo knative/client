@@ -53,3 +53,10 @@ func TestDeleteWithError(t *testing.T) {
 
 	containerRecorder.Validate()
 }
+
+func TestContainerDeleteErrorForNoArgs(t *testing.T) {
+	containerClient := v1.NewMockKnContainerSourceClient(t, "mynamespace")
+	argMissingMsg := "requires the name of the source as single argument"
+	_, err := executeContainerSourceCommand(containerClient, nil, "delete")
+	assert.Error(t, err, argMissingMsg)
+}
