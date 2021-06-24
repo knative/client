@@ -12,6 +12,14 @@
 | https://github.com/knative/client/pull/[#]
 ////
 
+## Unreleased
+[cols="1,10,3", options="header", width="100%"]
+| | Description | PR
+
+| 🎁
+| Prettify printing of webhook warnings
+| https://github.com/knative/client/pull/1353[#1353]
+
 ## v0.23.0 (2021-05-18)
 [cols="1,10,3", options="header", width="100%"]
 |===
