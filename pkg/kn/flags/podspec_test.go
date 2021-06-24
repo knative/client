@@ -16,8 +16,14 @@ package flags
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"testing"
+
+	"knative.dev/client/lib/test"
 
 	"github.com/spf13/cobra"
 	"gotest.tools/v3/assert"
@@ -124,6 +130,139 @@ func TestPodSpecResolve(t *testing.T) {
 	testCmd.SetArgs(inputArgs)
 	flags.AddFlags(testCmd.Flags())
 	testCmd.Execute()
+}
+
+func TestPodSpecResolveContainers(t *testing.T) {
+	rawInput := `
+containers:
+- image: foo:bar
+  name: foo
+  env:
+  - name: a
+    value: b
+  resources: {}
+- image: bar:bar
+  name: bar
+  resources: {}`
+
+	rawInvalidFormatInput := `
+containers:
+  image: foo:bar
+  name: foo	
+  resources: {}`
+
+	expectedPodSpec := corev1.PodSpec{
+		Containers: []corev1.Container{
+			{
+				Image: "repo/user/imageID:tag",
+				Resources: corev1.ResourceRequirements{
+					Limits:   corev1.ResourceList{},
+					Requests: corev1.ResourceList{},
+				},
+			},
+			{
+				Name:  "foo",
+				Image: "foo:bar",
+				Env:   []corev1.EnvVar{{Name: "a", Value: "b"}},
+			},
+			{
+				Name:  "bar",
+				Image: "bar:bar",
+			},
+		},
+	}
+
+	testCases := []struct {
+		name            string
+		rawInput        string
+		mockInput       func(data string) string
+		expectedPodSpec corev1.PodSpec
+		expectedError   error
+	}{
+		{
+			"Input:stdin",
+			rawInput,
+			func(data string) string {
+				return mockDataToStdin(t, data)
+			},
+			expectedPodSpec,
+			nil,
+		},
+		{
+			"Input:file",
+			rawInput,
+			func(data string) string {
+				tempDir, err := ioutil.TempDir("", "kn-file")
+				assert.NilError(t, err)
+				fileName := filepath.Join(tempDir, "container.yaml")
+				ioutil.WriteFile(fileName, []byte(data), test.FileModeReadWrite)
+				return fileName
+			},
+			expectedPodSpec,
+			nil,
+		},
+		{
+			"Input:error",
+			rawInput,
+			func(data string) string {
+				return "-"
+			},
+			corev1.PodSpec{Containers: []corev1.Container{{}}},
+			errors.New("EOF"),
+		},
+		{
+			"Input:invalidFormat",
+			rawInvalidFormatInput,
+			func(data string) string {
+				return mockDataToStdin(t, data)
+			},
+			corev1.PodSpec{Containers: []corev1.Container{{}}},
+			errors.New("cannot unmarshal object into Go struct field PodSpec.containers"),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			origStdin := os.Stdin
+
+			fileName := tc.mockInput(tc.rawInput)
+			if fileName == "-" {
+				defer func() { os.Stdin = origStdin }()
+			} else {
+				defer os.RemoveAll(fileName)
+			}
+
+			inputArgs := []string{"--image", "repo/user/imageID:tag", "--containers", fileName}
+
+			flags := &PodSpecFlags{}
+			testCmd := &cobra.Command{
+				Use: "test",
+				Run: func(cmd *cobra.Command, args []string) {
+					podSpec := &corev1.PodSpec{Containers: []corev1.Container{{}}}
+					err := flags.ResolvePodSpec(podSpec, cmd.Flags(), inputArgs)
+					if tc.expectedError == nil {
+						assert.NilError(t, err, "PodSpec cannot be resolved.")
+						assert.DeepEqual(t, tc.expectedPodSpec, *podSpec)
+					} else {
+						assert.ErrorContains(t, err, tc.expectedError.Error())
+					}
+				},
+			}
+			testCmd.SetArgs(inputArgs)
+			flags.AddFlags(testCmd.Flags())
+			testCmd.Execute()
+		})
+	}
+}
+
+func mockDataToStdin(t *testing.T, data string) string {
+	stdinReader, stdinWriter, err := os.Pipe()
+	assert.NilError(t, err)
+	_, err = stdinWriter.Write([]byte(data))
+	assert.NilError(t, err)
+	stdinWriter.Close()
+	os.Stdin = stdinReader
+	return "-"
 }
 
 func TestPodSpecResolveReturnError(t *testing.T) {

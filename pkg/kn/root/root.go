@@ -20,6 +20,8 @@ import (
 	"strings"
 	"text/template"
 
+	"knative.dev/client/pkg/kn/commands/container"
+
 	"knative.dev/client/pkg/kn/commands/domain"
 
 	"github.com/spf13/cobra"
@@ -91,6 +93,7 @@ func NewRootCommand(helpFuncs *template.FuncMap) (*cobra.Command, error) {
 				revision.NewRevisionCommand(p),
 				route.NewRouteCommand(p),
 				domain.NewDomainCommand(p),
+				container.NewContainerCommand(p),
 			},
 		},
 		{

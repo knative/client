@@ -24,6 +24,7 @@ kn is the command line interface for managing Knative Serving and Eventing resou
 * [kn broker](kn_broker.md)	 - Manage message brokers
 * [kn channel](kn_channel.md)	 - Manage event channels
 * [kn completion](kn_completion.md)	 - Output shell completion code
+* [kn container](kn_container.md)	 - Manage service's containers
 * [kn domain](kn_domain.md)	 - Manage domain mappings
 * [kn options](kn_options.md)	 - Print the list of flags inherited by all commands
 * [kn plugin](kn_plugin.md)	 - Manage kn plugins

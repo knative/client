@@ -18,7 +18,12 @@ package flags
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"testing"
+
+	"knative.dev/client/lib/test"
 
 	"gotest.tools/v3/assert"
 	corev1 "k8s.io/api/core/v1"
@@ -762,4 +767,68 @@ func Test_isValidEnvValueFromArg(t *testing.T) {
 			assert.Equal(t, result, tc.isValid)
 		})
 	}
+}
+
+func TestUpdateContainers(t *testing.T) {
+	podSpec, _ := getPodSpec()
+	containers := []corev1.Container{
+		{
+			Name:  "foo",
+			Image: "foo:bar",
+		},
+		{
+			Name:  "bar",
+			Image: "foo:bar",
+		},
+	}
+	assert.Assert(t, len(podSpec.Containers) == 1)
+	UpdateContainers(podSpec, containers)
+	assert.Assert(t, len(podSpec.Containers) == 3)
+
+	// Verify that containers aren't multiplied
+	UpdateContainers(podSpec, containers)
+	assert.Assert(t, len(podSpec.Containers) == 3)
+
+	podSpec, _ = getPodSpec()
+	assert.Assert(t, len(podSpec.Containers) == 1)
+	UpdateContainers(podSpec, []corev1.Container{})
+	assert.Assert(t, len(podSpec.Containers) == 1)
+}
+
+func TestParseContainers(t *testing.T) {
+	rawInput := `
+containers:
+- image: first
+  name: foo
+  resources: {}
+- image: second
+  name: bar
+  resources: {}`
+
+	stdinReader, stdinWriter, err := os.Pipe()
+	assert.NilError(t, err)
+	_, err = stdinWriter.Write([]byte(rawInput))
+	assert.NilError(t, err)
+	stdinWriter.Close()
+
+	origStdin := os.Stdin
+	defer func() { os.Stdin = origStdin }()
+	os.Stdin = stdinReader
+
+	fromFile, err := decodeContainersFromFile("-")
+	assert.NilError(t, err)
+	assert.Equal(t, len(fromFile.Containers), 2)
+
+	tempDir, err := ioutil.TempDir("", "kn-file")
+	defer os.RemoveAll(tempDir)
+	assert.NilError(t, err)
+	fileName := filepath.Join(tempDir, "container.yaml")
+	ioutil.WriteFile(fileName, []byte(rawInput), test.FileModeReadWrite)
+	fromFile, err = decodeContainersFromFile(fileName)
+	assert.NilError(t, err)
+	assert.Equal(t, len(fromFile.Containers), 2)
+
+	_, err = decodeContainersFromFile("non-existing")
+	assert.Assert(t, err != nil)
+	assert.Assert(t, util.ContainsAll(err.Error(), "no", "file", "directory"))
 }
