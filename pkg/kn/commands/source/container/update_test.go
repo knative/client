@@ -64,9 +64,9 @@ func TestContainerSourceUpdateSinkError(t *testing.T) {
 
 func TestContainerUpdateErrorForNoArgs(t *testing.T) {
 	containerClient := v1.NewMockKnContainerSourceClient(t, "mynamespace")
-	argMissingMsg := "requires the name of the source as single argument"
-	_, err := executeContainerSourceCommand(containerClient, nil, "update")
-	assert.Error(t, err, argMissingMsg)
+	out, err := executeContainerSourceCommand(containerClient, nil, "update")
+	assert.ErrorContains(t, err, "single argument")
+	assert.Assert(t, util.ContainsAll(out, "requires", "single argument"))
 }
 
 func TestContainerUpdateDeletionTimestampNotNil(t *testing.T) {
@@ -76,8 +76,9 @@ func TestContainerUpdateDeletionTimestampNotNil(t *testing.T) {
 	containerRecorder := containerClient.Recorder()
 	containerRecorder.GetContainerSource("testsource", present, nil)
 
-	_, err := executeContainerSourceCommand(containerClient, nil, "update", "testsource")
-	assert.Error(t, err, "can't update container source testsource because it has been marked for deletion")
+	out, err := executeContainerSourceCommand(containerClient, nil, "update", "testsource")
+	assert.ErrorContains(t, err, "can't update container source")
+	assert.Assert(t, util.ContainsAll(out, "can't update container source", "marked for deletion"))
 }
 
 func TestContainerUpdatePSError(t *testing.T) {
@@ -87,6 +88,7 @@ func TestContainerUpdatePSError(t *testing.T) {
 	present := createContainerSource("testsource", "docker.io/test/testimg", createSinkv1("svc1", "default"), nil, nil, nil)
 	containerRecorder.GetContainerSource("testsource", present, nil)
 
-	_, err := executeContainerSourceCommand(containerClient, nil, "update", "testsource", "--mount", "123456")
-	assert.Error(t, err, "cannot update ContainerSource 'testsource' in namespace 'default' because: Invalid --mount: argument requires a value that contains the \"=\" character; got \"123456\"")
+	out, err := executeContainerSourceCommand(containerClient, nil, "update", "testsource", "--mount", "123456")
+	assert.ErrorContains(t, err, "cannot update ContainerSource")
+	assert.Assert(t, util.ContainsAll(out, "cannot update ContainerSource", "Invalid --mount"))
 }

@@ -76,6 +76,7 @@ func TestContainerCreatePSError(t *testing.T) {
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default", testsvc)
 	containerClient := v1.NewMockKnContainerSourceClient(t)
 
-	_, err := executeContainerSourceCommand(containerClient, dynamicClient, "create", "testsource", "--sink", "ksvc:testsvc", "--image", "docker.io/test/testimg", "--mount", "123456")
-	assert.Error(t, err, "cannot create ContainerSource 'testsource' in namespace 'default' because: Invalid --mount: argument requires a value that contains the \"=\" character; got \"123456\"")
+	out, err := executeContainerSourceCommand(containerClient, dynamicClient, "create", "testsource", "--sink", "ksvc:testsvc", "--image", "docker.io/test/testimg", "--mount", "123456")
+	assert.ErrorContains(t, err, "cannot create ContainerSource")
+	assert.Assert(t, util.ContainsAll(out, "cannot create ContainerSource", "Invalid --mount"))
 }

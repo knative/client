@@ -83,9 +83,9 @@ func TestDescribeError(t *testing.T) {
 
 func TestPingDescribeErrorForNoArgs(t *testing.T) {
 	pingClient := clientv1beta2.NewMockKnPingSourceClient(t, "mynamespace")
-	argMissingMsg := "'kn source ping describe' requires name of the source as single argument"
-	_, err := executePingSourceCommand(pingClient, nil, "describe")
-	assert.Error(t, err, argMissingMsg)
+	out, err := executePingSourceCommand(pingClient, nil, "describe")
+	assert.ErrorContains(t, err, "single argument")
+	assert.Assert(t, util.ContainsAll(out, "requires", "single argument"))
 }
 
 func getPingSourceSinkURI() *sourcesv1beta.PingSource {

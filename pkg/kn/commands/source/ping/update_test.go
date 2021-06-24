@@ -90,9 +90,9 @@ func TestPingUpdateDeletionTimestampNotNil(t *testing.T) {
 
 func TestPingUpdateErrorForNoArgs(t *testing.T) {
 	pingClient := sourcesv1beta2.NewMockKnPingSourceClient(t, "mynamespace")
-	argMissingMsg := "name of Ping source required"
-	_, err := executePingSourceCommand(pingClient, nil, "update")
-	assert.Error(t, err, argMissingMsg)
+	out, err := executePingSourceCommand(pingClient, nil, "update")
+	assert.ErrorContains(t, err, "required")
+	assert.Assert(t, util.ContainsAll(out, "Ping", "name", "required"))
 }
 
 func TestPingUpdateNoSinkError(t *testing.T) {
@@ -102,6 +102,7 @@ func TestPingUpdateNoSinkError(t *testing.T) {
 
 	pingRecorder.GetPingSource("testsource", createPingSource("testsource", "* * * * */1", "maxwell", "mysvc", nil), nil)
 
-	_, err := executePingSourceCommand(pingClient, dynamicClient, "update", "testsource", "--sink", "ksvc1")
-	assert.Error(t, err, "services.serving.knative.dev \"ksvc1\" not found")
+	out, err := executePingSourceCommand(pingClient, dynamicClient, "update", "testsource", "--sink", "ksvc1")
+	assert.ErrorContains(t, err, "not found")
+	assert.Assert(t, util.ContainsAll(out, "services.serving.knative.dev", "not found", "ksvc1"))
 }

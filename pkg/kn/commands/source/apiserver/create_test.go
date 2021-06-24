@@ -48,9 +48,6 @@ func TestSinkNotFoundError(t *testing.T) {
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default")
 	apiServerClient := v1.NewMockKnAPIServerSourceClient(t)
 	errorMsg := "cannot create ApiServerSource 'testsource' in namespace 'default' because: services.serving.knative.dev \"testsvc\" not found"
-	argMissingMsg := "requires the name of the source to create as single argument"
-	_, err := executeAPIServerSourceCommand(apiServerClient, dynamicClient, "create", "--resource", "Event:v1:key1=value1", "--service-account", "testsa", "--sink", "ksvc:testsvc", "--mode", "Reference")
-	assert.Error(t, err, argMissingMsg)
 	out, err := executeAPIServerSourceCommand(apiServerClient, dynamicClient, "create", "testsource", "--resource", "Event:v1:key1=value1", "--service-account", "testsa", "--sink", "ksvc:testsvc", "--mode", "Reference")
 	assert.Error(t, err, errorMsg)
 	assert.Assert(t, util.ContainsAll(out, errorMsg, "Usage"))
@@ -60,4 +57,11 @@ func TestNoSinkError(t *testing.T) {
 	apiServerClient := v1.NewMockKnAPIServerSourceClient(t)
 	_, err := executeAPIServerSourceCommand(apiServerClient, nil, "create", "testsource", "--resource", "Event:v1", "--service-account", "testsa", "--mode", "Reference")
 	assert.ErrorContains(t, err, "required flag(s)", "sink", "not set")
+}
+
+func TestApiServerCreateArgsMissing(t *testing.T) {
+	apiServerClient := v1.NewMockKnAPIServerSourceClient(t)
+	out, err := executeAPIServerSourceCommand(apiServerClient, nil, "create", "--sink", "ksvc:testsvc", "--resource", "Event:v1")
+	assert.ErrorContains(t, err, "single argument")
+	assert.Assert(t, util.ContainsAll(out, "requires", "single argument"))
 }

@@ -67,9 +67,9 @@ func TestApiServerSourceUpdateDeletionTimestampNotNil(t *testing.T) {
 
 func TestApiServerUpdateErrorForNoArgs(t *testing.T) {
 	apiServerClient := v1.NewMockKnAPIServerSourceClient(t)
-	argMissingMsg := "requires the name of the source as single argument"
-	_, err := executeAPIServerSourceCommand(apiServerClient, nil, "update")
-	assert.Error(t, err, argMissingMsg)
+	out, err := executeAPIServerSourceCommand(apiServerClient, nil, "update")
+	assert.ErrorContains(t, err, "single argument")
+	assert.Assert(t, util.ContainsAll(out, "requires", "single argument"))
 }
 
 func TestApiServerUpdateSinkMissingError(t *testing.T) {
@@ -87,6 +87,7 @@ func TestApiServerUpdateSinkMissingError(t *testing.T) {
 	sinkMissingMsg := "services.serving.knative.dev \"svc3\" not found"
 	apiServerRecorder.UpdateAPIServerSource("", errors.New(sinkMissingMsg))
 
-	_, err := executeAPIServerSourceCommand(apiServerClient, dynamicClient, "update", "testsource", "--service-account", "testsa2", "--sink", "ksvc:svc3", "--ce-override", "bla-", "--ce-override", "foo=baz")
-	assert.Error(t, err, sinkMissingMsg)
+	out, err := executeAPIServerSourceCommand(apiServerClient, dynamicClient, "update", "testsource", "--service-account", "testsa2", "--sink", "ksvc:svc3", "--ce-override", "bla-", "--ce-override", "foo=baz")
+	assert.ErrorContains(t, err, "not found")
+	assert.Assert(t, util.ContainsAll(out, "services.serving.knative.dev", "svc3", "not found"))
 }

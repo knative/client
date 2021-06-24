@@ -97,8 +97,8 @@ func TestDescribeWithSinkURI(t *testing.T) {
 
 func TestDescribeNoArgError(t *testing.T) {
 	apiServerClient := v1.NewMockKnAPIServerSourceClient(t, "mynamespace")
-	argMissingMsg := "'kn source apiserver describe' requires name of the source as single argument"
 
-	_, err := executeAPIServerSourceCommand(apiServerClient, nil, "describe")
-	assert.Error(t, err, argMissingMsg)
+	out, err := executeAPIServerSourceCommand(apiServerClient, nil, "describe")
+	assert.ErrorContains(t, err, "single argument")
+	assert.Assert(t, util.ContainsAll(out, "requires", "single argument"))
 }

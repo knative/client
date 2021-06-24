@@ -62,7 +62,7 @@ func TestSimpleDescribe(t *testing.T) {
 
 func TestContainerDescribeErrorForNoArgs(t *testing.T) {
 	containerClient := v1.NewMockKnContainerSourceClient(t, "mynamespace")
-	argMissingMsg := "'kn source container describe' requires name of the source as single argument"
-	_, err := executeContainerSourceCommand(containerClient, nil, "describe")
-	assert.Error(t, err, argMissingMsg)
+	out, err := executeContainerSourceCommand(containerClient, nil, "describe")
+	assert.ErrorContains(t, err, "single argument")
+	assert.Assert(t, util.ContainsAll(out, "requires", "single argument"))
 }

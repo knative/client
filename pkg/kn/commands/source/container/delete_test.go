@@ -56,7 +56,7 @@ func TestDeleteWithError(t *testing.T) {
 
 func TestContainerDeleteErrorForNoArgs(t *testing.T) {
 	containerClient := v1.NewMockKnContainerSourceClient(t, "mynamespace")
-	argMissingMsg := "requires the name of the source as single argument"
-	_, err := executeContainerSourceCommand(containerClient, nil, "delete")
-	assert.Error(t, err, argMissingMsg)
+	out, err := executeContainerSourceCommand(containerClient, nil, "delete")
+	assert.ErrorContains(t, err, "single argument")
+	assert.Assert(t, util.ContainsAll(out, "requires", "single argument"))
 }

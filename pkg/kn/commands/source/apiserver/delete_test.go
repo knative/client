@@ -53,8 +53,7 @@ func TestDeleteWithError(t *testing.T) {
 
 func TestDeleteWithNoArgError(t *testing.T) {
 	apiServerClient := v1.NewMockKnAPIServerSourceClient(t, "mynamespace")
-	argMissingMsg := "requires the name of the source as single argument"
-
-	_, err := executeAPIServerSourceCommand(apiServerClient, nil, "delete")
-	assert.Error(t, err, argMissingMsg)
+	out, err := executeAPIServerSourceCommand(apiServerClient, nil, "delete")
+	assert.ErrorContains(t, err, "single argument")
+	assert.Assert(t, util.ContainsAll(out, "requires", "single argument"))
 }

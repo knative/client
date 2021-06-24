@@ -52,7 +52,7 @@ func TestDeleteWithError(t *testing.T) {
 
 func TestPingDeleteErrorForNoArgs(t *testing.T) {
 	pingClient := clientsourcesv1beta2.NewMockKnPingSourceClient(t, "mynamespace")
-	argMissingMsg := "'requires the name of the Ping source to delete as single argument"
-	_, err := executePingSourceCommand(pingClient, nil, "delete")
-	assert.Error(t, err, argMissingMsg)
+	out, err := executePingSourceCommand(pingClient, nil, "delete")
+	assert.ErrorContains(t, err, "single argument")
+	assert.Assert(t, util.ContainsAll(out, "requires", "single argument"))
 }
