@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"k8s.io/client-go/rest"
 
 	"knative.dev/client/pkg/kn/config"
 	"knative.dev/client/pkg/kn/plugin"
@@ -35,6 +36,14 @@ func init() {
 }
 
 func main() {
+	// Override client-go's warning handler to give us nicely printed warnings.
+	rest.SetDefaultWarningHandler(
+		rest.NewWarningWriter(os.Stderr, rest.WarningWriterOptions{
+			// only print a given warning the first time we receive it
+			Deduplicate: true,
+		}),
+	)
+
 	err := run(os.Args[1:])
 	if err != nil && len(os.Args) > 1 {
 		printError(err)
