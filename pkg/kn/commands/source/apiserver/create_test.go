@@ -35,7 +35,7 @@ func TestCreateApiServerSource(t *testing.T) {
 	apiServerClient := v1.NewMockKnAPIServerSourceClient(t)
 
 	apiServerRecorder := apiServerClient.Recorder()
-	apiServerRecorder.CreateAPIServerSource(createAPIServerSource("testsource", "Event", "v1", "testsa", "Reference", map[string]string{"bla": "blub", "foo": "bar"}, createSinkv1("testsvc", "default")), nil)
+	apiServerRecorder.CreateAPIServerSource(createAPIServerSource("testsource", "testsa", "Reference", []string{"Event"}, []string{"v1"}, map[string]string{"bla": "blub", "foo": "bar"}, createSinkv1("testsvc", "default")), nil)
 
 	out, err := executeAPIServerSourceCommand(apiServerClient, dynamicClient, "create", "testsource", "--resource", "Event:v1", "--service-account", "testsa", "--sink", "ksvc:testsvc", "--mode", "Reference", "--ce-override", "bla=blub", "--ce-override", "foo=bar")
 	assert.NilError(t, err, "ApiServer source should be created")
@@ -57,4 +57,11 @@ func TestNoSinkError(t *testing.T) {
 	apiServerClient := v1.NewMockKnAPIServerSourceClient(t)
 	_, err := executeAPIServerSourceCommand(apiServerClient, nil, "create", "testsource", "--resource", "Event:v1", "--service-account", "testsa", "--mode", "Reference")
 	assert.ErrorContains(t, err, "required flag(s)", "sink", "not set")
+}
+
+func TestApiServerCreateArgsMissing(t *testing.T) {
+	apiServerClient := v1.NewMockKnAPIServerSourceClient(t)
+	out, err := executeAPIServerSourceCommand(apiServerClient, nil, "create", "--sink", "ksvc:testsvc", "--resource", "Event:v1")
+	assert.ErrorContains(t, err, "single argument")
+	assert.Assert(t, util.ContainsAll(out, "requires", "single argument"))
 }

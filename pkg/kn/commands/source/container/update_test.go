@@ -18,6 +18,7 @@ package container
 
 import (
 	"testing"
+	"time"
 
 	"gotest.tools/v3/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -36,13 +37,13 @@ func TestContainerSourceUpdate(t *testing.T) {
 
 	containerRecorder := containerClient.Recorder()
 
-	present := createContainerSource("testsource", "docker.io/test/testimg", createSinkv1("svc2", "default"))
+	present := createContainerSource("testsource", "docker.io/test/testimg", createSinkv1("svc1", "default"), nil, nil, nil)
 	containerRecorder.GetContainerSource("testsource", present, nil)
 
-	updated := createContainerSource("testsource", "docker.io/test/newimg", createSinkv1("svc2", "default"))
+	updated := createContainerSource("testsource", "docker.io/test/newimg", createSinkv1("svc2", "default"), nil, nil, nil)
 	containerRecorder.UpdateContainerSource(updated, nil)
 
-	output, err := executeContainerSourceCommand(containerClient, dynamicClient, "update", "testsource", "--image", "docker.io/test/newimg")
+	output, err := executeContainerSourceCommand(containerClient, dynamicClient, "update", "testsource", "--image", "docker.io/test/newimg", "--sink", "ksvc:svc2")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "testsource", "updated", "default"))
 
@@ -53,10 +54,41 @@ func TestContainerSourceUpdateSinkError(t *testing.T) {
 	containerClient := v1.NewMockKnContainerSourceClient(t)
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default")
 	containerRecorder := containerClient.Recorder()
-	present := createContainerSource("testsource", "docker.io/test/testimg", createSinkv1("svc2", "default"))
+	present := createContainerSource("testsource", "docker.io/test/testimg", createSinkv1("svc2", "default"), nil, nil, nil)
 	containerRecorder.GetContainerSource("testsource", present, nil)
 	errorMsg := "cannot update ContainerSource 'testsource' in namespace 'default' because: services.serving.knative.dev \"testsvc\" not found"
 	out, err := executeContainerSourceCommand(containerClient, dynamicClient, "update", "testsource", "--sink", "ksvc:testsvc")
 	assert.Error(t, err, errorMsg)
 	assert.Assert(t, util.ContainsAll(out, errorMsg, "Usage"))
+}
+
+func TestContainerUpdateErrorForNoArgs(t *testing.T) {
+	containerClient := v1.NewMockKnContainerSourceClient(t, "mynamespace")
+	out, err := executeContainerSourceCommand(containerClient, nil, "update")
+	assert.ErrorContains(t, err, "single argument")
+	assert.Assert(t, util.ContainsAll(out, "requires", "single argument"))
+}
+
+func TestContainerUpdateDeletionTimestampNotNil(t *testing.T) {
+	containerClient := v1.NewMockKnContainerSourceClient(t, "mynamespace")
+	present := createContainerSource("testsource", "docker.io/test/testimg", createSinkv1("svc1", "default"), nil, nil, nil)
+	present.DeletionTimestamp = &metav1.Time{Time: time.Now()}
+	containerRecorder := containerClient.Recorder()
+	containerRecorder.GetContainerSource("testsource", present, nil)
+
+	out, err := executeContainerSourceCommand(containerClient, nil, "update", "testsource")
+	assert.ErrorContains(t, err, "can't update container source")
+	assert.Assert(t, util.ContainsAll(out, "can't update container source", "marked for deletion"))
+}
+
+func TestContainerUpdatePSError(t *testing.T) {
+	containerClient := v1.NewMockKnContainerSourceClient(t)
+	containerRecorder := containerClient.Recorder()
+
+	present := createContainerSource("testsource", "docker.io/test/testimg", createSinkv1("svc1", "default"), nil, nil, nil)
+	containerRecorder.GetContainerSource("testsource", present, nil)
+
+	out, err := executeContainerSourceCommand(containerClient, nil, "update", "testsource", "--mount", "123456")
+	assert.ErrorContains(t, err, "cannot update ContainerSource")
+	assert.Assert(t, util.ContainsAll(out, "cannot update ContainerSource", "Invalid --mount"))
 }

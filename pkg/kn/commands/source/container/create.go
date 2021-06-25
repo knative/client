@@ -76,14 +76,10 @@ func NewContainerCreateCommand(p *commands.KnParams) *cobra.Command {
 
 			b := v1.NewContainerSourceBuilder(name).Sink(*objectRef).PodSpec(*podSpec)
 			err = srcClient.CreateContainerSource(cmd.Context(), b.Build())
-			if err != nil {
-				return fmt.Errorf(
-					"cannot create ContainerSource '%s' in namespace '%s' "+
-						"because: %s", name, namespace, err)
+			if err == nil {
+				fmt.Fprintf(cmd.OutOrStdout(), "ContainerSource '%s' created in namespace '%s'.\n", args[0], namespace)
 			}
-
-			fmt.Fprintf(cmd.OutOrStdout(), "ContainerSource '%s' created in namespace '%s'.\n", args[0], namespace)
-			return nil
+			return err
 		},
 	}
 	commands.AddNamespaceFlags(cmd.Flags(), false)

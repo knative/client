@@ -18,6 +18,7 @@ package container
 
 import (
 	"bytes"
+	"strings"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/clientcmd"
@@ -82,8 +83,8 @@ func cleanupContainerServerMockClient() {
 	containerSourceClientFactory = nil
 }
 
-func createContainerSource(name, image string, sink duckv1.Destination) *v1.ContainerSource {
-	return clientv1.NewContainerSourceBuilder(name).
+func createContainerSource(name, image string, sink duckv1.Destination, ceo map[string]string, envs, args []string) *v1.ContainerSource {
+	cs := clientv1.NewContainerSourceBuilder(name).
 		PodSpec(corev1.PodSpec{
 			Containers: []corev1.Container{{
 				Image: image,
@@ -94,6 +95,21 @@ func createContainerSource(name, image string, sink duckv1.Destination) *v1.Cont
 			}}}).
 		Sink(sink).
 		Build()
+
+	if args != nil {
+		cs.Spec.Template.Spec.Containers[0].Args = args
+	}
+
+	if ceo != nil {
+		cs.Spec.CloudEventOverrides = &duckv1.CloudEventOverrides{Extensions: ceo}
+	}
+
+	for _, env := range envs {
+		e := strings.Split(env, "=")
+		cs.Spec.Template.Spec.Containers[0].Env = append(cs.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: e[0], Value: e[1]})
+	}
+
+	return cs
 }
 
 func createSinkv1(serviceName, namespace string) duckv1.Destination {

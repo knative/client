@@ -25,7 +25,6 @@ import (
 )
 
 func TestSimpleDelete(t *testing.T) {
-
 	pingClient := clientsourcesv1beta2.NewMockKnPingSourceClient(t, "mynamespace")
 
 	pingRecorder := pingClient.Recorder()
@@ -39,7 +38,6 @@ func TestSimpleDelete(t *testing.T) {
 }
 
 func TestDeleteWithError(t *testing.T) {
-
 	pingClient := clientsourcesv1beta2.NewMockKnPingSourceClient(t, "mynamespace")
 
 	pingRecorder := pingClient.Recorder()
@@ -50,4 +48,11 @@ func TestDeleteWithError(t *testing.T) {
 	util.ContainsAll(out, "Usage", "no such", "testsource")
 
 	pingRecorder.Validate()
+}
+
+func TestPingDeleteErrorForNoArgs(t *testing.T) {
+	pingClient := clientsourcesv1beta2.NewMockKnPingSourceClient(t, "mynamespace")
+	out, err := executePingSourceCommand(pingClient, nil, "delete")
+	assert.ErrorContains(t, err, "single argument")
+	assert.Assert(t, util.ContainsAll(out, "requires", "single argument"))
 }

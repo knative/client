@@ -22,32 +22,40 @@ import (
 	"gotest.tools/v3/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	dynamicfake "knative.dev/client/pkg/dynamic/fake"
 	sourcesv1beta2 "knative.dev/client/pkg/sources/v1beta2"
 	"knative.dev/client/pkg/util"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
 func TestSimplePingUpdate(t *testing.T) {
+	mysvc1 := &servingv1.Service{
+		TypeMeta:   metav1.TypeMeta{Kind: "Service", APIVersion: "serving.knative.dev/v1"},
+		ObjectMeta: metav1.ObjectMeta{Name: "mysvc1", Namespace: "default"},
+	}
+	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default", mysvc1)
 	pingSourceClient := sourcesv1beta2.NewMockKnPingSourceClient(t)
 	pingRecorder := pingSourceClient.Recorder()
 	pingRecorder.GetPingSource("testsource", createPingSource("testsource", "* * * * */1", "maxwell", "mysvc", nil), nil)
-	pingRecorder.UpdatePingSource(createPingSource("testsource", "* * * * */3", "maxwell", "mysvc", nil), nil)
+	pingRecorder.UpdatePingSource(createPingSource("testsource", "* * * * */3", "maxwell", "mysvc1", nil), nil)
 
-	out, err := executePingSourceCommand(pingSourceClient, nil, "update", "--schedule", "* * * * */3", "testsource")
+	out, err := executePingSourceCommand(pingSourceClient, dynamicClient, "update", "--schedule", "* * * * */3", "testsource", "--sink", "mysvc1")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(out, "updated", "default", "testsource"))
 
 	pingRecorder.Validate()
 }
 
+//TestSimplePingUpdateCEOverrides updates ce override, schedule, data and sink
 func TestSimplePingUpdateCEOverrides(t *testing.T) {
 	pingSourceClient := sourcesv1beta2.NewMockKnPingSourceClient(t)
 	pingRecorder := pingSourceClient.Recorder()
 	ceOverrideMap := map[string]string{"bla": "blub", "foo": "bar"}
 	ceOverrideMapUpdated := map[string]string{"foo": "baz", "new": "ceoverride"}
 	pingRecorder.GetPingSource("testsource", createPingSource("testsource", "* * * * */1", "maxwell", "mysvc", ceOverrideMap), nil)
-	pingRecorder.UpdatePingSource(createPingSource("testsource", "* * * * */3", "maxwell", "mysvc", ceOverrideMapUpdated), nil)
+	pingRecorder.UpdatePingSource(createPingSource("testsource", "* * * * */3", "updated-data", "mysvc", ceOverrideMapUpdated), nil)
 
-	out, err := executePingSourceCommand(pingSourceClient, nil, "update", "--schedule", "* * * * */3", "testsource", "--ce-override", "bla-", "--ce-override", "foo=baz", "--ce-override", "new=ceoverride")
+	out, err := executePingSourceCommand(pingSourceClient, nil, "update", "--schedule", "* * * * */3", "testsource", "--data", "updated-data", "--ce-override", "bla-", "--ce-override", "foo=baz", "--ce-override", "new=ceoverride")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(out, "updated", "default", "testsource"))
 
@@ -78,4 +86,23 @@ func TestPingUpdateDeletionTimestampNotNil(t *testing.T) {
 	assert.ErrorContains(t, err, present.Name)
 	assert.ErrorContains(t, err, "deletion")
 	assert.ErrorContains(t, err, "ping")
+}
+
+func TestPingUpdateErrorForNoArgs(t *testing.T) {
+	pingClient := sourcesv1beta2.NewMockKnPingSourceClient(t, "mynamespace")
+	out, err := executePingSourceCommand(pingClient, nil, "update")
+	assert.ErrorContains(t, err, "required")
+	assert.Assert(t, util.ContainsAll(out, "Ping", "name", "required"))
+}
+
+func TestPingUpdateNoSinkError(t *testing.T) {
+	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default")
+	pingClient := sourcesv1beta2.NewMockKnPingSourceClient(t)
+	pingRecorder := pingClient.Recorder()
+
+	pingRecorder.GetPingSource("testsource", createPingSource("testsource", "* * * * */1", "maxwell", "mysvc", nil), nil)
+
+	out, err := executePingSourceCommand(pingClient, dynamicClient, "update", "testsource", "--sink", "ksvc1")
+	assert.ErrorContains(t, err, "not found")
+	assert.Assert(t, util.ContainsAll(out, "services.serving.knative.dev", "not found", "ksvc1"))
 }

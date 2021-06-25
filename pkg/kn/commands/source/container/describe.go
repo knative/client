@@ -30,7 +30,7 @@ import (
 
 // NewContainerDescribeCommand to describe an Container source object
 func NewContainerDescribeCommand(p *commands.KnParams) *cobra.Command {
-	apiServerDescribe := &cobra.Command{
+	containerDescribe := &cobra.Command{
 		Use:   "describe NAME",
 		Short: "Show details of a container source",
 		Example: `
@@ -90,11 +90,11 @@ func NewContainerDescribeCommand(p *commands.KnParams) *cobra.Command {
 			return nil
 		},
 	}
-	flags := apiServerDescribe.Flags()
+	flags := containerDescribe.Flags()
 	commands.AddNamespaceFlags(flags, false)
 	flags.BoolP("verbose", "v", false, "More output.")
 
-	return apiServerDescribe
+	return containerDescribe
 }
 
 func writeContainerSource(dw printers.PrefixWriter, source *v1.ContainerSource, printDetails bool) {

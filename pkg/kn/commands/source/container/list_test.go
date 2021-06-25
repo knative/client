@@ -31,7 +31,7 @@ func TestListContainerSource(t *testing.T) {
 	containerClient := v12.NewMockKnContainerSourceClient(t)
 
 	containerRecorder := containerClient.Recorder()
-	sampleSource := createContainerSource("testsource", "docker.io/test/newimg", createSinkv1("svc2", "default"))
+	sampleSource := createContainerSource("testsource", "docker.io/test/newimg", createSinkv1("svc2", "default"), nil, nil, nil)
 	sampleSourceList := v1.ContainerSourceList{}
 	sampleSourceList.Items = []v1.ContainerSource{*sampleSource}
 

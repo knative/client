@@ -88,13 +88,9 @@ func NewContainerUpdateCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			err = srcClient.UpdateContainerSource(cmd.Context(), b.Build())
-			if err != nil {
-				return fmt.Errorf(
-					"cannot update ContainerSource '%s' in namespace '%s' "+
-						"because: %s", name, namespace, err)
+			if err == nil {
+				fmt.Fprintf(cmd.OutOrStdout(), "Container source '%s' updated in namespace '%s'.\n", args[0], namespace)
 			}
-
-			fmt.Fprintf(cmd.OutOrStdout(), "Container source '%s' updated in namespace '%s'.\n", args[0], namespace)
 			return err
 		},
 	}

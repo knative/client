@@ -38,7 +38,7 @@ func TestSimpleDescribe(t *testing.T) {
 	apiServerClient := v1.NewMockKnAPIServerSourceClient(t, "mynamespace")
 
 	apiServerRecorder := apiServerClient.Recorder()
-	sampleSource := createAPIServerSource("testsource", "Event", "v1", "testsa", "Reference", map[string]string{"foo": "bar"}, createSinkv1("testsvc", "default"))
+	sampleSource := createAPIServerSource("testsource", "testsa", "Reference", []string{"Event"}, []string{"v1"}, map[string]string{"foo": "bar"}, createSinkv1("testsvc", "default"))
 	sampleSource.Namespace = "mynamespace"
 	apiServerRecorder.GetAPIServerSource("testsource", sampleSource, nil)
 
@@ -54,7 +54,7 @@ func TestDescribeMachineReadable(t *testing.T) {
 	apiServerClient := v1.NewMockKnAPIServerSourceClient(t, "mynamespace")
 
 	apiServerRecorder := apiServerClient.Recorder()
-	sampleSource := createAPIServerSource("testsource", "Event", "v1", "testsa", "Reference", map[string]string{"foo": "bar"}, createSinkv1("testsvc", "default"))
+	sampleSource := createAPIServerSource("testsource", "testsa", "Reference", []string{"Event"}, []string{"v1"}, map[string]string{"foo": "bar"}, createSinkv1("testsvc", "default"))
 	sampleSource.APIVersion = "sources.knative.dev/v1"
 	sampleSource.Kind = "ApiServerSource"
 	sampleSource.Namespace = "mynamespace"
@@ -84,7 +84,7 @@ func TestDescribeWithSinkURI(t *testing.T) {
 	apiServerClient := v1.NewMockKnAPIServerSourceClient(t, "mynamespace")
 
 	apiServerRecorder := apiServerClient.Recorder()
-	sampleSource := createAPIServerSource("testsource", "Event", "v1", "testsa", "Reference", map[string]string{"foo": "bar"}, sinkURI)
+	sampleSource := createAPIServerSource("testsource", "testsa", "Reference", []string{"Event"}, []string{"v1"}, map[string]string{"foo": "bar"}, sinkURI)
 	sampleSource.Namespace = "mynamespace"
 	apiServerRecorder.GetAPIServerSource("testsource", sampleSource, nil)
 
@@ -93,4 +93,12 @@ func TestDescribeWithSinkURI(t *testing.T) {
 	assert.Assert(t, util.ContainsAll(out, "testsource", "testsa", "Reference", "Resources", "Event", "v1", "Conditions", "foo", "bar", "URI", "https", "foo", "mynamespace"))
 
 	apiServerRecorder.Validate()
+}
+
+func TestDescribeNoArgError(t *testing.T) {
+	apiServerClient := v1.NewMockKnAPIServerSourceClient(t, "mynamespace")
+
+	out, err := executeAPIServerSourceCommand(apiServerClient, nil, "describe")
+	assert.ErrorContains(t, err, "single argument")
+	assert.Assert(t, util.ContainsAll(out, "requires", "single argument"))
 }

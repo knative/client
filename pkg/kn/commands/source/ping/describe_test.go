@@ -81,6 +81,13 @@ func TestDescribeError(t *testing.T) {
 
 }
 
+func TestPingDescribeErrorForNoArgs(t *testing.T) {
+	pingClient := clientv1beta2.NewMockKnPingSourceClient(t, "mynamespace")
+	out, err := executePingSourceCommand(pingClient, nil, "describe")
+	assert.ErrorContains(t, err, "single argument")
+	assert.Assert(t, util.ContainsAll(out, "requires", "single argument"))
+}
+
 func getPingSourceSinkURI() *sourcesv1beta.PingSource {
 	return &sourcesv1beta.PingSource{
 		TypeMeta: metav1.TypeMeta{

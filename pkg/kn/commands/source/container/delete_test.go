@@ -53,3 +53,10 @@ func TestDeleteWithError(t *testing.T) {
 
 	containerRecorder.Validate()
 }
+
+func TestContainerDeleteErrorForNoArgs(t *testing.T) {
+	containerClient := v1.NewMockKnContainerSourceClient(t, "mynamespace")
+	out, err := executeContainerSourceCommand(containerClient, nil, "delete")
+	assert.ErrorContains(t, err, "single argument")
+	assert.Assert(t, util.ContainsAll(out, "requires", "single argument"))
+}
