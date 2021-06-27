@@ -20,6 +20,10 @@
 | Prettify printing of webhook warnings
 | https://github.com/knative/client/pull/1353[#1353]
 
+| 🐛
+| Prune and update dependencies
+| https://github.com/knative/client/pull/1355[#1355]
+
 ## v0.23.0 (2021-05-18)
 [cols="1,10,3", options="header", width="100%"]
 |===
