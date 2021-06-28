@@ -44,12 +44,7 @@ func main() {
 		}),
 	)
 
-	err := run(os.Args[1:])
-	if err != nil && len(os.Args) > 1 {
-		printError(err)
-		// This is the only point from where to exit when an error occurs
-		os.Exit(1)
-	}
+	os.Exit(runWithExit(os.Args[1:]))
 }
 
 // runError is used when during the execution of a command/plugin an error occurs and
@@ -61,6 +56,14 @@ type runError struct {
 // Error implements the error() interface
 func (e *runError) Error() string {
 	return e.err.Error()
+}
+
+func runWithExit(args []string) int {
+	if err := run(args); err != nil {
+		printError(err)
+		return 1
+	}
+	return 0
 }
 
 // Run the main program. Args are the args as given on the command line (excluding the program name itself)

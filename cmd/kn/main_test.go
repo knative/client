@@ -238,7 +238,7 @@ func TestStripFlags(t *testing.T) {
 	assert.ErrorContains(t, err, "needs an argument")
 }
 
-func TestRunWithError(t *testing.T) {
+func TestPrintError(t *testing.T) {
 	data := []struct {
 		given    string
 		expected string
@@ -300,4 +300,51 @@ func TestRun(t *testing.T) {
 
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAllIgnoreCase(out, "version", "build", "git"))
+}
+
+func TestRunWithExit(t *testing.T) {
+	oldArgs := os.Args
+	defer (func() {
+		os.Args = oldArgs
+	})()
+	testCases := []struct {
+		args           []string
+		expectedOut    []string
+		expectedErrOut []string
+		exitCode       int
+	}{
+		{
+			[]string{"kn", "version"},
+			[]string{"version", "build", "git"},
+			[]string{""},
+			0,
+		},
+		{
+			[]string{"kn", "non-existing"},
+			[]string{""},
+			[]string{"unknown", "command"},
+			1,
+		},
+		{
+			[]string{"kn", "service", "foo"},
+			[]string{""},
+			[]string{"unknown", "sub-command"},
+			1,
+		},
+		{
+			[]string{"kn", "service", "create", "foo", "--foo"},
+			[]string{""},
+			[]string{"unknown", "flag"},
+			1,
+		},
+	}
+	for _, tc := range testCases {
+		capture := test.CaptureOutput(t)
+		os.Args = tc.args
+		exitCode := runWithExit(tc.args[1:])
+		out, errOut := capture.Close()
+		assert.Equal(t, exitCode, tc.exitCode)
+		assert.Assert(t, util.ContainsAllIgnoreCase(out, tc.expectedOut...))
+		assert.Assert(t, util.ContainsAllIgnoreCase(errOut, tc.expectedErrOut...))
+	}
 }
