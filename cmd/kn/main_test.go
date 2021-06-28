@@ -17,10 +17,11 @@ package main
 import (
 	"errors"
 	"fmt"
-	"knative.dev/client/pkg/kn/plugin"
 	"os"
 	"strings"
 	"testing"
+
+	"knative.dev/client/pkg/kn/plugin"
 
 	"github.com/spf13/cobra"
 	"gotest.tools/v3/assert"
@@ -334,7 +335,7 @@ func TestRunWithExit(t *testing.T) {
 	}
 }
 
-type internalPlugin struct{
+type internalPlugin struct {
 	executeError func() error
 	commandParts []string
 }
@@ -355,7 +356,7 @@ func TestRun(t *testing.T) {
 		args           []string
 		expectedOut    []string
 		expectedErrOut []string
-		plugin plugin.Plugin
+		plugin         plugin.Plugin
 	}{
 		{
 			[]string{"kn", "version"},
@@ -401,7 +402,7 @@ func TestRun(t *testing.T) {
 			[]string{"plugin", "overriding", "'service create'"},
 			&internalPlugin{
 				executeError: nil,
-				commandParts: []string{"service","create"},
+				commandParts: []string{"service", "create"},
 			},
 		},
 		{
