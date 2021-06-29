@@ -680,37 +680,37 @@ func Test_isValidEnvArg(t *testing.T) {
 		envValue string
 		isValid  bool
 	}{{
-		name:     "valid env specified",
+		name:     "valid env arg specified",
 		arg:      "FOO=bar",
 		envKey:   "FOO",
 		envValue: "bar",
 		isValid:  true,
 	}, {
-		name:     "invalid env specified",
+		name:     "invalid env arg specified",
 		arg:      "FOObar",
 		envKey:   "FOO",
 		envValue: "bar",
 		isValid:  false,
 	}, {
-		name:     "valid env specified: -e",
+		name:     "valid env arg specified: -e",
 		arg:      "-e=FOO=bar",
 		envKey:   "FOO",
 		envValue: "bar",
 		isValid:  true,
 	}, {
-		name:     "invalid env specified: -e",
+		name:     "invalid env arg specified: -e",
 		arg:      "-e=FOObar",
 		envKey:   "FOO",
 		envValue: "bar",
 		isValid:  false,
 	}, {
-		name:     "valid env specified: --env",
+		name:     "valid env arg specified: --env",
 		arg:      "--env=FOO=bar",
 		envKey:   "FOO",
 		envValue: "bar",
 		isValid:  true,
 	}, {
-		name:     "invalid env specified: --env",
+		name:     "invalid env arg specified: --env",
 		arg:      "--env=FOObar",
 		envKey:   "FOO",
 		envValue: "bar",
@@ -732,25 +732,25 @@ func Test_isValidEnvValueFromArg(t *testing.T) {
 		envValueFromValue string
 		isValid           bool
 	}{{
-		name:              "valid env value from specified",
+		name:              "valid env value from arg specified",
 		arg:               "FOO=secret:sercretName:key",
 		envValueFromKey:   "FOO",
 		envValueFromValue: "secret:sercretName:key",
 		isValid:           true,
 	}, {
-		name:              "invalid env value from specified",
+		name:              "invalid env value from arg specified",
 		arg:               "FOOsecret:sercretName:key",
 		envValueFromKey:   "FOO",
 		envValueFromValue: "secret:sercretName:key",
 		isValid:           false,
 	}, {
-		name:              "valid env value from specified: --env-value-from",
+		name:              "valid env value from arg specified: --env-value-from",
 		arg:               "--env-value-from=FOO=secret:sercretName:key",
 		envValueFromKey:   "FOO",
 		envValueFromValue: "secret:sercretName:key",
 		isValid:           true,
 	}, {
-		name:              "invalid env value from specified: --env-value-from",
+		name:              "invalid env value from arg specified: --env-value-from",
 		arg:               "--env-value-from=FOOsecret:sercretName:key",
 		envValueFromKey:   "FOO",
 		envValueFromValue: "secret:sercretName:key",
