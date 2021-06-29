@@ -21,6 +21,8 @@ import (
 	"strings"
 	"testing"
 
+	"knative.dev/client/pkg/kn/plugin"
+
 	"github.com/spf13/cobra"
 	"gotest.tools/v3/assert"
 
@@ -238,7 +240,7 @@ func TestStripFlags(t *testing.T) {
 	assert.ErrorContains(t, err, "needs an argument")
 }
 
-func TestRunWithError(t *testing.T) {
+func TestPrintError(t *testing.T) {
 	data := []struct {
 		given    string
 		expected string
@@ -286,18 +288,151 @@ func TestRunWithPluginError(t *testing.T) {
 	}
 }
 
-// Smoke test
+func TestRunWithExit(t *testing.T) {
+	oldArgs := os.Args
+	defer (func() {
+		os.Args = oldArgs
+	})()
+	testCases := []struct {
+		args           []string
+		expectedOut    []string
+		expectedErrOut []string
+		exitCode       int
+	}{
+		{
+			[]string{"kn", "version"},
+			[]string{"version", "build", "git"},
+			[]string{""},
+			0,
+		},
+		{
+			[]string{"kn", "non-existing"},
+			[]string{""},
+			[]string{"unknown", "command"},
+			1,
+		},
+		{
+			[]string{"kn", "service", "foo"},
+			[]string{""},
+			[]string{"unknown", "sub-command"},
+			1,
+		},
+		{
+			[]string{"kn", "service", "create", "foo", "--foo"},
+			[]string{""},
+			[]string{"unknown", "flag"},
+			1,
+		},
+	}
+	for _, tc := range testCases {
+		capture := test.CaptureOutput(t)
+		os.Args = tc.args
+		exitCode := runWithExit(tc.args[1:])
+		out, errOut := capture.Close()
+		assert.Equal(t, exitCode, tc.exitCode)
+		assert.Assert(t, util.ContainsAllIgnoreCase(out, tc.expectedOut...))
+		assert.Assert(t, util.ContainsAllIgnoreCase(errOut, tc.expectedErrOut...))
+	}
+}
+
+type internalPlugin struct {
+	executeError func() error
+	commandParts []string
+}
+
+func (p internalPlugin) CommandParts() []string       { return p.commandParts }
+func (p internalPlugin) Name() string                 { return "" }
+func (p internalPlugin) Execute(args []string) error  { return p.executeError() }
+func (p internalPlugin) Description() (string, error) { return "", nil }
+func (p internalPlugin) Path() string                 { return "" }
+
 func TestRun(t *testing.T) {
 	oldArgs := os.Args
-	os.Args = []string{"kn", "--config", "/no/config/please.yaml", "version"}
 	defer (func() {
 		os.Args = oldArgs
 	})()
 
-	capture := test.CaptureOutput(t)
-	err := run(os.Args[1:])
-	out, _ := capture.Close()
+	testCases := []struct {
+		args           []string
+		expectedOut    []string
+		expectedErrOut []string
+		plugin         plugin.Plugin
+	}{
+		{
+			[]string{"kn", "version"},
+			[]string{"version", "build", "git"},
+			[]string{},
+			nil,
+		},
+		{
+			[]string{"kn", "non-existing"},
+			[]string{},
+			[]string{"unknown", "command"},
+			nil,
+		},
+		{
+			[]string{"kn", "service", "foo"},
+			[]string{},
+			[]string{"unknown", "sub-command"},
+			nil,
+		},
+		{
+			[]string{"kn", "service", "create", "foo", "--foo"},
+			[]string{},
+			[]string{"unknown", "flag"},
+			nil,
+		},
+		// Internal plugins
+		{
+			[]string{"kn", "foo"},
+			[]string{"OK", "plugin", "out"},
+			[]string{},
 
-	assert.NilError(t, err)
-	assert.Assert(t, util.ContainsAllIgnoreCase(out, "version", "build", "git"))
+			&internalPlugin{
+				executeError: func() error {
+					fmt.Println("OK plugin out")
+					return nil
+				},
+				commandParts: []string{"foo"},
+			},
+		},
+		{
+			[]string{"kn", "service", "create"},
+			[]string{},
+			[]string{"plugin", "overriding", "'service create'"},
+			&internalPlugin{
+				executeError: nil,
+				commandParts: []string{"service", "create"},
+			},
+		},
+		{
+			[]string{"kn", "foo", "bar"},
+			[]string{},
+			[]string{"internal", "plugin", "error"},
+			&internalPlugin{
+				executeError: func() error {
+					return errors.New("internal plugin error")
+				},
+				commandParts: []string{"foo", "bar"},
+			},
+		},
+	}
+	for _, tc := range testCases {
+		os.Args = tc.args
+		if tc.plugin != nil {
+			plugin.InternalPlugins = plugin.PluginList{}
+			plugin.InternalPlugins = append(plugin.InternalPlugins, tc.plugin)
+		}
+		capture := test.CaptureOutput(t)
+		err := run(tc.args[1:])
+		out, _ := capture.Close()
+		if len(tc.expectedErrOut) > 0 {
+			assert.Assert(t, err != nil)
+			assert.Assert(t, util.ContainsAllIgnoreCase(err.Error(), tc.expectedErrOut...))
+		} else {
+			assert.NilError(t, err)
+			assert.Assert(t, util.ContainsAllIgnoreCase(out, tc.expectedOut...))
+		}
+
+	}
 }
