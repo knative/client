@@ -21,10 +21,6 @@
 | Prettify printing of webhook warnings
 | https://github.com/knative/client/pull/1353[#1353]
 
-| 🎁
-| Add `env-value-from` flag & keep order of env vars in created/updated Services
-| https://github.com/knative/client/pull/1328[#1328]
-
 | ✨
 | Update Kubernetes dependencies to v0.20.7
 | https://github.com/knative/client/pull/1344[#1344]
@@ -36,6 +32,10 @@
 | ✨
 | Make e2e test run over other networks
 | https://github.com/knative/client/pull/1339[#1339]
+
+| 🎁
+| Add `env-value-from` flag & keep order of env vars as provided
+| https://github.com/knative/client/pull/1328[#1328]
 
 | 🐛
 | Fix Subscription's Channel to use KRefence type
