@@ -66,15 +66,13 @@ func UpdateEnvVars(spec *corev1.PodSpec,
 	envValueFromKey, envValueFromValue, envValueFromExists := envValueFromIterator.NextString()
 	for _, arg := range allArgs {
 		// envs are stored as NAME=value
-		if envExists &&
-			(strings.HasPrefix(arg, envKey+"="+envValue) || strings.HasPrefix(arg, "-e="+envKey+"="+envValue) || strings.HasPrefix(arg, "--env="+envKey+"="+envValue)) {
+		if envExists && isValidEnvArg(arg, envKey, envValue) {
 			allEnvsToUpdate.Set(envKey, corev1.EnvVar{
 				Name:  envKey,
 				Value: envValue,
 			})
 			envKey, envValue, envExists = envIterator.NextString()
-		} else if envValueFromExists &&
-			(strings.HasPrefix(arg, envValueFromKey+"="+envValueFromValue) || strings.HasPrefix(arg, "--env-value-from="+envValueFromKey+"="+envValueFromValue)) {
+		} else if envValueFromExists && isValidEnvValueFromArg(arg, envValueFromKey, envValueFromValue) {
 			// envs are stored as NAME=secret:sercretName:key or NAME=config-map:cmName:key
 			envVarSource, err := createEnvVarSource(envValueFromValue)
 			if err != nil {
@@ -94,6 +92,18 @@ func UpdateEnvVars(spec *corev1.PodSpec,
 	container.Env = updated
 
 	return nil
+}
+
+// isValidEnvArg checks that the input arg is a valid argument for specifying env value,
+// ie. stored as NAME=value
+func isValidEnvArg(arg, envKey, envValue string) bool {
+	return strings.HasPrefix(arg, envKey+"="+envValue) || strings.HasPrefix(arg, "-e="+envKey+"="+envValue) || strings.HasPrefix(arg, "--env="+envKey+"="+envValue)
+}
+
+// isValidEnvValueFromArg checks that the input arg is a valid argument for specifying env from value,
+// ie. stored as NAME=secret:sercretName:key or NAME=config-map:cmName:key
+func isValidEnvValueFromArg(arg, envValueFromKey, envValueFromValue string) bool {
+	return strings.HasPrefix(arg, envValueFromKey+"="+envValueFromValue) || strings.HasPrefix(arg, "--env-value-from="+envValueFromKey+"="+envValueFromValue)
 }
 
 // UpdateEnvFrom updates envFrom

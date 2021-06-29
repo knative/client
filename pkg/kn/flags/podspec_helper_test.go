@@ -51,6 +51,26 @@ func TestUpdateEnvVarsNew(t *testing.T) {
 	assert.DeepEqual(t, expected, spec.Containers[0].Env)
 }
 
+func TestUpdateEnvVarsMixedEnvOrder(t *testing.T) {
+	spec, _ := getPodSpec()
+	expected := []corev1.EnvVar{
+		{Name: "z", Value: "foo"},
+		{Name: "a", Value: "bar"},
+		{Name: "x", Value: "baz"},
+	}
+	argsEnv := []string{
+		"z=foo",
+		"a=bar",
+		"x=baz",
+	}
+	envToUpdate, envToRemove, err := util.OrderedMapAndRemovalListFromArray(argsEnv, "=")
+	assert.NilError(t, err)
+	args := append([]string{"command"}, argsEnv...)
+	err = UpdateEnvVars(spec, args, envToUpdate, envToRemove, util.NewOrderedMap(), []string{})
+	assert.NilError(t, err)
+	assert.DeepEqual(t, expected, spec.Containers[0].Env)
+}
+
 func TestUpdateEnvVarsValueFromNew(t *testing.T) {
 	spec, _ := getPodSpec()
 	expected := []corev1.EnvVar{
@@ -650,4 +670,96 @@ func TestUpdateEnvVarsAllRemove(t *testing.T) {
 	}
 
 	assert.DeepEqual(t, expected, container.Env)
+}
+
+func Test_isValidEnvArg(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		arg      string
+		envKey   string
+		envValue string
+		isValid  bool
+	}{{
+		name:     "valid env specified",
+		arg:      "FOO=bar",
+		envKey:   "FOO",
+		envValue: "bar",
+		isValid:  true,
+	}, {
+		name:     "invalid env specified",
+		arg:      "FOObar",
+		envKey:   "FOO",
+		envValue: "bar",
+		isValid:  false,
+	}, {
+		name:     "valid env specified: -e",
+		arg:      "-e=FOO=bar",
+		envKey:   "FOO",
+		envValue: "bar",
+		isValid:  true,
+	}, {
+		name:     "invalid env specified: -e",
+		arg:      "-e=FOObar",
+		envKey:   "FOO",
+		envValue: "bar",
+		isValid:  false,
+	}, {
+		name:     "valid env specified: --env",
+		arg:      "--env=FOO=bar",
+		envKey:   "FOO",
+		envValue: "bar",
+		isValid:  true,
+	}, {
+		name:     "invalid env specified: --env",
+		arg:      "--env=FOObar",
+		envKey:   "FOO",
+		envValue: "bar",
+		isValid:  false,
+	},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			result := isValidEnvArg(tc.arg, tc.envKey, tc.envValue)
+			assert.Equal(t, result, tc.isValid)
+		})
+	}
+}
+
+func Test_isValidEnvValueFromArg(t *testing.T) {
+	for _, tc := range []struct {
+		name              string
+		arg               string
+		envValueFromKey   string
+		envValueFromValue string
+		isValid           bool
+	}{{
+		name:              "valid env value from specified",
+		arg:               "FOO=secret:sercretName:key",
+		envValueFromKey:   "FOO",
+		envValueFromValue: "secret:sercretName:key",
+		isValid:           true,
+	}, {
+		name:              "invalid env specified",
+		arg:               "FOOsecret:sercretName:key",
+		envValueFromKey:   "FOO",
+		envValueFromValue: "secret:sercretName:key",
+		isValid:           false,
+	}, {
+		name:              "valid env specified: --env-value-from",
+		arg:               "--env-value-from=FOO=secret:sercretName:key",
+		envValueFromKey:   "FOO",
+		envValueFromValue: "secret:sercretName:key",
+		isValid:           true,
+	}, {
+		name:              "invalid env specified: --env-value-from",
+		arg:               "--env-value-from=FOOsecret:sercretName:key",
+		envValueFromKey:   "FOO",
+		envValueFromValue: "secret:sercretName:key",
+		isValid:           false,
+	},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			result := isValidEnvValueFromArg(tc.arg, tc.envValueFromKey, tc.envValueFromValue)
+			assert.Equal(t, result, tc.isValid)
+		})
+	}
 }

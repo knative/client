@@ -20,6 +20,10 @@
 | Prettify printing of webhook warnings
 | https://github.com/knative/client/pull/1353[#1353]
 
+| 🎁
+| Add `env-value-from` flag & keep order of env vars in created/updated Services
+| https://github.com/knative/client/pull/1328[#1328]
+
 ## v0.23.0 (2021-05-18)
 [cols="1,10,3", options="header", width="100%"]
 |===
@@ -1350,10 +1354,5 @@ Ignore PRs:
 [cols="1,10,3", options="header", width="100%"]
 |===
 | | Description | PR
-
-| 🎁
-| Add `env-value-from` flag & keep order of env vars in created/updated Services
-| https://github.com/knative/client/pull/1328[#1328]
-
 |===
 ////
