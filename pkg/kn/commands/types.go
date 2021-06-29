@@ -192,10 +192,12 @@ func (params *KnParams) RestConfig() (*rest.Config, error) {
 		return nil, knerrors.GetError(err)
 	}
 	if params.LogHTTP {
-		// TODO: When we update to the newer version of client-go, replace with
-		// config.Wrap() for future compat.
-		config.WrapTransport = util.NewLoggingTransport
+		config.Wrap(util.NewLoggingTransport)
 	}
+	config.WarningHandler = rest.NewWarningWriter(os.Stderr, rest.WarningWriterOptions{
+		// only print a given warning the first time we receive it
+		Deduplicate: true,
+	})
 
 	return config, nil
 }
