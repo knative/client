@@ -12,17 +12,35 @@
 | https://github.com/knative/client/pull/[#]
 ////
 
-## Unreleased
+## v0.24.0 (2021-06-29)
 [cols="1,10,3", options="header", width="100%"]
+|===
 | | Description | PR
 
 | 🎁
 | Prettify printing of webhook warnings
 | https://github.com/knative/client/pull/1353[#1353]
 
+| ✨
+| Update Kubernetes dependencies to v0.20.7
+| https://github.com/knative/client/pull/1344[#1344]
+
+| ✨
+| Increase code coverage for Sources #1343
+| https://github.com/knative/client/pull/1343[#1343]
+
+| ✨
+| Make e2e test run over other networks
+| https://github.com/knative/client/pull/1339[#1339]
+
 | 🎁
-| Add `env-value-from` flag & keep order of env vars in created/updated Services
+| Add `env-value-from` flag & keep order of env vars as provided
 | https://github.com/knative/client/pull/1328[#1328]
+
+| 🐛
+| Fix Subscription's Channel to use KRefence type
+| https://github.com/knative/client/pull/1326[#1326]
+|===
 
 ## v0.23.0 (2021-05-18)
 [cols="1,10,3", options="header", width="100%"]
@@ -1354,5 +1372,6 @@ Ignore PRs:
 [cols="1,10,3", options="header", width="100%"]
 |===
 | | Description | PR
+
 |===
 ////
