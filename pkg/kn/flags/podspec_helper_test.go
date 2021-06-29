@@ -738,19 +738,19 @@ func Test_isValidEnvValueFromArg(t *testing.T) {
 		envValueFromValue: "secret:sercretName:key",
 		isValid:           true,
 	}, {
-		name:              "invalid env specified",
+		name:              "invalid env value from specified",
 		arg:               "FOOsecret:sercretName:key",
 		envValueFromKey:   "FOO",
 		envValueFromValue: "secret:sercretName:key",
 		isValid:           false,
 	}, {
-		name:              "valid env specified: --env-value-from",
+		name:              "valid env value from specified: --env-value-from",
 		arg:               "--env-value-from=FOO=secret:sercretName:key",
 		envValueFromKey:   "FOO",
 		envValueFromValue: "secret:sercretName:key",
 		isValid:           true,
 	}, {
-		name:              "invalid env specified: --env-value-from",
+		name:              "invalid env value from specified: --env-value-from",
 		arg:               "--env-value-from=FOOsecret:sercretName:key",
 		envValueFromKey:   "FOO",
 		envValueFromValue: "secret:sercretName:key",
