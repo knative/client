@@ -35,15 +35,169 @@ func getPodSpec() (*corev1.PodSpec, *corev1.Container) {
 
 func TestUpdateEnvVarsNew(t *testing.T) {
 	spec, _ := getPodSpec()
-	env := []corev1.EnvVar{
+	expected := []corev1.EnvVar{
 		{Name: "a", Value: "foo"},
 		{Name: "b", Value: "bar"},
 	}
-	found, err := util.EnvToMap(env)
+	argsEnv := []string{
+		"a=foo",
+		"b=bar",
+	}
+	envToUpdate, envToRemove, err := util.OrderedMapAndRemovalListFromArray(argsEnv, "=")
 	assert.NilError(t, err)
-	err = UpdateEnvVars(spec, found, []string{})
+	args := append([]string{"command"}, argsEnv...)
+	err = UpdateEnvVars(spec, args, envToUpdate, envToRemove, util.NewOrderedMap(), []string{})
 	assert.NilError(t, err)
-	assert.DeepEqual(t, env, spec.Containers[0].Env)
+	assert.DeepEqual(t, expected, spec.Containers[0].Env)
+}
+
+func TestUpdateEnvVarsMixedEnvOrder(t *testing.T) {
+	spec, _ := getPodSpec()
+	expected := []corev1.EnvVar{
+		{Name: "z", Value: "foo"},
+		{Name: "a", Value: "bar"},
+		{Name: "x", Value: "baz"},
+	}
+	argsEnv := []string{
+		"z=foo",
+		"a=bar",
+		"x=baz",
+	}
+	envToUpdate, envToRemove, err := util.OrderedMapAndRemovalListFromArray(argsEnv, "=")
+	assert.NilError(t, err)
+	args := append([]string{"command"}, argsEnv...)
+	err = UpdateEnvVars(spec, args, envToUpdate, envToRemove, util.NewOrderedMap(), []string{})
+	assert.NilError(t, err)
+	assert.DeepEqual(t, expected, spec.Containers[0].Env)
+}
+
+func TestUpdateEnvVarsValueFromNew(t *testing.T) {
+	spec, _ := getPodSpec()
+	expected := []corev1.EnvVar{
+		{Name: "a", ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "foo",
+				},
+				Key: "key",
+			},
+		}},
+		{Name: "b", ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "bar",
+				},
+				Key: "key2",
+			},
+		}},
+		{Name: "c", ValueFrom: &corev1.EnvVarSource{
+			ConfigMapKeyRef: &corev1.ConfigMapKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "baz",
+				},
+				Key: "key3",
+			},
+		}},
+		{Name: "d", ValueFrom: &corev1.EnvVarSource{
+			ConfigMapKeyRef: &corev1.ConfigMapKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "goo",
+				},
+				Key: "key4",
+			},
+		}},
+	}
+	argsEnvValueFrom := []string{
+		"a=secret:foo:key",
+		"b=sc:bar:key2",
+		"c=config-map:baz:key3",
+		"d=cm:goo:key4",
+	}
+	args := append([]string{"command"}, argsEnvValueFrom...)
+	envValueFromToUpdate, envValueFromToRemove, err := util.OrderedMapAndRemovalListFromArray(argsEnvValueFrom, "=")
+	assert.NilError(t, err)
+	err = UpdateEnvVars(spec, args, util.NewOrderedMap(), []string{}, envValueFromToUpdate, envValueFromToRemove)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, expected, spec.Containers[0].Env)
+}
+
+func TestUpdateEnvVarsAllNew(t *testing.T) {
+	spec, _ := getPodSpec()
+	expected := []corev1.EnvVar{
+		{Name: "a", ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "foo",
+				},
+				Key: "key",
+			},
+		}},
+		{Name: "b", ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "bar",
+				},
+				Key: "key2",
+			},
+		}},
+		{Name: "c", Value: "baz"},
+		{Name: "d", Value: "goo"},
+	}
+	argsEnvValueFrom := []string{
+		"a=secret:foo:key",
+		"b=sc:bar:key2",
+	}
+	argsEnv := []string{
+		"c=baz",
+		"d=goo",
+	}
+
+	args := append([]string{"command"}, append(argsEnvValueFrom, argsEnv...)...)
+	envToUpdate, envToRemove, err := util.OrderedMapAndRemovalListFromArray(argsEnv, "=")
+	assert.NilError(t, err)
+	envValueFromToUpdate, envValueFromToRemove, err := util.OrderedMapAndRemovalListFromArray(argsEnvValueFrom, "=")
+	assert.NilError(t, err)
+	err = UpdateEnvVars(spec, args, envToUpdate, envToRemove, envValueFromToUpdate, envValueFromToRemove)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, expected, spec.Containers[0].Env)
+}
+
+func TestUpdateEnvVarsValueFromValidate(t *testing.T) {
+	spec, _ := getPodSpec()
+	envValueFromWrongInput := [][]string{
+		{"foo=foo"},
+		{"foo=bar:"},
+		{"foo=foo:bar"},
+		{"foo=foo:bar:"},
+		{"foo=foo:bar:baz"},
+		{"foo=secret"},
+		{"foo=sec"},
+		{"foo=secret:"},
+		{"foo=sec:"},
+		{"foo=secret:name"},
+		{"foo=sec:name"},
+		{"foo=secret:name"},
+		{"foo=sec:name:"},
+		{"foo=config-map"},
+		{"foo=cm"},
+		{"foo=config-map:"},
+		{"foo=cm:"},
+		{"foo=config-map:name"},
+		{"foo=cm:name"},
+		{"foo=config-map:name:"},
+		{"foo=cm:name:"},
+	}
+
+	for _, input := range envValueFromWrongInput {
+		args := append([]string{"command"}, input...)
+		envValueFromToUpdate, envValueFromToRemove, err := util.OrderedMapAndRemovalListFromArray(input, "=")
+		assert.NilError(t, err)
+		err = UpdateEnvVars(spec, args, util.NewOrderedMap(), []string{}, envValueFromToUpdate, envValueFromToRemove)
+		fmt.Println()
+		msg := fmt.Sprintf("input \"%s\" should fail, as it is not valid entry for containers.env.valueFrom", input[0])
+		assert.ErrorContains(t, err, " ", msg)
+	}
+
 }
 
 func TestUpdateEnvFrom(t *testing.T) {
@@ -313,19 +467,94 @@ func TestUpdateEnvVarsModify(t *testing.T) {
 	spec, container := getPodSpec()
 	container.Env = []corev1.EnvVar{
 		{Name: "a", Value: "foo"}}
-	env := map[string]string{
-		"a": "fancy",
-	}
-	err := UpdateEnvVars(spec, env, []string{})
-	assert.NilError(t, err)
 
-	expected := map[string]string{
-		"a": "fancy",
+	expected := []corev1.EnvVar{
+		{Name: "a", Value: "bar"},
+	}
+	argsEnv := []string{
+		"a=bar",
+	}
+	args := append([]string{"command"}, argsEnv...)
+	envToUpdate, envToRemove, err := util.OrderedMapAndRemovalListFromArray(argsEnv, "=")
+	assert.NilError(t, err)
+	err = UpdateEnvVars(spec, args, envToUpdate, envToRemove, util.NewOrderedMap(), []string{})
+	assert.NilError(t, err)
+	assert.DeepEqual(t, expected, container.Env)
+}
+
+func TestUpdateEnvVarsValueFromModify(t *testing.T) {
+	spec, container := getPodSpec()
+	container.Env = []corev1.EnvVar{
+		{Name: "a", ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "foo",
+				},
+				Key: "key",
+			},
+		}},
 	}
 
-	found, err := util.EnvToMap(container.Env)
+	expected := []corev1.EnvVar{
+		{Name: "a", ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "bar",
+				},
+				Key: "key2",
+			},
+		}},
+	}
+	argsEnvValueFrom := []string{
+		"a=secret:bar:key2",
+	}
+	args := append([]string{"command"}, argsEnvValueFrom...)
+	envValueFromToUpdate, envValueFromToRemove, err := util.OrderedMapAndRemovalListFromArray(argsEnvValueFrom, "=")
 	assert.NilError(t, err)
-	assert.DeepEqual(t, expected, found)
+	err = UpdateEnvVars(spec, args, util.NewOrderedMap(), []string{}, envValueFromToUpdate, envValueFromToRemove)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, expected, container.Env)
+}
+
+func TestUpdateEnvVarsAllModify(t *testing.T) {
+	spec, container := getPodSpec()
+	container.Env = []corev1.EnvVar{
+		{Name: "a", ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "foo",
+				},
+				Key: "key",
+			},
+		}},
+		{Name: "b", Value: "bar"},
+	}
+
+	expected := []corev1.EnvVar{
+		{Name: "a", ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "bar",
+				},
+				Key: "key2",
+			},
+		}},
+		{Name: "b", Value: "goo"},
+	}
+	argsEnvValueFrom := []string{
+		"a=secret:bar:key2",
+	}
+	argsEnv := []string{
+		"b=goo",
+	}
+	args := append([]string{"command"}, append(argsEnvValueFrom, argsEnv...)...)
+	envToUpdate, envToRemove, err := util.OrderedMapAndRemovalListFromArray(argsEnv, "=")
+	assert.NilError(t, err)
+	envValueFromToUpdate, envValueFromToRemove, err := util.OrderedMapAndRemovalListFromArray(argsEnvValueFrom, "=")
+	assert.NilError(t, err)
+	err = UpdateEnvVars(spec, args, envToUpdate, envToRemove, envValueFromToUpdate, envValueFromToRemove)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, expected, container.Env)
 }
 
 func TestUpdateEnvVarsRemove(t *testing.T) {
@@ -334,8 +563,11 @@ func TestUpdateEnvVarsRemove(t *testing.T) {
 		{Name: "a", Value: "foo"},
 		{Name: "b", Value: "bar"},
 	}
-	remove := []string{"b"}
-	err := UpdateEnvVars(spec, map[string]string{}, remove)
+	remove := []string{"b-"}
+	args := append([]string{"command"}, remove...)
+	envToUpdate, envToRemove, err := util.OrderedMapAndRemovalListFromArray(remove, "=")
+	assert.NilError(t, err)
+	err = UpdateEnvVars(spec, args, envToUpdate, envToRemove, util.NewOrderedMap(), []string{})
 	assert.NilError(t, err)
 
 	expected := []corev1.EnvVar{
@@ -343,4 +575,191 @@ func TestUpdateEnvVarsRemove(t *testing.T) {
 	}
 
 	assert.DeepEqual(t, expected, container.Env)
+}
+
+func TestUpdateEnvVarsValueFromRemove(t *testing.T) {
+	spec, container := getPodSpec()
+	container.Env = []corev1.EnvVar{
+		{Name: "a", ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "foo",
+				},
+				Key: "key",
+			},
+		}},
+		{Name: "b", ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "bar",
+				},
+				Key: "key2",
+			},
+		}},
+	}
+	remove := []string{"b-"}
+	args := append([]string{"command"}, remove...)
+	envValueFromToUpdate, envValueFromToRemove, err := util.OrderedMapAndRemovalListFromArray(remove, "=")
+	assert.NilError(t, err)
+	err = UpdateEnvVars(spec, args, util.NewOrderedMap(), []string{}, envValueFromToUpdate, envValueFromToRemove)
+	assert.NilError(t, err)
+
+	expected := []corev1.EnvVar{
+		{Name: "a", ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "foo",
+				},
+				Key: "key",
+			},
+		}},
+	}
+
+	assert.DeepEqual(t, expected, container.Env)
+}
+
+func TestUpdateEnvVarsAllRemove(t *testing.T) {
+	spec, container := getPodSpec()
+	container.Env = []corev1.EnvVar{
+		{Name: "a", ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "foo",
+				},
+				Key: "key",
+			},
+		}},
+		{Name: "b", ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "bar",
+				},
+				Key: "key2",
+			},
+		}},
+		{Name: "c", Value: "baz"},
+		{Name: "d", Value: "goo"},
+	}
+	argsEnvValueFrom := []string{
+		"a=secret:foo:key",
+		"b-",
+	}
+	argsEnv := []string{
+		"c=baz",
+		"d-",
+	}
+
+	args := append([]string{"command"}, append(argsEnvValueFrom, argsEnv...)...)
+	envToUpdate, envToRemove, err := util.OrderedMapAndRemovalListFromArray(argsEnv, "=")
+	assert.NilError(t, err)
+	envValueFromToUpdate, envValueFromToRemove, err := util.OrderedMapAndRemovalListFromArray(argsEnvValueFrom, "=")
+	assert.NilError(t, err)
+	err = UpdateEnvVars(spec, args, envToUpdate, envToRemove, envValueFromToUpdate, envValueFromToRemove)
+	assert.NilError(t, err)
+
+	expected := []corev1.EnvVar{
+		{Name: "a", ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "foo",
+				},
+				Key: "key",
+			},
+		}},
+		{Name: "c", Value: "baz"},
+	}
+
+	assert.DeepEqual(t, expected, container.Env)
+}
+
+func Test_isValidEnvArg(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		arg      string
+		envKey   string
+		envValue string
+		isValid  bool
+	}{{
+		name:     "valid env arg specified",
+		arg:      "FOO=bar",
+		envKey:   "FOO",
+		envValue: "bar",
+		isValid:  true,
+	}, {
+		name:     "invalid env arg specified",
+		arg:      "FOObar",
+		envKey:   "FOO",
+		envValue: "bar",
+		isValid:  false,
+	}, {
+		name:     "valid env arg specified: -e",
+		arg:      "-e=FOO=bar",
+		envKey:   "FOO",
+		envValue: "bar",
+		isValid:  true,
+	}, {
+		name:     "invalid env arg specified: -e",
+		arg:      "-e=FOObar",
+		envKey:   "FOO",
+		envValue: "bar",
+		isValid:  false,
+	}, {
+		name:     "valid env arg specified: --env",
+		arg:      "--env=FOO=bar",
+		envKey:   "FOO",
+		envValue: "bar",
+		isValid:  true,
+	}, {
+		name:     "invalid env arg specified: --env",
+		arg:      "--env=FOObar",
+		envKey:   "FOO",
+		envValue: "bar",
+		isValid:  false,
+	},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			result := isValidEnvArg(tc.arg, tc.envKey, tc.envValue)
+			assert.Equal(t, result, tc.isValid)
+		})
+	}
+}
+
+func Test_isValidEnvValueFromArg(t *testing.T) {
+	for _, tc := range []struct {
+		name              string
+		arg               string
+		envValueFromKey   string
+		envValueFromValue string
+		isValid           bool
+	}{{
+		name:              "valid env value from arg specified",
+		arg:               "FOO=secret:sercretName:key",
+		envValueFromKey:   "FOO",
+		envValueFromValue: "secret:sercretName:key",
+		isValid:           true,
+	}, {
+		name:              "invalid env value from arg specified",
+		arg:               "FOOsecret:sercretName:key",
+		envValueFromKey:   "FOO",
+		envValueFromValue: "secret:sercretName:key",
+		isValid:           false,
+	}, {
+		name:              "valid env value from arg specified: --env-value-from",
+		arg:               "--env-value-from=FOO=secret:sercretName:key",
+		envValueFromKey:   "FOO",
+		envValueFromValue: "secret:sercretName:key",
+		isValid:           true,
+	}, {
+		name:              "invalid env value from arg specified: --env-value-from",
+		arg:               "--env-value-from=FOOsecret:sercretName:key",
+		envValueFromKey:   "FOO",
+		envValueFromValue: "secret:sercretName:key",
+		isValid:           false,
+	},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			result := isValidEnvValueFromArg(tc.arg, tc.envValueFromKey, tc.envValueFromValue)
+			assert.Equal(t, result, tc.isValid)
+		})
+	}
 }

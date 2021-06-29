@@ -56,7 +56,7 @@ func TestServiceUpdateEnvMock(t *testing.T) {
 	r := client.Recorder()
 	recordServiceUpdateWithSuccess(r, "foo", service, updated)
 
-	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "-e", "a=mouse", "--env", "b=cookie", "--env=empty", "--no-wait", "--revision-name=")
+	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "-e", "a=mouse", "--env", "b=cookie", "--env", "empty=", "--no-wait", "--revision-name=")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
 

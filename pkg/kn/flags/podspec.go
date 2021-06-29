@@ -28,11 +28,12 @@ import (
 // PodSpecFlags to hold the container resource requirements values
 type PodSpecFlags struct {
 	// Direct field manipulation
-	Image   uniqueStringArg
-	Env     []string
-	EnvFrom []string
-	Mount   []string
-	Volume  []string
+	Image        uniqueStringArg
+	Env          []string
+	EnvFrom      []string
+	EnvValueFrom []string
+	Mount        []string
+	Volume       []string
 
 	Command string
 	Arg     []string
@@ -81,6 +82,13 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
 			"any number of times to set multiple environment variables. "+
 			"To unset, specify the environment variable name followed by a \"-\" (e.g., NAME-).")
 	flagNames = append(flagNames, "env")
+
+	flagset.StringArrayVarP(&p.EnvValueFrom, "env-value-from", "", []string{},
+		"Add environment variable from a value of key in ConfigMap (prefix cm: or config-map:) or a Secret (prefix sc: or secret:). "+
+			"Example: --env-value-from NAME=cm:myconfigmap:key or --env-value-from NAME=secret:mysecret:key. "+
+			"You can use this flag multiple times. "+
+			"To unset a value from a ConfigMap/Secret key reference, append \"-\" to the key, e.g. --env-value-from ENV-.")
+	flagNames = append(flagNames, "env-value-from")
 
 	flagset.StringArrayVarP(&p.EnvFrom, "env-from", "", []string{},
 		"Add environment variables from a ConfigMap (prefix cm: or config-map:) or a Secret (prefix secret:). "+
@@ -150,17 +158,22 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
 	return flagNames
 }
 
-// ResolvePodSpec will create corev1.PodSpec based on the flag inputs
-func (p *PodSpecFlags) ResolvePodSpec(podSpec *corev1.PodSpec, flags *pflag.FlagSet) error {
+// ResolvePodSpec will create corev1.PodSpec based on the flag inputs and all input arguments
+func (p *PodSpecFlags) ResolvePodSpec(podSpec *corev1.PodSpec, flags *pflag.FlagSet, allArgs []string) error {
 	var err error
-	if flags.Changed("env") {
-		envMap, err := util.MapFromArrayAllowingSingles(p.Env, "=")
+
+	if flags.Changed("env") || flags.Changed("env-value-from") {
+		envToUpdate, envToRemove, err := util.OrderedMapAndRemovalListFromArray(p.Env, "=")
 		if err != nil {
 			return fmt.Errorf("Invalid --env: %w", err)
 		}
 
-		envToRemove := util.ParseMinusSuffix(envMap)
-		err = UpdateEnvVars(podSpec, envMap, envToRemove)
+		envValueFromToUpdate, envValueFromToRemove, err := util.OrderedMapAndRemovalListFromArray(p.EnvValueFrom, "=")
+		if err != nil {
+			return fmt.Errorf("Invalid --env-value-from: %w", err)
+		}
+
+		err = UpdateEnvVars(podSpec, allArgs, envToUpdate, envToRemove, envValueFromToUpdate, envValueFromToRemove)
 		if err != nil {
 			return err
 		}

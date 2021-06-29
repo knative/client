@@ -17,6 +17,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"os"
 	"reflect"
 	"strings"
 	"testing"
@@ -655,8 +656,16 @@ func TestServiceUpdateEnv(t *testing.T) {
 
 	flags.UpdateImage(&template.Spec.PodSpec, "gcr.io/foo/bar:baz")
 
-	action, updated, _, err := fakeServiceUpdate(orig, []string{
-		"service", "update", "foo", "-e", "TARGET=Awesome", "--env", "EXISTING-", "--env=OTHEREXISTING-=whatever", "--no-wait"})
+	// we need to temporary reset os.Args, becase it is being used for evaluation
+	// of order of envs set by --env and --env-value-from
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+
+	args := []string{
+		"service", "update", "foo", "-e", "TARGET=Awesome", "--env", "EXISTING-", "--env", "OTHEREXISTING-", "--no-wait"}
+	os.Args = args
+
+	action, updated, _, err := fakeServiceUpdate(orig, args)
 
 	if err != nil {
 		t.Fatal(err)

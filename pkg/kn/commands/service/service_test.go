@@ -16,6 +16,7 @@ package service
 
 import (
 	"bytes"
+	"os"
 
 	"github.com/spf13/cobra"
 	"k8s.io/client-go/tools/clientcmd"
@@ -53,6 +54,12 @@ current-context: x
 func executeServiceCommand(client clientservingv1.KnServingClient, args ...string) (string, error) {
 	knParams := &commands.KnParams{}
 	knParams.ClientConfig = blankConfig
+
+	// we need to temporary reset os.Args, becase it is being used for evaluation
+	// of order of envs set by --env and --env-value-from
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+	os.Args = args
 
 	output := new(bytes.Buffer)
 	knParams.Output = output
