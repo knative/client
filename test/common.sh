@@ -68,8 +68,10 @@ function knative_setup() {
     start_latest_knative_serving
 
     subheader "Installing Serving extension: DomainMapping (${serving_version})"
-    kubectl apply --filename https://storage.googleapis.com/knative-nightly/serving/latest/serving-domainmapping-crds.yaml
-    kubectl apply --filename https://storage.googleapis.com/knative-nightly/serving/latest/serving-domainmapping.yaml
+    local domainmapping_crds_yaml="$(get_latest_knative_yaml_source "serving" "serving-domainmapping-crds")"
+    local domainmapping_yaml="$(get_latest_knative_yaml_source "serving" "serving-domainmapping")"
+    kubectl apply --filename ${domainmapping_crds_yaml}
+    kubectl apply --filename ${domainmapping_yaml}
     wait_until_pods_running knative-serving || return 1
   else
     start_release_knative_serving "${serving_version}"
