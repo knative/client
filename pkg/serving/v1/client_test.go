@@ -20,6 +20,9 @@ import (
 	"testing"
 	"time"
 
+	"knative.dev/pkg/apis"
+	duck "knative.dev/pkg/apis/duck/v1"
+
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/assert/cmp"
 	"k8s.io/apimachinery/pkg/fields"
@@ -440,10 +443,27 @@ func TestDeleteRevisionNoWait(t *testing.T) {
 
 func getRevisionDeleteEvents(name string) []watch.Event {
 	return []watch.Event{
-		{Type: watch.Added, Object: wait.CreateTestRevisionWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "", "msg1")},
-		{Type: watch.Modified, Object: wait.CreateTestRevisionWithConditions(name, corev1.ConditionUnknown, corev1.ConditionTrue, "", "msg2")},
-		{Type: watch.Deleted, Object: wait.CreateTestRevisionWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "", "")},
+		{Type: watch.Added, Object: createTestRevisionWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "", "msg1")},
+		{Type: watch.Modified, Object: createTestRevisionWithConditions(name, corev1.ConditionUnknown, corev1.ConditionTrue, "", "msg2")},
+		{Type: watch.Deleted, Object: createTestRevisionWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "", "")},
 	}
+}
+
+func createTestRevisionWithConditions(name string, readyStatus corev1.ConditionStatus, otherReadyStatus corev1.ConditionStatus, reason string, message string, generations ...int64) runtime.Object {
+	revision := servingv1.Revision{ObjectMeta: metav1.ObjectMeta{Name: name}}
+	if len(generations) == 2 {
+		revision.Generation = generations[0]
+		revision.Status.ObservedGeneration = generations[1]
+	} else {
+		revision.Generation = 1
+		revision.Status.ObservedGeneration = 1
+	}
+	revision.Status.Conditions = duck.Conditions([]apis.Condition{
+		{Type: "RoutesReady", Status: otherReadyStatus},
+		{Type: apis.ConditionReady, Status: readyStatus, Reason: reason, Message: message},
+		{Type: "ConfigurationsReady", Status: otherReadyStatus},
+	})
+	return &revision
 }
 
 func TestListRevisions(t *testing.T) {
