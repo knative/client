@@ -190,6 +190,7 @@ func TestDeleteService(t *testing.T) {
 	const (
 		serviceName            = "test-service"
 		nonExistingServiceName = "no-service"
+		deletedServiceName = "deleted-service"
 	)
 
 	serving.AddReactor("get", "services",
@@ -198,6 +199,11 @@ func TestDeleteService(t *testing.T) {
 			if name == serviceName {
 				// Don't handle existing service, just continue to next
 				return false, nil, nil
+			}
+			if name == deletedServiceName {
+				deleted := newService(deletedServiceName)
+				deleted.DeletionTimestamp = &metav1.Time{Time: time.Now()}
+				return true, deleted, nil
 			}
 			return true, nil, errors.NewNotFound(servingv1.Resource("service"), name)
 		})
@@ -231,6 +237,54 @@ func TestDeleteService(t *testing.T) {
 
 	t.Run("trying to delete non-existing service returns error", func(t *testing.T) {
 		err := client.DeleteService(context.Background(), nonExistingServiceName, time.Duration(10)*time.Second)
+		println(err.Error())
+		assert.ErrorContains(t, err, "not found")
+		assert.ErrorContains(t, err, nonExistingServiceName)
+	})
+
+	t.Run("trying to delete service DeletionTimestamp returns error", func(t *testing.T) {
+		err := client.DeleteService(context.Background(), deletedServiceName, time.Duration(10)*time.Second)
+		println(err.Error())
+		assert.ErrorContains(t, err, "marked for deletion")
+		assert.ErrorContains(t, err, deletedServiceName)
+	})
+}
+
+func TestDeleteServiceNoWait(t *testing.T) {
+	serving, client := setup()
+	const (
+		serviceName            = "test-service"
+		nonExistingServiceName = "no-service"
+	)
+
+	serving.AddReactor("get", "services",
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			name := a.(clienttesting.GetAction).GetName()
+			if name == serviceName {
+				// Don't handle existing service, just continue to next
+				return false, nil, nil
+			}
+			return true, nil, errors.NewNotFound(servingv1.Resource("service"), name)
+		})
+	serving.AddReactor("delete", "services",
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			name := a.(clienttesting.DeleteAction).GetName()
+
+			assert.Assert(t, name != "")
+			assert.Equal(t, testNamespace, a.GetNamespace())
+			if name == serviceName {
+				return true, nil, nil
+			}
+			return false, nil, nil
+		})
+
+	t.Run("delete existing service returns no error", func(t *testing.T) {
+		err := client.DeleteService(context.Background(), serviceName, 0)
+		assert.NilError(t, err)
+	})
+
+	t.Run("trying to delete non-existing service returns error", func(t *testing.T) {
+		err := client.DeleteService(context.Background(), nonExistingServiceName, 0)
 		println(err.Error())
 		assert.ErrorContains(t, err, "not found")
 		assert.ErrorContains(t, err, nonExistingServiceName)
@@ -279,6 +333,117 @@ func TestGetRevision(t *testing.T) {
 		assert.ErrorContains(t, err, notExistingRevisionName)
 		assert.ErrorContains(t, err, "not found")
 	})
+}
+
+func TestDeleteRevision(t *testing.T) {
+	serving, client := setup()
+	const (
+		revisionName            = "test-revision"
+		nonExistingRevisionName = "no-revision"
+		deletedRevisionName     = "deleted-revision"
+	)
+
+	serving.AddReactor("get", "revisions",
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			name := a.(clienttesting.GetAction).GetName()
+			if name == revisionName {
+				// Don't handle existing service, just continue to next
+				return false, nil, nil
+			}
+			if name == deletedRevisionName {
+				deleted := newRevision(deletedRevisionName)
+				deleted.DeletionTimestamp = &metav1.Time{Time: time.Now()}
+				return true, deleted, nil
+			}
+			return true, nil, errors.NewNotFound(servingv1.Resource("revision"), name)
+		})
+	serving.AddReactor("delete", "revisions",
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			name := a.(clienttesting.DeleteAction).GetName()
+
+			assert.Assert(t, name != "")
+			assert.Equal(t, testNamespace, a.GetNamespace())
+			if name == revisionName {
+				return true, nil, nil
+			}
+			return false, nil, nil
+		})
+	serving.AddWatchReactor("revisions",
+		func(a clienttesting.Action) (bool, watch.Interface, error) {
+			watchAction := a.(clienttesting.WatchAction)
+			name, found := watchAction.GetWatchRestrictions().Fields.RequiresExactMatch("metadata.name")
+			if !found {
+				return true, nil, errors.NewNotFound(servingv1.Resource("revisions"), name)
+			}
+			w := wait.NewFakeWatch(getRevisionDeleteEvents(revisionName))
+			w.Start()
+			return true, w, nil
+		})
+
+	t.Run("delete existing revision returns no error", func(t *testing.T) {
+		err := client.DeleteRevision(context.Background(), revisionName, 0)
+		assert.NilError(t, err)
+	})
+
+	t.Run("trying to delete non-existing revision returns error", func(t *testing.T) {
+		err := client.DeleteRevision(context.Background(), nonExistingRevisionName, 0)
+		assert.ErrorContains(t, err, "not found")
+		assert.ErrorContains(t, err, nonExistingRevisionName)
+	})
+
+	t.Run("trying to delete revision DeletionTimestamp returns error", func(t *testing.T) {
+		err := client.DeleteRevision(context.Background(), deletedRevisionName, time.Duration(10)*time.Second)
+		assert.ErrorContains(t, err, "marked for deletion")
+		assert.ErrorContains(t, err, deletedRevisionName)
+	})
+}
+
+func TestDeleteRevisionNoWait(t *testing.T) {
+	serving, client := setup()
+	const (
+		revisionName            = "test-revision"
+		nonExistingRevisionName = "no-revision"
+	)
+
+	serving.AddReactor("get", "revisions",
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			name := a.(clienttesting.GetAction).GetName()
+			if name == revisionName {
+				// Don't handle existing service, just continue to next
+				return false, nil, nil
+			}
+			return true, nil, errors.NewNotFound(servingv1.Resource("revision"), name)
+		})
+	serving.AddReactor("delete", "revisions",
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			name := a.(clienttesting.DeleteAction).GetName()
+
+			assert.Assert(t, name != "")
+			assert.Equal(t, testNamespace, a.GetNamespace())
+			if name == revisionName {
+				return true, nil, nil
+			}
+			return false, nil, nil
+		})
+
+	t.Run("delete existing service returns no error", func(t *testing.T) {
+		err := client.DeleteRevision(context.Background(), revisionName, 0)
+		assert.NilError(t, err)
+	})
+
+	t.Run("trying to delete non-existing service returns error", func(t *testing.T) {
+		err := client.DeleteRevision(context.Background(), nonExistingRevisionName, 0)
+		assert.ErrorContains(t, err, "not found")
+		assert.ErrorContains(t, err, nonExistingRevisionName)
+	})
+}
+
+func getRevisionDeleteEvents(name string) []watch.Event {
+	return []watch.Event{
+		{Type: watch.Added, Object: wait.CreateTestRevisionWithConditions(name, corev1.ConditionUnknown, corev1.ConditionUnknown, "", "msg1")},
+		{Type: watch.Modified, Object: wait.CreateTestRevisionWithConditions(name, corev1.ConditionUnknown, corev1.ConditionTrue, "", "msg2")},
+		{Type: watch.Deleted, Object: wait.CreateTestRevisionWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "", "")},
+	}
 }
 
 func TestListRevisions(t *testing.T) {

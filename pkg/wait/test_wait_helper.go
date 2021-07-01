@@ -80,3 +80,21 @@ func CreateTestServiceWithConditions(name string, readyStatus corev1.ConditionSt
 	})
 	return &service
 }
+
+func CreateTestRevisionWithConditions(name string, readyStatus corev1.ConditionStatus, otherReadyStatus corev1.ConditionStatus, reason string, message string, generations ...int64) runtime.Object {
+	revision := servingv1.Revision{ObjectMeta: metav1.ObjectMeta{Name: name}}
+	if len(generations) == 2 {
+		revision.Generation = generations[0]
+		revision.Status.ObservedGeneration = generations[1]
+	} else {
+		revision.Generation = 1
+		revision.Status.ObservedGeneration = 1
+	}
+	revision.Status.Conditions = duck.Conditions([]apis.Condition{
+		{Type: "RoutesReady", Status: otherReadyStatus},
+		{Type: apis.ConditionReady, Status: readyStatus, Reason: reason, Message: message},
+		{Type: "ConfigurationsReady", Status: otherReadyStatus},
+	})
+	return &revision
+}
+
