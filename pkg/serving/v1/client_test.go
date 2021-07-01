@@ -52,6 +52,11 @@ func setup() (serving servingv1fake.FakeServingV1, client KnServingClient) {
 	return
 }
 
+func TestNamespace(t *testing.T) {
+	_, client := setup()
+	assert.Equal(t, testNamespace, client.Namespace())
+}
+
 func TestGetService(t *testing.T) {
 	serving, client := setup()
 	serviceName := "test-service"
