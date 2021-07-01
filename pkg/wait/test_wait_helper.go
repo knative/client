@@ -97,4 +97,3 @@ func CreateTestRevisionWithConditions(name string, readyStatus corev1.ConditionS
 	})
 	return &revision
 }
-

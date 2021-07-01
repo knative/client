@@ -190,7 +190,7 @@ func TestDeleteService(t *testing.T) {
 	const (
 		serviceName            = "test-service"
 		nonExistingServiceName = "no-service"
-		deletedServiceName = "deleted-service"
+		deletedServiceName     = "deleted-service"
 	)
 
 	serving.AddReactor("get", "services",
