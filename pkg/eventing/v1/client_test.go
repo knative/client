@@ -43,6 +43,11 @@ func setup() (fakeSvr fake.FakeEventingV1, client KnEventingClient) {
 	return fakeE, cli
 }
 
+func TestNamespace(t *testing.T) {
+	_, client := setup()
+	assert.Equal(t, testNamespace, client.Namespace())
+}
+
 func TestDeleteTrigger(t *testing.T) {
 	var name = "new-trigger"
 	server, client := setup()
@@ -245,13 +250,21 @@ func TestBrokerDelete(t *testing.T) {
 	var name = "fooBroker"
 	server, client := setup()
 
+	server.AddReactor("get", "brokers",
+		func(a client_testing.Action) (bool, runtime.Object, error) {
+			name := a.(client_testing.GetAction).GetName()
+			if name == "notFound" {
+				return true, nil, errors.NewNotFound(eventingv1.Resource("broker"), "notFound")
+			}
+			return false, nil, nil
+		})
 	server.AddReactor("delete", "brokers",
 		func(a client_testing.Action) (bool, runtime.Object, error) {
 			name := a.(client_testing.DeleteAction).GetName()
 			if name == "errorBroker" {
 				return true, nil, fmt.Errorf("error while deleting broker %s", name)
 			}
-			return true, nil, nil
+			return false, nil, nil
 		})
 
 	err := client.DeleteBroker(context.Background(), name, 0)
@@ -259,21 +272,40 @@ func TestBrokerDelete(t *testing.T) {
 
 	err = client.DeleteBroker(context.Background(), "errorBroker", 0)
 	assert.ErrorContains(t, err, "errorBroker", 0)
+
+	err = client.DeleteBroker(context.Background(), "notFound", 0)
+	assert.ErrorContains(t, err, "not found", 0)
+	assert.ErrorContains(t, err, "notFound", 0)
 }
 
 func TestBrokerDeleteWithWait(t *testing.T) {
-	var name = "fooBroker"
+	var brokerName = "fooBroker"
+	var deleted = "deletedBroker"
 	server, client := setup()
 
+	server.AddReactor("get", "brokers",
+		func(a client_testing.Action) (bool, runtime.Object, error) {
+			name := a.(client_testing.DeleteAction).GetName()
+			if name == deleted {
+				deletedBroker := newBroker(deleted)
+				deletedBroker.DeletionTimestamp = &metav1.Time{Time: time.Now()}
+				return true, deletedBroker, nil
+			}
+			return false, nil, nil
+		})
 	server.AddReactor("delete", "brokers",
 		func(a client_testing.Action) (bool, runtime.Object, error) {
 			name := a.(client_testing.DeleteAction).GetName()
 			if name == "errorBroker" {
 				return true, nil, fmt.Errorf("error while deleting broker %s", name)
 			}
+			if name == deleted {
+				deletedBroker := newBroker(deleted)
+				deletedBroker.DeletionTimestamp = &metav1.Time{Time: time.Now()}
+				return true, deletedBroker, nil
+			}
 			return true, nil, nil
 		})
-
 	server.AddWatchReactor("brokers",
 		func(a client_testing.Action) (bool, watch.Interface, error) {
 			watchAction := a.(client_testing.WatchAction)
@@ -286,11 +318,15 @@ func TestBrokerDeleteWithWait(t *testing.T) {
 			return true, w, nil
 		})
 
-	err := client.DeleteBroker(context.Background(), name, time.Duration(10)*time.Second)
+	err := client.DeleteBroker(context.Background(), brokerName, time.Duration(10)*time.Second)
 	assert.NilError(t, err)
 
 	err = client.DeleteBroker(context.Background(), "errorBroker", time.Duration(10)*time.Second)
 	assert.ErrorContains(t, err, "errorBroker", time.Duration(10)*time.Second)
+
+	err = client.DeleteBroker(context.Background(), deleted, time.Duration(10)*time.Second)
+	assert.ErrorContains(t, err, "marked for deletion")
+	assert.ErrorContains(t, err, deleted, time.Duration(10)*time.Second)
 }
 
 func TestBrokerList(t *testing.T) {

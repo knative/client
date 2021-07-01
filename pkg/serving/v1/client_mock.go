@@ -165,6 +165,16 @@ func (c *MockKnServingClient) DeleteRevision(ctx context.Context, name string, t
 	return mock.ErrorOrNil(call.Result[0])
 }
 
+// Wait for a revision to become ready, but not longer than provided timeout
+func (sr *ServingRecorder) WaitForRevision(name interface{}, timeout interface{}, callback interface{}, err error, duration time.Duration) {
+	sr.r.Add("WaitForRevision", []interface{}{name, timeout, callback}, []interface{}{err, duration})
+}
+
+func (c *MockKnServingClient) WaitForRevision(ctx context.Context, name string, timeout time.Duration, msgCallback wait.MessageCallback) (error, time.Duration) {
+	call := c.recorder.r.VerifyCall("WaitForRevision", name, timeout, msgCallback)
+	return mock.ErrorOrNil(call.Result[0]), call.Result[1].(time.Duration)
+}
+
 // Get a route by its unique name
 func (sr *ServingRecorder) GetRoute(name interface{}, route *servingv1.Route, err error) {
 	sr.r.Add("GetRoute", []interface{}{name}, []interface{}{route, err})
