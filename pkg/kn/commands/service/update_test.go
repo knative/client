@@ -93,6 +93,10 @@ func fakeServiceUpdate(original *servingv1.Service, args []string) (
 			rev.Spec = original.Spec.Template.Spec
 			rev.ObjectMeta = original.Spec.Template.ObjectMeta
 			rev.Name = original.Status.LatestCreatedRevisionName
+			rev.Status.ContainerStatuses = []servingv1.ContainerStatus{
+				{ImageDigest: exampleImageByDigest, Name: "user-container"},
+			}
+
 			rev.Status.DeprecatedImageDigest = exampleImageByDigest
 			return true, rev, nil
 		})
@@ -196,6 +200,14 @@ func TestServiceUpdateImage(t *testing.T) {
 		!strings.Contains(output, "bar") {
 		t.Fatalf("wrong or no success message: %s", output)
 	}
+
+	assert.Assert(t, template.Annotations != nil)
+	ts := template.Annotations[servinglib.UpdateTimestampAnnotationKey]
+	assert.Assert(t, ts != "")
+	updateTs, err := time.Parse(time.RFC3339, ts)
+	assert.NilError(t, err)
+	assert.Assert(t, updateTs.Before(time.Now()))
+	assert.Assert(t, updateTs.After(time.Now().Add(-5*time.Second)))
 }
 
 func TestServiceUpdateWithMultipleImages(t *testing.T) {
@@ -353,9 +365,6 @@ func TestServiceUpdateMaxMinScale(t *testing.T) {
 	}
 
 	template := updated.Spec.Template
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	actualAnnos := template.Annotations
 	expectedAnnos := []string{
@@ -393,9 +402,6 @@ func TestServiceUpdateScale(t *testing.T) {
 	}
 
 	template := updated.Spec.Template
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	actualAnnos := template.Annotations
 	expectedAnnos := []string{
@@ -484,9 +490,6 @@ func TestServiceUpdateScaleWithRange(t *testing.T) {
 	}
 
 	template := updated.Spec.Template
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	actualAnnos := template.Annotations
 	expectedAnnos := []string{
@@ -518,9 +521,6 @@ func TestServiceUpdateScaleMinWithRange(t *testing.T) {
 	}
 
 	template := updated.Spec.Template
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	actualAnnos := template.Annotations
 	expectedAnnos := []string{
@@ -570,9 +570,6 @@ func TestServiceUpdateScaleMaxWithRange(t *testing.T) {
 	}
 
 	template := updated.Spec.Template
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	actualAnnos := template.Annotations
 	expectedAnnos := []string{
@@ -780,7 +777,7 @@ func TestServiceUpdateDoesntPinToDigestWhenPreviouslyDidnt(t *testing.T) {
 }
 
 func TestServiceUpdateRequestsLimitsCPU(t *testing.T) {
-	service := createMockServiceWithResources(t, "250", "64Mi", "1000m", "1024Mi")
+	service := createMockServiceWithResources("250", "64Mi", "1000m", "1024Mi")
 
 	action, updated, _, err := fakeServiceUpdate(service, []string{
 		"service", "update", "foo", "--request", "cpu=500m", "--limit", "cpu=1000m", "--no-wait"})
@@ -800,25 +797,23 @@ func TestServiceUpdateRequestsLimitsCPU(t *testing.T) {
 	}
 
 	newTemplate := updated.Spec.Template
-	if err != nil {
-		t.Fatal(err)
-	} else {
-		if !reflect.DeepEqual(
-			newTemplate.Spec.Containers[0].Resources.Requests,
-			expectedRequestsVars) {
-			t.Fatalf("wrong requests vars %v", newTemplate.Spec.Containers[0].Resources.Requests)
-		}
 
-		if !reflect.DeepEqual(
-			newTemplate.Spec.Containers[0].Resources.Limits,
-			expectedLimitsVars) {
-			t.Fatalf("wrong limits vars %v", newTemplate.Spec.Containers[0].Resources.Limits)
-		}
+	if !reflect.DeepEqual(
+		newTemplate.Spec.Containers[0].Resources.Requests,
+		expectedRequestsVars) {
+		t.Fatalf("wrong requests vars %v", newTemplate.Spec.Containers[0].Resources.Requests)
 	}
+
+	if !reflect.DeepEqual(
+		newTemplate.Spec.Containers[0].Resources.Limits,
+		expectedLimitsVars) {
+		t.Fatalf("wrong limits vars %v", newTemplate.Spec.Containers[0].Resources.Limits)
+	}
+
 }
 
 func TestServiceUpdateRequestsLimitsMemory(t *testing.T) {
-	service := createMockServiceWithResources(t, "100m", "64Mi", "1000m", "1024Mi")
+	service := createMockServiceWithResources("100m", "64Mi", "1000m", "1024Mi")
 
 	action, updated, _, err := fakeServiceUpdate(service, []string{
 		"service", "update", "foo", "--request", "memory=128Mi", "--limit", "memory=2048Mi", "--no-wait"})
@@ -838,25 +833,22 @@ func TestServiceUpdateRequestsLimitsMemory(t *testing.T) {
 	}
 
 	newTemplate := updated.Spec.Template
-	if err != nil {
-		t.Fatal(err)
-	} else {
-		if !reflect.DeepEqual(
-			newTemplate.Spec.Containers[0].Resources.Requests,
-			expectedRequestsVars) {
-			t.Fatalf("wrong requests vars %v", newTemplate.Spec.Containers[0].Resources.Requests)
-		}
 
-		if !reflect.DeepEqual(
-			newTemplate.Spec.Containers[0].Resources.Limits,
-			expectedLimitsVars) {
-			t.Fatalf("wrong limits vars %v", newTemplate.Spec.Containers[0].Resources.Limits)
-		}
+	if !reflect.DeepEqual(
+		newTemplate.Spec.Containers[0].Resources.Requests,
+		expectedRequestsVars) {
+		t.Fatalf("wrong requests vars %v", newTemplate.Spec.Containers[0].Resources.Requests)
+	}
+
+	if !reflect.DeepEqual(
+		newTemplate.Spec.Containers[0].Resources.Limits,
+		expectedLimitsVars) {
+		t.Fatalf("wrong limits vars %v", newTemplate.Spec.Containers[0].Resources.Limits)
 	}
 }
 
 func TestServiceUpdateRequestsLimitsCPU_and_Memory(t *testing.T) {
-	service := createMockServiceWithResources(t, "250m", "64Mi", "1000m", "1024Mi")
+	service := createMockServiceWithResources("250m", "64Mi", "1000m", "1024Mi")
 
 	action, updated, _, err := fakeServiceUpdate(service, []string{
 		"service", "update", "foo",
@@ -878,20 +870,16 @@ func TestServiceUpdateRequestsLimitsCPU_and_Memory(t *testing.T) {
 	}
 
 	newTemplate := updated.Spec.Template
-	if err != nil {
-		t.Fatal(err)
-	} else {
-		if !reflect.DeepEqual(
-			newTemplate.Spec.Containers[0].Resources.Requests,
-			expectedRequestsVars) {
-			t.Fatalf("wrong requests vars %v", newTemplate.Spec.Containers[0].Resources.Requests)
-		}
+	if !reflect.DeepEqual(
+		newTemplate.Spec.Containers[0].Resources.Requests,
+		expectedRequestsVars) {
+		t.Fatalf("wrong requests vars %v", newTemplate.Spec.Containers[0].Resources.Requests)
+	}
 
-		if !reflect.DeepEqual(
-			newTemplate.Spec.Containers[0].Resources.Limits,
-			expectedLimitsVars) {
-			t.Fatalf("wrong limits vars %v", newTemplate.Spec.Containers[0].Resources.Limits)
-		}
+	if !reflect.DeepEqual(
+		newTemplate.Spec.Containers[0].Resources.Limits,
+		expectedLimitsVars) {
+		t.Fatalf("wrong limits vars %v", newTemplate.Spec.Containers[0].Resources.Limits)
 	}
 }
 
@@ -1018,9 +1006,6 @@ func TestServiceUpdateNoClusterLocalOnPrivateService(t *testing.T) {
 	assert.DeepEqual(t, expected, actual)
 
 	newTemplate := updated.Spec.Template
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	actual = newTemplate.ObjectMeta.Labels
 	assert.DeepEqual(t, expected, actual)
@@ -1065,7 +1050,7 @@ func newEmptyService() *servingv1.Service {
 	return ret
 }
 
-func createMockServiceWithResources(t *testing.T, requestCPU, requestMemory, limitsCPU, limitsMemory string) *servingv1.Service {
+func createMockServiceWithResources(requestCPU, requestMemory, limitsCPU, limitsMemory string) *servingv1.Service {
 	service := newEmptyService()
 
 	template := service.Spec.Template

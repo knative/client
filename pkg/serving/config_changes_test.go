@@ -79,7 +79,7 @@ type userImageAnnotCase struct {
 	set    bool
 }
 
-func TestSetUserImageAnnot(t *testing.T) {
+func TestSetUserImageAnnotation(t *testing.T) {
 	cases := []userImageAnnotCase{
 		{"foo/bar", "", "foo/bar", true},
 		{"foo/bar@sha256:asdfsf", "", "foo/bar@sha256:asdfsf", true},
@@ -99,9 +99,9 @@ func TestSetUserImageAnnot(t *testing.T) {
 		}
 		container.Image = c.image
 		if c.set {
-			SetUserImageAnnot(template)
+			UpdateUserImageAnnotation(template)
 		} else {
-			UnsetUserImageAnnot(template)
+			UnsetUserImageAnnotation(template)
 		}
 		assert.Equal(t, template.Annotations[UserImageAnnotationKey], c.result)
 	}
@@ -112,10 +112,19 @@ func TestFreezeImageToDigest(t *testing.T) {
 	revision := &servingv1.Revision{}
 	revision.Spec = template.Spec
 	revision.ObjectMeta = template.ObjectMeta
-	revision.Status.DeprecatedImageDigest = "gcr.io/foo/bar@sha256:deadbeef"
+	revision.Status.ContainerStatuses = []servingv1.ContainerStatus{
+		{Name: "user-container", ImageDigest: "gcr.io/foo/bar@sha256:deadbeef"},
+	}
 	container.Image = "gcr.io/foo/bar:latest"
-	FreezeImageToDigest(template, revision)
+	err := PinImageToDigest(template, revision)
+	assert.NilError(t, err)
 	assert.Equal(t, container.Image, "gcr.io/foo/bar@sha256:deadbeef")
+}
+
+func TestUpdateTimestampAnnotation(t *testing.T) {
+	template, _ := getRevisionTemplate()
+	UpdateTimestampAnnotation(template)
+	assert.Assert(t, template.Annotations[UpdateTimestampAnnotationKey] != "")
 }
 
 func TestUpdateMinScale(t *testing.T) {

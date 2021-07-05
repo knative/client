@@ -33,11 +33,47 @@ func ContainerOfRevisionTemplate(template *servingv1.RevisionTemplateSpec) (*cor
 	return ContainerOfRevisionSpec(&template.Spec)
 }
 
+// ContainerOfRevisionSpec returns the 'main' container of a revision specification and
+// use GetServingContainerIndex to identify the container.
+// An error is returned if no such container could be found
 func ContainerOfRevisionSpec(revisionSpec *servingv1.RevisionSpec) (*corev1.Container, error) {
-	if len(revisionSpec.Containers) == 0 {
+	idx := ContainerIndexOfRevisionSpec(revisionSpec)
+	if idx == -1 {
 		return nil, fmt.Errorf("internal: no container set in spec.template.spec.containers")
 	}
 	return &revisionSpec.Containers[0], nil
+}
+
+// ContainerIndexOfRevisionSpec returns the index of the "main" container if
+// multiple containers are present. The main container is either the single
+// container when there is only ony container in the list or the first container
+// which has a ports declaration (validation guarantees that there is only one
+// such container)
+// If no container could be found (list is empty or no container has a port declaration)
+// then -1 is returned
+// This method's logic is taken from RevisionSpec.GetContainer()
+func ContainerIndexOfRevisionSpec(revisionSpec *servingv1.RevisionSpec) int {
+	switch {
+	case len(revisionSpec.Containers) == 1:
+		return 0
+	case len(revisionSpec.Containers) > 1:
+		for i := range revisionSpec.Containers {
+			if len(revisionSpec.Containers[i].Ports) != 0 {
+				return i
+			}
+		}
+	}
+	return -1
+}
+
+// ContainerStatus returns the status of the main container or nil of no
+// such status could be found
+func ContainerStatus(r *servingv1.Revision) *servingv1.ContainerStatus {
+	idx := ContainerIndexOfRevisionSpec(&r.Spec)
+	if idx == -1 {
+		return nil
+	}
+	return &r.Status.ContainerStatuses[idx]
 }
 
 func ScalingInfo(m *metav1.ObjectMeta) (*Scaling, error) {

@@ -205,9 +205,9 @@ func (p *ConfigurationEditFlags) Apply(
 		return err
 	}
 
-	name := ""
+	// Client side revision naming requires to set a new revisionname
 	if p.RevisionName != "" {
-		name, err = servinglib.GenerateRevisionName(p.RevisionName, service)
+		name, err := servinglib.GenerateRevisionName(p.RevisionName, service)
 		if err != nil {
 			return err
 		}
@@ -217,12 +217,20 @@ func (p *ConfigurationEditFlags) Apply(
 		}
 	}
 
-	_, userImagePresent := template.Annotations[servinglib.UserImageAnnotationKey]
-	freezeMode := userImagePresent || cmd.Flags().Changed("lock-to-digest")
-	if p.LockToDigest && p.AnyMutation(cmd) && freezeMode {
-		servinglib.SetUserImageAnnot(template)
-		if !cmd.Flags().Changed("image") {
-			err = servinglib.FreezeImageToDigest(template, baseRevision)
+	// If some change happened that can cause a revision, set the update timestamp
+	// But not for "apply", this would destroy idempotency
+	if p.AnyMutation(cmd) && cmd.Name() != "apply" {
+		servinglib.UpdateTimestampAnnotation(template)
+	}
+
+	if p.shouldPinToImageDigest(template, cmd) {
+		servinglib.UpdateUserImageAnnotation(template)
+		// Don't copy over digest of base revision if an image is specified.
+		// If an --image is given, always use the tagged named to cause a re-resolving
+		// of the digest by the serving backend (except when you use "apply" where you
+		// always have to provide an image
+		if !cmd.Flags().Changed("image") || cmd.Name() == "apply" {
+			err = servinglib.PinImageToDigest(template, baseRevision)
 			if err != nil {
 				return err
 			}
@@ -230,7 +238,7 @@ func (p *ConfigurationEditFlags) Apply(
 	}
 
 	if !p.LockToDigest {
-		servinglib.UnsetUserImageAnnot(template)
+		servinglib.UnsetUserImageAnnotation(template)
 	}
 
 	if cmd.Flags().Changed("limits-cpu") || cmd.Flags().Changed("limits-memory") {
@@ -430,6 +438,23 @@ func (p *ConfigurationEditFlags) Apply(
 	}
 
 	return nil
+}
+
+// shouldPinToImageDigest checks whether the image digest that has been resolved in the current active
+// revision should be used for the image update. This is useful if an update of the image
+// should be prevented.
+func (p *ConfigurationEditFlags) shouldPinToImageDigest(template *servingv1.RevisionTemplateSpec, cmd *cobra.Command) bool {
+	// The user-image annotation is an indicator that the service has been
+	// created with lock-to-digest. If this is not the case and neither --lock-to-digest
+	// has been given explitly then we won't change the image
+	_, userImagePresent := template.Annotations[servinglib.UserImageAnnotationKey]
+	if !userImagePresent && !cmd.Flags().Changed("lock-to-digest") {
+		return false
+	}
+
+	// When we want an update and --lock-to-digest is set (either given or the default), then
+	// the image should be pinned to its digest
+	return p.LockToDigest && p.AnyMutation(cmd)
 }
 
 func (p *ConfigurationEditFlags) updateLabels(obj *metav1.ObjectMeta, flagLabels []string, labelsAllMap map[string]string) error {

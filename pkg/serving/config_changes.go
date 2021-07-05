@@ -41,8 +41,9 @@ const (
 )
 
 var (
-	UserImageAnnotationKey = "client.knative.dev/user-image"
-	ApiTooOldError         = errors.New("the service is using too old of an API format for the operation")
+	UserImageAnnotationKey       = "client.knative.dev/user-image"
+	UpdateTimestampAnnotationKey = "client.knative.dev/updateTimestamp"
+	APITooOldError               = errors.New("the service is using too old of an API format for the operation")
 )
 
 func (vt VolumeSourceType) String() string {
@@ -91,31 +92,46 @@ func UpdateConcurrencyLimit(template *servingv1.RevisionTemplateSpec, limit int6
 	return nil
 }
 
-// UnsetUserImageAnnot removes the user image annotation
-func UnsetUserImageAnnot(template *servingv1.RevisionTemplateSpec) {
+// UnsetUserImageAnnotation removes the user image annotation
+func UnsetUserImageAnnotation(template *servingv1.RevisionTemplateSpec) {
 	delete(template.Annotations, UserImageAnnotationKey)
 }
 
-// SetUserImageAnnot sets the user image annotation if the image isn't by-digest already.
-func SetUserImageAnnot(template *servingv1.RevisionTemplateSpec) {
+// UpdateUserImageAnnotation sets the user image annotation if the image isn't by-digest already.
+func UpdateUserImageAnnotation(template *servingv1.RevisionTemplateSpec) {
 	// If the current image isn't by-digest, set the user-image annotation to it
 	// so we remember what it was.
-	currentContainer, _ := ContainerOfRevisionTemplate(template)
-	ui := currentContainer.Image
-	if strings.Contains(ui, "@") {
-		prev, ok := template.Annotations[UserImageAnnotationKey]
+	currentContainer, err := ContainerOfRevisionTemplate(template)
+	if err != nil {
+		return
+	}
+	image := currentContainer.Image
+	if strings.Contains(image, "@") {
+		// Ensure that the non-digestified image is used
+		storedImage, ok := template.Annotations[UserImageAnnotationKey]
 		if ok {
-			ui = prev
+			image = storedImage
 		}
 	}
+	ensureAnnotations(template)
+	template.Annotations[UserImageAnnotationKey] = image
+}
+
+// UpdateTimestampAnnotation update the annotation for the last update with the current timestamp
+func UpdateTimestampAnnotation(template *servingv1.RevisionTemplateSpec) {
+	ensureAnnotations(template)
+
+	template.Annotations[UpdateTimestampAnnotationKey] = time.Now().UTC().Format(time.RFC3339)
+}
+
+func ensureAnnotations(template *servingv1.RevisionTemplateSpec) {
 	if template.Annotations == nil {
 		template.Annotations = make(map[string]string)
 	}
-	template.Annotations[UserImageAnnotationKey] = ui
 }
 
-// FreezeImageToDigest sets the image on the template to the image digest of the base revision.
-func FreezeImageToDigest(template *servingv1.RevisionTemplateSpec, baseRevision *servingv1.Revision) error {
+// PinImageToDigest sets the image on the template to the image digest of the base revision.
+func PinImageToDigest(template *servingv1.RevisionTemplateSpec, baseRevision *servingv1.Revision) error {
 	if baseRevision == nil {
 		return nil
 	}
@@ -133,8 +149,9 @@ func FreezeImageToDigest(template *servingv1.RevisionTemplateSpec, baseRevision 
 		return fmt.Errorf("could not freeze image to digest since current revision contains unexpected image")
 	}
 
-	if baseRevision.Status.DeprecatedImageDigest != "" {
-		return flags.UpdateImage(&template.Spec.PodSpec, baseRevision.Status.DeprecatedImageDigest)
+	containerStatus := ContainerStatus(baseRevision)
+	if containerStatus.ImageDigest != "" {
+		return flags.UpdateImage(&template.Spec.PodSpec, containerStatus.ImageDigest)
 	}
 	return nil
 }

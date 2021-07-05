@@ -19,6 +19,8 @@ import (
 	"encoding/json"
 	"testing"
 
+	"knative.dev/client/pkg/serving"
+
 	"gotest.tools/v3/assert"
 
 	v1 "k8s.io/api/core/v1"
@@ -127,11 +129,13 @@ func TestServiceExportwithMultipleRevisions(t *testing.T) {
 				servingtest.WithRevisionLabel(apiserving.ConfigurationGenerationLabelKey, "1"),
 				servingtest.WithRevisionAnn("client.knative.dev/user-image", "busybox:v1"),
 				servingtest.WithRevisionAnn("serving.knative.dev/lastPinned", "1111132"),
+				servingtest.WithRevisionAnn(serving.UpdateTimestampAnnotationKey, "now"),
 			))),
 			libtest.WithRevision(*(libtest.BuildRevision("foo-rev-2",
 				servingtest.WithRevisionLabel(apiserving.ServiceLabelKey, "foo"),
 				servingtest.WithRevisionLabel(apiserving.ConfigurationGenerationLabelKey, "1"),
 				servingtest.WithRevisionAnn("client.knative.dev/user-image", "busybox:v2"),
+				servingtest.WithRevisionAnn(serving.UpdateTimestampAnnotationKey, "now"),
 			))),
 		),
 		expectedKNExport: libtest.BuildKNExportWithOptions(

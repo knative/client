@@ -19,6 +19,8 @@ import (
 	"errors"
 	"fmt"
 
+	clientserving "knative.dev/client/pkg/serving"
+
 	"sort"
 	"strconv"
 
@@ -50,6 +52,7 @@ var IgnoredRevisionAnnotations = []string{
 	"serving.knative.dev/lastPinned",
 	"serving.knative.dev/creator",
 	"serving.knative.dev/routingStateModified",
+	clientserving.UpdateTimestampAnnotationKey,
 }
 
 // IgnoredServiceLabels defines the label keys which should be removed
@@ -178,6 +181,8 @@ func exportLatestService(latestSvc *servingv1.Service, withRoutes bool) *serving
 
 	stripIgnoredAnnotationsFromService(&exportedSvc)
 	stripIgnoredLabelsFromService(&exportedSvc)
+	stripIgnoredAnnotationsFromRevisionTemplate(&exportedSvc.Spec.Template)
+	stripIgnoredLabelsFromRevisionTemplate(&exportedSvc.Spec.Template)
 	return &exportedSvc
 }
 
@@ -357,6 +362,12 @@ func stripIgnoredAnnotationsFromRevision(revision *servingv1.Revision) {
 	}
 }
 
+func stripIgnoredAnnotationsFromRevisionTemplate(template *servingv1.RevisionTemplateSpec) {
+	for _, annotation := range IgnoredRevisionAnnotations {
+		delete(template.ObjectMeta.Annotations, annotation)
+	}
+}
+
 func stripIgnoredLabelsFromService(svc *servingv1.Service) {
 	for _, label := range IgnoredServiceLabels {
 		delete(svc.ObjectMeta.Labels, label)
@@ -366,5 +377,11 @@ func stripIgnoredLabelsFromService(svc *servingv1.Service) {
 func stripIgnoredLabelsFromRevision(rev *servingv1.Revision) {
 	for _, label := range IgnoredRevisionLabels {
 		delete(rev.ObjectMeta.Labels, label)
+	}
+}
+
+func stripIgnoredLabelsFromRevisionTemplate(template *servingv1.RevisionTemplateSpec) {
+	for _, label := range IgnoredRevisionLabels {
+		delete(template.ObjectMeta.Labels, label)
 	}
 }
