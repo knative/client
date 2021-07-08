@@ -40,9 +40,6 @@ const (
 func TestTektonPipeline(t *testing.T) {
 	it, err := test.NewKnTest()
 	assert.NilError(t, err)
-	defer func() {
-		assert.NilError(t, it.Teardown())
-	}()
 
 	kubectl := test.NewKubectl(it.Namespace())
 	basedir := test.CurrentDir(t) + "/../resources/tekton"
@@ -89,6 +86,7 @@ func TestTektonPipeline(t *testing.T) {
 	r.AssertNoError(out)
 	assert.Assert(t, util.ContainsAll(out.Stdout, serviceName, it.Kn().Namespace()))
 	assert.Assert(t, util.ContainsAll(out.Stdout, "Conditions", "ConfigurationsReady", "Ready", "RoutesReady"))
+	assert.NilError(t, it.Teardown())
 }
 
 func waitForPipelineSuccess(k test.Kubectl) error {
