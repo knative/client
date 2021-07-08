@@ -26,7 +26,7 @@ source $(dirname $0)/common.sh
 export PATH=$PATH:${REPO_ROOT_DIR}
 
 # Script entry point.
-initialize $@
+initialize $@ --skip-istio-addon
 
 export TEKTON_VERSION=${TEKTON_VERSION:-v0.11.1}
 export KN_E2E_NAMESPACE=tkn-kn
