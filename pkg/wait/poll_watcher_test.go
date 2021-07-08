@@ -15,6 +15,7 @@
 package wait
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"testing"
@@ -82,6 +83,19 @@ func init() {
 type testCase struct {
 	pollResults  []runtime.Object
 	watchResults []watch.Event
+}
+
+func TestNewWatcherWithVersion(t *testing.T) {
+	w, err := NewWatcherWithVersion(context.Background(), watchF(func(context.Context, metav1.ListOptions) (watch.Interface, error) {
+		return NewFakeWatch([]watch.Event{}), nil
+	}), nil, "mockNamespace", "resourceName", "mockName", "v1", 5*time.Second)
+	w.Stop()
+	assert.NilError(t, err)
+	w, err = NewWatcherWithVersion(context.Background(), watchF(func(context.Context, metav1.ListOptions) (watch.Interface, error) {
+		return NewFakeWatch([]watch.Event{}), fmt.Errorf("mockErrMsg")
+	}), nil, "mockNamespace", "resourceName", "mockName", "v1", 5*time.Second)
+	w.Stop()
+	assert.NilError(t, err)
 }
 
 func TestPollWatcher(t *testing.T) {
