@@ -37,14 +37,13 @@ export PATH=$PATH:${REPO_ROOT_DIR}
 
 run() {
   # Create cluster
-  $(dirname $0)/tekton-tests.sh
-#  initialize $@ --skip-istio-addon
-#
-#  # Smoke test
-#  eval smoke_test || fail_test
-#
-#  # Integration test
-#  eval integration_test || fail_test
+  initialize $@ --skip-istio-addon
+
+  # Smoke test
+  eval smoke_test || fail_test
+
+  # Integration test
+  eval integration_test || fail_test
 
   success
 }
