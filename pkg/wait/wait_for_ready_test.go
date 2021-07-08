@@ -15,6 +15,7 @@
 package wait
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -26,6 +27,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
+	"knative.dev/client/pkg/util"
 	"knative.dev/pkg/apis"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
@@ -73,7 +75,8 @@ func TestWaitCancellation(t *testing.T) {
 		func(obj runtime.Object) (apis.Conditions, error) {
 			return apis.Conditions(obj.(*servingv1.Service).Status.Conditions), nil
 		})
-	err, _ = wfr.Wait(ctx, "foobar", "", Options{Timeout: &timeout}, NoopMessageCallback())
+	window := 2 * time.Second
+	err, _ = wfr.Wait(ctx, "foobar", "", Options{Timeout: nil, ErrorWindow: &window}, NoopMessageCallback())
 	assert.Assert(t, errors.Is(err, context.Canceled))
 }
 
@@ -251,6 +254,15 @@ func TestAddWaitForDelete(t *testing.T) {
 			t.Errorf("%d: Exactly one 'stop' should be called, but got %d", i, fakeWatchAPI.StopCalled)
 		}
 	}
+}
+
+func TestSimpleMessageCallback(t *testing.T) {
+	var out bytes.Buffer
+	callback := SimpleMessageCallback(&out)
+	callback(5*time.Second, "hello")
+	assert.Assert(t, util.ContainsAll(out.String(), "hello"))
+	callback(5*time.Second, "hello")
+	assert.Assert(t, util.ContainsAll(out.String(), "..."))
 }
 
 // Test cases which consists of a series of events to send and the expected behaviour.
