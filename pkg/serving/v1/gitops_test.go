@@ -51,6 +51,7 @@ func TestGitOpsOperations(t *testing.T) {
 	fooSvc := libtest.BuildServiceWithOptions("foo", servingtest.WithConfigSpec(buildConfiguration()))
 	barSvc := libtest.BuildServiceWithOptions("bar", servingtest.WithConfigSpec(buildConfiguration()))
 	fooUpdateSvc := libtest.BuildServiceWithOptions("foo", servingtest.WithConfigSpec(buildConfiguration()), servingtest.WithEnv(corev1.EnvVar{Name: "a", Value: "mouse"}))
+	mockUpdateSvc := libtest.BuildServiceWithOptions("mock", servingtest.WithConfigSpec(buildConfiguration()), servingtest.WithEnv(corev1.EnvVar{Name: "a", Value: "mouse"}))
 
 	fooserviceList := getServiceList([]servingv1.Service{*barSvc, *fooSvc})
 	allServices := getServiceList([]servingv1.Service{*barSvc, *barSvc, *fooSvc})
@@ -129,6 +130,11 @@ func TestGitOpsOperations(t *testing.T) {
 		_, err := fooclient.GetService(context.Background(), "foo")
 		assert.ErrorType(t, err, apierrors.IsNotFound)
 	})
+
+	t.Run("update service foo", func(t *testing.T) {
+		_, err := fooclient.UpdateService(context.Background(), mockUpdateSvc)
+		assert.ErrorType(t, err, apierrors.IsNotFound)
+	})
 }
 
 func TestGitOpsSingleFile(t *testing.T) {
@@ -139,6 +145,8 @@ func TestGitOpsSingleFile(t *testing.T) {
 	fooclient := NewKnServingGitOpsClient("", filepath.Join(tmpDir, "test.yaml"))
 	barclient := NewKnServingGitOpsClient("", filepath.Join(tmpDir, "test.yml"))
 	bazclient := NewKnServingGitOpsClient("", filepath.Join(tmpDir, "test.json"))
+	mockclient := NewKnServingGitOpsClient("", filepath.Join(tmpDir, "mockfile"))
+	mockDirclient := NewKnServingGitOpsClient("", tmpDir)
 
 	// set up test services
 	testSvc := libtest.BuildServiceWithOptions("test", servingtest.WithConfigSpec(buildConfiguration()))
@@ -202,6 +210,12 @@ func TestGitOpsSingleFile(t *testing.T) {
 		result, err = bazclient.ListServices(context.Background())
 		assert.NilError(t, err)
 		assert.DeepEqual(t, svcList, result)
+
+		_, err = mockclient.ListServices(context.Background())
+		assert.ErrorContains(t, err, "no such file")
+
+		_, err = mockDirclient.ListServices(context.Background())
+		assert.NilError(t, err)
 	})
 	t.Run("delete service foo", func(t *testing.T) {
 		err := fooclient.DeleteService(context.Background(), "test", 5*time.Second)

@@ -20,6 +20,8 @@ import (
 	"testing"
 	"time"
 
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+
 	"knative.dev/pkg/apis"
 	duck "knative.dev/pkg/apis/duck/v1"
 
@@ -135,6 +137,20 @@ func TestListService(t *testing.T) {
 
 }
 
+func TestListServiceError(t *testing.T) {
+	serving, client := setup()
+
+	serving.AddReactor("list", "services",
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			assert.Equal(t, testNamespace, a.GetNamespace())
+			return true, nil, apierrors.NewInternalError(fmt.Errorf("internal error"))
+		})
+
+	listServices, err := client.ListServices(context.Background())
+	assert.ErrorType(t, err, apierrors.IsInternalError)
+	assert.Assert(t, listServices == nil)
+}
+
 func TestCreateService(t *testing.T) {
 	serving, client := setup()
 
@@ -193,18 +209,90 @@ func TestUpdateService(t *testing.T) {
 	})
 }
 
+func TestUpdateServiceWithRetry(t *testing.T) {
+	serving, client := setup()
+	serviceUpdate := newService("update-service")
+	serviceUpdate.ObjectMeta.Generation = 2
+
+	conflictService := newService("conflict-service")
+
+	serving.AddReactor("update", "services",
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			assert.Equal(t, testNamespace, a.GetNamespace())
+			name := a.(clienttesting.UpdateAction).GetObject().(metav1.Object).GetName()
+			if name == serviceUpdate.Name {
+				serviceReturn := newService("update-service")
+				return true, serviceReturn, nil
+			}
+			if name == conflictService.Name {
+				return true, nil, apierrors.NewConflict(servingv1.Resource("service"), "conflict-service", fmt.Errorf("error updating because of conflict"))
+			}
+			return true, nil, fmt.Errorf("error while updating service %s", name)
+		})
+	t.Run("updating a service without error", func(t *testing.T) {
+		_, err := client.UpdateServiceWithRetry(context.Background(), "update-service", func(svc *servingv1.Service) (*servingv1.Service, error) {
+			svc.Name = "update-service"
+			return svc, nil
+		}, 10)
+		assert.NilError(t, err)
+	})
+	t.Run("updating a service with conflict error", func(t *testing.T) {
+		_, err := client.UpdateServiceWithRetry(context.Background(), "update-service", func(svc *servingv1.Service) (*servingv1.Service, error) {
+			svc.Name = "conflict-service"
+			return svc, nil
+		}, 10)
+		assert.ErrorContains(t, err, "conflict")
+	})
+
+	t.Run("updating a service with update func error", func(t *testing.T) {
+		_, err := client.UpdateServiceWithRetry(context.Background(), "update-service", func(svc *servingv1.Service) (*servingv1.Service, error) {
+			svc.Name = "update-service"
+			return svc, fmt.Errorf("update error")
+		}, 10)
+		assert.ErrorContains(t, err, "update error")
+	})
+
+	serving.AddReactor("get", "services",
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			name := a.(clienttesting.GetAction).GetName()
+			if name == serviceUpdate.Name {
+				serviceUpdate.DeletionTimestamp = &metav1.Time{Time: time.Now()}
+				return true, serviceUpdate, nil
+			}
+			return true, nil, errors.NewNotFound(servingv1.Resource("service"), name)
+		})
+
+	t.Run("updating a service with deletion error", func(t *testing.T) {
+		_, err := client.UpdateServiceWithRetry(context.Background(), "update-service", func(svc *servingv1.Service) (*servingv1.Service, error) {
+			svc.Name = "update-service"
+			return svc, nil
+		}, 10)
+		assert.ErrorContains(t, err, "marked for deletion")
+	})
+
+	t.Run("updating a service with not found error", func(t *testing.T) {
+		_, err := client.UpdateServiceWithRetry(context.Background(), "unknown-service", func(svc *servingv1.Service) (*servingv1.Service, error) {
+			svc.Name = "unknown-service"
+			return svc, nil
+		}, 10)
+		assert.ErrorContains(t, err, "unknown")
+	})
+}
+
 func TestDeleteService(t *testing.T) {
 	serving, client := setup()
 	const (
 		serviceName            = "test-service"
 		nonExistingServiceName = "no-service"
 		deletedServiceName     = "deleted-service"
+		errServiceName         = "err-service"
 	)
+	delErr := fmt.Errorf("failed to delete service")
 
 	serving.AddReactor("get", "services",
 		func(a clienttesting.Action) (bool, runtime.Object, error) {
 			name := a.(clienttesting.GetAction).GetName()
-			if name == serviceName {
+			if name == serviceName || name == errServiceName {
 				// Don't handle existing service, just continue to next
 				return false, nil, nil
 			}
@@ -223,6 +311,9 @@ func TestDeleteService(t *testing.T) {
 			assert.Equal(t, testNamespace, a.GetNamespace())
 			if name == serviceName {
 				return true, nil, nil
+			}
+			if name == errServiceName {
+				return true, nil, delErr
 			}
 			return false, nil, nil
 		})
@@ -255,6 +346,11 @@ func TestDeleteService(t *testing.T) {
 		println(err.Error())
 		assert.ErrorContains(t, err, "marked for deletion")
 		assert.ErrorContains(t, err, deletedServiceName)
+	})
+
+	t.Run("delete existing service returns an error", func(t *testing.T) {
+		err := client.DeleteService(context.Background(), errServiceName, time.Duration(10)*time.Second)
+		assert.ErrorType(t, err, delErr)
 	})
 }
 
@@ -393,6 +489,11 @@ func TestDeleteRevision(t *testing.T) {
 		assert.NilError(t, err)
 	})
 
+	t.Run("deleting revision with timeout returns no error", func(t *testing.T) {
+		err := client.DeleteRevision(context.Background(), revisionName, time.Second*10)
+		assert.NilError(t, err)
+	})
+
 	t.Run("trying to delete non-existing revision returns error", func(t *testing.T) {
 		err := client.DeleteRevision(context.Background(), nonExistingRevisionName, 0)
 		assert.ErrorContains(t, err, "not found")
@@ -492,6 +593,23 @@ func TestListRevisions(t *testing.T) {
 		validateGroupVersionKind(t, revisions)
 		validateGroupVersionKind(t, &revisions.Items[0])
 		validateGroupVersionKind(t, &revisions.Items[1])
+	})
+}
+
+func TestListRevisionsError(t *testing.T) {
+	serving, client := setup()
+
+	serving.AddReactor("list", "revisions",
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			assert.Equal(t, testNamespace, a.GetNamespace())
+			return true, nil, apierrors.NewInternalError(fmt.Errorf("internal error"))
+		})
+
+	t.Run("list revisions returns an internal error", func(t *testing.T) {
+
+		revisions, err := client.ListRevisions(context.Background())
+		assert.ErrorType(t, err, apierrors.IsInternalError)
+		assert.Assert(t, revisions == nil)
 	})
 }
 
@@ -609,33 +727,75 @@ func TestListRoutes(t *testing.T) {
 	})
 }
 
+func TestListRoutesError(t *testing.T) {
+	serving, client := setup()
+
+	serving.AddReactor("list", "routes",
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			assert.Equal(t, testNamespace, a.GetNamespace())
+			return true, nil, apierrors.NewInternalError(fmt.Errorf("internal error"))
+		})
+
+	t.Run("list routes returns an internal error", func(t *testing.T) {
+
+		routes, err := client.ListRoutes(context.Background())
+		assert.ErrorType(t, err, apierrors.IsInternalError)
+		assert.Assert(t, routes == nil)
+	})
+}
+
 func TestWaitForService(t *testing.T) {
 	serving, client := setup()
 
 	serviceName := "test-service"
+	notFoundServiceName := "not-found-service"
+	internalErrorServiceName := "internal-error-service"
 
 	serving.AddWatchReactor("services",
 		func(a clienttesting.Action) (bool, watch.Interface, error) {
 			watchAction := a.(clienttesting.WatchAction)
-			_, found := watchAction.GetWatchRestrictions().Fields.RequiresExactMatch("metadata.name")
+			val, found := watchAction.GetWatchRestrictions().Fields.RequiresExactMatch("metadata.name")
 			if !found {
 				return true, nil, fmt.Errorf("no field selector on metadata.name found")
 			}
-			w := wait.NewFakeWatch(getServiceEvents(serviceName))
+			w := wait.NewFakeWatch(getServiceEvents(val))
 			w.Start()
 			return true, w, nil
 		})
 	serving.AddReactor("get", "services",
 		func(a clienttesting.Action) (bool, runtime.Object, error) {
 			getAction := a.(clienttesting.GetAction)
-			assert.Equal(t, getAction.GetName(), serviceName)
-			return true, newService(serviceName), nil
+			var err error
+			var svc *servingv1.Service
+			switch getAction.GetName() {
+			case serviceName:
+				err = nil
+				svc = newService(serviceName)
+			case notFoundServiceName:
+				err = apierrors.NewNotFound(servingv1.Resource("service"), notFoundServiceName)
+			case internalErrorServiceName:
+				err = apierrors.NewInternalError(fmt.Errorf(internalErrorServiceName))
+			default:
+				t.Log("Service name didn't match any of the given patterns")
+				t.FailNow()
+			}
+			return true, svc, err
 		})
 
 	t.Run("wait on a service to become ready with success", func(t *testing.T) {
 		err, duration := client.WaitForService(context.Background(), serviceName, 60*time.Second, wait.NoopMessageCallback())
 		assert.NilError(t, err)
 		assert.Assert(t, duration > 0)
+	})
+	t.Run("wait on a service to become ready with not found error", func(t *testing.T) {
+		err, duration := client.WaitForService(context.Background(), notFoundServiceName, 60*time.Second, wait.NoopMessageCallback())
+		assert.NilError(t, err)
+		assert.Assert(t, duration > 0)
+	})
+	t.Run("wait on a service to become ready with internal error", func(t *testing.T) {
+		err, duration := client.WaitForService(context.Background(), internalErrorServiceName, 60*time.Second, wait.NoopMessageCallback())
+		assert.ErrorType(t, err, apierrors.IsInternalError)
+		assert.Assert(t, duration == 0)
 	})
 }
 
@@ -757,4 +917,14 @@ func getServiceEvents(name string) []watch.Event {
 		{Type: watch.Modified, Object: wait.CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionTrue, "", "msg2")},
 		{Type: watch.Modified, Object: wait.CreateTestServiceWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "", "")},
 	}
+}
+
+func TestCreateRevision(t *testing.T) {
+	_, client := setup()
+	rev := newRevision("mockRevision")
+	assert.NilError(t, client.CreateRevision(context.Background(), rev))
+	rev.Labels = map[string]string{
+		"mockKey": "mockVal",
+	}
+	assert.NilError(t, client.UpdateRevision(context.Background(), rev))
 }

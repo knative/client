@@ -18,9 +18,11 @@ import (
 	"testing"
 
 	"gotest.tools/v3/assert"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"knative.dev/serving/pkg/apis/autoscaling"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
 type scalingInfoTest struct {
@@ -70,4 +72,30 @@ func TestScalingInfo(t *testing.T) {
 		}
 
 	}
+}
+
+func TestAnnotations(t *testing.T) {
+	m := &metav1.ObjectMeta{}
+	m.Annotations = map[string]string{UserImageAnnotationKey: "mockImageVal",
+		autoscaling.TargetAnnotationKey:            "1",
+		autoscaling.TargetUtilizationPercentageKey: "2",
+		autoscaling.WindowAnnotationKey:            "mockWindowVal"}
+	assert.Equal(t, "mockImageVal", UserImage(m))
+	assert.Equal(t, 1, *ConcurrencyTarget(m))
+	assert.Equal(t, 2, *ConcurrencyTargetUtilization(m))
+	assert.Equal(t, "mockWindowVal", AutoscaleWindow(m))
+}
+
+func TestPort(t *testing.T) {
+	revisionSpec := &servingv1.RevisionSpec{
+		PodSpec:              corev1.PodSpec{},
+		ContainerConcurrency: new(int64),
+		TimeoutSeconds:       new(int64),
+	}
+	assert.Equal(t, (*int32)(nil), Port(revisionSpec))
+	revisionSpec.PodSpec.Containers = append(revisionSpec.PodSpec.Containers, corev1.Container{})
+	assert.Equal(t, (*int32)(nil), Port(revisionSpec))
+	port := corev1.ContainerPort{ContainerPort: 42}
+	revisionSpec.PodSpec.Containers[0].Ports = []corev1.ContainerPort{port}
+	assert.Equal(t, (int32)(42), *Port(revisionSpec))
 }
