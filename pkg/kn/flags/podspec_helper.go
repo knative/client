@@ -154,9 +154,9 @@ func UpdateImage(spec *corev1.PodSpec, image string) error {
 }
 
 // UpdateContainerCommand updates container with a given argument
-func UpdateContainerCommand(spec *corev1.PodSpec, command string) error {
+func UpdateContainerCommand(spec *corev1.PodSpec, command []string) error {
 	container := containerOfPodSpec(spec)
-	container.Command = []string{command}
+	container.Command = command
 	return nil
 }
 

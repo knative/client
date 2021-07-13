@@ -12,6 +12,16 @@
 | https://github.com/knative/client/pull/[#]
 ////
 
+## Unreleased
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| ✨
+| make --cmd flag as an array instead of string
+| https://github.com/knative/client/pull/1380[#1380]
+|===
+
 ## v0.24.0 (2021-06-29)
 [cols="1,10,3", options="header", width="100%"]
 |===
