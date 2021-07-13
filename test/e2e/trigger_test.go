@@ -37,9 +37,8 @@ func TestBrokerTrigger(t *testing.T) {
 	r := test.NewKnRunResultCollector(t, it)
 	defer r.DumpIfFailed()
 
-	err = test.LabelNamespaceForDefaultBroker(r)
-	assert.NilError(t, err)
-	defer test.UnlabelNamespaceForDefaultBroker(r)
+	test.BrokerCreate(r, "default")
+	defer test.BrokerDelete(r, "default", true)
 
 	test.ServiceCreate(r, "sinksvc0")
 	test.ServiceCreate(r, "sinksvc1")
