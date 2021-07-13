@@ -28,6 +28,7 @@ var Flags = InitializeFlags()
 // ClientFlags define the flags that are needed to run the e2e tests.
 type ClientFlags struct {
 	DockerConfigJSON string
+	ReuseNamespace bool
 }
 
 // InitializeFlags initializes the client's flags
@@ -37,6 +38,9 @@ func InitializeFlags() *ClientFlags {
 	dockerConfigJSON := os.Getenv("DOCKER_CONFIG_JSON")
 	flag.StringVar(&f.DockerConfigJSON, "dockerconfigjson", dockerConfigJSON,
 		"Provide the path to Docker configuration file in json format. Defaults to $DOCKER_CONFIG_JSON")
+	// Might be useful in restricted environments where namespaces need to be
+	// created by a user with increased privileges (admin).
+	flag.BoolVar(&f.ReuseNamespace, "reusenamespace", false, "Whether to re-use namespace for test if it already exists.")
 
 	return &f
 }
