@@ -182,13 +182,13 @@ func TestServiceCreateImageSync(t *testing.T) {
 
 func TestServiceCreateCommand(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
-		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--cmd", "/app/start", "--no-wait"}, false)
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--cmd", "sh", "--cmd", "/app/start.sh", "--no-wait"}, false)
 	assert.NilError(t, err)
 	assert.Assert(t, action.Matches("create", "services"))
 
 	template := &created.Spec.Template
 	assert.NilError(t, err)
-	assert.DeepEqual(t, template.Spec.Containers[0].Command, []string{"/app/start"})
+	assert.DeepEqual(t, template.Spec.Containers[0].Command, []string{"sh", "/app/start.sh"})
 }
 
 func TestServiceCreateArg(t *testing.T) {
