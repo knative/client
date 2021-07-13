@@ -18,7 +18,7 @@
 | | Description | PR
 
 | ✨
-| make cmd flag as an array instead of string
+| make --cmd flag as an array instead of string
 | https://github.com/knative/client/pull/1380[#1380]
 |===
 
