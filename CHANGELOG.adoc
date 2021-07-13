@@ -14,6 +14,7 @@
 
 ## Unreleased
 [cols="1,10,3", options="header", width="100%"]
+|===
 | | Description | PR
 
 | ✨
