@@ -219,7 +219,7 @@ func TestServiceUpdateCommand(t *testing.T) {
 
 	origTemplate := &orig.Spec.Template
 
-	err := flags.UpdateContainerCommand(&origTemplate.Spec.PodSpec, "./start")
+	err := flags.UpdateContainerCommand(&origTemplate.Spec.PodSpec, []string{"./start"})
 	assert.NilError(t, err)
 
 	action, updated, _, err := fakeServiceUpdate(orig, []string{

@@ -35,7 +35,7 @@ type PodSpecFlags struct {
 	Mount        []string
 	Volume       []string
 
-	Command string
+	Command []string
 	Arg     []string
 
 	Resources          ResourceOptions
@@ -112,9 +112,9 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
 			"To unset a ConfigMap/Secret reference, append \"-\" to the name, e.g. --volume myvolume-.")
 	flagNames = append(flagNames, "volume")
 
-	flagset.StringVarP(&p.Command, "cmd", "", "",
+	flagset.StringArrayVarP(&p.Command, "cmd", "", []string{},
 		"Specify command to be used as entrypoint instead of default one. "+
-			"Example: --cmd /app/start or --cmd /app/start --arg myArg to pass additional arguments.")
+			"Example: --cmd /app/start or --cmd sh --cmd /app/start.sh or --cmd /app/start --arg myArg to pass additional arguments.")
 	flagNames = append(flagNames, "cmd")
 
 	flagset.StringArrayVarP(&p.Arg, "arg", "", []string{},
