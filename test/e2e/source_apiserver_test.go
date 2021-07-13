@@ -113,14 +113,14 @@ func setupForSourceAPIServer(t *testing.T, it *test.KnTest) {
 	_, err := test.NewKubectl(it.Kn().Namespace()).Run("create", "serviceaccount", testServiceAccount)
 	assert.NilError(t, err)
 
-	_, err = test.Kubectl{}.Run("create", "clusterrole", clusterRolePrefix+it.Kn().Namespace(), "--verb=get,list,watch", "--resource=events,namespaces")
+	_, err = test.Kubectl{}.Run("create", "role", clusterRolePrefix+it.Kn().Namespace(), "--verb=get,list,watch", "--resource=events,namespaces")
 	assert.NilError(t, err)
 
 	_, err = test.Kubectl{}.Run(
 		"create",
-		"clusterrolebinding",
+		"rolebinding",
 		clusterRoleBindingPrefix+it.Kn().Namespace(),
-		"--clusterrole="+clusterRolePrefix+it.Kn().Namespace(),
+		"--role="+clusterRolePrefix+it.Kn().Namespace(),
 		"--serviceaccount="+it.Kn().Namespace()+":"+testServiceAccount)
 	assert.NilError(t, err)
 }
@@ -132,13 +132,13 @@ func tearDownForSourceAPIServer(t *testing.T, it *test.KnTest) error {
 		return fmt.Errorf("Error executing %q: %w", strings.Join(saCmd, " "), err)
 	}
 
-	crCmd := []string{"delete", "clusterrole", clusterRolePrefix + it.Kn().Namespace()}
+	crCmd := []string{"delete", "role", clusterRolePrefix + it.Kn().Namespace()}
 	_, err = test.Kubectl{}.Run(crCmd...)
 	if err != nil {
 		return fmt.Errorf("Error executing %q: %w", strings.Join(saCmd, " "), err)
 	}
 
-	crbCmd := []string{"delete", "clusterrolebinding", clusterRoleBindingPrefix + it.Kn().Namespace()}
+	crbCmd := []string{"delete", "rolebinding", clusterRoleBindingPrefix + it.Kn().Namespace()}
 	_, err = test.Kubectl{}.Run(crbCmd...)
 	if err != nil {
 		return fmt.Errorf("Error executing %q: %w", strings.Join(saCmd, " "), err)
