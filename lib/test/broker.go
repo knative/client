@@ -25,12 +25,14 @@ import (
 	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
 )
 
+// BrokerCreate creates a broker with the given name.
 func BrokerCreate(r *KnRunResultCollector, name string) {
 	out := r.KnTest().Kn().Run("broker", "create", name)
 	r.AssertNoError(out)
 	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "Broker", name, "created", "namespace", r.KnTest().Kn().Namespace()))
 }
 
+// BrokerDelete deletes a broker with the given name.
 func BrokerDelete(r *KnRunResultCollector, name string, wait bool) {
 	args := []string{"broker", "delete", name}
 	if wait {
