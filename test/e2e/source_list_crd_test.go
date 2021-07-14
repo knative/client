@@ -27,6 +27,9 @@ import (
 	"knative.dev/client/pkg/util"
 )
 
+// This test requires cluster admin permissions due to working with CustomResourceDefinitions.
+// It can be excluded from test execution by using the project_admin build tag.
+// See https://github.com/knative/client/issues/1385
 func TestSourceListTypesCRD(t *testing.T) {
 	t.Parallel()
 	it, err := test.NewKnTest()
