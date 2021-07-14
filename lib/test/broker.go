@@ -15,10 +15,11 @@
 package test
 
 import (
-	"gotest.tools/v3/assert"
-	"knative.dev/client/pkg/util"
 	"strings"
 	"time"
+
+	"gotest.tools/v3/assert"
+	"knative.dev/client/pkg/util"
 
 	"k8s.io/apimachinery/pkg/util/wait"
 	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
