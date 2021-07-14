@@ -37,9 +37,8 @@ func TestSink(t *testing.T) {
 	defer r.DumpIfFailed()
 
 	// create broker
-	err = test.LabelNamespaceForDefaultBroker(r)
-	assert.NilError(t, err)
-	defer test.UnlabelNamespaceForDefaultBroker(r)
+	test.BrokerCreate(r, "default")
+	defer test.BrokerDelete(r, "default", true)
 
 	t.Log("Create Ping source with a sink to the default broker")
 	pingSourceCreate(r, "testpingsource0", "* * * * */1", "ping", "broker:default")
