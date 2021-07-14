@@ -28,7 +28,7 @@ var Flags = InitializeFlags()
 // ClientFlags define the flags that are needed to run the e2e tests.
 type ClientFlags struct {
 	DockerConfigJSON string
-	ReuseNamespace bool
+	ReuseNamespace   bool
 }
 
 // InitializeFlags initializes the client's flags
