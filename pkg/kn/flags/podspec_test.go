@@ -36,6 +36,7 @@ func TestPodSpecFlags(t *testing.T) {
 		Mount:        []string{},
 		Volume:       []string{},
 		Arg:          []string{},
+		Command:      []string{},
 	}
 	flags := &PodSpecFlags{}
 	testCmd := &cobra.Command{

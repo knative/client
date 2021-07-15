@@ -55,7 +55,7 @@ type Plugin interface {
 type ContextData map[string]string
 
 type PluginManifest struct {
-    // ProducesContextDataKeys is a list of keys for the ContextData that
+	// ProducesContextDataKeys is a list of keys for the ContextData that
 	// a plugin can produce. Nil or an empty list declares that this
 	// plugin is not ContextDataProducer
 	ProducesContextDataKeys []string

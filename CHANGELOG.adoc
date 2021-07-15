@@ -22,24 +22,9 @@
 | https://github.com/knative/client/pull/1364[#1364]
 
 | ✨
-| Update Kubernetes dependencies to v0.20.7
-| https://github.com/knative/client/pull/1344[#1344]
+| make --cmd flag as an array instead of string
+| https://github.com/knative/client/pull/1380[#1380]
 
-| ✨
-| Increase code coverage for Sources #1343
-| https://github.com/knative/client/pull/1343[#1343]
-
-| ✨
-| Make e2e test run over other networks
-| https://github.com/knative/client/pull/1339[#1339]
-
-| 🎁
-| Add `env-value-from` flag & keep order of env vars as provided
-| https://github.com/knative/client/pull/1328[#1328]
-
-| 🐛
-| Fix Subscription's Channel to use KRefence type
-| https://github.com/knative/client/pull/1326[#1326]
 |===
 
 ## v0.24.0 (2021-06-29)

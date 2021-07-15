@@ -66,6 +66,29 @@ mode, use
 ```bash
 test/local-e2e-tests.sh -short
 ```
+
+### Running E2E tests as a project admin
+
+It is possible to run the E2E tests by a user with reduced privileges, e.g. project admin.
+Some tests require cluster-admin privileges and those tests are excluded from execution in this case.
+Running the E2E tests then consists of these steps:
+1. The cluster admin creates test namespaces. Each test requires a separate namespace.
+By default, the namespace names consist of `kne2etests` prefix and numeric suffix starting from 0:
+ `kne2etests0`, `kne2etests1`, etc. The prefix can be configured using the KN_E2E_NAMESPACE env
+  variable. The namespace can be created as follows:
+    ```bash
+    for i in $(seq 0 40); do kubectl create ns "${KN_E2E_NAMESPACE}${i}"; done
+    ```
+   Note: There are currently slightly over 30 tests but the number will grow so the number of created
+   namespaces need to be adjusted.
+1. The project admin runs the test suite with specific flags:
+    ```bash
+    E2E_TAGS="project_admin" test/local-e2e-tests.sh --reusenamespace
+    ```
+   It is expected that the current user is a project admin for all test namespaces
+   and their KUBECONFIG is located at `$HOME/.kube/config` or the env
+   variable `$KUBECONFIG` points to it.
+
 ### E2E tests prow jobs
 
 Two e2e tests prow jobs are run in CI:

@@ -178,3 +178,29 @@ func TestResolveWithNamespace(t *testing.T) {
 		}
 	}
 }
+
+func TestSinkToString(t *testing.T) {
+	sink := duckv1.Destination{
+		Ref: &duckv1.KReference{Kind: "Service",
+			APIVersion: "serving.knative.dev/v1",
+			Namespace:  "my-namespace",
+			Name:       "mysvc"}}
+	expected := "ksvc:mysvc"
+	assert.Equal(t, expected, SinkToString(sink))
+	sink = duckv1.Destination{
+		Ref: &duckv1.KReference{Kind: "Broker",
+			APIVersion: "eventing.knative.dev/v1",
+			Namespace:  "my-namespace",
+			Name:       "default"}}
+	expected = "broker:default"
+	assert.Equal(t, expected, SinkToString(sink))
+
+	uri := "http://target.example.com"
+	targetExampleCom, err := apis.ParseURL(uri)
+	assert.NilError(t, err)
+	sink = duckv1.Destination{
+		URI: targetExampleCom,
+	}
+	assert.Equal(t, uri, SinkToString(sink))
+	assert.Equal(t, "", SinkToString(duckv1.Destination{}))
+}

@@ -74,18 +74,8 @@ function knative_setup() {
 
   if [ "${serving_version}" = "latest" ]; then
     start_latest_knative_serving
-
-    subheader "Installing Serving extension: DomainMapping (${serving_version})"
-    kubectl apply --filename https://storage.googleapis.com/knative-nightly/serving/latest/serving-domainmapping-crds.yaml
-    kubectl apply --filename https://storage.googleapis.com/knative-nightly/serving/latest/serving-domainmapping.yaml
-    wait_until_pods_running knative-serving || return 1
   else
     start_release_knative_serving "${serving_version}"
-
-    subheader "Installing Serving extension: DomainMapping (${serving_version})"
-    kubectl apply --filename https://storage.googleapis.com/knative-releases/serving/previous/v${serving_version}/serving-domainmapping-crds.yaml
-    kubectl apply --filename https://storage.googleapis.com/knative-releases/serving/previous/v${serving_version}/serving-domainmapping.yaml
-    wait_until_pods_running knative-serving || return 1
   fi
 
   if ! is_ingress_class istio; then

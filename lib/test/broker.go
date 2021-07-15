@@ -18,9 +18,30 @@ import (
 	"strings"
 	"time"
 
+	"gotest.tools/v3/assert"
+	"knative.dev/client/pkg/util"
+
 	"k8s.io/apimachinery/pkg/util/wait"
 	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
 )
+
+// BrokerCreate creates a broker with the given name.
+func BrokerCreate(r *KnRunResultCollector, name string) {
+	out := r.KnTest().Kn().Run("broker", "create", name)
+	r.AssertNoError(out)
+	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "Broker", name, "created", "namespace", r.KnTest().Kn().Namespace()))
+}
+
+// BrokerDelete deletes a broker with the given name.
+func BrokerDelete(r *KnRunResultCollector, name string, wait bool) {
+	args := []string{"broker", "delete", name}
+	if wait {
+		args = append(args, "--wait")
+	}
+	out := r.KnTest().Kn().Run(args...)
+	r.AssertNoError(out)
+	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "Broker", name, "deleted", "namespace", r.KnTest().Kn().Namespace()))
+}
 
 // LabelNamespaceForDefaultBroker adds label 'knative-eventing-injection=enabled' to the configured namespace
 func LabelNamespaceForDefaultBroker(r *KnRunResultCollector) error {

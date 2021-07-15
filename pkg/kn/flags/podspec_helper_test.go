@@ -352,13 +352,13 @@ func checkContainerImage(t *testing.T, spec *corev1.PodSpec, image string) {
 
 func TestUpdateContainerCommand(t *testing.T) {
 	spec, _ := getPodSpec()
-	err := UpdateContainerCommand(spec, "/app/start")
+	err := UpdateContainerCommand(spec, []string{"/app/start"})
 	assert.NilError(t, err)
 	assert.DeepEqual(t, spec.Containers[0].Command, []string{"/app/start"})
 
-	err = UpdateContainerCommand(spec, "/app/latest")
+	err = UpdateContainerCommand(spec, []string{"sh", "/app/latest.sh"})
 	assert.NilError(t, err)
-	assert.DeepEqual(t, spec.Containers[0].Command, []string{"/app/latest"})
+	assert.DeepEqual(t, spec.Containers[0].Command, []string{"sh", "/app/latest.sh"})
 }
 
 func TestUpdateContainerArg(t *testing.T) {

@@ -44,9 +44,14 @@ type KnTest struct {
 // NewKnTest creates a new KnTest object
 func NewKnTest() (*KnTest, error) {
 	ns := ""
-	// try next 20 namespace before giving up creating a namespace if it already exists
+	// Try next 20 namespace before giving up creating a namespace if it already exists
 	for i := 0; i < 20; i++ {
 		ns = NextNamespace()
+		if Flags.ReuseNamespace {
+			// Re-using existing namespace, no need to create it.
+			// The namespace is supposed to be created in advance.
+			break
+		}
 		err := CreateNamespace(ns)
 		if err == nil {
 			break
@@ -77,6 +82,10 @@ func NewKnTest() (*KnTest, error) {
 
 // Teardown clean up
 func (test *KnTest) Teardown() error {
+	// If we're reusing existing namespaces leave the deletion to the creator.
+	if Flags.ReuseNamespace {
+		return nil
+	}
 	return DeleteNamespace(test.namespace)
 }
 
