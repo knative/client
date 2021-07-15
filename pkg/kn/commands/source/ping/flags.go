@@ -31,6 +31,7 @@ import (
 type pingUpdateFlags struct {
 	schedule    string
 	data        string
+	encoding    string
 	ceOverrides []string
 }
 
@@ -41,6 +42,8 @@ func (c *pingUpdateFlags) addFlags(cmd *cobra.Command) {
 		"Optional schedule specification in crontab format (e.g. '*/2 * * * *' for every two minutes. By default fire every minute.")
 
 	cmd.Flags().StringVarP(&c.data, "data", "d", "", "Json data to send")
+
+	cmd.Flags().StringVarP(&c.encoding, "encoding", "e", "", "Preferred encoding format. Valid values: text/base64")
 
 	cmd.Flags().StringArrayVar(&c.ceOverrides,
 		"ce-override",

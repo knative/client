@@ -33,7 +33,7 @@ func TestDescribeRef(t *testing.T) {
 
 	pingRecorder := pingClient.Recorder()
 	pingRecorder.GetPingSource("testping",
-		createPingSource("testping", "*/2 * * * *", "test", "testsvc", map[string]string{"foo": "bar"}), nil)
+		createPingSource("testping", "*/2 * * * *", "test", "", "testsvc", map[string]string{"foo": "bar"}), nil)
 
 	out, err := executePingSourceCommand(pingClient, nil, "describe", "testping")
 	assert.NilError(t, err)

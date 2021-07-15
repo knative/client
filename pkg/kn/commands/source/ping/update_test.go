@@ -36,8 +36,8 @@ func TestSimplePingUpdate(t *testing.T) {
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default", mysvc1)
 	pingSourceClient := sourcesv1beta2.NewMockKnPingSourceClient(t)
 	pingRecorder := pingSourceClient.Recorder()
-	pingRecorder.GetPingSource("testsource", createPingSource("testsource", "* * * * */1", "maxwell", "mysvc", nil), nil)
-	pingRecorder.UpdatePingSource(createPingSource("testsource", "* * * * */3", "maxwell", "mysvc1", nil), nil)
+	pingRecorder.GetPingSource("testsource", createPingSource("testsource", "* * * * */1", "maxwell", "", "mysvc", nil), nil)
+	pingRecorder.UpdatePingSource(createPingSource("testsource", "* * * * */3", "maxwell", "", "mysvc1", nil), nil)
 
 	out, err := executePingSourceCommand(pingSourceClient, dynamicClient, "update", "--schedule", "* * * * */3", "testsource", "--sink", "mysvc1")
 	assert.NilError(t, err)
@@ -52,8 +52,8 @@ func TestSimplePingUpdateCEOverrides(t *testing.T) {
 	pingRecorder := pingSourceClient.Recorder()
 	ceOverrideMap := map[string]string{"bla": "blub", "foo": "bar"}
 	ceOverrideMapUpdated := map[string]string{"foo": "baz", "new": "ceoverride"}
-	pingRecorder.GetPingSource("testsource", createPingSource("testsource", "* * * * */1", "maxwell", "mysvc", ceOverrideMap), nil)
-	pingRecorder.UpdatePingSource(createPingSource("testsource", "* * * * */3", "updated-data", "mysvc", ceOverrideMapUpdated), nil)
+	pingRecorder.GetPingSource("testsource", createPingSource("testsource", "* * * * */1", "maxwell", "", "mysvc", ceOverrideMap), nil)
+	pingRecorder.UpdatePingSource(createPingSource("testsource", "* * * * */3", "updated-data", "", "mysvc", ceOverrideMapUpdated), nil)
 
 	out, err := executePingSourceCommand(pingSourceClient, nil, "update", "--schedule", "* * * * */3", "testsource", "--data", "updated-data", "--ce-override", "bla-", "--ce-override", "foo=baz", "--ce-override", "new=ceoverride")
 	assert.NilError(t, err)
@@ -77,7 +77,7 @@ func TestUpdateError(t *testing.T) {
 
 func TestPingUpdateDeletionTimestampNotNil(t *testing.T) {
 	pingSourceClient := sourcesv1beta2.NewMockKnPingSourceClient(t)
-	present := createPingSource("test", "", "", "", nil)
+	present := createPingSource("test", "", "", "", "", nil)
 	present.DeletionTimestamp = &metav1.Time{Time: time.Now()}
 	pingRecorder := pingSourceClient.Recorder()
 	pingRecorder.GetPingSource("test", present, nil)
@@ -100,7 +100,7 @@ func TestPingUpdateNoSinkError(t *testing.T) {
 	pingClient := sourcesv1beta2.NewMockKnPingSourceClient(t)
 	pingRecorder := pingClient.Recorder()
 
-	pingRecorder.GetPingSource("testsource", createPingSource("testsource", "* * * * */1", "maxwell", "mysvc", nil), nil)
+	pingRecorder.GetPingSource("testsource", createPingSource("testsource", "* * * * */1", "maxwell", "", "mysvc", nil), nil)
 
 	out, err := executePingSourceCommand(pingClient, dynamicClient, "update", "testsource", "--sink", "ksvc1")
 	assert.ErrorContains(t, err, "not found")
