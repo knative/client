@@ -25,10 +25,12 @@ import (
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/assert/cmp"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"knative.dev/client/pkg/util"
 	"knative.dev/pkg/apis"
+	duckv1 "knative.dev/pkg/apis/duck/v1"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
@@ -89,9 +91,7 @@ func TestAddWaitForReady(t *testing.T) {
 			func(ctx context.Context, name string, initialVersion string, timeout time.Duration) (watch.Interface, error) {
 				return fakeWatchApi, nil
 			},
-			func(obj runtime.Object) (apis.Conditions, error) {
-				return apis.Conditions(obj.(*servingv1.Service).Status.Conditions), nil
-			})
+			conditionsFor)
 		fakeWatchApi.Start()
 		var msgs []string
 		err, _ := waitForReady.Wait(context.Background(), "foobar", "", Options{Timeout: &tc.timeout}, func(_ time.Duration, msg string) {
@@ -137,9 +137,7 @@ func TestAddWaitForReadyWithChannelClose(t *testing.T) {
 				fakeWatchApi.Start()
 				return fakeWatchApi, nil
 			},
-			func(obj runtime.Object) (apis.Conditions, error) {
-				return apis.Conditions(obj.(*servingv1.Service).Status.Conditions), nil
-			})
+			conditionsFor)
 		var msgs []string
 
 		err, _ := waitForReady.Wait(context.Background(), "foobar", "", Options{Timeout: &tc.timeout}, func(_ time.Duration, msg string) {
@@ -190,9 +188,7 @@ func TestWaitTimeout(t *testing.T) {
 		func(ctx context.Context, name string, initialVersion string, timeout time.Duration) (watch.Interface, error) {
 			return fakeWatchApi, nil
 		},
-		func(obj runtime.Object) (apis.Conditions, error) {
-			return apis.Conditions(obj.(*servingv1.Service).Status.Conditions), nil
-		})
+		conditionsFor)
 	err, _ = wfr.Wait(context.Background(), "foobar", "", Options{Timeout: &timeout}, NoopMessageCallback())
 	assert.ErrorContains(t, err, "not ready")
 	assert.Assert(t, fakeWatchApi.StopCalled == 1)
@@ -270,6 +266,7 @@ func prepareTestCases(name string) []waitForReadyTestCase {
 	return []waitForReadyTestCase{
 		errorTest(name),
 		tc(peNormal, name, 5*time.Second, ""),
+		tc(peUnstructured, name, 5*time.Second, ""),
 		tc(peWrongGeneration, name, 5*time.Second, "timeout"),
 		tc(peTimeout, name, 5*time.Second, "timeout"),
 		tc(peReadyFalseWithinErrorWindow, name, 5*time.Second, ""),
@@ -325,6 +322,25 @@ func peNormal(name string) ([]watch.Event, int) {
 	}, len(messages)
 }
 
+func peUnstructured(name string) ([]watch.Event, int) {
+	events, msgLen := peNormal(name)
+	for i, event := range events {
+		unC, err := runtime.DefaultUnstructuredConverter.ToUnstructured(event.Object)
+		if err != nil {
+			panic(err)
+		}
+		if event.Type == watch.Added {
+			delete(unC, "status")
+		}
+		un := unstructured.Unstructured{Object: unC}
+		events[i] = watch.Event{
+			Type:   event.Type,
+			Object: &un,
+		}
+	}
+	return events, msgLen
+}
+
 func peTimeout(name string) ([]watch.Event, int) {
 	messages := pMessages(1)
 	return []watch.Event{
@@ -355,4 +371,17 @@ func deNormal(name string) ([]watch.Event, int) {
 		{Type: watch.Modified, Object: CreateTestServiceWithConditions(name, corev1.ConditionUnknown, corev1.ConditionTrue, "", messages[1])},
 		{Type: watch.Deleted, Object: CreateTestServiceWithConditions(name, corev1.ConditionTrue, corev1.ConditionTrue, "", "")},
 	}, len(messages)
+}
+
+func conditionsFor(obj runtime.Object) (apis.Conditions, error) {
+	if un, ok := obj.(*unstructured.Unstructured); ok {
+		kresource := duckv1.KResource{}
+		err := runtime.DefaultUnstructuredConverter.
+			FromUnstructured(un.UnstructuredContent(), &kresource)
+		if err != nil {
+			return nil, err
+		}
+		return kresource.GetStatus().GetConditions(), nil
+	}
+	return apis.Conditions(obj.(duckv1.KRShaped).GetStatus().Conditions), nil
 }
