@@ -175,6 +175,11 @@ func (b *PingSourceBuilder) Data(data string) *PingSourceBuilder {
 	return b
 }
 
+func (b *PingSourceBuilder) DataBase64(data string) *PingSourceBuilder {
+	b.pingSource.Spec.DataBase64 = data
+	return b
+}
+
 func (b *PingSourceBuilder) Sink(sink duckv1.Destination) *PingSourceBuilder {
 	b.pingSource.Spec.Sink = sink
 	return b
