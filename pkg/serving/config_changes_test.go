@@ -107,7 +107,7 @@ func TestSetUserImageAnnotation(t *testing.T) {
 	}
 }
 
-func TestFreezeImageToDigest(t *testing.T) {
+func TestPinImageToDigest(t *testing.T) {
 	template, container := getRevisionTemplate()
 	revision := &servingv1.Revision{}
 	revision.Spec = template.Spec
@@ -119,6 +119,26 @@ func TestFreezeImageToDigest(t *testing.T) {
 	err := PinImageToDigest(template, revision)
 	assert.NilError(t, err)
 	assert.Equal(t, container.Image, "gcr.io/foo/bar@sha256:deadbeef")
+
+	// No base revision --> no-op
+	err = PinImageToDigest(template, nil)
+	assert.NilError(t, err)
+}
+
+func TestPinImageToDigestInvalidImages(t *testing.T) {
+	template, container := getRevisionTemplate()
+	container.Image = "gcr.io/A"
+	revision := &servingv1.Revision{
+		Spec: servingv1.RevisionSpec{
+			PodSpec: corev1.PodSpec{
+				Containers: []corev1.Container{
+					{Image: "gcr.io/B"},
+				},
+			},
+		},
+	}
+	err := PinImageToDigest(template, revision)
+	assert.ErrorContains(t, err, "unexpected image")
 }
 
 func TestUpdateTimestampAnnotation(t *testing.T) {

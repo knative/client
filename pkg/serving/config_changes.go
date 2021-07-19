@@ -145,6 +145,7 @@ func PinImageToDigest(template *servingv1.RevisionTemplateSpec, baseRevision *se
 	if err != nil {
 		return err
 	}
+
 	if currentContainer.Image != baseContainer.Image {
 		return fmt.Errorf("could not freeze image to digest since current revision contains unexpected image")
 	}
