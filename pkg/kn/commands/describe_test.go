@@ -16,12 +16,15 @@ package commands
 
 import (
 	"bytes"
+	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"gotest.tools/v3/assert"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"knative.dev/client/pkg/printers"
 	"knative.dev/pkg/apis"
 )
@@ -107,4 +110,44 @@ OK TYPE AGE REASON
  W Bbb Bad
  I Ccc Eh.`))
 	}
+}
+
+func TestWriteSliceDesc(t *testing.T) {
+	var out bytes.Buffer
+	pw := printers.NewBarePrefixWriter(&out)
+	WriteSliceDesc(pw, nil, "", false)
+	assert.Equal(t, "", out.String())
+
+	slice := []string{"val1", "val2", "val3"}
+	WriteSliceDesc(pw, slice, "mockLabel", false)
+	expected := "mockLabel:\tval1, val2, val3\n"
+	assert.Equal(t, expected, out.String())
+
+	out.Reset()
+	WriteSliceDesc(pw, slice, "mockLabel", true)
+	expected = "mockLabel:\tval1\n\tval2\n\tval3\n"
+	assert.Equal(t, expected, out.String())
+
+	for i := 4; i <= TruncateAt; i++ {
+		slice = append(slice, fmt.Sprintf("val%d", i))
+	}
+	out.Reset()
+	joined := strings.Join(slice, ", ")[:TruncateAt-4]
+	expected = fmt.Sprintf("mockLabel:\t%s ...\n", joined)
+	WriteSliceDesc(pw, slice, "mockLabel", false)
+	assert.Equal(t, expected, out.String())
+
+}
+
+func TestWriteMetadata(t *testing.T) {
+	var out bytes.Buffer
+	pw := printers.NewBarePrefixWriter(&out)
+	m := &metav1.ObjectMeta{
+		Name:              "mockName",
+		Namespace:         "mockNamespace",
+		CreationTimestamp: metav1.NewTime(time.Now().Add(-5 * time.Second)),
+	}
+	WriteMetadata(pw, m, false)
+	expected := "Name:\tmockName\nNamespace:\tmockNamespace\nAge:\t5s\n"
+	assert.Equal(t, expected, out.String())
 }

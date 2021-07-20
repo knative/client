@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	"github.com/spf13/cobra"
+	"gotest.tools/v3/assert"
 )
 
 // testCommandGenerator generates a test cobra command
@@ -45,6 +46,11 @@ func TestGetNamespaceSample(t *testing.T) {
 	if actualNamespace != expectedNamespace {
 		t.Fatalf("Incorrect namespace retrieved: %v, expected: %v", actualNamespace, expectedNamespace)
 	}
+	kp = &KnParams{}
+	testCmd = testCommandGenerator(false)
+	actualNamespace, err = kp.GetNamespace(testCmd)
+	assert.NilError(t, err)
+	assert.Equal(t, "default", actualNamespace)
 }
 
 // test current namespace without setting any namespace

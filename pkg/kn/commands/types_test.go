@@ -96,6 +96,9 @@ func TestPrepareConfig(t *testing.T) {
 			}
 		}
 	}
+	_, err = (&KnParams{}).RestConfig()
+	assert.ErrorContains(t, err, "no kubeconfig")
+
 }
 
 type typeTestCase struct {
@@ -407,4 +410,43 @@ func TestNewMessagingClient(t *testing.T) {
 			assert.Assert(t, msgClient.ChannelsClient().Namespace() == namespace)
 		}
 	}
+}
+
+func TestInitialize(t *testing.T) {
+	params := &KnParams{}
+	params.Initialize()
+	assert.Assert(t, params.NewServingClient != nil)
+	assert.Assert(t, params.NewServingV1alpha1Client != nil)
+	assert.Assert(t, params.NewGitopsServingClient != nil)
+	assert.Assert(t, params.NewSourcesClient != nil)
+	assert.Assert(t, params.NewEventingClient != nil)
+	assert.Assert(t, params.NewMessagingClient != nil)
+	assert.Assert(t, params.NewDynamicClient != nil)
+
+	basic, err := clientcmd.NewClientConfigFromBytes([]byte(BASIC_KUBECONFIG))
+	if err != nil {
+		t.Error(err)
+	}
+
+	// Test all clients are not nil
+	params.ClientConfig = basic
+	servingClient, err := params.NewServingClient("mockNamespace")
+	assert.NilError(t, err)
+	assert.Assert(t, servingClient != nil)
+
+	eventingClient, err := params.NewEventingClient("mockNamespace")
+	assert.NilError(t, err)
+	assert.Assert(t, eventingClient != nil)
+
+	gitOpsClient, err := params.NewGitopsServingClient("mockNamespace", "mockDir")
+	assert.NilError(t, err)
+	assert.Assert(t, gitOpsClient != nil)
+
+	messagingClient, err := params.NewMessagingClient("mockNamespace")
+	assert.NilError(t, err)
+	assert.Assert(t, messagingClient != nil)
+
+	sourcesClient, err := params.NewSourcesClient("mockNamespace")
+	assert.NilError(t, err)
+	assert.Assert(t, sourcesClient != nil)
 }
