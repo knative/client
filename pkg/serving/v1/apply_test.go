@@ -16,6 +16,7 @@ package v1
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -47,6 +48,9 @@ func TestApplyServiceCreate(t *testing.T) {
 	serving.AddReactor("get", "services",
 		func(a clienttesting.Action) (bool, runtime.Object, error) {
 			name := a.(clienttesting.GetAction).GetName()
+			if name == "new-service-fail" {
+				return true, nil, errors.NewInternalError(fmt.Errorf("mock internal error"))
+			}
 			return true, nil, errors.NewNotFound(servingv1.Resource("service"), name)
 		})
 
@@ -59,6 +63,15 @@ func TestApplyServiceCreate(t *testing.T) {
 	hasChanged, err := client.ApplyService(context.Background(), serviceNew)
 	assert.NilError(t, err)
 	assert.Assert(t, hasChanged, "service has changed")
+
+	serviceNew = newServiceWithImage("new-service-fail", "test/image")
+	serving.AddReactor("get", "services",
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			return true, nil, errors.NewInternalError(fmt.Errorf("mock internal error"))
+		})
+	hasChanged, err = client.ApplyService(context.Background(), serviceNew)
+	assert.ErrorType(t, err, errors.IsInternalError)
+	assert.Assert(t, !hasChanged)
 }
 
 func TestApplyServiceUpdate(t *testing.T) {
@@ -66,15 +79,37 @@ func TestApplyServiceUpdate(t *testing.T) {
 
 	serviceOld := newServiceWithImage("my-service", "test/image")
 	serviceNew := newServiceWithImage("my-service", "test/new-image")
+	serviceConflict := newServiceWithImage("conflict-service", "test/image")
+	serviceErr := newServiceWithImage("err-service", "test/image")
 	serving.AddReactor("get", "services",
 		func(a clienttesting.Action) (bool, runtime.Object, error) {
 			name := a.(clienttesting.GetAction).GetName()
-			assert.Equal(t, name, "my-service")
-			return true, serviceOld, nil
+			var svc *servingv1.Service
+			var err error
+			switch name {
+			case "my-service":
+				svc = serviceOld
+			case "conflict-service":
+				svc = serviceConflict
+			case "err-service":
+				svc = serviceErr
+				err = errors.NewInternalError(fmt.Errorf("internal error"))
+			default:
+				t.FailNow()
+			}
+			return true, svc, err
 		})
 
 	serving.AddReactor("patch", "services",
 		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			name := a.(clienttesting.GetAction).GetName()
+			conflictErr := errors.NewConflict(servingv1.Resource("service"), "conflict-service", fmt.Errorf("error patching service"))
+			if name == "conflict-service" {
+				return true, serviceConflict, conflictErr
+			}
+			if name == "err-service" {
+				return true, serviceErr, conflictErr
+			}
 			serviceNew.Generation = 2
 			serviceNew.Status.ObservedGeneration = 1
 			return true, serviceNew, nil
@@ -83,6 +118,24 @@ func TestApplyServiceUpdate(t *testing.T) {
 	hasChanged, err := client.ApplyService(context.Background(), serviceNew)
 	assert.NilError(t, err)
 	assert.Assert(t, hasChanged, "service has changed")
+
+	serviceOld.SetAnnotations(map[string]string{})
+	hasChanged, err = client.ApplyService(context.Background(), serviceNew)
+	assert.NilError(t, err)
+	assert.Assert(t, hasChanged, "service has changed")
+
+	serviceOld.SetAnnotations(map[string]string{corev1.LastAppliedConfigAnnotation: "never"})
+	hasChanged, err = client.ApplyService(context.Background(), serviceNew)
+	assert.ErrorContains(t, err, "Invalid JSON")
+	assert.Assert(t, !hasChanged, "service has not changed")
+
+	hasChanged, err = client.ApplyService(context.Background(), serviceConflict)
+	assert.ErrorType(t, err, errors.IsConflict)
+	assert.Assert(t, !hasChanged, "service has not changed")
+
+	hasChanged, err = client.ApplyService(context.Background(), serviceErr)
+	assert.ErrorType(t, err, errors.IsInternalError)
+	assert.Assert(t, !hasChanged, "service has not changed")
 }
 
 func newServiceWithImage(name string, image string) *servingv1.Service {

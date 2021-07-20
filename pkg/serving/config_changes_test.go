@@ -382,6 +382,13 @@ func TestUpdateAnnotationsRemoveExisting(t *testing.T) {
 	assert.DeepEqual(t, expected, actual)
 }
 
+func TestString(t *testing.T) {
+	vt := ConfigMapVolumeSourceType
+	assert.Equal(t, "config-map", vt.String())
+	vt = -1
+	assert.Equal(t, "unknown", vt.String())
+}
+
 //
 // =========================================================================================================
 
