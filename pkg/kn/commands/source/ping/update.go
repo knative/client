@@ -70,8 +70,15 @@ func NewPingUpdateCommand(p *commands.KnParams) *cobra.Command {
 			if cmd.Flags().Changed("schedule") {
 				b.Schedule(updateFlags.schedule)
 			}
+
+			data, dataBase64, err := getDataFields(&updateFlags)
+			if err != nil {
+				return fmt.Errorf("cannot update PingSource %q in namespace "+
+					"%q because: %s", name, namespace, err)
+			}
+
 			if cmd.Flags().Changed("data") {
-				b.Data(updateFlags.data)
+				b.Data(data).DataBase64(dataBase64)
 			}
 			if cmd.Flags().Changed("sink") {
 				destination, err := sinkFlags.ResolveSink(cmd.Context(), dynamicClient, namespace)
