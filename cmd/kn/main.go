@@ -193,7 +193,7 @@ func printError(err error) {
 // by checking a pattern like 'kn service' in the error message. If not found, return the
 // base command name.
 func extractCommandPathFromErrorMessage(errorMsg string, arg0 string) string {
-	extractPattern := regexp.MustCompile(fmt.Sprintf("'(%s\\s.+?)'", arg0))
+	extractPattern := regexp.MustCompile(fmt.Sprintf("'(%s\\s.+?)'", regexp.QuoteMeta(arg0)))
 	command := extractPattern.FindSubmatch([]byte(errorMsg))
 	if command != nil {
 		return string(command[1])
