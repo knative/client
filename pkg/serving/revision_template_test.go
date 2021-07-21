@@ -21,11 +21,9 @@ import (
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	"gotest.tools/v3/assert"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"knative.dev/serving/pkg/apis/autoscaling"
-	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
 type scalingInfoTest struct {
@@ -126,6 +124,7 @@ func TestContainerIndexOfRevisionSpec(t *testing.T) {
 			}
 		})
 	}
+}
 
 func TestAnnotations(t *testing.T) {
 	m := &metav1.ObjectMeta{}
