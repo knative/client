@@ -335,6 +335,15 @@ func TestRunWithExit(t *testing.T) {
 	}
 }
 
+func TestExtractCommandPathFromErrorMessage(t *testing.T) {
+	for _, d := range []struct{ arg0, errMsg, expected string }{
+		{"kn", "Invalid argument for 'kn service'", "kn service"},
+		{"C:\\Users\\hudson.DESKTOP-T61GB27\\Documents\\foo-with-revisions", "Invalid argument for 'C:\\Users\\hudson.DESKTOP-T61GB27\\Documents\\foo-with-revisions test'", "C:\\Users\\hudson.DESKTOP-T61GB27\\Documents\\foo-with-revisions test"},
+	} {
+		assert.Equal(t, extractCommandPathFromErrorMessage(d.errMsg, d.arg0), d.expected)
+	}
+}
+
 type internalPlugin struct {
 	executeError func() error
 	commandParts []string
