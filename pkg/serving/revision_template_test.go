@@ -17,6 +17,9 @@ package serving
 import (
 	"testing"
 
+	corev1 "k8s.io/api/core/v1"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
+
 	"gotest.tools/v3/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -69,5 +72,56 @@ func TestScalingInfo(t *testing.T) {
 			assert.Assert(t, s.Max == nil)
 		}
 
+	}
+}
+
+func TestContainerIndexOfRevisionSpec(t *testing.T) {
+	tests := []struct {
+		name    string
+		revSpec *servingv1.RevisionSpec
+		want    int
+	}{
+		{
+			"no container",
+			&servingv1.RevisionSpec{},
+			-1,
+		},
+		{
+			"1 container",
+			&servingv1.RevisionSpec{
+				PodSpec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{
+							Name:  "user-container",
+							Ports: []corev1.ContainerPort{{ContainerPort: 80}},
+						},
+					}}},
+			0,
+		},
+		{
+			"2 containers",
+			&servingv1.RevisionSpec{
+				PodSpec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{
+							Name: "sidecar-container-1",
+						},
+						{
+							Name:  "user-container",
+							Ports: []corev1.ContainerPort{{ContainerPort: 80}},
+						},
+						{
+							Name: "sidecar-container-2",
+						},
+					}}},
+			1,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := ContainerIndexOfRevisionSpec(tt.revSpec); got != tt.want {
+				t.Errorf("ContainerIndexOfRevisionSpec() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }

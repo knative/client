@@ -15,7 +15,6 @@
 package serving
 
 import (
-	"fmt"
 	"strconv"
 
 	corev1 "k8s.io/api/core/v1"
@@ -29,19 +28,15 @@ type Scaling struct {
 	Max *int
 }
 
-func ContainerOfRevisionTemplate(template *servingv1.RevisionTemplateSpec) (*corev1.Container, error) {
-	return ContainerOfRevisionSpec(&template.Spec)
-}
-
 // ContainerOfRevisionSpec returns the 'main' container of a revision specification and
 // use GetServingContainerIndex to identify the container.
-// An error is returned if no such container could be found
-func ContainerOfRevisionSpec(revisionSpec *servingv1.RevisionSpec) (*corev1.Container, error) {
+// Nil is returned if no such container could be found
+func ContainerOfRevisionSpec(revisionSpec *servingv1.RevisionSpec) *corev1.Container {
 	idx := ContainerIndexOfRevisionSpec(revisionSpec)
 	if idx == -1 {
-		return nil, fmt.Errorf("internal: no container set in spec.template.spec.containers")
+		return nil
 	}
-	return &revisionSpec.Containers[0], nil
+	return &revisionSpec.Containers[0]
 }
 
 // ContainerIndexOfRevisionSpec returns the index of the "main" container if
@@ -109,8 +104,8 @@ func AutoscaleWindow(m *metav1.ObjectMeta) string {
 }
 
 func Port(revisionSpec *servingv1.RevisionSpec) *int32 {
-	c, err := ContainerOfRevisionSpec(revisionSpec)
-	if err != nil {
+	c := ContainerOfRevisionSpec(revisionSpec)
+	if c == nil {
 		return nil
 	}
 	if len(c.Ports) > 0 {

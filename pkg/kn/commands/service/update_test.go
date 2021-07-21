@@ -187,10 +187,8 @@ func TestServiceUpdateImage(t *testing.T) {
 	}
 
 	template = &updated.Spec.Template
-	container, err := servinglib.ContainerOfRevisionTemplate(template)
-	if err != nil {
-		t.Fatal(err)
-	}
+	container := servinglib.ContainerOfRevisionSpec(&template.Spec)
+	assert.Assert(t, container != nil)
 	assert.Equal(t, container.Image, "gcr.io/foo/quux:xyzzy")
 
 	if !strings.Contains(strings.ToLower(output), "update") ||
@@ -886,10 +884,8 @@ func TestServiceUpdateRequestsLimitsCPU_and_Memory(t *testing.T) {
 func TestServiceUpdateLabelWhenEmpty(t *testing.T) {
 	original := newEmptyService()
 	origTemplate := original.Spec.Template
-	origContainer, err := servinglib.ContainerOfRevisionTemplate(&origTemplate)
-	if err != nil {
-		t.Fatal(err)
-	}
+	origContainer := servinglib.ContainerOfRevisionSpec(&origTemplate.Spec)
+	assert.Assert(t, origContainer != nil)
 	origContainer.Image = "gcr.io/foo/bar:latest"
 
 	action, updated, _, err := fakeServiceUpdate(original, []string{
@@ -912,10 +908,8 @@ func TestServiceUpdateLabelWhenEmpty(t *testing.T) {
 	template := updated.Spec.Template
 	actual = template.ObjectMeta.Labels
 	assert.DeepEqual(t, expected, actual)
-	container, err := servinglib.ContainerOfRevisionTemplate(&template)
-	if err != nil {
-		t.Fatal(err)
-	}
+	container := servinglib.ContainerOfRevisionSpec(&template.Spec)
+	assert.Assert(t, container != nil)
 	assert.Equal(t, container.Image, exampleImageByDigest)
 }
 

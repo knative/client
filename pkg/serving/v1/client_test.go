@@ -655,7 +655,7 @@ func TestGetBaseRevision(t *testing.T) {
 		{"foo-asdf", "gcr.io/foo/bar", "foo-asdf", "foo-asdf", "gcr.io/foo/bar", ""},
 		{"", "gcr.io/foo/bar", "foo-asdf", "foo-asdf", "gcr.io/foo/bar", ""},
 		{"foo-qwer", "gcr.io/foo/bar", "foo-asdf", "foo-qwer", "gcr.io/foo/bar", ""},
-		{"", "gcr.io/foo/bar", "foo-asdf", "foo-asdf", "gcr.io/foo/baz", "base revision not found"},
+		{"", "gcr.io/foo/bar", "foo-asdf", "foo-asdf", "gcr.io/foo/baz", "unexpected image"},
 	}
 	var c baseRevisionCase
 	servingFake.AddReactor("get", "revisions", func(a clienttesting.Action) (bool, runtime.Object, error) {

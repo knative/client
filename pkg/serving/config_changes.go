@@ -101,8 +101,9 @@ func UnsetUserImageAnnotation(template *servingv1.RevisionTemplateSpec) {
 func UpdateUserImageAnnotation(template *servingv1.RevisionTemplateSpec) {
 	// If the current image isn't by-digest, set the user-image annotation to it
 	// so we remember what it was.
-	currentContainer, err := ContainerOfRevisionTemplate(template)
-	if err != nil {
+	currentContainer := ContainerOfRevisionSpec(&template.Spec)
+	if currentContainer == nil {
+		// No container set in the template, so
 		return
 	}
 	image := currentContainer.Image
@@ -131,28 +132,40 @@ func ensureAnnotations(template *servingv1.RevisionTemplateSpec) {
 }
 
 // PinImageToDigest sets the image on the template to the image digest of the base revision.
-func PinImageToDigest(template *servingv1.RevisionTemplateSpec, baseRevision *servingv1.Revision) error {
+func PinImageToDigest(currentRevisionTemplate *servingv1.RevisionTemplateSpec, baseRevision *servingv1.Revision) error {
+	// If there is no base revision then there is nothing to pin to. It's not an error so let's return
+	// silently
 	if baseRevision == nil {
 		return nil
 	}
 
-	currentContainer, err := ContainerOfRevisionTemplate(template)
+	err := VerifyThatContainersMatchInCurrentAndBaseRevision(currentRevisionTemplate, baseRevision)
 	if err != nil {
-		return err
-	}
-
-	baseContainer, err := ContainerOfRevisionSpec(&baseRevision.Spec)
-	if err != nil {
-		return err
-	}
-
-	if currentContainer.Image != baseContainer.Image {
-		return fmt.Errorf("could not freeze image to digest since current revision contains unexpected image")
+		return fmt.Errorf("can not pin image to digest: %e", err)
 	}
 
 	containerStatus := ContainerStatus(baseRevision)
 	if containerStatus.ImageDigest != "" {
-		return flags.UpdateImage(&template.Spec.PodSpec, containerStatus.ImageDigest)
+		return flags.UpdateImage(&currentRevisionTemplate.Spec.PodSpec, containerStatus.ImageDigest)
+	}
+	return nil
+}
+
+// VerifyThatContainersMatchInCurrentAndBaseRevision checks if the image in the current revision matches
+// matches the one in a given base revision
+func VerifyThatContainersMatchInCurrentAndBaseRevision(template *servingv1.RevisionTemplateSpec, baseRevision *servingv1.Revision) error {
+	currentContainer := ContainerOfRevisionSpec(&template.Spec)
+	if currentContainer == nil {
+		return fmt.Errorf("no container given in current revision %s", template.Name)
+	}
+
+	baseContainer := ContainerOfRevisionSpec(&baseRevision.Spec)
+	if baseContainer == nil {
+		return fmt.Errorf("no container found in base revision %s", baseRevision.Name)
+	}
+
+	if currentContainer.Image != baseContainer.Image {
+		return fmt.Errorf("current revision %s contains unexpected image (%s) that does not fit to the base revision's %s image (%s)", template.Name, currentContainer.Image, baseRevision.Name, baseContainer.Image)
 	}
 	return nil
 }
