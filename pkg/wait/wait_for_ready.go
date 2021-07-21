@@ -180,18 +180,6 @@ func (w *waitForReadyConfig) waitForReadyCondition(ctx context.Context, name str
 				return true, false, nil
 			}
 
-			// Check whether resource is in sync already (meta.generation == status.observedGeneration)
-			inSync, err := generationCheck(event.Object)
-			if err != nil {
-				return false, false, err
-			}
-
-			// Skip events if generations has not yet been consolidated, regardless of type.
-			// Wait for the next event to come in until the generations align
-			if !inSync {
-				continue
-			}
-
 			// Skip event if its not a MODIFIED event, as only MODIFIED events update the condition
 			// we are looking for.
 			// This will filter out all synthetic ADDED events that created bt the API server for
@@ -203,6 +191,18 @@ func (w *waitForReadyConfig) waitForReadyCondition(ctx context.Context, name str
 			//  resource version. All following watch events are for all changes that occurred after the resource
 			//  version the watch started at."
 			if event.Type != watch.Modified {
+				continue
+			}
+
+			// Check whether resource is in sync already (meta.generation == status.observedGeneration)
+			inSync, err := generationCheck(event.Object)
+			if err != nil {
+				return false, false, err
+			}
+
+			// Skip events if generations has not yet been consolidated, regardless of type.
+			// Wait for the next event to come in until the generations align
+			if !inSync {
 				continue
 			}
 
