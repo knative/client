@@ -19,6 +19,7 @@ kn source ping create NAME --sink SINK
 ```
       --ce-override stringArray   Cloud Event overrides to apply before sending event to sink. Example: '--ce-override key=value' You may be provide this flag multiple times. To unset, append "-" to the key (e.g. --ce-override key-).
   -d, --data string               Json data to send
+  -e, --encoding string           Preferred encoding format. Valid values: text/base64
   -h, --help                      help for create
   -n, --namespace string          Specify the namespace to operate in.
       --schedule string           Optional schedule specification in crontab format (e.g. '*/2 * * * *' for every two minutes. By default fire every minute.

@@ -37,7 +37,7 @@ func TestSimpleCreatePingSource(t *testing.T) {
 	pingClient := clientsourcesv1beta2.NewMockKnPingSourceClient(t)
 
 	pingRecorder := pingClient.Recorder()
-	pingRecorder.CreatePingSource(createPingSource("testsource", "* * * * */2", "maxwell", "mysvc", map[string]string{"bla": "blub", "foo": "bar"}), nil)
+	pingRecorder.CreatePingSource(createPingSource("testsource", "* * * * */2", "maxwell", "", "mysvc", map[string]string{"bla": "blub", "foo": "bar"}), nil)
 
 	out, err := executePingSourceCommand(pingClient, dynamicClient, "create", "--sink", "ksvc:mysvc", "--schedule", "* * * * */2", "--data", "maxwell", "testsource", "--ce-override", "bla=blub", "--ce-override", "foo=bar")
 	assert.NilError(t, err, "Source should have been created")
@@ -68,4 +68,36 @@ func TestNoNameGivenError(t *testing.T) {
 	assert.ErrorContains(t, err, "name")
 	assert.ErrorContains(t, err, "require")
 	assert.Assert(t, util.ContainsAll(out, "Usage", "require", "name"))
+}
+
+func TestDataEncoding(t *testing.T) {
+	base64Val := "ZGF0YQ=="
+	mysvc := &servingv1.Service{
+		TypeMeta:   metav1.TypeMeta{Kind: "Service", APIVersion: "serving.knative.dev/v1"},
+		ObjectMeta: metav1.ObjectMeta{Name: "mysvc", Namespace: "default"},
+	}
+	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default", mysvc)
+
+	pingClient := clientsourcesv1beta2.NewMockKnPingSourceClient(t)
+
+	pingRecorder := pingClient.Recorder()
+
+	pingRecorder.CreatePingSource(createPingSource("testsource", "* * * * */2", "", base64Val, "mysvc", nil), nil)
+	out, err := executePingSourceCommand(pingClient, dynamicClient, "create", "--sink", "ksvc:mysvc", "--schedule", "* * * * */2", "--data", base64Val, "testsource")
+	assert.NilError(t, err, "Source should have been created")
+	assert.Assert(t, util.ContainsAll(out, "created", "default", "testsource"))
+
+	pingRecorder.CreatePingSource(createPingSource("testsource", "* * * * */2", "", base64Val, "mysvc", nil), nil)
+	out, err = executePingSourceCommand(pingClient, dynamicClient, "create", "--sink", "ksvc:mysvc", "--schedule", "* * * * */2", "--data", base64Val, "--encoding", "base64", "testsource")
+	assert.NilError(t, err, "Source should have been created")
+	assert.Assert(t, util.ContainsAll(out, "created", "default", "testsource"))
+
+	pingRecorder.CreatePingSource(createPingSource("testsource", "* * * * */2", base64Val, "", "mysvc", nil), nil)
+	out, err = executePingSourceCommand(pingClient, dynamicClient, "create", "--sink", "ksvc:mysvc", "--schedule", "* * * * */2", "--data", base64Val, "--encoding", "text", "testsource")
+	assert.NilError(t, err, "Source should have been created")
+	assert.Assert(t, util.ContainsAll(out, "created", "default", "testsource"))
+
+	out, err = executePingSourceCommand(pingClient, dynamicClient, "create", "--sink", "ksvc:mysvc", "--schedule", "* * * * */2", "--data", base64Val, "--encoding", "baseMock", "testsource")
+	assert.ErrorContains(t, err, "invalid")
+	assert.Assert(t, util.ContainsAll(out, "Usage", "text", "base64"))
 }

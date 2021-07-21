@@ -81,13 +81,14 @@ func cleanupPingMockClient() {
 	pingSourceClientFactory = nil
 }
 
-func createPingSource(name, schedule, data, service string, ceOverridesMap map[string]string) *sourcesv1beta2.PingSource {
+func createPingSource(name, schedule, data, dataBase64, service string, ceOverridesMap map[string]string) *sourcesv1beta2.PingSource {
 	sink := &duckv1.Destination{
 		Ref: &duckv1.KReference{Name: service, Kind: "Service", APIVersion: "serving.knative.dev/v1", Namespace: "default"},
 	}
 	return clientv1beta2.NewPingSourceBuilder(name).
 		Schedule(schedule).
 		Data(data).
+		DataBase64(dataBase64).
 		Sink(*sink).
 		CloudEventOverrides(ceOverridesMap, []string{}).
 		Build()
