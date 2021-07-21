@@ -84,7 +84,7 @@ func TestWaitCancellation(t *testing.T) {
 
 func TestAddWaitForReady(t *testing.T) {
 
-	for i, tc := range prepareTestCases("test-service") {
+	for i, tc := range prepareTestCases(t, "test-service") {
 		fakeWatchApi := NewFakeWatch(tc.events)
 		waitForReady := NewWaitForReady(
 			"blub",
@@ -122,7 +122,7 @@ func TestAddWaitForReady(t *testing.T) {
 }
 
 func TestAddWaitForReadyWithChannelClose(t *testing.T) {
-	for i, tc := range prepareTestCases("test-service") {
+	for i, tc := range prepareTestCases(t, "test-service") {
 		fakeWatchApi := NewFakeWatch(tc.events)
 		counter := 0
 		waitForReady := NewWaitForReady(
@@ -262,11 +262,11 @@ func TestSimpleMessageCallback(t *testing.T) {
 }
 
 // Test cases which consists of a series of events to send and the expected behaviour.
-func prepareTestCases(name string) []waitForReadyTestCase {
+func prepareTestCases(tb testing.TB, name string) []waitForReadyTestCase {
 	return []waitForReadyTestCase{
 		errorTest(name),
 		tc(peNormal, name, 5*time.Second, ""),
-		tc(peUnstructured, name, 5*time.Second, ""),
+		tc(peUnstructured(tb), name, 5*time.Second, ""),
 		tc(peWrongGeneration, name, 5*time.Second, "timeout"),
 		tc(peTimeout, name, 5*time.Second, "timeout"),
 		tc(peReadyFalseWithinErrorWindow, name, 5*time.Second, ""),
@@ -322,23 +322,25 @@ func peNormal(name string) ([]watch.Event, int) {
 	}, len(messages)
 }
 
-func peUnstructured(name string) ([]watch.Event, int) {
-	events, msgLen := peNormal(name)
-	for i, event := range events {
-		unC, err := runtime.DefaultUnstructuredConverter.ToUnstructured(event.Object)
-		if err != nil {
-			panic(err)
+func peUnstructured(tb testing.TB) func(name string) ([]watch.Event, int) {
+	return func(name string) ([]watch.Event, int) {
+		events, msgLen := peNormal(name)
+		for i, event := range events {
+			unC, err := runtime.DefaultUnstructuredConverter.ToUnstructured(event.Object)
+			if err != nil {
+				tb.Fatal(err)
+			}
+			if event.Type == watch.Added {
+				delete(unC, "status")
+			}
+			un := unstructured.Unstructured{Object: unC}
+			events[i] = watch.Event{
+				Type:   event.Type,
+				Object: &un,
+			}
 		}
-		if event.Type == watch.Added {
-			delete(unC, "status")
-		}
-		un := unstructured.Unstructured{Object: unC}
-		events[i] = watch.Event{
-			Type:   event.Type,
-			Object: &un,
-		}
+		return events, msgLen
 	}
-	return events, msgLen
 }
 
 func peTimeout(name string) ([]watch.Event, int) {
