@@ -141,7 +141,7 @@ func PinImageToDigest(currentRevisionTemplate *servingv1.RevisionTemplateSpec, b
 
 	err := VerifyThatContainersMatchInCurrentAndBaseRevision(currentRevisionTemplate, baseRevision)
 	if err != nil {
-		return fmt.Errorf("can not pin image to digest: %e", err)
+		return fmt.Errorf("can not pin image to digest: %w", err)
 	}
 
 	containerStatus := ContainerStatus(baseRevision)
