@@ -18,8 +18,8 @@ kn source ping update NAME
 
 ```
       --ce-override stringArray   Cloud Event overrides to apply before sending event to sink. Example: '--ce-override key=value' You may be provide this flag multiple times. To unset, append "-" to the key (e.g. --ce-override key-).
-  -d, --data string               Json data to send
-  -e, --encoding string           Preferred encoding format. Valid values: text/base64
+  -d, --data string               Data to send in JSON format. This flag can implicitly determine the encoding of the supplied data (text | base64).
+  -e, --encoding string           Data encoding format. One of: text | base64
   -h, --help                      help for update
   -n, --namespace string          Specify the namespace to operate in.
       --schedule string           Optional schedule specification in crontab format (e.g. '*/2 * * * *' for every two minutes. By default fire every minute.

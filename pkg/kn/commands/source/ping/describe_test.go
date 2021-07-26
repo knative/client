@@ -37,8 +37,16 @@ func TestDescribeRef(t *testing.T) {
 
 	out, err := executePingSourceCommand(pingClient, nil, "describe", "testping")
 	assert.NilError(t, err)
-	assert.Assert(t, util.ContainsAll(out, "*/2 * * * *", "test", "testsvc", "Service", "Overrides", "foo", "bar", "Conditions"))
+	assert.Assert(t, util.ContainsAll(out, "*/2 * * * *", "test", "testsvc", "Service", "Overrides", "foo", "bar", "Conditions", "Data:"))
+	assert.Assert(t, util.ContainsNone(out, "DataBase64"))
+	pingRecorder.Validate()
 
+	pingRecorder.GetPingSource("testping",
+		createPingSource("testping", "*/2 * * * *", "", "cGluZw==", "testsvc", map[string]string{"foo": "bar"}), nil)
+	out, err = executePingSourceCommand(pingClient, nil, "describe", "testping")
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(out, "*/2 * * * *", "test", "testsvc", "Service", "Overrides", "foo", "bar", "Conditions", "DataBase64"))
+	assert.Assert(t, util.ContainsNone(out, "Data:"))
 	pingRecorder.Validate()
 }
 
