@@ -17,10 +17,8 @@ package wait
 import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"knative.dev/pkg/apis"
-	duck "knative.dev/pkg/apis/duck/v1"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
@@ -63,8 +61,15 @@ func (f *FakeWatch) fireEvents() {
 	}
 }
 
-// Create a service skeleton with a given ConditionReady status and all other statuses set to otherReadyStatus. Optionally a single generation can be added.
-func CreateTestServiceWithConditions(name string, readyStatus corev1.ConditionStatus, otherReadyStatus corev1.ConditionStatus, reason string, message string, generations ...int64) runtime.Object {
+// CreateTestServiceWithConditions create a service skeleton with a given
+// ConditionReady status and all other statuses set to otherReadyStatus.
+// Optionally a single generation can be added.
+func CreateTestServiceWithConditions(
+	name string,
+	readyStatus, otherReadyStatus corev1.ConditionStatus,
+	reason, message string,
+	generations ...int64,
+) *servingv1.Service {
 	service := servingv1.Service{ObjectMeta: metav1.ObjectMeta{Name: name}}
 	if len(generations) == 2 {
 		service.Generation = generations[0]
@@ -73,10 +78,10 @@ func CreateTestServiceWithConditions(name string, readyStatus corev1.ConditionSt
 		service.Generation = 1
 		service.Status.ObservedGeneration = 1
 	}
-	service.Status.Conditions = duck.Conditions([]apis.Condition{
+	service.Status.Conditions = []apis.Condition{
 		{Type: "RoutesReady", Status: otherReadyStatus},
 		{Type: apis.ConditionReady, Status: readyStatus, Reason: reason, Message: message},
 		{Type: "ConfigurationsReady", Status: otherReadyStatus},
-	})
+	}
 	return &service
 }

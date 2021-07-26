@@ -16,6 +16,9 @@ package ping
 
 import (
 	"bytes"
+	"testing"
+
+	"gotest.tools/v3/assert"
 
 	"k8s.io/client-go/tools/clientcmd"
 	sourcesv1beta2 "knative.dev/eventing/pkg/apis/sources/v1beta2"
@@ -51,6 +54,22 @@ current-context: x
 	if err != nil {
 		panic(err)
 	}
+}
+
+func TestPingBuilder(t *testing.T) {
+	name := "mockName"
+	schedule := "* * * * *"
+	data := "mockData"
+	dataBase64 := "mockDataBase64"
+	sink := "mockService"
+	ceOverrideMap := map[string]string{}
+	ps := createPingSource(name, schedule, data, dataBase64, sink, ceOverrideMap)
+	assert.Equal(t, name, ps.Name)
+	assert.Equal(t, schedule, ps.Spec.Schedule)
+	assert.Equal(t, data, ps.Spec.Data)
+	assert.Equal(t, dataBase64, ps.Spec.DataBase64)
+	assert.Equal(t, sink, ps.Spec.Sink.Ref.Name)
+	assert.DeepEqual(t, ceOverrideMap, ps.Spec.CloudEventOverrides.Extensions)
 }
 
 func executePingSourceCommand(pingSourceClient clientv1beta2.KnPingSourcesClient, dynamicClient kndynamic.KnDynamicClient, args ...string) (string, error) {

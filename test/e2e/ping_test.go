@@ -64,11 +64,33 @@ func TestSourcePing(t *testing.T) {
 	mymsg := "This is a message from Ping."
 	pingSourceCreate(r, "testpingsource3", "*/1 * * * *", mymsg, "ksvc:testsvc1")
 	verifyPingSourceDescribe(r, "testpingsource3", "*/1 * * * *", mymsg, "testsvc1")
+
+	t.Log("create Ping source with base64 data without encoding flag")
+	pingSourceCreate(r, "testpingsource4", "* * * * */1", "cGluZw==", "ksvc:testsvc1")
+	verifyPingSourceDescribe(r, "testpingsource4", "* * * * */1", "cGluZw==", "testsvc1")
+
+	t.Log("create Ping source with text data and encoding flag")
+	pingSourceCreateWithEncoding(r, "testpingsource6", "* * * * */1", "cGluZw==", "ksvc:testsvc1", "text")
+	verifyPingSourceDescribe(r, "testpingsource6", "* * * * */1", "cGluZw==", "testsvc1")
+
+	t.Log("update Ping source with base64 data and encoding flag")
+	pingSourceUpdateData(r, "testpingsource6", "cGluZw==", "base64")
+	verifyPingSourceDescribe(r, "testpingsource6", "* * * * */1", "cGluZw==", "testsvc1")
+
+	t.Log("update Ping source with base64 data and encoding flag with error")
+	pingSourceUpdateData(r, "testpingsource6", "cGluZw==", "base65")
 }
 
 func pingSourceCreate(r *test.KnRunResultCollector, sourceName string, schedule string, data string, sink string) {
 	out := r.KnTest().Kn().Run("source", "ping", "create", sourceName,
 		"--schedule", schedule, "--data", data, "--sink", sink)
+	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "ping", "source", sourceName, "created", "namespace", r.KnTest().Kn().Namespace()))
+	r.AssertNoError(out)
+}
+
+func pingSourceCreateWithEncoding(r *test.KnRunResultCollector, sourceName string, schedule string, data string, sink string, encoding string) {
+	out := r.KnTest().Kn().Run("source", "ping", "create", sourceName,
+		"--schedule", schedule, "--data", data, "--sink", sink, "--encoding", encoding)
 	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "ping", "source", sourceName, "created", "namespace", r.KnTest().Kn().Namespace()))
 	r.AssertNoError(out)
 }
@@ -94,6 +116,16 @@ func pingSourceCreateMissingSink(r *test.KnRunResultCollector, sourceName string
 
 func pingSourceUpdateSink(r *test.KnRunResultCollector, sourceName string, sink string) {
 	out := r.KnTest().Kn().Run("source", "ping", "update", sourceName, "--sink", sink)
+	assert.Check(r.T(), util.ContainsAll(out.Stdout, sourceName, "updated", "namespace", r.KnTest().Kn().Namespace()))
+	r.AssertNoError(out)
+}
+
+func pingSourceUpdateData(r *test.KnRunResultCollector, sourceName string, data string, encoding string) {
+	out := r.KnTest().Kn().Run("source", "ping", "update", sourceName, "--data", data, "--encoding", encoding)
+	if encoding != "text" && encoding != "base64" {
+		assert.Check(r.T(), util.ContainsAll(out.Stderr, "cannot update PingSource", "invalid value"))
+		return
+	}
 	assert.Check(r.T(), util.ContainsAll(out.Stdout, sourceName, "updated", "namespace", r.KnTest().Kn().Namespace()))
 	r.AssertNoError(out)
 }

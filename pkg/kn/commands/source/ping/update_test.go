@@ -43,6 +43,28 @@ func TestSimplePingUpdate(t *testing.T) {
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(out, "updated", "default", "testsource"))
 
+	pingRecorder.GetPingSource("testsource", createPingSource("testsource", "* * * * */1", "maxwell", "", "mysvc", nil), nil)
+	pingRecorder.UpdatePingSource(createPingSource("testsource", "* * * * */3", "", "hello", "mysvc", nil), nil)
+	out, err = executePingSourceCommand(pingSourceClient, dynamicClient, "update", "--schedule", "* * * * */3", "testsource", "--data", "hello", "--encoding", "base64")
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(out, "updated", "default", "testsource"))
+
+	pingRecorder.GetPingSource("testsource", createPingSource("testsource", "* * * * */1", "maxwell", "", "mysvc", nil), nil)
+	pingRecorder.UpdatePingSource(createPingSource("testsource", "* * * * */3", "hello", "", "mysvc", nil), nil)
+	out, err = executePingSourceCommand(pingSourceClient, dynamicClient, "update", "--schedule", "* * * * */3", "testsource", "--data", "hello", "--encoding", "text")
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(out, "updated", "default", "testsource"))
+
+	pingRecorder.GetPingSource("testsource", createPingSource("testsource", "* * * * */1", "maxwell", "", "mysvc", nil), nil)
+	pingRecorder.UpdatePingSource(createPingSource("testsource", "* * * * */3", "", "aGVsbG8=", "mysvc", nil), nil)
+	out, err = executePingSourceCommand(pingSourceClient, dynamicClient, "update", "--schedule", "* * * * */3", "testsource", "--data", "aGVsbG8=")
+	assert.NilError(t, err)
+	assert.Assert(t, util.ContainsAll(out, "updated", "default", "testsource"))
+
+	pingRecorder.GetPingSource("testsource", createPingSource("testsource", "* * * * */1", "maxwell", "", "mysvc", nil), nil)
+	_, err = executePingSourceCommand(pingSourceClient, dynamicClient, "update", "--schedule", "* * * * */3", "testsource", "--data", "aGVsbG8=", "--encoding", "mockencoding")
+	assert.ErrorContains(t, err, "invalid value")
+
 	pingRecorder.Validate()
 }
 

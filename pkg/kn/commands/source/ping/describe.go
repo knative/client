@@ -117,7 +117,11 @@ func NewPingDescribeCommand(p *commands.KnParams) *cobra.Command {
 func writePingSource(dw printers.PrefixWriter, source *clientsourcesv1beta2.PingSource, printDetails bool) {
 	commands.WriteMetadata(dw, &source.ObjectMeta, printDetails)
 	dw.WriteAttribute("Schedule", source.Spec.Schedule)
-	dw.WriteAttribute("Data", source.Spec.Data)
+	if source.Spec.DataBase64 != "" {
+		dw.WriteAttribute("DataBase64", source.Spec.DataBase64)
+	} else {
+		dw.WriteAttribute("Data", source.Spec.Data)
+	}
 }
 
 func writeCeOverrides(dw printers.PrefixWriter, ceOverrides map[string]string) {

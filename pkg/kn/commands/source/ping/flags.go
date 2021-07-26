@@ -15,6 +15,7 @@
 package ping
 
 import (
+	"encoding/base64"
 	"fmt"
 	"sort"
 
@@ -35,15 +36,21 @@ type pingUpdateFlags struct {
 	ceOverrides []string
 }
 
+const (
+	base64Encoding = "base64"
+	textEncoding   = "text"
+)
+
 func (c *pingUpdateFlags) addFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&c.schedule,
 		"schedule",
 		"",
 		"Optional schedule specification in crontab format (e.g. '*/2 * * * *' for every two minutes. By default fire every minute.")
 
-	cmd.Flags().StringVarP(&c.data, "data", "d", "", "Json data to send")
+	cmd.Flags().StringVarP(&c.data, "data", "d", "", fmt.Sprintf("Data to send in JSON format. "+
+		"This flag can implicitly determine the encoding of the supplied data (%s | %s).", textEncoding, base64Encoding))
 
-	cmd.Flags().StringVarP(&c.encoding, "encoding", "e", "", "Preferred encoding format. Valid values: text/base64")
+	cmd.Flags().StringVarP(&c.encoding, "encoding", "e", "", fmt.Sprintf("Data encoding format. One of: %s | %s", textEncoding, base64Encoding))
 
 	cmd.Flags().StringArrayVar(&c.ceOverrides,
 		"ce-override",
@@ -159,4 +166,24 @@ func printSourceListWithNamespace(sourceList *sourcesv1beta2.PingSourceList, opt
 	})
 
 	return append(rows, others...), nil
+}
+
+func getDataFields(updateFlags *pingUpdateFlags) (string, string, error) {
+	var data, dataBase64 string
+	var err error
+	switch updateFlags.encoding {
+	case "":
+		if _, err := base64.StdEncoding.DecodeString(updateFlags.data); err == nil {
+			dataBase64 = updateFlags.data
+		} else {
+			data = updateFlags.data
+		}
+	case base64Encoding:
+		dataBase64 = updateFlags.data
+	case textEncoding:
+		data = updateFlags.data
+	default:
+		err = fmt.Errorf("invalid value: %s. Accepted values are: %s|%s", updateFlags.encoding, textEncoding, base64Encoding)
+	}
+	return data, dataBase64, err
 }

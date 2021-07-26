@@ -15,7 +15,6 @@
 package ping
 
 import (
-	"encoding/base64"
 	"errors"
 	"fmt"
 
@@ -25,11 +24,6 @@ import (
 	"knative.dev/client/pkg/kn/commands/flags"
 	clientsourcesv1beta2 "knative.dev/client/pkg/sources/v1beta2"
 	"knative.dev/client/pkg/util"
-)
-
-const (
-	base64Encoding = "base64"
-	textEncoding   = "text"
 )
 
 // NewPingCreateCommand is for creating Ping source COs
@@ -76,23 +70,10 @@ func NewPingCreateCommand(p *commands.KnParams) *cobra.Command {
 			}
 			ceOverridesToRemove := util.ParseMinusSuffix(ceOverridesMap)
 
-			var data, dataBase64 string
-
-			switch updateFlags.encoding {
-			case "":
-				if _, err := base64.StdEncoding.DecodeString(updateFlags.data); err == nil {
-					dataBase64 = updateFlags.data
-				} else {
-					data = updateFlags.data
-				}
-			case base64Encoding:
-				dataBase64 = updateFlags.data
-			case textEncoding:
-				data = updateFlags.data
-			default:
-				err := fmt.Errorf("invalid value: %v", updateFlags.encoding)
-				fmt.Fprintf(cmd.OutOrStderr(), "Ping source creation failed with error: %v", err)
-				return err
+			data, dataBase64, err := getDataFields(&updateFlags)
+			if err != nil {
+				return fmt.Errorf("cannot create PingSource %q in namespace "+
+					"%q because: %s", name, namespace, err)
 			}
 
 			err = pingSourceClient.CreatePingSource(cmd.Context(), clientsourcesv1beta2.NewPingSourceBuilder(name).

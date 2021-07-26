@@ -81,7 +81,7 @@ plugins:
   path-lookup: true
   # Directory from where plugins are looked up. (default: "$base_dir/plugins"
   # where "$base_dir" is the directory where this configuration file is stored)
-  directory: ~/.kn/plugins
+  directory: ~/.config/kn/plugins
 # Eventing related configuration
 eventing:
   # List of sink mappings that allow custom prefixes wherever a sink
