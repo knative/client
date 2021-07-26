@@ -78,7 +78,7 @@ func TestServiceCreateEnvMock(t *testing.T) {
 	template.Spec.Containers[0].Env = envVars
 	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
 	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
-	r.CreateService(service, nil)
+	r.CreateService(verifyService(service, true), nil)
 
 	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "-e", "a=mouse", "--env", "b=cookie", "--env", "empty=", "--no-wait", "--revision-name=")
 	assert.NilError(t, err)
@@ -106,7 +106,7 @@ func TestServiceCreateLabel(t *testing.T) {
 	template := &service.Spec.Template
 	template.ObjectMeta.Labels = expected
 	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
-	r.CreateService(service, nil)
+	r.CreateService(verifyService(service, true), nil)
 
 	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "-l", "a=mouse", "--label", "b=cookie", "--label=empty", "--no-wait", "--revision-name=")
 	assert.NilError(t, err)
@@ -134,7 +134,7 @@ func TestServiceCreateWithEnvFromConfigMap(t *testing.T) {
 	}
 	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
 	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
-	r.CreateService(service, nil)
+	r.CreateService(verifyService(service, true), nil)
 
 	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "--env-from", "config-map:config-map-name", "--no-wait", "--revision-name=")
 	assert.NilError(t, err)
@@ -154,7 +154,7 @@ func TestServiceCreateWithEnvFromConfigMapRemoval(t *testing.T) {
 	template.Spec.Containers[0].EnvFrom = nil
 	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
 	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
-	r.CreateService(service, nil)
+	r.CreateService(verifyService(service, true), nil)
 
 	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "--env-from", "config-map:config-map-name-", "--no-wait", "--revision-name=")
 	assert.NilError(t, err)
@@ -199,7 +199,7 @@ func TestServiceCreateWithEnvFromSecret(t *testing.T) {
 	}
 	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
 	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
-	r.CreateService(service, nil)
+	r.CreateService(verifyService(service, true), nil)
 
 	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "--env-from", "secret:secret-name", "--no-wait", "--revision-name=")
 	assert.NilError(t, err)
@@ -219,7 +219,7 @@ func TestServiceCreateWithEnvFromSecretRemoval(t *testing.T) {
 	template.Spec.Containers[0].EnvFrom = nil
 	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
 	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
-	r.CreateService(service, nil)
+	r.CreateService(verifyService(service, true), nil)
 
 	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "--env-from", "secret:secret-name-", "--no-wait", "--revision-name=")
 	assert.NilError(t, err)
@@ -259,7 +259,7 @@ func TestServiceCreateWithVolumeAndMountConfigMap(t *testing.T) {
 
 	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
 	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
-	r.CreateService(service, nil)
+	r.CreateService(verifyService(service, true), nil)
 
 	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz",
 		"--mount", "/mount/path=volume-name", "--volume", "volume-name=cm:config-map-name", "--no-wait", "--revision-name=")
@@ -300,7 +300,7 @@ func TestServiceCreateWithMountConfigMap(t *testing.T) {
 
 	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
 	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
-	r.CreateService(service, nil)
+	r.CreateService(verifyService(service, true), nil)
 
 	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz",
 		"--mount", "/mount/path=cm:config-map-name", "--no-wait", "--revision-name=")
@@ -339,7 +339,7 @@ func TestServiceCreateWithVolumeAndMountSecret(t *testing.T) {
 
 	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
 	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
-	r.CreateService(service, nil)
+	r.CreateService(verifyService(service, true), nil)
 
 	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz",
 		"--mount", "/mount/path=volume-name", "--volume", "volume-name=secret:secret-name", "--no-wait", "--revision-name=")
@@ -378,7 +378,7 @@ func TestServiceCreateWithMountSecret(t *testing.T) {
 
 	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
 	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
-	r.CreateService(service, nil)
+	r.CreateService(verifyService(service, true), nil)
 
 	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz",
 		"--mount", "/mount/path=sc:secret-name", "--no-wait", "--revision-name=")
@@ -402,7 +402,7 @@ func TestServiceCreateWithUser(t *testing.T) {
 	}
 	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
 	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
-	r.CreateService(service, nil)
+	r.CreateService(verifyService(service, true), nil)
 
 	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "--user", "1001", "--no-wait", "--revision-name=")
 	assert.NilError(t, err)
@@ -433,7 +433,7 @@ func TestServiceCreateWithResources(t *testing.T) {
 
 	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
 	template.Annotations = map[string]string{servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz"}
-	r.CreateService(service, nil)
+	r.CreateService(verifyService(service, true), nil)
 
 	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz",
 		"--request", "cpu=250m,memory=64Mi",
@@ -534,7 +534,7 @@ func TestServiceCreateWithAnnotations(t *testing.T) {
 		servinglib.UserImageAnnotationKey:     "gcr.io/foo/bar:baz",
 	}
 
-	r.CreateService(service, nil)
+	r.CreateService(verifyService(service, true), nil)
 
 	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz",
 		"--annotation", "foo=bar",
@@ -565,7 +565,7 @@ func TestServiceCreateWithRevisionAndServiceAnnotations(t *testing.T) {
 		servinglib.UserImageAnnotationKey:     "gcr.io/foo/bar:baz",
 	}
 
-	r.CreateService(service, nil)
+	r.CreateService(verifyService(service, true), nil)
 
 	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz",
 		"--annotation-service", "foo=bar",
@@ -592,7 +592,7 @@ func TestServiceCreateWithRevisionAnnotations(t *testing.T) {
 		servinglib.UserImageAnnotationKey:     "gcr.io/foo/bar:baz",
 	}
 
-	r.CreateService(service, nil)
+	r.CreateService(verifyService(service, true), nil)
 
 	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz",
 		"--annotation-revision", autoscaling.InitialScaleAnnotationKey+"=1",
@@ -621,7 +621,7 @@ func TestServiceCreateWithServiceAnnotations(t *testing.T) {
 		servinglib.UserImageAnnotationKey: "gcr.io/foo/bar:baz",
 	}
 
-	r.CreateService(service, nil)
+	r.CreateService(verifyService(service, true), nil)
 
 	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz",
 		"--annotation-service", "foo=bar",

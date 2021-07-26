@@ -41,8 +41,9 @@ const (
 )
 
 var (
-	UserImageAnnotationKey = "client.knative.dev/user-image"
-	ApiTooOldError         = errors.New("the service is using too old of an API format for the operation")
+	UserImageAnnotationKey       = "client.knative.dev/user-image"
+	UpdateTimestampAnnotationKey = "client.knative.dev/updateTimestamp"
+	APITooOldError               = errors.New("the service is using too old of an API format for the operation")
 )
 
 func (vt VolumeSourceType) String() string {
@@ -91,50 +92,80 @@ func UpdateConcurrencyLimit(template *servingv1.RevisionTemplateSpec, limit int6
 	return nil
 }
 
-// UnsetUserImageAnnot removes the user image annotation
-func UnsetUserImageAnnot(template *servingv1.RevisionTemplateSpec) {
+// UnsetUserImageAnnotation removes the user image annotation
+func UnsetUserImageAnnotation(template *servingv1.RevisionTemplateSpec) {
 	delete(template.Annotations, UserImageAnnotationKey)
 }
 
-// SetUserImageAnnot sets the user image annotation if the image isn't by-digest already.
-func SetUserImageAnnot(template *servingv1.RevisionTemplateSpec) {
+// UpdateUserImageAnnotation sets the user image annotation if the image isn't by-digest already.
+func UpdateUserImageAnnotation(template *servingv1.RevisionTemplateSpec) {
 	// If the current image isn't by-digest, set the user-image annotation to it
 	// so we remember what it was.
-	currentContainer, _ := ContainerOfRevisionTemplate(template)
-	ui := currentContainer.Image
-	if strings.Contains(ui, "@") {
-		prev, ok := template.Annotations[UserImageAnnotationKey]
+	currentContainer := ContainerOfRevisionSpec(&template.Spec)
+	if currentContainer == nil {
+		// No container set in the template, so
+		return
+	}
+	image := currentContainer.Image
+	if strings.Contains(image, "@") {
+		// Ensure that the non-digestified image is used
+		storedImage, ok := template.Annotations[UserImageAnnotationKey]
 		if ok {
-			ui = prev
+			image = storedImage
 		}
 	}
+	ensureAnnotations(template)
+	template.Annotations[UserImageAnnotationKey] = image
+}
+
+// UpdateTimestampAnnotation update the annotation for the last update with the current timestamp
+func UpdateTimestampAnnotation(template *servingv1.RevisionTemplateSpec) {
+	ensureAnnotations(template)
+
+	template.Annotations[UpdateTimestampAnnotationKey] = time.Now().UTC().Format(time.RFC3339)
+}
+
+func ensureAnnotations(template *servingv1.RevisionTemplateSpec) {
 	if template.Annotations == nil {
 		template.Annotations = make(map[string]string)
 	}
-	template.Annotations[UserImageAnnotationKey] = ui
 }
 
-// FreezeImageToDigest sets the image on the template to the image digest of the base revision.
-func FreezeImageToDigest(template *servingv1.RevisionTemplateSpec, baseRevision *servingv1.Revision) error {
+// PinImageToDigest sets the image on the template to the image digest of the base revision.
+func PinImageToDigest(currentRevisionTemplate *servingv1.RevisionTemplateSpec, baseRevision *servingv1.Revision) error {
+	// If there is no base revision then there is nothing to pin to. It's not an error so let's return
+	// silently
 	if baseRevision == nil {
 		return nil
 	}
 
-	currentContainer, err := ContainerOfRevisionTemplate(template)
+	err := VerifyThatContainersMatchInCurrentAndBaseRevision(currentRevisionTemplate, baseRevision)
 	if err != nil {
-		return err
+		return fmt.Errorf("can not pin image to digest: %w", err)
 	}
 
-	baseContainer, err := ContainerOfRevisionSpec(&baseRevision.Spec)
-	if err != nil {
-		return err
+	containerStatus := ContainerStatus(baseRevision)
+	if containerStatus.ImageDigest != "" {
+		return flags.UpdateImage(&currentRevisionTemplate.Spec.PodSpec, containerStatus.ImageDigest)
 	}
+	return nil
+}
+
+// VerifyThatContainersMatchInCurrentAndBaseRevision checks if the image in the current revision matches
+// matches the one in a given base revision
+func VerifyThatContainersMatchInCurrentAndBaseRevision(template *servingv1.RevisionTemplateSpec, baseRevision *servingv1.Revision) error {
+	currentContainer := ContainerOfRevisionSpec(&template.Spec)
+	if currentContainer == nil {
+		return fmt.Errorf("no container given in current revision %s", template.Name)
+	}
+
+	baseContainer := ContainerOfRevisionSpec(&baseRevision.Spec)
+	if baseContainer == nil {
+		return fmt.Errorf("no container found in base revision %s", baseRevision.Name)
+	}
+
 	if currentContainer.Image != baseContainer.Image {
-		return fmt.Errorf("could not freeze image to digest since current revision contains unexpected image")
-	}
-
-	if baseRevision.Status.DeprecatedImageDigest != "" {
-		return flags.UpdateImage(&template.Spec.PodSpec, baseRevision.Status.DeprecatedImageDigest)
+		return fmt.Errorf("current revision %s contains unexpected image (%s) that does not fit to the base revision's %s image (%s)", template.Name, currentContainer.Image, baseRevision.Name, baseContainer.Image)
 	}
 	return nil
 }

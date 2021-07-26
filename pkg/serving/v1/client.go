@@ -424,17 +424,10 @@ func getBaseRevision(ctx context.Context, cl KnServingClient, service *servingv1
 		if err != nil {
 			return nil, err
 		}
-		latestContainer, err := serving.ContainerOfRevisionSpec(&latestCreated.Spec)
+
+		err = serving.VerifyThatContainersMatchInCurrentAndBaseRevision(&template, latestCreated)
 		if err != nil {
 			return nil, err
-		}
-		container, err := serving.ContainerOfRevisionTemplate(&template)
-		if err != nil {
-			return nil, err
-		}
-		if latestContainer.Image != container.Image {
-			// At this point we know the latestCreatedRevision is out of date.
-			return nil, noBaseRevisionError
 		}
 		// There is still some chance the latestCreatedRevision is out of date,
 		// but we can't check the whole thing for equality because of

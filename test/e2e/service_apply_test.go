@@ -41,11 +41,11 @@ func TestServiceApply(t *testing.T) {
 
 	t.Log("apply hello service (initially)")
 	result := serviceApply(r, "hello-apply")
-	r.AssertNoError(result)
 	assert.Check(r.T(), util.ContainsAllIgnoreCase(result.Stdout, "creating", "service", "hello-apply", "ready", "http"))
 	t.Log("apply hello service (unchanged)")
-	result = serviceApply(r, "hello-apply")
+	result = serviceApply(r, "hello-apply", "--annotation-service", "foo=bar")
 	r.AssertNoError(result)
+	result = serviceApply(r, "hello-apply", "--annotation-service", "foo=bar")
 	assert.Check(r.T(), util.ContainsAllIgnoreCase(result.Stdout, "no changes", "service", "hello-apply", "http"))
 
 	t.Log("apply hello service (update env)")

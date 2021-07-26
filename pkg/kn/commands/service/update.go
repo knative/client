@@ -85,7 +85,7 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 			updateFunc := func(service *servingv1.Service) (*servingv1.Service, error) {
 				latestRevisionBeforeUpdate = service.Status.LatestReadyRevisionName
 				var baseRevision *servingv1.Revision
-				if !cmd.Flags().Changed("image") && editFlags.LockToDigest {
+				if isImagePinned(cmd, editFlags) {
 					baseRevision, err = client.GetBaseRevision(cmd.Context(), service)
 					var errNoBaseRevision clientservingv1.NoBaseRevisionError
 					if errors.As(err, &errNoBaseRevision) {
@@ -149,6 +149,10 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 	waitFlags.AddConditionWaitFlags(serviceUpdateCommand, commands.WaitDefaultTimeout, "update", "service", "ready")
 	trafficFlags.Add(serviceUpdateCommand)
 	return serviceUpdateCommand
+}
+
+func isImagePinned(cmd *cobra.Command, editFlags ConfigurationEditFlags) bool {
+	return !cmd.Flags().Changed("image") && editFlags.LockToDigest
 }
 
 func preCheck(cmd *cobra.Command) error {

@@ -153,8 +153,8 @@ func WriteConcurrencyOptions(dw printers.PrefixWriter, revision *servingv1.Revis
 
 // Write the image attribute (with
 func WriteImage(dw printers.PrefixWriter, revision *servingv1.Revision) {
-	c, err := clientserving.ContainerOfRevisionSpec(&revision.Spec)
-	if err != nil {
+	c := clientserving.ContainerOfRevisionSpec(&revision.Spec)
+	if c == nil {
 		dw.WriteAttribute("Image", "Unknown")
 		return
 	}
@@ -223,8 +223,8 @@ func WriteScale(dw printers.PrefixWriter, revision *servingv1.Revision) {
 }
 
 func WriteResources(dw printers.PrefixWriter, r *servingv1.Revision) {
-	c, err := clientserving.ContainerOfRevisionSpec(&r.Spec)
-	if err != nil {
+	c := clientserving.ContainerOfRevisionSpec(&r.Spec)
+	if c == nil {
 		return
 	}
 	requests := c.Resources.Requests
@@ -280,8 +280,8 @@ func formatScale(minScale *int, maxScale *int) string {
 }
 
 func stringifyEnv(revision *servingv1.Revision) []string {
-	container, err := clientserving.ContainerOfRevisionSpec(&revision.Spec)
-	if err != nil {
+	container := clientserving.ContainerOfRevisionSpec(&revision.Spec)
+	if container == nil {
 		return nil
 	}
 
@@ -297,8 +297,8 @@ func stringifyEnv(revision *servingv1.Revision) []string {
 }
 
 func stringifyEnvFrom(revision *servingv1.Revision) []string {
-	container, err := clientserving.ContainerOfRevisionSpec(&revision.Spec)
-	if err != nil {
+	container := clientserving.ContainerOfRevisionSpec(&revision.Spec)
+	if container == nil {
 		return nil
 	}
 

@@ -129,9 +129,22 @@ func TestServiceUpdateAnnotationsMock(t *testing.T) {
 
 func recordServiceUpdateWithSuccess(r *clientservingv1.ServingRecorder, svcName string, newService *servingv1.Service, updatedService *servingv1.Service) {
 	r.GetService(svcName, nil, errors.NewNotFound(servingv1.Resource("service"), svcName))
-	r.CreateService(newService, nil)
+	r.CreateService(verifyService(newService, true), nil)
 	r.GetService(svcName, newService, nil)
-	r.UpdateService(updatedService, true, nil)
+	r.UpdateService(verifyService(updatedService, true), true, nil)
+}
+
+// verifyService checks for a service, and also whether the updateTimestamp is set
+func verifyService(srv *servingv1.Service, assertUpdateTimeCheck bool) func(t *testing.T, toCheck *servingv1.Service) {
+	return func(t *testing.T, toCheck *servingv1.Service) {
+		updateTimestamp := toCheck.Spec.Template.Annotations[clientserving.UpdateTimestampAnnotationKey]
+		// the update timestamp should be there
+		assert.Assert(t, (assertUpdateTimeCheck && updateTimestamp != "") || (!assertUpdateTimeCheck && updateTimestamp == ""))
+		// Delete the timestamps before doing a deep equal to avoid a conflict on this volatile value
+		delete(toCheck.Spec.Template.Annotations, clientserving.UpdateTimestampAnnotationKey)
+		assert.DeepEqual(t, srv, toCheck)
+	}
+
 }
 
 func TestServiceUpdateEnvFromAddingWithConfigMap(t *testing.T) {
@@ -283,7 +296,7 @@ func TestServiceUpdateEnvFromRemovalWithConfigMap(t *testing.T) {
 	r.GetService(svcName, updatedService1, nil)
 	//r.UpdateService(updatedService2, nil) // since an error happens, update is not triggered here
 	r.GetService(svcName, updatedService2, nil)
-	r.UpdateService(updatedService3, true, nil)
+	r.UpdateService(verifyService(updatedService3, true), true, nil)
 
 	output, err := executeServiceCommand(client,
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",
@@ -369,10 +382,10 @@ func TestServiceUpdateEnvFromRemovalWithEmptyName(t *testing.T) {
 
 	r := client.Recorder()
 	r.GetService(svcName, nil, errors.NewNotFound(servingv1.Resource("service"), svcName))
-	r.CreateService(newService, nil)
+	r.CreateService(verifyService(newService, true), nil)
 	r.GetService(svcName, newService, nil)
 	r.GetService(svcName, newService, nil)
-	r.UpdateService(updatedService1, true, nil)
+	r.UpdateService(verifyService(updatedService1, true), true, nil)
 
 	output, err := executeServiceCommand(client,
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",
@@ -623,13 +636,13 @@ func TestServiceUpdateEnvFromRemovalWithSecret(t *testing.T) {
 
 	r := client.Recorder()
 	r.GetService(svcName, nil, errors.NewNotFound(servingv1.Resource("service"), svcName))
-	r.CreateService(newService, nil)
+	r.CreateService(verifyService(newService, true), nil)
 	r.GetService(svcName, newService, nil)
-	r.UpdateService(updatedService1, true, nil)
+	r.UpdateService(verifyService(updatedService1, true), true, nil)
 	r.GetService(svcName, updatedService1, nil)
 	//r.UpdateService(updatedService2, nil) // since an error happens, update is not triggered here
 	r.GetService(svcName, updatedService2, nil)
-	r.UpdateService(updatedService3, true, nil)
+	r.UpdateService(verifyService(updatedService3, true), true, nil)
 
 	output, err := executeServiceCommand(client,
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",
@@ -1381,11 +1394,11 @@ func TestServiceUpdateWithRemovingMount(t *testing.T) {
 
 	r := client.Recorder()
 	r.GetService(svcName, nil, errors.NewNotFound(servingv1.Resource("service"), svcName))
-	r.CreateService(newService, nil)
+	r.CreateService(verifyService(newService, true), nil)
 	r.GetService(svcName, newService, nil)
-	r.UpdateService(updatedService1, true, nil)
+	r.UpdateService(verifyService(updatedService1, true), true, nil)
 	r.GetService(svcName, updatedService1, nil)
-	r.UpdateService(updatedService2, true, nil)
+	r.UpdateService(verifyService(updatedService2, true), true, nil)
 
 	output, err := executeServiceCommand(client,
 		"create", svcName, "--image", "gcr.io/foo/bar:baz",

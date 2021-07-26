@@ -93,8 +93,7 @@ func serviceCreatePrivateUpdatePublic(r *test.KnRunResultCollector, serviceName 
 	r.AssertNoError(out)
 	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, network.VisibilityLabelKey, serving.VisibilityClusterLocal))
 
-	out = r.KnTest().Kn().Run("service", "update", serviceName,
-		"--image", pkgtest.ImagePath("helloworld"), "--no-cluster-local")
+	out = r.KnTest().Kn().Run("service", "update", serviceName, "--no-cluster-local")
 	r.AssertNoError(out)
 	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "service", serviceName, "no new revision", "namespace", r.KnTest().Kn().Namespace()))
 

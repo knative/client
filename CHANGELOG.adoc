@@ -17,6 +17,9 @@
 |===
 | | Description | PR
 
+| 🎁
+| Add an `client.knative.dev/updateTimestamp` annotation to trigger a new revision when required
+| https://github.com/knative/client/pull/1364[#1364]
 
 | 🎁
 | Adding base64 data handling to ping update command
@@ -25,6 +28,7 @@
 | ✨
 | make --cmd flag as an array instead of string
 | https://github.com/knative/client/pull/1380[#1380]
+
 |===
 
 ## v0.24.0 (2021-06-29)

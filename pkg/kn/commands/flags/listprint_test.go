@@ -76,10 +76,8 @@ func TestListPrintFlags(t *testing.T) {
 	assert.NilError(t, err)
 	assert.Assert(t, allowMissingTemplateKeys == true)
 
-	p, err := flags.ToPrinter()
+	_, err = flags.ToPrinter()
 	assert.NilError(t, err)
-	_, ok := p.(hprinters.ResourcePrinter)
-	assert.Check(t, ok == true)
 }
 
 func TestListPrintFlagsPrint(t *testing.T) {
