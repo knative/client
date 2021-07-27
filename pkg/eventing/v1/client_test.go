@@ -35,7 +35,10 @@ import (
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 )
 
-var testNamespace = "test-ns"
+var (
+	testNamespace = "test-ns"
+	testClass     = "test-class"
+)
 
 func setup() (fakeSvr fake.FakeEventingV1, client KnEventingClient) {
 	fakeE := fake.FakeEventingV1{Fake: &client_testing.Fake{}}
@@ -202,6 +205,7 @@ func TestBrokerCreate(t *testing.T) {
 	server, client := setup()
 
 	objNew := newBroker(name)
+	brokerObjWithClass := newBrokerWithClass(name)
 
 	server.AddReactor("create", "brokers",
 		func(a client_testing.Action) (bool, runtime.Object, error) {
@@ -216,6 +220,11 @@ func TestBrokerCreate(t *testing.T) {
 
 	t.Run("create broker without error", func(t *testing.T) {
 		err := client.CreateBroker(context.Background(), objNew)
+		assert.NilError(t, err)
+	})
+
+	t.Run("create broker with class without error", func(t *testing.T) {
+		err := client.CreateBroker(context.Background(), brokerObjWithClass)
 		assert.NilError(t, err)
 	})
 
@@ -361,6 +370,14 @@ func newTrigger(name string) *eventingv1.Trigger {
 func newBroker(name string) *eventingv1.Broker {
 	return NewBrokerBuilder(name).
 		Namespace(testNamespace).
+		Class("").
+		Build()
+}
+
+func newBrokerWithClass(name string) *eventingv1.Broker {
+	return NewBrokerBuilder(name).
+		Namespace(testNamespace).
+		Class(testClass).
 		Build()
 }
 

@@ -20,6 +20,7 @@ kn broker create NAME
 ### Options
 
 ```
+  -c, --class string       Broker class name.
   -h, --help               help for create
   -n, --namespace string   Specify the namespace to operate in.
 ```

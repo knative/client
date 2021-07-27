@@ -325,6 +325,18 @@ func (b *BrokerBuilder) Namespace(ns string) *BrokerBuilder {
 	return b
 }
 
+// Class for broker builder
+func (b *BrokerBuilder) Class(class string) *BrokerBuilder {
+	if class == "" {
+		return b
+	}
+	if len(b.broker.Annotations) == 0 {
+		b.broker.Annotations = make(map[string]string)
+	}
+	b.broker.Annotations[eventingv1.BrokerClassAnnotationKey] = class
+	return b
+}
+
 // Build to return an instance of broker object
 func (b *BrokerBuilder) Build() *eventingv1.Broker {
 	return b.broker

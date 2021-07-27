@@ -36,6 +36,8 @@ var createExample = `
 // NewBrokerCreateCommand represents command to create new broker instance
 func NewBrokerCreateCommand(p *commands.KnParams) *cobra.Command {
 
+	var className string
+
 	cmd := &cobra.Command{
 		Use:     "create NAME",
 		Short:   "Create a broker",
@@ -58,7 +60,8 @@ func NewBrokerCreateCommand(p *commands.KnParams) *cobra.Command {
 
 			brokerBuilder := clientv1beta1.
 				NewBrokerBuilder(name).
-				Namespace(namespace)
+				Namespace(namespace).
+				Class(className)
 
 			err = eventingClient.CreateBroker(cmd.Context(), brokerBuilder.Build())
 			if err != nil {
@@ -71,5 +74,6 @@ func NewBrokerCreateCommand(p *commands.KnParams) *cobra.Command {
 		},
 	}
 	commands.AddNamespaceFlags(cmd.Flags(), false)
+	cmd.Flags().StringVarP(&className, "class", "c", "", "Broker class name.")
 	return cmd
 }
