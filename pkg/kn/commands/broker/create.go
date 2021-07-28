@@ -74,6 +74,6 @@ func NewBrokerCreateCommand(p *commands.KnParams) *cobra.Command {
 		},
 	}
 	commands.AddNamespaceFlags(cmd.Flags(), false)
-	cmd.Flags().StringVarP(&className, "class", "c", "", "Broker class name.")
+	cmd.Flags().StringVar(&className, "class", "", "Broker class like 'MTChannelBasedBroker' or 'Kafka' (if available)")
 	return cmd
 }
