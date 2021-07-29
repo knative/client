@@ -47,16 +47,11 @@ func GetError(err error) error {
 		return nil
 	}
 
+	var errAPIStatus api_errors.APIStatus
 	switch {
 	case isEmptyConfigError(err):
 		return newNoKubeConfig(err.Error())
-	case isNoRouteToHostError(err):
-		return newNoRouteToHost(err.Error())
-	default:
-		var errAPIStatus api_errors.APIStatus
-		if !errors.As(err, &errAPIStatus) {
-			return err
-		}
+	case errors.As(err, &errAPIStatus):
 		if errAPIStatus.Status().Details == nil {
 			return err
 		}
@@ -66,8 +61,12 @@ func GetError(err error) error {
 			knerr.Status = errAPIStatus
 			return knerr
 		}
+	case isNoRouteToHostError(err):
+		return newNoRouteToHost(err.Error())
+	default:
 		return err
 	}
+	return err
 }
 
 // IsForbiddenError returns true if given error can be converted to API status and of type forbidden access else false

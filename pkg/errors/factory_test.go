@@ -16,13 +16,24 @@ package errors
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	"gotest.tools/v3/assert"
 	api_errors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
+
+type mockErrType struct{}
+
+func (err mockErrType) Error() string {
+	return "mock error message"
+}
+func (err mockErrType) Status() metav1.Status {
+	return metav1.Status{}
+}
 
 func TestKnErrorsStatusErrors(t *testing.T) {
 	cases := []struct {
@@ -154,14 +165,49 @@ func TestIsForbiddenError(t *testing.T) {
 		},
 	}
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.Name, func(t *testing.T) {
 			t.Parallel()
-			assert.Equal(t, IsForbiddenError(tc.Error), tc.Forbidden)
+			assert.Equal(t, IsForbiddenError(GetError(tc.Error)), tc.Forbidden)
 		})
 	}
 }
 
 func TestNilError(t *testing.T) {
 	assert.NilError(t, GetError(nil), nil)
+}
+
+func TestIsInternalError(t *testing.T) {
+	cases := []struct {
+		Name     string
+		Error    error
+		Internal bool
+	}{
+		{
+			Name:     "internal error with connection refused",
+			Error:    api_errors.NewInternalError(fmt.Errorf("failed calling webhook \"webhook.serving.knative.dev\": Post \"https://webhook.knative-serving.svc:443/defaulting?timeout=10s\": dial tcp 10.96.27.233:443: connect: connection refused")),
+			Internal: true,
+		},
+		{
+			Name:     "internal error with context deadline exceeded",
+			Error:    api_errors.NewInternalError(fmt.Errorf("failed calling webhook \"webhook.serving.knative.dev\": Post https://webhook.knative-serving.svc:443/defaulting?timeout=10s: context deadline exceeded")),
+			Internal: true,
+		},
+		{
+			Name:     "internal error with i/o timeout",
+			Error:    api_errors.NewInternalError(fmt.Errorf("failed calling webhook \"webhook.serving.knative.dev\": Post https://webhook.knative-serving.svc:443/defaulting?timeout=10s: i/o timeout")),
+			Internal: true,
+		},
+		{
+			Name:     "not internal error",
+			Error:    mockErrType{},
+			Internal: false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, api_errors.IsInternalError(GetError(tc.Error)), tc.Internal)
+		})
+	}
 }
