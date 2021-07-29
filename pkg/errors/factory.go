@@ -40,6 +40,27 @@ func isEmptyConfigError(err error) bool {
 	return strings.Contains(err.Error(), "no configuration has been provided")
 }
 
+func isStatusError(err error) bool {
+	var errAPIStatus api_errors.APIStatus
+	return errors.As(err, &errAPIStatus)
+}
+
+func newStatusError(err error) error {
+	var errAPIStatus api_errors.APIStatus
+	errors.As(err, &errAPIStatus)
+
+	if errAPIStatus.Status().Details == nil {
+		return err
+	}
+	var knerr *KNError
+	if isCRDError(errAPIStatus) {
+		knerr = newInvalidCRD(errAPIStatus.Status().Details.Group)
+		knerr.Status = errAPIStatus
+		return knerr
+	}
+	return err
+}
+
 //Retrieves a custom error struct based on the original error APIStatus struct
 //Returns the original error struct in case it can't identify the kind of APIStatus error
 func GetError(err error) error {
@@ -47,26 +68,16 @@ func GetError(err error) error {
 		return nil
 	}
 
-	var errAPIStatus api_errors.APIStatus
 	switch {
 	case isEmptyConfigError(err):
 		return newNoKubeConfig(err.Error())
-	case errors.As(err, &errAPIStatus):
-		if errAPIStatus.Status().Details == nil {
-			return err
-		}
-		var knerr *KNError
-		if isCRDError(errAPIStatus) {
-			knerr = newInvalidCRD(errAPIStatus.Status().Details.Group)
-			knerr.Status = errAPIStatus
-			return knerr
-		}
+	case isStatusError(err):
+		return newStatusError(err)
 	case isNoRouteToHostError(err):
 		return newNoRouteToHost(err.Error())
 	default:
 		return err
 	}
-	return err
 }
 
 // IsForbiddenError returns true if given error can be converted to API status and of type forbidden access else false

@@ -19,6 +19,8 @@ import (
 	"fmt"
 	"testing"
 
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
+
 	"gotest.tools/v3/assert"
 	api_errors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -208,6 +210,39 @@ func TestIsInternalError(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, api_errors.IsInternalError(GetError(tc.Error)), tc.Internal)
+		})
+	}
+}
+
+func TestStatusError(t *testing.T) {
+	cases := []struct {
+		Name      string
+		Error     error
+		ErrorType func(error) bool
+	}{
+		{
+			Name:      "Timeout error",
+			Error:     api_errors.NewTimeoutError("failed processing request: i/o timeout", 10),
+			ErrorType: api_errors.IsTimeout,
+		},
+		{
+			Name:      "Conflict error",
+			Error:     api_errors.NewConflict(servingv1.Resource("service"), "tempService", fmt.Errorf("failure: i/o timeout")),
+			ErrorType: api_errors.IsConflict,
+		},
+		{
+			Name:  "i/o timeout",
+			Error: errors.New("Get https://api.example.com:27435/apis/foo/bar: dial tcp 192.168.1.1:27435: i/o timeout"),
+			ErrorType: func(err error) bool {
+				var kne *KNError
+				return errors.As(err, &kne)
+			},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			t.Parallel()
+			assert.Assert(t, tc.ErrorType(GetError(tc.Error)))
 		})
 	}
 }
