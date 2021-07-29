@@ -13,8 +13,9 @@ kn broker create NAME
   # Create a broker 'mybroker' in the current namespace
   kn broker create mybroker
 
-  # Create a broker 'mybroker' in the 'myproject' namespace
-  kn broker create mybroker --namespace myproject
+  # Create a broker 'mybroker' in the 'myproject' namespace and with a broker class of 'Kafka'
+  kn broker create mybroker --namespace myproject --broker Kafka
+
 ```
 
 ### Options
