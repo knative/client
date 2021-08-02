@@ -69,10 +69,10 @@ func GetError(err error) error {
 	}
 
 	switch {
-	case isEmptyConfigError(err):
-		return newNoKubeConfig(err.Error())
 	case isStatusError(err):
 		return newStatusError(err)
+	case isEmptyConfigError(err):
+		return newNoKubeConfig(err.Error())
 	case isNoRouteToHostError(err):
 		return newNoRouteToHost(err.Error())
 	default:
