@@ -719,7 +719,7 @@ knative.dev/hack
 knative.dev/networking/pkg
 knative.dev/networking/pkg/apis/networking
 knative.dev/networking/pkg/apis/networking/v1alpha1
-# knative.dev/pkg v0.0.0-20210726021015-889b5670e173
+# knative.dev/pkg v0.0.0-20210731072840-64ab22bbaab9
 ## explicit
 knative.dev/pkg/apis
 knative.dev/pkg/apis/duck
@@ -765,7 +765,7 @@ knative.dev/pkg/tracing/propagation
 knative.dev/pkg/tracing/propagation/tracecontextb3
 knative.dev/pkg/tracker
 knative.dev/pkg/unstructured
-# knative.dev/serving v0.24.1-0.20210729171456-492d71c96e7a
+# knative.dev/serving v0.24.1-0.20210730215204-4dc9fc69f5b7
 ## explicit
 knative.dev/serving/pkg/apis/autoscaling
 knative.dev/serving/pkg/apis/autoscaling/v1alpha1
