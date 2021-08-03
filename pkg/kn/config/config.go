@@ -178,7 +178,7 @@ func initDefaults() *defaultConfig {
 	return &defaultConfig{
 		configFile:          defaultConfigLocation("config.yaml"),
 		pluginsDir:          defaultConfigLocation("plugins"),
-		lookupPluginsInPath: false,
+		lookupPluginsInPath: true,
 	}
 }
 
