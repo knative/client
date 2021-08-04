@@ -101,7 +101,7 @@ codegen() {
   source_format
 
   # Lint source code
-  source_lint
+  (( ! IS_PROW )) && source_lint
 
   # Check for license headers
   check_license
@@ -124,7 +124,7 @@ source_format() {
 
 source_lint() {
   echo "🔍 Lint"
-  run_go_tool github.com/golangci/golangci-lint golangci-lint run  || \
+  run_go_tool github.com/golangci/golangci-lint/cmd/golangci-lint golangci-lint run  || \
   { echo "--- FAIL: golangci-lint failed please fix the reported errors"; return 1; }
 }
 
