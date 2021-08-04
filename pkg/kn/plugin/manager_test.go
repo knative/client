@@ -301,6 +301,33 @@ func TestPluginList(t *testing.T) {
 	}
 }
 
+func TestNoSlashInPlugin(t *testing.T) {
+	ctx := setup(t)
+	defer cleanup(t, ctx)
+
+	// Prepare PATH
+	tmpPathDir, cleanupFunc := preparePathDirectory(t)
+	defer cleanupFunc()
+
+	fmt.Println(tmpPathDir)
+
+	createTestPluginInDirectory(t, "kn-path-test", tmpPathDir)
+	pluginCommands := []string{"path", "test", "/withslash"}
+
+	// args with slash are not returned
+	ctx.pluginManager.lookupInPath = true
+	plugin, err := ctx.pluginManager.FindPlugin(pluginCommands)
+	assert.NilError(t, err)
+	assert.Assert(t, plugin != nil)
+	desc, err := plugin.Description()
+	name := plugin.Name()
+	fmt.Println(plugin.Name())
+	assert.NilError(t, err)
+	assert.Assert(t, desc != "")
+	assert.Equal(t, plugin.Path(), filepath.Join(tmpPathDir, "kn-path-test"))
+	assert.Assert(t, !strings.Contains(name, "/"))
+}
+
 // ====================================================================
 // Private
 
