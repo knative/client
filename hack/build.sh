@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+source $(dirname $0)/../vendor/knative.dev/hack/library.sh
+
 set -o pipefail
 
 source_dirs="cmd pkg test lib tools"
@@ -98,6 +100,9 @@ codegen() {
   # Format source code and cleanup imports
   source_format
 
+  # Lint source code
+  source_lint
+
   # Check for license headers
   check_license
 
@@ -110,28 +115,17 @@ go_fmt() {
   find $(echo $source_dirs) -name "*.go" -print0 | xargs -0 gofmt -s -w
 }
 
-# Run a go tool, get it first if necessary.
-run_go_tool() {
-  local tool=$2
-  local install_failed=0
-  if [ -z "$(which ${tool})" ]; then
-    local temp_dir="$(mktemp -d)"
-    pushd "${temp_dir}" > /dev/null 2>&1
-    GOFLAGS="" go get "$1" || install_failed=1
-    popd > /dev/null 2>&1
-    rm -rf "${temp_dir}"
-  fi
-  (( install_failed )) && return ${install_failed}
-  shift 2
-  ${tool} "$@"
-}
-
-
 source_format() {
   set +e
   run_go_tool golang.org/x/tools/cmd/goimports goimports -w $(echo $source_dirs)
   find $(echo $source_dirs) -name "*.go" -print0 | xargs -0 gofmt -s -w
   set -e
+}
+
+source_lint() {
+  echo "🔍 Lint"
+  run_go_tool github.com/golangci/golangci-lint golangci-lint run  || \
+  { echo "--- FAIL: golangci-lint failed please fix the reported errors"; return 1; }
 }
 
 go_build() {
