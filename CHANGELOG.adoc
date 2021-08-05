@@ -18,7 +18,7 @@
 | | Description | PR
 
 | 🎁
-| Adding --tls option to domain create command
+| Adding `--tls` option to domain create command
 | https://github.com/knative/client/pull/1419[#1419]
 
 | 🎁
