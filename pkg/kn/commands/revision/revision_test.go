@@ -33,6 +33,29 @@ import (
 // Helper methods
 var blankConfig clientcmd.ClientConfig
 
+const kubeConfig = `kind: Config
+version: v1
+users:
+- name: u
+clusters:
+- name: c
+  cluster:
+    server: example.com
+contexts:
+- name: x
+  context:
+    user: u
+    cluster: c
+current-context: x`
+
+func init() {
+	var err error
+	blankConfig, err = clientcmd.NewClientConfigFromBytes([]byte(kubeConfig))
+	if err != nil {
+		panic(err)
+	}
+}
+
 func TestExtractTrafficAndTag(t *testing.T) {
 
 	service := &servingv1.Service{
