@@ -401,9 +401,10 @@ func findMostSpecificPluginInPath(dir string, parts []string, lookupInPath bool)
 		var nameParts []string
 		var commandParts []string
 		for _, p := range parts[0:i] {
-			// skip arguments with slashes
-			if strings.Contains(p, "/") || strings.Contains(p, "\\") {
-				continue
+			// for arguments that contain the path separator,
+			// stop the loop once the separator appears
+			if strings.Contains(p, string(os.PathSeparator)) {
+				break
 			}
 			// Subcommands with "-" are translated to "_"
 			// (e.g. a command  "kn log-all" is translated to a plugin "kn-log_all")
