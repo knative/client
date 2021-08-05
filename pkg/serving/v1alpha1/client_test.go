@@ -82,6 +82,7 @@ func TestCreateDomainMapping(t *testing.T) {
 	serving, client := setup()
 	serviceName := "foo"
 	domainName := "foo.bar"
+	secretName := "tls-secret"
 	domainMapping := createDomainMapping(domainName, createServiceRef(serviceName, testNamespace))
 	serving.AddReactor("create", domainMappingResource,
 		func(a clienttesting.Action) (bool, runtime.Object, error) {
@@ -99,6 +100,16 @@ func TestCreateDomainMapping(t *testing.T) {
 		assert.NilError(t, err)
 		assert.Equal(t, domainMapping.Generation, int64(2))
 		validateGroupVersionKind(t, domainMapping)
+	})
+
+	t.Run("create domain mapping with tls secret without error", func(t *testing.T) {
+		err := client.CreateDomainMapping(context.Background(), createDomainMappingWithTls(domainName, createServiceRef(serviceName, testNamespace), secretName))
+		assert.NilError(t, err)
+	})
+
+	t.Run("create domain mapping without tls secret without error", func(t *testing.T) {
+		err := client.CreateDomainMapping(context.Background(), createDomainMappingWithTls(domainName, createServiceRef(serviceName, testNamespace), ""))
+		assert.NilError(t, err)
 	})
 
 	t.Run("create  domain mapping with an error returns an error object", func(t *testing.T) {
@@ -203,6 +214,9 @@ func createDomainMapping(name string, ref duckv1.KReference) *servingv1alpha1.Do
 	return NewDomainMappingBuilder(name).Namespace("default").Reference(ref).Build()
 }
 
+func createDomainMappingWithTls(name string, ref duckv1.KReference, tls string) *servingv1alpha1.DomainMapping {
+	return NewDomainMappingBuilder(name).Namespace("default").Reference(ref).TLS(tls).Build()
+}
 func createServiceRef(service, namespace string) duckv1.KReference {
 	return duckv1.KReference{Name: service,
 		Kind:       "Service",
