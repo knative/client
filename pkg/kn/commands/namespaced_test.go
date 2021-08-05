@@ -17,6 +17,8 @@ package commands
 import (
 	"testing"
 
+	"k8s.io/client-go/tools/clientcmd"
+
 	"github.com/spf13/cobra"
 	"gotest.tools/v3/assert"
 )
@@ -47,6 +49,8 @@ func TestGetNamespaceSample(t *testing.T) {
 		t.Fatalf("Incorrect namespace retrieved: %v, expected: %v", actualNamespace, expectedNamespace)
 	}
 	kp = &KnParams{}
+	// Mock ClientConfig to avoid clash with real kubeconfig on host OS
+	kp.ClientConfig, _ = clientcmd.NewClientConfigFromBytes([]byte(BASIC_KUBECONFIG))
 	testCmd = testCommandGenerator(false)
 	actualNamespace, err = kp.GetNamespace(testCmd)
 	assert.NilError(t, err)

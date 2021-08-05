@@ -55,9 +55,7 @@ current-context: a
 
 func TestPrepareConfig(t *testing.T) {
 	basic, err := clientcmd.NewClientConfigFromBytes([]byte(BASIC_KUBECONFIG))
-	if err != nil {
-		t.Error(err)
-	}
+	assert.NilError(t, err)
 	for i, tc := range []configTestCase{
 		{
 			clientcmd.NewDefaultClientConfig(clientcmdapi.Config{}, &clientcmd.ConfigOverrides{}),
@@ -96,7 +94,10 @@ func TestPrepareConfig(t *testing.T) {
 			}
 		}
 	}
-	_, err = (&KnParams{}).RestConfig()
+	kpEmptyConfig := &KnParams{}
+	kpEmptyConfig.ClientConfig, err = clientcmd.NewClientConfigFromBytes([]byte(""))
+	assert.NilError(t, err)
+	_, err = kpEmptyConfig.RestConfig()
 	assert.ErrorContains(t, err, "no kubeconfig")
 
 }
