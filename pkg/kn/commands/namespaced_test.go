@@ -15,6 +15,10 @@
 package commands
 
 import (
+	"io/ioutil"
+	"knative.dev/client/lib/test"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"k8s.io/client-go/tools/clientcmd"
@@ -131,4 +135,60 @@ func TestGetNamespaceAllNamespacesNotDefined(t *testing.T) {
 	if actualNamespace != expectedNamespace {
 		t.Fatalf("Incorrect namespace retrieved: %v, expected: %v", actualNamespace, expectedNamespace)
 	}
+}
+
+func TestGetNamespaceFallback(t *testing.T) {
+	tempDir, err := ioutil.TempDir("", "kn-unit-tests")
+	defer os.RemoveAll(tempDir)
+	assert.NilError(t, err)
+
+	tempFile := filepath.Join(tempDir, "mock")
+	err = ioutil.WriteFile(tempFile, []byte(BASIC_KUBECONFIG), test.FileModeReadWrite)
+	assert.NilError(t, err)
+
+	testCmd := testCommandGenerator(true)
+	kp := &KnParams{KubeCfgPath: tempFile}
+	testCmd.Execute()
+	actual, err := kp.GetNamespace(testCmd)
+	assert.NilError(t, err)
+	assert.Assert(t, actual == "default")
+}
+
+func TestCurrentNamespace(t *testing.T) {
+	tempDir, err := ioutil.TempDir("", "kn-unit-tests")
+	defer os.RemoveAll(tempDir)
+	assert.NilError(t, err)
+
+	tempFile := filepath.Join(tempDir, "empty")
+	err = ioutil.WriteFile(tempFile, []byte(""), test.FileModeReadWrite)
+	assert.NilError(t, err)
+
+	// Invalid kubeconfig
+	kp := &KnParams{KubeCfgPath: tempFile}
+	actual, err := kp.CurrentNamespace()
+	assert.Assert(t, err != nil)
+	assert.Assert(t, clientcmd.IsConfigurationInvalid(err))
+	assert.Assert(t, actual == "")
+
+	// Missing kubeconfig
+	kp = &KnParams{KubeCfgPath: filepath.Join(tempDir, "missing")}
+	actual, err = kp.CurrentNamespace()
+	assert.Assert(t, err != nil)
+	assert.ErrorContains(t, err, "can not be found")
+	assert.Assert(t, actual == "")
+
+	// Variable namespace override
+	kp = &KnParams{fixedCurrentNamespace: FakeNamespace}
+	actual, err = kp.CurrentNamespace()
+	assert.NilError(t, err)
+	assert.Equal(t, actual, FakeNamespace)
+
+	// Fallback to "default" namespace from mock kubeconfig
+	tempFile = filepath.Join(tempDir, "mock")
+	err = ioutil.WriteFile(tempFile, []byte(BASIC_KUBECONFIG), test.FileModeReadWrite)
+	assert.NilError(t, err)
+	kp = &KnParams{KubeCfgPath: tempFile}
+	actual, err = kp.CurrentNamespace()
+	assert.NilError(t, err)
+	assert.Equal(t, actual, "default")
 }
