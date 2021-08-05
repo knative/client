@@ -16,9 +16,13 @@ package commands
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
+
+	"knative.dev/client/lib/test"
 
 	"gotest.tools/v3/assert"
 	"k8s.io/client-go/tools/clientcmd"
@@ -100,6 +104,10 @@ func TestPrepareConfig(t *testing.T) {
 	_, err = kpEmptyConfig.RestConfig()
 	assert.ErrorContains(t, err, "no kubeconfig")
 
+	kpEmptyConfig = &KnParams{}
+	kpEmptyConfig.KubeCfgPath = filepath.Join("non", "existing", "file")
+	_, err = kpEmptyConfig.RestConfig()
+	assert.ErrorContains(t, err, "can not be found")
 }
 
 type typeTestCase struct {
@@ -112,12 +120,27 @@ type typeTestCase struct {
 
 func TestGetClientConfig(t *testing.T) {
 	multiConfigs := fmt.Sprintf("%s%s%s", "/testing/assets/kube-config-01.yml", string(os.PathListSeparator), "/testing/assets/kube-config-02.yml")
+
+	tempDir, err := ioutil.TempDir("", "kn-unit-tests")
+	defer os.RemoveAll(tempDir)
+	assert.NilError(t, err)
+	tempFile := filepath.Join(tempDir, "mock")
+	err = ioutil.WriteFile(tempFile, []byte(BASIC_KUBECONFIG), test.FileModeReadWrite)
+	assert.NilError(t, err)
+
 	for _, tc := range []typeTestCase{
 		{
 			"",
 			"",
 			"",
 			clientcmd.NewDefaultClientConfigLoadingRules().ExplicitPath,
+			"",
+		},
+		{
+			tempFile,
+			"",
+			"",
+			tempFile,
 			"",
 		},
 		{
@@ -138,6 +161,7 @@ func TestGetClientConfig(t *testing.T) {
 		p := &KnParams{
 			KubeCfgPath: tc.kubeCfgPath,
 			KubeContext: tc.kubeContext,
+			KubeCluster: tc.kubeCluster,
 		}
 
 		clientConfig, err := p.GetClientConfig()
