@@ -153,6 +153,24 @@ func TestGetNamespaceFallback(t *testing.T) {
 	actual, err := kp.GetNamespace(testCmd)
 	assert.NilError(t, err)
 	assert.Assert(t, actual == "default")
+
+	tempFile = filepath.Join(tempDir, "empty")
+	err = ioutil.WriteFile(tempFile, []byte(""), test.FileModeReadWrite)
+	assert.NilError(t, err)
+
+	testCmd = testCommandGenerator(true)
+	kp = &KnParams{KubeCfgPath: tempFile}
+	testCmd.Execute()
+	actual, err = kp.GetNamespace(testCmd)
+	assert.NilError(t, err)
+	assert.Assert(t, actual == "default")
+
+	testCmd = testCommandGenerator(true)
+	kp = &KnParams{KubeCfgPath: filepath.Join(tempDir, "missing")}
+	testCmd.Execute()
+	actual, err = kp.GetNamespace(testCmd)
+	assert.ErrorContains(t, err, "can not be found")
+	assert.Assert(t, actual == "")
 }
 
 func TestCurrentNamespace(t *testing.T) {
