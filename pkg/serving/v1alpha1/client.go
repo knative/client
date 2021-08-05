@@ -160,6 +160,15 @@ func (b *DomainMappingBuilder) Reference(reference duckv1.KReference) *DomainMap
 	return b
 }
 
+// TLS for domainMapping builder
+func (b *DomainMappingBuilder) TLS(tls string) *DomainMappingBuilder {
+	if tls == "" {
+		return b
+	}
+	b.domainMapping.Spec.TLS = &servingv1alpha1.SecretTLS{SecretName: tls}
+	return b
+}
+
 // Build to return an instance of domainMapping object
 func (b *DomainMappingBuilder) Build() *servingv1alpha1.DomainMapping {
 	return b.domainMapping

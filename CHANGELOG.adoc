@@ -18,6 +18,10 @@
 | | Description | PR
 
 | 🎁
+| Adding --tls option to domain create command
+| https://github.com/knative/client/pull/1419[#1419]
+
+| 🎁
 | Add an `client.knative.dev/updateTimestamp` annotation to trigger a new revision when required
 | https://github.com/knative/client/pull/1364[#1364]
 

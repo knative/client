@@ -44,6 +44,7 @@ func NewDomainCommand(p *commands.KnParams) *cobra.Command {
 
 type RefFlags struct {
 	reference string
+	tls       string
 }
 
 var refMappings = map[string]schema.GroupVersionResource{

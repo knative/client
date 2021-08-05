@@ -95,7 +95,7 @@ func TestDomainMappingDescribeYAML(t *testing.T) {
 }
 
 func getDomainMapping() *servingv1alpha1.DomainMapping {
-	dm := createDomainMapping("foo.bar", createServiceRef("foo", "default"))
+	dm := createDomainMapping("foo.bar", createServiceRef("foo", "default"), "")
 	dm.TypeMeta = v1.TypeMeta{
 		Kind:       "DomainMapping",
 		APIVersion: "serving.knative.dev/v1alpha1",

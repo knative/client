@@ -29,9 +29,17 @@ func TestDomainMappingCreate(t *testing.T) {
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient(client.Namespace(), createService("foo"))
 
 	servingRecorder := client.Recorder()
-	servingRecorder.CreateDomainMapping(createDomainMapping("foo.bar", createServiceRef("foo", "default")), nil)
+	servingRecorder.CreateDomainMapping(createDomainMapping("foo.bar", createServiceRef("foo", "default"), ""), nil)
 
 	out, err := executeDomainCommand(client, dynamicClient, "create", "foo.bar", "--ref", "foo")
+	assert.NilError(t, err, "Domain mapping should be created")
+	assert.Assert(t, util.ContainsAll(out, "Domain", "mapping", "foo.bar", "created", "namespace", "default"))
+
+	servingRecorder.Validate()
+
+	servingRecorder.CreateDomainMapping(createDomainMapping("foo.bar", createServiceRef("foo", "default"), "my-tls-secret"), nil)
+
+	out, err = executeDomainCommand(client, dynamicClient, "create", "foo.bar", "--ref", "foo", "--tls", "my-tls-secret")
 	assert.NilError(t, err, "Domain mapping should be created")
 	assert.Assert(t, util.ContainsAll(out, "Domain", "mapping", "foo.bar", "created", "namespace", "default"))
 
@@ -55,6 +63,10 @@ func TestDomainMappingCreateWithError(t *testing.T) {
 	_, err = executeDomainCommand(client, dynamicClient, "create", "foo.bar", "--ref", "bar")
 	assert.ErrorContains(t, err, "not found")
 	assert.Assert(t, util.ContainsAll(err.Error(), "services", "\"bar\"", "not", "found"))
+
+	_, err = executeDomainCommand(client, dynamicClient, "create", "foo.bar", "--ref", "foo", "--tls", "my-TLS-secret")
+	assert.ErrorContains(t, err, "invalid")
+	assert.Assert(t, util.ContainsAll(err.Error(), "invalid", "name", "RFC 1123 subdomain"))
 
 	servingRecorder.Validate()
 }
