@@ -16,10 +16,11 @@ package commands
 
 import (
 	"io/ioutil"
-	"knative.dev/client/lib/test"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"knative.dev/client/lib/test"
 
 	"k8s.io/client-go/tools/clientcmd"
 
