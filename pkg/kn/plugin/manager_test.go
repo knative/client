@@ -301,6 +301,54 @@ func TestPluginList(t *testing.T) {
 	}
 }
 
+func TestNoSlashInPlugin(t *testing.T) {
+	ctx := setup(t)
+	defer cleanup(t, ctx)
+
+	// Prepare PATH
+	tmpPathDir, cleanupFunc := preparePathDirectory(t)
+	defer cleanupFunc()
+
+	var middleSlashPlugin string
+	var middleSlashArg string
+	ctx.pluginManager.lookupInPath = true
+
+	// Windows does not allow slashes in filenames, so testing for a slash
+	// in the middle of an argument will have different results depending on OS
+	if os.PathSeparator == '/' {
+		middleSlashPlugin = "kn-slash-test-with\\slash"
+		middleSlashArg = "with\\slash"
+	} else {
+		middleSlashPlugin = "kn-slash-test"
+		middleSlashArg = "with/slash"
+	}
+
+	createTestPluginInDirectory(t, "kn-slash-test", tmpPathDir)
+	createTestPluginInDirectory(t, middleSlashPlugin, tmpPathDir)
+
+	data := []struct {
+		parts []string
+		name  string
+	}{
+		{[]string{"slash", "test", string(os.PathSeparator) + "withslash"}, "kn-slash-test"},
+		{[]string{"slash", "test", string(os.PathSeparator) + "withslash", "extraarg"}, "kn-slash-test"},
+		{[]string{"slash", "test", "with" + string(os.PathSeparator) + "slash", "extraarg"}, "kn-slash-test"},
+		{[]string{"slash", "test", middleSlashArg}, middleSlashPlugin},
+	}
+
+	for _, d := range data {
+		plugin, err := ctx.pluginManager.FindPlugin(d.parts)
+		assert.NilError(t, err)
+		assert.Assert(t, plugin != nil)
+		desc, err := plugin.Description()
+		name := plugin.Name()
+		assert.NilError(t, err)
+		assert.Assert(t, desc != "")
+		assert.Equal(t, plugin.Path(), filepath.Join(tmpPathDir, d.name))
+		assert.Assert(t, !strings.Contains(name, string(os.PathSeparator)))
+	}
+}
+
 // ====================================================================
 // Private
 
