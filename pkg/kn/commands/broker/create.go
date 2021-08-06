@@ -30,11 +30,14 @@ var createExample = `
   # Create a broker 'mybroker' in the current namespace
   kn broker create mybroker
 
-  # Create a broker 'mybroker' in the 'myproject' namespace
-  kn broker create mybroker --namespace myproject`
+  # Create a broker 'mybroker' in the 'myproject' namespace and with a broker class of 'Kafka'
+  kn broker create mybroker --namespace myproject --broker Kafka
+`
 
 // NewBrokerCreateCommand represents command to create new broker instance
 func NewBrokerCreateCommand(p *commands.KnParams) *cobra.Command {
+
+	var className string
 
 	cmd := &cobra.Command{
 		Use:     "create NAME",
@@ -58,7 +61,8 @@ func NewBrokerCreateCommand(p *commands.KnParams) *cobra.Command {
 
 			brokerBuilder := clientv1beta1.
 				NewBrokerBuilder(name).
-				Namespace(namespace)
+				Namespace(namespace).
+				Class(className)
 
 			err = eventingClient.CreateBroker(cmd.Context(), brokerBuilder.Build())
 			if err != nil {
@@ -71,5 +75,6 @@ func NewBrokerCreateCommand(p *commands.KnParams) *cobra.Command {
 		},
 	}
 	commands.AddNamespaceFlags(cmd.Flags(), false)
+	cmd.Flags().StringVar(&className, "class", "", "Broker class like 'MTChannelBasedBroker' or 'Kafka' (if available)")
 	return cmd
 }

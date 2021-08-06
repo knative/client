@@ -59,6 +59,12 @@ func TestBroker(t *testing.T) {
 	test.BrokerDelete(r, "foo4", true)
 	verifyBrokerNotfound(r, "foo3")
 	verifyBrokerNotfound(r, "foo4")
+
+	t.Log("create broker with class")
+	test.BrokerCreateWithClass(r, "foo5", "foo-class")
+	verifyBrokerList(r, "foo5")
+	verifyBrokerListOutputName(r, "foo5")
+	verifyBrokerDescribeContains(r, "foo5", "foo-class")
 }
 
 // Private functions
@@ -85,4 +91,10 @@ func verifyBrokerNotfound(r *test.KnRunResultCollector, name string) {
 	out := r.KnTest().Kn().Run("broker", "describe", name)
 	r.AssertError(out)
 	assert.Check(r.T(), util.ContainsAll(out.Stderr, name, "not found"))
+}
+
+func verifyBrokerDescribeContains(r *test.KnRunResultCollector, name, str string) {
+	out := r.KnTest().Kn().Run("broker", "describe", name)
+	r.AssertNoError(out)
+	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, name, str))
 }

@@ -32,6 +32,13 @@ func BrokerCreate(r *KnRunResultCollector, name string) {
 	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "Broker", name, "created", "namespace", r.KnTest().Kn().Namespace()))
 }
 
+// BrokerCreateWithClass creates a broker with the given name and class.
+func BrokerCreateWithClass(r *KnRunResultCollector, name, class string) {
+	out := r.KnTest().Kn().Run("broker", "create", name, "--class", class)
+	r.AssertNoError(out)
+	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "Broker", name, "created", "namespace", r.KnTest().Kn().Namespace()))
+}
+
 // BrokerDelete deletes a broker with the given name.
 func BrokerDelete(r *KnRunResultCollector, name string, wait bool) {
 	args := []string{"broker", "delete", name}

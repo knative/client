@@ -77,3 +77,7 @@ func createBroker(brokerName string) *v1beta1.Broker {
 func createBrokerWithNamespace(brokerName, namespace string) *v1beta1.Broker {
 	return clientv1beta1.NewBrokerBuilder(brokerName).Namespace(namespace).Build()
 }
+
+func createBrokerWithClass(brokerName, class string) *v1beta1.Broker {
+	return clientv1beta1.NewBrokerBuilder(brokerName).Namespace("default").Class(class).Build()
+}

@@ -22,6 +22,10 @@
 | https://github.com/knative/client/pull/1406[#1406]
 
 | 🎁
+| Adding --class flag to broker create command
+| https://github.com/knative/client/pull/1402[#1402]
+
+| 🎁
 | Add an `client.knative.dev/updateTimestamp` annotation to trigger a new revision when required
 | https://github.com/knative/client/pull/1364[#1364]
 
