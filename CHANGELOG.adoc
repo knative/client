@@ -17,6 +17,10 @@
 |===
 | | Description | PR
 
+| 🐛
+| Show server error messages without any taints
+| https://github.com/knative/client/pull/1406[#1406]
+
 | 🎁
 | Add an `client.knative.dev/updateTimestamp` annotation to trigger a new revision when required
 | https://github.com/knative/client/pull/1364[#1364]
