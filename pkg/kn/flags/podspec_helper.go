@@ -260,10 +260,24 @@ func UpdateImagePullSecrets(spec *corev1.PodSpec, pullsecrets string) {
 
 // UpdateContainers updates the containers array with additional ones provided from file or os.Stdin
 func UpdateContainers(spec *corev1.PodSpec, containers []corev1.Container) {
-	c := containerOfPodSpec(spec)
-	spec.Containers = []corev1.Container{}
-	spec.Containers = append(spec.Containers, *c)
-	spec.Containers = append(spec.Containers, containers...)
+	var matched []string
+	if len(spec.Containers) == 1 {
+		spec.Containers = append(spec.Containers, containers...)
+	} else {
+		for i, container := range spec.Containers {
+			for j, toUpdate := range containers {
+				if container.Name == toUpdate.Name {
+					spec.Containers[i] = containers[j]
+					matched = append(matched, toUpdate.Name)
+				}
+			}
+		}
+		for _, container := range containers {
+			if !util.SliceContainsIgnoreCase(matched, container.Name) {
+				spec.Containers = append(spec.Containers, container)
+			}
+		}
+	}
 }
 
 // =======================================================================================

@@ -781,18 +781,27 @@ func TestUpdateContainers(t *testing.T) {
 			Image: "foo:bar",
 		},
 	}
-	assert.Assert(t, len(podSpec.Containers) == 1)
+	assert.Equal(t, len(podSpec.Containers), 1)
 	UpdateContainers(podSpec, containers)
-	assert.Assert(t, len(podSpec.Containers) == 3)
+	assert.Equal(t, len(podSpec.Containers), 3)
+
+	updatedContainer := corev1.Container{Name: "bar", Image: "bar:bar"}
+	UpdateContainers(podSpec, []corev1.Container{updatedContainer})
+	assert.Equal(t, len(podSpec.Containers), 3)
+	for _, container := range podSpec.Containers {
+		if container.Name == updatedContainer.Name {
+			assert.DeepEqual(t, container, updatedContainer)
+		}
+	}
 
 	// Verify that containers aren't multiplied
 	UpdateContainers(podSpec, containers)
-	assert.Assert(t, len(podSpec.Containers) == 3)
+	assert.Equal(t, len(podSpec.Containers), 3)
 
 	podSpec, _ = getPodSpec()
-	assert.Assert(t, len(podSpec.Containers) == 1)
+	assert.Equal(t, len(podSpec.Containers), 1)
 	UpdateContainers(podSpec, []corev1.Container{})
-	assert.Assert(t, len(podSpec.Containers) == 1)
+	assert.Equal(t, len(podSpec.Containers), 1)
 }
 
 func TestParseContainers(t *testing.T) {
