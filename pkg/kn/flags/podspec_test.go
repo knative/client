@@ -232,7 +232,7 @@ containers:
 				defer os.RemoveAll(fileName)
 			}
 
-			inputArgs := []string{"--image", "repo/user/imageID:tag", "--containers", fileName}
+			inputArgs := []string{"--image", "repo/user/imageID:tag", "--extra-containers", fileName}
 
 			flags := &PodSpecFlags{}
 			testCmd := &cobra.Command{
