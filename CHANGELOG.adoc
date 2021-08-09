@@ -37,6 +37,10 @@
 | Adding base64 data handling to ping update command
 | https://github.com/knative/client/pull/1392[#1392], https://github.com/knative/client/pull/1388[#1388]
 
+| 🎁
+| Add support for multiple containers in Service spec
+| https://github.com/knative/client/pull/1382[#1382]
+
 | ✨
 | make --cmd flag as an array instead of string
 | https://github.com/knative/client/pull/1380[#1380]

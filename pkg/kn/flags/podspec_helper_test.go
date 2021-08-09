@@ -18,7 +18,12 @@ package flags
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"testing"
+
+	"knative.dev/client/lib/test"
 
 	"gotest.tools/v3/assert"
 	corev1 "k8s.io/api/core/v1"
@@ -762,4 +767,128 @@ func Test_isValidEnvValueFromArg(t *testing.T) {
 			assert.Equal(t, result, tc.isValid)
 		})
 	}
+}
+
+func TestUpdateContainers(t *testing.T) {
+	podSpec, _ := getPodSpec()
+	containers := []corev1.Container{
+		{
+			Name:  "foo",
+			Image: "foo:bar",
+		},
+		{
+			Name:  "bar",
+			Image: "foo:bar",
+		},
+	}
+	assert.Equal(t, len(podSpec.Containers), 1)
+	UpdateContainers(podSpec, containers)
+	assert.Equal(t, len(podSpec.Containers), 3)
+
+	updatedContainer := corev1.Container{Name: "bar", Image: "bar:bar"}
+	UpdateContainers(podSpec, []corev1.Container{updatedContainer})
+	assert.Equal(t, len(podSpec.Containers), 3)
+	for _, container := range podSpec.Containers {
+		if container.Name == updatedContainer.Name {
+			assert.DeepEqual(t, container, updatedContainer)
+		}
+	}
+
+	// Verify that containers aren't multiplied
+	UpdateContainers(podSpec, containers)
+	assert.Equal(t, len(podSpec.Containers), 3)
+
+	podSpec, _ = getPodSpec()
+	assert.Equal(t, len(podSpec.Containers), 1)
+	UpdateContainers(podSpec, []corev1.Container{})
+	assert.Equal(t, len(podSpec.Containers), 1)
+}
+
+func TestUpdateContainerWithName(t *testing.T) {
+	for _, tc := range []struct {
+		name               string
+		updateArg          []corev1.Container
+		expectedContainers []corev1.Container
+	}{{
+		"One Container Image",
+		[]corev1.Container{
+			{Name: "bar", Image: "bar:bar"},
+		},
+		[]corev1.Container{
+			{},
+			{Name: "foo", Image: "foo:bar"},
+			{Name: "bar", Image: "bar:bar"},
+		}},
+		{
+			"One Container Env Var",
+			[]corev1.Container{
+				{Name: "bar", Image: "foo:bar", Env: []corev1.EnvVar{{Name: "A", Value: "B"}}},
+			},
+			[]corev1.Container{
+				{},
+				{Name: "foo", Image: "foo:bar"},
+				{Name: "bar", Image: "foo:bar", Env: []corev1.EnvVar{{Name: "A", Value: "B"}}},
+			}},
+		{
+			"New container",
+			[]corev1.Container{
+				{Name: "new", Image: "foo:new"},
+			},
+			[]corev1.Container{
+				{},
+				{Name: "foo", Image: "foo:bar"},
+				{Name: "bar", Image: "foo:bar"},
+				{Name: "new", Image: "foo:new"},
+			}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			initialPodSpec, _ := getPodSpec()
+			initialContainers := []corev1.Container{
+				{Name: "foo", Image: "foo:bar"},
+				{Name: "bar", Image: "foo:bar"},
+			}
+			initialPodSpec.Containers = append(initialPodSpec.Containers, initialContainers...)
+
+			UpdateContainers(initialPodSpec, tc.updateArg)
+			assert.DeepEqual(t, initialPodSpec.Containers, tc.expectedContainers)
+		})
+	}
+}
+
+func TestParseContainers(t *testing.T) {
+	rawInput := `
+containers:
+- image: first
+  name: foo
+  resources: {}
+- image: second
+  name: bar
+  resources: {}`
+
+	stdinReader, stdinWriter, err := os.Pipe()
+	assert.NilError(t, err)
+	_, err = stdinWriter.Write([]byte(rawInput))
+	assert.NilError(t, err)
+	stdinWriter.Close()
+
+	origStdin := os.Stdin
+	defer func() { os.Stdin = origStdin }()
+	os.Stdin = stdinReader
+
+	fromFile, err := decodeContainersFromFile("-")
+	assert.NilError(t, err)
+	assert.Equal(t, len(fromFile.Containers), 2)
+
+	tempDir, err := ioutil.TempDir("", "kn-file")
+	defer os.RemoveAll(tempDir)
+	assert.NilError(t, err)
+	fileName := filepath.Join(tempDir, "container.yaml")
+	ioutil.WriteFile(fileName, []byte(rawInput), test.FileModeReadWrite)
+	fromFile, err = decodeContainersFromFile(fileName)
+	assert.NilError(t, err)
+	assert.Equal(t, len(fromFile.Containers), 2)
+
+	_, err = decodeContainersFromFile("non-existing")
+	assert.Assert(t, err != nil)
+	assert.Assert(t, util.ContainsAll(err.Error(), "no", "file", "directory"))
 }

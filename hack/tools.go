@@ -23,4 +23,6 @@ import (
 	_ "k8s.io/code-generator"
 	_ "k8s.io/code-generator/cmd/deepcopy-gen"
 	_ "knative.dev/serving/test/test_images/grpc-ping"
+	_ "knative.dev/serving/test/test_images/multicontainer/servingcontainer"
+	_ "knative.dev/serving/test/test_images/multicontainer/sidecarcontainer"
 )
