@@ -102,7 +102,7 @@ func createServiceWithSidecar(r *test.KnRunResultCollector, serviceName, file st
 	args := []string{"service", "create", serviceName,
 		"--image", pkgtest.ImagePath("servingcontainer"),
 		"--port", "8881",
-		"--containers", file,
+		"--extra-containers", file,
 	}
 
 	out := r.KnTest().Kn().Run(args...)
@@ -117,7 +117,7 @@ func createServiceWithPipeInput(r *test.KnRunResultCollector, serviceName, sideC
 	args := []string{"service", "create", serviceName,
 		"--image", pkgtest.ImagePath("servingcontainer"),
 		"--port", "8881",
-		"--containers", "-",
+		"--extra-containers", "-",
 		"--namespace", r.KnTest().Kn().Namespace(),
 	}
 

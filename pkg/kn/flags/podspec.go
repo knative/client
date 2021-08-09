@@ -38,7 +38,7 @@ type PodSpecFlags struct {
 	Command []string
 	Arg     []string
 
-	Containers string
+	ExtraContainers string
 
 	Resources          ResourceOptions
 	Port               string
@@ -125,7 +125,7 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
 			"You can use this flag multiple times.")
 	flagNames = append(flagNames, "arg")
 
-	flagset.StringVarP(&p.Containers, "containers", "", "",
+	flagset.StringVarP(&p.ExtraContainers, "extra-containers", "", "",
 		"Specify path to file including definition for additional containers, alternatively use '-' to read from stdin. "+
 			"Example: --containers ./containers.yaml or --containers -.")
 	flagNames = append(flagNames, "containers")
@@ -275,9 +275,9 @@ func (p *PodSpecFlags) ResolvePodSpec(podSpec *corev1.PodSpec, flags *pflag.Flag
 		}
 	}
 
-	if flags.Changed("containers") || p.Containers == "-" {
+	if flags.Changed("extra-containers") || p.ExtraContainers == "-" {
 		var fromFile *corev1.PodSpec
-		fromFile, err = decodeContainersFromFile(p.Containers)
+		fromFile, err = decodeContainersFromFile(p.ExtraContainers)
 		if err != nil {
 			return err
 		}

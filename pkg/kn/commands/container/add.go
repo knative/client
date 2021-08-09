@@ -45,7 +45,7 @@ func NewContainerAddCommand(p *commands.KnParams) *cobra.Command {
   # Add command can be chained by standard Unix pipe symbol '|' and passed to 'service add|update|apply' commands
   kn container add sidecar --image docker.io/example/sidecar:first | \
   kn container add second --image docker.io/example/sidecar:second | \
-  kn service create myksvc --image docker.io/example/my-app:latest --containers -`,
+  kn service create myksvc --image docker.io/example/my-app:latest --extra-containers -`,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
 				return errors.New("'container add' requires the container name given as single argument")
@@ -57,7 +57,7 @@ func NewContainerAddCommand(p *commands.KnParams) *cobra.Command {
 
 			// Detect pipe input from previous container command
 			if IsPipeInput(os.Stdin) {
-				podSpecFlags.Containers = "-"
+				podSpecFlags.ExtraContainers = "-"
 			}
 			podSpec := &corev1.PodSpec{}
 			if err = podSpecFlags.ResolvePodSpec(podSpec, cmd.Flags(), os.Args); err != nil {
