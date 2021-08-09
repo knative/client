@@ -10,7 +10,7 @@ kn container add NAME
 
 ```
 
-  The command is experimental and may change in the future releases.  
+  The command is experimental and may change in the future releases.
 
   The 'container add' represents utility command that prints YAML container spec to standard output. It's useful for
   multi-container use cases to create definition with help of standard 'kn' option flags. It accepts all container related
