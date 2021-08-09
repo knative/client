@@ -267,7 +267,9 @@ func UpdateContainers(spec *corev1.PodSpec, containers []corev1.Container) {
 		for i, container := range spec.Containers {
 			for j, toUpdate := range containers {
 				if container.Name == toUpdate.Name {
+
 					spec.Containers[i] = containers[j]
+
 					matched = append(matched, toUpdate.Name)
 				}
 			}
@@ -680,5 +682,5 @@ func decodeContainersFromFile(filename string) (*corev1.PodSpec, error) {
 	if err = decoder.Decode(podSpec); err != nil {
 		return nil, err
 	}
-	return podSpec, f.Close()
+	return podSpec, nil
 }

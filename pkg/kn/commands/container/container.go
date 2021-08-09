@@ -23,7 +23,7 @@ import (
 func NewContainerCommand(p *commands.KnParams) *cobra.Command {
 	containerCmd := &cobra.Command{
 		Use:     "container COMMAND",
-		Short:   "Manage service's containers",
+		Short:   "Manage service's containers (experimental)",
 		Aliases: []string{"containers"},
 	}
 	containerCmd.AddCommand(NewContainerAddCommand(p))

@@ -16,7 +16,6 @@ package container
 
 import (
 	"errors"
-	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -34,6 +33,8 @@ func NewContainerAddCommand(p *commands.KnParams) *cobra.Command {
 		Use:   "add NAME",
 		Short: "Add a container",
 		Example: `
+  The command is experimental and may change in the future releases.  
+
   The 'container add' represents utility command that prints YAML container spec to standard output. It's useful for
   multi-container use cases to create definition with help of standard 'kn' option flags. It accepts all container related
   flag available for 'service create'. The command can be chained through Unix pipes to create multiple containers at once.
@@ -69,8 +70,8 @@ func NewContainerAddCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "%s", b)
-			return nil
+			_, err = cmd.OutOrStdout().Write(b)
+			return err
 		},
 	}
 	podSpecFlags.AddFlags(cmd.Flags())

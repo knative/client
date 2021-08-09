@@ -1,6 +1,6 @@
 ## kn container
 
-Manage service's containers
+Manage service's containers (experimental)
 
 ```
 kn container COMMAND
