@@ -48,7 +48,7 @@ containers:
 	os.Stdin = stdinReader
 	defer func() { os.Stdin = origStdin }()
 
-	output, err := executeContainerCommand("add", "foo", "--image", "registry.foo:bar", "--containers", "-")
+	output, err := executeContainerCommand("add", "foo", "--image", "registry.foo:bar", "--extra-containers", "-")
 	assert.NilError(t, err)
 	assert.Assert(t, len(output) > 0)
 	assert.Assert(t, util.ContainsAllIgnoreCase(output, "containers", "image", "foo", "registry.foo:bar", "bar", "bar:bar"))

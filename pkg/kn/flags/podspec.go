@@ -127,7 +127,7 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
 
 	flagset.StringVarP(&p.ExtraContainers, "extra-containers", "", "",
 		"Specify path to file including definition for additional containers, alternatively use '-' to read from stdin. "+
-			"Example: --containers ./containers.yaml or --containers -.")
+			"Example: --extra-containers ./containers.yaml or --extra-containers -.")
 	flagNames = append(flagNames, "containers")
 
 	flagset.StringSliceVar(&p.Resources.Limits,
