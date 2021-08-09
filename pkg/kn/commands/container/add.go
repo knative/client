@@ -22,7 +22,6 @@ import (
 	"github.com/spf13/cobra"
 
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"knative.dev/client/pkg/kn/commands"
 	knflags "knative.dev/client/pkg/kn/flags"
 	sigyaml "sigs.k8s.io/yaml"
@@ -31,22 +30,21 @@ import (
 // NewContainerAddCommand to create event channels
 func NewContainerAddCommand(p *commands.KnParams) *cobra.Command {
 	var podSpecFlags knflags.PodSpecFlags
-	machineReadablePrintFlags := genericclioptions.NewPrintFlags("")
-
 	cmd := &cobra.Command{
 		Use:   "add NAME",
 		Short: "Add a container",
 		Example: `
   The 'container add' represents utility command that prints YAML container spec to standard output. It's useful for
-  multi-container use cases to create definition with help of standard 'kn' option flags. The command can be chained through
-  Unix pipes to create multiple containers at once.
+  multi-container use cases to create definition with help of standard 'kn' option flags. It accepts all container related
+  flag available for 'service create'. The command can be chained through Unix pipes to create multiple containers at once.
 
-  # Add a container 'sidecar' from image 'docker.io/example/sidecar'
+  # Add a container 'sidecar' from image 'docker.io/example/sidecar' and print it to standard output
   kn container add sidecar --image docker.io/example/sidecar
 
-  # Add command can be chained by standard Unix pipe symbol '|'
-  kn container add sidecar --image docker.io/example/sidecar | \
-  kn container add second --image docker.io/example/sidecar:second`,
+  # Add command can be chained by standard Unix pipe symbol '|' and passed to 'service add|update|apply' commands
+  kn container add sidecar --image docker.io/example/sidecar:first | \
+  kn container add second --image docker.io/example/sidecar:second | \
+  kn service create myksvc --image docker.io/example/my-app:latest --containers -`,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
 				return errors.New("'container add' requires the container name given as single argument")
@@ -75,7 +73,6 @@ func NewContainerAddCommand(p *commands.KnParams) *cobra.Command {
 			return nil
 		},
 	}
-	machineReadablePrintFlags.AddFlags(cmd)
 	podSpecFlags.AddFlags(cmd.Flags())
 	// Volume is not part of ContainerSpec
 	cmd.Flag("volume").Hidden = true
