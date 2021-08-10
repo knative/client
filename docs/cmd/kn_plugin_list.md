@@ -10,7 +10,7 @@ Available plugins are those that are:
 - executable
 - begin with "kn-"
 - Kn's plugin directory
-- Anywhere in the execution $PATH (if plugins.path-lookup configuration variable is enabled)
+- Anywhere in the execution $PATH
 
 ```
 kn plugin list

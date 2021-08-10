@@ -77,7 +77,7 @@ The following example contains a fully commented `config.yaml` with all availabl
 ```yaml
 # Plugins related configuration
 plugins:
-  # Whether to lookup configuration in the execution path (default: false)
+  # Whether to lookup configuration in the execution path (default: true). This option is deprecated and will be removed in a future version where path lookup will be enabled unconditionally
   path-lookup: true
   # Directory from where plugins are looked up. (default: "$base_dir/plugins"
   # where "$base_dir" is the directory where this configuration file is stored)
@@ -118,7 +118,7 @@ You can specify the following options:
    plugins. It can be any directory that is visible to the user.
 
 * `path-lookup`, which is the same as the persistent flag
-   `--lookup-plugins-in-path` and specifies if `kn` should look for plugins anywhere in the specified `PATH` environment variable. This option is a boolean type, and the default value is `false`.
+   `--lookup-plugins-in-path` and specifies if `kn` should look for plugins anywhere in the specified `PATH` environment variable. This option is a boolean type, and the default value is `true`. This option is DEPRECATED and will be removed in a future version, when path lookup will be always enabled.
 
 #### Eventing configuration
 
