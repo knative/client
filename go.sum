@@ -1621,8 +1621,8 @@ k8s.io/utils v0.0.0-20201110183641-67b214c5f920/go.mod h1:jPW/WVKK9YHAvNhRxK0md/
 k8s.io/utils v0.0.0-20210111153108-fddb29f9d009 h1:0T5IaWHO3sJTEmCP6mUlBvMukxPKUQWqiI/YuiBNMiQ=
 k8s.io/utils v0.0.0-20210111153108-fddb29f9d009/go.mod h1:jPW/WVKK9YHAvNhRxK0md/EJ228hCsBRufyofKtW8HA=
 knative.dev/caching v0.0.0-20210803185815-4e553d2275a0/go.mod h1:Vs+HND39+KKaIQp9M3m3Jmt4YtznpitDQ3n53gxbDYQ=
-knative.dev/eventing v0.24.1-0.20210809153712-0c41e6d42127 h1:8G2zo+pnXhENIuvShB95GXF8YvXzQzf9PpZ1jDVsJ/A=
-knative.dev/eventing v0.24.1-0.20210809153712-0c41e6d42127/go.mod h1:8jIsrnSONPgv+m63OTzpwZQJiQASYl77C3llCyYlBMU=
+knative.dev/eventing v0.25.0 h1:lBKgQFGvyeUyvf+HOyuxFd5cXx+SMqnzqtPi2hXiCi4=
+knative.dev/eventing v0.25.0/go.mod h1:8jIsrnSONPgv+m63OTzpwZQJiQASYl77C3llCyYlBMU=
 knative.dev/hack v0.0.0-20210622141627-e28525d8d260 h1:f2eMtOubAOc/Q7JlvFPDKXiPlJVK+VpX2Cot8hRzCgQ=
 knative.dev/hack v0.0.0-20210622141627-e28525d8d260/go.mod h1:PHt8x8yX5Z9pPquBEfIj0X66f8iWkWfR0S/sarACJrI=
 knative.dev/hack/schema v0.0.0-20210622141627-e28525d8d260/go.mod h1:ffjwmdcrH5vN3mPhO8RrF2KfNnbHeCE2C60A+2cv3U0=
@@ -1631,8 +1631,8 @@ knative.dev/networking v0.0.0-20210803181815-acdfd41c575c/go.mod h1:UA9m1M3rGssy
 knative.dev/pkg v0.0.0-20210803160015-21eb4c167cc5 h1:jpOTmAXg1oLS8u5HPBrFP1XsOSFCQIvlTRxP8TDGg2E=
 knative.dev/pkg v0.0.0-20210803160015-21eb4c167cc5/go.mod h1:RPk5txNA3apR9X40D4MpUOP9/VqOG8CrtABWfOwGVS4=
 knative.dev/reconciler-test v0.0.0-20210803183715-b61cc77c06f6/go.mod h1:+Kovy+G5zXZNcuO/uB+zfo37vFKZzsLIlWezt/nKMz0=
-knative.dev/serving v0.24.1-0.20210806230708-5ad15dff1c94 h1:++x4kIx33goJiX4BycT+V9+pNRgK9kP5b0g8GSB1SH4=
-knative.dev/serving v0.24.1-0.20210806230708-5ad15dff1c94/go.mod h1:24E4fVyViFnz8aAaafzdrYKB7CAsQr4FMU7QXoIE6CI=
+knative.dev/serving v0.25.0 h1:YdIdW7CSJ53xbVp5D6dZmXccFnQ6PiR+U/GiwujhwIc=
+knative.dev/serving v0.25.0/go.mod h1:24E4fVyViFnz8aAaafzdrYKB7CAsQr4FMU7QXoIE6CI=
 pgregory.net/rapid v0.3.3/go.mod h1:UYpPVyjFHzYBGHIxLFoupi8vwk6rXNzRY9OMvVxFIOU=
 rsc.io/binaryregexp v0.2.0/go.mod h1:qTv7/COck+e2FymRvadv62gMdZztPaShugOCi3I+8D8=
 rsc.io/quote/v3 v3.1.0/go.mod h1:yEA65RcK8LyAZtP9Kv3t0HmxON59tX3rD+tICJqUlj0=
