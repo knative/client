@@ -161,7 +161,7 @@ func (b *DomainMappingBuilder) Reference(reference duckv1.KReference) *DomainMap
 }
 
 // TLS for domainMapping builder
-func (b *DomainMappingBuilder) TLS(tls string) *DomainMappingBuilder {
+func (b *DomainMappingBuilder) TLS(cert string) *DomainMappingBuilder {
 	if tls == "" {
 		return b
 	}
