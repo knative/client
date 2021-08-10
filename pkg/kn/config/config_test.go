@@ -29,7 +29,7 @@ func TestBootstrapConfig(t *testing.T) {
 	configYaml := `
 plugins:
   directory: /tmp
-  path-lookup: true
+  
 eventing:
   sink-mappings:
   - prefix: service
