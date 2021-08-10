@@ -18,6 +18,11 @@
 | | Description | PR
 
 | ✨
+| Deprecate `lookup-path` as path lookup will always be enabled in the future
+| https://github.com/knative/client/pull/1422[#1422]
+
+
+| ✨
 | Lookup plugins in `$PATH` by default
 | https://github.com/knative/client/pull/1412[#1412]
 
