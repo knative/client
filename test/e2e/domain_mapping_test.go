@@ -19,6 +19,7 @@ package e2e
 
 import (
 	"testing"
+	"time"
 
 	"knative.dev/client/pkg/util"
 
@@ -59,6 +60,7 @@ func TestDomain(t *testing.T) {
 
 	t.Log("create domain with TLS")
 	domainCreateWithTls(r, "newdomain.com", "hello", "tls-secret")
+	time.Sleep(time.Second)
 	domainDescribe(r, "newdomain.com", true)
 }
 
@@ -75,7 +77,7 @@ func domainCreateWithTls(r *test.KnRunResultCollector, domainName, serviceName, 
 	command = append(command, options...)
 	out := r.KnTest().Kn().Run(command...)
 	r.AssertNoError(out)
-	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "domain", "mapping", serviceName, domainName, "created", "namespace", r.KnTest().Kn().Namespace()))
+	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "domain", "mapping", domainName, "created", "namespace", r.KnTest().Kn().Namespace()))
 }
 
 func domainUpdate(r *test.KnRunResultCollector, domainName, serviceName string, options ...string) {
