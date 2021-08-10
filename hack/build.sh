@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Copyright 2018 The Knative Authors
 #
@@ -13,8 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-source $(dirname $0)/../vendor/knative.dev/hack/library.sh
 
 set -o pipefail
 
@@ -346,6 +344,9 @@ if $(has_flag --debug); then
     export PS4='+($(basename ${BASH_SOURCE[0]}):${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
     set -x
 fi
+
+# Shared funcs from hack repo
+source $(basedir)/vendor/knative.dev/hack/library.sh
 
 # Shared funcs with CI
 source $(basedir)/hack/build-flags.sh

@@ -15,7 +15,14 @@
 package commands
 
 import (
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"testing"
+
+	"knative.dev/client/lib/test"
+
+	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/spf13/cobra"
 	"gotest.tools/v3/assert"
@@ -47,6 +54,8 @@ func TestGetNamespaceSample(t *testing.T) {
 		t.Fatalf("Incorrect namespace retrieved: %v, expected: %v", actualNamespace, expectedNamespace)
 	}
 	kp = &KnParams{}
+	// Mock ClientConfig to avoid clash with real kubeconfig on host OS
+	kp.ClientConfig, _ = clientcmd.NewClientConfigFromBytes([]byte(BASIC_KUBECONFIG))
 	testCmd = testCommandGenerator(false)
 	actualNamespace, err = kp.GetNamespace(testCmd)
 	assert.NilError(t, err)
@@ -127,4 +136,123 @@ func TestGetNamespaceAllNamespacesNotDefined(t *testing.T) {
 	if actualNamespace != expectedNamespace {
 		t.Fatalf("Incorrect namespace retrieved: %v, expected: %v", actualNamespace, expectedNamespace)
 	}
+}
+
+func TestGetNamespaceFallback(t *testing.T) {
+	tempDir, err := ioutil.TempDir("", "kn-unit-tests")
+	defer os.RemoveAll(tempDir)
+	assert.NilError(t, err)
+
+	t.Run("MockConfig", func(t *testing.T) {
+		tempFile := filepath.Join(tempDir, "mock")
+		err = ioutil.WriteFile(tempFile, []byte(BASIC_KUBECONFIG), test.FileModeReadWrite)
+		assert.NilError(t, err)
+
+		kp := &KnParams{KubeCfgPath: tempFile}
+		testCmd := testCommandGenerator(true)
+		testCmd.Execute()
+		actual, err := kp.GetNamespace(testCmd)
+		assert.NilError(t, err)
+		if isInCluster() {
+			// In-cluster config overrides the mocked one in OpenShift CI
+			assert.Equal(t, actual, os.Getenv("NAMESPACE"))
+		} else {
+			assert.Equal(t, actual, "default")
+		}
+	})
+
+	t.Run("EmptyConfig", func(t *testing.T) {
+		tempFile := filepath.Join(tempDir, "empty")
+		err = ioutil.WriteFile(tempFile, []byte(""), test.FileModeReadWrite)
+		assert.NilError(t, err)
+
+		kp := &KnParams{KubeCfgPath: tempFile}
+		testCmd := testCommandGenerator(true)
+		testCmd.Execute()
+		actual, err := kp.GetNamespace(testCmd)
+		assert.NilError(t, err)
+		if isInCluster() {
+			// In-cluster config overrides the mocked one in OpenShift CI
+			assert.Equal(t, actual, os.Getenv("NAMESPACE"))
+		} else {
+			assert.Equal(t, actual, "default")
+		}
+	})
+
+	t.Run("MissingConfig", func(t *testing.T) {
+		kp := &KnParams{KubeCfgPath: filepath.Join(tempDir, "missing")}
+		testCmd := testCommandGenerator(true)
+		testCmd.Execute()
+		actual, err := kp.GetNamespace(testCmd)
+		assert.ErrorContains(t, err, "can not be found")
+		assert.Equal(t, actual, "")
+	})
+}
+
+func TestCurrentNamespace(t *testing.T) {
+	tempDir, err := ioutil.TempDir("", "kn-unit-tests")
+	defer os.RemoveAll(tempDir)
+	assert.NilError(t, err)
+
+	t.Run("EmptyConfig", func(t *testing.T) {
+		// Invalid kubeconfig
+		tempFile := filepath.Join(tempDir, "empty")
+		err = ioutil.WriteFile(tempFile, []byte(""), test.FileModeReadWrite)
+		assert.NilError(t, err)
+
+		kp := &KnParams{KubeCfgPath: tempFile}
+		actual, err := kp.CurrentNamespace()
+		if isInCluster() {
+			// In-cluster config overrides the mocked one in OpenShift CI
+			assert.NilError(t, err)
+			assert.Equal(t, actual, os.Getenv("NAMESPACE"))
+		} else {
+			assert.Assert(t, err != nil)
+			assert.Assert(t, clientcmd.IsConfigurationInvalid(err))
+			assert.Assert(t, actual == "")
+		}
+
+	})
+
+	t.Run("MissingConfig", func(t *testing.T) {
+		// Missing kubeconfig
+		kp := &KnParams{KubeCfgPath: filepath.Join(tempDir, "missing")}
+		actual, err := kp.CurrentNamespace()
+		assert.Assert(t, err != nil)
+		assert.ErrorContains(t, err, "can not be found")
+		assert.Assert(t, actual == "")
+	})
+
+	t.Run("MissingConfig", func(t *testing.T) {
+		// Variable namespace override
+		kp := &KnParams{fixedCurrentNamespace: FakeNamespace}
+		actual, err := kp.CurrentNamespace()
+		assert.NilError(t, err)
+		assert.Equal(t, actual, FakeNamespace)
+	})
+
+	t.Run("MockConfig", func(t *testing.T) {
+		// Fallback to "default" namespace from mock kubeconfig
+		tempFile := filepath.Join(tempDir, "mock")
+		err = ioutil.WriteFile(tempFile, []byte(BASIC_KUBECONFIG), test.FileModeReadWrite)
+		assert.NilError(t, err)
+		kp := &KnParams{KubeCfgPath: tempFile}
+		actual, err := kp.CurrentNamespace()
+		assert.NilError(t, err)
+		if isInCluster() {
+			// In-cluster config overrides the mocked one in OpenShift CI
+			assert.Equal(t, actual, os.Getenv("NAMESPACE"))
+		} else {
+			assert.Equal(t, actual, "default")
+		}
+	})
+}
+
+// Inspired by client-go function
+// https://github.com/kubernetes/client-go/blob/master/tools/clientcmd/client_config.go#L600-L606
+func isInCluster() bool {
+	fi, err := os.Stat("/var/run/secrets/kubernetes.io/serviceaccount/token")
+	return os.Getenv("KUBERNETES_SERVICE_HOST") != "" &&
+		os.Getenv("KUBERNETES_SERVICE_PORT") != "" &&
+		err == nil && !fi.IsDir()
 }

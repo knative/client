@@ -71,11 +71,8 @@ func (c *config) PluginsDir() string {
 
 // LookupPluginsInPath returns true if plugins should be also checked in the pat
 func (c *config) LookupPluginsInPath() bool {
-	if viper.IsSet(keyPluginsLookupInPath) {
-		return viper.GetBool(keyPluginsLookupInPath)
-	} else if viper.IsSet(legacyKeyPluginsLookupInPath) {
-		// Remove that branch if legacy option is switched off
-		return viper.GetBool(legacyKeyPluginsLookupInPath)
+	if viper.IsSet(deprecatedKeyPluginsLookupInPath) {
+		return viper.GetBool(deprecatedKeyPluginsLookupInPath)
 	} else {
 		// If legacy branch is removed, switch to setting the default to viper
 		// See TODO comment below.
@@ -117,7 +114,7 @@ func BootstrapConfig() error {
 	if err != nil {
 		return err
 	}
-	err = viper.BindPFlag(keyPluginsLookupInPath, bootstrapFlagSet.Lookup(flagPluginsLookupInPath))
+	err = viper.BindPFlag(deprecatedKeyPluginsLookupInPath, bootstrapFlagSet.Lookup(flagPluginsLookupInPath))
 	if err != nil {
 		return err
 	}
@@ -140,7 +137,7 @@ func BootstrapConfig() error {
 	// TODO: Re-enable when legacy handling for plugin config has been removed
 	// For now default handling is happening directly in the getter of GlobalConfig
 	// viper.SetDefault(keyPluginsDirectory, bootstrapDefaults.pluginsDir)
-	// viper.SetDefault(keyPluginsLookupInPath, bootstrapDefaults.lookupPluginsInPath)
+	// viper.SetDefault(deprecatedKeyPluginsLookupInPath, bootstrapDefaults.lookupPluginsInPath)
 
 	// If a config file is found, read it in.
 	err = viper.ReadInConfig()
@@ -178,7 +175,7 @@ func initDefaults() *defaultConfig {
 	return &defaultConfig{
 		configFile:          defaultConfigLocation("config.yaml"),
 		pluginsDir:          defaultConfigLocation("plugins"),
-		lookupPluginsInPath: false,
+		lookupPluginsInPath: true,
 	}
 }
 

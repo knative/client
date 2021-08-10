@@ -16,13 +16,26 @@ package errors
 
 import (
 	"errors"
+	"fmt"
 	"testing"
+
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	"gotest.tools/v3/assert"
 	api_errors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
+
+type mockErrType struct{}
+
+func (err mockErrType) Error() string {
+	return "mock error message"
+}
+func (err mockErrType) Status() metav1.Status {
+	return metav1.Status{}
+}
 
 func TestKnErrorsStatusErrors(t *testing.T) {
 	cases := []struct {
@@ -154,14 +167,82 @@ func TestIsForbiddenError(t *testing.T) {
 		},
 	}
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.Name, func(t *testing.T) {
 			t.Parallel()
-			assert.Equal(t, IsForbiddenError(tc.Error), tc.Forbidden)
+			assert.Equal(t, IsForbiddenError(GetError(tc.Error)), tc.Forbidden)
 		})
 	}
 }
 
 func TestNilError(t *testing.T) {
 	assert.NilError(t, GetError(nil), nil)
+}
+
+func TestIsInternalError(t *testing.T) {
+	cases := []struct {
+		Name     string
+		Error    error
+		Internal bool
+	}{
+		{
+			Name:     "internal error with connection refused",
+			Error:    api_errors.NewInternalError(fmt.Errorf("failed calling webhook \"webhook.serving.knative.dev\": Post \"https://webhook.knative-serving.svc:443/defaulting?timeout=10s\": dial tcp 10.96.27.233:443: connect: connection refused")),
+			Internal: true,
+		},
+		{
+			Name:     "internal error with context deadline exceeded",
+			Error:    api_errors.NewInternalError(fmt.Errorf("failed calling webhook \"webhook.serving.knative.dev\": Post https://webhook.knative-serving.svc:443/defaulting?timeout=10s: context deadline exceeded")),
+			Internal: true,
+		},
+		{
+			Name:     "internal error with i/o timeout",
+			Error:    api_errors.NewInternalError(fmt.Errorf("failed calling webhook \"webhook.serving.knative.dev\": Post https://webhook.knative-serving.svc:443/defaulting?timeout=10s: i/o timeout")),
+			Internal: true,
+		},
+		{
+			Name:     "not internal error",
+			Error:    mockErrType{},
+			Internal: false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, api_errors.IsInternalError(GetError(tc.Error)), tc.Internal)
+		})
+	}
+}
+
+func TestStatusError(t *testing.T) {
+	cases := []struct {
+		Name      string
+		Error     error
+		ErrorType func(error) bool
+	}{
+		{
+			Name:      "Timeout error",
+			Error:     api_errors.NewTimeoutError("failed processing request: i/o timeout", 10),
+			ErrorType: api_errors.IsTimeout,
+		},
+		{
+			Name:      "Conflict error",
+			Error:     api_errors.NewConflict(servingv1.Resource("service"), "tempService", fmt.Errorf("failure: i/o timeout")),
+			ErrorType: api_errors.IsConflict,
+		},
+		{
+			Name:  "i/o timeout",
+			Error: errors.New("Get https://api.example.com:27435/apis/foo/bar: dial tcp 192.168.1.1:27435: i/o timeout"),
+			ErrorType: func(err error) bool {
+				var kne *KNError
+				return errors.As(err, &kne)
+			},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			t.Parallel()
+			assert.Assert(t, tc.ErrorType(GetError(tc.Error)))
+		})
+	}
 }

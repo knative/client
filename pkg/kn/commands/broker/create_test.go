@@ -27,6 +27,7 @@ import (
 
 var (
 	brokerName = "foo"
+	className  = "foo-class"
 )
 
 func TestBrokerCreate(t *testing.T) {
@@ -36,6 +37,24 @@ func TestBrokerCreate(t *testing.T) {
 	eventingRecorder.CreateBroker(createBroker(brokerName), nil)
 
 	out, err := executeBrokerCommand(eventingClient, "create", brokerName)
+	assert.NilError(t, err, "Broker should be created")
+	assert.Assert(t, util.ContainsAll(out, "Broker", brokerName, "created", "namespace", "default"))
+
+	eventingRecorder.Validate()
+}
+
+func TestBrokerCreateWithClass(t *testing.T) {
+	eventingClient := clienteventingv1.NewMockKnEventingClient(t)
+
+	eventingRecorder := eventingClient.Recorder()
+	eventingRecorder.CreateBroker(createBrokerWithClass(brokerName, className), nil)
+
+	out, err := executeBrokerCommand(eventingClient, "create", brokerName, "--class", className)
+	assert.NilError(t, err, "Broker should be created")
+	assert.Assert(t, util.ContainsAll(out, "Broker", brokerName, "created", "namespace", "default"))
+
+	eventingRecorder.CreateBroker(createBrokerWithClass(brokerName, ""), nil)
+	out, err = executeBrokerCommand(eventingClient, "create", brokerName, "--class", "")
 	assert.NilError(t, err, "Broker should be created")
 	assert.Assert(t, util.ContainsAll(out, "Broker", brokerName, "created", "namespace", "default"))
 
