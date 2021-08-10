@@ -10,7 +10,7 @@ kn domain create NAME
 
 ```
 
-  # Create a domain mappings 'hello.example.com' for Knative service 'hello' with TLS secret set
+  # Create a domain mappings 'hello.example.com' for Knative service 'hello' pointing to the secret that holds the server certificate
   kn domain create hello.example.com --ref hello --tls my-tls-secret
 ```
 
@@ -36,4 +36,3 @@ kn domain create NAME
 ### SEE ALSO
 
 * [kn domain](kn_domain.md)	 - Manage domain mappings
-
