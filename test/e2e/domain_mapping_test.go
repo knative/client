@@ -58,8 +58,8 @@ func TestDomain(t *testing.T) {
 	domainDelete(r, domainName)
 
 	t.Log("create domain with TLS")
-	domainCreateWithTls(r, domainName, "hello", "tls-secret")
-	domainDescribe(r, domainName, true)
+	domainCreateWithTls(r, "newdomain.com", "hello", "tls-secret")
+	domainDescribe(r, "newdomain.com", true)
 }
 
 func domainCreate(r *test.KnRunResultCollector, domainName, serviceName string, options ...string) {
