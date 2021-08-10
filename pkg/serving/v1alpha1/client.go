@@ -162,10 +162,10 @@ func (b *DomainMappingBuilder) Reference(reference duckv1.KReference) *DomainMap
 
 // TLS for domainMapping builder
 func (b *DomainMappingBuilder) TLS(cert string) *DomainMappingBuilder {
-	if tls == "" {
+	if cert == "" {
 		return b
 	}
-	b.domainMapping.Spec.TLS = &servingv1alpha1.SecretTLS{SecretName: tls}
+	b.domainMapping.Spec.TLS = &servingv1alpha1.SecretTLS{SecretName: cert}
 	return b
 }
 
