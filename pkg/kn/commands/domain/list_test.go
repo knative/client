@@ -29,8 +29,8 @@ import (
 func TestDomainMappingList(t *testing.T) {
 	client := v1alpha1.NewMockKnServiceClient(t)
 
-	dm1 := createDomainMapping("foo1", createServiceRef("foo1", "default"))
-	dm2 := createDomainMapping("foo2", createServiceRef("foo2", "default"))
+	dm1 := createDomainMapping("foo1", createServiceRef("foo1", "default"), "")
+	dm2 := createDomainMapping("foo2", createServiceRef("foo2", "default"), "")
 	servingRecorder := client.Recorder()
 	servingRecorder.ListDomainMappings(&servingv1alpha1.DomainMappingList{Items: []servingv1alpha1.DomainMapping{*dm1, *dm2}}, nil)
 

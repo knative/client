@@ -33,8 +33,8 @@ func TestDomainMappingUpdate(t *testing.T) {
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient(client.Namespace(), createService("foo"), createService("bar"))
 
 	servingRecorder := client.Recorder()
-	servingRecorder.GetDomainMapping("foo.bar", createDomainMapping("foo.bar", createServiceRef("foo", "default")), nil)
-	servingRecorder.UpdateDomainMapping(createDomainMapping("foo.bar", createServiceRef("bar", "default")), nil)
+	servingRecorder.GetDomainMapping("foo.bar", createDomainMapping("foo.bar", createServiceRef("foo", "default"), ""), nil)
+	servingRecorder.UpdateDomainMapping(createDomainMapping("foo.bar", createServiceRef("bar", "default"), ""), nil)
 
 	out, err := executeDomainCommand(client, dynamicClient, "update", "foo.bar", "--ref", "bar")
 	assert.NilError(t, err, "Domain mapping should be updated")
@@ -59,7 +59,7 @@ func TestDomainMappingUpdateNotFound(t *testing.T) {
 func TestDomainMappingUpdateDeletingError(t *testing.T) {
 	client := v1alpha1.NewMockKnServiceClient(t)
 
-	deletingDM := createDomainMapping("foo.bar", createServiceRef("foo", "default"))
+	deletingDM := createDomainMapping("foo.bar", createServiceRef("foo", "default"), "")
 	deletingDM.DeletionTimestamp = &v1.Time{Time: time.Now()}
 
 	servingRecorder := client.Recorder()

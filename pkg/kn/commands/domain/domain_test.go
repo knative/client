@@ -130,7 +130,7 @@ func TestResolve(t *testing.T) {
 	}
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default", myksvc, mykroute, myksvcInOther, mykrouteInOther)
 	for _, c := range cases {
-		i := &RefFlags{c.ref}
+		i := &RefFlags{reference: c.ref}
 		result, err := i.Resolve(context.Background(), dynamicClient, "default")
 		if c.destination != nil {
 			assert.DeepEqual(t, result, c.destination)
@@ -178,8 +178,8 @@ func createService(name string) *servingv1.Service {
 	}
 }
 
-func createDomainMapping(name string, ref duckv1.KReference) *servingv1alpha1.DomainMapping {
-	return clientservingv1alpha1.NewDomainMappingBuilder(name).Namespace("default").Reference(ref).Build()
+func createDomainMapping(name string, ref duckv1.KReference, tls string) *servingv1alpha1.DomainMapping {
+	return clientservingv1alpha1.NewDomainMappingBuilder(name).Namespace("default").Reference(ref).TLS(tls).Build()
 }
 
 func createServiceRef(service, namespace string) duckv1.KReference {

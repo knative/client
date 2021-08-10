@@ -19,6 +19,7 @@ package e2e
 
 import (
 	"testing"
+	"time"
 
 	"knative.dev/client/pkg/util"
 
@@ -52,10 +53,15 @@ func TestDomain(t *testing.T) {
 	domainUpdate(r, domainName, "foo")
 
 	t.Log("describe domain mappings")
-	domainDescribe(r, domainName)
+	domainDescribe(r, domainName, false)
 
 	t.Log("delete domain")
 	domainDelete(r, domainName)
+
+	t.Log("create domain with TLS")
+	domainCreateWithTls(r, "newdomain.com", "hello", "tls-secret")
+	time.Sleep(time.Second)
+	domainDescribe(r, "newdomain.com", true)
 }
 
 func domainCreate(r *test.KnRunResultCollector, domainName, serviceName string, options ...string) {
@@ -64,6 +70,14 @@ func domainCreate(r *test.KnRunResultCollector, domainName, serviceName string, 
 	out := r.KnTest().Kn().Run(command...)
 	r.AssertNoError(out)
 	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "domain", "mapping", serviceName, domainName, "created", "namespace", r.KnTest().Kn().Namespace()))
+}
+
+func domainCreateWithTls(r *test.KnRunResultCollector, domainName, serviceName, tls string, options ...string) {
+	command := []string{"domain", "create", domainName, "--ref", serviceName, "--tls", tls}
+	command = append(command, options...)
+	out := r.KnTest().Kn().Run(command...)
+	r.AssertNoError(out)
+	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "domain", "mapping", domainName, "created", "namespace", r.KnTest().Kn().Namespace()))
 }
 
 func domainUpdate(r *test.KnRunResultCollector, domainName, serviceName string, options ...string) {
@@ -88,8 +102,14 @@ func domainList(r *test.KnRunResultCollector, domainName string) {
 	assert.Check(r.T(), util.ContainsAll(out.Stdout, domainName))
 }
 
-func domainDescribe(r *test.KnRunResultCollector, domainName string) {
+func domainDescribe(r *test.KnRunResultCollector, domainName string, tls bool) {
 	out := r.KnTest().Kn().Run("domain", "describe", domainName)
 	r.AssertNoError(out)
-	assert.Assert(r.T(), util.ContainsAll(out.Stdout, "Name", "Namespace", "URL", "Service"))
+	var url string
+	if tls {
+		url = "https://" + domainName
+	} else {
+		url = "http://" + domainName
+	}
+	assert.Assert(r.T(), util.ContainsAll(out.Stdout, "Name", "Namespace", "URL", "Service", url))
 }

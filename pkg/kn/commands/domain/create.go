@@ -20,6 +20,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"k8s.io/apimachinery/pkg/util/validation"
 	knerrors "knative.dev/client/pkg/errors"
 	"knative.dev/client/pkg/kn/commands"
 	clientv1alpha1 "knative.dev/client/pkg/serving/v1alpha1"
@@ -32,8 +33,8 @@ func NewDomainMappingCreateCommand(p *commands.KnParams) *cobra.Command {
 		Use:   "create NAME",
 		Short: "Create a domain mapping",
 		Example: `
-  # Create a domain mappings 'hello.example.com' for Knative service 'hello'
-  kn domain create hello.example.com --ref hello`,
+  # Create a domain mappings 'hello.example.com' for Knative service 'hello' with TLS secret set
+  kn domain create hello.example.com --ref hello --tls my-cert-secret`,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
 				return errors.New("'kn domain create' requires the domain name given as single argument")
@@ -53,9 +54,14 @@ func NewDomainMappingCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
+			errs := validation.IsDNS1123Subdomain(refFlags.tls)
+			if refFlags.tls != "" && len(errs) != 0 {
+				return fmt.Errorf("invalid secret name %q: %s", refFlags.tls, errs[0])
+			}
 			builder := clientv1alpha1.NewDomainMappingBuilder(name).
 				Namespace(namespace).
-				Reference(*reference)
+				Reference(*reference).
+				TLS(refFlags.tls)
 
 			client, err := p.NewServingV1alpha1Client(namespace)
 			if err != nil {
@@ -70,6 +76,7 @@ func NewDomainMappingCreateCommand(p *commands.KnParams) *cobra.Command {
 			return nil
 		},
 	}
+	cmd.Flags().StringVar(&refFlags.tls, "tls", "", "Enable TLS and point to the secret that holds the server certificate.")
 	commands.AddNamespaceFlags(cmd.Flags(), false)
 	refFlags.Add(cmd)
 	cmd.MarkFlagRequired("ref")
