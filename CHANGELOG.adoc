@@ -12,7 +12,7 @@
 | https://github.com/knative/client/pull/[#]
 ////
 
-## Unreleased
+## v0.25.0 (2021-08-10)
 [cols="1,10,3", options="header", width="100%"]
 |===
 | | Description | PR
@@ -21,6 +21,13 @@
 | Deprecate `lookup-path` as path lookup will always be enabled in the future
 | https://github.com/knative/client/pull/1422[#1422]
 
+| 🎁
+| Add `--tls` option to domain create command
+| https://github.com/knative/client/pull/1419[#1419]
+
+| 🐛
+| Fix plugin lookup for arguments with slashes
+| https://github.com/knative/client/pull/1415[#1415]
 
 | ✨
 | Lookup plugins in `$PATH` by default
@@ -31,31 +38,31 @@
 | https://github.com/knative/client/pull/1406[#1406]
 
 | 🎁
-| Adding `--tls` option to domain create command
-| https://github.com/knative/client/pull/1419[#1419]
-
-| 🎁
-| Add an `client.knative.dev/updateTimestamp` annotation to trigger a new revision when required
-| https://github.com/knative/client/pull/1364[#1364]
-
-| 🎁
-| Adding `--class` flag to broker create command
+| Add `--class` flag to broker create command
 | https://github.com/knative/client/pull/1402[#1402]
 
 | 🎁
-| Adding `darwin/arm64` support to kn
+| Add `darwin/arm64` support to kn
 | https://github.com/knative/client/pull/1401[#1401]
 
+| 🐛
+| Fix path not being escaped when applying a regex on Windows
+| https://github.com/knative/client/pull/1395[#1395]
+
 | 🎁
-| Adding base64 data handling to ping update command
+| Add `base64` data handling to Ping commands
 | https://github.com/knative/client/pull/1392[#1392], https://github.com/knative/client/pull/1388[#1388]
+
+| 🐛
+| Fix wait for ready to skip non modified event first
+| https://github.com/knative/client/pull/1390[#1390]
 
 | 🎁
 | Add support for multiple containers in Service spec
 | https://github.com/knative/client/pull/1382[#1382]
 
 | ✨
-| make --cmd flag as an array instead of string
+| Make `--cmd` flag as an array instead of string
 | https://github.com/knative/client/pull/1380[#1380]
 
 | 🎁
