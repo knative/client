@@ -83,8 +83,9 @@ func newSourceUnstructuredObjWithSink(name, apiVersion, kind string) *unstructur
 			"spec": map[string]interface{}{
 				"sink": map[string]interface{}{
 					"ref": map[string]interface{}{
-						"kind": "Service",
-						"name": "foo",
+						"apiVersion": "serving.knative.dev/v1",
+						"kind":       "Service",
+						"name":       "foo",
 					},
 				},
 			},
