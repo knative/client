@@ -44,9 +44,10 @@ extend the `kn` CLI. For more information, have a look at:
 - [User guide](docs/README.md)
   - Installation - How to install `kn` and run on your machine
   - Examples - Use case based examples
-  - FAQ (_to come._)
 - [Reference Manual](docs/cmd/kn.md) - all possible commands and options with
   usage examples
+
+Additionally you can visit [knative.dev](https://knative.dev) for more examples.
 
 ## Developers
 
