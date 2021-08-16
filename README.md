@@ -44,22 +44,12 @@ extend the `kn` CLI. For more information, have a look at:
 - [User guide](docs/README.md)
   - Installation - How to install `kn` and run on your machine
   - Examples - Use case based examples
-  - FAQ (_to come._)
 - [Reference Manual](docs/cmd/kn.md) - all possible commands and options with
   usage examples
 
+Additionally you can visit [knative.dev](https://knative.dev) for more examples.
+
 ## Developers
 
-We love contributions! Please refer to
-[CONTRIBUTING](https://knative.dev/contributing/) for more information on how to
-best contributed to contribute to Knative.
-
-For code contributions it as easy as picking an
-[issue](https://github.com/knative/client/issues) (look out for
-"kind/good-first-issue"), briefly comment that you would like to work on it,
-code, test, code and finally submit a
-[PR](https://github.com/knative/client/pulls) which will trigger the review
-process.
-
-More details on how to build and test can be found in the
-[Developer guide](docs/DEVELOPMENT.md).
+If you are interested in contributing, see [CONTRIBUTING.md](./CONTRIBUTING.md)
+and [DEVELOPMENT.md](docs/DEVELOPMENT.md).
