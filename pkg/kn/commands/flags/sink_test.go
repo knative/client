@@ -194,6 +194,13 @@ func TestSinkToString(t *testing.T) {
 			Name:       "default"}}
 	expected = "broker:default"
 	assert.Equal(t, expected, SinkToString(sink))
+	sink = duckv1.Destination{
+		Ref: &duckv1.KReference{Kind: "Service",
+			APIVersion: "v1",
+			Namespace:  "my-namespace",
+			Name:       "mysvc"}}
+	expected = "service:mysvc"
+	assert.Equal(t, expected, SinkToString(sink))
 
 	uri := "http://target.example.com"
 	targetExampleCom, err := apis.ParseURL(uri)
