@@ -149,7 +149,7 @@ func parseSink(sink string) (string, string, string) {
 // SinkToString prepares a sink for list output
 func SinkToString(sink duckv1.Destination) string {
 	if sink.Ref != nil {
-		if sink.Ref.Kind == "Service" && strings.Contains(sink.Ref.APIVersion, sinkMappings["ksvc"].Group) {
+		if sink.Ref.Kind == "Service" && strings.HasPrefix(sink.Ref.APIVersion, sinkMappings["ksvc"].Group) {
 			return fmt.Sprintf("ksvc:%s", sink.Ref.Name)
 		} else {
 			return fmt.Sprintf("%s:%s", strings.ToLower(sink.Ref.Kind), sink.Ref.Name)
