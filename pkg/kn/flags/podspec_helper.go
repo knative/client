@@ -56,17 +56,22 @@ func containerOfPodSpec(spec *corev1.PodSpec) *corev1.Container {
 // UpdateEnvVars gives the configuration all the env var values listed in the given map of
 // vars.  Does not touch any environment variables not mentioned, but it can add
 // new env vars and change the values of existing ones.
-func UpdateEnvVars(spec *corev1.PodSpec,
-	allArgs []string, envToUpdate *util.OrderedMap, envToRemove []string, envValueFromToUpdate *util.OrderedMap, envValueFromToRemove []string) error {
+func UpdateEnvVars(spec *corev1.PodSpec, allArgs []string,
+	envToUpdate *util.OrderedMap, envToRemove []string,
+	envValueFromToUpdate *util.OrderedMap, envValueFromToRemove []string,
+	envFileName string, envValueFileToUpdate *util.OrderedMap, envValueFileToRemove []string,
+) error {
 	container := containerOfPodSpec(spec)
 
 	allEnvsToUpdate := util.NewOrderedMap()
 
 	envIterator := envToUpdate.Iterator()
 	envValueFromIterator := envValueFromToUpdate.Iterator()
+	envValueFileIterator := envValueFileToUpdate.Iterator()
 
 	envKey, envValue, envExists := envIterator.NextString()
 	envValueFromKey, envValueFromValue, envValueFromExists := envValueFromIterator.NextString()
+	envValueFileKey, envValueFileValue, envValueFileExists := envValueFileIterator.NextString()
 	for _, arg := range allArgs {
 		// envs are stored as NAME=value
 		if envExists && isValidEnvArg(arg, envKey, envValue) {
@@ -86,6 +91,14 @@ func UpdateEnvVars(spec *corev1.PodSpec,
 				ValueFrom: envVarSource,
 			})
 			envValueFromKey, envValueFromValue, envValueFromExists = envValueFromIterator.NextString()
+		} else if envValueFileExists && isValidEnvValueFileArg(arg, envFileName) {
+			for envValueFileExists {
+				allEnvsToUpdate.Set(envValueFileKey, corev1.EnvVar{
+					Name:  envValueFileKey,
+					Value: envValueFileValue,
+				})
+				envValueFileKey, envValueFileValue, envValueFileExists = envValueFileIterator.NextString()
+			}
 		}
 	}
 
@@ -107,6 +120,12 @@ func isValidEnvArg(arg, envKey, envValue string) bool {
 // ie. stored as NAME=secret:sercretName:key or NAME=config-map:cmName:key
 func isValidEnvValueFromArg(arg, envValueFromKey, envValueFromValue string) bool {
 	return strings.HasPrefix(arg, envValueFromKey+"="+envValueFromValue) || strings.HasPrefix(arg, "--env-value-from="+envValueFromKey+"="+envValueFromValue)
+}
+
+// isValidEnvValueFileArg checks that the input arg is a valid argument for specifying env from value,
+// ie. stored as NAME=secret:sercretName:key or NAME=config-map:cmName:key
+func isValidEnvValueFileArg(arg, envFileName string) bool {
+	return strings.HasPrefix(arg, envFileName) || strings.HasPrefix(arg, "--env-file="+envFileName)
 }
 
 // UpdateEnvFrom updates envFrom

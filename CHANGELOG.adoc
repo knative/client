@@ -17,6 +17,10 @@
 |===
 | | Description | PR
 
+| 🎁
+| Add `--env-file` option to function create/update command
+| https://github.com/knative/client/pull/1423[#1419]
+
 | ✨
 | Reuse conflict retry loop from client-go/util/retry
 | https://github.com/knative/client/pull/1441[#1441]

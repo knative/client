@@ -32,6 +32,7 @@ type PodSpecFlags struct {
 	Env          []string
 	EnvFrom      []string
 	EnvValueFrom []string
+	EnvFile      string
 	Mount        []string
 	Volume       []string
 
@@ -84,6 +85,9 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
 			"any number of times to set multiple environment variables. "+
 			"To unset, specify the environment variable name followed by a \"-\" (e.g., NAME-).")
 	flagNames = append(flagNames, "env")
+
+	flagset.StringVarP(&p.EnvFile, "env-file", "", "", "Path to a file containing environment variables (e.g. --env-file=/home/knative/service1/env).")
+	flagNames = append(flagNames, "env-file")
 
 	flagset.StringArrayVarP(&p.EnvValueFrom, "env-value-from", "", []string{},
 		"Add environment variable from a value of key in ConfigMap (prefix cm: or config-map:) or a Secret (prefix sc: or secret:). "+
@@ -169,7 +173,7 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
 func (p *PodSpecFlags) ResolvePodSpec(podSpec *corev1.PodSpec, flags *pflag.FlagSet, allArgs []string) error {
 	var err error
 
-	if flags.Changed("env") || flags.Changed("env-value-from") {
+	if flags.Changed("env") || flags.Changed("env-value-from") || flags.Changed("env-file") {
 		envToUpdate, envToRemove, err := util.OrderedMapAndRemovalListFromArray(p.Env, "=")
 		if err != nil {
 			return fmt.Errorf("Invalid --env: %w", err)
@@ -180,7 +184,24 @@ func (p *PodSpecFlags) ResolvePodSpec(podSpec *corev1.PodSpec, flags *pflag.Flag
 			return fmt.Errorf("Invalid --env-value-from: %w", err)
 		}
 
-		err = UpdateEnvVars(podSpec, allArgs, envToUpdate, envToRemove, envValueFromToUpdate, envValueFromToRemove)
+		envsFileToUpdate := util.NewOrderedMap()
+		envsFileToRemove := []string{}
+		if p.EnvFile != "" {
+			envsFromFile, err := util.GetEnvsFromFile(p.EnvFile, "=")
+			if err != nil {
+				return fmt.Errorf("Invalid --env-file: %w", err)
+			}
+			envsFileToUpdate, envsFileToRemove, err = util.OrderedMapAndRemovalListFromArray(envsFromFile, "=")
+			if err != nil {
+				return fmt.Errorf("Invalid --env: %w", err)
+			}
+		}
+
+		err = UpdateEnvVars(
+			podSpec, allArgs, envToUpdate, envToRemove,
+			envValueFromToUpdate, envValueFromToRemove,
+			p.EnvFile, envsFileToUpdate, envsFileToRemove,
+		)
 		if err != nil {
 			return err
 		}

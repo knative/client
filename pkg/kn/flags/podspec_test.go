@@ -28,6 +28,7 @@ import (
 	"github.com/spf13/cobra"
 	"gotest.tools/v3/assert"
 	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	"knative.dev/client/pkg/util"
 	"knative.dev/pkg/ptr"
 )
@@ -284,4 +285,46 @@ func TestPodSpecResolveReturnError(t *testing.T) {
 	testCmd.Execute()
 	out := outBuf.String()
 	assert.Assert(t, util.ContainsAll(out, "Invalid", "mount"))
+}
+
+func TestPodSpecResolveWithEnvFile(t *testing.T) {
+	file, err := ioutil.TempFile("", "envfile.env")
+	assert.NilError(t, err)
+	file.WriteString("svcOwner=James\nsvcAuthor=James")
+	defer os.Remove(file.Name())
+
+	inputArgs := []string{"--image", "repo/user/imageID:tag", "--env", "svcOwner=David",
+		"--env-file", file.Name(), "--port", "8080", "--cmd", "/app/start", "--arg", "myArg1"}
+	expectedPodSpec := corev1.PodSpec{
+		Containers: []corev1.Container{
+			{
+				Image:   "repo/user/imageID:tag",
+				Command: []string{"/app/start"},
+				Args:    []string{"myArg1"},
+				Ports: []corev1.ContainerPort{
+					{
+						ContainerPort: 8080,
+					},
+				},
+				Env: []corev1.EnvVar{{Name: "svcOwner", Value: "James"}, {Name: "svcAuthor", Value: "James"}},
+				Resources: v1.ResourceRequirements{
+					Limits:   v1.ResourceList{},
+					Requests: v1.ResourceList{},
+				},
+			},
+		},
+	}
+	flags := &PodSpecFlags{}
+	testCmd := &cobra.Command{
+		Use: "test",
+		Run: func(cmd *cobra.Command, args []string) {
+			podSpec := &corev1.PodSpec{Containers: []corev1.Container{{}}}
+			err := flags.ResolvePodSpec(podSpec, cmd.Flags(), inputArgs)
+			assert.NilError(t, err, "PodSpec cannot be resolved.")
+			assert.DeepEqual(t, expectedPodSpec, *podSpec)
+		},
+	}
+	testCmd.SetArgs(inputArgs)
+	flags.AddFlags(testCmd.Flags())
+	testCmd.Execute()
 }
