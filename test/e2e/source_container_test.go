@@ -81,7 +81,7 @@ func containerSourceList(r *test.KnRunResultCollector, containerSources ...strin
 	r.AssertNoError(out)
 	assert.Check(r.T(), util.ContainsAll(out.Stdout, "NAME", "IMAGE", "SINK", "READY"))
 	assert.Check(r.T(), util.ContainsAll(out.Stdout, containerSources...))
-	assert.Check(r.T(), util.ContainsAll(out.Stdout, "grpc-ping", "ksvc:testsvc0"))
+	assert.Check(r.T(), util.ContainsAll(out.Stdout, "ksvc:testsvc0"))
 }
 
 func containerSourceCreateMissingSink(r *test.KnRunResultCollector, sourceName string, sink string) {
