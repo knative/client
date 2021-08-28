@@ -20,6 +20,8 @@ import (
 	"fmt"
 	"time"
 
+	"k8s.io/client-go/util/retry"
+
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/fields"
 	"knative.dev/pkg/apis"
@@ -255,33 +257,27 @@ func (cl *knServingClient) UpdateServiceWithRetry(ctx context.Context, name stri
 
 // Extracted to be usable with the Mocking client
 func updateServiceWithRetry(ctx context.Context, cl KnServingClient, name string, updateFunc ServiceUpdateFunc, nrRetries int) (bool, error) {
-	var retries = 0
-	for {
+	var changed bool
+	var err error
+	b := retry.DefaultRetry
+	b.Steps = nrRetries
+	err = retry.RetryOnConflict(b, func() error {
 		service, err := cl.GetService(ctx, name)
 		if err != nil {
-			return false, err
+			return err
 		}
 		if service.GetDeletionTimestamp() != nil {
-			return false, fmt.Errorf("can't update service %s because it has been marked for deletion", name)
+			return fmt.Errorf("can't update service %s because it has been marked for deletion", name)
 		}
 		updatedService, err := updateFunc(service.DeepCopy())
 		if err != nil {
-			return false, err
+			return err
 		}
 
-		changed, err := cl.UpdateService(ctx, updatedService)
-		if err != nil {
-			// Retry to update when a resource version conflict exists
-			if apierrors.IsConflict(err) && retries < nrRetries {
-				retries++
-				// Wait a second before doing the retry
-				time.Sleep(time.Second)
-				continue
-			}
-			return false, fmt.Errorf("giving up after %d retries: %w", nrRetries, err)
-		}
-		return changed, nil
-	}
+		changed, err = cl.UpdateService(ctx, updatedService)
+		return err
+	})
+	return changed, err
 }
 
 // ApplyService applies a service definition that contains the service's targer state
