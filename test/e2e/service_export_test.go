@@ -55,11 +55,16 @@ func TestServiceExport(t *testing.T) {
 	t.Log("create service with byo revision")
 	serviceCreateWithOptions(r, "hello", "--revision-name", "rev1")
 
+	userImage := pkgtest.ImagePath("helloworld")
+	if strings.Contains(userImage, "@") {
+		// Images specified by digest are not set in user-image annotation.
+		userImage = ""
+	}
 	t.Log("export service-revision1 and compare")
 	serviceExport(r, "hello", test.BuildServiceWithOptions("hello",
 		servingtest.WithConfigSpec(test.BuildConfigurationSpec()),
 		servingtest.WithBYORevisionName("hello-rev1"),
-		test.WithRevisionAnnotations(map[string]string{"client.knative.dev/user-image": pkgtest.ImagePath("helloworld")}),
+		test.WithRevisionAnnotations(map[string]string{"client.knative.dev/user-image": userImage}),
 	), "--mode", "replay", "-o", "json")
 
 	t.Log("update service - add env variable")
@@ -97,7 +102,7 @@ func TestServiceExport(t *testing.T) {
 			servingtest.WithConfigSpec(test.BuildConfigurationSpec()),
 			servingtest.WithBYORevisionName("hello-rev1"),
 			test.WithRevisionAnnotations(map[string]string{
-				"client.knative.dev/user-image": pkgtest.ImagePath("helloworld"),
+				"client.knative.dev/user-image": userImage,
 				"serving.knative.dev/routes":    "hello",
 			}),
 		)),
@@ -117,7 +122,7 @@ func TestServiceExport(t *testing.T) {
 		servingtest.WithEnv(corev1.EnvVar{Name: "a", Value: "mouse"}),
 	), test.BuildKNExportWithOptions(
 		test.WithKNRevision(*(test.BuildRevision("hello-rev1",
-			servingtest.WithRevisionAnn("client.knative.dev/user-image", pkgtest.ImagePath("helloworld")),
+			servingtest.WithRevisionAnn("client.knative.dev/user-image", userImage),
 			servingtest.WithRevisionAnn("serving.knative.dev/routes", "hello"),
 			servingtest.WithRevisionLabel("serving.knative.dev/configuration", "hello"),
 			servingtest.WithRevisionLabel("serving.knative.dev/configurationGeneration", "1"),
@@ -136,7 +141,7 @@ func TestServiceExport(t *testing.T) {
 		test.WithService(test.BuildServiceWithOptions("hello",
 			servingtest.WithConfigSpec(test.BuildConfigurationSpec()),
 			test.WithRevisionAnnotations(map[string]string{
-				"client.knative.dev/user-image": pkgtest.ImagePath("helloworld"),
+				"client.knative.dev/user-image": userImage,
 				"serving.knative.dev/routes":    "hello",
 			}),
 			servingtest.WithBYORevisionName("hello-rev1"),
@@ -167,7 +172,7 @@ func TestServiceExport(t *testing.T) {
 		servingtest.WithEnv(corev1.EnvVar{Name: "a", Value: "mouse"}, corev1.EnvVar{Name: "b", Value: "cat"}),
 	), test.BuildKNExportWithOptions(
 		test.WithKNRevision(*(test.BuildRevision("hello-rev1",
-			servingtest.WithRevisionAnn("client.knative.dev/user-image", pkgtest.ImagePath("helloworld")),
+			servingtest.WithRevisionAnn("client.knative.dev/user-image", userImage),
 			servingtest.WithRevisionAnn("serving.knative.dev/routes", "hello"),
 			servingtest.WithRevisionLabel("serving.knative.dev/configuration", "hello"),
 			servingtest.WithRevisionLabel("serving.knative.dev/configurationGeneration", "1"),
