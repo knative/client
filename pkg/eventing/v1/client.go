@@ -19,6 +19,8 @@ import (
 	"fmt"
 	"time"
 
+	"k8s.io/client-go/util/retry"
+
 	apis_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -32,6 +34,8 @@ import (
 	"knative.dev/client/pkg/util"
 	"knative.dev/client/pkg/wait"
 )
+
+type TriggerUpdateFunc func(origSource *eventingv1.Trigger) (*eventingv1.Trigger, error)
 
 // KnEventingClient to Eventing Sources. All methods are relative to the
 // namespace specified during construction
@@ -48,6 +52,8 @@ type KnEventingClient interface {
 	ListTriggers(ctx context.Context) (*eventingv1.TriggerList, error)
 	// UpdateTrigger is used to update an instance of trigger
 	UpdateTrigger(ctx context.Context, trigger *eventingv1.Trigger) error
+	// UpdateTriggerWithRetry is used to update an instance of trigger
+	UpdateTriggerWithRetry(ctx context.Context, name string, updateFunc TriggerUpdateFunc, nrRetries int) error
 	// CreateBroker is used to create an instance of broker
 	CreateBroker(ctx context.Context, broker *eventingv1.Broker) error
 	// GetBroker is used to get an instance of broker
@@ -135,6 +141,31 @@ func (c *knEventingClient) UpdateTrigger(ctx context.Context, trigger *eventingv
 		return kn_errors.GetError(err)
 	}
 	return nil
+}
+
+func (c *knEventingClient) UpdateTriggerWithRetry(ctx context.Context, name string, updateFunc TriggerUpdateFunc, nrRetries int) error {
+	return updateTriggerWithRetry(ctx, c, name, updateFunc, nrRetries)
+}
+
+func updateTriggerWithRetry(ctx context.Context, c KnEventingClient, name string, updateFunc TriggerUpdateFunc, nrRetries int) error {
+	b := retry.DefaultRetry
+	b.Steps = nrRetries
+	err := retry.RetryOnConflict(b, func() error {
+		source, err := c.GetTrigger(ctx, name)
+		if err != nil {
+			return err
+		}
+		if source.GetDeletionTimestamp() != nil {
+			return fmt.Errorf("can't update trigger %s because it has been marked for deletion", name)
+		}
+		updatedSource, err := updateFunc(source.DeepCopy())
+		if err != nil {
+			return err
+		}
+
+		return c.UpdateTrigger(ctx, updatedSource)
+	})
+	return err
 }
 
 // Return the client's namespace
