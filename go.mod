@@ -15,7 +15,7 @@ require (
 	k8s.io/api v0.21.4
 	k8s.io/apiextensions-apiserver v0.21.4
 	k8s.io/apimachinery v0.21.4
-	k8s.io/cli-runtime v0.20.7
+	k8s.io/cli-runtime v0.21.4
 	k8s.io/client-go v0.21.4
 	k8s.io/code-generator v0.21.4
 	knative.dev/eventing v0.25.1-0.20210827141738-ea5ed9adf51f
@@ -25,5 +25,3 @@ require (
 	knative.dev/serving v0.25.1-0.20210827140938-e6a7166509e6
 	sigs.k8s.io/yaml v1.2.0
 )
-
-replace github.com/go-openapi/spec => github.com/go-openapi/spec v0.19.3
