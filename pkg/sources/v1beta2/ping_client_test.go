@@ -95,6 +95,9 @@ func TestUpdatePingSourceWithRetry(t *testing.T) {
 				source.DeletionTimestamp = &now
 				return true, source, nil
 			}
+			if name == "getErrorSource" {
+				return true, nil, errors.NewInternalError(fmt.Errorf("mock internal error"))
+			}
 			return true, newPingSource(name, "mysvc"), nil
 		})
 
@@ -108,7 +111,7 @@ func TestUpdatePingSourceWithRetry(t *testing.T) {
 				return true, nil, errors.NewConflict(sourcesv1beta2.Resource("pingsource"), "errorSource", fmt.Errorf("error updating because of conflict"))
 			}
 			if name == "errorSource" {
-				return true, nil, errors.NewInternalError(fmt.Errorf("internal error"))
+				return true, nil, errors.NewInternalError(fmt.Errorf("mock internal error"))
 			}
 			return true, NewPingSourceBuilderFromExisting(newSource.(*sourcesv1beta2.PingSource)).Build(), nil
 		})
@@ -152,6 +155,12 @@ func TestUpdatePingSourceWithRetry(t *testing.T) {
 		return origSource, fmt.Errorf("error updating object")
 	}, maxAttempts)
 	assert.ErrorContains(t, err, "error updating object")
+
+	err = client.UpdatePingSourceWithRetry(context.Background(), "getErrorSource", func(origSource *sourcesv1beta2.PingSource) (*sourcesv1beta2.PingSource, error) {
+		origSource.Spec.Data = newData
+		return origSource, nil
+	}, maxAttempts)
+	assert.ErrorType(t, err, errors.IsInternalError)
 }
 
 func TestDeletePingSource(t *testing.T) {

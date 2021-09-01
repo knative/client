@@ -142,6 +142,124 @@ func TestListTrigger(t *testing.T) {
 	})
 }
 
+func TestUpdateTrigger(t *testing.T) {
+	serving, client := setup()
+	t.Run("update trigger will update the trigger",
+		func(t *testing.T) {
+			trigger := newTrigger("trigger-1")
+			errTrigger := newTrigger("errorTrigger")
+			serving.AddReactor("update", "triggers",
+				func(a client_testing.Action) (bool, runtime.Object, error) {
+					newSource := a.(client_testing.UpdateAction).GetObject()
+					name := newSource.(metav1.Object).GetName()
+					if name == "errorTrigger" {
+						return true, nil, errors.NewInternalError(fmt.Errorf("mock internal error"))
+					}
+					return true, trigger, nil
+				})
+			err := client.UpdateTrigger(context.Background(), trigger)
+			assert.NilError(t, err)
+			err = client.UpdateTrigger(context.Background(), errTrigger)
+			assert.ErrorType(t, err, errors.IsInternalError)
+		})
+}
+
+func TestUpdateTriggerWithRetry(t *testing.T) {
+	serving, client := setup()
+	var attemptCount, maxAttempts = 0, 5
+	serving.AddReactor("get", "triggers",
+		func(a client_testing.Action) (bool, runtime.Object, error) {
+			name := a.(client_testing.GetAction).GetName()
+			if name == "deletedTrigger" {
+				trigger := newTrigger(name)
+				now := metav1.Now()
+				trigger.DeletionTimestamp = &now
+				return true, trigger, nil
+			}
+			if name == "getErrorTrigger" {
+				return true, nil, errors.NewInternalError(fmt.Errorf("mock internal error"))
+			}
+			return true, newTrigger(name), nil
+		})
+
+	serving.AddReactor("update", "triggers",
+		func(a client_testing.Action) (bool, runtime.Object, error) {
+			newTrigger := a.(client_testing.UpdateAction).GetObject()
+			name := newTrigger.(metav1.Object).GetName()
+
+			if name == "testTrigger" && attemptCount > 0 {
+				attemptCount--
+				return true, nil, errors.NewConflict(eventingv1.Resource("trigger"), "errorTrigger", fmt.Errorf("error updating because of conflict"))
+			}
+			if name == "errorTrigger" {
+				return true, nil, errors.NewInternalError(fmt.Errorf("mock internal error"))
+			}
+			return true, NewTriggerBuilderFromExisting(newTrigger.(*eventingv1.Trigger)).Build(), nil
+		})
+
+	t.Run("Update trigger successfully without any retries", func(t *testing.T) {
+		err := client.UpdateTriggerWithRetry(context.Background(), "testTrigger", func(trigger *eventingv1.Trigger) (*eventingv1.Trigger, error) {
+			return trigger, nil
+		}, maxAttempts)
+		assert.NilError(t, err, "No retries required as no conflict error occurred")
+	})
+
+	t.Run("Update trigger with retry after max retries", func(t *testing.T) {
+		attemptCount = maxAttempts - 1
+		err := client.UpdateTriggerWithRetry(context.Background(), "testTrigger", func(trigger *eventingv1.Trigger) (*eventingv1.Trigger, error) {
+			return trigger, nil
+		}, maxAttempts)
+		assert.NilError(t, err, "Update retried %d times and succeeded", maxAttempts)
+		assert.Equal(t, attemptCount, 0)
+	})
+
+	t.Run("Update trigger with retry and fail with conflict after exhausting max retries", func(t *testing.T) {
+		attemptCount = maxAttempts
+		err := client.UpdateTriggerWithRetry(context.Background(), "testTrigger", func(trigger *eventingv1.Trigger) (*eventingv1.Trigger, error) {
+			return trigger, nil
+		}, maxAttempts)
+		assert.ErrorType(t, err, errors.IsConflict, "Update retried %d times and failed", maxAttempts)
+		assert.Equal(t, attemptCount, 0)
+	})
+
+	t.Run("Update trigger with retry and fail with conflict after exhausting max retries", func(t *testing.T) {
+		attemptCount = maxAttempts
+		err := client.UpdateTriggerWithRetry(context.Background(), "testTrigger", func(trigger *eventingv1.Trigger) (*eventingv1.Trigger, error) {
+			return trigger, nil
+		}, maxAttempts)
+		assert.ErrorType(t, err, errors.IsConflict, "Update retried %d times and failed", maxAttempts)
+		assert.Equal(t, attemptCount, 0)
+	})
+
+	t.Run("Update trigger with retry fails with a non conflict error", func(t *testing.T) {
+		err := client.UpdateTriggerWithRetry(context.Background(), "errorTrigger", func(trigger *eventingv1.Trigger) (*eventingv1.Trigger, error) {
+			return trigger, nil
+		}, maxAttempts)
+		assert.ErrorType(t, err, errors.IsInternalError)
+	})
+
+	t.Run("Update trigger with retry fails with resource already deleted error", func(t *testing.T) {
+		err := client.UpdateTriggerWithRetry(context.Background(), "deletedTrigger", func(trigger *eventingv1.Trigger) (*eventingv1.Trigger, error) {
+			return trigger, nil
+		}, maxAttempts)
+		assert.ErrorContains(t, err, "marked for deletion")
+	})
+
+	t.Run("Update trigger with retry fails with error from updateFunc", func(t *testing.T) {
+		err := client.UpdateTriggerWithRetry(context.Background(), "testTrigger", func(trigger *eventingv1.Trigger) (*eventingv1.Trigger, error) {
+			return trigger, fmt.Errorf("error updating object")
+		}, maxAttempts)
+		assert.ErrorContains(t, err, "error updating object")
+	})
+
+	t.Run("Update trigger with retry fails with error from GetTrigger", func(t *testing.T) {
+		err := client.UpdateTriggerWithRetry(context.Background(), "getErrorTrigger", func(trigger *eventingv1.Trigger) (*eventingv1.Trigger, error) {
+			return trigger, nil
+		}, maxAttempts)
+		assert.ErrorType(t, err, errors.IsInternalError)
+	})
+}
+
 func TestTriggerBuilder(t *testing.T) {
 	a := NewTriggerBuilder("testtrigger")
 	a.Filters(map[string]string{"type": "foo"})
