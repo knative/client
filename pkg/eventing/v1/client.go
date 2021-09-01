@@ -151,21 +151,25 @@ func updateTriggerWithRetry(ctx context.Context, c KnEventingClient, name string
 	b := retry.DefaultRetry
 	b.Steps = nrRetries
 	err := retry.RetryOnConflict(b, func() error {
-		source, err := c.GetTrigger(ctx, name)
-		if err != nil {
-			return err
-		}
-		if source.GetDeletionTimestamp() != nil {
-			return fmt.Errorf("can't update trigger %s because it has been marked for deletion", name)
-		}
-		updatedSource, err := updateFunc(source.DeepCopy())
-		if err != nil {
-			return err
-		}
-
-		return c.UpdateTrigger(ctx, updatedSource)
+		return updateTrigger(ctx, c, name, updateFunc)
 	})
 	return err
+}
+
+func updateTrigger(ctx context.Context, c KnEventingClient, name string, updateFunc TriggerUpdateFunc) error {
+	source, err := c.GetTrigger(ctx, name)
+	if err != nil {
+		return err
+	}
+	if source.GetDeletionTimestamp() != nil {
+		return fmt.Errorf("can't update trigger %s because it has been marked for deletion", name)
+	}
+	updatedSource, err := updateFunc(source.DeepCopy())
+	if err != nil {
+		return err
+	}
+
+	return c.UpdateTrigger(ctx, updatedSource)
 }
 
 // Return the client's namespace

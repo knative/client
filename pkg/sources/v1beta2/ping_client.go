@@ -109,21 +109,25 @@ func updatePingSourceWithRetry(ctx context.Context, c KnPingSourcesClient, name 
 	b := retry.DefaultRetry
 	b.Steps = nrRetries
 	err := retry.RetryOnConflict(b, func() error {
-		source, err := c.GetPingSource(ctx, name)
-		if err != nil {
-			return err
-		}
-		if source.GetDeletionTimestamp() != nil {
-			return fmt.Errorf("can't update ping source %s because it has been marked for deletion", name)
-		}
-		updatedSource, err := updateFunc(source.DeepCopy())
-		if err != nil {
-			return err
-		}
-
-		return c.UpdatePingSource(ctx, updatedSource)
+		return updatePingSource(ctx, c, name, updateFunc)
 	})
 	return err
+}
+
+func updatePingSource(ctx context.Context, c KnPingSourcesClient, name string, updateFunc PingSourceUpdateFunc) error {
+	source, err := c.GetPingSource(ctx, name)
+	if err != nil {
+		return err
+	}
+	if source.GetDeletionTimestamp() != nil {
+		return fmt.Errorf("can't update ping source %s because it has been marked for deletion", name)
+	}
+	updatedSource, err := updateFunc(source.DeepCopy())
+	if err != nil {
+		return err
+	}
+
+	return c.UpdatePingSource(ctx, updatedSource)
 }
 
 func (c *pingSourcesClient) DeletePingSource(ctx context.Context, name string) error {
