@@ -157,14 +157,14 @@ func updateTriggerWithRetry(ctx context.Context, c KnEventingClient, name string
 }
 
 func updateTrigger(ctx context.Context, c KnEventingClient, name string, updateFunc TriggerUpdateFunc) error {
-	source, err := c.GetTrigger(ctx, name)
+	trigger, err := c.GetTrigger(ctx, name)
 	if err != nil {
 		return err
 	}
-	if source.GetDeletionTimestamp() != nil {
+	if trigger.GetDeletionTimestamp() != nil {
 		return fmt.Errorf("can't update trigger %s because it has been marked for deletion", name)
 	}
-	updatedSource, err := updateFunc(source.DeepCopy())
+	updatedSource, err := updateFunc(trigger.DeepCopy())
 	if err != nil {
 		return err
 	}
