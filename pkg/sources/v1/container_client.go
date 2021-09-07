@@ -18,6 +18,9 @@ package v1
 
 import (
 	"context"
+	"fmt"
+
+	"k8s.io/client-go/util/retry"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -30,6 +33,8 @@ import (
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 )
 
+type ContainerUpdateFunc func(source *v1.ContainerSource) (*v1.ContainerSource, error)
+
 // KnContainerSourcesClient interface for working with ApiServer sources
 type KnContainerSourcesClient interface {
 
@@ -41,6 +46,9 @@ type KnContainerSourcesClient interface {
 
 	// Update an ContainerSource by object
 	UpdateContainerSource(ctx context.Context, containerSrc *v1.ContainerSource) error
+
+	// Update an ContainerSource by object and retry on conflict
+	UpdateContainerSourceWithRetry(ctx context.Context, name string, updateFunc ContainerUpdateFunc, nrRetries int) error
 
 	// Delete an ContainerSource by name
 	DeleteContainerSource(name string, ctx context.Context) error
@@ -58,6 +66,35 @@ type KnContainerSourcesClient interface {
 type containerSourcesClient struct {
 	client    clientv1.ContainerSourceInterface
 	namespace string
+}
+
+func (c *containerSourcesClient) UpdateContainerSourceWithRetry(ctx context.Context, name string, updateFunc ContainerUpdateFunc, nrRetries int) error {
+	return updateContainerSourceWithRetry(ctx, c, name, updateFunc, nrRetries)
+}
+
+func updateContainerSourceWithRetry(ctx context.Context, c KnContainerSourcesClient, name string, updateFunc ContainerUpdateFunc, nrRetries int) error {
+	b := retry.DefaultRetry
+	b.Steps = nrRetries
+	err := retry.RetryOnConflict(b, func() error {
+		return updateContainerSource(ctx, c, name, updateFunc)
+	})
+	return err
+}
+
+func updateContainerSource(ctx context.Context, c KnContainerSourcesClient, name string, updateFunc ContainerUpdateFunc) error {
+	source, err := c.GetContainerSource(ctx, name)
+	if err != nil {
+		return err
+	}
+	if source.GetDeletionTimestamp() != nil {
+		return fmt.Errorf("can't update container source %s because it has been marked for deletion", name)
+	}
+	updatedSource, err := updateFunc(source.DeepCopy())
+	if err != nil {
+		return err
+	}
+
+	return c.UpdateContainerSource(ctx, updatedSource)
 }
 
 // newKnContainerSourcesClient is to invoke Eventing Sources Client API to create object

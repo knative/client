@@ -242,7 +242,7 @@ func TestUpdateDomainMappingWithRetry(t *testing.T) {
 		assert.ErrorContains(t, err, "error updating object")
 	})
 
-	t.Run("Update domain mapping with retry fails with error from GetTrigger", func(t *testing.T) {
+	t.Run("Update domain mapping with retry fails with error from GetDomainMapping", func(t *testing.T) {
 		err := client.UpdateDomainMappingWithRetry(context.Background(), "getErrorDomain", func(domain *servingv1alpha1.DomainMapping) (*servingv1alpha1.DomainMapping, error) {
 			return domain, nil
 		}, maxAttempts)

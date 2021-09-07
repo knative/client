@@ -117,6 +117,10 @@ func (c *MockKnContainerSourceClient) UpdateContainerSource(ctx context.Context,
 	return mock.ErrorOrNil(call.Result[0])
 }
 
+func (c *MockKnContainerSourceClient) UpdateContainerSourceWithRetry(ctx context.Context, name string, updateFunc ContainerUpdateFunc, nrRetries int) error {
+	return updateContainerSourceWithRetry(ctx, c, name, updateFunc, nrRetries)
+}
+
 // Validate validates whether every recorded action has been called
 func (sr *ConainterSourceRecorder) Validate() {
 	sr.r.CheckThatAllRecordedMethodsHaveBeenCalled()
