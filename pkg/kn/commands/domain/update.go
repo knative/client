@@ -18,11 +18,15 @@ import (
 	"errors"
 	"fmt"
 
+	"knative.dev/serving/pkg/apis/serving/v1alpha1"
+
 	"github.com/spf13/cobra"
 
 	knerrors "knative.dev/client/pkg/errors"
 	"knative.dev/client/pkg/kn/commands"
 )
+
+const MaxUpdateRetries = 3
 
 // NewDomainMappingUpdateCommand to create event channels
 func NewDomainMappingUpdateCommand(p *commands.KnParams) *cobra.Command {
@@ -48,27 +52,25 @@ func NewDomainMappingUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			toUpdate, err := client.GetDomainMapping(cmd.Context(), name)
-			if err != nil {
-				return err
+			updateFunc := func(toUpdate *v1alpha1.DomainMapping) (*v1alpha1.DomainMapping, error) {
+				if toUpdate.GetDeletionTimestamp() != nil {
+					return nil, fmt.Errorf("can't update domain mapping '%s' because it has been marked for deletion", name)
+				}
+
+				dynamicClient, err := p.NewDynamicClient(namespace)
+				if err != nil {
+					return nil, err
+				}
+
+				reference, err := refFlags.Resolve(cmd.Context(), dynamicClient, namespace)
+				if err != nil {
+					return nil, err
+				}
+				toUpdate.Spec.Ref = *reference
+				return toUpdate, nil
 			}
 
-			if toUpdate.GetDeletionTimestamp() != nil {
-				return fmt.Errorf("can't update domain mapping '%s' because it has been marked for deletion", name)
-			}
-
-			dynamicClient, err := p.NewDynamicClient(namespace)
-			if err != nil {
-				return err
-			}
-
-			reference, err := refFlags.Resolve(cmd.Context(), dynamicClient, namespace)
-			if err != nil {
-				return err
-			}
-			toUpdate.Spec.Ref = *reference
-
-			err = client.UpdateDomainMapping(cmd.Context(), toUpdate)
+			err = client.UpdateDomainMappingWithRetry(cmd.Context(), name, updateFunc, MaxUpdateRetries)
 			if err != nil {
 				return knerrors.GetError(err)
 			}

@@ -19,6 +19,8 @@ import (
 	"fmt"
 	"testing"
 
+	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
+
 	"gotest.tools/v3/assert"
 
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -146,6 +148,105 @@ func TestUpdateDomainMapping(t *testing.T) {
 	t.Run("update domain mapping with error", func(t *testing.T) {
 		err := client.UpdateDomainMapping(context.Background(), createDomainMapping("unknown", createServiceRef(serviceName, testNamespace)))
 		assert.ErrorContains(t, err, "unknown")
+	})
+}
+
+func TestUpdateDomainMappingWithRetry(t *testing.T) {
+	serving, client := setup()
+	serviceName := "foo"
+	domainName := "foo.bar"
+
+	var attemptCount, maxAttempts = 0, 5
+	serving.AddReactor("get", "domainmappings",
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			name := a.(clienttesting.GetAction).GetName()
+			if name == "deletedDomain" {
+				domain := createDomainMapping(name, createServiceRef(serviceName, testNamespace))
+				now := metav1.Now()
+				domain.DeletionTimestamp = &now
+				return true, domain, nil
+			}
+			if name == "getErrorDomain" {
+				return true, nil, errors.NewInternalError(fmt.Errorf("mock internal error"))
+			}
+			return true, createDomainMapping(name, createServiceRef(serviceName, testNamespace)), nil
+		})
+
+	serving.AddReactor("update", "domainmappings",
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			createDomainMapping := a.(clienttesting.UpdateAction).GetObject()
+			name := createDomainMapping.(metav1.Object).GetName()
+
+			if name == domainName && attemptCount > 0 {
+				attemptCount--
+				return true, nil, errors.NewConflict(eventingv1.Resource(domainMappingResource), "errorDomain", fmt.Errorf("error updating because of conflict"))
+			}
+			if name == "errorDomain" {
+				return true, nil, errors.NewInternalError(fmt.Errorf("mock internal error"))
+			}
+			return true, createDomainMapping, nil
+		})
+
+	t.Run("Update domain mapping successfully without any retries", func(t *testing.T) {
+		err := client.UpdateDomainMappingWithRetry(context.Background(), domainName, func(domain *servingv1alpha1.DomainMapping) (*servingv1alpha1.DomainMapping, error) {
+			return domain, nil
+		}, maxAttempts)
+		assert.NilError(t, err, "No retries required as no conflict error occurred")
+	})
+
+	t.Run("Update domain mapping with retry after max retries", func(t *testing.T) {
+		attemptCount = maxAttempts - 1
+		err := client.UpdateDomainMappingWithRetry(context.Background(), domainName, func(domain *servingv1alpha1.DomainMapping) (*servingv1alpha1.DomainMapping, error) {
+			return domain, nil
+		}, maxAttempts)
+		assert.NilError(t, err, "Update retried %d times and succeeded", maxAttempts)
+		assert.Equal(t, attemptCount, 0)
+	})
+
+	t.Run("Update domain mapping with retry and fail with conflict after exhausting max retries", func(t *testing.T) {
+		attemptCount = maxAttempts
+		err := client.UpdateDomainMappingWithRetry(context.Background(), domainName, func(domain *servingv1alpha1.DomainMapping) (*servingv1alpha1.DomainMapping, error) {
+			return domain, nil
+		}, maxAttempts)
+		assert.ErrorType(t, err, errors.IsConflict, "Update retried %d times and failed", maxAttempts)
+		assert.Equal(t, attemptCount, 0)
+	})
+
+	t.Run("Update domain mapping with retry and fail with conflict after exhausting max retries", func(t *testing.T) {
+		attemptCount = maxAttempts
+		err := client.UpdateDomainMappingWithRetry(context.Background(), domainName, func(domain *servingv1alpha1.DomainMapping) (*servingv1alpha1.DomainMapping, error) {
+			return domain, nil
+		}, maxAttempts)
+		assert.ErrorType(t, err, errors.IsConflict, "Update retried %d times and failed", maxAttempts)
+		assert.Equal(t, attemptCount, 0)
+	})
+
+	t.Run("Update domain mapping with retry fails with a non conflict error", func(t *testing.T) {
+		err := client.UpdateDomainMappingWithRetry(context.Background(), "errorDomain", func(domain *servingv1alpha1.DomainMapping) (*servingv1alpha1.DomainMapping, error) {
+			return domain, nil
+		}, maxAttempts)
+		assert.ErrorType(t, err, errors.IsInternalError)
+	})
+
+	t.Run("Update domain mapping with retry fails with resource already deleted error", func(t *testing.T) {
+		err := client.UpdateDomainMappingWithRetry(context.Background(), "deletedDomain", func(domain *servingv1alpha1.DomainMapping) (*servingv1alpha1.DomainMapping, error) {
+			return domain, nil
+		}, maxAttempts)
+		assert.ErrorContains(t, err, "marked for deletion")
+	})
+
+	t.Run("Update domain mapping with retry fails with error from updateFunc", func(t *testing.T) {
+		err := client.UpdateDomainMappingWithRetry(context.Background(), domainName, func(domain *servingv1alpha1.DomainMapping) (*servingv1alpha1.DomainMapping, error) {
+			return domain, fmt.Errorf("error updating object")
+		}, maxAttempts)
+		assert.ErrorContains(t, err, "error updating object")
+	})
+
+	t.Run("Update domain mapping with retry fails with error from GetTrigger", func(t *testing.T) {
+		err := client.UpdateDomainMappingWithRetry(context.Background(), "getErrorDomain", func(domain *servingv1alpha1.DomainMapping) (*servingv1alpha1.DomainMapping, error) {
+			return domain, nil
+		}, maxAttempts)
+		assert.ErrorType(t, err, errors.IsInternalError)
 	})
 }
 
