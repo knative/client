@@ -71,9 +71,9 @@ fi
 
 toggle_feature autocreateClusterDomainClaims true config-network || fail_test
 go_test_e2e -timeout=30m \
- ./test/conformance/api/... \
- ./test/conformance/runtime/... \
- ./test/e2e \
+  ./test/conformance/api/... \
+  ./test/conformance/runtime/... \
+  ./test/e2e \
   ${parallelism} \
   ${TEST_OPTIONS} || failed=1
 toggle_feature autocreateClusterDomainClaims false config-network || fail_test
@@ -103,7 +103,7 @@ kubectl replace cm "config-gc" -n ${SYSTEM_NAMESPACE} -f ${TMP_DIR}/config-gc.ya
 go_test_e2e -timeout=20m -parallel=300 ./test/scale ${TEST_OPTIONS} || failed=1
 
 # Run HPA tests
-go_test_e2e -timeout=15m -tags=hpa ./test/e2e ${TEST_OPTIONS} || failed=1
+go_test_e2e -timeout=30m -tags=hpa ./test/e2e ${TEST_OPTIONS} || failed=1
 
 # Run emptyDir tests with alpha enabled avoiding any issues with the testing options guard above
 toggle_feature kubernetes.podspec-volumes-emptydir Enabled
