@@ -66,7 +66,7 @@ func NewSubscriptionUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			err = client.UpdateSubscriptionWithRetry(cmd.Context(), name, func(origSub *messagingv1.Subscription) (*messagingv1.Subscription, error) {
+			updateFunc := func(origSub *messagingv1.Subscription) (*messagingv1.Subscription, error) {
 				sb := knmessagingv1.NewSubscriptionBuilderFromExisting(origSub)
 
 				sub, err := subscriberFlag.ResolveSink(cmd.Context(), dynamicClient, namespace)
@@ -87,7 +87,8 @@ func NewSubscriptionUpdateCommand(p *commands.KnParams) *cobra.Command {
 				}
 				sb.DeadLetterSink(ds)
 				return sb.Build(), nil
-			}, MaxUpdateRetries)
+			}
+			err = client.UpdateSubscriptionWithRetry(cmd.Context(), name, updateFunc, MaxUpdateRetries)
 			if err != nil {
 				return knerrors.GetError(err)
 			}

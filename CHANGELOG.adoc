@@ -19,7 +19,7 @@
 
 | ✨
 | Reuse conflict retry loop from client-go/util/retry
-| https://github.com/knative/client/pull/1441
+| https://github.com/knative/client/pull/1441[#1441]
 
 | ✨
 | Deprecate `lookup-path` as path lookup will always be enabled in the future
