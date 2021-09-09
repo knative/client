@@ -34,6 +34,8 @@ func TestMockKnClient(t *testing.T) {
 	recorder.DeleteTrigger("hello", nil)
 	recorder.ListTriggers(nil, nil)
 	recorder.UpdateTrigger(&eventingv1.Trigger{}, nil)
+	recorder.GetTrigger("hello", &eventingv1.Trigger{}, nil)
+	recorder.UpdateTrigger(&eventingv1.Trigger{}, nil)
 
 	recorder.CreateBroker(&eventingv1.Broker{}, nil)
 	recorder.GetBroker("foo", nil, nil)
@@ -47,6 +49,9 @@ func TestMockKnClient(t *testing.T) {
 	client.DeleteTrigger(ctx, "hello")
 	client.ListTriggers(ctx)
 	client.UpdateTrigger(ctx, &eventingv1.Trigger{})
+	client.UpdateTriggerWithRetry(ctx, "hello", func(origSource *eventingv1.Trigger) (*eventingv1.Trigger, error) {
+		return origSource, nil
+	}, 10)
 
 	client.CreateBroker(ctx, &eventingv1.Broker{})
 	client.GetBroker(ctx, "foo")

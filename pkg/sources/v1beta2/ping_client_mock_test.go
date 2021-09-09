@@ -31,6 +31,10 @@ func TestMockKnPingSourceClient(t *testing.T) {
 	recorder.GetPingSource("hello", nil, nil)
 	recorder.CreatePingSource(&sourcesv1beta2.PingSource{}, nil)
 	recorder.UpdatePingSource(&sourcesv1beta2.PingSource{}, nil)
+
+	recorder.GetPingSource("hello", &sourcesv1beta2.PingSource{}, nil)
+	recorder.UpdatePingSource(&sourcesv1beta2.PingSource{}, nil)
+
 	recorder.DeletePingSource("hello", nil)
 
 	// Call all service
@@ -38,6 +42,9 @@ func TestMockKnPingSourceClient(t *testing.T) {
 	client.GetPingSource(ctx, "hello")
 	client.CreatePingSource(ctx, &sourcesv1beta2.PingSource{})
 	client.UpdatePingSource(ctx, &sourcesv1beta2.PingSource{})
+	client.UpdatePingSourceWithRetry(ctx, "hello", func(origSource *sourcesv1beta2.PingSource) (*sourcesv1beta2.PingSource, error) {
+		return origSource, nil
+	}, 10)
 	client.DeletePingSource(ctx, "hello")
 
 	// Validate
