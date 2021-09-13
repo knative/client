@@ -49,8 +49,8 @@ func TestMockKnClient(t *testing.T) {
 	client.DeleteTrigger(ctx, "hello")
 	client.ListTriggers(ctx)
 	client.UpdateTrigger(ctx, &eventingv1.Trigger{})
-	client.UpdateTriggerWithRetry(ctx, "hello", func(origSource *eventingv1.Trigger) (*eventingv1.Trigger, error) {
-		return origSource, nil
+	client.UpdateTriggerWithRetry(ctx, "hello", func(origTrigger *eventingv1.Trigger) (*eventingv1.Trigger, error) {
+		return origTrigger, nil
 	}, 10)
 
 	client.CreateBroker(ctx, &eventingv1.Broker{})

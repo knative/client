@@ -150,8 +150,8 @@ func TestUpdateTrigger(t *testing.T) {
 			errTrigger := newTrigger("errorTrigger")
 			serving.AddReactor("update", "triggers",
 				func(a client_testing.Action) (bool, runtime.Object, error) {
-					newSource := a.(client_testing.UpdateAction).GetObject()
-					name := newSource.(metav1.Object).GetName()
+					newTrigger := a.(client_testing.UpdateAction).GetObject()
+					name := newTrigger.(metav1.Object).GetName()
 					if name == "errorTrigger" {
 						return true, nil, errors.NewInternalError(fmt.Errorf("mock internal error"))
 					}

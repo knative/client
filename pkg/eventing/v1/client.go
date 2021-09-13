@@ -35,7 +35,7 @@ import (
 	"knative.dev/client/pkg/wait"
 )
 
-type TriggerUpdateFunc func(origSource *eventingv1.Trigger) (*eventingv1.Trigger, error)
+type TriggerUpdateFunc func(origTrigger *eventingv1.Trigger) (*eventingv1.Trigger, error)
 
 // KnEventingClient to Eventing Sources. All methods are relative to the
 // namespace specified during construction
@@ -150,9 +150,10 @@ func (c *knEventingClient) UpdateTriggerWithRetry(ctx context.Context, name stri
 func updateTriggerWithRetry(ctx context.Context, c KnEventingClient, name string, updateFunc TriggerUpdateFunc, nrRetries int) error {
 	b := retry.DefaultRetry
 	b.Steps = nrRetries
-	err := retry.RetryOnConflict(b, func() error {
+	updateTriggerFunc := func() error {
 		return updateTrigger(ctx, c, name, updateFunc)
-	})
+	}
+	err := retry.RetryOnConflict(b, updateTriggerFunc)
 	return err
 }
 
@@ -164,12 +165,12 @@ func updateTrigger(ctx context.Context, c KnEventingClient, name string, updateF
 	if trigger.GetDeletionTimestamp() != nil {
 		return fmt.Errorf("can't update trigger %s because it has been marked for deletion", name)
 	}
-	updatedSource, err := updateFunc(trigger.DeepCopy())
+	updatedTrigger, err := updateFunc(trigger.DeepCopy())
 	if err != nil {
 		return err
 	}
 
-	return c.UpdateTrigger(ctx, updatedSource)
+	return c.UpdateTrigger(ctx, updatedTrigger)
 }
 
 // Return the client's namespace

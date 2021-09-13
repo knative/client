@@ -123,12 +123,12 @@ func updateSubscription(ctx context.Context, c KnSubscriptionsClient, name strin
 	if sub.GetDeletionTimestamp() != nil {
 		return fmt.Errorf("can't update subscription %s because it has been marked for deletion", name)
 	}
-	updatedSource, err := updateFunc(sub.DeepCopy())
+	updatedSub, err := updateFunc(sub.DeepCopy())
 	if err != nil {
 		return err
 	}
 
-	return c.UpdateSubscription(ctx, updatedSource)
+	return c.UpdateSubscription(ctx, updatedSub)
 }
 
 // DeleteSubscription deletes Subscription by its name
