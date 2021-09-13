@@ -117,6 +117,10 @@ func (c *MockKnSubscriptionsClient) UpdateSubscription(ctx context.Context, subs
 	return mock.ErrorOrNil(call.Result[0])
 }
 
+func (c *MockKnSubscriptionsClient) UpdateSubscriptionWithRetry(ctx context.Context, name string, updateFunc SubscriptionUpdateFunc, nrRetries int) error {
+	return updateSubscriptionWithRetry(ctx, c, name, updateFunc, nrRetries)
+}
+
 // Validates validates whether every recorded action has been called
 func (sr *SubscriptionsRecorder) Validate() {
 	sr.r.CheckThatAllRecordedMethodsHaveBeenCalled()

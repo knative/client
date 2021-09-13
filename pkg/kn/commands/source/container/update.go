@@ -27,7 +27,10 @@ import (
 
 	"knative.dev/client/pkg/kn/commands"
 	v1 "knative.dev/client/pkg/sources/v1"
+	sourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"
 )
+
+const MaxUpdateRetries = 3
 
 // NewContainerUpdateCommand for managing source update
 func NewContainerUpdateCommand(p *commands.KnParams) *cobra.Command {
@@ -60,35 +63,30 @@ func NewContainerUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			source, err := srcClient.GetContainerSource(cmd.Context(), name)
-			if err != nil {
-				return err
-			}
-			if source.GetDeletionTimestamp() != nil {
-				return fmt.Errorf("can't update container source %s because it has been marked for deletion", name)
-			}
-
-			b := v1.NewContainerSourceBuilderFromExisting(source)
-			podSpec := b.Build().Spec.Template.Spec
-			err = podFlags.ResolvePodSpec(&podSpec, cmd.Flags(), os.Args)
-			if err != nil {
-				return fmt.Errorf(
-					"cannot update ContainerSource '%s' in namespace '%s' "+
-						"because: %s", name, namespace, err)
-			}
-			b.PodSpec(podSpec)
-
-			if cmd.Flags().Changed("sink") {
-				objectRef, err := sinkFlags.ResolveSink(cmd.Context(), dynamicClient, namespace)
+			updateFunc := func(source *sourcesv1.ContainerSource) (*sourcesv1.ContainerSource, error) {
+				b := v1.NewContainerSourceBuilderFromExisting(source)
+				podSpec := b.Build().Spec.Template.Spec
+				err = podFlags.ResolvePodSpec(&podSpec, cmd.Flags(), os.Args)
 				if err != nil {
-					return fmt.Errorf(
+					return nil, fmt.Errorf(
 						"cannot update ContainerSource '%s' in namespace '%s' "+
 							"because: %s", name, namespace, err)
 				}
-				b.Sink(*objectRef)
+				b.PodSpec(podSpec)
+
+				if cmd.Flags().Changed("sink") {
+					objectRef, err := sinkFlags.ResolveSink(cmd.Context(), dynamicClient, namespace)
+					if err != nil {
+						return nil, fmt.Errorf(
+							"cannot update ContainerSource '%s' in namespace '%s' "+
+								"because: %s", name, namespace, err)
+					}
+					b.Sink(*objectRef)
+				}
+				return b.Build(), nil
 			}
 
-			err = srcClient.UpdateContainerSource(cmd.Context(), b.Build())
+			err = srcClient.UpdateContainerSourceWithRetry(cmd.Context(), name, updateFunc, MaxUpdateRetries)
 			if err == nil {
 				fmt.Fprintf(cmd.OutOrStdout(), "Container source '%s' updated in namespace '%s'.\n", args[0], namespace)
 			}

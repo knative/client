@@ -115,6 +115,10 @@ func (c *MockKnEventingClient) UpdateTrigger(ctx context.Context, trigger *event
 	return mock.ErrorOrNil(call.Result[0])
 }
 
+func (c *MockKnEventingClient) UpdateTriggerWithRetry(ctx context.Context, name string, updateFunc TriggerUpdateFunc, nrRetries int) error {
+	return updateTriggerWithRetry(ctx, c, name, updateFunc, nrRetries)
+}
+
 // CreateBroker records a call for CreateBroker with the expected error
 func (sr *EventingRecorder) CreateBroker(broker interface{}, err error) {
 	sr.r.Add("CreateBroker", []interface{}{broker}, []interface{}{err})

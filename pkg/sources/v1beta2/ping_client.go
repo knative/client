@@ -18,6 +18,8 @@ import (
 	"context"
 	"fmt"
 
+	"k8s.io/client-go/util/retry"
+
 	"k8s.io/apimachinery/pkg/runtime"
 	"knative.dev/client/pkg/util"
 	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
@@ -31,6 +33,8 @@ import (
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 )
 
+type PingSourceUpdateFunc func(origSource *sourcesv1beta2.PingSource) (*sourcesv1beta2.PingSource, error)
+
 // Interface for interacting with a Ping source
 type KnPingSourcesClient interface {
 
@@ -42,6 +46,9 @@ type KnPingSourcesClient interface {
 
 	// UpdatePingSource updates a Ping source
 	UpdatePingSource(ctx context.Context, pingSource *sourcesv1beta2.PingSource) error
+
+	// UpdatePingSourceWithRetry updates a Ping source and retries on conflict
+	UpdatePingSourceWithRetry(ctx context.Context, name string, updateFunc PingSourceUpdateFunc, nrRetries int) error
 
 	// DeletePingSource deletes a Ping source
 	DeletePingSource(ctx context.Context, name string) error
@@ -92,6 +99,35 @@ func (c *pingSourcesClient) UpdatePingSource(ctx context.Context, pingSource *so
 		return knerrors.GetError(err)
 	}
 	return nil
+}
+
+func (c *pingSourcesClient) UpdatePingSourceWithRetry(ctx context.Context, name string, updateFunc PingSourceUpdateFunc, nrRetries int) error {
+	return updatePingSourceWithRetry(ctx, c, name, updateFunc, nrRetries)
+}
+
+func updatePingSourceWithRetry(ctx context.Context, c KnPingSourcesClient, name string, updateFunc PingSourceUpdateFunc, nrRetries int) error {
+	b := retry.DefaultRetry
+	b.Steps = nrRetries
+	err := retry.RetryOnConflict(b, func() error {
+		return updatePingSource(ctx, c, name, updateFunc)
+	})
+	return err
+}
+
+func updatePingSource(ctx context.Context, c KnPingSourcesClient, name string, updateFunc PingSourceUpdateFunc) error {
+	source, err := c.GetPingSource(ctx, name)
+	if err != nil {
+		return err
+	}
+	if source.GetDeletionTimestamp() != nil {
+		return fmt.Errorf("can't update ping source %s because it has been marked for deletion", name)
+	}
+	updatedSource, err := updateFunc(source.DeepCopy())
+	if err != nil {
+		return err
+	}
+
+	return c.UpdatePingSource(ctx, updatedSource)
 }
 
 func (c *pingSourcesClient) DeletePingSource(ctx context.Context, name string) error {

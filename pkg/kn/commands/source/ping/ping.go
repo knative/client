@@ -24,6 +24,10 @@ import (
 	sourcesv1beta2 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1beta2"
 )
 
+const (
+	MaxUpdateRetries = 3
+)
+
 // NewPingCommand is the root command for all Ping source related commands
 func NewPingCommand(p *commands.KnParams) *cobra.Command {
 	pingImporterCmd := &cobra.Command{

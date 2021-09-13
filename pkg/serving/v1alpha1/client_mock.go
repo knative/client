@@ -93,6 +93,10 @@ func (c *MockKnServingClient) UpdateDomainMapping(ctx context.Context, domainMap
 	return mock.ErrorOrNil(call.Result[0])
 }
 
+func (cl *MockKnServingClient) UpdateDomainMappingWithRetry(ctx context.Context, name string, updateFunc DomainUpdateFunc, nrRetries int) error {
+	return updateDomainMappingWithRetry(ctx, cl, name, updateFunc, nrRetries)
+}
+
 // DeleteDomainMapping recorder function
 func (sr *ServingRecorder) DeleteDomainMapping(name string, err error) {
 	sr.r.Add("DeleteDomainMapping", []interface{}{name}, []interface{}{err})

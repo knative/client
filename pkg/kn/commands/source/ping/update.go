@@ -19,10 +19,13 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"k8s.io/client-go/util/retry"
 
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
 	sourcesv1beta2 "knative.dev/client/pkg/sources/v1beta2"
+	eventingsourcesv1beta2 "knative.dev/eventing/pkg/apis/sources/v1beta2"
+
 	"knative.dev/client/pkg/util"
 )
 
@@ -58,46 +61,42 @@ func NewPingUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			source, err := pingSourceClient.GetPingSource(cmd.Context(), name)
-			if err != nil {
-				return err
-			}
-			if source.GetDeletionTimestamp() != nil {
-				return fmt.Errorf("can't update ping source %s because it has been marked for deletion", name)
-			}
-
-			b := sourcesv1beta2.NewPingSourceBuilderFromExisting(source)
-			if cmd.Flags().Changed("schedule") {
-				b.Schedule(updateFlags.schedule)
-			}
-
-			data, dataBase64, err := getDataFields(&updateFlags)
-			if err != nil {
-				return fmt.Errorf("cannot update PingSource %q in namespace "+
-					"%q because: %s", name, namespace, err)
-			}
-
-			if cmd.Flags().Changed("data") {
-				b.Data(data).DataBase64(dataBase64)
-			}
-			if cmd.Flags().Changed("sink") {
-				destination, err := sinkFlags.ResolveSink(cmd.Context(), dynamicClient, namespace)
-				if err != nil {
-					return err
+			updateFunc := func(origSource *eventingsourcesv1beta2.PingSource) (*eventingsourcesv1beta2.PingSource, error) {
+				b := sourcesv1beta2.NewPingSourceBuilderFromExisting(origSource)
+				if cmd.Flags().Changed("schedule") {
+					b.Schedule(updateFlags.schedule)
 				}
-				b.Sink(*destination)
-			}
 
-			if cmd.Flags().Changed("ce-override") {
-				ceOverridesMap, err := util.MapFromArrayAllowingSingles(updateFlags.ceOverrides, "=")
+				data, dataBase64, err := getDataFields(&updateFlags)
 				if err != nil {
-					return err
+					return nil, fmt.Errorf("cannot update PingSource %q in namespace "+
+						"%q because: %s", name, namespace, err)
 				}
-				ceOverridesToRemove := util.ParseMinusSuffix(ceOverridesMap)
-				b.CloudEventOverrides(ceOverridesMap, ceOverridesToRemove)
+				if cmd.Flags().Changed("data") {
+					b.Data(data).DataBase64(dataBase64)
+				}
+				if cmd.Flags().Changed("sink") {
+					destination, err := sinkFlags.ResolveSink(cmd.Context(), dynamicClient, namespace)
+					if err != nil {
+						return nil, err
+					}
+					b.Sink(*destination)
+				}
+				if cmd.Flags().Changed("ce-override") {
+					ceOverridesMap, err := util.MapFromArrayAllowingSingles(updateFlags.ceOverrides, "=")
+					if err != nil {
+						return nil, err
+					}
+					ceOverridesToRemove := util.ParseMinusSuffix(ceOverridesMap)
+					b.CloudEventOverrides(ceOverridesMap, ceOverridesToRemove)
+				}
+				updatedSource := b.Build()
+				return updatedSource, nil
 			}
+			backoff := retry.DefaultRetry
+			backoff.Steps = MaxUpdateRetries
+			err = pingSourceClient.UpdatePingSourceWithRetry(cmd.Context(), name, updateFunc, MaxUpdateRetries)
 
-			err = pingSourceClient.UpdatePingSource(cmd.Context(), b.Build())
 			if err == nil {
 				fmt.Fprintf(cmd.OutOrStdout(), "Ping source '%s' updated in namespace '%s'.\n", name, pingSourceClient.Namespace())
 			}

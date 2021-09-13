@@ -35,6 +35,9 @@ func TestMockKnConatinerSourceClient(t *testing.T) {
 	recorder.ListContainerSources(nil, nil)
 	recorder.UpdateContainerSource(&v1.ContainerSource{}, nil)
 
+	recorder.GetContainerSource("hello", &v1.ContainerSource{}, nil)
+	recorder.UpdateContainerSource(&v1.ContainerSource{}, nil)
+
 	// Call all service
 	ctx := context.Background()
 	client.GetContainerSource(ctx, "hello")
@@ -42,6 +45,9 @@ func TestMockKnConatinerSourceClient(t *testing.T) {
 	client.DeleteContainerSource("hello", ctx)
 	client.ListContainerSources(ctx)
 	client.UpdateContainerSource(ctx, &v1.ContainerSource{})
+	client.UpdateContainerSourceWithRetry(ctx, "hello", func(source *v1.ContainerSource) (*v1.ContainerSource, error) {
+		return source, nil
+	}, 10)
 
 	// Validate
 	recorder.Validate()

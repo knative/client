@@ -16,6 +16,9 @@ package v1alpha1
 
 import (
 	"context"
+	"fmt"
+
+	"k8s.io/client-go/util/retry"
 
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 
@@ -27,6 +30,8 @@ import (
 	"knative.dev/serving/pkg/client/clientset/versioned/scheme"
 	clientv1alpha1 "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
 )
+
+type DomainUpdateFunc func(origDomain *servingv1alpha1.DomainMapping) (*servingv1alpha1.DomainMapping, error)
 
 // KnServingClient to work with Serving v1alpha1 resources
 type KnServingClient interface {
@@ -41,6 +46,9 @@ type KnServingClient interface {
 
 	// UpdateDomainMapping
 	UpdateDomainMapping(ctx context.Context, domainMapping *servingv1alpha1.DomainMapping) error
+
+	// UpdateDomainMappingWithRetry
+	UpdateDomainMappingWithRetry(ctx context.Context, name string, updateFunc DomainUpdateFunc, nrRetries int) error
 
 	// DeleteDomainMapping
 	DeleteDomainMapping(ctx context.Context, name string) error
@@ -96,6 +104,35 @@ func (cl *knServingClient) UpdateDomainMapping(ctx context.Context, domainMappin
 		return knerrors.GetError(err)
 	}
 	return updateServingGvk(domainMapping)
+}
+
+func (cl *knServingClient) UpdateDomainMappingWithRetry(ctx context.Context, name string, updateFunc DomainUpdateFunc, nrRetries int) error {
+	return updateDomainMappingWithRetry(ctx, cl, name, updateFunc, nrRetries)
+}
+
+func updateDomainMappingWithRetry(ctx context.Context, cl KnServingClient, name string, updateFunc DomainUpdateFunc, nrRetries int) error {
+	b := retry.DefaultRetry
+	b.Steps = nrRetries
+	err := retry.RetryOnConflict(b, func() error {
+		return updateDomain(ctx, cl, name, updateFunc)
+	})
+	return err
+}
+
+func updateDomain(ctx context.Context, c KnServingClient, name string, updateFunc DomainUpdateFunc) error {
+	sub, err := c.GetDomainMapping(ctx, name)
+	if err != nil {
+		return err
+	}
+	if sub.GetDeletionTimestamp() != nil {
+		return fmt.Errorf("can't update domain mapping %s because it has been marked for deletion", name)
+	}
+	updatedSource, err := updateFunc(sub.DeepCopy())
+	if err != nil {
+		return err
+	}
+
+	return c.UpdateDomainMapping(ctx, updatedSource)
 }
 
 // DeleteDomainMapping deletes DomainMapping by name

@@ -20,6 +20,8 @@ import (
 	"errors"
 	"fmt"
 
+	messagingv1 "knative.dev/eventing/pkg/apis/messaging/v1"
+
 	"github.com/spf13/cobra"
 
 	knerrors "knative.dev/client/pkg/errors"
@@ -27,6 +29,8 @@ import (
 	"knative.dev/client/pkg/kn/commands/flags"
 	knmessagingv1 "knative.dev/client/pkg/messaging/v1"
 )
+
+const MaxUpdateRetries = 3
 
 // NewSubscriptionUpdateCommand to update event subscriptions
 func NewSubscriptionUpdateCommand(p *commands.KnParams) *cobra.Command {
@@ -62,32 +66,29 @@ func NewSubscriptionUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			foundSub, err := client.GetSubscription(cmd.Context(), name)
-			if err != nil {
-				return err
+			updateFunc := func(origSub *messagingv1.Subscription) (*messagingv1.Subscription, error) {
+				sb := knmessagingv1.NewSubscriptionBuilderFromExisting(origSub)
+
+				sub, err := subscriberFlag.ResolveSink(cmd.Context(), dynamicClient, namespace)
+				if err != nil {
+					return nil, err
+				}
+				sb.Subscriber(sub)
+
+				rep, err := replyFlag.ResolveSink(cmd.Context(), dynamicClient, namespace)
+				if err != nil {
+					return nil, err
+				}
+				sb.Reply(rep)
+
+				ds, err := dlsFlag.ResolveSink(cmd.Context(), dynamicClient, namespace)
+				if err != nil {
+					return nil, err
+				}
+				sb.DeadLetterSink(ds)
+				return sb.Build(), nil
 			}
-
-			sb := knmessagingv1.NewSubscriptionBuilderFromExisting(foundSub)
-
-			sub, err := subscriberFlag.ResolveSink(cmd.Context(), dynamicClient, namespace)
-			if err != nil {
-				return err
-			}
-			sb.Subscriber(sub)
-
-			rep, err := replyFlag.ResolveSink(cmd.Context(), dynamicClient, namespace)
-			if err != nil {
-				return err
-			}
-			sb.Reply(rep)
-
-			ds, err := dlsFlag.ResolveSink(cmd.Context(), dynamicClient, namespace)
-			if err != nil {
-				return err
-			}
-			sb.DeadLetterSink(ds)
-
-			err = client.UpdateSubscription(cmd.Context(), sb.Build())
+			err = client.UpdateSubscriptionWithRetry(cmd.Context(), name, updateFunc, MaxUpdateRetries)
 			if err != nil {
 				return knerrors.GetError(err)
 			}

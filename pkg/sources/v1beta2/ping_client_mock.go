@@ -90,6 +90,10 @@ func (c *MockKnPingSourceClient) UpdatePingSource(ctx context.Context, pingSourc
 	return mock.ErrorOrNil(call.Result[0])
 }
 
+func (c *MockKnPingSourceClient) UpdatePingSourceWithRetry(ctx context.Context, name string, updateFunc PingSourceUpdateFunc, nrRetries int) error {
+	return updatePingSourceWithRetry(ctx, c, name, updateFunc, nrRetries)
+}
+
 // UpdatePingSource records a call for DeletePingSource with the expected error (nil if none)
 func (sr *PingSourcesRecorder) DeletePingSource(name interface{}, err error) {
 	sr.r.Add("DeletePingSource", []interface{}{name}, []interface{}{err})

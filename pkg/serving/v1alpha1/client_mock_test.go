@@ -32,6 +32,9 @@ func TestMockKnClient(t *testing.T) {
 	recorder.CreateDomainMapping(&v1alpha1.DomainMapping{}, nil)
 	recorder.DeleteDomainMapping("hello.foo.bar", nil)
 	recorder.UpdateDomainMapping(&v1alpha1.DomainMapping{}, nil)
+
+	recorder.GetDomainMapping("hello.foo.bar", &v1alpha1.DomainMapping{}, nil)
+	recorder.UpdateDomainMapping(&v1alpha1.DomainMapping{}, nil)
 	recorder.ListDomainMappings(&v1alpha1.DomainMappingList{}, nil)
 
 	// Call all services
@@ -40,6 +43,9 @@ func TestMockKnClient(t *testing.T) {
 	client.CreateDomainMapping(ctx, &v1alpha1.DomainMapping{})
 	client.DeleteDomainMapping(ctx, "hello.foo.bar")
 	client.UpdateDomainMapping(ctx, &v1alpha1.DomainMapping{})
+	client.UpdateDomainMappingWithRetry(ctx, "hello.foo.bar", func(origDomain *v1alpha1.DomainMapping) (*v1alpha1.DomainMapping, error) {
+		return origDomain, nil
+	}, 10)
 	client.ListDomainMappings(ctx)
 
 	// Validate
