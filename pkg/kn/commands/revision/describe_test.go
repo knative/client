@@ -182,9 +182,11 @@ func createTestRevision(revision string, gen int64, replicas *int32) servingv1.R
 			},
 		},
 		Status: servingv1.RevisionStatus{
-			ActualReplicas:        replicas,
-			DesiredReplicas:       replicas,
-			DeprecatedImageDigest: "gcr.io/test/image@" + imageDigest,
+			ActualReplicas:  replicas,
+			DesiredReplicas: replicas,
+			ContainerStatuses: []servingv1.ContainerStatus{
+				{Name: "gcr.io/test/image", ImageDigest: imageDigest},
+			},
 			Status: duckv1.Status{
 				Conditions: goodConditions(),
 			},

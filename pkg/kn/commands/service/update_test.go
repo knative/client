@@ -96,8 +96,6 @@ func fakeServiceUpdate(original *servingv1.Service, args []string) (
 			rev.Status.ContainerStatuses = []servingv1.ContainerStatus{
 				{ImageDigest: exampleImageByDigest, Name: "user-container"},
 			}
-
-			rev.Status.DeprecatedImageDigest = exampleImageByDigest
 			return true, rev, nil
 		})
 

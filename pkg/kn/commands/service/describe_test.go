@@ -400,7 +400,9 @@ func TestServiceDescribeUserImageVsImage(t *testing.T) {
 	rev3.Annotations[client_serving.UserImageAnnotationKey] = "gcr.io/test/image:latest"
 	rev3.Spec.Containers[0].Image = "gcr.io/a/b"
 	// rev4 is without the annotation at all and no hash
-	rev4.Status.DeprecatedImageDigest = ""
+	rev4.Status.ContainerStatuses = []servingv1.ContainerStatus{
+		{Name: "gcr.io/x/y", ImageDigest: ""},
+	}
 	rev4.Spec.Containers[0].Image = "gcr.io/x/y"
 
 	// Fetch the revisions
@@ -763,9 +765,11 @@ func createTestRevision(revision string, gen int64, conditions duckv1.Conditions
 			},
 		},
 		Status: servingv1.RevisionStatus{
-			ActualReplicas:        ptr.Int32(0),
-			DesiredReplicas:       ptr.Int32(1),
-			DeprecatedImageDigest: "gcr.io/test/image@" + imageDigest,
+			ActualReplicas:  ptr.Int32(0),
+			DesiredReplicas: ptr.Int32(1),
+			ContainerStatuses: []servingv1.ContainerStatus{
+				{Name: "gcr.io/test/image", ImageDigest: imageDigest},
+			},
 			Status: duckv1.Status{
 				Conditions: conditions,
 			},
