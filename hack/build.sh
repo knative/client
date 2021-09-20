@@ -129,6 +129,11 @@ source_lint() {
 go_build() {
   echo "🚧 Compile"
   go build -mod=vendor -ldflags "$(build_flags $(basedir))" -o kn ./cmd/...
+  WIN="Windows"
+  FILE=$(file ./kn)
+  if grep -q "$WIN" <<< "$FILE"; then
+    mv ./kn ./kn.exe
+  fi
 }
 
 go_test() {
