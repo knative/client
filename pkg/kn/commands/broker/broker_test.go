@@ -74,6 +74,10 @@ func createBroker(brokerName string) *v1beta1.Broker {
 	return clientv1beta1.NewBrokerBuilder(brokerName).Namespace("default").Build()
 }
 
+func createBrokerWithGvk(brokerName string) *v1beta1.Broker {
+	return clientv1beta1.NewBrokerBuilder(brokerName).Namespace("default").WithGvk().Build()
+}
+
 func createBrokerWithNamespace(brokerName, namespace string) *v1beta1.Broker {
 	return clientv1beta1.NewBrokerBuilder(brokerName).Namespace(namespace).Build()
 }

@@ -56,6 +56,7 @@ func TestSubscriptionList(t *testing.T) {
 	cClient := clientv1.NewMockKnSubscriptionsClient(t)
 	cRecorder := cClient.Recorder()
 	clist := &messagingv1.SubscriptionList{}
+	_ = util.UpdateGroupVersionKindWithScheme(clist, messagingv1.SchemeGroupVersion, scheme.Scheme)
 	clist.Items = []messagingv1.Subscription{
 		*createSubscription("s0", "imc0", "ksvc0", "b00", "b01"),
 		*createSubscription("s1", "imc1", "ksvc1", "b10", "b11"),

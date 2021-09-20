@@ -43,12 +43,7 @@ func TestToUnstructuredList(t *testing.T) {
 	assert.DeepEqual(t, unstructuredList, expectedList)
 
 	service1 := createService("s3")
-	expectedList = &unstructured.UnstructuredList{
-		Object: map[string]interface{}{
-			"apiVersion": "v1",
-			"kind":       "List",
-		},
-	}
+	expectedList = &unstructured.UnstructuredList{}
 	expectedList.Items = []unstructured.Unstructured{createUnstructured("s3")}
 	unstructuredList, err = ToUnstructuredList(&service1)
 	assert.NilError(t, err)

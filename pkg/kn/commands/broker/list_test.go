@@ -18,6 +18,7 @@ package broker
 
 import (
 	"encoding/json"
+	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
 	"strings"
 	"testing"
 
@@ -32,10 +33,12 @@ func TestBrokerList(t *testing.T) {
 	eventingClient := clientv1.NewMockKnEventingClient(t)
 	eventingRecorder := eventingClient.Recorder()
 
-	broker1 := createBroker("foo1")
-	broker2 := createBroker("foo2")
-	broker3 := createBroker("foo3")
+	broker1 := createBrokerWithGvk("foo1")
+	broker2 := createBrokerWithGvk("foo2")
+	broker3 := createBrokerWithGvk("foo3")
 	brokerList := &eventingv1.BrokerList{Items: []eventingv1.Broker{*broker1, *broker2, *broker3}}
+	_ = util.UpdateGroupVersionKindWithScheme(brokerList, eventingv1.SchemeGroupVersion, scheme.Scheme)
+
 
 	t.Run("default output", func(t *testing.T) {
 		eventingRecorder.ListBrokers(brokerList, nil)

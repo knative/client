@@ -42,10 +42,11 @@ func TestTriggerList(t *testing.T) {
 	eventingClient := clienteventingv1.NewMockKnEventingClient(t)
 	eventingRecorder := eventingClient.Recorder()
 
-	trigger1 := createTriggerWithStatus("default", "trigger1", map[string]string{"type": "dev.knative.foo"}, "mybroker1", "mysink")
-	trigger2 := createTriggerWithStatus("default", "trigger2", map[string]string{"source": "svc.service.knative"}, "mybroker2", "mysink")
-	trigger3 := createTriggerWithStatus("default", "trigger3", map[string]string{"type": "src.eventing.knative"}, "mybroker3", "mysink")
+	trigger1 := createTriggerWithStatusAndGvk("default", "trigger1", map[string]string{"type": "dev.knative.foo"}, "mybroker1", "mysink")
+	trigger2 := createTriggerWithStatusAndGvk("default", "trigger2", map[string]string{"source": "svc.service.knative"}, "mybroker2", "mysink")
+	trigger3 := createTriggerWithStatusAndGvk("default", "trigger3", map[string]string{"type": "src.eventing.knative"}, "mybroker3", "mysink")
 	triggerList := &eventingv1.TriggerList{Items: []eventingv1.Trigger{*trigger1, *trigger2, *trigger3}}
+	_ = util.UpdateGroupVersionKindWithScheme(triggerList, eventingv1.SchemeGroupVersion, scheme.Scheme)
 
 	t.Run("default output", func(t *testing.T) {
 		eventingRecorder.ListTriggers(triggerList, nil)
@@ -111,9 +112,9 @@ func TestTriggerListAllNamespace(t *testing.T) {
 	eventingClient := clienteventingv1.NewMockKnEventingClient(t)
 	eventingRecorder := eventingClient.Recorder()
 
-	trigger1 := createTriggerWithStatus("default1", "trigger1", map[string]string{"type": "dev.knative.foo"}, "mybroker1", "mysink")
-	trigger2 := createTriggerWithStatus("default2", "trigger2", map[string]string{"source": "svc.service.knative"}, "mybroker2", "mysink")
-	trigger3 := createTriggerWithStatus("default3", "trigger3", map[string]string{"type": "src.eventing.knative"}, "mybroker3", "mysink")
+	trigger1 := createTriggerWithStatusAndGvk("default1", "trigger1", map[string]string{"type": "dev.knative.foo"}, "mybroker1", "mysink")
+	trigger2 := createTriggerWithStatusAndGvk("default2", "trigger2", map[string]string{"source": "svc.service.knative"}, "mybroker2", "mysink")
+	trigger3 := createTriggerWithStatusAndGvk("default3", "trigger3", map[string]string{"type": "src.eventing.knative"}, "mybroker3", "mysink")
 	triggerList := &eventingv1.TriggerList{Items: []eventingv1.Trigger{*trigger1, *trigger2, *trigger3}}
 	eventingRecorder.ListTriggers(triggerList, nil)
 

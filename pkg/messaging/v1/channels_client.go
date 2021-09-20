@@ -16,6 +16,9 @@ package v1
 
 import (
 	"context"
+	"knative.dev/client/pkg/util"
+	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
+	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -129,6 +132,12 @@ func NewChannelBuilder(name, namespace string) *ChannelBuilder {
 			Namespace: namespace,
 		},
 	}}
+}
+
+// WithGvk sets the GVK on the channel
+func (c *ChannelBuilder) WithGvk() *ChannelBuilder {
+	_ = util.UpdateGroupVersionKindWithScheme(c.channel, eventingv1.SchemeGroupVersion, scheme.Scheme)
+	return c
 }
 
 // Type sets the type of the channel to create

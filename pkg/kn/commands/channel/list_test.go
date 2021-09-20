@@ -66,6 +66,7 @@ func TestChannelList(t *testing.T) {
 	cClient := clientv1.NewMockKnChannelsClient(t)
 	cRecorder := cClient.Recorder()
 	clist := &messagingv1.ChannelList{}
+	_ = util.UpdateGroupVersionKindWithScheme(clist, messagingv1.SchemeGroupVersion, scheme.Scheme)
 	clist.Items = []messagingv1.Channel{
 		*createChannel("c0", "default", &schema.GroupVersionKind{Group: "messaging.knative.dev", Version: "v1", Kind: "InMemoryChannel"}),
 		*createChannel("c1", "default", &schema.GroupVersionKind{Group: "messaging.knative.dev", Version: "v1", Kind: "InMemoryChannel"}),

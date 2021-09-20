@@ -48,7 +48,7 @@ type KnEventingClient interface {
 	DeleteTrigger(ctx context.Context, name string) error
 	// GetTrigger is used to get an instance of trigger
 	GetTrigger(ctx context.Context, name string) (*eventingv1.Trigger, error)
-	// ListTrigger returns list of trigger CRDs
+	// ListTriggers returns list of trigger CRDs
 	ListTriggers(ctx context.Context) (*eventingv1.TriggerList, error)
 	// UpdateTrigger is used to update an instance of trigger
 	UpdateTrigger(ctx context.Context, trigger *eventingv1.Trigger) error
@@ -60,7 +60,7 @@ type KnEventingClient interface {
 	GetBroker(ctx context.Context, name string) (*eventingv1.Broker, error)
 	// DeleteBroker is used to delete an instance of broker
 	DeleteBroker(ctx context.Context, name string, timeout time.Duration) error
-	// ListBroker returns list of broker CRDs
+	// ListBrokers returns list of broker CRDs
 	ListBrokers(ctx context.Context) (*eventingv1.BrokerList, error)
 }
 
@@ -134,7 +134,7 @@ func (c *knEventingClient) ListTriggers(ctx context.Context) (*eventingv1.Trigge
 	return triggerListNew, nil
 }
 
-//CreateTrigger is used to create an instance of trigger
+// UpdateTrigger is used to update an instance of trigger
 func (c *knEventingClient) UpdateTrigger(ctx context.Context, trigger *eventingv1.Trigger) error {
 	_, err := c.client.Triggers(c.namespace).Update(ctx, trigger, meta_v1.UpdateOptions{})
 	if err != nil {
@@ -173,7 +173,7 @@ func updateTrigger(ctx context.Context, c KnEventingClient, name string, updateF
 	return c.UpdateTrigger(ctx, updatedTrigger)
 }
 
-// Return the client's namespace
+// Namespace returns the namespace this client is bound to
 func (c *knEventingClient) Namespace() string {
 	return c.namespace
 }
@@ -190,17 +190,17 @@ type TriggerBuilder struct {
 
 // NewTriggerBuilder for building trigger object
 func NewTriggerBuilder(name string) *TriggerBuilder {
-	trigger := &eventingv1.Trigger{
-		TypeMeta: meta_v1.TypeMeta{
-			Kind: "Trigger",
-		},
+	return &TriggerBuilder{&eventingv1.Trigger{
 		ObjectMeta: meta_v1.ObjectMeta{
 			Name: name,
 		},
-	}
+	}}
+}
 
-	_ = updateEventingGVK(trigger)
-	return &TriggerBuilder{trigger: trigger}
+// WithGvk sets the GVK for the triggers (which otherwise remains empty
+func (b *TriggerBuilder) WithGvk() *TriggerBuilder {
+	_ = updateEventingGVK(b.trigger)
+	return b
 }
 
 // NewTriggerBuilderFromExisting for building the object from existing Trigger object
@@ -354,17 +354,17 @@ type BrokerBuilder struct {
 
 // NewBrokerBuilder for building broker object
 func NewBrokerBuilder(name string) *BrokerBuilder {
-	broker := &eventingv1.Broker{
-		TypeMeta: meta_v1.TypeMeta{
-			Kind: "Broker",
-		},
+	return &BrokerBuilder{broker: &eventingv1.Broker{
 		ObjectMeta: meta_v1.ObjectMeta{
 			Name: name,
 		},
-	}
+	}}
+}
 
-	_ = updateEventingGVK(broker)
-	return &BrokerBuilder{broker: broker}
+// WithGvk add the GVK coordinates for read tests
+func (b *BrokerBuilder) WithGvk() *BrokerBuilder {
+	_ = updateEventingGVK(b.broker)
+	return b
 }
 
 // Namespace for broker builder

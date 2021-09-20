@@ -84,6 +84,10 @@ func createChannel(name, namespace string, gvk *schema.GroupVersionKind) *messag
 	return clientv1beta1.NewChannelBuilder(name, namespace).Type(gvk).Build()
 }
 
+func createChannelWithGvk(name, namespace string, gvk *schema.GroupVersionKind) *messagingv1.Channel {
+	return clientv1beta1.NewChannelBuilder(name, namespace).Type(gvk).WithGvk().Build()
+}
+
 func createChannelWithStatus(name string, namespace string, gvk *schema.GroupVersionKind) *messagingv1.Channel {
 	channel := clientv1beta1.NewChannelBuilder(name, namespace).Type(gvk).Build()
 	channel.Status = messagingv1.ChannelStatus{

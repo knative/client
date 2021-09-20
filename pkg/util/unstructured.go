@@ -20,7 +20,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 const (
@@ -32,14 +31,9 @@ const (
 // If the object is not a list type, it will convert to a single item UnstructuredList.
 func ToUnstructuredList(obj runtime.Object) (*unstructured.UnstructuredList, error) {
 	unstructuredList := &unstructured.UnstructuredList{}
-	unstructuredList.SetGroupVersionKind(schema.FromAPIVersionAndKind(listVersion, listKind))
-	unstructuredList.GetObjectKind().SetGroupVersionKind(schema.FromAPIVersionAndKind(listVersion, listKind))
 
 	if meta.IsListType(obj) {
-		if !obj.GetObjectKind().GroupVersionKind().Empty() {
-			unstructuredList.SetGroupVersionKind(obj.GetObjectKind().GroupVersionKind())
-			unstructuredList.GetObjectKind().SetGroupVersionKind(obj.GetObjectKind().GroupVersionKind())
-		}
+		unstructuredList.SetGroupVersionKind(obj.GetObjectKind().GroupVersionKind())
 
 		items, err := meta.ExtractList(obj)
 		if err != nil {
