@@ -16,6 +16,7 @@ package v1
 
 import (
 	"context"
+
 	"knative.dev/client/pkg/util"
 	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
 	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"

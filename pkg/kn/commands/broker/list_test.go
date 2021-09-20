@@ -18,9 +18,10 @@ package broker
 
 import (
 	"encoding/json"
-	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
 	"strings"
 	"testing"
+
+	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
 
 	"gotest.tools/v3/assert"
 
@@ -38,7 +39,6 @@ func TestBrokerList(t *testing.T) {
 	broker3 := createBrokerWithGvk("foo3")
 	brokerList := &eventingv1.BrokerList{Items: []eventingv1.Broker{*broker1, *broker2, *broker3}}
 	_ = util.UpdateGroupVersionKindWithScheme(brokerList, eventingv1.SchemeGroupVersion, scheme.Scheme)
-
 
 	t.Run("default output", func(t *testing.T) {
 		eventingRecorder.ListBrokers(brokerList, nil)
