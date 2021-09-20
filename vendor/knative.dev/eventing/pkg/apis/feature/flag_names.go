@@ -17,6 +17,7 @@ limitations under the License.
 package feature
 
 const (
-	KReferenceGroup = "kreference-group"
-	DeliveryTimeout = "delivery-timeout"
+	KReferenceGroup   = "kreference-group"
+	DeliveryTimeout   = "delivery-timeout"
+	KReferenceMapping = "kreference-mapping"
 )
