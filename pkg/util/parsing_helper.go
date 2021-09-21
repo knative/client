@@ -15,13 +15,34 @@
 package util
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 	"strings"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"knative.dev/pkg/tracker"
 )
+
+// GetEnvsFromFile transform a path to a file containing environment variable into a list of key-value pair.
+// If there is an issue reading the file or parsing the content in the file an error value will be returned.
+func GetEnvsFromFile(filepath string, delimiter string) ([]string, error) {
+	envs := []string{}
+	file, err := os.Open(filepath)
+	if err != nil {
+		return envs, err
+	}
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if len(line) == 0 {
+			continue
+		}
+		envs = append(envs, scanner.Text())
+	}
+	return envs, nil
+}
 
 // OrderedMapAndRemovalListFromArray creates a list of key-value pair using MapFromArrayAllowingSingles, and a list of removal entries
 func OrderedMapAndRemovalListFromArray(arr []string, delimiter string) (*OrderedMap, []string, error) {

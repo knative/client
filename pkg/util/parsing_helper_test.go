@@ -16,6 +16,8 @@ package util
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
 	"testing"
 
 	"gotest.tools/v3/assert"
@@ -185,4 +187,26 @@ func testToTrackerReference(t *testing.T, input, namespace string, expected *tra
 
 func funcRef(ref func(t *testing.T, err error)) *func(*testing.T, error) {
 	return &ref
+}
+
+func TestGetEnvsFromFile(t *testing.T) {
+	file, err := ioutil.TempFile("", "test-1")
+	assert.NilError(t, err)
+	file.WriteString(`
+name=service-1
+
+target=hello-world
+
+`)
+	defer os.Remove(file.Name())
+
+	envs, err := GetEnvsFromFile(file.Name(), "=")
+	assert.NilError(t, err)
+	assert.DeepEqual(t, envs, []string{"name=service-1", "target=hello-world"})
+}
+
+func TestGetEnvsFromFileErrorNotFound(t *testing.T) {
+	envs, err := GetEnvsFromFile("/tmp/somerandom/path/bla/bla", "=")
+	assert.ErrorContains(t, err, "no such file or directory")
+	assert.DeepEqual(t, envs, []string{})
 }
