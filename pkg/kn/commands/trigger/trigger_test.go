@@ -84,13 +84,23 @@ func createTrigger(namespace string, name string, filters map[string]string, bro
 		Build()
 }
 
+func createTriggerWithGvk(namespace string, name string, filters map[string]string, broker string, svcname string) *v1beta1.Trigger {
+	return eventclientv1beta1.NewTriggerBuilder(name).
+		Namespace(namespace).
+		Broker(broker).
+		Filters(filters).
+		Subscriber(createServiceSink(svcname)).
+		WithGvk().
+		Build()
+}
+
 func createTriggerWithInject(namespace string, name string, filters map[string]string, broker string, svcname string) *v1beta1.Trigger {
 	t := createTrigger(namespace, name, filters, broker, svcname)
 	return eventclientv1beta1.NewTriggerBuilderFromExisting(t).InjectBroker(true).Build()
 }
 
-func createTriggerWithStatus(namespace string, name string, filters map[string]string, broker string, svcname string) *v1beta1.Trigger {
-	wanted := createTrigger(namespace, name, filters, broker, svcname)
+func createTriggerWithStatusAndGvk(namespace string, name string, filters map[string]string, broker string, svcname string) *v1beta1.Trigger {
+	wanted := createTriggerWithGvk(namespace, name, filters, broker, svcname)
 	wanted.Status = v1beta1.TriggerStatus{
 		Status: duckv1.Status{
 			Conditions: []apis.Condition{{

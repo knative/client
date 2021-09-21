@@ -33,8 +33,8 @@ func TestToUnstructuredList(t *testing.T) {
 	}
 	expectedList := &unstructured.UnstructuredList{
 		Object: map[string]interface{}{
-			"apiVersion": string("v1"),
-			"kind":       string("List"),
+			"apiVersion": "v1",
+			"kind":       "List",
 		},
 	}
 	expectedList.Items = []unstructured.Unstructured{createUnstructured("s1"), createUnstructured("s2")}

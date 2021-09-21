@@ -15,6 +15,7 @@
 package service
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 
@@ -97,6 +98,25 @@ func TestServiceListDefaultOutput(t *testing.T) {
 	assert.Check(t, util.ContainsAll(output[1], "bar", "bar.default.example.com", "bar-xyz"))
 	assert.Check(t, util.ContainsAll(output[2], "foo", "foo.default.example.com", "foo-xyz"))
 	assert.Check(t, util.ContainsAll(output[3], "sss", "sss.default.example.com", "sss-xyz"))
+}
+
+func TestServiceListJsonOutput(t *testing.T) {
+	service1 := createMockServiceWithParams("bar", "default", "http://bar.default.example.com", "bar-xyz")
+	service2 := createMockServiceWithParams("foo", "default", "http://foo.default.example.com", "foo-xyz")
+	service3 := createMockServiceWithParams("sss", "default", "http://sss.default.example.com", "sss-xyz")
+	serviceList := &servingv1.ServiceList{Items: []servingv1.Service{*service1, *service2, *service3}}
+	action, output, err := fakeServiceList([]string{"service", "list", "-o", "json"}, serviceList)
+	assert.NilError(t, err)
+	if action == nil {
+		t.Errorf("No action")
+	} else if !action.Matches("list", "services") {
+		t.Errorf("Bad action %v", action)
+	}
+
+	result := servingv1.ServiceList{}
+	err = json.Unmarshal([]byte(strings.Join(output, "")), &result)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, serviceList.Items, result.Items)
 }
 
 func TestServiceListAllNamespacesOutput(t *testing.T) {

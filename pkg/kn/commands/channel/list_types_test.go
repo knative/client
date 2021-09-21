@@ -17,10 +17,12 @@ package channel
 
 import (
 	"context"
+	"encoding/json"
 	"strings"
 	"testing"
 
 	"gotest.tools/v3/assert"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -96,6 +98,20 @@ func TestChannelListTypes(t *testing.T) {
 	assert.NilError(t, err)
 	assert.Check(t, util.ContainsAll(output[0], "TYPE", "NAME", "DESCRIPTION"))
 	assert.Check(t, util.ContainsAll(output[1], "InMemoryChannel", "InMemoryChannel"))
+}
+
+func TestChannelListTypesAsJsonOutput(t *testing.T) {
+	dynamicClient := dynamicfakeClient.CreateFakeKnDynamicClient(testNamespace,
+		newChannelCRDObjWithSpec("InMemoryChannel", "messaging.knative.dev", "v1", "InMemoryChannel"),
+	)
+	assert.Equal(t, dynamicClient.Namespace(), testNamespace)
+	output, err := channelFakeCmd([]string{"channel", "list-types", "-o", "json"}, dynamicClient)
+	assert.NilError(t, err)
+
+	list := v1.List{}
+	err = json.Unmarshal([]byte(strings.Join(output, "")), &list)
+	assert.NilError(t, err)
+	assert.Check(t, len(list.Items) == 1)
 }
 
 func TestChannelListTypesNoHeaders(t *testing.T) {

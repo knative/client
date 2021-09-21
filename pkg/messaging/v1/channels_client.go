@@ -17,6 +17,10 @@ package v1
 import (
 	"context"
 
+	"knative.dev/client/pkg/util"
+	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
+	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	messagingv1 "knative.dev/eventing/pkg/apis/messaging/v1"
@@ -131,10 +135,21 @@ func NewChannelBuilder(name, namespace string) *ChannelBuilder {
 	}}
 }
 
+// WithGvk sets the GVK on the channel
+func (c *ChannelBuilder) WithGvk() *ChannelBuilder {
+	_ = util.UpdateGroupVersionKindWithScheme(c.channel, eventingv1.SchemeGroupVersion, scheme.Scheme)
+	return c
+}
+
 // Type sets the type of the channel to create
 func (c *ChannelBuilder) Type(gvk *schema.GroupVersionKind) *ChannelBuilder {
 	if gvk == nil {
 		return c
+	}
+
+	c.channel.TypeMeta = metav1.TypeMeta{
+		APIVersion: gvk.GroupVersion().String(),
+		Kind:       gvk.Kind,
 	}
 
 	spec := &messagingv1.ChannelTemplateSpec{}

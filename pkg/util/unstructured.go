@@ -26,8 +26,10 @@ import (
 // If the object is not a list type, it will convert to a single item UnstructuredList.
 func ToUnstructuredList(obj runtime.Object) (*unstructured.UnstructuredList, error) {
 	unstructuredList := &unstructured.UnstructuredList{}
+
 	if meta.IsListType(obj) {
 		unstructuredList.SetGroupVersionKind(obj.GetObjectKind().GroupVersionKind())
+
 		items, err := meta.ExtractList(obj)
 		if err != nil {
 			return nil, err

@@ -15,6 +15,7 @@
 package route
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 
@@ -84,6 +85,24 @@ func TestRouteListDefaultOutput(t *testing.T) {
 	assert.Check(t, util.ContainsAll(output[0], "NAME", "URL", "READY"))
 	assert.Check(t, util.ContainsAll(output[1], "foo"))
 	assert.Check(t, util.ContainsAll(output[2], "bar"))
+}
+
+func TestRouteListJsonOutput(t *testing.T) {
+	route1 := createMockRouteSingleTarget("bar", "bar-98765", 100)
+	route2 := createMockRouteSingleTarget("foo", "foo-01234", 100)
+	routeList := &servingv1.RouteList{Items: []servingv1.Route{*route1, *route2}}
+	action, output, err := fakeRouteList([]string{"route", "list", "-o", "json"}, routeList)
+	assert.NilError(t, err)
+	if action == nil {
+		t.Errorf("No action")
+	} else if !action.Matches("list", "routes") {
+		t.Errorf("Bad action %v", action)
+	}
+
+	result := servingv1.RouteList{}
+	err = json.Unmarshal([]byte(strings.Join(output, "")), &result)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, routeList.Items, result.Items)
 }
 
 func TestRouteListDefaultOutputNoHeaders(t *testing.T) {

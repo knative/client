@@ -315,7 +315,17 @@ func TestTriggerBuilder(t *testing.T) {
 		assert.DeepEqual(t, make(map[string]string), b.Build().ObjectMeta.Annotations)
 
 	})
+}
 
+func TestWithGvk(t *testing.T) {
+	t.Run("Broker withGvk", func(t *testing.T) {
+		b := NewBrokerBuilder("test").WithGvk().Build()
+		assert.Assert(t, !b.GroupVersionKind().Empty())
+	})
+	t.Run("Trigger withGvk", func(t *testing.T) {
+		trigger := NewTriggerBuilder("test").WithGvk().Build()
+		assert.Assert(t, !trigger.GroupVersionKind().Empty())
+	})
 }
 
 func TestBrokerCreate(t *testing.T) {
@@ -460,8 +470,8 @@ func TestBrokerList(t *testing.T) {
 	serving, client := setup()
 
 	t.Run("broker list returns a list of brokers", func(t *testing.T) {
-		broker1 := newBroker("foo1")
-		broker2 := newBroker("foo2")
+		broker1 := newBrokerWithGvk("foo1")
+		broker2 := newBrokerWithGvk("foo2")
 
 		serving.AddReactor("list", "brokers",
 			func(a client_testing.Action) (bool, runtime.Object, error) {
@@ -474,6 +484,8 @@ func TestBrokerList(t *testing.T) {
 		assert.Assert(t, len(brokerList.Items) == 2)
 		assert.Equal(t, brokerList.Items[0].Name, "foo1")
 		assert.Equal(t, brokerList.Items[1].Name, "foo2")
+		assert.Assert(t, !brokerList.GroupVersionKind().Empty())
+		assert.Assert(t, !brokerList.Items[0].GroupVersionKind().Empty())
 	})
 }
 
@@ -489,6 +501,13 @@ func newBroker(name string) *eventingv1.Broker {
 	return NewBrokerBuilder(name).
 		Namespace(testNamespace).
 		Class("").
+		Build()
+}
+
+func newBrokerWithGvk(name string) *eventingv1.Broker {
+	return NewBrokerBuilder(name).
+		Namespace(testNamespace).
+		WithGvk().
 		Build()
 }
 

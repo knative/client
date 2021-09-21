@@ -15,6 +15,7 @@
 package trigger
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 
@@ -41,20 +42,36 @@ func TestTriggerList(t *testing.T) {
 	eventingClient := clienteventingv1.NewMockKnEventingClient(t)
 	eventingRecorder := eventingClient.Recorder()
 
-	trigger1 := createTriggerWithStatus("default", "trigger1", map[string]string{"type": "dev.knative.foo"}, "mybroker1", "mysink")
-	trigger2 := createTriggerWithStatus("default", "trigger2", map[string]string{"source": "svc.service.knative"}, "mybroker2", "mysink")
-	trigger3 := createTriggerWithStatus("default", "trigger3", map[string]string{"type": "src.eventing.knative"}, "mybroker3", "mysink")
+	trigger1 := createTriggerWithStatusAndGvk("default", "trigger1", map[string]string{"type": "dev.knative.foo"}, "mybroker1", "mysink")
+	trigger2 := createTriggerWithStatusAndGvk("default", "trigger2", map[string]string{"source": "svc.service.knative"}, "mybroker2", "mysink")
+	trigger3 := createTriggerWithStatusAndGvk("default", "trigger3", map[string]string{"type": "src.eventing.knative"}, "mybroker3", "mysink")
 	triggerList := &eventingv1.TriggerList{Items: []eventingv1.Trigger{*trigger1, *trigger2, *trigger3}}
-	eventingRecorder.ListTriggers(triggerList, nil)
+	_ = util.UpdateGroupVersionKindWithScheme(triggerList, eventingv1.SchemeGroupVersion, scheme.Scheme)
 
-	output, err := executeTriggerCommand(eventingClient, nil, "list")
-	assert.NilError(t, err)
+	t.Run("default output", func(t *testing.T) {
+		eventingRecorder.ListTriggers(triggerList, nil)
 
-	outputLines := strings.Split(output, "\n")
-	assert.Check(t, util.ContainsAll(outputLines[0], "NAME", "BROKER", "SINK", "AGE", "CONDITIONS", "READY", "REASON"))
-	assert.Check(t, util.ContainsAll(outputLines[1], "trigger1", "mybroker1", "mysink"))
-	assert.Check(t, util.ContainsAll(outputLines[2], "trigger2", "mybroker2", "mysink"))
-	assert.Check(t, util.ContainsAll(outputLines[3], "trigger3", "mybroker3", "mysink"))
+		output, err := executeTriggerCommand(eventingClient, nil, "list")
+		assert.NilError(t, err)
+
+		outputLines := strings.Split(output, "\n")
+		assert.Check(t, util.ContainsAll(outputLines[0], "NAME", "BROKER", "SINK", "AGE", "CONDITIONS", "READY", "REASON"))
+		assert.Check(t, util.ContainsAll(outputLines[1], "trigger1", "mybroker1", "mysink"))
+		assert.Check(t, util.ContainsAll(outputLines[2], "trigger2", "mybroker2", "mysink"))
+		assert.Check(t, util.ContainsAll(outputLines[3], "trigger3", "mybroker3", "mysink"))
+	})
+
+	t.Run("json format output", func(t *testing.T) {
+		eventingRecorder.ListTriggers(triggerList, nil)
+
+		output, err := executeTriggerCommand(eventingClient, nil, "list", "-o", "json")
+		assert.NilError(t, err)
+
+		result := eventingv1.TriggerList{}
+		err = json.Unmarshal([]byte(output), &result)
+		assert.NilError(t, err)
+		assert.DeepEqual(t, triggerList.Items, result.Items)
+	})
 
 	eventingRecorder.Validate()
 }
@@ -95,9 +112,9 @@ func TestTriggerListAllNamespace(t *testing.T) {
 	eventingClient := clienteventingv1.NewMockKnEventingClient(t)
 	eventingRecorder := eventingClient.Recorder()
 
-	trigger1 := createTriggerWithStatus("default1", "trigger1", map[string]string{"type": "dev.knative.foo"}, "mybroker1", "mysink")
-	trigger2 := createTriggerWithStatus("default2", "trigger2", map[string]string{"source": "svc.service.knative"}, "mybroker2", "mysink")
-	trigger3 := createTriggerWithStatus("default3", "trigger3", map[string]string{"type": "src.eventing.knative"}, "mybroker3", "mysink")
+	trigger1 := createTriggerWithStatusAndGvk("default1", "trigger1", map[string]string{"type": "dev.knative.foo"}, "mybroker1", "mysink")
+	trigger2 := createTriggerWithStatusAndGvk("default2", "trigger2", map[string]string{"source": "svc.service.knative"}, "mybroker2", "mysink")
+	trigger3 := createTriggerWithStatusAndGvk("default3", "trigger3", map[string]string{"type": "src.eventing.knative"}, "mybroker3", "mysink")
 	triggerList := &eventingv1.TriggerList{Items: []eventingv1.Trigger{*trigger1, *trigger2, *trigger3}}
 	eventingRecorder.ListTriggers(triggerList, nil)
 
