@@ -23,6 +23,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"gotest.tools/v3/assert"
@@ -32,15 +33,25 @@ import (
 )
 
 const (
-	TestPluginCode string = `#!/bin/bash
-
+	TestPluginCodeBat string = `echo "Hello Knative, I'm a Kn plugin"
+echo "  My plugin file is %0"
+echo "  I received arguments: %1 %2 %3 %4"
+`
+	TestPluginCodeBash string = `#!/bin/bash
 echo "Hello Knative, I'm a Kn plugin"
 echo "  My plugin file is $0"
-echo "  I received arguments: $1 $2 $3 $4"`
+echo "  I received arguments: $1 $2 $3 $4"
+`
 
-	TestPluginCodeErr string = `#!/bin/bash
+	TestPluginCodeErrBash string = `#!/bin/bash
 exit 1`
+
+	TestPluginCodeErrBat string = `exit 1`
+
+	delim = string(os.PathListSeparator)
 )
+
+var pluginBin, pluginBin2, pluginBin3, pluginBinErr, pluginCode string
 
 type pluginTestConfig struct {
 	knConfigDir, knPluginsDir, knPluginsDir2  string
@@ -71,11 +82,25 @@ func (pc *pluginTestConfig) setup() error {
 		return err
 	}
 
-	pc.knPluginPath, err = test.CreateFile("kn-helloe2e", TestPluginCode, pc.knPluginsDir, test.FileModeExecutable)
+	switch runtime.GOOS {
+	case "windows":
+		pluginBin = "kn-helloe2e.bat"
+		pluginBin2 = "kn-hello2e2e.bat"
+		pluginBin3 = "kn-hello3e2e.bat"
+		pluginCode = TestPluginCodeBat
+		pluginBinErr = TestPluginCodeErrBat
+	default:
+		pluginBin = "kn-helloe2e"
+		pluginBin2 = "kn-hello2e2e"
+		pluginBin3 = "kn-hello3e2e"
+		pluginBinErr = TestPluginCodeErrBash
+		pluginCode = TestPluginCodeBash
+	}
+	pc.knPluginPath, err = test.CreateFile(pluginBin, pluginCode, pc.knPluginsDir, test.FileModeExecutable)
 	if err != nil {
 		return err
 	}
-	pc.knPluginPath2, err = test.CreateFile("kn-hello2e2e", TestPluginCode, pc.knPluginsDir2, test.FileModeExecutable)
+	pc.knPluginPath2, err = test.CreateFile(pluginBin2, pluginCode, pc.knPluginsDir2, test.FileModeExecutable)
 	if err != nil {
 		return err
 	}
@@ -190,9 +215,9 @@ func TestExecutePluginInPathWithError(t *testing.T) {
 	pluginsDir := filepath.Join(pc.knConfigDir, "plugins3")
 	err = os.MkdirAll(pluginsDir, test.FileModeExecutable)
 	assert.NilError(t, err)
-	_, err = test.CreateFile("kn-hello3e2e", TestPluginCodeErr, pluginsDir, test.FileModeExecutable)
+	_, err = test.CreateFile(pluginBin3, pluginBinErr, pluginsDir, test.FileModeExecutable)
 	assert.NilError(t, err)
-	assert.NilError(t, os.Setenv("PATH", fmt.Sprintf("%s:%s", oldPath, pluginsDir)))
+	assert.NilError(t, os.Setenv("PATH", fmt.Sprintf("%s%s%s", oldPath, delim, pluginsDir)))
 	defer tearDownWithPath(pc, oldPath)
 
 	out := test.Kn{}.Run("--lookup-plugins=true", "hello3e2e")
@@ -206,7 +231,7 @@ func setupPluginTestConfigWithNewPath(t *testing.T) (pluginTestConfig, string) {
 	pc := pluginTestConfig{}
 	assert.NilError(t, pc.setup())
 	oldPath := os.Getenv("PATH")
-	assert.NilError(t, os.Setenv("PATH", fmt.Sprintf("%s:%s", oldPath, pc.knPluginsDir2)))
+	assert.NilError(t, os.Setenv("PATH", fmt.Sprintf("%s%s%s", oldPath, delim, pc.knPluginsDir2)))
 	return pc, oldPath
 }
 
