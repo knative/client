@@ -43,11 +43,15 @@ echo "  My plugin file is $0"
 echo "  I received arguments: $1 $2 $3 $4"
 `
 
-	TestPluginCodeErr string = `exit 1`
-	delim                    = string(os.PathListSeparator)
+	TestPluginCodeErrBash string = `#!/bin/bash
+exit 1`
+
+	TestPluginCodeErrBat string = `exit 1`
+
+	delim = string(os.PathListSeparator)
 )
 
-var pluginBin, pluginBin2, pluginBin3, pluginCode string
+var pluginBin, pluginBin2, pluginBin3, pluginBinErr, pluginCode string
 
 type pluginTestConfig struct {
 	knConfigDir, knPluginsDir, knPluginsDir2  string
@@ -84,10 +88,12 @@ func (pc *pluginTestConfig) setup() error {
 		pluginBin2 = "kn-hello2e2e.bat"
 		pluginBin3 = "kn-hello3e2e.bat"
 		pluginCode = TestPluginCodeBat
+		pluginBinErr = TestPluginCodeErrBat
 	default:
 		pluginBin = "kn-helloe2e"
 		pluginBin2 = "kn-hello2e2e"
 		pluginBin3 = "kn-hello3e2e"
+		pluginBinErr = TestPluginCodeErrBash
 		pluginCode = TestPluginCodeBash
 	}
 	pc.knPluginPath, err = test.CreateFile(pluginBin, pluginCode, pc.knPluginsDir, test.FileModeExecutable)
@@ -209,7 +215,7 @@ func TestExecutePluginInPathWithError(t *testing.T) {
 	pluginsDir := filepath.Join(pc.knConfigDir, "plugins3")
 	err = os.MkdirAll(pluginsDir, test.FileModeExecutable)
 	assert.NilError(t, err)
-	_, err = test.CreateFile(pluginBin3, TestPluginCodeErr, pluginsDir, test.FileModeExecutable)
+	_, err = test.CreateFile(pluginBin3, pluginBinErr, pluginsDir, test.FileModeExecutable)
 	assert.NilError(t, err)
 	assert.NilError(t, os.Setenv("PATH", fmt.Sprintf("%s%s%s", oldPath, delim, pluginsDir)))
 	defer tearDownWithPath(pc, oldPath)
