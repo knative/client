@@ -11,15 +11,25 @@
 |
 | https://github.com/knative/client/pull/[#]
 ////
-
-## v0.25.0 (2021-08-10)
+## v0.26.0 (2021-09-21)
 [cols="1,10,3", options="header", width="100%"]
 |===
 | | Description | PR
 
 | ✨
+| Remove `DeprecatedImageDigest` field
+| https://github.com/knative/client/pull/1454[#1454]
+
+| ✨
 | Reuse conflict retry loop from client-go/util/retry
 | https://github.com/knative/client/pull/1441[#1441]
+
+|===
+
+## v0.25.0 (2021-08-10)
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
 
 | ✨
 | Deprecate `lookup-path` as path lookup will always be enabled in the future
