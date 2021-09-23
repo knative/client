@@ -25,6 +25,9 @@ function build_flags() {
     [[ -n "${commit}" ]] || abort "error getting the current commit"
     version="v$(date +%Y%m%d)-local-${commit}"
   fi
+  # Extract Eventing and Serving versions from go.mod
+  local version_serving=$(cat go.mod | grep "knative.dev/serving " | sed -s 's/.* \(v.[\.0-9]*\).*/\1/')
+  local version_eventing=$(cat go.mod | grep "knative.dev/eventing " | sed -s 's/.* \(v.[\.0-9]*\).*/\1/')
 
-  echo "-X '${pkg}.BuildDate=${now}' -X ${pkg}.Version=${version} -X ${pkg}.GitRevision=${rev}"
+  echo "-X '${pkg}.BuildDate=${now}' -X ${pkg}.Version=${version} -X ${pkg}.GitRevision=${rev} -X ${pkg}.VersionServing=${version_serving} -X ${pkg}.VersionEventing=${version_eventing}"
 }

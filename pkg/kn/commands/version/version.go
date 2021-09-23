@@ -27,15 +27,17 @@ import (
 var Version string
 var BuildDate string
 var GitRevision string
+var VersionServing string
+var VersionEventing string
 
 // update this var as we add more deps
 var apiVersions = map[string][]string{
 	"serving": {
-		"serving.knative.dev/v1 (knative-serving v0.26.0)",
+		fmt.Sprintf("serving.knative.dev/v1 (knative-serving %s)", VersionServing),
 	},
 	"eventing": {
-		"sources.knative.dev/v1 (knative-eventing v0.26.0)",
-		"eventing.knative.dev/v1 (knative-eventing v0.26.0)",
+		fmt.Sprintf("sources.knative.dev/v1 (knative-eventing %s)", VersionEventing),
+		fmt.Sprintf("eventing.knative.dev/v1 (knative-eventing %s)", VersionEventing),
 	},
 }
 
@@ -98,7 +100,7 @@ func printVersionMachineReadable(cmd *cobra.Command) error {
 		}
 		fmt.Fprint(out, string(b))
 	default:
-		return fmt.Errorf("Invalid value for output flag, choose one among 'json' or 'yaml'.")
+		return fmt.Errorf("invalid value for output flag, choose one among 'json' or 'yaml'")
 	}
 	return nil
 }

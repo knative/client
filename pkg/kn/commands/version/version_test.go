@@ -108,7 +108,7 @@ func TestVersion(t *testing.T) {
 		t.Run("invalid format", func(t *testing.T) {
 			err := runVersionCmd([]string{"-o", "jsonpath"})
 			assert.Assert(t, err != nil)
-			assert.ErrorContains(t, err, "Invalid", "output", "flag", "choose", "among")
+			assert.ErrorContains(t, err, "invalid", "output", "flag", "choose", "among")
 		})
 	})
 
