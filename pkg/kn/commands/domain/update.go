@@ -26,7 +26,7 @@ import (
 	"knative.dev/client/pkg/kn/commands"
 )
 
-const MaxUpdateRetries = 3
+const MaxUpdateRetries = 5
 
 // NewDomainMappingUpdateCommand to create event channels
 func NewDomainMappingUpdateCommand(p *commands.KnParams) *cobra.Command {

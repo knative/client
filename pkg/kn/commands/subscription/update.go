@@ -30,7 +30,7 @@ import (
 	knmessagingv1 "knative.dev/client/pkg/messaging/v1"
 )
 
-const MaxUpdateRetries = 3
+const MaxUpdateRetries = 5
 
 // NewSubscriptionUpdateCommand to update event subscriptions
 func NewSubscriptionUpdateCommand(p *commands.KnParams) *cobra.Command {

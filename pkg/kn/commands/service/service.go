@@ -29,7 +29,7 @@ import (
 
 const (
 	// How often to retry in case of an optimistic lock error when replacing a service (--force)
-	MaxUpdateRetries = 3
+	MaxUpdateRetries = 5
 )
 
 func NewServiceCommand(p *commands.KnParams) *cobra.Command {

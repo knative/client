@@ -111,7 +111,7 @@ func (cl *knServingClient) UpdateDomainMappingWithRetry(ctx context.Context, nam
 }
 
 func updateDomainMappingWithRetry(ctx context.Context, cl KnServingClient, name string, updateFunc DomainUpdateFunc, nrRetries int) error {
-	b := retry.DefaultRetry
+	b := util.DefaultRetry
 	b.Steps = nrRetries
 	err := retry.RetryOnConflict(b, func() error {
 		return updateDomain(ctx, cl, name, updateFunc)

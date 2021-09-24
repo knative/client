@@ -29,6 +29,7 @@ import (
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 
 	knerrors "knative.dev/client/pkg/errors"
+	"knative.dev/client/pkg/util"
 )
 
 type SubscriptionUpdateFunc func(origSub *messagingv1.Subscription) (*messagingv1.Subscription, error)
@@ -107,7 +108,7 @@ func (c *subscriptionsClient) UpdateSubscriptionWithRetry(ctx context.Context, n
 }
 
 func updateSubscriptionWithRetry(ctx context.Context, c KnSubscriptionsClient, name string, updateFunc SubscriptionUpdateFunc, nrRetries int) error {
-	b := retry.DefaultRetry
+	b := util.DefaultRetry
 	b.Steps = nrRetries
 	err := retry.RetryOnConflict(b, func() error {
 		return updateSubscription(ctx, c, name, updateFunc)

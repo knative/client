@@ -106,7 +106,7 @@ func (c *pingSourcesClient) UpdatePingSourceWithRetry(ctx context.Context, name 
 }
 
 func updatePingSourceWithRetry(ctx context.Context, c KnPingSourcesClient, name string, updateFunc PingSourceUpdateFunc, nrRetries int) error {
-	b := retry.DefaultRetry
+	b := util.DefaultRetry
 	b.Steps = nrRetries
 	err := retry.RetryOnConflict(b, func() error {
 		return updatePingSource(ctx, c, name, updateFunc)

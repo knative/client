@@ -30,7 +30,7 @@ import (
 	sourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"
 )
 
-const MaxUpdateRetries = 3
+const MaxUpdateRetries = 5
 
 // NewContainerUpdateCommand for managing source update
 func NewContainerUpdateCommand(p *commands.KnParams) *cobra.Command {

@@ -73,7 +73,7 @@ func (c *containerSourcesClient) UpdateContainerSourceWithRetry(ctx context.Cont
 }
 
 func updateContainerSourceWithRetry(ctx context.Context, c KnContainerSourcesClient, name string, updateFunc ContainerUpdateFunc, nrRetries int) error {
-	b := retry.DefaultRetry
+	b := util.DefaultRetry
 	b.Steps = nrRetries
 	err := retry.RetryOnConflict(b, func() error {
 		return updateContainerSource(ctx, c, name, updateFunc)

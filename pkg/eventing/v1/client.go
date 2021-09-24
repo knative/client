@@ -148,7 +148,7 @@ func (c *knEventingClient) UpdateTriggerWithRetry(ctx context.Context, name stri
 }
 
 func updateTriggerWithRetry(ctx context.Context, c KnEventingClient, name string, updateFunc TriggerUpdateFunc, nrRetries int) error {
-	b := retry.DefaultRetry
+	b := util.DefaultRetry
 	b.Steps = nrRetries
 	updateTriggerFunc := func() error {
 		return updateTrigger(ctx, c, name, updateFunc)

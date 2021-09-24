@@ -259,7 +259,7 @@ func (cl *knServingClient) UpdateServiceWithRetry(ctx context.Context, name stri
 func updateServiceWithRetry(ctx context.Context, cl KnServingClient, name string, updateFunc ServiceUpdateFunc, nrRetries int) (bool, error) {
 	var changed bool
 	var err error
-	b := retry.DefaultRetry
+	b := util.DefaultRetry
 	b.Steps = nrRetries
 	err = retry.RetryOnConflict(b, func() error {
 		service, err := cl.GetService(ctx, name)

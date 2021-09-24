@@ -22,7 +22,7 @@ import (
 
 const (
 	// How often to retry in case of an optimistic lock error when replacing a trigger (--force)
-	MaxUpdateRetries = 3
+	MaxUpdateRetries = 5
 )
 
 // NewTriggerCommand to create trigger command group

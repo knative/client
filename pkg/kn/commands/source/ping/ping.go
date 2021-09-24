@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	MaxUpdateRetries = 3
+	MaxUpdateRetries = 5
 )
 
 // NewPingCommand is the root command for all Ping source related commands
