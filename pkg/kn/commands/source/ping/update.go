@@ -18,6 +18,8 @@ import (
 	"errors"
 	"fmt"
 
+	"knative.dev/client/pkg/config"
+
 	"github.com/spf13/cobra"
 
 	"knative.dev/client/pkg/kn/commands"
@@ -92,7 +94,7 @@ func NewPingUpdateCommand(p *commands.KnParams) *cobra.Command {
 				updatedSource := b.Build()
 				return updatedSource, nil
 			}
-			backoff := util.DefaultRetry
+			backoff := config.DefaultRetry
 			backoff.Steps = MaxUpdateRetries
 			err = pingSourceClient.UpdatePingSourceWithRetry(cmd.Context(), name, updateFunc, MaxUpdateRetries)
 

@@ -20,6 +20,8 @@ import (
 	"context"
 	"fmt"
 
+	"knative.dev/client/pkg/config"
+
 	"k8s.io/client-go/util/retry"
 
 	corev1 "k8s.io/api/core/v1"
@@ -73,7 +75,7 @@ func (c *containerSourcesClient) UpdateContainerSourceWithRetry(ctx context.Cont
 }
 
 func updateContainerSourceWithRetry(ctx context.Context, c KnContainerSourcesClient, name string, updateFunc ContainerUpdateFunc, nrRetries int) error {
-	b := util.DefaultRetry
+	b := config.DefaultRetry
 	b.Steps = nrRetries
 	err := retry.RetryOnConflict(b, func() error {
 		return updateContainerSource(ctx, c, name, updateFunc)

@@ -20,6 +20,8 @@ import (
 	"context"
 	"fmt"
 
+	"knative.dev/client/pkg/config"
+
 	"k8s.io/client-go/util/retry"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -29,7 +31,6 @@ import (
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 
 	knerrors "knative.dev/client/pkg/errors"
-	"knative.dev/client/pkg/util"
 )
 
 type SubscriptionUpdateFunc func(origSub *messagingv1.Subscription) (*messagingv1.Subscription, error)
@@ -108,7 +109,7 @@ func (c *subscriptionsClient) UpdateSubscriptionWithRetry(ctx context.Context, n
 }
 
 func updateSubscriptionWithRetry(ctx context.Context, c KnSubscriptionsClient, name string, updateFunc SubscriptionUpdateFunc, nrRetries int) error {
-	b := util.DefaultRetry
+	b := config.DefaultRetry
 	b.Steps = nrRetries
 	err := retry.RetryOnConflict(b, func() error {
 		return updateSubscription(ctx, c, name, updateFunc)

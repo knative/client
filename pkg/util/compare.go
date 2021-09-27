@@ -17,23 +17,8 @@ package util
 import (
 	"fmt"
 	"strings"
-	"time"
-
-	"k8s.io/apimachinery/pkg/util/wait"
 
 	"gotest.tools/v3/assert/cmp"
-)
-
-var (
-	// DefaultRetry is the default set of rules
-	// to be followed when retrying for conflicts during
-	// resource update
-	DefaultRetry = wait.Backoff{
-		Duration: 20 * time.Millisecond,
-		Factor:   1.5,
-		Jitter:   0.1,
-		Steps:    5,
-	}
 )
 
 // ContainsAll is a comparison utility, compares given substrings against
