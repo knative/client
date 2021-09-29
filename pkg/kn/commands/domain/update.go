@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 
+	"knative.dev/client/pkg/config"
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 
 	"github.com/spf13/cobra"
@@ -25,8 +26,6 @@ import (
 	knerrors "knative.dev/client/pkg/errors"
 	"knative.dev/client/pkg/kn/commands"
 )
-
-const MaxUpdateRetries = 5
 
 // NewDomainMappingUpdateCommand to create event channels
 func NewDomainMappingUpdateCommand(p *commands.KnParams) *cobra.Command {
@@ -70,7 +69,7 @@ func NewDomainMappingUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return toUpdate, nil
 			}
 
-			err = client.UpdateDomainMappingWithRetry(cmd.Context(), name, updateFunc, MaxUpdateRetries)
+			err = client.UpdateDomainMappingWithRetry(cmd.Context(), name, updateFunc, config.DefaultRetry.Steps)
 			if err != nil {
 				return knerrors.GetError(err)
 			}

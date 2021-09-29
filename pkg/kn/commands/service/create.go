@@ -21,6 +21,7 @@ import (
 	"io"
 	"os"
 
+	"knative.dev/client/pkg/config"
 	"knative.dev/client/pkg/kn/commands"
 	servinglib "knative.dev/client/pkg/serving"
 
@@ -208,7 +209,7 @@ func prepareAndUpdateService(ctx context.Context, client clientservingv1.KnServi
 		changed, err := client.UpdateService(ctx, service)
 		if err != nil {
 			// Retry to update when a resource version conflict exists
-			if apierrors.IsConflict(err) && retries < MaxUpdateRetries {
+			if apierrors.IsConflict(err) && retries < config.DefaultRetry.Steps {
 				retries++
 				continue
 			}

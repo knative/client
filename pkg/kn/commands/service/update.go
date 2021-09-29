@@ -19,6 +19,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"knative.dev/client/pkg/config"
 
 	"knative.dev/client/pkg/kn/commands/flags"
 	"knative.dev/client/pkg/kn/traffic"
@@ -109,7 +110,7 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			// Do the actual update with retry in case of conflicts
-			changed, err := client.UpdateServiceWithRetry(cmd.Context(), name, updateFunc, MaxUpdateRetries)
+			changed, err := client.UpdateServiceWithRetry(cmd.Context(), name, updateFunc, config.DefaultRetry.Steps)
 			if err != nil {
 				return err
 			}
