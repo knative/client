@@ -100,7 +100,7 @@ func ServiceUpdateWithError(r *KnRunResultCollector, serviceName string, args ..
 
 // ServiceDelete verifies service deletion in sync mode
 func ServiceDelete(r *KnRunResultCollector, serviceName string) {
-	out := r.KnTest().Kn().Run("service", "delete", "--wait", serviceName)
+	out := r.KnTest().Kn().Run("service", "delete", serviceName, "--wait")
 	r.AssertNoError(out)
 	assert.Check(r.T(), util.ContainsAll(out.Stdout, "Service", serviceName, "successfully deleted in namespace", r.KnTest().Kn().Namespace()))
 }
