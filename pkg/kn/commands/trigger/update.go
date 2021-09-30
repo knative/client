@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 
+	"knative.dev/client/pkg/config"
 	clientv1beta1 "knative.dev/client/pkg/eventing/v1"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 
@@ -96,7 +97,7 @@ func NewTriggerUpdateCommand(p *commands.KnParams) *cobra.Command {
 				}
 				return b.Build(), nil
 			}
-			err = eventingClient.UpdateTriggerWithRetry(cmd.Context(), name, updateFunc, MaxUpdateRetries)
+			err = eventingClient.UpdateTriggerWithRetry(cmd.Context(), name, updateFunc, config.DefaultRetry.Steps)
 			if err == nil {
 				fmt.Fprintf(cmd.OutOrStdout(), "Trigger '%s' updated in namespace '%s'.\n", name, namespace)
 			}

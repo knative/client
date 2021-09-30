@@ -94,9 +94,8 @@ func NewPingUpdateCommand(p *commands.KnParams) *cobra.Command {
 				updatedSource := b.Build()
 				return updatedSource, nil
 			}
-			backoff := config.DefaultRetry
-			backoff.Steps = MaxUpdateRetries
-			err = pingSourceClient.UpdatePingSourceWithRetry(cmd.Context(), name, updateFunc, MaxUpdateRetries)
+
+			err = pingSourceClient.UpdatePingSourceWithRetry(cmd.Context(), name, updateFunc, config.DefaultRetry.Steps)
 
 			if err == nil {
 				fmt.Fprintf(cmd.OutOrStdout(), "Ping source '%s' updated in namespace '%s'.\n", name, pingSourceClient.Namespace())
