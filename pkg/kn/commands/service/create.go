@@ -21,6 +21,7 @@ import (
 	"io"
 	"os"
 
+	"knative.dev/client/pkg/config"
 	"knative.dev/client/pkg/kn/commands"
 	servinglib "knative.dev/client/pkg/serving"
 
@@ -177,12 +178,7 @@ func waitIfRequested(ctx context.Context, client clientservingv1.KnServingClient
 }
 
 func prepareAndUpdateService(ctx context.Context, client clientservingv1.KnServingClient, service *servingv1.Service) (bool, error) {
-	var retries = 0
-	for {
-		existingService, err := client.GetService(ctx, service.Name)
-		if err != nil {
-			return false, err
-		}
+	updateFunc := func(origService *servingv1.Service) (*servingv1.Service, error) {
 
 		// Copy over some annotations that we want to keep around. Erase others
 		copyList := []string{
@@ -199,23 +195,16 @@ func prepareAndUpdateService(ctx context.Context, client clientservingv1.KnServi
 
 		// Do the actual copy now, but only if it's in the source annotation
 		for _, k := range copyList {
-			if v, ok := existingService.Annotations[k]; ok {
+			if v, ok := origService.Annotations[k]; ok {
 				service.Annotations[k] = v
 			}
 		}
 
-		service.ResourceVersion = existingService.ResourceVersion
-		changed, err := client.UpdateService(ctx, service)
-		if err != nil {
-			// Retry to update when a resource version conflict exists
-			if apierrors.IsConflict(err) && retries < MaxUpdateRetries {
-				retries++
-				continue
-			}
-			return changed, err
-		}
-		return changed, nil
+		service.ResourceVersion = origService.ResourceVersion
+		return service, nil
 	}
+	return client.UpdateServiceWithRetry(ctx, service.Name, updateFunc, config.DefaultRetry.Steps)
+
 }
 
 func waitForServiceToGetReady(ctx context.Context, client clientservingv1.KnServingClient, name string, timeout int, verbDone string, out io.Writer) error {

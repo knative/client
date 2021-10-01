@@ -18,6 +18,8 @@ import (
 	"context"
 	"fmt"
 
+	"knative.dev/client/pkg/config"
+
 	"k8s.io/client-go/util/retry"
 
 	duckv1 "knative.dev/pkg/apis/duck/v1"
@@ -111,7 +113,7 @@ func (cl *knServingClient) UpdateDomainMappingWithRetry(ctx context.Context, nam
 }
 
 func updateDomainMappingWithRetry(ctx context.Context, cl KnServingClient, name string, updateFunc DomainUpdateFunc, nrRetries int) error {
-	b := retry.DefaultRetry
+	b := config.DefaultRetry
 	b.Steps = nrRetries
 	err := retry.RetryOnConflict(b, func() error {
 		return updateDomain(ctx, cl, name, updateFunc)

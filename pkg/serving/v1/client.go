@@ -20,6 +20,8 @@ import (
 	"fmt"
 	"time"
 
+	"knative.dev/client/pkg/config"
+
 	"k8s.io/client-go/util/retry"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -259,7 +261,7 @@ func (cl *knServingClient) UpdateServiceWithRetry(ctx context.Context, name stri
 func updateServiceWithRetry(ctx context.Context, cl KnServingClient, name string, updateFunc ServiceUpdateFunc, nrRetries int) (bool, error) {
 	var changed bool
 	var err error
-	b := retry.DefaultRetry
+	b := config.DefaultRetry
 	b.Steps = nrRetries
 	err = retry.RetryOnConflict(b, func() error {
 		service, err := cl.GetService(ctx, name)

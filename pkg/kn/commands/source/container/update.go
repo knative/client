@@ -22,6 +22,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"knative.dev/client/pkg/config"
 	"knative.dev/client/pkg/kn/commands/flags"
 	knflags "knative.dev/client/pkg/kn/flags"
 
@@ -29,8 +30,6 @@ import (
 	v1 "knative.dev/client/pkg/sources/v1"
 	sourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"
 )
-
-const MaxUpdateRetries = 3
 
 // NewContainerUpdateCommand for managing source update
 func NewContainerUpdateCommand(p *commands.KnParams) *cobra.Command {
@@ -86,7 +85,7 @@ func NewContainerUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return b.Build(), nil
 			}
 
-			err = srcClient.UpdateContainerSourceWithRetry(cmd.Context(), name, updateFunc, MaxUpdateRetries)
+			err = srcClient.UpdateContainerSourceWithRetry(cmd.Context(), name, updateFunc, config.DefaultRetry.Steps)
 			if err == nil {
 				fmt.Fprintf(cmd.OutOrStdout(), "Container source '%s' updated in namespace '%s'.\n", args[0], namespace)
 			}

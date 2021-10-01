@@ -18,6 +18,8 @@ import (
 	"context"
 	"fmt"
 
+	"knative.dev/client/pkg/config"
+
 	"k8s.io/client-go/util/retry"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -106,7 +108,7 @@ func (c *pingSourcesClient) UpdatePingSourceWithRetry(ctx context.Context, name 
 }
 
 func updatePingSourceWithRetry(ctx context.Context, c KnPingSourcesClient, name string, updateFunc PingSourceUpdateFunc, nrRetries int) error {
-	b := retry.DefaultRetry
+	b := config.DefaultRetry
 	b.Steps = nrRetries
 	err := retry.RetryOnConflict(b, func() error {
 		return updatePingSource(ctx, c, name, updateFunc)

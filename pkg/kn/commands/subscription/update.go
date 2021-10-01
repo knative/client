@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 
+	"knative.dev/client/pkg/config"
 	messagingv1 "knative.dev/eventing/pkg/apis/messaging/v1"
 
 	"github.com/spf13/cobra"
@@ -29,8 +30,6 @@ import (
 	"knative.dev/client/pkg/kn/commands/flags"
 	knmessagingv1 "knative.dev/client/pkg/messaging/v1"
 )
-
-const MaxUpdateRetries = 3
 
 // NewSubscriptionUpdateCommand to update event subscriptions
 func NewSubscriptionUpdateCommand(p *commands.KnParams) *cobra.Command {
@@ -88,7 +87,7 @@ func NewSubscriptionUpdateCommand(p *commands.KnParams) *cobra.Command {
 				sb.DeadLetterSink(ds)
 				return sb.Build(), nil
 			}
-			err = client.UpdateSubscriptionWithRetry(cmd.Context(), name, updateFunc, MaxUpdateRetries)
+			err = client.UpdateSubscriptionWithRetry(cmd.Context(), name, updateFunc, config.DefaultRetry.Steps)
 			if err != nil {
 				return knerrors.GetError(err)
 			}

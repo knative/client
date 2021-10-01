@@ -19,6 +19,8 @@ import (
 	"fmt"
 	"time"
 
+	"knative.dev/client/pkg/config"
+
 	"k8s.io/client-go/util/retry"
 
 	apis_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -148,7 +150,7 @@ func (c *knEventingClient) UpdateTriggerWithRetry(ctx context.Context, name stri
 }
 
 func updateTriggerWithRetry(ctx context.Context, c KnEventingClient, name string, updateFunc TriggerUpdateFunc, nrRetries int) error {
-	b := retry.DefaultRetry
+	b := config.DefaultRetry
 	b.Steps = nrRetries
 	updateTriggerFunc := func() error {
 		return updateTrigger(ctx, c, name, updateFunc)
