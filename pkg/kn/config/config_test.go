@@ -77,7 +77,6 @@ func TestBootstrapConfigWithoutConfigFile(t *testing.T) {
 	assert.Equal(t, GlobalConfig.ConfigFile(), bootstrapDefaults.configFile)
 	assert.Equal(t, GlobalConfig.PluginsDir(), bootstrapDefaults.pluginsDir)
 	assert.Equal(t, GlobalConfig.LookupPluginsInPath(), bootstrapDefaults.lookupPluginsInPath)
-	assert.Equal(t, len(GlobalConfig.SinkMappings()), 0)
 }
 
 func TestBootstrapLegacyConfigFields(t *testing.T) {

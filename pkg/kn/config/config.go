@@ -36,6 +36,24 @@ type defaultConfig struct {
 // Initialize defaults
 var bootstrapDefaults = initDefaults()
 
+const configContentDefaults = `# Taken from https://github.com/knative/client/blob/main/docs/README.md#options
+#
+#plugins:
+#  path-lookup: true
+#  directory: ~/.config/kn/plugins
+#eventing:
+#  sink-mappings:
+#  - prefix: svc
+#    group: core
+#    version: v1
+#    resource: services
+#  channel-type-mappings:
+#  - alias: Kafka
+#    group: messaging.knative.dev
+#    version: v1alpha1
+#    kind: KafkaChannel
+`
+
 // config contains the variables for the Kn config
 type config struct {
 	// configFile is the config file location
@@ -119,18 +137,21 @@ func BootstrapConfig() error {
 		return err
 	}
 
-	// Check if configfile exists. If not, just return
+	viper.SetConfigFile(GlobalConfig.ConfigFile())
 	configFile := GlobalConfig.ConfigFile()
 	_, err = os.Lstat(configFile)
 	if err != nil {
-		if os.IsNotExist(err) {
-			// No config file to read
-			return nil
+		if !os.IsNotExist(err) {
+			return fmt.Errorf("cannot stat configfile %s: %w", configFile, err)
 		}
-		return fmt.Errorf("cannot stat configfile %s: %w", configFile, err)
+		if err := os.MkdirAll(filepath.Dir(viper.ConfigFileUsed()), 0775); err != nil {
+			return err
+		}
+		if err := os.WriteFile(viper.ConfigFileUsed(), []byte(configContentDefaults), 0600); err != nil {
+			fmt.Fprintf(os.Stderr, "WARNING: failed writing config file to %q: %s\n", configFile, err)
+		}
 	}
 
-	viper.SetConfigFile(GlobalConfig.ConfigFile())
 	viper.AutomaticEnv() // read in environment variables that match
 
 	// Defaults are taken from the parsed flags, which in turn have bootstrap defaults
