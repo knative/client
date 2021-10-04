@@ -45,7 +45,7 @@ func TestDeleteWithError(t *testing.T) {
 
 	out, err := executePingSourceCommand(pingClient, nil, "delete", "testsource")
 	assert.ErrorContains(t, err, "testsource")
-	util.ContainsAll(out, "Usage", "no such", "testsource")
+	assert.Assert(t, util.ContainsAll(out, "Usage", "no such", "testsource"))
 
 	pingRecorder.Validate()
 }
