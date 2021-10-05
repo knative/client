@@ -18,7 +18,7 @@
 
 | 🎁
 | Add `--env-file` option to function create/update command
-| https://github.com/knative/client/pull/1423[#1419]
+| https://github.com/knative/client/pull/1433[#1433]
 
 | ✨
 | Remove `DeprecatedImageDigest` field
