@@ -1669,8 +1669,8 @@ k8s.io/utils v0.0.0-20201110183641-67b214c5f920/go.mod h1:jPW/WVKK9YHAvNhRxK0md/
 k8s.io/utils v0.0.0-20210111153108-fddb29f9d009 h1:0T5IaWHO3sJTEmCP6mUlBvMukxPKUQWqiI/YuiBNMiQ=
 k8s.io/utils v0.0.0-20210111153108-fddb29f9d009/go.mod h1:jPW/WVKK9YHAvNhRxK0md/EJ228hCsBRufyofKtW8HA=
 knative.dev/caching v0.0.0-20210923061712-f2ac32bda031/go.mod h1:FENM93IwhZILPKQLrERGYvWoJXixk/bswKroV1XEXFo=
-knative.dev/eventing v0.26.1-0.20211002094024-2e917e181ebb h1:wBrQHTQ04lBgRclL0KlSGUOnTWcIJGM6n/Io02X7wRw=
-knative.dev/eventing v0.26.1-0.20211002094024-2e917e181ebb/go.mod h1:ZRug9kw23qiEdqJQzYDNZMFX0HLsJP2AoqHJT3AtxuY=
+knative.dev/eventing v0.26.1-0.20211005140853-8274c41b142e h1:d9b5ljgo6QbiMNZb38Z9UKWJKB3cKp2rcx+MGxZsfdM=
+knative.dev/eventing v0.26.1-0.20211005140853-8274c41b142e/go.mod h1:ZRug9kw23qiEdqJQzYDNZMFX0HLsJP2AoqHJT3AtxuY=
 knative.dev/hack v0.0.0-20210806075220-815cd312d65c h1:nOXoDWAAItwr4o0dp3nHr6skgpVD4IvME/UX84YNl5k=
 knative.dev/hack v0.0.0-20210806075220-815cd312d65c/go.mod h1:PHt8x8yX5Z9pPquBEfIj0X66f8iWkWfR0S/sarACJrI=
 knative.dev/hack/schema v0.0.0-20210806075220-815cd312d65c/go.mod h1:ffjwmdcrH5vN3mPhO8RrF2KfNnbHeCE2C60A+2cv3U0=
@@ -1679,11 +1679,12 @@ knative.dev/networking v0.0.0-20211001132006-8da57ce00036 h1:oabrc/w08b/ZG9hozW5
 knative.dev/networking v0.0.0-20211001132006-8da57ce00036/go.mod h1:IQMjYdQwtOsqJ+fQDs8MZGB/cPxXdMc4bpP7fdtXp2Q=
 knative.dev/pkg v0.0.0-20210914164111-4857ab6939e3/go.mod h1:jMSqkNMsrzuy+XR4Yr/BMy7SDVbUOl3KKB6+5MR+ZU8=
 knative.dev/pkg v0.0.0-20210919202233-5ae482141474/go.mod h1:jMSqkNMsrzuy+XR4Yr/BMy7SDVbUOl3KKB6+5MR+ZU8=
-knative.dev/pkg v0.0.0-20210929111822-2267a4cbebb8 h1:Ut2Z22rH5WfybI5hjEfi9fDU7rK6kIduWpSAgoEXh7M=
 knative.dev/pkg v0.0.0-20210929111822-2267a4cbebb8/go.mod h1:r27D20afKNeK+9aNOg+0qMv8JgQcyeP+CAYQIR1jEQY=
+knative.dev/pkg v0.0.0-20211005203644-a00ba487121e h1:gLyCvMSW2wAN4g3J60nJ9L1Ywzn1DbVMfoNMHR+164w=
+knative.dev/pkg v0.0.0-20211005203644-a00ba487121e/go.mod h1:r27D20afKNeK+9aNOg+0qMv8JgQcyeP+CAYQIR1jEQY=
 knative.dev/reconciler-test v0.0.0-20210930064245-45904ca4383d/go.mod h1:6yDmb26SINSmgw6wVy9qQwgRMewiW8ddkkwGLR0ZvOY=
-knative.dev/serving v0.26.1-0.20210930173446-b2c010469f2a h1:YBalvGwCN2GvEcoSsDIp1mxDd+URW9Rj8hXl+rtl80Q=
-knative.dev/serving v0.26.1-0.20210930173446-b2c010469f2a/go.mod h1:Ha6S1L37YGHiGGucHMkL92Lcg/zgAqZVFuhdZbkoFdI=
+knative.dev/serving v0.26.1-0.20211005205644-365f68bb9489 h1:qsO6CY6+KKJiLixie1pIq1ChOZ1e2CEgemB51F9+m6o=
+knative.dev/serving v0.26.1-0.20211005205644-365f68bb9489/go.mod h1:Ha6S1L37YGHiGGucHMkL92Lcg/zgAqZVFuhdZbkoFdI=
 pgregory.net/rapid v0.3.3/go.mod h1:UYpPVyjFHzYBGHIxLFoupi8vwk6rXNzRY9OMvVxFIOU=
 rsc.io/binaryregexp v0.2.0/go.mod h1:qTv7/COck+e2FymRvadv62gMdZztPaShugOCi3I+8D8=
 rsc.io/quote/v3 v3.1.0/go.mod h1:yEA65RcK8LyAZtP9Kv3t0HmxON59tX3rD+tICJqUlj0=
