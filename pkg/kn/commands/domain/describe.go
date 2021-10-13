@@ -88,7 +88,16 @@ func describe(w io.Writer, domainMapping *v1alpha1.DomainMapping, printDetails b
 	commands.WriteMetadata(dw, &domainMapping.ObjectMeta, printDetails)
 	dw.WriteLine()
 	dw.WriteAttribute("URL", domainMapping.Status.URL.String())
-	dw.WriteAttribute("Service", domainMapping.Spec.Ref.Name)
+	ref := dw.WriteAttribute("Reference", "")
+	ref.WriteAttribute("APIVersion", domainMapping.Spec.Ref.APIVersion)
+	ref.WriteAttribute("Kind", domainMapping.Spec.Ref.Kind)
+	ref.WriteAttribute("Name", domainMapping.Spec.Ref.Name)
+	if domainMapping.Namespace != domainMapping.Spec.Ref.Namespace {
+		ref.WriteAttribute("Namespace", domainMapping.Spec.Ref.Namespace)
+	}
+	if err := ref.Flush(); err != nil {
+		return err
+	}
 	dw.WriteLine()
 	commands.WriteConditions(dw, domainMapping.Status.Conditions, printDetails)
 	if err := dw.Flush(); err != nil {

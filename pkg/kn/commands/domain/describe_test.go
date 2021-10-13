@@ -42,6 +42,9 @@ func TestDomainMappingDescribe(t *testing.T) {
 	assert.Assert(t, cmp.Regexp("Name:\\s+foo.bar", out))
 	assert.Assert(t, cmp.Regexp("Namespace:\\s+default", out))
 	assert.Assert(t, util.ContainsAll(out, "URL:", "http://foo.bar"))
+	assert.Assert(t, cmp.Regexp("Reference:", out))
+	assert.Assert(t, cmp.Regexp("Kind:\\s+Service", out))
+	assert.Assert(t, cmp.Regexp("Name:\\s+foo", out))
 	assert.Assert(t, util.ContainsAll(out, "Conditions:", "Ready"))
 
 	// There're 2 empty lines used in the "describe" formatting
