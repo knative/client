@@ -39,6 +39,11 @@ func TestDomain(t *testing.T) {
 	r := test.NewKnRunResultCollector(t, it)
 	defer r.DumpIfFailed()
 
+	kubectl := test.NewKubectl("knative-serving")
+	_, err = kubectl.Run("patch", "cm", "config-network", "--patch={\"data\":{\"autocreateClusterDomainClaims\":\"true\"}}")
+	assert.NilError(t, err)
+	defer kubectl.Run("patch", "cm", "config-network", "--patch={\"data\":{\"autocreateClusterDomainClaims\":\"false\"}}")
+
 	domainName := "hello.example.com"
 
 	t.Log("create domain mapping to hello ksvc")
