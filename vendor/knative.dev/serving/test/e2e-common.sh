@@ -22,7 +22,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/e2e-networking-library.sh"
 export CERT_MANAGER_VERSION="latest"
 # Since default is istio, make default ingress as istio
 export INGRESS_CLASS=${INGRESS_CLASS:-istio.ingress.networking.knative.dev}
-export ISTIO_VERSION="stable"
+export ISTIO_VERSION="latest"
 export KOURIER_VERSION=""
 export AMBASSADOR_VERSION=""
 export CONTOUR_VERSION=""
@@ -545,9 +545,5 @@ function run_ytt() {
 
 
 function run_kapp() {
-  # TODO drop the sha when kapp releases a version with the
-  # following bug fix included
-  #
-  # https://github.com/vmware-tanzu/carvel-kapp/pull/213
-  run_go_tool github.com/k14s/kapp/cmd/kapp@d5b8c43b5678 kapp "$@"
+  run_go_tool github.com/k14s/kapp/cmd/kapp kapp "$@"
 }
