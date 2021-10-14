@@ -17,6 +17,7 @@ package commands
 import (
 	"fmt"
 	"io"
+	"time"
 
 	"os"
 	"path/filepath"
@@ -199,6 +200,8 @@ func (params *KnParams) RestConfig() (*rest.Config, error) {
 		// only print a given warning the first time we receive it
 		Deduplicate: true,
 	})
+
+	config.Timeout = time.Minute
 
 	return config, nil
 }
