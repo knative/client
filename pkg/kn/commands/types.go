@@ -201,7 +201,7 @@ func (params *KnParams) RestConfig() (*rest.Config, error) {
 		Deduplicate: true,
 	})
 
-	config.Timeout = time.Minute
+	config.Timeout = 3 * time.Minute
 
 	return config, nil
 }
