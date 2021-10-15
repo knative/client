@@ -12,9 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build e2e
-// +build !serving
-// +build !project_admin
+//go:build e2e && !serving && !project_admin
+// +build e2e,!serving,!project_admin
 
 package e2e
 
