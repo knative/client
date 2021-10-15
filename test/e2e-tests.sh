@@ -37,7 +37,7 @@ export PATH=$PATH:${REPO_ROOT_DIR}
 
 run() {
   # Create cluster
-  initialize $@ --skip-istio-addon --cluster-version=1.20
+  initialize $@ --skip-istio-addon --cluster-version=1.20 --min-nodes=3
 
   # Smoke test
   eval smoke_test || fail_test
