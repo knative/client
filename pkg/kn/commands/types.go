@@ -193,7 +193,7 @@ func (params *KnParams) RestConfig() (*rest.Config, error) {
 		return nil, knerrors.GetError(err)
 	}
 	//if params.LogHTTP {
-		config.Wrap(util.NewLoggingTransport)
+	config.Wrap(util.NewLoggingTransport)
 	//}
 	// Override client-go's warning handler to give us nicely printed warnings.
 	config.WarningHandler = rest.NewWarningWriter(os.Stderr, rest.WarningWriterOptions{
