@@ -193,7 +193,7 @@ func TestCompute(t *testing.T) {
 			testCmd, tFlags := newTestTrafficCommand()
 			testCmd.SetArgs(testCase.inputFlags)
 			testCmd.Execute()
-			targets, err := Compute(testCmd, testCase.existingTraffic, tFlags, "serviceName")
+			targets, err := Compute(testCmd, testCase.existingTraffic, tFlags, "serviceName", nil)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -263,8 +263,8 @@ func TestComputeErrMsg(t *testing.T) {
 		{
 			"verify error for traffic sum not equal to 100",
 			append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("", "", 100, true)),
-			[]string{"--traffic", "@latest=19,echo-v1=71"},
-			"given traffic percents sum to 90, want 100",
+			[]string{"--traffic", "@latest=40,echo-v1=70"},
+			"given traffic percents sum to 110, want 100",
 		},
 		{
 			"verify error for values out of range given to percent",
@@ -295,7 +295,7 @@ func TestComputeErrMsg(t *testing.T) {
 			testCmd, tFlags := newTestTrafficCommand()
 			testCmd.SetArgs(testCase.inputFlags)
 			testCmd.Execute()
-			_, err := Compute(testCmd, testCase.existingTraffic, tFlags, "serviceName")
+			_, err := Compute(testCmd, testCase.existingTraffic, tFlags, "serviceName", nil)
 			assert.Error(t, err, testCase.errMsg)
 		})
 	}

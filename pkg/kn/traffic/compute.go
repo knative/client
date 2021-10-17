@@ -20,6 +20,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"knative.dev/client/pkg/kn/commands/revision"
 	"knative.dev/pkg/ptr"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
@@ -212,13 +213,18 @@ func errorRepeatingRevision(forFlag string, name string) error {
 		"is not allowed, use only once with %s flag", name, forFlag)
 }
 
+func errorTrafficDistribution() error {
+	return fmt.Errorf("could not determine the traffic disribution")
+}
+
 // verifies if user has repeated @latest field in --tag or --traffic flags
 // verifyInput checks:
 // - if user has repeated @latest field in --tag or --traffic flags
 // - if provided traffic portion are integers
-func verifyInput(trafficFlags *flags.Traffic) error {
+func verifyInput(trafficFlags *flags.Traffic, revisions []servingv1.Revision) error {
 	var latestRevisionTag = false
 	var sum = 0
+	var revisionCount = len(revisions)
 
 	for _, each := range trafficFlags.RevisionsTags {
 		revision, _, err := splitByEqualSign(each)
@@ -236,6 +242,7 @@ func verifyInput(trafficFlags *flags.Traffic) error {
 	}
 
 	revisionRefMap := make(map[string]int)
+	var latestNameFound bool
 	for i, each := range trafficFlags.RevisionsPercentages {
 		revisionRef, percent, err := splitByEqualSign(each)
 		if err != nil {
@@ -245,6 +252,10 @@ func verifyInput(trafficFlags *flags.Traffic) error {
 		// To check if there are duplicate revision names in traffic flags
 		if _, exist := revisionRefMap[revisionRef]; exist {
 			return errorRepeatingRevision("--traffic", revisionRef)
+		}
+
+		if revisionRef == latestRevisionRef {
+			latestNameFound = true
 		}
 		revisionRefMap[revisionRef] = i
 
@@ -260,18 +271,42 @@ func verifyInput(trafficFlags *flags.Traffic) error {
 		sum += percentInt
 	}
 
+	revPercents := len(trafficFlags.RevisionsPercentages)
 	// equivalent check for `cmd.Flags().Changed("traffic")` as we don't have `cmd` in this function
-	if len(trafficFlags.RevisionsPercentages) > 0 && sum != 100 {
-		return fmt.Errorf("given traffic percents sum to %d, want 100", sum)
+	if revPercents > 0 {
+		if sum > 100 {
+			return fmt.Errorf("given traffic percents sum to %d, want 100", sum)
+		}
+		if sum < 100 && revPercents != revisionCount-1 {
+			return fmt.Errorf("given traffic percents sum to %d and number of revs is %d but should be %d - 1", sum, revPercents, revisionCount)
+		}
+		if sum < 100 && revPercents == revisionCount-1 {
+			if latestNameFound {
+				return errorTrafficDistribution()
+			}
+			for _, rev := range revisions {
+				if !checkRevisionPresent(revisionRefMap, rev) {
+					trafficFlags.RevisionsPercentages = append(trafficFlags.RevisionsPercentages, fmt.Sprintf("%s=%d", rev.Name, 100-sum))
+					return nil
+				}
+			}
+			return errorTrafficDistribution()
+		}
 	}
 
 	return nil
 }
 
+func checkRevisionPresent(refMap map[string]int, rev servingv1.Revision) bool {
+	_, nameExists := refMap[rev.Name]
+	_, tagExists := refMap[rev.Annotations[revision.RevisionTagsAnnotation]]
+	return tagExists || nameExists
+}
+
 // Compute takes service traffic targets and updates per given traffic flags
 func Compute(cmd *cobra.Command, targets []servingv1.TrafficTarget,
-	trafficFlags *flags.Traffic, serviceName string) ([]servingv1.TrafficTarget, error) {
-	err := verifyInput(trafficFlags)
+	trafficFlags *flags.Traffic, serviceName string, revisions []servingv1.Revision) ([]servingv1.TrafficTarget, error) {
+	err := verifyInput(trafficFlags, revisions)
 	if err != nil {
 		return nil, err
 	}
