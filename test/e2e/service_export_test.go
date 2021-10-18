@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build e2e
-// +build !eventing
+//go:build e2e && !eventing
+// +build e2e,!eventing
 
 package e2e
 
