@@ -131,6 +131,23 @@ func TestTrafficSplit(t *testing.T) {
 			test.ServiceDelete(r, serviceName)
 		},
 	)
+	t.Run("45:55 automatic traffic split", func(t *testing.T) {
+		t.Log("direct 45% traffic explicitly to 1st rev and remaining automatically to second")
+		r := test.NewKnRunResultCollector(t, it)
+		defer r.DumpIfFailed()
+
+		serviceName := test.GetNextServiceName(serviceBase)
+		test.ServiceCreate(r, serviceName)
+		test.ServiceUpdate(r, serviceName, "--env", "TARGET=v1")
+
+		rev1 := fmt.Sprintf("%s-00001", serviceName)
+		rev2 := fmt.Sprintf("%s-00002", serviceName)
+
+		test.ServiceUpdate(r, serviceName, "--traffic", fmt.Sprintf("%s=45", rev1))
+		expectedTargets := []TargetFields{newTargetFields("", rev1, 45, false), newTargetFields("", rev2, 55, false)}
+		verifyTargets(r, serviceName, expectedTargets, false)
+		test.ServiceDelete(r, serviceName)
+	})
 	t.Run("TagCandidate",
 		func(t *testing.T) {
 			t.Log("tag a revision as candidate, without otherwise changing any traffic split")
