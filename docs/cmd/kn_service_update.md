@@ -34,6 +34,12 @@ kn service update NAME
   kn service update gitopstest -n test-ns --env KEY1=VALUE1 --target=/user/knfiles
   kn service update gitopstest --env KEY1=VALUE1 --target=/user/knfiles/test.yaml
   kn service update gitopstest --env KEY1=VALUE1 --target=/user/knfiles/test.json
+
+
+  # Split 50% traffic to stable, 40% traffic to staging and the
+  # rest will automatically be directed to echo-v3 (the remaining revision)
+  kn service update svc --traffic stable=50,staging=45
+
 ```
 
 ### Options

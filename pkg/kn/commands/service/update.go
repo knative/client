@@ -53,7 +53,13 @@ var updateExample = `
   # Update the service in offline mode instead of kubernetes cluster
   kn service update gitopstest -n test-ns --env KEY1=VALUE1 --target=/user/knfiles
   kn service update gitopstest --env KEY1=VALUE1 --target=/user/knfiles/test.yaml
-  kn service update gitopstest --env KEY1=VALUE1 --target=/user/knfiles/test.json`
+  kn service update gitopstest --env KEY1=VALUE1 --target=/user/knfiles/test.json
+
+
+  # Split 50% traffic to stable, 40% traffic to staging and the
+  # rest will automatically be directed to echo-v3 (the remaining revision)
+  kn service update svc --traffic stable=50,staging=45
+`
 
 func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 	var editFlags ConfigurationEditFlags

@@ -29,6 +29,12 @@ import (
 
 var latestRevisionRef = "@latest"
 
+const (
+	errorDistributionRevisionCount = iota
+	errorDistributionLatestTag
+	errorDistributionRevisionNotFound
+)
+
 // ServiceTraffic type for operating on service traffic targets
 type ServiceTraffic []servingv1.TrafficTarget
 
@@ -213,8 +219,17 @@ func errorRepeatingRevision(forFlag string, name string) error {
 		"is not allowed, use only once with %s flag", name, forFlag)
 }
 
-func errorTrafficDistribution() error {
-	return fmt.Errorf("could not determine the traffic disribution")
+func errorTrafficDistribution(sum int, reason int) error {
+	errMsg := ""
+	switch reason {
+	case errorDistributionRevisionCount:
+		errMsg = "incorrect number of revisions specified. Only 1 revision should be missing"
+	case errorDistributionLatestTag:
+		errMsg = "cannot determine traffic split when @latest tag is specified"
+	case errorDistributionRevisionNotFound:
+		errMsg = "cannot determine the missing revision"
+	}
+	return fmt.Errorf("unable to allocate the remaining traffic %d. %s", 100-sum, errMsg)
 }
 
 // verifies if user has repeated @latest field in --tag or --traffic flags
@@ -278,11 +293,11 @@ func verifyInput(trafficFlags *flags.Traffic, revisions []servingv1.Revision) er
 			return fmt.Errorf("given traffic percents sum to %d, want 100", sum)
 		}
 		if sum < 100 && revPercents != revisionCount-1 {
-			return fmt.Errorf("given traffic percents sum to %d and number of revs is %d but should be %d - 1", sum, revPercents, revisionCount)
+			return errorTrafficDistribution(sum, errorDistributionRevisionCount)
 		}
 		if sum < 100 && revPercents == revisionCount-1 {
 			if latestNameFound {
-				return errorTrafficDistribution()
+				return errorTrafficDistribution(sum, errorDistributionLatestTag)
 			}
 			for _, rev := range revisions {
 				if !checkRevisionPresent(revisionRefMap, rev) {
@@ -290,7 +305,7 @@ func verifyInput(trafficFlags *flags.Traffic, revisions []servingv1.Revision) er
 					return nil
 				}
 			}
-			return errorTrafficDistribution()
+			return errorTrafficDistribution(sum, errorDistributionRevisionNotFound)
 		}
 	}
 

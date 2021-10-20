@@ -17,6 +17,7 @@ package traffic
 import (
 	"gotest.tools/v3/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"knative.dev/client/pkg/kn/commands/revision"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	"testing"
@@ -327,7 +328,7 @@ func TestComputeErrMsg(t *testing.T) {
 			name:            "traffic split sum < 100 should have N-1 revisions specified",
 			existingTraffic: append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("", "rev-00001", 0, false), newTarget("", "rev-00002", 0, false), newTarget("", "rev-00003", 100, false)),
 			inputFlags:      []string{"--traffic", "rev-00001=10"},
-			errMsg:          "given traffic percents sum to 10 and number of revs is 1 but should be 3 - 1",
+			errMsg:          errorTrafficDistribution(10, errorDistributionRevisionCount).Error(),
 			existingRevisions: []servingv1.Revision{{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "rev-00001",
@@ -355,12 +356,43 @@ func TestComputeErrMsg(t *testing.T) {
 			name:            "traffic split sum < 100 should not have @latest specified",
 			existingTraffic: append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("", "rev-00001", 0, false), newTarget("", "rev-00002", 0, false), newTarget("", "rev-00003", 100, true)),
 			inputFlags:      []string{"--traffic", "rev-00001=10,@latest=20"},
-			errMsg:          errorTrafficDistribution().Error(),
+			errMsg:          errorTrafficDistribution(30, errorDistributionLatestTag).Error(),
 			existingRevisions: []servingv1.Revision{{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "rev-00001",
 					Labels: map[string]string{
 						"serving.knative.dev/service": "serviceName",
+					},
+				},
+			}, {
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "rev-00002",
+					Labels: map[string]string{
+						"serving.knative.dev/service": "serviceName",
+					},
+				},
+			}, {
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "rev-00003",
+					Labels: map[string]string{
+						"serving.knative.dev/service": "serviceName",
+					},
+				},
+			}},
+		},
+		{
+			name:            "traffic split sum < 100 error when remaining revision not found",
+			existingTraffic: append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("rev-00003", "rev-00001", 0, false), newTarget("", "rev-00002", 0, false), newTarget("", "rev-00003", 100, true)),
+			inputFlags:      []string{"--traffic", "rev-00003=10,rev-00002=20"},
+			errMsg:          errorTrafficDistribution(30, errorDistributionRevisionNotFound).Error(),
+			existingRevisions: []servingv1.Revision{{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "rev-00001",
+					Labels: map[string]string{
+						"serving.knative.dev/service": "serviceName",
+					},
+					Annotations: map[string]string{
+						revision.RevisionTagsAnnotation: "rev-00003",
 					},
 				},
 			}, {
