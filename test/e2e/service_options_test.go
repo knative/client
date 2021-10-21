@@ -109,9 +109,9 @@ func TestServiceOptions(t *testing.T) {
 	test.ServiceDelete(r, "svc3a")
 
 	t.Log("create, update and validate service with autoscale window option")
-	serviceCreateWithOptions(r, "svc4", "--autoscale-window", "1m")
+	serviceCreateWithOptions(r, "svc4", "--scale-window", "1m")
 	validateAutoscaleWindow(r, "svc4", "1m")
-	test.ServiceUpdate(r, "svc4", "--autoscale-window", "15s")
+	test.ServiceUpdate(r, "svc4", "--scale-window", "15s")
 	validateAutoscaleWindow(r, "svc4", "15s")
 	test.ServiceDelete(r, "svc4")
 

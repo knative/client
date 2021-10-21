@@ -64,11 +64,11 @@ func UpdateMaxScale(template *servingv1.RevisionTemplateSpec, max int) error {
 	return UpdateRevisionTemplateAnnotation(template, autoscaling.MaxScaleAnnotationKey, strconv.Itoa(max))
 }
 
-// UpdateAutoscaleWindow updates the autoscale window annotation
-func UpdateAutoscaleWindow(template *servingv1.RevisionTemplateSpec, window string) error {
+// UpdateScaleWindow updates the autoscale window annotation
+func UpdateScaleWindow(template *servingv1.RevisionTemplateSpec, window string) error {
 	_, err := time.ParseDuration(window)
 	if err != nil {
-		return fmt.Errorf("invalid duration for 'autoscale-window': %w", err)
+		return fmt.Errorf("invalid duration for 'scale-window': %w", err)
 	}
 	return UpdateRevisionTemplateAnnotation(template, autoscaling.WindowAnnotationKey, window)
 }
