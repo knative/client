@@ -318,7 +318,7 @@ func (p *ConfigurationEditFlags) Apply(
 		}
 	}
 
-	if cmd.Flags().Changed("autoscale-window") {
+	if cmd.Flags().Changed("scale-window") || cmd.Flags().Changed("autoscale-window") {
 		err = servinglib.UpdateScaleWindow(template, p.ScaleWindow)
 		if err != nil {
 			return err
