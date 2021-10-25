@@ -108,12 +108,14 @@ func TestServiceOptions(t *testing.T) {
 	validateServiceAnnotations(r, "svc3a", map[string]string{"alpha": "direwolf", "brave": ""})
 	test.ServiceDelete(r, "svc3a")
 
-	t.Log("create, update and validate service with autoscale window option")
-	serviceCreateWithOptions(r, "svc4", "--scale-window", "1m")
-	validateAutoscaleWindow(r, "svc4", "1m")
-	test.ServiceUpdate(r, "svc4", "--scale-window", "15s")
-	validateAutoscaleWindow(r, "svc4", "15s")
-	test.ServiceDelete(r, "svc4")
+	t.Log("create, update and validate service with scale window option")
+	for _, option := range []string{"--scale-window", "--autoscale-window"} {
+		serviceCreateWithOptions(r, "svc4", option, "1m")
+		validateScaleWindow(r, "svc4", "1m")
+		test.ServiceUpdate(r, "svc4", option, "15s")
+		validateScaleWindow(r, "svc4", "15s")
+		test.ServiceDelete(r, "svc4")
+	}
 
 	t.Log("create, update and validate service with cmd and arg options")
 	serviceCreateWithOptions(r, "svc5", "--cmd", "/ko-app/helloworld")
@@ -272,7 +274,7 @@ func validateServiceConcurrencyUtilization(r *test.KnRunResultCollector, service
 	r.AssertNoError(out)
 }
 
-func validateAutoscaleWindow(r *test.KnRunResultCollector, serviceName, window string) {
+func validateScaleWindow(r *test.KnRunResultCollector, serviceName, window string) {
 	jsonpath := "jsonpath={.items[0].spec.template.metadata.annotations.autoscaling\\.knative\\.dev/window}"
 	out := r.KnTest().Kn().Run("service", "list", serviceName, "-o", jsonpath)
 	assert.Equal(r.T(), out.Stdout, window)
