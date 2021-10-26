@@ -32,7 +32,7 @@ kn service update NAME
 
   # Split 50% traffic to stable, 40% traffic to staging and the
   # rest will automatically be directed to echo-v3 (the remaining revision)
-  kn service update svc --traffic stable=50,staging=45
+  kn service update svc --traffic stable=50,staging=40
 
   # Update the service in offline mode instead of kubernetes cluster
   kn service update gitopstest -n test-ns --env KEY1=VALUE1 --target=/user/knfiles
