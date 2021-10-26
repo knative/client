@@ -21,6 +21,9 @@
 | Deprecate `--autoscale-window` in favor of `--scale-window`
 | https://github.com/knative/client/pull/1454[#1454]
 
+| ✨
+| Deprecate `--concurrency-target` and `--concurrency-utilization` in favor of `--scale-target` and `--scale-utilization`, respectively
+| https://github.com/knative/client/pull/1454[#1454]
 |===
 
 ## v0.26.0 (2021-09-22)

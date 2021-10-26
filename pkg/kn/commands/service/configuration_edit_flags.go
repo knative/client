@@ -44,7 +44,7 @@ type ConfigurationEditFlags struct {
 	ScaleTarget         int
 	ConcurrencyLimit    int
 	ScaleUtilization    int
-	AutoscaleWindow     string
+	ScaleWindow         string
 	Labels              []string
 	LabelsService       []string
 	LabelsRevision      []string
@@ -54,22 +54,6 @@ type ConfigurationEditFlags struct {
 	AnnotationsRevision []string
 	ClusterLocal        bool
 	ScaleInit           int
-	Scale                  string
-	MinScale               int
-	MaxScale               int
-	ConcurrencyTarget      int
-	ConcurrencyLimit       int
-	ConcurrencyUtilization int
-	ScaleWindow            string
-	Labels                 []string
-	LabelsService          []string
-	LabelsRevision         []string
-	RevisionName           string
-	Annotations            []string
-	AnnotationsService     []string
-	AnnotationsRevision    []string
-	ClusterLocal           bool
-	ScaleInit              int
 
 	// Preferences about how to do the action.
 	LockToDigest         bool
