@@ -42,6 +42,9 @@ func TestDomainMappingDescribe(t *testing.T) {
 	assert.Assert(t, cmp.Regexp("Name:\\s+foo.bar", out))
 	assert.Assert(t, cmp.Regexp("Namespace:\\s+default", out))
 	assert.Assert(t, util.ContainsAll(out, "URL:", "http://foo.bar"))
+	assert.Assert(t, cmp.Regexp("Reference:", out))
+	assert.Assert(t, cmp.Regexp("Kind:\\s+Service", out))
+	assert.Assert(t, cmp.Regexp("Name:\\s+foo", out))
 	assert.Assert(t, util.ContainsAll(out, "Conditions:", "Ready"))
 
 	// There're 2 empty lines used in the "describe" formatting
@@ -51,7 +54,27 @@ func TestDomainMappingDescribe(t *testing.T) {
 			lineCounter++
 		}
 	}
-	assert.Equal(t, lineCounter, 2)
+	assert.Equal(t, lineCounter, 3)
+
+	servingRecorder.Validate()
+}
+
+func TestDomainMappingDescribeDiffNamespace(t *testing.T) {
+	client := v1alpha1.NewMockKnServiceClient(t)
+
+	servingRecorder := client.Recorder()
+	servingRecorder.GetDomainMapping("foo.bar", getDomainMapping("otherNS"), nil)
+
+	out, err := executeDomainCommand(client, nil, "describe", "foo.bar")
+	assert.NilError(t, err)
+	assert.Assert(t, cmp.Regexp("Name:\\s+foo.bar", out))
+	assert.Assert(t, cmp.Regexp("Namespace:\\s+default", out))
+	assert.Assert(t, util.ContainsAll(out, "URL:", "http://foo.bar"))
+	assert.Assert(t, cmp.Regexp("Reference:", out))
+	assert.Assert(t, cmp.Regexp("Kind:\\s+Service", out))
+	assert.Assert(t, cmp.Regexp("Name:\\s+foo", out))
+	assert.Assert(t, cmp.Regexp("Namespace:\\s+otherNS", out))
+	assert.Assert(t, util.ContainsAll(out, "Conditions:", "Ready"))
 
 	servingRecorder.Validate()
 }
@@ -64,6 +87,24 @@ func TestDomainMappingDescribeError(t *testing.T) {
 
 	_, err := executeDomainCommand(client, nil, "describe", "foo.bar")
 	assert.ErrorContains(t, err, "foo", "not found")
+
+	servingRecorder.Validate()
+}
+
+func TestDomainMappingDescribeNameError(t *testing.T) {
+	client := v1alpha1.NewMockKnServiceClient(t)
+
+	servingRecorder := client.Recorder()
+
+	_, err := executeDomainCommand(client, nil, "describe")
+	assert.Assert(t, err != nil)
+	assert.Assert(t, util.ContainsAll(err.Error(), "name", "single", "argument"))
+
+	servingRecorder.Validate()
+
+	_, err = executeDomainCommand(client, nil, "describe", "foo", "bar")
+	assert.Assert(t, err != nil)
+	assert.Assert(t, util.ContainsAll(err.Error(), "name", "single", "argument"))
 
 	servingRecorder.Validate()
 }
@@ -94,11 +135,15 @@ func TestDomainMappingDescribeYAML(t *testing.T) {
 	servingRecorder.Validate()
 }
 
-func getDomainMapping() *servingv1alpha1.DomainMapping {
-	dm := createDomainMapping("foo.bar", createServiceRef("foo", "default"), "")
+func getDomainMapping(ns ...string) *servingv1alpha1.DomainMapping {
+	serviceNamespace := "default"
+	if len(ns) == 1 {
+		serviceNamespace = ns[0]
+	}
+	dm := createDomainMapping("foo.bar", createServiceRef("foo", serviceNamespace), "")
 	dm.TypeMeta = v1.TypeMeta{
 		Kind:       "DomainMapping",
-		APIVersion: "serving.knative.dev/v1alpha1",
+		APIVersion: servingv1alpha1.SchemeGroupVersion.String(),
 	}
 	dm.Status = servingv1alpha1.DomainMappingStatus{
 		Status: duckv1.Status{
