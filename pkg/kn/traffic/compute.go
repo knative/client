@@ -232,15 +232,103 @@ func errorTrafficDistribution(sum int, reason int) error {
 	return fmt.Errorf("unable to allocate the remaining traffic %d. %s", 100-sum, errMsg)
 }
 
+func errorSumGreaterThan100(sum int) error {
+	return fmt.Errorf("given traffic percents sum to %d, want <=100", sum)
+}
+
 // verifies if user has repeated @latest field in --tag or --traffic flags
 // verifyInput checks:
 // - if user has repeated @latest field in --tag or --traffic flags
 // - if provided traffic portion are integers
 func verifyInput(trafficFlags *flags.Traffic, revisions []servingv1.Revision) error {
-	var latestRevisionTag = false
-	var sum = 0
+	// check if traffic is being sent to @latest tag
+	var latestRefTraffic bool
+
+	// number of revisions
 	var revisionCount = len(revisions)
 
+	err := verifyLatestTag(trafficFlags)
+	if err != nil {
+		return err
+	}
+
+	revisionRefMap, sum, err := verifyRevisionSumAndReferences(trafficFlags)
+	if err != nil {
+		return err
+	}
+
+	if _, ok := revisionRefMap[latestRevisionRef]; ok {
+		// traffic has been routed to @latest tag
+		latestRefTraffic = true
+	}
+
+	// number of revisions specified in traffic flags
+	specRevPercentCount := len(trafficFlags.RevisionsPercentages)
+	// equivalent check for `cmd.Flags().Changed("traffic")` as we don't have `cmd` in this function
+	if specRevPercentCount > 0 {
+		if sum > 100 {
+			return errorSumGreaterThan100(sum)
+		}
+		if sum < 100 && specRevPercentCount != revisionCount-1 {
+			return errorTrafficDistribution(sum, errorDistributionRevisionCount)
+		}
+		if sum < 100 && specRevPercentCount == revisionCount-1 {
+			if latestRefTraffic {
+				return errorTrafficDistribution(sum, errorDistributionLatestTag)
+			}
+			for _, rev := range revisions {
+				if !checkRevisionPresent(revisionRefMap, rev) {
+					trafficFlags.RevisionsPercentages = append(trafficFlags.RevisionsPercentages, fmt.Sprintf("%s=%d", rev.Name, 100-sum))
+					return nil
+				}
+			}
+			return errorTrafficDistribution(sum, errorDistributionRevisionNotFound)
+		}
+	}
+
+	return nil
+}
+
+func verifyRevisionSumAndReferences(trafficFlags *flags.Traffic) (revisionRefMap map[string]int, sum int, err error) {
+
+	revisionRefMap = make(map[string]int)
+	for i, each := range trafficFlags.RevisionsPercentages {
+		var revisionRef, percent string
+		revisionRef, percent, err = splitByEqualSign(each)
+		if err != nil {
+			return
+		}
+		// To check if there are duplicate revision names in traffic flags
+		if _, exist := revisionRefMap[revisionRef]; exist {
+			err = errorRepeatingRevision("--traffic", revisionRef)
+			return
+		}
+
+		revisionRefMap[revisionRef] = i
+
+		var percentInt int
+		percentInt, err = strconv.Atoi(percent)
+		if err != nil {
+			err = errorParsingInteger(percent)
+			return
+		}
+
+		if percentInt < 0 || percentInt > 100 {
+			err = fmt.Errorf("invalid value for traffic percent %d, expected 0 <= percent <= 100", percentInt)
+			return
+		}
+
+		sum += percentInt
+	}
+	return
+}
+
+func errorParsingInteger(percent string) error {
+	return fmt.Errorf("error converting given %s to integer value for traffic distribution", percent)
+}
+
+func verifyLatestTag(trafficFlags *flags.Traffic) error {
+	var latestRevisionTag bool
 	for _, each := range trafficFlags.RevisionsTags {
 		revision, _, err := splitByEqualSign(each)
 		if err != nil {
@@ -255,60 +343,6 @@ func verifyInput(trafficFlags *flags.Traffic, revisions []servingv1.Revision) er
 			latestRevisionTag = true
 		}
 	}
-
-	revisionRefMap := make(map[string]int)
-	var latestNameFound bool
-	for i, each := range trafficFlags.RevisionsPercentages {
-		revisionRef, percent, err := splitByEqualSign(each)
-		if err != nil {
-			return err
-		}
-
-		// To check if there are duplicate revision names in traffic flags
-		if _, exist := revisionRefMap[revisionRef]; exist {
-			return errorRepeatingRevision("--traffic", revisionRef)
-		}
-
-		if revisionRef == latestRevisionRef {
-			latestNameFound = true
-		}
-		revisionRefMap[revisionRef] = i
-
-		percentInt, err := strconv.Atoi(percent)
-		if err != nil {
-			return fmt.Errorf("error converting given %s to integer value for traffic distribution", percent)
-		}
-
-		if percentInt < 0 || percentInt > 100 {
-			return fmt.Errorf("invalid value for traffic percent %d, expected 0 <= percent <= 100", percentInt)
-		}
-
-		sum += percentInt
-	}
-
-	revPercents := len(trafficFlags.RevisionsPercentages)
-	// equivalent check for `cmd.Flags().Changed("traffic")` as we don't have `cmd` in this function
-	if revPercents > 0 {
-		if sum > 100 {
-			return fmt.Errorf("given traffic percents sum to %d, want 100", sum)
-		}
-		if sum < 100 && revPercents != revisionCount-1 {
-			return errorTrafficDistribution(sum, errorDistributionRevisionCount)
-		}
-		if sum < 100 && revPercents == revisionCount-1 {
-			if latestNameFound {
-				return errorTrafficDistribution(sum, errorDistributionLatestTag)
-			}
-			for _, rev := range revisions {
-				if !checkRevisionPresent(revisionRefMap, rev) {
-					trafficFlags.RevisionsPercentages = append(trafficFlags.RevisionsPercentages, fmt.Sprintf("%s=%d", rev.Name, 100-sum))
-					return nil
-				}
-			}
-			return errorTrafficDistribution(sum, errorDistributionRevisionNotFound)
-		}
-	}
-
 	return nil
 }
 

@@ -30,16 +30,14 @@ kn service update NAME
   # Add tag 'test' to echo-v3 revision with 10% traffic and rest to latest ready revision of service
   kn service update svc --tag echo-v3=test --traffic test=10,@latest=90
 
-  # Update the service in offline mode instead of kubernetes cluster
-  kn service update gitopstest -n test-ns --env KEY1=VALUE1 --target=/user/knfiles
-  kn service update gitopstest --env KEY1=VALUE1 --target=/user/knfiles/test.yaml
-  kn service update gitopstest --env KEY1=VALUE1 --target=/user/knfiles/test.json
-
-
   # Split 50% traffic to stable, 40% traffic to staging and the
   # rest will automatically be directed to echo-v3 (the remaining revision)
   kn service update svc --traffic stable=50,staging=45
 
+  # Update the service in offline mode instead of kubernetes cluster
+  kn service update gitopstest -n test-ns --env KEY1=VALUE1 --target=/user/knfiles
+  kn service update gitopstest --env KEY1=VALUE1 --target=/user/knfiles/test.yaml
+  kn service update gitopstest --env KEY1=VALUE1 --target=/user/knfiles/test.json
 ```
 
 ### Options

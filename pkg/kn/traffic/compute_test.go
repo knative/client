@@ -292,13 +292,13 @@ func TestComputeErrMsg(t *testing.T) {
 			name:            "verify error for non integer values given to percent",
 			existingTraffic: append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("", "", 100, true)),
 			inputFlags:      []string{"--traffic", "@latest=100p"},
-			errMsg:          "error converting given 100p to integer value for traffic distribution",
+			errMsg:          errorParsingInteger("100p").Error(),
 		},
 		{
 			name:            "verify error for traffic sum not equal to 100",
 			existingTraffic: append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("", "", 100, true)),
 			inputFlags:      []string{"--traffic", "@latest=40,echo-v1=70"},
-			errMsg:          "given traffic percents sum to 110, want 100",
+			errMsg:          errorSumGreaterThan100(110).Error(),
 		},
 		{
 			name:            "verify error for values out of range given to percent",
