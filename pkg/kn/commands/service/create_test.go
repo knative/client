@@ -393,6 +393,7 @@ func TestServiceCreateMaxMinScale(t *testing.T) {
 		"--scale-min", "1", "--scale-max", "5",
 		"--concurrency-target", "10", "--concurrency-limit", "100",
 		"--concurrency-utilization", "50",
+		"--scale-window", "10s",
 		"--no-wait"}, false)
 
 	if err != nil {
@@ -409,6 +410,7 @@ func TestServiceCreateMaxMinScale(t *testing.T) {
 		"autoscaling.knative.dev/maxScale", "5",
 		"autoscaling.knative.dev/target", "10",
 		"autoscaling.knative.dev/targetUtilizationPercentage", "50",
+		"autoscaling.knative.dev/window", "10s",
 	}
 
 	for i := 0; i < len(expectedAnnos); i += 2 {
@@ -464,6 +466,16 @@ func TestServiceCreateScaleWithNegativeValue(t *testing.T) {
 		t.Errorf("Invalid error output, expected: %s, got : '%s'", expectedErrMsg, err)
 	}
 
+}
+
+func TestServiceCreateInvalidScaleWindow(t *testing.T) {
+	_, _, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
+		"--scale-window", "bla", "--no-wait"}, true)
+	if err == nil {
+		t.Fatal(err)
+	}
+	assert.ErrorContains(t, err, "invalid duration")
 }
 
 func TestServiceCreateScaleWithMaxScaleSet(t *testing.T) {

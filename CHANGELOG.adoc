@@ -11,6 +11,18 @@
 |
 | https://github.com/knative/client/pull/[#]
 ////
+
+## v1.0.0
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| ✨
+| Deprecate `--autoscale-window` in favor of `--scale-window`
+| https://github.com/knative/client/pull/1454[#1454]
+
+|===
+
 ## v0.26.0 (2021-09-22)
 [cols="1,10,3", options="header", width="100%"]
 |===

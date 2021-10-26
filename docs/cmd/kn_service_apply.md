@@ -33,7 +33,7 @@ kn service apply s0 --filename my-svc.yml
       --annotation-revision stringArray   Revision annotation to set. name=value; you may provide this flag any number of times to set multiple annotations. To unset, specify the annotation name followed by a "-" (e.g., name-). This flag takes precedence over the "annotation" flag.
       --annotation-service stringArray    Service annotation to set. name=value; you may provide this flag any number of times to set multiple annotations. To unset, specify the annotation name followed by a "-" (e.g., name-). This flag takes precedence over the "annotation" flag.
       --arg stringArray                   Add argument to the container command. Example: --arg myArg1 --arg --myArg2 --arg myArg3=3. You can use this flag multiple times.
-      --autoscale-window string           Duration to look back for making auto-scaling decisions. The service is scaled to zero if no request was received in during that time. (eg: 10s)
+      --autoscale-window string           Deprecated option, please use --scale-window
       --cluster-local                     Specify that the service be private. (--no-cluster-local will make the service publicly available)
       --cmd stringArray                   Specify command to be used as entrypoint instead of default one. Example: --cmd /app/start or --cmd sh --cmd /app/start.sh or --cmd /app/start --arg myArg to pass additional arguments.
       --concurrency-limit int             Hard Limit of concurrent requests to be processed by a single replica.
@@ -66,6 +66,7 @@ kn service apply s0 --filename my-svc.yml
       --scale-init int                    Initial number of replicas with which a service starts. Can be 0 or a positive integer.
       --scale-max int                     Maximum number of replicas.
       --scale-min int                     Minimum number of replicas.
+      --scale-window string               Duration to look back for making auto-scaling decisions. The service is scaled to zero if no request was received in during that time. (eg: 10s)
       --service-account string            Service account name to set. An empty argument ("") clears the service account. The referenced service account must exist in the service's namespace.
       --user int                          The user ID to run the container (e.g., 1001).
       --volume stringArray                Add a volume from a ConfigMap (prefix cm: or config-map:) or a Secret (prefix secret: or sc:). Example: --volume myvolume=cm:myconfigmap or --volume myvolume=secret:mysecret. You can use this flag multiple times. To unset a ConfigMap/Secret reference, append "-" to the name, e.g. --volume myvolume-.

@@ -44,7 +44,7 @@ type ConfigurationEditFlags struct {
 	ConcurrencyTarget      int
 	ConcurrencyLimit       int
 	ConcurrencyUtilization int
-	AutoscaleWindow        string
+	ScaleWindow            string
 	Labels                 []string
 	LabelsService          []string
 	LabelsRevision         []string
@@ -100,8 +100,12 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	command.Flags().IntVar(&p.MaxScale, "scale-max", 0, "Maximum number of replicas.")
 	p.markFlagMakesRevision("scale-max")
 
-	command.Flags().StringVar(&p.AutoscaleWindow, "autoscale-window", "", "Duration to look back for making auto-scaling decisions. The service is scaled to zero if no request was received in during that time. (eg: 10s)")
+	// DEPRECATED since 1.0
+	command.Flags().StringVar(&p.ScaleWindow, "autoscale-window", "", "Deprecated option, please use --scale-window")
 	p.markFlagMakesRevision("autoscale-window")
+
+	command.Flags().StringVar(&p.ScaleWindow, "scale-window", "", "Duration to look back for making auto-scaling decisions. The service is scaled to zero if no request was received in during that time. (eg: 10s)")
+	p.markFlagMakesRevision("scale-window")
 
 	knflags.AddBothBoolFlagsUnhidden(command.Flags(), &p.ClusterLocal, "cluster-local", "", false,
 		"Specify that the service be private. (--no-cluster-local will make the service publicly available)")
@@ -314,8 +318,8 @@ func (p *ConfigurationEditFlags) Apply(
 		}
 	}
 
-	if cmd.Flags().Changed("autoscale-window") {
-		err = servinglib.UpdateAutoscaleWindow(template, p.AutoscaleWindow)
+	if cmd.Flags().Changed("scale-window") || cmd.Flags().Changed("autoscale-window") {
+		err = servinglib.UpdateScaleWindow(template, p.ScaleWindow)
 		if err != nil {
 			return err
 		}

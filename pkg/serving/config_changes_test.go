@@ -31,7 +31,7 @@ import (
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
-func TestUpdateAutoscalingAnnotations(t *testing.T) {
+func TestUpdateScalingAnnotations(t *testing.T) {
 	template := &servingv1.RevisionTemplateSpec{}
 	updateConcurrencyConfiguration(template, 10, 100, 1000, 1000, 50)
 	annos := template.Annotations
@@ -49,7 +49,7 @@ func TestUpdateAutoscalingAnnotations(t *testing.T) {
 	}
 }
 
-func TestUpdateInvalidAutoscalingAnnotations(t *testing.T) {
+func TestUpdateInvalidScalingAnnotations(t *testing.T) {
 	template := &servingv1.RevisionTemplateSpec{}
 	updateConcurrencyConfiguration(template, 10, 100, 1000, 1000, 50)
 	// Update with invalid concurrency options
@@ -169,15 +169,15 @@ func TestUpdateMaxScale(t *testing.T) {
 	assert.ErrorContains(t, err, "maxScale")
 }
 
-func TestAutoscaleWindow(t *testing.T) {
+func TestScaleWindow(t *testing.T) {
 	template, _ := getRevisionTemplate()
-	err := UpdateAutoscaleWindow(template, "10s")
+	err := UpdateScaleWindow(template, "10s")
 	assert.NilError(t, err)
 	// Verify update is successful or not
 	checkAnnotationValue(t, template, autoscaling.WindowAnnotationKey, "10s")
 	// Update with invalid value
-	err = UpdateAutoscaleWindow(template, "blub")
-	assert.Check(t, util.ContainsAll(err.Error(), "invalid duration", "autoscale-window"))
+	err = UpdateScaleWindow(template, "blub")
+	assert.Check(t, util.ContainsAll(err.Error(), "invalid duration", "scale-window"))
 }
 
 func TestUpdateConcurrencyTarget(t *testing.T) {

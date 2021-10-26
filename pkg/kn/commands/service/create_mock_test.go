@@ -539,7 +539,7 @@ func TestServiceCreateWithAnnotations(t *testing.T) {
 	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz",
 		"--annotation", "foo=bar",
 		"--annotation", autoscaling.InitialScaleAnnotationKey+"=1",
-		"--no-wait", "--revision-name=")
+		"--no-wait")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
 
@@ -570,7 +570,7 @@ func TestServiceCreateWithRevisionAndServiceAnnotations(t *testing.T) {
 	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz",
 		"--annotation-service", "foo=bar",
 		"--annotation-revision", autoscaling.InitialScaleAnnotationKey+"=1",
-		"--no-wait", "--revision-name=")
+		"--no-wait")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
 
@@ -596,7 +596,7 @@ func TestServiceCreateWithRevisionAnnotations(t *testing.T) {
 
 	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz",
 		"--annotation-revision", autoscaling.InitialScaleAnnotationKey+"=1",
-		"--no-wait", "--revision-name=")
+		"--no-wait")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
 
@@ -625,21 +625,21 @@ func TestServiceCreateWithServiceAnnotations(t *testing.T) {
 
 	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz",
 		"--annotation-service", "foo=bar",
-		"--no-wait", "--revision-name=")
+		"--no-wait")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "created", "foo", "default"))
 
 	r.Validate()
 }
 
-func TestServiceCreateWithAutoScaleServiceAnnotationsError(t *testing.T) {
+func TestServiceCreateWithScaleServiceAnnotationsError(t *testing.T) {
 	client := knclient.NewMockKnServiceClient(t)
 
 	r := client.Recorder()
 
 	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz",
 		"--annotation-service", autoscaling.InitialScaleAnnotationKey+"=1",
-		"--no-wait", "--revision-name=")
+		"--no-wait")
 	assert.Assert(t, err != nil)
 	assert.Assert(t, util.ContainsAll(output, "service can not have auto-scaling related annotation", "autoscaling.knative.dev/initialScale"))
 
