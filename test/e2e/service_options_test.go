@@ -50,7 +50,7 @@ func TestServiceOptions(t *testing.T) {
 	defer r.DumpIfFailed()
 
 	t.Log("create and validate service with concurrency options")
-	serviceCreateWithOptions(r, "svc1", "--concurrency-limit", "250", "--concurrency-target", "300", "--concurrency-utilization", "50")
+	serviceCreateWithOptions(r, "svc1", "--concurrency-limit", "250", "--scale-target", "300", "--scale-utilization", "50")
 	validateServiceConcurrencyTarget(r, "svc1", "300")
 	validateServiceConcurrencyLimit(r, "svc1", "250")
 	validateServiceConcurrencyUtilization(r, "svc1", "50")
@@ -60,7 +60,7 @@ func TestServiceOptions(t *testing.T) {
 	validateServiceConcurrencyLimit(r, "svc1", "300")
 
 	t.Log("update concurrency options with invalid values for service")
-	out := r.KnTest().Kn().Run("service", "update", "svc1", "--concurrency-limit", "-1", "--concurrency-target", "0")
+	out := r.KnTest().Kn().Run("service", "update", "svc1", "--concurrency-limit", "-1", "--scale-target", "0")
 	r.AssertError(out)
 	assert.Check(r.T(), util.ContainsAll(out.Stderr, "should be at least 0.01"))
 

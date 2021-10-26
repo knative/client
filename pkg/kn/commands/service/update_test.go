@@ -351,7 +351,7 @@ func TestServiceUpdateMaxMinScale(t *testing.T) {
 
 	action, updated, _, err := fakeServiceUpdate(original, []string{
 		"service", "update", "foo",
-		"--scale-min", "1", "--scale-max", "5", "--concurrency-target", "10", "--concurrency-limit", "100", "--concurrency-utilization", "50", "--no-wait"})
+		"--scale-min", "1", "--scale-max", "5", "--scale-target", "10", "--concurrency-limit", "100", "--scale-utilization", "50", "--no-wait"})
 
 	if err != nil {
 		t.Fatal(err)

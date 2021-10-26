@@ -391,8 +391,8 @@ func TestServiceCreateMaxMinScale(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
 		"--scale-min", "1", "--scale-max", "5",
-		"--concurrency-target", "10", "--concurrency-limit", "100",
-		"--concurrency-utilization", "50",
+		"--scale-target", "10", "--concurrency-limit", "100",
+		"--scale-utilization", "50",
 		"--scale-window", "10s",
 		"--no-wait"}, false)
 

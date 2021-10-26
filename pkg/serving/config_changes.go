@@ -73,13 +73,13 @@ func UpdateScaleWindow(template *servingv1.RevisionTemplateSpec, window string) 
 	return UpdateRevisionTemplateAnnotation(template, autoscaling.WindowAnnotationKey, window)
 }
 
-// UpdateConcurrencyTarget updates container concurrency annotation
-func UpdateConcurrencyTarget(template *servingv1.RevisionTemplateSpec, target int) error {
+// UpdateScaleTarget updates container concurrency annotation
+func UpdateScaleTarget(template *servingv1.RevisionTemplateSpec, target int) error {
 	return UpdateRevisionTemplateAnnotation(template, autoscaling.TargetAnnotationKey, strconv.Itoa(target))
 }
 
-// UpdateConcurrencyUtilization updates container target utilization percentage annotation
-func UpdateConcurrencyUtilization(template *servingv1.RevisionTemplateSpec, target int) error {
+// UpdateScaleUtilization updates container target utilization percentage annotation
+func UpdateScaleUtilization(template *servingv1.RevisionTemplateSpec, target int) error {
 	return UpdateRevisionTemplateAnnotation(template, autoscaling.TargetUtilizationPercentageKey, strconv.Itoa(target))
 }
 

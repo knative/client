@@ -38,6 +38,22 @@ type ConfigurationEditFlags struct {
 	PodSpecFlags knflags.PodSpecFlags
 
 	// Direct field manipulation
+	Scale               string
+	MinScale            int
+	MaxScale            int
+	ScaleTarget         int
+	ConcurrencyLimit    int
+	ScaleUtilization    int
+	AutoscaleWindow     string
+	Labels              []string
+	LabelsService       []string
+	LabelsRevision      []string
+	RevisionName        string
+	Annotations         []string
+	AnnotationsService  []string
+	AnnotationsRevision []string
+	ClusterLocal        bool
+	ScaleInit           int
 	Scale                  string
 	MinScale               int
 	MaxScale               int
@@ -110,18 +126,28 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	knflags.AddBothBoolFlagsUnhidden(command.Flags(), &p.ClusterLocal, "cluster-local", "", false,
 		"Specify that the service be private. (--no-cluster-local will make the service publicly available)")
 
-	command.Flags().IntVar(&p.ConcurrencyTarget, "concurrency-target", 0,
+	// DEPRECATED since 1.0
+	command.Flags().IntVar(&p.ScaleTarget, "concurrency-target", 0,
+		"Deprecated, use --scale-target instead.")
+	p.markFlagMakesRevision("concurrency-target")
+
+	command.Flags().IntVar(&p.ScaleTarget, "scale-target", 0,
 		"Recommendation for when to scale up based on the concurrent number of incoming request. "+
 			"Defaults to --concurrency-limit when given.")
-	p.markFlagMakesRevision("concurrency-target")
+	p.markFlagMakesRevision("scale-target")
 
 	command.Flags().IntVar(&p.ConcurrencyLimit, "concurrency-limit", 0,
 		"Hard Limit of concurrent requests to be processed by a single replica.")
 	p.markFlagMakesRevision("concurrency-limit")
 
-	command.Flags().IntVar(&p.ConcurrencyUtilization, "concurrency-utilization", 70,
-		"Percentage of concurrent requests utilization before scaling up.")
+	// DEPRECATED since 1.0
+	command.Flags().IntVar(&p.ScaleUtilization, "concurrency-utilization", 70,
+		"Deprecated, use --scale-utilization instead.")
 	p.markFlagMakesRevision("concurrency-utilization")
+
+	command.Flags().IntVar(&p.ScaleUtilization, "scale-utilization", 70,
+		"Percentage of concurrent requests utilization before scaling up.")
+	p.markFlagMakesRevision("scale-utilization")
 
 	command.Flags().StringArrayVarP(&p.Labels, "label", "l", []string{},
 		"Labels to set for both Service and Revision. name=value; you may provide this flag "+
@@ -325,8 +351,8 @@ func (p *ConfigurationEditFlags) Apply(
 		}
 	}
 
-	if cmd.Flags().Changed("concurrency-target") {
-		err = servinglib.UpdateConcurrencyTarget(template, p.ConcurrencyTarget)
+	if cmd.Flags().Changed("scale-target") || cmd.Flags().Changed("concurrency-target") {
+		err = servinglib.UpdateScaleTarget(template, p.ScaleTarget)
 		if err != nil {
 			return err
 		}
@@ -339,8 +365,8 @@ func (p *ConfigurationEditFlags) Apply(
 		}
 	}
 
-	if cmd.Flags().Changed("concurrency-utilization") {
-		err = servinglib.UpdateConcurrencyUtilization(template, p.ConcurrencyUtilization)
+	if cmd.Flags().Changed("scale-utilization") || cmd.Flags().Changed("concurrency-utilization") {
+		err = servinglib.UpdateScaleUtilization(template, p.ScaleUtilization)
 		if err != nil {
 			return err
 		}
