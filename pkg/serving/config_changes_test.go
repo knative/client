@@ -182,12 +182,12 @@ func TestScaleWindow(t *testing.T) {
 
 func TestUpdateConcurrencyTarget(t *testing.T) {
 	template, _ := getRevisionTemplate()
-	err := UpdateConcurrencyTarget(template, 10)
+	err := UpdateScaleTarget(template, 10)
 	assert.NilError(t, err)
 	// Verify update is successful or not
 	checkAnnotationValueInt(t, template, autoscaling.TargetAnnotationKey, 10)
 	// Update with invalid value
-	err = UpdateConcurrencyTarget(template, -1)
+	err = UpdateScaleTarget(template, -1)
 	assert.ErrorContains(t, err, "should be at least 0.01")
 }
 
@@ -479,7 +479,7 @@ func checkContainerConcurrency(t *testing.T, template *servingv1.RevisionTemplat
 func updateConcurrencyConfiguration(template *servingv1.RevisionTemplateSpec, minScale, maxScale, target, limit, utilization int) {
 	UpdateMinScale(template, minScale)
 	UpdateMaxScale(template, maxScale)
-	UpdateConcurrencyTarget(template, target)
+	UpdateScaleTarget(template, target)
 	UpdateConcurrencyLimit(template, int64(limit))
-	UpdateConcurrencyUtilization(template, utilization)
+	UpdateScaleUtilization(template, utilization)
 }

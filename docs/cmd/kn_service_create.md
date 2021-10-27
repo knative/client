@@ -62,8 +62,8 @@ kn service create NAME --image IMAGE
       --cluster-local                     Specify that the service be private. (--no-cluster-local will make the service publicly available)
       --cmd stringArray                   Specify command to be used as entrypoint instead of default one. Example: --cmd /app/start or --cmd sh --cmd /app/start.sh or --cmd /app/start --arg myArg to pass additional arguments.
       --concurrency-limit int             Hard Limit of concurrent requests to be processed by a single replica.
-      --concurrency-target int            Recommendation for when to scale up based on the concurrent number of incoming request. Defaults to --concurrency-limit when given.
-      --concurrency-utilization int       Percentage of concurrent requests utilization before scaling up. (default 70)
+      --concurrency-target int            Deprecated, use --scale-target instead.
+      --concurrency-utilization int       Deprecated, use --scale-utilization instead. (default 70)
   -e, --env stringArray                   Environment variable to set. NAME=value; you may provide this flag any number of times to set multiple environment variables. To unset, specify the environment variable name followed by a "-" (e.g., NAME-).
       --env-file string                   Path to a file containing environment variables (e.g. --env-file=/home/knative/service1/env).
       --env-from stringArray              Add environment variables from a ConfigMap (prefix cm: or config-map:) or a Secret (prefix secret:). Example: --env-from cm:myconfigmap or --env-from secret:mysecret. You can use this flag multiple times. To unset a ConfigMap/Secret reference, append "-" to the name, e.g. --env-from cm:myconfigmap-.
@@ -91,6 +91,8 @@ kn service create NAME --image IMAGE
       --scale-init int                    Initial number of replicas with which a service starts. Can be 0 or a positive integer.
       --scale-max int                     Maximum number of replicas.
       --scale-min int                     Minimum number of replicas.
+      --scale-target int                  Recommendation for when to scale up based on the concurrent number of incoming request. Defaults to --concurrency-limit when given.
+      --scale-utilization int             Percentage of concurrent requests utilization before scaling up. (default 70)
       --scale-window string               Duration to look back for making auto-scaling decisions. The service is scaled to zero if no request was received in during that time. (eg: 10s)
       --service-account string            Service account name to set. An empty argument ("") clears the service account. The referenced service account must exist in the service's namespace.
       --target string                     Work on local directory instead of a remote cluster (experimental)
