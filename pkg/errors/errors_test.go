@@ -17,17 +17,18 @@ package errors
 import (
 	"testing"
 
+	"knative.dev/client/pkg/util"
+
 	"gotest.tools/v3/assert"
 )
 
 func TestNewInvalidCRD(t *testing.T) {
-	err := newInvalidCRD("serving.knative.dev")
-	assert.Error(t, err, "no Knative serving API found on the backend, please verify the installation")
+	err := NewInvalidCRD("serving.knative.dev")
+	assert.Assert(t, util.ContainsAll(err.Error(), "no Knative Serving API found on the backend", "please verify the installation", "update", "'kn'"))
 
-	err = newInvalidCRD("eventing")
-	assert.Error(t, err, "no Knative eventing API found on the backend, please verify the installation")
+	err = NewInvalidCRD("eventing")
+	assert.Assert(t, util.ContainsAll(err.Error(), "no Knative Eventing API found on the backend", "please verify the installation", "update", "'kn'"))
 
-	err = newInvalidCRD("")
-	assert.Error(t, err, "no Knative  API found on the backend, please verify the installation")
-
+	err = NewInvalidCRD("")
+	assert.Assert(t, util.ContainsAll(err.Error(), "no Knative  API found on the backend", "please verify the installation", "update", "'kn'"))
 }

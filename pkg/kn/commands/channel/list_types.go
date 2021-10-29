@@ -17,7 +17,6 @@ package channel
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -66,7 +65,7 @@ func NewChannelListTypesCommand(p *commands.KnParams) *cobra.Command {
 				channelListTypes = &unstructured.UnstructuredList{}
 			}
 			if !listTypesFlags.GenericPrintFlags.OutputFlagSpecified() && len(channelListTypes.Items) == 0 {
-				return fmt.Errorf("no channels found on the backend, please verify the installation")
+				return knerrors.NewInvalidCRD("Channels")
 			}
 
 			if channelListTypes.GroupVersionKind().Empty() {

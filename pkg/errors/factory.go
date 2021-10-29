@@ -54,7 +54,7 @@ func newStatusError(err error) error {
 	}
 	var knerr *KNError
 	if isCRDError(errAPIStatus) {
-		knerr = newInvalidCRD(errAPIStatus.Status().Details.Group)
+		knerr = NewInvalidCRD(errAPIStatus.Status().Details.Group)
 		knerr.Status = errAPIStatus
 		return knerr
 	}
