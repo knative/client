@@ -98,6 +98,30 @@ func fakeServiceUpdate(original *servingv1.Service, args []string) (
 			}
 			return true, rev, nil
 		})
+	fakeServing.AddReactor("list", "revisions",
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			var err error
+			listAction, ok := a.(clienttesting.ListAction)
+			if !ok {
+				return true, nil, fmt.Errorf("wrong kind of action %v", action)
+			}
+			if reqs, _ := listAction.GetListRestrictions().Labels.Requirements(); len(reqs) == 1 {
+				if strings.Contains(reqs[0].String(), "foo-err") {
+					err = fmt.Errorf("revision list error")
+				}
+			}
+			rev := &servingv1.Revision{}
+			rev.Spec = original.Spec.Template.Spec
+			rev.ObjectMeta = original.Spec.Template.ObjectMeta
+			rev.Name = original.Status.LatestCreatedRevisionName
+			rev.Status.ContainerStatuses = []servingv1.ContainerStatus{
+				{ImageDigest: exampleImageByDigest, Name: "user-container"},
+			}
+			revList := &servingv1.RevisionList{
+				Items: []servingv1.Revision{*rev},
+			}
+			return true, revList, err
+		})
 
 	if sync {
 		fakeServing.AddWatchReactor("services",
@@ -1017,6 +1041,14 @@ func TestServiceUpdateTagDoesNotExist(t *testing.T) {
 		"service", "update", "foo", "--untag", "foo", "--no-wait"})
 
 	assert.Assert(t, util.ContainsAll(err.Error(), "tag(s)", "foo", "not present", "service", "foo"))
+}
+
+func TestServiceUpdateRevisionListError(t *testing.T) {
+	orig := newEmptyService()
+	orig.Name = "foo-err"
+	_, _, _, err := fakeServiceUpdate(orig, []string{"service", "update", "foo-err", "--traffic", "@latest=100"})
+
+	assert.Assert(t, util.ContainsAll(err.Error(), "revision list error"))
 }
 
 func newEmptyService() *servingv1.Service {

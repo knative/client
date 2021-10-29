@@ -51,6 +51,10 @@ var updateExample = `
   # Add tag 'test' to echo-v3 revision with 10% traffic and rest to latest ready revision of service
   kn service update svc --tag echo-v3=test --traffic test=10,@latest=90
 
+  # Split 50% traffic to stable, 40% traffic to staging and the
+  # rest will automatically be directed to echo-v3 (the remaining revision)
+  kn service update svc --traffic stable=50,staging=40
+
   # Update the service in offline mode instead of kubernetes cluster
   kn service update gitopstest -n test-ns --env KEY1=VALUE1 --target=/user/knfiles
   kn service update gitopstest --env KEY1=VALUE1 --target=/user/knfiles/test.yaml
@@ -99,7 +103,11 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 				}
 
 				if trafficFlags.Changed(cmd) {
-					traffic, err := traffic.Compute(cmd, service.Spec.Traffic, &trafficFlags, service.Name)
+					revisions, err := client.ListRevisions(cmd.Context(), clientservingv1.WithService(service.Name))
+					if err != nil {
+						return nil, err
+					}
+					traffic, err := traffic.Compute(cmd, service.Spec.Traffic, &trafficFlags, service.Name, revisions.Items)
 					if err != nil {
 						return nil, err
 					}
