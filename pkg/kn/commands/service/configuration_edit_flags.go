@@ -103,6 +103,7 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	// DEPRECATED since 1.0
 	command.Flags().StringVar(&p.ScaleWindow, "autoscale-window", "", "Deprecated option, please use --scale-window")
 	p.markFlagMakesRevision("autoscale-window")
+	command.Flags().MarkHidden("autoscale-window")
 
 	command.Flags().StringVar(&p.ScaleWindow, "scale-window", "", "Duration to look back for making auto-scaling decisions. The service is scaled to zero if no request was received in during that time. (eg: 10s)")
 	p.markFlagMakesRevision("scale-window")
@@ -114,6 +115,7 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	command.Flags().IntVar(&p.ScaleTarget, "concurrency-target", 0,
 		"Deprecated, use --scale-target instead.")
 	p.markFlagMakesRevision("concurrency-target")
+	command.Flags().MarkHidden("concurrency-target")
 
 	command.Flags().IntVar(&p.ScaleTarget, "scale-target", 0,
 		"Recommendation for when to scale up based on the concurrent number of incoming request. "+
@@ -128,6 +130,7 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	command.Flags().IntVar(&p.ScaleUtilization, "concurrency-utilization", 70,
 		"Deprecated, use --scale-utilization instead.")
 	p.markFlagMakesRevision("concurrency-utilization")
+	command.Flags().MarkHidden("concurrency-utilization")
 
 	command.Flags().IntVar(&p.ScaleUtilization, "scale-utilization", 70,
 		"Percentage of concurrent requests utilization before scaling up.")

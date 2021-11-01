@@ -132,6 +132,7 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
 	// DEPRECATED since 1.0
 	flagset.StringVarP(&p.ExtraContainers, "extra-containers", "", "",
 		"Deprecated, use --containers instead.")
+	flagset.MarkHidden("extra-containers")
 	flagNames = append(flagNames, "containers")
 
 	flagset.StringVarP(&p.ExtraContainers, "containers", "", "",
