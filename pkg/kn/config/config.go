@@ -74,6 +74,8 @@ func (c *config) LookupPluginsInPath() bool {
 	if viper.IsSet(deprecatedKeyPluginsLookupInPath) {
 		return viper.GetBool(deprecatedKeyPluginsLookupInPath)
 	} else {
+		// If legacy branch is removed, switch to setting the default to viper
+		// See TODO comment below.
 		return bootstrapDefaults.lookupPluginsInPath
 	}
 }
