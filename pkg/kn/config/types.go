@@ -70,10 +70,9 @@ type ChannelTypeMapping struct {
 
 // config Keys for looking up in viper
 const (
-	keyPluginsDirectory              = "plugins.directory"
-	deprecatedKeyPluginsLookupInPath = "plugins.path-lookup"
-	keySinkMappings                  = "eventing.sink-mappings"
-	keyChannelTypeMappings           = "eventing.channel-type-mappings"
+	keyPluginsDirectory    = "plugins.directory"
+	keySinkMappings        = "eventing.sink-mappings"
+	keyChannelTypeMappings = "eventing.channel-type-mappings"
 )
 
 // legacy config keys, deprecated
