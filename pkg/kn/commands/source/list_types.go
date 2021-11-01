@@ -16,7 +16,6 @@ package source
 
 import (
 	"context"
-	"fmt"
 
 	"knative.dev/client/pkg/sources"
 
@@ -68,7 +67,7 @@ func NewListTypesCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			if !listTypesFlags.GenericPrintFlags.OutputFlagSpecified() && len(sourceListTypes.Items) == 0 {
-				return fmt.Errorf("no sources found on the backend, please verify the installation")
+				return knerrors.NewInvalidCRD("Sources")
 			}
 
 			if sourceListTypes.GroupVersionKind().Empty() {

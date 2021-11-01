@@ -17,12 +17,15 @@ package errors
 import (
 	"fmt"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 )
 
-func newInvalidCRD(apiGroup string) *KNError {
+func NewInvalidCRD(apiGroup string) *KNError {
 	parts := strings.Split(apiGroup, ".")
 	name := parts[0]
-	msg := fmt.Sprintf("no Knative %s API found on the backend, please verify the installation", name)
+	msg := fmt.Sprintf("no or newer Knative %s API found on the backend, please verify the installation or "+
+		"update the 'kn' client", firstCharToUpper(name))
 	return NewKNError(msg)
 }
 
@@ -36,4 +39,12 @@ func newNoRouteToHost(errString string) *KNError {
 
 func newNoKubeConfig(errString string) *KNError {
 	return NewKNError("no kubeconfig has been provided, please use a valid configuration to connect to the cluster")
+}
+
+func firstCharToUpper(s string) string {
+	if len(s) == 0 {
+		return s
+	}
+	r, n := utf8.DecodeRuneInString(s)
+	return string(unicode.ToUpper(r)) + s[n:]
 }

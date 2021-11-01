@@ -56,7 +56,7 @@ func sourceFakeCmd(args []string, objects ...runtime.Object) (output []string, e
 func TestSourceListTypesNoSourcesInstalled(t *testing.T) {
 	_, err := sourceFakeCmd([]string{"source", "list-types"})
 	assert.Check(t, err != nil)
-	assert.Check(t, util.ContainsAll(err.Error(), "no sources", "found", "backend", "verify", "installation"))
+	assert.Check(t, util.ContainsAll(err.Error(), "no", "Knative Sources", "found", "backend", "verify", "installation"))
 }
 
 func TestSourceListTypesNoSourcesWithJsonOutput(t *testing.T) {

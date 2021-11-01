@@ -18,12 +18,17 @@
 | | Description | PR
 
 | ✨
-| Deprecate `--autoscale-window` in favor of `--scale-window`
-| https://github.com/knative/client/pull/1454[#1454]
+| Add more explanation to missing API error message
+| https://github.com/knative/client/pull/1497[#1497]
 
 | ✨
 | Deprecate `--concurrency-target` and `--concurrency-utilization` in favor of `--scale-target` and `--scale-utilization`, respectively
-| https://github.com/knative/client/pull/1454[#1454]
+| https://github.com/knative/client/pull/1490[#1490]
+
+| ✨
+| Deprecate `--autoscale-window` in favor of `--scale-window`
+| https://github.com/knative/client/pull/1489[#1489]
+
 |===
 
 ## v0.26.0 (2021-09-22)

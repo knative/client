@@ -68,7 +68,7 @@ func TestChannelListTypesNoChannelInstalled(t *testing.T) {
 
 	_, err := channelFakeCmd([]string{"channel", "list-types"}, dynamicClient)
 	assert.Check(t, err != nil)
-	assert.Check(t, util.ContainsAll(err.Error(), "no channels found on the backend, please verify the installation"))
+	assert.Check(t, util.ContainsAll(err.Error(), "no", "Knative Channels", "found", "backend", "verify", "installation"))
 }
 
 func TestChannelListTypesNoChannelWithJsonOutput(t *testing.T) {
@@ -86,7 +86,7 @@ func TestChannelListTypesErrorDynamicClient(t *testing.T) {
 
 	_, err := channelFakeCmd([]string{"channel", "list-types"}, dynamicClient)
 	assert.Check(t, err != nil)
-	assert.Check(t, util.ContainsAll(err.Error(), "no channels found on the backend, please verify the installation"))
+	assert.Check(t, util.ContainsAll(err.Error(), "no", "Knative Channels", "found", "backend", "verify", "installation"))
 }
 
 func TestChannelListTypes(t *testing.T) {
