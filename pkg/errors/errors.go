@@ -25,7 +25,7 @@ func NewInvalidCRD(apiGroup string) *KNError {
 	parts := strings.Split(apiGroup, ".")
 	name := parts[0]
 	msg := fmt.Sprintf("no or newer Knative %s API found on the backend, please verify the installation or "+
-		"update the 'kn' client to latest version", firstCharToUpper(name))
+		"update the 'kn' client", firstCharToUpper(name))
 	return NewKNError(msg)
 }
 
