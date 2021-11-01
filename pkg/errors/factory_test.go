@@ -61,7 +61,7 @@ func TestKnErrorsStatusErrors(t *testing.T) {
 				}
 				return statusError
 			},
-			ExpectedMsg: "no Knative Serving API found on the backend, please verify the installation or update the 'kn' client to latest version",
+			ExpectedMsg: "no or newer Knative Serving API found on the backend, please verify the installation or update the 'kn' client to latest version",
 			Validate: func(t *testing.T, err error, msg string) {
 				assert.Error(t, err, msg)
 			},
