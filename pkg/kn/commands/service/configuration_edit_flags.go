@@ -79,14 +79,6 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 		p.markFlagMakesRevision(name)
 	}
 
-	command.Flags().IntVar(&p.MinScale, "min-scale", 0, "Minimal number of replicas.")
-	command.Flags().MarkHidden("min-scale")
-	p.markFlagMakesRevision("min-scale")
-
-	command.Flags().IntVar(&p.MaxScale, "max-scale", 0, "Maximal number of replicas.")
-	command.Flags().MarkHidden("max-scale")
-	p.markFlagMakesRevision("max-scale")
-
 	command.Flags().StringVar(&p.Scale, "scale", "",
 		"Set the Minimum and Maximum number of replicas. You can use this flag to set both to a single value, "+
 			"or set a range with min/max values, or set either min or max values without specifying the other. "+
@@ -256,20 +248,6 @@ func (p *ConfigurationEditFlags) Apply(
 
 	if !p.LockToDigest {
 		servinglib.UnsetUserImageAnnotation(template)
-	}
-
-	if cmd.Flags().Changed("limits-cpu") || cmd.Flags().Changed("limits-memory") {
-		if cmd.Flags().Changed("limit") {
-			return fmt.Errorf("only one of (DEPRECATED) --limits-cpu / --limits-memory and --limit can be specified")
-		}
-		fmt.Fprintf(cmd.OutOrStdout(), "\nWARNING: flags --limits-cpu / --limits-memory are deprecated and going to be removed in future release, please use --limit instead.\n\n")
-	}
-
-	if cmd.Flags().Changed("requests-cpu") || cmd.Flags().Changed("requests-memory") {
-		if cmd.Flags().Changed("request") {
-			return fmt.Errorf("only one of (DEPRECATED) --requests-cpu / --requests-memory and --request can be specified")
-		}
-		fmt.Fprintf(cmd.OutOrStdout(), "\nWARNING: flags --requests-cpu / --requests-memory are deprecated and going to be removed in future release, please use --request instead.\n\n")
 	}
 
 	// Deprecated "min-scale" in 0.19, updated to "scale-min"
