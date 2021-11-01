@@ -129,9 +129,14 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
 			"You can use this flag multiple times.")
 	flagNames = append(flagNames, "arg")
 
+	// DEPRECATED since 1.0
 	flagset.StringVarP(&p.ExtraContainers, "extra-containers", "", "",
+		"Deprecated, use --containers instead.")
+	flagNames = append(flagNames, "containers")
+
+	flagset.StringVarP(&p.ExtraContainers, "containers", "", "",
 		"Specify path to file including definition for additional containers, alternatively use '-' to read from stdin. "+
-			"Example: --extra-containers ./containers.yaml or --extra-containers -.")
+			"Example: --containers ./containers.yaml or --containers -.")
 	flagNames = append(flagNames, "containers")
 
 	flagset.StringSliceVar(&p.Resources.Limits,
@@ -296,7 +301,7 @@ func (p *PodSpecFlags) ResolvePodSpec(podSpec *corev1.PodSpec, flags *pflag.Flag
 		}
 	}
 
-	if flags.Changed("extra-containers") || p.ExtraContainers == "-" {
+	if flags.Changed("containers") || flags.Changed("extra-containers") || p.ExtraContainers == "-" {
 		var fromFile *corev1.PodSpec
 		fromFile, err = decodeContainersFromFile(p.ExtraContainers)
 		if err != nil {

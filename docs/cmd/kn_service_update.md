@@ -53,11 +53,12 @@ kn service update NAME
       --concurrency-limit int             Hard Limit of concurrent requests to be processed by a single replica.
       --concurrency-target int            Deprecated, use --scale-target instead.
       --concurrency-utilization int       Deprecated, use --scale-utilization instead. (default 70)
+      --containers string                 Specify path to file including definition for additional containers, alternatively use '-' to read from stdin. Example: --containers ./containers.yaml or --containers -.
   -e, --env stringArray                   Environment variable to set. NAME=value; you may provide this flag any number of times to set multiple environment variables. To unset, specify the environment variable name followed by a "-" (e.g., NAME-).
       --env-file string                   Path to a file containing environment variables (e.g. --env-file=/home/knative/service1/env).
       --env-from stringArray              Add environment variables from a ConfigMap (prefix cm: or config-map:) or a Secret (prefix secret:). Example: --env-from cm:myconfigmap or --env-from secret:mysecret. You can use this flag multiple times. To unset a ConfigMap/Secret reference, append "-" to the name, e.g. --env-from cm:myconfigmap-.
       --env-value-from stringArray        Add environment variable from a value of key in ConfigMap (prefix cm: or config-map:) or a Secret (prefix sc: or secret:). Example: --env-value-from NAME=cm:myconfigmap:key or --env-value-from NAME=secret:mysecret:key. You can use this flag multiple times. To unset a value from a ConfigMap/Secret key reference, append "-" to the key, e.g. --env-value-from ENV-.
-      --extra-containers string           Specify path to file including definition for additional containers, alternatively use '-' to read from stdin. Example: --extra-containers ./containers.yaml or --extra-containers -.
+      --extra-containers string           Deprecated, use --containers instead.
   -h, --help                              help for update
       --image string                      Image to run.
   -l, --label stringArray                 Labels to set for both Service and Revision. name=value; you may provide this flag any number of times to set multiple labels. To unset, specify the label name followed by a "-" (e.g., name-).

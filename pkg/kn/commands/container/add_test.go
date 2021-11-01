@@ -37,21 +37,24 @@ containers:
   name: bar
   resources: {}`
 
-	stdinReader, stdinWriter, err := os.Pipe()
-	assert.NilError(t, err)
-	stdinWriter.Chmod(os.ModeCharDevice)
-	_, err = stdinWriter.Write([]byte(rawInput))
-	assert.NilError(t, err)
-	stdinWriter.Close()
-
 	origStdin := os.Stdin
-	os.Stdin = stdinReader
 	defer func() { os.Stdin = origStdin }()
 
-	output, err := executeContainerCommand("add", "foo", "--image", "registry.foo:bar", "--extra-containers", "-")
-	assert.NilError(t, err)
-	assert.Assert(t, len(output) > 0)
-	assert.Assert(t, util.ContainsAllIgnoreCase(output, "containers", "image", "foo", "registry.foo:bar", "bar", "bar:bar"))
+	for _, command := range []string{"containers", "extra-containers"} {
+		stdinReader, stdinWriter, err := os.Pipe()
+		assert.NilError(t, err)
+		stdinWriter.Chmod(os.ModeCharDevice)
+		_, err = stdinWriter.Write([]byte(rawInput))
+		assert.NilError(t, err)
+		stdinWriter.Close()
+
+		os.Stdin = stdinReader
+
+		output, err := executeContainerCommand("add", "foo", "--image", "registry.foo:bar", "--"+command, "-")
+		assert.NilError(t, err)
+		assert.Assert(t, len(output) > 0)
+		assert.Assert(t, util.ContainsAllIgnoreCase(output, "containers", "image", "foo", "registry.foo:bar", "bar", "bar:bar"))
+	}
 }
 
 func TestContainerAddError(t *testing.T) {
