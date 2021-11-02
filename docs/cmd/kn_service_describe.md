@@ -19,7 +19,7 @@ kn service describe NAME
   # Print only service URL
   kn service describe svc -o url
 
-  # Describe the services in offline mode instead of kubernetes cluster
+  # Describe the services in offline mode instead of kubernetes cluster (Beta)
   kn service describe test -n test-ns --target=/user/knfiles
   kn service describe test --target=/user/knfiles/test.yaml
   kn service describe test --target=/user/knfiles/test.json

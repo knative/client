@@ -19,7 +19,7 @@ kn service list
   # List service 'web'
   kn service list web
 
-  # List the services in offline mode instead of kubernetes cluster
+  # List the services in offline mode instead of kubernetes cluster (Beta)
   kn service list --target=/user/knfiles
   kn service list --target=/user/knfiles/test.json
   kn service list --target=/user/knfiles/test.yaml

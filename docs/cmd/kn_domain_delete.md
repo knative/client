@@ -10,8 +10,8 @@ kn domain delete NAME
 
 ```
 
-  # Delete domain mappings 'hello.example.com'
-  kn domain delete hello.example.com (Beta)
+  # Delete domain mappings 'hello.example.com' (Beta)
+  kn domain delete hello.example.com 
 ```
 
 ### Options
