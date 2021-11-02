@@ -88,7 +88,7 @@ func NewServiceExportCommand(p *commands.KnParams) *cobra.Command {
   kn service export foo -n bar -o yaml
 
   # Export a service in JSON format (Beta)
-  kn service export foo -n bar -o json 
+  kn service export foo -n bar -o json
 
   # Export a service with revisions (Beta)
   kn service export foo --with-revisions --mode=export -n bar -o json
