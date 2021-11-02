@@ -122,16 +122,13 @@ func TestPluginWithoutLookup(t *testing.T) {
 	r := test.NewKnRunResultCollector(t, it)
 	defer r.DumpIfFailed()
 
-	knFlags := []string{fmt.Sprintf("--plugins-dir=%s", pc.knPluginsDir), "--lookup-plugins=false"}
+	knFlags := []string{fmt.Sprintf("--plugins-dir=%s", pc.knPluginsDir)}
 
 	t.Log("list plugin in --plugins-dir")
 	listPlugin(r, knFlags, []string{pc.knPluginPath}, []string{})
 
 	t.Log("execute plugin in --plugins-dir")
 	runPlugin(r, knFlags, "helloe2e", []string{"e2e", "test"}, []string{"Hello Knative, I'm a Kn plugin", "I received arguments", "e2e"})
-
-	t.Log("does not list any other plugin in $PATH")
-	listPlugin(r, knFlags, []string{pc.knPluginPath}, []string{pc.knPluginPath2})
 }
 
 func TestPluginInHelpMessage(t *testing.T) {
@@ -159,7 +156,7 @@ func TestPluginWithLookup(t *testing.T) {
 	assert.NilError(t, pc.setup())
 	defer pc.teardown()
 
-	knFlags := []string{fmt.Sprintf("--plugins-dir=%s", pc.knPluginsDir), "--lookup-plugins=true"}
+	knFlags := []string{fmt.Sprintf("--plugins-dir=%s", pc.knPluginsDir)}
 
 	t.Log("list plugin in --plugins-dir")
 	listPlugin(r, knFlags, []string{pc.knPluginPath}, []string{pc.knPluginPath2})
@@ -178,7 +175,7 @@ func TestListPluginInPath(t *testing.T) {
 	defer tearDownWithPath(pc, oldPath)
 
 	t.Log("list plugin in $PATH")
-	knFlags := []string{fmt.Sprintf("--plugins-dir=%s", pc.knPluginsDir), "--lookup-plugins=true"}
+	knFlags := []string{fmt.Sprintf("--plugins-dir=%s", pc.knPluginsDir)}
 	listPlugin(r, knFlags, []string{pc.knPluginPath, pc.knPluginPath2}, []string{})
 
 	r.DumpIfFailed()
@@ -195,7 +192,7 @@ func TestExecutePluginInPath(t *testing.T) {
 	defer tearDownWithPath(pc, oldPath)
 
 	t.Log("execute plugin in $PATH")
-	knFlags := []string{fmt.Sprintf("--plugins-dir=%s", pc.knPluginsDir), "--lookup-plugins=true"}
+	knFlags := []string{fmt.Sprintf("--plugins-dir=%s", pc.knPluginsDir)}
 	runPlugin(r, knFlags, "hello2e2e", []string{}, []string{"Hello Knative, I'm a Kn plugin"})
 }
 
@@ -218,11 +215,6 @@ func TestExecutePluginInPathWithError(t *testing.T) {
 	assert.NilError(t, err)
 	assert.NilError(t, os.Setenv("PATH", fmt.Sprintf("%s%s%s", oldPath, delim, pluginsDir)))
 	defer tearDownWithPath(pc, oldPath)
-
-	out := test.Kn{}.Run("--lookup-plugins=true", "hello3e2e")
-	r.AssertError(out)
-	assert.Check(r.T(), util.ContainsAll(out.Stderr, "Error: exit status 1"))
-	assert.Check(r.T(), util.ContainsNone(out.Stderr, "Run", "kn --help", "usage"))
 }
 
 // Private
