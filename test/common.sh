@@ -34,11 +34,11 @@ function install_istio() {
     readonly ISTIO_VERSION="stable"
   fi
   header "Installing Istio ${ISTIO_VERSION}"
-
-  LATEST_NET_ISTIO_RELEASE_VERSION=$(
-  curl -L --silent "https://api.github.com/repos/knative/net-istio/releases" | grep '"tag_name"' \
-    | cut -f2 -d: | sed "s/[^v0-9.]//g" | sort | tail -n1)
-
+# TODO: fix after 1.0 release
+#  LATEST_NET_ISTIO_RELEASE_VERSION=$(
+#  curl -L --silent "https://api.github.com/repos/knative/net-istio/releases" | grep '"tag_name"' \
+#    | cut -d '-' -f2  | cut -f2 -d: | sed "s/[^v0-9.]//g" | sort | tail -n1)
+  LATEST_NET_ISTIO_RELEASE_VERSION="knative-v1.0.0"
   # And checkout the setup script based on that release
   local NET_ISTIO_DIR=$(mktemp -d)
   (
