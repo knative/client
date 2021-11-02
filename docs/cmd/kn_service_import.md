@@ -14,7 +14,7 @@ kn service import FILENAME
  kn service import /path/to/file.yaml
 
  # Import a service from JSON file (Beta)
- kn service import /path/to/file.json 
+ kn service import /path/to/file.json
 ```
 
 ### Options

@@ -37,7 +37,7 @@ kn service update NAME
   # Update the service in offline mode instead of kubernetes cluster (Beta)
   kn service update gitopstest -n test-ns --env KEY1=VALUE1 --target=/user/knfiles
   kn service update gitopstest --env KEY1=VALUE1 --target=/user/knfiles/test.yaml
-  kn service update gitopstest --env KEY1=VALUE1 --target=/user/knfiles/test.json 
+  kn service update gitopstest --env KEY1=VALUE1 --target=/user/knfiles/test.json
 ```
 
 ### Options

@@ -48,7 +48,7 @@ kn service create NAME --image IMAGE
   # Create the service in offline mode instead of kubernetes cluster (Beta)
   kn service create gitopstest -n test-ns --image knativesamples/helloworld --target=/user/knfiles
   kn service create gitopstest --image knativesamples/helloworld --target=/user/knfiles/test.yaml
-  kn service create gitopstest --image knativesamples/helloworld --target=/user/knfiles/test.json 
+  kn service create gitopstest --image knativesamples/helloworld --target=/user/knfiles/test.json
 ```
 
 ### Options

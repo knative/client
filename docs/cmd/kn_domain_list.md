@@ -11,7 +11,7 @@ kn domain list
 ```
 
   # List all domain mappings (Beta)
-  kn domain list 
+  kn domain list
 
   # List all domain mappings in JSON output format
   kn domain list -o json (Beta)

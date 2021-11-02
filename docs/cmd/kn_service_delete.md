@@ -22,7 +22,7 @@ kn service delete NAME [NAME ...]
   # Delete the services in offline mode instead of kubernetes cluster (Beta)
   kn service delete test -n test-ns --target=/user/knfiles
   kn service delete test --target=/user/knfiles/test.yaml
-  kn service delete test --target=/user/knfiles/test.json 
+  kn service delete test --target=/user/knfiles/test.json
 ```
 
 ### Options

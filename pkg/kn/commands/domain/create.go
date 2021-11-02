@@ -34,7 +34,7 @@ func NewDomainMappingCreateCommand(p *commands.KnParams) *cobra.Command {
 		Short: "Create a domain mapping",
 		Example: `
   # Create a domain mappings 'hello.example.com' for Knative service 'hello' with TLS secret set (Beta)
-  kn domain create hello.example.com --ref hello --tls my-cert-secret `,
+  kn domain create hello.example.com --ref hello --tls my-cert-secret`,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
 				return errors.New("'kn domain create' requires the domain name given as single argument")

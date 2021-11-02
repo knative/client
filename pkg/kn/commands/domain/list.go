@@ -32,7 +32,7 @@ func NewDomainMappingListCommand(p *commands.KnParams) *cobra.Command {
 		Aliases: []string{"ls"},
 		Example: `
   # List all domain mappings (Beta)
-  kn domain list 
+  kn domain list
 
   # List all domain mappings in JSON output format
   kn domain list -o json (Beta)`,

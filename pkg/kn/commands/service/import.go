@@ -47,7 +47,7 @@ func NewServiceImportCommand(p *commands.KnParams) *cobra.Command {
  kn service import /path/to/file.yaml
 
  # Import a service from JSON file (Beta)
- kn service import /path/to/file.json `,
+ kn service import /path/to/file.json`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("'kn service import' requires filename of import file as single argument")
