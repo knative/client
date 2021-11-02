@@ -10,7 +10,7 @@ kn domain describe NAME
 
 ```
 
-  # Show details of for the domain 'hello.example.com'
+  # Show details of for the domain 'hello.example.com (Beta)'
   kn domain describe hello.example.com
 ```
 

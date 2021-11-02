@@ -127,8 +127,8 @@ func NewServiceExportCommand(p *commands.KnParams) *cobra.Command {
 	}
 	flags := command.Flags()
 	commands.AddNamespaceFlags(flags, false)
-	flags.Bool("with-revisions", false, "Export all routed revisions (experimental)")
-	flags.String("mode", "", "Format for exporting all routed revisions. One of replay|export (experimental)")
+	flags.Bool("with-revisions", false, "Export all routed revisions (Beta)")
+	flags.String("mode", "", "Format for exporting all routed revisions. One of replay|export (Beta)")
 	machineReadablePrintFlags.AddFlags(command)
 	return command
 }

@@ -32,10 +32,10 @@ func NewDomainMappingListCommand(p *commands.KnParams) *cobra.Command {
 		Aliases: []string{"ls"},
 		Example: `
   # List all domain mappings
-  kn domain list
+  kn domain list (Beta)
 
   # List all domain mappings in JSON output format
-  kn domain list -o json`,
+  kn domain list -o json (Beta)`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			namespace, err := p.GetNamespace(cmd)
 			if err != nil {

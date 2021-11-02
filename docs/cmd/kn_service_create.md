@@ -46,9 +46,9 @@ kn service create NAME --image IMAGE
   kn service create s4gpu --image knativesamples/hellocuda-go --request memory=250Mi,cpu=200m --limit nvidia.com/gpu=1
 
   # Create the service in offline mode instead of kubernetes cluster
-  kn service create gitopstest -n test-ns --image knativesamples/helloworld --target=/user/knfiles
-  kn service create gitopstest --image knativesamples/helloworld --target=/user/knfiles/test.yaml
-  kn service create gitopstest --image knativesamples/helloworld --target=/user/knfiles/test.json
+  kn service create gitopstest -n test-ns --image knativesamples/helloworld --target=/user/knfiles (Beta)
+  kn service create gitopstest --image knativesamples/helloworld --target=/user/knfiles/test.yaml (Beta)
+  kn service create gitopstest --image knativesamples/helloworld --target=/user/knfiles/test.json (Beta)
 ```
 
 ### Options
