@@ -37,7 +37,7 @@ function install_istio() {
 
   LATEST_NET_ISTIO_RELEASE_VERSION=$(
   curl -L --silent "https://api.github.com/repos/knative/net-istio/releases" | grep '"tag_name"' \
-    | cut -f2 -d: | sed "s/[^v0-9.]//g" | sort | tail -n1)
+    | cut -d '-' -f2 | cut -f2 -d: | sed "s/[^v0-9.]//g" | sort | tail -n1)
 
   # And checkout the setup script based on that release
   local NET_ISTIO_DIR=$(mktemp -d)
