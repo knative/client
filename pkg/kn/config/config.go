@@ -39,7 +39,6 @@ var bootstrapDefaults = initDefaults()
 const configContentDefaults = `# Taken from https://github.com/knative/client/blob/main/docs/README.md#options
 #
 #plugins:
-#  path-lookup: true
 #  directory: ~/.config/kn/plugins
 #eventing:
 #  sink-mappings:
@@ -135,10 +134,12 @@ func BootstrapConfig() error {
 			return fmt.Errorf("cannot stat configfile %s: %w", configFile, err)
 		}
 		if err := os.MkdirAll(filepath.Dir(viper.ConfigFileUsed()), 0775); err != nil {
-			return err
+			// Can't create config directory, proceed silently without reading the config
+			return nil
 		}
 		if err := os.WriteFile(viper.ConfigFileUsed(), []byte(configContentDefaults), 0600); err != nil {
-			fmt.Fprintf(os.Stderr, "WARNING: failed writing config file to %q: %s\n", configFile, err)
+			// Can't create config file, proceed silently without reading the config
+			return nil
 		}
 	}
 

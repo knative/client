@@ -12,10 +12,26 @@
 | https://github.com/knative/client/pull/[#]
 ////
 
-## v1.0.0
+## v1.0.0 (2021-11-02)
 [cols="1,10,3", options="header", width="100%"]
 |===
 | | Description | PR
+
+| ✨
+| Remove deprecated flags `--lookup-path`
+| https://github.com/knative/client/pull/1506[#1506]
+
+| ✨
+| Rename `--extra-containers` to `--containers`
+| https://github.com/knative/client/pull/1499[#1499]
+
+| ✨
+| Remove deprecated flags `--min-scale` and `--max-scale`
+| https://github.com/knative/client/pull/1498[#1498]
+
+| ✨
+| Remove deprecated flags `--limits-cpu` and `--limits-memory`
+| https://github.com/knative/client/pull/1498[#1498]
 
 | ✨
 | Add more explanation to missing API error message
@@ -28,6 +44,18 @@
 | ✨
 | Deprecate `--autoscale-window` in favor of `--scale-window`
 | https://github.com/knative/client/pull/1489[#1489]
+
+| 🎁
+| Calculate traffic split when N-1 revisions are specified
+| https://github.com/knative/client/pull/1483[#1483]
+
+| 🐛
+| Fix `domain describe` reference to show correct kind
+| https://github.com/knative/client/pull/1477[#1477]
+
+| 🎁
+| Create a default config file if it doesn't exist
+| https://github.com/knative/client/pull/1472[#1472]
 
 |===
 
