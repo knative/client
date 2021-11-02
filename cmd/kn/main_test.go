@@ -204,11 +204,6 @@ func TestStripFlags(t *testing.T) {
 			"",
 		},
 		{
-			[]string{"--lookup-plugins", "bla", "test", "second"},
-			[]string{"bla", "test", "second"},
-			"",
-		},
-		{
 			[]string{"--config-file", "bla", "test", "second"},
 			[]string{"test", "second"},
 			"",
