@@ -33,16 +33,16 @@ func NewContainerAddCommand(p *commands.KnParams) *cobra.Command {
 		Use:   "add NAME",
 		Short: "Add a container",
 		Example: `
-  The command is experimental and may change in the future releases.
+  The command is Beta and may change in the future releases.
 
   The 'container add' represents utility command that prints YAML container spec to standard output. It's useful for
   multi-container use cases to create definition with help of standard 'kn' option flags. It accepts all container related
   flag available for 'service create'. The command can be chained through Unix pipes to create multiple containers at once.
 
-  # Add a container 'sidecar' from image 'docker.io/example/sidecar' and print it to standard output
+  # Add a container 'sidecar' from image 'docker.io/example/sidecar' and print it to standard output (Beta)
   kn container add sidecar --image docker.io/example/sidecar
 
-  # Add command can be chained by standard Unix pipe symbol '|' and passed to 'service add|update|apply' commands
+  # Add command can be chained by standard Unix pipe symbol '|' and passed to 'service add|update|apply' commands (Beta)
   kn container add sidecar --image docker.io/example/sidecar:first | \
   kn container add second --image docker.io/example/sidecar:second | \
   kn service create myksvc --image docker.io/example/my-app:latest --containers -`,
