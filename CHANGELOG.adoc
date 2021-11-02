@@ -19,7 +19,7 @@
 
 | ✨
 | Remove deprecated flags `--lookup-path`
-| https://github.com/knative/client/pull/TBD[#TBD]
+| https://github.com/knative/client/pull/1506[#1506]
 
 | ✨
 | Rename `--extra-containers` to `--containers`
