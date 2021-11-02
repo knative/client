@@ -25,22 +25,34 @@ type Traffic struct {
 }
 
 func (t *Traffic) Add(cmd *cobra.Command) {
-	cmd.Flags().StringSliceVar(&t.RevisionsPercentages,
-		"traffic",
-		nil,
-		"Set traffic distribution (format: --traffic revisionRef=percent) where revisionRef can be a revision or a tag or '@latest' string "+
-			"representing latest ready revision. This flag can be given multiple times with percent summing up to 100%.")
+	t.AddTrafficFlag(cmd)
 
+	t.AddTagFlag(cmd)
+
+	t.AddUntagFlag(cmd)
+}
+
+func (t *Traffic) AddUntagFlag(cmd *cobra.Command) {
+	cmd.Flags().StringSliceVar(&t.UntagRevisions,
+		"untag",
+		nil,
+		"Untag revision (format: --untag tagName). This flag can be specified multiple times.")
+}
+
+func (t *Traffic) AddTagFlag(cmd *cobra.Command) {
 	cmd.Flags().StringSliceVar(&t.RevisionsTags,
 		"tag",
 		nil,
 		"Set tag (format: --tag revisionRef=tagName) where revisionRef can be a revision or '@latest' string representing latest ready revision. "+
 			"This flag can be specified multiple times.")
+}
 
-	cmd.Flags().StringSliceVar(&t.UntagRevisions,
-		"untag",
+func (t *Traffic) AddTrafficFlag(cmd *cobra.Command) {
+	cmd.Flags().StringSliceVar(&t.RevisionsPercentages,
+		"traffic",
 		nil,
-		"Untag revision (format: --untag tagName). This flag can be specified multiple times.")
+		"Set traffic distribution (format: --traffic revisionRef=percent) where revisionRef can be a revision or a tag or '@latest' string "+
+			"representing latest ready revision. This flag can be given multiple times with percent summing up to 100%.")
 }
 
 func (t *Traffic) PercentagesChanged(cmd *cobra.Command) bool {

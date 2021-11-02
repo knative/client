@@ -44,6 +44,9 @@ func newServiceTraffic(traffic []servingv1.TrafficTarget) ServiceTraffic {
 
 func splitByEqualSign(pair string) (string, string, error) {
 	parts := strings.Split(pair, "=")
+	if len(parts) == 1 {
+		return latestRevisionRef, parts[0], nil
+	}
 	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
 		return "", "", fmt.Errorf("expecting the value format in value1=value2, given %s", pair)
 	}
@@ -416,7 +419,7 @@ func Compute(cmd *cobra.Command, targets []servingv1.TrafficTarget,
 		traffic = traffic.TagRevision(tag, revision)
 	}
 
-	if cmd.Flags().Changed("traffic") {
+	if cmd.Flags().Changed("traffic") || (cmd.Name() == "create" && len(trafficFlags.RevisionsTags) > 0) {
 		// reset existing traffic portions as what's on CLI is desired state of traffic split portions
 		traffic.ResetAllTargetPercent()
 
