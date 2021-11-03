@@ -108,6 +108,16 @@ func domainList(r *test.KnRunResultCollector, domainName string) {
 }
 
 func domainDescribe(r *test.KnRunResultCollector, domainName string, tls bool) {
+	k := test.NewKubectl(r.KnTest().Kn().Namespace())
+	// Wait for Domain Mapping URL to be populated
+	for i := 0; i < 10; i++ {
+		out, err := k.Run("get", "domainmapping", domainName, "-o=jsonpath='{.status.url}'")
+		assert.NilError(r.T(), err)
+		if len(out) > 0 {
+			break
+		}
+		time.Sleep(time.Second)
+	}
 	out := r.KnTest().Kn().Run("domain", "describe", domainName)
 	r.AssertNoError(out)
 	var url string
