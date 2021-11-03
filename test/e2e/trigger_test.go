@@ -38,7 +38,7 @@ func TestBrokerTrigger(t *testing.T) {
 	defer r.DumpIfFailed()
 
 	test.BrokerCreate(r, "default")
-	defer test.BrokerDelete(r, "default", true)
+	defer test.BrokerDelete(r, "default", false)
 
 	test.ServiceCreate(r, "sinksvc0")
 	test.ServiceCreate(r, "sinksvc1")
