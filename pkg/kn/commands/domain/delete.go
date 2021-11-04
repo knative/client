@@ -30,7 +30,7 @@ func NewDomainMappingDeleteCommand(p *commands.KnParams) *cobra.Command {
 		Use:   "delete NAME",
 		Short: "Delete a domain mapping",
 		Example: `
-  # Delete domain mappings 'hello.example.com' (Beta)
+  # Delete domain mappings 'hello.example.com'
   kn domain delete hello.example.com`,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {

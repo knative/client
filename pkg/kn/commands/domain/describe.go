@@ -36,7 +36,7 @@ func NewDomainMappingDescribeCommand(p *commands.KnParams) *cobra.Command {
 		Use:   "describe NAME",
 		Short: "Show details of a domain mapping",
 		Example: `
-  # Show details of for the domain 'hello.example.com (Beta)'
+  # Show details of for the domain 'hello.example.com'
   kn domain describe hello.example.com`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {

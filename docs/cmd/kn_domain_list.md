@@ -10,7 +10,7 @@ kn domain list
 
 ```
 
-  # List all domain mappings (Beta)
+  # List all domain mappings
   kn domain list
 
   # List all domain mappings in JSON output format

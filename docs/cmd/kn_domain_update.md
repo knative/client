@@ -10,7 +10,7 @@ kn domain update NAME
 
 ```
 
-  # Update a domain mappings 'hello.example.com' for Knative service 'hello' (Beta)
+  # Update a domain mappings 'hello.example.com' for Knative service 'hello'
   kn domain update hello.example.com --refFlags hello
 ```
 
