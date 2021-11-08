@@ -32,6 +32,7 @@ func (t *Traffic) Add(cmd *cobra.Command) {
 	t.AddUntagFlag(cmd)
 }
 
+// AddUntagFlag adds the flag --untag to the command
 func (t *Traffic) AddUntagFlag(cmd *cobra.Command) {
 	cmd.Flags().StringSliceVar(&t.UntagRevisions,
 		"untag",
@@ -39,6 +40,7 @@ func (t *Traffic) AddUntagFlag(cmd *cobra.Command) {
 		"Untag revision (format: --untag tagName). This flag can be specified multiple times.")
 }
 
+// AddTagFlag adds the flag --tag to the command
 func (t *Traffic) AddTagFlag(cmd *cobra.Command) {
 	cmd.Flags().StringSliceVar(&t.RevisionsTags,
 		"tag",
@@ -47,6 +49,7 @@ func (t *Traffic) AddTagFlag(cmd *cobra.Command) {
 			"This flag can be specified multiple times.")
 }
 
+// AddTrafficFlag adds the flag --traffic to the command
 func (t *Traffic) AddTrafficFlag(cmd *cobra.Command) {
 	cmd.Flags().StringSliceVar(&t.RevisionsPercentages,
 		"traffic",
