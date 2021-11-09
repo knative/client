@@ -44,7 +44,7 @@ func NewServiceDeleteCommand(p *commands.KnParams) *cobra.Command {
   # Delete all services in 'ns1' namespace
   kn service delete --all -n ns1
 
-  # Delete the services in offline mode instead of kubernetes cluster
+  # Delete the services in offline mode instead of kubernetes cluster (Beta)
   kn service delete test -n test-ns --target=/user/knfiles
   kn service delete test --target=/user/knfiles/test.yaml
   kn service delete test --target=/user/knfiles/test.json`,

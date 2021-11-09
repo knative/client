@@ -34,7 +34,7 @@ kn service update NAME
   # rest will automatically be directed to echo-v3 (the remaining revision)
   kn service update svc --traffic stable=50,staging=40
 
-  # Update the service in offline mode instead of kubernetes cluster
+  # Update the service in offline mode instead of kubernetes cluster (Beta)
   kn service update gitopstest -n test-ns --env KEY1=VALUE1 --target=/user/knfiles
   kn service update gitopstest --env KEY1=VALUE1 --target=/user/knfiles/test.yaml
   kn service update gitopstest --env KEY1=VALUE1 --target=/user/knfiles/test.json

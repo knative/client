@@ -43,10 +43,10 @@ func NewServiceImportCommand(p *commands.KnParams) *cobra.Command {
 		Use:   "import FILENAME",
 		Short: "Import a service and its revisions (experimental)",
 		Example: `
- # Import a service from YAML file
+ # Import a service from YAML file (Beta)
  kn service import /path/to/file.yaml
 
- # Import a service from JSON file
+ # Import a service from JSON file (Beta)
  kn service import /path/to/file.json`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
