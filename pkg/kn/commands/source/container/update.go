@@ -94,6 +94,7 @@ func NewContainerUpdateCommand(p *commands.KnParams) *cobra.Command {
 	}
 	commands.AddNamespaceFlags(cmd.Flags(), false)
 	podFlags.AddFlags(cmd.Flags())
+	podFlags.AddUpdateFlags(cmd.Flags())
 	sinkFlags.Add(cmd)
 	return cmd
 }

@@ -128,12 +128,6 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 		"Percentage of concurrent requests utilization before scaling up.")
 	p.markFlagMakesRevision("scale-utilization")
 
-	command.Flags().StringArrayVarP(&p.Labels, "label", "l", []string{},
-		"Labels to set for both Service and Revision. name=value; you may provide this flag "+
-			"any number of times to set multiple labels. "+
-			"To unset, specify the label name followed by a \"-\" (e.g., name-).")
-	p.markFlagMakesRevision("label")
-
 	command.Flags().StringArrayVarP(&p.LabelsService, "label-service", "", []string{},
 		"Service label to set. name=value; you may provide this flag "+
 			"any number of times to set multiple labels. "+
@@ -160,12 +154,6 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 			"the image. (--no-lock-to-digest pulls the image tag afresh with each new revision)")
 	// Don't mark as changing the revision.
 
-	command.Flags().StringArrayVarP(&p.Annotations, "annotation", "a", []string{},
-		"Annotations to set for both Service and Revision. name=value; you may provide this flag "+
-			"any number of times to set multiple annotations. "+
-			"To unset, specify the annotation name followed by a \"-\" (e.g., name-).")
-	p.markFlagMakesRevision("annotation")
-
 	command.Flags().StringArrayVarP(&p.AnnotationsService, "annotation-service", "", []string{},
 		"Service annotation to set. name=value; you may provide this flag "+
 			"any number of times to set multiple annotations. "+
@@ -187,11 +175,33 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 // AddUpdateFlags adds the flags specific to update.
 func (p *ConfigurationEditFlags) AddUpdateFlags(command *cobra.Command) {
 	p.addSharedFlags(command)
+
+	flagNames := p.PodSpecFlags.AddUpdateFlags(command.Flags())
+	for _, name := range flagNames {
+		p.markFlagMakesRevision(name)
+	}
+
+	command.Flags().StringArrayVarP(&p.Annotations, "annotation", "a", []string{},
+		"Annotations to set for both Service and Revision. name=value; you may provide this flag "+
+			"any number of times to set multiple annotations. "+
+			"To unset, specify the annotation name followed by a \"-\" (e.g., name-).")
+	p.markFlagMakesRevision("annotation")
+	command.Flags().StringArrayVarP(&p.Labels, "label", "l", []string{},
+		"Labels to set for both Service and Revision. name=value; you may provide this flag "+
+			"any number of times to set multiple labels. "+
+			"To unset, specify the label name followed by a \"-\" (e.g., name-).")
+	p.markFlagMakesRevision("label")
 }
 
 // AddCreateFlags adds the flags specific to create
 func (p *ConfigurationEditFlags) AddCreateFlags(command *cobra.Command) {
 	p.addSharedFlags(command)
+
+	flagNames := p.PodSpecFlags.AddCreateFlags(command.Flags())
+	for _, name := range flagNames {
+		p.markFlagMakesRevision(name)
+	}
+
 	command.Flags().BoolVar(&p.ForceCreate, "force", false,
 		"Create service forcefully, replaces existing service if any.")
 	command.Flags().StringVarP(&p.Filename, "filename", "f", "", "Create a service from file. "+
@@ -199,6 +209,14 @@ func (p *ConfigurationEditFlags) AddCreateFlags(command *cobra.Command) {
 		"For example, -f /path/to/file --env NAME=value adds also an environment variable.")
 	command.MarkFlagFilename("filename")
 	p.markFlagMakesRevision("filename")
+	command.Flags().StringArrayVarP(&p.Annotations, "annotation", "a", []string{},
+		"Annotations to set for both Service and Revision. name=value; you may provide this flag "+
+			"any number of times to set multiple annotations.")
+	p.markFlagMakesRevision("annotation")
+	command.Flags().StringArrayVarP(&p.Labels, "label", "l", []string{},
+		"Labels to set for both Service and Revision. name=value; you may provide this flag "+
+			"any number of times to set multiple labels.")
+	p.markFlagMakesRevision("label")
 }
 
 // Apply mutates the given service according to the flags in the command.
