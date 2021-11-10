@@ -426,6 +426,24 @@ func TestTrafficSplit(t *testing.T) {
 			test.ServiceDelete(r, serviceName)
 		},
 	)
+	t.Run("CreateWithTag",
+		func(t *testing.T) {
+			t.Log("use --tag with create to create a tagged revision")
+			r := test.NewKnRunResultCollector(t, it)
+			defer r.DumpIfFailed()
+
+			serviceName := test.GetNextServiceName(serviceBase)
+			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
+			serviceCreateWithOptions(r, serviceName, "--tag", "foo", "--revision-name", rev1)
+
+			expectedTargets := []TargetFields{
+				newTargetFields("foo", rev1, 100, true),
+			}
+
+			verifyTargets(r, serviceName, expectedTargets, true)
+			test.ServiceDelete(r, serviceName)
+		},
+	)
 	t.Run("UntagNonExistentTag",
 		func(t *testing.T) {
 			t.Log("use --untag on a tag that does not exist")
@@ -485,6 +503,7 @@ func TestTrafficSplit(t *testing.T) {
 
 func verifyTargets(r *test.KnRunResultCollector, serviceName string, expectedTargets []TargetFields, expectErr bool) {
 	out := test.ServiceDescribeWithJSONPath(r, serviceName, targetsJsonPath)
+	r.T().Log(out)
 	assert.Check(r.T(), out != "")
 	actualTargets, err := splitTargets(out, targetsSeparator, len(expectedTargets))
 	if !expectErr {
