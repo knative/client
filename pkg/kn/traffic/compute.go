@@ -229,7 +229,7 @@ func errorTrafficDistribution(sum int, reason int) error {
 	case errorDistributionRevisionNotFound:
 		errMsg = "cannot determine the missing revision"
 	}
-	return fmt.Errorf("unable to allocate the remaining traffic: %d%%: %s", 100-sum, errMsg)
+	return fmt.Errorf("unable to allocate the remaining traffic: %d%%. Reason: %s", 100-sum, errMsg)
 }
 
 func errorSumGreaterThan100(sum int) error {
@@ -279,10 +279,10 @@ func verifyInput(trafficFlags *flags.Traffic, svc *servingv1.Service, revisions 
 		return errorTrafficDistribution(sum, errorDistributionRevisionCount)
 	}
 	if specRevPercentCount == revisionCount-1 {
-		if latestRefTraffic && mutation {
-			return errorTrafficDistribution(sum, errorDistributionRevisionNotFound)
-		}
 		if latestRefTraffic {
+			if mutation {
+				return errorTrafficDistribution(sum, errorDistributionRevisionCount)
+			}
 			revisionRefMap[svc.Status.LatestReadyRevisionName] = 0
 		}
 		for _, rev := range revisions {
@@ -296,7 +296,7 @@ func verifyInput(trafficFlags *flags.Traffic, svc *servingv1.Service, revisions 
 
 	if specRevPercentCount == revisionCount && latestRefTraffic {
 		if !mutation {
-			return errorTrafficDistribution(sum, errorDistributionRevisionNotFound)
+			return errorTrafficDistribution(sum, errorDistributionRevisionCount)
 		}
 		for _, rev := range revisions {
 			if !checkRevisionPresent(revisionRefMap, rev) {

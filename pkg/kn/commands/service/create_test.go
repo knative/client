@@ -1091,3 +1091,9 @@ func TestServiceCreateTag(t *testing.T) {
 	assert.Equal(t, len(created.Spec.Traffic), 1)
 	assert.Equal(t, created.Spec.Traffic[0].Tag, "foo")
 }
+
+func TestServiceCreateTagWithError(t *testing.T) {
+	_, _, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--tag", "foo,bar"}, false)
+	assert.Error(t, err, "repetition of identifier @latest is not allowed, use only once with --tag flag")
+}
