@@ -16,6 +16,7 @@ package traffic
 
 import (
 	"gotest.tools/v3/assert"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"knative.dev/client/pkg/kn/commands/revision"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
@@ -54,6 +55,29 @@ func newTestTrafficCommand() (*cobra.Command, *flags.Traffic) {
 	}
 	trafficFlags.Add(trafficCmd)
 	return trafficCmd, &trafficFlags
+}
+
+func getService(name string, existingTraffic ServiceTraffic) *servingv1.Service {
+	service := &servingv1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: "default",
+		},
+		Spec: servingv1.ServiceSpec{},
+	}
+
+	service.Spec.Template = servingv1.RevisionTemplateSpec{
+		Spec: servingv1.RevisionSpec{},
+	}
+
+	service.Spec.Traffic = existingTraffic
+	service.Spec.Template.Spec.Containers = []corev1.Container{{
+		Resources: corev1.ResourceRequirements{
+			Limits:   corev1.ResourceList{},
+			Requests: corev1.ResourceList{},
+		},
+	}}
+	return service
 }
 
 func TestCompute(t *testing.T) {
@@ -227,7 +251,8 @@ func TestCompute(t *testing.T) {
 			testCmd, tFlags := newTestTrafficCommand()
 			testCmd.SetArgs(testCase.inputFlags)
 			testCmd.Execute()
-			targets, err := Compute(testCmd, testCase.existingTraffic, tFlags, "serviceName", testCase.existingRevisions)
+			svc := getService("serviceName", testCase.existingTraffic)
+			targets, err := Compute(testCmd, svc, tFlags, testCase.existingRevisions, false)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -356,7 +381,7 @@ func TestComputeErrMsg(t *testing.T) {
 			name:            "traffic split sum < 100 should not have @latest specified",
 			existingTraffic: append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("", "rev-00001", 0, false), newTarget("", "rev-00002", 0, false), newTarget("", "rev-00003", 100, true)),
 			inputFlags:      []string{"--traffic", "rev-00001=10,@latest=20"},
-			errMsg:          errorTrafficDistribution(30, errorDistributionLatestTag).Error(),
+			errMsg:          errorTrafficDistribution(30, errorDistributionRevisionNotFound).Error(),
 			existingRevisions: []servingv1.Revision{{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "rev-00001",
@@ -416,7 +441,8 @@ func TestComputeErrMsg(t *testing.T) {
 			testCmd, tFlags := newTestTrafficCommand()
 			testCmd.SetArgs(testCase.inputFlags)
 			testCmd.Execute()
-			_, err := Compute(testCmd, testCase.existingTraffic, tFlags, "serviceName", testCase.existingRevisions)
+			svc := getService("serviceName", testCase.existingTraffic)
+			_, err := Compute(testCmd, svc, tFlags, testCase.existingRevisions, false)
 			assert.Error(t, err, testCase.errMsg)
 		})
 	}

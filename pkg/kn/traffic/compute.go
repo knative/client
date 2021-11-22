@@ -31,7 +31,6 @@ var latestRevisionRef = "@latest"
 
 const (
 	errorDistributionRevisionCount = iota
-	errorDistributionLatestTag
 	errorDistributionRevisionNotFound
 )
 
@@ -227,12 +226,10 @@ func errorTrafficDistribution(sum int, reason int) error {
 	switch reason {
 	case errorDistributionRevisionCount:
 		errMsg = "incorrect number of revisions specified. Only 1 revision should be missing"
-	case errorDistributionLatestTag:
-		errMsg = "cannot determine traffic split when @latest tag is specified"
 	case errorDistributionRevisionNotFound:
 		errMsg = "cannot determine the missing revision"
 	}
-	return fmt.Errorf("unable to allocate the remaining traffic %d. %s", 100-sum, errMsg)
+	return fmt.Errorf("unable to allocate the remaining traffic: %d%%: %s", 100-sum, errMsg)
 }
 
 func errorSumGreaterThan100(sum int) error {
@@ -243,7 +240,7 @@ func errorSumGreaterThan100(sum int) error {
 // verifyInput checks:
 // - if user has repeated @latest field in --tag or --traffic flags
 // - if provided traffic portion are integers
-func verifyInput(trafficFlags *flags.Traffic, revisions []servingv1.Revision) error {
+func verifyInput(trafficFlags *flags.Traffic, svc *servingv1.Service, revisions []servingv1.Revision, mutation bool) error {
 	// check if traffic is being sent to @latest tag
 	var latestRefTraffic bool
 
@@ -260,6 +257,13 @@ func verifyInput(trafficFlags *flags.Traffic, revisions []servingv1.Revision) er
 		return err
 	}
 
+	if sum == 100 {
+		return nil
+	}
+
+	if sum > 100 {
+		return errorSumGreaterThan100(sum)
+	}
 	if _, ok := revisionRefMap[latestRevisionRef]; ok {
 		// traffic has been routed to @latest tag
 		latestRefTraffic = true
@@ -267,29 +271,43 @@ func verifyInput(trafficFlags *flags.Traffic, revisions []servingv1.Revision) er
 
 	// number of revisions specified in traffic flags
 	specRevPercentCount := len(trafficFlags.RevisionsPercentages)
-	// equivalent check for `cmd.Flags().Changed("traffic")` as we don't have `cmd` in this function
-	if specRevPercentCount > 0 {
-		if sum > 100 {
-			return errorSumGreaterThan100(sum)
-		}
-		if sum < 100 && specRevPercentCount != revisionCount-1 {
-			return errorTrafficDistribution(sum, errorDistributionRevisionCount)
-		}
-		if sum < 100 && specRevPercentCount == revisionCount-1 {
-			if latestRefTraffic {
-				return errorTrafficDistribution(sum, errorDistributionLatestTag)
-			}
-			for _, rev := range revisions {
-				if !checkRevisionPresent(revisionRefMap, rev) {
-					trafficFlags.RevisionsPercentages = append(trafficFlags.RevisionsPercentages, fmt.Sprintf("%s=%d", rev.Name, 100-sum))
-					return nil
-				}
-			}
+
+	if specRevPercentCount == 0 {
+		return nil
+	}
+	if specRevPercentCount < revisionCount-1 {
+		return errorTrafficDistribution(sum, errorDistributionRevisionCount)
+	}
+	if specRevPercentCount == revisionCount-1 {
+		if latestRefTraffic && mutation {
 			return errorTrafficDistribution(sum, errorDistributionRevisionNotFound)
 		}
+		if latestRefTraffic {
+			revisionRefMap[svc.Status.LatestReadyRevisionName] = 0
+		}
+		for _, rev := range revisions {
+			if !checkRevisionPresent(revisionRefMap, rev) {
+				trafficFlags.RevisionsPercentages = append(trafficFlags.RevisionsPercentages, fmt.Sprintf("%s=%d", rev.Name, 100-sum))
+				return nil
+			}
+		}
+		return errorTrafficDistribution(sum, errorDistributionRevisionNotFound)
 	}
 
-	return nil
+	if specRevPercentCount == revisionCount && latestRefTraffic {
+		if !mutation {
+			return errorTrafficDistribution(sum, errorDistributionRevisionNotFound)
+		}
+		for _, rev := range revisions {
+			if !checkRevisionPresent(revisionRefMap, rev) {
+				trafficFlags.RevisionsPercentages = append(trafficFlags.RevisionsPercentages, fmt.Sprintf("%s=%d", rev.Name, 100-sum))
+				return nil
+			}
+		}
+		return errorTrafficDistribution(sum, errorDistributionRevisionNotFound)
+	}
+
+	return errorTrafficDistribution(sum, errorDistributionRevisionNotFound)
 }
 
 func verifyRevisionSumAndReferences(trafficFlags *flags.Traffic) (revisionRefMap map[string]int, sum int, err error) {
@@ -356,9 +374,11 @@ func checkRevisionPresent(refMap map[string]int, rev servingv1.Revision) bool {
 }
 
 // Compute takes service traffic targets and updates per given traffic flags
-func Compute(cmd *cobra.Command, targets []servingv1.TrafficTarget,
-	trafficFlags *flags.Traffic, serviceName string, revisions []servingv1.Revision) ([]servingv1.TrafficTarget, error) {
-	err := verifyInput(trafficFlags, revisions)
+func Compute(cmd *cobra.Command, svc *servingv1.Service,
+	trafficFlags *flags.Traffic, revisions []servingv1.Revision, mutation bool) ([]servingv1.TrafficTarget, error) {
+	targets := svc.Spec.Traffic
+	serviceName := svc.Name
+	err := verifyInput(trafficFlags, svc, revisions, mutation)
 	if err != nil {
 		return nil, err
 	}

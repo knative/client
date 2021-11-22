@@ -124,7 +124,7 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 			if trafficFlags.TagsChanged(cmd) {
 				trafficFlags.RevisionsPercentages = []string{"@latest=100"}
 
-				traffic, err := traffic.Compute(cmd, service.Spec.Traffic, &trafficFlags, service.Name, nil)
+				traffic, err := traffic.Compute(cmd, service, &trafficFlags, nil, editFlags.AnyMutation(cmd))
 				if err != nil {
 					return err
 				}

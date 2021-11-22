@@ -503,7 +503,6 @@ func TestTrafficSplit(t *testing.T) {
 
 func verifyTargets(r *test.KnRunResultCollector, serviceName string, expectedTargets []TargetFields, expectErr bool) {
 	out := test.ServiceDescribeWithJSONPath(r, serviceName, targetsJsonPath)
-	r.T().Log(out)
 	assert.Check(r.T(), out != "")
 	actualTargets, err := splitTargets(out, targetsSeparator, len(expectedTargets))
 	if !expectErr {
