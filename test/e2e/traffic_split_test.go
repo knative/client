@@ -148,6 +148,24 @@ func TestTrafficSplit(t *testing.T) {
 		verifyTargets(r, serviceName, expectedTargets, false)
 		test.ServiceDelete(r, serviceName)
 	})
+	t.Run("45:55 automatic traffic split to new @latest and previous revision after mutation", func(t *testing.T) {
+		t.Log("direct 45% traffic explicitly to newly created revision (@latest) and remaining 55 will automatically be directed to previous revision")
+		r := test.NewKnRunResultCollector(t, it)
+		defer r.DumpIfFailed()
+
+		serviceName := test.GetNextServiceName(serviceBase)
+
+		test.ServiceCreate(r, serviceName)
+
+		test.ServiceUpdate(r, serviceName, "--env", "TARGET=v1", "--traffic", "@latest=45")
+
+		rev1 := fmt.Sprintf("%s-00001", serviceName)
+		rev2 := fmt.Sprintf("%s-00002", serviceName)
+
+		expectedTargets := []TargetFields{newTargetFields("", rev2, 45, true), newTargetFields("", rev1, 55, false)}
+		verifyTargets(r, serviceName, expectedTargets, false)
+		test.ServiceDelete(r, serviceName)
+	})
 	t.Run("TagCandidate",
 		func(t *testing.T) {
 			t.Log("tag a revision as candidate, without otherwise changing any traffic split")
@@ -361,6 +379,44 @@ func TestTrafficSplit(t *testing.T) {
 
 			expectedTargets := []TargetFields{newTargetFields("current", rev1, 100, true)}
 			verifyTargets(r, serviceName, expectedTargets, false)
+			test.ServiceDelete(r, serviceName)
+		},
+	)
+	t.Run("TagLatestAsCurrentWithoutKey",
+		func(t *testing.T) {
+			t.Log("tag latest ready revision of service as current")
+			r := test.NewKnRunResultCollector(t, it)
+			defer r.DumpIfFailed()
+
+			serviceName := test.GetNextServiceName(serviceBase)
+			// existing state: latest revision has no tag
+			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
+			serviceCreateWithOptions(r, serviceName, "--revision-name", rev1)
+
+			// desired state: tag latest ready revision as 'current'
+			test.ServiceUpdate(r, serviceName, "--tag", "current")
+
+			expectedTargets := []TargetFields{newTargetFields("current", rev1, 100, true)}
+			verifyTargets(r, serviceName, expectedTargets, false)
+			test.ServiceDelete(r, serviceName)
+		},
+	)
+	t.Run("TagMisspelledLatestAsCurrent",
+		func(t *testing.T) {
+			t.Log("tag misspelled @latest tag of service")
+			r := test.NewKnRunResultCollector(t, it)
+			defer r.DumpIfFailed()
+
+			serviceName := test.GetNextServiceName(serviceBase)
+			// existing state: latest revision has no tag
+			rev1 := fmt.Sprintf("%s-rev-1", serviceName)
+			serviceCreateWithOptions(r, serviceName, "--revision-name", rev1)
+
+			// desired state: tag latest ready revision as 'current'
+			test.ServiceUpdateWithError(r, serviceName, "--tag", "@ltest=current")
+
+			expectedTargets := []TargetFields{newTargetFields("", rev1, 100, true)}
+			verifyTargets(r, serviceName, expectedTargets, true)
 			test.ServiceDelete(r, serviceName)
 		},
 	)
