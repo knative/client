@@ -162,7 +162,12 @@ func WriteImage(dw printers.PrefixWriter, revision *servingv1.Revision) {
 	// Check if the user image is likely a more user-friendly description
 	pinnedDesc := "at"
 	userImage := clientserving.UserImage(&revision.ObjectMeta)
-	imageDigest := revision.Status.ContainerStatuses[0].ImageDigest
+
+	containerStatuses := revision.Status.ContainerStatuses
+	var imageDigest string
+	if len(containerStatuses) > 0 {
+		imageDigest = containerStatuses[0].ImageDigest
+	}
 	if userImage != "" && imageDigest != "" {
 		var parts []string
 		if strings.Contains(image, "@") {
