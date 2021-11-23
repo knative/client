@@ -12,6 +12,17 @@
 | https://github.com/knative/client/pull/[#]
 ////
 
+## v1.1.0 (Unreleased)
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🐛
+| Fixed panic in kn service describe
+| https://github.com/knative/client/pull/1529[#1529]
+
+|===
+
 ## v1.0.0 (2021-11-02)
 [cols="1,10,3", options="header", width="100%"]
 |===
