@@ -1501,7 +1501,7 @@ func TestServiceUpdateInitialScaleMock(t *testing.T) {
 	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
 	template.ObjectMeta.Annotations = map[string]string{
 		autoscaling.InitialScaleAnnotationKey: "1",
-		clientserving.UserImageAnnotationKey:   "gcr.io/foo/bar:baz",
+		clientserving.UserImageAnnotationKey:  "gcr.io/foo/bar:baz",
 	}
 
 	updatedService := getService(svcName)
@@ -1509,7 +1509,7 @@ func TestServiceUpdateInitialScaleMock(t *testing.T) {
 	template.Spec.Containers[0].Image = "gcr.io/foo/bar:baz"
 	template.ObjectMeta.Annotations = map[string]string{
 		autoscaling.InitialScaleAnnotationKey: "2",
-		clientserving.UserImageAnnotationKey:   "gcr.io/foo/bar:baz",
+		clientserving.UserImageAnnotationKey:  "gcr.io/foo/bar:baz",
 	}
 
 	r := client.Recorder()

@@ -18,12 +18,13 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"knative.dev/serving/pkg/apis/autoscaling"
 	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
+
+	"knative.dev/serving/pkg/apis/autoscaling"
 
 	"gotest.tools/v3/assert"
 	api_errors "k8s.io/apimachinery/pkg/api/errors"

@@ -17,12 +17,13 @@ package service
 import (
 	"errors"
 	"fmt"
-	"knative.dev/serving/pkg/apis/autoscaling"
 	"os"
 	"reflect"
 	"strings"
 	"testing"
 	"time"
+
+	"knative.dev/serving/pkg/apis/autoscaling"
 
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/assert/cmp"

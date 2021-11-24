@@ -507,7 +507,7 @@ func TestServiceCreateWithBothAnnotationAndInitScaleAsOption(t *testing.T) {
 
 	r := client.Recorder()
 
-	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "--annotation", autoscaling.InitialScaleAnnotationKey + "=0", "--scale-init", "0")
+	output, err := executeServiceCommand(client, "create", "foo", "--image", "gcr.io/foo/bar:baz", "--annotation", autoscaling.InitialScaleAnnotationKey+"=0", "--scale-init", "0")
 	assert.Assert(t, err != nil)
 	assert.Assert(t, util.ContainsAll(output, "only one of the", "--scale-init", "--annotation", autoscaling.InitialScaleAnnotationKey, "can be specified"))
 
