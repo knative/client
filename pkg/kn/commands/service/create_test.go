@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"knative.dev/serving/pkg/apis/autoscaling"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -406,11 +407,11 @@ func TestServiceCreateMaxMinScale(t *testing.T) {
 
 	actualAnnos := template.Annotations
 	expectedAnnos := []string{
-		"autoscaling.knative.dev/minScale", "1",
-		"autoscaling.knative.dev/maxScale", "5",
-		"autoscaling.knative.dev/target", "10",
-		"autoscaling.knative.dev/targetUtilizationPercentage", "50",
-		"autoscaling.knative.dev/window", "10s",
+		autoscaling.MinScaleAnnotationKey, "1",
+		autoscaling.MaxScaleAnnotationKey, "5",
+		autoscaling.TargetAnnotationKey, "10",
+		autoscaling.TargetUtilizationPercentageKey, "50",
+		autoscaling.WindowAnnotationKey, "10s",
 	}
 
 	for i := 0; i < len(expectedAnnos); i += 2 {
@@ -441,8 +442,8 @@ func TestServiceCreateScale(t *testing.T) {
 
 	actualAnnos := template.Annotations
 	expectedAnnos := []string{
-		"autoscaling.knative.dev/minScale", "5",
-		"autoscaling.knative.dev/maxScale", "5",
+		autoscaling.MinScaleAnnotationKey, "5",
+		autoscaling.MaxScaleAnnotationKey, "5",
 	}
 
 	for i := 0; i < len(expectedAnnos); i += 2 {
@@ -461,7 +462,7 @@ func TestServiceCreateScaleWithNegativeValue(t *testing.T) {
 	if err == nil {
 		t.Fatal(err)
 	}
-	expectedErrMsg := "expected 0 <= -1 <= 2147483647: autoscaling.knative.dev/maxScale"
+	expectedErrMsg := "expected 0 <= -1 <= 2147483647: " + autoscaling.MaxScaleAnnotationKey
 	if !strings.Contains(err.Error(), expectedErrMsg) {
 		t.Errorf("Invalid error output, expected: %s, got : '%s'", expectedErrMsg, err)
 	}
@@ -522,8 +523,8 @@ func TestServiceCreateScaleRange(t *testing.T) {
 
 	actualAnnos := template.Annotations
 	expectedAnnos := []string{
-		"autoscaling.knative.dev/minScale", "1",
-		"autoscaling.knative.dev/maxScale", "5",
+		autoscaling.MinScaleAnnotationKey, "1",
+		autoscaling.MaxScaleAnnotationKey, "5",
 	}
 
 	for i := 0; i < len(expectedAnnos); i += 2 {
@@ -551,7 +552,7 @@ func TestServiceCreateScaleRangeOnlyMin(t *testing.T) {
 
 	actualAnnos := template.Annotations
 	expectedAnnos := []string{
-		"autoscaling.knative.dev/minScale", "1",
+		autoscaling.MinScaleAnnotationKey, "1",
 	}
 
 	for i := 0; i < len(expectedAnnos); i += 2 {
@@ -570,7 +571,7 @@ func TestServiceCreateScaleRangeOnlyMinNegative(t *testing.T) {
 	if err == nil {
 		t.Fatal(err)
 	}
-	expectedErrMsg := "expected 0 <= -1 <= 2147483647: autoscaling.knative.dev/minScale"
+	expectedErrMsg := "expected 0 <= -1 <= 2147483647: " + autoscaling.MinScaleAnnotationKey
 	if !strings.Contains(err.Error(), expectedErrMsg) {
 		t.Errorf("Invalid error output, expected: %s, got : '%s'", expectedErrMsg, err)
 	}
@@ -592,7 +593,7 @@ func TestServiceCreateScaleRangeOnlyMax(t *testing.T) {
 
 	actualAnnos := template.Annotations
 	expectedAnnos := []string{
-		"autoscaling.knative.dev/maxScale", "5",
+		autoscaling.MaxScaleAnnotationKey, "5",
 	}
 
 	for i := 0; i < len(expectedAnnos); i += 2 {
@@ -611,7 +612,7 @@ func TestServiceCreateScaleRangeOnlyMaxNegative(t *testing.T) {
 	if err == nil {
 		t.Fatal(err)
 	}
-	expectedErrMsg := "expected 0 <= -5 <= 2147483647: autoscaling.knative.dev/maxScale"
+	expectedErrMsg := "expected 0 <= -5 <= 2147483647: " + autoscaling.MaxScaleAnnotationKey
 	if !strings.Contains(err.Error(), expectedErrMsg) {
 		t.Errorf("Invalid error output, expected: %s, got : '%s'", expectedErrMsg, err)
 	}
@@ -1080,5 +1081,5 @@ func TestServiceCreateFromYAMLWithOverrideError(t *testing.T) {
 	_, _, _, err = fakeServiceCreate([]string{
 		"service", "create", "foo", "--filename", tempFile, "--scale", "-1"}, false)
 	assert.Assert(t, err != nil)
-	assert.Assert(t, util.ContainsAll(err.Error(), "expected", "0", "<=", "2147483647", "autoscaling.knative.dev/maxScale"))
+	assert.Assert(t, util.ContainsAll(err.Error(), "expected", "0", "<=", "2147483647", autoscaling.MaxScaleAnnotationKey))
 }

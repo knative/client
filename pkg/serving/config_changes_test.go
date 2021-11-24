@@ -155,7 +155,7 @@ func TestUpdateMinScale(t *testing.T) {
 	checkAnnotationValueInt(t, template, autoscaling.MinScaleAnnotationKey, 10)
 	// Update with invalid value
 	err = UpdateMinScale(template, -1)
-	assert.ErrorContains(t, err, "minScale")
+	assert.ErrorContains(t, err, "min-scale")
 }
 
 func TestUpdateMaxScale(t *testing.T) {
@@ -166,7 +166,7 @@ func TestUpdateMaxScale(t *testing.T) {
 	checkAnnotationValueInt(t, template, autoscaling.MaxScaleAnnotationKey, 10)
 	// Update with invalid value
 	err = UpdateMaxScale(template, -1)
-	assert.ErrorContains(t, err, "maxScale")
+	assert.ErrorContains(t, err, "max-scale")
 }
 
 func TestScaleWindow(t *testing.T) {
