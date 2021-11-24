@@ -240,6 +240,8 @@ func errorSumGreaterThan100(sum int) error {
 // verifyInput checks:
 // - if user has repeated @latest field in --tag or --traffic flags
 // - if provided traffic portion are integers
+// - if traffic as per flags sums to 100
+// - if traffic as per flags < 100, can remaining traffic be automatically directed
 func verifyInput(trafficFlags *flags.Traffic, svc *servingv1.Service, revisions []servingv1.Revision, mutation bool) error {
 	// check if traffic is being sent to @latest tag
 	var latestRefTraffic bool
@@ -257,13 +259,14 @@ func verifyInput(trafficFlags *flags.Traffic, svc *servingv1.Service, revisions 
 		return err
 	}
 
+	// further verification is not required if sum >= 100
 	if sum == 100 {
 		return nil
 	}
-
 	if sum > 100 {
 		return errorSumGreaterThan100(sum)
 	}
+
 	if _, ok := revisionRefMap[latestRevisionRef]; ok {
 		// traffic has been routed to @latest tag
 		latestRefTraffic = true
@@ -272,14 +275,23 @@ func verifyInput(trafficFlags *flags.Traffic, svc *servingv1.Service, revisions 
 	// number of revisions specified in traffic flags
 	specRevPercentCount := len(trafficFlags.RevisionsPercentages)
 
+	// no traffic to route
 	if specRevPercentCount == 0 {
 		return nil
 	}
+
+	// cannot determine remaining revision. Only 1 should be left out
 	if specRevPercentCount < revisionCount-1 {
 		return errorTrafficDistribution(sum, errorDistributionRevisionCount)
 	}
+
+	// if service update does not cause a 'mutation', that is, does not result in creation of a
+	// new revision, total number of revisions to be considered = revisionCount
 	if specRevPercentCount == revisionCount-1 {
 		if latestRefTraffic {
+			// if mutation is set, @latest tag is referring to the revision which
+			// will be created after service update. specRevPercentCount should have been
+			// equal to revisionCount
 			if mutation {
 				return errorTrafficDistribution(sum, errorDistributionRevisionCount)
 			}
@@ -294,7 +306,11 @@ func verifyInput(trafficFlags *flags.Traffic, svc *servingv1.Service, revisions 
 		return errorTrafficDistribution(sum, errorDistributionRevisionNotFound)
 	}
 
+	// if service update causes a 'mutation', that is, results in creation of a
+	// new revision, total number of revisions to be considered = revisionCount+1
 	if specRevPercentCount == revisionCount && latestRefTraffic {
+		// if mutation is not set, @latest tag is referring to the revision which
+		// already exists. specRevPercentCount should have been equal to revisionCount
 		if !mutation {
 			return errorTrafficDistribution(sum, errorDistributionRevisionCount)
 		}
@@ -373,7 +389,9 @@ func checkRevisionPresent(refMap map[string]int, rev servingv1.Revision) bool {
 	return tagExists || nameExists
 }
 
-// Compute takes service traffic targets and updates per given traffic flags
+// Compute takes service object, computes traffic per given traffic flags and returns the new traffic. If
+// total traffic per flags < 100, the params 'revisions' and 'mutation' are used to direct remaining
+// traffic. Param 'mutation' is set to true if a new revision will be created on service update
 func Compute(cmd *cobra.Command, svc *servingv1.Service,
 	trafficFlags *flags.Traffic, revisions []servingv1.Revision, mutation bool) ([]servingv1.TrafficTarget, error) {
 	targets := svc.Spec.Traffic
