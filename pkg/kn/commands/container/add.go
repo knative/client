@@ -75,6 +75,7 @@ func NewContainerAddCommand(p *commands.KnParams) *cobra.Command {
 		},
 	}
 	podSpecFlags.AddFlags(cmd.Flags())
+	podSpecFlags.AddUpdateFlags(cmd.Flags())
 	// Volume is not part of ContainerSpec
 	cmd.Flag("volume").Hidden = true
 

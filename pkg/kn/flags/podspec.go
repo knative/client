@@ -72,22 +72,14 @@ func (s *uniqueStringArg) Type() string {
 
 func (s *uniqueStringArg) String() string { return string(*s) }
 
-//AddFlags will add PodSpec related flags to FlagSet
-func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
-
+//AddUpdateFlags will add PodSpec flags related to environment variable to FlagSet of update command
+func (p *PodSpecFlags) AddUpdateFlags(flagset *pflag.FlagSet) []string {
 	flagNames := []string{}
-
-	flagset.VarP(&p.Image, "image", "", "Image to run.")
-	flagNames = append(flagNames, "image")
-
 	flagset.StringArrayVarP(&p.Env, "env", "e", []string{},
 		"Environment variable to set. NAME=value; you may provide this flag "+
 			"any number of times to set multiple environment variables. "+
 			"To unset, specify the environment variable name followed by a \"-\" (e.g., NAME-).")
 	flagNames = append(flagNames, "env")
-
-	flagset.StringVarP(&p.EnvFile, "env-file", "", "", "Path to a file containing environment variables (e.g. --env-file=/home/knative/service1/env).")
-	flagNames = append(flagNames, "env-file")
 
 	flagset.StringArrayVarP(&p.EnvValueFrom, "env-value-from", "", []string{},
 		"Add environment variable from a value of key in ConfigMap (prefix cm: or config-map:) or a Secret (prefix sc: or secret:). "+
@@ -102,6 +94,43 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
 			"You can use this flag multiple times. "+
 			"To unset a ConfigMap/Secret reference, append \"-\" to the name, e.g. --env-from cm:myconfigmap-.")
 	flagNames = append(flagNames, "env-from")
+
+	return flagNames
+}
+
+//AddCreateFlags will add PodSpec flags related to environment variable to FlagSet of create command
+func (p *PodSpecFlags) AddCreateFlags(flagset *pflag.FlagSet) []string {
+	flagNames := []string{}
+	flagset.StringArrayVarP(&p.Env, "env", "e", []string{},
+		"Environment variable to set. NAME=value; you may provide this flag "+
+			"any number of times to set multiple environment variables.")
+	flagNames = append(flagNames, "env")
+
+	flagset.StringArrayVarP(&p.EnvValueFrom, "env-value-from", "", []string{},
+		"Add environment variable from a value of key in ConfigMap (prefix cm: or config-map:) or a Secret (prefix sc: or secret:). "+
+			"Example: --env-value-from NAME=cm:myconfigmap:key or --env-value-from NAME=secret:mysecret:key. "+
+			"You can use this flag multiple times.")
+	flagNames = append(flagNames, "env-value-from")
+
+	flagset.StringArrayVarP(&p.EnvFrom, "env-from", "", []string{},
+		"Add environment variables from a ConfigMap (prefix cm: or config-map:) or a Secret (prefix secret:). "+
+			"Example: --env-from cm:myconfigmap or --env-from secret:mysecret. "+
+			"You can use this flag multiple times.")
+	flagNames = append(flagNames, "env-from")
+
+	return flagNames
+}
+
+//AddFlags will add PodSpec related flags to FlagSet
+func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
+
+	flagNames := []string{}
+
+	flagset.VarP(&p.Image, "image", "", "Image to run.")
+	flagNames = append(flagNames, "image")
+
+	flagset.StringVarP(&p.EnvFile, "env-file", "", "", "Path to a file containing environment variables (e.g. --env-file=/home/knative/service1/env).")
+	flagNames = append(flagNames, "env-file")
 
 	flagset.StringArrayVarP(&p.Mount, "mount", "", []string{},
 		"Mount a ConfigMap (prefix cm: or config-map:), a Secret (prefix secret: or sc:), or an existing Volume (without any prefix) on the specified directory. "+

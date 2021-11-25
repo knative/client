@@ -54,6 +54,7 @@ func TestPodSpecFlags(t *testing.T) {
 	}
 	testCmd.SetArgs(args)
 	flags.AddFlags(testCmd.Flags())
+	flags.AddCreateFlags(testCmd.Flags())
 	testCmd.Execute()
 }
 
@@ -130,6 +131,7 @@ func TestPodSpecResolve(t *testing.T) {
 	}
 	testCmd.SetArgs(inputArgs)
 	flags.AddFlags(testCmd.Flags())
+	flags.AddUpdateFlags(testCmd.Flags())
 	testCmd.Execute()
 }
 
@@ -251,6 +253,7 @@ containers:
 			}
 			testCmd.SetArgs(inputArgs)
 			flags.AddFlags(testCmd.Flags())
+			flags.AddUpdateFlags(testCmd.Flags())
 			testCmd.Execute()
 		})
 	}
@@ -282,6 +285,7 @@ func TestPodSpecResolveReturnError(t *testing.T) {
 
 	testCmd.SetArgs(inputArgs)
 	flags.AddFlags(testCmd.Flags())
+	flags.AddCreateFlags(testCmd.Flags())
 	testCmd.Execute()
 	out := outBuf.String()
 	assert.Assert(t, util.ContainsAll(out, "Invalid", "mount"))
@@ -326,5 +330,6 @@ func TestPodSpecResolveWithEnvFile(t *testing.T) {
 	}
 	testCmd.SetArgs(inputArgs)
 	flags.AddFlags(testCmd.Flags())
+	flags.AddUpdateFlags(testCmd.Flags())
 	testCmd.Execute()
 }
