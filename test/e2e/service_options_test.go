@@ -268,7 +268,7 @@ func validateServiceConcurrencyTarget(r *test.KnRunResultCollector, serviceName,
 }
 
 func validateServiceConcurrencyUtilization(r *test.KnRunResultCollector, serviceName, concurrencyUtilization string) {
-	jsonpath := "jsonpath={.items[0].spec.template.metadata.annotations.autoscaling\\.knative\\.dev/targetUtilizationPercentage}"
+	jsonpath := "jsonpath={.items[0].spec.template.metadata.annotations.autoscaling\\.knative\\.dev/target-utilization-percentage}"
 	out := r.KnTest().Kn().Run("service", "list", serviceName, "-o", jsonpath)
 	assert.Equal(r.T(), out.Stdout, concurrencyUtilization)
 	r.AssertNoError(out)
@@ -282,21 +282,21 @@ func validateScaleWindow(r *test.KnRunResultCollector, serviceName, window strin
 }
 
 func validateServiceMinScale(r *test.KnRunResultCollector, serviceName, minScale string) {
-	jsonpath := "jsonpath={.items[0].spec.template.metadata.annotations.autoscaling\\.knative\\.dev/minScale}"
+	jsonpath := "jsonpath={.items[0].spec.template.metadata.annotations.autoscaling\\.knative\\.dev/min-scale}"
 	out := r.KnTest().Kn().Run("service", "list", serviceName, "-o", jsonpath)
 	assert.Equal(r.T(), out.Stdout, minScale)
 	r.AssertNoError(out)
 }
 
 func validateServiceMaxScale(r *test.KnRunResultCollector, serviceName, maxScale string) {
-	jsonpath := "jsonpath={.items[0].spec.template.metadata.annotations.autoscaling\\.knative\\.dev/maxScale}"
+	jsonpath := "jsonpath={.items[0].spec.template.metadata.annotations.autoscaling\\.knative\\.dev/max-scale}"
 	out := r.KnTest().Kn().Run("service", "list", serviceName, "-o", jsonpath)
 	assert.Equal(r.T(), out.Stdout, maxScale)
 	r.AssertNoError(out)
 }
 
 func validateServiceInitScale(r *test.KnRunResultCollector, serviceName, initScale string) {
-	jsonpath := "jsonpath={.items[0].spec.template.metadata.annotations.autoscaling\\.knative\\.dev/initialScale}"
+	jsonpath := "jsonpath={.items[0].spec.template.metadata.annotations.autoscaling\\.knative\\.dev/initial-scale}"
 	out := r.KnTest().Kn().Run("service", "list", serviceName, "-o", jsonpath)
 	assert.Equal(r.T(), out.Stdout, initScale)
 	r.AssertNoError(out)
