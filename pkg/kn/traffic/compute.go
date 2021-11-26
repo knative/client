@@ -246,8 +246,8 @@ func verifyInput(trafficFlags *flags.Traffic, svc *servingv1.Service, revisions 
 	// check if traffic is being sent to @latest tag
 	var latestRefTraffic bool
 
-	// number of revisions
-	var revisionCount = len(revisions)
+	// number of existing revisions
+	var existingRevisionCount = len(revisions)
 
 	err := verifyLatestTag(trafficFlags)
 	if err != nil {
@@ -281,46 +281,36 @@ func verifyInput(trafficFlags *flags.Traffic, svc *servingv1.Service, revisions 
 	}
 
 	// cannot determine remaining revision. Only 1 should be left out
-	if specRevPercentCount < revisionCount-1 {
+	if specRevPercentCount < existingRevisionCount-1 {
 		return errorTrafficDistribution(sum, errorDistributionRevisionCount)
 	}
 
-	// if service update does not cause a 'mutation', that is, does not result in creation of a
-	// new revision, total number of revisions to be considered = revisionCount
-	if specRevPercentCount == revisionCount-1 {
+	if specRevPercentCount == existingRevisionCount-1 {
 		if latestRefTraffic {
 			// if mutation is set, @latest tag is referring to the revision which
 			// will be created after service update. specRevPercentCount should have been
-			// equal to revisionCount
+			// equal to existingRevisionCount
 			if mutation {
 				return errorTrafficDistribution(sum, errorDistributionRevisionCount)
 			}
 			revisionRefMap[svc.Status.LatestReadyRevisionName] = 0
 		}
-		for _, rev := range revisions {
-			if !checkRevisionPresent(revisionRefMap, rev) {
-				trafficFlags.RevisionsPercentages = append(trafficFlags.RevisionsPercentages, fmt.Sprintf("%s=%d", rev.Name, 100-sum))
-				return nil
-			}
-		}
-		return errorTrafficDistribution(sum, errorDistributionRevisionNotFound)
 	}
 
-	// if service update causes a 'mutation', that is, results in creation of a
-	// new revision, total number of revisions to be considered = revisionCount+1
-	if specRevPercentCount == revisionCount && latestRefTraffic {
+	if specRevPercentCount == existingRevisionCount && latestRefTraffic {
 		// if mutation is not set, @latest tag is referring to the revision which
-		// already exists. specRevPercentCount should have been equal to revisionCount
+		// already exists. specRevPercentCount should have been equal to existingRevisionCount
 		if !mutation {
 			return errorTrafficDistribution(sum, errorDistributionRevisionCount)
 		}
-		for _, rev := range revisions {
-			if !checkRevisionPresent(revisionRefMap, rev) {
-				trafficFlags.RevisionsPercentages = append(trafficFlags.RevisionsPercentages, fmt.Sprintf("%s=%d", rev.Name, 100-sum))
-				return nil
-			}
+	}
+
+	// remaining % to 100
+	for _, rev := range revisions {
+		if !checkRevisionPresent(revisionRefMap, rev) {
+			trafficFlags.RevisionsPercentages = append(trafficFlags.RevisionsPercentages, fmt.Sprintf("%s=%d", rev.Name, 100-sum))
+			return nil
 		}
-		return errorTrafficDistribution(sum, errorDistributionRevisionNotFound)
 	}
 
 	return errorTrafficDistribution(sum, errorDistributionRevisionNotFound)
