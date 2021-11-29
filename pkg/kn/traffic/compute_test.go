@@ -16,6 +16,7 @@ package traffic
 
 import (
 	"gotest.tools/v3/assert"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"knative.dev/client/pkg/kn/commands/revision"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
@@ -35,6 +36,8 @@ type trafficTestCase struct {
 	desiredTags       []string
 	desiredPercents   []int64
 	existingRevisions []servingv1.Revision
+	mutation          bool
+	latestRevision    string
 }
 
 type trafficErrorTestCase struct {
@@ -43,6 +46,8 @@ type trafficErrorTestCase struct {
 	inputFlags        []string
 	errMsg            string
 	existingRevisions []servingv1.Revision
+	mutation          bool
+	latestRevision    string
 }
 
 func newTestTrafficCommand() (*cobra.Command, *flags.Traffic) {
@@ -56,12 +61,44 @@ func newTestTrafficCommand() (*cobra.Command, *flags.Traffic) {
 	return trafficCmd, &trafficFlags
 }
 
+func getService(name, latestRevision string, existingTraffic ServiceTraffic) *servingv1.Service {
+	service := &servingv1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: "default",
+		},
+		Spec: servingv1.ServiceSpec{},
+	}
+
+	service.Spec.Template = servingv1.RevisionTemplateSpec{
+		Spec: servingv1.RevisionSpec{},
+	}
+
+	service.Spec.Traffic = existingTraffic
+	service.Spec.Template.Spec.Containers = []corev1.Container{{
+		Resources: corev1.ResourceRequirements{
+			Limits:   corev1.ResourceList{},
+			Requests: corev1.ResourceList{},
+		},
+	}}
+	service.Status.LatestReadyRevisionName = latestRevision
+	return service
+}
+
 func TestCompute(t *testing.T) {
 	for _, testCase := range []trafficTestCase{
 		{
 			name:             "assign 'latest' tag to @latest revision",
 			existingTraffic:  append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("", "", 100, true)),
 			inputFlags:       []string{"--tag", "@latest=latest"},
+			desiredRevisions: []string{"@latest"},
+			desiredTags:      []string{"latest"},
+			desiredPercents:  []int64{100},
+		},
+		{
+			name:             "assign 'latest' tag to @latest revision without specifying key",
+			existingTraffic:  append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("", "", 100, true)),
+			inputFlags:       []string{"--tag", "latest"},
 			desiredRevisions: []string{"@latest"},
 			desiredTags:      []string{"latest"},
 			desiredPercents:  []int64{100},
@@ -217,6 +254,102 @@ func TestCompute(t *testing.T) {
 				},
 			}},
 		},
+		{
+			name:             "traffic split sum < 100 with @latest which mutates service should specify N revs",
+			existingTraffic:  append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("", "rev-00001", 0, false), newTarget("", "rev-00002", 0, false), newTarget("", "rev-00003", 100, true)),
+			inputFlags:       []string{"--traffic", "rev-00001=10,rev-00003=40,@latest=20"},
+			desiredRevisions: []string{"rev-00001", "rev-00002", "", "rev-00003"},
+			desiredPercents:  []int64{10, 30, 20, 40},
+			desiredTags:      []string{"", "", "", ""},
+			existingRevisions: []servingv1.Revision{{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "rev-00001",
+					Labels: map[string]string{
+						"serving.knative.dev/service": "serviceName",
+					},
+				},
+			}, {
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "rev-00002",
+					Labels: map[string]string{
+						"serving.knative.dev/service": "serviceName",
+					},
+				},
+			}, {
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "rev-00003",
+					Labels: map[string]string{
+						"serving.knative.dev/service": "serviceName",
+					},
+				},
+			}},
+			mutation:       true,
+			latestRevision: "rev-00003",
+		},
+		{
+			name:             "traffic split sum < 100 with @latest and does not mutate the service should specify N-1 revs",
+			existingTraffic:  append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("", "rev-00001", 0, false), newTarget("", "rev-00002", 0, false), newTarget("", "rev-00003", 100, true)),
+			inputFlags:       []string{"--traffic", "rev-00001=10,@latest=20"},
+			desiredRevisions: []string{"rev-00001", "rev-00002", ""},
+			desiredPercents:  []int64{10, 70, 20},
+			desiredTags:      []string{"", "", ""},
+			existingRevisions: []servingv1.Revision{{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "rev-00001",
+					Labels: map[string]string{
+						"serving.knative.dev/service": "serviceName",
+					},
+				},
+			}, {
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "rev-00002",
+					Labels: map[string]string{
+						"serving.knative.dev/service": "serviceName",
+					},
+				},
+			}, {
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "rev-00003",
+					Labels: map[string]string{
+						"serving.knative.dev/service": "serviceName",
+					},
+				},
+			}},
+			mutation:       false,
+			latestRevision: "rev-00003",
+		},
+		{
+			name:             "traffic split sum < 100 without which mutates service should specify N revs. Remaining should go to @latest",
+			existingTraffic:  append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("", "rev-00001", 0, false), newTarget("", "rev-00002", 0, false), newTarget("", "rev-00003", 100, true)),
+			inputFlags:       []string{"--traffic", "rev-00001=10,rev-00003=40,rev-00002=30"},
+			desiredRevisions: []string{"rev-00001", "rev-00002", "", "rev-00003"},
+			desiredPercents:  []int64{10, 30, 20, 40},
+			desiredTags:      []string{"", "", "", ""},
+			existingRevisions: []servingv1.Revision{{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "rev-00001",
+					Labels: map[string]string{
+						"serving.knative.dev/service": "serviceName",
+					},
+				},
+			}, {
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "rev-00002",
+					Labels: map[string]string{
+						"serving.knative.dev/service": "serviceName",
+					},
+				},
+			}, {
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "rev-00003",
+					Labels: map[string]string{
+						"serving.knative.dev/service": "serviceName",
+					},
+				},
+			}},
+			mutation:       true,
+			latestRevision: "rev-00003",
+		},
 	} {
 		t.Run(testCase.name, func(t *testing.T) {
 			if lper, lrev, ltag := len(testCase.desiredPercents), len(testCase.desiredRevisions), len(testCase.desiredTags); lper != lrev || lper != ltag {
@@ -227,7 +360,8 @@ func TestCompute(t *testing.T) {
 			testCmd, tFlags := newTestTrafficCommand()
 			testCmd.SetArgs(testCase.inputFlags)
 			testCmd.Execute()
-			targets, err := Compute(testCmd, testCase.existingTraffic, tFlags, "serviceName", testCase.existingRevisions)
+			svc := getService("serviceName", testCase.latestRevision, testCase.existingTraffic)
+			targets, err := Compute(testCmd, svc, tFlags, testCase.existingRevisions, testCase.mutation)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -268,6 +402,12 @@ func TestComputeErrMsg(t *testing.T) {
 			name:            "repeatedly tagging to @latest revision not allowed",
 			existingTraffic: append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("", "", 100, true)),
 			inputFlags:      []string{"--tag", "@latest=latest,@latest=2"},
+			errMsg:          "repetition of identifier @latest is not allowed, use only once with --tag flag",
+		},
+		{
+			name:            "repeatedly tagging to @latest revision not allowed, without key",
+			existingTraffic: append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("", "", 100, true)),
+			inputFlags:      []string{"--tag", "latest,current"},
 			errMsg:          "repetition of identifier @latest is not allowed, use only once with --tag flag",
 		},
 		{
@@ -353,10 +493,10 @@ func TestComputeErrMsg(t *testing.T) {
 			}},
 		},
 		{
-			name:            "traffic split sum < 100 should not have @latest specified",
+			name:            "traffic split sum < 100 with @latest which mutates service should specify N revs",
 			existingTraffic: append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("", "rev-00001", 0, false), newTarget("", "rev-00002", 0, false), newTarget("", "rev-00003", 100, true)),
 			inputFlags:      []string{"--traffic", "rev-00001=10,@latest=20"},
-			errMsg:          errorTrafficDistribution(30, errorDistributionLatestTag).Error(),
+			errMsg:          errorTrafficDistribution(30, errorDistributionRevisionCount).Error(),
 			existingRevisions: []servingv1.Revision{{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "rev-00001",
@@ -379,6 +519,36 @@ func TestComputeErrMsg(t *testing.T) {
 					},
 				},
 			}},
+			mutation: true,
+		},
+		{
+			name:            "traffic split sum < 100 with @latest and mutates the service should specify N revs",
+			existingTraffic: append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("", "rev-00001", 0, false), newTarget("", "rev-00002", 0, false), newTarget("", "rev-00003", 100, true)),
+			inputFlags:      []string{"--traffic", "rev-00001=10,rev-00002=10,@latest=20"},
+			errMsg:          errorTrafficDistribution(40, errorDistributionRevisionCount).Error(),
+			existingRevisions: []servingv1.Revision{{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "rev-00001",
+					Labels: map[string]string{
+						"serving.knative.dev/service": "serviceName",
+					},
+				},
+			}, {
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "rev-00002",
+					Labels: map[string]string{
+						"serving.knative.dev/service": "serviceName",
+					},
+				},
+			}, {
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "rev-00003",
+					Labels: map[string]string{
+						"serving.knative.dev/service": "serviceName",
+					},
+				},
+			}},
+			mutation: false,
 		},
 		{
 			name:            "traffic split sum < 100 error when remaining revision not found",
@@ -416,7 +586,8 @@ func TestComputeErrMsg(t *testing.T) {
 			testCmd, tFlags := newTestTrafficCommand()
 			testCmd.SetArgs(testCase.inputFlags)
 			testCmd.Execute()
-			_, err := Compute(testCmd, testCase.existingTraffic, tFlags, "serviceName", testCase.existingRevisions)
+			svc := getService("serviceName", testCase.latestRevision, testCase.existingTraffic)
+			_, err := Compute(testCmd, svc, tFlags, testCase.existingRevisions, testCase.mutation)
 			assert.Error(t, err, testCase.errMsg)
 		})
 	}

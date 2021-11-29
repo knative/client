@@ -23,6 +23,8 @@ import (
 
 	"knative.dev/client/pkg/config"
 	"knative.dev/client/pkg/kn/commands"
+	"knative.dev/client/pkg/kn/commands/flags"
+	"knative.dev/client/pkg/kn/traffic"
 	servinglib "knative.dev/client/pkg/serving"
 
 	"knative.dev/serving/pkg/apis/serving"
@@ -82,6 +84,7 @@ var create_example = `
 func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 	var editFlags ConfigurationEditFlags
 	var waitFlags commands.WaitFlags
+	var trafficFlags flags.Traffic
 
 	serviceCreateCommand := &cobra.Command{
 		Use:     "create NAME --image IMAGE",
@@ -118,6 +121,15 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
+			if trafficFlags.TagsChanged(cmd) {
+				trafficFlags.RevisionsPercentages = []string{"@latest=100"}
+
+				traffic, err := traffic.Compute(cmd, service, &trafficFlags, nil, editFlags.AnyMutation(cmd))
+				if err != nil {
+					return err
+				}
+				service.Spec.Traffic = traffic
+			}
 			serviceExists, err := serviceExists(cmd.Context(), client, service.Name)
 			if err != nil {
 				return err
@@ -143,6 +155,7 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 	commands.AddNamespaceFlags(serviceCreateCommand.Flags(), false)
 	commands.AddGitOpsFlags(serviceCreateCommand.Flags())
 	editFlags.AddCreateFlags(serviceCreateCommand)
+	trafficFlags.AddTagFlag(serviceCreateCommand)
 	waitFlags.AddConditionWaitFlags(serviceCreateCommand, commands.WaitDefaultTimeout, "create", "service", "ready")
 	return serviceCreateCommand
 }

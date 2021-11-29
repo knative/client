@@ -1084,3 +1084,18 @@ func TestServiceCreateFromYAMLWithOverrideError(t *testing.T) {
 	assert.Assert(t, err != nil)
 	assert.Assert(t, util.ContainsAll(err.Error(), "expected", "0", "<=", "2147483647", autoscaling.MaxScaleAnnotationKey))
 }
+
+func TestServiceCreateTag(t *testing.T) {
+	action, created, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--tag", "foo"}, false)
+	assert.NilError(t, err)
+	assert.Assert(t, action.Matches("create", "services"))
+	assert.Equal(t, len(created.Spec.Traffic), 1)
+	assert.Equal(t, created.Spec.Traffic[0].Tag, "foo")
+}
+
+func TestServiceCreateTagWithError(t *testing.T) {
+	_, _, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--tag", "foo,bar"}, false)
+	assert.Error(t, err, "repetition of identifier @latest is not allowed, use only once with --tag flag")
+}
