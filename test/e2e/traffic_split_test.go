@@ -166,6 +166,37 @@ func TestTrafficSplit(t *testing.T) {
 		verifyTargets(r, serviceName, expectedTargets, false)
 		test.ServiceDelete(r, serviceName)
 	})
+	t.Run("automatic traffic split failure", func(t *testing.T) {
+		t.Log("direct 50% traffic to one of the three revisions. Remaining will not be automatically redirected as only one revision should be missing from spec")
+		r := test.NewKnRunResultCollector(t, it)
+		defer r.DumpIfFailed()
+
+		serviceName := test.GetNextServiceName(serviceBase)
+
+		rev1 := fmt.Sprintf("%s-00001", serviceName)
+
+		test.ServiceCreate(r, serviceName)
+
+		test.ServiceUpdate(r, serviceName, "--env", "TARGET=v1")
+		test.ServiceUpdate(r, serviceName, "--env", "TARGET=v2")
+		test.ServiceUpdateWithError(r, serviceName, "--traffic", fmt.Sprintf("%s=%d", rev1, 50))
+
+		test.ServiceDelete(r, serviceName)
+	})
+	t.Run("automatic traffic split failure with @latest", func(t *testing.T) {
+		t.Log("direct 50% traffic to @latest of the three revisions. Remaining will not be automatically redirected as only one revision should be missing from spec")
+		r := test.NewKnRunResultCollector(t, it)
+		defer r.DumpIfFailed()
+
+		serviceName := test.GetNextServiceName(serviceBase)
+
+		test.ServiceCreate(r, serviceName)
+
+		test.ServiceUpdate(r, serviceName, "--env", "TARGET=v1")
+		test.ServiceUpdateWithError(r, serviceName, "--env", "TARGET=v2", "--traffic", "@latest=50")
+
+		test.ServiceDelete(r, serviceName)
+	})
 	t.Run("TagCandidate",
 		func(t *testing.T) {
 			t.Log("tag a revision as candidate, without otherwise changing any traffic split")
