@@ -318,6 +318,38 @@ func TestCompute(t *testing.T) {
 			mutation:       false,
 			latestRevision: "rev-00003",
 		},
+		{
+			name:             "traffic split sum < 100 without which mutates service should specify N revs. Remaining should go to @latest",
+			existingTraffic:  append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("", "rev-00001", 0, false), newTarget("", "rev-00002", 0, false), newTarget("", "rev-00003", 100, true)),
+			inputFlags:       []string{"--traffic", "rev-00001=10,rev-00003=40,rev-00002=30"},
+			desiredRevisions: []string{"rev-00001", "rev-00002", "", "rev-00003"},
+			desiredPercents:  []int64{10, 30, 20, 40},
+			desiredTags:      []string{"", "", "", ""},
+			existingRevisions: []servingv1.Revision{{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "rev-00001",
+					Labels: map[string]string{
+						"serving.knative.dev/service": "serviceName",
+					},
+				},
+			}, {
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "rev-00002",
+					Labels: map[string]string{
+						"serving.knative.dev/service": "serviceName",
+					},
+				},
+			}, {
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "rev-00003",
+					Labels: map[string]string{
+						"serving.knative.dev/service": "serviceName",
+					},
+				},
+			}},
+			mutation:       true,
+			latestRevision: "rev-00003",
+		},
 	} {
 		t.Run(testCase.name, func(t *testing.T) {
 			if lper, lrev, ltag := len(testCase.desiredPercents), len(testCase.desiredRevisions), len(testCase.desiredTags); lper != lrev || lper != ltag {

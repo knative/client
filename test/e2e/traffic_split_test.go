@@ -166,6 +166,23 @@ func TestTrafficSplit(t *testing.T) {
 		verifyTargets(r, serviceName, expectedTargets, false)
 		test.ServiceDelete(r, serviceName)
 	})
+	t.Run("45:55 automatic traffic split to @latest after mutation", func(t *testing.T) {
+		t.Log("direct 45% traffic explicitly to previous revision and remaining 55 will automatically be directed to @latest")
+		r := test.NewKnRunResultCollector(t, it)
+		defer r.DumpIfFailed()
+
+		serviceName := test.GetNextServiceName(serviceBase)
+
+		test.ServiceCreate(r, serviceName)
+
+		rev1 := fmt.Sprintf("%s-00001", serviceName)
+		rev2 := fmt.Sprintf("%s-00002", serviceName)
+		test.ServiceUpdate(r, serviceName, "--env", "TARGET=v1", "--traffic", fmt.Sprintf("%s=%d", rev1, 45))
+
+		expectedTargets := []TargetFields{newTargetFields("", rev2, 55, true), newTargetFields("", rev1, 45, false)}
+		verifyTargets(r, serviceName, expectedTargets, false)
+		test.ServiceDelete(r, serviceName)
+	})
 	t.Run("automatic traffic split failure", func(t *testing.T) {
 		t.Log("direct 50% traffic to one of the three revisions. Remaining will not be automatically redirected as only one revision should be missing from spec")
 		r := test.NewKnRunResultCollector(t, it)

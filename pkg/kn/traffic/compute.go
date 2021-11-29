@@ -285,23 +285,24 @@ func verifyInput(trafficFlags *flags.Traffic, svc *servingv1.Service, revisions 
 		return errorTrafficDistribution(sum, errorDistributionRevisionCount)
 	}
 
-	if specRevPercentCount == existingRevisionCount-1 {
-		if latestRefTraffic {
-			// if mutation is set, @latest tag is referring to the revision which
-			// will be created after service update. specRevPercentCount should have been
-			// equal to existingRevisionCount
-			if mutation {
-				return errorTrafficDistribution(sum, errorDistributionRevisionCount)
-			}
-			revisionRefMap[svc.Status.LatestReadyRevisionName] = 0
-		}
-	}
-
-	if specRevPercentCount == existingRevisionCount && latestRefTraffic {
-		// if mutation is not set, @latest tag is referring to the revision which
-		// already exists. specRevPercentCount should have been equal to existingRevisionCount
-		if !mutation {
+	// if mutation is set, a new revision will be created after service update.
+	// specRevPercentCount should be equal to existingRevisionCount
+	if mutation {
+		if specRevPercentCount != existingRevisionCount {
 			return errorTrafficDistribution(sum, errorDistributionRevisionCount)
+		}
+		if _, ok := revisionRefMap[latestRevisionRef]; !ok {
+			// remaining % can only go to the @latest tag
+			trafficFlags.RevisionsPercentages = append(trafficFlags.RevisionsPercentages, fmt.Sprintf("%s=%d", latestRevisionRef, 100-sum))
+			return nil
+		}
+	} else {
+		// if mutation is not set, specRevPercentCount should be equal to existingRevisionCount
+		if specRevPercentCount != existingRevisionCount-1 {
+			return errorTrafficDistribution(sum, errorDistributionRevisionCount)
+		}
+		if latestRefTraffic {
+			revisionRefMap[svc.Status.LatestReadyRevisionName] = 0
 		}
 	}
 
