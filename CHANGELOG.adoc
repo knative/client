@@ -21,6 +21,10 @@
 | Fixed panic in kn service describe
 | https://github.com/knative/client/pull/1529[#1529]
 
+| 🐛
+| Fixed panic in kn service update
+| https://github.com/knative/client/pull/1533[#1533]
+
 |===
 
 ## v1.0.0 (2021-11-02)
