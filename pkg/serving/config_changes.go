@@ -145,7 +145,7 @@ func PinImageToDigest(currentRevisionTemplate *servingv1.RevisionTemplateSpec, b
 	}
 
 	containerStatus := ContainerStatus(baseRevision)
-	if containerStatus.ImageDigest != "" {
+	if containerStatus != nil && containerStatus.ImageDigest != "" {
 		return flags.UpdateImage(&currentRevisionTemplate.Spec.PodSpec, containerStatus.ImageDigest)
 	}
 	return nil
