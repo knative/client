@@ -151,3 +151,89 @@ func TestPort(t *testing.T) {
 	revisionSpec.PodSpec.Containers[0].Ports = []corev1.ContainerPort{port}
 	assert.Equal(t, (int32)(42), *Port(revisionSpec))
 }
+
+func TestContainerStatus(t *testing.T) {
+	tests := []struct {
+		name string
+		rev  *servingv1.Revision
+		want *servingv1.ContainerStatus
+	}{
+		{
+			"no container",
+			&servingv1.Revision{
+				Spec: servingv1.RevisionSpec{},
+			},
+			nil,
+		},
+		{
+			"no container",
+			&servingv1.Revision{
+				Spec: servingv1.RevisionSpec{},
+			},
+			nil,
+		},
+		{
+			"1 container",
+			&servingv1.Revision{
+				Spec: servingv1.RevisionSpec{
+					PodSpec: corev1.PodSpec{
+						Containers: []corev1.Container{
+							{
+								Name:  "user-container",
+								Ports: []corev1.ContainerPort{{ContainerPort: 80}},
+							},
+						},
+					},
+				},
+				Status: servingv1.RevisionStatus{ContainerStatuses: []servingv1.ContainerStatus{
+					{
+						Name: "user-container",
+					},
+				}},
+			},
+			&servingv1.ContainerStatus{
+				Name: "user-container",
+			},
+		},
+		{
+			"3 containers",
+			&servingv1.Revision{
+				Spec: servingv1.RevisionSpec{
+					PodSpec: corev1.PodSpec{
+						Containers: []corev1.Container{
+							{
+								Name: "sidecar-container-1",
+							},
+							{
+								Name:  "user-container",
+								Ports: []corev1.ContainerPort{{ContainerPort: 80}},
+							},
+							{
+								Name: "sidecar-container-2",
+							},
+						}}},
+				Status: servingv1.RevisionStatus{
+					ContainerStatuses: []servingv1.ContainerStatus{
+						{
+							Name: "sidecar-container-1",
+						},
+						{
+							Name: "user-container",
+						},
+						{
+							Name: "sidecar-container-2",
+						},
+					},
+				}},
+			&servingv1.ContainerStatus{
+				Name: "user-container",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := ContainerStatus(tt.rev)
+			assert.DeepEqual(t, got, tt.want)
+		})
+	}
+}
