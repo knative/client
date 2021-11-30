@@ -162,13 +162,11 @@ func TestContainerStatus(t *testing.T) {
 			"no container",
 			&servingv1.Revision{
 				Spec: servingv1.RevisionSpec{},
-			},
-			nil,
-		},
-		{
-			"no container",
-			&servingv1.Revision{
-				Spec: servingv1.RevisionSpec{},
+				Status: servingv1.RevisionStatus{ContainerStatuses: []servingv1.ContainerStatus{
+					{
+						Name: "user-container",
+					},
+				}},
 			},
 			nil,
 		},
