@@ -65,7 +65,7 @@ func ContainerIndexOfRevisionSpec(revisionSpec *servingv1.RevisionSpec) int {
 // such status could be found
 func ContainerStatus(r *servingv1.Revision) *servingv1.ContainerStatus {
 	idx := ContainerIndexOfRevisionSpec(&r.Spec)
-	if idx == -1 {
+	if idx < 0 || idx >= len(r.Status.ContainerStatuses) {
 		return nil
 	}
 	return &r.Status.ContainerStatuses[idx]

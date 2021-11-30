@@ -141,6 +141,16 @@ func TestPinImageToDigestInvalidImages(t *testing.T) {
 	assert.ErrorContains(t, err, "unexpected image")
 }
 
+func TestPinImageToDigestNilContainerStatus(t *testing.T) {
+	template, _ := getRevisionTemplate()
+	revision := &servingv1.Revision{}
+	revision.Spec = template.Spec
+	revision.ObjectMeta = template.ObjectMeta
+	revision.Status.ContainerStatuses = nil
+	err := PinImageToDigest(template, revision)
+	assert.NilError(t, err)
+}
+
 func TestUpdateTimestampAnnotation(t *testing.T) {
 	template, _ := getRevisionTemplate()
 	UpdateTimestampAnnotation(template)
