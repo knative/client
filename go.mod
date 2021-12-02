@@ -3,7 +3,10 @@ module knative.dev/client
 go 1.16
 
 require (
+	github.com/emicklei/go-restful v2.15.0+incompatible // indirect
+	github.com/go-openapi/spec v0.20.2 // indirect
 	github.com/google/go-cmp v0.5.6
+	github.com/googleapis/gnostic v0.5.3 // indirect
 	github.com/gregjones/httpcache v0.0.0-20190212212710-3befbb6ad0cc // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/smartystreets/assertions v1.0.0 // indirect
@@ -18,10 +21,11 @@ require (
 	k8s.io/cli-runtime v0.21.4
 	k8s.io/client-go v0.21.4
 	k8s.io/code-generator v0.21.4
-	knative.dev/eventing v0.27.1-0.20211126120551-7fc053b79089
-	knative.dev/hack v0.0.0-20211122162614-813559cefdda
-	knative.dev/networking v0.0.0-20211126074453-0151d6b9c689
-	knative.dev/pkg v0.0.0-20211129195804-438776b3c87c
-	knative.dev/serving v0.27.1-0.20211129222808-a81da906c7b2
+	k8s.io/utils v0.0.0-20210111153108-fddb29f9d009 // indirect
+	knative.dev/eventing v0.27.1-0.20211202084045-72a4be098484
+	knative.dev/hack v0.0.0-20211202013744-4ec2223904bf
+	knative.dev/networking v0.0.0-20211202071645-9e2b3496bb72
+	knative.dev/pkg v0.0.0-20211202025645-0c482f157959
+	knative.dev/serving v0.27.1-0.20211202122446-d24124ce039c
 	sigs.k8s.io/yaml v1.3.0
 )
