@@ -128,7 +128,7 @@ source_lint() {
 
 go_build() {
   echo "🚧 Compile"
-  go build -mod=vendor -ldflags "$(build_flags $(basedir))" -o kn ./cmd/...
+  go build -mod=vendor -ldflags "$(build_flags "$(basedir)")" -o kn ./cmd/...
 
   if $(file kn | grep -q -i "Windows"); then
     mv kn kn.exe
@@ -136,7 +136,8 @@ go_build() {
 }
 
 go_test() {
-  local test_output=$(mktemp /tmp/kn-client-test-output.XXXXXX)
+  local test_output
+  test_output="$(mktemp /tmp/kn-client-test-output.XXXXXX)"
 
   local red=""
   local reset=""
@@ -164,7 +165,8 @@ check_license() {
   local required_keywords=("Authors" "Apache License" "LICENSE-2.0")
   local extensions_to_check=("sh" "go" "yaml" "yml" "json")
 
-  local check_output=$(mktemp /tmp/kn-client-licence-check.XXXXXX)
+  local check_output
+  check_output="$(mktemp /tmp/kn-client-licence-check.XXXXXX)"
   for ext in "${extensions_to_check[@]}"; do
     find . -name "*.$ext" -a \! -path "./vendor/*" -a \! -path "./.*" -a \! -path "./third_party/*" -print0 |
       while IFS= read -r -d '' path; do
@@ -242,9 +244,10 @@ basedir() {
         fi
     fi
 
-    local dir=$(dirname "$script")
-    local full_dir=$(cd "${dir}/.." && pwd)
-    echo ${full_dir}
+    local dir full_dir
+    dir=$(dirname "$script")
+    full_dir=$(cd "${dir}/.." && pwd)
+    echo "${full_dir}"
 }
 
 # Checks if a flag is present in the arguments.
@@ -262,8 +265,9 @@ has_flag() {
 }
 
 cross_build() {
-  local basedir=$(basedir)
-  local ld_flags="$(build_flags $basedir)"
+  local basedir ld_flags
+  basedir=$(basedir)
+  ld_flags="$(build_flags $basedir)"
   local failed=0
 
   echo "⚔️ ${S}Compile"
@@ -353,9 +357,12 @@ fi
 source $(basedir)/vendor/knative.dev/hack/library.sh
 
 # Shared funcs with CI
+while IFS= read -r -d '' file; do
+  source "${file}"
+done < <(find "$(basedir)/hack/build.sh.d" -name '*.sh' -print0)
 source $(basedir)/hack/build-flags.sh
 
 # Fixe emoji labels for certain terminals
 apply_emoji_fixes
 
-run $*
+run "$@"
