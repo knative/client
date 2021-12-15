@@ -12,19 +12,27 @@
 | https://github.com/knative/client/pull/[#]
 ////
 
-## v1.1.0 (Unreleased)
+## v1.1.0 (2021-12-14)
 [cols="1,10,3", options="header", width="100%"]
 |===
 | | Description | PR
 
+
 | 🐛
-| Fixed panic in kn service describe
+| Fixed panic in `kn service update`
+| https://github.com/knative/client/pull/1533[#1533]
+
+| 🐛
+| Fixed panic in `kn service describe`
 | https://github.com/knative/client/pull/1529[#1529]
 
 | 🐛
-| Fixed panic in kn service update
-| https://github.com/knative/client/pull/1533[#1533]
+| Fix env, annotation and labels flags in service create/update/apply
+| https://github.com/knative/client/pull/1516[#1516]
 
+| ✨
+| Add `--tag` to `service create` and allow traffic split <100 when `@latest` is specified
+| https://github.com/knative/client/pull/1514[#1514]
 |===
 
 ## v1.0.0 (2021-11-02)
@@ -33,7 +41,7 @@
 | | Description | PR
 
 | ✨
-| Remove deprecated flags `--lookup-path`
+| Remove deprecated flag `--lookup-path`
 | https://github.com/knative/client/pull/1506[#1506]
 
 | ✨
