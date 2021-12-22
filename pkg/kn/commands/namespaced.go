@@ -15,6 +15,8 @@
 package commands
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"k8s.io/client-go/tools/clientcmd"
@@ -43,7 +45,11 @@ func AddNamespaceFlags(flags *pflag.FlagSet, allowAll bool) {
 
 // GetNamespace returns namespace from command specified by flag
 func (params *KnParams) GetNamespace(cmd *cobra.Command) (string, error) {
-	namespace := cmd.Flag("namespace").Value.String()
+	namespaceFlag := cmd.Flag("namespace")
+	if namespaceFlag == nil {
+		return "", fmt.Errorf("command %s doesn't have --namespace flag", cmd.Name())
+	}
+	namespace := namespaceFlag.Value.String()
 	// check value of all-namespaces only if its defined
 	if cmd.Flags().Lookup("all-namespaces") != nil {
 		all, err := cmd.Flags().GetBool("all-namespaces")
