@@ -94,9 +94,10 @@ func NewServiceDescribeCommand(p *commands.KnParams) *cobra.Command {
 	machineReadablePrintFlags := genericclioptions.NewPrintFlags("")
 
 	command := &cobra.Command{
-		Use:     "describe NAME",
-		Short:   "Show details of a service",
-		Example: describe_example,
+		Use:               "describe NAME",
+		Short:             "Show details of a service",
+		Example:           describe_example,
+		ValidArgsFunction: commands.ResourceNameCompletionFunc(p),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("'service describe' requires the service name given as single argument")
