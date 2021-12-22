@@ -39,7 +39,6 @@ type testType struct {
 	p          *KnParams
 	args       []string
 	toComplete string
-	target     string
 	resource   string
 }
 
@@ -101,7 +100,6 @@ func TestResourceNameCompletionFuncService(t *testing.T) {
 			knParams,
 			nil,
 			"",
-			"",
 			"no-parent",
 		},
 		{
@@ -109,7 +107,6 @@ func TestResourceNameCompletionFuncService(t *testing.T) {
 			testNs,
 			knParams,
 			[]string{"xyz"},
-			"",
 			"",
 			"service",
 		},
@@ -119,7 +116,6 @@ func TestResourceNameCompletionFuncService(t *testing.T) {
 			knParams,
 			nil,
 			"",
-			"",
 			"service",
 		},
 		{
@@ -127,7 +123,6 @@ func TestResourceNameCompletionFuncService(t *testing.T) {
 			testNs,
 			knParams,
 			nil,
-			"",
 			"",
 			"service",
 		},
@@ -137,7 +132,6 @@ func TestResourceNameCompletionFuncService(t *testing.T) {
 			knParams,
 			nil,
 			"xyz",
-			"",
 			"service",
 		},
 		{
@@ -145,7 +139,6 @@ func TestResourceNameCompletionFuncService(t *testing.T) {
 			errorNs,
 			knParams,
 			nil,
-			"",
 			"",
 			"service",
 		},
@@ -158,7 +151,6 @@ func TestResourceNameCompletionFuncService(t *testing.T) {
 				command:    cmd,
 				args:       tt.args,
 				toComplete: tt.toComplete,
-				target:     tt.target,
 			}
 			expectedFunc := resourceToFuncMap[tt.resource]
 			if expectedFunc == nil {
@@ -189,7 +181,6 @@ func TestResourceNameCompletionFuncGitOps(t *testing.T) {
 			knParams,
 			nil,
 			"",
-			tempDir,
 			"service",
 		},
 		{
@@ -198,7 +189,6 @@ func TestResourceNameCompletionFuncGitOps(t *testing.T) {
 			knParams,
 			[]string{"xyz"},
 			"",
-			tempDir,
 			"service",
 		},
 		{
@@ -207,7 +197,6 @@ func TestResourceNameCompletionFuncGitOps(t *testing.T) {
 			knParams,
 			nil,
 			"",
-			tempDir,
 			"service",
 		},
 		{
@@ -216,7 +205,6 @@ func TestResourceNameCompletionFuncGitOps(t *testing.T) {
 			knParams,
 			nil,
 			"",
-			tempDir,
 			"service",
 		},
 		{
@@ -225,7 +213,6 @@ func TestResourceNameCompletionFuncGitOps(t *testing.T) {
 			knParams,
 			nil,
 			"xyz",
-			tempDir,
 			"service",
 		},
 		{
@@ -234,7 +221,6 @@ func TestResourceNameCompletionFuncGitOps(t *testing.T) {
 			knParams,
 			nil,
 			"",
-			tempDir,
 			"service",
 		},
 	}
@@ -247,12 +233,10 @@ func TestResourceNameCompletionFuncGitOps(t *testing.T) {
 				command:    cmd,
 				args:       tt.args,
 				toComplete: tt.toComplete,
-				target:     tt.target,
 			}
 			expectedFunc := resourceToFuncMap[tt.resource]
-			cmd.Flags().String("target", tt.target, "target directory")
+			cmd.Flags().String("target", tempDir, "target directory")
 			cmd.Flags().Set("namespace", tt.namespace)
-			cmd.Flags().Set("target", tt.target)
 
 			expectedSuggestions, expectedDirective := expectedFunc(config)
 			actualSuggestions, actualDirective := completionFunc(cmd, tt.args, tt.toComplete)

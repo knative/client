@@ -25,7 +25,6 @@ type completionConfig struct {
 	command    *cobra.Command
 	args       []string
 	toComplete string
-	target     string
 }
 
 var (
@@ -48,7 +47,6 @@ func ResourceNameCompletionFunc(p *KnParams) func(cmd *cobra.Command, args []str
 			cmd,
 			args,
 			toComplete,
-			getTargetFlagValue(cmd),
 		}
 		return config.getCompletion(use)
 	}
@@ -80,7 +78,7 @@ func completeGitOps(config *completionConfig) (suggestions []string, directive c
 	if err != nil {
 		return
 	}
-	client, err := config.params.NewGitopsServingClient(namespace, config.target)
+	client, err := config.params.NewGitopsServingClient(namespace, getTargetFlagValue(config.command))
 	if err != nil {
 		return
 	}
@@ -98,7 +96,7 @@ func completeGitOps(config *completionConfig) (suggestions []string, directive c
 }
 
 func completeService(config *completionConfig) (suggestions []string, directive cobra.ShellCompDirective) {
-	if config.target != "" {
+	if getTargetFlagValue(config.command) != "" {
 		return completeGitOps(config)
 	}
 
