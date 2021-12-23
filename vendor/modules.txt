@@ -8,8 +8,6 @@ contrib.go.opencensus.io/exporter/prometheus
 github.com/PuerkitoBio/purell
 # github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578
 github.com/PuerkitoBio/urlesc
-# github.com/antlr/antlr4 v0.0.0-20210105192202-5c2b686f95e1
-github.com/antlr/antlr4/runtime/Go/antlr
 # github.com/beorn7/perks v1.0.1
 github.com/beorn7/perks/quantile
 # github.com/blendle/zapdriver v1.3.1
@@ -23,14 +21,6 @@ github.com/census-instrumentation/opencensus-proto/gen-go/resource/v1
 github.com/census-instrumentation/opencensus-proto/gen-go/trace/v1
 # github.com/cespare/xxhash/v2 v2.1.1
 github.com/cespare/xxhash/v2
-# github.com/cloudevents/sdk-go/sql/v2 v2.7.0
-github.com/cloudevents/sdk-go/sql/v2
-github.com/cloudevents/sdk-go/sql/v2/expression
-github.com/cloudevents/sdk-go/sql/v2/function
-github.com/cloudevents/sdk-go/sql/v2/gen
-github.com/cloudevents/sdk-go/sql/v2/parser
-github.com/cloudevents/sdk-go/sql/v2/runtime
-github.com/cloudevents/sdk-go/sql/v2/utils
 # github.com/cloudevents/sdk-go/v2 v2.7.0
 github.com/cloudevents/sdk-go/v2
 github.com/cloudevents/sdk-go/v2/binding
@@ -746,7 +736,7 @@ k8s.io/utils/buffer
 k8s.io/utils/integer
 k8s.io/utils/pointer
 k8s.io/utils/trace
-# knative.dev/eventing v0.28.1-0.20211222075718-4d705ede0dfa
+# knative.dev/eventing v0.28.1-0.20211222204918-d8297456d455
 ## explicit
 knative.dev/eventing/pkg/apis/config
 knative.dev/eventing/pkg/apis/duck
@@ -775,7 +765,7 @@ knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1beta2/fake
 # knative.dev/hack v0.0.0-20211222071919-abd085fc43de
 ## explicit
 knative.dev/hack
-# knative.dev/networking v0.0.0-20211222131718-2d4af360eb01
+# knative.dev/networking v0.0.0-20211223013028-62388a5f2853
 ## explicit
 knative.dev/networking/pkg
 knative.dev/networking/pkg/apis/networking
