@@ -65,9 +65,10 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 	var waitFlags commands.WaitFlags
 	var trafficFlags flags.Traffic
 	serviceUpdateCommand := &cobra.Command{
-		Use:     "update NAME",
-		Short:   "Update a service",
-		Example: updateExample,
+		Use:               "update NAME",
+		Short:             "Update a service",
+		Example:           updateExample,
+		ValidArgsFunction: commands.ResourceNameCompletionFunc(p),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
 				return errors.New("'service update' requires the service name given as single argument")
