@@ -154,13 +154,14 @@ func TestResourceNameCompletionFuncService(t *testing.T) {
 			}
 			expectedFunc := resourceToFuncMap[tt.resource]
 			if expectedFunc == nil {
-				expectedFunc = func(config *completionConfig) ([]string, cobra.ShellCompDirective) {
-					return []string{}, cobra.ShellCompDirectiveNoFileComp
+				expectedFunc = func(config *completionConfig) []string {
+					return []string{}
 				}
 			}
 			cmd.Flags().Set("namespace", tt.namespace)
 			actualSuggestions, actualDirective := completionFunc(cmd, tt.args, tt.toComplete)
-			expectedSuggestions, expectedDirective := expectedFunc(config)
+			expectedSuggestions := expectedFunc(config)
+			expectedDirective := cobra.ShellCompDirectiveNoFileComp
 			assert.DeepEqual(t, actualSuggestions, expectedSuggestions)
 			assert.Equal(t, actualDirective, expectedDirective)
 		})
@@ -238,7 +239,8 @@ func TestResourceNameCompletionFuncGitOps(t *testing.T) {
 			cmd.Flags().String("target", tempDir, "target directory")
 			cmd.Flags().Set("namespace", tt.namespace)
 
-			expectedSuggestions, expectedDirective := expectedFunc(config)
+			expectedSuggestions := expectedFunc(config)
+			expectedDirective := cobra.ShellCompDirectiveNoFileComp
 			actualSuggestions, actualDirective := completionFunc(cmd, tt.args, tt.toComplete)
 			assert.DeepEqual(t, actualSuggestions, expectedSuggestions)
 			assert.Equal(t, actualDirective, expectedDirective)

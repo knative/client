@@ -102,6 +102,7 @@ func NewServiceDeleteCommand(p *commands.KnParams) *cobra.Command {
 			}
 			return nil
 		},
+		ValidArgsFunction: commands.ResourceNameCompletionFunc(p),
 	}
 	flags := serviceDeleteCommand.Flags()
 	flags.Bool("all", false, "Delete all services in a namespace.")

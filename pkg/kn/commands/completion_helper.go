@@ -28,7 +28,7 @@ type completionConfig struct {
 }
 
 var (
-	resourceToFuncMap = map[string]func(config *completionConfig) ([]string, cobra.ShellCompDirective){
+	resourceToFuncMap = map[string]func(config *completionConfig) []string{
 		"service": completeService,
 	}
 )
@@ -48,14 +48,14 @@ func ResourceNameCompletionFunc(p *KnParams) func(cmd *cobra.Command, args []str
 			args,
 			toComplete,
 		}
-		return config.getCompletion(use)
+		return config.getCompletion(use), cobra.ShellCompDirectiveNoFileComp
 	}
 }
 
-func (config *completionConfig) getCompletion(parent string) ([]string, cobra.ShellCompDirective) {
+func (config *completionConfig) getCompletion(parent string) []string {
 	completionFunc := resourceToFuncMap[parent]
 	if completionFunc == nil {
-		return []string{}, cobra.ShellCompDirectiveNoFileComp
+		return []string{}
 	}
 	return completionFunc(config)
 }
@@ -68,9 +68,8 @@ func getTargetFlagValue(cmd *cobra.Command) string {
 	return flag.Value.String()
 }
 
-func completeGitOps(config *completionConfig) (suggestions []string, directive cobra.ShellCompDirective) {
+func completeGitOps(config *completionConfig) (suggestions []string) {
 	suggestions = make([]string, 0)
-	directive = cobra.ShellCompDirectiveNoFileComp
 	if len(config.args) != 0 {
 		return
 	}
@@ -95,13 +94,12 @@ func completeGitOps(config *completionConfig) (suggestions []string, directive c
 	return
 }
 
-func completeService(config *completionConfig) (suggestions []string, directive cobra.ShellCompDirective) {
+func completeService(config *completionConfig) (suggestions []string) {
 	if getTargetFlagValue(config.command) != "" {
 		return completeGitOps(config)
 	}
 
 	suggestions = make([]string, 0)
-	directive = cobra.ShellCompDirectiveNoFileComp
 	if len(config.args) != 0 {
 		return
 	}
