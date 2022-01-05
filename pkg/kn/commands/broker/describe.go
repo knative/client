@@ -52,9 +52,10 @@ func NewBrokerDescribeCommand(p *commands.KnParams) *cobra.Command {
 	machineReadablePrintFlags := genericclioptions.NewPrintFlags("")
 
 	cmd := &cobra.Command{
-		Use:     "describe NAME",
-		Short:   "Describe broker",
-		Example: describeExample,
+		Use:               "describe NAME",
+		Short:             "Describe broker",
+		Example:           describeExample,
+		ValidArgsFunction: commands.ResourceNameCompletionFunc(p),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
 				return errors.New("'broker describe' requires the broker name given as single argument")
