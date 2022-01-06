@@ -82,6 +82,31 @@ var (
 	}
 )
 
+var (
+	testRev1 = v12.Revision{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Revision",
+			APIVersion: "serving.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-rev-1", Namespace: testNs},
+	}
+	testRev2 = v12.Revision{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Revision",
+			APIVersion: "serving.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-rev-2", Namespace: testNs},
+	}
+	testRev3 = v12.Revision{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Revision",
+			APIVersion: "serving.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-rev-3", Namespace: testNs},
+	}
+	testNsRevs = []v12.Revision{testRev1, testRev2, testRev3}
+)
+
 func TestResourceNameCompletionFuncService(t *testing.T) {
 	completionFunc := ResourceNameCompletionFunc(knParams)
 
@@ -141,6 +166,84 @@ func TestResourceNameCompletionFuncService(t *testing.T) {
 			nil,
 			"",
 			"service",
+		},
+	}
+	for _, tt := range tests {
+		cmd := getResourceCommandWithTestSubcommand(tt.resource, tt.namespace != "", tt.resource != "no-parent")
+		t.Run(tt.name, func(t *testing.T) {
+			config := &completionConfig{
+				params:     tt.p,
+				command:    cmd,
+				args:       tt.args,
+				toComplete: tt.toComplete,
+			}
+			expectedFunc := resourceToFuncMap[tt.resource]
+			if expectedFunc == nil {
+				expectedFunc = func(config *completionConfig) []string {
+					return []string{}
+				}
+			}
+			cmd.Flags().Set("namespace", tt.namespace)
+			actualSuggestions, actualDirective := completionFunc(cmd, tt.args, tt.toComplete)
+			expectedSuggestions := expectedFunc(config)
+			expectedDirective := cobra.ShellCompDirectiveNoFileComp
+			assert.DeepEqual(t, actualSuggestions, expectedSuggestions)
+			assert.Equal(t, actualDirective, expectedDirective)
+		})
+	}
+}
+
+func TestResourceNameCompletionFuncRevision(t *testing.T) {
+	completionFunc := ResourceNameCompletionFunc(knParams)
+
+	fakeServing.AddReactor("list", "revisions",
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			if a.GetNamespace() == errorNs {
+				return true, nil, errors.NewInternalError(fmt.Errorf("unable to list revisions"))
+			}
+			return true, &v12.RevisionList{Items: testNsRevs}, nil
+		})
+
+	tests := []testType{
+		{
+			"Empty suggestions when non-zero args",
+			testNs,
+			knParams,
+			[]string{"xyz"},
+			"",
+			"revision",
+		},
+		{
+			"Empty suggestions when no namespace flag",
+			"",
+			knParams,
+			nil,
+			"",
+			"revision",
+		},
+		{
+			"Suggestions when test-ns namespace set",
+			testNs,
+			knParams,
+			nil,
+			"",
+			"revision",
+		},
+		{
+			"Empty suggestions when toComplete is not a prefix",
+			testNs,
+			knParams,
+			nil,
+			"xyz",
+			"revision",
+		},
+		{
+			"Empty suggestions when error during list operation",
+			errorNs,
+			knParams,
+			nil,
+			"",
+			"revision",
 		},
 	}
 	for _, tt := range tests {
