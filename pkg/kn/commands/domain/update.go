@@ -36,6 +36,7 @@ func NewDomainMappingUpdateCommand(p *commands.KnParams) *cobra.Command {
 		Example: `
   # Update a domain mappings 'hello.example.com' for Knative service 'hello'
   kn domain update hello.example.com --refFlags hello`,
+		ValidArgsFunction: commands.ResourceNameCompletionFunc(p),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
 				return errors.New("'kn domain create' requires the domain name given as single argument")
