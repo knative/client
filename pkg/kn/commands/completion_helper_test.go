@@ -25,15 +25,20 @@ import (
 	"gotest.tools/v3/assert"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	clientv1alpha1 "knative.dev/client/pkg/serving/v1alpha1"
+
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	clienttesting "k8s.io/client-go/testing"
 	clienteventingv1 "knative.dev/client/pkg/eventing/v1"
 	v1 "knative.dev/client/pkg/serving/v1"
+
 	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
 	"knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1/fake"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
+	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 	servingv1fake "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1/fake"
+	servingv1alpha1fake "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake"
 )
 
 type testType struct {
@@ -74,7 +79,8 @@ var (
 	}
 	testNsServices = []servingv1.Service{testSvc1, testSvc2, testSvc3}
 
-	fakeServing = &servingv1fake.FakeServingV1{Fake: &clienttesting.Fake{}}
+	fakeServing      = &servingv1fake.FakeServingV1{Fake: &clienttesting.Fake{}}
+	fakeServingAlpha = &servingv1alpha1fake.FakeServingV1alpha1{Fake: &clienttesting.Fake{}}
 )
 
 var (
@@ -154,6 +160,31 @@ var (
 	testNsRoutes = []servingv1.Route{testRoute1, testRoute2, testRoute3}
 )
 
+var (
+	testDomain1 = v1alpha1.DomainMapping{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "DomainMapping",
+			APIVersion: "serving.knative.dev/v1alpha1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-domain-1", Namespace: testNs},
+	}
+	testDomain2 = v1alpha1.DomainMapping{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "DomainMapping",
+			APIVersion: "serving.knative.dev/v1alpha1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-domain-2", Namespace: testNs},
+	}
+	testDomain3 = v1alpha1.DomainMapping{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "DomainMapping",
+			APIVersion: "serving.knative.dev/v1alpha1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-domain-3", Namespace: testNs},
+	}
+	testNsDomains = []v1alpha1.DomainMapping{testDomain1, testDomain2, testDomain3}
+)
+
 var knParams = initialiseKnParams()
 
 func initialiseKnParams() *KnParams {
@@ -166,6 +197,9 @@ func initialiseKnParams() *KnParams {
 		},
 		NewEventingClient: func(namespace string) (clienteventingv1.KnEventingClient, error) {
 			return clienteventingv1.NewKnEventingClient(fakeEventing, namespace), nil
+		},
+		NewServingV1alpha1Client: func(namespace string) (clientv1alpha1.KnServingClient, error) {
+			return clientv1alpha1.NewKnServingClient(fakeServingAlpha, namespace), nil
 		},
 	}
 }
@@ -542,6 +576,84 @@ func TestResourceNameCompletionFuncRoute(t *testing.T) {
 			nil,
 			"",
 			"route",
+		},
+	}
+	for _, tt := range tests {
+		cmd := getResourceCommandWithTestSubcommand(tt.resource, tt.namespace != "", tt.resource != "no-parent")
+		t.Run(tt.name, func(t *testing.T) {
+			config := &completionConfig{
+				params:     tt.p,
+				command:    cmd,
+				args:       tt.args,
+				toComplete: tt.toComplete,
+			}
+			expectedFunc := resourceToFuncMap[tt.resource]
+			if expectedFunc == nil {
+				expectedFunc = func(config *completionConfig) []string {
+					return []string{}
+				}
+			}
+			cmd.Flags().Set("namespace", tt.namespace)
+			actualSuggestions, actualDirective := completionFunc(cmd, tt.args, tt.toComplete)
+			expectedSuggestions := expectedFunc(config)
+			expectedDirective := cobra.ShellCompDirectiveNoFileComp
+			assert.DeepEqual(t, actualSuggestions, expectedSuggestions)
+			assert.Equal(t, actualDirective, expectedDirective)
+		})
+	}
+}
+
+func TestResourceNameCompletionFuncDomain(t *testing.T) {
+	completionFunc := ResourceNameCompletionFunc(knParams)
+
+	fakeServingAlpha.AddReactor("list", "domainmappings",
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			if a.GetNamespace() == errorNs {
+				return true, nil, errors.NewInternalError(fmt.Errorf("unable to list services"))
+			}
+			return true, &v1alpha1.DomainMappingList{Items: testNsDomains}, nil
+		})
+
+	tests := []testType{
+		{
+			"Empty suggestions when non-zero args",
+			testNs,
+			knParams,
+			[]string{"xyz"},
+			"",
+			"domain",
+		},
+		{
+			"Empty suggestions when no namespace flag",
+			"",
+			knParams,
+			nil,
+			"",
+			"domain",
+		},
+		{
+			"Suggestions when test-ns namespace set",
+			testNs,
+			knParams,
+			nil,
+			"",
+			"domain",
+		},
+		{
+			"Empty suggestions when toComplete is not a prefix",
+			testNs,
+			knParams,
+			nil,
+			"xyz",
+			"domain",
+		},
+		{
+			"Empty suggestions when error during list operation",
+			errorNs,
+			knParams,
+			nil,
+			"",
+			"domain",
 		},
 	}
 	for _, tt := range tests {
