@@ -30,9 +30,9 @@ import (
 	clienttesting "k8s.io/client-go/testing"
 	clienteventingv1 "knative.dev/client/pkg/eventing/v1"
 	v1 "knative.dev/client/pkg/serving/v1"
-	v13 "knative.dev/eventing/pkg/apis/eventing/v1"
+	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
 	"knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1/fake"
-	v12 "knative.dev/serving/pkg/apis/serving/v1"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 	servingv1fake "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1/fake"
 )
 
@@ -51,55 +51,55 @@ const (
 )
 
 var (
-	testSvc1 = v12.Service{
+	testSvc1 = servingv1.Service{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Service",
 			APIVersion: "serving.knative.dev/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{Name: "test-svc-1", Namespace: testNs},
 	}
-	testSvc2 = v12.Service{
+	testSvc2 = servingv1.Service{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Service",
 			APIVersion: "serving.knative.dev/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{Name: "test-svc-2", Namespace: testNs},
 	}
-	testSvc3 = v12.Service{
+	testSvc3 = servingv1.Service{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Service",
 			APIVersion: "serving.knative.dev/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{Name: "test-svc-3", Namespace: testNs},
 	}
-	testNsServices = []v12.Service{testSvc1, testSvc2, testSvc3}
+	testNsServices = []servingv1.Service{testSvc1, testSvc2, testSvc3}
 
 	fakeServing = &servingv1fake.FakeServingV1{Fake: &clienttesting.Fake{}}
 )
 
 var (
-	testBroker1 = v13.Broker{
+	testBroker1 = eventingv1.Broker{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Broker",
 			APIVersion: "eventing.knative.dev/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{Name: "test-broker-1", Namespace: testNs},
 	}
-	testBroker2 = v13.Broker{
+	testBroker2 = eventingv1.Broker{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Broker",
 			APIVersion: "eventing.knative.dev/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{Name: "test-broker-2", Namespace: testNs},
 	}
-	testBroker3 = v13.Broker{
+	testBroker3 = eventingv1.Broker{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Broker",
 			APIVersion: "eventing.knative.dev/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{Name: "test-broker-3", Namespace: testNs},
 	}
-	testNsBrokers = []v13.Broker{testBroker1, testBroker2, testBroker3}
+	testNsBrokers = []eventingv1.Broker{testBroker1, testBroker2, testBroker3}
 
 	fakeEventing = &fake.FakeEventingV1{Fake: &clienttesting.Fake{}}
 )
@@ -128,7 +128,7 @@ func TestResourceNameCompletionFuncService(t *testing.T) {
 			if a.GetNamespace() == errorNs {
 				return true, nil, errors.NewInternalError(fmt.Errorf("unable to list services"))
 			}
-			return true, &v12.ServiceList{Items: testNsServices}, nil
+			return true, &servingv1.ServiceList{Items: testNsServices}, nil
 		})
 
 	tests := []testType{
@@ -214,7 +214,7 @@ func TestResourceNameCompletionFuncBroker(t *testing.T) {
 		if action.GetNamespace() == errorNs {
 			return true, nil, errors.NewInternalError(fmt.Errorf("unable to list services"))
 		}
-		return true, &v13.BrokerList{Items: testNsBrokers}, nil
+		return true, &eventingv1.BrokerList{Items: testNsBrokers}, nil
 	})
 	tests := []testType{
 		{
@@ -388,7 +388,7 @@ func setupTempDir(t *testing.T) string {
 	err = os.MkdirAll(svcPath, 0700)
 	assert.NilError(t, err)
 
-	for i, testSvc := range []v12.Service{testSvc1, testSvc2, testSvc3} {
+	for i, testSvc := range []servingv1.Service{testSvc1, testSvc2, testSvc3} {
 		tempFile, err := os.Create(path.Join(svcPath, fmt.Sprintf("test-svc-%d.yaml", i+1)))
 		assert.NilError(t, err)
 		writeToFile(t, testSvc, tempFile)
@@ -397,7 +397,7 @@ func setupTempDir(t *testing.T) string {
 	return tempDir
 }
 
-func writeToFile(t *testing.T, testSvc v12.Service, tempFile *os.File) {
+func writeToFile(t *testing.T, testSvc servingv1.Service, tempFile *os.File) {
 	yamlPrinter, err := genericclioptions.NewJSONYamlPrintFlags().ToPrinter("yaml")
 	assert.NilError(t, err)
 
