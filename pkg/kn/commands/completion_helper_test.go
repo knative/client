@@ -104,22 +104,6 @@ var (
 	fakeEventing = &fake.FakeEventingV1{Fake: &clienttesting.Fake{}}
 )
 
-var knParams = initialiseKnParams()
-
-func initialiseKnParams() *KnParams {
-	return &KnParams{
-		NewServingClient: func(namespace string) (v1.KnServingClient, error) {
-			return v1.NewKnServingClient(fakeServing, namespace), nil
-		},
-		NewGitopsServingClient: func(namespace string, dir string) (v1.KnServingClient, error) {
-			return v1.NewKnServingGitOpsClient(namespace, dir), nil
-		},
-		NewEventingClient: func(namespace string) (clienteventingv1.KnEventingClient, error) {
-			return clienteventingv1.NewKnEventingClient(fakeEventing, namespace), nil
-		},
-	}
-}
-
 var (
 	testRev1 = servingv1.Revision{
 		TypeMeta: metav1.TypeMeta{
@@ -144,6 +128,47 @@ var (
 	}
 	testNsRevs = []servingv1.Revision{testRev1, testRev2, testRev3}
 )
+
+var (
+	testRoute1 = servingv1.Route{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Route",
+			APIVersion: "serving.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-route-1", Namespace: testNs},
+	}
+	testRoute2 = servingv1.Route{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Route",
+			APIVersion: "serving.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-route-2", Namespace: testNs},
+	}
+	testRoute3 = servingv1.Route{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Route",
+			APIVersion: "serving.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-route-3", Namespace: testNs},
+	}
+	testNsRoutes = []servingv1.Route{testRoute1, testRoute2, testRoute3}
+)
+
+var knParams = initialiseKnParams()
+
+func initialiseKnParams() *KnParams {
+	return &KnParams{
+		NewServingClient: func(namespace string) (v1.KnServingClient, error) {
+			return v1.NewKnServingClient(fakeServing, namespace), nil
+		},
+		NewGitopsServingClient: func(namespace string, dir string) (v1.KnServingClient, error) {
+			return v1.NewKnServingGitOpsClient(namespace, dir), nil
+		},
+		NewEventingClient: func(namespace string) (clienteventingv1.KnEventingClient, error) {
+			return clienteventingv1.NewKnEventingClient(fakeEventing, namespace), nil
+		},
+	}
+}
 
 func TestResourceNameCompletionFuncService(t *testing.T) {
 	completionFunc := ResourceNameCompletionFunc(knParams)
@@ -460,6 +485,84 @@ func TestResourceNameCompletionFuncGitOps(t *testing.T) {
 			expectedSuggestions := expectedFunc(config)
 			expectedDirective := cobra.ShellCompDirectiveNoFileComp
 			actualSuggestions, actualDirective := completionFunc(cmd, tt.args, tt.toComplete)
+			assert.DeepEqual(t, actualSuggestions, expectedSuggestions)
+			assert.Equal(t, actualDirective, expectedDirective)
+		})
+	}
+}
+
+func TestResourceNameCompletionFuncRoute(t *testing.T) {
+	completionFunc := ResourceNameCompletionFunc(knParams)
+
+	fakeServing.AddReactor("list", "routes",
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			if a.GetNamespace() == errorNs {
+				return true, nil, errors.NewInternalError(fmt.Errorf("unable to list services"))
+			}
+			return true, &servingv1.RouteList{Items: testNsRoutes}, nil
+		})
+
+	tests := []testType{
+		{
+			"Empty suggestions when non-zero args",
+			testNs,
+			knParams,
+			[]string{"xyz"},
+			"",
+			"route",
+		},
+		{
+			"Empty suggestions when no namespace flag",
+			"",
+			knParams,
+			nil,
+			"",
+			"route",
+		},
+		{
+			"Suggestions when test-ns namespace set",
+			testNs,
+			knParams,
+			nil,
+			"",
+			"route",
+		},
+		{
+			"Empty suggestions when toComplete is not a prefix",
+			testNs,
+			knParams,
+			nil,
+			"xyz",
+			"route",
+		},
+		{
+			"Empty suggestions when error during list operation",
+			errorNs,
+			knParams,
+			nil,
+			"",
+			"route",
+		},
+	}
+	for _, tt := range tests {
+		cmd := getResourceCommandWithTestSubcommand(tt.resource, tt.namespace != "", tt.resource != "no-parent")
+		t.Run(tt.name, func(t *testing.T) {
+			config := &completionConfig{
+				params:     tt.p,
+				command:    cmd,
+				args:       tt.args,
+				toComplete: tt.toComplete,
+			}
+			expectedFunc := resourceToFuncMap[tt.resource]
+			if expectedFunc == nil {
+				expectedFunc = func(config *completionConfig) []string {
+					return []string{}
+				}
+			}
+			cmd.Flags().Set("namespace", tt.namespace)
+			actualSuggestions, actualDirective := completionFunc(cmd, tt.args, tt.toComplete)
+			expectedSuggestions := expectedFunc(config)
+			expectedDirective := cobra.ShellCompDirectiveNoFileComp
 			assert.DeepEqual(t, actualSuggestions, expectedSuggestions)
 			assert.Equal(t, actualDirective, expectedDirective)
 		})

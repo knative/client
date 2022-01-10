@@ -32,8 +32,9 @@ func NewRouteDescribeCommand(p *commands.KnParams) *cobra.Command {
 	// For machine readable output
 	machineReadablePrintFlags := genericclioptions.NewPrintFlags("")
 	command := &cobra.Command{
-		Use:   "describe NAME",
-		Short: "Show details of a route",
+		Use:               "describe NAME",
+		Short:             "Show details of a route",
+		ValidArgsFunction: commands.ResourceNameCompletionFunc(p),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("'kn route describe' requires name of the route as single argument")
