@@ -28,8 +28,11 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	clienttesting "k8s.io/client-go/testing"
+	clienteventingv1 "knative.dev/client/pkg/eventing/v1"
 	v1 "knative.dev/client/pkg/serving/v1"
-	v12 "knative.dev/serving/pkg/apis/serving/v1"
+	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
+	"knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1/fake"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 	servingv1fake "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1/fake"
 )
 
@@ -48,39 +51,74 @@ const (
 )
 
 var (
-	testSvc1 = v12.Service{
+	testSvc1 = servingv1.Service{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Service",
 			APIVersion: "serving.knative.dev/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{Name: "test-svc-1", Namespace: testNs},
 	}
-	testSvc2 = v12.Service{
+	testSvc2 = servingv1.Service{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Service",
 			APIVersion: "serving.knative.dev/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{Name: "test-svc-2", Namespace: testNs},
 	}
-	testSvc3 = v12.Service{
+	testSvc3 = servingv1.Service{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Service",
 			APIVersion: "serving.knative.dev/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{Name: "test-svc-3", Namespace: testNs},
 	}
-	testNsServices = []v12.Service{testSvc1, testSvc2, testSvc3}
+	testNsServices = []servingv1.Service{testSvc1, testSvc2, testSvc3}
 
 	fakeServing = &servingv1fake.FakeServingV1{Fake: &clienttesting.Fake{}}
-	knParams    = &KnParams{
+)
+
+var (
+	testBroker1 = eventingv1.Broker{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Broker",
+			APIVersion: "eventing.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-broker-1", Namespace: testNs},
+	}
+	testBroker2 = eventingv1.Broker{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Broker",
+			APIVersion: "eventing.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-broker-2", Namespace: testNs},
+	}
+	testBroker3 = eventingv1.Broker{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Broker",
+			APIVersion: "eventing.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-broker-3", Namespace: testNs},
+	}
+	testNsBrokers = []eventingv1.Broker{testBroker1, testBroker2, testBroker3}
+
+	fakeEventing = &fake.FakeEventingV1{Fake: &clienttesting.Fake{}}
+)
+
+var knParams = initialiseKnParams()
+
+func initialiseKnParams() *KnParams {
+	return &KnParams{
 		NewServingClient: func(namespace string) (v1.KnServingClient, error) {
 			return v1.NewKnServingClient(fakeServing, namespace), nil
 		},
 		NewGitopsServingClient: func(namespace string, dir string) (v1.KnServingClient, error) {
 			return v1.NewKnServingGitOpsClient(namespace, dir), nil
 		},
+		NewEventingClient: func(namespace string) (clienteventingv1.KnEventingClient, error) {
+			return clienteventingv1.NewKnEventingClient(fakeEventing, namespace), nil
+		},
 	}
-)
+}
 
 var (
 	testRev1 = v12.Revision{
@@ -115,7 +153,7 @@ func TestResourceNameCompletionFuncService(t *testing.T) {
 			if a.GetNamespace() == errorNs {
 				return true, nil, errors.NewInternalError(fmt.Errorf("unable to list services"))
 			}
-			return true, &v12.ServiceList{Items: testNsServices}, nil
+			return true, &servingv1.ServiceList{Items: testNsServices}, nil
 		})
 
 	tests := []testType{
@@ -166,6 +204,83 @@ func TestResourceNameCompletionFuncService(t *testing.T) {
 			nil,
 			"",
 			"service",
+		},
+	}
+
+	for _, tt := range tests {
+		cmd := getResourceCommandWithTestSubcommand(tt.resource, tt.namespace != "", tt.resource != "no-parent")
+		t.Run(tt.name, func(t *testing.T) {
+			config := &completionConfig{
+				params:     tt.p,
+				command:    cmd,
+				args:       tt.args,
+				toComplete: tt.toComplete,
+			}
+			expectedFunc := resourceToFuncMap[tt.resource]
+			if expectedFunc == nil {
+				expectedFunc = func(config *completionConfig) []string {
+					return []string{}
+				}
+			}
+			cmd.Flags().Set("namespace", tt.namespace)
+			actualSuggestions, actualDirective := completionFunc(cmd, tt.args, tt.toComplete)
+			expectedSuggestions := expectedFunc(config)
+			expectedDirective := cobra.ShellCompDirectiveNoFileComp
+			assert.DeepEqual(t, actualSuggestions, expectedSuggestions)
+			assert.Equal(t, actualDirective, expectedDirective)
+		})
+	}
+}
+
+func TestResourceNameCompletionFuncBroker(t *testing.T) {
+	completionFunc := ResourceNameCompletionFunc(knParams)
+
+	fakeEventing.AddReactor("list", "brokers", func(action clienttesting.Action) (bool, runtime.Object, error) {
+		if action.GetNamespace() == errorNs {
+			return true, nil, errors.NewInternalError(fmt.Errorf("unable to list services"))
+		}
+		return true, &eventingv1.BrokerList{Items: testNsBrokers}, nil
+	})
+	tests := []testType{
+		{
+			"Empty suggestions when non-zero args",
+			testNs,
+			knParams,
+			[]string{"xyz"},
+			"",
+			"broker",
+		},
+		{
+			"Empty suggestions when no namespace flag",
+			"",
+			knParams,
+			nil,
+			"",
+			"broker",
+		},
+		{
+			"Suggestions when test-ns namespace set",
+			testNs,
+			knParams,
+			nil,
+			"",
+			"broker",
+		},
+		{
+			"Empty suggestions when toComplete is not a prefix",
+			testNs,
+			knParams,
+			nil,
+			"xyz",
+			"broker",
+		},
+		{
+			"Empty suggestions when error during list operation",
+			errorNs,
+			knParams,
+			nil,
+			"",
+			"broker",
 		},
 	}
 	for _, tt := range tests {
@@ -376,7 +491,7 @@ func setupTempDir(t *testing.T) string {
 	err = os.MkdirAll(svcPath, 0700)
 	assert.NilError(t, err)
 
-	for i, testSvc := range []v12.Service{testSvc1, testSvc2, testSvc3} {
+	for i, testSvc := range []servingv1.Service{testSvc1, testSvc2, testSvc3} {
 		tempFile, err := os.Create(path.Join(svcPath, fmt.Sprintf("test-svc-%d.yaml", i+1)))
 		assert.NilError(t, err)
 		writeToFile(t, testSvc, tempFile)
@@ -385,7 +500,7 @@ func setupTempDir(t *testing.T) string {
 	return tempDir
 }
 
-func writeToFile(t *testing.T, testSvc v12.Service, tempFile *os.File) {
+func writeToFile(t *testing.T, testSvc servingv1.Service, tempFile *os.File) {
 	yamlPrinter, err := genericclioptions.NewJSONYamlPrintFlags().ToPrinter("yaml")
 	assert.NilError(t, err)
 

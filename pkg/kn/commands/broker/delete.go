@@ -38,9 +38,10 @@ func NewBrokerDeleteCommand(p *commands.KnParams) *cobra.Command {
 	var waitFlags commands.WaitFlags
 
 	cmd := &cobra.Command{
-		Use:     "delete NAME",
-		Short:   "Delete a broker",
-		Example: deleteExample,
+		Use:               "delete NAME",
+		Short:             "Delete a broker",
+		Example:           deleteExample,
+		ValidArgsFunction: commands.ResourceNameCompletionFunc(p),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
 				return errors.New("'broker delete' requires the broker name given as single argument")
