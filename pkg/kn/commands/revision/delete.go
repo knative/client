@@ -45,6 +45,7 @@ func NewRevisionDeleteCommand(p *commands.KnParams) *cobra.Command {
 
   # Delete all unreferenced revisions for a given service 'mysvc'
   kn revision delete --prune mysvc`,
+		ValidArgsFunction: commands.ResourceNameCompletionFunc(p),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			prune := cmd.Flags().Changed("prune")
 			argsLen := len(args)
