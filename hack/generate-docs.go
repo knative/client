@@ -39,7 +39,3 @@ func main() {
 		os.Exit(1)
 	}
 }
-
-func emptyString(filename string) string {
-	return ""
-}
