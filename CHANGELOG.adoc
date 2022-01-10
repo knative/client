@@ -18,7 +18,7 @@
 | | Description | PR
 | 🗑
 | Remove deprecated Hugo frontmatter generation for docs
-| https://github.com/knative/client/pull/[#]
+| https://github.com/knative/client/pull/1563[#1563]
 |===
 
 ## v1.1.0 (2021-12-14)
