@@ -31,7 +31,7 @@ var (
 	resourceToFuncMap = map[string]func(config *completionConfig) []string{
 		"service":  completeService,
 		"revision": completeRevision,
-		"broker":  completeBroker,
+		"broker":   completeBroker,
 	}
 )
 
@@ -125,7 +125,6 @@ func completeService(config *completionConfig) (suggestions []string) {
 	}
 	return
 }
-
 
 func completeBroker(config *completionConfig) (suggestions []string) {
 	suggestions = make([]string, 0)

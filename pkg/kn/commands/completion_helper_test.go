@@ -121,28 +121,28 @@ func initialiseKnParams() *KnParams {
 }
 
 var (
-	testRev1 = v12.Revision{
+	testRev1 = servingv1.Revision{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Revision",
 			APIVersion: "serving.knative.dev/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{Name: "test-rev-1", Namespace: testNs},
 	}
-	testRev2 = v12.Revision{
+	testRev2 = servingv1.Revision{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Revision",
 			APIVersion: "serving.knative.dev/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{Name: "test-rev-2", Namespace: testNs},
 	}
-	testRev3 = v12.Revision{
+	testRev3 = servingv1.Revision{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Revision",
 			APIVersion: "serving.knative.dev/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{Name: "test-rev-3", Namespace: testNs},
 	}
-	testNsRevs = []v12.Revision{testRev1, testRev2, testRev3}
+	testNsRevs = []servingv1.Revision{testRev1, testRev2, testRev3}
 )
 
 func TestResourceNameCompletionFuncService(t *testing.T) {
@@ -316,7 +316,7 @@ func TestResourceNameCompletionFuncRevision(t *testing.T) {
 			if a.GetNamespace() == errorNs {
 				return true, nil, errors.NewInternalError(fmt.Errorf("unable to list revisions"))
 			}
-			return true, &v12.RevisionList{Items: testNsRevs}, nil
+			return true, &servingv1.RevisionList{Items: testNsRevs}, nil
 		})
 
 	tests := []testType{
