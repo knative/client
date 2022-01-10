@@ -29,6 +29,7 @@ type completionConfig struct {
 
 var (
 	resourceToFuncMap = map[string]func(config *completionConfig) []string{
+		"broker":  completeBroker,
 		"service": completeService,
 	}
 )
@@ -116,6 +117,32 @@ func completeService(config *completionConfig) (suggestions []string) {
 		return
 	}
 	for _, sug := range serviceList.Items {
+		if !strings.HasPrefix(sug.Name, config.toComplete) {
+			continue
+		}
+		suggestions = append(suggestions, sug.Name)
+	}
+	return
+}
+
+func completeBroker(config *completionConfig) (suggestions []string) {
+	suggestions = make([]string, 0)
+	if len(config.args) != 0 {
+		return
+	}
+	namespace, err := config.params.GetNamespace(config.command)
+	if err != nil {
+		return
+	}
+	client, err := config.params.NewEventingClient(namespace)
+	if err != nil {
+		return
+	}
+	brokerList, err := client.ListBrokers(config.command.Context())
+	if err != nil {
+		return
+	}
+	for _, sug := range brokerList.Items {
 		if !strings.HasPrefix(sug.Name, config.toComplete) {
 			continue
 		}
