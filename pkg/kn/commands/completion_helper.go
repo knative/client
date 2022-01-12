@@ -29,10 +29,11 @@ type completionConfig struct {
 
 var (
 	resourceToFuncMap = map[string]func(config *completionConfig) []string{
-		"service":  completeService,
-		"revision": completeRevision,
 		"broker":   completeBroker,
+		"domain":   completeDomain,
+		"revision": completeRevision,
 		"route":    completeRoute,
+		"service":  completeService,
 	}
 )
 
@@ -43,7 +44,7 @@ func ResourceNameCompletionFunc(p *KnParams) func(cmd *cobra.Command, args []str
 
 		var use string
 		if cmd.Parent() != nil {
-			use = cmd.Parent().Use
+			use = cmd.Parent().Name()
 		}
 		config := completionConfig{
 			p,
@@ -197,6 +198,32 @@ func completeRoute(config *completionConfig) (suggestions []string) {
 		return
 	}
 	for _, sug := range routeList.Items {
+		if !strings.HasPrefix(sug.Name, config.toComplete) {
+			continue
+		}
+		suggestions = append(suggestions, sug.Name)
+	}
+	return
+}
+
+func completeDomain(config *completionConfig) (suggestions []string) {
+	suggestions = make([]string, 0)
+	if len(config.args) != 0 {
+		return
+	}
+	namespace, err := config.params.GetNamespace(config.command)
+	if err != nil {
+		return
+	}
+	client, err := config.params.NewServingV1alpha1Client(namespace)
+	if err != nil {
+		return
+	}
+	domainMappingList, err := client.ListDomainMappings(config.command.Context())
+	if err != nil {
+		return
+	}
+	for _, sug := range domainMappingList.Items {
 		if !strings.HasPrefix(sug.Name, config.toComplete) {
 			continue
 		}
