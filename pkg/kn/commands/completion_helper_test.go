@@ -359,6 +359,31 @@ var (
 	testNsChannels = []v12.Channel{testChannel1, testChannel2, testChannel3}
 )
 
+var (
+	testSubscription1 = v12.Subscription{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Subscription",
+			APIVersion: "messaging.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-subscription-1", Namespace: testNs},
+	}
+	testSubscription2 = v12.Subscription{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Subscription",
+			APIVersion: "messaging.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-subscription-2", Namespace: testNs},
+	}
+	testSubscription3 = v12.Subscription{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Subscription",
+			APIVersion: "messaging.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-subscription-3", Namespace: testNs},
+	}
+	testNsSubscriptions = []v12.Subscription{testSubscription1, testSubscription2, testSubscription3}
+)
+
 var knParams = initialiseKnParams()
 
 func initialiseKnParams() *KnParams {
@@ -1354,6 +1379,92 @@ func TestResourceNameCompletionFuncChannel(t *testing.T) {
 		})
 	}
 	channelClient.Recorder().Validate()
+}
+
+func TestResourceNameCompletionFuncSubscription(t *testing.T) {
+	completionFunc := ResourceNameCompletionFunc(knParams)
+
+	subscriptionsClient := v1beta1.NewMockKnSubscriptionsClient(t)
+	subscriptionsClient.Recorder().ListSubscription(&v12.SubscriptionList{Items: testNsSubscriptions}, nil)
+	subscriptionsClient.Recorder().ListSubscription(&v12.SubscriptionList{Items: testNsSubscriptions}, nil)
+
+	subscriptionsClient.Recorder().ListSubscription(&v12.SubscriptionList{Items: testNsSubscriptions}, nil)
+	subscriptionsClient.Recorder().ListSubscription(&v12.SubscriptionList{Items: testNsSubscriptions}, nil)
+
+	subscriptionsClient.Recorder().ListSubscription(&v12.SubscriptionList{}, fmt.Errorf("error listing channels"))
+	subscriptionsClient.Recorder().ListSubscription(&v12.SubscriptionList{}, fmt.Errorf("error listing channels"))
+
+	messagingClient := &mockMessagingClient{nil, subscriptionsClient}
+
+	knParams.NewMessagingClient = func(namespace string) (v1beta1.KnMessagingClient, error) {
+		return messagingClient, nil
+	}
+	tests := []testType{
+		{
+			"Empty suggestions when non-zero args",
+			testNs,
+			knParams,
+			[]string{"xyz"},
+			"",
+			"subscription",
+		},
+		{
+			"Empty suggestions when no namespace flag",
+			"",
+			knParams,
+			nil,
+			"",
+			"subscription",
+		},
+		{
+			"Suggestions when test-ns namespace set",
+			testNs,
+			knParams,
+			nil,
+			"",
+			"subscription",
+		},
+		{
+			"Empty suggestions when toComplete is not a prefix",
+			testNs,
+			knParams,
+			nil,
+			"xyz",
+			"subscription",
+		},
+		{
+			"Empty suggestions when error during list operation",
+			errorNs,
+			knParams,
+			nil,
+			"",
+			"subscription",
+		},
+	}
+	for _, tt := range tests {
+		cmd := getResourceCommandWithTestSubcommand(tt.resource, tt.namespace != "", tt.resource != "no-parent")
+		t.Run(tt.name, func(t *testing.T) {
+			config := &completionConfig{
+				params:     tt.p,
+				command:    cmd,
+				args:       tt.args,
+				toComplete: tt.toComplete,
+			}
+			expectedFunc := resourceToFuncMap[tt.resource]
+			if expectedFunc == nil {
+				expectedFunc = func(config *completionConfig) []string {
+					return []string{}
+				}
+			}
+			cmd.Flags().Set("namespace", tt.namespace)
+			actualSuggestions, actualDirective := completionFunc(cmd, tt.args, tt.toComplete)
+			expectedSuggestions := expectedFunc(config)
+			expectedDirective := cobra.ShellCompDirectiveNoFileComp
+			assert.DeepEqual(t, actualSuggestions, expectedSuggestions)
+			assert.Equal(t, actualDirective, expectedDirective)
+		})
+	}
+	subscriptionsClient.Recorder().Validate()
 }
 
 func getResourceCommandWithTestSubcommand(resource string, addNamespace, addSubcommand bool) *cobra.Command {
