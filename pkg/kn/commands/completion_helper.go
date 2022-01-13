@@ -34,6 +34,7 @@ var (
 		"apiserver": completeApiserverSource,
 		"binding":   completeBindingSource,
 		"broker":    completeBroker,
+		"channel":   completeChannel,
 		"container": completeContainerSource,
 		"domain":    completeDomain,
 		"ping":      completePingSource,
@@ -378,6 +379,34 @@ func completePingSource(config *completionConfig) (suggestions []string) {
 		return
 	}
 	for _, sug := range pingSourceList.Items {
+		if !strings.HasPrefix(sug.Name, config.toComplete) {
+			continue
+		}
+		suggestions = append(suggestions, sug.Name)
+	}
+	return
+}
+
+func completeChannel(config *completionConfig) (suggestions []string) {
+	suggestions = make([]string, 0)
+	if len(config.args) != 0 {
+		return
+	}
+	namespace, err := config.params.GetNamespace(config.command)
+	if err != nil {
+		return
+	}
+
+	client, err := config.params.NewMessagingClient(namespace)
+	if err != nil {
+		return
+	}
+
+	channelList, err := client.ChannelsClient().ListChannel(config.command.Context())
+	if err != nil {
+		return
+	}
+	for _, sug := range channelList.Items {
 		if !strings.HasPrefix(sug.Name, config.toComplete) {
 			continue
 		}
