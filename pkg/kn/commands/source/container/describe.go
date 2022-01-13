@@ -36,6 +36,7 @@ func NewContainerDescribeCommand(p *commands.KnParams) *cobra.Command {
 		Example: `
   # Describe a container source with name 'k8sevents'
   kn source container describe k8sevents`,
+		ValidArgsFunction: commands.ResourceNameCompletionFunc(p),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("'kn source container describe' requires name of the source as single argument")
