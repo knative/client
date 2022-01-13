@@ -26,9 +26,11 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/clientcmd"
+	v1beta1 "knative.dev/client/pkg/messaging/v1"
 	clientv1alpha1 "knative.dev/client/pkg/serving/v1alpha1"
 	clientsourcesv1 "knative.dev/client/pkg/sources/v1"
 	"knative.dev/client/pkg/sources/v1beta2"
+	v12 "knative.dev/eventing/pkg/apis/messaging/v1"
 	sourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"
 	sourcesv1beta2 "knative.dev/eventing/pkg/apis/sources/v1beta2"
 	sourcesv1fake "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1/fake"
@@ -55,6 +57,19 @@ type testType struct {
 	args       []string
 	toComplete string
 	resource   string
+}
+
+type mockMessagingClient struct {
+	channelsClient      v1beta1.KnChannelsClient
+	subscriptionsClient v1beta1.KnSubscriptionsClient
+}
+
+func (m *mockMessagingClient) ChannelsClient() v1beta1.KnChannelsClient {
+	return m.channelsClient
+}
+
+func (m *mockMessagingClient) SubscriptionsClient() v1beta1.KnSubscriptionsClient {
+	return m.subscriptionsClient
 }
 
 const (
@@ -317,6 +332,31 @@ var (
 	}
 	testNsPingSources  = []sourcesv1beta2.PingSource{testPingSource1, testPingSource2, testPingSource3}
 	fakeSourcesV1Beta2 = &sourcesv1beta2fake.FakeSourcesV1beta2{Fake: &clienttesting.Fake{}}
+)
+
+var (
+	testChannel1 = v12.Channel{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Channel",
+			APIVersion: "messaging.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-channel-1", Namespace: testNs},
+	}
+	testChannel2 = v12.Channel{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Channel",
+			APIVersion: "messaging.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-channel-2", Namespace: testNs},
+	}
+	testChannel3 = v12.Channel{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Channel",
+			APIVersion: "messaging.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-channel-3", Namespace: testNs},
+	}
+	testNsChannels = []v12.Channel{testChannel1, testChannel2, testChannel3}
 )
 
 var knParams = initialiseKnParams()
@@ -1074,40 +1114,6 @@ func TestResourceNameCompletionFuncApiserverSource(t *testing.T) {
 	}
 }
 
-func getResourceCommandWithTestSubcommand(resource string, addNamespace, addSubcommand bool) *cobra.Command {
-	testCommand := &cobra.Command{
-		Use: resource,
-	}
-	testSubCommand := &cobra.Command{
-		Use: "test",
-	}
-	if addSubcommand {
-		testCommand.AddCommand(testSubCommand)
-	}
-	if addNamespace {
-		AddNamespaceFlags(testCommand.Flags(), true)
-		AddNamespaceFlags(testSubCommand.Flags(), true)
-	}
-	return testSubCommand
-}
-
-func setupTempDir(t *testing.T) string {
-	tempDir, err := ioutil.TempDir("", "test-dir")
-	assert.NilError(t, err)
-
-	svcPath := path.Join(tempDir, "test-ns", "ksvc")
-	err = os.MkdirAll(svcPath, 0700)
-	assert.NilError(t, err)
-
-	for i, testSvc := range []servingv1.Service{testSvc1, testSvc2, testSvc3} {
-		tempFile, err := os.Create(path.Join(svcPath, fmt.Sprintf("test-svc-%d.yaml", i+1)))
-		assert.NilError(t, err)
-		writeToFile(t, testSvc, tempFile)
-	}
-
-	return tempDir
-}
-
 func TestResourceNameCompletionFuncBindingSource(t *testing.T) {
 	completionFunc := ResourceNameCompletionFunc(knParams)
 
@@ -1262,6 +1268,126 @@ func TestResourceNameCompletionFuncPingSource(t *testing.T) {
 			assert.Equal(t, actualDirective, expectedDirective)
 		})
 	}
+}
+
+func TestResourceNameCompletionFuncChannel(t *testing.T) {
+	completionFunc := ResourceNameCompletionFunc(knParams)
+
+	channelClient := v1beta1.NewMockKnChannelsClient(t)
+	channelClient.Recorder().ListChannel(&v12.ChannelList{Items: testNsChannels}, nil)
+	channelClient.Recorder().ListChannel(&v12.ChannelList{Items: testNsChannels}, nil)
+
+	channelClient.Recorder().ListChannel(&v12.ChannelList{Items: testNsChannels}, nil)
+	channelClient.Recorder().ListChannel(&v12.ChannelList{Items: testNsChannels}, nil)
+
+	channelClient.Recorder().ListChannel(&v12.ChannelList{}, fmt.Errorf("error listing channels"))
+	channelClient.Recorder().ListChannel(&v12.ChannelList{}, fmt.Errorf("error listing channels"))
+
+	messagingClient := &mockMessagingClient{channelClient, nil}
+
+	knParams.NewMessagingClient = func(namespace string) (v1beta1.KnMessagingClient, error) {
+		return messagingClient, nil
+	}
+	tests := []testType{
+		{
+			"Empty suggestions when non-zero args",
+			testNs,
+			knParams,
+			[]string{"xyz"},
+			"",
+			"channel",
+		},
+		{
+			"Empty suggestions when no namespace flag",
+			"",
+			knParams,
+			nil,
+			"",
+			"channel",
+		},
+		{
+			"Suggestions when test-ns namespace set",
+			testNs,
+			knParams,
+			nil,
+			"",
+			"channel",
+		},
+		{
+			"Empty suggestions when toComplete is not a prefix",
+			testNs,
+			knParams,
+			nil,
+			"xyz",
+			"channel",
+		},
+		{
+			"Empty suggestions when error during list operation",
+			errorNs,
+			knParams,
+			nil,
+			"",
+			"channel",
+		},
+	}
+	for _, tt := range tests {
+		cmd := getResourceCommandWithTestSubcommand(tt.resource, tt.namespace != "", tt.resource != "no-parent")
+		t.Run(tt.name, func(t *testing.T) {
+			config := &completionConfig{
+				params:     tt.p,
+				command:    cmd,
+				args:       tt.args,
+				toComplete: tt.toComplete,
+			}
+			expectedFunc := resourceToFuncMap[tt.resource]
+			if expectedFunc == nil {
+				expectedFunc = func(config *completionConfig) []string {
+					return []string{}
+				}
+			}
+			cmd.Flags().Set("namespace", tt.namespace)
+			actualSuggestions, actualDirective := completionFunc(cmd, tt.args, tt.toComplete)
+			expectedSuggestions := expectedFunc(config)
+			expectedDirective := cobra.ShellCompDirectiveNoFileComp
+			assert.DeepEqual(t, actualSuggestions, expectedSuggestions)
+			assert.Equal(t, actualDirective, expectedDirective)
+		})
+	}
+	channelClient.Recorder().Validate()
+}
+
+func getResourceCommandWithTestSubcommand(resource string, addNamespace, addSubcommand bool) *cobra.Command {
+	testCommand := &cobra.Command{
+		Use: resource,
+	}
+	testSubCommand := &cobra.Command{
+		Use: "test",
+	}
+	if addSubcommand {
+		testCommand.AddCommand(testSubCommand)
+	}
+	if addNamespace {
+		AddNamespaceFlags(testCommand.Flags(), true)
+		AddNamespaceFlags(testSubCommand.Flags(), true)
+	}
+	return testSubCommand
+}
+
+func setupTempDir(t *testing.T) string {
+	tempDir, err := ioutil.TempDir("", "test-dir")
+	assert.NilError(t, err)
+
+	svcPath := path.Join(tempDir, "test-ns", "ksvc")
+	err = os.MkdirAll(svcPath, 0700)
+	assert.NilError(t, err)
+
+	for i, testSvc := range []servingv1.Service{testSvc1, testSvc2, testSvc3} {
+		tempFile, err := os.Create(path.Join(svcPath, fmt.Sprintf("test-svc-%d.yaml", i+1)))
+		assert.NilError(t, err)
+		writeToFile(t, testSvc, tempFile)
+	}
+
+	return tempDir
 }
 
 func writeToFile(t *testing.T, testSvc servingv1.Service, tempFile *os.File) {
