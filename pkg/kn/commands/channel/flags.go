@@ -56,7 +56,14 @@ func printChannel(channel *messagingv1.Channel, options hprinters.PrintOptions) 
 	}
 
 	name := channel.Name
-	ctype := channel.Spec.ChannelTemplate.Kind
+	template := channel.Spec.ChannelTemplate
+
+	var ctype string
+	if template == nil {
+		ctype = ""
+	} else {
+		ctype = template.Kind
+	}
 	url := ""
 	if channel.Status.Address != nil {
 		url = channel.Status.Address.URL.String()
