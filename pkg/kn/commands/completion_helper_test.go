@@ -239,6 +239,31 @@ var (
 	fakeSources            = &sourcesv1fake.FakeSourcesV1{Fake: &clienttesting.Fake{}}
 )
 
+var (
+	testApiServerSource1 = sourcesv1.ApiServerSource{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "ApiServerSource",
+			APIVersion: "sources.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-ApiServer-source-1", Namespace: testNs},
+	}
+	testApiServerSource2 = sourcesv1.ApiServerSource{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "ApiServerSource",
+			APIVersion: "sources.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-ApiServer-source-2", Namespace: testNs},
+	}
+	testApiServerSource3 = sourcesv1.ApiServerSource{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "ApiServerSource",
+			APIVersion: "sources.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-ApiServer-source-3", Namespace: testNs},
+	}
+	testNsApiServerSources = []sourcesv1.ApiServerSource{testApiServerSource1, testApiServerSource2, testApiServerSource3}
+)
+
 var knParams = initialiseKnParams()
 
 func initialiseKnParams() *KnParams {
@@ -867,6 +892,84 @@ func TestResourceNameCompletionFuncContainerSource(t *testing.T) {
 			nil,
 			"",
 			"container",
+		},
+	}
+	for _, tt := range tests {
+		cmd := getResourceCommandWithTestSubcommand(tt.resource, tt.namespace != "", tt.resource != "no-parent")
+		t.Run(tt.name, func(t *testing.T) {
+			config := &completionConfig{
+				params:     tt.p,
+				command:    cmd,
+				args:       tt.args,
+				toComplete: tt.toComplete,
+			}
+			expectedFunc := resourceToFuncMap[tt.resource]
+			if expectedFunc == nil {
+				expectedFunc = func(config *completionConfig) []string {
+					return []string{}
+				}
+			}
+			cmd.Flags().Set("namespace", tt.namespace)
+			actualSuggestions, actualDirective := completionFunc(cmd, tt.args, tt.toComplete)
+			expectedSuggestions := expectedFunc(config)
+			expectedDirective := cobra.ShellCompDirectiveNoFileComp
+			assert.DeepEqual(t, actualSuggestions, expectedSuggestions)
+			assert.Equal(t, actualDirective, expectedDirective)
+		})
+	}
+}
+
+func TestResourceNameCompletionFuncApiserverSource(t *testing.T) {
+	completionFunc := ResourceNameCompletionFunc(knParams)
+
+	fakeSources.AddReactor("list", "apiserversources",
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			if a.GetNamespace() == errorNs {
+				return true, nil, errors.NewInternalError(fmt.Errorf("unable to list revisions"))
+			}
+			return true, &sourcesv1.ApiServerSourceList{Items: testNsApiServerSources}, nil
+		})
+
+	tests := []testType{
+		{
+			"Empty suggestions when non-zero args",
+			testNs,
+			knParams,
+			[]string{"xyz"},
+			"",
+			"apiserver",
+		},
+		{
+			"Empty suggestions when no namespace flag",
+			"",
+			knParams,
+			nil,
+			"",
+			"apiserver",
+		},
+		{
+			"Suggestions when test-ns namespace set",
+			testNs,
+			knParams,
+			nil,
+			"",
+			"apiserver",
+		},
+		{
+			"Empty suggestions when toComplete is not a prefix",
+			testNs,
+			knParams,
+			nil,
+			"xyz",
+			"apiserver",
+		},
+		{
+			"Empty suggestions when error during list operation",
+			errorNs,
+			knParams,
+			nil,
+			"",
+			"apiserver",
 		},
 	}
 	for _, tt := range tests {
