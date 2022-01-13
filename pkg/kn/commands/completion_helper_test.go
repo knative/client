@@ -25,10 +25,14 @@ import (
 	"gotest.tools/v3/assert"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/tools/clientcmd"
 	clientv1alpha1 "knative.dev/client/pkg/serving/v1alpha1"
 	clientsourcesv1 "knative.dev/client/pkg/sources/v1"
+	"knative.dev/client/pkg/sources/v1beta2"
 	sourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"
+	sourcesv1beta2 "knative.dev/eventing/pkg/apis/sources/v1beta2"
 	sourcesv1fake "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1/fake"
+	sourcesv1beta2fake "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1beta2/fake"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
@@ -289,9 +293,53 @@ var (
 	testNsSinkBindings = []sourcesv1.SinkBinding{testSinkBinding1, testSinkBinding2, testSinkBinding3}
 )
 
+var (
+	testPingSource1 = sourcesv1beta2.PingSource{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "PingSource",
+			APIVersion: "sources.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-ping-source-1", Namespace: testNs},
+	}
+	testPingSource2 = sourcesv1beta2.PingSource{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "PingSource",
+			APIVersion: "sources.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-ping-source-2", Namespace: testNs},
+	}
+	testPingSource3 = sourcesv1beta2.PingSource{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "PingSource",
+			APIVersion: "sources.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-ping-source-3", Namespace: testNs},
+	}
+	testNsPingSources  = []sourcesv1beta2.PingSource{testPingSource1, testPingSource2, testPingSource3}
+	fakeSourcesV1Beta2 = &sourcesv1beta2fake.FakeSourcesV1beta2{Fake: &clienttesting.Fake{}}
+)
+
 var knParams = initialiseKnParams()
 
 func initialiseKnParams() *KnParams {
+	blankConfig, err := clientcmd.NewClientConfigFromBytes([]byte(`kind: Config
+version: v1beta2
+users:
+- name: u
+clusters:
+- name: c
+  cluster:
+    server: example.com
+contexts:
+- name: x
+  context:
+    user: u
+    cluster: c
+current-context: x
+`))
+	if err != nil {
+		panic(err)
+	}
 	return &KnParams{
 		NewServingClient: func(namespace string) (v1.KnServingClient, error) {
 			return v1.NewKnServingClient(fakeServing, namespace), nil
@@ -308,6 +356,10 @@ func initialiseKnParams() *KnParams {
 		NewSourcesClient: func(namespace string) (clientsourcesv1.KnSourcesClient, error) {
 			return clientsourcesv1.NewKnSourcesClient(fakeSources, namespace), nil
 		},
+		NewSourcesV1beta2Client: func(namespace string) (v1beta2.KnSourcesClient, error) {
+			return v1beta2.NewKnSourcesClient(fakeSourcesV1Beta2, namespace), nil
+		},
+		ClientConfig: blankConfig,
 	}
 }
 
@@ -1107,6 +1159,84 @@ func TestResourceNameCompletionFuncBindingSource(t *testing.T) {
 			nil,
 			"",
 			"binding",
+		},
+	}
+	for _, tt := range tests {
+		cmd := getResourceCommandWithTestSubcommand(tt.resource, tt.namespace != "", tt.resource != "no-parent")
+		t.Run(tt.name, func(t *testing.T) {
+			config := &completionConfig{
+				params:     tt.p,
+				command:    cmd,
+				args:       tt.args,
+				toComplete: tt.toComplete,
+			}
+			expectedFunc := resourceToFuncMap[tt.resource]
+			if expectedFunc == nil {
+				expectedFunc = func(config *completionConfig) []string {
+					return []string{}
+				}
+			}
+			cmd.Flags().Set("namespace", tt.namespace)
+			actualSuggestions, actualDirective := completionFunc(cmd, tt.args, tt.toComplete)
+			expectedSuggestions := expectedFunc(config)
+			expectedDirective := cobra.ShellCompDirectiveNoFileComp
+			assert.DeepEqual(t, actualSuggestions, expectedSuggestions)
+			assert.Equal(t, actualDirective, expectedDirective)
+		})
+	}
+}
+
+func TestResourceNameCompletionFuncPingSource(t *testing.T) {
+	completionFunc := ResourceNameCompletionFunc(knParams)
+
+	fakeSourcesV1Beta2.AddReactor("list", "pingsources",
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			if a.GetNamespace() == errorNs {
+				return true, nil, errors.NewInternalError(fmt.Errorf("unable to list revisions"))
+			}
+			return true, &sourcesv1beta2.PingSourceList{Items: testNsPingSources}, nil
+		})
+
+	tests := []testType{
+		{
+			"Empty suggestions when non-zero args",
+			testNs,
+			knParams,
+			[]string{"xyz"},
+			"",
+			"ping",
+		},
+		{
+			"Empty suggestions when no namespace flag",
+			"",
+			knParams,
+			nil,
+			"",
+			"ping",
+		},
+		{
+			"Suggestions when test-ns namespace set",
+			testNs,
+			knParams,
+			nil,
+			"",
+			"ping",
+		},
+		{
+			"Empty suggestions when toComplete is not a prefix",
+			testNs,
+			knParams,
+			nil,
+			"xyz",
+			"binding",
+		},
+		{
+			"Empty suggestions when error during list operation",
+			errorNs,
+			knParams,
+			nil,
+			"",
+			"ping",
 		},
 	}
 	for _, tt := range tests {
