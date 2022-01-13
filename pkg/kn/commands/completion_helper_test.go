@@ -185,6 +185,31 @@ var (
 	testNsDomains = []v1alpha1.DomainMapping{testDomain1, testDomain2, testDomain3}
 )
 
+var (
+	testTrigger1 = eventingv1.Trigger{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Trigger",
+			APIVersion: "eventing.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-trigger-1", Namespace: testNs},
+	}
+	testTrigger2 = eventingv1.Trigger{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Trigger",
+			APIVersion: "eventing.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-trigger-2", Namespace: testNs},
+	}
+	testTrigger3 = eventingv1.Trigger{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Trigger",
+			APIVersion: "eventing.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-trigger-3", Namespace: testNs},
+	}
+	testNsTriggers = []eventingv1.Trigger{testTrigger1, testTrigger2, testTrigger3}
+)
+
 var knParams = initialiseKnParams()
 
 func initialiseKnParams() *KnParams {
@@ -654,6 +679,84 @@ func TestResourceNameCompletionFuncDomain(t *testing.T) {
 			nil,
 			"",
 			"domain",
+		},
+	}
+	for _, tt := range tests {
+		cmd := getResourceCommandWithTestSubcommand(tt.resource, tt.namespace != "", tt.resource != "no-parent")
+		t.Run(tt.name, func(t *testing.T) {
+			config := &completionConfig{
+				params:     tt.p,
+				command:    cmd,
+				args:       tt.args,
+				toComplete: tt.toComplete,
+			}
+			expectedFunc := resourceToFuncMap[tt.resource]
+			if expectedFunc == nil {
+				expectedFunc = func(config *completionConfig) []string {
+					return []string{}
+				}
+			}
+			cmd.Flags().Set("namespace", tt.namespace)
+			actualSuggestions, actualDirective := completionFunc(cmd, tt.args, tt.toComplete)
+			expectedSuggestions := expectedFunc(config)
+			expectedDirective := cobra.ShellCompDirectiveNoFileComp
+			assert.DeepEqual(t, actualSuggestions, expectedSuggestions)
+			assert.Equal(t, actualDirective, expectedDirective)
+		})
+	}
+}
+
+func TestResourceNameCompletionFuncTrigger(t *testing.T) {
+	completionFunc := ResourceNameCompletionFunc(knParams)
+
+	fakeServing.AddReactor("list", "triggers",
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			if a.GetNamespace() == errorNs {
+				return true, nil, errors.NewInternalError(fmt.Errorf("unable to list revisions"))
+			}
+			return true, &eventingv1.TriggerList{Items: testNsTriggers}, nil
+		})
+
+	tests := []testType{
+		{
+			"Empty suggestions when non-zero args",
+			testNs,
+			knParams,
+			[]string{"xyz"},
+			"",
+			"trigger",
+		},
+		{
+			"Empty suggestions when no namespace flag",
+			"",
+			knParams,
+			nil,
+			"",
+			"trigger",
+		},
+		{
+			"Suggestions when test-ns namespace set",
+			testNs,
+			knParams,
+			nil,
+			"",
+			"trigger",
+		},
+		{
+			"Empty suggestions when toComplete is not a prefix",
+			testNs,
+			knParams,
+			nil,
+			"xyz",
+			"trigger",
+		},
+		{
+			"Empty suggestions when error during list operation",
+			errorNs,
+			knParams,
+			nil,
+			"",
+			"trigger",
 		},
 	}
 	for _, tt := range tests {
