@@ -43,6 +43,7 @@ func NewSubscriptionDescribeCommand(p *commands.KnParams) *cobra.Command {
 		Example: `
   # Describe a subscription 'pipe'
   kn subscription describe pipe`,
+		ValidArgsFunction: commands.ResourceNameCompletionFunc(p),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("'kn subscription describe' requires the subscription name given as single argument")

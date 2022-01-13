@@ -31,17 +31,18 @@ type completionConfig struct {
 
 var (
 	resourceToFuncMap = map[string]func(config *completionConfig) []string{
-		"apiserver": completeApiserverSource,
-		"binding":   completeBindingSource,
-		"broker":    completeBroker,
-		"channel":   completeChannel,
-		"container": completeContainerSource,
-		"domain":    completeDomain,
-		"ping":      completePingSource,
-		"revision":  completeRevision,
-		"route":     completeRoute,
-		"service":   completeService,
-		"trigger":   completeTrigger,
+		"apiserver":    completeApiserverSource,
+		"binding":      completeBindingSource,
+		"broker":       completeBroker,
+		"channel":      completeChannel,
+		"container":    completeContainerSource,
+		"domain":       completeDomain,
+		"ping":         completePingSource,
+		"revision":     completeRevision,
+		"route":        completeRoute,
+		"service":      completeService,
+		"subscription": completeSubscription,
+		"trigger":      completeTrigger,
 	}
 )
 
@@ -407,6 +408,34 @@ func completeChannel(config *completionConfig) (suggestions []string) {
 		return
 	}
 	for _, sug := range channelList.Items {
+		if !strings.HasPrefix(sug.Name, config.toComplete) {
+			continue
+		}
+		suggestions = append(suggestions, sug.Name)
+	}
+	return
+}
+
+func completeSubscription(config *completionConfig) (suggestions []string) {
+	suggestions = make([]string, 0)
+	if len(config.args) != 0 {
+		return
+	}
+	namespace, err := config.params.GetNamespace(config.command)
+	if err != nil {
+		return
+	}
+
+	client, err := config.params.NewMessagingClient(namespace)
+	if err != nil {
+		return
+	}
+
+	subscriptionList, err := client.SubscriptionsClient().ListSubscription(config.command.Context())
+	if err != nil {
+		return
+	}
+	for _, sug := range subscriptionList.Items {
 		if !strings.HasPrefix(sug.Name, config.toComplete) {
 			continue
 		}
