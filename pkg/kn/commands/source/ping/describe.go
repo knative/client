@@ -41,9 +41,10 @@ func NewPingDescribeCommand(p *commands.KnParams) *cobra.Command {
 	machineReadablePrintFlags := genericclioptions.NewPrintFlags("")
 
 	command := &cobra.Command{
-		Use:     "describe NAME",
-		Short:   "Show details of a ping source",
-		Example: describeExample,
+		Use:               "describe NAME",
+		Short:             "Show details of a ping source",
+		Example:           describeExample,
+		ValidArgsFunction: commands.ResourceNameCompletionFunc(p),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("'kn source ping describe' requires name of the source as single argument")

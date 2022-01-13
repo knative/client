@@ -18,6 +18,8 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	clientv1beta2 "knative.dev/client/pkg/sources/v1beta2"
+	sourcesv1beta2 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1beta2"
 )
 
 type completionConfig struct {
@@ -34,6 +36,7 @@ var (
 		"broker":    completeBroker,
 		"container": completeContainerSource,
 		"domain":    completeDomain,
+		"ping":      completePingSource,
 		"revision":  completeRevision,
 		"route":     completeRoute,
 		"service":   completeService,
@@ -332,6 +335,49 @@ func completeBindingSource(config *completionConfig) (suggestions []string) {
 		return
 	}
 	for _, sug := range bindingList.Items {
+		if !strings.HasPrefix(sug.Name, config.toComplete) {
+			continue
+		}
+		suggestions = append(suggestions, sug.Name)
+	}
+	return
+}
+
+func completePingSource(config *completionConfig) (suggestions []string) {
+	suggestions = make([]string, 0)
+	if len(config.args) != 0 {
+		return
+	}
+	namespace, err := config.params.GetNamespace(config.command)
+	if err != nil {
+		return
+	}
+
+	var pingSourcesClient clientv1beta2.KnPingSourcesClient
+	if config.params.NewSourcesV1beta2Client == nil {
+		clientConfig, err := config.params.RestConfig()
+		if err != nil {
+			return
+		}
+
+		client, err := sourcesv1beta2.NewForConfig(clientConfig)
+		if err != nil {
+			return
+		}
+		pingSourcesClient = clientv1beta2.NewKnSourcesClient(client, namespace).PingSourcesClient()
+	} else {
+		client, err := config.params.NewSourcesV1beta2Client(namespace)
+		if err != nil {
+			return
+		}
+		pingSourcesClient = client.PingSourcesClient()
+	}
+
+	pingSourceList, err := pingSourcesClient.ListPingSource(config.command.Context())
+	if err != nil {
+		return
+	}
+	for _, sug := range pingSourceList.Items {
 		if !strings.HasPrefix(sug.Name, config.toComplete) {
 			continue
 		}
