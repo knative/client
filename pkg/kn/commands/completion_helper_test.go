@@ -26,6 +26,9 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientv1alpha1 "knative.dev/client/pkg/serving/v1alpha1"
+	clientsourcesv1 "knative.dev/client/pkg/sources/v1"
+	sourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"
+	sourcesv1fake "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1/fake"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
@@ -210,6 +213,32 @@ var (
 	testNsTriggers = []eventingv1.Trigger{testTrigger1, testTrigger2, testTrigger3}
 )
 
+var (
+	testContainerSource1 = sourcesv1.ContainerSource{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "ContainerSource",
+			APIVersion: "sources.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-container-source-1", Namespace: testNs},
+	}
+	testContainerSource2 = sourcesv1.ContainerSource{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "ContainerSource",
+			APIVersion: "sources.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-container-source-2", Namespace: testNs},
+	}
+	testContainerSource3 = sourcesv1.ContainerSource{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "ContainerSource",
+			APIVersion: "sources.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-container-source-3", Namespace: testNs},
+	}
+	testNsContainerSources = []sourcesv1.ContainerSource{testContainerSource1, testContainerSource2, testContainerSource3}
+	fakeSources            = &sourcesv1fake.FakeSourcesV1{Fake: &clienttesting.Fake{}}
+)
+
 var knParams = initialiseKnParams()
 
 func initialiseKnParams() *KnParams {
@@ -225,6 +254,9 @@ func initialiseKnParams() *KnParams {
 		},
 		NewServingV1alpha1Client: func(namespace string) (clientv1alpha1.KnServingClient, error) {
 			return clientv1alpha1.NewKnServingClient(fakeServingAlpha, namespace), nil
+		},
+		NewSourcesClient: func(namespace string) (clientsourcesv1.KnSourcesClient, error) {
+			return clientsourcesv1.NewKnSourcesClient(fakeSources, namespace), nil
 		},
 	}
 }
@@ -757,6 +789,84 @@ func TestResourceNameCompletionFuncTrigger(t *testing.T) {
 			nil,
 			"",
 			"trigger",
+		},
+	}
+	for _, tt := range tests {
+		cmd := getResourceCommandWithTestSubcommand(tt.resource, tt.namespace != "", tt.resource != "no-parent")
+		t.Run(tt.name, func(t *testing.T) {
+			config := &completionConfig{
+				params:     tt.p,
+				command:    cmd,
+				args:       tt.args,
+				toComplete: tt.toComplete,
+			}
+			expectedFunc := resourceToFuncMap[tt.resource]
+			if expectedFunc == nil {
+				expectedFunc = func(config *completionConfig) []string {
+					return []string{}
+				}
+			}
+			cmd.Flags().Set("namespace", tt.namespace)
+			actualSuggestions, actualDirective := completionFunc(cmd, tt.args, tt.toComplete)
+			expectedSuggestions := expectedFunc(config)
+			expectedDirective := cobra.ShellCompDirectiveNoFileComp
+			assert.DeepEqual(t, actualSuggestions, expectedSuggestions)
+			assert.Equal(t, actualDirective, expectedDirective)
+		})
+	}
+}
+
+func TestResourceNameCompletionFuncContainerSource(t *testing.T) {
+	completionFunc := ResourceNameCompletionFunc(knParams)
+
+	fakeSources.AddReactor("list", "containersources",
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			if a.GetNamespace() == errorNs {
+				return true, nil, errors.NewInternalError(fmt.Errorf("unable to list revisions"))
+			}
+			return true, &sourcesv1.ContainerSourceList{Items: testNsContainerSources}, nil
+		})
+
+	tests := []testType{
+		{
+			"Empty suggestions when non-zero args",
+			testNs,
+			knParams,
+			[]string{"xyz"},
+			"",
+			"container",
+		},
+		{
+			"Empty suggestions when no namespace flag",
+			"",
+			knParams,
+			nil,
+			"",
+			"container",
+		},
+		{
+			"Suggestions when test-ns namespace set",
+			testNs,
+			knParams,
+			nil,
+			"",
+			"container",
+		},
+		{
+			"Empty suggestions when toComplete is not a prefix",
+			testNs,
+			knParams,
+			nil,
+			"xyz",
+			"container",
+		},
+		{
+			"Empty suggestions when error during list operation",
+			errorNs,
+			knParams,
+			nil,
+			"",
+			"container",
 		},
 	}
 	for _, tt := range tests {
