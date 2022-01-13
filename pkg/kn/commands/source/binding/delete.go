@@ -30,6 +30,7 @@ func NewBindingDeleteCommand(p *commands.KnParams) *cobra.Command {
 		Example: `
   # Delete a sink binding with name 'my-binding'
   kn source binding delete my-binding`,
+		ValidArgsFunction: commands.ResourceNameCompletionFunc(p),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("requires the name of the sink binding to delete as single argument")

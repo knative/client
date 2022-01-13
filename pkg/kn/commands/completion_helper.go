@@ -30,6 +30,7 @@ type completionConfig struct {
 var (
 	resourceToFuncMap = map[string]func(config *completionConfig) []string{
 		"apiserver": completeApiserverSource,
+		"binding":   completeBindingSource,
 		"broker":    completeBroker,
 		"container": completeContainerSource,
 		"domain":    completeDomain,
@@ -305,6 +306,32 @@ func completeApiserverSource(config *completionConfig) (suggestions []string) {
 		return
 	}
 	for _, sug := range apiServerSourceList.Items {
+		if !strings.HasPrefix(sug.Name, config.toComplete) {
+			continue
+		}
+		suggestions = append(suggestions, sug.Name)
+	}
+	return
+}
+
+func completeBindingSource(config *completionConfig) (suggestions []string) {
+	suggestions = make([]string, 0)
+	if len(config.args) != 0 {
+		return
+	}
+	namespace, err := config.params.GetNamespace(config.command)
+	if err != nil {
+		return
+	}
+	client, err := config.params.NewSourcesClient(namespace)
+	if err != nil {
+		return
+	}
+	bindingList, err := client.SinkBindingClient().ListSinkBindings(config.command.Context())
+	if err != nil {
+		return
+	}
+	for _, sug := range bindingList.Items {
 		if !strings.HasPrefix(sug.Name, config.toComplete) {
 			continue
 		}
