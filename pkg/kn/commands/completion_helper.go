@@ -18,8 +18,6 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	clientv1beta2 "knative.dev/client/pkg/sources/v1beta2"
-	sourcesv1beta2 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1beta2"
 )
 
 type completionConfig struct {
@@ -355,25 +353,11 @@ func completePingSource(config *completionConfig) (suggestions []string) {
 		return
 	}
 
-	var pingSourcesClient clientv1beta2.KnPingSourcesClient
-	if config.params.NewSourcesV1beta2Client == nil {
-		clientConfig, err := config.params.RestConfig()
-		if err != nil {
-			return
-		}
-
-		client, err := sourcesv1beta2.NewForConfig(clientConfig)
-		if err != nil {
-			return
-		}
-		pingSourcesClient = clientv1beta2.NewKnSourcesClient(client, namespace).PingSourcesClient()
-	} else {
-		client, err := config.params.NewSourcesV1beta2Client(namespace)
-		if err != nil {
-			return
-		}
-		pingSourcesClient = client.PingSourcesClient()
+	client, err := config.params.NewSourcesV1beta2Client(namespace)
+	if err != nil {
+		return
 	}
+	pingSourcesClient := client.PingSourcesClient()
 
 	pingSourceList, err := pingSourcesClient.ListPingSource(config.command.Context())
 	if err != nil {

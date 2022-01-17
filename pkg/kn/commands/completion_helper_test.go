@@ -520,7 +520,7 @@ func TestResourceNameCompletionFuncBroker(t *testing.T) {
 
 	fakeEventing.AddReactor("list", "brokers", func(action clienttesting.Action) (bool, runtime.Object, error) {
 		if action.GetNamespace() == errorNs {
-			return true, nil, errors.NewInternalError(fmt.Errorf("unable to list services"))
+			return true, nil, errors.NewInternalError(fmt.Errorf("unable to list brokers"))
 		}
 		return true, &eventingv1.BrokerList{Items: testNsBrokers}, nil
 	})
@@ -755,7 +755,7 @@ func TestResourceNameCompletionFuncRoute(t *testing.T) {
 	fakeServing.AddReactor("list", "routes",
 		func(a clienttesting.Action) (bool, runtime.Object, error) {
 			if a.GetNamespace() == errorNs {
-				return true, nil, errors.NewInternalError(fmt.Errorf("unable to list services"))
+				return true, nil, errors.NewInternalError(fmt.Errorf("unable to list routes"))
 			}
 			return true, &servingv1.RouteList{Items: testNsRoutes}, nil
 		})
@@ -833,7 +833,7 @@ func TestResourceNameCompletionFuncDomain(t *testing.T) {
 	fakeServingAlpha.AddReactor("list", "domainmappings",
 		func(a clienttesting.Action) (bool, runtime.Object, error) {
 			if a.GetNamespace() == errorNs {
-				return true, nil, errors.NewInternalError(fmt.Errorf("unable to list services"))
+				return true, nil, errors.NewInternalError(fmt.Errorf("unable to list domains"))
 			}
 			return true, &v1alpha1.DomainMappingList{Items: testNsDomains}, nil
 		})
@@ -911,7 +911,7 @@ func TestResourceNameCompletionFuncTrigger(t *testing.T) {
 	fakeServing.AddReactor("list", "triggers",
 		func(a clienttesting.Action) (bool, runtime.Object, error) {
 			if a.GetNamespace() == errorNs {
-				return true, nil, errors.NewInternalError(fmt.Errorf("unable to list revisions"))
+				return true, nil, errors.NewInternalError(fmt.Errorf("unable to list triggers"))
 			}
 			return true, &eventingv1.TriggerList{Items: testNsTriggers}, nil
 		})
@@ -989,7 +989,7 @@ func TestResourceNameCompletionFuncContainerSource(t *testing.T) {
 	fakeSources.AddReactor("list", "containersources",
 		func(a clienttesting.Action) (bool, runtime.Object, error) {
 			if a.GetNamespace() == errorNs {
-				return true, nil, errors.NewInternalError(fmt.Errorf("unable to list revisions"))
+				return true, nil, errors.NewInternalError(fmt.Errorf("unable to list container sources"))
 			}
 			return true, &sourcesv1.ContainerSourceList{Items: testNsContainerSources}, nil
 		})
@@ -1067,7 +1067,7 @@ func TestResourceNameCompletionFuncApiserverSource(t *testing.T) {
 	fakeSources.AddReactor("list", "apiserversources",
 		func(a clienttesting.Action) (bool, runtime.Object, error) {
 			if a.GetNamespace() == errorNs {
-				return true, nil, errors.NewInternalError(fmt.Errorf("unable to list revisions"))
+				return true, nil, errors.NewInternalError(fmt.Errorf("unable to list apiserver sources"))
 			}
 			return true, &sourcesv1.ApiServerSourceList{Items: testNsApiServerSources}, nil
 		})
@@ -1145,7 +1145,7 @@ func TestResourceNameCompletionFuncBindingSource(t *testing.T) {
 	fakeSources.AddReactor("list", "sinkbindings",
 		func(a clienttesting.Action) (bool, runtime.Object, error) {
 			if a.GetNamespace() == errorNs {
-				return true, nil, errors.NewInternalError(fmt.Errorf("unable to list revisions"))
+				return true, nil, errors.NewInternalError(fmt.Errorf("unable to list binding sources"))
 			}
 			return true, &sourcesv1.SinkBindingList{Items: testNsSinkBindings}, nil
 		})
@@ -1223,7 +1223,7 @@ func TestResourceNameCompletionFuncPingSource(t *testing.T) {
 	fakeSourcesV1Beta2.AddReactor("list", "pingsources",
 		func(a clienttesting.Action) (bool, runtime.Object, error) {
 			if a.GetNamespace() == errorNs {
-				return true, nil, errors.NewInternalError(fmt.Errorf("unable to list revisions"))
+				return true, nil, errors.NewInternalError(fmt.Errorf("unable to list ping sources"))
 			}
 			return true, &sourcesv1beta2.PingSourceList{Items: testNsPingSources}, nil
 		})
@@ -1259,7 +1259,7 @@ func TestResourceNameCompletionFuncPingSource(t *testing.T) {
 			knParams,
 			nil,
 			"xyz",
-			"binding",
+			"ping",
 		},
 		{
 			"Empty suggestions when error during list operation",
