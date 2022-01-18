@@ -43,7 +43,7 @@ func NewSubscriptionUpdateCommand(p *commands.KnParams) *cobra.Command {
 
   # Update a subscription 'sub1' with subscriber ksvc 'mirror', reply to a broker 'nest' and DeadLetterSink to a ksvc 'bucket'
   kn subscription update sub1 --sink mirror --sink-reply broker:nest --sink-dead-letter bucket`,
-
+		ValidArgsFunction: commands.ResourceNameCompletionFunc(p),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
 				return errors.New("'kn subscription update' requires the subscription name given as single argument")

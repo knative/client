@@ -42,6 +42,7 @@ func NewPingUpdateCommand(p *commands.KnParams) *cobra.Command {
   # Update the schedule of a Ping source 'my-ping' to fire every minute
   kn source ping update my-ping --schedule "* * * * *"`,
 
+		ValidArgsFunction: commands.ResourceNameCompletionFunc(p),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
 				return errors.New("name of Ping source required")

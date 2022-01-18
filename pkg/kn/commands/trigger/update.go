@@ -48,7 +48,7 @@ func NewTriggerUpdateCommand(p *commands.KnParams) *cobra.Command {
   # Update the sink of a trigger 'mytrigger' to 'ksvc:new-service'
   kn trigger update mytrigger --sink ksvc:new-service
   `,
-
+		ValidArgsFunction: commands.ResourceNameCompletionFunc(p),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
 				return errors.New("name of trigger required")

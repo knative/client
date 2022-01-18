@@ -30,6 +30,7 @@ func NewChannelDeleteCommand(p *commands.KnParams) *cobra.Command {
 		Example: `
   # Delete a channel 'pipe'
   kn channel delete pipe`,
+		ValidArgsFunction: commands.ResourceNameCompletionFunc(p),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("'kn channel delete' requires the channel name as single argument")

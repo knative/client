@@ -40,9 +40,10 @@ func NewTriggerDescribeCommand(p *commands.KnParams) *cobra.Command {
 	machineReadablePrintFlags := genericclioptions.NewPrintFlags("")
 
 	command := &cobra.Command{
-		Use:     "describe NAME",
-		Short:   "Show details of a trigger",
-		Example: describeExample,
+		Use:               "describe NAME",
+		Short:             "Show details of a trigger",
+		Example:           describeExample,
+		ValidArgsFunction: commands.ResourceNameCompletionFunc(p),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("'kn trigger describe' requires name of the trigger as single argument")

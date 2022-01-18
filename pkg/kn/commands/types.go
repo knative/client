@@ -94,6 +94,10 @@ func (params *KnParams) Initialize() {
 	if params.NewDynamicClient == nil {
 		params.NewDynamicClient = params.newDynamicClient
 	}
+
+	if params.NewSourcesV1beta2Client == nil {
+		params.NewSourcesV1beta2Client = params.newSourcesClientV1beta2
+	}
 }
 
 func (params *KnParams) newServingClient(namespace string) (clientservingv1.KnServingClient, error) {

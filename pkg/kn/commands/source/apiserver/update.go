@@ -38,6 +38,7 @@ func NewAPIServerUpdateCommand(p *commands.KnParams) *cobra.Command {
   # Update an ApiServerSource 'k8sevents' with different service account and sink service
   kn source apiserver update k8sevents --service-account newsa --sink ksvc:newsvc`,
 
+		ValidArgsFunction: commands.ResourceNameCompletionFunc(p),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
 				return errors.New("requires the name of the source as single argument")

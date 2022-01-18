@@ -43,9 +43,10 @@ func NewChannelDescribeCommand(p *commands.KnParams) *cobra.Command {
 	machineReadablePrintFlags := genericclioptions.NewPrintFlags("")
 
 	cmd := &cobra.Command{
-		Use:     "describe NAME",
-		Short:   "Show details of a channel",
-		Example: describeExample,
+		Use:               "describe NAME",
+		Short:             "Show details of a channel",
+		Example:           describeExample,
+		ValidArgsFunction: commands.ResourceNameCompletionFunc(p),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("'kn channel describe' requires the channel name given as single argument")

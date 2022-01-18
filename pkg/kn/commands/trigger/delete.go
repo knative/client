@@ -30,6 +30,7 @@ func NewTriggerDeleteCommand(p *commands.KnParams) *cobra.Command {
 		Example: `
   # Delete a trigger 'mytrigger' in default namespace
   kn trigger delete mytrigger`,
+		ValidArgsFunction: commands.ResourceNameCompletionFunc(p),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("'trigger delete' requires the name of the trigger as single argument")

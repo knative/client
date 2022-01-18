@@ -25,7 +25,16 @@ import (
 	"gotest.tools/v3/assert"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/tools/clientcmd"
+	v1beta1 "knative.dev/client/pkg/messaging/v1"
 	clientv1alpha1 "knative.dev/client/pkg/serving/v1alpha1"
+	clientsourcesv1 "knative.dev/client/pkg/sources/v1"
+	"knative.dev/client/pkg/sources/v1beta2"
+	v12 "knative.dev/eventing/pkg/apis/messaging/v1"
+	sourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"
+	sourcesv1beta2 "knative.dev/eventing/pkg/apis/sources/v1beta2"
+	sourcesv1fake "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1/fake"
+	sourcesv1beta2fake "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1beta2/fake"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
@@ -48,6 +57,19 @@ type testType struct {
 	args       []string
 	toComplete string
 	resource   string
+}
+
+type mockMessagingClient struct {
+	channelsClient      v1beta1.KnChannelsClient
+	subscriptionsClient v1beta1.KnSubscriptionsClient
+}
+
+func (m *mockMessagingClient) ChannelsClient() v1beta1.KnChannelsClient {
+	return m.channelsClient
+}
+
+func (m *mockMessagingClient) SubscriptionsClient() v1beta1.KnSubscriptionsClient {
+	return m.subscriptionsClient
 }
 
 const (
@@ -185,9 +207,204 @@ var (
 	testNsDomains = []v1alpha1.DomainMapping{testDomain1, testDomain2, testDomain3}
 )
 
+var (
+	testTrigger1 = eventingv1.Trigger{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Trigger",
+			APIVersion: "eventing.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-trigger-1", Namespace: testNs},
+	}
+	testTrigger2 = eventingv1.Trigger{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Trigger",
+			APIVersion: "eventing.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-trigger-2", Namespace: testNs},
+	}
+	testTrigger3 = eventingv1.Trigger{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Trigger",
+			APIVersion: "eventing.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-trigger-3", Namespace: testNs},
+	}
+	testNsTriggers = []eventingv1.Trigger{testTrigger1, testTrigger2, testTrigger3}
+)
+
+var (
+	testContainerSource1 = sourcesv1.ContainerSource{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "ContainerSource",
+			APIVersion: "sources.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-container-source-1", Namespace: testNs},
+	}
+	testContainerSource2 = sourcesv1.ContainerSource{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "ContainerSource",
+			APIVersion: "sources.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-container-source-2", Namespace: testNs},
+	}
+	testContainerSource3 = sourcesv1.ContainerSource{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "ContainerSource",
+			APIVersion: "sources.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-container-source-3", Namespace: testNs},
+	}
+	testNsContainerSources = []sourcesv1.ContainerSource{testContainerSource1, testContainerSource2, testContainerSource3}
+	fakeSources            = &sourcesv1fake.FakeSourcesV1{Fake: &clienttesting.Fake{}}
+)
+
+var (
+	testApiServerSource1 = sourcesv1.ApiServerSource{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "ApiServerSource",
+			APIVersion: "sources.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-ApiServer-source-1", Namespace: testNs},
+	}
+	testApiServerSource2 = sourcesv1.ApiServerSource{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "ApiServerSource",
+			APIVersion: "sources.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-ApiServer-source-2", Namespace: testNs},
+	}
+	testApiServerSource3 = sourcesv1.ApiServerSource{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "ApiServerSource",
+			APIVersion: "sources.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-ApiServer-source-3", Namespace: testNs},
+	}
+	testNsApiServerSources = []sourcesv1.ApiServerSource{testApiServerSource1, testApiServerSource2, testApiServerSource3}
+)
+
+var (
+	testSinkBinding1 = sourcesv1.SinkBinding{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "SinkBinding",
+			APIVersion: "sources.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-sink-binding-1", Namespace: testNs},
+	}
+	testSinkBinding2 = sourcesv1.SinkBinding{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "SinkBinding",
+			APIVersion: "sources.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-sink-binding-2", Namespace: testNs},
+	}
+	testSinkBinding3 = sourcesv1.SinkBinding{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "SinkBinding",
+			APIVersion: "sources.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-sink-binding-3", Namespace: testNs},
+	}
+	testNsSinkBindings = []sourcesv1.SinkBinding{testSinkBinding1, testSinkBinding2, testSinkBinding3}
+)
+
+var (
+	testPingSource1 = sourcesv1beta2.PingSource{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "PingSource",
+			APIVersion: "sources.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-ping-source-1", Namespace: testNs},
+	}
+	testPingSource2 = sourcesv1beta2.PingSource{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "PingSource",
+			APIVersion: "sources.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-ping-source-2", Namespace: testNs},
+	}
+	testPingSource3 = sourcesv1beta2.PingSource{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "PingSource",
+			APIVersion: "sources.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-ping-source-3", Namespace: testNs},
+	}
+	testNsPingSources  = []sourcesv1beta2.PingSource{testPingSource1, testPingSource2, testPingSource3}
+	fakeSourcesV1Beta2 = &sourcesv1beta2fake.FakeSourcesV1beta2{Fake: &clienttesting.Fake{}}
+)
+
+var (
+	testChannel1 = v12.Channel{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Channel",
+			APIVersion: "messaging.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-channel-1", Namespace: testNs},
+	}
+	testChannel2 = v12.Channel{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Channel",
+			APIVersion: "messaging.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-channel-2", Namespace: testNs},
+	}
+	testChannel3 = v12.Channel{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Channel",
+			APIVersion: "messaging.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-channel-3", Namespace: testNs},
+	}
+	testNsChannels = []v12.Channel{testChannel1, testChannel2, testChannel3}
+)
+
+var (
+	testSubscription1 = v12.Subscription{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Subscription",
+			APIVersion: "messaging.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-subscription-1", Namespace: testNs},
+	}
+	testSubscription2 = v12.Subscription{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Subscription",
+			APIVersion: "messaging.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-subscription-2", Namespace: testNs},
+	}
+	testSubscription3 = v12.Subscription{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Subscription",
+			APIVersion: "messaging.knative.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-subscription-3", Namespace: testNs},
+	}
+	testNsSubscriptions = []v12.Subscription{testSubscription1, testSubscription2, testSubscription3}
+)
+
 var knParams = initialiseKnParams()
 
 func initialiseKnParams() *KnParams {
+	blankConfig, err := clientcmd.NewClientConfigFromBytes([]byte(`kind: Config
+version: v1beta2
+users:
+- name: u
+clusters:
+- name: c
+  cluster:
+    server: example.com
+contexts:
+- name: x
+  context:
+    user: u
+    cluster: c
+current-context: x
+`))
+	if err != nil {
+		panic(err)
+	}
 	return &KnParams{
 		NewServingClient: func(namespace string) (v1.KnServingClient, error) {
 			return v1.NewKnServingClient(fakeServing, namespace), nil
@@ -201,6 +418,13 @@ func initialiseKnParams() *KnParams {
 		NewServingV1alpha1Client: func(namespace string) (clientv1alpha1.KnServingClient, error) {
 			return clientv1alpha1.NewKnServingClient(fakeServingAlpha, namespace), nil
 		},
+		NewSourcesClient: func(namespace string) (clientsourcesv1.KnSourcesClient, error) {
+			return clientsourcesv1.NewKnSourcesClient(fakeSources, namespace), nil
+		},
+		NewSourcesV1beta2Client: func(namespace string) (v1beta2.KnSourcesClient, error) {
+			return v1beta2.NewKnSourcesClient(fakeSourcesV1Beta2, namespace), nil
+		},
+		ClientConfig: blankConfig,
 	}
 }
 
@@ -296,7 +520,7 @@ func TestResourceNameCompletionFuncBroker(t *testing.T) {
 
 	fakeEventing.AddReactor("list", "brokers", func(action clienttesting.Action) (bool, runtime.Object, error) {
 		if action.GetNamespace() == errorNs {
-			return true, nil, errors.NewInternalError(fmt.Errorf("unable to list services"))
+			return true, nil, errors.NewInternalError(fmt.Errorf("unable to list brokers"))
 		}
 		return true, &eventingv1.BrokerList{Items: testNsBrokers}, nil
 	})
@@ -531,7 +755,7 @@ func TestResourceNameCompletionFuncRoute(t *testing.T) {
 	fakeServing.AddReactor("list", "routes",
 		func(a clienttesting.Action) (bool, runtime.Object, error) {
 			if a.GetNamespace() == errorNs {
-				return true, nil, errors.NewInternalError(fmt.Errorf("unable to list services"))
+				return true, nil, errors.NewInternalError(fmt.Errorf("unable to list routes"))
 			}
 			return true, &servingv1.RouteList{Items: testNsRoutes}, nil
 		})
@@ -609,7 +833,7 @@ func TestResourceNameCompletionFuncDomain(t *testing.T) {
 	fakeServingAlpha.AddReactor("list", "domainmappings",
 		func(a clienttesting.Action) (bool, runtime.Object, error) {
 			if a.GetNamespace() == errorNs {
-				return true, nil, errors.NewInternalError(fmt.Errorf("unable to list services"))
+				return true, nil, errors.NewInternalError(fmt.Errorf("unable to list domains"))
 			}
 			return true, &v1alpha1.DomainMappingList{Items: testNsDomains}, nil
 		})
@@ -679,6 +903,568 @@ func TestResourceNameCompletionFuncDomain(t *testing.T) {
 			assert.Equal(t, actualDirective, expectedDirective)
 		})
 	}
+}
+
+func TestResourceNameCompletionFuncTrigger(t *testing.T) {
+	completionFunc := ResourceNameCompletionFunc(knParams)
+
+	fakeServing.AddReactor("list", "triggers",
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			if a.GetNamespace() == errorNs {
+				return true, nil, errors.NewInternalError(fmt.Errorf("unable to list triggers"))
+			}
+			return true, &eventingv1.TriggerList{Items: testNsTriggers}, nil
+		})
+
+	tests := []testType{
+		{
+			"Empty suggestions when non-zero args",
+			testNs,
+			knParams,
+			[]string{"xyz"},
+			"",
+			"trigger",
+		},
+		{
+			"Empty suggestions when no namespace flag",
+			"",
+			knParams,
+			nil,
+			"",
+			"trigger",
+		},
+		{
+			"Suggestions when test-ns namespace set",
+			testNs,
+			knParams,
+			nil,
+			"",
+			"trigger",
+		},
+		{
+			"Empty suggestions when toComplete is not a prefix",
+			testNs,
+			knParams,
+			nil,
+			"xyz",
+			"trigger",
+		},
+		{
+			"Empty suggestions when error during list operation",
+			errorNs,
+			knParams,
+			nil,
+			"",
+			"trigger",
+		},
+	}
+	for _, tt := range tests {
+		cmd := getResourceCommandWithTestSubcommand(tt.resource, tt.namespace != "", tt.resource != "no-parent")
+		t.Run(tt.name, func(t *testing.T) {
+			config := &completionConfig{
+				params:     tt.p,
+				command:    cmd,
+				args:       tt.args,
+				toComplete: tt.toComplete,
+			}
+			expectedFunc := resourceToFuncMap[tt.resource]
+			if expectedFunc == nil {
+				expectedFunc = func(config *completionConfig) []string {
+					return []string{}
+				}
+			}
+			cmd.Flags().Set("namespace", tt.namespace)
+			actualSuggestions, actualDirective := completionFunc(cmd, tt.args, tt.toComplete)
+			expectedSuggestions := expectedFunc(config)
+			expectedDirective := cobra.ShellCompDirectiveNoFileComp
+			assert.DeepEqual(t, actualSuggestions, expectedSuggestions)
+			assert.Equal(t, actualDirective, expectedDirective)
+		})
+	}
+}
+
+func TestResourceNameCompletionFuncContainerSource(t *testing.T) {
+	completionFunc := ResourceNameCompletionFunc(knParams)
+
+	fakeSources.AddReactor("list", "containersources",
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			if a.GetNamespace() == errorNs {
+				return true, nil, errors.NewInternalError(fmt.Errorf("unable to list container sources"))
+			}
+			return true, &sourcesv1.ContainerSourceList{Items: testNsContainerSources}, nil
+		})
+
+	tests := []testType{
+		{
+			"Empty suggestions when non-zero args",
+			testNs,
+			knParams,
+			[]string{"xyz"},
+			"",
+			"container",
+		},
+		{
+			"Empty suggestions when no namespace flag",
+			"",
+			knParams,
+			nil,
+			"",
+			"container",
+		},
+		{
+			"Suggestions when test-ns namespace set",
+			testNs,
+			knParams,
+			nil,
+			"",
+			"container",
+		},
+		{
+			"Empty suggestions when toComplete is not a prefix",
+			testNs,
+			knParams,
+			nil,
+			"xyz",
+			"container",
+		},
+		{
+			"Empty suggestions when error during list operation",
+			errorNs,
+			knParams,
+			nil,
+			"",
+			"container",
+		},
+	}
+	for _, tt := range tests {
+		cmd := getResourceCommandWithTestSubcommand(tt.resource, tt.namespace != "", tt.resource != "no-parent")
+		t.Run(tt.name, func(t *testing.T) {
+			config := &completionConfig{
+				params:     tt.p,
+				command:    cmd,
+				args:       tt.args,
+				toComplete: tt.toComplete,
+			}
+			expectedFunc := resourceToFuncMap[tt.resource]
+			if expectedFunc == nil {
+				expectedFunc = func(config *completionConfig) []string {
+					return []string{}
+				}
+			}
+			cmd.Flags().Set("namespace", tt.namespace)
+			actualSuggestions, actualDirective := completionFunc(cmd, tt.args, tt.toComplete)
+			expectedSuggestions := expectedFunc(config)
+			expectedDirective := cobra.ShellCompDirectiveNoFileComp
+			assert.DeepEqual(t, actualSuggestions, expectedSuggestions)
+			assert.Equal(t, actualDirective, expectedDirective)
+		})
+	}
+}
+
+func TestResourceNameCompletionFuncApiserverSource(t *testing.T) {
+	completionFunc := ResourceNameCompletionFunc(knParams)
+
+	fakeSources.AddReactor("list", "apiserversources",
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			if a.GetNamespace() == errorNs {
+				return true, nil, errors.NewInternalError(fmt.Errorf("unable to list apiserver sources"))
+			}
+			return true, &sourcesv1.ApiServerSourceList{Items: testNsApiServerSources}, nil
+		})
+
+	tests := []testType{
+		{
+			"Empty suggestions when non-zero args",
+			testNs,
+			knParams,
+			[]string{"xyz"},
+			"",
+			"apiserver",
+		},
+		{
+			"Empty suggestions when no namespace flag",
+			"",
+			knParams,
+			nil,
+			"",
+			"apiserver",
+		},
+		{
+			"Suggestions when test-ns namespace set",
+			testNs,
+			knParams,
+			nil,
+			"",
+			"apiserver",
+		},
+		{
+			"Empty suggestions when toComplete is not a prefix",
+			testNs,
+			knParams,
+			nil,
+			"xyz",
+			"apiserver",
+		},
+		{
+			"Empty suggestions when error during list operation",
+			errorNs,
+			knParams,
+			nil,
+			"",
+			"apiserver",
+		},
+	}
+	for _, tt := range tests {
+		cmd := getResourceCommandWithTestSubcommand(tt.resource, tt.namespace != "", tt.resource != "no-parent")
+		t.Run(tt.name, func(t *testing.T) {
+			config := &completionConfig{
+				params:     tt.p,
+				command:    cmd,
+				args:       tt.args,
+				toComplete: tt.toComplete,
+			}
+			expectedFunc := resourceToFuncMap[tt.resource]
+			if expectedFunc == nil {
+				expectedFunc = func(config *completionConfig) []string {
+					return []string{}
+				}
+			}
+			cmd.Flags().Set("namespace", tt.namespace)
+			actualSuggestions, actualDirective := completionFunc(cmd, tt.args, tt.toComplete)
+			expectedSuggestions := expectedFunc(config)
+			expectedDirective := cobra.ShellCompDirectiveNoFileComp
+			assert.DeepEqual(t, actualSuggestions, expectedSuggestions)
+			assert.Equal(t, actualDirective, expectedDirective)
+		})
+	}
+}
+
+func TestResourceNameCompletionFuncBindingSource(t *testing.T) {
+	completionFunc := ResourceNameCompletionFunc(knParams)
+
+	fakeSources.AddReactor("list", "sinkbindings",
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			if a.GetNamespace() == errorNs {
+				return true, nil, errors.NewInternalError(fmt.Errorf("unable to list binding sources"))
+			}
+			return true, &sourcesv1.SinkBindingList{Items: testNsSinkBindings}, nil
+		})
+
+	tests := []testType{
+		{
+			"Empty suggestions when non-zero args",
+			testNs,
+			knParams,
+			[]string{"xyz"},
+			"",
+			"binding",
+		},
+		{
+			"Empty suggestions when no namespace flag",
+			"",
+			knParams,
+			nil,
+			"",
+			"binding",
+		},
+		{
+			"Suggestions when test-ns namespace set",
+			testNs,
+			knParams,
+			nil,
+			"",
+			"binding",
+		},
+		{
+			"Empty suggestions when toComplete is not a prefix",
+			testNs,
+			knParams,
+			nil,
+			"xyz",
+			"binding",
+		},
+		{
+			"Empty suggestions when error during list operation",
+			errorNs,
+			knParams,
+			nil,
+			"",
+			"binding",
+		},
+	}
+	for _, tt := range tests {
+		cmd := getResourceCommandWithTestSubcommand(tt.resource, tt.namespace != "", tt.resource != "no-parent")
+		t.Run(tt.name, func(t *testing.T) {
+			config := &completionConfig{
+				params:     tt.p,
+				command:    cmd,
+				args:       tt.args,
+				toComplete: tt.toComplete,
+			}
+			expectedFunc := resourceToFuncMap[tt.resource]
+			if expectedFunc == nil {
+				expectedFunc = func(config *completionConfig) []string {
+					return []string{}
+				}
+			}
+			cmd.Flags().Set("namespace", tt.namespace)
+			actualSuggestions, actualDirective := completionFunc(cmd, tt.args, tt.toComplete)
+			expectedSuggestions := expectedFunc(config)
+			expectedDirective := cobra.ShellCompDirectiveNoFileComp
+			assert.DeepEqual(t, actualSuggestions, expectedSuggestions)
+			assert.Equal(t, actualDirective, expectedDirective)
+		})
+	}
+}
+
+func TestResourceNameCompletionFuncPingSource(t *testing.T) {
+	completionFunc := ResourceNameCompletionFunc(knParams)
+
+	fakeSourcesV1Beta2.AddReactor("list", "pingsources",
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			if a.GetNamespace() == errorNs {
+				return true, nil, errors.NewInternalError(fmt.Errorf("unable to list ping sources"))
+			}
+			return true, &sourcesv1beta2.PingSourceList{Items: testNsPingSources}, nil
+		})
+
+	tests := []testType{
+		{
+			"Empty suggestions when non-zero args",
+			testNs,
+			knParams,
+			[]string{"xyz"},
+			"",
+			"ping",
+		},
+		{
+			"Empty suggestions when no namespace flag",
+			"",
+			knParams,
+			nil,
+			"",
+			"ping",
+		},
+		{
+			"Suggestions when test-ns namespace set",
+			testNs,
+			knParams,
+			nil,
+			"",
+			"ping",
+		},
+		{
+			"Empty suggestions when toComplete is not a prefix",
+			testNs,
+			knParams,
+			nil,
+			"xyz",
+			"ping",
+		},
+		{
+			"Empty suggestions when error during list operation",
+			errorNs,
+			knParams,
+			nil,
+			"",
+			"ping",
+		},
+	}
+	for _, tt := range tests {
+		cmd := getResourceCommandWithTestSubcommand(tt.resource, tt.namespace != "", tt.resource != "no-parent")
+		t.Run(tt.name, func(t *testing.T) {
+			config := &completionConfig{
+				params:     tt.p,
+				command:    cmd,
+				args:       tt.args,
+				toComplete: tt.toComplete,
+			}
+			expectedFunc := resourceToFuncMap[tt.resource]
+			if expectedFunc == nil {
+				expectedFunc = func(config *completionConfig) []string {
+					return []string{}
+				}
+			}
+			cmd.Flags().Set("namespace", tt.namespace)
+			actualSuggestions, actualDirective := completionFunc(cmd, tt.args, tt.toComplete)
+			expectedSuggestions := expectedFunc(config)
+			expectedDirective := cobra.ShellCompDirectiveNoFileComp
+			assert.DeepEqual(t, actualSuggestions, expectedSuggestions)
+			assert.Equal(t, actualDirective, expectedDirective)
+		})
+	}
+}
+
+func TestResourceNameCompletionFuncChannel(t *testing.T) {
+	completionFunc := ResourceNameCompletionFunc(knParams)
+
+	channelClient := v1beta1.NewMockKnChannelsClient(t)
+	channelClient.Recorder().ListChannel(&v12.ChannelList{Items: testNsChannels}, nil)
+	channelClient.Recorder().ListChannel(&v12.ChannelList{Items: testNsChannels}, nil)
+
+	channelClient.Recorder().ListChannel(&v12.ChannelList{Items: testNsChannels}, nil)
+	channelClient.Recorder().ListChannel(&v12.ChannelList{Items: testNsChannels}, nil)
+
+	channelClient.Recorder().ListChannel(&v12.ChannelList{}, fmt.Errorf("error listing channels"))
+	channelClient.Recorder().ListChannel(&v12.ChannelList{}, fmt.Errorf("error listing channels"))
+
+	messagingClient := &mockMessagingClient{channelClient, nil}
+
+	knParams.NewMessagingClient = func(namespace string) (v1beta1.KnMessagingClient, error) {
+		return messagingClient, nil
+	}
+	tests := []testType{
+		{
+			"Empty suggestions when non-zero args",
+			testNs,
+			knParams,
+			[]string{"xyz"},
+			"",
+			"channel",
+		},
+		{
+			"Empty suggestions when no namespace flag",
+			"",
+			knParams,
+			nil,
+			"",
+			"channel",
+		},
+		{
+			"Suggestions when test-ns namespace set",
+			testNs,
+			knParams,
+			nil,
+			"",
+			"channel",
+		},
+		{
+			"Empty suggestions when toComplete is not a prefix",
+			testNs,
+			knParams,
+			nil,
+			"xyz",
+			"channel",
+		},
+		{
+			"Empty suggestions when error during list operation",
+			errorNs,
+			knParams,
+			nil,
+			"",
+			"channel",
+		},
+	}
+	for _, tt := range tests {
+		cmd := getResourceCommandWithTestSubcommand(tt.resource, tt.namespace != "", tt.resource != "no-parent")
+		t.Run(tt.name, func(t *testing.T) {
+			config := &completionConfig{
+				params:     tt.p,
+				command:    cmd,
+				args:       tt.args,
+				toComplete: tt.toComplete,
+			}
+			expectedFunc := resourceToFuncMap[tt.resource]
+			if expectedFunc == nil {
+				expectedFunc = func(config *completionConfig) []string {
+					return []string{}
+				}
+			}
+			cmd.Flags().Set("namespace", tt.namespace)
+			actualSuggestions, actualDirective := completionFunc(cmd, tt.args, tt.toComplete)
+			expectedSuggestions := expectedFunc(config)
+			expectedDirective := cobra.ShellCompDirectiveNoFileComp
+			assert.DeepEqual(t, actualSuggestions, expectedSuggestions)
+			assert.Equal(t, actualDirective, expectedDirective)
+		})
+	}
+	channelClient.Recorder().Validate()
+}
+
+func TestResourceNameCompletionFuncSubscription(t *testing.T) {
+	completionFunc := ResourceNameCompletionFunc(knParams)
+
+	subscriptionsClient := v1beta1.NewMockKnSubscriptionsClient(t)
+	subscriptionsClient.Recorder().ListSubscription(&v12.SubscriptionList{Items: testNsSubscriptions}, nil)
+	subscriptionsClient.Recorder().ListSubscription(&v12.SubscriptionList{Items: testNsSubscriptions}, nil)
+
+	subscriptionsClient.Recorder().ListSubscription(&v12.SubscriptionList{Items: testNsSubscriptions}, nil)
+	subscriptionsClient.Recorder().ListSubscription(&v12.SubscriptionList{Items: testNsSubscriptions}, nil)
+
+	subscriptionsClient.Recorder().ListSubscription(&v12.SubscriptionList{}, fmt.Errorf("error listing channels"))
+	subscriptionsClient.Recorder().ListSubscription(&v12.SubscriptionList{}, fmt.Errorf("error listing channels"))
+
+	messagingClient := &mockMessagingClient{nil, subscriptionsClient}
+
+	knParams.NewMessagingClient = func(namespace string) (v1beta1.KnMessagingClient, error) {
+		return messagingClient, nil
+	}
+	tests := []testType{
+		{
+			"Empty suggestions when non-zero args",
+			testNs,
+			knParams,
+			[]string{"xyz"},
+			"",
+			"subscription",
+		},
+		{
+			"Empty suggestions when no namespace flag",
+			"",
+			knParams,
+			nil,
+			"",
+			"subscription",
+		},
+		{
+			"Suggestions when test-ns namespace set",
+			testNs,
+			knParams,
+			nil,
+			"",
+			"subscription",
+		},
+		{
+			"Empty suggestions when toComplete is not a prefix",
+			testNs,
+			knParams,
+			nil,
+			"xyz",
+			"subscription",
+		},
+		{
+			"Empty suggestions when error during list operation",
+			errorNs,
+			knParams,
+			nil,
+			"",
+			"subscription",
+		},
+	}
+	for _, tt := range tests {
+		cmd := getResourceCommandWithTestSubcommand(tt.resource, tt.namespace != "", tt.resource != "no-parent")
+		t.Run(tt.name, func(t *testing.T) {
+			config := &completionConfig{
+				params:     tt.p,
+				command:    cmd,
+				args:       tt.args,
+				toComplete: tt.toComplete,
+			}
+			expectedFunc := resourceToFuncMap[tt.resource]
+			if expectedFunc == nil {
+				expectedFunc = func(config *completionConfig) []string {
+					return []string{}
+				}
+			}
+			cmd.Flags().Set("namespace", tt.namespace)
+			actualSuggestions, actualDirective := completionFunc(cmd, tt.args, tt.toComplete)
+			expectedSuggestions := expectedFunc(config)
+			expectedDirective := cobra.ShellCompDirectiveNoFileComp
+			assert.DeepEqual(t, actualSuggestions, expectedSuggestions)
+			assert.Equal(t, actualDirective, expectedDirective)
+		})
+	}
+	subscriptionsClient.Recorder().Validate()
 }
 
 func getResourceCommandWithTestSubcommand(resource string, addNamespace, addSubcommand bool) *cobra.Command {

@@ -33,6 +33,7 @@ func NewContainerDeleteCommand(p *commands.KnParams) *cobra.Command {
 		Example: `
   # Delete a ContainerSource 'containersrc' in default namespace
   kn source container delete containersrc`,
+		ValidArgsFunction: commands.ResourceNameCompletionFunc(p),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("requires the name of the source as single argument")

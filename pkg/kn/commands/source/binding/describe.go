@@ -43,9 +43,10 @@ func NewBindingDescribeCommand(p *commands.KnParams) *cobra.Command {
 	machineReadablePrintFlags := genericclioptions.NewPrintFlags("")
 
 	command := &cobra.Command{
-		Use:     "describe NAME",
-		Short:   "Show details of a sink binding",
-		Example: describeExample,
+		Use:               "describe NAME",
+		Short:             "Show details of a sink binding",
+		Example:           describeExample,
+		ValidArgsFunction: commands.ResourceNameCompletionFunc(p),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("'kn source binding describe' requires name of the sink binding as single argument")

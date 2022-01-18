@@ -42,9 +42,10 @@ func NewAPIServerDescribeCommand(p *commands.KnParams) *cobra.Command {
 	machineReadablePrintFlags := genericclioptions.NewPrintFlags("")
 
 	command := &cobra.Command{
-		Use:     "describe NAME",
-		Short:   "Show details of an api-server source",
-		Example: describeExample,
+		Use:               "describe NAME",
+		Short:             "Show details of an api-server source",
+		Example:           describeExample,
+		ValidArgsFunction: commands.ResourceNameCompletionFunc(p),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("'kn source apiserver describe' requires name of the source as single argument")

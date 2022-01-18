@@ -32,6 +32,7 @@ func NewSubscriptionDeleteCommand(p *commands.KnParams) *cobra.Command {
 		Example: `
   # Delete a subscription 'sub0'
   kn subscription delete sub0`,
+		ValidArgsFunction: commands.ResourceNameCompletionFunc(p),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("'kn subscription delete' requires the subscription name as single argument")
