@@ -8,11 +8,10 @@ require (
 	github.com/google/go-cmp v0.5.6
 	github.com/gregjones/httpcache v0.0.0-20190212212710-3befbb6ad0cc // indirect
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/smartystreets/assertions v1.0.0 // indirect
-	github.com/spf13/cobra v1.2.1
+	github.com/spf13/cobra v1.3.0
 	github.com/spf13/pflag v1.0.5
-	github.com/spf13/viper v1.8.1
-	golang.org/x/term v0.0.0-20210220032956-6a3ed077a48d
+	github.com/spf13/viper v1.10.0
+	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b
 	gotest.tools/v3 v3.0.3
 	k8s.io/api v0.22.5
 	k8s.io/apiextensions-apiserver v0.22.5
@@ -20,10 +19,10 @@ require (
 	k8s.io/cli-runtime v0.21.4
 	k8s.io/client-go v0.22.5
 	k8s.io/code-generator v0.22.5
-	knative.dev/eventing v0.28.1-0.20220113075012-61d97d366c26
-	knative.dev/hack v0.0.0-20220111151514-59b0cf17578e
-	knative.dev/networking v0.0.0-20220112013650-eac673fb5c49
-	knative.dev/pkg v0.0.0-20220113045912-c0e1594c2fb1
-	knative.dev/serving v0.28.1-0.20220113203312-9073261f9b89
+	knative.dev/eventing v0.28.1-0.20220118233852-e0e3f446c2d8
+	knative.dev/hack v0.0.0-20220118141833-9b2ed8471e30
+	knative.dev/networking v0.0.0-20220118173833-c7164d4dd845
+	knative.dev/pkg v0.0.0-20220118160532-77555ea48cd4
+	knative.dev/serving v0.28.1-0.20220118185833-a3216ca8e4a4
 	sigs.k8s.io/yaml v1.3.0
 )
