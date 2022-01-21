@@ -4,7 +4,6 @@ go 1.16
 
 require (
 	github.com/emicklei/go-restful v2.15.0+incompatible // indirect
-	github.com/go-openapi/spec v0.20.2 // indirect
 	github.com/google/go-cmp v0.5.6
 	github.com/gregjones/httpcache v0.0.0-20190212212710-3befbb6ad0cc // indirect
 	github.com/mitchellh/go-homedir v1.1.0
@@ -16,7 +15,7 @@ require (
 	k8s.io/api v0.22.5
 	k8s.io/apiextensions-apiserver v0.22.5
 	k8s.io/apimachinery v0.22.5
-	k8s.io/cli-runtime v0.21.4
+	k8s.io/cli-runtime v0.22.5
 	k8s.io/client-go v0.22.5
 	k8s.io/code-generator v0.22.5
 	knative.dev/eventing v0.28.1-0.20220119171353-ad895de5fdd8
