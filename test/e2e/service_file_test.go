@@ -140,5 +140,6 @@ func fileNotFoundErrorCheck(out test.KnRunResult, filePath string) cmp.Compariso
 	if result() == cmp.ResultSuccess {
 		return result
 	}
+	// Check for Windows specific error message in case file is not found
 	return util.ContainsAllIgnoreCase(out.Stderr, "system", "cannot", "find", "file", "specified", filePath)
 }
