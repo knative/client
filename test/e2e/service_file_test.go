@@ -24,6 +24,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"gotest.tools/v3/assert/cmp"
+
 	"gotest.tools/v3/assert"
 
 	"knative.dev/client/lib/test"
@@ -124,11 +126,19 @@ func serviceCreateFromFile(r *test.KnRunResultCollector, serviceName, filePath s
 func serviceCreateFromFileError(r *test.KnRunResultCollector, serviceName, filePath string) {
 	out := r.KnTest().Kn().Run("service", "create", serviceName, "--filename", filePath)
 	r.AssertError(out)
-	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stderr, "no", "such", "file", "directory", filePath))
+	assert.Check(r.T(), fileNotFoundErrorCheck(out, filePath))
 }
 
 func serviceCreateFromFileNameMismatch(r *test.KnRunResultCollector, serviceName, filePath string) {
 	out := r.KnTest().Kn().Run("service", "create", serviceName, "--filename", filePath)
 	r.AssertError(out)
 	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stderr, "provided", "'"+serviceName+"'", "name", "match", "from", "file"))
+}
+
+func fileNotFoundErrorCheck(out test.KnRunResult, filePath string) cmp.Comparison {
+	result := util.ContainsAllIgnoreCase(out.Stderr, "no", "such", "file", "directory", filePath)
+	if result() == cmp.ResultSuccess {
+		return result
+	}
+	return util.ContainsAllIgnoreCase(out.Stderr, "system", "cannot", "find", "file", "specified", filePath)
 }
