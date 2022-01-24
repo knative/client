@@ -46,7 +46,7 @@
 | https://github.com/knative/client/pull/1560[#1560]
 
 | 🎁
-| Add auto-completion for Service name
+| Add auto-completion for Broker name
 | https://github.com/knative/client/pull/1559[#1559]
 
 | 🎁
