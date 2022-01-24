@@ -90,5 +90,5 @@ func serviceImportExistsError(r *test.KnRunResultCollector, filename string) {
 func serviceImportFileError(r *test.KnRunResultCollector, filePath string) {
 	out := r.KnTest().Kn().Run("service", "import", filePath)
 	r.AssertError(out)
-	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stderr, "no", "such", "file", "directory", filePath))
+	assert.Check(r.T(), fileNotFoundErrorCheck(out, filePath))
 }
