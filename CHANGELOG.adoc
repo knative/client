@@ -12,18 +12,47 @@
 | https://github.com/knative/client/pull/[#]
 ////
 
-## v1.2.0 (unreleased)
+## v1.2.0 (2022-01-25)
 [cols="1,10,3", options="header", width="100%"]
 |===
 | | Description | PR
 
 | 🐛
+| Fix for file not found error message discrepancy in windows
+| https://github.com/knative/client/pull/1575[#1575]
+
+| 🐛
 | Fixed panic in `kn channel list`
 | https://github.com/knative/client/pull/1568[#1568]
+
+| 🎁
+| Add auto-completion for Eventing resources name
+| https://github.com/knative/client/pull/1567[#1567]
 
 | 🗑
 | Remove deprecated Hugo frontmatter generation for docs
 | https://github.com/knative/client/pull/1563[#1563]
+
+| 🎁
+| Add auto-completion for Domain name
+| https://github.com/knative/client/pull/1562[#1562]
+
+| 🎁
+| Add auto-completion for Route name
+| https://github.com/knative/client/pull/1561[#1561]
+
+| 🎁
+| Add auto-completion for Revision name
+| https://github.com/knative/client/pull/1560[#1560]
+
+| 🎁
+| Add auto-completion for Broker name
+| https://github.com/knative/client/pull/1559[#1559]
+
+| 🎁
+| Add auto-completion for Service name
+| https://github.com/knative/client/pull/1547[#1547]
+
 |===
 
 ## v1.1.0 (2021-12-14)
