@@ -79,7 +79,7 @@ The following example contains a fully commented `config.yaml` with all availabl
 plugins:
   # Whether to lookup configuration in the execution path (default: true). This option is deprecated and will be removed in a future version where path lookup will be enabled unconditionally
   path-lookup: true
-  # Directory from where plugins are looked up. (default: "$base_dir/plugins"
+  # Directory from where plugins with the prefix "kn-" are looked up. (default: "$base_dir/plugins"
   # where "$base_dir" is the directory where this configuration file is stored)
   directory: ~/.config/kn/plugins
 # Eventing related configuration
@@ -115,7 +115,7 @@ You can specify the following options:
 * `directory`, which is the same as the persistent flag `--plugins-dir` and specifies the kn plugins directory. It defaults to: `~/.config/kn/plugins`.
    By using the persistent flag (when you issue a command) or by specifying the
    value in the `kn` config, a user can select which directory to find `kn`
-   plugins. It can be any directory that is visible to the user.
+   plugins. It can be any directory that is visible to the user. The plugins need have a `kn-` prefix in their name (eg. `kn-quickstart`) to be detected by `kn`
 
 * `path-lookup`, which is the same as the persistent flag
    `--lookup-plugins-in-path` and specifies if `kn` should look for plugins anywhere in the specified `PATH` environment variable. This option is a boolean type, and the default value is `true`. This option is DEPRECATED and will be removed in a future version, when path lookup will be always enabled.
