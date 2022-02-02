@@ -26,6 +26,7 @@ Find more information about Knative at: https://knative.dev
 * [kn completion](kn_completion.md)	 - Output shell completion code
 * [kn container](kn_container.md)	 - Manage service's containers (experimental)
 * [kn domain](kn_domain.md)	 - Manage domain mappings
+* [kn eventtype](kn_eventtype.md)	 - Manage eventtypes
 * [kn options](kn_options.md)	 - Print the list of flags inherited by all commands
 * [kn plugin](kn_plugin.md)	 - Manage kn plugins
 * [kn revision](kn_revision.md)	 - Manage service revisions

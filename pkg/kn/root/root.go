@@ -23,6 +23,7 @@ import (
 	"text/template"
 
 	"knative.dev/client/pkg/kn/commands/container"
+	"knative.dev/client/pkg/kn/commands/eventtype"
 
 	"knative.dev/client/pkg/kn/commands/domain"
 
@@ -108,6 +109,7 @@ Find more information about Knative at: https://knative.dev`, rootName),
 				trigger.NewTriggerCommand(p),
 				channel.NewChannelCommand(p),
 				subscription.NewSubscriptionCommand(p),
+				eventtype.NewEventTypeCommand(p),
 			},
 		},
 		{
