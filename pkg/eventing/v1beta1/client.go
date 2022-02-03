@@ -33,6 +33,8 @@ type KnEventingV1Beta1Client interface {
 	Namespace() string
 	// ListEventtypes is used to list eventtypes
 	ListEventtypes(ctx context.Context) (*eventingv1beta1.EventTypeList, error)
+	// GetEventtype is used to describe an eventtype
+	GetEventtype(ctx context.Context, name string) (*eventingv1beta1.EventType, error)
 }
 
 // KnEventingV1Beta1Client is a client for eventing v1beta1 resources
@@ -78,4 +80,16 @@ func (c *knEventingV1Beta1Client) ListEventtypes(ctx context.Context) (*eventing
 		listNew.Items[idx] = *clone
 	}
 	return listNew, nil
+}
+
+func (c *knEventingV1Beta1Client) GetEventtype(ctx context.Context, name string) (*eventingv1beta1.EventType, error) {
+	eventType, err := c.client.EventTypes(c.namespace).Get(ctx, name, apis_v1.GetOptions{})
+	if err != nil {
+		return nil, kn_errors.GetError(err)
+	}
+	err = updateEventingBeta1GVK(eventType)
+	if err != nil {
+		return nil, err
+	}
+	return eventType, nil
 }

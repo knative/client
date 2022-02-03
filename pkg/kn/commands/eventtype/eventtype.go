@@ -30,5 +30,6 @@ func NewEventTypeCommand(p *commands.KnParams) *cobra.Command {
 		Aliases: []string{"eventtypes"},
 	}
 	eventCmd.AddCommand(NewEventtypeListCommand(p))
+	eventCmd.AddCommand(NewEventtypeDescribeCommand(p))
 	return eventCmd
 }
