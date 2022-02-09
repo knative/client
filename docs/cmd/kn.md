@@ -6,7 +6,7 @@ kn manages Knative Serving and Eventing resources
 
 kn is the command line interface for managing Knative Serving and Eventing resources
 
- Find more information about Knative at: https://knative.dev
+Find more information about Knative at: https://knative.dev
 
 ### Options
 

@@ -24,6 +24,7 @@ import (
 )
 
 func main() {
+	os.Args = []string{"kn"}
 	rootCmd, err := root.NewRootCommand(nil)
 	if err != nil {
 		log.Panicf("can not create root command: %v", err)
