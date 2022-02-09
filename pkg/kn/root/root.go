@@ -17,6 +17,8 @@ package root
 import (
 	"flag"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"text/template"
 
@@ -51,12 +53,14 @@ func NewRootCommand(helpFuncs *template.FuncMap) (*cobra.Command, error) {
 	p := &commands.KnParams{}
 	p.Initialize()
 
-	rootCmd := &cobra.Command{
-		Use:   "kn",
-		Short: "kn manages Knative Serving and Eventing resources",
-		Long: `kn is the command line interface for managing Knative Serving and Eventing resources
+	rootName := GetBinaryName()
 
- Find more information about Knative at: https://knative.dev`,
+	rootCmd := &cobra.Command{
+		Use:   rootName,
+		Short: fmt.Sprintf("%s manages Knative Serving and Eventing resources", rootName),
+		Long: fmt.Sprintf(`%s is the command line interface for managing Knative Serving and Eventing resources
+
+Find more information about Knative at: https://knative.dev`, rootName),
 
 		// Disable docs header
 		DisableAutoGenTag: true,
@@ -142,6 +146,7 @@ func NewRootCommand(helpFuncs *template.FuncMap) (*cobra.Command, error) {
 
 // Verify that command groups are not executable and that leaf commands have a run function
 func validateCommandStructure(cmd *cobra.Command) error {
+	rootName := GetBinaryName()
 	for _, childCmd := range cmd.Commands() {
 		if childCmd.HasSubCommands() {
 			if childCmd.RunE != nil || childCmd.Run != nil {
@@ -153,9 +158,9 @@ func validateCommandStructure(cmd *cobra.Command) error {
 			childCmd.RunE = func(aCmd *cobra.Command, args []string) error {
 				subText := fmt.Sprintf("Available sub-commands: %s", strings.Join(ExtractSubCommandNames(subCommands), ", "))
 				if len(args) == 0 {
-					return fmt.Errorf("no sub-command given for 'kn %s'. %s", name, subText)
+					return fmt.Errorf("no sub-command given for '%s %s'. %s", rootName, name, subText)
 				}
-				return fmt.Errorf("unknown sub-command '%s' for 'kn %s'. %s", args[0], aCmd.Name(), subText)
+				return fmt.Errorf("unknown sub-command '%s' for '%s %s'. %s", args[0], rootName, aCmd.Name(), subText)
 			}
 		}
 
@@ -175,4 +180,9 @@ func ExtractSubCommandNames(cmds []*cobra.Command) []string {
 		ret = append(ret, subCmd.Name())
 	}
 	return ret
+}
+
+func GetBinaryName() string {
+	_, name := filepath.Split(os.Args[0])
+	return name
 }

@@ -16,6 +16,7 @@ package root
 
 import (
 	"errors"
+	"os"
 	"strings"
 	"testing"
 
@@ -26,6 +27,7 @@ import (
 )
 
 func TestNewRootCommand(t *testing.T) {
+	os.Args = []string{"kn"}
 	rootCmd, err := NewRootCommand(nil)
 	assert.NilError(t, err)
 	if rootCmd == nil {
@@ -142,4 +144,25 @@ func checkCommandGroup(t *testing.T, commands []string, rootCmd *cobra.Command) 
 	err = cmd.RunE(cmd, []string{"deeper"})
 	assert.Assert(t, err != nil)
 	assert.Assert(t, util.ContainsAll(err.Error(), "deeper", "unknown", "sub-command", cmd.Name()))
+}
+
+func TestRootCommandForBinaryNames(t *testing.T) {
+	for _, test := range []struct {
+		arg        string
+		binaryName string
+	}{
+		{"kn", "kn"},
+		{"kn1", "kn1"},
+		{"/usr/bin/mykn", "mykn"},
+	} {
+		os.Args = []string{test.arg}
+		rootCmd, err := NewRootCommand(nil)
+		assert.NilError(t, err)
+		if rootCmd == nil {
+			t.Fatal("rootCmd = nil, want not nil")
+		}
+
+		assert.Equal(t, rootCmd.Name(), test.binaryName)
+	}
+
 }

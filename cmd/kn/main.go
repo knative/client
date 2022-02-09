@@ -185,7 +185,7 @@ func printError(err error) {
 		// Sending `os.Args[0]` instead, may result in panics while compiling the regexp, as it
 		// may expand to the absolute path of the kn binary and the path may collide with regexp expressions.
 		// see https://github.com/knative/client/issues/1172
-		fmt.Fprintf(os.Stderr, "Run '%s --help' for usage\n", extractCommandPathFromErrorMessage(err.Error(), "kn"))
+		fmt.Fprintf(os.Stderr, "Run '%s --help' for usage\n", extractCommandPathFromErrorMessage(err.Error(), root.GetBinaryName()))
 	}
 }
 
