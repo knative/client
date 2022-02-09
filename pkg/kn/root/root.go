@@ -183,7 +183,7 @@ func ExtractSubCommandNames(cmds []*cobra.Command) []string {
 }
 
 // GetBinaryName returns the actual binary name of the kn cli
-// for example 
+// for example
 // /usr/bin/kn1 service list would return kn1
 // kn service list would return kn
 // mykn sevice list would return mykn
