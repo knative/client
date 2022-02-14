@@ -25,5 +25,7 @@ kn eventtype
 ### SEE ALSO
 
 * [kn](kn.md)	 - kn manages Knative Serving and Eventing resources
+* [kn eventtype create](kn_eventtype_create.md)	 - Create eventtype
+* [kn eventtype describe](kn_eventtype_describe.md)	 - Describe eventtype
 * [kn eventtype list](kn_eventtype_list.md)	 - List eventtypes
 

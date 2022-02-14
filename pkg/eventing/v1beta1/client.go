@@ -24,6 +24,7 @@ import (
 	eventingv1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
 	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
 	beta1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1beta1"
+	"knative.dev/pkg/apis"
 )
 
 // KnEventingV1Beta1Client to Eventing Sources. All methods are relative to the
@@ -35,12 +36,22 @@ type KnEventingV1Beta1Client interface {
 	ListEventtypes(ctx context.Context) (*eventingv1beta1.EventTypeList, error)
 	// GetEventtype is used to describe an eventtype
 	GetEventtype(ctx context.Context, name string) (*eventingv1beta1.EventType, error)
+	// CreateEventtype is used to c reate an eventtype
+	CreateEventtype(ctx context.Context, eventtype *eventingv1beta1.EventType) error
 }
 
 // KnEventingV1Beta1Client is a client for eventing v1beta1 resources
 type knEventingV1Beta1Client struct {
 	client    beta1.EventingV1beta1Interface
 	namespace string
+}
+
+func (c *knEventingV1Beta1Client) CreateEventtype(ctx context.Context, eventtype *eventingv1beta1.EventType) error {
+	_, err := c.client.EventTypes(c.namespace).Create(ctx, eventtype, apis_v1.CreateOptions{})
+	if err != nil {
+		return kn_errors.GetError(err)
+	}
+	return nil
 }
 
 // NewKnEventingV1Beta1Client is to invoke Eventing Types Client API to create object
@@ -92,4 +103,53 @@ func (c *knEventingV1Beta1Client) GetEventtype(ctx context.Context, name string)
 		return nil, err
 	}
 	return eventType, nil
+}
+
+// EventtypeBuilder is for building the eventtype
+type EventtypeBuilder struct {
+	eventtype *eventingv1beta1.EventType
+}
+
+// NewEventtypeBuilder for building eventtype object
+func NewEventtypeBuilder(name string) *EventtypeBuilder {
+	return &EventtypeBuilder{eventtype: &eventingv1beta1.EventType{
+		ObjectMeta: apis_v1.ObjectMeta{
+			Name: name,
+		},
+	}}
+}
+
+// WithGvk add the GVK coordinates for read tests
+func (e *EventtypeBuilder) WithGvk() *EventtypeBuilder {
+	_ = updateEventingBeta1GVK(e.eventtype)
+	return e
+}
+
+// Namespace for eventtype builder
+func (e *EventtypeBuilder) Namespace(ns string) *EventtypeBuilder {
+	e.eventtype.Namespace = ns
+	return e
+}
+
+// Type for eventtype builder
+func (e *EventtypeBuilder) Type(ceType string) *EventtypeBuilder {
+	e.eventtype.Spec.Type = ceType
+	return e
+}
+
+// Source for eventtype builder
+func (e *EventtypeBuilder) Source(source *apis.URL) *EventtypeBuilder {
+	e.eventtype.Spec.Source = source
+	return e
+}
+
+// Broker for eventtype builder
+func (e *EventtypeBuilder) Broker(broker string) *EventtypeBuilder {
+	e.eventtype.Spec.Broker = broker
+	return e
+}
+
+// Build to return an instance of eventtype object
+func (e *EventtypeBuilder) Build() *eventingv1beta1.EventType {
+	return e.eventtype
 }
