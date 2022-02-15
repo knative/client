@@ -41,6 +41,7 @@ var (
 		"service":      completeService,
 		"subscription": completeSubscription,
 		"trigger":      completeTrigger,
+		"eventtype":    completeEventtype,
 	}
 )
 
@@ -420,6 +421,34 @@ func completeSubscription(config *completionConfig) (suggestions []string) {
 		return
 	}
 	for _, sug := range subscriptionList.Items {
+		if !strings.HasPrefix(sug.Name, config.toComplete) {
+			continue
+		}
+		suggestions = append(suggestions, sug.Name)
+	}
+	return
+}
+
+func completeEventtype(config *completionConfig) (suggestions []string) {
+	suggestions = make([]string, 0)
+	if len(config.args) != 0 {
+		return
+	}
+	namespace, err := config.params.GetNamespace(config.command)
+	if err != nil {
+		return
+	}
+
+	client, err := config.params.NewEventingV1beta1Client(namespace)
+	if err != nil {
+		return
+	}
+
+	eventTypeList, err := client.ListEventtypes(config.command.Context())
+	if err != nil {
+		return
+	}
+	for _, sug := range eventTypeList.Items {
 		if !strings.HasPrefix(sug.Name, config.toComplete) {
 			continue
 		}

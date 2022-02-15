@@ -47,9 +47,10 @@ func NewEventtypeDescribeCommand(p *commands.KnParams) *cobra.Command {
 	machineReadablePrintFlags := genericclioptions.NewPrintFlags("")
 
 	cmd := &cobra.Command{
-		Use:     "describe",
-		Short:   "Describe eventtype",
-		Example: describeExample,
+		Use:               "describe",
+		Short:             "Describe eventtype",
+		Example:           describeExample,
+		ValidArgsFunction: commands.ResourceNameCompletionFunc(p),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
 				return errors.New("'eventtype describe' requires the eventtype name given as single argument")

@@ -36,9 +36,10 @@ var deleteExample = `
 func NewEventtypeDeleteCommand(p *commands.KnParams) *cobra.Command {
 
 	cmd := &cobra.Command{
-		Use:     "delete",
-		Short:   "Delete eventtype",
-		Example: deleteExample,
+		Use:               "delete",
+		Short:             "Delete eventtype",
+		Example:           deleteExample,
+		ValidArgsFunction: commands.ResourceNameCompletionFunc(p),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
 				return errors.New("'eventtype delete' requires the eventtype name given as single argument")
