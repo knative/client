@@ -32,5 +32,6 @@ func NewEventTypeCommand(p *commands.KnParams) *cobra.Command {
 	eventCmd.AddCommand(NewEventtypeListCommand(p))
 	eventCmd.AddCommand(NewEventtypeDescribeCommand(p))
 	eventCmd.AddCommand(NewEventtypeCreateCommand(p))
+	eventCmd.AddCommand(NewEventtypeDeleteCommand(p))
 	return eventCmd
 }

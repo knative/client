@@ -36,22 +36,16 @@ type KnEventingV1Beta1Client interface {
 	ListEventtypes(ctx context.Context) (*eventingv1beta1.EventTypeList, error)
 	// GetEventtype is used to describe an eventtype
 	GetEventtype(ctx context.Context, name string) (*eventingv1beta1.EventType, error)
-	// CreateEventtype is used to c reate an eventtype
+	// CreateEventtype is used to create an eventtype
 	CreateEventtype(ctx context.Context, eventtype *eventingv1beta1.EventType) error
+	// DeleteEventtype is used to delete an eventtype
+	DeleteEventtype(ctx context.Context, name string) error
 }
 
 // KnEventingV1Beta1Client is a client for eventing v1beta1 resources
 type knEventingV1Beta1Client struct {
 	client    beta1.EventingV1beta1Interface
 	namespace string
-}
-
-func (c *knEventingV1Beta1Client) CreateEventtype(ctx context.Context, eventtype *eventingv1beta1.EventType) error {
-	_, err := c.client.EventTypes(c.namespace).Create(ctx, eventtype, apis_v1.CreateOptions{})
-	if err != nil {
-		return kn_errors.GetError(err)
-	}
-	return nil
 }
 
 // NewKnEventingV1Beta1Client is to invoke Eventing Types Client API to create object
@@ -103,6 +97,22 @@ func (c *knEventingV1Beta1Client) GetEventtype(ctx context.Context, name string)
 		return nil, err
 	}
 	return eventType, nil
+}
+
+func (c *knEventingV1Beta1Client) DeleteEventtype(ctx context.Context, name string) error {
+	err := c.client.EventTypes(c.namespace).Delete(ctx, name, apis_v1.DeleteOptions{})
+	if err != nil {
+		return kn_errors.GetError(err)
+	}
+	return nil
+}
+
+func (c *knEventingV1Beta1Client) CreateEventtype(ctx context.Context, eventtype *eventingv1beta1.EventType) error {
+	_, err := c.client.EventTypes(c.namespace).Create(ctx, eventtype, apis_v1.CreateOptions{})
+	if err != nil {
+		return kn_errors.GetError(err)
+	}
+	return nil
 }
 
 // EventtypeBuilder is for building the eventtype

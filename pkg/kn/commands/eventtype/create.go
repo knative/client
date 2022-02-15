@@ -44,7 +44,7 @@ func NewEventtypeCreateCommand(p *commands.KnParams) *cobra.Command {
 		Example: createExample,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
-				return errors.New("'broker describe' requires the broker name given as single argument")
+				return errors.New("'eventtype delete' requires the event name given as single argument")
 			}
 			name := args[0]
 

@@ -52,7 +52,7 @@ func NewEventtypeDescribeCommand(p *commands.KnParams) *cobra.Command {
 		Example: describeExample,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
-				return errors.New("'broker describe' requires the broker name given as single argument")
+				return errors.New("'eventtype describe' requires the eventtype name given as single argument")
 			}
 			name := args[0]
 
