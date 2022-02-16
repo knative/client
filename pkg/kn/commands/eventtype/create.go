@@ -18,6 +18,7 @@ package eventtype
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/spf13/cobra"
 	clienteventingv1beta1 "knative.dev/client/pkg/eventing/v1beta1"
@@ -44,13 +45,13 @@ func NewEventtypeCreateCommand(p *commands.KnParams) *cobra.Command {
 		Example: createExample,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
-				return errors.New("'eventtype create' requires the event name given as single argument")
+				return errors.New("'eventtype create' requires the eventtype name given as single argument")
 			}
 			name := args[0]
 
 			namespace, err := p.GetNamespace(cmd)
 			if err != nil {
-				return err
+				return eventtypeCreateError(name, namespace, err)
 			}
 
 			eventingV1Beta1Client, err := p.NewEventingV1beta1Client(namespace)
@@ -61,7 +62,7 @@ func NewEventtypeCreateCommand(p *commands.KnParams) *cobra.Command {
 			if eventtypeFlags.Source != "" {
 				source, err = apis.ParseURL(eventtypeFlags.Source)
 				if err != nil {
-					return err
+					return eventtypeCreateError(name, namespace, err)
 				}
 			}
 			eventtype := clienteventingv1beta1.NewEventtypeBuilder(name).
@@ -71,11 +72,22 @@ func NewEventtypeCreateCommand(p *commands.KnParams) *cobra.Command {
 				Broker(eventtypeFlags.Broker).
 				Build()
 
-			return eventingV1Beta1Client.CreateEventtype(cmd.Context(), eventtype)
+			err = eventingV1Beta1Client.CreateEventtype(cmd.Context(), eventtype)
+			if err != nil {
+				return eventtypeCreateError(name, namespace, err)
+			}
+			fmt.Fprintf(cmd.OutOrStdout(), "Eventtype '%s' successfully created in namespace '%s'.\n", args[0], namespace)
+			return nil
 		},
 	}
 	commands.AddNamespaceFlags(cmd.Flags(), false)
 
 	eventtypeFlags.Add(cmd)
 	return cmd
+}
+
+func eventtypeCreateError(name string, namespace string, err error) error {
+	return fmt.Errorf(
+		"cannot create eventtype '%s' in namespace '%s' "+
+			"because: %s", name, namespace, err)
 }
