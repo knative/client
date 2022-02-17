@@ -92,8 +92,14 @@ func NewEventtypeDescribeCommand(p *commands.KnParams) *cobra.Command {
 
 // describeEventtype prints eventtype details to the provided output writer
 func describeEventtype(out io.Writer, eventtype *eventingv1beta1.EventType, printDetails bool) error {
+	var source string
+	if eventtype.Spec.Source != nil {
+		source = eventtype.Spec.Source.String()
+	}
 	dw := printers.NewPrefixWriter(out)
 	commands.WriteMetadata(dw, &eventtype.ObjectMeta, printDetails)
+	dw.WriteAttribute("Source", source)
+	dw.WriteAttribute("Broker", eventtype.Spec.Broker)
 	dw.WriteLine()
 	dw.WriteLine()
 	commands.WriteConditions(dw, eventtype.Status.Conditions, printDetails)

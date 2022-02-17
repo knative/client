@@ -69,6 +69,11 @@ func (c *MockKnEventingV1beta1Client) ListEventtypes(ctx context.Context) (*even
 	return call.Result[0].(*eventingv1beta1.EventTypeList), mock.ErrorOrNil(call.Result[1])
 }
 
+// GetEventtype records a call for GetEventtype with the expected result and error (nil if none)
+func (sr *EventingV1beta1Recorder) GetEventtype(name string, eventtype *eventingv1beta1.EventType, err error) {
+	sr.r.Add("GetEventtype", []interface{}{name}, []interface{}{eventtype, err})
+}
+
 // GetEventtypes records a call for GetEventtype with the expected object or error. Either eventtype or err should be nil
 func (c *MockKnEventingV1beta1Client) GetEventtype(ctx context.Context, name string) (*eventingv1beta1.EventType, error) {
 	call := c.recorder.r.VerifyCall("GetEventtype", name)
