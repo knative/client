@@ -26,15 +26,6 @@ import (
 	"knative.dev/pkg/apis"
 )
 
-var (
-	eventtypeName   = "foo"
-	testNs          = "test-ns"
-	cetype          = "foo.type"
-	testSource      = "https://test-source.com"
-	testSourceError = "bad-source\b"
-	testBroker      = "test-broker"
-)
-
 func TestEventTypeCreate(t *testing.T) {
 	eventingClient := v1beta1.NewMockKnEventingV1beta1Client(t, testNs)
 

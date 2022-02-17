@@ -29,6 +29,15 @@ import (
 // Helper methods
 var blankConfig clientcmd.ClientConfig
 
+const (
+	eventtypeName   = "foo"
+	testNs          = "test-ns"
+	cetype          = "foo.type"
+	testSource      = "https://test-source.com"
+	testSourceError = "bad-source\b"
+	testBroker      = "test-broker"
+)
+
 func init() {
 	var err error
 	blankConfig, err = clientcmd.NewClientConfigFromBytes([]byte(`kind: Config
