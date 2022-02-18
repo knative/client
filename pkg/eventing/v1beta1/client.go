@@ -49,7 +49,7 @@ type knEventingV1Beta1Client struct {
 }
 
 // NewKnEventingV1Beta1Client is to invoke Eventing Types Client API to create object
-func NewKnEventingV1Beta1Client(client *beta1.EventingV1beta1Client, namespace string) KnEventingV1Beta1Client {
+func NewKnEventingV1Beta1Client(client beta1.EventingV1beta1Interface, namespace string) KnEventingV1Beta1Client {
 	return &knEventingV1Beta1Client{
 		client:    client,
 		namespace: namespace,

@@ -26,10 +26,12 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/clientcmd"
+	v1beta13 "knative.dev/client/pkg/eventing/v1beta1"
 	v1beta1 "knative.dev/client/pkg/messaging/v1"
 	clientv1alpha1 "knative.dev/client/pkg/serving/v1alpha1"
 	clientsourcesv1 "knative.dev/client/pkg/sources/v1"
 	"knative.dev/client/pkg/sources/v1beta2"
+	v1beta12 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
 	v12 "knative.dev/eventing/pkg/apis/messaging/v1"
 	sourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"
 	sourcesv1beta2 "knative.dev/eventing/pkg/apis/sources/v1beta2"
@@ -44,6 +46,7 @@ import (
 
 	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
 	"knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1/fake"
+	beta1fake "knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1beta1/fake"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 	servingv1fake "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1/fake"
@@ -384,6 +387,32 @@ var (
 	testNsSubscriptions = []v12.Subscription{testSubscription1, testSubscription2, testSubscription3}
 )
 
+var (
+	testEventtype1 = v1beta12.EventType{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "EventType",
+			APIVersion: "eventing.knative.dev/v1beta1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-eventtype-1", Namespace: testNs},
+	}
+	testEventtype2 = v1beta12.EventType{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "EventType",
+			APIVersion: "eventing.knative.dev/v1beta1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-eventtype-2", Namespace: testNs},
+	}
+	testEventtype3 = v1beta12.EventType{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "EventType",
+			APIVersion: "eventing.knative.dev/v1beta1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-eventtype-3", Namespace: testNs},
+	}
+	testEventtypes          = []v1beta12.EventType{testEventtype1, testEventtype2, testEventtype3}
+	fakeEventingBeta1Client = &beta1fake.FakeEventingV1beta1{Fake: &clienttesting.Fake{}}
+)
+
 var knParams = initialiseKnParams()
 
 func initialiseKnParams() *KnParams {
@@ -423,6 +452,9 @@ current-context: x
 		},
 		NewSourcesV1beta2Client: func(namespace string) (v1beta2.KnSourcesClient, error) {
 			return v1beta2.NewKnSourcesClient(fakeSourcesV1Beta2, namespace), nil
+		},
+		NewEventingV1beta1Client: func(namespace string) (v1beta13.KnEventingV1Beta1Client, error) {
+			return v1beta13.NewKnEventingV1Beta1Client(fakeEventingBeta1Client, namespace), nil
 		},
 		ClientConfig: blankConfig,
 	}
@@ -1465,6 +1497,83 @@ func TestResourceNameCompletionFuncSubscription(t *testing.T) {
 		})
 	}
 	subscriptionsClient.Recorder().Validate()
+}
+
+func TestResourceNameCompletionFuncEventtype(t *testing.T) {
+	completionFunc := ResourceNameCompletionFunc(knParams)
+
+	fakeEventingBeta1Client.AddReactor("list", "eventtypes", func(a clienttesting.Action) (bool, runtime.Object, error) {
+		if a.GetNamespace() == errorNs {
+			return true, nil, errors.NewInternalError(fmt.Errorf("unable to list eventtypes"))
+		}
+		return true, &v1beta12.EventTypeList{Items: testEventtypes}, nil
+	})
+
+	tests := []testType{
+		{
+			"Empty suggestions when non-zero args",
+			testNs,
+			knParams,
+			[]string{"xyz"},
+			"",
+			"eventtype",
+		},
+		{
+			"Empty suggestions when no namespace flag",
+			"",
+			knParams,
+			nil,
+			"",
+			"eventtype",
+		},
+		{
+			"Suggestions when test-ns namespace set",
+			testNs,
+			knParams,
+			nil,
+			"",
+			"eventtype",
+		},
+		{
+			"Empty suggestions when toComplete is not a prefix",
+			testNs,
+			knParams,
+			nil,
+			"xyz",
+			"eventtype",
+		},
+		{
+			"Empty suggestions when error during list operation",
+			errorNs,
+			knParams,
+			nil,
+			"",
+			"eventtype",
+		},
+	}
+	for _, tt := range tests {
+		cmd := getResourceCommandWithTestSubcommand(tt.resource, tt.namespace != "", tt.resource != "no-parent")
+		t.Run(tt.name, func(t *testing.T) {
+			config := &completionConfig{
+				params:     tt.p,
+				command:    cmd,
+				args:       tt.args,
+				toComplete: tt.toComplete,
+			}
+			expectedFunc := resourceToFuncMap[tt.resource]
+			if expectedFunc == nil {
+				expectedFunc = func(config *completionConfig) []string {
+					return []string{}
+				}
+			}
+			cmd.Flags().Set("namespace", tt.namespace)
+			actualSuggestions, actualDirective := completionFunc(cmd, tt.args, tt.toComplete)
+			expectedSuggestions := expectedFunc(config)
+			expectedDirective := cobra.ShellCompDirectiveNoFileComp
+			assert.DeepEqual(t, actualSuggestions, expectedSuggestions)
+			assert.Equal(t, actualDirective, expectedDirective)
+		})
+	}
 }
 
 func getResourceCommandWithTestSubcommand(resource string, addNamespace, addSubcommand bool) *cobra.Command {
