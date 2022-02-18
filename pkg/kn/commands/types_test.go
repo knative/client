@@ -447,6 +447,7 @@ func TestInitialize(t *testing.T) {
 	assert.Assert(t, params.NewEventingClient != nil)
 	assert.Assert(t, params.NewMessagingClient != nil)
 	assert.Assert(t, params.NewDynamicClient != nil)
+	assert.Assert(t, params.NewEventingV1beta1Client != nil)
 
 	basic, err := clientcmd.NewClientConfigFromBytes([]byte(BASIC_KUBECONFIG))
 	if err != nil {
@@ -474,4 +475,8 @@ func TestInitialize(t *testing.T) {
 	sourcesClient, err := params.NewSourcesClient("mockNamespace")
 	assert.NilError(t, err)
 	assert.Assert(t, sourcesClient != nil)
+
+	eventingBeta1Client, err := params.NewEventingV1beta1Client("mockNamespace")
+	assert.NilError(t, err)
+	assert.Assert(t, eventingBeta1Client != nil)
 }
