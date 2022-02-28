@@ -88,14 +88,11 @@ func ListHandlers(h hprinters.PrintHandler) {
 	eventTypeColumnDefinitions := []metav1beta1.TableColumnDefinition{
 		{Name: "Namespace", Type: "string", Description: "Namespace of the EventType instance", Priority: 0},
 		{Name: "Name", Type: "string", Description: "Name of the EventType instance", Priority: 1},
-		{Name: "Type", Type: "string", Description: "Type of the EventType instance", Priority: 1},
+		{Name: "T", Type: "string", Description: "Type of the EventType instance", Priority: 1},
 		{Name: "Source", Type: "string", Description: "Source of the EventType instance", Priority: 1},
 		{Name: "Broker", Type: "string", Description: "Broker of the EventType instance", Priority: 1},
-		{Name: "Schema", Type: "string", Description: "Schema of the EventType instance", Priority: 1},
 		{Name: "Age", Type: "string", Description: "Age of the EventType instance", Priority: 1},
-		{Name: "Conditions", Type: "string", Description: "Ready state conditions", Priority: 1},
 		{Name: "Ready", Type: "string", Description: "Ready state of the EventType instance", Priority: 1},
-		{Name: "Reason", Type: "string", Description: "Reason if state is not Ready", Priority: 1},
 	}
 	h.TableHandler(eventTypeColumnDefinitions, printEventType)
 	h.TableHandler(eventTypeColumnDefinitions, printEventTypeList)
@@ -120,13 +117,10 @@ func printEventTypeList(eventTypeList *eventingv1beta1.EventTypeList, options hp
 func printEventType(eventType *eventingv1beta1.EventType, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	name := eventType.Name
 	age := commands.TranslateTimestampSince(eventType.CreationTimestamp)
-	typeEvent := eventType.Spec.Type
+	cetype := eventType.Spec.Type
 	source := eventType.Spec.Source
 	broker := eventType.Spec.Broker
-	schema := eventType.Spec.SchemaData
-	conditions := commands.ConditionsValue(eventType.Status.Conditions)
 	ready := commands.ReadyCondition(eventType.Status.Conditions)
-	reason := commands.NonReadyConditionReason(eventType.Status.Conditions)
 
 	row := metav1beta1.TableRow{
 		Object: runtime.RawExtension{Object: eventType},
@@ -136,15 +130,6 @@ func printEventType(eventType *eventingv1beta1.EventType, options hprinters.Prin
 		row.Cells = append(row.Cells, eventType.Namespace)
 	}
 
-	row.Cells = append(row.Cells,
-		name,
-		typeEvent,
-		source,
-		broker,
-		schema,
-		age,
-		conditions,
-		ready,
-		reason)
+	row.Cells = append(row.Cells, name, cetype, source, broker, age, ready)
 	return []metav1beta1.TableRow{row}, nil
 }

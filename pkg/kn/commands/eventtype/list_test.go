@@ -48,7 +48,7 @@ func TestEventtypeList(t *testing.T) {
 		assert.NilError(t, err)
 
 		outputLines := strings.Split(output, "\n")
-		assert.Check(t, util.ContainsAll(outputLines[0], "NAME", "TYPE", "SOURCE", "BROKER", "SCHEMA", "AGE", "CONDITIONS", "READY", "REASON"))
+		assert.Check(t, util.ContainsAll(outputLines[0], "NAME", "T", "SOURCE", "BROKER", "AGE", "READY"))
 		assert.Check(t, util.ContainsAll(outputLines[1], "foo1", cetype, testBroker, testSource, "True"))
 		assert.Check(t, util.ContainsAll(outputLines[2], "foo2", cetype, testBroker, testSource, "True"))
 		assert.Check(t, util.ContainsAll(outputLines[3], "foo3", cetype, testBroker, testSource, "True"))
@@ -77,7 +77,7 @@ func TestEventtypeList(t *testing.T) {
 		assert.NilError(t, err)
 
 		outputLines := strings.Split(output, "\n")
-		assert.Check(t, util.ContainsAll(outputLines[0], "NAMESPACE", "NAME", "TYPE", "SOURCE", "BROKER", "SCHEMA", "AGE", "CONDITIONS", "READY", "REASON"))
+		assert.Check(t, util.ContainsAll(outputLines[0], "NAMESPACE", "NAME", "T", "SOURCE", "BROKER", "AGE", "READY"))
 		assert.Check(t, util.ContainsAll(outputLines[1], "foo1", testNs, cetype, testBroker, testSource, "True"))
 		assert.Check(t, util.ContainsAll(outputLines[2], "foo2", testNs, cetype, testBroker, testSource, "True"))
 		assert.Check(t, util.ContainsAll(outputLines[3], "foo3", testNs, cetype, testBroker, testSource, "True"))

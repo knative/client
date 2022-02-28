@@ -109,29 +109,3 @@ func TestEventTypeCreateWithError(t *testing.T) {
 
 	eventingRecorder.Validate()
 }
-
-//func TestBrokerCreateWithClass(t *testing.T) {
-//	eventingClient := clienteventingv1.NewMockKnEventingClient(t)
-//
-//	eventingRecorder := eventingClient.Recorder()
-//	eventingRecorder.CreateBroker(createBrokerWithClass(eventtypeName, className), nil)
-//
-//	out, err := executeBrokerCommand(eventingClient, "create", eventtypeName, "--class", className)
-//	assert.NilError(t, err, "Broker should be created")
-//	assert.Assert(t, util.ContainsAll(out, "Broker", eventtypeName, "created", "namespace", "default"))
-//
-//	eventingRecorder.CreateBroker(createBrokerWithClass(eventtypeName, ""), nil)
-//	out, err = executeBrokerCommand(eventingClient, "create", eventtypeName, "--class", "")
-//	assert.NilError(t, err, "Broker should be created")
-//	assert.Assert(t, util.ContainsAll(out, "Broker", eventtypeName, "created", "namespace", "default"))
-//
-//	eventingRecorder.Validate()
-//}
-//
-//func TestBrokerCreateWithError(t *testing.T) {
-//	eventingClient := clienteventingv1.NewMockKnEventingClient(t)
-//
-//	_, err := executeBrokerCommand(eventingClient, "create")
-//	assert.ErrorContains(t, err, "broker create")
-//	assert.Assert(t, util.ContainsAll(err.Error(), "broker create", "requires", "name", "argument"))
-//}
