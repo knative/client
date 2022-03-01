@@ -88,7 +88,7 @@ func ListHandlers(h hprinters.PrintHandler) {
 	eventTypeColumnDefinitions := []metav1beta1.TableColumnDefinition{
 		{Name: "Namespace", Type: "string", Description: "Namespace of the EventType instance", Priority: 0},
 		{Name: "Name", Type: "string", Description: "Name of the EventType instance", Priority: 1},
-		{Name: "T", Type: "string", Description: "Type of the EventType instance", Priority: 1},
+		{Name: "Type", Type: "string", Description: "Type of the EventType instance", Priority: 1},
 		{Name: "Source", Type: "string", Description: "Source of the EventType instance", Priority: 1},
 		{Name: "Broker", Type: "string", Description: "Broker of the EventType instance", Priority: 1},
 		{Name: "Age", Type: "string", Description: "Age of the EventType instance", Priority: 1},
