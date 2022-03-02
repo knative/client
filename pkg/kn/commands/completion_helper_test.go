@@ -26,11 +26,13 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/clientcmd"
+	clienteventingv1beta1 "knative.dev/client/pkg/eventing/v1beta1"
 	v1beta1 "knative.dev/client/pkg/messaging/v1"
 	clientv1alpha1 "knative.dev/client/pkg/serving/v1alpha1"
 	clientsourcesv1 "knative.dev/client/pkg/sources/v1"
 	"knative.dev/client/pkg/sources/v1beta2"
-	v12 "knative.dev/eventing/pkg/apis/messaging/v1"
+	eventingv1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
+	messagingv1 "knative.dev/eventing/pkg/apis/messaging/v1"
 	sourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"
 	sourcesv1beta2 "knative.dev/eventing/pkg/apis/sources/v1beta2"
 	sourcesv1fake "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1/fake"
@@ -44,6 +46,7 @@ import (
 
 	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
 	"knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1/fake"
+	beta1fake "knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1beta1/fake"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 	servingv1fake "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1/fake"
@@ -335,53 +338,79 @@ var (
 )
 
 var (
-	testChannel1 = v12.Channel{
+	testChannel1 = messagingv1.Channel{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Channel",
 			APIVersion: "messaging.knative.dev/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{Name: "test-channel-1", Namespace: testNs},
 	}
-	testChannel2 = v12.Channel{
+	testChannel2 = messagingv1.Channel{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Channel",
 			APIVersion: "messaging.knative.dev/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{Name: "test-channel-2", Namespace: testNs},
 	}
-	testChannel3 = v12.Channel{
+	testChannel3 = messagingv1.Channel{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Channel",
 			APIVersion: "messaging.knative.dev/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{Name: "test-channel-3", Namespace: testNs},
 	}
-	testNsChannels = []v12.Channel{testChannel1, testChannel2, testChannel3}
+	testNsChannels = []messagingv1.Channel{testChannel1, testChannel2, testChannel3}
 )
 
 var (
-	testSubscription1 = v12.Subscription{
+	testSubscription1 = messagingv1.Subscription{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Subscription",
 			APIVersion: "messaging.knative.dev/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{Name: "test-subscription-1", Namespace: testNs},
 	}
-	testSubscription2 = v12.Subscription{
+	testSubscription2 = messagingv1.Subscription{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Subscription",
 			APIVersion: "messaging.knative.dev/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{Name: "test-subscription-2", Namespace: testNs},
 	}
-	testSubscription3 = v12.Subscription{
+	testSubscription3 = messagingv1.Subscription{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Subscription",
 			APIVersion: "messaging.knative.dev/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{Name: "test-subscription-3", Namespace: testNs},
 	}
-	testNsSubscriptions = []v12.Subscription{testSubscription1, testSubscription2, testSubscription3}
+	testNsSubscriptions = []messagingv1.Subscription{testSubscription1, testSubscription2, testSubscription3}
+)
+
+var (
+	testEventtype1 = eventingv1beta1.EventType{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "EventType",
+			APIVersion: "eventing.knative.dev/v1beta1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-eventtype-1", Namespace: testNs},
+	}
+	testEventtype2 = eventingv1beta1.EventType{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "EventType",
+			APIVersion: "eventing.knative.dev/v1beta1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-eventtype-2", Namespace: testNs},
+	}
+	testEventtype3 = eventingv1beta1.EventType{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "EventType",
+			APIVersion: "eventing.knative.dev/v1beta1",
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-eventtype-3", Namespace: testNs},
+	}
+	testEventtypes          = []eventingv1beta1.EventType{testEventtype1, testEventtype2, testEventtype3}
+	fakeEventingBeta1Client = &beta1fake.FakeEventingV1beta1{Fake: &clienttesting.Fake{}}
 )
 
 var knParams = initialiseKnParams()
@@ -423,6 +452,9 @@ current-context: x
 		},
 		NewSourcesV1beta2Client: func(namespace string) (v1beta2.KnSourcesClient, error) {
 			return v1beta2.NewKnSourcesClient(fakeSourcesV1Beta2, namespace), nil
+		},
+		NewEventingV1beta1Client: func(namespace string) (clienteventingv1beta1.KnEventingV1Beta1Client, error) {
+			return clienteventingv1beta1.NewKnEventingV1Beta1Client(fakeEventingBeta1Client, namespace), nil
 		},
 		ClientConfig: blankConfig,
 	}
@@ -1299,14 +1331,14 @@ func TestResourceNameCompletionFuncChannel(t *testing.T) {
 	completionFunc := ResourceNameCompletionFunc(knParams)
 
 	channelClient := v1beta1.NewMockKnChannelsClient(t)
-	channelClient.Recorder().ListChannel(&v12.ChannelList{Items: testNsChannels}, nil)
-	channelClient.Recorder().ListChannel(&v12.ChannelList{Items: testNsChannels}, nil)
+	channelClient.Recorder().ListChannel(&messagingv1.ChannelList{Items: testNsChannels}, nil)
+	channelClient.Recorder().ListChannel(&messagingv1.ChannelList{Items: testNsChannels}, nil)
 
-	channelClient.Recorder().ListChannel(&v12.ChannelList{Items: testNsChannels}, nil)
-	channelClient.Recorder().ListChannel(&v12.ChannelList{Items: testNsChannels}, nil)
+	channelClient.Recorder().ListChannel(&messagingv1.ChannelList{Items: testNsChannels}, nil)
+	channelClient.Recorder().ListChannel(&messagingv1.ChannelList{Items: testNsChannels}, nil)
 
-	channelClient.Recorder().ListChannel(&v12.ChannelList{}, fmt.Errorf("error listing channels"))
-	channelClient.Recorder().ListChannel(&v12.ChannelList{}, fmt.Errorf("error listing channels"))
+	channelClient.Recorder().ListChannel(&messagingv1.ChannelList{}, fmt.Errorf("error listing channels"))
+	channelClient.Recorder().ListChannel(&messagingv1.ChannelList{}, fmt.Errorf("error listing channels"))
 
 	messagingClient := &mockMessagingClient{channelClient, nil}
 
@@ -1385,14 +1417,14 @@ func TestResourceNameCompletionFuncSubscription(t *testing.T) {
 	completionFunc := ResourceNameCompletionFunc(knParams)
 
 	subscriptionsClient := v1beta1.NewMockKnSubscriptionsClient(t)
-	subscriptionsClient.Recorder().ListSubscription(&v12.SubscriptionList{Items: testNsSubscriptions}, nil)
-	subscriptionsClient.Recorder().ListSubscription(&v12.SubscriptionList{Items: testNsSubscriptions}, nil)
+	subscriptionsClient.Recorder().ListSubscription(&messagingv1.SubscriptionList{Items: testNsSubscriptions}, nil)
+	subscriptionsClient.Recorder().ListSubscription(&messagingv1.SubscriptionList{Items: testNsSubscriptions}, nil)
 
-	subscriptionsClient.Recorder().ListSubscription(&v12.SubscriptionList{Items: testNsSubscriptions}, nil)
-	subscriptionsClient.Recorder().ListSubscription(&v12.SubscriptionList{Items: testNsSubscriptions}, nil)
+	subscriptionsClient.Recorder().ListSubscription(&messagingv1.SubscriptionList{Items: testNsSubscriptions}, nil)
+	subscriptionsClient.Recorder().ListSubscription(&messagingv1.SubscriptionList{Items: testNsSubscriptions}, nil)
 
-	subscriptionsClient.Recorder().ListSubscription(&v12.SubscriptionList{}, fmt.Errorf("error listing channels"))
-	subscriptionsClient.Recorder().ListSubscription(&v12.SubscriptionList{}, fmt.Errorf("error listing channels"))
+	subscriptionsClient.Recorder().ListSubscription(&messagingv1.SubscriptionList{}, fmt.Errorf("error listing channels"))
+	subscriptionsClient.Recorder().ListSubscription(&messagingv1.SubscriptionList{}, fmt.Errorf("error listing channels"))
 
 	messagingClient := &mockMessagingClient{nil, subscriptionsClient}
 
@@ -1465,6 +1497,83 @@ func TestResourceNameCompletionFuncSubscription(t *testing.T) {
 		})
 	}
 	subscriptionsClient.Recorder().Validate()
+}
+
+func TestResourceNameCompletionFuncEventtype(t *testing.T) {
+	completionFunc := ResourceNameCompletionFunc(knParams)
+
+	fakeEventingBeta1Client.AddReactor("list", "eventtypes", func(a clienttesting.Action) (bool, runtime.Object, error) {
+		if a.GetNamespace() == errorNs {
+			return true, nil, errors.NewInternalError(fmt.Errorf("unable to list eventtypes"))
+		}
+		return true, &eventingv1beta1.EventTypeList{Items: testEventtypes}, nil
+	})
+
+	tests := []testType{
+		{
+			"Empty suggestions when non-zero args",
+			testNs,
+			knParams,
+			[]string{"xyz"},
+			"",
+			"eventtype",
+		},
+		{
+			"Empty suggestions when no namespace flag",
+			"",
+			knParams,
+			nil,
+			"",
+			"eventtype",
+		},
+		{
+			"Suggestions when test-ns namespace set",
+			testNs,
+			knParams,
+			nil,
+			"",
+			"eventtype",
+		},
+		{
+			"Empty suggestions when toComplete is not a prefix",
+			testNs,
+			knParams,
+			nil,
+			"xyz",
+			"eventtype",
+		},
+		{
+			"Empty suggestions when error during list operation",
+			errorNs,
+			knParams,
+			nil,
+			"",
+			"eventtype",
+		},
+	}
+	for _, tt := range tests {
+		cmd := getResourceCommandWithTestSubcommand(tt.resource, tt.namespace != "", tt.resource != "no-parent")
+		t.Run(tt.name, func(t *testing.T) {
+			config := &completionConfig{
+				params:     tt.p,
+				command:    cmd,
+				args:       tt.args,
+				toComplete: tt.toComplete,
+			}
+			expectedFunc := resourceToFuncMap[tt.resource]
+			if expectedFunc == nil {
+				expectedFunc = func(config *completionConfig) []string {
+					return []string{}
+				}
+			}
+			cmd.Flags().Set("namespace", tt.namespace)
+			actualSuggestions, actualDirective := completionFunc(cmd, tt.args, tt.toComplete)
+			expectedSuggestions := expectedFunc(config)
+			expectedDirective := cobra.ShellCompDirectiveNoFileComp
+			assert.DeepEqual(t, actualSuggestions, expectedSuggestions)
+			assert.Equal(t, actualDirective, expectedDirective)
+		})
+	}
 }
 
 func getResourceCommandWithTestSubcommand(resource string, addNamespace, addSubcommand bool) *cobra.Command {
