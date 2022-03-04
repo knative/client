@@ -22,19 +22,18 @@ import (
 	"strings"
 	"text/template"
 
-	"knative.dev/client/pkg/kn/commands/container"
-	"knative.dev/client/pkg/kn/commands/eventtype"
-
-	"knative.dev/client/pkg/kn/commands/domain"
-
 	"github.com/spf13/cobra"
-	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
-	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
+
+	// Import & enable all auth providers at once
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/broker"
 	"knative.dev/client/pkg/kn/commands/channel"
 	"knative.dev/client/pkg/kn/commands/completion"
+	"knative.dev/client/pkg/kn/commands/container"
+	"knative.dev/client/pkg/kn/commands/domain"
+	"knative.dev/client/pkg/kn/commands/eventtype"
 	"knative.dev/client/pkg/kn/commands/options"
 	"knative.dev/client/pkg/kn/commands/plugin"
 	"knative.dev/client/pkg/kn/commands/revision"
