@@ -82,6 +82,7 @@ func getService(name, latestRevision string, existingTraffic ServiceTraffic) *se
 		},
 	}}
 	service.Status.LatestReadyRevisionName = latestRevision
+	service.Status.Traffic = existingTraffic
 	return service
 }
 
@@ -553,7 +554,7 @@ func TestComputeErrMsg(t *testing.T) {
 		{
 			name:            "traffic split sum < 100 error when remaining revision not found",
 			existingTraffic: append(newServiceTraffic([]servingv1.TrafficTarget{}), newTarget("rev-00003", "rev-00001", 0, false), newTarget("", "rev-00002", 0, false), newTarget("", "rev-00003", 100, true)),
-			inputFlags:      []string{"--traffic", "rev-00003=10,rev-00002=20"},
+			inputFlags:      []string{"--traffic", "rev-00003=10,rev-00001=20"},
 			errMsg:          errorTrafficDistribution(30, errorDistributionRevisionNotFound).Error(),
 			existingRevisions: []servingv1.Revision{{
 				ObjectMeta: metav1.ObjectMeta{
@@ -563,13 +564,6 @@ func TestComputeErrMsg(t *testing.T) {
 					},
 					Annotations: map[string]string{
 						revision.RevisionTagsAnnotation: "rev-00003",
-					},
-				},
-			}, {
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "rev-00002",
-					Labels: map[string]string{
-						"serving.knative.dev/service": "serviceName",
 					},
 				},
 			}, {
@@ -588,7 +582,7 @@ func TestComputeErrMsg(t *testing.T) {
 			testCmd.Execute()
 			svc := getService("serviceName", testCase.latestRevision, testCase.existingTraffic)
 			_, err := Compute(testCmd, svc, tFlags, testCase.existingRevisions, testCase.mutation)
-			assert.Error(t, err, testCase.errMsg)
+			assert.ErrorContains(t, err, testCase.errMsg)
 		})
 	}
 }
