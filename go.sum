@@ -2160,8 +2160,8 @@ k8s.io/utils v0.0.0-20210930125809-cb0fa318a74b/go.mod h1:jPW/WVKK9YHAvNhRxK0md/
 k8s.io/utils v0.0.0-20211208161948-7d6a63dca704 h1:ZKMMxTvduyf5WUtREOqg5LiXaN1KO/+0oOQPRFrClpo=
 k8s.io/utils v0.0.0-20211208161948-7d6a63dca704/go.mod h1:jPW/WVKK9YHAvNhRxK0md/EJ228hCsBRufyofKtW8HA=
 knative.dev/caching v0.0.0-20220302153644-5a6403ef2de5/go.mod h1:52//2yvw0iO3Nu2duAMI5BzfQKHWiXZuvRvzaypoGkU=
-knative.dev/eventing v0.29.1-0.20220307200636-9590bc3a96a3 h1:RWDEEbt3LdhbFYOFPs2udE8X9TtrgZkcbAKaRH8Cv3k=
-knative.dev/eventing v0.29.1-0.20220307200636-9590bc3a96a3/go.mod h1:JCqC8evTls1WiBTmYhPEGME6OQD8HFnLQjFPImwOEOg=
+knative.dev/eventing v0.30.0 h1:Hdcith4luu0DJ0wvtFcT67gl2bsGaIgZlfxK4pp7REs=
+knative.dev/eventing v0.30.0/go.mod h1:JCqC8evTls1WiBTmYhPEGME6OQD8HFnLQjFPImwOEOg=
 knative.dev/hack v0.0.0-20220224013837-e1785985d364 h1:wOysRDkzacHlM2OEQoM5ayNT+s/Zymzk5Tv17RL++3g=
 knative.dev/hack v0.0.0-20220224013837-e1785985d364/go.mod h1:PHt8x8yX5Z9pPquBEfIj0X66f8iWkWfR0S/sarACJrI=
 knative.dev/hack/schema v0.0.0-20220224013837-e1785985d364/go.mod h1:ffjwmdcrH5vN3mPhO8RrF2KfNnbHeCE2C60A+2cv3U0=
@@ -2171,8 +2171,8 @@ knative.dev/pkg v0.0.0-20220228195509-fe264173447b/go.mod h1:SsH9J6Gz+CvrHmoL0TE
 knative.dev/pkg v0.0.0-20220301181942-2fdd5f232e77 h1:eIH936a0/1X/XQOMN9+O3fw9spGvOJiMVKsBuu8J47U=
 knative.dev/pkg v0.0.0-20220301181942-2fdd5f232e77/go.mod h1:SsH9J6Gz+CvrHmoL0TELJXmMmohqKSQ5bpJvCv+1+ZI=
 knative.dev/reconciler-test v0.0.0-20220303141206-84821d26ed1f/go.mod h1:K5pZJkenonlT9o+MtRaNsBP7BazGwjhqYPepuV1zdnU=
-knative.dev/serving v0.29.1-0.20220308061505-604cd185315d h1:sd+u+x1NTvXAjEBKNQgwJRzR2Jf+/Qr8he+pDgPtfmU=
-knative.dev/serving v0.29.1-0.20220308061505-604cd185315d/go.mod h1:UwsKXK4LnkM+e8/hhgJq2LtyzmzHD6UsrGPFe5JOBS8=
+knative.dev/serving v0.30.0 h1:i+2Jz2UHVTKQjsBz2lgTaNHb0aLDhclysaGjODVIS5k=
+knative.dev/serving v0.30.0/go.mod h1:UwsKXK4LnkM+e8/hhgJq2LtyzmzHD6UsrGPFe5JOBS8=
 mvdan.cc/gofumpt v0.1.1/go.mod h1:yXG1r1WqZVKWbVRtBWKWX9+CxGYfA51nSomhM0woR48=
 mvdan.cc/interfacer v0.0.0-20180901003855-c20040233aed/go.mod h1:Xkxe497xwlCKkIaQYRfC7CSLworTXY9RMqwhhCm+8Nc=
 mvdan.cc/lint v0.0.0-20170908181259-adc824a0674b/go.mod h1:2odslEg/xrtNQqCYg2/jCoyKnw3vv5biOc3JnIcYfL4=
