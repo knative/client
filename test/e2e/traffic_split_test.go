@@ -138,7 +138,7 @@ func TestTrafficSplit(t *testing.T) {
 
 		serviceName := test.GetNextServiceName(serviceBase)
 		test.ServiceCreate(r, serviceName)
-		test.ServiceUpdate(r, serviceName, "--env", "TARGET=v1")
+		test.ServiceUpdate(r, serviceName, "--env", "TARGET=v1", "--traffic", "80")
 
 		rev1 := fmt.Sprintf("%s-00001", serviceName)
 		rev2 := fmt.Sprintf("%s-00002", serviceName)
@@ -191,11 +191,12 @@ func TestTrafficSplit(t *testing.T) {
 		serviceName := test.GetNextServiceName(serviceBase)
 
 		rev1 := fmt.Sprintf("%s-00001", serviceName)
+		rev2 := fmt.Sprintf("%s-00002", serviceName)
 
 		test.ServiceCreate(r, serviceName)
 
-		test.ServiceUpdate(r, serviceName, "--env", "TARGET=v1")
-		test.ServiceUpdate(r, serviceName, "--env", "TARGET=v2")
+		test.ServiceUpdate(r, serviceName, "--env", "TARGET=v1", "--traffic", "40")
+		test.ServiceUpdate(r, serviceName, "--env", "TARGET=v2", "--traffic", fmt.Sprintf("%s=%d,%s=%d", rev1, 10, rev2, 20))
 		test.ServiceUpdateWithError(r, serviceName, "--traffic", fmt.Sprintf("%s=%d", rev1, 50))
 
 		test.ServiceDelete(r, serviceName)
@@ -209,7 +210,7 @@ func TestTrafficSplit(t *testing.T) {
 
 		test.ServiceCreate(r, serviceName)
 
-		test.ServiceUpdate(r, serviceName, "--env", "TARGET=v1")
+		test.ServiceUpdate(r, serviceName, "--env", "TARGET=v1", "--traffic", "20")
 		test.ServiceUpdateWithError(r, serviceName, "--env", "TARGET=v2", "--traffic", "@latest=50")
 
 		test.ServiceDelete(r, serviceName)
