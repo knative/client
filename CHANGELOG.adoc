@@ -11,6 +11,32 @@
 |
 | https://github.com/knative/client/pull/[#]
 ////
+## v1.3.0 (2022-03-08)
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🐛
+| Fix traffic split auto redirection to only consider the active revisions
+| https://github.com/knative/client/pull/1617[#1617]
+
+| 🐛
+| Fix missing Azure auth provider
+| https://github.com/knative/client/pull/1616[#1616]
+
+| 🐛
+| Remove hardcoded kn for usage and error
+| https://github.com/knative/client/pull/1598[#1603]
+
+| 🐛
+| Fix display version of Serving & Eventing
+| https://github.com/knative/client/pull/1601[#1601]
+
+| 🎁
+| Add Knative Eventtype support
+| https://github.com/knative/client/pull/1598[#1598]
+
+|===
 
 ## v1.2.0 (2022-01-25)
 [cols="1,10,3", options="header", width="100%"]
