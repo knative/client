@@ -194,8 +194,8 @@ func TestTrafficSplit(t *testing.T) {
 
 		test.ServiceCreate(r, serviceName)
 
-		test.ServiceUpdate(r, serviceName, "--env", "TARGET=v1")
-		test.ServiceUpdate(r, serviceName, "--env", "TARGET=v2")
+		test.ServiceUpdate(r, serviceName, "--env", "TARGET=v1", "--traffic", "40")
+		test.ServiceUpdate(r, serviceName, "--env", "TARGET=v2", "--traffic", fmt.Sprintf("%s=%d", rev1, 50))
 		test.ServiceUpdateWithError(r, serviceName, "--traffic", fmt.Sprintf("%s=%d", rev1, 50))
 
 		test.ServiceDelete(r, serviceName)
