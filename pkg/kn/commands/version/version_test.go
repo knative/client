@@ -17,6 +17,7 @@ package version
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"testing"
 	"text/template"
 
@@ -43,6 +44,16 @@ const (
 	fakeBuildDate   = "fake-build-date"
 	fakeGitRevision = "fake-git-revision"
 )
+
+var apiVersions = map[string][]string{
+	"serving": {
+		fmt.Sprintf("serving.knative.dev/v1 (knative-serving %s)", VersionServing),
+	},
+	"eventing": {
+		fmt.Sprintf("sources.knative.dev/v1 (knative-eventing %s)", VersionEventing),
+		fmt.Sprintf("eventing.knative.dev/v1 (knative-eventing %s)", VersionEventing),
+	},
+}
 
 func TestVersion(t *testing.T) {
 	var (

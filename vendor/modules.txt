@@ -286,6 +286,7 @@ go.uber.org/zap/zapcore
 golang.org/x/crypto/pkcs12
 golang.org/x/crypto/pkcs12/internal/rc2
 # golang.org/x/mod v0.5.1
+## explicit
 golang.org/x/mod/internal/lazyregexp
 golang.org/x/mod/module
 golang.org/x/mod/semver
