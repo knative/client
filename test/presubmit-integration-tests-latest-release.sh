@@ -17,7 +17,7 @@
 # This script is used in Knative/test-infra as a custom prow job to run the
 # integration tests against Knative Serving / Eventing of a specific version.
 
-export KNATIVE_SERVING_VERSION="1.2.0"
-export KNATIVE_EVENTING_VERSION="1.2.0"
+export KNATIVE_SERVING_VERSION="`git ls-remote --heads git@github.com:knative/serving.git | grep release- | cut -d '-' -f2 | sort -r | head -n 1`"
+export KNATIVE_EVENTING_VERSION="`git ls-remote --heads git@github.com:knative/eventing.git | grep release- | cut -d '-' -f2 | sort -r | head -n 1`"
 
 $(dirname $0)/presubmit-tests.sh --integration-tests
