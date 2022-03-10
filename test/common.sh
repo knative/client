@@ -66,7 +66,7 @@ function knative_setup() {
     install_istio
   fi
 
-  # Serving and Eventing 'latests' is based on branch context
+  # Serving and Eventing 'latest' is based on branch context
   # On `main` it means 'nightly' manifests
   # On `release-*` it means corresponding `release-*` manifests
   # The described behavior is achieved through hack/library.sh start_latest_knative_serving()
@@ -74,9 +74,9 @@ function knative_setup() {
   local eventing_version="latest"
 
   # PR check variant triggering presubmit-integration-tests-latest-release
-  # should check current client main branch code on latest avaible release
+  # should check current client main branch code on latest available release
   # e.g. PR to 'main' on Serving and Eventing 1.3.0
-  if [[ -n ${LATEST_RELEASE} ]]; then
+  if [ "${LATEST_RELEASE}" == "true" ]; then
     serving_version="$(get_latest_release_version "serving")"
     eventing_version="$(get_latest_release_version "eventing")"
   fi
@@ -117,11 +117,13 @@ function get_latest_release_version() {
     local repo_name="$1"
     local major_minor=""
     if is_release_branch; then
-      local branch_name="$(current_branch)"
+      local branch_name
+      branch_name="$(current_branch)"
       major_minor="${branch_name##release-}"
     fi
-    local version ="$(git ls-remote --tags --ref https://github.com/knative/${repo_name}.git \
-      | grep ${major_minor} \
+    local version
+    version="$(git ls-remote --tags --ref https://github.com/knative/"${repo_name}".git \
+      | grep "${major_minor}" \
       | cut -d '-' -f2 \
       | cut -d 'v' -f2 \
       | sort -Vr \
