@@ -66,9 +66,22 @@ function knative_setup() {
     install_istio
   fi
 
-  local serving_version=${KNATIVE_SERVING_VERSION:-latest}
-  header "Installing Knative Serving (${serving_version})"
+  # Serving and Eventing 'latests' is based on branch context
+  # On `main` it means 'nightly' manifests
+  # On `release-*` it means corresponding `release-*` manifests
+  # The described behavior is achieved through hack/library.sh start_latest_knative_serving()
+  local serving_version="latest"
+  local eventing_version="latest"
 
+  # PR check variant triggering presubmit-integration-tests-latest-release
+  # should check current client main branch code on latest avaible release
+  # e.g. PR to 'main' on Serving and Eventing 1.3.0
+  if [[ -n ${LATEST_RELEASE} ]]; then
+    serving_version="$(get_latest_release_version "serving")"
+    eventing_version="$(get_latest_release_version "eventing")"
+  fi
+
+  header "Installing Knative Serving (${serving_version})"
   if [ "${serving_version}" = "latest" ]; then
     start_latest_knative_serving
   else
@@ -80,9 +93,7 @@ function knative_setup() {
       --type merge -p '{"data": {"ingress.class":"'${INGRESS_CLASS}'"}}'
   fi
 
-  local eventing_version=${KNATIVE_EVENTING_VERSION:-latest}
   header "Installing Knative Eventing (${eventing_version})"
-
   if [ "${eventing_version}" = "latest" ]; then
     start_latest_knative_eventing
     start_latest_eventing_sugar_controller
@@ -96,4 +107,24 @@ function knative_setup() {
 function test_setup() {
   echo ">> Uploading test images..."
   ${REPO_ROOT_DIR}/test/upload-test-images.sh || return 1
+}
+
+# Retrieve latest version from given Knative repository tags
+# On 'main' branch the latest released version is returned
+# On 'release-x.y' branch the latest patch version for 'x.y.*' is returned
+# Similar to hack/library.sh get_latest_knative_yaml_source()
+function get_latest_release_version() {
+    local repo_name="$1"
+    local major_minor=""
+    if is_release_branch; then
+      local branch_name="$(current_branch)"
+      major_minor="${branch_name##release-}"
+    fi
+    local version ="$(git ls-remote --tags --ref https://github.com/knative/${repo_name}.git \
+      | grep ${major_minor} \
+      | cut -d '-' -f2 \
+      | cut -d 'v' -f2 \
+      | sort -Vr \
+      | head -n 1)"
+    echo "${version}"
 }
