@@ -17,6 +17,6 @@
 # This script is used in Knative/test-infra as a custom prow job to run the
 # integration tests against Knative Serving / Eventing of a specific version.
 
-readonly export LATEST_RELEASE="true"
+export LATEST_RELEASE="true"
 
 $(dirname $0)/presubmit-tests.sh --integration-tests
