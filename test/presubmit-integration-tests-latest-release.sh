@@ -17,7 +17,6 @@
 # This script is used in Knative/test-infra as a custom prow job to run the
 # integration tests against Knative Serving / Eventing of a specific version.
 
-export KNATIVE_SERVING_VERSION="`git ls-remote --tags --ref https://github.com/knative/serving.git | cut -d '-' -f2 | cut -d 'v' -f2 | sort -Vr | head -n 1`"
-export KNATIVE_EVENTING_VERSION="`git ls-remote --tags --ref https://github.com/knative/eventing.git | cut -d '-' -f2 | cut -d 'v' -f2 | sort -Vr | head -n 1`"
+export LATEST_RELEASE="true"
 
 $(dirname $0)/presubmit-tests.sh --integration-tests
