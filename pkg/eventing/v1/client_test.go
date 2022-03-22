@@ -422,7 +422,7 @@ func TestBrokerDeleteWithWait(t *testing.T) {
 
 	server.AddReactor("get", "brokers",
 		func(a client_testing.Action) (bool, runtime.Object, error) {
-			name := a.(client_testing.DeleteAction).GetName()
+			name := a.(client_testing.GetAction).GetName()
 			if name == deleted {
 				deletedBroker := newBroker(deleted)
 				deletedBroker.DeletionTimestamp = &metav1.Time{Time: time.Now()}

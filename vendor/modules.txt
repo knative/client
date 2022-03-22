@@ -240,6 +240,7 @@ github.com/spf13/viper/internal/encoding/toml
 github.com/spf13/viper/internal/encoding/yaml
 # github.com/stretchr/testify v1.7.0
 github.com/stretchr/testify/assert
+github.com/stretchr/testify/require
 # github.com/subosito/gotenv v1.2.0
 github.com/subosito/gotenv
 # github.com/xlab/treeprint v0.0.0-20181112141820-a009c3971eca
@@ -577,7 +578,7 @@ k8s.io/apimachinery/pkg/version
 k8s.io/apimachinery/pkg/watch
 k8s.io/apimachinery/third_party/forked/golang/json
 k8s.io/apimachinery/third_party/forked/golang/reflect
-# k8s.io/cli-runtime v0.22.5
+# k8s.io/cli-runtime v0.23.4
 ## explicit
 k8s.io/cli-runtime/pkg/genericclioptions
 k8s.io/cli-runtime/pkg/printers
@@ -911,7 +912,7 @@ knative.dev/serving/test/test_images/multicontainer/sidecarcontainer
 # sigs.k8s.io/json v0.0.0-20211020170558-c049b76a60c6
 sigs.k8s.io/json
 sigs.k8s.io/json/internal/golang/encoding/json
-# sigs.k8s.io/kustomize/api v0.8.11
+# sigs.k8s.io/kustomize/api v0.10.1
 sigs.k8s.io/kustomize/api/builtins
 sigs.k8s.io/kustomize/api/filters/annotations
 sigs.k8s.io/kustomize/api/filters/fieldspec
@@ -955,7 +956,7 @@ sigs.k8s.io/kustomize/api/provider
 sigs.k8s.io/kustomize/api/resmap
 sigs.k8s.io/kustomize/api/resource
 sigs.k8s.io/kustomize/api/types
-# sigs.k8s.io/kustomize/kyaml v0.11.0
+# sigs.k8s.io/kustomize/kyaml v0.13.0
 sigs.k8s.io/kustomize/kyaml/comments
 sigs.k8s.io/kustomize/kyaml/errors
 sigs.k8s.io/kustomize/kyaml/ext
@@ -972,11 +973,13 @@ sigs.k8s.io/kustomize/kyaml/kio/filters
 sigs.k8s.io/kustomize/kyaml/kio/kioutil
 sigs.k8s.io/kustomize/kyaml/openapi
 sigs.k8s.io/kustomize/kyaml/openapi/kubernetesapi
-sigs.k8s.io/kustomize/kyaml/openapi/kubernetesapi/v1204
+sigs.k8s.io/kustomize/kyaml/openapi/kubernetesapi/v1212
 sigs.k8s.io/kustomize/kyaml/openapi/kustomizationapi
+sigs.k8s.io/kustomize/kyaml/order
 sigs.k8s.io/kustomize/kyaml/resid
 sigs.k8s.io/kustomize/kyaml/runfn
 sigs.k8s.io/kustomize/kyaml/sets
+sigs.k8s.io/kustomize/kyaml/sliceutil
 sigs.k8s.io/kustomize/kyaml/yaml
 sigs.k8s.io/kustomize/kyaml/yaml/internal/k8sgen/pkg/labels
 sigs.k8s.io/kustomize/kyaml/yaml/internal/k8sgen/pkg/selection
