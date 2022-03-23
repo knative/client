@@ -63,6 +63,7 @@ aliases:
   - lberk
   - lionelvillard
   - matzew
+  - odacremolbap
   - pierDipi
   - vaikas
   knative-admin:
@@ -155,7 +156,6 @@ aliases:
   - efiturri
   - evankanderson
   - gerardo-lc
-  - kvmware
   - mgencur
   - shinigambit
   productivity-wg-leads:
@@ -165,7 +165,9 @@ aliases:
   - chaodaiG
   - chizhg
   - coryrc
+  - kvmware
   - psschwei
+  - upodroid
   security-wg-leads:
   - evankanderson
   - julz
