@@ -53,13 +53,11 @@ aliases:
   - antoineco
   - lberk
   eventing-wg-leads:
-  - devguyio
   - lionelvillard
   eventing-writers:
   - akashrv
   - aliok
   - antoineco
-  - devguyio
   - lberk
   - lionelvillard
   - matzew
@@ -67,29 +65,27 @@ aliases:
   - pierDipi
   - vaikas
   knative-admin:
-  - carlisia
   - csantanapr
   - dprotaso
   - evankanderson
+  - ikvmw
   - itsmurugappan
   - julz
   - knative-prow-releaser-robot
   - knative-prow-robot
   - knative-prow-updater-robot
   - knative-test-reporter-robot
-  - kvmware
   - lance
+  - nader-ziada
   - pmorie
   - rhuss
   - smoser-ibm
   - spencerdillard
   - thisisnotapril
   - vaikas
-  - xtreme-sameer-vohra
   knative-release-leads:
-  - carlisia
-  - kvmware
-  - xtreme-sameer-vohra
+  - ikvmw
+  - nader-ziada
   knative-robots:
   - knative-prow-releaser-robot
   - knative-prow-robot
@@ -153,7 +149,6 @@ aliases:
   - vagababov
   productivity-reviewers:
   - albertomilan
-  - efiturri
   - evankanderson
   - gerardo-lc
   - mgencur
