@@ -54,6 +54,7 @@ aliases:
   - lberk
   eventing-wg-leads:
   - lionelvillard
+  - pierDipi
   eventing-writers:
   - akashrv
   - aliok
@@ -71,6 +72,7 @@ aliases:
   - ikvmw
   - itsmurugappan
   - julz
+  - knative-automation
   - knative-prow-releaser-robot
   - knative-prow-robot
   - knative-prow-updater-robot
@@ -87,6 +89,7 @@ aliases:
   - ikvmw
   - nader-ziada
   knative-robots:
+  - knative-automation
   - knative-prow-releaser-robot
   - knative-prow-robot
   - knative-prow-updater-robot
