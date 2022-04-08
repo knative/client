@@ -36,8 +36,8 @@ export SHORT=0
 export ENABLE_HA=0
 export MESH=0
 export PERF=0
-export KIND=0
-export CLUSTER_DOMAIN=cluster.local
+export KIND=${KIND:-0}
+export CLUSTER_DOMAIN=${CLUSTER_DOMAIN:-cluster.local}
 
 # List of custom YAMLs to install, if specified (space-separated).
 export INSTALL_CUSTOM_YAMLS=""
@@ -57,6 +57,7 @@ readonly REPLICAS=3
 readonly BUCKETS=10
 
 export PVC=${PVC:-1}
+export QUOTA=${QUOTA:-1}
 
 # Receives the latest serving version and searches for the same version with major and minor and searches for the latest patch
 function latest_net_istio_version() {
@@ -299,6 +300,10 @@ function install() {
 
   if (( PVC )); then
     YTT_FILES+=("${REPO_ROOT_DIR}/test/config/pvc/pvc.yaml")
+  fi
+
+  if (( QUOTA )); then
+    YTT_FILES+=("${REPO_ROOT_DIR}/test/config/resource-quota/resource-quota.yaml")
   fi
 
   local ytt_result=$(mktemp)
