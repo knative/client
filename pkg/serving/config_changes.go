@@ -22,6 +22,7 @@ import (
 	"strings"
 	"time"
 
+	v1 "k8s.io/api/core/v1"
 	"knative.dev/pkg/ptr"
 	"knative.dev/serving/pkg/apis/autoscaling"
 	servingconfig "knative.dev/serving/pkg/apis/config"
@@ -213,6 +214,14 @@ func UpdateRevisionTemplateAnnotations(template *servingv1.RevisionTemplateSpec,
 // Also validates the autoscaling annotation values
 func UpdateRevisionTemplateAnnotation(template *servingv1.RevisionTemplateSpec, annotation string, value string) error {
 	return UpdateRevisionTemplateAnnotations(template, map[string]string{annotation: value}, []string{})
+}
+
+func UpdateImagePullPolicy(template *servingv1.RevisionTemplateSpec, imagePullPolicy string) error {
+	if len(template.Spec.Containers) == 0 {
+		return fmt.Errorf("no container found in spec")
+	}
+	template.Spec.Containers[0].ImagePullPolicy = v1.PullPolicy(imagePullPolicy)
+	return nil
 }
 
 // =======================================================================================

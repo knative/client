@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	corev1 "k8s.io/api/core/v1"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -268,6 +269,17 @@ func (p *ConfigurationEditFlags) Apply(
 		servinglib.UnsetUserImageAnnotation(template)
 	}
 
+	if cmd.Flags().Changed("pull-policy") {
+		if isValidPullPolicy(p.PodSpecFlags.ImagePullPolicy) {
+			err = servinglib.UpdateImagePullPolicy(template, p.PodSpecFlags.ImagePullPolicy)
+			if err != nil {
+				return err
+			}
+		} else {
+			return fmt.Errorf("invalid --pull-policy %s. Valid arguments: Always|Never|IfNotPresent", p.PodSpecFlags.ImagePullPolicy)
+		}
+	}
+
 	// Deprecated "min-scale" in 0.19, updated to "scale-min"
 	if cmd.Flags().Changed("scale-min") || cmd.Flags().Changed("min-scale") {
 		err = servinglib.UpdateMinScale(template, p.MinScale)
@@ -451,6 +463,10 @@ func (p *ConfigurationEditFlags) Apply(
 	}
 
 	return nil
+}
+
+func isValidPullPolicy(policy string) bool {
+	return policy == string(corev1.PullAlways) || policy == string(corev1.PullNever) || policy == string(corev1.PullIfNotPresent)
 }
 
 // shouldPinToImageDigest checks whether the image digest that has been resolved in the current active
