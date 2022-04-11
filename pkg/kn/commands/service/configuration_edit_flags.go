@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"knative.dev/serving/pkg/apis/config"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -218,7 +219,9 @@ func (p *ConfigurationEditFlags) AddCreateFlags(command *cobra.Command) {
 		"Labels to set for both Service and Revision. name=value; you may provide this flag "+
 			"any number of times to set multiple labels.")
 	p.markFlagMakesRevision("label")
-	command.Flags().Int64Var(&p.TimeoutSeconds, "timeout", 300, "duration in seconds that the request routing layer will wait for a request delivered to a container to begin replying")
+	command.Flags().Int64Var(&p.TimeoutSeconds, "timeout", config.DefaultRevisionTimeoutSeconds,
+		"duration in seconds that the request routing layer will wait for a request delivered to a "+""+
+			"container to begin replying")
 	p.markFlagMakesRevision("timeout")
 }
 
