@@ -77,15 +77,18 @@ function knative_setup() {
   # should check current client main branch code on latest available release
   # e.g. PR to 'main' on Serving and Eventing 1.3.0
   if [ "${LATEST_RELEASE}" == "true" ]; then
-    serving_version="$(get_latest_release_version "serving")"
-    eventing_version="$(get_latest_release_version "eventing")"
+    serving_version="$(get_latest_release_version "knative" "serving")"
+    eventing_version="$(get_latest_release_version "knative" "eventing")"
   fi
 
   header "Installing Knative Serving (${serving_version})"
   if [ "${serving_version}" = "latest" ]; then
     start_latest_knative_serving
   else
-    start_release_knative_serving "${serving_version}"
+    # Serving and Net-Istio versions may differ on patch lvl
+    start_knative_serving "https://storage.googleapis.com/knative-releases/serving/previous/v${serving_version}/serving-crds.yaml" \
+      "https://storage.googleapis.com/knative-releases/serving/previous/v${serving_version}/serving-core.yaml" \
+      "https://storage.googleapis.com/knative-releases/net-istio/previous/v$(get_latest_release_version "knative-sandbox" "net-istio")/net-istio.yaml"
   fi
 
   if ! is_ingress_class istio; then
@@ -114,7 +117,8 @@ function test_setup() {
 # On 'release-x.y' branch the latest patch version for 'x.y.*' is returned
 # Similar to hack/library.sh get_latest_knative_yaml_source()
 function get_latest_release_version() {
-    local repo_name="$1"
+    local org_name="$1"
+    local repo_name="$2"
     local major_minor=""
     if is_release_branch; then
       local branch_name
@@ -122,7 +126,7 @@ function get_latest_release_version() {
       major_minor="${branch_name##release-}"
     fi
     local version
-    version="$(git ls-remote --tags --ref https://github.com/knative/"${repo_name}".git \
+    version="$(git ls-remote --tags --ref https://github.com/"${org_name}"/"${repo_name}".git \
       | grep "${major_minor}" \
       | cut -d '-' -f2 \
       | cut -d 'v' -f2 \
