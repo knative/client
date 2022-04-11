@@ -218,13 +218,14 @@ func UpdateRevisionTemplateAnnotation(template *servingv1.RevisionTemplateSpec, 
 
 // UpdateImagePullPolicy updates the pull policy for the given revision template
 func UpdateImagePullPolicy(template *servingv1.RevisionTemplateSpec, imagePullPolicy string) error {
-	if len(template.Spec.Containers) == 0 {
+	idx := ContainerIndexOfRevisionSpec(&template.Spec)
+	if idx < 0 {
 		return fmt.Errorf("no container found in spec")
 	}
 	if !isValidPullPolicy(imagePullPolicy) {
 		return fmt.Errorf("invalid --pull-policy %s. Valid arguments: Always|Never|IfNotPresent", imagePullPolicy)
 	}
-	template.Spec.Containers[0].ImagePullPolicy = v1.PullPolicy(imagePullPolicy)
+	template.Spec.Containers[idx].ImagePullPolicy = v1.PullPolicy(imagePullPolicy)
 	return nil
 }
 
