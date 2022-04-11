@@ -27,6 +27,7 @@ import (
 	"knative.dev/serving/pkg/apis/autoscaling"
 	servingconfig "knative.dev/serving/pkg/apis/config"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
+	"sigs.k8s.io/kustomize/kyaml/sliceutil"
 
 	"knative.dev/client/pkg/kn/flags"
 )
@@ -225,8 +226,21 @@ func UpdateImagePullPolicy(template *servingv1.RevisionTemplateSpec, imagePullPo
 	if !isValidPullPolicy(imagePullPolicy) {
 		return fmt.Errorf("invalid --pull-policy %s. Valid arguments: Always|Never|IfNotPresent", imagePullPolicy)
 	}
-	template.Spec.Containers[idx].ImagePullPolicy = v1.PullPolicy(imagePullPolicy)
+	template.Spec.Containers[idx].ImagePullPolicy = actualPolicy(imagePullPolicy)
 	return nil
+}
+
+func actualPolicy(policy string) v1.PullPolicy {
+	var ret v1.PullPolicy
+	switch strings.ToLower(policy) {
+	case "always":
+		ret = v1.PullAlways
+	case "ifnotpresent":
+		ret = v1.PullIfNotPresent
+	case "never":
+		ret = v1.PullNever
+	}
+	return ret
 }
 
 // =======================================================================================
@@ -242,5 +256,9 @@ func updateAnnotations(annotations map[string]string, toUpdate map[string]string
 }
 
 func isValidPullPolicy(policy string) bool {
-	return policy == string(v1.PullAlways) || policy == string(v1.PullNever) || policy == string(v1.PullIfNotPresent)
+	validPolicies := []string{string(v1.PullAlways), string(v1.PullNever), string(v1.PullIfNotPresent)}
+	for i := range validPolicies {
+		validPolicies[i] = strings.ToLower(validPolicies[i])
+	}
+	return sliceutil.Contains(validPolicies, strings.ToLower(policy))
 }
