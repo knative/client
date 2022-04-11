@@ -157,6 +157,7 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 	editFlags.AddCreateFlags(serviceCreateCommand)
 	trafficFlags.AddTagFlag(serviceCreateCommand)
 	waitFlags.AddConditionWaitFlags(serviceCreateCommand, commands.WaitDefaultTimeout, "create", "service", "ready")
+	waitFlags.AddErrorWindow(serviceCreateCommand, "service", "ready")
 	return serviceCreateCommand
 }
 
@@ -187,7 +188,7 @@ func waitIfRequested(ctx context.Context, client clientservingv1.KnServingClient
 		return nil
 	}
 	fmt.Fprintf(out, "%s service '%s' in namespace '%s':\n", verbDoing, serviceName, client.Namespace())
-	return waitForServiceToGetReady(ctx, client, serviceName, waitFlags.TimeoutInSeconds, verbDone, out)
+	return waitForServiceToGetReady(ctx, client, serviceName, waitFlags.TimeoutInSeconds, waitFlags.ErrorWindowInSeconds, verbDone, out)
 }
 
 func prepareAndUpdateService(ctx context.Context, client clientservingv1.KnServingClient, service *servingv1.Service) (bool, error) {
@@ -220,9 +221,9 @@ func prepareAndUpdateService(ctx context.Context, client clientservingv1.KnServi
 
 }
 
-func waitForServiceToGetReady(ctx context.Context, client clientservingv1.KnServingClient, name string, timeout int, verbDone string, out io.Writer) error {
+func waitForServiceToGetReady(ctx context.Context, client clientservingv1.KnServingClient, name string, timeout, errorWindow int, verbDone string, out io.Writer) error {
 	fmt.Fprintln(out, "")
-	err := waitForService(ctx, client, name, out, timeout)
+	err := waitForService(ctx, client, name, out, timeout, errorWindow)
 	if err != nil {
 		return err
 	}

@@ -130,8 +130,8 @@ func (sr *ServingRecorder) WaitForService(name interface{}, timeout interface{},
 	sr.r.Add("WaitForService", []interface{}{name, timeout, callback}, []interface{}{err, duration})
 }
 
-func (c *MockKnServingClient) WaitForService(ctx context.Context, name string, timeout time.Duration, msgCallback wait.MessageCallback) (error, time.Duration) {
-	call := c.recorder.r.VerifyCall("WaitForService", name, timeout, msgCallback)
+func (c *MockKnServingClient) WaitForService(ctx context.Context, name string, timeout, errorWindow time.Duration, msgCallback wait.MessageCallback) (error, time.Duration) {
+	call := c.recorder.r.VerifyCall("WaitForService", name, timeout, errorWindow, msgCallback)
 	return mock.ErrorOrNil(call.Result[0]), call.Result[1].(time.Duration)
 }
 

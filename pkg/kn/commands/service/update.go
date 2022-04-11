@@ -135,7 +135,7 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 			if waitFlags.Wait && targetFlag == "" {
 				fmt.Fprintf(out, "Updating Service '%s' in namespace '%s':\n", args[0], namespace)
 				fmt.Fprintln(out, "")
-				err := waitForService(cmd.Context(), client, name, out, waitFlags.TimeoutInSeconds)
+				err := waitForService(cmd.Context(), client, name, out, waitFlags.TimeoutInSeconds, waitFlags.ErrorWindowInSeconds)
 				if err != nil {
 					return err
 				}
