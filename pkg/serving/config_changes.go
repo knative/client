@@ -23,13 +23,12 @@ import (
 	"time"
 
 	v1 "k8s.io/api/core/v1"
+	"knative.dev/client/pkg/kn/flags"
+	"knative.dev/client/pkg/util"
 	"knative.dev/pkg/ptr"
 	"knative.dev/serving/pkg/apis/autoscaling"
 	servingconfig "knative.dev/serving/pkg/apis/config"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
-	"sigs.k8s.io/kustomize/kyaml/sliceutil"
-
-	"knative.dev/client/pkg/kn/flags"
 )
 
 // VolumeSourceType is a type standing for enumeration of ConfigMap and Secret
@@ -224,7 +223,7 @@ func UpdateImagePullPolicy(template *servingv1.RevisionTemplateSpec, imagePullPo
 		return fmt.Errorf("no container found in spec")
 	}
 	if !isValidPullPolicy(imagePullPolicy) {
-		return fmt.Errorf("invalid --pull-policy %s. Valid arguments: Always|Never|IfNotPresent", imagePullPolicy)
+		return fmt.Errorf("invalid --pull-policy %s. Valid arguments (case insensitive): Always | Never | IfNotPresent", imagePullPolicy)
 	}
 	template.Spec.Containers[idx].ImagePullPolicy = actualPolicy(imagePullPolicy)
 	return nil
@@ -257,8 +256,5 @@ func updateAnnotations(annotations map[string]string, toUpdate map[string]string
 
 func isValidPullPolicy(policy string) bool {
 	validPolicies := []string{string(v1.PullAlways), string(v1.PullNever), string(v1.PullIfNotPresent)}
-	for i := range validPolicies {
-		validPolicies[i] = strings.ToLower(validPolicies[i])
-	}
-	return sliceutil.Contains(validPolicies, strings.ToLower(policy))
+	return util.SliceContainsIgnoreCase(validPolicies, policy)
 }

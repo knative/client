@@ -45,5 +45,5 @@ func TestApplyPullPolicyFlagError(t *testing.T) {
 	cmd.SetArgs([]string{"--pull-policy", "InvalidPolicy"})
 	cmd.Execute()
 	err := editFlags.Apply(&svc, nil, cmd)
-	assert.Assert(t, util.ContainsAll(err.Error(), "invalid", "InvalidPolicy", "Valid arguments: Always|Never|IfNotPresent"))
+	assert.Assert(t, util.ContainsAll(err.Error(), "invalid", "InvalidPolicy", "Valid arguments (case insensitive): Always | Never | IfNotPresent"))
 }

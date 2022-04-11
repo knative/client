@@ -131,7 +131,7 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
 	flagNames = append(flagNames, "image")
 
 	flagset.StringVar(&p.ImagePullPolicy, "pull-policy", "",
-		"Image pull policy. Valid values: Always | Never | IfNotPresent")
+		"Image pull policy. Valid values (case insensitive): Always | Never | IfNotPresent")
 
 	flagset.StringVarP(&p.EnvFile, "env-file", "", "", "Path to a file containing environment variables (e.g. --env-file=/home/knative/service1/env).")
 	flagNames = append(flagNames, "env-file")
