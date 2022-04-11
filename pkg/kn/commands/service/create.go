@@ -265,6 +265,7 @@ func constructService(cmd *cobra.Command, editFlags ConfigurationEditFlags, name
 		},
 	}
 	service.Spec.Template.Spec.Containers = []corev1.Container{{}}
+	service.Spec.Template.Spec.TimeoutSeconds = &editFlags.TimeoutSeconds
 
 	err := editFlags.Apply(&service, nil, cmd)
 	if err != nil {
