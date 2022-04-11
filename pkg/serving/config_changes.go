@@ -216,9 +216,13 @@ func UpdateRevisionTemplateAnnotation(template *servingv1.RevisionTemplateSpec, 
 	return UpdateRevisionTemplateAnnotations(template, map[string]string{annotation: value}, []string{})
 }
 
+// UpdateImagePullPolicy updates the pull policy for the given revision template
 func UpdateImagePullPolicy(template *servingv1.RevisionTemplateSpec, imagePullPolicy string) error {
 	if len(template.Spec.Containers) == 0 {
 		return fmt.Errorf("no container found in spec")
+	}
+	if !isValidPullPolicy(imagePullPolicy) {
+		return fmt.Errorf("invalid --pull-policy %s. Valid arguments: Always|Never|IfNotPresent", imagePullPolicy)
 	}
 	template.Spec.Containers[0].ImagePullPolicy = v1.PullPolicy(imagePullPolicy)
 	return nil
@@ -234,4 +238,8 @@ func updateAnnotations(annotations map[string]string, toUpdate map[string]string
 		delete(annotations, key)
 	}
 	return nil
+}
+
+func isValidPullPolicy(policy string) bool {
+	return policy == string(v1.PullAlways) || policy == string(v1.PullNever) || policy == string(v1.PullIfNotPresent)
 }
