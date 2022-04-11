@@ -151,6 +151,41 @@ func TestPinImageToDigestNilContainerStatus(t *testing.T) {
 	assert.NilError(t, err)
 }
 
+func TestPinImageToDigestNilContainerSpec(t *testing.T) {
+	template, _ := getRevisionTemplate()
+	template.Spec.Containers = nil
+	revision := &servingv1.Revision{}
+	revision.Spec = template.Spec
+	revision.ObjectMeta = template.ObjectMeta
+	revision.Status.ContainerStatuses = nil
+	err := PinImageToDigest(template, revision)
+	assert.ErrorContains(t, err, "no container given in current revision")
+}
+
+func TestPinImageToDigestNilBaseRevisionContainerSpec(t *testing.T) {
+	template, _ := getRevisionTemplate()
+	revision := &servingv1.Revision{}
+	revision.Spec = template.Spec
+	revision.ObjectMeta = template.ObjectMeta
+	revision.Status.ContainerStatuses = nil
+
+	revision.Spec.Containers = nil
+	err := PinImageToDigest(template, revision)
+	assert.ErrorContains(t, err, "no container found in base revision")
+}
+
+func TestPinImageToDigestImageMismatch(t *testing.T) {
+	template, _ := getRevisionTemplate()
+	revision := &servingv1.Revision{}
+	revision.Spec = template.Spec
+	revision.ObjectMeta = template.ObjectMeta
+	revision.Status.ContainerStatuses = nil
+
+	revision.Spec.Containers = []corev1.Container{{Image: "mock-image"}}
+	err := PinImageToDigest(template, revision)
+	assert.ErrorContains(t, err, "contains unexpected image")
+}
+
 func TestUpdateTimestampAnnotation(t *testing.T) {
 	template, _ := getRevisionTemplate()
 	UpdateTimestampAnnotation(template)
