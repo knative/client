@@ -220,7 +220,7 @@ func (p *ConfigurationEditFlags) AddCreateFlags(command *cobra.Command) {
 			"any number of times to set multiple labels.")
 	p.markFlagMakesRevision("label")
 	command.Flags().Int64Var(&p.TimeoutSeconds, "timeout", config.DefaultRevisionTimeoutSeconds,
-		"duration in seconds that the request routing layer will wait for a request delivered to a "+""+
+		"Duration in seconds that the request routing layer will wait for a request delivered to a "+""+
 			"container to begin replying")
 	p.markFlagMakesRevision("timeout")
 }
