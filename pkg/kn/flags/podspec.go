@@ -289,6 +289,14 @@ func (p *PodSpecFlags) ResolvePodSpec(podSpec *corev1.PodSpec, flags *pflag.Flag
 		}
 	}
 
+	if flags.Changed("pull-policy") {
+
+		err = UpdateImagePullPolicy(podSpec, p.ImagePullPolicy)
+		if err != nil {
+			return err
+		}
+	}
+
 	requestsToRemove, limitsToRemove, err := p.Resources.Validate()
 	if err != nil {
 		return err

@@ -22,9 +22,7 @@ import (
 	"strings"
 	"time"
 
-	v1 "k8s.io/api/core/v1"
 	"knative.dev/client/pkg/kn/flags"
-	"knative.dev/client/pkg/util"
 	"knative.dev/pkg/ptr"
 	"knative.dev/serving/pkg/apis/autoscaling"
 	servingconfig "knative.dev/serving/pkg/apis/config"
@@ -216,32 +214,6 @@ func UpdateRevisionTemplateAnnotation(template *servingv1.RevisionTemplateSpec, 
 	return UpdateRevisionTemplateAnnotations(template, map[string]string{annotation: value}, []string{})
 }
 
-// UpdateImagePullPolicy updates the pull policy for the given revision template
-func UpdateImagePullPolicy(template *servingv1.RevisionTemplateSpec, imagePullPolicy string) error {
-	idx := ContainerIndexOfRevisionSpec(&template.Spec)
-	if idx < 0 {
-		return fmt.Errorf("no container found in spec")
-	}
-	if !isValidPullPolicy(imagePullPolicy) {
-		return fmt.Errorf("invalid --pull-policy %s. Valid arguments (case insensitive): Always | Never | IfNotPresent", imagePullPolicy)
-	}
-	template.Spec.Containers[idx].ImagePullPolicy = actualPolicy(imagePullPolicy)
-	return nil
-}
-
-func actualPolicy(policy string) v1.PullPolicy {
-	var ret v1.PullPolicy
-	switch strings.ToLower(policy) {
-	case "always":
-		ret = v1.PullAlways
-	case "ifnotpresent":
-		ret = v1.PullIfNotPresent
-	case "never":
-		ret = v1.PullNever
-	}
-	return ret
-}
-
 // =======================================================================================
 
 func updateAnnotations(annotations map[string]string, toUpdate map[string]string, toRemove []string) error {
@@ -252,9 +224,4 @@ func updateAnnotations(annotations map[string]string, toUpdate map[string]string
 		delete(annotations, key)
 	}
 	return nil
-}
-
-func isValidPullPolicy(policy string) bool {
-	validPolicies := []string{string(v1.PullAlways), string(v1.PullNever), string(v1.PullIfNotPresent)}
-	return util.SliceContainsIgnoreCase(validPolicies, policy)
 }

@@ -268,14 +268,6 @@ func (p *ConfigurationEditFlags) Apply(
 		servinglib.UnsetUserImageAnnotation(template)
 	}
 
-	if cmd.Flags().Changed("pull-policy") {
-
-		err = servinglib.UpdateImagePullPolicy(template, p.PodSpecFlags.ImagePullPolicy)
-		if err != nil {
-			return err
-		}
-	}
-
 	// Deprecated "min-scale" in 0.19, updated to "scale-min"
 	if cmd.Flags().Changed("scale-min") || cmd.Flags().Changed("min-scale") {
 		err = servinglib.UpdateMinScale(template, p.MinScale)

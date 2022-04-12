@@ -892,3 +892,66 @@ containers:
 	assert.Assert(t, err != nil)
 	assert.Assert(t, util.ContainsAll(err.Error(), "no", "file", "directory"))
 }
+
+func TestUpdateImagePullPolicy(t *testing.T) {
+	policyMap := make(map[string][]string)
+	policyMap["Always"] = []string{"always", "ALWAYS", "Always"}
+	policyMap["Never"] = []string{"never", "NEVER", "Never"}
+	policyMap["IfNotPresent"] = []string{"ifnotpresent", "IFNOTPRESENT", "IfNotPresent"}
+
+	for k, values := range policyMap {
+		expectedPodSpec := &corev1.PodSpec{
+			Containers: []corev1.Container{
+				{
+					Image:           "repo/user/imageID:tag",
+					ImagePullPolicy: corev1.PullPolicy(k),
+					Command:         []string{"/app/start"},
+					Args:            []string{"myArg1"},
+					Ports: []corev1.ContainerPort{
+						{
+							ContainerPort: 8080,
+						},
+					},
+				},
+			},
+		}
+		for _, v := range values {
+			podSpec := &corev1.PodSpec{
+				Containers: []corev1.Container{
+					{
+						Image:   "repo/user/imageID:tag",
+						Command: []string{"/app/start"},
+						Args:    []string{"myArg1"},
+						Ports: []corev1.ContainerPort{
+							{
+								ContainerPort: 8080,
+							},
+						},
+					},
+				},
+			}
+			err := UpdateImagePullPolicy(podSpec, v)
+			assert.NilError(t, err, "update pull policy failed")
+			assert.DeepEqual(t, expectedPodSpec, podSpec)
+		}
+	}
+}
+
+func TestUpdateImagePullPolicyError(t *testing.T) {
+	podSpec := &corev1.PodSpec{
+		Containers: []corev1.Container{
+			{
+				Image:   "repo/user/imageID:tag",
+				Command: []string{"/app/start"},
+				Args:    []string{"myArg1"},
+				Ports: []corev1.ContainerPort{
+					{
+						ContainerPort: 8080,
+					},
+				},
+			},
+		},
+	}
+	err := UpdateImagePullPolicy(podSpec, "InvalidPolicy")
+	assert.Assert(t, util.ContainsAll(err.Error(), "invalid --pull-policy", "Valid arguments", "Always | Never | IfNotPresent"))
+}

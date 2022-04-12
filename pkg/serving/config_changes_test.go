@@ -463,27 +463,6 @@ func TestString(t *testing.T) {
 	assert.Equal(t, "unknown", vt.String())
 }
 
-func TestUpdateImagePullPolicy(t *testing.T) {
-	for _, policy := range []corev1.PullPolicy{corev1.PullAlways, corev1.PullNever, corev1.PullIfNotPresent} {
-		template, _ := getRevisionTemplate()
-		err := UpdateImagePullPolicy(template, string(policy))
-		assert.NilError(t, err)
-		assert.Equal(t, template.Spec.Containers[0].ImagePullPolicy, policy)
-	}
-}
-
-func TestUpdateImagePullPolicyError(t *testing.T) {
-	template, _ := getRevisionTemplate()
-	var err error
-	err = UpdateImagePullPolicy(template, "InvalidPolicy")
-	assert.ErrorContains(t, err, "invalid")
-
-	template.Spec.Containers = nil
-	err = UpdateImagePullPolicy(template, "Always")
-	assert.ErrorContains(t, err, "no container found")
-
-}
-
 //
 // =========================================================================================================
 
