@@ -126,12 +126,12 @@ func (c *MockKnServingClient) DeleteService(ctx context.Context, name string, ti
 }
 
 // Wait for a service to become ready, but not longer than provided timeout
-func (sr *ServingRecorder) WaitForService(name interface{}, timeout interface{}, callback interface{}, err error, duration time.Duration) {
-	sr.r.Add("WaitForService", []interface{}{name, timeout, callback}, []interface{}{err, duration})
+func (sr *ServingRecorder) WaitForService(name interface{}, wconfig interface{}, callback interface{}, err error, duration time.Duration) {
+	sr.r.Add("WaitForService", []interface{}{name, wconfig, callback}, []interface{}{err, duration})
 }
 
-func (c *MockKnServingClient) WaitForService(ctx context.Context, name string, timeout, errorWindow time.Duration, msgCallback wait.MessageCallback) (error, time.Duration) {
-	call := c.recorder.r.VerifyCall("WaitForService", name, timeout, errorWindow, msgCallback)
+func (c *MockKnServingClient) WaitForService(ctx context.Context, name string, wconfig WaitConfig, msgCallback wait.MessageCallback) (error, time.Duration) {
+	call := c.recorder.r.VerifyCall("WaitForService", name, wconfig, msgCallback)
 	return mock.ErrorOrNil(call.Result[0]), call.Result[1].(time.Duration)
 }
 

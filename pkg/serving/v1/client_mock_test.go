@@ -40,7 +40,10 @@ func TestMockKnClient(t *testing.T) {
 	recorder.UpdateService(&servingv1.Service{}, false, nil)
 	recorder.ApplyService(&servingv1.Service{}, true, nil)
 	recorder.DeleteService("hello", time.Duration(10)*time.Second, nil)
-	recorder.WaitForService("hello", time.Duration(10)*time.Second, wait.NoopMessageCallback(), nil, 10*time.Second)
+	recorder.WaitForService("hello", WaitConfig{
+		Timeout:     time.Duration(10) * time.Second,
+		ErrorWindow: time.Duration(2) * time.Second,
+	}, wait.NoopMessageCallback(), nil, 10*time.Second)
 	recorder.GetRevision("hello", nil, nil)
 	recorder.ListRevisions(mock.Any(), nil, nil)
 	recorder.CreateRevision(&servingv1.Revision{}, nil)
@@ -60,7 +63,10 @@ func TestMockKnClient(t *testing.T) {
 	client.UpdateService(ctx, &servingv1.Service{})
 	client.ApplyService(ctx, &servingv1.Service{})
 	client.DeleteService(ctx, "hello", time.Duration(10)*time.Second)
-	client.WaitForService(ctx, "hello", time.Duration(10)*time.Second, wait.NoopMessageCallback())
+	client.WaitForService(ctx, "hello", WaitConfig{
+		time.Duration(10) * time.Second,
+		time.Duration(2) * time.Second,
+	}, wait.NoopMessageCallback())
 	client.GetRevision(ctx, "hello")
 	client.ListRevisions(ctx, WithName("blub"))
 	client.CreateRevision(ctx, &servingv1.Revision{})

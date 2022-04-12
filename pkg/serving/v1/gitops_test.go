@@ -69,7 +69,10 @@ func TestGitOpsOperations(t *testing.T) {
 		assert.NilError(t, err)
 	})
 	t.Run("wait for foo service in foo namespace", func(t *testing.T) {
-		err, d := fooclient.WaitForService(context.Background(), "foo", 5*time.Second, nil)
+		err, d := fooclient.WaitForService(context.Background(), "foo", WaitConfig{
+			Timeout:     time.Duration(5) * time.Second,
+			ErrorWindow: time.Duration(2) * time.Second,
+		}, nil)
 		assert.NilError(t, err)
 		assert.Equal(t, 1*time.Second, d)
 	})

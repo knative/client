@@ -199,7 +199,7 @@ func (cl *knServingGitOpsClient) DeleteService(ctx context.Context, serviceName 
 }
 
 // WaitForService always returns success for this client
-func (cl *knServingGitOpsClient) WaitForService(ctx context.Context, name string, timeout, waitWindow time.Duration, msgCallback wait.MessageCallback) (error, time.Duration) {
+func (cl *knServingGitOpsClient) WaitForService(ctx context.Context, name string, wconfig WaitConfig, msgCallback wait.MessageCallback) (error, time.Duration) {
 	return nil, 1 * time.Second
 }
 
