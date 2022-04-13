@@ -158,7 +158,6 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 	editFlags.AddCreateFlags(serviceCreateCommand)
 	trafficFlags.AddTagFlag(serviceCreateCommand)
 	waitFlags.AddConditionWaitFlags(serviceCreateCommand, commands.WaitDefaultTimeout, "create", "service", "ready")
-	waitFlags.AddErrorWindow(serviceCreateCommand, "service", "ready")
 	return serviceCreateCommand
 }
 

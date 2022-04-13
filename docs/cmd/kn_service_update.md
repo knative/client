@@ -89,6 +89,7 @@ kn service update NAME
       --volume stringArray                Add a volume from a ConfigMap (prefix cm: or config-map:) or a Secret (prefix secret: or sc:). Example: --volume myvolume=cm:myconfigmap or --volume myvolume=secret:mysecret. You can use this flag multiple times. To unset a ConfigMap/Secret reference, append "-" to the name, e.g. --volume myvolume-.
       --wait                              Wait for 'service update' operation to be completed. (default true)
       --wait-timeout int                  Seconds to wait before giving up on waiting for service to be ready. (default 600)
+      --wait-window int                   Seconds to wait for service to be ready after a false ready condition is returned (default 2)
 ```
 
 ### Options inherited from parent commands

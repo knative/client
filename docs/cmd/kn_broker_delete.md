@@ -25,6 +25,7 @@ kn broker delete NAME
       --no-wait            Do not wait for 'broker delete' operation to be completed. (default true)
       --wait               Wait for 'broker delete' operation to be completed.
       --wait-timeout int   Seconds to wait before giving up on waiting for broker to be deleted. (default 600)
+      --wait-window int    Seconds to wait for broker to be deleted after a false ready condition is returned (default 2)
 ```
 
 ### Options inherited from parent commands

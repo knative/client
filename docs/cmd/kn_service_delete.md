@@ -35,6 +35,7 @@ kn service delete NAME [NAME ...]
       --target string      Work on local directory instead of a remote cluster (experimental)
       --wait               Wait for 'service delete' operation to be completed.
       --wait-timeout int   Seconds to wait before giving up on waiting for service to be deleted. (default 600)
+      --wait-window int    Seconds to wait for service to be deleted after a false ready condition is returned (default 2)
 ```
 
 ### Options inherited from parent commands

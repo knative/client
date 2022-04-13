@@ -51,11 +51,7 @@ func (p *WaitFlags) AddConditionWaitFlags(command *cobra.Command, waitTimeoutDef
 	knflags.AddBothBoolFlagsUnhidden(command.Flags(), &p.Wait, "wait", "", waitDefault, waitUsage)
 	timeoutUsage := fmt.Sprintf("Seconds to wait before giving up on waiting for %s to be %s.", what, until)
 	command.Flags().IntVar(&p.TimeoutInSeconds, "wait-timeout", waitTimeoutDefault, timeoutUsage)
-}
 
-// AddErrorWindow will add a flag to configure the error window, that is,
-// the time to wait between intermediate false ready conditions
-func (p *WaitFlags) AddErrorWindow(command *cobra.Command, what, until string) {
 	windowUsage := fmt.Sprintf("Seconds to wait for %s to be %s after a false ready condition is returned", what, until)
 	command.Flags().IntVar(&p.ErrorWindowInSeconds, "wait-window", 2, windowUsage)
 }
