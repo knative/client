@@ -19,7 +19,6 @@ import (
 	"time"
 
 	"knative.dev/serving/pkg/apis/autoscaling"
-	"knative.dev/serving/pkg/apis/config"
 
 	"gotest.tools/v3/assert"
 	corev1 "k8s.io/api/core/v1"
@@ -480,8 +479,6 @@ func getService(name string) *servingv1.Service {
 		},
 	}}
 
-	var defaultTimeout int64 = config.DefaultRevisionTimeoutSeconds
-	service.Spec.Template.Spec.TimeoutSeconds = &defaultTimeout
 	return service
 }
 
