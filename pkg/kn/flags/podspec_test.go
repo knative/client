@@ -292,6 +292,28 @@ func TestPodSpecResolveReturnError(t *testing.T) {
 	assert.Assert(t, util.ContainsAll(out, "Invalid", "mount"))
 }
 
+func TestPodSpecResolveReturnErrorPullPolicy(t *testing.T) {
+	outBuf := bytes.Buffer{}
+	flags := &PodSpecFlags{}
+	inputArgs := []string{"--pull-policy", "invalidPolicy"}
+	testCmd := &cobra.Command{
+		Use: "test",
+		Run: func(cmd *cobra.Command, args []string) {
+			podSpec := &corev1.PodSpec{Containers: []corev1.Container{{}}}
+			err := flags.ResolvePodSpec(podSpec, cmd.Flags(), inputArgs)
+			fmt.Fprint(cmd.OutOrStdout(), "Return error: ", err)
+		},
+	}
+	testCmd.SetOut(&outBuf)
+
+	testCmd.SetArgs(inputArgs)
+	flags.AddFlags(testCmd.Flags())
+	flags.AddCreateFlags(testCmd.Flags())
+	testCmd.Execute()
+	out := outBuf.String()
+	assert.Assert(t, util.ContainsAll(out, "invalid --pull-policy", "Always | Never | IfNotPresent"))
+}
+
 func TestPodSpecResolveWithEnvFile(t *testing.T) {
 	file, err := ioutil.TempFile("", "envfile.env")
 	assert.NilError(t, err)
