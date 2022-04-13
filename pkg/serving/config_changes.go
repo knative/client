@@ -22,12 +22,11 @@ import (
 	"strings"
 	"time"
 
+	"knative.dev/client/pkg/kn/flags"
 	"knative.dev/pkg/ptr"
 	"knative.dev/serving/pkg/apis/autoscaling"
 	servingconfig "knative.dev/serving/pkg/apis/config"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
-
-	"knative.dev/client/pkg/kn/flags"
 )
 
 // VolumeSourceType is a type standing for enumeration of ConfigMap and Secret

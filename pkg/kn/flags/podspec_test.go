@@ -70,13 +70,14 @@ func TestPodSpecResolve(t *testing.T) {
 		"--port", "8080", "--limit", "cpu=1000m", "--limit", "memory=1024Mi",
 		"--cmd", "/app/start", "--arg", "myArg1", "--service-account", "foo-bar-account",
 		"--mount", "/mount/path=volume-name", "--volume", "volume-name=cm:config-map-name",
-		"--env-from", "config-map:config-map-name", "--user", "1001"}
+		"--env-from", "config-map:config-map-name", "--user", "1001", "--pull-policy", "always"}
 	expectedPodSpec := corev1.PodSpec{
 		Containers: []corev1.Container{
 			{
-				Image:   "repo/user/imageID:tag",
-				Command: []string{"/app/start"},
-				Args:    []string{"myArg1"},
+				Image:           "repo/user/imageID:tag",
+				ImagePullPolicy: "Always",
+				Command:         []string{"/app/start"},
+				Args:            []string{"myArg1"},
 				Ports: []corev1.ContainerPort{
 					{
 						ContainerPort: 8080,
@@ -289,6 +290,28 @@ func TestPodSpecResolveReturnError(t *testing.T) {
 	testCmd.Execute()
 	out := outBuf.String()
 	assert.Assert(t, util.ContainsAll(out, "Invalid", "mount"))
+}
+
+func TestPodSpecResolveReturnErrorPullPolicy(t *testing.T) {
+	outBuf := bytes.Buffer{}
+	flags := &PodSpecFlags{}
+	inputArgs := []string{"--pull-policy", "invalidPolicy"}
+	testCmd := &cobra.Command{
+		Use: "test",
+		Run: func(cmd *cobra.Command, args []string) {
+			podSpec := &corev1.PodSpec{Containers: []corev1.Container{{}}}
+			err := flags.ResolvePodSpec(podSpec, cmd.Flags(), inputArgs)
+			fmt.Fprint(cmd.OutOrStdout(), "Return error: ", err)
+		},
+	}
+	testCmd.SetOut(&outBuf)
+
+	testCmd.SetArgs(inputArgs)
+	flags.AddFlags(testCmd.Flags())
+	flags.AddCreateFlags(testCmd.Flags())
+	testCmd.Execute()
+	out := outBuf.String()
+	assert.Assert(t, util.ContainsAll(out, "invalid --pull-policy", "Always | Never | IfNotPresent"))
 }
 
 func TestPodSpecResolveWithEnvFile(t *testing.T) {

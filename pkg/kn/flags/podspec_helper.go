@@ -23,6 +23,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/yaml"
 
 	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"knative.dev/client/pkg/util"
 )
@@ -299,6 +300,35 @@ func UpdateContainers(spec *corev1.PodSpec, containers []corev1.Container) {
 			}
 		}
 	}
+}
+
+// UpdateImagePullPolicy updates the pull policy for the given revision template
+func UpdateImagePullPolicy(spec *corev1.PodSpec, imagePullPolicy string) error {
+	container := containerOfPodSpec(spec)
+
+	if !isValidPullPolicy(imagePullPolicy) {
+		return fmt.Errorf("invalid --pull-policy %s. Valid arguments (case insensitive): Always | Never | IfNotPresent", imagePullPolicy)
+	}
+	container.ImagePullPolicy = getPolicy(imagePullPolicy)
+	return nil
+}
+
+func getPolicy(policy string) v1.PullPolicy {
+	var ret v1.PullPolicy
+	switch strings.ToLower(policy) {
+	case "always":
+		ret = v1.PullAlways
+	case "ifnotpresent":
+		ret = v1.PullIfNotPresent
+	case "never":
+		ret = v1.PullNever
+	}
+	return ret
+}
+
+func isValidPullPolicy(policy string) bool {
+	validPolicies := []string{string(v1.PullAlways), string(v1.PullNever), string(v1.PullIfNotPresent)}
+	return util.SliceContainsIgnoreCase(validPolicies, policy)
 }
 
 // =======================================================================================
