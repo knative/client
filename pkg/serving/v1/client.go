@@ -48,6 +48,11 @@ import (
 // or an error
 type ServiceUpdateFunc func(origService *servingv1.Service) (*servingv1.Service, error)
 
+type WaitConfig struct {
+	Timeout     time.Duration
+	ErrorWindow time.Duration
+}
+
 // Kn interface to serving. All methods are relative to the
 // namespace specified during construction
 type KnServingClient interface {
@@ -89,7 +94,7 @@ type KnServingClient interface {
 
 	// Wait for a service to become ready, but not longer than provided timeout.
 	// Return error and how long has been waited
-	WaitForService(ctx context.Context, name string, timeout time.Duration, msgCallback wait.MessageCallback) (error, time.Duration)
+	WaitForService(ctx context.Context, name string, wconfig WaitConfig, msgCallback wait.MessageCallback) (error, time.Duration)
 
 	// Get a configuration by name
 	GetConfiguration(ctx context.Context, name string) (*servingv1.Configuration, error)
@@ -351,17 +356,17 @@ func (cl *knServingClient) deleteService(ctx context.Context, serviceName string
 }
 
 // Wait for a service to become ready, but not longer than provided timeout
-func (cl *knServingClient) WaitForService(ctx context.Context, name string, timeout time.Duration, msgCallback wait.MessageCallback) (error, time.Duration) {
+func (cl *knServingClient) WaitForService(ctx context.Context, name string, wconfig WaitConfig, msgCallback wait.MessageCallback) (error, time.Duration) {
 	waitForReady := wait.NewWaitForReady("service", cl.WatchServiceWithVersion, serviceConditionExtractor)
 
 	service, err := cl.GetService(ctx, name)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
-			return waitForReady.Wait(ctx, name, "", wait.Options{Timeout: &timeout}, msgCallback)
+			return waitForReady.Wait(ctx, name, "", wait.Options{Timeout: &wconfig.Timeout, ErrorWindow: &wconfig.ErrorWindow}, msgCallback)
 		}
 		return err, 0
 	}
-	return waitForReady.Wait(ctx, name, service.ResourceVersion, wait.Options{Timeout: &timeout}, msgCallback)
+	return waitForReady.Wait(ctx, name, service.ResourceVersion, wait.Options{Timeout: &wconfig.Timeout, ErrorWindow: &wconfig.ErrorWindow}, msgCallback)
 }
 
 // Get the configuration for a service

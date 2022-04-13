@@ -25,6 +25,7 @@ kn service import FILENAME
       --no-wait            Do not wait for 'service import' operation to be completed.
       --wait               Wait for 'service import' operation to be completed. (default true)
       --wait-timeout int   Seconds to wait before giving up on waiting for service to be ready. (default 600)
+      --wait-window int    Seconds to wait for service to be ready after a false ready condition is returned (default 2)
 ```
 
 ### Options inherited from parent commands

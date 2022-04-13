@@ -783,17 +783,26 @@ func TestWaitForService(t *testing.T) {
 		})
 
 	t.Run("wait on a service to become ready with success", func(t *testing.T) {
-		err, duration := client.WaitForService(context.Background(), serviceName, 60*time.Second, wait.NoopMessageCallback())
+		err, duration := client.WaitForService(context.Background(), serviceName, WaitConfig{
+			Timeout:     time.Duration(10) * time.Second,
+			ErrorWindow: time.Duration(2) * time.Second,
+		}, wait.NoopMessageCallback())
 		assert.NilError(t, err)
 		assert.Assert(t, duration > 0)
 	})
 	t.Run("wait on a service to become ready with not found error", func(t *testing.T) {
-		err, duration := client.WaitForService(context.Background(), notFoundServiceName, 60*time.Second, wait.NoopMessageCallback())
+		err, duration := client.WaitForService(context.Background(), notFoundServiceName, WaitConfig{
+			Timeout:     time.Duration(10) * time.Second,
+			ErrorWindow: time.Duration(2) * time.Second,
+		}, wait.NoopMessageCallback())
 		assert.NilError(t, err)
 		assert.Assert(t, duration > 0)
 	})
 	t.Run("wait on a service to become ready with internal error", func(t *testing.T) {
-		err, duration := client.WaitForService(context.Background(), internalErrorServiceName, 60*time.Second, wait.NoopMessageCallback())
+		err, duration := client.WaitForService(context.Background(), internalErrorServiceName, WaitConfig{
+			Timeout:     time.Duration(10) * time.Second,
+			ErrorWindow: time.Duration(2) * time.Second,
+		}, wait.NoopMessageCallback())
 		assert.ErrorType(t, err, apierrors.IsInternalError)
 		assert.Assert(t, duration == 0)
 	})

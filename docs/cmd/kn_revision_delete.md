@@ -30,6 +30,7 @@ kn revision delete NAME [NAME ...]
       --prune-all          Remove all unreferenced revisions in a namespace.
       --wait               Wait for 'revision delete' operation to be completed.
       --wait-timeout int   Seconds to wait before giving up on waiting for revision to be deleted. (default 600)
+      --wait-window int    Seconds to wait for revision to be deleted after a false ready condition is returned (default 2)
 ```
 
 ### Options inherited from parent commands

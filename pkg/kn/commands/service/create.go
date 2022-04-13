@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
 
 	"knative.dev/client/pkg/config"
 	"knative.dev/client/pkg/kn/commands"
@@ -187,7 +188,11 @@ func waitIfRequested(ctx context.Context, client clientservingv1.KnServingClient
 		return nil
 	}
 	fmt.Fprintf(out, "%s service '%s' in namespace '%s':\n", verbDoing, serviceName, client.Namespace())
-	return waitForServiceToGetReady(ctx, client, serviceName, waitFlags.TimeoutInSeconds, verbDone, out)
+	wconfig := clientservingv1.WaitConfig{
+		Timeout:     time.Duration(waitFlags.TimeoutInSeconds) * time.Second,
+		ErrorWindow: time.Duration(waitFlags.ErrorWindowInSeconds) * time.Second,
+	}
+	return waitForServiceToGetReady(ctx, client, serviceName, wconfig, verbDone, out)
 }
 
 func prepareAndUpdateService(ctx context.Context, client clientservingv1.KnServingClient, service *servingv1.Service) (bool, error) {
@@ -220,9 +225,9 @@ func prepareAndUpdateService(ctx context.Context, client clientservingv1.KnServi
 
 }
 
-func waitForServiceToGetReady(ctx context.Context, client clientservingv1.KnServingClient, name string, timeout int, verbDone string, out io.Writer) error {
+func waitForServiceToGetReady(ctx context.Context, client clientservingv1.KnServingClient, name string, wconfig clientservingv1.WaitConfig, verbDone string, out io.Writer) error {
 	fmt.Fprintln(out, "")
-	err := waitForService(ctx, client, name, out, timeout)
+	err := waitForService(ctx, client, name, out, wconfig)
 	if err != nil {
 		return err
 	}

@@ -33,6 +33,8 @@ type WaitFlags struct {
 	TimeoutInSeconds int
 	// If set then apply resources and wait for completion
 	Wait bool
+	// Duration in seconds for waiting between intermediate false ready conditions
+	ErrorWindowInSeconds int
 }
 
 // Add flags which influence the wait/no-wait behaviour when creating or updating
@@ -49,4 +51,7 @@ func (p *WaitFlags) AddConditionWaitFlags(command *cobra.Command, waitTimeoutDef
 	knflags.AddBothBoolFlagsUnhidden(command.Flags(), &p.Wait, "wait", "", waitDefault, waitUsage)
 	timeoutUsage := fmt.Sprintf("Seconds to wait before giving up on waiting for %s to be %s.", what, until)
 	command.Flags().IntVar(&p.TimeoutInSeconds, "wait-timeout", waitTimeoutDefault, timeoutUsage)
+
+	windowUsage := fmt.Sprintf("Seconds to wait for %s to be %s after a false ready condition is returned", what, until)
+	command.Flags().IntVar(&p.ErrorWindowInSeconds, "wait-window", 2, windowUsage)
 }

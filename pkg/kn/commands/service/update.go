@@ -17,6 +17,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/spf13/cobra"
 	"knative.dev/client/pkg/config"
@@ -135,7 +136,11 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 			if waitFlags.Wait && targetFlag == "" {
 				fmt.Fprintf(out, "Updating Service '%s' in namespace '%s':\n", args[0], namespace)
 				fmt.Fprintln(out, "")
-				err := waitForService(cmd.Context(), client, name, out, waitFlags.TimeoutInSeconds)
+				wconfig := clientservingv1.WaitConfig{
+					Timeout:     time.Duration(waitFlags.TimeoutInSeconds) * time.Second,
+					ErrorWindow: time.Duration(waitFlags.ErrorWindowInSeconds) * time.Second,
+				}
+				err := waitForService(cmd.Context(), client, name, out, wconfig)
 				if err != nil {
 					return err
 				}
