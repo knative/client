@@ -478,6 +478,7 @@ func getService(name string) *servingv1.Service {
 			Requests: corev1.ResourceList{},
 		},
 	}}
+
 	return service
 }
 

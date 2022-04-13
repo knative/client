@@ -193,6 +193,17 @@ func TestServiceCreateCommand(t *testing.T) {
 	assert.DeepEqual(t, template.Spec.Containers[0].Command, []string{"sh", "/app/start.sh"})
 }
 
+func TestServiceCreateTimeout(t *testing.T) {
+	action, created, _, err := fakeServiceCreate([]string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz", "--timeout", "2"}, false)
+	assert.NilError(t, err)
+	assert.Assert(t, action.Matches("create", "services"))
+
+	timeoutSeconds := *created.Spec.Template.Spec.TimeoutSeconds
+	assert.NilError(t, err)
+	assert.DeepEqual(t, int64(2), timeoutSeconds)
+}
+
 func TestServiceCreateArg(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
