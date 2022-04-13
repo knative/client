@@ -42,6 +42,7 @@ type ConfigurationEditFlags struct {
 	MinScale            int
 	MaxScale            int
 	ScaleTarget         int
+	ScaleMetric         string
 	ConcurrencyLimit    int
 	ScaleUtilization    int
 	ScaleWindow         string
@@ -92,6 +93,9 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 
 	command.Flags().IntVar(&p.MaxScale, "scale-max", 0, "Maximum number of replicas.")
 	p.markFlagMakesRevision("scale-max")
+
+	command.Flags().StringVar(&p.ScaleMetric, "scale-metric", "", "Metric the PodAutoscaler should scale on.")
+	p.markFlagMakesRevision("scale-metric")
 
 	// DEPRECATED since 1.0
 	command.Flags().StringVar(&p.ScaleWindow, "autoscale-window", "", "Deprecated option, please use --scale-window")
@@ -345,6 +349,10 @@ func (p *ConfigurationEditFlags) Apply(
 		if err != nil {
 			return err
 		}
+	}
+
+	if cmd.Flags().Changed("scale-metric") {
+		servinglib.UpdateScaleMetric(template, p.ScaleMetric)
 	}
 
 	if cmd.Flags().Changed("concurrency-limit") {
