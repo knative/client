@@ -11,6 +11,28 @@
 |
 | https://github.com/knative/client/pull/[#]
 ////
+## v1.4.0
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🎁
+| Added --timeout flag to service create, update, apply
+| https://github.com/knative/client/pull/1643[#1643]
+
+| 🎁
+| Added --pull-policy flag to service create, update, apply
+| https://github.com/knative/client/pull/1644[#1644]
+
+| 🎁
+| Added --wait-window flag to configure error window between errors during service create
+| https://github.com/knative/client/pull/1645[#1645]
+
+| 🎁
+| Added --scale-metric flag to configure metric name
+| https://github.com/knative/client/pull/1653[#1653]
+
+|===
 ## v1.3.0 (2022-03-08)
 [cols="1,10,3", options="header", width="100%"]
 |===
