@@ -47,3 +47,16 @@ func TestApplyPullPolicyFlagError(t *testing.T) {
 	err := editFlags.Apply(&svc, nil, cmd)
 	assert.Assert(t, util.ContainsAll(err.Error(), "invalid", "InvalidPolicy", "Valid arguments (case insensitive): Always | Never | IfNotPresent"))
 }
+
+func TestScaleMetric(t *testing.T) {
+	var editFlags ConfigurationEditFlags
+	knParams := &commands.KnParams{}
+	cmd, _, _ := commands.CreateTestKnCommand(NewServiceCreateCommand(knParams), knParams)
+
+	editFlags.AddCreateFlags(cmd)
+	svc := createTestService("test-svc", []string{"test-svc-00001", "test-svc-00002"}, goodConditions())
+	cmd.SetArgs([]string{"--scale-metric", "rps"})
+	cmd.Execute()
+	err := editFlags.Apply(&svc, nil, cmd)
+	assert.NilError(t, err)
+}
