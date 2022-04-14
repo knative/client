@@ -6,6 +6,8 @@ require (
 	github.com/emicklei/go-restful v2.15.0+incompatible // indirect
 	github.com/google/go-cmp v0.5.7
 	github.com/google/go-containerregistry v0.8.1-0.20220219142810-1571d7fdc46e // indirect
+	github.com/hashicorp/golang-lru v0.5.4
+	github.com/hashicorp/hcl v1.0.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/spf13/afero v1.8.0 // indirect
 	github.com/spf13/cobra v1.3.0
@@ -70,8 +72,6 @@ require (
 	github.com/googleapis/gnostic v0.5.5 // indirect
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
-	github.com/hashicorp/golang-lru v0.5.4 // indirect
-	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
