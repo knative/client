@@ -136,6 +136,54 @@ func TestPodSpecResolve(t *testing.T) {
 	testCmd.Execute()
 }
 
+func TestPodSpecMountResolveSubPath(t *testing.T) {
+	args := map[string]*MountInfo{
+		"/mydir=cm:my-cm": {
+			VolumeName: "my-cm",
+		},
+		"/mydir=sc:my-sec": {
+			VolumeName: "my-sec",
+		},
+		"/mydir=myvol": {
+			VolumeName: "myvol",
+		},
+
+		"/mydir=cm:my-cm/subpath/to/mount": {
+			VolumeName: "my-cm",
+			SubPath:    "subpath/to/mount",
+		},
+		"/mydir=sc:my-sec/subpath/to/mount": {
+			VolumeName: "my-sec",
+			SubPath:    "subpath/to/mount",
+		},
+		"/mydir=myvol/subpath/to/mount": {
+			VolumeName: "myvol",
+			SubPath:    "subpath/to/mount",
+		},
+	}
+
+	for arg, mountInfo := range args {
+		outBuf := bytes.Buffer{}
+		flags := &PodSpecFlags{}
+		inputArgs := append([]string{"--image", "repo/user/imageID:tag", "--mount"}, arg)
+		testCmd := &cobra.Command{
+			Use: "test",
+			Run: func(cmd *cobra.Command, args []string) {
+				podSpec := &corev1.PodSpec{Containers: []corev1.Container{{}}}
+				err := flags.ResolvePodSpec(podSpec, cmd.Flags(), inputArgs)
+				assert.NilError(t, err)
+				assert.Equal(t, podSpec.Containers[0].VolumeMounts[0].SubPath, mountInfo.SubPath)
+			},
+		}
+		testCmd.SetOut(&outBuf)
+
+		testCmd.SetArgs(inputArgs)
+		flags.AddFlags(testCmd.Flags())
+		flags.AddCreateFlags(testCmd.Flags())
+		testCmd.Execute()
+	}
+}
+
 func TestPodSpecResolveContainers(t *testing.T) {
 	rawInput := `
 containers:
