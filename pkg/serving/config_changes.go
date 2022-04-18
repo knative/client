@@ -214,6 +214,14 @@ func UpdateRevisionTemplateAnnotation(template *servingv1.RevisionTemplateSpec, 
 	return UpdateRevisionTemplateAnnotations(template, map[string]string{annotation: value}, []string{})
 }
 
+// UpdateScaleMetric updates the metric annotation for the given Revision Template
+func UpdateScaleMetric(template *servingv1.RevisionTemplateSpec, metric string) {
+	if template.Annotations == nil {
+		template.Annotations = make(map[string]string)
+	}
+	template.Annotations[autoscaling.MetricAnnotationKey] = metric
+}
+
 // =======================================================================================
 
 func updateAnnotations(annotations map[string]string, toUpdate map[string]string, toRemove []string) error {

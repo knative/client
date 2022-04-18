@@ -42,6 +42,7 @@ type ConfigurationEditFlags struct {
 	MinScale            int
 	MaxScale            int
 	ScaleTarget         int
+	ScaleMetric         string
 	ConcurrencyLimit    int
 	ScaleUtilization    int
 	ScaleWindow         string
@@ -93,6 +94,10 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	command.Flags().IntVar(&p.MaxScale, "scale-max", 0, "Maximum number of replicas.")
 	p.markFlagMakesRevision("scale-max")
 
+	command.Flags().StringVar(&p.ScaleMetric, "scale-metric", "", "Set the name of the metric the PodAutoscaler should scale on. "+
+		"Example: --scale-metric rps (to scale on rps) or --scale-metric concurrency (to scale on concurrency). The default metric is concurrency.")
+	p.markFlagMakesRevision("scale-metric")
+
 	// DEPRECATED since 1.0
 	command.Flags().StringVar(&p.ScaleWindow, "autoscale-window", "", "Deprecated option, please use --scale-window")
 	p.markFlagMakesRevision("autoscale-window")
@@ -111,8 +116,10 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	command.Flags().MarkHidden("concurrency-target")
 
 	command.Flags().IntVar(&p.ScaleTarget, "scale-target", 0,
-		"Recommendation for when to scale up based on the concurrent number of incoming request. "+
-			"Defaults to --concurrency-limit when given.")
+		"Recommendation for what metric value the PodAutoscaler should attempt to maintain. "+
+			"Use with --scale-metric flag to configure the metric name for which the target value should be maintained. "+
+			"Default metric name is concurrency. "+
+			"The flag defaults to --concurrency-limit when given.")
 	p.markFlagMakesRevision("scale-target")
 
 	command.Flags().IntVar(&p.ConcurrencyLimit, "concurrency-limit", 0,
@@ -345,6 +352,10 @@ func (p *ConfigurationEditFlags) Apply(
 		if err != nil {
 			return err
 		}
+	}
+
+	if cmd.Flags().Changed("scale-metric") {
+		servinglib.UpdateScaleMetric(template, p.ScaleMetric)
 	}
 
 	if cmd.Flags().Changed("concurrency-limit") {

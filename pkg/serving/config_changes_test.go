@@ -456,6 +456,65 @@ func TestUpdateAnnotationsRemoveExisting(t *testing.T) {
 	assert.DeepEqual(t, expected, actual)
 }
 
+func TestUpdateScaleMetric(t *testing.T) {
+	type args struct {
+		template *servingv1.RevisionTemplateSpec
+		metric   string
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			"Update scale metric to rps",
+			args{
+				&servingv1.RevisionTemplateSpec{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "template-foo",
+						Namespace: "default",
+						Annotations: map[string]string{
+							autoscaling.MetricAnnotationKey: "rps",
+						},
+					},
+					Spec: servingv1.RevisionSpec{
+						PodSpec: corev1.PodSpec{
+							Containers: []corev1.Container{{}},
+						},
+					},
+				},
+				"rps",
+			},
+		},
+		{
+			"Update scale metric to cpu",
+			args{
+				&servingv1.RevisionTemplateSpec{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "template-foo",
+						Namespace: "default",
+						Annotations: map[string]string{
+							autoscaling.MetricAnnotationKey: "concurrency",
+						},
+					},
+					Spec: servingv1.RevisionSpec{
+						PodSpec: corev1.PodSpec{
+							Containers: []corev1.Container{{}},
+						},
+					},
+				},
+				"concurrency",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			actualTemplate, _ := getRevisionTemplate()
+			UpdateScaleMetric(actualTemplate, tt.args.metric)
+			assert.DeepEqual(t, tt.args.template, actualTemplate)
+		})
+	}
+}
+
 func TestString(t *testing.T) {
 	vt := ConfigMapVolumeSourceType
 	assert.Equal(t, "config-map", vt.String())

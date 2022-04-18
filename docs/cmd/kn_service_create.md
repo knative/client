@@ -88,8 +88,9 @@ kn service create NAME --image IMAGE
       --scale string                      Set the Minimum and Maximum number of replicas. You can use this flag to set both to a single value, or set a range with min/max values, or set either min or max values without specifying the other. Example: --scale 5 (scale-min = 5, scale-max = 5) or --scale 1..5 (scale-min = 1, scale-max = 5) or --scale 1.. (scale-min = 1, scale-max = unchanged) or --scale ..5 (scale-min = unchanged, scale-max = 5)
       --scale-init int                    Initial number of replicas with which a service starts. Can be 0 or a positive integer.
       --scale-max int                     Maximum number of replicas.
+      --scale-metric string               Set the name of the metric the PodAutoscaler should scale on. Example: --scale-metric rps (to scale on rps) or --scale-metric concurrency (to scale on concurrency). The default metric is concurrency.
       --scale-min int                     Minimum number of replicas.
-      --scale-target int                  Recommendation for when to scale up based on the concurrent number of incoming request. Defaults to --concurrency-limit when given.
+      --scale-target int                  Recommendation for what metric value the PodAutoscaler should attempt to maintain. Use with --scale-metric flag to configure the metric name for which the target value should be maintained. Default metric name is concurrency. The flag defaults to --concurrency-limit when given.
       --scale-utilization int             Percentage of concurrent requests utilization before scaling up. (default 70)
       --scale-window string               Duration to look back for making auto-scaling decisions. The service is scaled to zero if no request was received in during that time. (eg: 10s)
       --service-account string            Service account name to set. An empty argument ("") clears the service account. The referenced service account must exist in the service's namespace.
