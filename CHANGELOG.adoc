@@ -32,6 +32,10 @@
 | Added --scale-metric flag to configure metric name
 | https://github.com/knative/client/pull/1653[#1653]
 
+| 🎁
+| Added subpath functionality to --mount flag
+| https://github.com/knative/client/pull/1655[#1655]
+
 |===
 ## v1.3.0 (2022-03-08)
 [cols="1,10,3", options="header", width="100%"]
