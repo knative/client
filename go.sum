@@ -663,6 +663,8 @@ github.com/google/go-containerregistry v0.8.0/go.mod h1:wW5v71NHGnQyb4k+gSshjxid
 github.com/google/go-containerregistry v0.8.1-0.20220110151055-a61fd0a8e2bb/go.mod h1:wW5v71NHGnQyb4k+gSshjxidrC7lN33MdWEn+Mz9TsI=
 github.com/google/go-containerregistry v0.8.1-0.20220219142810-1571d7fdc46e h1:1KGep3inUBSyCDbpk4noN5CfemOpEpQPPnN7UbBrdCU=
 github.com/google/go-containerregistry v0.8.1-0.20220219142810-1571d7fdc46e/go.mod h1:MMbnwuvLeZJRPqhTs8jDWc8xGlOs5YCGx1TSc/qdExk=
+github.com/google/go-containerregistry v0.8.1-0.20220414143355-892d7a808387 h1:GWICy4b02s8EA1M9H5krRQ48BKpIHO5LtBBm2BQLhx0=
+github.com/google/go-containerregistry v0.8.1-0.20220414143355-892d7a808387/go.mod h1:eTLvLZaEe2FoQsb25t7BLxQQryyrwHTzFfwxN87mhAw=
 github.com/google/go-containerregistry/pkg/authn/k8schain v0.0.0-20220328141311-efc62d802606/go.mod h1:gm/Zjh0iiPBfwgDIYgHJCRxaGzBZu1njCgwX1EmC1Tw=
 github.com/google/go-containerregistry/pkg/authn/kubernetes v0.0.0-20220301182634-bfe2ffc6b6bd/go.mod h1:MO/Ilc3XTxy/Pi8aMXEiRUl6icOqResFyhSFCLlqtR8=
 github.com/google/go-github/v27 v27.0.6/go.mod h1:/0Gr8pJ55COkmv+S/yPKCczSkUPIM/LnFyubufRNIS0=
@@ -1178,6 +1180,7 @@ github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFR
 github.com/rogpeppe/go-internal v1.6.2/go.mod h1:xXDCJY+GAPziupqXw64V24skbSoqbTEfhy4qGm1nDQc=
 github.com/rs/cors v1.7.0/go.mod h1:gFx+x8UowdsKA9AchylcLynDq+nNFfI8FkUZdN/jGCU=
 github.com/rs/dnscache v0.0.0-20211102005908-e0241e321417/go.mod h1:qe5TWALJ8/a1Lqznoc5BDHpYX/8HU60Hm2AwRmqzxqA=
+github.com/russross/blackfriday v1.5.2 h1:HyvC0ARfnZBqnXwABFeSZHpKvJHJJfPz81GNueLj0oo=
 github.com/russross/blackfriday v1.5.2/go.mod h1:JO/DiYxRf+HjHt06OyowR9PTA263kcR/rfWxYHBV53g=
 github.com/russross/blackfriday v1.6.0 h1:KqfZb0pUVN2lYqZUYRddxF4OR8ZMURnJIG5Y3VRLtww=
 github.com/russross/blackfriday v1.6.0/go.mod h1:ti0ldHuxg49ri4ksnFxlkCfN+hvslNlmVHqNRXXJNAY=
@@ -1999,6 +2002,8 @@ google.golang.org/genproto v0.0.0-20220207164111-0872dc986b00/go.mod h1:5CzLGKJ6
 google.golang.org/genproto v0.0.0-20220218161850-94dd64e39d7c/go.mod h1:kGP+zUP2Ddo0ayMi4YuN7C3WZyJvGLZRh8Z5wnAqvEI=
 google.golang.org/genproto v0.0.0-20220222213610-43724f9ea8cf h1:SVYXkUz2yZS9FWb2Gm8ivSlbNQzL2Z/NpPKE3RG2jWk=
 google.golang.org/genproto v0.0.0-20220222213610-43724f9ea8cf/go.mod h1:kGP+zUP2Ddo0ayMi4YuN7C3WZyJvGLZRh8Z5wnAqvEI=
+google.golang.org/genproto v0.0.0-20220301145929-1ac2ace0dbf7 h1:6fWaU2vz6/23eNdMU1V00ZPO5AZFQ2SLsO6r/z0Z2H0=
+google.golang.org/genproto v0.0.0-20220301145929-1ac2ace0dbf7/go.mod h1:kGP+zUP2Ddo0ayMi4YuN7C3WZyJvGLZRh8Z5wnAqvEI=
 google.golang.org/grpc v0.0.0-20160317175043-d3ddb4469d5a/go.mod h1:yo6s7OP7yaDglbqo1J04qKzAhqBH6lvTonzMVmEdcZw=
 google.golang.org/grpc v1.8.0/go.mod h1:yo6s7OP7yaDglbqo1J04qKzAhqBH6lvTonzMVmEdcZw=
 google.golang.org/grpc v1.19.0/go.mod h1:mqu4LbDTu4XGKhr4mRzUsmM4RtVoemTSY81AxZiDr8c=
@@ -2184,6 +2189,8 @@ k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9/go.mod h1:jPW/WVKK9YHAvNhRxK0md/
 knative.dev/caching v0.0.0-20220412015107-318083f279be/go.mod h1:FqsgCB99NLJq1c8ZtpHYAb/3Oalgko9i4nF45IiKPio=
 knative.dev/eventing v0.30.1-0.20220413070808-1b90ef335226 h1:InSxj41bc1REMpsz9YR8IwxgO5KpjosBgd1Pwtzwf5k=
 knative.dev/eventing v0.30.1-0.20220413070808-1b90ef335226/go.mod h1:C1vLgthI00ev8zSqToU/sVgI6LI0ZQgezs0GX9uZ8l8=
+knative.dev/eventing v0.30.1-0.20220415141711-ff55a456c3f9 h1:Cf5i43bXtjFTvq12JtItR3dyhlhOgTVXQ31o2lFxViM=
+knative.dev/eventing v0.30.1-0.20220415141711-ff55a456c3f9/go.mod h1:Ld/pcIDX2nr7MvBOruoFFonzzDdpGbKsWDOYvpRoofo=
 knative.dev/hack v0.0.0-20220328133751-f06773764ce3/go.mod h1:PHt8x8yX5Z9pPquBEfIj0X66f8iWkWfR0S/sarACJrI=
 knative.dev/hack v0.0.0-20220411131823-6ffd8417de7c h1:aXsFXeky/GccNQxwf72CS4NR3EoqTqsCVNKQnblfwr0=
 knative.dev/hack v0.0.0-20220411131823-6ffd8417de7c/go.mod h1:PHt8x8yX5Z9pPquBEfIj0X66f8iWkWfR0S/sarACJrI=
@@ -2196,8 +2203,11 @@ knative.dev/pkg v0.0.0-20220411234407-00c122e376d0/go.mod h1:0A5D5tOLettuVoi5x+0
 knative.dev/pkg v0.0.0-20220412134708-e325df66cb51 h1:4AmaxeY7+r/PYYz3HS9pMY21Mw3ykO6STLFEk2FoJ2s=
 knative.dev/pkg v0.0.0-20220412134708-e325df66cb51/go.mod h1:j2MeD8s+JoCu1vegX80GbRXV/xd20Jm1NznxBYtVXiM=
 knative.dev/reconciler-test v0.0.0-20220411142808-55eab02440e9/go.mod h1:gH/ghOMDp7c2I2EAAhH4kYh0MI2hJ75OtiAMfeSl85o=
+knative.dev/reconciler-test v0.0.0-20220412141310-6da8e62f926f/go.mod h1:/25SELzYrVr+e+nARQh88d43BdHSP0JBfwUe3x/88OE=
 knative.dev/serving v0.30.1-0.20220413003907-2de1474b55ba h1:2v3VApF5OipZ58egt6GHS8YY4R5UwUuIH+y40PyUfbo=
 knative.dev/serving v0.30.1-0.20220413003907-2de1474b55ba/go.mod h1:b+wL9MBshkUyn8q7SCo+swF6qfrsaWG7cDa/AWuI4Nw=
+knative.dev/serving v0.30.1-0.20220416140111-2e5ca679a71e h1:iYq+sfkyQDQ0rfkbWPNF5j29geGXSMW4u/NV19EDedY=
+knative.dev/serving v0.30.1-0.20220416140111-2e5ca679a71e/go.mod h1:+U3xtXJ3iUt78ROr5CKc4OtTERCQtW2CizZ/fXFqp18=
 mvdan.cc/gofumpt v0.1.1/go.mod h1:yXG1r1WqZVKWbVRtBWKWX9+CxGYfA51nSomhM0woR48=
 mvdan.cc/interfacer v0.0.0-20180901003855-c20040233aed/go.mod h1:Xkxe497xwlCKkIaQYRfC7CSLworTXY9RMqwhhCm+8Nc=
 mvdan.cc/lint v0.0.0-20170908181259-adc824a0674b/go.mod h1:2odslEg/xrtNQqCYg2/jCoyKnw3vv5biOc3JnIcYfL4=

@@ -150,7 +150,7 @@ github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/flags
 github.com/google/go-cmp/cmp/internal/function
 github.com/google/go-cmp/cmp/internal/value
-# github.com/google/go-containerregistry v0.8.1-0.20220219142810-1571d7fdc46e
+# github.com/google/go-containerregistry v0.8.1-0.20220414143355-892d7a808387
 ## explicit; go 1.17
 github.com/google/go-containerregistry/pkg/name
 # github.com/google/gofuzz v1.2.0
@@ -465,7 +465,7 @@ google.golang.org/appengine/internal/modules
 google.golang.org/appengine/internal/remote_api
 google.golang.org/appengine/internal/urlfetch
 google.golang.org/appengine/urlfetch
-# google.golang.org/genproto v0.0.0-20220222213610-43724f9ea8cf
+# google.golang.org/genproto v0.0.0-20220301145929-1ac2ace0dbf7
 ## explicit; go 1.15
 google.golang.org/genproto/googleapis/api/httpbody
 google.golang.org/genproto/googleapis/rpc/status
@@ -892,7 +892,7 @@ k8s.io/utils/internal/third_party/forked/golang/net
 k8s.io/utils/net
 k8s.io/utils/pointer
 k8s.io/utils/trace
-# knative.dev/eventing v0.30.1-0.20220413070808-1b90ef335226
+# knative.dev/eventing v0.30.1-0.20220415141711-ff55a456c3f9
 ## explicit; go 1.16
 knative.dev/eventing/pkg/apis/config
 knative.dev/eventing/pkg/apis/duck
@@ -981,8 +981,8 @@ knative.dev/pkg/tracing/config
 knative.dev/pkg/tracing/propagation
 knative.dev/pkg/tracing/propagation/tracecontextb3
 knative.dev/pkg/tracker
-# knative.dev/serving v0.30.1-0.20220413003907-2de1474b55ba
-## explicit; go 1.16
+# knative.dev/serving v0.30.1-0.20220416140111-2e5ca679a71e
+## explicit; go 1.17
 knative.dev/serving/pkg/apis/autoscaling
 knative.dev/serving/pkg/apis/autoscaling/v1alpha1
 knative.dev/serving/pkg/apis/config
