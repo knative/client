@@ -18,17 +18,19 @@
 package e2e
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"testing"
 
 	"gotest.tools/v3/assert"
-
+	v1 "k8s.io/api/core/v1"
 	"knative.dev/client/lib/test"
 	"knative.dev/client/pkg/util"
 	network "knative.dev/networking/pkg"
 	pkgtest "knative.dev/pkg/test"
 	"knative.dev/serving/pkg/apis/serving"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
 func TestService(t *testing.T) {
@@ -70,6 +72,9 @@ func TestService(t *testing.T) {
 	test.ServiceCreate(r, "service2")
 	test.ServiceCreate(r, "ksvc3")
 	serviceDeleteAll(r)
+
+	t.Log("create services with volume mounts and subpaths")
+	serviceCreateWithMount(r)
 }
 
 func serviceCreatePrivate(r *test.KnRunResultCollector, serviceName string) {
@@ -169,4 +174,56 @@ func serviceDeleteAll(r *test.KnRunResultCollector) {
 	r.AssertNoError(out)
 	// Check if no services present after kn service delete --all.
 	assert.Check(r.T(), strings.Contains(out.Stdout, "No services found."), "Failed to show 'No services found' after kn service delete --all")
+}
+
+func serviceCreateWithMount(r *test.KnRunResultCollector) {
+	it := r.KnTest()
+	kubectl := test.NewKubectl(it.Namespace())
+
+	r.T().Log("create cm test-cm")
+	_, err := kubectl.Run("create", "configmap", "test-cm", "--from-literal=key=value")
+	assert.NilError(r.T(), err)
+
+	r.T().Log("create service with configmap mounted")
+	out := r.KnTest().Kn().Run("service", "create", "test-svc", "--image", pkgtest.ImagePath("helloworld"), "--mount", "/mydir=cm:test-cm")
+	r.AssertNoError(out)
+
+	r.T().Log("update the subpath in mounted cm")
+	out = r.KnTest().Kn().Run("service", "update", "test-svc", "--mount", "/mydir=cm:test-cm/key")
+	r.AssertNoError(out)
+
+	r.T().Log("create secret test-sec")
+	_, err = kubectl.Run("create", "secret", "generic", "test-sec", "--from-literal", "key1=val1")
+	assert.NilError(r.T(), err)
+
+	r.T().Log("update service with a new mount")
+	out = r.KnTest().Kn().Run("service", "update", "test-svc", "--mount", "/mydir2=sc:test-sec/key1")
+	r.AssertNoError(out)
+
+	serviceDescribeMount(r, "test-svc", "/mydir", "key")
+}
+
+func getVolumeMountWithHostPath(svc *servingv1.Service, hostPath string) *v1.VolumeMount {
+	vols := svc.Spec.Template.Spec.Containers[0].VolumeMounts
+
+	for _, v := range vols {
+		if v.MountPath == hostPath {
+			return &v
+		}
+	}
+	return nil
+}
+func serviceDescribeMount(r *test.KnRunResultCollector, serviceName, hostPath, subPath string) {
+	out := r.KnTest().Kn().Run("service", "describe", serviceName, "-o=json")
+	r.AssertNoError(out)
+
+	svc := &servingv1.Service{}
+	assert.NilError(r.T(), json.Unmarshal([]byte(out.Stdout), &svc))
+
+	r.T().Log("check volume mounts not nil")
+	volumeMount := getVolumeMountWithHostPath(svc, hostPath)
+	assert.Check(r.T(), volumeMount != nil)
+
+	r.T().Log("check volume mount subpath is the same as given")
+	assert.Equal(r.T(), subPath, volumeMount.SubPath)
 }

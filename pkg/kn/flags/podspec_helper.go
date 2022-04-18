@@ -38,6 +38,11 @@ const (
 	PortFormatErr = "the port specification '%s' is not valid. Please provide in the format 'NAME:PORT', where 'NAME' is optional. Examples: '--port h2c:8080' , '--port 8080'."
 )
 
+type MountInfo struct {
+	VolumeName string
+	SubPath    string
+}
+
 func (vt VolumeSourceType) String() string {
 	names := [...]string{"config-map", "secret"}
 	if vt < ConfigMapVolumeSourceType || vt > SecretVolumeSourceType {
@@ -473,26 +478,32 @@ func updateVolumeMountsFromMap(volumeMounts []corev1.VolumeMount, toUpdate *util
 
 	for i := range volumeMounts {
 		volumeMount := &volumeMounts[i]
-		name, present := toUpdate.GetString(volumeMount.MountPath)
+		mountInfo, present := toUpdate.Get(volumeMount.MountPath)
 
 		if present {
+			volumeMountInfo := mountInfo.(*MountInfo)
+			name := volumeMountInfo.VolumeName
 			if !existsVolumeNameInVolumes(name, volumes) {
 				return nil, fmt.Errorf("There is no volume matched with %q", name)
 			}
 
 			volumeMount.ReadOnly = true
 			volumeMount.Name = name
+			volumeMount.SubPath = volumeMountInfo.SubPath
 			set[volumeMount.MountPath] = true
 		}
 	}
 
 	it := toUpdate.Iterator()
-	for mountPath, name, ok := it.NextString(); ok; mountPath, name, ok = it.NextString() {
+	for mountPath, mountInfo, ok := it.Next(); ok; mountPath, mountInfo, ok = it.Next() {
+		volumeMountInfo := mountInfo.(*MountInfo)
+		name := volumeMountInfo.VolumeName
 		if !set[mountPath] {
 			volumeMounts = append(volumeMounts, corev1.VolumeMount{
 				Name:      name,
 				ReadOnly:  true,
 				MountPath: mountPath,
+				SubPath:   volumeMountInfo.SubPath,
 			})
 		}
 	}
@@ -658,6 +669,19 @@ func existsVolumeNameInVolumeMounts(volumeName string, volumeMounts []corev1.Vol
 
 // =======================================================================================
 
+func getMountInfo(volume string) *MountInfo {
+	slices := strings.SplitN(volume, "/", 2)
+	if len(slices) == 1 || slices[1] == "" {
+		return &MountInfo{
+			VolumeName: slices[0],
+		}
+	}
+	return &MountInfo{
+		VolumeName: slices[0],
+		SubPath:    slices[1],
+	}
+}
+
 func reviseVolumeInfoAndMountsToUpdate(mountsToUpdate *util.OrderedMap, volumesToUpdate *util.OrderedMap) (*util.OrderedMap, *util.OrderedMap, error) {
 	volumeSourceInfoByName := util.NewOrderedMap() //make(map[string]*volumeSourceInfo)
 	mountsToUpdateRevised := util.NewOrderedMap()  //make(map[string]string)
@@ -668,23 +692,28 @@ func reviseVolumeInfoAndMountsToUpdate(mountsToUpdate *util.OrderedMap, volumesT
 		// slices[1] -> secret, config-map, or volume name
 		slices := strings.SplitN(value, ":", 2)
 		if len(slices) == 1 {
-			mountsToUpdateRevised.Set(path, slices[0])
+			mountInfo := getMountInfo(slices[0])
+			mountsToUpdateRevised.Set(path, mountInfo)
 		} else {
 			switch volumeType := slices[0]; volumeType {
 			case "config-map", "cm":
 				generatedName := util.GenerateVolumeName(path)
+				mountInfo := getMountInfo(slices[1])
 				volumeSourceInfoByName.Set(generatedName, &volumeSourceInfo{
 					volumeSourceType: ConfigMapVolumeSourceType,
-					volumeSourceName: slices[1],
+					volumeSourceName: mountInfo.VolumeName,
 				})
-				mountsToUpdateRevised.Set(path, generatedName)
+				mountInfo.VolumeName = generatedName
+				mountsToUpdateRevised.Set(path, mountInfo)
 			case "secret", "sc":
 				generatedName := util.GenerateVolumeName(path)
+				mountInfo := getMountInfo(slices[1])
 				volumeSourceInfoByName.Set(generatedName, &volumeSourceInfo{
 					volumeSourceType: SecretVolumeSourceType,
-					volumeSourceName: slices[1],
+					volumeSourceName: mountInfo.VolumeName,
 				})
-				mountsToUpdateRevised.Set(path, generatedName)
+				mountInfo.VolumeName = generatedName
+				mountsToUpdateRevised.Set(path, mountInfo)
 
 			default:
 				return nil, nil, fmt.Errorf("unsupported volume type \"%q\"; supported volume types are \"config-map or cm\", \"secret or sc\", and \"volume or vo\"", slices[0])
