@@ -36,6 +36,10 @@
 | Added subpath functionality to --mount flag
 | https://github.com/knative/client/pull/1655[#1655]
 
+| 🐣
+| Use `T.TempDir` to create temporary test directory
+| https://github.com/knative/client/pull/1660[#1660]
+
 |===
 ## v1.3.0 (2022-03-08)
 [cols="1,10,3", options="header", width="100%"]
