@@ -109,8 +109,7 @@ sink:
 }
 
 func setupConfig(t *testing.T, configContent string) (string, func()) {
-	tmpDir, err := ioutil.TempDir("", "configContent")
-	assert.NilError(t, err)
+	tmpDir := t.TempDir()
 
 	// Avoid to be fooled by the things in the the real homedir
 	oldHome := os.Getenv("HOME")
@@ -124,7 +123,7 @@ func setupConfig(t *testing.T, configContent string) (string, func()) {
 	if configContent != "" {
 		cfgFile = filepath.Join(tmpDir, "config.yaml")
 		os.Args = []string{"kn", "--config", cfgFile}
-		err = ioutil.WriteFile(cfgFile, []byte(configContent), 0644)
+		err := ioutil.WriteFile(cfgFile, []byte(configContent), 0644)
 		assert.NilError(t, err)
 	}
 
@@ -138,7 +137,6 @@ func setupConfig(t *testing.T, configContent string) (string, func()) {
 
 	return cfgFile, func() {
 		// Cleanup everything
-		os.RemoveAll(tmpDir)
 		os.Setenv("HOME", oldHome)
 		os.Args = backupArgs
 		bootstrapDefaults = initDefaults()

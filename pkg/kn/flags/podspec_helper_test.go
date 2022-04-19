@@ -879,9 +879,7 @@ containers:
 	assert.NilError(t, err)
 	assert.Equal(t, len(fromFile.Containers), 2)
 
-	tempDir, err := ioutil.TempDir("", "kn-file")
-	defer os.RemoveAll(tempDir)
-	assert.NilError(t, err)
+	tempDir := t.TempDir()
 	fileName := filepath.Join(tempDir, "container.yaml")
 	ioutil.WriteFile(fileName, []byte(rawInput), test.FileModeReadWrite)
 	fromFile, err = decodeContainersFromFile(fileName)

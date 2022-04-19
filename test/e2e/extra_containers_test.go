@@ -21,8 +21,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -47,9 +45,7 @@ func TestMultiContainers(t *testing.T) {
 	r := test.NewKnRunResultCollector(t, it)
 	defer r.DumpIfFailed()
 
-	tempDir, err := ioutil.TempDir("", "kn-file")
-	defer os.RemoveAll(tempDir)
-	assert.NilError(t, err)
+	tempDir := t.TempDir()
 
 	t.Log("Creating a multicontainer service from file")
 	container := addContainer(r, "sidecar", pkgtest.ImagePath("sidecarcontainer"))

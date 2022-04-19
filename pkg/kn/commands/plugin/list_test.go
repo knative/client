@@ -133,8 +133,7 @@ func TestPluginListExtendingBuiltinCommandGroup(t *testing.T) {
 // Private
 
 func prepareTestSetup(t *testing.T, args ...interface{}) (string, func()) {
-	tmpPathDir, err := ioutil.TempDir("", "plugin_list")
-	assert.NilError(t, err)
+	tmpPathDir := t.TempDir()
 
 	// Prepare configuration to for our test
 	oldConfig := config.GlobalConfig
@@ -151,7 +150,6 @@ func prepareTestSetup(t *testing.T, args ...interface{}) (string, func()) {
 
 	return tmpPathDir, func() {
 		config.GlobalConfig = oldConfig
-		os.RemoveAll(tmpPathDir)
 	}
 }
 

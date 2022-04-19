@@ -18,8 +18,6 @@
 package e2e
 
 import (
-	"io/ioutil"
-	"os"
 	"testing"
 
 	"gotest.tools/v3/assert"
@@ -42,21 +40,14 @@ type channelTypeAliasTestConfig struct {
 	knConfigPath string
 }
 
-func (tc *channelTypeAliasTestConfig) setup() error {
+func (tc *channelTypeAliasTestConfig) setup(t *testing.T) error {
 	var err error
-	tc.knConfigDir, err = ioutil.TempDir("", "kn-channel-config")
-	if err != nil {
-		return err
-	}
+	tc.knConfigDir = t.TempDir()
 	tc.knConfigPath, err = test.CreateFile("config.yaml", knChannelTypesConfigContent, tc.knConfigDir, test.FileModeReadWrite)
 	if err != nil {
 		return err
 	}
 	return nil
-}
-
-func (tc *channelTypeAliasTestConfig) teardown() {
-	os.RemoveAll(tc.knConfigDir)
 }
 
 func TestChannels(t *testing.T) {
@@ -71,8 +62,7 @@ func TestChannels(t *testing.T) {
 	defer r.DumpIfFailed()
 
 	tc := channelTypeAliasTestConfig{}
-	assert.NilError(t, tc.setup())
-	defer tc.teardown()
+	assert.NilError(t, tc.setup(t))
 
 	t.Log("Create a channel with default messaging layer settings")
 	test.ChannelCreate(r, "c0")

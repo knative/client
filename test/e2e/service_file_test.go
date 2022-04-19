@@ -19,8 +19,6 @@ package e2e
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -86,9 +84,7 @@ func TestServiceCreateFromFile(t *testing.T) {
 	r := test.NewKnRunResultCollector(t, it)
 	defer r.DumpIfFailed()
 
-	tempDir, err := ioutil.TempDir("", "kn-file")
-	defer os.RemoveAll(tempDir)
-	assert.NilError(t, err)
+	tempDir := t.TempDir()
 
 	test.CreateFile("foo.json", fmt.Sprintf(ServiceJSON, pkgtest.ImagePath("helloworld")), tempDir, test.FileModeReadWrite)
 	test.CreateFile("foo.yaml", fmt.Sprintf(ServiceYAML, pkgtest.ImagePath("helloworld")), tempDir, test.FileModeReadWrite)

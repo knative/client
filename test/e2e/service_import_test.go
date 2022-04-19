@@ -19,7 +19,6 @@ package e2e
 
 import (
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -39,9 +38,7 @@ func TestServiceImport(t *testing.T) {
 	r := test.NewKnRunResultCollector(t, it)
 	defer r.DumpIfFailed()
 
-	tempDir, err := ioutil.TempDir("", "kn-file")
-	defer os.RemoveAll(tempDir)
-	assert.NilError(t, err)
+	tempDir := t.TempDir()
 
 	t.Log("import service foo with revision")
 	testFile := filepath.Join(tempDir, "foo-with-revisions")

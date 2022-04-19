@@ -16,7 +16,6 @@ package commands
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"testing"
@@ -703,8 +702,6 @@ func TestResourceNameCompletionFuncRevision(t *testing.T) {
 
 func TestResourceNameCompletionFuncGitOps(t *testing.T) {
 	tempDir := setupTempDir(t)
-	assert.Assert(t, tempDir != "")
-	defer os.RemoveAll(tempDir)
 
 	completionFunc := ResourceNameCompletionFunc(knParams)
 
@@ -1594,11 +1591,10 @@ func getResourceCommandWithTestSubcommand(resource string, addNamespace, addSubc
 }
 
 func setupTempDir(t *testing.T) string {
-	tempDir, err := ioutil.TempDir("", "test-dir")
-	assert.NilError(t, err)
+	tempDir := t.TempDir()
 
 	svcPath := path.Join(tempDir, "test-ns", "ksvc")
-	err = os.MkdirAll(svcPath, 0700)
+	err := os.MkdirAll(svcPath, 0700)
 	assert.NilError(t, err)
 
 	for i, testSvc := range []servingv1.Service{testSvc1, testSvc2, testSvc3} {

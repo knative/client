@@ -894,9 +894,7 @@ func TestServiceCreateFromFile(t *testing.T) {
 }
 
 func testWithServiceFiles(t *testing.T, testFunction func(t *testing.T, file string)) {
-	tempDir, err := ioutil.TempDir("", "kn-file")
-	defer os.RemoveAll(tempDir)
-	assert.NilError(t, err)
+	tempDir := t.TempDir()
 
 	for _, d := range []struct {
 		filename string
@@ -910,7 +908,7 @@ func testWithServiceFiles(t *testing.T, testFunction func(t *testing.T, file str
 		},
 	} {
 		tempFile := filepath.Join(tempDir, d.filename)
-		err = ioutil.WriteFile(tempFile, []byte(d.content), os.FileMode(0666))
+		err := ioutil.WriteFile(tempFile, []byte(d.content), os.FileMode(0666))
 		assert.NilError(t, err)
 		testFunction(t, tempFile)
 	}
@@ -941,14 +939,12 @@ func TestServiceCreateFileError(t *testing.T) {
 }
 
 func TestServiceCreateInvalidDataJSON(t *testing.T) {
-	tempDir, err := ioutil.TempDir("", "kn-file")
-	defer os.RemoveAll(tempDir)
-	assert.NilError(t, err)
+	tempDir := t.TempDir()
 	tempFile := filepath.Join(tempDir, "invalid.json")
 
 	// Double curly bracket at the beginning of file
 	invalidData := strings.Replace(serviceJSON, "{\n", "{{\n", 1)
-	err = ioutil.WriteFile(tempFile, []byte(invalidData), os.FileMode(0666))
+	err := ioutil.WriteFile(tempFile, []byte(invalidData), os.FileMode(0666))
 	assert.NilError(t, err)
 	_, _, _, err = fakeServiceCreate([]string{"service", "create", "foo", "--filename", tempFile}, false)
 	assert.Assert(t, util.ContainsAll(err.Error(), "invalid", "character", "'{'", "beginning"))
@@ -969,14 +965,12 @@ func TestServiceCreateInvalidDataJSON(t *testing.T) {
 }
 
 func TestServiceCreateInvalidDataYAML(t *testing.T) {
-	tempDir, err := ioutil.TempDir("", "kn-file")
-	defer os.RemoveAll(tempDir)
-	assert.NilError(t, err)
+	tempDir := t.TempDir()
 	tempFile := filepath.Join(tempDir, "invalid.yaml")
 
 	// Remove dash
 	invalidData := strings.Replace(serviceYAML, "- image", "image", 1)
-	err = ioutil.WriteFile(tempFile, []byte(invalidData), os.FileMode(0666))
+	err := ioutil.WriteFile(tempFile, []byte(invalidData), os.FileMode(0666))
 	assert.NilError(t, err)
 	_, _, _, err = fakeServiceCreate([]string{"service", "create", "foo", "--filename", tempFile}, false)
 	assert.Assert(t, util.ContainsAll(err.Error(), "mapping", "values", "not", "allowed"))
@@ -997,12 +991,10 @@ func TestServiceCreateInvalidDataYAML(t *testing.T) {
 }
 
 func TestServiceCreateFromYAMLWithOverride(t *testing.T) {
-	tempDir, err := ioutil.TempDir("", "kn-file")
-	defer os.RemoveAll(tempDir)
-	assert.NilError(t, err)
+	tempDir := t.TempDir()
 
 	tempFile := filepath.Join(tempDir, "service.yaml")
-	err = ioutil.WriteFile(tempFile, []byte(serviceYAML), os.FileMode(0666))
+	err := ioutil.WriteFile(tempFile, []byte(serviceYAML), os.FileMode(0666))
 	assert.NilError(t, err)
 	// Merge env vars
 	expectedEnvVars := map[string]string{
@@ -1077,12 +1069,10 @@ func TestServiceCreateFromYAMLWithOverride(t *testing.T) {
 }
 
 func TestServiceCreateFromYAMLWithOverrideError(t *testing.T) {
-	tempDir, err := ioutil.TempDir("", "kn-file")
-	defer os.RemoveAll(tempDir)
-	assert.NilError(t, err)
+	tempDir := t.TempDir()
 
 	tempFile := filepath.Join(tempDir, "service.yaml")
-	err = ioutil.WriteFile(tempFile, []byte(serviceYAML), os.FileMode(0666))
+	err := ioutil.WriteFile(tempFile, []byte(serviceYAML), os.FileMode(0666))
 	assert.NilError(t, err)
 
 	_, _, _, err = fakeServiceCreate([]string{

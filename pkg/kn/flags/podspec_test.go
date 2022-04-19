@@ -244,8 +244,7 @@ containers:
 			"Input:file",
 			rawInput,
 			func(data string) string {
-				tempDir, err := ioutil.TempDir("", "kn-file")
-				assert.NilError(t, err)
+				tempDir := t.TempDir()
 				fileName := filepath.Join(tempDir, "container.yaml")
 				ioutil.WriteFile(fileName, []byte(data), test.FileModeReadWrite)
 				return fileName

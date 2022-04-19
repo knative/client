@@ -16,8 +16,6 @@ package v1
 
 import (
 	"context"
-	"io/ioutil"
-	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -35,12 +33,9 @@ import (
 )
 
 func TestGitOpsOperations(t *testing.T) {
-	c1TempDir, err := ioutil.TempDir("", "kn-files-cluster1")
-	assert.NilError(t, err)
-	c2TempDir, err := ioutil.TempDir("", "kn-files-cluster2")
-	assert.NilError(t, err)
-	defer os.RemoveAll(c1TempDir)
-	defer os.RemoveAll(c2TempDir)
+	c1TempDir := t.TempDir()
+	c2TempDir := t.TempDir()
+
 	// create clients
 	fooclient := NewKnServingGitOpsClient("foo-ns", c1TempDir)
 	bazclient := NewKnServingGitOpsClient("baz-ns", c1TempDir)
@@ -141,9 +136,7 @@ func TestGitOpsOperations(t *testing.T) {
 }
 
 func TestGitOpsSingleFile(t *testing.T) {
-	tmpDir, err := ioutil.TempDir("", "singlefile")
-	assert.NilError(t, err)
-	defer os.RemoveAll(tmpDir)
+	tmpDir := t.TempDir()
 	// create clients
 	fooclient := NewKnServingGitOpsClient("", filepath.Join(tmpDir, "test.yaml"))
 	barclient := NewKnServingGitOpsClient("", filepath.Join(tmpDir, "test.yml"))
