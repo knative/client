@@ -139,13 +139,11 @@ func TestGetNamespaceAllNamespacesNotDefined(t *testing.T) {
 }
 
 func TestGetNamespaceFallback(t *testing.T) {
-	tempDir, err := ioutil.TempDir("", "kn-unit-tests")
-	defer os.RemoveAll(tempDir)
-	assert.NilError(t, err)
+	tempDir := t.TempDir()
 
 	t.Run("MockConfig", func(t *testing.T) {
 		tempFile := filepath.Join(tempDir, "mock")
-		err = ioutil.WriteFile(tempFile, []byte(BASIC_KUBECONFIG), test.FileModeReadWrite)
+		err := ioutil.WriteFile(tempFile, []byte(BASIC_KUBECONFIG), test.FileModeReadWrite)
 		assert.NilError(t, err)
 
 		kp := &KnParams{KubeCfgPath: tempFile}
@@ -163,7 +161,7 @@ func TestGetNamespaceFallback(t *testing.T) {
 
 	t.Run("EmptyConfig", func(t *testing.T) {
 		tempFile := filepath.Join(tempDir, "empty")
-		err = ioutil.WriteFile(tempFile, []byte(""), test.FileModeReadWrite)
+		err := ioutil.WriteFile(tempFile, []byte(""), test.FileModeReadWrite)
 		assert.NilError(t, err)
 
 		kp := &KnParams{KubeCfgPath: tempFile}
@@ -190,14 +188,12 @@ func TestGetNamespaceFallback(t *testing.T) {
 }
 
 func TestCurrentNamespace(t *testing.T) {
-	tempDir, err := ioutil.TempDir("", "kn-unit-tests")
-	defer os.RemoveAll(tempDir)
-	assert.NilError(t, err)
+	tempDir := t.TempDir()
 
 	t.Run("EmptyConfig", func(t *testing.T) {
 		// Invalid kubeconfig
 		tempFile := filepath.Join(tempDir, "empty")
-		err = ioutil.WriteFile(tempFile, []byte(""), test.FileModeReadWrite)
+		err := ioutil.WriteFile(tempFile, []byte(""), test.FileModeReadWrite)
 		assert.NilError(t, err)
 
 		kp := &KnParams{KubeCfgPath: tempFile}
@@ -234,7 +230,7 @@ func TestCurrentNamespace(t *testing.T) {
 	t.Run("MockConfig", func(t *testing.T) {
 		// Fallback to "default" namespace from mock kubeconfig
 		tempFile := filepath.Join(tempDir, "mock")
-		err = ioutil.WriteFile(tempFile, []byte(BASIC_KUBECONFIG), test.FileModeReadWrite)
+		err := ioutil.WriteFile(tempFile, []byte(BASIC_KUBECONFIG), test.FileModeReadWrite)
 		assert.NilError(t, err)
 		kp := &KnParams{KubeCfgPath: tempFile}
 		actual, err := kp.CurrentNamespace()

@@ -44,9 +44,8 @@ func TestServiceImportFilenameError(t *testing.T) {
 }
 
 func TestServiceImportExistError(t *testing.T) {
-	file, err := generateFile([]byte(exportYAML))
+	file, err := generateFile(t, []byte(exportYAML))
 	assert.NilError(t, err)
-	defer os.RemoveAll(filepath.Dir(file))
 
 	client := knclient.NewMockKnServiceClient(t)
 	r := client.Recorder()
@@ -60,9 +59,8 @@ func TestServiceImportExistError(t *testing.T) {
 }
 
 func TestServiceImport(t *testing.T) {
-	file, err := generateFile([]byte(exportYAML))
+	file, err := generateFile(t, []byte(exportYAML))
 	assert.NilError(t, err)
-	defer os.RemoveAll(filepath.Dir(file))
 
 	client := knclient.NewMockKnServiceClient(t)
 	r := client.Recorder()
@@ -80,9 +78,8 @@ func TestServiceImport(t *testing.T) {
 }
 
 func TestServiceImportNoWait(t *testing.T) {
-	file, err := generateFile([]byte(exportYAML))
+	file, err := generateFile(t, []byte(exportYAML))
 	assert.NilError(t, err)
-	defer os.RemoveAll(filepath.Dir(file))
 
 	client := knclient.NewMockKnServiceClient(t)
 	r := client.Recorder()
@@ -98,9 +95,8 @@ func TestServiceImportNoWait(t *testing.T) {
 }
 
 func TestServiceImportWitRevisions(t *testing.T) {
-	file, err := generateFile([]byte(exportWithRevisionsYAML))
+	file, err := generateFile(t, []byte(exportWithRevisionsYAML))
 	assert.NilError(t, err)
-	defer os.RemoveAll(filepath.Dir(file))
 
 	client := knclient.NewMockKnServiceClient(t)
 	r := client.Recorder()
@@ -120,14 +116,11 @@ func TestServiceImportWitRevisions(t *testing.T) {
 	r.Validate()
 }
 
-func generateFile(fileContent []byte) (string, error) {
-	tempDir, err := ioutil.TempDir("", "kn-file")
-	if err != nil {
-		return "", err
-	}
+func generateFile(t *testing.T, fileContent []byte) (string, error) {
+	tempDir := t.TempDir()
 
 	tempFile := filepath.Join(tempDir, "import.yaml")
-	if err = ioutil.WriteFile(tempFile, fileContent, os.FileMode(0666)); err != nil {
+	if err := ioutil.WriteFile(tempFile, fileContent, os.FileMode(0666)); err != nil {
 		return "", err
 	}
 	return tempFile, nil

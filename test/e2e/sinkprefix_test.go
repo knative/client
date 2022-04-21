@@ -18,8 +18,6 @@
 package e2e
 
 import (
-	"io/ioutil"
-	"os"
 	"testing"
 
 	"gotest.tools/v3/assert"
@@ -41,21 +39,14 @@ type sinkprefixTestConfig struct {
 	knConfigPath string
 }
 
-func (tc *sinkprefixTestConfig) setup() error {
+func (tc *sinkprefixTestConfig) setup(t *testing.T) error {
 	var err error
-	tc.knConfigDir, err = ioutil.TempDir("", "kn1-config")
-	if err != nil {
-		return err
-	}
+	tc.knConfigDir = t.TempDir()
 	tc.knConfigPath, err = test.CreateFile("config.yaml", KnConfigContent, tc.knConfigDir, test.FileModeReadWrite)
 	if err != nil {
 		return err
 	}
 	return nil
-}
-
-func (tc *sinkprefixTestConfig) teardown() {
-	os.RemoveAll(tc.knConfigDir)
 }
 
 func TestSinkPrefixConfig(t *testing.T) {
@@ -70,8 +61,7 @@ func TestSinkPrefixConfig(t *testing.T) {
 	defer r.DumpIfFailed()
 
 	tc := sinkprefixTestConfig{}
-	assert.NilError(t, tc.setup())
-	defer tc.teardown()
+	assert.NilError(t, tc.setup(t))
 
 	t.Log("Creating a testservice")
 	test.ServiceCreate(r, "testsvc0")

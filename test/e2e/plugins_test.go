@@ -19,7 +19,6 @@ package e2e
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -57,12 +56,9 @@ type pluginTestConfig struct {
 	knConfigPath, knPluginPath, knPluginPath2 string
 }
 
-func (pc *pluginTestConfig) setup() error {
+func (pc *pluginTestConfig) setup(t *testing.T) error {
 	var err error
-	pc.knConfigDir, err = ioutil.TempDir("", "kn-config")
-	if err != nil {
-		return err
-	}
+	pc.knConfigDir = t.TempDir()
 
 	pc.knPluginsDir = filepath.Join(pc.knConfigDir, "plugins")
 	err = os.MkdirAll(pc.knPluginsDir, test.FileModeExecutable)
@@ -106,15 +102,11 @@ func (pc *pluginTestConfig) setup() error {
 	return nil
 }
 
-func (pc *pluginTestConfig) teardown() {
-	os.RemoveAll(pc.knConfigDir)
-}
-
 func TestPluginWithoutLookup(t *testing.T) {
 	t.Parallel()
 
 	pc, oldPath := setupPluginTestConfigWithNewPath(t)
-	defer tearDownWithPath(pc, oldPath)
+	defer tearDownWithPath(oldPath)
 
 	it, err := test.NewKnTest()
 	assert.NilError(t, err)
@@ -133,8 +125,7 @@ func TestPluginWithoutLookup(t *testing.T) {
 
 func TestPluginInHelpMessage(t *testing.T) {
 	pc := pluginTestConfig{}
-	assert.NilError(t, pc.setup())
-	defer pc.teardown()
+	assert.NilError(t, pc.setup(t))
 
 	result := test.Kn{}.Run("--plugins-dir", pc.knPluginsDir, "--help")
 	assert.NilError(t, result.Error)
@@ -153,8 +144,7 @@ func TestPluginWithLookup(t *testing.T) {
 	defer r.DumpIfFailed()
 
 	pc := pluginTestConfig{}
-	assert.NilError(t, pc.setup())
-	defer pc.teardown()
+	assert.NilError(t, pc.setup(t))
 
 	knFlags := []string{fmt.Sprintf("--plugins-dir=%s", pc.knPluginsDir)}
 
@@ -172,7 +162,7 @@ func TestListPluginInPath(t *testing.T) {
 	r := test.NewKnRunResultCollector(t, it)
 
 	pc, oldPath := setupPluginTestConfigWithNewPath(t)
-	defer tearDownWithPath(pc, oldPath)
+	defer tearDownWithPath(oldPath)
 
 	t.Log("list plugin in $PATH")
 	knFlags := []string{fmt.Sprintf("--plugins-dir=%s", pc.knPluginsDir)}
@@ -189,7 +179,7 @@ func TestExecutePluginInPath(t *testing.T) {
 	defer r.DumpIfFailed()
 
 	pc, oldPath := setupPluginTestConfigWithNewPath(t)
-	defer tearDownWithPath(pc, oldPath)
+	defer tearDownWithPath(oldPath)
 
 	t.Log("execute plugin in $PATH")
 	knFlags := []string{fmt.Sprintf("--plugins-dir=%s", pc.knPluginsDir)}
@@ -204,7 +194,7 @@ func TestExecutePluginInPathWithError(t *testing.T) {
 	defer r.DumpIfFailed()
 
 	pc := pluginTestConfig{}
-	assert.NilError(t, pc.setup())
+	assert.NilError(t, pc.setup(t))
 	oldPath := os.Getenv("PATH")
 
 	t.Log("execute plugin in $PATH that returns error")
@@ -214,21 +204,20 @@ func TestExecutePluginInPathWithError(t *testing.T) {
 	_, err = test.CreateFile(pluginBin3, pluginBinErr, pluginsDir, test.FileModeExecutable)
 	assert.NilError(t, err)
 	assert.NilError(t, os.Setenv("PATH", fmt.Sprintf("%s%s%s", oldPath, delim, pluginsDir)))
-	defer tearDownWithPath(pc, oldPath)
+	defer tearDownWithPath(oldPath)
 }
 
 // Private
 func setupPluginTestConfigWithNewPath(t *testing.T) (pluginTestConfig, string) {
 	pc := pluginTestConfig{}
-	assert.NilError(t, pc.setup())
+	assert.NilError(t, pc.setup(t))
 	oldPath := os.Getenv("PATH")
 	assert.NilError(t, os.Setenv("PATH", fmt.Sprintf("%s%s%s", oldPath, delim, pc.knPluginsDir2)))
 	return pc, oldPath
 }
 
-func tearDownWithPath(pc pluginTestConfig, oldPath string) {
+func tearDownWithPath(oldPath string) {
 	os.Setenv("PATH", oldPath)
-	pc.teardown()
 }
 
 func listPlugin(r *test.KnRunResultCollector, knFlags []string, expectedPlugins []string, unexpectedPlugins []string) {

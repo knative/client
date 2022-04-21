@@ -121,11 +121,9 @@ type typeTestCase struct {
 func TestGetClientConfig(t *testing.T) {
 	multiConfigs := fmt.Sprintf("%s%s%s", "/testing/assets/kube-config-01.yml", string(os.PathListSeparator), "/testing/assets/kube-config-02.yml")
 
-	tempDir, err := ioutil.TempDir("", "kn-unit-tests")
-	defer os.RemoveAll(tempDir)
-	assert.NilError(t, err)
+	tempDir := t.TempDir()
 	tempFile := filepath.Join(tempDir, "mock")
-	err = ioutil.WriteFile(tempFile, []byte(BASIC_KUBECONFIG), test.FileModeReadWrite)
+	err := ioutil.WriteFile(tempFile, []byte(BASIC_KUBECONFIG), test.FileModeReadWrite)
 	assert.NilError(t, err)
 
 	for _, tc := range []typeTestCase{

@@ -357,8 +357,7 @@ func setup(t *testing.T) testContext {
 }
 
 func setupWithPathLookup(t *testing.T, lookupInPath bool) testContext {
-	tmpPathDir, err := ioutil.TempDir("", "plugin_list")
-	assert.NilError(t, err)
+	tmpPathDir := t.TempDir()
 	return testContext{
 		pluginsDir:    tmpPathDir,
 		pluginManager: NewManager(tmpPathDir, lookupInPath),
@@ -388,13 +387,11 @@ func executePlugin(plugin Plugin, args []string) (string, error) {
 
 // Prepare a directory and set the path to this directory
 func preparePathDirectory(t *testing.T) (string, func()) {
-	tmpPathDir, err := ioutil.TempDir("", "plugin_path")
-	assert.NilError(t, err)
+	tmpPathDir := t.TempDir()
 
 	oldPath := os.Getenv("PATH")
 	os.Setenv("PATH", fmt.Sprintf("%s%c%s", tmpPathDir, os.PathListSeparator, "fast-forward-this-year-plz"))
 	return tmpPathDir, func() {
-		os.RemoveAll(tmpPathDir)
 		os.Setenv("PATH", oldPath)
 	}
 }
