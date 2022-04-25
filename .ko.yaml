@@ -1,3 +1,8 @@
 defaultBaseImage: gcr.io/distroless/static:nonroot
 baseImageOverrides:
   knative.dev/client/cmd/kn: docker.io/library/alpine:latest
+builds:
+  - id: knative.dev/client/cmd/kn
+    main: ./cmd/kn
+    ldflags:
+      - ##_LDFLAGS_##
