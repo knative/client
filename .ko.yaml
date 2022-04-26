@@ -5,4 +5,6 @@ builds:
   - id: knative.dev/client/cmd/kn
     main: ./cmd/kn
     ldflags:
-      - ##_LDFLAGS_##
+      - -X knative.dev/client/pkg/kn/commands/version.Version={{.Env.KN_BUILD_VERSION}}
+      - -X knative.dev/client/pkg/kn/commands/version.GitRevision={{.Env.KN_BUILD_GITREV}}
+      - -X 'knative.dev/client/pkg/kn/commands/version.BuildDate={{.Env.KN_BUILD_DATE}}'
