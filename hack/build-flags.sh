@@ -43,6 +43,10 @@ function build_flags() {
     version_serving="${technical_version_serving}"
     version_eventing="${technical_version_eventing}"
   fi
+  # Export as env variables to be used in `ko` OCI image build
+  export KN_BUILD_VERSION="${version}"
+  export KN_BUILD_DATE="${now}"
+  export KN_BUILD_GITREV="${rev}"
   echo "-X '${pkg}.BuildDate=${now}' \
   -X ${pkg}.Version=${version} \
   -X ${pkg}.GitRevision=${rev} \
