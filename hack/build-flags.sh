@@ -29,10 +29,10 @@ function build_flags() {
   export KN_BUILD_VERSION="${version}"
   export KN_BUILD_DATE="${now}"
   export KN_BUILD_GITREV="${rev}"
-  export KN_BUILD_LD_FLAGS="-X '${pkg}.BuildDate=${now}' \
+  KN_BUILD_LD_FLAGS="-X '${pkg}.BuildDate=${now}' \
   -X ${pkg}.Version=${version} \
   -X ${pkg}.GitRevision=${rev} \
   ${EXTERNAL_LD_FLAGS:-}"
 }
 
-build_flags "$@"
+build_flags
