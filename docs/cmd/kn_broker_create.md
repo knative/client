@@ -21,9 +21,15 @@ kn broker create NAME
 ### Options
 
 ```
-      --class string       Broker class like 'MTChannelBasedBroker' or 'Kafka' (if available)
-  -h, --help               help for create
-  -n, --namespace string   Specify the namespace to operate in.
+      --backoff-delay string     Based delay between retries
+      --backoff-policy string    Backoff policy for retries, either "linear" or "exponential"
+      --class string             Broker class like 'MTChannelBasedBroker' or 'Kafka' (if available)
+      --dl-sink string           Reference to a sink for delivering events that can not be sent
+  -h, --help                     help for create
+  -n, --namespace string         Specify the namespace to operate in.
+      --retry int32              Number of retries before sending the event to a dead-letter sink
+      --retry-after-max string   Upper bound for a duration specified in an "Retry-After" header (experimental)
+      --timeout string           Timeout for a single request
 ```
 
 ### Options inherited from parent commands

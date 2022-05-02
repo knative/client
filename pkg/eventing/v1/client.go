@@ -19,14 +19,13 @@ import (
 	"fmt"
 	"time"
 
-	"knative.dev/client/pkg/config"
-
-	"k8s.io/client-go/util/retry"
-
 	apis_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
+	"k8s.io/client-go/util/retry"
+	"knative.dev/client/pkg/config"
+	v1 "knative.dev/eventing/pkg/apis/duck/v1"
 	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
 	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
 	clientv1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1"
@@ -385,6 +384,73 @@ func (b *BrokerBuilder) Class(class string) *BrokerBuilder {
 	}
 	b.broker.Annotations[eventingv1.BrokerClassAnnotationKey] = class
 	return b
+}
+
+func (b *BrokerBuilder) DlSink(dlSink *duckv1.Destination) *BrokerBuilder {
+	empty := duckv1.Destination{}
+	if dlSink == nil || *dlSink == empty {
+		return b
+	}
+	if b.broker.Spec.Delivery == nil {
+		b.broker.Spec.Delivery = &v1.DeliverySpec{}
+	}
+	b.broker.Spec.Delivery.DeadLetterSink = dlSink
+	return b
+}
+
+func (b *BrokerBuilder) Retry(retry *int32) *BrokerBuilder {
+	if retry == nil || *retry == 0 {
+		return b
+	}
+	if b.broker.Spec.Delivery == nil {
+		b.broker.Spec.Delivery = &v1.DeliverySpec{}
+	}
+	b.broker.Spec.Delivery.Retry = retry
+	return b
+}
+
+func (b *BrokerBuilder) Timeout(timeout *string) *BrokerBuilder {
+	if timeout == nil || *timeout == "" {
+		return b
+	}
+	if b.broker.Spec.Delivery == nil {
+		b.broker.Spec.Delivery = &v1.DeliverySpec{}
+	}
+	b.broker.Spec.Delivery.Timeout = timeout
+	return b
+}
+func (b *BrokerBuilder) BackoffPolicy(policyType *v1.BackoffPolicyType) *BrokerBuilder {
+	if policyType == nil || *policyType == "" {
+		return b
+	}
+	if b.broker.Spec.Delivery == nil {
+		b.broker.Spec.Delivery = &v1.DeliverySpec{}
+	}
+	b.broker.Spec.Delivery.BackoffPolicy = policyType
+	return b
+}
+
+func (b *BrokerBuilder) BackoffDelay(backoffDelay *string) *BrokerBuilder {
+	if backoffDelay == nil || *backoffDelay == "" {
+		return b
+	}
+	if b.broker.Spec.Delivery == nil {
+		b.broker.Spec.Delivery = &v1.DeliverySpec{}
+	}
+	b.broker.Spec.Delivery.BackoffDelay = backoffDelay
+	return b
+}
+
+func (b *BrokerBuilder) RetryAfterMax(max *string) *BrokerBuilder {
+	if max == nil || *max == "" {
+		return b
+	}
+	if b.broker.Spec.Delivery == nil {
+		b.broker.Spec.Delivery = &v1.DeliverySpec{}
+	}
+	b.broker.Spec.Delivery.RetryAfterMax = max
+	return b
+
 }
 
 // Build to return an instance of broker object
