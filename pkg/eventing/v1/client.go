@@ -386,6 +386,7 @@ func (b *BrokerBuilder) Class(class string) *BrokerBuilder {
 	return b
 }
 
+// DlSink for the broker builder
 func (b *BrokerBuilder) DlSink(dlSink *duckv1.Destination) *BrokerBuilder {
 	empty := duckv1.Destination{}
 	if dlSink == nil || *dlSink == empty {
@@ -398,6 +399,7 @@ func (b *BrokerBuilder) DlSink(dlSink *duckv1.Destination) *BrokerBuilder {
 	return b
 }
 
+// Retry for the broker builder
 func (b *BrokerBuilder) Retry(retry *int32) *BrokerBuilder {
 	if retry == nil || *retry == 0 {
 		return b
@@ -409,6 +411,7 @@ func (b *BrokerBuilder) Retry(retry *int32) *BrokerBuilder {
 	return b
 }
 
+// Timeout for the broker builder
 func (b *BrokerBuilder) Timeout(timeout *string) *BrokerBuilder {
 	if timeout == nil || *timeout == "" {
 		return b
@@ -419,6 +422,8 @@ func (b *BrokerBuilder) Timeout(timeout *string) *BrokerBuilder {
 	b.broker.Spec.Delivery.Timeout = timeout
 	return b
 }
+
+// BackoffPolicy for the broker builder
 func (b *BrokerBuilder) BackoffPolicy(policyType *v1.BackoffPolicyType) *BrokerBuilder {
 	if policyType == nil || *policyType == "" {
 		return b
@@ -430,6 +435,7 @@ func (b *BrokerBuilder) BackoffPolicy(policyType *v1.BackoffPolicyType) *BrokerB
 	return b
 }
 
+// BackoffDelay for the broker builder
 func (b *BrokerBuilder) BackoffDelay(backoffDelay *string) *BrokerBuilder {
 	if backoffDelay == nil || *backoffDelay == "" {
 		return b
@@ -441,6 +447,7 @@ func (b *BrokerBuilder) BackoffDelay(backoffDelay *string) *BrokerBuilder {
 	return b
 }
 
+// RetryAfterMax for the broker builder
 func (b *BrokerBuilder) RetryAfterMax(max *string) *BrokerBuilder {
 	if max == nil || *max == "" {
 		return b

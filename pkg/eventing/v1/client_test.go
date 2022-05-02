@@ -24,6 +24,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
+	v1 "knative.dev/eventing/pkg/apis/duck/v1"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -334,6 +335,7 @@ func TestBrokerCreate(t *testing.T) {
 
 	objNew := newBroker(name)
 	brokerObjWithClass := newBrokerWithClass(name)
+	brokerObjWithDeliveryOptions := newBrokerWithDeliveryOptions(name)
 
 	server.AddReactor("create", "brokers",
 		func(a client_testing.Action) (bool, runtime.Object, error) {
@@ -359,6 +361,10 @@ func TestBrokerCreate(t *testing.T) {
 	t.Run("create broker with an error returns an error object", func(t *testing.T) {
 		err := client.CreateBroker(context.Background(), newBroker("unknown"))
 		assert.ErrorContains(t, err, "unknown")
+	})
+	t.Run("create broker with delivery options", func(t *testing.T) {
+		err := client.CreateBroker(context.Background(), brokerObjWithDeliveryOptions)
+		assert.NilError(t, err)
 	})
 }
 
@@ -515,6 +521,23 @@ func newBrokerWithClass(name string) *eventingv1.Broker {
 	return NewBrokerBuilder(name).
 		Namespace(testNamespace).
 		Class(testClass).
+		Build()
+}
+
+func newBrokerWithDeliveryOptions(name string) *eventingv1.Broker {
+	sink := &duckv1.Destination{
+		Ref: &duckv1.KReference{Name: "test-svc", Kind: "Service", APIVersion: "serving.knative.dev/v1", Namespace: "default"},
+	}
+	testTimeout := "PT10S"
+	retry := int32(2)
+	policy := v1.BackoffPolicyType("linear")
+	return NewBrokerBuilder(name).
+		Namespace(testNamespace).
+		DlSink(sink).
+		Timeout(&testTimeout).
+		Retry(&retry).
+		BackoffDelay(&testTimeout).
+		BackoffPolicy(&policy).
 		Build()
 }
 
