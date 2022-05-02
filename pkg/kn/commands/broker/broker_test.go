@@ -18,7 +18,13 @@ package broker
 import (
 	"bytes"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/clientcmd"
+	"knative.dev/client/pkg/dynamic"
+	dynamicfake "knative.dev/client/pkg/dynamic/fake"
+	v1 "knative.dev/eventing/pkg/apis/duck/v1"
+	duckv1 "knative.dev/pkg/apis/duck/v1"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	clientv1beta1 "knative.dev/client/pkg/eventing/v1"
 	"knative.dev/client/pkg/kn/commands"
@@ -27,6 +33,12 @@ import (
 
 // Helper methods
 var blankConfig clientcmd.ClientConfig
+
+const (
+	testSvc     = "test-svc"
+	testTimeout = "PT10S"
+	testRetry   = int32(5)
+)
 
 func init() {
 	var err error
@@ -61,6 +73,14 @@ func executeBrokerCommand(brokerClient clientv1beta1.KnEventingClient, args ...s
 		return brokerClient, nil
 	}
 
+	mysvc := &servingv1.Service{
+		TypeMeta:   metav1.TypeMeta{Kind: "Service", APIVersion: "serving.knative.dev/v1"},
+		ObjectMeta: metav1.ObjectMeta{Name: testSvc, Namespace: "default"},
+	}
+	knParams.NewDynamicClient = func(namespace string) (dynamic.KnDynamicClient, error) {
+		return dynamicfake.CreateFakeKnDynamicClient("default", mysvc), nil
+	}
+
 	cmd := NewBrokerCommand(knParams)
 	cmd.SetArgs(args)
 	cmd.SetOutput(output)
@@ -84,4 +104,32 @@ func createBrokerWithNamespace(brokerName, namespace string) *v1beta1.Broker {
 
 func createBrokerWithClass(brokerName, class string) *v1beta1.Broker {
 	return clientv1beta1.NewBrokerBuilder(brokerName).Namespace("default").Class(class).Build()
+}
+
+func createBrokerWithDlSink(brokerName, service string) *v1beta1.Broker {
+	sink := &duckv1.Destination{
+		Ref: &duckv1.KReference{Name: service, Kind: "Service", APIVersion: "serving.knative.dev/v1", Namespace: "default"},
+	}
+	return clientv1beta1.NewBrokerBuilder(brokerName).Namespace("default").DlSink(sink).Build()
+}
+
+func createBrokerWithTimeout(brokerName, timeout string) *v1beta1.Broker {
+	return clientv1beta1.NewBrokerBuilder(brokerName).Namespace("default").Timeout(&timeout).Build()
+}
+
+func createBrokerWithRetry(brokerName string, retry int32) *v1beta1.Broker {
+	return clientv1beta1.NewBrokerBuilder(brokerName).Namespace("default").Retry(&retry).Build()
+}
+
+func createBrokerWithBackoffPolicy(brokerName, policy string) *v1beta1.Broker {
+	boPolicy := v1.BackoffPolicyType(policy)
+	return clientv1beta1.NewBrokerBuilder(brokerName).Namespace("default").BackoffPolicy(&boPolicy).Build()
+}
+
+func createBrokerWithBackoffDelay(brokerName, delay string) *v1beta1.Broker {
+	return clientv1beta1.NewBrokerBuilder(brokerName).Namespace("default").BackoffDelay(&delay).Build()
+}
+
+func createBrokerWithRetryAfterMax(brokerName, timeout string) *v1beta1.Broker {
+	return clientv1beta1.NewBrokerBuilder(brokerName).Namespace("default").RetryAfterMax(&timeout).Build()
 }
