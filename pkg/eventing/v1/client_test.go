@@ -336,6 +336,7 @@ func TestBrokerCreate(t *testing.T) {
 	objNew := newBroker(name)
 	brokerObjWithClass := newBrokerWithClass(name)
 	brokerObjWithDeliveryOptions := newBrokerWithDeliveryOptions(name)
+	brokerObjWithNilDeliveryOptions := newBrokerWithNilDeliveryOptions(name)
 
 	server.AddReactor("create", "brokers",
 		func(a client_testing.Action) (bool, runtime.Object, error) {
@@ -362,9 +363,55 @@ func TestBrokerCreate(t *testing.T) {
 		err := client.CreateBroker(context.Background(), newBroker("unknown"))
 		assert.ErrorContains(t, err, "unknown")
 	})
+
 	t.Run("create broker with delivery options", func(t *testing.T) {
 		err := client.CreateBroker(context.Background(), brokerObjWithDeliveryOptions)
 		assert.NilError(t, err)
+	})
+
+	t.Run("create broker with nil delivery options", func(t *testing.T) {
+		err := client.CreateBroker(context.Background(), brokerObjWithNilDeliveryOptions)
+		assert.NilError(t, err)
+	})
+
+	t.Run("create broker with nil delivery spec", func(t *testing.T) {
+		builderFuncs := []func(builder *BrokerBuilder) *BrokerBuilder{
+			func(builder *BrokerBuilder) *BrokerBuilder {
+				var sink = &duckv1.Destination{
+					Ref: &duckv1.KReference{Name: "test-svc", Kind: "Service", APIVersion: "serving.knative.dev/v1", Namespace: "default"},
+				}
+				return builder.DlSink(sink)
+			},
+			func(builder *BrokerBuilder) *BrokerBuilder {
+				var retry int32 = 5
+				return builder.Retry(&retry)
+			},
+			func(builder *BrokerBuilder) *BrokerBuilder {
+				var timeout = "PT5S"
+				return builder.Timeout(&timeout)
+			},
+			func(builder *BrokerBuilder) *BrokerBuilder {
+				var policy = v1.BackoffPolicyType("linear")
+				return builder.BackoffPolicy(&policy)
+			},
+			func(builder *BrokerBuilder) *BrokerBuilder {
+				var delay = "PT5S"
+				return builder.BackoffDelay(&delay)
+			},
+			func(builder *BrokerBuilder) *BrokerBuilder {
+				var max = "PT5S"
+				return builder.RetryAfterMax(&max)
+			},
+		}
+		for _, bf := range builderFuncs {
+			brokerBuilder := NewBrokerBuilder(name)
+			brokerBuilder.broker.Spec.Delivery = nil
+			updatedBuilder := bf(brokerBuilder)
+
+			broker := updatedBuilder.Build()
+			err := client.CreateBroker(context.Background(), broker)
+			assert.NilError(t, err)
+		}
 	})
 }
 
@@ -538,6 +585,19 @@ func newBrokerWithDeliveryOptions(name string) *eventingv1.Broker {
 		Retry(&retry).
 		BackoffDelay(&testTimeout).
 		BackoffPolicy(&policy).
+		RetryAfterMax(&testTimeout).
+		Build()
+}
+
+func newBrokerWithNilDeliveryOptions(name string) *eventingv1.Broker {
+	return NewBrokerBuilder(name).
+		Namespace(testNamespace).
+		DlSink(nil).
+		Timeout(nil).
+		Retry(nil).
+		BackoffDelay(nil).
+		BackoffPolicy(nil).
+		RetryAfterMax(nil).
 		Build()
 }
 

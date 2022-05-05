@@ -30,11 +30,16 @@ type DeliveryOptionFlags struct {
 
 func (d *DeliveryOptionFlags) Add(cmd *cobra.Command) {
 	d.SinkFlags.AddWithFlagName(cmd, "dl-sink", "")
-	cmd.Flag("dl-sink").Usage = "Reference to a sink for delivering events that can not be sent"
+	cmd.Flag("dl-sink").Usage = "The sink receiving event that could not be sent to a destination."
 
-	cmd.Flags().Int32Var(&d.RetryCount, "retry", 0, "Number of retries before sending the event to a dead-letter sink")
-	cmd.Flags().StringVar(&d.Timeout, "timeout", "", "Timeout for a single request")
-	cmd.Flags().StringVar(&d.BackoffPolicy, "backoff-policy", "", "Backoff policy for retries, either \"linear\" or \"exponential\"")
-	cmd.Flags().StringVar(&d.BackoffDelay, "backoff-delay", "", "Based delay between retries")
-	cmd.Flags().StringVar(&d.RetryAfterMax, "retry-after-max", "", "Upper bound for a duration specified in an \"Retry-After\" header (experimental)")
+	cmd.Flags().Int32Var(&d.RetryCount, "retry", 0, "The minimum number of retries the sender should attempt when "+
+		"sending an event before moving it to the dead letter sink.")
+	cmd.Flags().StringVar(&d.Timeout, "timeout", "", "The timeout of each single request. The value must be greater than 0.")
+	cmd.Flags().StringVar(&d.BackoffPolicy, "backoff-policy", "", "The retry backoff policy (linear, exponential).")
+	cmd.Flags().StringVar(&d.BackoffDelay, "backoff-delay", "", "The delay before retrying.")
+	cmd.Flags().StringVar(&d.RetryAfterMax, "retry-after-max", "", "An optional upper bound on the duration specified in a "+
+		"\"Retry-After\" header when calculating backoff times for retrying 429 and 503 response codes. "+
+		"Setting the value to zero (\"PT0S\") can be used to opt-out of respecting \"Retry-After\" header values altogether. "+
+		"This value only takes effect if \"Retry\" is configured, and also depends on specific implementations (Channels, Sources, etc.) "+
+		"choosing to provide this capability.")
 }
