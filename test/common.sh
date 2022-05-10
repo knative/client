@@ -99,10 +99,8 @@ function knative_setup() {
   header "Installing Knative Eventing (${eventing_version})"
   if [ "${eventing_version}" = "latest" ]; then
     start_latest_knative_eventing
-    start_latest_eventing_sugar_controller
   else
     start_release_knative_eventing "${eventing_version}"
-    start_release_eventing_sugar_controller "${eventing_version}"
   fi
 }
 
