@@ -28,7 +28,7 @@ export PATH=$PATH:${REPO_ROOT_DIR}
 # Script entry point.
 initialize $@ --skip-istio-addon
 
-local tekton_latest_version=$(curl -L --silent "https://api.github.com/repos/tektoncd/pipeline/releases" | \
+tekton_latest_version=$(curl -L --silent "https://api.github.com/repos/tektoncd/pipeline/releases" | \
   jq -r '[.[].tag_name] | sort_by( sub("v";"") | split(".") | map(tonumber) ) | reverse[0]')
 export TEKTON_VERSION=${TEKTON_VERSION:-${tekton_latest_version}}
 export KN_E2E_NAMESPACE=tkn-kn
