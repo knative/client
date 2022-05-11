@@ -21,11 +21,11 @@ require (
 	k8s.io/cli-runtime v0.23.4
 	k8s.io/client-go v0.23.5
 	k8s.io/code-generator v0.23.5
-	knative.dev/eventing v0.31.1-0.20220428204853-01f56122bf2a
-	knative.dev/hack v0.0.0-20220427014036-5f473869d377
-	knative.dev/networking v0.0.0-20220429044653-591d2bb63aae
-	knative.dev/pkg v0.0.0-20220428192552-5c8cc3c9efd3
-	knative.dev/serving v0.31.1-0.20220429200154-f6cb424aaae3
+	knative.dev/eventing v0.31.1-0.20220509144032-9af98709e92b
+	knative.dev/hack v0.0.0-20220506160929-a8076b0510ed
+	knative.dev/networking v0.0.0-20220505013701-91dcb36802a9
+	knative.dev/pkg v0.0.0-20220505013700-a8b7d99374a3
+	knative.dev/serving v0.31.1-0.20220510145433-f726b1db1b0a
 	sigs.k8s.io/yaml v1.3.0
 )
 
@@ -107,7 +107,6 @@ require (
 	go.opencensus.io v0.23.0 // indirect
 	go.starlark.net v0.0.0-20200306205701-8dd3e2ee1dd5 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
-	go.uber.org/goleak v1.1.12 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.19.1 // indirect
 	golang.org/x/crypto v0.0.0-20220214200702-86341886e292 // indirect
