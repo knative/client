@@ -104,7 +104,7 @@ func (c *MockKnEventingClient) ListTriggers(context.Context) (*eventingv1.Trigge
 	return call.Result[0].(*eventingv1.TriggerList), mock.ErrorOrNil(call.Result[1])
 }
 
-// UpdateTrigger records a call for ListTriggers with the expected result and error (nil if none)
+// UpdateTrigger records a call for UpdateTrigger with the expected result and error (nil if none)
 func (sr *EventingRecorder) UpdateTrigger(trigger interface{}, err error) {
 	sr.r.Add("UpdateTrigger", []interface{}{trigger}, []interface{}{err})
 }
@@ -161,6 +161,20 @@ func (sr *EventingRecorder) ListBrokers(brokerList *eventingv1.BrokerList, err e
 func (c *MockKnEventingClient) ListBrokers(context.Context) (*eventingv1.BrokerList, error) {
 	call := c.recorder.r.VerifyCall("ListBrokers")
 	return call.Result[0].(*eventingv1.BrokerList), mock.ErrorOrNil(call.Result[1])
+}
+
+// UpdateBroker records a call for UpdateBroker with the expected result and error (nil if none)
+func (sr *EventingRecorder) UpdateBroker(broker *eventingv1.Broker, err error) {
+	sr.r.Add("UpdateBroker", []interface{}{broker}, []interface{}{err})
+}
+
+func (c *MockKnEventingClient) UpdateBroker(ctx context.Context, broker *eventingv1.Broker) error {
+	call := c.recorder.r.VerifyCall("UpdateBroker")
+	return mock.ErrorOrNil(call.Result[0])
+}
+
+func (c *MockKnEventingClient) UpdateBrokerWithRetry(ctx context.Context, name string, updateFunc BrokerUpdateFunc, nrRetries int) error {
+	return updateBrokerWithRetry(ctx, c, name, updateFunc, nrRetries)
 }
 
 // Validate validates whether every recorded action has been called

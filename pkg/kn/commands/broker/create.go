@@ -21,9 +21,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"knative.dev/client/pkg/kn/commands/flags"
 	v1 "knative.dev/eventing/pkg/apis/duck/v1"
-	duckv1 "knative.dev/pkg/apis/duck/v1"
 
 	clientv1beta1 "knative.dev/client/pkg/eventing/v1"
 	"knative.dev/client/pkg/kn/commands"
@@ -68,13 +66,9 @@ func NewBrokerCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			var empty = flags.SinkFlags{}
-			var destination *duckv1.Destination
-			if deliveryFlags.SinkFlags != empty {
-				destination, err = deliveryFlags.SinkFlags.ResolveSink(cmd.Context(), dynamicClient, namespace)
-				if err != nil {
-					return err
-				}
+			destination, err := deliveryFlags.GetDlSink(cmd, dynamicClient, namespace)
+			if err != nil {
+				return err
 			}
 
 			backoffPolicy := v1.BackoffPolicyType(deliveryFlags.BackoffPolicy)

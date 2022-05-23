@@ -33,5 +33,6 @@ func NewBrokerCommand(p *commands.KnParams) *cobra.Command {
 	brokerCmd.AddCommand(NewBrokerDescribeCommand(p))
 	brokerCmd.AddCommand(NewBrokerDeleteCommand(p))
 	brokerCmd.AddCommand(NewBrokerListCommand(p))
+	brokerCmd.AddCommand(NewBrokerUpdateCommand(p))
 	return brokerCmd
 }

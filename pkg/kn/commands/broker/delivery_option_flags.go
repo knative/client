@@ -16,7 +16,9 @@ package broker
 
 import (
 	"github.com/spf13/cobra"
+	"knative.dev/client/pkg/dynamic"
 	"knative.dev/client/pkg/kn/commands/flags"
+	duckv1 "knative.dev/pkg/apis/duck/v1"
 )
 
 type DeliveryOptionFlags struct {
@@ -42,4 +44,17 @@ func (d *DeliveryOptionFlags) Add(cmd *cobra.Command) {
 		"Setting the value to zero (\"PT0S\") can be used to opt-out of respecting \"Retry-After\" header values altogether. "+
 		"This value only takes effect if \"Retry\" is configured, and also depends on specific implementations (Channels, Sources, etc.) "+
 		"choosing to provide this capability.")
+}
+
+func (d *DeliveryOptionFlags) GetDlSink(cmd *cobra.Command, dynamicClient dynamic.KnDynamicClient, namespace string) (*duckv1.Destination, error) {
+	var empty = flags.SinkFlags{}
+	var destination *duckv1.Destination
+	var err error
+	if d.SinkFlags != empty {
+		destination, err = d.SinkFlags.ResolveSink(cmd.Context(), dynamicClient, namespace)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return destination, err
 }

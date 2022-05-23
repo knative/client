@@ -29,4 +29,5 @@ kn broker
 * [kn broker delete](kn_broker_delete.md)	 - Delete a broker
 * [kn broker describe](kn_broker_describe.md)	 - Describe broker
 * [kn broker list](kn_broker_list.md)	 - List brokers
+* [kn broker update](kn_broker_update.md)	 - Update a broker
 

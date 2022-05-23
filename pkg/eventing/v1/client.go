@@ -37,6 +37,7 @@ import (
 )
 
 type TriggerUpdateFunc func(origTrigger *eventingv1.Trigger) (*eventingv1.Trigger, error)
+type BrokerUpdateFunc func(origBroker *eventingv1.Broker) (*eventingv1.Broker, error)
 
 // KnEventingClient to Eventing Sources. All methods are relative to the
 // namespace specified during construction
@@ -63,6 +64,10 @@ type KnEventingClient interface {
 	DeleteBroker(ctx context.Context, name string, timeout time.Duration) error
 	// ListBrokers returns list of broker CRDs
 	ListBrokers(ctx context.Context) (*eventingv1.BrokerList, error)
+	// UpdateBroker is used to update an instance of broker
+	UpdateBroker(ctx context.Context, broker *eventingv1.Broker) error
+	// UpdateBrokerWithRetry is used to update an instance of broker
+	UpdateBrokerWithRetry(ctx context.Context, name string, updateFunc BrokerUpdateFunc, nrRetries int) error
 }
 
 // KnEventingClient is a combination of Sources client interface and namespace
@@ -348,6 +353,45 @@ func (c *knEventingClient) ListBrokers(ctx context.Context) (*eventingv1.BrokerL
 	return brokerListNew, nil
 }
 
+// UpdateBroker is used to update an instance of broker
+func (c *knEventingClient) UpdateBroker(ctx context.Context, broker *eventingv1.Broker) error {
+	_, err := c.client.Brokers(c.namespace).Update(ctx, broker, meta_v1.UpdateOptions{})
+	if err != nil {
+		return kn_errors.GetError(err)
+	}
+	return nil
+}
+
+func (c *knEventingClient) UpdateBrokerWithRetry(ctx context.Context, name string, updateFunc BrokerUpdateFunc, nrRetries int) error {
+	return updateBrokerWithRetry(ctx, c, name, updateFunc, nrRetries)
+}
+
+func updateBrokerWithRetry(ctx context.Context, c KnEventingClient, name string, updateFunc BrokerUpdateFunc, nrRetries int) error {
+	b := config.DefaultRetry
+	b.Steps = nrRetries
+	updateBrokerFunc := func() error {
+		return updateBroker(ctx, c, name, updateFunc)
+	}
+	err := retry.RetryOnConflict(b, updateBrokerFunc)
+	return err
+}
+
+func updateBroker(ctx context.Context, c KnEventingClient, name string, updateFunc BrokerUpdateFunc) error {
+	broker, err := c.GetBroker(ctx, name)
+	if err != nil {
+		return err
+	}
+	if broker.GetDeletionTimestamp() != nil {
+		return fmt.Errorf("can't update broker %s because it has been marked for deletion", name)
+	}
+	updatedBroker, err := updateFunc(broker.DeepCopy())
+	if err != nil {
+		return err
+	}
+
+	return c.UpdateBroker(ctx, updatedBroker)
+}
+
 // BrokerBuilder is for building the broker
 type BrokerBuilder struct {
 	broker *eventingv1.Broker
@@ -360,6 +404,13 @@ func NewBrokerBuilder(name string) *BrokerBuilder {
 			Name: name,
 		},
 	}}
+}
+
+// NewBrokerBuilderFromExisting returns broker builder from original broker
+func NewBrokerBuilderFromExisting(broker *eventingv1.Broker) *BrokerBuilder {
+	return &BrokerBuilder{
+		broker: broker,
+	}
 }
 
 // WithGvk add the GVK coordinates for read tests
