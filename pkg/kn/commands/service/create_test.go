@@ -34,7 +34,7 @@ import (
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/util"
 	"knative.dev/client/pkg/wait"
-	network "knative.dev/networking/pkg"
+	network "knative.dev/networking/pkg/apis/networking"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"

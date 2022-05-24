@@ -1,5 +1,5 @@
 /*
-Copyright 2018 The Knative Authors
+Copyright 2022 The Knative Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,7 +14,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// +k8s:deepcopy-gen=package
-// Package network holds the typed objects that define the schemas for
-// configuring the knative/serving networking layer.
 package pkg
+
+import "knative.dev/networking/pkg/apis/networking"
+
+const (
+	// VisibilityLabelKey is the label to indicate visibility of Route
+	// and KServices.  It can be an annotation too but since users are
+	// already using labels for domain, it probably best to keep this
+	// consistent.
+	//
+	// Deprecated: use knative.dev/networking/pkg/apis/networking.VisibilityLabelKey
+	VisibilityLabelKey = networking.VisibilityLabelKey
+)
