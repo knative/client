@@ -27,7 +27,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"knative.dev/client/lib/test"
 	"knative.dev/client/pkg/util"
-	network "knative.dev/networking/pkg"
+	network "knative.dev/networking/pkg/apis/networking"
 	pkgtest "knative.dev/pkg/test"
 	"knative.dev/serving/pkg/apis/serving"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"

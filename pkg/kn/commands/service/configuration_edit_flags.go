@@ -27,7 +27,7 @@ import (
 	knflags "knative.dev/client/pkg/kn/flags"
 	servinglib "knative.dev/client/pkg/serving"
 	"knative.dev/client/pkg/util"
-	network "knative.dev/networking/pkg"
+	network "knative.dev/networking/pkg/apis/networking"
 	"knative.dev/serving/pkg/apis/autoscaling"
 	"knative.dev/serving/pkg/apis/serving"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
