@@ -542,6 +542,40 @@ func TestBrokerList(t *testing.T) {
 	})
 }
 
+func TestBrokerUpdate(t *testing.T) {
+	var name = "broker"
+	server, client := setup()
+
+	obj := newBroker(name)
+	errorObj := newBroker("error-obj")
+	updatedObj := newBrokerWithDeliveryOptions(name)
+
+	server.AddReactor("update", "brokers",
+		func(a client_testing.Action) (bool, runtime.Object, error) {
+			assert.Equal(t, testNamespace, a.GetNamespace())
+			name := a.(client_testing.UpdateAction).GetObject().(metav1.Object).GetName()
+			if name == "error-obj" {
+				return true, nil, fmt.Errorf("error while creating broker %s", name)
+			}
+			return true, updatedObj, nil
+		})
+	server.AddReactor("get", "brokers",
+		func(a client_testing.Action) (bool, runtime.Object, error) {
+			assert.Equal(t, testNamespace, a.GetNamespace())
+			return true, obj, nil
+		})
+
+	t.Run("update broker without error", func(t *testing.T) {
+		err := client.UpdateBroker(context.Background(), updatedObj)
+		assert.NilError(t, err)
+	})
+
+	t.Run("create broker with an error returns an error object", func(t *testing.T) {
+		err := client.UpdateBroker(context.Background(), errorObj)
+		assert.ErrorContains(t, err, "error while creating broker")
+	})
+}
+
 func newTrigger(name string) *eventingv1.Trigger {
 	return NewTriggerBuilder(name).
 		Namespace(testNamespace).
