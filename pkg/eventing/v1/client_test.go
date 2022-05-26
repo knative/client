@@ -576,6 +576,102 @@ func TestBrokerUpdate(t *testing.T) {
 	})
 }
 
+func TestUpdateBrokerWithRetry(t *testing.T) {
+	serving, client := setup()
+	var attemptCount, maxAttempts = 0, 5
+	serving.AddReactor("get", "brokers",
+		func(a client_testing.Action) (bool, runtime.Object, error) {
+			name := a.(client_testing.GetAction).GetName()
+			if name == "deletedBroker" {
+				broker := newBroker(name)
+				now := metav1.Now()
+				broker.DeletionTimestamp = &now
+				return true, broker, nil
+			}
+			if name == "getErrorBroker" {
+				return true, nil, errors.NewInternalError(fmt.Errorf("mock internal error"))
+			}
+			return true, newBroker(name), nil
+		})
+
+	serving.AddReactor("update", "brokers",
+		func(a client_testing.Action) (bool, runtime.Object, error) {
+			newBroker := a.(client_testing.UpdateAction).GetObject()
+			name := newBroker.(metav1.Object).GetName()
+
+			if name == "testBroker" && attemptCount > 0 {
+				attemptCount--
+				return true, nil, errors.NewConflict(eventingv1.Resource("broker"), "errorBroker", fmt.Errorf("error updating because of conflict"))
+			}
+			if name == "errorBroker" {
+				return true, nil, errors.NewInternalError(fmt.Errorf("mock internal error"))
+			}
+			return true, NewBrokerBuilderFromExisting(newBroker.(*eventingv1.Broker)).Build(), nil
+		})
+
+	t.Run("Update broker successfully without any retries", func(t *testing.T) {
+		err := client.UpdateBrokerWithRetry(context.Background(), "testBroker", func(broker *eventingv1.Broker) (*eventingv1.Broker, error) {
+			return broker, nil
+		}, maxAttempts)
+		assert.NilError(t, err, "No retries required as no conflict error occurred")
+	})
+
+	t.Run("Update broker with retry after max retries", func(t *testing.T) {
+		attemptCount = maxAttempts - 1
+		err := client.UpdateBrokerWithRetry(context.Background(), "testBroker", func(broker *eventingv1.Broker) (*eventingv1.Broker, error) {
+			return broker, nil
+		}, maxAttempts)
+		assert.NilError(t, err, "Update retried %d times and succeeded", maxAttempts)
+		assert.Equal(t, attemptCount, 0)
+	})
+
+	t.Run("Update broker with retry and fail with conflict after exhausting max retries", func(t *testing.T) {
+		attemptCount = maxAttempts
+		err := client.UpdateBrokerWithRetry(context.Background(), "testBroker", func(broker *eventingv1.Broker) (*eventingv1.Broker, error) {
+			return broker, nil
+		}, maxAttempts)
+		assert.ErrorType(t, err, errors.IsConflict, "Update retried %d times and failed", maxAttempts)
+		assert.Equal(t, attemptCount, 0)
+	})
+
+	t.Run("Update broker with retry and fail with conflict after exhausting max retries", func(t *testing.T) {
+		attemptCount = maxAttempts
+		err := client.UpdateBrokerWithRetry(context.Background(), "testBroker", func(broker *eventingv1.Broker) (*eventingv1.Broker, error) {
+			return broker, nil
+		}, maxAttempts)
+		assert.ErrorType(t, err, errors.IsConflict, "Update retried %d times and failed", maxAttempts)
+		assert.Equal(t, attemptCount, 0)
+	})
+
+	t.Run("Update broker with retry fails with a non conflict error", func(t *testing.T) {
+		err := client.UpdateBrokerWithRetry(context.Background(), "errorBroker", func(broker *eventingv1.Broker) (*eventingv1.Broker, error) {
+			return broker, nil
+		}, maxAttempts)
+		assert.ErrorType(t, err, errors.IsInternalError)
+	})
+
+	t.Run("Update broker with retry fails with resource already deleted error", func(t *testing.T) {
+		err := client.UpdateBrokerWithRetry(context.Background(), "deletedBroker", func(broker *eventingv1.Broker) (*eventingv1.Broker, error) {
+			return broker, nil
+		}, maxAttempts)
+		assert.ErrorContains(t, err, "marked for deletion")
+	})
+
+	t.Run("Update broker with retry fails with error from updateFunc", func(t *testing.T) {
+		err := client.UpdateBrokerWithRetry(context.Background(), "testBroker", func(broker *eventingv1.Broker) (*eventingv1.Broker, error) {
+			return broker, fmt.Errorf("error updating object")
+		}, maxAttempts)
+		assert.ErrorContains(t, err, "error updating object")
+	})
+
+	t.Run("Update broker with retry fails with error from GetBroker", func(t *testing.T) {
+		err := client.UpdateBrokerWithRetry(context.Background(), "getErrorBroker", func(broker *eventingv1.Broker) (*eventingv1.Broker, error) {
+			return broker, nil
+		}, maxAttempts)
+		assert.ErrorType(t, err, errors.IsInternalError)
+	})
+}
+
 func newTrigger(name string) *eventingv1.Trigger {
 	return NewTriggerBuilder(name).
 		Namespace(testNamespace).

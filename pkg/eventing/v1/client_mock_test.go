@@ -41,6 +41,9 @@ func TestMockKnClient(t *testing.T) {
 	recorder.GetBroker("foo", nil, nil)
 	recorder.DeleteBroker("foo", time.Duration(10)*time.Second, nil)
 	recorder.ListBrokers(nil, nil)
+	recorder.GetBroker("foo", &eventingv1.Broker{}, nil)
+	recorder.UpdateBroker(&eventingv1.Broker{}, nil)
+	recorder.UpdateBroker(&eventingv1.Broker{}, nil)
 
 	// Call all service
 	ctx := context.Background()
@@ -57,6 +60,10 @@ func TestMockKnClient(t *testing.T) {
 	client.GetBroker(ctx, "foo")
 	client.DeleteBroker(ctx, "foo", time.Duration(10)*time.Second)
 	client.ListBrokers(ctx)
+	client.UpdateBroker(ctx, &eventingv1.Broker{})
+	client.UpdateBrokerWithRetry(ctx, "foo", func(origBroker *eventingv1.Broker) (*eventingv1.Broker, error) {
+		return origBroker, nil
+	}, 10)
 
 	// Validate
 	recorder.Validate()
