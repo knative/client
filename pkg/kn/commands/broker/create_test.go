@@ -68,3 +68,84 @@ func TestBrokerCreateWithError(t *testing.T) {
 	assert.ErrorContains(t, err, "broker create")
 	assert.Assert(t, util.ContainsAll(err.Error(), "broker create", "requires", "name", "argument"))
 }
+
+func TestBrokerCreateWithDlSink(t *testing.T) {
+	eventingClient := clienteventingv1.NewMockKnEventingClient(t)
+
+	eventingRecorder := eventingClient.Recorder()
+	eventingRecorder.CreateBroker(createBrokerWithDlSink(brokerName, testSvc), nil)
+
+	out, err := executeBrokerCommand(eventingClient, "create", brokerName, "--dl-sink", testSvc)
+	assert.NilError(t, err, "Broker should be created")
+	assert.Assert(t, util.ContainsAll(out, "Broker", brokerName, "created", "namespace", "default"))
+
+	eventingRecorder.Validate()
+}
+
+func TestBrokerCreateWithTimeout(t *testing.T) {
+	eventingClient := clienteventingv1.NewMockKnEventingClient(t)
+
+	eventingRecorder := eventingClient.Recorder()
+	eventingRecorder.CreateBroker(createBrokerWithTimeout(brokerName, testTimeout), nil)
+
+	out, err := executeBrokerCommand(eventingClient, "create", brokerName, "--timeout", testTimeout)
+	assert.NilError(t, err, "Broker should be created")
+	assert.Assert(t, util.ContainsAll(out, "Broker", brokerName, "created", "namespace", "default"))
+
+	eventingRecorder.Validate()
+}
+
+func TestBrokerCreateWithRetry(t *testing.T) {
+	eventingClient := clienteventingv1.NewMockKnEventingClient(t)
+
+	eventingRecorder := eventingClient.Recorder()
+	eventingRecorder.CreateBroker(createBrokerWithRetry(brokerName, testRetry), nil)
+
+	out, err := executeBrokerCommand(eventingClient, "create", brokerName, "--retry", "5")
+	assert.NilError(t, err, "Broker should be created")
+	assert.Assert(t, util.ContainsAll(out, "Broker", brokerName, "created", "namespace", "default"))
+
+	eventingRecorder.Validate()
+}
+
+func TestBrokerCreateWithBackoffPolicy(t *testing.T) {
+	eventingClient := clienteventingv1.NewMockKnEventingClient(t)
+
+	eventingRecorder := eventingClient.Recorder()
+
+	policies := []string{"linear", "exponential"}
+	for _, p := range policies {
+		eventingRecorder.CreateBroker(createBrokerWithBackoffPolicy(brokerName, p), nil)
+		out, err := executeBrokerCommand(eventingClient, "create", brokerName, "--backoff-policy", p)
+
+		assert.NilError(t, err, "Broker should be created")
+		assert.Assert(t, util.ContainsAll(out, "Broker", brokerName, "created", "namespace", "default"))
+	}
+	eventingRecorder.Validate()
+}
+
+func TestBrokerCreateWithBackoffDelay(t *testing.T) {
+	eventingClient := clienteventingv1.NewMockKnEventingClient(t)
+
+	eventingRecorder := eventingClient.Recorder()
+	eventingRecorder.CreateBroker(createBrokerWithBackoffDelay(brokerName, testTimeout), nil)
+
+	out, err := executeBrokerCommand(eventingClient, "create", brokerName, "--backoff-delay", testTimeout)
+	assert.NilError(t, err, "Broker should be created")
+	assert.Assert(t, util.ContainsAll(out, "Broker", brokerName, "created", "namespace", "default"))
+
+	eventingRecorder.Validate()
+}
+
+func TestBrokerCreateWithRetryAfterMax(t *testing.T) {
+	eventingClient := clienteventingv1.NewMockKnEventingClient(t)
+
+	eventingRecorder := eventingClient.Recorder()
+	eventingRecorder.CreateBroker(createBrokerWithRetryAfterMax(brokerName, testTimeout), nil)
+
+	out, err := executeBrokerCommand(eventingClient, "create", brokerName, "--retry-after-max", testTimeout)
+	assert.NilError(t, err, "Broker should be created")
+	assert.Assert(t, util.ContainsAll(out, "Broker", brokerName, "created", "namespace", "default"))
+
+	eventingRecorder.Validate()
+}

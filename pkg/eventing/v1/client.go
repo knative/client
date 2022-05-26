@@ -19,14 +19,13 @@ import (
 	"fmt"
 	"time"
 
-	"knative.dev/client/pkg/config"
-
-	"k8s.io/client-go/util/retry"
-
 	apis_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
+	"k8s.io/client-go/util/retry"
+	"knative.dev/client/pkg/config"
+	v1 "knative.dev/eventing/pkg/apis/duck/v1"
 	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
 	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
 	clientv1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1"
@@ -38,6 +37,7 @@ import (
 )
 
 type TriggerUpdateFunc func(origTrigger *eventingv1.Trigger) (*eventingv1.Trigger, error)
+type BrokerUpdateFunc func(origBroker *eventingv1.Broker) (*eventingv1.Broker, error)
 
 // KnEventingClient to Eventing Sources. All methods are relative to the
 // namespace specified during construction
@@ -64,6 +64,10 @@ type KnEventingClient interface {
 	DeleteBroker(ctx context.Context, name string, timeout time.Duration) error
 	// ListBrokers returns list of broker CRDs
 	ListBrokers(ctx context.Context) (*eventingv1.BrokerList, error)
+	// UpdateBroker is used to update an instance of broker
+	UpdateBroker(ctx context.Context, broker *eventingv1.Broker) error
+	// UpdateBrokerWithRetry is used to update an instance of broker
+	UpdateBrokerWithRetry(ctx context.Context, name string, updateFunc BrokerUpdateFunc, nrRetries int) error
 }
 
 // KnEventingClient is a combination of Sources client interface and namespace
@@ -349,6 +353,45 @@ func (c *knEventingClient) ListBrokers(ctx context.Context) (*eventingv1.BrokerL
 	return brokerListNew, nil
 }
 
+// UpdateBroker is used to update an instance of broker
+func (c *knEventingClient) UpdateBroker(ctx context.Context, broker *eventingv1.Broker) error {
+	_, err := c.client.Brokers(c.namespace).Update(ctx, broker, meta_v1.UpdateOptions{})
+	if err != nil {
+		return kn_errors.GetError(err)
+	}
+	return nil
+}
+
+func (c *knEventingClient) UpdateBrokerWithRetry(ctx context.Context, name string, updateFunc BrokerUpdateFunc, nrRetries int) error {
+	return updateBrokerWithRetry(ctx, c, name, updateFunc, nrRetries)
+}
+
+func updateBrokerWithRetry(ctx context.Context, c KnEventingClient, name string, updateFunc BrokerUpdateFunc, nrRetries int) error {
+	b := config.DefaultRetry
+	b.Steps = nrRetries
+	updateBrokerFunc := func() error {
+		return updateBroker(ctx, c, name, updateFunc)
+	}
+	err := retry.RetryOnConflict(b, updateBrokerFunc)
+	return err
+}
+
+func updateBroker(ctx context.Context, c KnEventingClient, name string, updateFunc BrokerUpdateFunc) error {
+	broker, err := c.GetBroker(ctx, name)
+	if err != nil {
+		return err
+	}
+	if broker.GetDeletionTimestamp() != nil {
+		return fmt.Errorf("can't update broker %s because it has been marked for deletion", name)
+	}
+	updatedBroker, err := updateFunc(broker.DeepCopy())
+	if err != nil {
+		return err
+	}
+
+	return c.UpdateBroker(ctx, updatedBroker)
+}
+
 // BrokerBuilder is for building the broker
 type BrokerBuilder struct {
 	broker *eventingv1.Broker
@@ -361,6 +404,13 @@ func NewBrokerBuilder(name string) *BrokerBuilder {
 			Name: name,
 		},
 	}}
+}
+
+// NewBrokerBuilderFromExisting returns broker builder from original broker
+func NewBrokerBuilderFromExisting(broker *eventingv1.Broker) *BrokerBuilder {
+	return &BrokerBuilder{
+		broker: broker,
+	}
 }
 
 // WithGvk add the GVK coordinates for read tests
@@ -385,6 +435,80 @@ func (b *BrokerBuilder) Class(class string) *BrokerBuilder {
 	}
 	b.broker.Annotations[eventingv1.BrokerClassAnnotationKey] = class
 	return b
+}
+
+// DlSink for the broker builder
+func (b *BrokerBuilder) DlSink(dlSink *duckv1.Destination) *BrokerBuilder {
+	empty := duckv1.Destination{}
+	if dlSink == nil || *dlSink == empty {
+		return b
+	}
+	if b.broker.Spec.Delivery == nil {
+		b.broker.Spec.Delivery = &v1.DeliverySpec{}
+	}
+	b.broker.Spec.Delivery.DeadLetterSink = dlSink
+	return b
+}
+
+// Retry for the broker builder
+func (b *BrokerBuilder) Retry(retry *int32) *BrokerBuilder {
+	if retry == nil || *retry == 0 {
+		return b
+	}
+	if b.broker.Spec.Delivery == nil {
+		b.broker.Spec.Delivery = &v1.DeliverySpec{}
+	}
+	b.broker.Spec.Delivery.Retry = retry
+	return b
+}
+
+// Timeout for the broker builder
+func (b *BrokerBuilder) Timeout(timeout *string) *BrokerBuilder {
+	if timeout == nil || *timeout == "" {
+		return b
+	}
+	if b.broker.Spec.Delivery == nil {
+		b.broker.Spec.Delivery = &v1.DeliverySpec{}
+	}
+	b.broker.Spec.Delivery.Timeout = timeout
+	return b
+}
+
+// BackoffPolicy for the broker builder
+func (b *BrokerBuilder) BackoffPolicy(policyType *v1.BackoffPolicyType) *BrokerBuilder {
+	if policyType == nil || *policyType == "" {
+		return b
+	}
+	if b.broker.Spec.Delivery == nil {
+		b.broker.Spec.Delivery = &v1.DeliverySpec{}
+	}
+	b.broker.Spec.Delivery.BackoffPolicy = policyType
+	return b
+}
+
+// BackoffDelay for the broker builder
+func (b *BrokerBuilder) BackoffDelay(backoffDelay *string) *BrokerBuilder {
+	if backoffDelay == nil || *backoffDelay == "" {
+		return b
+	}
+	if b.broker.Spec.Delivery == nil {
+		b.broker.Spec.Delivery = &v1.DeliverySpec{}
+	}
+	b.broker.Spec.Delivery.BackoffDelay = backoffDelay
+	return b
+}
+
+// RetryAfterMax for the broker builder
+func (b *BrokerBuilder) RetryAfterMax(max *string) *BrokerBuilder {
+	if max == nil || *max == "" {
+		return b
+	}
+	if b.broker.Spec.Delivery == nil {
+		b.broker.Spec.Delivery = &v1.DeliverySpec{}
+	}
+	b.broker.Spec.Delivery.RetryAfterMax = max
+	return b
+
 }
 
 // Build to return an instance of broker object

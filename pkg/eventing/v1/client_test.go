@@ -24,6 +24,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
+	v1 "knative.dev/eventing/pkg/apis/duck/v1"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -334,6 +335,8 @@ func TestBrokerCreate(t *testing.T) {
 
 	objNew := newBroker(name)
 	brokerObjWithClass := newBrokerWithClass(name)
+	brokerObjWithDeliveryOptions := newBrokerWithDeliveryOptions(name)
+	brokerObjWithNilDeliveryOptions := newBrokerWithNilDeliveryOptions(name)
 
 	server.AddReactor("create", "brokers",
 		func(a client_testing.Action) (bool, runtime.Object, error) {
@@ -359,6 +362,56 @@ func TestBrokerCreate(t *testing.T) {
 	t.Run("create broker with an error returns an error object", func(t *testing.T) {
 		err := client.CreateBroker(context.Background(), newBroker("unknown"))
 		assert.ErrorContains(t, err, "unknown")
+	})
+
+	t.Run("create broker with delivery options", func(t *testing.T) {
+		err := client.CreateBroker(context.Background(), brokerObjWithDeliveryOptions)
+		assert.NilError(t, err)
+	})
+
+	t.Run("create broker with nil delivery options", func(t *testing.T) {
+		err := client.CreateBroker(context.Background(), brokerObjWithNilDeliveryOptions)
+		assert.NilError(t, err)
+	})
+
+	t.Run("create broker with nil delivery spec", func(t *testing.T) {
+		builderFuncs := []func(builder *BrokerBuilder) *BrokerBuilder{
+			func(builder *BrokerBuilder) *BrokerBuilder {
+				var sink = &duckv1.Destination{
+					Ref: &duckv1.KReference{Name: "test-svc", Kind: "Service", APIVersion: "serving.knative.dev/v1", Namespace: "default"},
+				}
+				return builder.DlSink(sink)
+			},
+			func(builder *BrokerBuilder) *BrokerBuilder {
+				var retry int32 = 5
+				return builder.Retry(&retry)
+			},
+			func(builder *BrokerBuilder) *BrokerBuilder {
+				var timeout = "PT5S"
+				return builder.Timeout(&timeout)
+			},
+			func(builder *BrokerBuilder) *BrokerBuilder {
+				var policy = v1.BackoffPolicyType("linear")
+				return builder.BackoffPolicy(&policy)
+			},
+			func(builder *BrokerBuilder) *BrokerBuilder {
+				var delay = "PT5S"
+				return builder.BackoffDelay(&delay)
+			},
+			func(builder *BrokerBuilder) *BrokerBuilder {
+				var max = "PT5S"
+				return builder.RetryAfterMax(&max)
+			},
+		}
+		for _, bf := range builderFuncs {
+			brokerBuilder := NewBrokerBuilder(name)
+			brokerBuilder.broker.Spec.Delivery = nil
+			updatedBuilder := bf(brokerBuilder)
+
+			broker := updatedBuilder.Build()
+			err := client.CreateBroker(context.Background(), broker)
+			assert.NilError(t, err)
+		}
 	})
 }
 
@@ -489,6 +542,136 @@ func TestBrokerList(t *testing.T) {
 	})
 }
 
+func TestBrokerUpdate(t *testing.T) {
+	var name = "broker"
+	server, client := setup()
+
+	obj := newBroker(name)
+	errorObj := newBroker("error-obj")
+	updatedObj := newBrokerWithDeliveryOptions(name)
+
+	server.AddReactor("update", "brokers",
+		func(a client_testing.Action) (bool, runtime.Object, error) {
+			assert.Equal(t, testNamespace, a.GetNamespace())
+			name := a.(client_testing.UpdateAction).GetObject().(metav1.Object).GetName()
+			if name == "error-obj" {
+				return true, nil, fmt.Errorf("error while creating broker %s", name)
+			}
+			return true, updatedObj, nil
+		})
+	server.AddReactor("get", "brokers",
+		func(a client_testing.Action) (bool, runtime.Object, error) {
+			assert.Equal(t, testNamespace, a.GetNamespace())
+			return true, obj, nil
+		})
+
+	t.Run("update broker without error", func(t *testing.T) {
+		err := client.UpdateBroker(context.Background(), updatedObj)
+		assert.NilError(t, err)
+	})
+
+	t.Run("create broker with an error returns an error object", func(t *testing.T) {
+		err := client.UpdateBroker(context.Background(), errorObj)
+		assert.ErrorContains(t, err, "error while creating broker")
+	})
+}
+
+func TestUpdateBrokerWithRetry(t *testing.T) {
+	serving, client := setup()
+	var attemptCount, maxAttempts = 0, 5
+	serving.AddReactor("get", "brokers",
+		func(a client_testing.Action) (bool, runtime.Object, error) {
+			name := a.(client_testing.GetAction).GetName()
+			if name == "deletedBroker" {
+				broker := newBroker(name)
+				now := metav1.Now()
+				broker.DeletionTimestamp = &now
+				return true, broker, nil
+			}
+			if name == "getErrorBroker" {
+				return true, nil, errors.NewInternalError(fmt.Errorf("mock internal error"))
+			}
+			return true, newBroker(name), nil
+		})
+
+	serving.AddReactor("update", "brokers",
+		func(a client_testing.Action) (bool, runtime.Object, error) {
+			newBroker := a.(client_testing.UpdateAction).GetObject()
+			name := newBroker.(metav1.Object).GetName()
+
+			if name == "testBroker" && attemptCount > 0 {
+				attemptCount--
+				return true, nil, errors.NewConflict(eventingv1.Resource("broker"), "errorBroker", fmt.Errorf("error updating because of conflict"))
+			}
+			if name == "errorBroker" {
+				return true, nil, errors.NewInternalError(fmt.Errorf("mock internal error"))
+			}
+			return true, NewBrokerBuilderFromExisting(newBroker.(*eventingv1.Broker)).Build(), nil
+		})
+
+	t.Run("Update broker successfully without any retries", func(t *testing.T) {
+		err := client.UpdateBrokerWithRetry(context.Background(), "testBroker", func(broker *eventingv1.Broker) (*eventingv1.Broker, error) {
+			return broker, nil
+		}, maxAttempts)
+		assert.NilError(t, err, "No retries required as no conflict error occurred")
+	})
+
+	t.Run("Update broker with retry after max retries", func(t *testing.T) {
+		attemptCount = maxAttempts - 1
+		err := client.UpdateBrokerWithRetry(context.Background(), "testBroker", func(broker *eventingv1.Broker) (*eventingv1.Broker, error) {
+			return broker, nil
+		}, maxAttempts)
+		assert.NilError(t, err, "Update retried %d times and succeeded", maxAttempts)
+		assert.Equal(t, attemptCount, 0)
+	})
+
+	t.Run("Update broker with retry and fail with conflict after exhausting max retries", func(t *testing.T) {
+		attemptCount = maxAttempts
+		err := client.UpdateBrokerWithRetry(context.Background(), "testBroker", func(broker *eventingv1.Broker) (*eventingv1.Broker, error) {
+			return broker, nil
+		}, maxAttempts)
+		assert.ErrorType(t, err, errors.IsConflict, "Update retried %d times and failed", maxAttempts)
+		assert.Equal(t, attemptCount, 0)
+	})
+
+	t.Run("Update broker with retry and fail with conflict after exhausting max retries", func(t *testing.T) {
+		attemptCount = maxAttempts
+		err := client.UpdateBrokerWithRetry(context.Background(), "testBroker", func(broker *eventingv1.Broker) (*eventingv1.Broker, error) {
+			return broker, nil
+		}, maxAttempts)
+		assert.ErrorType(t, err, errors.IsConflict, "Update retried %d times and failed", maxAttempts)
+		assert.Equal(t, attemptCount, 0)
+	})
+
+	t.Run("Update broker with retry fails with a non conflict error", func(t *testing.T) {
+		err := client.UpdateBrokerWithRetry(context.Background(), "errorBroker", func(broker *eventingv1.Broker) (*eventingv1.Broker, error) {
+			return broker, nil
+		}, maxAttempts)
+		assert.ErrorType(t, err, errors.IsInternalError)
+	})
+
+	t.Run("Update broker with retry fails with resource already deleted error", func(t *testing.T) {
+		err := client.UpdateBrokerWithRetry(context.Background(), "deletedBroker", func(broker *eventingv1.Broker) (*eventingv1.Broker, error) {
+			return broker, nil
+		}, maxAttempts)
+		assert.ErrorContains(t, err, "marked for deletion")
+	})
+
+	t.Run("Update broker with retry fails with error from updateFunc", func(t *testing.T) {
+		err := client.UpdateBrokerWithRetry(context.Background(), "testBroker", func(broker *eventingv1.Broker) (*eventingv1.Broker, error) {
+			return broker, fmt.Errorf("error updating object")
+		}, maxAttempts)
+		assert.ErrorContains(t, err, "error updating object")
+	})
+
+	t.Run("Update broker with retry fails with error from GetBroker", func(t *testing.T) {
+		err := client.UpdateBrokerWithRetry(context.Background(), "getErrorBroker", func(broker *eventingv1.Broker) (*eventingv1.Broker, error) {
+			return broker, nil
+		}, maxAttempts)
+		assert.ErrorType(t, err, errors.IsInternalError)
+	})
+}
+
 func newTrigger(name string) *eventingv1.Trigger {
 	return NewTriggerBuilder(name).
 		Namespace(testNamespace).
@@ -515,6 +698,36 @@ func newBrokerWithClass(name string) *eventingv1.Broker {
 	return NewBrokerBuilder(name).
 		Namespace(testNamespace).
 		Class(testClass).
+		Build()
+}
+
+func newBrokerWithDeliveryOptions(name string) *eventingv1.Broker {
+	sink := &duckv1.Destination{
+		Ref: &duckv1.KReference{Name: "test-svc", Kind: "Service", APIVersion: "serving.knative.dev/v1", Namespace: "default"},
+	}
+	testTimeout := "PT10S"
+	retry := int32(2)
+	policy := v1.BackoffPolicyType("linear")
+	return NewBrokerBuilder(name).
+		Namespace(testNamespace).
+		DlSink(sink).
+		Timeout(&testTimeout).
+		Retry(&retry).
+		BackoffDelay(&testTimeout).
+		BackoffPolicy(&policy).
+		RetryAfterMax(&testTimeout).
+		Build()
+}
+
+func newBrokerWithNilDeliveryOptions(name string) *eventingv1.Broker {
+	return NewBrokerBuilder(name).
+		Namespace(testNamespace).
+		DlSink(nil).
+		Timeout(nil).
+		Retry(nil).
+		BackoffDelay(nil).
+		BackoffPolicy(nil).
+		RetryAfterMax(nil).
 		Build()
 }
 

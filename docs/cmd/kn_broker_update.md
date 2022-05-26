@@ -1,20 +1,20 @@
-## kn broker create
+## kn broker update
 
-Create a broker
+Update a broker
 
 ```
-kn broker create NAME
+kn broker update NAME
 ```
 
 ### Examples
 
 ```
 
-  # Create a broker 'mybroker' in the current namespace
-  kn broker create mybroker
+  # Update a broker 'mybroker' in the current namespace with delivery sink svc1
+  kn broker update mybroker --dl-sink svc1
 
-  # Create a broker 'mybroker' in the 'myproject' namespace and with a broker class of 'Kafka'
-  kn broker create mybroker --namespace myproject --class Kafka
+  # Update a broker 'mybroker' in the 'myproject' namespace and with retry 2 seconds
+  kn broker update mybroker --namespace myproject --retry 2
 
 ```
 
@@ -23,9 +23,8 @@ kn broker create NAME
 ```
       --backoff-delay string     The delay before retrying.
       --backoff-policy string    The retry backoff policy (linear, exponential).
-      --class string             Broker class like 'MTChannelBasedBroker' or 'Kafka' (if available).
       --dl-sink string           The sink receiving event that could not be sent to a destination.
-  -h, --help                     help for create
+  -h, --help                     help for update
   -n, --namespace string         Specify the namespace to operate in.
       --retry int32              The minimum number of retries the sender should attempt when sending an event before moving it to the dead letter sink.
       --retry-after-max string   An optional upper bound on the duration specified in a "Retry-After" header when calculating backoff times for retrying 429 and 503 response codes. Setting the value to zero ("PT0S") can be used to opt-out of respecting "Retry-After" header values altogether. This value only takes effect if "Retry" is configured, and also depends on specific implementations (Channels, Sources, etc.) choosing to provide this capability.

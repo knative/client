@@ -21,6 +21,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	v1 "knative.dev/eventing/pkg/apis/duck/v1"
 
 	clientv1beta1 "knative.dev/client/pkg/eventing/v1"
 	"knative.dev/client/pkg/kn/commands"
@@ -39,6 +40,7 @@ func NewBrokerCreateCommand(p *commands.KnParams) *cobra.Command {
 
 	var className string
 
+	var deliveryFlags DeliveryOptionFlags
 	cmd := &cobra.Command{
 		Use:     "create NAME",
 		Short:   "Create a broker",
@@ -59,10 +61,28 @@ func NewBrokerCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
+			dynamicClient, err := p.NewDynamicClient(namespace)
+			if err != nil {
+				return err
+			}
+
+			destination, err := deliveryFlags.GetDlSink(cmd, dynamicClient, namespace)
+			if err != nil {
+				return err
+			}
+
+			backoffPolicy := v1.BackoffPolicyType(deliveryFlags.BackoffPolicy)
+
 			brokerBuilder := clientv1beta1.
 				NewBrokerBuilder(name).
 				Namespace(namespace).
-				Class(className)
+				Class(className).
+				DlSink(destination).
+				Retry(&deliveryFlags.RetryCount).
+				Timeout(&deliveryFlags.Timeout).
+				BackoffPolicy(&backoffPolicy).
+				BackoffDelay(&deliveryFlags.BackoffDelay).
+				RetryAfterMax(&deliveryFlags.RetryAfterMax)
 
 			err = eventingClient.CreateBroker(cmd.Context(), brokerBuilder.Build())
 			if err != nil {
@@ -75,6 +95,7 @@ func NewBrokerCreateCommand(p *commands.KnParams) *cobra.Command {
 		},
 	}
 	commands.AddNamespaceFlags(cmd.Flags(), false)
-	cmd.Flags().StringVar(&className, "class", "", "Broker class like 'MTChannelBasedBroker' or 'Kafka' (if available)")
+	cmd.Flags().StringVar(&className, "class", "", "Broker class like 'MTChannelBasedBroker' or 'Kafka' (if available).")
+	deliveryFlags.Add(cmd)
 	return cmd
 }
