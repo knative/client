@@ -11,7 +11,36 @@
 |
 | https://github.com/knative/client/pull/[#]
 ////
-## v1.4.0
+## v1.5.0 (2022-05-31)
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| 🎁
+| Add delivery options to `broker create` command
+| https://github.com/knative/client/pull/1670[#1670]
+
+| 🐛
+| Fix OCI image build
+| https://github.com/knative/client/pull/1667[#1667]
+
+| ✨
+| Mark `--inject-broker` flag as deprecated
+| https://github.com/knative/client/pull/1661[#1661]
+
+|===
+
+## v1.4.1 (2022-05-17)
+[cols="1,10,3", options="header", width="100%"]
+|===
+| | Description | PR
+
+| ✨
+| Mark `--inject-broker` flag as deprecated
+| https://github.com/knative/client/pull/1665[#1665]
+
+|===
+## v1.4.0 (2022-04-20)
 [cols="1,10,3", options="header", width="100%"]
 |===
 | | Description | PR
