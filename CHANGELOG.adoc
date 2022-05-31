@@ -22,7 +22,7 @@
 
 | 🐛
 | Fix OCI image build
-| https://github.com/knative/client/pull/1667[#1667]
+| https://github.com/knative/client/pull/1666[#1666]
 
 | ✨
 | Mark `--inject-broker` flag as deprecated
