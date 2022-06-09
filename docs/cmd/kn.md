@@ -24,6 +24,7 @@ Find more information about Knative at: https://knative.dev
 * [kn broker](kn_broker.md)	 - Manage message brokers
 * [kn channel](kn_channel.md)	 - Manage event channels
 * [kn completion](kn_completion.md)	 - Output shell completion code
+* [kn config](kn_config.md)	 - Manage Knative configuration file
 * [kn container](kn_container.md)	 - Manage service's containers (experimental)
 * [kn domain](kn_domain.md)	 - Manage domain mappings
 * [kn eventtype](kn_eventtype.md)	 - Manage eventtypes
