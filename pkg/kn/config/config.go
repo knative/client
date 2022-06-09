@@ -76,8 +76,8 @@ func (c *config) ConfigFile() string {
 
 // PluginsDir returns the plugins' directory
 func (c *config) PluginsDir() string {
-	if viper.IsSet(keyPluginsDirectory) {
-		return viper.GetString(keyPluginsDirectory)
+	if viper.IsSet(KeyPluginsDirectory) {
+		return viper.GetString(KeyPluginsDirectory)
 	} else if viper.IsSet(legacyKeyPluginsDirectory) {
 		// Remove that branch if legacy option is switched off
 		return viper.GetString(legacyKeyPluginsDirectory)
@@ -121,7 +121,7 @@ func BootstrapConfig() error {
 
 	// Bind flags so that options that have been provided have priority.
 	// Important: Always read options via GlobalConfig methods
-	err = viper.BindPFlag(keyPluginsDirectory, bootstrapFlagSet.Lookup(flagPluginsDir))
+	err = viper.BindPFlag(KeyPluginsDirectory, bootstrapFlagSet.Lookup(flagPluginsDir))
 	if err != nil {
 		return err
 	}
@@ -245,8 +245,8 @@ func dirExists(path string) bool {
 func parseSinkMappings() error {
 	// Parse sink configuration
 	key := ""
-	if viper.IsSet(keySinkMappings) {
-		key = keySinkMappings
+	if viper.IsSet(KeySinkMappings) {
+		key = KeySinkMappings
 	}
 	if key == "" && viper.IsSet(legacyKeySinkMappings) {
 		key = legacyKeySinkMappings
@@ -264,8 +264,8 @@ func parseSinkMappings() error {
 
 // parse channel type mappings and store them in the global configuration
 func parseChannelTypeMappings() error {
-	if viper.IsSet(keyChannelTypeMappings) {
-		err := viper.UnmarshalKey(keyChannelTypeMappings, &globalConfig.channelTypeMappings)
+	if viper.IsSet(KeyChannelTypeMappings) {
+		err := viper.UnmarshalKey(KeyChannelTypeMappings, &globalConfig.channelTypeMappings)
 		if err != nil {
 			return fmt.Errorf("error while parsing channel type mappings in configuration file %s: %w",
 				viper.ConfigFileUsed(), err)

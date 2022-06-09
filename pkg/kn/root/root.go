@@ -31,6 +31,7 @@ import (
 	"knative.dev/client/pkg/kn/commands/broker"
 	"knative.dev/client/pkg/kn/commands/channel"
 	"knative.dev/client/pkg/kn/commands/completion"
+	cfgCmd "knative.dev/client/pkg/kn/commands/config"
 	"knative.dev/client/pkg/kn/commands/container"
 	"knative.dev/client/pkg/kn/commands/domain"
 	"knative.dev/client/pkg/kn/commands/eventtype"
@@ -117,6 +118,7 @@ Find more information about Knative at: https://knative.dev`, rootName),
 				plugin.NewPluginCommand(p),
 				completion.NewCompletionCommand(p),
 				version.NewVersionCommand(p),
+				cfgCmd.NewConfigCommand(p),
 			},
 		},
 	}
