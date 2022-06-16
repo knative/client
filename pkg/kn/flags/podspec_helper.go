@@ -791,7 +791,10 @@ func getEmptyDirTypeAndSize(value string) (string, *resource.Quantity, error) {
 		case "type":
 			dirType = typeSizeSlices[1]
 		case "size":
-			quantity := resource.MustParse(typeSizeSlices[1])
+			quantity, err := resource.ParseQuantity(typeSizeSlices[1])
+			if err != nil {
+				return "", nil, formatErr
+			}
 			size = &quantity
 		default:
 			return "", nil, formatErr
@@ -812,7 +815,10 @@ func getEmptyDirTypeAndSize(value string) (string, *resource.Quantity, error) {
 				if size != nil {
 					return "", nil, fmt.Errorf(repeatErrStr, "size")
 				}
-				quantity := resource.MustParse(typeSizeSlices[1])
+				quantity, err := resource.ParseQuantity(typeSizeSlices[1])
+				if err != nil {
+					return "", nil, formatErr
+				}
 				size = &quantity
 			default:
 				return "", nil, formatErr
