@@ -490,8 +490,7 @@ func updateVolumeMountsFromMap(volumeMounts []corev1.VolumeMount, toUpdate *util
 			if !existsVolumeNameInVolumes(name, volumes) {
 				return nil, fmt.Errorf("There is no volume matched with %q", name)
 			}
-
-			volumeMount.ReadOnly = true
+			volumeMount.ReadOnly = isReadOnlyVolume(name, volumes)
 			volumeMount.Name = name
 			volumeMount.SubPath = volumeMountInfo.SubPath
 			set[volumeMount.MountPath] = true
@@ -505,7 +504,7 @@ func updateVolumeMountsFromMap(volumeMounts []corev1.VolumeMount, toUpdate *util
 		if !set[mountPath] {
 			volumeMounts = append(volumeMounts, corev1.VolumeMount{
 				Name:      name,
-				ReadOnly:  true,
+				ReadOnly:  isReadOnlyVolume(name, volumes),
 				MountPath: mountPath,
 				SubPath:   volumeMountInfo.SubPath,
 			})
@@ -679,6 +678,15 @@ func (vol *volumeSourceInfo) createEnvFromSource() *corev1.EnvFromSource {
 }
 
 // =======================================================================================
+
+func isReadOnlyVolume(volumeName string, volumes []corev1.Volume) bool {
+	for _, volume := range volumes {
+		if volume.Name == volumeName {
+			return volume.EmptyDir == nil
+		}
+	}
+	return true
+}
 
 func existsVolumeNameInVolumes(volumeName string, volumes []corev1.Volume) bool {
 	for _, volume := range volumes {
