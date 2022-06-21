@@ -16,6 +16,16 @@
 <!-- Please add the corresponding issue number which this pull request is about to fix -->
 Fixes #
 
+**Release Note**
+
+<!-- Enter your extended release note in the below block. If the PR requires
+additional action from users switching to the new release, include the string
+"action required". If no release note is required, write "NONE". -->
+
+```release-note
+
+```
+
 <!--
 Please add an entry to CHANGELOG.adoc file, too, as part of your Pull Request.
 
