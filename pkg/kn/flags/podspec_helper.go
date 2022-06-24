@@ -20,6 +20,7 @@ import (
 	"strconv"
 	"strings"
 
+	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/util/yaml"
 
 	corev1 "k8s.io/api/core/v1"
@@ -35,6 +36,7 @@ type VolumeSourceType int
 const (
 	ConfigMapVolumeSourceType VolumeSourceType = iota
 	SecretVolumeSourceType
+	EmptyDirVolumeSourceType
 	PortFormatErr = "the port specification '%s' is not valid. Please provide in the format 'NAME:PORT', where 'NAME' is optional. Examples: '--port h2c:8080' , '--port 8080'."
 )
 
@@ -466,6 +468,8 @@ func updateVolume(volume *corev1.Volume, info *volumeSourceInfo) error {
 	case SecretVolumeSourceType:
 		volume.ConfigMap = nil
 		volume.Secret = &corev1.SecretVolumeSource{SecretName: info.volumeSourceName}
+	case EmptyDirVolumeSourceType:
+		volume.EmptyDir = &corev1.EmptyDirVolumeSource{Medium: corev1.StorageMedium(info.emptyDirMemoryType), SizeLimit: info.emptyDirSize}
 	default:
 		return fmt.Errorf("Invalid VolumeSourceType")
 	}
@@ -486,8 +490,7 @@ func updateVolumeMountsFromMap(volumeMounts []corev1.VolumeMount, toUpdate *util
 			if !existsVolumeNameInVolumes(name, volumes) {
 				return nil, fmt.Errorf("There is no volume matched with %q", name)
 			}
-
-			volumeMount.ReadOnly = true
+			volumeMount.ReadOnly = isReadOnlyVolume(name, volumes)
 			volumeMount.Name = name
 			volumeMount.SubPath = volumeMountInfo.SubPath
 			set[volumeMount.MountPath] = true
@@ -501,7 +504,7 @@ func updateVolumeMountsFromMap(volumeMounts []corev1.VolumeMount, toUpdate *util
 		if !set[mountPath] {
 			volumeMounts = append(volumeMounts, corev1.VolumeMount{
 				Name:      name,
-				ReadOnly:  true,
+				ReadOnly:  isReadOnlyVolume(name, volumes),
 				MountPath: mountPath,
 				SubPath:   volumeMountInfo.SubPath,
 			})
@@ -579,38 +582,65 @@ func removeVolumes(volumes []corev1.Volume, toRemove []string, volumeMounts []co
 // =======================================================================================
 
 type volumeSourceInfo struct {
-	volumeSourceType VolumeSourceType
-	volumeSourceName string
+	volumeSourceType   VolumeSourceType
+	volumeSourceName   string
+	emptyDirMemoryType string
+	emptyDirSize       *resource.Quantity
 }
 
 func newVolumeSourceInfoWithSpecString(spec string) (*volumeSourceInfo, error) {
-	slices := strings.SplitN(spec, ":", 2)
-	if len(slices) != 2 {
-		return nil, fmt.Errorf("argument requires a value that contains the : character; got %q", spec)
+	slices := strings.SplitN(spec, ":", 3)
+	if len(slices) < 2 {
+		return nil, fmt.Errorf("argument requires a value that contains the : character; got %q, %q", spec, slices)
 	}
 
-	var volumeSourceType VolumeSourceType
+	if len(slices) == 2 {
+		var volumeSourceType VolumeSourceType
 
-	typeString := strings.TrimSpace(slices[0])
-	volumeSourceName := strings.TrimSpace(slices[1])
+		typeString := strings.TrimSpace(slices[0])
+		volumeSourceName := strings.TrimSpace(slices[1])
 
-	switch typeString {
-	case "config-map", "cm":
-		volumeSourceType = ConfigMapVolumeSourceType
-	case "secret", "sc":
-		volumeSourceType = SecretVolumeSourceType
-	default:
-		return nil, fmt.Errorf("unsupported volume source type \"%q\"; supported volume source types are \"config-map\" and \"secret\"", slices[0])
+		switch typeString {
+		case "config-map", "cm":
+			volumeSourceType = ConfigMapVolumeSourceType
+		case "secret", "sc":
+			volumeSourceType = SecretVolumeSourceType
+		case "emptyDir", "ed":
+			volumeSourceType = EmptyDirVolumeSourceType
+		default:
+			return nil, fmt.Errorf("unsupported volume source type \"%q\"; supported volume source types are \"config-map\" and \"secret\"", slices[0])
+		}
+
+		if len(volumeSourceName) == 0 {
+			return nil, fmt.Errorf("the name of %s cannot be an empty string", volumeSourceType)
+		}
+
+		return &volumeSourceInfo{
+			volumeSourceType: volumeSourceType,
+			volumeSourceName: volumeSourceName,
+		}, nil
+	} else {
+		typeString := strings.TrimSpace(slices[0])
+		switch typeString {
+		case "config-map", "cm", "secret", "sc":
+			return nil, fmt.Errorf("incorrect mount details for type %q", typeString)
+		case "emptyDir", "ed":
+			volName := slices[1]
+			edType, edSize, err := getEmptyDirTypeAndSize(slices[2])
+			if err != nil {
+				return nil, err
+			}
+			return &volumeSourceInfo{
+				volumeSourceType:   EmptyDirVolumeSourceType,
+				volumeSourceName:   volName,
+				emptyDirMemoryType: edType,
+				emptyDirSize:       edSize,
+			}, nil
+		default:
+			return nil, fmt.Errorf("unsupported volume type \"%q\"; supported volume types are \"config-map or cm\", \"secret or sc\", \"volume or vo\", and \"emptyDir or ed\"", slices[0])
+		}
+
 	}
-
-	if len(volumeSourceName) == 0 {
-		return nil, fmt.Errorf("the name of %s cannot be an empty string", volumeSourceType)
-	}
-
-	return &volumeSourceInfo{
-		volumeSourceType: volumeSourceType,
-		volumeSourceName: volumeSourceName,
-	}, nil
 }
 
 func (vol *volumeSourceInfo) getCanonicalName() string {
@@ -648,6 +678,15 @@ func (vol *volumeSourceInfo) createEnvFromSource() *corev1.EnvFromSource {
 }
 
 // =======================================================================================
+
+func isReadOnlyVolume(volumeName string, volumes []corev1.Volume) bool {
+	for _, volume := range volumes {
+		if volume.Name == volumeName {
+			return volume.EmptyDir == nil
+		}
+	}
+	return true
+}
 
 func existsVolumeNameInVolumes(volumeName string, volumes []corev1.Volume) bool {
 	for _, volume := range volumes {
@@ -714,9 +753,18 @@ func reviseVolumeInfoAndMountsToUpdate(mountsToUpdate *util.OrderedMap, volumesT
 				})
 				mountInfo.VolumeName = generatedName
 				mountsToUpdateRevised.Set(path, mountInfo)
-
+			case "emptyDir", "ed":
+				generatedName := util.GenerateVolumeName(path)
+				mountInfo := getMountInfo(slices[1])
+				volumeSourceInfoByName.Set(generatedName, &volumeSourceInfo{
+					volumeSourceType:   EmptyDirVolumeSourceType,
+					volumeSourceName:   slices[1],
+					emptyDirMemoryType: "",
+				})
+				mountInfo.VolumeName = generatedName
+				mountsToUpdateRevised.Set(path, mountInfo)
 			default:
-				return nil, nil, fmt.Errorf("unsupported volume type \"%q\"; supported volume types are \"config-map or cm\", \"secret or sc\", and \"volume or vo\"", slices[0])
+				return nil, nil, fmt.Errorf("unsupported volume type \"%q\"; supported volume types are \"config-map or cm\", \"secret or sc\", \"volume or vo\", and \"emptyDir or ed\"", slices[0])
 			}
 		}
 	}
@@ -731,6 +779,61 @@ func reviseVolumeInfoAndMountsToUpdate(mountsToUpdate *util.OrderedMap, volumesT
 	}
 
 	return volumeSourceInfoByName, mountsToUpdateRevised, nil
+}
+
+func getEmptyDirTypeAndSize(value string) (string, *resource.Quantity, error) {
+	slices := strings.SplitN(value, ",", 2)
+	formatErr := fmt.Errorf("incorrect format to specify emptyDir type")
+	repeatErrStr := "cannot repeat the key %q"
+	var dirType string
+	var size *resource.Quantity
+	switch len(slices) {
+	case 0:
+		return "", nil, nil
+	case 1:
+		typeSizeSlices := strings.SplitN(slices[0], "=", 2)
+		if len(typeSizeSlices) < 2 {
+			return "", nil, formatErr
+		}
+		switch strings.ToLower(typeSizeSlices[0]) {
+		case "type":
+			dirType = typeSizeSlices[1]
+		case "size":
+			quantity, err := resource.ParseQuantity(typeSizeSlices[1])
+			if err != nil {
+				return "", nil, formatErr
+			}
+			size = &quantity
+		default:
+			return "", nil, formatErr
+		}
+	case 2:
+		for _, slice := range slices {
+			typeSizeSlices := strings.SplitN(slice, "=", 2)
+			if len(typeSizeSlices) < 2 {
+				return "", nil, formatErr
+			}
+			switch strings.ToLower(typeSizeSlices[0]) {
+			case "type":
+				if dirType != "" {
+					return "", nil, fmt.Errorf(repeatErrStr, "type")
+				}
+				dirType = typeSizeSlices[1]
+			case "size":
+				if size != nil {
+					return "", nil, fmt.Errorf(repeatErrStr, "size")
+				}
+				quantity, err := resource.ParseQuantity(typeSizeSlices[1])
+				if err != nil {
+					return "", nil, formatErr
+				}
+				size = &quantity
+			default:
+				return "", nil, formatErr
+			}
+		}
+	}
+	return dirType, size, nil
 }
 
 func reviseVolumesToRemove(volumeMounts []corev1.VolumeMount, volumesToRemove []string, mountsToRemove []string) []string {

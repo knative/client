@@ -137,18 +137,20 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
 	flagNames = append(flagNames, "env-file")
 
 	flagset.StringArrayVarP(&p.Mount, "mount", "", []string{},
-		"Mount a ConfigMap (prefix cm: or config-map:), a Secret (prefix secret: or sc:), or an existing Volume (without any prefix) on the specified directory. "+
-			"Example: --mount /mydir=cm:myconfigmap, --mount /mydir=secret:mysecret, or --mount /mydir=myvolume. "+
-			"When a configmap or a secret is specified, a corresponding volume is automatically generated. "+
-			"You can specify a volume subpath by following the volume name with slash separated path. "+
+		"Mount a ConfigMap (prefix cm: or config-map:), a Secret (prefix secret: or sc:), an EmptyDir (prefix ed: or emptyDir:)"+
+			"or an existing Volume (without any prefix) on the specified directory. "+
+			"Example: --mount /mydir=cm:myconfigmap, --mount /mydir=secret:mysecret, --mount /mydir=emptyDir:myvol "+
+			"or --mount /mydir=myvolume. When a configmap or a secret is specified, a corresponding volume is "+
+			"automatically generated. You can specify a volume subpath by following the volume name with slash separated path. "+
 			"Example: --mount /mydir=cm:myconfigmap/subpath/to/be/mounted. "+
 			"You can use this flag multiple times. "+
 			"For unmounting a directory, append \"-\", e.g. --mount /mydir-, which also removes any auto-generated volume.")
 	flagNames = append(flagNames, "mount")
 
 	flagset.StringArrayVarP(&p.Volume, "volume", "", []string{},
-		"Add a volume from a ConfigMap (prefix cm: or config-map:) or a Secret (prefix secret: or sc:). "+
-			"Example: --volume myvolume=cm:myconfigmap or --volume myvolume=secret:mysecret. "+
+		"Add a volume from a ConfigMap (prefix cm: or config-map:) a Secret (prefix secret: or sc:), or "+
+			"an EmptyDir (prefix ed: or emptyDir:). "+
+			"Example: --volume myvolume=cm:myconfigmap, --volume myvolume=secret:mysecret or --volume emptyDir:myvol:size=1Gi,type=Memory. "+
 			"You can use this flag multiple times. "+
 			"To unset a ConfigMap/Secret reference, append \"-\" to the name, e.g. --volume myvolume-.")
 	flagNames = append(flagNames, "volume")
