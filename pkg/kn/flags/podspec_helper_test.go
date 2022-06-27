@@ -292,6 +292,15 @@ func TestUpdateVolumeMountsAndVolumes(t *testing.T) {
 					SizeLimit: &quantity,
 				},
 			},
+		},
+		corev1.Volume{
+			Name: "new-pvc-volume-name-1",
+			VolumeSource: corev1.VolumeSource{
+				PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+					ClaimName: "pvc1",
+					ReadOnly:  true,
+				},
+			},
 		})
 
 	container.VolumeMounts = append(container.VolumeMounts,
@@ -339,6 +348,16 @@ func TestUpdateVolumeMountsAndVolumes(t *testing.T) {
 			Name:      "new-empty-dir-volume-name-5",
 			ReadOnly:  false,
 			MountPath: "/empty-dir-5/mount/path",
+		},
+		corev1.VolumeMount{
+			Name:      "new-pvc-volume-name-1",
+			ReadOnly:  true,
+			MountPath: "/pvc-1/mount/path",
+		},
+		corev1.VolumeMount{
+			Name:      "new-pvc-volume-name-2",
+			ReadOnly:  true,
+			MountPath: "/pvc-2/mount/path",
 		},
 	)
 
@@ -406,9 +425,21 @@ func TestUpdateVolumeMountsAndVolumes(t *testing.T) {
 		util.NewOrderedMap(),
 		[]string{})
 	assert.NilError(t, err)
+	err = UpdateVolumeMountsAndVolumes(spec,
+		util.NewOrderedMapWithKVStrings([][]string{{"/pvc-1/mount/path", "new-pvc-volume-name-1"}}),
+		[]string{},
+		util.NewOrderedMapWithKVStrings([][]string{{"new-pvc-volume-name-1", "pvc:pvc1"}}),
+		[]string{})
+	assert.NilError(t, err)
+	err = UpdateVolumeMountsAndVolumes(spec,
+		util.NewOrderedMapWithKVStrings([][]string{{"/pvc-2/mount/path", "pvc:pvc2"}}),
+		[]string{},
+		util.NewOrderedMap(),
+		[]string{})
+	assert.NilError(t, err)
 
-	assert.Equal(t, len(spec.Volumes), 9)
-	assert.Equal(t, len(container.VolumeMounts), 11)
+	assert.Equal(t, len(spec.Volumes), 11)
+	assert.Equal(t, len(container.VolumeMounts), 13)
 
 	assert.Equal(t, spec.Volumes[0].Name, "existing-config-map-volume-name-2")
 	assert.Equal(t, spec.Volumes[0].ConfigMap.Name, "updated-config-map")
@@ -424,13 +455,15 @@ func TestUpdateVolumeMountsAndVolumes(t *testing.T) {
 	assert.Equal(t, spec.Volumes[4].EmptyDir.Medium, corev1.StorageMediumMemory)
 	assert.Equal(t, spec.Volumes[5].Name, "new-empty-dir-volume-name-4")
 	assert.DeepEqual(t, spec.Volumes[5].EmptyDir.SizeLimit, &quantity)
-	assert.Equal(t, spec.Volumes[6].Name, "new-config-map-volume-name")
-	assert.Equal(t, spec.Volumes[6].ConfigMap.Name, "new-config-map")
-	assert.Equal(t, spec.Volumes[7].Name, "new-secret-volume-name")
-	assert.Equal(t, spec.Volumes[7].Secret.SecretName, "new-secret")
-	assert.Assert(t, strings.Contains(spec.Volumes[8].Name, "empty-dir-5"))
-	assert.Equal(t, spec.Volumes[8].EmptyDir.Medium, corev1.StorageMediumDefault)
-	assert.Assert(t, spec.Volumes[8].EmptyDir.SizeLimit == nil)
+	assert.Equal(t, spec.Volumes[6].Name, "new-pvc-volume-name-1")
+	assert.Equal(t, spec.Volumes[6].PersistentVolumeClaim.ClaimName, "pvc1")
+	assert.Equal(t, spec.Volumes[7].Name, "new-config-map-volume-name")
+	assert.Equal(t, spec.Volumes[7].ConfigMap.Name, "new-config-map")
+	assert.Equal(t, spec.Volumes[8].Name, "new-secret-volume-name")
+	assert.Equal(t, spec.Volumes[8].Secret.SecretName, "new-secret")
+	assert.Assert(t, strings.Contains(spec.Volumes[9].Name, "empty-dir-5"))
+	assert.Equal(t, spec.Volumes[9].EmptyDir.Medium, corev1.StorageMediumDefault)
+	assert.Assert(t, spec.Volumes[9].EmptyDir.SizeLimit == nil)
 
 	assert.Equal(t, container.VolumeMounts[0].Name, "existing-config-map-volume-name-2")
 	assert.Equal(t, container.VolumeMounts[0].MountPath, "/existing-config-map-2/mount/path")
@@ -445,14 +478,17 @@ func TestUpdateVolumeMountsAndVolumes(t *testing.T) {
 	assert.Equal(t, container.VolumeMounts[5].Name, "new-empty-dir-volume-name-4")
 	assert.Equal(t, container.VolumeMounts[5].MountPath, "/empty-dir-4/mount/path")
 	assert.Equal(t, container.VolumeMounts[6].MountPath, "/empty-dir-5/mount/path")
-	assert.Equal(t, container.VolumeMounts[7].Name, "new-config-map-volume-name")
-	assert.Equal(t, container.VolumeMounts[7].MountPath, "/new-config-map/mount/path")
-	assert.Equal(t, container.VolumeMounts[8].Name, "existing-config-map-volume-name-2")
-	assert.Equal(t, container.VolumeMounts[8].MountPath, "/updated-config-map/mount/path")
-	assert.Equal(t, container.VolumeMounts[9].Name, "new-secret-volume-name")
-	assert.Equal(t, container.VolumeMounts[9].MountPath, "/new-secret/mount/path")
-	assert.Equal(t, container.VolumeMounts[10].Name, "existing-secret-volume-name-2")
-	assert.Equal(t, container.VolumeMounts[10].MountPath, "/updated-secret/mount/path")
+	assert.Equal(t, container.VolumeMounts[7].Name, "new-pvc-volume-name-1")
+	assert.Equal(t, container.VolumeMounts[7].MountPath, "/pvc-1/mount/path")
+	assert.Equal(t, container.VolumeMounts[8].MountPath, "/pvc-2/mount/path")
+	assert.Equal(t, container.VolumeMounts[9].Name, "new-config-map-volume-name")
+	assert.Equal(t, container.VolumeMounts[9].MountPath, "/new-config-map/mount/path")
+	assert.Equal(t, container.VolumeMounts[10].Name, "existing-config-map-volume-name-2")
+	assert.Equal(t, container.VolumeMounts[10].MountPath, "/updated-config-map/mount/path")
+	assert.Equal(t, container.VolumeMounts[11].Name, "new-secret-volume-name")
+	assert.Equal(t, container.VolumeMounts[11].MountPath, "/new-secret/mount/path")
+	assert.Equal(t, container.VolumeMounts[12].Name, "existing-secret-volume-name-2")
+	assert.Equal(t, container.VolumeMounts[12].MountPath, "/updated-secret/mount/path")
 }
 
 func TestUpdateContainerImage(t *testing.T) {
