@@ -37,6 +37,7 @@ const (
 	ConfigMapVolumeSourceType VolumeSourceType = iota
 	SecretVolumeSourceType
 	EmptyDirVolumeSourceType
+	PVCVolumeSourceType
 	PortFormatErr = "the port specification '%s' is not valid. Please provide in the format 'NAME:PORT', where 'NAME' is optional. Examples: '--port h2c:8080' , '--port 8080'."
 )
 
@@ -470,6 +471,8 @@ func updateVolume(volume *corev1.Volume, info *volumeSourceInfo) error {
 		volume.Secret = &corev1.SecretVolumeSource{SecretName: info.volumeSourceName}
 	case EmptyDirVolumeSourceType:
 		volume.EmptyDir = &corev1.EmptyDirVolumeSource{Medium: corev1.StorageMedium(info.emptyDirMemoryType), SizeLimit: info.emptyDirSize}
+	case PVCVolumeSourceType:
+		volume.PersistentVolumeClaim = &corev1.PersistentVolumeClaimVolumeSource{ClaimName: info.volumeSourceName, ReadOnly: true}
 	default:
 		return fmt.Errorf("Invalid VolumeSourceType")
 	}
@@ -607,6 +610,8 @@ func newVolumeSourceInfoWithSpecString(spec string) (*volumeSourceInfo, error) {
 			volumeSourceType = SecretVolumeSourceType
 		case "emptyDir", "ed":
 			volumeSourceType = EmptyDirVolumeSourceType
+		case "persistentVolumeClaim", "pvc":
+			volumeSourceType = PVCVolumeSourceType
 		default:
 			return nil, fmt.Errorf("unsupported volume source type \"%q\"; supported volume source types are \"config-map\" and \"secret\"", slices[0])
 		}
@@ -622,7 +627,7 @@ func newVolumeSourceInfoWithSpecString(spec string) (*volumeSourceInfo, error) {
 	} else {
 		typeString := strings.TrimSpace(slices[0])
 		switch typeString {
-		case "config-map", "cm", "secret", "sc":
+		case "config-map", "cm", "secret", "sc", "persistentVolumeClaim", "pvc":
 			return nil, fmt.Errorf("incorrect mount details for type %q", typeString)
 		case "emptyDir", "ed":
 			volName := slices[1]
@@ -760,6 +765,15 @@ func reviseVolumeInfoAndMountsToUpdate(mountsToUpdate *util.OrderedMap, volumesT
 					volumeSourceType:   EmptyDirVolumeSourceType,
 					volumeSourceName:   slices[1],
 					emptyDirMemoryType: "",
+				})
+				mountInfo.VolumeName = generatedName
+				mountsToUpdateRevised.Set(path, mountInfo)
+			case "persistentVolumeClaim", "pvc":
+				generatedName := util.GenerateVolumeName(path)
+				mountInfo := getMountInfo(slices[1])
+				volumeSourceInfoByName.Set(generatedName, &volumeSourceInfo{
+					volumeSourceType: PVCVolumeSourceType,
+					volumeSourceName: mountInfo.VolumeName,
 				})
 				mountInfo.VolumeName = generatedName
 				mountsToUpdateRevised.Set(path, mountInfo)
