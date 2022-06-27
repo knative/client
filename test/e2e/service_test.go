@@ -20,6 +20,8 @@ package e2e
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 
@@ -31,6 +33,20 @@ import (
 	pkgtest "knative.dev/pkg/test"
 	"knative.dev/serving/pkg/apis/serving"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
+)
+
+const (
+	TestPVCSpec = `kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: test-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+`
 )
 
 func TestService(t *testing.T) {
@@ -178,10 +194,16 @@ func serviceDeleteAll(r *test.KnRunResultCollector) {
 
 func serviceCreateWithMount(r *test.KnRunResultCollector) {
 	it := r.KnTest()
-	kubectl := test.NewKubectl(it.Namespace())
+	kubectl := test.NewKubectl("knative-serving")
+
+	_, err := kubectl.Run("patch", "cm", "config-features", "--patch={\"data\":{\"kubernetes.podspec-persistent-volume-claim\": \"enabled\", \"kubernetes.podspec-volumes-emptydir\": \"enabled\"}}")
+	assert.NilError(r.T(), err)
+	defer kubectl.Run("patch", "cm", "config-features", "--patch={\"data\":{\"kubernetes.podspec-persistent-volume-claim\": \"disabled\", \"kubernetes.podspec-volumes-emptydir\": \"disabled\"}}")
+
+	kubectl = test.NewKubectl(it.Namespace())
 
 	r.T().Log("create cm test-cm")
-	_, err := kubectl.Run("create", "configmap", "test-cm", "--from-literal=key=value")
+	_, err = kubectl.Run("create", "configmap", "test-cm", "--from-literal=key=value")
 	assert.NilError(r.T(), err)
 
 	r.T().Log("create service with configmap mounted")
@@ -198,6 +220,28 @@ func serviceCreateWithMount(r *test.KnRunResultCollector) {
 
 	r.T().Log("update service with a new mount")
 	out = r.KnTest().Kn().Run("service", "update", "test-svc", "--mount", "/mydir2=sc:test-sec/key1")
+	r.AssertNoError(out)
+
+	r.T().Log("update service with a new emptyDir mount")
+	out = r.KnTest().Kn().Run("service", "update", "test-svc", "--mount", "/mydir3=ed:myvol")
+	r.AssertNoError(out)
+
+	r.T().Log("update service with a new emptyDir mount with Memory and dir size")
+	out = r.KnTest().Kn().Run("service", "update", "test-svc", "--mount", "/mydir4=ed:myvol:type=Memory,size=100Mi")
+	r.AssertNoError(out)
+
+	r.T().Log("create PVC test-pvc")
+	fp, err := ioutil.TempFile("", "my-pvc")
+	assert.NilError(r.T(), err)
+	fmt.Fprintf(fp, "%s", TestPVCSpec)
+	defer os.Remove(fp.Name())
+
+	_, err = kubectl.Run("create", "-f", fp.Name())
+	assert.NilError(r.T(), err)
+	r.AssertNoError(out)
+
+	r.T().Log("update service with a new pvc mount")
+	out = r.KnTest().Kn().Run("service", "update", "test-svc", "--mount", "/mydir5=pvc:test-pvc")
 	r.AssertNoError(out)
 
 	serviceDescribeMount(r, "test-svc", "/mydir", "key")
