@@ -1028,7 +1028,7 @@ func resolveProbeHandler(probeString string) (*corev1.ProbeHandler, error) {
 
 		probeHandler = &handler
 	default:
-		return nil, fmt.Errorf("unsuported probe type '%s'; supported types: http, https, exec, tcp", probeParts[0])
+		return nil, fmt.Errorf("unsupported probe type '%s'; supported types: http, https, exec, tcp", probeParts[0])
 	}
 	return probeHandler, nil
 }

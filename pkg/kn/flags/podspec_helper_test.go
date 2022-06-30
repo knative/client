@@ -1112,6 +1112,44 @@ func TestUpdateImagePullPolicyError(t *testing.T) {
 	err := UpdateImagePullPolicy(podSpec, "InvalidPolicy")
 	assert.Assert(t, util.ContainsAll(err.Error(), "invalid --pull-policy", "Valid arguments", "Always | Never | IfNotPresent"))
 }
+
+func TestUpdateProbes(t *testing.T) {
+	podSpec := &corev1.PodSpec{
+		Containers: []corev1.Container{{}},
+	}
+	expected := &corev1.PodSpec{
+		Containers: []corev1.Container{
+			{
+				LivenessProbe: &corev1.Probe{
+					ProbeHandler: corev1.ProbeHandler{
+						HTTPGet: &corev1.HTTPGetAction{
+							Port: intstr.Parse("8080"), Path: "/path"}}},
+				ReadinessProbe: &corev1.Probe{
+					ProbeHandler: corev1.ProbeHandler{
+						HTTPGet: &corev1.HTTPGetAction{
+							Port: intstr.Parse("8080"), Path: "/path"}}},
+			},
+		},
+	}
+	t.Run("Update readiness & liveness", func(t *testing.T) {
+		err := UpdateLivenessProbe(podSpec, "http::8080:/path")
+		assert.NilError(t, err)
+		err = UpdateReadinessProbe(podSpec, "http::8080:/path")
+		assert.NilError(t, err)
+		assert.DeepEqual(t, podSpec, expected)
+	})
+	t.Run("Update readiness with error", func(t *testing.T) {
+		err := UpdateReadinessProbe(podSpec, "http-probe::8080:/path")
+		assert.Assert(t, err != nil)
+		assert.ErrorContains(t, err, "unsupported probe type")
+	})
+	t.Run("Update liveness with error", func(t *testing.T) {
+		err := UpdateLivenessProbe(podSpec, "http-probe::8080:/path")
+		assert.Assert(t, err != nil)
+		assert.ErrorContains(t, err, "unsupported probe type")
+	})
+}
+
 func TestResolveProbeHandlerError(t *testing.T) {
 	for _, tc := range []struct {
 		name        string
@@ -1131,7 +1169,7 @@ func TestResolveProbeHandlerError(t *testing.T) {
 		{
 			name:        "Probe invalid prefix",
 			probeString: "http-probe:test-host:8080:/",
-			err:         errors.New("unsuported probe type 'http-probe'; supported types: http, https, exec, tcp"),
+			err:         errors.New("unsupported probe type 'http-probe'; supported types: http, https, exec, tcp"),
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -1341,6 +1379,12 @@ func TestResolveProbeOptions(t *testing.T) {
 			err: nil,
 		},
 		{
+			name:        "Error duplicate value",
+			probeString: "InitialDelaySeconds=2,InitialDelaySeconds=3",
+			expected:    nil,
+			err:         errors.New("The key \"InitialDelaySeconds\" has been duplicate in [InitialDelaySeconds=2 InitialDelaySeconds=3]"),
+		},
+		{
 			name:        "Error not a numeric value",
 			probeString: "InitialDelaySeconds=v",
 			expected:    nil,
@@ -1396,7 +1440,7 @@ func TestResolveProbe(t *testing.T) {
 			name:        "Error invalid probe type",
 			probeString: "http-probe::8080:/path;InitialDelaySeconds=1,TimeoutSeconds=2",
 			expected:    nil,
-			err:         errors.New("unsuported probe type 'http-probe'; supported types: http, https, exec, tcp"),
+			err:         errors.New("unsupported probe type 'http-probe'; supported types: http, https, exec, tcp"),
 		},
 		{
 			name:        "Error invalid common options value",
