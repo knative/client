@@ -1376,7 +1376,7 @@ func TestResolveProbe(t *testing.T) {
 		err         error
 	}{
 		{
-			name:        "Http probe with common options mixed capitilazation",
+			name:        "Http probe with common options mixed capitalization",
 			probeString: "http::8080:/path;InitialdelaySeconds=1,timeoutseconds=2",
 			expected: &corev1.Probe{
 				ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{
