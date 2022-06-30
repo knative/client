@@ -1128,6 +1128,11 @@ func TestResolveProbeHandlerError(t *testing.T) {
 			probeString: "http:too-many:test-host:8080:/",
 			err:         errors.New("too many probe parameters provided, please check the format"),
 		},
+		{
+			name:        "Probe invalid prefix",
+			probeString: "http-probe:test-host:8080:/",
+			err:         errors.New("unsuported probe type 'http-probe'; supported types: http, https, exec, tcp"),
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			actual, err := resolveProbeHandler(tc.probeString)
@@ -1303,6 +1308,53 @@ func TestResolveProbeHandlerTCP(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			actual, err := resolveProbeHandler(tc.probeString)
+			if tc.err == nil {
+				assert.NilError(t, err)
+				assert.DeepEqual(t, actual, tc.expected)
+			} else {
+				assert.Assert(t, actual == nil)
+				assert.Error(t, err, tc.err.Error())
+				assert.ErrorType(t, err, tc.err)
+			}
+
+		})
+	}
+}
+
+func TestResolveProbeOptions(t *testing.T) {
+	for _, tc := range []struct {
+		name        string
+		probeString string
+		expected    *corev1.Probe
+		err         error
+	}{
+		{
+			name:        "Common options all",
+			probeString: "InitialDelaySeconds=1,TimeoutSeconds=2,PeriodSeconds=3,SuccessThreshold=4,FailureThreshold=5",
+			expected: &corev1.Probe{
+				InitialDelaySeconds: 1,
+				TimeoutSeconds:      2,
+				PeriodSeconds:       3,
+				SuccessThreshold:    4,
+				FailureThreshold:    5,
+			},
+			err: nil,
+		},
+		{
+			name:        "Error not a numeric value",
+			probeString: "InitialDelaySeconds=v",
+			expected:    nil,
+			err:         errors.New("not a nummeric value for parameter 'InitialDelaySeconds'"),
+		},
+		{
+			name:        "Error invalid parameter name",
+			probeString: "InitialDelay=5",
+			expected:    nil,
+			err:         errors.New("not a valid probe parameter name 'InitialDelay'"),
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			actual, err := resolveProbeOptions(tc.probeString)
 			if tc.err == nil {
 				assert.NilError(t, err)
 				assert.DeepEqual(t, actual, tc.expected)

@@ -19,10 +19,11 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"k8s.io/apimachinery/pkg/util/intstr"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"knative.dev/client/lib/test"
 
