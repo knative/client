@@ -40,6 +40,9 @@ type PodSpecFlags struct {
 	Command []string
 	Arg     []string
 
+	LivenessProbe  string
+	ReadinessProbe string
+
 	ExtraContainers string
 
 	Resources          ResourceOptions
@@ -176,6 +179,18 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
 		"Specify path to file including definition for additional containers, alternatively use '-' to read from stdin. "+
 			"Example: --containers ./containers.yaml or --containers -.")
 	flagNames = append(flagNames, "containers")
+
+	// Probes
+	commonProbeDescription := "Supported probe types are HTTGet, Exec and TCPSocket. " +
+		"Format: [http,https]:host:port:path;<common_opts>, exec:cmd,cmd,...;<common_opts>, tcp:host:port;<common_opts>. " +
+		"Common opts (comma separated, case insensitive): InitialDelaySeconds=<int_value>, FailureThreshold=<int_value>, " +
+		"SuccessThreshold=<int_value>, PeriodSeconds==<int_value>, TimeoutSeconds=<int_value>"
+	flagset.StringVarP(&p.LivenessProbe, "probe-liveness", "", "", "Add liveness probe to Service deployment. "+
+		commonProbeDescription)
+	flagNames = append(flagNames, "probe-liveness")
+	flagset.StringVarP(&p.ReadinessProbe, "probe-readiness", "", "", "Add readiness probe to Service deployment. "+
+		commonProbeDescription)
+	flagNames = append(flagNames, "probe-readiness")
 
 	flagset.StringSliceVar(&p.Resources.Limits,
 		"limit",
@@ -354,6 +369,18 @@ func (p *PodSpecFlags) ResolvePodSpec(podSpec *corev1.PodSpec, flags *pflag.Flag
 			return err
 		}
 		UpdateContainers(podSpec, fromFile.Containers)
+	}
+
+	if flags.Changed("probe-liveness") {
+		if err := UpdateLivenessProbe(podSpec, p.LivenessProbe); err != nil {
+			return err
+		}
+	}
+
+	if flags.Changed("probe-readiness") {
+		if err := UpdateReadinessProbe(podSpec, p.ReadinessProbe); err != nil {
+			return err
+		}
 	}
 
 	return nil

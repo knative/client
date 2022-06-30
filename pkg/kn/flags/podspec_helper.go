@@ -20,6 +20,8 @@ import (
 	"strconv"
 	"strings"
 
+	"k8s.io/apimachinery/pkg/util/intstr"
+
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/util/yaml"
 
@@ -308,6 +310,28 @@ func UpdateContainers(spec *corev1.PodSpec, containers []corev1.Container) {
 			}
 		}
 	}
+}
+
+// UpdateLivenessProbe updates container liveness probe based on provided string
+func UpdateLivenessProbe(spec *corev1.PodSpec, probeString string) error {
+	c := containerOfPodSpec(spec)
+	probe, err := resolveProbe(probeString)
+	if err != nil {
+		return err
+	}
+	c.LivenessProbe = probe
+	return nil
+}
+
+// UpdateReadinessProbe updates container readiness probe based on provided string
+func UpdateReadinessProbe(spec *corev1.PodSpec, probeString string) error {
+	c := containerOfPodSpec(spec)
+	probe, err := resolveProbe(probeString)
+	if err != nil {
+		return err
+	}
+	c.ReadinessProbe = probe
+	return nil
 }
 
 // UpdateImagePullPolicy updates the pull policy for the given revision template
@@ -879,3 +903,134 @@ func decodeContainersFromFile(filename string) (*corev1.PodSpec, error) {
 	}
 	return podSpec, nil
 }
+
+// =======================================================================================
+// Probes
+
+// resolveProbe parses probes as a string
+// It's split into two functions:
+//   - resolveProbeOptions() -> common probe opts
+//   - resolveProbeHandler() -> probe handler [HTTPGet, Exec, TCPSocket]
+// Format:
+//	- [http,https]:host:port:path;<common_opts>
+//	- exec:cmd,cmd,...;<common_opts>
+//  - tcp:host:port;<common_opts>
+// Common opts (comma separated, case insensitive):
+//	- <probe_opts>;InitialDelaySeconds=<int_value>,FailureThreshold=<int_value>,
+//  	SuccessThreshold=<int_value>,PeriodSeconds==<int_value>,TimeoutSeconds=<int_value>
+func resolveProbe(probeString string) (*corev1.Probe, error) {
+	parts := strings.Split(probeString, ";")
+	probe := &corev1.Probe{}
+	var err error
+	if len(parts) > 2 {
+		return nil, fmt.Errorf("too many probe parameters provided")
+	}
+	if len(parts) == 2 && len(parts[1]) > 0 {
+		probe, err = resolveProbeOptions(parts[1])
+		if err != nil {
+			return nil, err
+		}
+	}
+	handler, err := resolveProbeHandler(parts[0])
+	if err != nil {
+		return nil, err
+	}
+	probe.ProbeHandler = *handler
+
+	return probe, nil
+}
+
+// resolveProbeOptions parses probe commons options
+func resolveProbeOptions(probeString string) (*corev1.Probe, error) {
+	options := strings.Split(probeString, ",")
+	mappedOptions, err := util.MapFromArray(options, "=")
+	if err != nil {
+		return nil, err
+	}
+	probe := &corev1.Probe{}
+	for k, v := range mappedOptions {
+		// Trim & verify value is convertible to int
+		intValue, err := strconv.ParseInt(strings.TrimSpace(v), 0, 32)
+		if err != nil {
+			return nil, fmt.Errorf("not a nummeric value for parameter '%s'", k)
+		}
+		// Lower case param name mapping
+		switch strings.TrimSpace(strings.ToLower(k)) {
+		case "initialdelayseconds":
+			probe.InitialDelaySeconds = int32(intValue)
+		case "timeoutseconds":
+			probe.TimeoutSeconds = int32(intValue)
+		case "periodseconds":
+			probe.PeriodSeconds = int32(intValue)
+		case "successthreshold":
+			probe.SuccessThreshold = int32(intValue)
+		case "failurethreshold":
+			probe.FailureThreshold = int32(intValue)
+		default:
+			return nil, fmt.Errorf("not a valid probe parameter name '%s'", k)
+		}
+	}
+	return probe, nil
+}
+
+// resolveProbeHandler parses probe handler options
+func resolveProbeHandler(probeString string) (*corev1.ProbeHandler, error) {
+	if len(probeString) == 0 {
+		return nil, fmt.Errorf("no probe parameters detected")
+	}
+	probeParts := strings.Split(probeString, ":")
+	if len(probeParts) > 4 {
+		return nil, fmt.Errorf("too many probe parameters provided, please check the format")
+	}
+	var probeHandler *corev1.ProbeHandler
+	switch probeParts[0] {
+	case "http", "https":
+		if len(probeParts) != 4 {
+			return nil, fmt.Errorf("unexpected probe format, please use 'http:host:port:path'")
+		}
+		handler := corev1.ProbeHandler{
+			HTTPGet: &corev1.HTTPGetAction{},
+		}
+		if probeParts[0] == "https" {
+			handler.HTTPGet.Scheme = v1.URISchemeHTTPS
+		}
+		handler.HTTPGet.Host = probeParts[1]
+		if probeParts[2] != "" {
+			// Cosmetic fix to have default 'port: 0' instead of empty string 'port: ""'
+			handler.HTTPGet.Port = intstr.Parse(probeParts[2])
+		}
+		handler.HTTPGet.Path = probeParts[3]
+
+		probeHandler = &handler
+	case "exec":
+		if len(probeParts) != 2 {
+			return nil, fmt.Errorf("unexpected probe format, please use 'exec:<exec_command>,<exec_command>'")
+		}
+		if len(probeParts[1]) == 0 {
+			return nil, fmt.Errorf("at least one command parameter is required for Exec probe")
+		}
+		handler := corev1.ProbeHandler{
+			Exec: &corev1.ExecAction{},
+		}
+		cmd := strings.Split(probeParts[1], ",")
+		handler.Exec.Command = cmd
+
+		probeHandler = &handler
+	case "tcp":
+		if len(probeParts) != 3 {
+			return nil, fmt.Errorf("unexpected probe format, please use 'tcp:host:port")
+		}
+		handler := corev1.ProbeHandler{
+			TCPSocket: &corev1.TCPSocketAction{},
+		}
+		handler.TCPSocket.Host = probeParts[1]
+		handler.TCPSocket.Port = intstr.Parse(probeParts[2])
+
+		probeHandler = &handler
+	default:
+		return nil, fmt.Errorf("unsuported probe type '%s'; supoorted probe type prefixes: http, https, exec, tcp", probeParts[0])
+	}
+	return probeHandler, nil
+}
+
+// =======================================================================================
