@@ -1367,3 +1367,55 @@ func TestResolveProbeOptions(t *testing.T) {
 		})
 	}
 }
+
+func TestResolveProbe(t *testing.T) {
+	for _, tc := range []struct {
+		name        string
+		probeString string
+		expected    *corev1.Probe
+		err         error
+	}{
+		{
+			name:        "Http probe with common options mixed capitilazation",
+			probeString: "http::8080:/path;InitialdelaySeconds=1,timeoutseconds=2",
+			expected: &corev1.Probe{
+				ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{
+					Path: "/path", Port: intstr.Parse("8080")}},
+				InitialDelaySeconds: 1,
+				TimeoutSeconds:      2,
+			},
+			err: nil,
+		},
+		{
+			name:        "Error not a numeric value",
+			probeString: "http::8080:/path;InitialDelaySeconds=1;TimeoutSeconds=2",
+			expected:    nil,
+			err:         errors.New("unexpected probe format detected"),
+		},
+		{
+			name:        "Error invalid probe type",
+			probeString: "http-probe::8080:/path;InitialDelaySeconds=1,TimeoutSeconds=2",
+			expected:    nil,
+			err:         errors.New("unsuported probe type 'http-probe'; supported types: http, https, exec, tcp"),
+		},
+		{
+			name:        "Error invalid common options value",
+			probeString: "http::8080:/path;InitialDelaySeconds=v",
+			expected:    nil,
+			err:         errors.New("not a nummeric value for parameter 'InitialDelaySeconds'"),
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			actual, err := resolveProbe(tc.probeString)
+			if tc.err == nil {
+				assert.NilError(t, err)
+				assert.DeepEqual(t, actual, tc.expected)
+			} else {
+				assert.Assert(t, actual == nil)
+				assert.Error(t, err, tc.err.Error())
+				assert.ErrorType(t, err, tc.err)
+			}
+
+		})
+	}
+}

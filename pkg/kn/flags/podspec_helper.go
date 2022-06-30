@@ -923,7 +923,7 @@ func resolveProbe(probeString string) (*corev1.Probe, error) {
 	probe := &corev1.Probe{}
 	var err error
 	if len(parts) > 2 {
-		return nil, fmt.Errorf("too many probe parameters provided")
+		return nil, fmt.Errorf("unexpected probe format detected")
 	}
 	if len(parts) == 2 && len(parts[1]) > 0 {
 		probe, err = resolveProbeOptions(parts[1])
