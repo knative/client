@@ -184,7 +184,7 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
 	commonProbeDescription := "Supported probe types are HTTGet, Exec and TCPSocket. " +
 		"Format: [http,https]:host:port:path;<common_opts>, exec:cmd,cmd,...;<common_opts>, tcp:host:port;<common_opts>. " +
 		"Common opts (comma separated, case insensitive): InitialDelaySeconds=<int_value>, FailureThreshold=<int_value>, " +
-		"SuccessThreshold=<int_value>, PeriodSeconds==<int_value>, TimeoutSeconds=<int_value>"
+		"SuccessThreshold=<int_value>, PeriodSeconds=<int_value>, TimeoutSeconds=<int_value>"
 	flagset.StringVarP(&p.LivenessProbe, "probe-liveness", "", "", "Add liveness probe to Service deployment. "+
 		commonProbeDescription)
 	flagNames = append(flagNames, "probe-liveness")
