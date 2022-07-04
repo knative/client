@@ -511,6 +511,13 @@ func (b *BrokerBuilder) RetryAfterMax(max *string) *BrokerBuilder {
 
 }
 
+// Config for the broker builder
+func (b *BrokerBuilder) Config(config *duckv1.KReference) *BrokerBuilder {
+	b.broker.Spec.Config = config
+	return b
+
+}
+
 // Build to return an instance of broker object
 func (b *BrokerBuilder) Build() *eventingv1.Broker {
 	return b.broker

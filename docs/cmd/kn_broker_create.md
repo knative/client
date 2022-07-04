@@ -23,6 +23,7 @@ kn broker create NAME
 ```
       --backoff-delay string     The delay before retrying.
       --backoff-policy string    The retry backoff policy (linear, exponential).
+      --broker-config string     Broker config object like ConfigMap or RabbitMQ
       --class string             Broker class like 'MTChannelBasedBroker' or 'Kafka' (if available).
       --dl-sink string           The sink receiving event that could not be sent to a destination.
   -h, --help                     help for create
