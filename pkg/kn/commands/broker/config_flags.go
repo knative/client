@@ -73,7 +73,7 @@ func (c *ConfigFlags) GetBrokerConfigReference() (*duckv1.KReference, error) {
 		kRef.Name = name
 
 		params := strings.Split(slices[2], ",")
-		if len(params) == 1 && !strings.Contains(params[0], ",") {
+		if len(params) == 1 && !strings.Contains(params[0], "=") {
 			kRef.Namespace = params[0]
 			return kRef, nil
 		}

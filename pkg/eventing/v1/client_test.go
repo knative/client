@@ -39,6 +39,12 @@ import (
 var (
 	testNamespace = "test-ns"
 	testClass     = "test-class"
+	testConfig    = &duckv1.KReference{
+		Kind:       "ConfigMap",
+		Namespace:  "test-ns",
+		Name:       "test-cm",
+		APIVersion: "v1",
+	}
 )
 
 func setup() (fakeSvr fake.FakeEventingV1, client KnEventingClient) {
@@ -337,6 +343,7 @@ func TestBrokerCreate(t *testing.T) {
 	brokerObjWithClass := newBrokerWithClass(name)
 	brokerObjWithDeliveryOptions := newBrokerWithDeliveryOptions(name)
 	brokerObjWithNilDeliveryOptions := newBrokerWithNilDeliveryOptions(name)
+	brokerObjWithConfig := newBrokerWithConfig(name)
 
 	server.AddReactor("create", "brokers",
 		func(a client_testing.Action) (bool, runtime.Object, error) {
@@ -412,6 +419,11 @@ func TestBrokerCreate(t *testing.T) {
 			err := client.CreateBroker(context.Background(), broker)
 			assert.NilError(t, err)
 		}
+	})
+
+	t.Run("create broker with spec", func(t *testing.T) {
+		err := client.CreateBroker(context.Background(), brokerObjWithConfig)
+		assert.NilError(t, err)
 	})
 }
 
@@ -698,6 +710,13 @@ func newBrokerWithClass(name string) *eventingv1.Broker {
 	return NewBrokerBuilder(name).
 		Namespace(testNamespace).
 		Class(testClass).
+		Build()
+}
+func newBrokerWithConfig(name string) *eventingv1.Broker {
+	return NewBrokerBuilder(name).
+		Namespace(testNamespace).
+		Class(testClass).
+		Config(testConfig).
 		Build()
 }
 

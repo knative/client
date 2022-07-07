@@ -20,6 +20,7 @@ import (
 	"testing"
 
 	"gotest.tools/v3/assert"
+	v1 "knative.dev/pkg/apis/duck/v1"
 
 	clienteventingv1 "knative.dev/client/pkg/eventing/v1"
 	"knative.dev/client/pkg/util"
@@ -57,6 +58,35 @@ func TestBrokerCreateWithClass(t *testing.T) {
 	out, err = executeBrokerCommand(eventingClient, "create", brokerName, "--class", "")
 	assert.NilError(t, err, "Broker should be created")
 	assert.Assert(t, util.ContainsAll(out, "Broker", brokerName, "created", "namespace", "default"))
+
+	eventingRecorder.Validate()
+}
+
+func TestBrokerCreateWithConfig(t *testing.T) {
+	eventingClient := clienteventingv1.NewMockKnEventingClient(t)
+
+	eventingRecorder := eventingClient.Recorder()
+
+	config := &v1.KReference{
+		Kind:       "ConfigMap",
+		Namespace:  "test-ns",
+		Name:       "test-config",
+		APIVersion: "v1",
+	}
+	eventingRecorder.CreateBroker(createBrokerWithConfig(brokerName, config), nil)
+
+	out, err := executeBrokerCommand(eventingClient, "create", brokerName, "--broker-config", "cm:test-config:namespace=test-ns,apiVersion=v1",
+		"--class", "Kafka")
+	assert.NilError(t, err, "Broker should be created")
+	assert.Assert(t, util.ContainsAll(out, "Broker", brokerName, "created", "namespace", "default"))
+
+	eventingRecorder.CreateBroker(createBrokerWithConfig(brokerName, &v1.KReference{Kind: "ConfigMap", APIVersion: "v1"}), nil)
+	out, err = executeBrokerCommand(eventingClient, "create", brokerName, "--broker-config", "", "--class", "Kafka")
+	assert.NilError(t, err, "Broker should be created with default configmap as config")
+	assert.Assert(t, util.ContainsAll(out, "Broker", brokerName, "created", "namespace", "default"))
+
+	out, err = executeBrokerCommand(eventingClient, "create", brokerName, "--broker-config", "")
+	assert.ErrorContains(t, err, "cannot set broker-config without setting class")
 
 	eventingRecorder.Validate()
 }
