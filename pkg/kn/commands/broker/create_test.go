@@ -85,7 +85,7 @@ func TestBrokerCreateWithConfig(t *testing.T) {
 	assert.NilError(t, err, "Broker should be created with default configmap as config")
 	assert.Assert(t, util.ContainsAll(out, "Broker", brokerName, "created", "namespace", "default"))
 
-	out, err = executeBrokerCommand(eventingClient, "create", brokerName, "--broker-config", "")
+	_, err = executeBrokerCommand(eventingClient, "create", brokerName, "--broker-config", "")
 	assert.ErrorContains(t, err, "cannot set broker-config without setting class")
 
 	eventingRecorder.Validate()

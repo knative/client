@@ -16,6 +16,15 @@ kn broker create NAME
   # Create a broker 'mybroker' in the 'myproject' namespace and with a broker class of 'Kafka'
   kn broker create mybroker --namespace myproject --class Kafka
 
+  # Create a broker 'mybroker' in the myproject namespace with config referencing configmap named spec-cm
+  kn broker create mybroker --namespace myproject --class Kafka --broker-config cm:spec-cm
+
+  # Create a broker 'mybroker' in the myproject namespace with config referencing configmap named spec-cm in test namespace
+  kn broker create mybroker --namespace myproject --class Kafka --broker-config cm:broker-spec-cm:test
+
+  # Create a broker 'mybroker' in the myproject namespace with config referencing configmap named spec-cm in test namespace
+  kn broker create mybroker --namespace myproject --class Kafka --broker-config cm:broker-spec-cm:test
+
 ```
 
 ### Options
@@ -23,7 +32,10 @@ kn broker create NAME
 ```
       --backoff-delay string     The delay before retrying.
       --backoff-policy string    The retry backoff policy (linear, exponential).
-      --broker-config string     Broker config object like ConfigMap or RabbitMQ
+      --broker-config string     Reference to the configuration that specifies configuration options for this Broker. For example, a pointer to a ConfigMap, Secret, RabbitmqCluster etc.The format for specifying the object is a colon separated string consisting of at most 3 substrings:
+                                 kind:object-name:namespace=?,apiVersion=?,group=?
+                                 The third substring is optional and the following is also acceptable (in case of ConfigMap, Secret, and RabbitmqCluster kinds):
+                                 kind:object-name
       --class string             Broker class like 'MTChannelBasedBroker' or 'Kafka' (if available).
       --dl-sink string           The sink receiving event that could not be sent to a destination.
   -h, --help                     help for create

@@ -34,6 +34,15 @@ var createExample = `
 
   # Create a broker 'mybroker' in the 'myproject' namespace and with a broker class of 'Kafka'
   kn broker create mybroker --namespace myproject --class Kafka
+
+  # Create a broker 'mybroker' in the myproject namespace with config referencing configmap named spec-cm
+  kn broker create mybroker --namespace myproject --class Kafka --broker-config cm:spec-cm
+
+  # Create a broker 'mybroker' in the myproject namespace with config referencing configmap named spec-cm in test namespace
+  kn broker create mybroker --namespace myproject --class Kafka --broker-config cm:broker-spec-cm:test
+
+  # Create a broker 'mybroker' in the myproject namespace with config referencing configmap named spec-cm in test namespace
+  kn broker create mybroker --namespace myproject --class Kafka --broker-config cm:broker-spec-cm:test
 `
 
 // NewBrokerCreateCommand represents command to create new broker instance

@@ -33,6 +33,8 @@ const (
 )
 
 var (
+	// KReferenceMapping is mapping between the known config kinds to a basic
+	// default KReference value
 	KReferenceMapping = map[ConfigType]*duckv1.KReference{
 		ConfigMapType: {Kind: "ConfigMap", APIVersion: "v1"},
 		SecretType:    {Kind: "Secret", APIVersion: "v1"},
@@ -40,14 +42,23 @@ var (
 	}
 )
 
+// ConfigFlags represents the broker config
 type ConfigFlags struct {
 	BrokerConfig string
 }
 
+// Add is used to add the broker config flag to a command
 func (c *ConfigFlags) Add(cmd *cobra.Command) {
-	cmd.Flags().StringVar(&c.BrokerConfig, "broker-config", "", "Broker config object like ConfigMap or RabbitMQ")
+	cmd.Flags().StringVar(&c.BrokerConfig, "broker-config", "", "Reference to the configuration "+
+		"that specifies configuration options for this Broker. For example, a pointer to a ConfigMap, Secret, RabbitmqCluster etc."+
+		"The format for specifying the object is a colon separated string consisting of at most 3 substrings:\n"+
+		"kind:object-name:namespace=?,apiVersion=?,group=?\nThe third substring is optional and the following is also acceptable "+
+		"(in case of ConfigMap, Secret, and RabbitmqCluster kinds):\n"+
+		"kind:object-name")
 }
 
+// GetBrokerConfigReference parses the broker config
+// and return the appropriate KReference object
 func (c *ConfigFlags) GetBrokerConfigReference() (*duckv1.KReference, error) {
 	config := c.BrokerConfig
 	slices := strings.SplitN(config, ":", 3)
