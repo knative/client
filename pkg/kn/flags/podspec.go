@@ -40,8 +40,10 @@ type PodSpecFlags struct {
 	Command []string
 	Arg     []string
 
-	LivenessProbe  string
-	ReadinessProbe string
+	LivenessProbe      string
+	LivenessProbeOpts  string
+	ReadinessProbe     string
+	ReadinessProbeOpts string
 
 	ExtraContainers string
 
@@ -182,15 +184,21 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
 
 	// Probes
 	commonProbeDescription := "Supported probe types are HTTGet, Exec and TCPSocket. " +
-		"Format: [http,https]:host:port:path;<common_opts>, exec:cmd,cmd,...;<common_opts>, tcp:host:port;<common_opts>. " +
-		"Common opts (comma separated, case insensitive): InitialDelaySeconds=<int_value>, FailureThreshold=<int_value>, " +
+		"Format: [http,https]:host:port:path;<common_opts>, exec:cmd,cmd,...;<common_opts>, tcp:host:port;<common_opts>. "
+	commonProbeOptsDesc := "Common opts (comma separated, case insensitive): InitialDelaySeconds=<int_value>, FailureThreshold=<int_value>, " +
 		"SuccessThreshold=<int_value>, PeriodSeconds=<int_value>, TimeoutSeconds=<int_value>"
 	flagset.StringVarP(&p.LivenessProbe, "probe-liveness", "", "", "Add liveness probe to Service deployment. "+
 		commonProbeDescription)
 	flagNames = append(flagNames, "probe-liveness")
+	flagset.StringVarP(&p.LivenessProbeOpts, "probe-liveness-opts", "", "", "Add common options to liveness probe. "+
+		commonProbeOptsDesc)
+	flagNames = append(flagNames, "probe-liveness-opts")
 	flagset.StringVarP(&p.ReadinessProbe, "probe-readiness", "", "", "Add readiness probe to Service deployment. "+
 		commonProbeDescription)
 	flagNames = append(flagNames, "probe-readiness")
+	flagset.StringVarP(&p.ReadinessProbeOpts, "probe-readiness-opts", "", "", "Add common options to readiness probe. "+
+		commonProbeOptsDesc)
+	flagNames = append(flagNames, "probe-liveness-opts")
 
 	flagset.StringSliceVar(&p.Resources.Limits,
 		"limit",
@@ -377,8 +385,20 @@ func (p *PodSpecFlags) ResolvePodSpec(podSpec *corev1.PodSpec, flags *pflag.Flag
 		}
 	}
 
+	if flags.Changed("probe-liveness-opts") {
+		if err := UpdateLivenessProbeOpts(podSpec, p.LivenessProbeOpts); err != nil {
+			return err
+		}
+	}
+
 	if flags.Changed("probe-readiness") {
 		if err := UpdateReadinessProbe(podSpec, p.ReadinessProbe); err != nil {
+			return err
+		}
+	}
+
+	if flags.Changed("probe-readiness-opts") {
+		if err := UpdateReadinessProbeOpts(podSpec, p.ReadinessProbeOpts); err != nil {
 			return err
 		}
 	}

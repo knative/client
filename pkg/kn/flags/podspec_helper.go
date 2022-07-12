@@ -315,22 +315,54 @@ func UpdateContainers(spec *corev1.PodSpec, containers []corev1.Container) {
 // UpdateLivenessProbe updates container liveness probe based on provided string
 func UpdateLivenessProbe(spec *corev1.PodSpec, probeString string) error {
 	c := containerOfPodSpec(spec)
-	probe, err := resolveProbe(probeString)
+	handler, err := resolveProbeHandler(probeString)
 	if err != nil {
 		return err
 	}
-	c.LivenessProbe = probe
+	if c.LivenessProbe == nil {
+		c.LivenessProbe = &corev1.Probe{}
+	}
+	c.LivenessProbe.ProbeHandler = *handler
+	return nil
+}
+
+// UpdateLivenessProbeOpts updates container liveness probe commons options based on provided string
+func UpdateLivenessProbeOpts(spec *corev1.PodSpec, probeString string) error {
+	c := containerOfPodSpec(spec)
+	if c.LivenessProbe == nil {
+		c.LivenessProbe = &corev1.Probe{}
+	}
+	err := resolveProbeOptions(c.LivenessProbe, probeString)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 // UpdateReadinessProbe updates container readiness probe based on provided string
 func UpdateReadinessProbe(spec *corev1.PodSpec, probeString string) error {
 	c := containerOfPodSpec(spec)
-	probe, err := resolveProbe(probeString)
+	handler, err := resolveProbeHandler(probeString)
 	if err != nil {
 		return err
 	}
-	c.ReadinessProbe = probe
+	if c.ReadinessProbe == nil {
+		c.ReadinessProbe = &corev1.Probe{}
+	}
+	c.ReadinessProbe.ProbeHandler = *handler
+	return nil
+}
+
+// UpdateReadinessProbeOpts updates container readiness probe commons options based on provided string
+func UpdateReadinessProbeOpts(spec *corev1.PodSpec, probeString string) error {
+	c := containerOfPodSpec(spec)
+	if c.ReadinessProbe == nil {
+		c.ReadinessProbe = &corev1.Probe{}
+	}
+	err := resolveProbeOptions(c.ReadinessProbe, probeString)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -912,47 +944,25 @@ func decodeContainersFromFile(filename string) (*corev1.PodSpec, error) {
 //   - resolveProbeOptions() -> common probe opts
 //   - resolveProbeHandler() -> probe handler [HTTPGet, Exec, TCPSocket]
 // Format:
-//	- [http,https]:host:port:path;<common_opts>
-//	- exec:cmd,cmd,...;<common_opts>
-//  - tcp:host:port;<common_opts>
+//	- [http,https]:host:port:path
+//	- exec:cmd,cmd,...
+//  - tcp:host:port
 // Common opts (comma separated, case insensitive):
-//	- <probe_opts>;InitialDelaySeconds=<int_value>,FailureThreshold=<int_value>,
+//	- InitialDelaySeconds=<int_value>,FailureThreshold=<int_value>,
 //  	SuccessThreshold=<int_value>,PeriodSeconds==<int_value>,TimeoutSeconds=<int_value>
-func resolveProbe(probeString string) (*corev1.Probe, error) {
-	parts := strings.Split(probeString, ";")
-	probe := &corev1.Probe{}
-	var err error
-	if len(parts) > 2 {
-		return nil, fmt.Errorf("unexpected probe format detected")
-	}
-	if len(parts) == 2 && len(parts[1]) > 0 {
-		probe, err = resolveProbeOptions(parts[1])
-		if err != nil {
-			return nil, err
-		}
-	}
-	handler, err := resolveProbeHandler(parts[0])
-	if err != nil {
-		return nil, err
-	}
-	probe.ProbeHandler = *handler
-
-	return probe, nil
-}
 
 // resolveProbeOptions parses probe commons options
-func resolveProbeOptions(probeString string) (*corev1.Probe, error) {
+func resolveProbeOptions(probe *corev1.Probe, probeString string) error {
 	options := strings.Split(probeString, ",")
 	mappedOptions, err := util.MapFromArray(options, "=")
 	if err != nil {
-		return nil, err
+		return err
 	}
-	probe := &corev1.Probe{}
 	for k, v := range mappedOptions {
 		// Trim & verify value is convertible to int
 		intValue, err := strconv.ParseInt(strings.TrimSpace(v), 0, 32)
 		if err != nil {
-			return nil, fmt.Errorf("not a nummeric value for parameter '%s'", k)
+			return fmt.Errorf("not a nummeric value for parameter '%s'", k)
 		}
 		// Lower case param name mapping
 		switch strings.TrimSpace(strings.ToLower(k)) {
@@ -967,10 +977,10 @@ func resolveProbeOptions(probeString string) (*corev1.Probe, error) {
 		case "failurethreshold":
 			probe.FailureThreshold = int32(intValue)
 		default:
-			return nil, fmt.Errorf("not a valid probe parameter name '%s'", k)
+			return fmt.Errorf("not a valid probe parameter name '%s'", k)
 		}
 	}
-	return probe, nil
+	return nil
 }
 
 // resolveProbeHandler parses probe handler options
