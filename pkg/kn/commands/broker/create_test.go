@@ -69,14 +69,49 @@ func TestBrokerCreateWithConfig(t *testing.T) {
 
 	config := &v1.KReference{
 		Kind:       "ConfigMap",
-		Namespace:  "test-ns",
+		Namespace:  "",
 		Name:       "test-config",
 		APIVersion: "v1",
 	}
-	eventingRecorder.CreateBroker(createBrokerWithConfig(brokerName, config), nil)
+	secretConfig := &v1.KReference{
+		Kind:       "Secret",
+		Name:       "test-secret",
+		Namespace:  "test-ns",
+		APIVersion: "v1",
+	}
+	rabbitConfig := &v1.KReference{
+		Kind:       "RabbitmqCluster",
+		Namespace:  "test-ns",
+		Name:       "test-cluster",
+		APIVersion: "rabbitmq.com/v1beta1",
+	}
 
-	out, err := executeBrokerCommand(eventingClient, "create", brokerName, "--broker-config", "cm:test-config:namespace=test-ns,apiVersion=v1",
+	eventingRecorder.CreateBroker(createBrokerWithConfig(brokerName, config), nil)
+	// 1 slice
+	out, err := executeBrokerCommand(eventingClient, "create", brokerName, "--broker-config", "test-config",
 		"--class", "Kafka")
+	assert.NilError(t, err, "Broker should be created")
+	assert.Assert(t, util.ContainsAll(out, "Broker", brokerName, "created", "namespace", "default"))
+
+	eventingRecorder.CreateBroker(createBrokerWithConfig(brokerName, config), nil)
+	// 2 slices
+	out, err = executeBrokerCommand(eventingClient, "create", brokerName, "--broker-config", "cm:test-config",
+		"--class", "Kafka")
+	assert.NilError(t, err, "Broker should be created")
+	assert.Assert(t, util.ContainsAll(out, "Broker", brokerName, "created", "namespace", "default"))
+
+	eventingRecorder.CreateBroker(createBrokerWithConfig(brokerName, secretConfig), nil)
+
+	// 3 slices
+	out, err = executeBrokerCommand(eventingClient, "create", brokerName, "--broker-config", "secret:test-secret:test-ns",
+		"--class", "Kafka")
+	assert.NilError(t, err, "Broker should be created")
+	assert.Assert(t, util.ContainsAll(out, "Broker", brokerName, "created", "namespace", "default"))
+
+	// 4 slices
+	eventingRecorder.CreateBroker(createBrokerWithConfigAndClass(brokerName, "RabbitMQBroker", rabbitConfig), nil)
+	out, err = executeBrokerCommand(eventingClient, "create", brokerName, "--broker-config", "rabbitmq.com/v1beta1:RabbitmqCluster:test-cluster:test-ns",
+		"--class", "RabbitMQBroker")
 	assert.NilError(t, err, "Broker should be created")
 	assert.Assert(t, util.ContainsAll(out, "Broker", brokerName, "created", "namespace", "default"))
 

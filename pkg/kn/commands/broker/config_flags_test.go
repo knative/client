@@ -73,7 +73,7 @@ func TestConfigFlags_GetBrokerConfigReference(t *testing.T) {
 			name:          "only kind (unknown) and name specified without specifying API version",
 			argument:      "unknown:mock-name",
 			expectedKRef:  nil,
-			expectedError: "kind \"unknown\" is unknown and APIVersion could not be determined",
+			expectedError: "APIVersion could not be determined for kind \"unknown\"",
 		},
 		{
 			name:     "kind, name, and namespace specified",
@@ -87,50 +87,16 @@ func TestConfigFlags_GetBrokerConfigReference(t *testing.T) {
 			},
 		},
 		{
-			name:     "kind, name, and namespace specified(key = val format)",
-			argument: "secret:mock-name:Namespace=mock-namespace",
-			expectedKRef: &v1.KReference{
-				Kind:       "Secret",
-				Namespace:  "mock-namespace",
-				Name:       "mock-name",
-				APIVersion: "v1",
-				Group:      "",
-			},
-		},
-		{
-			name:     "kind, name, and namespace and group specified(key = val format)",
-			argument: "rabbitmq:mock-name:Namespace=mock-namespace,group=rabbitmq.com",
+			name:     "apiVersion, kind, name, and namespace",
+			argument: "rabbitmq.com/v1beta1:RabbitmqCluster:test-cluster:test-ns",
 			expectedKRef: &v1.KReference{
 				Kind:       "RabbitmqCluster",
-				Namespace:  "mock-namespace",
-				Name:       "mock-name",
+				Namespace:  "test-ns",
+				Name:       "test-cluster",
 				APIVersion: "rabbitmq.com/v1beta1",
-				Group:      "rabbitmq.com",
 			},
 		},
-		{
-			name:     "unknown kind, name, and namespace and APIVersion specified(key = val format)",
-			argument: "unknown:mock-name:Namespace=mock-namespace,apiVersion=v1beta1",
-			expectedKRef: &v1.KReference{
-				Kind:       "unknown",
-				Namespace:  "mock-namespace",
-				Name:       "mock-name",
-				APIVersion: "v1beta1",
-				Group:      "",
-			},
-		},
-		{
-			name:          "unknown kind specified without APIVersion (key = val format)",
-			argument:      "unknown:mock-name:Namespace=mock-namespace",
-			expectedKRef:  nil,
-			expectedError: "kind \"unknown\" is unknown and APIVersion could not be determined",
-		},
-		{
-			name:          "kind, name, and an unknown key specified in third part of the argument",
-			argument:      "secret:mock-name:unknown-key=mock-val",
-			expectedKRef:  nil,
-			expectedError: "incorrect field \"unknown-key\". Please specify any of the following: Namespace, Group, APIVersion",
-		}}
+	}
 	for _, tt := range tests {
 		c := ConfigFlags{BrokerConfig: tt.argument}
 		actualKRef, actualErr := c.GetBrokerConfigReference()

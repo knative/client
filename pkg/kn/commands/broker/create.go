@@ -35,14 +35,16 @@ var createExample = `
   # Create a broker 'mybroker' in the 'myproject' namespace and with a broker class of 'Kafka'
   kn broker create mybroker --namespace myproject --class Kafka
 
-  # Create a broker 'mybroker' in the myproject namespace with config referencing configmap named spec-cm
+  # Create a broker 'mybroker' in the myproject namespace with config referencing a configmap in current namespace
   kn broker create mybroker --namespace myproject --class Kafka --broker-config cm:spec-cm
+  OR
+  kn broker create mybroker --namespace myproject --class Kafka --broker-config spec-cm
 
-  # Create a broker 'mybroker' in the myproject namespace with config referencing configmap named spec-cm in test namespace
-  kn broker create mybroker --namespace myproject --class Kafka --broker-config cm:broker-spec-cm:test
+  # Create a broker 'mybroker' in the myproject namespace with config referencing secret named spec-sc in test namespace
+  kn broker create mybroker --namespace myproject --class Kafka --broker-config sc:spec-sc:test
 
-  # Create a broker 'mybroker' in the myproject namespace with config referencing configmap named spec-cm in test namespace
-  kn broker create mybroker --namespace myproject --class Kafka --broker-config cm:broker-spec-cm:test
+  # Create a broker 'mybroker' in the myproject namespace with config referencing RabbitmqCluster mycluster in test namespace
+  kn broker create mybroker --namespace myproject --class Kafka --broker-config rabbitmq.com/v1beta1:RabbitmqCluster:mycluster:test
 `
 
 // NewBrokerCreateCommand represents command to create new broker instance

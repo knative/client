@@ -16,14 +16,16 @@ kn broker create NAME
   # Create a broker 'mybroker' in the 'myproject' namespace and with a broker class of 'Kafka'
   kn broker create mybroker --namespace myproject --class Kafka
 
-  # Create a broker 'mybroker' in the myproject namespace with config referencing configmap named spec-cm
+  # Create a broker 'mybroker' in the myproject namespace with config referencing a configmap in current namespace
   kn broker create mybroker --namespace myproject --class Kafka --broker-config cm:spec-cm
+  OR
+  kn broker create mybroker --namespace myproject --class Kafka --broker-config spec-cm
 
-  # Create a broker 'mybroker' in the myproject namespace with config referencing configmap named spec-cm in test namespace
-  kn broker create mybroker --namespace myproject --class Kafka --broker-config cm:broker-spec-cm:test
+  # Create a broker 'mybroker' in the myproject namespace with config referencing secret named spec-sc in test namespace
+  kn broker create mybroker --namespace myproject --class Kafka --broker-config sc:spec-sc:test
 
-  # Create a broker 'mybroker' in the myproject namespace with config referencing configmap named spec-cm in test namespace
-  kn broker create mybroker --namespace myproject --class Kafka --broker-config cm:broker-spec-cm:test
+  # Create a broker 'mybroker' in the myproject namespace with config referencing RabbitmqCluster mycluster in test namespace
+  kn broker create mybroker --namespace myproject --class Kafka --broker-config rabbitmq.com/v1beta1:RabbitmqCluster:mycluster:test
 
 ```
 
@@ -32,10 +34,12 @@ kn broker create NAME
 ```
       --backoff-delay string     The delay before retrying.
       --backoff-policy string    The retry backoff policy (linear, exponential).
-      --broker-config string     Reference to the configuration that specifies configuration options for this Broker. For example, a pointer to a ConfigMap, Secret, RabbitmqCluster etc.The format for specifying the object is a colon separated string consisting of at most 3 substrings:
-                                 kind:object-name:namespace=?,apiVersion=?,group=?
-                                 The third substring is optional and the following is also acceptable (in case of ConfigMap, Secret, and RabbitmqCluster kinds):
-                                 kind:object-name
+      --broker-config string     Reference to the broker configuration For example, a pointer to a ConfigMap (cm:, configmap:), Secret(sc:, secret:), RabbitmqCluster(rmq:, rabbitmq: rabbitmqcluster:) etc. It should be used in conjunction with --class flag. The format for specifying the object is a colon separated string consisting of at most 4 slices:
+                                 Length 1: <object-name> (the object will be assumed to be ConfigMap with the same name)
+                                 Length 2: <kind>:<object-name> (the APIVersion will be determined for ConfigMap, Secret, and RabbitmqCluster types)
+                                 Length 3: <kind>:<object-name>:<namespace> (the APIVersion will be determined only for ConfigMap, Secret, and RabbitmqCluster types. Otherwise it will be interpreted as:
+                                 <apiVersion>:<kind>:<object-name>)
+                                 Length 4: <apiVersion>:<kind>:<object-name>:<namespace>
       --class string             Broker class like 'MTChannelBasedBroker' or 'Kafka' (if available).
       --dl-sink string           The sink receiving event that could not be sent to a destination.
   -h, --help                     help for create
