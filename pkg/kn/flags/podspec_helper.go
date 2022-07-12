@@ -1004,7 +1004,7 @@ func resolveProbeHandler(probeString string) (*corev1.ProbeHandler, error) {
 		probeHandler = &handler
 	case "exec":
 		if len(probeParts) != 2 {
-			return nil, fmt.Errorf("unexpected probe format, please use 'exec:<exec_command>,<exec_command>'")
+			return nil, fmt.Errorf("unexpected probe format, please use 'exec:<exec_command>[,<exec_command>,...]'")
 		}
 		if len(probeParts[1]) == 0 {
 			return nil, fmt.Errorf("at least one command parameter is required for Exec probe")

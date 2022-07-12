@@ -1290,7 +1290,7 @@ func TestResolveProbeHandlerExec(t *testing.T) {
 			name:        "Exec probe too many params",
 			probeString: "exec:cmd:cmd",
 			expected:    nil,
-			err:         errors.New("unexpected probe format, please use 'exec:<exec_command>,<exec_command>'"),
+			err:         errors.New("unexpected probe format, please use 'exec:<exec_command>[,<exec_command>,...]'"),
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
