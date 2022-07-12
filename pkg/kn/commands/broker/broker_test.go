@@ -133,3 +133,11 @@ func createBrokerWithBackoffDelay(brokerName, delay string) *v1beta1.Broker {
 func createBrokerWithRetryAfterMax(brokerName, timeout string) *v1beta1.Broker {
 	return clientv1beta1.NewBrokerBuilder(brokerName).Namespace("default").RetryAfterMax(&timeout).Build()
 }
+
+func createBrokerWithConfig(brokerName string, config *duckv1.KReference) *v1beta1.Broker {
+	return clientv1beta1.NewBrokerBuilder(brokerName).Namespace("default").Class("Kafka").Config(config).Build()
+}
+
+func createBrokerWithConfigAndClass(brokerName, class string, config *duckv1.KReference) *v1beta1.Broker {
+	return clientv1beta1.NewBrokerBuilder(brokerName).Namespace("default").Class(class).Config(config).Build()
+}

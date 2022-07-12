@@ -22,6 +22,7 @@ import (
 
 	"github.com/spf13/cobra"
 	v1 "knative.dev/eventing/pkg/apis/duck/v1"
+	duckv1 "knative.dev/pkg/apis/duck/v1"
 
 	clientv1beta1 "knative.dev/client/pkg/eventing/v1"
 	"knative.dev/client/pkg/kn/commands"
@@ -33,6 +34,17 @@ var createExample = `
 
   # Create a broker 'mybroker' in the 'myproject' namespace and with a broker class of 'Kafka'
   kn broker create mybroker --namespace myproject --class Kafka
+
+  # Create a broker 'mybroker' in the myproject namespace with config referencing a configmap in current namespace
+  kn broker create mybroker --namespace myproject --class Kafka --broker-config cm:spec-cm
+  OR
+  kn broker create mybroker --namespace myproject --class Kafka --broker-config spec-cm
+
+  # Create a broker 'mybroker' in the myproject namespace with config referencing secret named spec-sc in test namespace
+  kn broker create mybroker --namespace myproject --class Kafka --broker-config sc:spec-sc:test
+
+  # Create a broker 'mybroker' in the myproject namespace with config referencing RabbitmqCluster mycluster in test namespace
+  kn broker create mybroker --namespace myproject --class Kafka --broker-config rabbitmq.com/v1beta1:RabbitmqCluster:mycluster:test
 `
 
 // NewBrokerCreateCommand represents command to create new broker instance
@@ -41,6 +53,7 @@ func NewBrokerCreateCommand(p *commands.KnParams) *cobra.Command {
 	var className string
 
 	var deliveryFlags DeliveryOptionFlags
+	var configFlags ConfigFlags
 	cmd := &cobra.Command{
 		Use:     "create NAME",
 		Short:   "Create a broker",
@@ -73,6 +86,19 @@ func NewBrokerCreateCommand(p *commands.KnParams) *cobra.Command {
 
 			backoffPolicy := v1.BackoffPolicyType(deliveryFlags.BackoffPolicy)
 
+			var configReference *duckv1.KReference
+
+			if cmd.Flags().Changed("broker-config") {
+				if !cmd.Flags().Changed("class") {
+					return fmt.Errorf("cannot set broker-config without setting class")
+				}
+
+				configReference, err = configFlags.GetBrokerConfigReference()
+				if err != nil {
+					return err
+				}
+			}
+
 			brokerBuilder := clientv1beta1.
 				NewBrokerBuilder(name).
 				Namespace(namespace).
@@ -82,7 +108,8 @@ func NewBrokerCreateCommand(p *commands.KnParams) *cobra.Command {
 				Timeout(&deliveryFlags.Timeout).
 				BackoffPolicy(&backoffPolicy).
 				BackoffDelay(&deliveryFlags.BackoffDelay).
-				RetryAfterMax(&deliveryFlags.RetryAfterMax)
+				RetryAfterMax(&deliveryFlags.RetryAfterMax).
+				Config(configReference)
 
 			err = eventingClient.CreateBroker(cmd.Context(), brokerBuilder.Build())
 			if err != nil {
@@ -96,6 +123,7 @@ func NewBrokerCreateCommand(p *commands.KnParams) *cobra.Command {
 	}
 	commands.AddNamespaceFlags(cmd.Flags(), false)
 	cmd.Flags().StringVar(&className, "class", "", "Broker class like 'MTChannelBasedBroker' or 'Kafka' (if available).")
+	configFlags.Add(cmd)
 	deliveryFlags.Add(cmd)
 	return cmd
 }
