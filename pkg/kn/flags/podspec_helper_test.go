@@ -17,12 +17,15 @@ limitations under the License.
 package flags
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"k8s.io/apimachinery/pkg/api/resource"
 	"knative.dev/client/lib/test"
@@ -1108,4 +1111,373 @@ func TestUpdateImagePullPolicyError(t *testing.T) {
 	}
 	err := UpdateImagePullPolicy(podSpec, "InvalidPolicy")
 	assert.Assert(t, util.ContainsAll(err.Error(), "invalid --pull-policy", "Valid arguments", "Always | Never | IfNotPresent"))
+}
+
+func TestUpdateProbes(t *testing.T) {
+	podSpec := &corev1.PodSpec{
+		Containers: []corev1.Container{{}},
+	}
+	expected := &corev1.PodSpec{
+		Containers: []corev1.Container{
+			{
+				LivenessProbe: &corev1.Probe{
+					ProbeHandler: corev1.ProbeHandler{
+						HTTPGet: &corev1.HTTPGetAction{
+							Port: intstr.Parse("8080"), Path: "/path"}}},
+				ReadinessProbe: &corev1.Probe{
+					ProbeHandler: corev1.ProbeHandler{
+						HTTPGet: &corev1.HTTPGetAction{
+							Port: intstr.Parse("8080"), Path: "/path"}}},
+			},
+		},
+	}
+	t.Run("Update readiness & liveness", func(t *testing.T) {
+		err := UpdateLivenessProbe(podSpec, "http::8080:/path")
+		assert.NilError(t, err)
+		err = UpdateReadinessProbe(podSpec, "http::8080:/path")
+		assert.NilError(t, err)
+		assert.DeepEqual(t, podSpec, expected)
+	})
+	t.Run("Update readiness with error", func(t *testing.T) {
+		err := UpdateReadinessProbe(podSpec, "http-probe::8080:/path")
+		assert.Assert(t, err != nil)
+		assert.ErrorContains(t, err, "unsupported probe type")
+	})
+	t.Run("Update liveness with error", func(t *testing.T) {
+		err := UpdateLivenessProbe(podSpec, "http-probe::8080:/path")
+		assert.Assert(t, err != nil)
+		assert.ErrorContains(t, err, "unsupported probe type")
+	})
+}
+
+func TestUpdateProbesOpts(t *testing.T) {
+	podSpec := &corev1.PodSpec{
+		Containers: []corev1.Container{{}},
+	}
+	expected := &corev1.PodSpec{
+		Containers: []corev1.Container{
+			{
+				LivenessProbe: &corev1.Probe{
+					InitialDelaySeconds: 5,
+					TimeoutSeconds:      10},
+				ReadinessProbe: &corev1.Probe{
+					InitialDelaySeconds: 5,
+					TimeoutSeconds:      10},
+			},
+		},
+	}
+	t.Run("Update readiness & liveness", func(t *testing.T) {
+		err := UpdateLivenessProbeOpts(podSpec, "initialdelayseconds=5")
+		assert.NilError(t, err)
+		err = UpdateLivenessProbeOpts(podSpec, "timeoutseconds=10")
+		assert.NilError(t, err)
+		err = UpdateReadinessProbeOpts(podSpec, "initialdelayseconds=5,timeoutseconds=10")
+		assert.NilError(t, err)
+		assert.DeepEqual(t, podSpec, expected)
+	})
+	t.Run("Update readiness with error", func(t *testing.T) {
+		err := UpdateReadinessProbeOpts(podSpec, "timeout=10")
+		assert.Assert(t, err != nil)
+		assert.ErrorContains(t, err, "not a valid probe parameter")
+	})
+	t.Run("Update liveness with error", func(t *testing.T) {
+		err := UpdateLivenessProbeOpts(podSpec, "initdelay=5")
+		assert.Assert(t, err != nil)
+		assert.ErrorContains(t, err, "not a valid probe parameter")
+	})
+}
+
+func TestUpdateProbesWithOpts(t *testing.T) {
+	podSpec := &corev1.PodSpec{
+		Containers: []corev1.Container{{}},
+	}
+	expected := &corev1.PodSpec{
+		Containers: []corev1.Container{
+			{
+				LivenessProbe: &corev1.Probe{
+					ProbeHandler: corev1.ProbeHandler{
+						HTTPGet: &corev1.HTTPGetAction{
+							Port: intstr.Parse("8080"), Path: "/path"}},
+					InitialDelaySeconds: 10},
+				ReadinessProbe: &corev1.Probe{
+					ProbeHandler: corev1.ProbeHandler{
+						HTTPGet: &corev1.HTTPGetAction{
+							Port: intstr.Parse("8080"), Path: "/path"}},
+					TimeoutSeconds: 10},
+			},
+		},
+	}
+	t.Run("Update readiness & liveness", func(t *testing.T) {
+		err := UpdateLivenessProbe(podSpec, "http::8080:/path")
+		assert.NilError(t, err)
+		err = UpdateLivenessProbeOpts(podSpec, "initialdelayseconds=10")
+		assert.NilError(t, err)
+		err = UpdateReadinessProbeOpts(podSpec, "timeoutseconds=10")
+		assert.NilError(t, err)
+		err = UpdateReadinessProbe(podSpec, "http::8080:/path")
+		assert.NilError(t, err)
+		assert.DeepEqual(t, podSpec, expected)
+	})
+}
+
+func TestResolveProbeHandlerError(t *testing.T) {
+	for _, tc := range []struct {
+		name        string
+		probeString string
+		err         error
+	}{
+		{
+			name:        "Probe string empty",
+			probeString: "",
+			err:         errors.New("no probe parameters detected"),
+		},
+		{
+			name:        "Probe string too many parameters",
+			probeString: "http:too-many:test-host:8080:/",
+			err:         errors.New("too many probe parameters provided, please check the format"),
+		},
+		{
+			name:        "Probe invalid prefix",
+			probeString: "http-probe:test-host:8080:/",
+			err:         errors.New("unsupported probe type 'http-probe'; supported types: http, https, exec, tcp"),
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			actual, err := resolveProbeHandler(tc.probeString)
+			assert.Assert(t, actual == nil)
+			assert.Error(t, err, tc.err.Error())
+			assert.ErrorType(t, err, tc.err)
+
+		})
+	}
+}
+
+func TestResolveProbeHandlerHTTP(t *testing.T) {
+	for _, tc := range []struct {
+		name        string
+		probeString string
+		expected    *corev1.ProbeHandler
+		err         error
+	}{
+		{
+			name:        "HTTP probe empty params",
+			probeString: "http:::",
+			expected:    &corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{}},
+			err:         nil,
+		},
+		{
+			name:        "HTTP probe  all params",
+			probeString: "http:test-host:8080:/",
+			expected: &corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{
+				Host: "test-host", Port: intstr.Parse("8080"), Path: "/",
+			}},
+			err: nil,
+		},
+		{
+			name:        "HTTPS probe  all params",
+			probeString: "https:test-host:8080:/",
+			expected: &corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{
+				Host: "test-host", Scheme: corev1.URISchemeHTTPS, Port: intstr.Parse("8080"), Path: "/",
+			}},
+			err: nil,
+		},
+		{
+			name:        "HTTP probe port path params",
+			probeString: "http::8080:/",
+			expected: &corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{
+				Port: intstr.Parse("8080"), Path: "/",
+			}},
+			err: nil,
+		},
+		{
+			name:        "HTTP probe path params",
+			probeString: "http:::/path",
+			expected: &corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{
+				Path: "/path",
+			}},
+			err: nil,
+		},
+		{
+			name:        "HTTP probe named port path params",
+			probeString: "http::namedPort:/",
+			expected: &corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{
+				Port: intstr.Parse("namedPort"), Path: "/",
+			}},
+			err: nil,
+		},
+		{
+			name:        "HTTP probe not enough params",
+			probeString: "http::",
+			expected:    nil,
+			err:         errors.New("unexpected probe format, please use 'http:host:port:path'"),
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			actual, err := resolveProbeHandler(tc.probeString)
+			if tc.err == nil {
+				assert.NilError(t, err)
+				assert.DeepEqual(t, actual, tc.expected)
+			} else {
+				assert.Assert(t, actual == nil)
+				assert.Error(t, err, tc.err.Error())
+				assert.ErrorType(t, err, tc.err)
+			}
+
+		})
+	}
+}
+
+func TestResolveProbeHandlerExec(t *testing.T) {
+	for _, tc := range []struct {
+		name        string
+		probeString string
+		expected    *corev1.ProbeHandler
+		err         error
+	}{
+		{
+			name:        "Exec probe single cmd params",
+			probeString: "exec:/bin/cmd/with/slashes",
+			expected: &corev1.ProbeHandler{Exec: &corev1.ExecAction{
+				Command: []string{"/bin/cmd/with/slashes"},
+			}},
+			err: nil,
+		},
+		{
+			name:        "Exec probe multiple cmd params",
+			probeString: "exec:/bin/cmd,arg,arg",
+			expected: &corev1.ProbeHandler{Exec: &corev1.ExecAction{
+				Command: []string{"/bin/cmd", "arg", "arg"},
+			}},
+			err: nil,
+		},
+		{
+			name:        "Exec probe empty command param",
+			probeString: "exec:",
+			expected:    nil,
+			err:         errors.New("at least one command parameter is required for Exec probe"),
+		},
+		{
+			name:        "Exec probe too many params",
+			probeString: "exec:cmd:cmd",
+			expected:    nil,
+			err:         errors.New("unexpected probe format, please use 'exec:<exec_command>[,<exec_command>,...]'"),
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			actual, err := resolveProbeHandler(tc.probeString)
+			if tc.err == nil {
+				assert.NilError(t, err)
+				assert.DeepEqual(t, actual, tc.expected)
+			} else {
+				assert.Assert(t, actual == nil)
+				assert.Error(t, err, tc.err.Error())
+				assert.ErrorType(t, err, tc.err)
+			}
+
+		})
+	}
+}
+
+func TestResolveProbeHandlerTCP(t *testing.T) {
+	for _, tc := range []struct {
+		name        string
+		probeString string
+		expected    *corev1.ProbeHandler
+		err         error
+	}{
+		{
+			name:        "TCPSocket probe host port",
+			probeString: "tcp:test-host:8080",
+			expected: &corev1.ProbeHandler{TCPSocket: &corev1.TCPSocketAction{
+				Host: "test-host", Port: intstr.Parse("8080"),
+			}},
+			err: nil,
+		},
+		{
+			name:        "TCPSocket probe host named port",
+			probeString: "tcp:test-host:myPort",
+			expected: &corev1.ProbeHandler{TCPSocket: &corev1.TCPSocketAction{
+				Host: "test-host", Port: intstr.Parse("myPort"),
+			}},
+			err: nil,
+		},
+		{
+			name:        "TCPSocket probe empty command param",
+			probeString: "tcp:",
+			expected:    nil,
+			err:         errors.New("unexpected probe format, please use 'tcp:host:port"),
+		},
+		{
+			name:        "TCPSocket probe too many params",
+			probeString: "tcp:host:port:more",
+			expected:    nil,
+			err:         errors.New("unexpected probe format, please use 'tcp:host:port"),
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			actual, err := resolveProbeHandler(tc.probeString)
+			if tc.err == nil {
+				assert.NilError(t, err)
+				assert.DeepEqual(t, actual, tc.expected)
+			} else {
+				assert.Assert(t, actual == nil)
+				assert.Error(t, err, tc.err.Error())
+				assert.ErrorType(t, err, tc.err)
+			}
+
+		})
+	}
+}
+
+func TestResolveProbeOptions(t *testing.T) {
+	for _, tc := range []struct {
+		name        string
+		probeString string
+		expected    *corev1.Probe
+		err         error
+	}{
+		{
+			name:        "Common options all",
+			probeString: "InitialDelaySeconds=1,TimeoutSeconds=2,PeriodSeconds=3,SuccessThreshold=4,FailureThreshold=5",
+			expected: &corev1.Probe{
+				InitialDelaySeconds: 1,
+				TimeoutSeconds:      2,
+				PeriodSeconds:       3,
+				SuccessThreshold:    4,
+				FailureThreshold:    5,
+			},
+			err: nil,
+		},
+		{
+			name:        "Error duplicate value",
+			probeString: "InitialDelaySeconds=2,InitialDelaySeconds=3",
+			expected:    nil,
+			err:         errors.New("The key \"InitialDelaySeconds\" has been duplicate in [InitialDelaySeconds=2 InitialDelaySeconds=3]"),
+		},
+		{
+			name:        "Error not a numeric value",
+			probeString: "InitialDelaySeconds=v",
+			expected:    nil,
+			err:         errors.New("not a nummeric value for parameter 'InitialDelaySeconds'"),
+		},
+		{
+			name:        "Error invalid parameter name",
+			probeString: "InitialDelay=5",
+			expected:    nil,
+			err:         errors.New("not a valid probe parameter name 'InitialDelay'"),
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := &corev1.Probe{}
+			err := resolveProbeOptions(actual, tc.probeString)
+			if tc.err == nil {
+				assert.NilError(t, err)
+				assert.DeepEqual(t, actual, tc.expected)
+			} else {
+				assert.Error(t, err, tc.err.Error())
+				assert.ErrorType(t, err, tc.err)
+			}
+
+		})
+	}
 }

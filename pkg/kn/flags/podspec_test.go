@@ -23,6 +23,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"k8s.io/apimachinery/pkg/util/intstr"
+
 	"knative.dev/client/lib/test"
 
 	"github.com/spf13/cobra"
@@ -70,7 +72,8 @@ func TestPodSpecResolve(t *testing.T) {
 		"--port", "8080", "--limit", "cpu=1000m", "--limit", "memory=1024Mi",
 		"--cmd", "/app/start", "--arg", "myArg1", "--service-account", "foo-bar-account",
 		"--mount", "/mount/path=volume-name", "--volume", "volume-name=cm:config-map-name",
-		"--env-from", "config-map:config-map-name", "--user", "1001", "--pull-policy", "always"}
+		"--env-from", "config-map:config-map-name", "--user", "1001", "--pull-policy", "always",
+		"--probe-readiness", "http::8080:/path", "--probe-liveness", "http::8080:/path"}
 	expectedPodSpec := corev1.PodSpec{
 		Containers: []corev1.Container{
 			{
@@ -81,6 +84,16 @@ func TestPodSpecResolve(t *testing.T) {
 				Ports: []corev1.ContainerPort{
 					{
 						ContainerPort: 8080,
+					},
+				},
+				ReadinessProbe: &corev1.Probe{
+					ProbeHandler: v1.ProbeHandler{
+						HTTPGet: &corev1.HTTPGetAction{Port: intstr.Parse("8080"), Path: "/path"},
+					},
+				},
+				LivenessProbe: &corev1.Probe{
+					ProbeHandler: v1.ProbeHandler{
+						HTTPGet: &corev1.HTTPGetAction{Port: intstr.Parse("8080"), Path: "/path"},
 					},
 				},
 				Env: []corev1.EnvVar{{Name: "b", Value: "c"}},
