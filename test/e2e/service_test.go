@@ -240,11 +240,17 @@ func serviceCreateWithMount(r *test.KnRunResultCollector) {
 	assert.NilError(r.T(), err)
 	r.AssertNoError(out)
 
-	r.T().Log("update service with a new pvc mount")
-	out = r.KnTest().Kn().Run("service", "update", "test-svc", "--mount", "/mydir5=pvc:test-pvc")
-	r.AssertNoError(out)
+	_, err = kubectl.Run("wait", "--for='jsonpath={..status.phase}'=Bound", "pvc/test-pvc", "--timeout=30s")
+	if err == nil {
+		r.T().Log("update service with a new pvc mount")
+		out = r.KnTest().Kn().Run("service", "update", "test-svc", "--mount", "/mydir5=pvc:test-pvc")
+		r.AssertNoError(out)
 
-	serviceDescribeMount(r, "test-svc", "/mydir", "key")
+		serviceDescribeMount(r, "test-svc", "/mydir", "key")
+	} else {
+		r.T().Log("PVC test skip due to unsatisfied PVC")
+	}
+
 }
 
 func getVolumeMountWithHostPath(svc *servingv1.Service, hostPath string) *v1.VolumeMount {
