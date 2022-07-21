@@ -31,7 +31,6 @@
 # in the Kubernetes cluster, and all the tests will run against Knative
 # Serving / Eventing of this specific version.
 
-export DISABLE_MD_LINTING=1
 export PRESUBMIT_TEST_FAIL_FAST=1
 
 export GO111MODULE=on
