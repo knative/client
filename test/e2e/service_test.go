@@ -240,7 +240,7 @@ func serviceCreateWithMount(r *test.KnRunResultCollector) {
 	assert.NilError(r.T(), err)
 	r.AssertNoError(out)
 
-	_, err = kubectl.Run("wait", "--for=condition=Ready", "pvc/test-pvc", "--timeout=30s")
+	_, err = kubectl.Run("wait", "--for='jsonpath={..status.phase}'=Bound", "pvc/test-pvc", "--timeout=30s")
 	if err == nil {
 		r.T().Log("update service with a new pvc mount")
 		out = r.KnTest().Kn().Run("service", "update", "test-svc", "--mount", "/mydir5=pvc:test-pvc")
