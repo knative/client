@@ -528,7 +528,7 @@ func updateVolume(volume *corev1.Volume, info *volumeSourceInfo) error {
 	case EmptyDirVolumeSourceType:
 		volume.EmptyDir = &corev1.EmptyDirVolumeSource{Medium: corev1.StorageMedium(info.emptyDirMemoryType), SizeLimit: info.emptyDirSize}
 	case PVCVolumeSourceType:
-		volume.PersistentVolumeClaim = &corev1.PersistentVolumeClaimVolumeSource{ClaimName: info.volumeSourceName, ReadOnly: true}
+		volume.PersistentVolumeClaim = &corev1.PersistentVolumeClaimVolumeSource{ClaimName: info.volumeSourceName}
 	default:
 		return fmt.Errorf("Invalid VolumeSourceType")
 	}
