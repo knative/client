@@ -196,9 +196,13 @@ func serviceCreateWithMount(r *test.KnRunResultCollector) {
 	it := r.KnTest()
 	kubectl := test.NewKubectl("knative-serving")
 
-	_, err := kubectl.Run("patch", "cm", "config-features", "--patch={\"data\":{\"kubernetes.podspec-persistent-volume-claim\": \"enabled\", \"kubernetes.podspec-volumes-emptydir\": \"enabled\"}}")
+	_, err := kubectl.Run("patch", "cm", "config-features", "--patch={\"data\":{\"kubernetes.podspec-persistent-volume-claim\": \"enabled\", "+
+		"\"kubernetes.podspec-persistent-volume-write\": \"enabled\", "+
+		"\"kubernetes.podspec-volumes-emptydir\": \"enabled\"}}")
 	assert.NilError(r.T(), err)
-	defer kubectl.Run("patch", "cm", "config-features", "--patch={\"data\":{\"kubernetes.podspec-persistent-volume-claim\": \"disabled\", \"kubernetes.podspec-volumes-emptydir\": \"disabled\"}}")
+	defer kubectl.Run("patch", "cm", "config-features", "--patch={\"data\":{\"kubernetes.podspec-persistent-volume-claim\": \"disabled\", "+
+		"\"kubernetes.podspec-persistent-volume-write\": \"disabled\", "+
+		"\"kubernetes.podspec-volumes-emptydir\": \"disabled\"}}")
 
 	kubectl = test.NewKubectl(it.Namespace())
 
@@ -213,6 +217,7 @@ func serviceCreateWithMount(r *test.KnRunResultCollector) {
 	r.T().Log("update the subpath in mounted cm")
 	out = r.KnTest().Kn().Run("service", "update", "test-svc", "--mount", "/mydir=cm:test-cm/key")
 	r.AssertNoError(out)
+	serviceDescribeMount(r, "test-svc", "/mydir", "key")
 
 	r.T().Log("create secret test-sec")
 	_, err = kubectl.Run("create", "secret", "generic", "test-sec", "--from-literal", "key1=val1")
@@ -240,17 +245,9 @@ func serviceCreateWithMount(r *test.KnRunResultCollector) {
 	assert.NilError(r.T(), err)
 	r.AssertNoError(out)
 
-	_, err = kubectl.Run("wait", "--for='jsonpath={..status.phase}'=Bound", "pvc/test-pvc", "--timeout=30s")
-	if err == nil {
-		r.T().Log("update service with a new pvc mount")
-		out = r.KnTest().Kn().Run("service", "update", "test-svc", "--mount", "/mydir5=pvc:test-pvc")
-		r.AssertNoError(out)
-
-		serviceDescribeMount(r, "test-svc", "/mydir", "key")
-	} else {
-		r.T().Log("PVC test skip due to unsatisfied PVC")
-	}
-
+	r.T().Log("update service with a new pvc mount")
+	out = r.KnTest().Kn().Run("service", "update", "test-svc", "--mount", "/mydir5=pvc:test-pvc")
+	r.AssertNoError(out)
 }
 
 func getVolumeMountWithHostPath(svc *servingv1.Service, hostPath string) *v1.VolumeMount {
