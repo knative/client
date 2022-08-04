@@ -1,6 +1,6 @@
 module knative.dev/client
 
-go 1.17
+go 1.18
 
 require (
 	github.com/emicklei/go-restful v2.15.0+incompatible // indirect
