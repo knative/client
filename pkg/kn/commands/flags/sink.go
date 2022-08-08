@@ -108,7 +108,21 @@ func (i *SinkFlags) ResolveSink(ctx context.Context, knclient clientdynamic.KnDy
 		if prefix == "svc" || prefix == "service" {
 			return nil, fmt.Errorf("unsupported sink prefix: '%s', please use prefix 'ksvc' for knative service", prefix)
 		}
-		return nil, fmt.Errorf("unsupported sink prefix: '%s', if referring to a knative service in another namespace, 'ksvc:name:namespace' combination must be provided explicitly", prefix)
+		idx := strings.LastIndex(prefix, "/")
+		var groupVersion string
+		var kind string
+		if idx != -1 && idx < len(prefix)-1 {
+			groupVersion, kind = prefix[:idx], prefix[idx+1:]
+		} else {
+			kind = prefix
+		}
+		parsedVersion, _ := schema.ParseGroupVersion(groupVersion)
+
+		typ = schema.GroupVersionResource{
+			Group:    parsedVersion.Group,
+			Version:  parsedVersion.Version,
+			Resource: kind,
+		}
 	}
 	if ns != "" {
 		namespace = ns

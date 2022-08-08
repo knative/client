@@ -117,7 +117,7 @@ func TestResolve(t *testing.T) {
 		{"http://target.example.com", &duckv1.Destination{
 			URI: targetExampleCom,
 		}, ""},
-		{"k8ssvc:foo", nil, "unsupported sink prefix: 'k8ssvc'"},
+		{"k8ssvc:foo", nil, "k8ssvc \"foo\" not found"},
 		{"svc:foo", nil, "please use prefix 'ksvc' for knative service"},
 		{"service:foo", nil, "please use prefix 'ksvc' for knative service"},
 	}
