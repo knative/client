@@ -118,6 +118,9 @@ func (i *SinkFlags) ResolveSink(ctx context.Context, knclient clientdynamic.KnDy
 		}
 		parsedVersion, _ := schema.ParseGroupVersion(groupVersion)
 
+		if !strings.HasSuffix(kind, "s") {
+			kind = kind + "s"
+		}
 		typ = schema.GroupVersionResource{
 			Group:    parsedVersion.Group,
 			Version:  parsedVersion.Version,

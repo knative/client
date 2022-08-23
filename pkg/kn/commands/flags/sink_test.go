@@ -23,6 +23,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
 	messagingv1 "knative.dev/eventing/pkg/apis/messaging/v1"
+	"knative.dev/eventing/pkg/apis/sources/v1beta2"
 	"knative.dev/pkg/apis"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
@@ -86,7 +87,10 @@ func TestResolve(t *testing.T) {
 		TypeMeta:   metav1.TypeMeta{Kind: "Channel", APIVersion: "messaging.knative.dev/v1"},
 		ObjectMeta: metav1.ObjectMeta{Name: "pipe", Namespace: "default"},
 	}
-
+	pingSource := &v1beta2.PingSource{
+		TypeMeta:   metav1.TypeMeta{Kind: "PingSource", APIVersion: "sources.knative.dev/v1"},
+		ObjectMeta: metav1.ObjectMeta{Name: "foo", Namespace: "default"},
+	}
 	cases := []resolveCase{
 		{"ksvc:mysvc", &duckv1.Destination{
 			Ref: &duckv1.KReference{Kind: "Service",
@@ -114,14 +118,28 @@ func TestResolve(t *testing.T) {
 			},
 			""},
 
+		{"sources.knative.dev/v1/pingsource:foo", &duckv1.Destination{Ref: &duckv1.KReference{
+			APIVersion: "sources.knative.dev/v1",
+			Kind:       "PingSource",
+			Namespace:  "default",
+			Name:       "foo",
+		}}, ""},
+		{"sources.knative.dev/v1/pingsources:foo", &duckv1.Destination{Ref: &duckv1.KReference{
+			APIVersion: "sources.knative.dev/v1",
+			Kind:       "PingSource",
+			Namespace:  "default",
+			Name:       "foo",
+		}}, ""},
 		{"http://target.example.com", &duckv1.Destination{
 			URI: targetExampleCom,
 		}, ""},
-		{"k8ssvc:foo", nil, "k8ssvc \"foo\" not found"},
+		{"k8ssvc:foo", nil, "k8ssvcs \"foo\" not found"},
 		{"svc:foo", nil, "please use prefix 'ksvc' for knative service"},
 		{"service:foo", nil, "please use prefix 'ksvc' for knative service"},
+		{"absent:foo", nil, "absents \"foo\" not found"},
 	}
-	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default", mysvc, defaultBroker, pipeChannel)
+	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default", mysvc, defaultBroker, pipeChannel, pingSource)
+
 	for _, c := range cases {
 		i := &SinkFlags{c.sink}
 		result, err := i.ResolveSink(context.Background(), dynamicClient, "default")
