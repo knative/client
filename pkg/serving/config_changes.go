@@ -77,6 +77,11 @@ func UpdateScaleTarget(template *servingv1.RevisionTemplateSpec, target int) err
 	return UpdateRevisionTemplateAnnotation(template, autoscaling.TargetAnnotationKey, strconv.Itoa(target))
 }
 
+//UpdateScaleActivation updates the scale activation annotation
+func UpdateScaleActivation(template *servingv1.RevisionTemplateSpec, activation int) error {
+	return UpdateRevisionTemplateAnnotation(template, autoscaling.ActivationScaleKey, strconv.Itoa(activation))
+}
+
 // UpdateScaleUtilization updates container target utilization percentage annotation
 func UpdateScaleUtilization(template *servingv1.RevisionTemplateSpec, target int) error {
 	return UpdateRevisionTemplateAnnotation(template, autoscaling.TargetUtilizationPercentageKey, strconv.Itoa(target))
