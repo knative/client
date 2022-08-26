@@ -20,6 +20,7 @@ import (
 	"gotest.tools/v3/assert"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/util"
+	"knative.dev/serving/pkg/apis/autoscaling"
 )
 
 func TestApplyPullPolicyFlag(t *testing.T) {
@@ -59,4 +60,18 @@ func TestScaleMetric(t *testing.T) {
 	cmd.Execute()
 	err := editFlags.Apply(&svc, nil, cmd)
 	assert.NilError(t, err)
+}
+
+func TestScaleActivation(t *testing.T) {
+	var editFlags ConfigurationEditFlags
+	knParams := &commands.KnParams{}
+	cmd, _, _ := commands.CreateTestKnCommand(NewServiceCreateCommand(knParams), knParams)
+
+	editFlags.AddCreateFlags(cmd)
+	svc := createTestService("test-svc", []string{"test-svc-00001"}, goodConditions())
+	cmd.SetArgs([]string{"--scale-activation", "2"})
+	cmd.Execute()
+	err := editFlags.Apply(&svc, nil, cmd)
+	assert.NilError(t, err)
+	assert.Equal(t, svc.Spec.Template.Annotations[autoscaling.ActivationScaleKey], "2")
 }

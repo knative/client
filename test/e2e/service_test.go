@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -31,6 +32,7 @@ import (
 	"knative.dev/client/pkg/util"
 	network "knative.dev/networking/pkg/apis/networking"
 	pkgtest "knative.dev/pkg/test"
+	"knative.dev/serving/pkg/apis/autoscaling"
 	"knative.dev/serving/pkg/apis/serving"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
@@ -91,6 +93,9 @@ func TestService(t *testing.T) {
 
 	t.Log("create services with volume mounts and subpaths")
 	serviceCreateWithMount(r)
+
+	t.Log("create service with scale activation")
+	serviceCreateActivation(r, "svc1", 2)
 }
 
 func serviceCreatePrivate(r *test.KnRunResultCollector, serviceName string) {
@@ -273,4 +278,17 @@ func serviceDescribeMount(r *test.KnRunResultCollector, serviceName, hostPath, s
 
 	r.T().Log("check volume mount subpath is the same as given")
 	assert.Equal(r.T(), subPath, volumeMount.SubPath)
+}
+
+func serviceCreateActivation(r *test.KnRunResultCollector, serviceName string, activation int) {
+	out := r.KnTest().Kn().Run("service", "create", serviceName,
+		"--image", pkgtest.ImagePath("helloworld"), "--scale-activation", strconv.Itoa(activation))
+	r.AssertNoError(out)
+	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "service", serviceName, "creating", "namespace", r.KnTest().Kn().Namespace(), "ready"))
+
+	out = r.KnTest().Kn().Run("service", "describe", serviceName, "-o", "json")
+	r.AssertNoError(out)
+	var svc servingv1.Service
+	json.Unmarshal([]byte(out.Stdout), &svc)
+	assert.Check(r.T(), svc.Spec.Template.Annotations[autoscaling.ActivationScaleKey] == "2")
 }
