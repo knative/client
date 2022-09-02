@@ -231,6 +231,10 @@ func TestServiceOptions(t *testing.T) {
 	test.ServiceDelete(r, "svc17")
 	_, err = kubectl.Run("delete", "-n", it.Namespace(), "configmap", "test-cm2")
 	assert.NilError(t, err)
+
+	t.Log("create and validate a service with scale activation")
+	serviceCreateWithOptions(r, "svc18", "--scale-activation", "2")
+	validateServiceActivation(r, "svc18", 2)
 }
 
 func serviceCreateWithOptions(r *test.KnRunResultCollector, serviceName string, options ...string) {
@@ -383,4 +387,13 @@ func validateServiceEnvVariables(r *test.KnRunResultCollector, serviceName strin
 			assert.Equal(r.T(), env.Value, envVar[i].Value)
 		}
 	}
+}
+
+func validateServiceActivation(r *test.KnRunResultCollector, serviceName string, activation int) {
+	out := r.KnTest().Kn().Run("service", "describe", serviceName, "-o", "json")
+	r.AssertNoError(out)
+	var svc servingv1.Service
+	json.Unmarshal([]byte(out.Stdout), &svc)
+	activationStr := strconv.Itoa(activation)
+	assert.Check(r.T(), svc.Spec.Template.Annotations[autoscaling.ActivationScaleKey] == activationStr)
 }
