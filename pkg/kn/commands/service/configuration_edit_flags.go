@@ -41,6 +41,7 @@ type ConfigurationEditFlags struct {
 	Scale               string
 	MinScale            int
 	MaxScale            int
+	ScaleActivation     int
 	ScaleTarget         int
 	ScaleMetric         string
 	ConcurrencyLimit    int
@@ -93,6 +94,9 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 
 	command.Flags().IntVar(&p.MaxScale, "scale-max", 0, "Maximum number of replicas.")
 	p.markFlagMakesRevision("scale-max")
+
+	command.Flags().IntVar(&p.ScaleActivation, "scale-activation", 0, "Minimum non-zero value that a service should scale to.")
+	p.markFlagMakesRevision("scale-activation")
 
 	command.Flags().StringVar(&p.ScaleMetric, "scale-metric", "", "Set the name of the metric the PodAutoscaler should scale on. "+
 		"Example: --scale-metric rps (to scale on rps) or --scale-metric concurrency (to scale on concurrency). The default metric is concurrency.")
@@ -356,6 +360,10 @@ func (p *ConfigurationEditFlags) Apply(
 
 	if cmd.Flags().Changed("scale-metric") {
 		servinglib.UpdateScaleMetric(template, p.ScaleMetric)
+	}
+
+	if cmd.Flags().Changed("scale-activation") {
+		servinglib.UpdateScaleActivation(template, p.ScaleActivation)
 	}
 
 	if cmd.Flags().Changed("concurrency-limit") {
