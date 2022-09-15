@@ -9,23 +9,23 @@ require (
 	github.com/hashicorp/hcl v1.0.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/spf13/afero v1.8.0 // indirect
-	github.com/spf13/cobra v1.3.0
+	github.com/spf13/cobra v1.4.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.10.1
-	golang.org/x/mod v0.5.1
+	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211
 	gotest.tools/v3 v3.1.0
-	k8s.io/api v0.23.9
-	k8s.io/apiextensions-apiserver v0.23.9
-	k8s.io/apimachinery v0.23.9
+	k8s.io/api v0.24.4
+	k8s.io/apiextensions-apiserver v0.24.4
+	k8s.io/apimachinery v0.24.4
 	k8s.io/cli-runtime v0.23.4
-	k8s.io/client-go v0.23.9
-	k8s.io/code-generator v0.23.9
-	knative.dev/eventing v0.34.1-0.20220902060017-e1866d7660ee
-	knative.dev/hack v0.0.0-20220902220419-664eac5c391e
-	knative.dev/networking v0.0.0-20220831065816-215bac90b28b
-	knative.dev/pkg v0.0.0-20220826162920-93b66e6a8700
-	knative.dev/serving v0.34.1-0.20220905171742-62685b3b4a5a
+	k8s.io/client-go v0.24.4
+	k8s.io/code-generator v0.24.4
+	knative.dev/eventing v0.34.1-0.20220915121905-b8cb60cf89b8
+	knative.dev/hack v0.0.0-20220914183605-d1317b08c0c3
+	knative.dev/networking v0.0.0-20220914020748-cefed20d561c
+	knative.dev/pkg v0.0.0-20220914154704-5f66ecf267fe
+	knative.dev/serving v0.34.1-0.20220915131205-d6ab4640ebb2
 	sigs.k8s.io/yaml v1.3.0
 )
 
@@ -65,6 +65,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/btree v1.0.1 // indirect
+	github.com/google/gnostic v0.5.7-v3refs // indirect
 	github.com/google/go-containerregistry v0.8.1-0.20220414143355-892d7a808387 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
@@ -85,12 +86,13 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/monochromegane/go-gitignore v0.0.0-20200626010858-205db1a8cc00 // indirect
+	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/openzipkin/zipkin-go v0.3.0 // indirect
 	github.com/pelletier/go-toml v1.9.4 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/prometheus/client_golang v1.11.1 // indirect
+	github.com/prometheus/client_golang v1.12.1 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.32.1 // indirect
 	github.com/prometheus/procfs v0.7.3 // indirect
@@ -101,7 +103,7 @@ require (
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/spf13/cast v1.4.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
-	github.com/stretchr/testify v1.7.0 // indirect
+	github.com/stretchr/testify v1.8.0 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/xlab/treeprint v0.0.0-20181112141820-a009c3971eca // indirect
 	go.opencensus.io v0.23.0 // indirect
@@ -116,7 +118,7 @@ require (
 	golang.org/x/sys v0.0.0-20220227234510-4e6760a101f9 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20220224211638-0e9765cccd65 // indirect
-	golang.org/x/tools v0.1.9 // indirect
+	golang.org/x/tools v0.1.10-0.20220218145154-897bd77cd717 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
 	google.golang.org/api v0.70.0 // indirect
@@ -130,7 +132,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/gengo v0.0.0-20220613173612-397b4ae3bce7 // indirect
 	k8s.io/klog/v2 v2.70.2-0.20220707122935-0990e81f1a8f // indirect
-	k8s.io/kube-openapi v0.0.0-20220124234850-424119656bbf // indirect
+	k8s.io/kube-openapi v0.0.0-20220328201542-3ee0da9b0b42 // indirect
 	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9 // indirect
 	sigs.k8s.io/json v0.0.0-20211208200746-9f7c6b3444d2 // indirect
 	sigs.k8s.io/kustomize/api v0.10.1 // indirect
