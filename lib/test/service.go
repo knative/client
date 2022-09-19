@@ -281,6 +281,8 @@ func BuildRevision(name string, options ...servingtest.RevisionOption) *servingv
 	}
 	rev.Spec.PodSpec.Containers[0].Name = config.DefaultUserContainerName
 	rev.Spec.PodSpec.EnableServiceLinks = ptr.Bool(false)
+	//nolint:staticcheck
+	rev.ObjectMeta.SelfLink = ""
 	rev.ObjectMeta.Namespace = ""
 	rev.ObjectMeta.UID = ""
 	rev.ObjectMeta.Generation = int64(0)
