@@ -26,7 +26,7 @@
 package test
 
 import (
-	"io/ioutil"
+	"io"
 	"os"
 	"testing"
 
@@ -67,9 +67,9 @@ func (c OutputCapture) Close() (string, string) {
 	assert.NilError(c.t, err)
 	err = c.errorWrite.Close()
 	assert.NilError(c.t, err)
-	outOutput, err := ioutil.ReadAll(c.outRead)
+	outOutput, err := io.ReadAll(c.outRead)
 	assert.NilError(c.t, err)
-	errOutput, err := ioutil.ReadAll(c.errorRead)
+	errOutput, err := io.ReadAll(c.errorRead)
 	assert.NilError(c.t, err)
 	os.Stdout = c.oldStdout
 	os.Stderr = c.oldStderr

@@ -19,7 +19,6 @@ package flags
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -1040,7 +1039,7 @@ containers:
 
 	tempDir := t.TempDir()
 	fileName := filepath.Join(tempDir, "container.yaml")
-	ioutil.WriteFile(fileName, []byte(rawInput), test.FileModeReadWrite)
+	os.WriteFile(fileName, []byte(rawInput), test.FileModeReadWrite)
 	fromFile, err = decodeContainersFromFile(fileName)
 	assert.NilError(t, err)
 	assert.Equal(t, len(fromFile.Containers), 2)

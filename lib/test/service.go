@@ -19,12 +19,13 @@ import (
 	"encoding/json"
 	"strings"
 
+	"knative.dev/pkg/kmap"
+
 	"gotest.tools/v3/assert"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientv1alpha1 "knative.dev/client/pkg/apis/client/v1alpha1"
-	"knative.dev/pkg/kmeta"
 	"knative.dev/pkg/ptr"
 	pkgtest "knative.dev/pkg/test"
 	"knative.dev/serving/pkg/apis/config"
@@ -280,7 +281,6 @@ func BuildRevision(name string, options ...servingtest.RevisionOption) *servingv
 	}
 	rev.Spec.PodSpec.Containers[0].Name = config.DefaultUserContainerName
 	rev.Spec.PodSpec.EnableServiceLinks = ptr.Bool(false)
-	rev.ObjectMeta.SelfLink = ""
 	rev.ObjectMeta.Namespace = ""
 	rev.ObjectMeta.UID = ""
 	rev.ObjectMeta.Generation = int64(0)
@@ -319,7 +319,7 @@ func WithRevisionImage(image string) servingtest.RevisionOption {
 // WithRevisionAnnotations adds annotation to revision spec in ksvc
 func WithRevisionAnnotations(annotations map[string]string) servingtest.ServiceOption {
 	return func(service *servingv1.Service) {
-		service.Spec.Template.ObjectMeta.Annotations = kmeta.UnionMaps(
+		service.Spec.Template.ObjectMeta.Annotations = kmap.Union(
 			service.Spec.Template.ObjectMeta.Annotations, annotations)
 	}
 }

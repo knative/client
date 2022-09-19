@@ -15,7 +15,6 @@
 package test
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -39,6 +38,6 @@ func GetResourceFieldsWithJSONPath(t *testing.T, it *KnTest, resource, name, jso
 // CreateFile creates a file with given name, content, path, fileMode and returns absolute filepath and error if any
 func CreateFile(fileName, fileContent, filePath string, fileMode os.FileMode) (string, error) {
 	file := filepath.Join(filePath, fileName)
-	err := ioutil.WriteFile(file, []byte(fileContent), fileMode)
+	err := os.WriteFile(file, []byte(fileContent), fileMode)
 	return file, err
 }

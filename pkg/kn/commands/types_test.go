@@ -16,7 +16,6 @@ package commands
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -123,7 +122,7 @@ func TestGetClientConfig(t *testing.T) {
 
 	tempDir := t.TempDir()
 	tempFile := filepath.Join(tempDir, "mock")
-	err := ioutil.WriteFile(tempFile, []byte(BASIC_KUBECONFIG), test.FileModeReadWrite)
+	err := os.WriteFile(tempFile, []byte(BASIC_KUBECONFIG), test.FileModeReadWrite)
 	assert.NilError(t, err)
 
 	for _, tc := range []typeTestCase{
