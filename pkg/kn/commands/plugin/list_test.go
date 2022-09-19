@@ -16,7 +16,6 @@ package plugin
 
 import (
 	"bytes"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -162,7 +161,7 @@ func createTestPlugin(t *testing.T, name string, dir string, perm os.FileMode) s
 		nameExt = name
 	}
 	fullPath := filepath.Join(dir, nameExt)
-	err := ioutil.WriteFile(fullPath, []byte{}, perm)
+	err := os.WriteFile(fullPath, []byte{}, perm)
 	assert.NilError(t, err)
 	return fullPath
 }

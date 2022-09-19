@@ -18,7 +18,7 @@
 package e2e
 
 import (
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -64,7 +64,7 @@ func serviceExportToFile(r *test.KnRunResultCollector, serviceName, filename str
 	}
 	out := r.KnTest().Kn().Run(command...)
 	r.AssertNoError(out)
-	err := ioutil.WriteFile(filename, []byte(out.Stdout), test.FileModeReadWrite)
+	err := os.WriteFile(filename, []byte(out.Stdout), test.FileModeReadWrite)
 	assert.NilError(r.T(), err)
 }
 

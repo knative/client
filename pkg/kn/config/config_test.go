@@ -15,7 +15,6 @@
 package config
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -123,7 +122,7 @@ func setupConfig(t *testing.T, configContent string) (string, func()) {
 	if configContent != "" {
 		cfgFile = filepath.Join(tmpDir, "config.yaml")
 		os.Args = []string{"kn", "--config", cfgFile}
-		err := ioutil.WriteFile(cfgFile, []byte(configContent), 0644)
+		err := os.WriteFile(cfgFile, []byte(configContent), 0644)
 		assert.NilError(t, err)
 	}
 

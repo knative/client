@@ -54,7 +54,7 @@ func ChannelDelete(r *KnRunResultCollector, cname string) {
 	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "channel", cname, "deleted"))
 }
 
-//ChannelListTypes return available channel types
+// ChannelListTypes return available channel types
 func ChannelListTypes(r *KnRunResultCollector, args ...string) string {
 	cmd := []string{"channel", "list-types"}
 	cmd = append(cmd, args...)

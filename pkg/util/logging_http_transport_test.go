@@ -18,7 +18,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httputil"
 	"strings"
@@ -41,7 +41,7 @@ func (d *fakeTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 		Status:     "200 OK",
 		StatusCode: 200,
 		Proto:      "HTTP/1.0",
-		Body:       ioutil.NopCloser(strings.NewReader("")),
+		Body:       io.NopCloser(strings.NewReader("")),
 	}, nil
 }
 

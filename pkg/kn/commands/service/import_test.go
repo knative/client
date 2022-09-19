@@ -15,7 +15,6 @@
 package service
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -120,7 +119,7 @@ func generateFile(t *testing.T, fileContent []byte) (string, error) {
 	tempDir := t.TempDir()
 
 	tempFile := filepath.Join(tempDir, "import.yaml")
-	if err := ioutil.WriteFile(tempFile, fileContent, os.FileMode(0666)); err != nil {
+	if err := os.WriteFile(tempFile, fileContent, os.FileMode(0666)); err != nil {
 		return "", err
 	}
 	return tempFile, nil

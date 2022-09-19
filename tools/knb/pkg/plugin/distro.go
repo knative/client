@@ -19,7 +19,6 @@ package plugin
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -56,7 +55,7 @@ func NewDistroGenerateCmd() *cobra.Command {
 				fmt.Println("⚠️  plugin_register.go file already exists, trying to append imports")
 			}
 
-			rawConf, err := ioutil.ReadFile(config)
+			rawConf, err := os.ReadFile(config)
 			if err != nil {
 				return err
 			}
@@ -149,7 +148,7 @@ func appendImport(file, importPath string) error {
 		return t.Execute(f, importPath)
 	}
 
-	content, err := ioutil.ReadFile(file)
+	content, err := os.ReadFile(file)
 	if err != nil {
 		return err
 	}
@@ -162,5 +161,5 @@ func appendImport(file, importPath string) error {
 	content = bytes.Replace(content, []byte(hook), []byte(fmt.Sprintf("%s\n    _ \"%s\"", hook, importPath)), 1)
 	fmt.Println("✔  " + importPath + " added to plugin_register.go")
 	//nolint:gosec // Generate file keeps the same permissions as rest of sources.
-	return ioutil.WriteFile(file, content, 0644)
+	return os.WriteFile(file, content, 0644)
 }

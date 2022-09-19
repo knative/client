@@ -87,12 +87,10 @@ func (h *HumanReadablePrinter) GenerateTable(obj runtime.Object, options PrintOp
 	}
 	if m, err := meta.ListAccessor(obj); err == nil {
 		table.ResourceVersion = m.GetResourceVersion()
-		table.SelfLink = m.GetSelfLink()
 		table.Continue = m.GetContinue()
 	} else {
 		if m, err := meta.CommonAccessor(obj); err == nil {
 			table.ResourceVersion = m.GetResourceVersion()
-			table.SelfLink = m.GetSelfLink()
 		}
 	}
 	return table, nil
@@ -124,7 +122,9 @@ func (h *HumanReadablePrinter) TableHandler(columnDefinitions []metav1beta1.Tabl
 // ValidateRowPrintHandlerFunc validates print handler signature.
 // printFunc is the function that will be called to print an object.
 // It must be of the following type:
-//  func printFunc(object ObjectType, options PrintOptions) ([]metav1beta1.TableRow, error)
+//
+//	func printFunc(object ObjectType, options PrintOptions) ([]metav1beta1.TableRow, error)
+//
 // where ObjectType is the type of the object that will be printed, and the first
 // return value is an array of rows, with each row containing a number of cells that
 // match the number of columns defined for that printer function.

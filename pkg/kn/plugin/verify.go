@@ -18,7 +18,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -54,7 +53,7 @@ func (manager *Manager) Verify() VerificationErrorsAndWarnings {
 
 	seenPlugins := make(map[string]string)
 	for _, dir := range dirs {
-		files, err := ioutil.ReadDir(dir)
+		files, err := os.ReadDir(dir)
 
 		// Ignore non-existing directories
 		if os.IsNotExist(err) {

@@ -20,7 +20,6 @@ package e2e
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
@@ -236,7 +235,7 @@ func serviceCreateWithMount(r *test.KnRunResultCollector) {
 	r.AssertNoError(out)
 
 	r.T().Log("create PVC test-pvc")
-	fp, err := ioutil.TempFile("", "my-pvc")
+	fp, err := os.CreateTemp("", "my-pvc")
 	assert.NilError(r.T(), err)
 	fmt.Fprintf(fp, "%s", TestPVCSpec)
 	defer os.Remove(fp.Name())

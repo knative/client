@@ -17,7 +17,6 @@ package plugin
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -160,7 +159,7 @@ func (manager *Manager) ListPluginsForCommandGroup(commandGroupParts []string) (
 		hasSeen[pl.Name()] = true
 	}
 	for _, dir := range dirs {
-		files, err := ioutil.ReadDir(dir)
+		files, err := os.ReadDir(dir)
 
 		// Ignore non-existing directories
 		if os.IsNotExist(err) {

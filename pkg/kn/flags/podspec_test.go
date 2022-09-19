@@ -18,7 +18,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -259,7 +258,7 @@ containers:
 			func(data string) string {
 				tempDir := t.TempDir()
 				fileName := filepath.Join(tempDir, "container.yaml")
-				ioutil.WriteFile(fileName, []byte(data), test.FileModeReadWrite)
+				os.WriteFile(fileName, []byte(data), test.FileModeReadWrite)
 				return fileName
 			},
 			expectedPodSpec,
@@ -375,7 +374,7 @@ func TestPodSpecResolveReturnErrorPullPolicy(t *testing.T) {
 }
 
 func TestPodSpecResolveWithEnvFile(t *testing.T) {
-	file, err := ioutil.TempFile("", "envfile.env")
+	file, err := os.CreateTemp("", "envfile.env")
 	assert.NilError(t, err)
 	file.WriteString("svcOwner=James\nsvcAuthor=James")
 	defer os.Remove(file.Name())
