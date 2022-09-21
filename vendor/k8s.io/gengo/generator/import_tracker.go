@@ -26,7 +26,7 @@ import (
 	"k8s.io/gengo/types"
 )
 
-func NewImportTracker(typesToAdd ...*types.Type) *namer.DefaultImportTracker {
+func NewImportTracker(typesToAdd ...*types.Type) namer.ImportTracker {
 	tracker := namer.NewDefaultImportTracker(types.Name{})
 	tracker.IsInvalidType = func(*types.Type) bool { return false }
 	tracker.LocalName = func(name types.Name) string { return golangTrackerLocalName(&tracker, name) }

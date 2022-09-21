@@ -47,7 +47,7 @@ require (
 	github.com/cloudevents/sdk-go/v2 v2.10.1 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/emicklei/go-restful/v3 v3.9.0 // indirect
+	github.com/emicklei/go-restful v2.9.5+incompatible // indirect
 	github.com/evanphx/json-patch v5.6.0+incompatible // indirect
 	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
@@ -90,6 +90,7 @@ require (
 	github.com/pelletier/go-toml/v2 v2.0.5 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.13.0 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.37.0 // indirect
@@ -101,6 +102,7 @@ require (
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
+	github.com/stretchr/testify v1.8.0 // indirect
 	github.com/subosito/gotenv v1.4.1 // indirect
 	github.com/xlab/treeprint v1.1.0 // indirect
 	go.opencensus.io v0.23.0 // indirect
@@ -126,12 +128,12 @@ require (
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/gengo v0.0.0-20220913193501-391367153a38 // indirect
-	k8s.io/klog/v2 v2.80.1 // indirect
-	k8s.io/kube-openapi v0.0.0-20220803164354-a70c9af30aea // indirect
-	k8s.io/utils v0.0.0-20220823124924-e9cbc92d1a73 // indirect
-	sigs.k8s.io/json v0.0.0-20220713155537-f223a00ba0e2 // indirect
-	sigs.k8s.io/kustomize/api v0.12.1 // indirect
-	sigs.k8s.io/kustomize/kyaml v0.13.9 // indirect
-	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
+	k8s.io/gengo v0.0.0-20220613173612-397b4ae3bce7 // indirect
+	k8s.io/klog/v2 v2.70.2-0.20220707122935-0990e81f1a8f // indirect
+	k8s.io/kube-openapi v0.0.0-20220328201542-3ee0da9b0b42 // indirect
+	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9 // indirect
+	sigs.k8s.io/json v0.0.0-20211208200746-9f7c6b3444d2 // indirect
+	sigs.k8s.io/kustomize/api v0.11.4 // indirect
+	sigs.k8s.io/kustomize/kyaml v0.13.6 // indirect
+	sigs.k8s.io/structured-merge-diff/v4 v4.2.1 // indirect
 )
