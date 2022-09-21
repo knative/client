@@ -74,6 +74,14 @@ func NewDistroGenerateCmd() *cobra.Command {
 			if err := exec.Command("gofmt", "-s", "-w", registerFile).Run(); err != nil {
 				return fmt.Errorf("gofmt failed: %w", err)
 			}
+			if fileExists("hack/update-dep.sh") {
+				_, err := exec.Command("hack/update-deps.sh").Output()
+				if err != nil {
+					return fmt.Errorf("update-deps.sh failed failed: %w", err)
+				}
+			} else {
+				fmt.Println("⚠️  hack/update-dep.sh script doesn't exist, make sure to update vendor/ dir")
+			}
 			return nil
 		},
 	}
@@ -102,6 +110,10 @@ func processPlugin(p Plugin, registerFile string) error {
 	if err := processModuleReplace(p); err != nil {
 		return err
 	}
+	// Exec `go mod tidy` per plugin added to resolve version
+	if err := goModTidy(); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -120,14 +132,30 @@ func processModuleRequire(plugin Plugin) error {
 func processModuleReplace(plugin Plugin) error {
 	if len(plugin.Replace) > 0 {
 		for _, r := range plugin.Replace {
+			// replace source of module dep, e.g. custom git repository
+			source := r.Module
+			if r.ModuleSource != "" {
+				source = r.ModuleSource
+			}
 			//nolint:gosec // Expected go cmd.
-			_, err := exec.Command("go", "mod", "edit", "-replace", r.Module+"="+r.Module+"@"+r.Version).Output()
+			_, err := exec.Command("go", "mod", "edit", "-replace", r.Module+"="+source+"@"+r.Version).Output()
 			if err != nil {
 				return fmt.Errorf("go mod edit -replace failed: %w", err)
 			}
 			fmt.Println("✔  go.mod replace updated")
 		}
 	}
+	return nil
+}
+
+// goModTidy executes `go mod tidy` command
+func goModTidy() error {
+	//nolint:gosec // Expected go cmd.
+	_, err := exec.Command("go", "mod", "tidy").Output()
+	if err != nil {
+		return fmt.Errorf("go tidy failed: %w", err)
+	}
+	fmt.Println("✔  go mod tidy")
 	return nil
 }
 
