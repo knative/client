@@ -153,7 +153,7 @@ func goModTidy() error {
 	//nolint:gosec // Expected go cmd.
 	_, err := exec.Command("go", "mod", "tidy").Output()
 	if err != nil {
-		return fmt.Errorf("go tidy failed: %w", err)
+		return fmt.Errorf("go mod tidy failed: %w", err)
 	}
 	fmt.Println("✔  go mod tidy")
 	return nil
