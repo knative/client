@@ -44,8 +44,9 @@ const (
 )
 
 type MountInfo struct {
-	VolumeName string
-	SubPath    string
+	VolumeName   string
+	SubPath      string
+	MountOptions string
 }
 
 func (vt VolumeSourceType) String() string {
@@ -539,6 +540,7 @@ func updateVolume(volume *corev1.Volume, info *volumeSourceInfo) error {
 func updateVolumeMountsFromMap(volumeMounts []corev1.VolumeMount, toUpdate *util.OrderedMap, volumes []corev1.Volume) ([]corev1.VolumeMount, error) {
 	set := make(map[string]bool)
 
+	var err error
 	for i := range volumeMounts {
 		volumeMount := &volumeMounts[i]
 		mountInfo, present := toUpdate.Get(volumeMount.MountPath)
@@ -549,7 +551,10 @@ func updateVolumeMountsFromMap(volumeMounts []corev1.VolumeMount, toUpdate *util
 			if !existsVolumeNameInVolumes(name, volumes) {
 				return nil, fmt.Errorf("There is no volume matched with %q", name)
 			}
-			volumeMount.ReadOnly = isReadOnlyVolume(name, volumes)
+			volumeMount.ReadOnly, err = isReadOnlyVolume(name, volumeMountInfo.MountOptions, volumes)
+			if err != nil {
+				return nil, err
+			}
 			volumeMount.Name = name
 			volumeMount.SubPath = volumeMountInfo.SubPath
 			set[volumeMount.MountPath] = true
@@ -560,10 +565,14 @@ func updateVolumeMountsFromMap(volumeMounts []corev1.VolumeMount, toUpdate *util
 	for mountPath, mountInfo, ok := it.Next(); ok; mountPath, mountInfo, ok = it.Next() {
 		volumeMountInfo := mountInfo.(*MountInfo)
 		name := volumeMountInfo.VolumeName
+		readOnly, err := isReadOnlyVolume(name, volumeMountInfo.MountOptions, volumes)
+		if err != nil {
+			return nil, err
+		}
 		if !set[mountPath] {
 			volumeMounts = append(volumeMounts, corev1.VolumeMount{
 				Name:      name,
-				ReadOnly:  isReadOnlyVolume(name, volumes),
+				ReadOnly:  readOnly,
 				MountPath: mountPath,
 				SubPath:   volumeMountInfo.SubPath,
 			})
@@ -740,11 +749,42 @@ func (vol *volumeSourceInfo) createEnvFromSource() *corev1.EnvFromSource {
 
 // =======================================================================================
 
-func isReadOnlyVolume(volumeName string, volumes []corev1.Volume) bool {
+func isReadOnlyVolume(volumeName string, mountOptions string, volumes []corev1.Volume) (bool, error) {
+	if mountOptions != "" {
+		options, err := parseMountOptions(mountOptions)
+		if err != nil {
+			return false, err
+		}
+		if val, ok := options.Get("readonly"); ok && val != "" {
+			return strconv.ParseBool(val.(string))
+		}
+	}
 	for _, volume := range volumes {
 		if volume.Name == volumeName {
-			return volume.EmptyDir == nil
+			return defaultReadOnly(volume), nil
 		}
+	}
+	return true, nil
+}
+
+func parseMountOptions(options string) (*util.OrderedMap, error) {
+	mountOptions := util.NewOrderedMap()
+	slices := strings.Split(options, ",")
+	for _, slice := range slices {
+		pair := strings.SplitN(slice, "=", 2)
+		switch strings.ToLower(pair[0]) {
+		case "readonly":
+			mountOptions.Set("readonly", pair[1])
+		default:
+			return nil, fmt.Errorf("unknown mount option %q", pair[0])
+		}
+	}
+	return mountOptions, nil
+}
+
+func defaultReadOnly(volume v1.Volume) bool {
+	if volume.EmptyDir != nil || volume.PersistentVolumeClaim != nil {
+		return false
 	}
 	return true
 }
@@ -770,16 +810,24 @@ func existsVolumeNameInVolumeMounts(volumeName string, volumeMounts []corev1.Vol
 // =======================================================================================
 
 func getMountInfo(volume string) *MountInfo {
-	slices := strings.SplitN(volume, "/", 2)
-	if len(slices) == 1 || slices[1] == "" {
-		return &MountInfo{
-			VolumeName: slices[0],
+	configSlices := strings.SplitN(volume, ":", 2)
+	var mountInfo MountInfo
+	if len(configSlices) == 2 {
+		readOnlySlices := strings.SplitN(configSlices[1], "=", 2)
+		switch strings.ToLower(readOnlySlices[0]) {
+		case "readonly":
+
 		}
+		mountInfo.MountOptions = configSlices[1]
 	}
-	return &MountInfo{
-		VolumeName: slices[0],
-		SubPath:    slices[1],
+	slices := strings.SplitN(configSlices[0], "/", 2)
+	if len(slices) == 1 || slices[1] == "" {
+		mountInfo.VolumeName = slices[0]
+	} else {
+		mountInfo.VolumeName = slices[0]
+		mountInfo.SubPath = slices[1]
 	}
+	return &mountInfo
 }
 
 func reviseVolumeInfoAndMountsToUpdate(mountsToUpdate *util.OrderedMap, volumesToUpdate *util.OrderedMap) (*util.OrderedMap, *util.OrderedMap, error) {
