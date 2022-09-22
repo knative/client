@@ -31,8 +31,9 @@ type Plugin struct {
 
 // Plugin represents go module replacement declaration
 type Replace struct {
-	Module  string `yaml:"module"`
-	Version string `yaml:"version"`
+	Module       string `yaml:"module"`
+	ModuleSource string `yaml:"moduleSource,omitempty"`
+	Version      string `yaml:"version"`
 }
 
 // NewPluginCmd represents plugin command group

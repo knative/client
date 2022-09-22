@@ -10,7 +10,7 @@ go build
 
 ### Install
 ```bash
-go get knative.dev/client/tools/knb
+go install knative.dev/client/tools/knb@latest
 ```
 
 ### Usage
@@ -32,6 +32,19 @@ plugins:
     replace:
       - module: golang.org/x/sys
         version: v0.0.0-20200302150141-5c8b2ff67527
+```
+
+Alternatively drop-in replace of a plugin in `.kn.yaml`
+```yaml
+plugins:
+  - name: kn-plugin-source-kafka
+    module: knative.dev/kn-plugin-source-kafka
+    pluginImportPath: knative.dev/kn-plugin-source-kafka/plugin
+    version: v0.19.0
+    replace:
+      - module: knative.dev/kn-plugin-source-kafka
+        moduleSource: github.com/forked-repository/kn-plugin-source-kafka
+        version: WIP
 ```
 
 Required:
