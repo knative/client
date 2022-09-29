@@ -232,7 +232,7 @@ func serviceCreateWithMount(r *test.KnRunResultCollector) {
 	r.AssertNoError(out)
 
 	r.T().Log("update service with a new emptyDir mount with Memory and dir size")
-	out = r.KnTest().Kn().Run("service", "update", "test-svc", "--mount", "/mydir4=ed:myvol:type=Memory,size=100Mi")
+	out = r.KnTest().Kn().Run("service", "update", "test-svc", "--mount", "/mydir4=myvol", "--volume", "myvol=ed:myvol:type=Memory,size=100Mi")
 	r.AssertNoError(out)
 
 	r.T().Log("create PVC test-pvc")
