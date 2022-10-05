@@ -300,7 +300,6 @@ func TestUpdateVolumeMountsAndVolumes(t *testing.T) {
 			VolumeSource: corev1.VolumeSource{
 				PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
 					ClaimName: "pvc1",
-					ReadOnly:  true,
 				},
 			},
 		})
@@ -353,20 +352,18 @@ func TestUpdateVolumeMountsAndVolumes(t *testing.T) {
 		},
 		corev1.VolumeMount{
 			Name:      "new-pvc-volume-name-1",
-			ReadOnly:  true,
 			MountPath: "/pvc-1/mount/path",
 		},
 		corev1.VolumeMount{
 			Name:      "new-pvc-volume-name-2",
-			ReadOnly:  true,
 			MountPath: "/pvc-2/mount/path",
 		},
 	)
 
 	err := UpdateVolumeMountsAndVolumes(spec,
-		util.NewOrderedMapWithKVStrings([][]string{{"/new-config-map/mount/path", "new-config-map-volume-name"}}),
+		util.NewOrderedMapWithKVStrings([][]string{{"/new-config-map/mount/path", "config-map:new-config-map:readOnly=false"}}),
 		[]string{},
-		util.NewOrderedMapWithKVStrings([][]string{{"new-config-map-volume-name", "config-map:new-config-map"}}),
+		util.NewOrderedMap(),
 		[]string{})
 	assert.NilError(t, err)
 
@@ -434,7 +431,7 @@ func TestUpdateVolumeMountsAndVolumes(t *testing.T) {
 		[]string{})
 	assert.NilError(t, err)
 	err = UpdateVolumeMountsAndVolumes(spec,
-		util.NewOrderedMapWithKVStrings([][]string{{"/pvc-2/mount/path", "pvc:pvc2"}}),
+		util.NewOrderedMapWithKVStrings([][]string{{"/pvc-2/mount/path", "pvc:pvc2:readOnly=true"}}),
 		[]string{},
 		util.NewOrderedMap(),
 		[]string{})
@@ -459,8 +456,6 @@ func TestUpdateVolumeMountsAndVolumes(t *testing.T) {
 	assert.DeepEqual(t, spec.Volumes[5].EmptyDir.SizeLimit, &quantity)
 	assert.Equal(t, spec.Volumes[6].Name, "new-pvc-volume-name-1")
 	assert.Equal(t, spec.Volumes[6].PersistentVolumeClaim.ClaimName, "pvc1")
-	assert.Equal(t, spec.Volumes[7].Name, "new-config-map-volume-name")
-	assert.Equal(t, spec.Volumes[7].ConfigMap.Name, "new-config-map")
 	assert.Equal(t, spec.Volumes[8].Name, "new-secret-volume-name")
 	assert.Equal(t, spec.Volumes[8].Secret.SecretName, "new-secret")
 	assert.Assert(t, strings.Contains(spec.Volumes[9].Name, "empty-dir-5"))
@@ -469,28 +464,40 @@ func TestUpdateVolumeMountsAndVolumes(t *testing.T) {
 
 	assert.Equal(t, container.VolumeMounts[0].Name, "existing-config-map-volume-name-2")
 	assert.Equal(t, container.VolumeMounts[0].MountPath, "/existing-config-map-2/mount/path")
+	assert.Equal(t, container.VolumeMounts[0].ReadOnly, true)
 	assert.Equal(t, container.VolumeMounts[1].Name, "existing-secret-volume-name-2")
 	assert.Equal(t, container.VolumeMounts[1].MountPath, "/existing-secret-2/mount/path")
+	assert.Equal(t, container.VolumeMounts[1].ReadOnly, true)
 	assert.Equal(t, container.VolumeMounts[2].Name, "new-empty-dir-volume-name-1")
 	assert.Equal(t, container.VolumeMounts[2].MountPath, "/empty-dir-1/mount/path")
+	assert.Equal(t, container.VolumeMounts[2].ReadOnly, false)
 	assert.Equal(t, container.VolumeMounts[3].Name, "new-empty-dir-volume-name-2")
 	assert.Equal(t, container.VolumeMounts[3].MountPath, "/empty-dir-2/mount/path")
+	assert.Equal(t, container.VolumeMounts[3].ReadOnly, false)
 	assert.Equal(t, container.VolumeMounts[4].Name, "new-empty-dir-volume-name-3")
 	assert.Equal(t, container.VolumeMounts[4].MountPath, "/empty-dir-3/mount/path")
+	assert.Equal(t, container.VolumeMounts[4].ReadOnly, false)
 	assert.Equal(t, container.VolumeMounts[5].Name, "new-empty-dir-volume-name-4")
 	assert.Equal(t, container.VolumeMounts[5].MountPath, "/empty-dir-4/mount/path")
+	assert.Equal(t, container.VolumeMounts[5].ReadOnly, false)
 	assert.Equal(t, container.VolumeMounts[6].MountPath, "/empty-dir-5/mount/path")
+	assert.Equal(t, container.VolumeMounts[6].ReadOnly, false)
 	assert.Equal(t, container.VolumeMounts[7].Name, "new-pvc-volume-name-1")
 	assert.Equal(t, container.VolumeMounts[7].MountPath, "/pvc-1/mount/path")
+	assert.Equal(t, container.VolumeMounts[7].ReadOnly, false)
 	assert.Equal(t, container.VolumeMounts[8].MountPath, "/pvc-2/mount/path")
-	assert.Equal(t, container.VolumeMounts[9].Name, "new-config-map-volume-name")
+	assert.Equal(t, container.VolumeMounts[8].ReadOnly, true)
 	assert.Equal(t, container.VolumeMounts[9].MountPath, "/new-config-map/mount/path")
+	assert.Equal(t, container.VolumeMounts[9].ReadOnly, false)
 	assert.Equal(t, container.VolumeMounts[10].Name, "existing-config-map-volume-name-2")
 	assert.Equal(t, container.VolumeMounts[10].MountPath, "/updated-config-map/mount/path")
+	assert.Equal(t, container.VolumeMounts[10].ReadOnly, true)
 	assert.Equal(t, container.VolumeMounts[11].Name, "new-secret-volume-name")
 	assert.Equal(t, container.VolumeMounts[11].MountPath, "/new-secret/mount/path")
+	assert.Equal(t, container.VolumeMounts[11].ReadOnly, true)
 	assert.Equal(t, container.VolumeMounts[12].Name, "existing-secret-volume-name-2")
 	assert.Equal(t, container.VolumeMounts[12].MountPath, "/updated-secret/mount/path")
+	assert.Equal(t, container.VolumeMounts[12].ReadOnly, true)
 }
 
 func TestUpdateContainerImage(t *testing.T) {
