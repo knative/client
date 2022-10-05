@@ -26,7 +26,7 @@ github.com/Azure/go-autorest/logger
 # github.com/Azure/go-autorest/tracing v0.6.0
 ## explicit; go 1.12
 github.com/Azure/go-autorest/tracing
-# github.com/antlr/antlr4/runtime/Go/antlr v0.0.0-20211221011931-643d94fcab96
+# github.com/antlr/antlr4/runtime/Go/antlr v1.4.10
 ## explicit; go 1.16
 github.com/antlr/antlr4/runtime/Go/antlr
 # github.com/beorn7/perks v1.0.1
@@ -46,8 +46,8 @@ github.com/census-instrumentation/opencensus-proto/gen-go/trace/v1
 # github.com/cespare/xxhash/v2 v2.1.2
 ## explicit; go 1.11
 github.com/cespare/xxhash/v2
-# github.com/cloudevents/sdk-go/sql/v2 v2.8.0
-## explicit; go 1.14
+# github.com/cloudevents/sdk-go/sql/v2 v2.0.0-20220930150014-52b12276cc4a
+## explicit; go 1.17
 github.com/cloudevents/sdk-go/sql/v2
 github.com/cloudevents/sdk-go/sql/v2/expression
 github.com/cloudevents/sdk-go/sql/v2/function
@@ -55,8 +55,8 @@ github.com/cloudevents/sdk-go/sql/v2/gen
 github.com/cloudevents/sdk-go/sql/v2/parser
 github.com/cloudevents/sdk-go/sql/v2/runtime
 github.com/cloudevents/sdk-go/sql/v2/utils
-# github.com/cloudevents/sdk-go/v2 v2.10.1
-## explicit; go 1.14
+# github.com/cloudevents/sdk-go/v2 v2.12.0
+## explicit; go 1.17
 github.com/cloudevents/sdk-go/v2
 github.com/cloudevents/sdk-go/v2/binding
 github.com/cloudevents/sdk-go/v2/binding/format
@@ -922,7 +922,7 @@ k8s.io/utils/net
 k8s.io/utils/pointer
 k8s.io/utils/strings/slices
 k8s.io/utils/trace
-# knative.dev/eventing v0.34.1-0.20220921104109-54174e3cb963
+# knative.dev/eventing v0.34.1-0.20221005061829-af2298ff121a
 ## explicit; go 1.18
 knative.dev/eventing/pkg/apis/config
 knative.dev/eventing/pkg/apis/duck
@@ -950,10 +950,10 @@ knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1
 knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1/fake
 knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1beta2
 knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1beta2/fake
-# knative.dev/hack v0.0.0-20220914183605-d1317b08c0c3
+# knative.dev/hack v0.0.0-20221004153928-92a65f105c37
 ## explicit; go 1.18
 knative.dev/hack
-# knative.dev/networking v0.0.0-20220914020748-cefed20d561c
+# knative.dev/networking v0.0.0-20221003195429-a5c26fe64325
 ## explicit; go 1.18
 knative.dev/networking/pkg
 knative.dev/networking/pkg/apis/networking
@@ -968,7 +968,7 @@ knative.dev/networking/pkg/http/probe
 knative.dev/networking/pkg/http/proxy
 knative.dev/networking/pkg/http/stats
 knative.dev/networking/pkg/k8s
-# knative.dev/pkg v0.0.0-20220921024409-d1d5c849073b
+# knative.dev/pkg v0.0.0-20221003153827-158538cc46ec
 ## explicit; go 1.18
 knative.dev/pkg/apis
 knative.dev/pkg/apis/duck
@@ -1018,7 +1018,7 @@ knative.dev/pkg/tracing/config
 knative.dev/pkg/tracing/propagation
 knative.dev/pkg/tracing/propagation/tracecontextb3
 knative.dev/pkg/tracker
-# knative.dev/serving v0.34.1-0.20220921150110-2332731db1b9
+# knative.dev/serving v0.34.1-0.20221005094629-080aaa5c6241
 ## explicit; go 1.18
 knative.dev/serving/pkg/apis/autoscaling
 knative.dev/serving/pkg/apis/autoscaling/v1alpha1
