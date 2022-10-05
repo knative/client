@@ -20,11 +20,11 @@ require (
 	k8s.io/cli-runtime v0.24.4
 	k8s.io/client-go v0.24.4
 	k8s.io/code-generator v0.24.4
-	knative.dev/eventing v0.34.1-0.20221004074129-91e8838ce1e1
+	knative.dev/eventing v0.34.1-0.20221005061829-af2298ff121a
 	knative.dev/hack v0.0.0-20221004153928-92a65f105c37
 	knative.dev/networking v0.0.0-20221003195429-a5c26fe64325
 	knative.dev/pkg v0.0.0-20221003153827-158538cc46ec
-	knative.dev/serving v0.34.1-0.20221003153627-4229a180f04d
+	knative.dev/serving v0.34.1-0.20221005094629-080aaa5c6241
 	sigs.k8s.io/yaml v1.3.0
 )
 
@@ -43,7 +43,7 @@ require (
 	github.com/blendle/zapdriver v1.3.1 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
-	github.com/cloudevents/sdk-go/sql/v2 v2.8.0 // indirect
+	github.com/cloudevents/sdk-go/sql/v2 v2.0.0-20220930150014-52b12276cc4a // indirect
 	github.com/cloudevents/sdk-go/v2 v2.12.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
