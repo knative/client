@@ -20,11 +20,11 @@ require (
 	k8s.io/cli-runtime v0.24.4
 	k8s.io/client-go v0.24.4
 	k8s.io/code-generator v0.24.4
-	knative.dev/eventing v0.34.1-0.20220921104109-54174e3cb963
-	knative.dev/hack v0.0.0-20220914183605-d1317b08c0c3
-	knative.dev/networking v0.0.0-20220914020748-cefed20d561c
-	knative.dev/pkg v0.0.0-20220921024409-d1d5c849073b
-	knative.dev/serving v0.34.1-0.20220921150110-2332731db1b9
+	knative.dev/eventing v0.34.1-0.20221004074129-91e8838ce1e1
+	knative.dev/hack v0.0.0-20221004153928-92a65f105c37
+	knative.dev/networking v0.0.0-20221003195429-a5c26fe64325
+	knative.dev/pkg v0.0.0-20221003153827-158538cc46ec
+	knative.dev/serving v0.34.1-0.20221003153627-4229a180f04d
 	sigs.k8s.io/yaml v1.3.0
 )
 
@@ -38,13 +38,13 @@ require (
 	github.com/Azure/go-autorest/autorest/date v0.3.0 // indirect
 	github.com/Azure/go-autorest/logger v0.2.1 // indirect
 	github.com/Azure/go-autorest/tracing v0.6.0 // indirect
-	github.com/antlr/antlr4/runtime/Go/antlr v0.0.0-20211221011931-643d94fcab96 // indirect
+	github.com/antlr/antlr4/runtime/Go/antlr v1.4.10 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blendle/zapdriver v1.3.1 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/cloudevents/sdk-go/sql/v2 v2.8.0 // indirect
-	github.com/cloudevents/sdk-go/v2 v2.10.1 // indirect
+	github.com/cloudevents/sdk-go/v2 v2.12.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/emicklei/go-restful v2.9.5+incompatible // indirect
