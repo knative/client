@@ -48,6 +48,8 @@ func TestNewRootCommand(t *testing.T) {
 	assert.Assert(t, rootCmd.PersistentFlags().Lookup("kubeconfig") != nil)
 	assert.Assert(t, rootCmd.PersistentFlags().Lookup("context") != nil)
 	assert.Assert(t, rootCmd.PersistentFlags().Lookup("cluster") != nil)
+	assert.Assert(t, rootCmd.PersistentFlags().Lookup("as") != nil)
+	assert.Assert(t, rootCmd.PersistentFlags().Lookup("as-group") != nil)
 
 	assert.Assert(t, rootCmd.RunE == nil)
 

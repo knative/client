@@ -112,6 +112,8 @@ func TestPrepareConfig(t *testing.T) {
 type typeTestCase struct {
 	kubeCfgPath   string
 	kubeContext   string
+	kubeAsUser    string
+	kubeAsGroup   []string
 	kubeCluster   string
 	explicitPath  string
 	expectedError string
@@ -130,6 +132,8 @@ func TestGetClientConfig(t *testing.T) {
 			"",
 			"",
 			"",
+			[]string{},
+			"",
 			clientcmd.NewDefaultClientConfigLoadingRules().ExplicitPath,
 			"",
 		},
@@ -137,12 +141,16 @@ func TestGetClientConfig(t *testing.T) {
 			tempFile,
 			"",
 			"",
+			[]string{},
+			"",
 			tempFile,
 			"",
 		},
 		{
 			"/testing/assets/kube-config-01.yml",
 			"foo",
+			"",
+			[]string{},
 			"bar",
 			"",
 			fmt.Sprintf("config file '%s' can not be found", "/testing/assets/kube-config-01.yml"),
@@ -151,13 +159,35 @@ func TestGetClientConfig(t *testing.T) {
 			multiConfigs,
 			"",
 			"",
+			[]string{},
+			"",
 			"",
 			fmt.Sprintf("can not find config file. '%s' looks like a path. Please use the env var KUBECONFIG if you want to check for multiple configuration files", multiConfigs),
+		},
+		{
+			tempFile,
+			"",
+			"admin",
+			[]string{"system:masters"},
+			"",
+			tempFile,
+			"",
+		},
+		{
+			tempFile,
+			"",
+			"admin",
+			[]string{"system:authenticated", "system:masters"},
+			"",
+			tempFile,
+			"",
 		},
 	} {
 		p := &KnParams{
 			KubeCfgPath: tc.kubeCfgPath,
 			KubeContext: tc.kubeContext,
+			KubeAsUser:  tc.kubeAsUser,
+			KubeAsGroup: tc.kubeAsGroup,
 			KubeCluster: tc.kubeCluster,
 		}
 
@@ -177,6 +207,21 @@ func TestGetClientConfig(t *testing.T) {
 				assert.NilError(t, err)
 				assert.Assert(t, config.CurrentContext == tc.kubeContext)
 				assert.Assert(t, config.Contexts[tc.kubeContext].Cluster == tc.kubeCluster)
+			}
+
+			if tc.kubeAsUser != "" {
+				config, err := clientConfig.ClientConfig()
+				assert.NilError(t, err)
+				assert.Assert(t, config.Impersonate.UserName == tc.kubeAsUser)
+			}
+
+			if len(tc.kubeAsGroup) > 0 {
+				config, err := clientConfig.ClientConfig()
+				assert.NilError(t, err)
+				assert.Assert(t, len(config.Impersonate.Groups) == len(tc.kubeAsGroup))
+				for i := range tc.kubeAsGroup {
+					assert.Assert(t, config.Impersonate.Groups[i] == tc.kubeAsGroup[i])
+				}
 			}
 		}
 	}
