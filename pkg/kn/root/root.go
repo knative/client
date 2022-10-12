@@ -87,6 +87,7 @@ Find more information about Knative at: https://knative.dev`, rootName),
 	rootCmd.PersistentFlags().StringVar(&p.KubeContext, "context", "", "name of the kubeconfig context to use")
 	rootCmd.PersistentFlags().StringVar(&p.KubeCluster, "cluster", "", "name of the kubeconfig cluster to use")
 	rootCmd.PersistentFlags().StringVar(&p.KubeAsUser, "as", "", "username to impersonate for the operation")
+	rootCmd.PersistentFlags().StringVar(&p.KubeAsUID, "as-uid", "", "uid to impersonate for the operation")
 	rootCmd.PersistentFlags().StringArrayVar(&p.KubeAsGroup, "as-group", []string{}, "group to impersonate for the operation, this flag can be repeated to specify multiple groups")
 	flags.AddBothBoolFlags(rootCmd.PersistentFlags(), &p.LogHTTP, "log-http", "", false, "log http traffic")
 

@@ -17,7 +17,6 @@ package commands
 import (
 	"fmt"
 	"io"
-
 	"os"
 	"path/filepath"
 
@@ -52,6 +51,7 @@ type KnParams struct {
 	KubeContext              string
 	KubeCluster              string
 	KubeAsUser               string
+	KubeAsUID                string
 	KubeAsGroup              []string
 	ClientConfig             clientcmd.ClientConfig
 	NewServingClient         func(namespace string) (clientservingv1.KnServingClient, error)
@@ -238,6 +238,9 @@ func (params *KnParams) GetClientConfig() (clientcmd.ClientConfig, error) {
 	}
 	if params.KubeAsUser != "" {
 		configOverrides.AuthInfo.Impersonate = params.KubeAsUser
+	}
+	if params.KubeAsUID != "" {
+		configOverrides.AuthInfo.ImpersonateUID = params.KubeAsUID
 	}
 	if len(params.KubeAsGroup) > 0 {
 		configOverrides.AuthInfo.ImpersonateGroups = params.KubeAsGroup

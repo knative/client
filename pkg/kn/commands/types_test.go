@@ -113,6 +113,7 @@ type typeTestCase struct {
 	kubeCfgPath   string
 	kubeContext   string
 	kubeAsUser    string
+	kubeAsUID     string
 	kubeAsGroup   []string
 	kubeCluster   string
 	explicitPath  string
@@ -132,6 +133,7 @@ func TestGetClientConfig(t *testing.T) {
 			"",
 			"",
 			"",
+			"",
 			[]string{},
 			"",
 			clientcmd.NewDefaultClientConfigLoadingRules().ExplicitPath,
@@ -139,6 +141,7 @@ func TestGetClientConfig(t *testing.T) {
 		},
 		{
 			tempFile,
+			"",
 			"",
 			"",
 			[]string{},
@@ -150,6 +153,7 @@ func TestGetClientConfig(t *testing.T) {
 			"/testing/assets/kube-config-01.yml",
 			"foo",
 			"",
+			"",
 			[]string{},
 			"bar",
 			"",
@@ -157,6 +161,7 @@ func TestGetClientConfig(t *testing.T) {
 		},
 		{
 			multiConfigs,
+			"",
 			"",
 			"",
 			[]string{},
@@ -168,7 +173,8 @@ func TestGetClientConfig(t *testing.T) {
 			tempFile,
 			"",
 			"admin",
-			[]string{"system:masters"},
+			"",
+			[]string{},
 			"",
 			tempFile,
 			"",
@@ -177,7 +183,18 @@ func TestGetClientConfig(t *testing.T) {
 			tempFile,
 			"",
 			"admin",
+			"",
 			[]string{"system:authenticated", "system:masters"},
+			"",
+			tempFile,
+			"",
+		},
+		{
+			tempFile,
+			"",
+			"admin",
+			"abc123",
+			[]string{},
 			"",
 			tempFile,
 			"",
@@ -187,6 +204,7 @@ func TestGetClientConfig(t *testing.T) {
 			KubeCfgPath: tc.kubeCfgPath,
 			KubeContext: tc.kubeContext,
 			KubeAsUser:  tc.kubeAsUser,
+			KubeAsUID:   tc.kubeAsUID,
 			KubeAsGroup: tc.kubeAsGroup,
 			KubeCluster: tc.kubeCluster,
 		}
@@ -213,6 +231,12 @@ func TestGetClientConfig(t *testing.T) {
 				config, err := clientConfig.ClientConfig()
 				assert.NilError(t, err)
 				assert.Assert(t, config.Impersonate.UserName == tc.kubeAsUser)
+			}
+
+			if tc.kubeAsUID != "" {
+				config, err := clientConfig.ClientConfig()
+				assert.NilError(t, err)
+				assert.Assert(t, config.Impersonate.UID == tc.kubeAsUID)
 			}
 
 			if len(tc.kubeAsGroup) > 0 {
