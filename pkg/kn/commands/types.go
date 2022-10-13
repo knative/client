@@ -17,7 +17,6 @@ package commands
 import (
 	"fmt"
 	"io"
-
 	"os"
 	"path/filepath"
 
@@ -51,6 +50,9 @@ type KnParams struct {
 	KubeCfgPath              string
 	KubeContext              string
 	KubeCluster              string
+	KubeAsUser               string
+	KubeAsUID                string
+	KubeAsGroup              []string
 	ClientConfig             clientcmd.ClientConfig
 	NewServingClient         func(namespace string) (clientservingv1.KnServingClient, error)
 	NewServingV1alpha1Client func(namespace string) (clientservingv1alpha1.KnServingClient, error)
@@ -233,6 +235,15 @@ func (params *KnParams) GetClientConfig() (clientcmd.ClientConfig, error) {
 	}
 	if params.KubeCluster != "" {
 		configOverrides.Context.Cluster = params.KubeCluster
+	}
+	if params.KubeAsUser != "" {
+		configOverrides.AuthInfo.Impersonate = params.KubeAsUser
+	}
+	if params.KubeAsUID != "" {
+		configOverrides.AuthInfo.ImpersonateUID = params.KubeAsUID
+	}
+	if len(params.KubeAsGroup) > 0 {
+		configOverrides.AuthInfo.ImpersonateGroups = params.KubeAsGroup
 	}
 	if len(params.KubeCfgPath) == 0 {
 		return clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, configOverrides), nil
