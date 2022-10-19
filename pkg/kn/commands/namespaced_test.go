@@ -243,8 +243,12 @@ func TestCurrentNamespace(t *testing.T) {
 }
 
 func assertNamespaceInCluster(t *testing.T, actual, expected string) {
+	// Fallback to Prow CI "test-pods" namespace
+	inCluster := actual == "test-pods"
 	// In-cluster config overrides the mocked one in OpenShift CI
-	inCluster := actual == os.Getenv("NAMESPACE")
+	if os.Getenv("NAMESPACE") != "" {
+		inCluster = actual == os.Getenv("NAMESPACE")
+	}
 	assert.Check(t, inCluster || (actual == expected))
 }
 
