@@ -152,7 +152,7 @@ func TestGetNamespaceFallback(t *testing.T) {
 		assert.NilError(t, err)
 		if isInCluster() {
 			// In-cluster config overrides the mocked one in OpenShift CI
-			assert.Equal(t, actual, os.Getenv("NAMESPACE"))
+			assertNamespaceInCluster(t, actual, "default")
 		} else {
 			assert.Equal(t, actual, "default")
 		}
@@ -170,7 +170,7 @@ func TestGetNamespaceFallback(t *testing.T) {
 		assert.NilError(t, err)
 		if isInCluster() {
 			// In-cluster config overrides the mocked one in OpenShift CI
-			assert.Equal(t, actual, os.Getenv("NAMESPACE"))
+			assertNamespaceInCluster(t, actual, "default")
 		} else {
 			assert.Equal(t, actual, "default")
 		}
@@ -200,7 +200,7 @@ func TestCurrentNamespace(t *testing.T) {
 		if isInCluster() {
 			// In-cluster config overrides the mocked one in OpenShift CI
 			assert.NilError(t, err)
-			assert.Equal(t, actual, os.Getenv("NAMESPACE"))
+			assertNamespaceInCluster(t, actual, "default")
 		} else {
 			assert.Assert(t, err != nil)
 			assert.Assert(t, clientcmd.IsConfigurationInvalid(err))
@@ -235,12 +235,17 @@ func TestCurrentNamespace(t *testing.T) {
 		actual, err := kp.CurrentNamespace()
 		assert.NilError(t, err)
 		if isInCluster() {
-			// In-cluster config overrides the mocked one in OpenShift CI
-			assert.Equal(t, actual, os.Getenv("NAMESPACE"))
+			assertNamespaceInCluster(t, actual, "default")
 		} else {
 			assert.Equal(t, actual, "default")
 		}
 	})
+}
+
+func assertNamespaceInCluster(t *testing.T, actual, expected string) {
+	// In-cluster config overrides the mocked one in OpenShift CI
+	inCluster := actual == os.Getenv("NAMESPACE")
+	assert.Check(t, inCluster || (actual == expected))
 }
 
 // Inspired by client-go function
