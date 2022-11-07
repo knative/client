@@ -20,11 +20,11 @@ require (
 	k8s.io/cli-runtime v0.25.2
 	k8s.io/client-go v0.25.2
 	k8s.io/code-generator v0.25.2
-	knative.dev/eventing v0.35.0
-	knative.dev/hack v0.0.0-20221010154335-3fdc50b9c24a
-	knative.dev/networking v0.0.0-20221012062251-58f3e6239b4f
-	knative.dev/pkg v0.0.0-20221011175852-714b7630a836
-	knative.dev/serving v0.35.0
+	knative.dev/eventing v0.35.1-0.20221104013907-6de07e818049
+	knative.dev/hack v0.0.0-20221104013908-8f3c7050408b
+	knative.dev/networking v0.0.0-20221104155004-0d4e93709170
+	knative.dev/pkg v0.0.0-20221104155204-389f811cea0a
+	knative.dev/serving v0.35.1-0.20221107125622-1b38451a92f2
 	sigs.k8s.io/yaml v1.3.0
 )
 
