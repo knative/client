@@ -45,6 +45,7 @@ type PodSpecFlags struct {
 	ReadinessProbe     string
 	ReadinessProbeOpts string
 
+	InitContainers  string
 	ExtraContainers string
 
 	Resources          ResourceOptions
@@ -172,6 +173,11 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
 			"Example: --arg myArg1 --arg --myArg2 --arg myArg3=3. "+
 			"You can use this flag multiple times.")
 	flagNames = append(flagNames, "arg")
+
+	flagset.StringVarP(&p.InitContainers, "init-containers", "", "",
+		"Specify path to file including definition for initContainers, alternatively use '-' to read from stdin. "+
+			"Example: --init-containers ./init-containers.yaml or --init-containers -.")
+	flagNames = append(flagNames, "init-containers")
 
 	// DEPRECATED since 1.0
 	flagset.StringVarP(&p.ExtraContainers, "extra-containers", "", "",
@@ -370,6 +376,15 @@ func (p *PodSpecFlags) ResolvePodSpec(podSpec *corev1.PodSpec, flags *pflag.Flag
 		if err != nil {
 			return err
 		}
+	}
+
+	if flags.Changed("init-containers") || p.InitContainers == "-" {
+		var fromFile *corev1.PodSpec
+		fromFile, err = decodeContainersFromFile(p.InitContainers)
+		if err != nil {
+			return err
+		}
+		UpdateInitContainers(podSpec, fromFile.InitContainers)
 	}
 
 	if flags.Changed("containers") || flags.Changed("extra-containers") || p.ExtraContainers == "-" {

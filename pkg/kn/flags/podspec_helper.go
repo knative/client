@@ -313,6 +313,30 @@ func UpdateContainers(spec *corev1.PodSpec, containers []corev1.Container) {
 	}
 }
 
+// UpdateInitContainers updates the initContainers array with the ones provided from file or os.Stdin
+func UpdateInitContainers(spec *corev1.PodSpec, initContainers []corev1.Container) {
+	var matched []string
+	if len(spec.InitContainers) == 1 {
+		spec.InitContainers = append(spec.InitContainers, initContainers...)
+	} else {
+		for i, initContainer := range spec.InitContainers {
+			for j, toUpdate := range initContainers {
+				if initContainer.Name == toUpdate.Name {
+
+					spec.InitContainers[i] = initContainers[j]
+
+					matched = append(matched, toUpdate.Name)
+				}
+			}
+		}
+		for _, initContainer := range initContainers {
+			if !util.SliceContainsIgnoreCase(matched, initContainer.Name) {
+				spec.InitContainers = append(spec.InitContainers, initContainer)
+			}
+		}
+	}
+}
+
 // UpdateLivenessProbe updates container liveness probe based on provided string
 func UpdateLivenessProbe(spec *corev1.PodSpec, probeString string) error {
 	c := containerOfPodSpec(spec)

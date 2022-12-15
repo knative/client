@@ -415,3 +415,126 @@ func TestPodSpecResolveWithEnvFile(t *testing.T) {
 	flags.AddUpdateFlags(testCmd.Flags())
 	testCmd.Execute()
 }
+
+func TestPodSpecResolveInitContainers(t *testing.T) {
+	rawInput := `
+initContainers:
+- image: foo:bar
+  name: foo
+  env:
+  - name: a
+    value: b
+  resources: {}
+- image: bar:bar
+  name: bar
+  resources: {}`
+
+	rawInvalidFormatInput := `
+initContainers:
+  image: foo:bar
+  name: foo	
+  resources: {}`
+
+	expectedPodSpec := corev1.PodSpec{
+		Containers: []corev1.Container{{
+			Image: "repo/user/imageID:tag",
+			Resources: corev1.ResourceRequirements{
+				Limits:   corev1.ResourceList{},
+				Requests: corev1.ResourceList{},
+			}},
+		},
+		InitContainers: []corev1.Container{
+			{
+				Name:  "foo",
+				Image: "foo:bar",
+				Env:   []corev1.EnvVar{{Name: "a", Value: "b"}},
+			},
+			{
+				Name:  "bar",
+				Image: "bar:bar",
+			},
+		},
+	}
+
+	testCases := []struct {
+		name            string
+		rawInput        string
+		mockInput       func(data string) string
+		expectedPodSpec corev1.PodSpec
+		expectedError   error
+	}{
+		{
+			"Input:stdin",
+			rawInput,
+			func(data string) string {
+				return mockDataToStdin(t, data)
+			},
+			expectedPodSpec,
+			nil,
+		},
+		{
+			"Input:file",
+			rawInput,
+			func(data string) string {
+				tempDir := t.TempDir()
+				fileName := filepath.Join(tempDir, "initContainer.yaml")
+				os.WriteFile(fileName, []byte(data), test.FileModeReadWrite)
+				return fileName
+			},
+			expectedPodSpec,
+			nil,
+		},
+		{
+			"Input:error",
+			rawInput,
+			func(data string) string {
+				return "-"
+			},
+			corev1.PodSpec{Containers: []corev1.Container{{}}},
+			errors.New("EOF"),
+		},
+		{
+			"Input:invalidFormat",
+			rawInvalidFormatInput,
+			func(data string) string {
+				return mockDataToStdin(t, data)
+			},
+			corev1.PodSpec{Containers: []corev1.Container{{}}},
+			errors.New("cannot unmarshal object into Go struct field PodSpec.initContainers"),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			origStdin := os.Stdin
+
+			fileName := tc.mockInput(tc.rawInput)
+			if fileName == "-" {
+				defer func() { os.Stdin = origStdin }()
+			} else {
+				defer os.RemoveAll(fileName)
+			}
+
+			inputArgs := []string{"--image", "repo/user/imageID:tag", "--init-containers", fileName}
+
+			flags := &PodSpecFlags{}
+			testCmd := &cobra.Command{
+				Use: "test",
+				Run: func(cmd *cobra.Command, args []string) {
+					podSpec := &corev1.PodSpec{Containers: []corev1.Container{{}}}
+					err := flags.ResolvePodSpec(podSpec, cmd.Flags(), inputArgs)
+					if tc.expectedError == nil {
+						assert.NilError(t, err, "PodSpec cannot be resolved.")
+						assert.DeepEqual(t, tc.expectedPodSpec, *podSpec)
+					} else {
+						assert.ErrorContains(t, err, tc.expectedError.Error())
+					}
+				},
+			}
+			testCmd.SetArgs(inputArgs)
+			flags.AddFlags(testCmd.Flags())
+			flags.AddUpdateFlags(testCmd.Flags())
+			testCmd.Execute()
+		})
+	}
+}
