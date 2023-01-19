@@ -114,5 +114,8 @@ func describeBroker(out io.Writer, broker *v1beta1.Broker, printDetails bool) er
 }
 
 func extractURL(broker *v1beta1.Broker) string {
-	return broker.Status.Address.URL.String()
+	if broker.Status.AddressStatus.Address != nil {
+		return broker.Status.AddressStatus.Address.URL.String()
+	}
+	return ""
 }
