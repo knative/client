@@ -19,6 +19,8 @@ package broker
 import (
 	"fmt"
 
+	"knative.dev/pkg/apis"
+
 	"github.com/spf13/cobra"
 
 	metav1beta1 "k8s.io/apimachinery/pkg/apis/meta/v1beta1"
@@ -116,7 +118,10 @@ func printBrokerList(kServiceList *eventingv1.BrokerList, options hprinters.Prin
 // printBroker populates the broker table rows
 func printBroker(broker *eventingv1.Broker, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	name := broker.Name
-	url := broker.Status.Address.URL
+	url := &apis.URL{}
+	if broker.Status.AddressStatus.Address != nil {
+		url = broker.Status.AddressStatus.Address.URL
+	}
 	age := commands.TranslateTimestampSince(broker.CreationTimestamp)
 	conditions := commands.ConditionsValue(broker.Status.Conditions)
 	ready := commands.ReadyCondition(broker.Status.Conditions)

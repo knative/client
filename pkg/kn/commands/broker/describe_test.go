@@ -127,8 +127,10 @@ func getBroker() *eventingv1.Broker {
 			Namespace: "default",
 		},
 		Status: eventingv1.BrokerStatus{
-			Address: duckv1.Addressable{
-				URL: &apis.URL{Scheme: "http", Host: "foo-broker.test"},
+			AddressStatus: duckv1.AddressStatus{
+				Address: &duckv1.Addressable{
+					URL: &apis.URL{Scheme: "http", Host: "foo-broker.test"},
+				},
 			},
 			Status: duckv1.Status{
 				Conditions: duckv1.Conditions{
