@@ -167,9 +167,11 @@ func TestIsForbiddenError(t *testing.T) {
 		},
 	}
 	for _, tc := range cases {
+		err := tc.Error
+		forbidden := tc.Forbidden
 		t.Run(tc.Name, func(t *testing.T) {
 			t.Parallel()
-			assert.Equal(t, IsForbiddenError(GetError(tc.Error)), tc.Forbidden)
+			assert.Equal(t, IsForbiddenError(GetError(err)), forbidden)
 		})
 	}
 }
@@ -207,9 +209,11 @@ func TestIsInternalError(t *testing.T) {
 	}
 
 	for _, tc := range cases {
+		err := tc.Error
+		internal := tc.Internal
 		t.Run(tc.Name, func(t *testing.T) {
 			t.Parallel()
-			assert.Equal(t, api_errors.IsInternalError(GetError(tc.Error)), tc.Internal)
+			assert.Equal(t, api_errors.IsInternalError(GetError(err)), internal)
 		})
 	}
 }
@@ -240,9 +244,10 @@ func TestStatusError(t *testing.T) {
 		},
 	}
 	for _, tc := range cases {
+		itc := tc
 		t.Run(tc.Name, func(t *testing.T) {
 			t.Parallel()
-			assert.Assert(t, tc.ErrorType(GetError(tc.Error)))
+			assert.Assert(t, itc.ErrorType(GetError(itc.Error)))
 		})
 	}
 }
