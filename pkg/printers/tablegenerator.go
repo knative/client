@@ -74,9 +74,8 @@ func (h *HumanReadablePrinter) GenerateTable(obj runtime.Object, options PrintOp
 	}
 
 	columns := make([]metav1beta1.TableColumnDefinition, 0, len(handler.columnDefinitions))
-	for i := range handler.columnDefinitions {
-		columns = append(columns, handler.columnDefinitions[i])
-	}
+	
+	columns = append(columns, handler.columnDefinitions...)
 
 	table := &metav1beta1.Table{
 		ListMeta: metav1.ListMeta{

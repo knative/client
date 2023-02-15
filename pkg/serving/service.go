@@ -19,9 +19,16 @@ import (
 	"math/rand"
 	"strings"
 	"text/template"
+	"time"
 
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
+
+var revisionNameRand rand.Rand
+
+func init() {
+	revisionNameRand := rand.New(rand.NewSource(time.Now().UnixNano()))
+}
 
 var charChoices = []string{
 	"b", "c", "d", "f", "g", "h", "j", "k", "l", "m", "n", "p", "q", "r", "s", "t", "v", "w", "x",
@@ -37,7 +44,7 @@ func (c *revisionTemplContext) Random(l int) string {
 	chars := make([]string, 0, l)
 	for i := 0; i < l; i++ {
 		//nolint:gosec // Weak crypto is fine here, we use it for generating unique keys.
-		chars = append(chars, charChoices[rand.Int()%len(charChoices)])
+		chars = append(chars, charChoices[revisionNameRand.Int()%len(charChoices)])
 	}
 	return strings.Join(chars, "")
 }

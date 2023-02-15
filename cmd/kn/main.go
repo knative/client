@@ -17,11 +17,11 @@ package main
 import (
 	"errors"
 	"fmt"
-	"math/rand"
+	// "math/rand"
 	"os"
 	"regexp"
 	"strings"
-	"time"
+	// "time"
 
 	"github.com/spf13/cobra"
 	"knative.dev/client/pkg/kn/config"
@@ -29,9 +29,9 @@ import (
 	"knative.dev/client/pkg/kn/root"
 )
 
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
+// func init() {
+// 	rand.Seed(time.Now().UnixNano())
+// }
 
 func main() {
 	os.Exit(runWithExit(os.Args[1:]))
