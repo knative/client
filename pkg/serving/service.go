@@ -24,11 +24,7 @@ import (
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
-var revisionNameRand rand.Rand
-
-func init() {
-	revisionNameRand := rand.New(rand.NewSource(time.Now().UnixNano()))
-}
+var revisionNameRand = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 var charChoices = []string{
 	"b", "c", "d", "f", "g", "h", "j", "k", "l", "m", "n", "p", "q", "r", "s", "t", "v", "w", "x",
