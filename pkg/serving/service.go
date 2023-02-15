@@ -24,7 +24,7 @@ import (
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
-var revisionNameRand = rand.New(rand.NewSource(time.Now().UnixNano()))
+var revisionNameRand = rand.New(rand.NewSource(time.Now().UnixNano())) //nolint:gosec // Weak crypto is fine here, we use it for generating unique keys.
 
 var charChoices = []string{
 	"b", "c", "d", "f", "g", "h", "j", "k", "l", "m", "n", "p", "q", "r", "s", "t", "v", "w", "x",
