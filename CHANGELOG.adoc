@@ -7,9 +7,9 @@
 // the empty line separators.
 
 ////
-| 🐛
-| Updated to work with Go 1.20
-| https://github.com/knative/client/pull/1775[#1775]
+| 🎁🐛🐣🗑️✨
+|
+| https://github.com/knative/client/pull/[#]
 ////
 ## v1.5.0 (2022-05-31)
 [cols="1,10,3", options="header", width="100%"]
