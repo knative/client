@@ -15,7 +15,6 @@
 package serving
 
 import (
-	"math/rand"
 	"testing"
 
 	"gotest.tools/v3/assert"
@@ -30,7 +29,7 @@ type generateNameTest struct {
 }
 
 func TestGenerateName(t *testing.T) {
-	rand.Seed(1)
+	revisionNameRand.Seed(1)
 	someRandomChars := (&revisionTemplContext{}).Random(20)
 	service := &servingv1.Service{}
 	service.Name = "foo"
@@ -45,7 +44,7 @@ func TestGenerateName(t *testing.T) {
 		{"{{.Random 5}}", "foo-" + someRandomChars[0:5], ""},
 	}
 	for _, c := range cases {
-		rand.Seed(1)
+		revisionNameRand.Seed(1)
 		name, err := GenerateRevisionName(c.templ, service)
 		if c.err != "" {
 			assert.ErrorContains(t, err, c.err)
