@@ -68,7 +68,7 @@ func newKnAPIServerSourcesClient(client clientv1.ApiServerSourceInterface, names
 	}
 }
 
-//GetAPIServerSource returns apiSource object if present
+// GetAPIServerSource returns apiSource object if present
 func (c *apiServerSourcesClient) GetAPIServerSource(ctx context.Context, name string) (*v1.ApiServerSource, error) {
 	apiSource, err := c.client.Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
@@ -81,7 +81,7 @@ func (c *apiServerSourcesClient) GetAPIServerSource(ctx context.Context, name st
 	return apiSource, nil
 }
 
-//CreateAPIServerSource is used to create an instance of ApiServerSource
+// CreateAPIServerSource is used to create an instance of ApiServerSource
 func (c *apiServerSourcesClient) CreateAPIServerSource(ctx context.Context, apiSource *v1.ApiServerSource) error {
 	_, err := c.client.Create(ctx, apiSource, metav1.CreateOptions{})
 	if err != nil {
@@ -91,7 +91,7 @@ func (c *apiServerSourcesClient) CreateAPIServerSource(ctx context.Context, apiS
 	return nil
 }
 
-//UpdateAPIServerSource is used to update an instance of ApiServerSource
+// UpdateAPIServerSource is used to update an instance of ApiServerSource
 func (c *apiServerSourcesClient) UpdateAPIServerSource(ctx context.Context, apiSource *v1.ApiServerSource) error {
 	_, err := c.client.Update(ctx, apiSource, metav1.UpdateOptions{})
 	if err != nil {
@@ -101,7 +101,7 @@ func (c *apiServerSourcesClient) UpdateAPIServerSource(ctx context.Context, apiS
 	return nil
 }
 
-//DeleteAPIServerSource is used to create an instance of ApiServerSource
+// DeleteAPIServerSource is used to create an instance of ApiServerSource
 func (c *apiServerSourcesClient) DeleteAPIServerSource(ctx context.Context, name string) error {
 	err := c.client.Delete(ctx, name, metav1.DeleteOptions{})
 	if err != nil {

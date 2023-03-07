@@ -107,7 +107,7 @@ func newKnContainerSourcesClient(client clientv1.ContainerSourceInterface, names
 	}
 }
 
-//GetContainerSource returns containerSrc object if present
+// GetContainerSource returns containerSrc object if present
 func (c *containerSourcesClient) GetContainerSource(ctx context.Context, name string) (*v1.ContainerSource, error) {
 	containerSrc, err := c.client.Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
@@ -117,7 +117,7 @@ func (c *containerSourcesClient) GetContainerSource(ctx context.Context, name st
 	return containerSrc, nil
 }
 
-//CreateContainerSource is used to create an instance of ContainerSource
+// CreateContainerSource is used to create an instance of ContainerSource
 func (c *containerSourcesClient) CreateContainerSource(ctx context.Context, containerSrc *v1.ContainerSource) error {
 	_, err := c.client.Create(ctx, containerSrc, metav1.CreateOptions{})
 	if err != nil {
@@ -127,7 +127,7 @@ func (c *containerSourcesClient) CreateContainerSource(ctx context.Context, cont
 	return nil
 }
 
-//UpdateContainerSource is used to update an instance of ContainerSource
+// UpdateContainerSource is used to update an instance of ContainerSource
 func (c *containerSourcesClient) UpdateContainerSource(ctx context.Context, containerSrc *v1.ContainerSource) error {
 	_, err := c.client.Update(ctx, containerSrc, metav1.UpdateOptions{})
 	if err != nil {
@@ -137,7 +137,7 @@ func (c *containerSourcesClient) UpdateContainerSource(ctx context.Context, cont
 	return nil
 }
 
-//DeleteContainerSource is used to create an instance of ContainerSource
+// DeleteContainerSource is used to create an instance of ContainerSource
 func (c *containerSourcesClient) DeleteContainerSource(name string, ctx context.Context) error {
 	return c.client.Delete(ctx, name, metav1.DeleteOptions{})
 }

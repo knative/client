@@ -48,7 +48,7 @@ func (f *TriggerUpdateFlags) GetUpdateFilters() (map[string]string, []string, er
 	return filters, removes, nil
 }
 
-//Add is to set parameters
+// Add is to set parameters
 func (f *TriggerUpdateFlags) Add(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&f.Broker, "broker", "default", "Name of the Broker which the trigger associates with.")
 	// The Sugar controller was integrated into main Eventing controller. With that the default behavior was changed as well.

@@ -68,7 +68,7 @@ func TestSimplePingUpdate(t *testing.T) {
 	pingRecorder.Validate()
 }
 
-//TestSimplePingUpdateCEOverrides updates ce override, schedule, data and sink
+// TestSimplePingUpdateCEOverrides updates ce override, schedule, data and sink
 func TestSimplePingUpdateCEOverrides(t *testing.T) {
 	pingSourceClient := sourcesv1beta2.NewMockKnPingSourceClient(t)
 	pingRecorder := pingSourceClient.Recorder()
