@@ -21,7 +21,6 @@ import (
 )
 
 // Test to keep code coverage quality gate happy.
-//
 func TestTestConfig(t *testing.T) {
 	cfg := TestConfig{
 		TestPluginsDir:          "pluginsDir",

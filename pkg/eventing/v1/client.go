@@ -86,7 +86,7 @@ func NewKnEventingClient(client clientv1.EventingV1Interface, namespace string) 
 	}
 }
 
-//CreateTrigger is used to create an instance of trigger
+// CreateTrigger is used to create an instance of trigger
 func (c *knEventingClient) CreateTrigger(ctx context.Context, trigger *eventingv1.Trigger) error {
 	_, err := c.client.Triggers(c.namespace).Create(ctx, trigger, meta_v1.CreateOptions{})
 	if err != nil {
@@ -95,7 +95,7 @@ func (c *knEventingClient) CreateTrigger(ctx context.Context, trigger *eventingv
 	return nil
 }
 
-//DeleteTrigger is used to delete an instance of trigger
+// DeleteTrigger is used to delete an instance of trigger
 func (c *knEventingClient) DeleteTrigger(ctx context.Context, name string) error {
 	err := c.client.Triggers(c.namespace).Delete(ctx, name, apis_v1.DeleteOptions{})
 	if err != nil {
@@ -104,7 +104,7 @@ func (c *knEventingClient) DeleteTrigger(ctx context.Context, name string) error
 	return nil
 }
 
-//GetTrigger is used to get an instance of trigger
+// GetTrigger is used to get an instance of trigger
 func (c *knEventingClient) GetTrigger(ctx context.Context, name string) (*eventingv1.Trigger, error) {
 	trigger, err := c.client.Triggers(c.namespace).Get(ctx, name, apis_v1.GetOptions{})
 	if err != nil {

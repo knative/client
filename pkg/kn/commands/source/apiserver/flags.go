@@ -123,7 +123,7 @@ func constructAPIVersionKindSelector(s []string) ([]sourcesv1.APIVersionKindSele
 	return array, nil
 }
 
-//getValidAPIVersionKindSelector is to parse resource spec from a string
+// getValidAPIVersionKindSelector is to parse resource spec from a string
 func getValidAPIVersionKindSelector(resource string) (*sourcesv1.APIVersionKindSelector, error) {
 	var err error
 
@@ -145,7 +145,7 @@ func getValidAPIVersionKindSelector(resource string) (*sourcesv1.APIVersionKindS
 	return &sourcesv1.APIVersionKindSelector{Kind: kind, APIVersion: version, LabelSelector: labelSelector}, nil
 }
 
-//Add is to set parameters
+// Add is to set parameters
 func (f *APIServerSourceUpdateFlags) Add(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&f.ServiceAccountName,
 		"service-account",

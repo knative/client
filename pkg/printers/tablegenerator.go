@@ -124,7 +124,9 @@ func (h *HumanReadablePrinter) TableHandler(columnDefinitions []metav1beta1.Tabl
 // ValidateRowPrintHandlerFunc validates print handler signature.
 // printFunc is the function that will be called to print an object.
 // It must be of the following type:
-//  func printFunc(object ObjectType, options PrintOptions) ([]metav1beta1.TableRow, error)
+//
+//	func printFunc(object ObjectType, options PrintOptions) ([]metav1beta1.TableRow, error)
+//
 // where ObjectType is the type of the object that will be printed, and the first
 // return value is an array of rows, with each row containing a number of cells that
 // match the number of columns defined for that printer function.

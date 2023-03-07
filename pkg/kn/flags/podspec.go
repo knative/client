@@ -78,7 +78,7 @@ func (s *uniqueStringArg) Type() string {
 
 func (s *uniqueStringArg) String() string { return string(*s) }
 
-//AddUpdateFlags will add PodSpec flags related to environment variable to FlagSet of update command
+// AddUpdateFlags will add PodSpec flags related to environment variable to FlagSet of update command
 func (p *PodSpecFlags) AddUpdateFlags(flagset *pflag.FlagSet) []string {
 	flagNames := []string{}
 	flagset.StringArrayVarP(&p.Env, "env", "e", []string{},
@@ -104,7 +104,7 @@ func (p *PodSpecFlags) AddUpdateFlags(flagset *pflag.FlagSet) []string {
 	return flagNames
 }
 
-//AddCreateFlags will add PodSpec flags related to environment variable to FlagSet of create command
+// AddCreateFlags will add PodSpec flags related to environment variable to FlagSet of create command
 func (p *PodSpecFlags) AddCreateFlags(flagset *pflag.FlagSet) []string {
 	flagNames := []string{}
 	flagset.StringArrayVarP(&p.Env, "env", "e", []string{},
@@ -127,7 +127,7 @@ func (p *PodSpecFlags) AddCreateFlags(flagset *pflag.FlagSet) []string {
 	return flagNames
 }
 
-//AddFlags will add PodSpec related flags to FlagSet
+// AddFlags will add PodSpec related flags to FlagSet
 func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
 
 	flagNames := []string{}
