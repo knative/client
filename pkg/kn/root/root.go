@@ -22,6 +22,8 @@ import (
 	"strings"
 	"text/template"
 
+	"knative.dev/client/pkg/kn/commands/secret"
+
 	"github.com/spf13/cobra"
 
 	// Import & enable all auth providers at once
@@ -118,6 +120,7 @@ Find more information about Knative at: https://knative.dev`, rootName),
 			Header: "Other Commands:",
 			Commands: []*cobra.Command{
 				plugin.NewPluginCommand(p),
+				secret.NewSecretCommand(p),
 				completion.NewCompletionCommand(p),
 				version.NewVersionCommand(p),
 			},
