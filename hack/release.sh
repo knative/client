@@ -40,6 +40,27 @@ function build_release() {
   echo "🚧 P  Building for Linux (ppc64le)"
   GOOS=linux GOARCH=ppc64le go build -mod=vendor -ldflags "${ld_flags}" -o ./kn-linux-ppc64le ./cmd/...
   echo "🚧 🐳 Building the container image"
+
+  # Handle latest default tag in `ko` to be present only for latest releases.
+  # Latest .0 or subsequent patch releases of current minor (e.g. v1.9.z) are tagged with latest.
+  # Set empty --tags "" for patch release of older minors (e.g. v1.8.z).
+  #
+  # Tagging of images by the $TAG variable is done in `tag_images_in_yamls()` of hack/release.sh.
+  #
+  if [ "$(patch_version "${TAG}")" == 0 ]; then
+    echo "Newest .0 release - publish latest image tag"
+  else 
+    local latest_minor=$(minor_version "$(latest_version)")
+    local current_minor=$(minor_version "${TAG}")
+    if (( current_minor >= latest_minor )); then
+      echo "Newer patch release - publish latest image tag"
+    else 
+      echo "Patch release of older minor version - do not publish lates image tag"
+      KO_FLAGS=$KO_FLAGS" --tags \"\""
+    fi
+  fi
+  echo "KO_FLAGS:${KO_FLAGS}"
+
   ko resolve ${KO_FLAGS} -f config/ > kn-image-location.yaml
   ARTIFACTS_TO_PUBLISH="kn-darwin-amd64 kn-darwin-arm64 kn-linux-amd64 kn-linux-arm64 kn-windows-amd64.exe kn-linux-s390x kn-linux-ppc64le kn-image-location.yaml"
   sha256sum ${ARTIFACTS_TO_PUBLISH} > checksums.txt
