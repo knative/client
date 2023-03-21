@@ -49,21 +49,21 @@ function build_release() {
   #
   if [ "$(patch_version "${TAG}")" == 0 ]; then
     echo "Newest .0 release - publish latest image tag"
-  else 
+  else
     local latest_minor=$(minor_version "$(latest_version)")
     local current_minor=$(minor_version "${TAG}")
-    if (( current_minor >= latest_minor )); then
+    if ((current_minor >= latest_minor)); then
       echo "Newer patch release - publish latest image tag"
-    else 
+    else
       echo "Patch release of older minor version - do not publish lates image tag"
       KO_FLAGS=$KO_FLAGS" --tags \"\""
     fi
   fi
   echo "KO_FLAGS:${KO_FLAGS}"
 
-  ko resolve ${KO_FLAGS} -f config/ > kn-image-location.yaml
+  ko resolve ${KO_FLAGS} -f config/ >kn-image-location.yaml
   ARTIFACTS_TO_PUBLISH="kn-darwin-amd64 kn-darwin-arm64 kn-linux-amd64 kn-linux-arm64 kn-windows-amd64.exe kn-linux-s390x kn-linux-ppc64le kn-image-location.yaml"
-  sha256sum ${ARTIFACTS_TO_PUBLISH} > checksums.txt
+  sha256sum ${ARTIFACTS_TO_PUBLISH} >checksums.txt
   ARTIFACTS_TO_PUBLISH="${ARTIFACTS_TO_PUBLISH} checksums.txt"
   echo "🧮     Checksum:"
   cat checksums.txt
