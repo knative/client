@@ -129,13 +129,13 @@ func writeTrigger(dw printers.PrefixWriter, trigger *v1beta1.Trigger, printDetai
 		dw.WriteLine()
 		subWriter := dw.WriteAttribute("Filters (experimental)", "")
 		for _, filter := range trigger.Spec.Filters {
-			writeNesterFilters(subWriter, filter)
+			writeNestedFilters(subWriter, filter)
 		}
 	}
 }
 
-// writeNesterFilters goes through SubscriptionsAPIFilter and writes its content accordingly
-func writeNesterFilters(dw printers.PrefixWriter, filter v1beta1.SubscriptionsAPIFilter) {
+// writeNestedFilters goes through SubscriptionsAPIFilter and writes its content accordingly
+func writeNestedFilters(dw printers.PrefixWriter, filter v1beta1.SubscriptionsAPIFilter) {
 	v := reflect.ValueOf(filter)
 	for i := 0; i < v.NumField(); i++ {
 		field := v.Type().Field(i)
@@ -156,18 +156,18 @@ func writeNesterFilters(dw printers.PrefixWriter, filter v1beta1.SubscriptionsAP
 		if fieldValue.Kind() == reflect.Slice {
 			for j := 0; j < fieldValue.Len(); j++ {
 				element := fieldValue.Index(j)
-				// Write filter field name only and created indentation
+				// Write filter field name only and create next indentation
 				dw = dw.WriteAttribute(field.Name, "")
 				// Call write recursively for struct SubscriptionsAPIFilter
 				if element.Kind() == reflect.Struct {
-					writeNesterFilters(dw, element.Interface().(v1beta1.SubscriptionsAPIFilter))
+					writeNestedFilters(dw, element.Interface().(v1beta1.SubscriptionsAPIFilter))
 				}
 			}
 		}
 
 		// Call write recursively for struct SubscriptionsAPIFilter of field: Not
 		if fieldValue.Kind() == reflect.Struct {
-			writeNesterFilters(dw, fieldValue.Interface().(v1beta1.SubscriptionsAPIFilter))
+			writeNestedFilters(dw, fieldValue.Interface().(v1beta1.SubscriptionsAPIFilter))
 		}
 	}
 }
