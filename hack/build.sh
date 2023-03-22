@@ -15,7 +15,8 @@
 # limitations under the License.
 
 set -o pipefail
-set -eu
+set -o errexit
+set -o nounset
 
 source_dirs="cmd pkg test lib tools"
 
