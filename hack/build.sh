@@ -15,6 +15,7 @@
 # limitations under the License.
 
 set -o pipefail
+set -eu
 
 source_dirs="cmd pkg test lib tools"
 
@@ -25,7 +26,9 @@ else
     ARGS=("$@")
 fi
 
-set -eu
+# Tool version
+readonly GOIMPORTS_VERSION="v0.7.0"
+readonly GOLINT_VERSION="v1.52.0"
 
 # Run build
 run() {
@@ -115,14 +118,14 @@ go_fmt() {
 
 source_format() {
   set +e
-  run_go_tool golang.org/x/tools/cmd/goimports goimports -w $(echo $source_dirs)
+  go_run "golang.org/x/tools/cmd/goimports@${GOIMPORTS_VERSION}" -w $(echo $source_dirs)
   find $(echo $source_dirs) -name "*.go" -print0 | xargs -0 gofmt -s -w
   set -e
 }
 
 source_lint() {
   echo "🔍 Lint"
-  run_go_tool github.com/golangci/golangci-lint/cmd/golangci-lint golangci-lint run  || \
+  go_run "github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLINT_VERSION}" run  || \
   { echo "--- FAIL: golangci-lint failed please fix the reported errors"; return 1; }
 }
 
