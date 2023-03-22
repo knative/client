@@ -114,13 +114,13 @@ codegen() {
 
 go_fmt() {
   echo "🧹 ${S}Format"
-  find $(echo $source_dirs) -name "*.go" -print0 | xargs -0 gofmt -s -w
+  find $(echo "$source_dirs") -name "*.go" -print0 | xargs -0 gofmt -s -w
 }
 
 source_format() {
   set +e
-  go_run "golang.org/x/tools/cmd/goimports@${GOIMPORTS_VERSION}" -w $(echo $source_dirs)
-  find $(echo $source_dirs) -name "*.go" -print0 | xargs -0 gofmt -s -w
+  go_run "golang.org/x/tools/cmd/goimports@${GOIMPORTS_VERSION}" -w $(echo "$source_dirs")
+  find $(echo "$source_dirs") -name "*.go" -print0 | xargs -0 gofmt -s -w
   set -e
 }
 
