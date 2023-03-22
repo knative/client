@@ -48,6 +48,7 @@ func TestSimpleDescribe(t *testing.T) {
 
 		assert.Assert(t, util.ContainsAll(out, "Broker:", "mybroker"))
 		assert.Assert(t, util.ContainsAll(out, "Filter:", "type", "foo.type.knative", "source", "src.eventing.knative"))
+		assert.Assert(t, util.ContainsAll(out, "Filters", "experimental", "CESQL", "LOWER", "type"))
 		assert.Assert(t, util.ContainsAll(out, "Sink:", "Service", "myservicenamespace", "mysvc"))
 	})
 
@@ -129,6 +130,9 @@ func getTriggerSinkRef() *v1beta1.Trigger {
 					"type":   "foo.type.knative",
 					"source": "src.eventing.knative",
 				},
+			},
+			Filters: []v1beta1.SubscriptionsAPIFilter{
+				{CESQL: "LOWER(type) = 'my-event-type'"},
 			},
 			Subscriber: duckv1.Destination{
 				Ref: &duckv1.KReference{

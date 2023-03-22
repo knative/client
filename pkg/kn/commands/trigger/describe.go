@@ -123,4 +123,14 @@ func writeTrigger(dw printers.PrefixWriter, trigger *v1beta1.Trigger, printDetai
 			subWriter.WriteAttribute(key, value)
 		}
 	}
+	if len(trigger.Spec.Filters) > 0 {
+		// Split Filter and Filters (experimental) with new line
+		dw.WriteLine()
+		subWriter := dw.WriteAttribute("Filters (experimental)", "")
+		for _, filter := range trigger.Spec.Filters {
+			if filter.CESQL != "" {
+				subWriter.WriteAttribute("CESQL", filter.CESQL)
+			}
+		}
+	}
 }
