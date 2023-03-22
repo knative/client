@@ -16,6 +16,7 @@ package trigger
 
 import (
 	"errors"
+	"reflect"
 
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
@@ -124,13 +125,49 @@ func writeTrigger(dw printers.PrefixWriter, trigger *v1beta1.Trigger, printDetai
 		}
 	}
 	if len(trigger.Spec.Filters) > 0 {
-		// Split Filter and Filters (experimental) with new line
+		// Split 'Filter' and 'Filters (experimental)' with new line
 		dw.WriteLine()
 		subWriter := dw.WriteAttribute("Filters (experimental)", "")
 		for _, filter := range trigger.Spec.Filters {
-			if filter.CESQL != "" {
-				subWriter.WriteAttribute("CESQL", filter.CESQL)
+			writeNesterFilters(subWriter, filter)
+		}
+	}
+}
+
+// writeNesterFilters goes through SubscriptionsAPIFilter and writes its content accordingly
+func writeNesterFilters(dw printers.PrefixWriter, filter v1beta1.SubscriptionsAPIFilter) {
+	v := reflect.ValueOf(filter)
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Type().Field(i)
+		fieldValue := v.Field(i)
+
+		// Write if it's non-zero string, fields: CESQL
+		if fieldValue.Kind() == reflect.String && !fieldValue.IsZero() {
+			dw.WriteAttribute(field.Name, fieldValue.String())
+		}
+		// Write map[string]string key:value pairs of field: Exact, Prefix, Suffix
+		if fieldValue.Kind() == reflect.Map && fieldValue.Len() > 0 {
+			for k, v := range fieldValue.Interface().(map[string]string) {
+				dw.WriteAttribute(k, v)
 			}
+		}
+
+		// iterate through []SubscriptionsAPIFilter of fields: All, Any
+		if fieldValue.Kind() == reflect.Slice {
+			for j := 0; j < fieldValue.Len(); j++ {
+				element := fieldValue.Index(j)
+				// Write filter field name only and created indentation
+				dw = dw.WriteAttribute(field.Name, "")
+				// Call write recursively for struct SubscriptionsAPIFilter
+				if element.Kind() == reflect.Struct {
+					writeNesterFilters(dw, element.Interface().(v1beta1.SubscriptionsAPIFilter))
+				}
+			}
+		}
+
+		// Call write recursively for struct SubscriptionsAPIFilter of field: Not
+		if fieldValue.Kind() == reflect.Struct {
+			writeNesterFilters(dw, fieldValue.Interface().(v1beta1.SubscriptionsAPIFilter))
 		}
 	}
 }
