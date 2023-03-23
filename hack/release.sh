@@ -47,16 +47,18 @@ function build_release() {
   #
   # Tagging of images by the $TAG variable is done in `tag_images_in_yamls()` of hack/release.sh.
   #
-  if [ "$(patch_version "${TAG}")" == 0 ]; then
-    echo "Newest .0 release - publish latest image tag"
-  else
-    local latest_minor=$(minor_version "$(latest_version)")
-    local current_minor=$(minor_version "${TAG}")
-    if ((current_minor >= latest_minor)); then
-      echo "Newer patch release - publish latest image tag"
+  if is_release_branch; then
+    if [ "$(patch_version "${TAG}")" == 0 ]; then
+      echo "Newest .0 release - publish latest image tag"
     else
-      echo "Patch release of older minor version - do not publish lates image tag"
-      KO_FLAGS=$KO_FLAGS" --tags \"\""
+      local latest_minor=$(minor_version "$(latest_version)")
+      local current_minor=$(minor_version "${TAG}")
+      if ((current_minor >= latest_minor)); then
+        echo "Newer patch release - publish latest image tag"
+      else
+        echo "Patch release of older minor version - do not publish latest image tag"
+        KO_FLAGS=$KO_FLAGS" --tags \"\""
+      fi
     fi
   fi
   echo "KO_FLAGS:${KO_FLAGS}"
