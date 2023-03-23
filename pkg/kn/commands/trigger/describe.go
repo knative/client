@@ -16,11 +16,9 @@ package trigger
 
 import (
 	"errors"
-	"reflect"
 
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
-
 	"knative.dev/client/lib/printing"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/printers"
@@ -136,38 +134,53 @@ func writeTrigger(dw printers.PrefixWriter, trigger *v1beta1.Trigger, printDetai
 
 // writeNestedFilters goes through SubscriptionsAPIFilter and writes its content accordingly
 func writeNestedFilters(dw printers.PrefixWriter, filter v1beta1.SubscriptionsAPIFilter) {
-	v := reflect.ValueOf(filter)
-	for i := 0; i < v.NumField(); i++ {
-		field := v.Type().Field(i)
-		fieldValue := v.Field(i)
-
-		// Write if it's non-zero string, fields: CESQL
-		if fieldValue.Kind() == reflect.String && !fieldValue.IsZero() {
-			dw.WriteAttribute(field.Name, fieldValue.String())
+	// All []SubscriptionsAPIFilter
+	if len(filter.All) > 0 {
+		// create new indentation after name
+		subWriter := dw.WriteAttribute("all", "")
+		for _, nestedFilter := range filter.All {
+			writeNestedFilters(subWriter, nestedFilter)
 		}
-		// Write map[string]string key:value pairs of field: Exact, Prefix, Suffix
-		if fieldValue.Kind() == reflect.Map && fieldValue.Len() > 0 {
-			for k, v := range fieldValue.Interface().(map[string]string) {
-				dw.WriteAttribute(k, v)
-			}
+	}
+	// Any []SubscriptionsAPIFilter
+	if len(filter.Any) > 0 {
+		// create new indentation after name
+		subWriter := dw.WriteAttribute("any", "")
+		for _, nestedFilter := range filter.Any {
+			writeNestedFilters(subWriter, nestedFilter)
 		}
-
-		// iterate through []SubscriptionsAPIFilter of fields: All, Any
-		if fieldValue.Kind() == reflect.Slice {
-			for j := 0; j < fieldValue.Len(); j++ {
-				element := fieldValue.Index(j)
-				// Write filter field name only and create next indentation
-				dw = dw.WriteAttribute(field.Name, "")
-				// Call write recursively for struct SubscriptionsAPIFilter
-				if element.Kind() == reflect.Struct {
-					writeNestedFilters(dw, element.Interface().(v1beta1.SubscriptionsAPIFilter))
-				}
-			}
+	}
+	// Not *SubscriptionsAPIFilter
+	if filter.Not != nil {
+		subWriter := dw.WriteAttribute("not", "")
+		writeNestedFilters(subWriter, *filter.Not)
+	}
+	// Exact map[string]string
+	if len(filter.Exact) > 0 {
+		// create new indentation after name
+		subWriter := dw.WriteAttribute("exact", "")
+		for k, v := range filter.Exact {
+			subWriter.WriteAttribute(k, v)
 		}
-
-		// Call write recursively for struct SubscriptionsAPIFilter of field: Not
-		if fieldValue.Kind() == reflect.Struct {
-			writeNestedFilters(dw, fieldValue.Interface().(v1beta1.SubscriptionsAPIFilter))
+	}
+	// Prefix map[string]string
+	if len(filter.Prefix) > 0 {
+		// create new indentation after name
+		subWriter := dw.WriteAttribute("prefix", "")
+		for k, v := range filter.Prefix {
+			subWriter.WriteAttribute(k, v)
 		}
+	}
+	// Suffix map[string]string
+	if len(filter.Suffix) > 0 {
+		// create new indentation after name
+		subWriter := dw.WriteAttribute("suffix", "")
+		for k, v := range filter.Suffix {
+			subWriter.WriteAttribute(k, v)
+		}
+	}
+	// CESQL string
+	if filter.CESQL != "" {
+		dw.WriteAttribute("cesql", filter.CESQL)
 	}
 }
