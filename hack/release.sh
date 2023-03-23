@@ -56,7 +56,7 @@ function build_release() {
       if ((current_minor >= latest_minor)); then
         echo "Newer patch release - publish latest image tag"
       else
-        echo "Patch release of older minor version - do not publish lates image tag"
+        echo "Patch release of older minor version - do not publish latest image tag"
         KO_FLAGS=$KO_FLAGS" --tags \"\""
       fi
     fi
