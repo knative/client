@@ -37,13 +37,14 @@ install Knative with its prerequisites.
 
 ## Documentation
 
-Start with the [user's guide](docs/README.md) to learn more. You can read about
+Refer [user's guide](docs) to learn more. You can read about
 common use cases, get detailed documentation on each command, and learn how to
-extend the `kn` CLI. For more information, have a look at:
+extend the `kn` CLI.
 
-- [User guide](docs/README.md)
-  - Installation - How to install `kn` and run on your machine
-  - Examples - Use case based examples
+Following are some useful resources for getting-started using `kn` CLI:
+
+- [Installation](https://knative.dev/docs/client/install-kn/) - how to install `kn` and run on your machine
+- [Configuration](https://knative.dev/docs/client/configure-kn/) - how to customize `kn`
 - [Reference Manual](docs/cmd/kn.md) - all possible commands and options with
   usage examples
 
@@ -52,4 +53,4 @@ Additionally you can visit [knative.dev](https://knative.dev) for more examples.
 ## Developers
 
 If you are interested in contributing, see [CONTRIBUTING.md](./CONTRIBUTING.md)
-and [DEVELOPMENT.md](docs/DEVELOPMENT.md).
+and [DEVELOPMENT.md](DEVELOPMENT.md).
