@@ -37,7 +37,7 @@ install Knative with its prerequisites.
 
 ## Documentation
 
-Refer [user's guide](docs) to learn more. You can read about
+Refer to the [user's guide](docs) to learn more. You can read about
 common use cases, get detailed documentation on each command, and learn how to
 extend the `kn` CLI.
 
