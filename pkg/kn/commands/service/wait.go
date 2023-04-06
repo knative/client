@@ -77,13 +77,6 @@ func NewServiceWaitCommand(p *commands.KnParams) *cobra.Command {
 		},
 	}
 	commands.AddNamespaceFlags(command.Flags(), false)
-	waitTimeoutDefault := commands.WaitDefaultTimeout
-
-	timeoutUsage := "Seconds to wait before giving up on waiting for service to be ready."
-	command.Flags().IntVar(&waitFlags.TimeoutInSeconds, "wait-timeout", waitTimeoutDefault, timeoutUsage)
-
-	windowUsage := "Seconds to wait for service to be ready after a false ready condition is returned"
-	command.Flags().IntVar(&waitFlags.ErrorWindowInSeconds, "wait-window", 2, windowUsage)
-
+	waitFlags.AddConditionWaitFlags(command, commands.WaitDefaultTimeout, "wait", "service", "ready")
 	return command
 }
