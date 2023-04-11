@@ -51,6 +51,20 @@ func ServiceCreate(r *KnRunResultCollector, serviceName string) {
 	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "service", serviceName, "creating", "namespace", r.KnTest().Kn().Namespace(), "ready"))
 }
 
+// ServiceCreate verifies given service creation async mode and also verifies output
+func ServiceCreateNoWait(r *KnRunResultCollector, serviceName string) {
+	out := r.KnTest().Kn().Run("service", "create", serviceName, "--no-wait", "--image", pkgtest.ImagePath("helloworld"))
+	r.AssertNoError(out)
+	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "service", serviceName, "created", "namespace", r.KnTest().Kn().Namespace()))
+}
+
+// ServiceWait waits for service to be ready and also verifies output
+func ServiceWait(r *KnRunResultCollector, serviceName string) {
+	out := r.KnTest().Kn().Run("service", "wait", serviceName)
+	r.AssertNoError(out)
+	assert.Check(r.T(), util.ContainsAllIgnoreCase(out.Stdout, "service", serviceName, "ready", "namespace", r.KnTest().Kn().Namespace()))
+}
+
 // ServiceListEmpty verifies that there are no services present
 func ServiceListEmpty(r *KnRunResultCollector) {
 	out := r.KnTest().Kn().Run("service", "list")

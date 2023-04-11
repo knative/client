@@ -37,18 +37,20 @@ type WaitFlags struct {
 	ErrorWindowInSeconds int
 }
 
-// Add flags which influence the wait/no-wait behaviour when creating or updating
-// resources. Set `waitDefault` argument if the default behaviour is synchronous.
+// Add flags which influence the wait/no-wait behaviour when creating, updating, waiting for
+// resources. If the action is not `wait`, set `waitDefault` argument if the default behaviour is synchronous.
 // Use `what` for describing what is waited for.
 func (p *WaitFlags) AddConditionWaitFlags(command *cobra.Command, waitTimeoutDefault int, action, what, until string) {
-	waitUsage := fmt.Sprintf("Wait for '%s %s' operation to be completed.", what, action)
-	waitDefault := true
-	// Special-case 'delete' command so it comes back to the user immediately
-	if action == "delete" {
-		waitDefault = false
-	}
+	if action != "wait" {
+		waitUsage := fmt.Sprintf("Wait for '%s %s' operation to be completed.", what, action)
+		waitDefault := true
+		// Special-case 'delete' command so it comes back to the user immediately
+		if action == "delete" {
+			waitDefault = false
+		}
 
-	knflags.AddBothBoolFlagsUnhidden(command.Flags(), &p.Wait, "wait", "", waitDefault, waitUsage)
+		knflags.AddBothBoolFlagsUnhidden(command.Flags(), &p.Wait, "wait", "", waitDefault, waitUsage)
+	}
 	timeoutUsage := fmt.Sprintf("Seconds to wait before giving up on waiting for %s to be %s.", what, until)
 	command.Flags().IntVar(&p.TimeoutInSeconds, "wait-timeout", waitTimeoutDefault, timeoutUsage)
 

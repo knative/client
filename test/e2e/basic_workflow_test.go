@@ -63,9 +63,16 @@ func TestBasicWorkflow(t *testing.T) {
 	t.Log("describe revision from hello service")
 	test.RevisionDescribe(r, "hello")
 
-	t.Log("delete hello and svc2 services and return no error")
+	t.Log("create another service without wait and return no error")
+	test.ServiceCreateNoWait(r, "svc3")
+
+	t.Log("wait for this service and return no error")
+	test.ServiceWait(r, "svc3")
+
+	t.Log("delete hello, svc2 and svc3 services and return no error")
 	test.ServiceDelete(r, "hello")
 	test.ServiceDelete(r, "svc2")
+	test.ServiceDelete(r, "svc3")
 
 	t.Log("return no service after completing tests")
 	test.ServiceListEmpty(r)

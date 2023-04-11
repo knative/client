@@ -135,3 +135,18 @@ func TestAddWaitUsageDelete(t *testing.T) {
 		t.Error("Delete has wrong default value for --no-wait")
 	}
 }
+
+func TestAddWaitUsageWait(t *testing.T) {
+	flags := &WaitFlags{}
+	cmd := cobra.Command{}
+	flags.AddConditionWaitFlags(&cmd, 60, "wait", "blub", "ready")
+	if !strings.Contains(cmd.UsageString(), "blub") {
+		t.Error("no type returned in usage")
+	}
+	if !strings.Contains(cmd.UsageString(), "60") {
+		t.Error("default timeout not contained")
+	}
+	if !strings.Contains(cmd.UsageString(), "ready") {
+		t.Error("wrong until message")
+	}
+}

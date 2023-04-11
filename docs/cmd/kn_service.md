@@ -36,4 +36,5 @@ kn service
 * [kn service import](kn_service_import.md)	 - Import a service and its revisions (experimental)
 * [kn service list](kn_service_list.md)	 - List services
 * [kn service update](kn_service_update.md)	 - Update a service
+* [kn service wait](kn_service_wait.md)	 - Wait for a service to be ready
 
