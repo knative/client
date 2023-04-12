@@ -94,7 +94,7 @@ can be directly executed.
 
 **Testing:**
 
-Please follow the [guide](../test/README.md) here to test the `knative client`.
+Please follow the [guide](test/README.md) here to test the `knative client`.
 
 **Notes:**
 

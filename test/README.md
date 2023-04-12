@@ -20,7 +20,7 @@ which need [`-tags=e2e`](#running-end-to-end-tests) to be enabled._
 
 To run [the e2e tests](./e2e) locally, you need to have:
 
-1. [Running knative environment.](../docs/DEVELOPMENT.md#create-a-cluster)
+1. [Running knative environment.](../DEVELOPMENT.md#create-a-cluster)
 2. `kn` binary in the \$PATH.
 3. Please Make sure that you are able to connect to the cluster by following the
    [guide here](./../docs#connecting-to-your-cluster)
