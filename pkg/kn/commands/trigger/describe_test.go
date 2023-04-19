@@ -15,9 +15,12 @@
 package trigger
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"testing"
+
+	"knative.dev/client/pkg/printers"
 
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/assert/cmp"
@@ -48,6 +51,7 @@ func TestSimpleDescribe(t *testing.T) {
 
 		assert.Assert(t, util.ContainsAll(out, "Broker:", "mybroker"))
 		assert.Assert(t, util.ContainsAll(out, "Filter:", "type", "foo.type.knative", "source", "src.eventing.knative"))
+		assert.Assert(t, util.ContainsAll(out, "Filters", "experimental", "cesql", "LOWER", "type"))
 		assert.Assert(t, util.ContainsAll(out, "Sink:", "Service", "myservicenamespace", "mysvc"))
 	})
 
@@ -112,6 +116,158 @@ func TestDescribeTriggerMachineReadable(t *testing.T) {
 	recorder.Validate()
 }
 
+func TestWriteNestedFilters(t *testing.T) {
+	testCases := []struct {
+		name           string
+		filter         v1beta1.SubscriptionsAPIFilter
+		expectedOutput string
+	}{
+		{
+			name: "Exact filter",
+			filter: v1beta1.SubscriptionsAPIFilter{
+				Exact: map[string]string{
+					"type": "example"}},
+			expectedOutput: "exact:   \n" +
+				"  type:  example\n",
+		},
+		{
+			name: "Prefix filter",
+			filter: v1beta1.SubscriptionsAPIFilter{
+				Prefix: map[string]string{
+					"type": "foo.bar"}},
+			expectedOutput: "" +
+				"prefix:  \n" +
+				"  type:  foo.bar\n",
+		},
+		{
+			name: "Suffix filter",
+			filter: v1beta1.SubscriptionsAPIFilter{
+				Suffix: map[string]string{
+					"type": "foo.bar"}},
+			expectedOutput: "" +
+				"suffix:  \n" +
+				"  type:  foo.bar\n",
+		},
+		{
+			name: "All filter",
+			filter: v1beta1.SubscriptionsAPIFilter{
+				All: []v1beta1.SubscriptionsAPIFilter{
+					{Exact: map[string]string{
+						"type": "foo.bar"}},
+					{Prefix: map[string]string{
+						"source": "foo"}},
+					{Suffix: map[string]string{
+						"subject": "test"}}}},
+			expectedOutput: "" +
+				"all:          \n" +
+				"  exact:      \n" +
+				"    type:     foo.bar\n" +
+				"  prefix:     \n" +
+				"    source:   foo\n" +
+				"  suffix:     \n" +
+				"    subject:  test\n",
+		},
+		{
+			name: "Any filter",
+			filter: v1beta1.SubscriptionsAPIFilter{
+				Any: []v1beta1.SubscriptionsAPIFilter{
+					{Exact: map[string]string{
+						"type": "foo.bar"}},
+					{Prefix: map[string]string{
+						"source": "foo"}},
+					{Suffix: map[string]string{
+						"subject": "test"}}},
+			},
+			expectedOutput: "" +
+				"any:          \n" +
+				"  exact:      \n" +
+				"    type:     foo.bar\n" +
+				"  prefix:     \n" +
+				"    source:   foo\n" +
+				"  suffix:     \n" +
+				"    subject:  test\n",
+		},
+		{
+			name: "Nested All filter",
+			filter: v1beta1.SubscriptionsAPIFilter{
+				All: []v1beta1.SubscriptionsAPIFilter{
+					{Exact: map[string]string{
+						"type": "foo.bar"}},
+					{All: []v1beta1.SubscriptionsAPIFilter{
+						{Prefix: map[string]string{
+							"source": "foo"}},
+						{Suffix: map[string]string{
+							"subject": "test"}}}}}},
+			expectedOutput: "" +
+				"all:            \n" +
+				"  exact:        \n" +
+				"    type:       foo.bar\n" +
+				"  all:          \n" +
+				"    prefix:     \n" +
+				"      source:   foo\n" +
+				"    suffix:     \n" +
+				"      subject:  test\n",
+		},
+		{
+			name: "Nested Any filter",
+			filter: v1beta1.SubscriptionsAPIFilter{
+				Any: []v1beta1.SubscriptionsAPIFilter{
+					{Exact: map[string]string{
+						"type": "foo.bar"}},
+					{Any: []v1beta1.SubscriptionsAPIFilter{
+						{Prefix: map[string]string{
+							"source": "foo"}},
+						{Suffix: map[string]string{
+							"subject": "test"}}}}}},
+			expectedOutput: "" +
+				"any:            \n" +
+				"  exact:        \n" +
+				"    type:       foo.bar\n" +
+				"  any:          \n" +
+				"    prefix:     \n" +
+				"      source:   foo\n" +
+				"    suffix:     \n" +
+				"      subject:  test\n",
+		},
+		{
+			name: "Nested Not filter",
+			filter: v1beta1.SubscriptionsAPIFilter{
+				Not: &v1beta1.SubscriptionsAPIFilter{
+					Exact: map[string]string{
+						"type": "foo.bar",
+					},
+					Prefix: map[string]string{
+						"type": "bar",
+					},
+					CESQL: "select bar",
+					Not: &v1beta1.SubscriptionsAPIFilter{
+						Suffix: map[string]string{
+							"source": "foo"}}}},
+			expectedOutput: "" +
+				"not:           \n" +
+				"  not:         \n" +
+				"    suffix:    \n" +
+				"      source:  foo\n" +
+				"  exact:       \n" +
+				"    type:      foo.bar\n" +
+				"  prefix:      \n" +
+				"    type:      bar\n" +
+				"  cesql:       select bar\n",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			buf := &bytes.Buffer{}
+			dw := printers.NewPrefixWriter(buf)
+			writeNestedFilters(dw, tc.filter)
+			err := dw.Flush()
+			assert.NilError(t, err)
+			assert.Equal(t, tc.expectedOutput, buf.String())
+		})
+	}
+}
+
 func getTriggerSinkRef() *v1beta1.Trigger {
 	return &v1beta1.Trigger{
 		TypeMeta: v1.TypeMeta{
@@ -129,6 +285,9 @@ func getTriggerSinkRef() *v1beta1.Trigger {
 					"type":   "foo.type.knative",
 					"source": "src.eventing.knative",
 				},
+			},
+			Filters: []v1beta1.SubscriptionsAPIFilter{
+				{CESQL: "LOWER(type) = 'my-event-type'"},
 			},
 			Subscriber: duckv1.Destination{
 				Ref: &duckv1.KReference{

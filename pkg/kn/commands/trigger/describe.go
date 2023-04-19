@@ -19,7 +19,6 @@ import (
 
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
-
 	"knative.dev/client/lib/printing"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/printers"
@@ -122,5 +121,66 @@ func writeTrigger(dw printers.PrefixWriter, trigger *v1beta1.Trigger, printDetai
 		for key, value := range trigger.Spec.Filter.Attributes {
 			subWriter.WriteAttribute(key, value)
 		}
+	}
+	if len(trigger.Spec.Filters) > 0 {
+		// Split 'Filter' and 'Filters (experimental)' with new line
+		dw.WriteLine()
+		subWriter := dw.WriteAttribute("Filters (experimental)", "")
+		for _, filter := range trigger.Spec.Filters {
+			writeNestedFilters(subWriter, filter)
+		}
+	}
+}
+
+// writeNestedFilters goes through SubscriptionsAPIFilter and writes its content accordingly
+func writeNestedFilters(dw printers.PrefixWriter, filter v1beta1.SubscriptionsAPIFilter) {
+	// All []SubscriptionsAPIFilter
+	if len(filter.All) > 0 {
+		// create new indentation after name
+		subWriter := dw.WriteAttribute("all", "")
+		for _, nestedFilter := range filter.All {
+			writeNestedFilters(subWriter, nestedFilter)
+		}
+	}
+	// Any []SubscriptionsAPIFilter
+	if len(filter.Any) > 0 {
+		// create new indentation after name
+		subWriter := dw.WriteAttribute("any", "")
+		for _, nestedFilter := range filter.Any {
+			writeNestedFilters(subWriter, nestedFilter)
+		}
+	}
+	// Not *SubscriptionsAPIFilter
+	if filter.Not != nil {
+		subWriter := dw.WriteAttribute("not", "")
+		writeNestedFilters(subWriter, *filter.Not)
+	}
+	// Exact map[string]string
+	if len(filter.Exact) > 0 {
+		// create new indentation after name
+		subWriter := dw.WriteAttribute("exact", "")
+		for k, v := range filter.Exact {
+			subWriter.WriteAttribute(k, v)
+		}
+	}
+	// Prefix map[string]string
+	if len(filter.Prefix) > 0 {
+		// create new indentation after name
+		subWriter := dw.WriteAttribute("prefix", "")
+		for k, v := range filter.Prefix {
+			subWriter.WriteAttribute(k, v)
+		}
+	}
+	// Suffix map[string]string
+	if len(filter.Suffix) > 0 {
+		// create new indentation after name
+		subWriter := dw.WriteAttribute("suffix", "")
+		for k, v := range filter.Suffix {
+			subWriter.WriteAttribute(k, v)
+		}
+	}
+	// CESQL string
+	if filter.CESQL != "" {
+		dw.WriteAttribute("cesql", filter.CESQL)
 	}
 }
