@@ -36,7 +36,7 @@ func NewSecretCreateCommand(p *commands.KnParams) *cobra.Command {
 		Example: ``,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
-				return errors.New("'kn secret create' requires the domain name given as single argument")
+				return errors.New("'kn secret create' requires the secret name given as single argument")
 			}
 			name := args[0]
 			namespace, err := p.GetNamespace(cmd)
@@ -94,7 +94,7 @@ func NewSecretCreateCommand(p *commands.KnParams) *cobra.Command {
 		},
 	}
 	commands.AddNamespaceFlags(cmd.Flags(), false)
-	cmd.Flags().StringSliceVarP(&literals, "from-literal", "l", []string{}, "Specify coma separated list of key=value pairs.")
+	cmd.Flags().StringSliceVarP(&literals, "from-literal", "l", []string{}, "Specify comma separated list of key=value pairs.")
 	cmd.Flags().StringVar(&secretType, "type", "", "Specify Secret type.")
 	cmd.Flags().StringVar(&cert, "tls-cert", "", "Path to TLS certificate file.")
 	cmd.Flags().StringVar(&key, "tls-key", "", "Path to TLS key file.")

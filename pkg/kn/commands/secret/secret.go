@@ -20,13 +20,13 @@ import (
 )
 
 func NewSecretCommand(p *commands.KnParams) *cobra.Command {
-	domainCmd := &cobra.Command{
+	secretCmd := &cobra.Command{
 		Use:     "secret COMMAND",
 		Short:   "Manage secrets",
 		Aliases: []string{"secrets"},
 	}
-	domainCmd.AddCommand(NewSecretCreateCommand(p))
-	domainCmd.AddCommand(NewSecretDeleteCommand(p))
-	domainCmd.AddCommand(NewSecretListCommand(p))
-	return domainCmd
+	secretCmd.AddCommand(NewSecretCreateCommand(p))
+	secretCmd.AddCommand(NewSecretDeleteCommand(p))
+	secretCmd.AddCommand(NewSecretListCommand(p))
+	return secretCmd
 }
