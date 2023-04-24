@@ -38,7 +38,7 @@ func TestSecretDeleteNotFound(t *testing.T) {
 	assert.ErrorContains(t, err, "not found")
 }
 
-func TestDomainMappingDeleteWithError(t *testing.T) {
+func TestSecretDeleteWithError(t *testing.T) {
 	fakeClient := fake.NewSimpleClientset()
 
 	_, err := executeSecretCommand(fakeClient, "delete")

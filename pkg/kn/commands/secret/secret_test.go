@@ -52,7 +52,7 @@ func init() {
 	}
 }
 
-func TestDomainCommand(t *testing.T) {
+func TestSecretCommand(t *testing.T) {
 	knParams := &commands.KnParams{}
 	secretCommand := NewSecretCommand(knParams)
 	assert.Equal(t, secretCommand.Name(), "secret")
