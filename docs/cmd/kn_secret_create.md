@@ -9,7 +9,7 @@ kn secret create NAME
 ### Options
 
 ```
-  -l, --from-literal strings   Specify coma separated list of key=value pairs.
+  -l, --from-literal strings   Specify comma separated list of key=value pairs.
   -h, --help                   help for create
   -n, --namespace string       Specify the namespace to operate in.
       --tls-cert string        Path to TLS certificate file.
