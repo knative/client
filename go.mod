@@ -20,7 +20,7 @@ require (
 	k8s.io/cli-runtime v0.25.2
 	k8s.io/client-go v0.25.4
 	k8s.io/code-generator v0.25.4
-	knative.dev/eventing v0.36.1-0.20230418180955-193f2dffd536
+	knative.dev/eventing v0.36.1-0.20230424050342-4c2a3aafe573
 	knative.dev/hack v0.0.0-20230417170854-f591fea109b3
 	knative.dev/networking v0.0.0-20230419144338-e5d04e805e50
 	knative.dev/pkg v0.0.0-20230418073056-dfad48eaa5d0
