@@ -34,6 +34,7 @@ Find more information about Knative at: https://knative.dev
 * [kn plugin](kn_plugin.md)	 - Manage kn plugins
 * [kn revision](kn_revision.md)	 - Manage service revisions
 * [kn route](kn_route.md)	 - List and describe service routes
+* [kn secret](kn_secret.md)	 - Manage secrets
 * [kn service](kn_service.md)	 - Manage Knative services
 * [kn source](kn_source.md)	 - Manage event sources
 * [kn subscription](kn_subscription.md)	 - Manage event subscriptions

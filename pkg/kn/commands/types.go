@@ -20,6 +20,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"k8s.io/client-go/kubernetes"
+
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -54,6 +56,7 @@ type KnParams struct {
 	KubeAsUID                string
 	KubeAsGroup              []string
 	ClientConfig             clientcmd.ClientConfig
+	NewKubeClient            func() (kubernetes.Interface, error)
 	NewServingClient         func(namespace string) (clientservingv1.KnServingClient, error)
 	NewServingV1alpha1Client func(namespace string) (clientservingv1alpha1.KnServingClient, error)
 	NewGitopsServingClient   func(namespace string, dir string) (clientservingv1.KnServingClient, error)
@@ -72,6 +75,10 @@ type KnParams struct {
 }
 
 func (params *KnParams) Initialize() {
+	if params.NewKubeClient == nil {
+		params.NewKubeClient = params.newKubeClient
+	}
+
 	if params.NewServingClient == nil {
 		params.NewServingClient = params.newServingClient
 	}
@@ -107,6 +114,20 @@ func (params *KnParams) Initialize() {
 	if params.NewEventingV1beta1Client == nil {
 		params.NewEventingV1beta1Client = params.newEventingV1Beta1Client
 	}
+}
+
+func (params *KnParams) newKubeClient() (kubernetes.Interface, error) {
+	restConfig, err := params.RestConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	client, err := kubernetes.NewForConfig(restConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
 }
 
 func (params *KnParams) newServingClient(namespace string) (clientservingv1.KnServingClient, error) {
