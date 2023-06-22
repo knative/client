@@ -44,7 +44,7 @@ func EventtypeList(r *KnRunResultCollector, eventtypes ...string) {
 func EventtypeDescribe(r *KnRunResultCollector, name string) {
 	out := r.KnTest().Kn().Run("eventtype", "describe", name)
 	r.AssertNoError(out)
-	assert.Check(r.T(), util.ContainsAll(out.Stdout, name, r.KnTest().Kn().Namespace(), "Ready", "BrokerReady"))
+	assert.Check(r.T(), util.ContainsAll(out.Stdout, name, r.KnTest().Kn().Namespace(), "Ready", "BrokerExists"))
 }
 
 func EventtypeCreateWithBrokerSource(r *KnRunResultCollector, name, cetype, broker, source string) {
