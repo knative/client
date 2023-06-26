@@ -405,5 +405,7 @@ func (p *PodSpecFlags) ResolvePodSpec(podSpec *corev1.PodSpec, flags *pflag.Flag
 		}
 	}
 
+	UpdateDefaultSecurityContext(podSpec)
+
 	return nil
 }

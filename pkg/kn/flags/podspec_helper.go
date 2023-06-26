@@ -20,6 +20,8 @@ import (
 	"strconv"
 	"strings"
 
+	"k8s.io/utils/pointer"
+
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -376,6 +378,26 @@ func UpdateImagePullPolicy(spec *corev1.PodSpec, imagePullPolicy string) error {
 	}
 	container.ImagePullPolicy = getPolicy(imagePullPolicy)
 	return nil
+}
+
+func UpdateDefaultSecurityContext(spec *corev1.PodSpec) {
+	container := containerOfPodSpec(spec)
+	if container.SecurityContext == nil {
+		container.SecurityContext = DefaultSecCon()
+	}
+}
+
+func DefaultSecCon() *corev1.SecurityContext {
+	return &corev1.SecurityContext{
+		AllowPrivilegeEscalation: pointer.Bool(false),
+		RunAsNonRoot:             pointer.Bool(true),
+		Capabilities: &corev1.Capabilities{
+			Drop: []corev1.Capability{"ALL"},
+		},
+		SeccompProfile: &corev1.SeccompProfile{
+			Type: corev1.SeccompProfileTypeRuntimeDefault,
+		},
+	}
 }
 
 func getPolicy(policy string) v1.PullPolicy {

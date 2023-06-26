@@ -223,6 +223,7 @@ containers:
 					Limits:   corev1.ResourceList{},
 					Requests: corev1.ResourceList{},
 				},
+				SecurityContext: DefaultSecCon(),
 			},
 			{
 				Name:  "foo",
@@ -397,6 +398,7 @@ func TestPodSpecResolveWithEnvFile(t *testing.T) {
 					Limits:   v1.ResourceList{},
 					Requests: v1.ResourceList{},
 				},
+				SecurityContext: DefaultSecCon(),
 			},
 		},
 	}

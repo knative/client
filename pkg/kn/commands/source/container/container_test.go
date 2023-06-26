@@ -20,6 +20,8 @@ import (
 	"bytes"
 	"strings"
 
+	"knative.dev/client/pkg/kn/flags"
+
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/clientcmd"
 	v1 "knative.dev/eventing/pkg/apis/sources/v1"
@@ -92,6 +94,7 @@ func createContainerSource(name, image string, sink duckv1.Destination, ceo map[
 					Limits:   corev1.ResourceList{},
 					Requests: corev1.ResourceList{},
 				},
+				SecurityContext: flags.DefaultSecCon(),
 			}}}).
 		Sink(sink).
 		Build()
