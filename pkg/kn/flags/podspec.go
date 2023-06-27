@@ -411,12 +411,11 @@ func (p *PodSpecFlags) ResolvePodSpec(podSpec *corev1.PodSpec, flags *pflag.Flag
 		}
 	}
 
-	if flags.Changed("security-context") && p.SecurityContext != "" {
+	if flags.Changed("security-context") {
 		if err := UpdateSecurityContext(podSpec, p.SecurityContext); err != nil {
 			return err
 		}
 	} else {
-		// Set default Security Context
 		if err := UpdateSecurityContext(podSpec, ""); err != nil {
 			return err
 		}

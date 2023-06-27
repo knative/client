@@ -385,8 +385,8 @@ func UpdateSecurityContext(spec *corev1.PodSpec, securityContext string) error {
 	container := containerOfPodSpec(spec)
 	switch strings.ToLower(securityContext) {
 	case "none":
-		// Remove any Security Context defined
-		container.SecurityContext = nil
+		// Blank any Security Context defined
+		container.SecurityContext = &corev1.SecurityContext{}
 	case "strict":
 		// Add or update Security Context to default strict
 		container.SecurityContext = DefaultStrictSecCon()
