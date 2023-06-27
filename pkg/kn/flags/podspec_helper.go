@@ -380,14 +380,30 @@ func UpdateImagePullPolicy(spec *corev1.PodSpec, imagePullPolicy string) error {
 	return nil
 }
 
-func UpdateDefaultSecurityContext(spec *corev1.PodSpec) {
+// UpdateSecurityContext update the Security Context
+func UpdateSecurityContext(spec *corev1.PodSpec, securityContext string) error {
 	container := containerOfPodSpec(spec)
-	if container.SecurityContext == nil {
-		container.SecurityContext = DefaultSecCon()
+	switch strings.ToLower(securityContext) {
+	case "none":
+		// Remove any Security Context defined
+		container.SecurityContext = nil
+	case "strict":
+		// Add or update Security Context to default strict
+		container.SecurityContext = DefaultStrictSecCon()
+	case "":
+		// Add default strict SC flag is not used, hence empty value
+		if container.SecurityContext == nil {
+			container.SecurityContext = DefaultStrictSecCon()
+		}
+		//TODO(dsimansk): add parsing of SC options from the flag value
+	default:
+		return fmt.Errorf("invalid --security-context %s. Valid arguments: strict | none", securityContext)
 	}
+	return nil
 }
 
-func DefaultSecCon() *corev1.SecurityContext {
+// DefaultStrictSecCon helper function to get default strict Security Context
+func DefaultStrictSecCon() *corev1.SecurityContext {
 	return &corev1.SecurityContext{
 		AllowPrivilegeEscalation: pointer.Bool(false),
 		RunAsNonRoot:             pointer.Bool(true),

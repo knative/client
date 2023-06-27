@@ -479,7 +479,7 @@ func getService(name string) *servingv1.Service {
 			Limits:   corev1.ResourceList{},
 			Requests: corev1.ResourceList{},
 		},
-		SecurityContext: flags.DefaultSecCon(),
+		SecurityContext: flags.DefaultStrictSecCon(),
 	}}
 
 	return service

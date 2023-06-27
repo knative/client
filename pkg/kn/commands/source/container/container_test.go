@@ -94,7 +94,7 @@ func createContainerSource(name, image string, sink duckv1.Destination, ceo map[
 					Limits:   corev1.ResourceList{},
 					Requests: corev1.ResourceList{},
 				},
-				SecurityContext: flags.DefaultSecCon(),
+				SecurityContext: flags.DefaultStrictSecCon(),
 			}}}).
 		Sink(sink).
 		Build()

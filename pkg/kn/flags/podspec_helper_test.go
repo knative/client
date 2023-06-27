@@ -1487,3 +1487,57 @@ func TestResolveProbeOptions(t *testing.T) {
 		})
 	}
 }
+
+func TestUpdateSecurityContext(t *testing.T) {
+	testCases := []struct {
+		name string
+
+		expected      *corev1.PodSpec
+		expectedError error
+	}{
+		{
+			name: "strict",
+			expected: &corev1.PodSpec{
+				Containers: []corev1.Container{
+					{SecurityContext: DefaultStrictSecCon()}},
+			},
+			expectedError: nil,
+		},
+		{
+			name: "none",
+			expected: &corev1.PodSpec{
+				Containers: []corev1.Container{{}},
+			},
+			expectedError: nil,
+		},
+		{
+			name: "",
+			expected: &corev1.PodSpec{
+				Containers: []corev1.Container{
+					{SecurityContext: DefaultStrictSecCon()}},
+			},
+			expectedError: nil,
+		},
+		{
+			name: "unknown",
+			expected: &corev1.PodSpec{
+				Containers: []corev1.Container{
+					{SecurityContext: DefaultStrictSecCon()}},
+			},
+			expectedError: errors.New("invalid --security-context unknown. Valid arguments: strict | none"),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := &corev1.PodSpec{}
+			err := UpdateSecurityContext(actual, tc.name)
+			if tc.expectedError != nil {
+				assert.Error(t, err, tc.expectedError.Error())
+			} else {
+				assert.NilError(t, err)
+				assert.DeepEqual(t, actual, tc.expected)
+			}
+		})
+	}
+}

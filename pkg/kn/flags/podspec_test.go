@@ -29,7 +29,6 @@ import (
 	"github.com/spf13/cobra"
 	"gotest.tools/v3/assert"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
 	"knative.dev/client/pkg/util"
 	"knative.dev/pkg/ptr"
 )
@@ -37,14 +36,15 @@ import (
 func TestPodSpecFlags(t *testing.T) {
 	args := []string{"--image", "repo/user/imageID:tag", "--env", "b=c"}
 	wantedPod := &PodSpecFlags{
-		Image:        "repo/user/imageID:tag",
-		Env:          []string{"b=c"},
-		EnvFrom:      []string{},
-		EnvValueFrom: []string{},
-		Mount:        []string{},
-		Volume:       []string{},
-		Arg:          []string{},
-		Command:      []string{},
+		Image:           "repo/user/imageID:tag",
+		Env:             []string{"b=c"},
+		EnvFrom:         []string{},
+		EnvValueFrom:    []string{},
+		Mount:           []string{},
+		Volume:          []string{},
+		Arg:             []string{},
+		Command:         []string{},
+		SecurityContext: "strict",
 	}
 	flags := &PodSpecFlags{}
 	testCmd := &cobra.Command{
@@ -86,12 +86,12 @@ func TestPodSpecResolve(t *testing.T) {
 					},
 				},
 				ReadinessProbe: &corev1.Probe{
-					ProbeHandler: v1.ProbeHandler{
+					ProbeHandler: corev1.ProbeHandler{
 						HTTPGet: &corev1.HTTPGetAction{Port: intstr.Parse("8080"), Path: "/path"},
 					},
 				},
 				LivenessProbe: &corev1.Probe{
-					ProbeHandler: v1.ProbeHandler{
+					ProbeHandler: corev1.ProbeHandler{
 						HTTPGet: &corev1.HTTPGetAction{Port: intstr.Parse("8080"), Path: "/path"},
 					},
 				},
@@ -223,7 +223,7 @@ containers:
 					Limits:   corev1.ResourceList{},
 					Requests: corev1.ResourceList{},
 				},
-				SecurityContext: DefaultSecCon(),
+				SecurityContext: DefaultStrictSecCon(),
 			},
 			{
 				Name:  "foo",
@@ -394,11 +394,11 @@ func TestPodSpecResolveWithEnvFile(t *testing.T) {
 					},
 				},
 				Env: []corev1.EnvVar{{Name: "svcOwner", Value: "James"}, {Name: "svcAuthor", Value: "James"}},
-				Resources: v1.ResourceRequirements{
-					Limits:   v1.ResourceList{},
-					Requests: v1.ResourceList{},
+				Resources: corev1.ResourceRequirements{
+					Limits:   corev1.ResourceList{},
+					Requests: corev1.ResourceList{},
 				},
-				SecurityContext: DefaultSecCon(),
+				SecurityContext: DefaultStrictSecCon(),
 			},
 		},
 	}

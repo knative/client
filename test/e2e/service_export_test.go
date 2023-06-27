@@ -53,7 +53,7 @@ func TestServiceExport(t *testing.T) {
 	defer r.DumpIfFailed()
 
 	t.Log("create service with byo revision")
-	serviceCreateWithOptions(r, "hello", "--revision-name", "rev1")
+	serviceCreateWithOptions(r, "hello", "--revision-name", "rev1", "--security-context=none")
 
 	userImage := pkgtest.ImagePath("helloworld")
 	if strings.Contains(userImage, "@") {
@@ -233,7 +233,7 @@ func TestServiceExport(t *testing.T) {
 	), "--with-revisions", "--mode", "export", "-o", "yaml")
 
 	t.Log("create and export service 'foo' and verify that serviceUID and configurationUID labels are absent")
-	serviceCreateWithOptions(r, "foo")
+	serviceCreateWithOptions(r, "foo", "--security-context=none")
 	output := serviceExportOutput(r, "foo", "-o", "json")
 	actSvc := servingv1.Service{}
 	err = json.Unmarshal([]byte(output), &actSvc)
