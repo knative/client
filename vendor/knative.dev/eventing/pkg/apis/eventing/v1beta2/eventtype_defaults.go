@@ -16,14 +16,20 @@ limitations under the License.
 
 package v1beta2
 
-import "context"
+import (
+	"context"
+)
 
 func (et *EventType) SetDefaults(ctx context.Context) {
 	et.Spec.SetDefaults(ctx)
+	setReferenceNs(et)
 }
 
 func (ets *EventTypeSpec) SetDefaults(ctx context.Context) {
-	if ets.Broker == "" {
-		ets.Broker = "default"
+}
+
+func setReferenceNs(et *EventType) {
+	if et.Spec.Reference != nil && et.Spec.Reference.Namespace == "" {
+		et.Spec.Reference.Namespace = et.GetNamespace()
 	}
 }
