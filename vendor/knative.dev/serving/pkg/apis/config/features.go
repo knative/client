@@ -67,7 +67,6 @@ func defaultFeaturesConfig() *Features {
 		PodSpecPersistentVolumeClaim:     Disabled,
 		PodSpecPersistentVolumeWrite:     Disabled,
 		QueueProxyMountPodInfo:           Disabled,
-		QueueProxyResourceDefaults:       Disabled,
 		PodSpecInitContainers:            Disabled,
 		PodSpecDNSPolicy:                 Disabled,
 		PodSpecDNSConfig:                 Disabled,
@@ -103,7 +102,6 @@ func NewFeaturesConfigFromMap(data map[string]string) (*Features, error) {
 		asFlag("kubernetes.podspec-dnsconfig", &nc.PodSpecDNSConfig),
 		asFlag("secure-pod-defaults", &nc.SecurePodDefaults),
 		asFlag("tag-header-based-routing", &nc.TagHeaderBasedRouting),
-		asFlag("queueproxy.resource-defaults", &nc.QueueProxyResourceDefaults),
 		asFlag("queueproxy.mount-podinfo", &nc.QueueProxyMountPodInfo),
 		asFlag("autodetect-http2", &nc.AutoDetectHTTP2)); err != nil {
 		return nil, err
@@ -136,7 +134,6 @@ type Features struct {
 	PodSpecPersistentVolumeClaim     Flag
 	PodSpecPersistentVolumeWrite     Flag
 	QueueProxyMountPodInfo           Flag
-	QueueProxyResourceDefaults       Flag
 	PodSpecDNSPolicy                 Flag
 	PodSpecDNSConfig                 Flag
 	SecurePodDefaults                Flag

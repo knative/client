@@ -110,6 +110,10 @@ func NewManager(pluginDir string, lookupInPath bool) *Manager {
 	}
 }
 
+func (manager *Manager) AppendPlugin(plugin Plugin) {
+	InternalPlugins = append(InternalPlugins, plugin)
+}
+
 // FindPlugin checks if a plugin for the given parts exist and return it.
 // The args given must not contain any options and contain only
 // the commands (like in [ "source", "github" ] for a plugin called 'kn-source-github'
