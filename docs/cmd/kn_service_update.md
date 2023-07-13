@@ -85,6 +85,7 @@ kn service update NAME
       --scale-target int                  Recommendation for what metric value the PodAutoscaler should attempt to maintain. Use with --scale-metric flag to configure the metric name for which the target value should be maintained. Default metric name is concurrency. The flag defaults to --concurrency-limit when given.
       --scale-utilization int             Percentage of concurrent requests utilization before scaling up. (default 70)
       --scale-window string               Duration to look back for making auto-scaling decisions. The service is scaled to zero if no request was received in during that time. (eg: 10s)
+      --security-context string           Security Context definition to be added the service. Accepted values: strict | none. (default "strict")
       --service-account string            Service account name to set. An empty argument ("") clears the service account. The referenced service account must exist in the service's namespace.
       --tag strings                       Set tag (format: --tag revisionRef=tagName) where revisionRef can be a revision or '@latest' string representing latest ready revision. This flag can be specified multiple times.
       --target string                     Work on local directory instead of a remote cluster (experimental)

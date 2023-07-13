@@ -20,6 +20,8 @@ import (
 	"strconv"
 	"strings"
 
+	"k8s.io/utils/pointer"
+
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -376,6 +378,42 @@ func UpdateImagePullPolicy(spec *corev1.PodSpec, imagePullPolicy string) error {
 	}
 	container.ImagePullPolicy = getPolicy(imagePullPolicy)
 	return nil
+}
+
+// UpdateSecurityContext update the Security Context
+func UpdateSecurityContext(spec *corev1.PodSpec, securityContext string) error {
+	container := containerOfPodSpec(spec)
+	switch strings.ToLower(securityContext) {
+	case "none":
+		// Blank any Security Context defined
+		container.SecurityContext = &corev1.SecurityContext{}
+	case "strict":
+		// Add or update Security Context to default strict
+		container.SecurityContext = DefaultStrictSecCon()
+	case "":
+		// Add default strict SC flag is not used, hence empty value
+		if container.SecurityContext == nil {
+			container.SecurityContext = DefaultStrictSecCon()
+		}
+		//TODO(dsimansk): add parsing of SC options from the flag value
+	default:
+		return fmt.Errorf("invalid --security-context %s. Valid arguments: strict | none", securityContext)
+	}
+	return nil
+}
+
+// DefaultStrictSecCon helper function to get default strict Security Context
+func DefaultStrictSecCon() *corev1.SecurityContext {
+	return &corev1.SecurityContext{
+		AllowPrivilegeEscalation: pointer.Bool(false),
+		RunAsNonRoot:             pointer.Bool(true),
+		Capabilities: &corev1.Capabilities{
+			Drop: []corev1.Capability{"ALL"},
+		},
+		SeccompProfile: &corev1.SeccompProfile{
+			Type: corev1.SeccompProfileTypeRuntimeDefault,
+		},
+	}
 }
 
 func getPolicy(policy string) v1.PullPolicy {
