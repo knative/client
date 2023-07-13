@@ -25,8 +25,6 @@ import (
 	"knative.dev/client/pkg/kn/config"
 	"knative.dev/client/pkg/kn/plugin"
 	"knative.dev/client/pkg/kn/root"
-
-	pkgplugin "knative.dev/client-pkg/pkg/kn/plugin"
 )
 
 func main() {
@@ -63,11 +61,6 @@ func run(args []string) error {
 	}
 
 	pluginManager := plugin.NewManager(config.GlobalConfig.PluginsDir(), config.GlobalConfig.LookupPluginsInPath())
-
-	// Merge plugins that implements client-pkg Plugin type to the same manager instance
-	for _, p := range pkgplugin.InternalPlugins {
-		pluginManager.AppendPlugin(p)
-	}
 
 	// Create kn root command and all sub-commands
 	rootCmd, err := root.NewRootCommand(pluginManager.HelpTemplateFuncs())
