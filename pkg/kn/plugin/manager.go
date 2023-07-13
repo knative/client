@@ -17,7 +17,6 @@ package plugin
 import (
 	"errors"
 	"fmt"
-	pkgplugin "knative.dev/client-pkg/pkg/kn/plugin"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -25,6 +24,8 @@ import (
 	"sort"
 	"strings"
 	"text/template"
+
+	pkgplugin "knative.dev/client-pkg/pkg/kn/plugin"
 
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
