@@ -25,12 +25,16 @@ import (
 	"strings"
 	"text/template"
 
+	pkgplugin "knative.dev/client-pkg/pkg/kn/plugin"
+
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 )
 
 // Allow plugins to register to this slice for inlining
 var InternalPlugins PluginList
+
+var synced bool
 
 // Interface describing a plugin
 type Plugin interface {
@@ -104,10 +108,21 @@ func (p PluginList) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
 // NewManager creates a new manager for looking up plugins on the file system
 func NewManager(pluginDir string, lookupInPath bool) *Manager {
-	return &Manager{
+	m := &Manager{
 		pluginsDir:   pluginDir,
 		lookupInPath: lookupInPath,
 	}
+	if !synced {
+		for _, p := range pkgplugin.InternalPlugins {
+			m.AppendPlugin(p)
+		}
+		synced = true
+	}
+	return m
+}
+
+func (manager *Manager) AppendPlugin(plugin Plugin) {
+	InternalPlugins = append(InternalPlugins, plugin)
 }
 
 // FindPlugin checks if a plugin for the given parts exist and return it.

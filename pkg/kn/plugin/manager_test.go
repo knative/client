@@ -153,6 +153,24 @@ func TestPluginExecute(t *testing.T) {
 	assert.Equal(t, out, "OK arg1 arg2\n")
 }
 
+func TestPluginAppend(t *testing.T) {
+	ctx := setup(t)
+	defer cleanup(t, ctx)
+
+	// Initialize registered plugins
+	defer (prepareInternalPlugins(
+		testPlugin{[]string{"a"}}))()
+
+	pl, err := ctx.pluginManager.ListPlugins()
+	assert.NilError(t, err)
+	assert.Assert(t, len(pl) == 1)
+
+	ctx.pluginManager.AppendPlugin(testPlugin{[]string{"another"}})
+	pl, err = ctx.pluginManager.ListPlugins()
+	assert.NilError(t, err)
+	assert.Assert(t, len(pl) == 2)
+}
+
 func TestPluginMixed(t *testing.T) {
 	ctx := setup(t)
 	defer cleanup(t, ctx)

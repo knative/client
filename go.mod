@@ -20,11 +20,12 @@ require (
 	k8s.io/cli-runtime v0.25.2
 	k8s.io/client-go v0.26.5
 	k8s.io/code-generator v0.26.5
-	knative.dev/eventing v0.37.1-0.20230710092738-ed05a353ea4d
-	knative.dev/hack v0.0.0-20230710131339-12cd6a1f789c
-	knative.dev/networking v0.0.0-20230710015341-b2cce924227a
-	knative.dev/pkg v0.0.0-20230710013638-5ef4812a4fe9
-	knative.dev/serving v0.37.1-0.20230711005812-4c76e3b3033d
+	knative.dev/client-pkg v0.0.0-20230628110147-f377f0665eed
+	knative.dev/eventing v0.37.1-0.20230627143052-8f7409444808
+	knative.dev/hack v0.0.0-20230615155948-d7586a218601
+	knative.dev/networking v0.0.0-20230622190036-3a75df5dd93d
+	knative.dev/pkg v0.0.0-20230616134650-eb63a40adfb0
+	knative.dev/serving v0.37.1-0.20230626132048-0462ce6dd994
 	sigs.k8s.io/yaml v1.3.0
 )
 
@@ -93,6 +94,7 @@ require (
 	github.com/rickb777/plural v1.4.1 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
+	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/subosito/gotenv v1.4.1 // indirect
