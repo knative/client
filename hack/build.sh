@@ -102,14 +102,14 @@ codegen() {
   # Format source code and cleanup imports
   source_format
 
-  # Lint source code
-  (( ! IS_PROW )) && source_lint
-
   # Check for license headers
   check_license
 
   # Auto generate cli docs
   generate_docs
+
+  # Lint source code
+  (( ! IS_PROW )) && source_lint
 }
 
 go_fmt() {

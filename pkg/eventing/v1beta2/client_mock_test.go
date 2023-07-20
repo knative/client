@@ -12,27 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1beta1
+package v1beta2
 
 import (
 	"context"
 	"testing"
 
-	"knative.dev/eventing/pkg/apis/eventing/v1beta1"
+	"knative.dev/eventing/pkg/apis/eventing/v1beta2"
 )
 
 func TestMockKnClient(t *testing.T) {
-	client := NewMockKnEventingV1beta1Client(t, "test-ns")
+	client := NewMockKnEventingV1beta2Client(t, "test-ns")
 
 	recorder := client.Recorder()
 
-	recorder.CreateEventtype(&v1beta1.EventType{}, nil)
-	recorder.GetEventtype("eventtype-name", &v1beta1.EventType{}, nil)
+	recorder.CreateEventtype(&v1beta2.EventType{}, nil)
+	recorder.GetEventtype("eventtype-name", &v1beta2.EventType{}, nil)
 	recorder.DeleteEventtype("eventtype-name", nil)
-	recorder.ListEventtypes(&v1beta1.EventTypeList{}, nil)
+	recorder.ListEventtypes(&v1beta2.EventTypeList{}, nil)
 
 	ctx := context.Background()
-	client.CreateEventtype(ctx, &v1beta1.EventType{})
+	client.CreateEventtype(ctx, &v1beta2.EventType{})
 	client.GetEventtype(ctx, "eventtype-name")
 	client.DeleteEventtype(ctx, "eventtype-name")
 	client.ListEventtypes(ctx)

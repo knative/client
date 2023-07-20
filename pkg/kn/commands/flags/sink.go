@@ -30,17 +30,25 @@ import (
 )
 
 type SinkFlags struct {
-	sink string
+	Sink         string
+	SinkMappings map[string]schema.GroupVersionResource
 }
 
-// AddWithFlagName configures sink flag with given flag name and a short flag name
-// pass empty short flag name if you dont want to set one
+// NewSinkFlag is a constructor function to create SinkFlags from provided map
+func NewSinkFlag(mapping map[string]schema.GroupVersionResource) *SinkFlags {
+	return &SinkFlags{
+		SinkMappings: mapping,
+	}
+}
+
+// AddWithFlagName configures Sink flag with given flag name and a short flag name
+// pass empty short flag name if you don't want to set one
 func (i *SinkFlags) AddWithFlagName(cmd *cobra.Command, fname, short string) {
 	flag := "--" + fname
 	if short == "" {
-		cmd.Flags().StringVar(&i.sink, fname, "", "")
+		cmd.Flags().StringVar(&i.Sink, fname, "", "")
 	} else {
-		cmd.Flags().StringVarP(&i.sink, fname, short, "", "")
+		cmd.Flags().StringVarP(&i.Sink, fname, short, "", "")
 	}
 	cmd.Flag(fname).Usage = "Addressable sink for events. " +
 		"You can specify a broker, channel, Knative service or URI. " +
@@ -49,12 +57,18 @@ func (i *SinkFlags) AddWithFlagName(cmd *cobra.Command, fname, short string) {
 		"'" + flag + " ksvc:mysvc:mynamespace' for a Knative service 'mysvc' in another namespace 'mynamespace', " +
 		"'" + flag + " https://event.receiver.uri' for an URI with an 'http://' or 'https://' schema, " +
 		"'" + flag + " ksvc:receiver' or simply '" + flag + " receiver' for a Knative service 'receiver' in the current namespace. " +
+		"'" + flag + " special.eventing.dev/v1alpha1/channels:pipe' for GroupVersionResource of v1alpha1 'pipe'. " +
+		"GroupVersionResource requires resource name in a lower case plural form. The inputs are sanitized on best effort basis, " +
+		"but in case of 'resource not found' error it may help to double check and correct the input. " +
 		"If a prefix is not provided, it is considered as a Knative service in the current namespace. " +
 		"If referring to a Knative service in another namespace, 'ksvc:name:namespace' combination must be provided explicitly."
-
+	// Use default mapping if empty
+	if i.SinkMappings == nil {
+		i.SinkMappings = defaultSinkMappings
+	}
 	for _, p := range config.GlobalConfig.SinkMappings() {
 		//user configuration might override the default configuration
-		sinkMappings[p.Prefix] = schema.GroupVersionResource{
+		i.SinkMappings[p.Prefix] = schema.GroupVersionResource{
 			Resource: p.Resource,
 			Group:    p.Group,
 			Version:  p.Version,
@@ -62,13 +76,13 @@ func (i *SinkFlags) AddWithFlagName(cmd *cobra.Command, fname, short string) {
 	}
 }
 
-// Add configures sink flag with name 'sink' amd short name 's'
+// Add configures Sink flag with name 'Sink' amd short name 's'
 func (i *SinkFlags) Add(cmd *cobra.Command) {
 	i.AddWithFlagName(cmd, "sink", "s")
 }
 
-// sinkPrefixes maps prefixes used for sinks to their GroupVersionResources.
-var sinkMappings = map[string]schema.GroupVersionResource{
+// SinkPrefixes maps prefixes used for sinks to their GroupVersionResources.
+var defaultSinkMappings = map[string]schema.GroupVersionResource{
 	"broker": {
 		Resource: "brokers",
 		Group:    "eventing.knative.dev",
@@ -91,10 +105,14 @@ var sinkMappings = map[string]schema.GroupVersionResource{
 // It validates that any object the user is referring to exists.
 func (i *SinkFlags) ResolveSink(ctx context.Context, knclient clientdynamic.KnDynamicClient, namespace string) (*duckv1.Destination, error) {
 	client := knclient.RawClient()
-	if i.sink == "" {
+	if i.Sink == "" {
 		return nil, nil
 	}
-	prefix, name, ns := parseSink(i.sink)
+	// Use default mapping if empty
+	if i.SinkMappings == nil {
+		i.SinkMappings = defaultSinkMappings
+	}
+	prefix, name, ns := parseSink(i.Sink)
 	if prefix == "" {
 		// URI target
 		uri, err := apis.ParseURL(name)
@@ -103,10 +121,10 @@ func (i *SinkFlags) ResolveSink(ctx context.Context, knclient clientdynamic.KnDy
 		}
 		return &duckv1.Destination{URI: uri}, nil
 	}
-	typ, ok := sinkMappings[prefix]
+	gvr, ok := i.SinkMappings[prefix]
 	if !ok {
 		if prefix == "svc" || prefix == "service" {
-			return nil, fmt.Errorf("unsupported sink prefix: '%s', please use prefix 'ksvc' for knative service", prefix)
+			return nil, fmt.Errorf("unsupported Sink prefix: '%s', please use prefix 'ksvc' for knative service", prefix)
 		}
 		idx := strings.LastIndex(prefix, "/")
 		var groupVersion string
@@ -116,21 +134,24 @@ func (i *SinkFlags) ResolveSink(ctx context.Context, knclient clientdynamic.KnDy
 		} else {
 			kind = prefix
 		}
-		parsedVersion, _ := schema.ParseGroupVersion(groupVersion)
+		parsedVersion, err := schema.ParseGroupVersion(groupVersion)
+		if err != nil {
+			return nil, err
+		}
 
+		// For the RAWclient the resource name must be in lower case plural form.
+		// This is the best effort to sanitize the inputs, but the safest way is to provide
+		// the appropriate form in user's input.
 		if !strings.HasSuffix(kind, "s") {
 			kind = kind + "s"
 		}
-		typ = schema.GroupVersionResource{
-			Group:    parsedVersion.Group,
-			Version:  parsedVersion.Version,
-			Resource: kind,
-		}
+		kind = strings.ToLower(kind)
+		gvr = parsedVersion.WithResource(kind)
 	}
 	if ns != "" {
 		namespace = ns
 	}
-	obj, err := client.Resource(typ).Namespace(namespace).Get(ctx, name, metav1.GetOptions{})
+	obj, err := client.Resource(gvr).Namespace(namespace).Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -163,10 +184,10 @@ func parseSink(sink string) (string, string, string) {
 	}
 }
 
-// SinkToString prepares a sink for list output
+// SinkToString prepares a Sink for list output
 func SinkToString(sink duckv1.Destination) string {
 	if sink.Ref != nil {
-		if sink.Ref.Kind == "Service" && strings.HasPrefix(sink.Ref.APIVersion, sinkMappings["ksvc"].Group) {
+		if sink.Ref.Kind == "Service" && strings.HasPrefix(sink.Ref.APIVersion, defaultSinkMappings["ksvc"].Group) {
 			return fmt.Sprintf("ksvc:%s", sink.Ref.Name)
 		} else {
 			return fmt.Sprintf("%s:%s", strings.ToLower(sink.Ref.Kind), sink.Ref.Name)

@@ -19,10 +19,12 @@ package eventtype
 import (
 	"bytes"
 
+	kndynamic "knative.dev/client/pkg/dynamic"
+
 	"k8s.io/client-go/tools/clientcmd"
-	"knative.dev/client/pkg/eventing/v1beta1"
+	"knative.dev/client/pkg/eventing/v1beta2"
 	"knative.dev/client/pkg/kn/commands"
-	eventingv1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
+	eventingv1beta2 "knative.dev/eventing/pkg/apis/eventing/v1beta2"
 	"knative.dev/pkg/apis"
 )
 
@@ -60,19 +62,19 @@ current-context: x
 	}
 }
 
-func createEventtype(eventtypeName, ceType, namespace string) *eventingv1beta1.EventType {
-	return v1beta1.NewEventtypeBuilder(eventtypeName).Namespace(namespace).Type(ceType).Build()
+func createEventtype(eventtypeName, ceType, namespace string) *eventingv1beta2.EventType {
+	return v1beta2.NewEventtypeBuilder(eventtypeName).Namespace(namespace).Type(ceType).Build()
 }
 
-func createEventtypeWithSource(eventtypeName, ceType, namespace string, source *apis.URL) *eventingv1beta1.EventType {
-	return v1beta1.NewEventtypeBuilder(eventtypeName).Namespace(namespace).Type(ceType).Source(source).Build()
+func createEventtypeWithSource(eventtypeName, ceType, namespace string, source *apis.URL) *eventingv1beta2.EventType {
+	return v1beta2.NewEventtypeBuilder(eventtypeName).Namespace(namespace).Type(ceType).Source(source).Build()
 }
 
-func createEventtypeWithBroker(name, cetype, broker, namespace string) *eventingv1beta1.EventType {
-	return v1beta1.NewEventtypeBuilder(eventtypeName).Namespace(namespace).Type(cetype).Broker(broker).Build()
+func createEventtypeWithBroker(name, cetype, broker, namespace string) *eventingv1beta2.EventType {
+	return v1beta2.NewEventtypeBuilder(eventtypeName).Namespace(namespace).Type(cetype).Broker(broker).Build()
 }
 
-func executeEventtypeCommand(client *v1beta1.MockKnEventingV1beta1Client, args ...string) (string, error) {
+func executeEventtypeCommand(client *v1beta2.MockKnEventingV1beta2Client, dynamicClient kndynamic.KnDynamicClient, args ...string) (string, error) {
 
 	knParams := &commands.KnParams{}
 	knParams.ClientConfig = blankConfig
@@ -80,8 +82,12 @@ func executeEventtypeCommand(client *v1beta1.MockKnEventingV1beta1Client, args .
 	output := new(bytes.Buffer)
 	knParams.Output = output
 
-	knParams.NewEventingV1beta1Client = func(namespace string) (v1beta1.KnEventingV1Beta1Client, error) {
+	knParams.NewEventingV1beta2Client = func(namespace string) (v1beta2.KnEventingV1Beta2Client, error) {
 		return client, nil
+	}
+
+	knParams.NewDynamicClient = func(namespace string) (kndynamic.KnDynamicClient, error) {
+		return dynamicClient, nil
 	}
 
 	cmd := NewEventTypeCommand(knParams)

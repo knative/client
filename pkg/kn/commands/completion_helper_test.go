@@ -25,12 +25,12 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/clientcmd"
-	clienteventingv1beta1 "knative.dev/client/pkg/eventing/v1beta1"
+	clienteventingv1beta2 "knative.dev/client/pkg/eventing/v1beta2"
 	v1beta1 "knative.dev/client/pkg/messaging/v1"
 	clientv1alpha1 "knative.dev/client/pkg/serving/v1alpha1"
 	clientsourcesv1 "knative.dev/client/pkg/sources/v1"
 	"knative.dev/client/pkg/sources/v1beta2"
-	eventingv1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
+	eventingv1beta2 "knative.dev/eventing/pkg/apis/eventing/v1beta2"
 	messagingv1 "knative.dev/eventing/pkg/apis/messaging/v1"
 	sourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"
 	sourcesv1beta2 "knative.dev/eventing/pkg/apis/sources/v1beta2"
@@ -45,7 +45,7 @@ import (
 
 	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
 	"knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1/fake"
-	beta1fake "knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1beta1/fake"
+	beta2fake "knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1beta2/fake"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 	"knative.dev/serving/pkg/apis/serving/v1alpha1"
 	servingv1fake "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1/fake"
@@ -387,29 +387,29 @@ var (
 )
 
 var (
-	testEventtype1 = eventingv1beta1.EventType{
+	testEventtype1 = eventingv1beta2.EventType{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "EventType",
 			APIVersion: "eventing.knative.dev/v1beta1",
 		},
 		ObjectMeta: metav1.ObjectMeta{Name: "test-eventtype-1", Namespace: testNs},
 	}
-	testEventtype2 = eventingv1beta1.EventType{
+	testEventtype2 = eventingv1beta2.EventType{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "EventType",
 			APIVersion: "eventing.knative.dev/v1beta1",
 		},
 		ObjectMeta: metav1.ObjectMeta{Name: "test-eventtype-2", Namespace: testNs},
 	}
-	testEventtype3 = eventingv1beta1.EventType{
+	testEventtype3 = eventingv1beta2.EventType{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "EventType",
 			APIVersion: "eventing.knative.dev/v1beta1",
 		},
 		ObjectMeta: metav1.ObjectMeta{Name: "test-eventtype-3", Namespace: testNs},
 	}
-	testEventtypes          = []eventingv1beta1.EventType{testEventtype1, testEventtype2, testEventtype3}
-	fakeEventingBeta1Client = &beta1fake.FakeEventingV1beta1{Fake: &clienttesting.Fake{}}
+	testEventtypes          = []eventingv1beta2.EventType{testEventtype1, testEventtype2, testEventtype3}
+	fakeEventingBeta2Client = &beta2fake.FakeEventingV1beta2{Fake: &clienttesting.Fake{}}
 )
 
 var knParams = initialiseKnParams()
@@ -452,8 +452,8 @@ current-context: x
 		NewSourcesV1beta2Client: func(namespace string) (v1beta2.KnSourcesClient, error) {
 			return v1beta2.NewKnSourcesClient(fakeSourcesV1Beta2, namespace), nil
 		},
-		NewEventingV1beta1Client: func(namespace string) (clienteventingv1beta1.KnEventingV1Beta1Client, error) {
-			return clienteventingv1beta1.NewKnEventingV1Beta1Client(fakeEventingBeta1Client, namespace), nil
+		NewEventingV1beta2Client: func(namespace string) (clienteventingv1beta2.KnEventingV1Beta2Client, error) {
+			return clienteventingv1beta2.NewKnEventingV1Beta2Client(fakeEventingBeta2Client, namespace), nil
 		},
 		ClientConfig: blankConfig,
 	}
@@ -1499,11 +1499,11 @@ func TestResourceNameCompletionFuncSubscription(t *testing.T) {
 func TestResourceNameCompletionFuncEventtype(t *testing.T) {
 	completionFunc := ResourceNameCompletionFunc(knParams)
 
-	fakeEventingBeta1Client.AddReactor("list", "eventtypes", func(a clienttesting.Action) (bool, runtime.Object, error) {
+	fakeEventingBeta2Client.AddReactor("list", "eventtypes", func(a clienttesting.Action) (bool, runtime.Object, error) {
 		if a.GetNamespace() == errorNs {
 			return true, nil, errors.NewInternalError(fmt.Errorf("unable to list eventtypes"))
 		}
-		return true, &eventingv1beta1.EventTypeList{Items: testEventtypes}, nil
+		return true, &eventingv1beta2.EventTypeList{Items: testEventtypes}, nil
 	})
 
 	tests := []testType{

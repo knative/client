@@ -12,19 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1beta1
+package v1beta2
 
 import (
 	"context"
 	"fmt"
 	"testing"
 
+	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
+	v1 "knative.dev/pkg/apis/duck/v1"
+
 	"gotest.tools/v3/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	client_testing "k8s.io/client-go/testing"
-	"knative.dev/eventing/pkg/apis/eventing/v1beta1"
-	"knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1beta1/fake"
+	"knative.dev/eventing/pkg/apis/eventing/v1beta2"
+	"knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1beta2/fake"
 	"knative.dev/pkg/apis"
 )
 
@@ -37,9 +40,9 @@ const (
 	errName       = "error-eventtype"
 )
 
-func setup(ns string) (fakeSvr fake.FakeEventingV1beta1, client KnEventingV1Beta1Client) {
-	fakeE := fake.FakeEventingV1beta1{Fake: &client_testing.Fake{}}
-	cli := NewKnEventingV1Beta1Client(&fakeE, ns)
+func setup(ns string) (fakeSvr fake.FakeEventingV1beta2, client KnEventingV1Beta2Client) {
+	fakeE := fake.FakeEventingV1beta2{Fake: &client_testing.Fake{}}
+	cli := NewKnEventingV1Beta2Client(&fakeE, ns)
 	return fakeE, cli
 }
 
@@ -51,7 +54,21 @@ func TestNamespace(t *testing.T) {
 func TestBuilder(t *testing.T) {
 	et := newEventtypeWithSourceBroker(testName, testSource, testBroker)
 	assert.Equal(t, et.Name, testName)
-	assert.Equal(t, et.Spec.Broker, testBroker)
+	assert.Equal(t, et.Spec.Reference.Name, testBroker)
+	source := et.Spec.Source
+	assert.Assert(t, source != nil)
+	assert.Equal(t, source.String(), testSource)
+}
+
+func TestBuilderWithRefence(t *testing.T) {
+	ref := &v1.KReference{
+		APIVersion: eventingv1.SchemeGroupVersion.String(),
+		Kind:       "Broker",
+		Name:       testBroker,
+	}
+	et := newEventtypeWithSourceRef(testName, testSource, ref)
+	assert.Equal(t, et.Name, testName)
+	assert.Equal(t, et.Spec.Reference, ref)
 	source := et.Spec.Source
 	assert.Assert(t, source != nil)
 	assert.Equal(t, source.String(), testSource)
@@ -147,7 +164,7 @@ func TestKnEventingV1Beta1Client_ListEventtypes(t *testing.T) {
 		func(a client_testing.Action) (bool, runtime.Object, error) {
 			assert.Equal(t, testNamespace, a.GetNamespace())
 
-			return true, &v1beta1.EventTypeList{Items: []v1beta1.EventType{
+			return true, &v1beta2.EventTypeList{Items: []v1beta2.EventType{
 				*newEventtype("eventtype-1"),
 				*newEventtype("eventtype-2")}}, nil
 		})
@@ -161,7 +178,7 @@ func TestKnEventingV1Beta1Client_ListEventtypes(t *testing.T) {
 	assert.Equal(t, list.Items[1].Name, "eventtype-2")
 }
 
-func newEventtypeWithSourceBroker(name string, source string, broker string) *v1beta1.EventType {
+func newEventtypeWithSourceBroker(name string, source string, broker string) *v1beta2.EventType {
 	url, _ := apis.ParseURL(source)
 	return NewEventtypeBuilder(name).
 		Namespace(testNamespace).
@@ -172,7 +189,18 @@ func newEventtypeWithSourceBroker(name string, source string, broker string) *v1
 		Build()
 }
 
-func newEventtype(name string) *v1beta1.EventType {
+func newEventtypeWithSourceRef(name string, source string, ref *v1.KReference) *v1beta2.EventType {
+	url, _ := apis.ParseURL(source)
+	return NewEventtypeBuilder(name).
+		Namespace(testNamespace).
+		WithGvk().
+		Type(testType).
+		Source(url).
+		Reference(ref).
+		Build()
+}
+
+func newEventtype(name string) *v1beta2.EventType {
 	return NewEventtypeBuilder(name).
 		Namespace(testNamespace).
 		Type(testType).

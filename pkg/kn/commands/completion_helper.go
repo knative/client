@@ -439,7 +439,7 @@ func completeEventtype(config *completionConfig) (suggestions []string) {
 		return
 	}
 
-	client, err := config.params.NewEventingV1beta1Client(namespace)
+	client, err := config.params.NewEventingV1beta2Client(namespace)
 	if err != nil {
 		return
 	}

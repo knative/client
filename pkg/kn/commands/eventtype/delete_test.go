@@ -20,18 +20,21 @@ import (
 	"fmt"
 	"testing"
 
+	dynamicfake "knative.dev/client/pkg/dynamic/fake"
+
 	"gotest.tools/v3/assert"
-	"knative.dev/client/pkg/eventing/v1beta1"
+	"knative.dev/client/pkg/eventing/v1beta2"
 	"knative.dev/client/pkg/util"
 )
 
 func TestEventtypeDelete(t *testing.T) {
-	eventingClient := v1beta1.NewMockKnEventingV1beta1Client(t, testNs)
+	eventingClient := v1beta2.NewMockKnEventingV1beta2Client(t, testNs)
+	dynamicClient := dynamicfake.CreateFakeKnDynamicClient(testNs)
 
 	eventingRecorder := eventingClient.Recorder()
 	eventingRecorder.DeleteEventtype(eventtypeName, nil)
 
-	out, err := executeEventtypeCommand(eventingClient, "delete", eventtypeName, "--namespace", testNs)
+	out, err := executeEventtypeCommand(eventingClient, dynamicClient, "delete", eventtypeName, "--namespace", testNs)
 
 	assert.NilError(t, err, "Eventtype should be deleted")
 	assert.Assert(t, util.ContainsAll(out, "Eventtype", eventtypeName, "successfully", "deleted", "namespace", testNs))
@@ -40,12 +43,13 @@ func TestEventtypeDelete(t *testing.T) {
 }
 
 func TestEventtypeDeleteWithError(t *testing.T) {
-	eventingClient := v1beta1.NewMockKnEventingV1beta1Client(t, "default")
+	eventingClient := v1beta2.NewMockKnEventingV1beta2Client(t, testNs)
+	dynamicClient := dynamicfake.CreateFakeKnDynamicClient(testNs)
 
 	eventingRecorder := eventingClient.Recorder()
 	eventingRecorder.DeleteEventtype(eventtypeName, fmt.Errorf("mock-error"))
 
-	_, err := executeEventtypeCommand(eventingClient, "delete", eventtypeName)
+	_, err := executeEventtypeCommand(eventingClient, dynamicClient, "delete", eventtypeName)
 
 	assert.ErrorContains(t, err, "cannot delete eventtype")
 	assert.Assert(t, util.ContainsAll(err.Error(), "mock-error"))
@@ -54,9 +58,10 @@ func TestEventtypeDeleteWithError(t *testing.T) {
 }
 
 func TestEventtypeDeleteWithNameMissingError(t *testing.T) {
-	eventingClient := v1beta1.NewMockKnEventingV1beta1Client(t, "default")
+	eventingClient := v1beta2.NewMockKnEventingV1beta2Client(t, testNs)
+	dynamicClient := dynamicfake.CreateFakeKnDynamicClient(testNs)
 
-	_, err := executeEventtypeCommand(eventingClient, "delete")
+	_, err := executeEventtypeCommand(eventingClient, dynamicClient, "delete")
 
 	assert.ErrorContains(t, err, "eventtype delete")
 	assert.Assert(t, util.ContainsAll(err.Error(), "eventtype", "delete", "requires", "name"))

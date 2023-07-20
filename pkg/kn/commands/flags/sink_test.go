@@ -58,7 +58,7 @@ func TestSinkFlagAdd(t *testing.T) {
 	}
 	for _, tc := range cases {
 		c := &cobra.Command{Use: "sinktest"}
-		sinkFlags := new(SinkFlags)
+		sinkFlags := SinkFlags{}
 		if tc.flagName == "" {
 			sinkFlags.Add(c)
 			assert.Equal(t, tc.expectedFlagName, c.Flag("sink").Name)
@@ -130,6 +130,18 @@ func TestResolve(t *testing.T) {
 			Namespace:  "default",
 			Name:       "foo",
 		}}, ""},
+		{"sources.knative.dev/v1/Pingsource:foo", &duckv1.Destination{Ref: &duckv1.KReference{
+			APIVersion: "sources.knative.dev/v1",
+			Kind:       "PingSource",
+			Namespace:  "default",
+			Name:       "foo",
+		}}, ""},
+		{"sources.knative.dev/v1/PingSources:foo", &duckv1.Destination{Ref: &duckv1.KReference{
+			APIVersion: "sources.knative.dev/v1",
+			Kind:       "PingSource",
+			Namespace:  "default",
+			Name:       "foo",
+		}}, ""},
 		{"http://target.example.com", &duckv1.Destination{
 			URI: targetExampleCom,
 		}, ""},
@@ -141,7 +153,7 @@ func TestResolve(t *testing.T) {
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default", mysvc, defaultBroker, pipeChannel, pingSource)
 
 	for _, c := range cases {
-		i := &SinkFlags{c.sink}
+		i := &SinkFlags{Sink: c.sink}
 		result, err := i.ResolveSink(context.Background(), dynamicClient, "default")
 		if c.destination != nil {
 			assert.DeepEqual(t, result, c.destination)
@@ -185,7 +197,7 @@ func TestResolveWithNamespace(t *testing.T) {
 	}
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("my-namespace", mysvc, defaultBroker, pipeChannel)
 	for _, c := range cases {
-		i := &SinkFlags{c.sink}
+		i := &SinkFlags{Sink: c.sink}
 		result, err := i.ResolveSink(context.Background(), dynamicClient, "default")
 		if c.destination != nil {
 			assert.DeepEqual(t, result, c.destination)
