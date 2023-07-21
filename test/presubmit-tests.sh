@@ -39,6 +39,8 @@ export KNATIVE_EVENTING_VERSION=${KNATIVE_EVENTING_VERSION:-latest}
 source $(dirname $0)/../vendor/knative.dev/hack/presubmit-tests.sh
 source $(dirname $0)/common.sh
 
+set -x
+
 # Run cross platform build to ensure kn compiles for Linux, macOS and Windows
 function post_build_tests() {
   local failed=0
