@@ -55,11 +55,10 @@ func (i *SinkFlags) AddWithFlagName(cmd *cobra.Command, fname, short string) {
 		"Examples: '" + flag + " broker:nest' for a broker 'nest', " +
 		"'" + flag + " channel:pipe' for a channel 'pipe', " +
 		"'" + flag + " ksvc:mysvc:mynamespace' for a Knative service 'mysvc' in another namespace 'mynamespace', " +
-		"'" + flag + " https://event.receiver.uri' for an URI with an 'http://' or 'https://' schema, " +
+		"'" + flag + " https://event.receiver.uri' for an HTTP URI, " +
 		"'" + flag + " ksvc:receiver' or simply '" + flag + " receiver' for a Knative service 'receiver' in the current namespace. " +
 		"'" + flag + " special.eventing.dev/v1alpha1/channels:pipe' for GroupVersionResource of v1alpha1 'pipe'. " +
-		"If a prefix is not provided, it is considered as a Knative service in the current namespace. " +
-		"If referring to a Knative service in another namespace, 'ksvc:name:namespace' combination must be provided explicitly."
+		"If a prefix is not provided, it is considered as a Knative service in the current namespace."
 	// Use default mapping if empty
 	if i.SinkMappings == nil {
 		i.SinkMappings = defaultSinkMappings
