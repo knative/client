@@ -58,8 +58,6 @@ func (i *SinkFlags) AddWithFlagName(cmd *cobra.Command, fname, short string) {
 		"'" + flag + " https://event.receiver.uri' for an URI with an 'http://' or 'https://' schema, " +
 		"'" + flag + " ksvc:receiver' or simply '" + flag + " receiver' for a Knative service 'receiver' in the current namespace. " +
 		"'" + flag + " special.eventing.dev/v1alpha1/channels:pipe' for GroupVersionResource of v1alpha1 'pipe'. " +
-		"GroupVersionResource requires resource name in a lower case plural form. The inputs are sanitized on best effort basis, " +
-		"but in case of 'resource not found' error it may help to double check and correct the input. " +
 		"If a prefix is not provided, it is considered as a Knative service in the current namespace. " +
 		"If referring to a Knative service in another namespace, 'ksvc:name:namespace' combination must be provided explicitly."
 	// Use default mapping if empty

@@ -110,10 +110,7 @@ func NewEventtypeCreateCommand(p *commands.KnParams) *cobra.Command {
 		"You can specify a broker, channel, or fully qualified GroupVersionResource (GVR). " +
 		"Examples: '" + flag + " broker:nest' for a broker 'nest', " +
 		"'" + flag + " channel:pipe' for a channel 'pipe', " +
-		"'" + flag + " special.eventing.dev/v1alpha1/channels:pipe' for GroupVersionResource of v1alpha1 'pipe'. " +
-		"NOTE: GVR requires resource in lower case plural form. The inputs are sanitized internally, " +
-		"in case of 'resource not found' error it may help to double check the input."
-
+		"'" + flag + " special.eventing.dev/v1alpha1/channels:pipe' for GroupVersionResource of v1alpha1 'pipe'."
 	eventtypeFlags.Add(cmd)
 	return cmd
 }
