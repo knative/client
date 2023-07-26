@@ -259,7 +259,6 @@ func BuildServiceWithOptions(name string, so ...servingtest.ServiceOption) *serv
 		APIVersion: "serving.knative.dev/v1",
 	}
 	svc.Spec.Template.Spec.Containers[0].Resources = corev1.ResourceRequirements{}
-	svc.Spec.Template.Spec.Containers[0].SecurityContext = &corev1.SecurityContext{}
 	return svc
 }
 

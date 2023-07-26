@@ -237,7 +237,8 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
 	flagset.Int64VarP(&p.User, "user", "", 0, "The user ID to run the container (e.g., 1001).")
 	flagNames = append(flagNames, "user")
 
-	flagset.StringVar(&p.SecurityContext, "security-context", "strict", "Security Context definition to be added the service. Accepted values: strict | none.")
+	flagset.StringVar(&p.SecurityContext, "security-context", "none", "Predefined security context for the service. Accepted values: 'none' for no security context "+
+		"and 'strict' for dropping all capabilities, running as non-root, and no privilege escalation.")
 	flagNames = append(flagNames, "security-context")
 
 	return flagNames
@@ -413,10 +414,6 @@ func (p *PodSpecFlags) ResolvePodSpec(podSpec *corev1.PodSpec, flags *pflag.Flag
 
 	if flags.Changed("security-context") {
 		if err := UpdateSecurityContext(podSpec, p.SecurityContext); err != nil {
-			return err
-		}
-	} else {
-		if err := UpdateSecurityContext(podSpec, ""); err != nil {
 			return err
 		}
 	}

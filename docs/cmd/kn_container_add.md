@@ -47,7 +47,7 @@ kn container add NAME
       --pull-policy string            Image pull policy. Valid values (case insensitive): Always | Never | IfNotPresent
       --pull-secret string            Image pull secret to set. An empty argument ("") clears the pull secret. The referenced secret must exist in the service's namespace.
       --request strings               The resource requirement requests for this Service. For example, 'cpu=100m,memory=256Mi'. You can use this flag multiple times. To unset a resource request, append "-" to the resource name, e.g. '--request cpu-'.
-      --security-context string       Security Context definition to be added the service. Accepted values: strict | none. (default "strict")
+      --security-context string       Predefined security context for the service. Accepted values: 'none' for no security context and 'strict' for dropping all capabilities, running as non-root, and no privilege escalation. (default "none")
       --service-account string        Service account name to set. An empty argument ("") clears the service account. The referenced service account must exist in the service's namespace.
       --user int                      The user ID to run the container (e.g., 1001).
 ```

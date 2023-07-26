@@ -73,7 +73,7 @@ kn service apply s0 --filename my-svc.yml
       --scale-target int                  Recommendation for what metric value the PodAutoscaler should attempt to maintain. Use with --scale-metric flag to configure the metric name for which the target value should be maintained. Default metric name is concurrency. The flag defaults to --concurrency-limit when given.
       --scale-utilization int             Percentage of concurrent requests utilization before scaling up. (default 70)
       --scale-window string               Duration to look back for making auto-scaling decisions. The service is scaled to zero if no request was received in during that time. (eg: 10s)
-      --security-context string           Security Context definition to be added the service. Accepted values: strict | none. (default "strict")
+      --security-context string           Predefined security context for the service. Accepted values: 'none' for no security context and 'strict' for dropping all capabilities, running as non-root, and no privilege escalation. (default "none")
       --service-account string            Service account name to set. An empty argument ("") clears the service account. The referenced service account must exist in the service's namespace.
       --timeout int                       Duration in seconds that the request routing layer will wait for a request delivered to a container to begin replying (default 300)
       --user int                          The user ID to run the container (e.g., 1001).

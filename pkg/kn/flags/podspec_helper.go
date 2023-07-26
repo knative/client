@@ -386,15 +386,10 @@ func UpdateSecurityContext(spec *corev1.PodSpec, securityContext string) error {
 	switch strings.ToLower(securityContext) {
 	case "none":
 		// Blank any Security Context defined
-		container.SecurityContext = &corev1.SecurityContext{}
+		container.SecurityContext = nil
 	case "strict":
 		// Add or update Security Context to default strict
 		container.SecurityContext = DefaultStrictSecCon()
-	case "":
-		// Add default strict SC flag is not used, hence empty value
-		if container.SecurityContext == nil {
-			container.SecurityContext = DefaultStrictSecCon()
-		}
 		//TODO(dsimansk): add parsing of SC options from the flag value
 	default:
 		return fmt.Errorf("invalid --security-context %s. Valid arguments: strict | none", securityContext)
