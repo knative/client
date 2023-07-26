@@ -25,6 +25,6 @@ type EventtypeFlags struct {
 func (e *EventtypeFlags) Add(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&e.Type, "type", "t", "", "Cloud Event type")
 	cmd.Flags().StringVar(&e.Source, "source", "", "Cloud Event source")
-	cmd.Flags().StringVarP(&e.Broker, "broker", "b", "", "Cloud Event Broker. This flag is added for the convenience, since Eventing v1beta2 brokers as represented as KReference type.")
+	cmd.Flags().StringVarP(&e.Broker, "broker", "b", "", "Cloud Event Broker")
 	cmd.MarkFlagRequired("type")
 }

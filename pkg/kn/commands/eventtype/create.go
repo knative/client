@@ -108,9 +108,9 @@ func NewEventtypeCreateCommand(p *commands.KnParams) *cobra.Command {
 	flag := "reference"
 	cmd.Flag(flag).Usage = "Addressable Reference producing events. " +
 		"You can specify a broker, channel, or fully qualified GroupVersionResource (GVR). " +
-		"Examples: '" + flag + " broker:nest' for a broker 'nest', " +
-		"'" + flag + " channel:pipe' for a channel 'pipe', " +
-		"'" + flag + " special.eventing.dev/v1alpha1/channels:pipe' for GroupVersionResource of v1alpha1 'pipe'."
+		"Examples: '--" + flag + " broker:nest' for a broker 'nest', " +
+		"'--" + flag + " channel:pipe' for a channel 'pipe', " +
+		"'--" + flag + " special.eventing.dev/v1alpha1/channels:pipe' for GroupVersionResource of v1alpha1 'pipe'."
 	eventtypeFlags.Add(cmd)
 	return cmd
 }
