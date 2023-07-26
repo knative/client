@@ -1506,16 +1506,7 @@ func TestUpdateSecurityContext(t *testing.T) {
 		{
 			name: "none",
 			expected: &corev1.PodSpec{
-				Containers: []corev1.Container{{
-					SecurityContext: &corev1.SecurityContext{}}},
-			},
-			expectedError: nil,
-		},
-		{
-			name: "",
-			expected: &corev1.PodSpec{
-				Containers: []corev1.Container{
-					{SecurityContext: DefaultStrictSecCon()}},
+				Containers: []corev1.Container{{}},
 			},
 			expectedError: nil,
 		},

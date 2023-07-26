@@ -44,7 +44,7 @@ func TestPodSpecFlags(t *testing.T) {
 		Volume:          []string{},
 		Arg:             []string{},
 		Command:         []string{},
-		SecurityContext: "strict",
+		SecurityContext: "none",
 	}
 	flags := &PodSpecFlags{}
 	testCmd := &cobra.Command{
@@ -223,7 +223,6 @@ containers:
 					Limits:   corev1.ResourceList{},
 					Requests: corev1.ResourceList{},
 				},
-				SecurityContext: DefaultStrictSecCon(),
 			},
 			{
 				Name:  "foo",
@@ -398,7 +397,6 @@ func TestPodSpecResolveWithEnvFile(t *testing.T) {
 					Limits:   corev1.ResourceList{},
 					Requests: corev1.ResourceList{},
 				},
-				SecurityContext: DefaultStrictSecCon(),
 			},
 		},
 	}

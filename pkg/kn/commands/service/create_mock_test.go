@@ -18,8 +18,6 @@ import (
 	"testing"
 	"time"
 
-	"knative.dev/client/pkg/kn/flags"
-
 	"knative.dev/serving/pkg/apis/autoscaling"
 
 	"gotest.tools/v3/assert"
@@ -479,7 +477,6 @@ func getService(name string) *servingv1.Service {
 			Limits:   corev1.ResourceList{},
 			Requests: corev1.ResourceList{},
 		},
-		SecurityContext: flags.DefaultStrictSecCon(),
 	}}
 
 	return service

@@ -259,7 +259,6 @@ func BuildServiceWithOptions(name string, so ...servingtest.ServiceOption) *serv
 		APIVersion: "serving.knative.dev/v1",
 	}
 	svc.Spec.Template.Spec.Containers[0].Resources = corev1.ResourceRequirements{}
-	svc.Spec.Template.Spec.Containers[0].SecurityContext = &corev1.SecurityContext{}
 	return svc
 }
 
@@ -302,7 +301,6 @@ func BuildRevision(name string, options ...servingtest.RevisionOption) *servingv
 	rev.ObjectMeta.UID = ""
 	rev.ObjectMeta.Generation = int64(0)
 	rev.Spec.PodSpec.Containers[0].Resources = corev1.ResourceRequirements{}
-	rev.Spec.PodSpec.Containers[0].SecurityContext = &corev1.SecurityContext{}
 	return rev
 }
 
