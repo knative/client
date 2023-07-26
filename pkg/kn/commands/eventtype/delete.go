@@ -51,11 +51,11 @@ func NewEventtypeDeleteCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			eventingV1Beta1Client, err := p.NewEventingV1beta1Client(namespace)
+			eventingV1Beta2Client, err := p.NewEventingV1beta2Client(namespace)
 			if err != nil {
 				return err
 			}
-			err = eventingV1Beta1Client.DeleteEventtype(cmd.Context(), name)
+			err = eventingV1Beta2Client.DeleteEventtype(cmd.Context(), name)
 			if err != nil {
 				return fmt.Errorf(
 					"cannot delete eventtype '%s' in namespace '%s' "+

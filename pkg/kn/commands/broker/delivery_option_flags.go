@@ -15,6 +15,8 @@
 package broker
 
 import (
+	"reflect"
+
 	"github.com/spf13/cobra"
 	"knative.dev/client/pkg/dynamic"
 	"knative.dev/client/pkg/kn/commands/flags"
@@ -50,7 +52,7 @@ func (d *DeliveryOptionFlags) GetDlSink(cmd *cobra.Command, dynamicClient dynami
 	var empty = flags.SinkFlags{}
 	var destination *duckv1.Destination
 	var err error
-	if d.SinkFlags != empty {
+	if !reflect.DeepEqual(d.SinkFlags, empty) {
 		destination, err = d.SinkFlags.ResolveSink(cmd.Context(), dynamicClient, namespace)
 		if err != nil {
 			return nil, err

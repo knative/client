@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1beta1
+package v1beta2
 
 import (
 	"context"
@@ -21,35 +21,37 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	kn_errors "knative.dev/client/pkg/errors"
 	"knative.dev/client/pkg/util"
-	eventingv1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
+	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
+	eventingv1beta2 "knative.dev/eventing/pkg/apis/eventing/v1beta2"
 	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
-	beta1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1beta1"
+	beta1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1beta2"
 	"knative.dev/pkg/apis"
+	v1 "knative.dev/pkg/apis/duck/v1"
 )
 
-// KnEventingV1Beta1Client to Eventing Sources. All methods are relative to the
+// KnEventingV1Beta2Client to Eventing Sources. All methods are relative to the
 // namespace specified during construction
-type KnEventingV1Beta1Client interface {
+type KnEventingV1Beta2Client interface {
 	// Namespace in which this client is operating for
 	Namespace() string
 	// ListEventtypes is used to list eventtypes
-	ListEventtypes(ctx context.Context) (*eventingv1beta1.EventTypeList, error)
+	ListEventtypes(ctx context.Context) (*eventingv1beta2.EventTypeList, error)
 	// GetEventtype is used to describe an eventtype
-	GetEventtype(ctx context.Context, name string) (*eventingv1beta1.EventType, error)
+	GetEventtype(ctx context.Context, name string) (*eventingv1beta2.EventType, error)
 	// CreateEventtype is used to create an eventtype
-	CreateEventtype(ctx context.Context, eventtype *eventingv1beta1.EventType) error
+	CreateEventtype(ctx context.Context, eventtype *eventingv1beta2.EventType) error
 	// DeleteEventtype is used to delete an eventtype
 	DeleteEventtype(ctx context.Context, name string) error
 }
 
-// KnEventingV1Beta1Client is a client for eventing v1beta1 resources
+// KnEventingV1Beta2Client is a client for eventing v1beta2 resources
 type knEventingV1Beta1Client struct {
-	client    beta1.EventingV1beta1Interface
+	client    beta1.EventingV1beta2Interface
 	namespace string
 }
 
-// NewKnEventingV1Beta1Client is to invoke Eventing Types Client API to create object
-func NewKnEventingV1Beta1Client(client beta1.EventingV1beta1Interface, namespace string) KnEventingV1Beta1Client {
+// NewKnEventingV1Beta2Client is to invoke Eventing Types Client API to create object
+func NewKnEventingV1Beta2Client(client beta1.EventingV1beta2Interface, namespace string) KnEventingV1Beta2Client {
 	return &knEventingV1Beta1Client{
 		client:    client,
 		namespace: namespace,
@@ -57,14 +59,14 @@ func NewKnEventingV1Beta1Client(client beta1.EventingV1beta1Interface, namespace
 }
 
 func updateEventingBeta1GVK(obj runtime.Object) error {
-	return util.UpdateGroupVersionKindWithScheme(obj, eventingv1beta1.SchemeGroupVersion, scheme.Scheme)
+	return util.UpdateGroupVersionKindWithScheme(obj, eventingv1beta2.SchemeGroupVersion, scheme.Scheme)
 }
 
 func (c *knEventingV1Beta1Client) Namespace() string {
 	return c.namespace
 }
 
-func (c *knEventingV1Beta1Client) ListEventtypes(ctx context.Context) (*eventingv1beta1.EventTypeList, error) {
+func (c *knEventingV1Beta1Client) ListEventtypes(ctx context.Context) (*eventingv1beta2.EventTypeList, error) {
 	eventTypeList, err := c.client.EventTypes(c.namespace).List(ctx, apis_v1.ListOptions{})
 	if err != nil {
 		return nil, kn_errors.GetError(err)
@@ -75,7 +77,7 @@ func (c *knEventingV1Beta1Client) ListEventtypes(ctx context.Context) (*eventing
 		return nil, err
 	}
 
-	listNew.Items = make([]eventingv1beta1.EventType, len(eventTypeList.Items))
+	listNew.Items = make([]eventingv1beta2.EventType, len(eventTypeList.Items))
 	for idx, eventType := range eventTypeList.Items {
 		clone := eventType.DeepCopy()
 		err := updateEventingBeta1GVK(clone)
@@ -87,7 +89,7 @@ func (c *knEventingV1Beta1Client) ListEventtypes(ctx context.Context) (*eventing
 	return listNew, nil
 }
 
-func (c *knEventingV1Beta1Client) GetEventtype(ctx context.Context, name string) (*eventingv1beta1.EventType, error) {
+func (c *knEventingV1Beta1Client) GetEventtype(ctx context.Context, name string) (*eventingv1beta2.EventType, error) {
 	eventType, err := c.client.EventTypes(c.namespace).Get(ctx, name, apis_v1.GetOptions{})
 	if err != nil {
 		return nil, kn_errors.GetError(err)
@@ -107,7 +109,7 @@ func (c *knEventingV1Beta1Client) DeleteEventtype(ctx context.Context, name stri
 	return nil
 }
 
-func (c *knEventingV1Beta1Client) CreateEventtype(ctx context.Context, eventtype *eventingv1beta1.EventType) error {
+func (c *knEventingV1Beta1Client) CreateEventtype(ctx context.Context, eventtype *eventingv1beta2.EventType) error {
 	_, err := c.client.EventTypes(c.namespace).Create(ctx, eventtype, apis_v1.CreateOptions{})
 	if err != nil {
 		return kn_errors.GetError(err)
@@ -117,12 +119,12 @@ func (c *knEventingV1Beta1Client) CreateEventtype(ctx context.Context, eventtype
 
 // EventtypeBuilder is for building the eventtype
 type EventtypeBuilder struct {
-	eventtype *eventingv1beta1.EventType
+	eventtype *eventingv1beta2.EventType
 }
 
 // NewEventtypeBuilder for building eventtype object
 func NewEventtypeBuilder(name string) *EventtypeBuilder {
-	return &EventtypeBuilder{eventtype: &eventingv1beta1.EventType{
+	return &EventtypeBuilder{eventtype: &eventingv1beta2.EventType{
 		ObjectMeta: apis_v1.ObjectMeta{
 			Name: name,
 		},
@@ -155,11 +157,21 @@ func (e *EventtypeBuilder) Source(source *apis.URL) *EventtypeBuilder {
 
 // Broker for eventtype builder
 func (e *EventtypeBuilder) Broker(broker string) *EventtypeBuilder {
-	e.eventtype.Spec.Broker = broker
+	e.eventtype.Spec.Reference = &v1.KReference{
+		APIVersion: eventingv1.SchemeGroupVersion.String(),
+		Kind:       "Broker",
+		Name:       broker,
+	}
+	return e
+}
+
+// Reference for eventtype builder
+func (e *EventtypeBuilder) Reference(ref *v1.KReference) *EventtypeBuilder {
+	e.eventtype.Spec.Reference = ref
 	return e
 }
 
 // Build to return an instance of eventtype object
-func (e *EventtypeBuilder) Build() *eventingv1beta1.EventType {
+func (e *EventtypeBuilder) Build() *eventingv1beta2.EventType {
 	return e.eventtype
 }

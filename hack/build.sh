@@ -110,6 +110,7 @@ codegen() {
 
   # Auto generate cli docs
   generate_docs
+
 }
 
 go_fmt() {

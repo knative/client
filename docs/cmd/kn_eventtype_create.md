@@ -21,9 +21,10 @@ kn eventtype create
 ### Options
 
 ```
-  -b, --broker string      Cloud Event broker
+  -b, --broker string      Cloud Event Broker
   -h, --help               help for create
   -n, --namespace string   Specify the namespace to operate in.
+  -r, --reference string   Addressable Reference producing events. You can specify a broker, channel, or fully qualified GroupVersionResource (GVR). Examples: '--reference broker:nest' for a broker 'nest', '--reference channel:pipe' for a channel 'pipe', '--reference special.eventing.dev/v1alpha1/channels:pipe' for GroupVersionResource of v1alpha1 'pipe'.
       --source string      Cloud Event source
   -t, --type string        Cloud Event type
 ```

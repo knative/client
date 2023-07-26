@@ -21,7 +21,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	clienteventingv1beta1 "knative.dev/client/pkg/eventing/v1beta1"
+	clienteventingv1beta2 "knative.dev/client/pkg/eventing/v1beta2"
 	"knative.dev/client/pkg/kn/commands"
 	knflags "knative.dev/client/pkg/kn/commands/flags"
 	"knative.dev/pkg/apis"
@@ -39,6 +39,9 @@ var createExample = `
 func NewEventtypeCreateCommand(p *commands.KnParams) *cobra.Command {
 
 	var eventtypeFlags knflags.EventtypeFlags
+
+	referenceFlag := knflags.NewSinkFlag(referenceMappings)
+
 	cmd := &cobra.Command{
 		Use:     "create",
 		Short:   "Create eventtype",
@@ -49,30 +52,49 @@ func NewEventtypeCreateCommand(p *commands.KnParams) *cobra.Command {
 			}
 			name := args[0]
 
+			if eventtypeFlags.Broker != "" && referenceFlag.Sink != "" {
+				return errors.New("use only one of '--broker' or '--reference' flags")
+			}
+
 			namespace, err := p.GetNamespace(cmd)
 			if err != nil {
 				return eventtypeCreateError(name, namespace, err)
 			}
 
-			eventingV1Beta1Client, err := p.NewEventingV1beta1Client(namespace)
+			eventingV1Beta2Client, err := p.NewEventingV1beta2Client(namespace)
+			if err != nil {
+				return err
+			}
+
+			dynamicClient, err := p.NewDynamicClient(namespace)
 			if err != nil {
 				return err
 			}
 			var source *apis.URL
+
 			if eventtypeFlags.Source != "" {
 				source, err = apis.ParseURL(eventtypeFlags.Source)
 				if err != nil {
 					return eventtypeCreateError(name, namespace, err)
 				}
 			}
-			eventtype := clienteventingv1beta1.NewEventtypeBuilder(name).
+			etBuilder := clienteventingv1beta2.NewEventtypeBuilder(name).
 				Namespace(namespace).
 				Type(eventtypeFlags.Type).
-				Source(source).
-				Broker(eventtypeFlags.Broker).
-				Build()
+				Source(source)
 
-			err = eventingV1Beta1Client.CreateEventtype(cmd.Context(), eventtype)
+			if eventtypeFlags.Broker != "" {
+				etBuilder.Broker(eventtypeFlags.Broker)
+			}
+
+			if referenceFlag.Sink != "" {
+				dest, err := referenceFlag.ResolveSink(cmd.Context(), dynamicClient, namespace)
+				if err != nil {
+					return eventtypeCreateError(name, namespace, err)
+				}
+				etBuilder.Reference(dest.Ref)
+			}
+			err = eventingV1Beta2Client.CreateEventtype(cmd.Context(), etBuilder.Build())
 			if err != nil {
 				return eventtypeCreateError(name, namespace, err)
 			}
@@ -82,6 +104,13 @@ func NewEventtypeCreateCommand(p *commands.KnParams) *cobra.Command {
 	}
 	commands.AddNamespaceFlags(cmd.Flags(), false)
 
+	referenceFlag.AddWithFlagName(cmd, "reference", "r")
+	flag := "reference"
+	cmd.Flag(flag).Usage = "Addressable Reference producing events. " +
+		"You can specify a broker, channel, or fully qualified GroupVersionResource (GVR). " +
+		"Examples: '--" + flag + " broker:nest' for a broker 'nest', " +
+		"'--" + flag + " channel:pipe' for a channel 'pipe', " +
+		"'--" + flag + " special.eventing.dev/v1alpha1/channels:pipe' for GroupVersionResource of v1alpha1 'pipe'."
 	eventtypeFlags.Add(cmd)
 	return cmd
 }

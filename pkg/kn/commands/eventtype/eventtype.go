@@ -18,6 +18,7 @@ package eventtype
 
 import (
 	"github.com/spf13/cobra"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	"knative.dev/client/pkg/kn/commands"
 )
@@ -34,4 +35,17 @@ func NewEventTypeCommand(p *commands.KnParams) *cobra.Command {
 	eventCmd.AddCommand(NewEventtypeCreateCommand(p))
 	eventCmd.AddCommand(NewEventtypeDeleteCommand(p))
 	return eventCmd
+}
+
+var referenceMappings = map[string]schema.GroupVersionResource{
+	"broker": {
+		Resource: "brokers",
+		Group:    "eventing.knative.dev",
+		Version:  "v1",
+	},
+	"channel": {
+		Resource: "channels",
+		Group:    "messaging.knative.dev",
+		Version:  "v1",
+	},
 }

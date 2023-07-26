@@ -24,7 +24,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
-	eventingv1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
+	"knative.dev/eventing/pkg/apis/eventing/v1beta2"
 
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/printers"
@@ -62,7 +62,7 @@ func NewEventtypeDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			eventingV1Beta1Client, err := p.NewEventingV1beta1Client(namespace)
+			eventingV1Beta1Client, err := p.NewEventingV1beta2Client(namespace)
 			if err != nil {
 				return err
 			}
@@ -91,7 +91,7 @@ func NewEventtypeDescribeCommand(p *commands.KnParams) *cobra.Command {
 }
 
 // describeEventtype prints eventtype details to the provided output writer
-func describeEventtype(out io.Writer, eventtype *eventingv1beta1.EventType, printDetails bool) error {
+func describeEventtype(out io.Writer, eventtype *v1beta2.EventType, printDetails bool) error {
 	var source string
 	if eventtype.Spec.Source != nil {
 		source = eventtype.Spec.Source.String()
@@ -99,7 +99,15 @@ func describeEventtype(out io.Writer, eventtype *eventingv1beta1.EventType, prin
 	dw := printers.NewPrefixWriter(out)
 	commands.WriteMetadata(dw, &eventtype.ObjectMeta, printDetails)
 	dw.WriteAttribute("Source", source)
-	dw.WriteAttribute("Broker", eventtype.Spec.Broker)
+	refW := dw.WriteAttribute("Reference", "")
+	if eventtype.Spec.Reference != nil {
+		refW.WriteAttribute("APIVersion", eventtype.Spec.Reference.APIVersion)
+		refW.WriteAttribute("Kind", eventtype.Spec.Reference.Kind)
+		refW.WriteAttribute("Name", eventtype.Spec.Reference.Name)
+		if eventtype.Namespace != "" && eventtype.Namespace != eventtype.Spec.Reference.Namespace {
+			refW.WriteAttribute("Namespace", eventtype.Spec.Reference.Namespace)
+		}
+	}
 	dw.WriteLine()
 	dw.WriteLine()
 	commands.WriteConditions(dw, eventtype.Status.Conditions, printDetails)

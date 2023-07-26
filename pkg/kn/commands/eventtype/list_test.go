@@ -21,15 +21,18 @@ import (
 	"strings"
 	"testing"
 
+	dynamicfake "knative.dev/client/pkg/dynamic/fake"
+
 	"gotest.tools/v3/assert"
-	"knative.dev/client/pkg/eventing/v1beta1"
+	"knative.dev/client/pkg/eventing/v1beta2"
 	"knative.dev/client/pkg/util"
-	eventingv1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
+	eventingv1beta2 "knative.dev/eventing/pkg/apis/eventing/v1beta2"
 	"knative.dev/eventing/pkg/client/clientset/versioned/scheme"
 )
 
 func TestEventtypeList(t *testing.T) {
-	eventingClient := v1beta1.NewMockKnEventingV1beta1Client(t, testNs)
+	eventingClient := v1beta2.NewMockKnEventingV1beta2Client(t, testNs)
+	dynamicClient := dynamicfake.CreateFakeKnDynamicClient(testNs)
 
 	eventingRecorder := eventingClient.Recorder()
 
@@ -37,18 +40,18 @@ func TestEventtypeList(t *testing.T) {
 	eventtype2 := getEventtype("foo2", testNs)
 	eventtype3 := getEventtype("foo3", testNs)
 
-	eventtypeList := &eventingv1beta1.EventTypeList{Items: []eventingv1beta1.EventType{*eventtype1, *eventtype2, *eventtype3}}
+	eventtypeList := &eventingv1beta2.EventTypeList{Items: []eventingv1beta2.EventType{*eventtype1, *eventtype2, *eventtype3}}
 
-	util.UpdateGroupVersionKindWithScheme(eventtypeList, eventingv1beta1.SchemeGroupVersion, scheme.Scheme)
+	util.UpdateGroupVersionKindWithScheme(eventtypeList, eventingv1beta2.SchemeGroupVersion, scheme.Scheme)
 
 	t.Run("default output", func(t *testing.T) {
 		eventingRecorder.ListEventtypes(eventtypeList, nil)
 
-		output, err := executeEventtypeCommand(eventingClient, "list")
+		output, err := executeEventtypeCommand(eventingClient, dynamicClient, "list")
 		assert.NilError(t, err)
 
 		outputLines := strings.Split(output, "\n")
-		assert.Check(t, util.ContainsAll(outputLines[0], "NAME", "T", "SOURCE", "BROKER", "AGE", "READY"))
+		assert.Check(t, util.ContainsAll(outputLines[0], "NAME", "T", "SOURCE", "REFERENCE", "AGE", "READY"))
 		assert.Check(t, util.ContainsAll(outputLines[1], "foo1", cetype, testBroker, testSource, "True"))
 		assert.Check(t, util.ContainsAll(outputLines[2], "foo2", cetype, testBroker, testSource, "True"))
 		assert.Check(t, util.ContainsAll(outputLines[3], "foo3", cetype, testBroker, testSource, "True"))
@@ -59,10 +62,10 @@ func TestEventtypeList(t *testing.T) {
 	t.Run("json format output", func(t *testing.T) {
 		eventingRecorder.ListEventtypes(eventtypeList, nil)
 
-		output, err := executeEventtypeCommand(eventingClient, "list", "-o", "json")
+		output, err := executeEventtypeCommand(eventingClient, dynamicClient, "list", "-o", "json")
 		assert.NilError(t, err)
 
-		result := eventingv1beta1.EventTypeList{}
+		result := eventingv1beta2.EventTypeList{}
 		err = json.Unmarshal([]byte(output), &result)
 		assert.NilError(t, err)
 		assert.DeepEqual(t, eventtypeList.Items, result.Items)
@@ -73,11 +76,11 @@ func TestEventtypeList(t *testing.T) {
 	t.Run("all namespaces", func(t *testing.T) {
 		eventingRecorder.ListEventtypes(eventtypeList, nil)
 
-		output, err := executeEventtypeCommand(eventingClient, "list", "--all-namespaces")
+		output, err := executeEventtypeCommand(eventingClient, dynamicClient, "list", "--all-namespaces")
 		assert.NilError(t, err)
 
 		outputLines := strings.Split(output, "\n")
-		assert.Check(t, util.ContainsAll(outputLines[0], "NAMESPACE", "NAME", "T", "SOURCE", "BROKER", "AGE", "READY"))
+		assert.Check(t, util.ContainsAll(outputLines[0], "NAMESPACE", "NAME", "T", "SOURCE", "REFERENCE", "AGE", "READY"))
 		assert.Check(t, util.ContainsAll(outputLines[1], "foo1", testNs, cetype, testBroker, testSource, "True"))
 		assert.Check(t, util.ContainsAll(outputLines[2], "foo2", testNs, cetype, testBroker, testSource, "True"))
 		assert.Check(t, util.ContainsAll(outputLines[3], "foo3", testNs, cetype, testBroker, testSource, "True"))
@@ -87,12 +90,13 @@ func TestEventtypeList(t *testing.T) {
 }
 
 func TestEventtypeListEmpty(t *testing.T) {
-	eventingClient := v1beta1.NewMockKnEventingV1beta1Client(t, testNs)
+	eventingClient := v1beta2.NewMockKnEventingV1beta2Client(t, testNs)
+	dynamicClient := dynamicfake.CreateFakeKnDynamicClient(testNs)
 
 	eventingRecorder := eventingClient.Recorder()
 
-	eventingRecorder.ListEventtypes(&eventingv1beta1.EventTypeList{}, nil)
-	output, err := executeEventtypeCommand(eventingClient, "list")
+	eventingRecorder.ListEventtypes(&eventingv1beta2.EventTypeList{}, nil)
+	output, err := executeEventtypeCommand(eventingClient, dynamicClient, "list")
 	assert.NilError(t, err)
 	assert.Assert(t, util.ContainsAll(output, "No", "eventtypes", "found"))
 
