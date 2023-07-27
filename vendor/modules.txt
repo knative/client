@@ -938,7 +938,7 @@ k8s.io/utils/net
 k8s.io/utils/pointer
 k8s.io/utils/strings/slices
 k8s.io/utils/trace
-# knative.dev/client-pkg v0.0.0-20230712132715-e9d838e71fa4
+# knative.dev/client-pkg v0.0.0-20230726202841-bd83cf476909
 ## explicit; go 1.18
 knative.dev/client-pkg/pkg/kn/plugin
 # knative.dev/eventing v0.38.0
