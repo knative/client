@@ -18,7 +18,6 @@
 package e2e
 
 import (
-	"os"
 	"testing"
 
 	"gotest.tools/v3/assert"
@@ -38,10 +37,6 @@ const (
 )
 
 func TestEventtype(t *testing.T) {
-	//FIXME: enable after Eventing v1.11 is out
-	if os.Getenv("LATEST_RELEASE") == "true" {
-		t.Skip("The tests are skipped on Eventing v1.10")
-	}
 	t.Parallel()
 	it, err := test.NewKnTest()
 	assert.NilError(t, err)
