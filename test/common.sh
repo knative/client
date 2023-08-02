@@ -41,7 +41,7 @@ function install_istio() {
   (
     cd $NET_ISTIO_DIR \
       && git init \
-      && git remote add origin https://github.com/knative-sandbox/net-istio.git \
+      && git remote add origin https://github.com/knative-extensions/net-istio.git \
       && git fetch --depth 1 origin $LATEST_NET_ISTIO_RELEASE_VERSION \
       && git checkout FETCH_HEAD
   )
@@ -88,7 +88,7 @@ function knative_setup() {
     # Serving and Net-Istio versions may differ on patch lvl
     start_knative_serving "https://storage.googleapis.com/knative-releases/serving/previous/v${serving_version}/serving-crds.yaml" \
       "https://storage.googleapis.com/knative-releases/serving/previous/v${serving_version}/serving-core.yaml" \
-      "https://storage.googleapis.com/knative-releases/net-istio/previous/v$(get_latest_release_version "knative-sandbox" "net-istio")/net-istio.yaml"
+      "https://storage.googleapis.com/knative-releases/net-istio/previous/v$(get_latest_release_version "knative-extensions" "net-istio")/net-istio.yaml"
   fi
 
   if ! is_ingress_class istio; then
