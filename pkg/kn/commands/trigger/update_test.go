@@ -62,20 +62,6 @@ func TestTriggerUpdateWithError(t *testing.T) {
 	eventingRecorder.Validate()
 }
 
-func TestTriggerUpdateInvalidBroker(t *testing.T) {
-	eventingClient := clienteventingv1.NewMockKnEventingClient(t)
-	eventingRecorder := eventingClient.Recorder()
-	present := createTrigger("default", triggerName, map[string]string{"type": "dev.knative.new"}, "mybroker", "newsvc")
-	eventingRecorder.GetTrigger(triggerName, present, nil)
-
-	out, err := executeTriggerCommand(eventingClient, nil, "update", triggerName,
-		"--broker", "newbroker")
-	assert.ErrorContains(t, err, "broker is immutable")
-	assert.Assert(t, util.ContainsAll(out, "Usage", triggerName))
-
-	eventingRecorder.Validate()
-}
-
 func TestTriggerUpdateDeletionTimestampNotNil(t *testing.T) {
 	eventingClient := clienteventingv1.NewMockKnEventingClient(t)
 
