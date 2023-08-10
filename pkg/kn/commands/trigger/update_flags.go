@@ -50,7 +50,10 @@ func (f *TriggerUpdateFlags) GetUpdateFilters() (map[string]string, []string, er
 
 // Add is to set parameters
 func (f *TriggerUpdateFlags) Add(cmd *cobra.Command) {
-	cmd.Flags().StringVar(&f.Broker, "broker", "default", "Name of the Broker which the trigger associates with.")
+	if cmd.Name() != "update" {
+		// Spec.Broker is immutable field
+		cmd.Flags().StringVar(&f.Broker, "broker", "default", "Name of the Broker which the trigger associates with.")
+	}
 	// The Sugar controller was integrated into main Eventing controller. With that the default behavior was changed as well.
 	// Users need to configure 'Automatic Broker Creation' per linked docs.
 	// Deprecated in 1.4, remove in 1.6.
