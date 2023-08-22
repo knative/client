@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1alpha1
+package v1beta1
 
 import (
 	"context"
 	"testing"
 
-	"knative.dev/serving/pkg/apis/serving/v1alpha1"
+	"knative.dev/serving/pkg/apis/serving/v1beta1"
 )
 
 func TestMockKnClient(t *testing.T) {
@@ -28,22 +28,22 @@ func TestMockKnClient(t *testing.T) {
 	recorder := client.Recorder()
 
 	// Record all services
-	recorder.GetDomainMapping("hello.foo.bar", &v1alpha1.DomainMapping{}, nil)
-	recorder.CreateDomainMapping(&v1alpha1.DomainMapping{}, nil)
+	recorder.GetDomainMapping("hello.foo.bar", &v1beta1.DomainMapping{}, nil)
+	recorder.CreateDomainMapping(&v1beta1.DomainMapping{}, nil)
 	recorder.DeleteDomainMapping("hello.foo.bar", nil)
-	recorder.UpdateDomainMapping(&v1alpha1.DomainMapping{}, nil)
+	recorder.UpdateDomainMapping(&v1beta1.DomainMapping{}, nil)
 
-	recorder.GetDomainMapping("hello.foo.bar", &v1alpha1.DomainMapping{}, nil)
-	recorder.UpdateDomainMapping(&v1alpha1.DomainMapping{}, nil)
-	recorder.ListDomainMappings(&v1alpha1.DomainMappingList{}, nil)
+	recorder.GetDomainMapping("hello.foo.bar", &v1beta1.DomainMapping{}, nil)
+	recorder.UpdateDomainMapping(&v1beta1.DomainMapping{}, nil)
+	recorder.ListDomainMappings(&v1beta1.DomainMappingList{}, nil)
 
 	// Call all services
 	ctx := context.Background()
 	client.GetDomainMapping(ctx, "hello.foo.bar")
-	client.CreateDomainMapping(ctx, &v1alpha1.DomainMapping{})
+	client.CreateDomainMapping(ctx, &v1beta1.DomainMapping{})
 	client.DeleteDomainMapping(ctx, "hello.foo.bar")
-	client.UpdateDomainMapping(ctx, &v1alpha1.DomainMapping{})
-	client.UpdateDomainMappingWithRetry(ctx, "hello.foo.bar", func(origDomain *v1alpha1.DomainMapping) (*v1alpha1.DomainMapping, error) {
+	client.UpdateDomainMapping(ctx, &v1beta1.DomainMapping{})
+	client.UpdateDomainMappingWithRetry(ctx, "hello.foo.bar", func(origDomain *v1beta1.DomainMapping) (*v1beta1.DomainMapping, error) {
 		return origDomain, nil
 	}, 10)
 	client.ListDomainMappings(ctx)

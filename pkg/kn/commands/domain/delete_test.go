@@ -21,12 +21,12 @@ import (
 	"gotest.tools/v3/assert"
 
 	dynamicfake "knative.dev/client/pkg/dynamic/fake"
-	"knative.dev/client/pkg/serving/v1alpha1"
+	"knative.dev/client/pkg/serving/v1beta1"
 	"knative.dev/client/pkg/util"
 )
 
 func TestDomainMappingDelete(t *testing.T) {
-	client := v1alpha1.NewMockKnServiceClient(t)
+	client := v1beta1.NewMockKnServiceClient(t)
 
 	servingRecorder := client.Recorder()
 	servingRecorder.DeleteDomainMapping("foo.bar", nil)
@@ -39,7 +39,7 @@ func TestDomainMappingDelete(t *testing.T) {
 }
 
 func TestDomainMappingDeleteNotFound(t *testing.T) {
-	client := v1alpha1.NewMockKnServiceClient(t)
+	client := v1beta1.NewMockKnServiceClient(t)
 
 	servingRecorder := client.Recorder()
 	servingRecorder.DeleteDomainMapping("foo.bar", errors.New("domainmappings.serving.knative.dev \"foo.bar\" not found"))
@@ -52,7 +52,7 @@ func TestDomainMappingDeleteNotFound(t *testing.T) {
 }
 
 func TestDomainMappingDeleteWithError(t *testing.T) {
-	client := v1alpha1.NewMockKnServiceClient(t)
+	client := v1beta1.NewMockKnServiceClient(t)
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient(client.Namespace(), createService("foo"))
 
 	// No call should be recorded

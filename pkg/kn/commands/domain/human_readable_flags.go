@@ -17,7 +17,7 @@ package domain
 import (
 	metav1beta1 "k8s.io/apimachinery/pkg/apis/meta/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"knative.dev/serving/pkg/apis/serving/v1alpha1"
+	"knative.dev/serving/pkg/apis/serving/v1beta1"
 
 	"knative.dev/client/pkg/kn/commands"
 	hprinters "knative.dev/client/pkg/printers"
@@ -37,7 +37,7 @@ func DomainMappingListHandlers(h hprinters.PrintHandler) {
 }
 
 // printDomainMappingList populates the Knative domain mapping list table rows
-func printDomainMappingList(domainMappingList *v1alpha1.DomainMappingList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+func printDomainMappingList(domainMappingList *v1beta1.DomainMappingList, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	rows := make([]metav1beta1.TableRow, 0, len(domainMappingList.Items))
 	for i := range domainMappingList.Items {
 		dm := &domainMappingList.Items[i]
@@ -51,7 +51,7 @@ func printDomainMappingList(domainMappingList *v1alpha1.DomainMappingList, optio
 }
 
 // printDomainMapping populates the Knative domain mapping table rows
-func printDomainMapping(domainMapping *v1alpha1.DomainMapping, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
+func printDomainMapping(domainMapping *v1beta1.DomainMapping, options hprinters.PrintOptions) ([]metav1beta1.TableRow, error) {
 	name := domainMapping.Name
 	url := domainMapping.Status.URL
 	ready := commands.ReadyCondition(domainMapping.Status.Conditions)

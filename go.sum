@@ -95,7 +95,6 @@ github.com/envoyproxy/go-control-plane v0.9.7/go.mod h1:cwu0lG7PUMfa9snN8LXBig5y
 github.com/envoyproxy/go-control-plane v0.9.9-0.20201210154907-fd9021fe5dad/go.mod h1:cXg6YxExXjJnVBQHBLXeUAgxn2UodCpnH306RInaBQk=
 github.com/envoyproxy/go-control-plane v0.9.9-0.20210512163311-63b5d3c536b0/go.mod h1:hliV/p42l8fGbc6Y9bQ70uLwIvmJyVE5k4iMKlh8wCQ=
 github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
-github.com/evanphx/json-patch v0.5.2/go.mod h1:ZWS5hhDbVDyob71nXKNL0+PWn6ToqBHMikGIFbs31qQ=
 github.com/evanphx/json-patch v5.6.0+incompatible h1:jBYDEEiFBPxA0v50tFdvOzQQTCvpL6mnFh5mB2/l16U=
 github.com/evanphx/json-patch v5.6.0+incompatible/go.mod h1:50XU6AFN0ol/bzJsmQLiYLvXMP4fmwYFNcr97nuDLSk=
 github.com/evanphx/json-patch/v5 v5.6.0 h1:b91NhWfaz02IuVxO9faSllyAtNXHMPkC5J8sJCLunww=
@@ -666,8 +665,8 @@ golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7/go.mod h1:I/5z698sn9Ka8T
 golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
-gomodules.xyz/jsonpatch/v2 v2.2.0 h1:4pT439QV83L+G9FkcCriY6EkpcK6r6bK+A5FBUMI7qY=
-gomodules.xyz/jsonpatch/v2 v2.2.0/go.mod h1:WXp+iVDkoLQqPudfQ9GBlwB2eZ5DKOnjQZCYdOS8GPY=
+gomodules.xyz/jsonpatch/v2 v2.3.0 h1:8NFhfS6gzxNqjLIYnZxg319wZ5Qjnx4m/CcX+Klzazc=
+gomodules.xyz/jsonpatch/v2 v2.3.0/go.mod h1:AH3dM2RI6uoBZxn3LVrfvJ3E0/9dG4cSrbuBJT4moAY=
 google.golang.org/api v0.4.0/go.mod h1:8k5glujaEP+g9n7WNsDg8QP6cUVNI86fCNMcbazEtwE=
 google.golang.org/api v0.7.0/go.mod h1:WtwebWUNSVBH/HAw79HIFXZNqEvBhG+Ra+ax0hx3E3M=
 google.golang.org/api v0.8.0/go.mod h1:o4eAsZoiT+ibD93RtjEohWalFOjRDx6CVaqeizhEnKg=
@@ -842,12 +841,12 @@ knative.dev/eventing v0.38.1-0.20230815095940-29ac3eee64a4 h1:619xUZrwrv3xuterMg
 knative.dev/eventing v0.38.1-0.20230815095940-29ac3eee64a4/go.mod h1:InEIckt+XICxXXYy2P4kqEJ4nMDXqI1iCUZ84vGDRbM=
 knative.dev/hack v0.0.0-20230815012940-044c02b7a447 h1:Lr4O/WEyZHuUBFbqATYdQlfLXvhPUCluF4zlgRi59T4=
 knative.dev/hack v0.0.0-20230815012940-044c02b7a447/go.mod h1:yk2OjGDsbEnQjfxdm0/HJKS2WqTLEFg/N6nUs6Rqx3Q=
-knative.dev/networking v0.0.0-20230815014240-ed0534b4ef83 h1:F1tP5OIXfk2YX/0KE+8DyuFw8bNrWzQSWXRba6k/aVQ=
-knative.dev/networking v0.0.0-20230815014240-ed0534b4ef83/go.mod h1:Ao0oO/s5ARZP2jllEoGWbLgpCb2nI4OCUutylpSyxpw=
-knative.dev/pkg v0.0.0-20230815012542-6519affc772b h1:Gr7PGAgYAMvihhoF7fskqRLmqX/Mt+/su2t81KFpgRc=
-knative.dev/pkg v0.0.0-20230815012542-6519affc772b/go.mod h1:D9D8LkOtlJBC09i+6nbTdZ5LAKsAbTJkkGGXEh2BPYI=
-knative.dev/serving v0.38.1-0.20230815122740-5e20e1e82550 h1:0+LkICVjcTWTUWvhPddxhmvxttwpBdGx92msRoTQ1pM=
-knative.dev/serving v0.38.1-0.20230815122740-5e20e1e82550/go.mod h1:XNvj91QrfYWMMLSVo42q6P4X6XtNeOUKIEM5dwMjgGA=
+knative.dev/networking v0.0.0-20230817140742-4bfcc9fb6012 h1:eaeZPgJzsJMnJaekbG8TYAfF/PUX8Xmdb8Oqnb+QO1k=
+knative.dev/networking v0.0.0-20230817140742-4bfcc9fb6012/go.mod h1:iGxfnvUJ3gGqtKnoOXhLzNCZeGxVnH4xdClYuh5vB4o=
+knative.dev/pkg v0.0.0-20230815132840-4f651e092853 h1:OyAYpXLa/jQWClFxRegCccGySyX2/1BVRtKaAWRE/xM=
+knative.dev/pkg v0.0.0-20230815132840-4f651e092853/go.mod h1:Y5Tis5nMoapB9iTZywW20Qnv/7LBahrtHz9Sm6+l3LE=
+knative.dev/serving v0.38.1-0.20230818202718-e9425f8d5260 h1:3lhCzzCQp+KHS5Ms+9YUw64iiZy0VSxWTmXNXdY4cZE=
+knative.dev/serving v0.38.1-0.20230818202718-e9425f8d5260/go.mod h1:NV6PfPFIjLoDdm9sgo1ccvWG6owBZeQld/bNxWt/8D0=
 rsc.io/binaryregexp v0.2.0/go.mod h1:qTv7/COck+e2FymRvadv62gMdZztPaShugOCi3I+8D8=
 rsc.io/quote/v3 v3.1.0/go.mod h1:yEA65RcK8LyAZtP9Kv3t0HmxON59tX3rD+tICJqUlj0=
 rsc.io/sampler v1.3.0/go.mod h1:T1hPZKmBbMNahiBKFy5HrXp6adAjACjK9JXDnKaTXpA=

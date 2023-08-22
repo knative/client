@@ -44,7 +44,7 @@ func NewDomainMappingDeleteCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			client, err := p.NewServingV1alpha1Client(namespace)
+			client, err := p.NewServingV1beta1Client(namespace)
 			if err != nil {
 				return err
 			}

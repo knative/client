@@ -25,7 +25,7 @@ import (
 
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/printers"
-	"knative.dev/serving/pkg/apis/serving/v1alpha1"
+	"knative.dev/serving/pkg/apis/serving/v1beta1"
 )
 
 // NewDomainMappingDescribeCommand represents 'kn route describe' command
@@ -48,7 +48,7 @@ func NewDomainMappingDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			client, err := p.NewServingV1alpha1Client(namespace)
+			client, err := p.NewServingV1beta1Client(namespace)
 			if err != nil {
 				return err
 			}
@@ -84,7 +84,7 @@ func NewDomainMappingDescribeCommand(p *commands.KnParams) *cobra.Command {
 	return cmd
 }
 
-func describe(w io.Writer, domainMapping *v1alpha1.DomainMapping, printDetails bool) error {
+func describe(w io.Writer, domainMapping *v1beta1.DomainMapping, printDetails bool) error {
 	dw := printers.NewPrefixWriter(w)
 	commands.WriteMetadata(dw, &domainMapping.ObjectMeta, printDetails)
 	dw.WriteLine()

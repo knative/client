@@ -223,7 +223,7 @@ func completeDomain(config *completionConfig) (suggestions []string) {
 	if err != nil {
 		return
 	}
-	client, err := config.params.NewServingV1alpha1Client(namespace)
+	client, err := config.params.NewServingV1beta1Client(namespace)
 	if err != nil {
 		return
 	}

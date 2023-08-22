@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1alpha1
+package v1beta1
 
 import (
 	"context"
@@ -30,9 +30,9 @@ import (
 
 	"knative.dev/client/pkg/util"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
-	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
+	servingv1beta1 "knative.dev/serving/pkg/apis/serving/v1beta1"
 	"knative.dev/serving/pkg/client/clientset/versioned/scheme"
-	servingv1alpha1fake "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake"
+	servingv1beta1fake "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1beta1/fake"
 )
 
 const (
@@ -40,8 +40,8 @@ const (
 	domainMappingResource = "domainmappings"
 )
 
-func setup() (serving servingv1alpha1fake.FakeServingV1alpha1, client KnServingClient) {
-	serving = servingv1alpha1fake.FakeServingV1alpha1{Fake: &clienttesting.Fake{}}
+func setup() (serving servingv1beta1fake.FakeServingV1beta1, client KnServingClient) {
+	serving = servingv1beta1fake.FakeServingV1beta1{Fake: &clienttesting.Fake{}}
 	client = NewKnServingClient(&serving, testNamespace)
 	return
 }
@@ -61,7 +61,7 @@ func TestGetDomainMapping(t *testing.T) {
 			if name == domainName {
 				return true, dm, nil
 			}
-			return true, nil, errors.NewNotFound(servingv1alpha1.Resource("dm"), name)
+			return true, nil, errors.NewNotFound(servingv1beta1.Resource("dm"), name)
 		})
 
 	t.Run("get domain mapping by name returns object", func(t *testing.T) {
@@ -188,7 +188,7 @@ func TestUpdateDomainMappingWithRetry(t *testing.T) {
 		})
 
 	t.Run("Update domain mapping successfully without any retries", func(t *testing.T) {
-		err := client.UpdateDomainMappingWithRetry(context.Background(), domainName, func(domain *servingv1alpha1.DomainMapping) (*servingv1alpha1.DomainMapping, error) {
+		err := client.UpdateDomainMappingWithRetry(context.Background(), domainName, func(domain *servingv1beta1.DomainMapping) (*servingv1beta1.DomainMapping, error) {
 			return domain, nil
 		}, maxAttempts)
 		assert.NilError(t, err, "No retries required as no conflict error occurred")
@@ -196,7 +196,7 @@ func TestUpdateDomainMappingWithRetry(t *testing.T) {
 
 	t.Run("Update domain mapping with retry after max retries", func(t *testing.T) {
 		attemptCount = maxAttempts - 1
-		err := client.UpdateDomainMappingWithRetry(context.Background(), domainName, func(domain *servingv1alpha1.DomainMapping) (*servingv1alpha1.DomainMapping, error) {
+		err := client.UpdateDomainMappingWithRetry(context.Background(), domainName, func(domain *servingv1beta1.DomainMapping) (*servingv1beta1.DomainMapping, error) {
 			return domain, nil
 		}, maxAttempts)
 		assert.NilError(t, err, "Update retried %d times and succeeded", maxAttempts)
@@ -205,7 +205,7 @@ func TestUpdateDomainMappingWithRetry(t *testing.T) {
 
 	t.Run("Update domain mapping with retry and fail with conflict after exhausting max retries", func(t *testing.T) {
 		attemptCount = maxAttempts
-		err := client.UpdateDomainMappingWithRetry(context.Background(), domainName, func(domain *servingv1alpha1.DomainMapping) (*servingv1alpha1.DomainMapping, error) {
+		err := client.UpdateDomainMappingWithRetry(context.Background(), domainName, func(domain *servingv1beta1.DomainMapping) (*servingv1beta1.DomainMapping, error) {
 			return domain, nil
 		}, maxAttempts)
 		assert.ErrorType(t, err, errors.IsConflict, "Update retried %d times and failed", maxAttempts)
@@ -214,7 +214,7 @@ func TestUpdateDomainMappingWithRetry(t *testing.T) {
 
 	t.Run("Update domain mapping with retry and fail with conflict after exhausting max retries", func(t *testing.T) {
 		attemptCount = maxAttempts
-		err := client.UpdateDomainMappingWithRetry(context.Background(), domainName, func(domain *servingv1alpha1.DomainMapping) (*servingv1alpha1.DomainMapping, error) {
+		err := client.UpdateDomainMappingWithRetry(context.Background(), domainName, func(domain *servingv1beta1.DomainMapping) (*servingv1beta1.DomainMapping, error) {
 			return domain, nil
 		}, maxAttempts)
 		assert.ErrorType(t, err, errors.IsConflict, "Update retried %d times and failed", maxAttempts)
@@ -222,28 +222,28 @@ func TestUpdateDomainMappingWithRetry(t *testing.T) {
 	})
 
 	t.Run("Update domain mapping with retry fails with a non conflict error", func(t *testing.T) {
-		err := client.UpdateDomainMappingWithRetry(context.Background(), "errorDomain", func(domain *servingv1alpha1.DomainMapping) (*servingv1alpha1.DomainMapping, error) {
+		err := client.UpdateDomainMappingWithRetry(context.Background(), "errorDomain", func(domain *servingv1beta1.DomainMapping) (*servingv1beta1.DomainMapping, error) {
 			return domain, nil
 		}, maxAttempts)
 		assert.ErrorType(t, err, errors.IsInternalError)
 	})
 
 	t.Run("Update domain mapping with retry fails with resource already deleted error", func(t *testing.T) {
-		err := client.UpdateDomainMappingWithRetry(context.Background(), "deletedDomain", func(domain *servingv1alpha1.DomainMapping) (*servingv1alpha1.DomainMapping, error) {
+		err := client.UpdateDomainMappingWithRetry(context.Background(), "deletedDomain", func(domain *servingv1beta1.DomainMapping) (*servingv1beta1.DomainMapping, error) {
 			return domain, nil
 		}, maxAttempts)
 		assert.ErrorContains(t, err, "marked for deletion")
 	})
 
 	t.Run("Update domain mapping with retry fails with error from updateFunc", func(t *testing.T) {
-		err := client.UpdateDomainMappingWithRetry(context.Background(), domainName, func(domain *servingv1alpha1.DomainMapping) (*servingv1alpha1.DomainMapping, error) {
+		err := client.UpdateDomainMappingWithRetry(context.Background(), domainName, func(domain *servingv1beta1.DomainMapping) (*servingv1beta1.DomainMapping, error) {
 			return domain, fmt.Errorf("error updating object")
 		}, maxAttempts)
 		assert.ErrorContains(t, err, "error updating object")
 	})
 
 	t.Run("Update domain mapping with retry fails with error from GetDomainMapping", func(t *testing.T) {
-		err := client.UpdateDomainMappingWithRetry(context.Background(), "getErrorDomain", func(domain *servingv1alpha1.DomainMapping) (*servingv1alpha1.DomainMapping, error) {
+		err := client.UpdateDomainMappingWithRetry(context.Background(), "getErrorDomain", func(domain *servingv1beta1.DomainMapping) (*servingv1beta1.DomainMapping, error) {
 			return domain, nil
 		}, maxAttempts)
 		assert.ErrorType(t, err, errors.IsInternalError)
@@ -262,7 +262,7 @@ func TestDeleteDomainMapping(t *testing.T) {
 			if name == domainName {
 				return true, nil, nil
 			}
-			return true, nil, errors.NewNotFound(servingv1alpha1.Resource(domainMappingResource), name)
+			return true, nil, errors.NewNotFound(servingv1beta1.Resource(domainMappingResource), name)
 		})
 
 	t.Run("delete domain mapping returns no error", func(t *testing.T) {
@@ -288,7 +288,7 @@ func TestListDomainMappings(t *testing.T) {
 		serving.AddReactor("list", domainMappingResource,
 			func(a clienttesting.Action) (bool, runtime.Object, error) {
 				assert.Equal(t, testNamespace, a.GetNamespace())
-				return true, &servingv1alpha1.DomainMappingList{Items: []servingv1alpha1.DomainMapping{*dm1, *dm2, *dm3}}, nil
+				return true, &servingv1beta1.DomainMappingList{Items: []servingv1beta1.DomainMapping{*dm1, *dm2, *dm3}}, nil
 			})
 		listServices, err := client.ListDomainMappings(context.Background())
 		assert.NilError(t, err)
@@ -304,18 +304,18 @@ func TestListDomainMappings(t *testing.T) {
 }
 
 func validateGroupVersionKind(t *testing.T, obj runtime.Object) {
-	gvkExpected, err := util.GetGroupVersionKind(obj, servingv1alpha1.SchemeGroupVersion, scheme.Scheme)
+	gvkExpected, err := util.GetGroupVersionKind(obj, servingv1beta1.SchemeGroupVersion, scheme.Scheme)
 	assert.NilError(t, err)
 	gvkGiven := obj.GetObjectKind().GroupVersionKind()
 	fmt.Println(gvkGiven.String())
 	assert.Equal(t, *gvkExpected, gvkGiven, "GVK should be the same")
 }
 
-func createDomainMapping(name string, ref duckv1.KReference) *servingv1alpha1.DomainMapping {
+func createDomainMapping(name string, ref duckv1.KReference) *servingv1beta1.DomainMapping {
 	return NewDomainMappingBuilder(name).Namespace("default").Reference(ref).Build()
 }
 
-func createDomainMappingWithTls(name string, ref duckv1.KReference, tls string) *servingv1alpha1.DomainMapping {
+func createDomainMappingWithTls(name string, ref duckv1.KReference, tls string) *servingv1beta1.DomainMapping {
 	return NewDomainMappingBuilder(name).Namespace("default").Reference(ref).TLS(tls).Build()
 }
 func createServiceRef(service, namespace string) duckv1.KReference {

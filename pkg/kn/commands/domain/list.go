@@ -45,7 +45,7 @@ func NewDomainMappingListCommand(p *commands.KnParams) *cobra.Command {
 				listFlags.EnsureWithNamespace()
 			}
 
-			client, err := p.NewServingV1alpha1Client(namespace)
+			client, err := p.NewServingV1beta1Client(namespace)
 			if err != nil {
 				return err
 			}

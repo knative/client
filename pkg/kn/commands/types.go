@@ -31,7 +31,7 @@ import (
 	sourcesv1client "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1"
 	sourcesv1beta2client "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1beta2"
 	servingv1client "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1"
-	servingv1alpha1client "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
+	servingv1beta1client "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1beta1"
 
 	"knative.dev/client/pkg/util"
 
@@ -41,7 +41,7 @@ import (
 	clienteventingv1beta2 "knative.dev/client/pkg/eventing/v1beta2"
 	clientmessagingv1 "knative.dev/client/pkg/messaging/v1"
 	clientservingv1 "knative.dev/client/pkg/serving/v1"
-	clientservingv1alpha1 "knative.dev/client/pkg/serving/v1alpha1"
+	clientservingv1beta1 "knative.dev/client/pkg/serving/v1beta1"
 	clientsourcesv1 "knative.dev/client/pkg/sources/v1"
 	clientsourcesv1beta2 "knative.dev/client/pkg/sources/v1beta2"
 )
@@ -58,7 +58,7 @@ type KnParams struct {
 	ClientConfig             clientcmd.ClientConfig
 	NewKubeClient            func() (kubernetes.Interface, error)
 	NewServingClient         func(namespace string) (clientservingv1.KnServingClient, error)
-	NewServingV1alpha1Client func(namespace string) (clientservingv1alpha1.KnServingClient, error)
+	NewServingV1beta1Client  func(namespace string) (clientservingv1beta1.KnServingClient, error)
 	NewGitopsServingClient   func(namespace string, dir string) (clientservingv1.KnServingClient, error)
 	NewSourcesClient         func(namespace string) (clientsourcesv1.KnSourcesClient, error)
 	NewSourcesV1beta2Client  func(namespace string) (clientsourcesv1beta2.KnSourcesClient, error)
@@ -83,8 +83,8 @@ func (params *KnParams) Initialize() {
 		params.NewServingClient = params.newServingClient
 	}
 
-	if params.NewServingV1alpha1Client == nil {
-		params.NewServingV1alpha1Client = params.newServingClientV1alpha1
+	if params.NewServingV1beta1Client == nil {
+		params.NewServingV1beta1Client = params.newServingClientV1beta1
 	}
 
 	if params.NewGitopsServingClient == nil {
@@ -143,17 +143,17 @@ func (params *KnParams) newServingClient(namespace string) (clientservingv1.KnSe
 	return clientservingv1.NewKnServingClient(client, namespace), nil
 }
 
-func (params *KnParams) newServingClientV1alpha1(namespace string) (clientservingv1alpha1.KnServingClient, error) {
+func (params *KnParams) newServingClientV1beta1(namespace string) (clientservingv1beta1.KnServingClient, error) {
 	restConfig, err := params.RestConfig()
 	if err != nil {
 		return nil, err
 	}
 
-	client, err := servingv1alpha1client.NewForConfig(restConfig)
+	client, err := servingv1beta1client.NewForConfig(restConfig)
 	if err != nil {
 		return nil, err
 	}
-	return clientservingv1alpha1.NewKnServingClient(client, namespace), nil
+	return clientservingv1beta1.NewKnServingClient(client, namespace), nil
 }
 
 func (params *KnParams) newGitopsServingClient(namespace string, dir string) (clientservingv1.KnServingClient, error) {
