@@ -20,19 +20,19 @@ import (
 
 	"gotest.tools/v3/assert"
 
-	"knative.dev/client/pkg/serving/v1alpha1"
+	"knative.dev/client/pkg/serving/v1beta1"
 	"knative.dev/client/pkg/util"
-	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
+	servingv1beta1 "knative.dev/serving/pkg/apis/serving/v1beta1"
 	"knative.dev/serving/pkg/client/clientset/versioned/scheme"
 )
 
 func TestDomainMappingList(t *testing.T) {
-	client := v1alpha1.NewMockKnServiceClient(t)
+	client := v1beta1.NewMockKnServiceClient(t)
 
 	dm1 := createDomainMapping("foo1", createServiceRef("foo1", "default"), "")
 	dm2 := createDomainMapping("foo2", createServiceRef("foo2", "default"), "")
 	servingRecorder := client.Recorder()
-	servingRecorder.ListDomainMappings(&servingv1alpha1.DomainMappingList{Items: []servingv1alpha1.DomainMapping{*dm1, *dm2}}, nil)
+	servingRecorder.ListDomainMappings(&servingv1beta1.DomainMappingList{Items: []servingv1beta1.DomainMapping{*dm1, *dm2}}, nil)
 
 	out, err := executeDomainCommand(client, nil, "list")
 	assert.NilError(t, err, "Domain mapping should be listed")
@@ -46,10 +46,10 @@ func TestDomainMappingList(t *testing.T) {
 }
 
 func TestDomainMappingListEmpty(t *testing.T) {
-	client := v1alpha1.NewMockKnServiceClient(t)
+	client := v1beta1.NewMockKnServiceClient(t)
 
 	servingRecorder := client.Recorder()
-	servingRecorder.ListDomainMappings(&servingv1alpha1.DomainMappingList{}, nil)
+	servingRecorder.ListDomainMappings(&servingv1beta1.DomainMappingList{}, nil)
 
 	out, err := executeDomainCommand(client, nil, "list")
 	assert.NilError(t, err)
@@ -59,16 +59,16 @@ func TestDomainMappingListEmpty(t *testing.T) {
 }
 
 func TestChannelListEmptyWithOutputSet(t *testing.T) {
-	client := v1alpha1.NewMockKnServiceClient(t)
+	client := v1beta1.NewMockKnServiceClient(t)
 
 	servingRecorder := client.Recorder()
-	domainMappingList := &servingv1alpha1.DomainMappingList{}
-	err := util.UpdateGroupVersionKindWithScheme(domainMappingList, servingv1alpha1.SchemeGroupVersion, scheme.Scheme)
+	domainMappingList := &servingv1beta1.DomainMappingList{}
+	err := util.UpdateGroupVersionKindWithScheme(domainMappingList, servingv1beta1.SchemeGroupVersion, scheme.Scheme)
 	assert.NilError(t, err)
 	servingRecorder.ListDomainMappings(domainMappingList, nil)
 
 	out, err := executeDomainCommand(client, nil, "list", "-o", "json")
 	assert.NilError(t, err)
-	assert.Check(t, util.ContainsAll(out, "\"apiVersion\": \""+servingv1alpha1.SchemeGroupVersion.String()+"\"", "\"kind\": \"DomainMappingList\"", "\"items\": []"))
+	assert.Check(t, util.ContainsAll(out, "\"apiVersion\": \""+servingv1beta1.SchemeGroupVersion.String()+"\"", "\"kind\": \"DomainMappingList\"", "\"items\": []"))
 	servingRecorder.Validate()
 }

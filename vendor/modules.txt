@@ -407,8 +407,8 @@ golang.org/x/tools/internal/gocommand
 golang.org/x/tools/internal/gopathwalk
 golang.org/x/tools/internal/imports
 golang.org/x/tools/internal/typeparams
-# gomodules.xyz/jsonpatch/v2 v2.2.0
-## explicit; go 1.12
+# gomodules.xyz/jsonpatch/v2 v2.3.0
+## explicit; go 1.20
 gomodules.xyz/jsonpatch/v2
 # google.golang.org/api v0.136.0
 ## explicit; go 1.19
@@ -974,7 +974,7 @@ knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1beta2/fake
 # knative.dev/hack v0.0.0-20230815012940-044c02b7a447
 ## explicit; go 1.18
 knative.dev/hack
-# knative.dev/networking v0.0.0-20230815014240-ed0534b4ef83
+# knative.dev/networking v0.0.0-20230817140742-4bfcc9fb6012
 ## explicit; go 1.18
 knative.dev/networking/pkg
 knative.dev/networking/pkg/apis/networking
@@ -989,7 +989,7 @@ knative.dev/networking/pkg/http/probe
 knative.dev/networking/pkg/http/proxy
 knative.dev/networking/pkg/http/stats
 knative.dev/networking/pkg/k8s
-# knative.dev/pkg v0.0.0-20230815012542-6519affc772b
+# knative.dev/pkg v0.0.0-20230815132840-4f651e092853
 ## explicit; go 1.18
 knative.dev/pkg/apis
 knative.dev/pkg/apis/duck
@@ -1039,14 +1039,13 @@ knative.dev/pkg/tracing/config
 knative.dev/pkg/tracing/propagation
 knative.dev/pkg/tracing/propagation/tracecontextb3
 knative.dev/pkg/tracker
-# knative.dev/serving v0.38.1-0.20230815122740-5e20e1e82550
+# knative.dev/serving v0.38.1-0.20230818202718-e9425f8d5260
 ## explicit; go 1.18
 knative.dev/serving/pkg/apis/autoscaling
 knative.dev/serving/pkg/apis/autoscaling/v1alpha1
 knative.dev/serving/pkg/apis/config
 knative.dev/serving/pkg/apis/serving
 knative.dev/serving/pkg/apis/serving/v1
-knative.dev/serving/pkg/apis/serving/v1alpha1
 knative.dev/serving/pkg/apis/serving/v1beta1
 knative.dev/serving/pkg/autoscaler/config
 knative.dev/serving/pkg/autoscaler/config/autoscalerconfig
@@ -1055,9 +1054,8 @@ knative.dev/serving/pkg/client/clientset/versioned/scheme
 knative.dev/serving/pkg/client/clientset/versioned/typed/autoscaling/v1alpha1
 knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1
 knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1/fake
-knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1
-knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake
 knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1beta1
+knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1beta1/fake
 knative.dev/serving/pkg/gc
 knative.dev/serving/pkg/networking
 knative.dev/serving/pkg/reconciler/route/config

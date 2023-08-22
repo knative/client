@@ -24,15 +24,15 @@ import (
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/assert/cmp"
 
-	"knative.dev/client/pkg/serving/v1alpha1"
+	"knative.dev/client/pkg/serving/v1beta1"
 	"knative.dev/client/pkg/util"
 	"knative.dev/pkg/apis"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
-	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
+	servingv1beta1 "knative.dev/serving/pkg/apis/serving/v1beta1"
 )
 
 func TestDomainMappingDescribe(t *testing.T) {
-	client := v1alpha1.NewMockKnServiceClient(t)
+	client := v1beta1.NewMockKnServiceClient(t)
 
 	servingRecorder := client.Recorder()
 	servingRecorder.GetDomainMapping("foo.bar", getDomainMapping(), nil)
@@ -60,7 +60,7 @@ func TestDomainMappingDescribe(t *testing.T) {
 }
 
 func TestDomainMappingDescribeDiffNamespace(t *testing.T) {
-	client := v1alpha1.NewMockKnServiceClient(t)
+	client := v1beta1.NewMockKnServiceClient(t)
 
 	servingRecorder := client.Recorder()
 	servingRecorder.GetDomainMapping("foo.bar", getDomainMapping("otherNS"), nil)
@@ -80,7 +80,7 @@ func TestDomainMappingDescribeDiffNamespace(t *testing.T) {
 }
 
 func TestDomainMappingDescribeError(t *testing.T) {
-	client := v1alpha1.NewMockKnServiceClient(t)
+	client := v1beta1.NewMockKnServiceClient(t)
 
 	servingRecorder := client.Recorder()
 	servingRecorder.GetDomainMapping("foo.bar", getDomainMapping(), errors.New("domainmappings.serving.knative.dev 'foo.bar' not found"))
@@ -92,7 +92,7 @@ func TestDomainMappingDescribeError(t *testing.T) {
 }
 
 func TestDomainMappingDescribeNameError(t *testing.T) {
-	client := v1alpha1.NewMockKnServiceClient(t)
+	client := v1beta1.NewMockKnServiceClient(t)
 
 	servingRecorder := client.Recorder()
 
@@ -110,7 +110,7 @@ func TestDomainMappingDescribeNameError(t *testing.T) {
 }
 
 func TestDomainMappingDescribeURL(t *testing.T) {
-	client := v1alpha1.NewMockKnServiceClient(t)
+	client := v1beta1.NewMockKnServiceClient(t)
 
 	servingRecorder := client.Recorder()
 	servingRecorder.GetDomainMapping("foo.bar", getDomainMapping(), nil)
@@ -123,7 +123,7 @@ func TestDomainMappingDescribeURL(t *testing.T) {
 }
 
 func TestDomainMappingDescribeYAML(t *testing.T) {
-	client := v1alpha1.NewMockKnServiceClient(t)
+	client := v1beta1.NewMockKnServiceClient(t)
 
 	servingRecorder := client.Recorder()
 	servingRecorder.GetDomainMapping("foo.bar", getDomainMapping(), nil)
@@ -135,7 +135,7 @@ func TestDomainMappingDescribeYAML(t *testing.T) {
 	servingRecorder.Validate()
 }
 
-func getDomainMapping(ns ...string) *servingv1alpha1.DomainMapping {
+func getDomainMapping(ns ...string) *servingv1beta1.DomainMapping {
 	serviceNamespace := "default"
 	if len(ns) == 1 {
 		serviceNamespace = ns[0]
@@ -143,9 +143,9 @@ func getDomainMapping(ns ...string) *servingv1alpha1.DomainMapping {
 	dm := createDomainMapping("foo.bar", createServiceRef("foo", serviceNamespace), "")
 	dm.TypeMeta = v1.TypeMeta{
 		Kind:       "DomainMapping",
-		APIVersion: servingv1alpha1.SchemeGroupVersion.String(),
+		APIVersion: servingv1beta1.SchemeGroupVersion.String(),
 	}
-	dm.Status = servingv1alpha1.DomainMappingStatus{
+	dm.Status = servingv1beta1.DomainMappingStatus{
 		Status: duckv1.Status{
 			Conditions: duckv1.Conditions{
 				apis.Condition{

@@ -19,7 +19,7 @@ import (
 	"fmt"
 
 	"knative.dev/client/pkg/config"
-	"knative.dev/serving/pkg/apis/serving/v1alpha1"
+	"knative.dev/serving/pkg/apis/serving/v1beta1"
 
 	"github.com/spf13/cobra"
 
@@ -47,12 +47,12 @@ func NewDomainMappingUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			client, err := p.NewServingV1alpha1Client(namespace)
+			client, err := p.NewServingV1beta1Client(namespace)
 			if err != nil {
 				return err
 			}
 
-			updateFunc := func(toUpdate *v1alpha1.DomainMapping) (*v1alpha1.DomainMapping, error) {
+			updateFunc := func(toUpdate *v1beta1.DomainMapping) (*v1beta1.DomainMapping, error) {
 				if toUpdate.GetDeletionTimestamp() != nil {
 					return nil, fmt.Errorf("can't update domain mapping '%s' because it has been marked for deletion", name)
 				}

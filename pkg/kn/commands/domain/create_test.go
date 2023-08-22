@@ -20,12 +20,12 @@ import (
 	"gotest.tools/v3/assert"
 
 	dynamicfake "knative.dev/client/pkg/dynamic/fake"
-	"knative.dev/client/pkg/serving/v1alpha1"
+	"knative.dev/client/pkg/serving/v1beta1"
 	"knative.dev/client/pkg/util"
 )
 
 func TestDomainMappingCreate(t *testing.T) {
-	client := v1alpha1.NewMockKnServiceClient(t)
+	client := v1beta1.NewMockKnServiceClient(t)
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient(client.Namespace(), createService("foo"))
 
 	servingRecorder := client.Recorder()
@@ -46,7 +46,7 @@ func TestDomainMappingCreate(t *testing.T) {
 	servingRecorder.Validate()
 }
 func TestDomainMappingCreateWithError(t *testing.T) {
-	client := v1alpha1.NewMockKnServiceClient(t)
+	client := v1beta1.NewMockKnServiceClient(t)
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient(client.Namespace(), createService("foo"))
 
 	// No call should be recorded

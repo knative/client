@@ -24,12 +24,12 @@ import (
 	"gotest.tools/v3/assert"
 
 	dynamicfake "knative.dev/client/pkg/dynamic/fake"
-	"knative.dev/client/pkg/serving/v1alpha1"
+	"knative.dev/client/pkg/serving/v1beta1"
 	"knative.dev/client/pkg/util"
 )
 
 func TestDomainMappingUpdate(t *testing.T) {
-	client := v1alpha1.NewMockKnServiceClient(t)
+	client := v1beta1.NewMockKnServiceClient(t)
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient(client.Namespace(), createService("foo"), createService("bar"))
 
 	servingRecorder := client.Recorder()
@@ -44,7 +44,7 @@ func TestDomainMappingUpdate(t *testing.T) {
 }
 
 func TestDomainMappingUpdateNotFound(t *testing.T) {
-	client := v1alpha1.NewMockKnServiceClient(t)
+	client := v1beta1.NewMockKnServiceClient(t)
 
 	servingRecorder := client.Recorder()
 	servingRecorder.GetDomainMapping("foo.bar", nil, errors.New("domainmappings.serving.knative.dev \"foo.bar\" not found"))
@@ -57,7 +57,7 @@ func TestDomainMappingUpdateNotFound(t *testing.T) {
 }
 
 func TestDomainMappingUpdateDeletingError(t *testing.T) {
-	client := v1alpha1.NewMockKnServiceClient(t)
+	client := v1beta1.NewMockKnServiceClient(t)
 
 	deletingDM := createDomainMapping("foo.bar", createServiceRef("foo", "default"), "")
 	deletingDM.DeletionTimestamp = &v1.Time{Time: time.Now()}

@@ -27,7 +27,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	clienteventingv1beta2 "knative.dev/client/pkg/eventing/v1beta2"
 	v1beta1 "knative.dev/client/pkg/messaging/v1"
-	clientv1alpha1 "knative.dev/client/pkg/serving/v1alpha1"
+	clientv1beta1 "knative.dev/client/pkg/serving/v1beta1"
 	clientsourcesv1 "knative.dev/client/pkg/sources/v1"
 	"knative.dev/client/pkg/sources/v1beta2"
 	eventingv1beta2 "knative.dev/eventing/pkg/apis/eventing/v1beta2"
@@ -47,9 +47,9 @@ import (
 	"knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1/fake"
 	beta2fake "knative.dev/eventing/pkg/client/clientset/versioned/typed/eventing/v1beta2/fake"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
-	"knative.dev/serving/pkg/apis/serving/v1alpha1"
+	servingv1beta1 "knative.dev/serving/pkg/apis/serving/v1beta1"
 	servingv1fake "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1/fake"
-	servingv1alpha1fake "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1/fake"
+	servingv1beta1fake "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1beta1/fake"
 )
 
 type testType struct {
@@ -104,7 +104,7 @@ var (
 	testNsServices = []servingv1.Service{testSvc1, testSvc2, testSvc3}
 
 	fakeServing      = &servingv1fake.FakeServingV1{Fake: &clienttesting.Fake{}}
-	fakeServingAlpha = &servingv1alpha1fake.FakeServingV1alpha1{Fake: &clienttesting.Fake{}}
+	fakeServingAlpha = &servingv1beta1fake.FakeServingV1beta1{Fake: &clienttesting.Fake{}}
 )
 
 var (
@@ -185,28 +185,28 @@ var (
 )
 
 var (
-	testDomain1 = v1alpha1.DomainMapping{
+	testDomain1 = servingv1beta1.DomainMapping{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "DomainMapping",
-			APIVersion: "serving.knative.dev/v1alpha1",
+			APIVersion: "serving.knative.dev/v1beta1",
 		},
 		ObjectMeta: metav1.ObjectMeta{Name: "test-domain-1", Namespace: testNs},
 	}
-	testDomain2 = v1alpha1.DomainMapping{
+	testDomain2 = servingv1beta1.DomainMapping{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "DomainMapping",
-			APIVersion: "serving.knative.dev/v1alpha1",
+			APIVersion: "serving.knative.dev/v1beta1",
 		},
 		ObjectMeta: metav1.ObjectMeta{Name: "test-domain-2", Namespace: testNs},
 	}
-	testDomain3 = v1alpha1.DomainMapping{
+	testDomain3 = servingv1beta1.DomainMapping{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "DomainMapping",
-			APIVersion: "serving.knative.dev/v1alpha1",
+			APIVersion: "serving.knative.dev/v1beta1",
 		},
 		ObjectMeta: metav1.ObjectMeta{Name: "test-domain-3", Namespace: testNs},
 	}
-	testNsDomains = []v1alpha1.DomainMapping{testDomain1, testDomain2, testDomain3}
+	testNsDomains = []servingv1beta1.DomainMapping{testDomain1, testDomain2, testDomain3}
 )
 
 var (
@@ -443,8 +443,8 @@ current-context: x
 		NewEventingClient: func(namespace string) (clienteventingv1.KnEventingClient, error) {
 			return clienteventingv1.NewKnEventingClient(fakeEventing, namespace), nil
 		},
-		NewServingV1alpha1Client: func(namespace string) (clientv1alpha1.KnServingClient, error) {
-			return clientv1alpha1.NewKnServingClient(fakeServingAlpha, namespace), nil
+		NewServingV1beta1Client: func(namespace string) (clientv1beta1.KnServingClient, error) {
+			return clientv1beta1.NewKnServingClient(fakeServingAlpha, namespace), nil
 		},
 		NewSourcesClient: func(namespace string) (clientsourcesv1.KnSourcesClient, error) {
 			return clientsourcesv1.NewKnSourcesClient(fakeSources, namespace), nil
@@ -864,7 +864,7 @@ func TestResourceNameCompletionFuncDomain(t *testing.T) {
 			if a.GetNamespace() == errorNs {
 				return true, nil, errors.NewInternalError(fmt.Errorf("unable to list domains"))
 			}
-			return true, &v1alpha1.DomainMappingList{Items: testNsDomains}, nil
+			return true, &servingv1beta1.DomainMappingList{Items: testNsDomains}, nil
 		})
 
 	tests := []testType{

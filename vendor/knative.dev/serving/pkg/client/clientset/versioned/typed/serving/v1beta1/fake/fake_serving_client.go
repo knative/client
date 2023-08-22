@@ -21,20 +21,20 @@ package fake
 import (
 	rest "k8s.io/client-go/rest"
 	testing "k8s.io/client-go/testing"
-	v1alpha1 "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1alpha1"
+	v1beta1 "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1beta1"
 )
 
-type FakeServingV1alpha1 struct {
+type FakeServingV1beta1 struct {
 	*testing.Fake
 }
 
-func (c *FakeServingV1alpha1) DomainMappings(namespace string) v1alpha1.DomainMappingInterface {
+func (c *FakeServingV1beta1) DomainMappings(namespace string) v1beta1.DomainMappingInterface {
 	return &FakeDomainMappings{c, namespace}
 }
 
 // RESTClient returns a RESTClient that is used to communicate
 // with API server by this client implementation.
-func (c *FakeServingV1alpha1) RESTClient() rest.Interface {
+func (c *FakeServingV1beta1) RESTClient() rest.Interface {
 	var ret *rest.RESTClient
 	return ret
 }

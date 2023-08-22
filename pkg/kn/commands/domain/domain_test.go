@@ -30,10 +30,10 @@ import (
 	dynamicfake "knative.dev/client/pkg/dynamic/fake"
 	"knative.dev/client/pkg/kn/commands"
 	knflags "knative.dev/client/pkg/kn/flags"
-	clientservingv1alpha1 "knative.dev/client/pkg/serving/v1alpha1"
+	clientservingv1beta1 "knative.dev/client/pkg/serving/v1beta1"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
-	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
+	servingv1beta1 "knative.dev/serving/pkg/apis/serving/v1beta1"
 )
 
 // Helper methods
@@ -148,13 +148,13 @@ func TestRefFlagAdd(t *testing.T) {
 	assert.Equal(t, "ref", c.Flag("ref").Name)
 }
 
-func executeDomainCommand(client clientservingv1alpha1.KnServingClient, dynamicClient kndynamic.KnDynamicClient, args ...string) (string, error) {
+func executeDomainCommand(client clientservingv1beta1.KnServingClient, dynamicClient kndynamic.KnDynamicClient, args ...string) (string, error) {
 	knParams := &commands.KnParams{}
 	knParams.ClientConfig = blankConfig
 
 	output := new(bytes.Buffer)
 	knParams.Output = output
-	knParams.NewServingV1alpha1Client = func(namespace string) (clientservingv1alpha1.KnServingClient, error) {
+	knParams.NewServingV1beta1Client = func(namespace string) (clientservingv1beta1.KnServingClient, error) {
 		return client, nil
 	}
 	knParams.NewDynamicClient = func(namespace string) (kndynamic.KnDynamicClient, error) {
@@ -178,8 +178,8 @@ func createService(name string) *servingv1.Service {
 	}
 }
 
-func createDomainMapping(name string, ref duckv1.KReference, tls string) *servingv1alpha1.DomainMapping {
-	return clientservingv1alpha1.NewDomainMappingBuilder(name).Namespace("default").Reference(ref).TLS(tls).Build()
+func createDomainMapping(name string, ref duckv1.KReference, tls string) *servingv1beta1.DomainMapping {
+	return clientservingv1beta1.NewDomainMappingBuilder(name).Namespace("default").Reference(ref).TLS(tls).Build()
 }
 
 func createServiceRef(service, namespace string) duckv1.KReference {

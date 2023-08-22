@@ -23,7 +23,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/validation"
 	knerrors "knative.dev/client/pkg/errors"
 	"knative.dev/client/pkg/kn/commands"
-	clientv1alpha1 "knative.dev/client/pkg/serving/v1alpha1"
+	clientv1beta1 "knative.dev/client/pkg/serving/v1beta1"
 )
 
 // NewDomainMappingCreateCommand to create event channels
@@ -58,12 +58,12 @@ func NewDomainMappingCreateCommand(p *commands.KnParams) *cobra.Command {
 			if refFlags.tls != "" && len(errs) != 0 {
 				return fmt.Errorf("invalid secret name %q: %s", refFlags.tls, errs[0])
 			}
-			builder := clientv1alpha1.NewDomainMappingBuilder(name).
+			builder := clientv1beta1.NewDomainMappingBuilder(name).
 				Namespace(namespace).
 				Reference(*reference).
 				TLS(refFlags.tls)
 
-			client, err := p.NewServingV1alpha1Client(namespace)
+			client, err := p.NewServingV1beta1Client(namespace)
 			if err != nil {
 				return err
 			}
