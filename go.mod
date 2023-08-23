@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/google/go-cmp v0.5.9
-	github.com/hashicorp/golang-lru v0.5.4
+	github.com/hashicorp/golang-lru v1.0.2
 	github.com/hashicorp/hcl v1.0.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/spf13/afero v1.9.2 // indirect
@@ -20,12 +20,12 @@ require (
 	k8s.io/cli-runtime v0.25.2
 	k8s.io/client-go v0.26.5
 	k8s.io/code-generator v0.26.5
-	knative.dev/client-pkg v0.0.0-20230809014238-38d2dc0dd50a
-	knative.dev/eventing v0.38.1-0.20230815095940-29ac3eee64a4
-	knative.dev/hack v0.0.0-20230815012940-044c02b7a447
-	knative.dev/networking v0.0.0-20230817140742-4bfcc9fb6012
-	knative.dev/pkg v0.0.0-20230815132840-4f651e092853
-	knative.dev/serving v0.38.1-0.20230818202718-e9425f8d5260
+	knative.dev/client-pkg v0.0.0-20230815131440-5abd12981b4b
+	knative.dev/eventing v0.38.1-0.20230822134255-a2e2aa3d515d
+	knative.dev/hack v0.0.0-20230818155117-9cc05a31e8c0
+	knative.dev/networking v0.0.0-20230822003854-1d7920d27b9e
+	knative.dev/pkg v0.0.0-20230821102121-81e4ee140363
+	knative.dev/serving v0.38.1-0.20230823024257-eaff0b39b99e
 	sigs.k8s.io/yaml v1.3.0
 )
 
@@ -102,8 +102,8 @@ require (
 	go.opencensus.io v0.24.0 // indirect
 	go.starlark.net v0.0.0-20220817180228-f738f5508c12 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
-	go.uber.org/multierr v1.8.0 // indirect
-	go.uber.org/zap v1.24.0 // indirect
+	go.uber.org/multierr v1.10.0 // indirect
+	go.uber.org/zap v1.25.0 // indirect
 	golang.org/x/net v0.14.0 // indirect
 	golang.org/x/oauth2 v0.11.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
@@ -112,7 +112,7 @@ require (
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/tools v0.12.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.3.0 // indirect
-	google.golang.org/api v0.136.0 // indirect
+	google.golang.org/api v0.138.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20230803162519-f966b187b2e5 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20230803162519-f966b187b2e5 // indirect
