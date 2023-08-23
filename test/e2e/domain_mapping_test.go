@@ -18,6 +18,16 @@
 package e2e
 
 import (
+	"bytes"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/x509"
+	"crypto/x509/pkix"
+	"encoding/pem"
+	"math/big"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -62,6 +72,20 @@ func TestDomain(t *testing.T) {
 
 	t.Log("delete domain")
 	domainDelete(r, domainName)
+
+	tempDir := t.TempDir()
+	defer os.Remove(tempDir)
+
+	cert, key := makeCertificateForDomain(t, "newdomain.com")
+
+	err = os.WriteFile(filepath.Join(tempDir, "cert"), cert, test.FileModeReadWrite)
+	assert.NilError(t, err)
+	err = os.WriteFile(filepath.Join(tempDir, "key"), key, test.FileModeReadWrite)
+	assert.NilError(t, err)
+
+	kubectl = test.NewKubectl(it.Namespace())
+	_, err = kubectl.Run("create", "secret", "tls", "tls-secret", "--cert="+filepath.Join(tempDir, "cert"), "--key="+filepath.Join(tempDir, "key"))
+	assert.NilError(t, err)
 
 	t.Log("create domain with TLS")
 	domainCreateWithTls(r, "newdomain.com", "hello", "tls-secret")
@@ -127,4 +151,45 @@ func domainDescribe(r *test.KnRunResultCollector, domainName string, tls bool) {
 		url = "http://" + domainName
 	}
 	assert.Assert(r.T(), util.ContainsAll(out.Stdout, "Name", "Namespace", "URL", "Service", url))
+}
+
+func makeCertificateForDomain(t *testing.T, domainName string) (cert []byte, key []byte) {
+	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
+	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
+	if err != nil {
+		t.Fatalf("Failed to generate serial number: %v", err)
+	}
+	priv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		t.Fatalf("Failed to generate private key: %v", err)
+	}
+	public := &priv.PublicKey
+	now := time.Now()
+	template := x509.Certificate{
+		SerialNumber: serialNumber,
+		Subject: pkix.Name{
+			Organization: []string{"Acme Co"},
+		},
+		NotBefore: now,
+		NotAfter:  now.Add(time.Hour * 12),
+
+		KeyUsage:              x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+		BasicConstraintsValid: true,
+		DNSNames:              []string{domainName},
+	}
+	derBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, public, priv)
+	if err != nil {
+		t.Fatalf("Failed to create certificate: %v", err)
+	}
+	var certOut bytes.Buffer
+	pem.Encode(&certOut, &pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
+
+	privBytes, err := x509.MarshalPKCS8PrivateKey(priv)
+	if err != nil {
+		t.Fatalf("Failed to marshal private key: %v", err)
+	}
+	var keyOut bytes.Buffer
+	pem.Encode(&keyOut, &pem.Block{Type: "PRIVATE KEY", Bytes: privBytes})
+	return certOut.Bytes(), keyOut.Bytes()
 }
