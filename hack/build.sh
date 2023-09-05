@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# shellcheck source=/dev/null
+
 set -o pipefail
 set -o errexit
 set -o nounset
@@ -37,19 +39,19 @@ run() {
   export GO111MODULE=on
 
   # Jump into project directory
-  pushd $(basedir) >/dev/null 2>&1
+  pushd "$(basedir)" >/dev/null 2>&1
 
   # Print help if requested
-  if $(has_flag --help -h); then
-    display_help
+  if has_flag --help -h; then
+    display_help "$@"
     exit 0
   fi
 
-  if $(has_flag --watch -w); then
+  if has_flag --watch -w; then
     # Build and test first
     go_build
 
-    if $(has_flag --test -t); then
+    if has_flag --test -t; then
        go_test
     fi
 
@@ -58,29 +60,29 @@ run() {
   fi
 
   # Fast mode: Only compile and maybe run test
-  if $(has_flag --fast -f); then
+  if has_flag --fast -f; then
     go_build
 
-    if $(has_flag --test -t); then
+    if has_flag --test -t; then
        go_test
     fi
     exit 0
   fi
 
   # Run only tests
-  if $(has_flag --test -t); then
+  if has_flag --test -t; then
     go_test
     exit 0
   fi
 
   # Run only codegen
-  if $(has_flag --codegen -c); then
+  if has_flag --codegen -c; then
     codegen
     exit 0
   fi
 
   # Cross compile only
-  if $(has_flag --all -x); then
+  if has_flag --all -x; then
     cross_build || (echo "✋ Cross platform build failed" && exit 1)
     exit 0
   fi
@@ -115,13 +117,13 @@ codegen() {
 
 go_fmt() {
   echo "🧹 ${S}Format"
-  find $(echo "$source_dirs") -name "*.go" -print0 | xargs -0 gofmt -s -w
+  find "$(echo "$source_dirs")" -name "*.go" -print0 | xargs -0 gofmt -s -w
 }
 
 source_format() {
   set +e
-  go_run "golang.org/x/tools/cmd/goimports@${GOIMPORTS_VERSION}" -w $(echo "$source_dirs")
-  find $(echo "$source_dirs") -name "*.go" -print0 | xargs -0 gofmt -s -w
+  go_run "golang.org/x/tools/cmd/goimports@${GOIMPORTS_VERSION}" -w "$(echo "$source_dirs")"
+  find "$(echo "$source_dirs")" -name "*.go" -print0 | xargs -0 gofmt -s -w
   set -e
 }
 
@@ -136,7 +138,7 @@ go_build() {
   # Env var exported by hack/build-flags.sh
   go build -mod=vendor -ldflags "${KN_BUILD_LD_FLAGS:-}" -o kn ./cmd/...
 
-  if $(file kn | grep -q -i "Windows"); then
+  if file kn | grep -q -i "Windows"; then
     mv kn kn.exe
   fi
 }
@@ -196,7 +198,7 @@ check_license() {
 
 update_deps() {
   echo "🚒 Update"
-  $(basedir)/hack/update-deps.sh
+  "$(basedir)"/hack/update-deps.sh
 }
 
 generate_docs() {
@@ -209,10 +211,10 @@ generate_docs() {
 watch() {
     local command="./hack/build.sh --fast"
     local fswatch_opts='-e "^\..*$" -o pkg cmd'
-    if $(has_flag --test -t); then
+    if has_flag --test -t; then
       command="$command --test"
     fi
-    if $(has_flag --verbose); then
+    if has_flag --verbose; then
       fswatch_opts="$fswatch_opts -v"
     fi
     set +e
@@ -228,7 +230,7 @@ watch() {
     set -e
 
     echo "🔁 Watch"
-    fswatch $fswatch_opts | xargs -n1 -I{} sh -c "$command && echo 👌 OK"
+    fswatch "${fswatch_opts[@]}" | xargs -n1 -I{} sh -c "$command && echo 👌 OK"
 }
 
 # Dir where this script is located
@@ -258,16 +260,15 @@ basedir() {
 
 # Checks if a flag is present in the arguments.
 has_flag() {
-    filters="$@"
+    filters=("$@")
     for var in "${ARGS[@]}"; do
-        for filter in $filters; do
+        for filter in "${filters[@]}"; do
           if [ "$var" = "$filter" ]; then
-              echo 'true'
-              return
+              return 0
           fi
         done
     done
-    echo 'false'
+    return 1
 }
 
 cross_build() {
@@ -323,7 +324,7 @@ display_help() {
     cat <<EOT
 Knative client build script
 
-Usage: $(basename $BASH_SOURCE) [... options ...]
+Usage: $(basename "${BASH_SOURCE[0]}") [... options ...]
 
 with the following options:
 
@@ -353,19 +354,19 @@ Examples:
 EOT
 }
 
-if $(has_flag --debug); then
+if has_flag --debug; then
     export PS4='+($(basename ${BASH_SOURCE[0]}):${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
     set -x
 fi
 
 # Shared funcs from hack repo
-source $(basedir)/vendor/knative.dev/hack/library.sh
+source "$(basedir)"/vendor/knative.dev/hack/library.sh
 
 # Shared funcs with CI
 while IFS= read -r -d '' file; do
   source "${file}"
 done < <(find "$(basedir)/hack/build.sh.d" -name '*.sh' -print0)
-source $(basedir)/hack/build-flags.sh
+source "$(basedir)"/hack/build-flags.sh
 
 # Fixe emoji labels for certain terminals
 apply_emoji_fixes
