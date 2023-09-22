@@ -497,7 +497,7 @@ function report_go_test() {
   logfile="${logfile/.xml/.jsonl}"
   echo "Running go test with args: ${go_test_args[*]}"
   local gotest_retcode=0
-  go_run gotest.tools/gotestsum@v1.8.0 \
+  go_run gotest.tools/gotestsum@v1.10.1 \
     --format "${GO_TEST_VERBOSITY:-testname}" \
     --junitfile "${xml}" \
     --junitfile-testsuite-name relative \
@@ -510,14 +510,14 @@ function report_go_test() {
   echo "Test log (JSONL) written to ${logfile}"
 
   ansilog="${logfile/.jsonl/-ansi.log}"
-  go_run github.com/haveyoudebuggedit/gotestfmt/v2/cmd/gotestfmt@v2.3.1 \
+  go_run github.com/gotesttools/gotestfmt/v2/cmd/gotestfmt@v2.5.0 \
     -input "${logfile}" \
     -showteststatus \
     -nofail > "$ansilog"
   echo "Test log (ANSI) written to ${ansilog}"
 
   htmllog="${logfile/.jsonl/.html}"
-  go_run github.com/buildkite/terminal-to-html/v3/cmd/terminal-to-html@v3.6.1 \
+  go_run github.com/buildkite/terminal-to-html/v3/cmd/terminal-to-html@v3.9.1 \
     --preview < "$ansilog" > "$htmllog"
   echo "Test log (HTML) written to ${htmllog}"
 
@@ -731,26 +731,22 @@ function __go_update_deps_for_module() {
   fi
   eval "$orig_pipefail_opt"
 
-  if ! [[ "${FORCE_VENDOR:-false}" == "true" ]] && ! [ -d vendor ]; then
-    return 0
+  if [[ "${FORCE_VENDOR:-false}" == "true" ]] || [ -d vendor ]; then
+    group "Removing unwanted vendor files"
+    find vendor/ \( -name "OWNERS" \
+      -o -name "OWNERS_ALIASES" \
+      -o -name "BUILD" \
+      -o -name "BUILD.bazel" \
+      -o -name "*_test.go" \) -exec rm -f {} +
+
+    export GOFLAGS=-mod=vendor
+
+    group "Removing broken symlinks"
+    remove_broken_symlinks ./vendor
   fi
-
-  group "Removing unwanted vendor files"
-
-  # Remove unwanted vendor files
-  find vendor/ \( -name "OWNERS" \
-    -o -name "OWNERS_ALIASES" \
-    -o -name "BUILD" \
-    -o -name "BUILD.bazel" \
-    -o -name "*_test.go" \) -exec rm -f {} +
-
-  export GOFLAGS=-mod=vendor
 
   group "Updating licenses"
   update_licenses third_party/VENDOR-LICENSE "./..."
-
-  group "Removing broken symlinks"
-  remove_broken_symlinks ./vendor
   )
 }
 
@@ -793,7 +789,7 @@ function update_licenses() {
   local dst=$1
   local dir=$2
   shift
-  go_run github.com/google/go-licenses@v1.2.1 \
+  go_run github.com/google/go-licenses@v1.6.0 \
     save "${dir}" --save_path="${dst}" --force || \
     { echo "--- FAIL: go-licenses failed to update licenses"; return 1; }
 }
@@ -801,7 +797,7 @@ function update_licenses() {
 # Run go-licenses to check for forbidden licenses.
 function check_licenses() {
   # Check that we don't have any forbidden licenses.
-  go_run github.com/google/go-licenses@v1.2.1 \
+  go_run github.com/google/go-licenses@v1.6.0 \
     check "${REPO_ROOT_DIR}/..." || \
     { echo "--- FAIL: go-licenses failed the license check"; return 1; }
 }
