@@ -23,7 +23,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"knative.dev/client/pkg/kn/config"
-	"knative.dev/client/pkg/kn/plugin"
+	pluginpkg "knative.dev/client/pkg/kn/plugin"
 	"knative.dev/client/pkg/kn/root"
 )
 
@@ -60,7 +60,7 @@ func run(args []string) error {
 		return err
 	}
 
-	pluginManager := plugin.NewManager(config.GlobalConfig.PluginsDir(), config.GlobalConfig.LookupPluginsInPath())
+	pluginManager := pluginpkg.NewManager(config.GlobalConfig.PluginsDir(), config.GlobalConfig.LookupPluginsInPath())
 
 	// Create kn root command and all sub-commands
 	rootCmd, err := root.NewRootCommand(pluginManager.HelpTemplateFuncs())
@@ -82,6 +82,29 @@ func run(args []string) error {
 	plugin, err := pluginManager.FindPlugin(commands)
 	if err != nil {
 		return err
+	}
+
+	// FT: Context Sharing
+	if config.GlobalConfig.ContextSharing() {
+		ctxManager, err := pluginpkg.NewContextManager()
+		if err != nil {
+			return err
+		}
+
+		defer func(ctxManager *pluginpkg.ContextDataManager) {
+			if err := ctxManager.WriteCache(); err != nil {
+				println("error during write")
+			}
+		}(ctxManager)
+
+		err = ctxManager.FetchManifests(pluginManager)
+		if err != nil {
+			return err
+		}
+
+		// Inject shared context data as context.Context
+		contextData := ctxManager.FetchContextData(pluginManager)
+		rootCmd.SetContext(contextData)
 	}
 
 	if plugin != nil {
@@ -140,7 +163,7 @@ func filterHelpOptions(args []string) []string {
 }
 
 // Check if the plugin collides with any command specified in the root command
-func validatePlugin(root *cobra.Command, plugin plugin.Plugin) error {
+func validatePlugin(root *cobra.Command, plugin pluginpkg.Plugin) error {
 	// Check if a given plugin can be identified as a command
 	cmd, args, err := root.Find(plugin.CommandParts())
 

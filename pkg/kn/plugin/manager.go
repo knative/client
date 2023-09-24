@@ -55,26 +55,6 @@ type Plugin interface {
 	Path() string
 }
 
-type ContextData map[string]string
-
-type PluginManifest struct {
-	// ProducesContextDataKeys is a list of keys for the ContextData that
-	// a plugin can produce. Nil or an empty list declares that this
-	// plugin is not ContextDataProducer
-	ProducesContextDataKeys []string
-
-	// ConsumesContextDataKeys is a list of keys from a ContextData that a
-	// plugin is interested in to consume. Nil or an empty list declares
-	// that this plugin is not a ContextDataConsumer
-	ConsumesContextDataKeys []string
-}
-
-type ContextDataConsumer interface {
-	// ExecuteWithContextData executes the plugin with the given args much like
-	// Execute() but with an additional argument that holds the ContextData
-	ExecuteWithContextData(args []string, data ContextData) error
-}
-
 type Manager struct {
 	// Dedicated plugin directory as configured
 	pluginsDir string
@@ -123,6 +103,10 @@ func NewManager(pluginDir string, lookupInPath bool) *Manager {
 
 func (manager *Manager) AppendPlugin(plugin Plugin) {
 	InternalPlugins = append(InternalPlugins, plugin)
+}
+
+func (manager *Manager) GetInternalPlugins() PluginList {
+	return InternalPlugins
 }
 
 // FindPlugin checks if a plugin for the given parts exist and return it.

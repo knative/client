@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+
 	"sort"
 	"strconv"
 	"strings"
@@ -99,10 +100,17 @@ func NewServiceDescribeCommand(p *commands.KnParams) *cobra.Command {
 		Example:           describe_example,
 		ValidArgsFunction: commands.ResourceNameCompletionFunc(p),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			var serviceName string
 			if len(args) != 1 {
-				return errors.New("'service describe' requires the service name given as single argument")
+				if cmd.Context() != nil && cmd.Context().Value("service") != nil {
+					serviceName = cmd.Context().Value("service").(string)
+				}
+				if serviceName == "" {
+					return errors.New("'service describe' requires the service name given as single argument")
+				}
+			} else {
+				serviceName = args[0]
 			}
-			serviceName := args[0]
 
 			namespace, err := p.GetNamespace(cmd)
 			if err != nil {
@@ -182,7 +190,7 @@ func describe(w io.Writer, service *servingv1.Service, revisions []*revisionDesc
 	return nil
 }
 
-// Write out main service information. Use colors for major items.
+// WriteCache out main service information. Use colors for major items.
 func writeService(dw printers.PrefixWriter, service *servingv1.Service) {
 	commands.WriteMetadata(dw, &service.ObjectMeta, printDetails)
 	dw.WriteAttribute("URL", extractURL(service))
@@ -200,7 +208,7 @@ func writeService(dw printers.PrefixWriter, service *servingv1.Service) {
 	}
 }
 
-// Write out revisions associated with this service. By default only active
+// WriteCache out revisions associated with this service. By default only active
 // target revisions are printed, but with --verbose also inactive revisions
 // created by this services are shown
 func writeRevisions(dw printers.PrefixWriter, revisions []*revisionDesc, printDetails bool) {

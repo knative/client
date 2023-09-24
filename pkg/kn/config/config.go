@@ -55,6 +55,7 @@ const configContentDefaults = `# Taken from https://github.com/knative/client/bl
 
 // config contains the variables for the Kn config
 type config struct {
+
 	// configFile is the config file location
 	configFile string
 
@@ -63,6 +64,10 @@ type config struct {
 
 	// channelTypeMappings is a list of channel type mapping
 	channelTypeMappings []ChannelTypeMapping
+}
+
+func (c *config) ContextSharing() bool {
+	return viper.GetBool(keyFeaturesContextSharing)
 }
 
 // ConfigFile returns the config file which is either the default XDG conform

@@ -18,6 +18,7 @@ package config
 // Set an instance of this for config.GlobalConfig to mock
 // your own configuration setup
 type TestConfig struct {
+	TestContextSharing      bool
 	TestPluginsDir          string
 	TestConfigFile          string
 	TestLookupPluginsInPath bool
@@ -28,6 +29,7 @@ type TestConfig struct {
 // Ensure that TestConfig implements the configuration interface
 var _ Config = &TestConfig{}
 
+func (t TestConfig) ContextSharing() bool                      { return t.TestContextSharing }
 func (t TestConfig) PluginsDir() string                        { return t.TestPluginsDir }
 func (t TestConfig) ConfigFile() string                        { return t.TestConfigFile }
 func (t TestConfig) LookupPluginsInPath() bool                 { return t.TestLookupPluginsInPath }

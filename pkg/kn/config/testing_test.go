@@ -23,6 +23,7 @@ import (
 // Test to keep code coverage quality gate happy.
 func TestTestConfig(t *testing.T) {
 	cfg := TestConfig{
+		TestContextSharing:      false,
 		TestPluginsDir:          "pluginsDir",
 		TestConfigFile:          "configFile",
 		TestLookupPluginsInPath: true,
@@ -30,6 +31,7 @@ func TestTestConfig(t *testing.T) {
 		TestChannelTypeMappings: nil,
 	}
 
+	assert.Equal(t, cfg.ContextSharing(), false)
 	assert.Equal(t, cfg.PluginsDir(), "pluginsDir")
 	assert.Equal(t, cfg.ConfigFile(), "configFile")
 	assert.Assert(t, cfg.LookupPluginsInPath())
