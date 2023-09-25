@@ -67,7 +67,7 @@ func NewListTypesCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			if !listTypesFlags.GenericPrintFlags.OutputFlagSpecified() && len(sourceListTypes.Items) == 0 {
-				return knerrors.NewInvalidCRD("Sources")
+				return knerrors.NewInvalidCRD("Sources", "unknown")
 			}
 
 			if sourceListTypes.GroupVersionKind().Empty() {

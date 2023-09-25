@@ -21,12 +21,23 @@ import (
 	"unicode/utf8"
 )
 
-func NewInvalidCRD(apiGroup string) *KNError {
+func NewInvalidCRD(apiGroup string, canFindResource string) *KNError {
+
 	parts := strings.Split(apiGroup, ".")
 	name := parts[0]
-	msg := fmt.Sprintf("no or newer Knative %s API found on the backend, please verify the installation or "+
-		"update the 'kn' client", firstCharToUpper(name))
-	return NewKNError(msg)
+	if canFindResource == "true" {
+		msg := fmt.Sprintf("incompatible Knative %s API found on the backend, please verify the installation or "+
+			"update the 'kn' client", firstCharToUpper(name))
+		return NewKNError(msg)
+
+	} else if canFindResource == "false" {
+		msg := fmt.Sprintf("no Knative %s API found on the backend, please verify the installation", firstCharToUpper(name))
+		return NewKNError(msg)
+	} else {
+		msg := fmt.Sprintf("no or newer Knative %s API found on the backend, please verify the installation or "+
+			"update the 'kn' client", firstCharToUpper(name))
+		return NewKNError(msg)
+	}
 }
 
 func newNoRouteToHost(errString string) *KNError {

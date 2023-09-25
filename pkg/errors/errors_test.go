@@ -23,12 +23,18 @@ import (
 )
 
 func TestNewInvalidCRD(t *testing.T) {
-	err := NewInvalidCRD("serving.knative.dev")
+	err := NewInvalidCRD("serving.knative.dev", "unknown")
 	assert.Assert(t, util.ContainsAll(err.Error(), "no or newer Knative Serving API found on the backend", "please verify the installation", "update", "'kn'"))
 
-	err = NewInvalidCRD("eventing")
+	err = NewInvalidCRD("eventing", "unknown")
 	assert.Assert(t, util.ContainsAll(err.Error(), "no or newer Knative Eventing API found on the backend", "please verify the installation", "update", "'kn'"))
 
-	err = NewInvalidCRD("")
+	err = NewInvalidCRD("", "unknown")
 	assert.Assert(t, util.ContainsAll(err.Error(), "no or newer Knative  API found on the backend", "please verify the installation", "update", "'kn'"))
+
+	err = NewInvalidCRD("serving.knative.dev", "true")
+	assert.Assert(t, util.ContainsAll(err.Error(), "incompatible Knative Serving API found on the backend", "please verify the installation", "update", "'kn'"))
+
+	err = NewInvalidCRD("eventing", "false")
+	assert.Assert(t, util.ContainsAll(err.Error(), "no Knative Eventing API found on the backend", "please verify the installation"))
 }

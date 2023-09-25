@@ -65,7 +65,7 @@ func NewChannelListTypesCommand(p *commands.KnParams) *cobra.Command {
 				channelListTypes = &unstructured.UnstructuredList{}
 			}
 			if !listTypesFlags.GenericPrintFlags.OutputFlagSpecified() && len(channelListTypes.Items) == 0 {
-				return knerrors.NewInvalidCRD("Channels")
+				return knerrors.NewInvalidCRD("Channels", "unknown")
 			}
 
 			if channelListTypes.GroupVersionKind().Empty() {

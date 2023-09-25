@@ -15,12 +15,19 @@
 package errors
 
 import (
+	"context"
 	"errors"
+	"flag"
 	"net/http"
+	"path/filepath"
 	"strings"
 
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1"
 	api_errors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/util/homedir"
 )
 
 func isCRDError(status api_errors.APIStatus) bool {
@@ -54,11 +61,47 @@ func newStatusError(err error) error {
 	}
 	var knerr *KNError
 	if isCRDError(errAPIStatus) {
-		knerr = NewInvalidCRD(errAPIStatus.Status().Details.Group)
+		var kubeconfig *string
+		if home := homedir.HomeDir(); home != "" {
+			kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
+		} else {
+			kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
+		}
+		flag.Parse()
+		// use the current context in kubeconfig
+		config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
+		if err != nil {
+			return err
+		}
+		// instantiate our client with config
+		clientset, err := apiextensionsv1.NewForConfig(config)
+		if err != nil {
+			return err
+		}
+		options := metav1.ListOptions{}
+		crdList, err := clientset.CustomResourceDefinitions().List(context.Background(), options)
+		if err != nil {
+			return err
+		}
+
+		canFindResource := "false"
+		for _, crd := range crdList.Items {
+			if crd.Name == getResourceNameFromErrMessage(errAPIStatus.Status().Message) {
+				canFindResource = "true"
+				break
+			}
+		}
+
+		knerr = NewInvalidCRD(errAPIStatus.Status().Details.Group, canFindResource)
 		knerr.Status = errAPIStatus
 		return knerr
 	}
 	return err
+}
+
+func getResourceNameFromErrMessage(msg string) string {
+	res1 := strings.SplitAfter(msg, "(get ")
+	return res1[1][:len(res1[1])-1]
 }
 
 // Retrieves a custom error struct based on the original error APIStatus struct
