@@ -59,39 +59,41 @@ func newStatusError(err error) error {
 	if errAPIStatus.Status().Details == nil {
 		return err
 	}
+	canFindResource := "unknown"
 	var knerr *KNError
 	if isCRDError(errAPIStatus) {
-		var kubeconfig *string
-		if home := homedir.HomeDir(); home != "" {
-			kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
-		} else {
-			kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
-		}
-		flag.Parse()
-		// use the current context in kubeconfig
-		config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
-		if err != nil {
-			return err
-		}
-		// instantiate our client with config
-		clientset, err := apiextensionsv1.NewForConfig(config)
-		if err != nil {
-			return err
-		}
-		options := metav1.ListOptions{}
-		crdList, err := clientset.CustomResourceDefinitions().List(context.Background(), options)
-		if err != nil {
-			return err
-		}
+		if strings.Contains(errAPIStatus.Status().Message, "the server could not find") {
+			resourceName := getResourceNameFromErrMessage(errAPIStatus.Status().Message)
+			var kubeconfig *string
+			if home := homedir.HomeDir(); home != "" {
+				kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
+			} else {
+				kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
+			}
+			flag.Parse()
+			// use the current context in kubeconfig
+			config, _ := clientcmd.BuildConfigFromFlags("", *kubeconfig)
 
-		canFindResource := "false"
-		for _, crd := range crdList.Items {
-			if crd.Name == getResourceNameFromErrMessage(errAPIStatus.Status().Message) {
-				canFindResource = "true"
-				break
+			if config != nil {
+				canFindResource = "false"
+				// instantiate our client with config
+				clientset, err := apiextensionsv1.NewForConfig(config)
+				if err != nil {
+					return err
+				}
+				options := metav1.ListOptions{}
+				crdList, err := clientset.CustomResourceDefinitions().List(context.Background(), options)
+				if err != nil {
+					return err
+				}
+				for _, crd := range crdList.Items {
+					if crd.Name == resourceName {
+						canFindResource = "true"
+						break
+					}
+				}
 			}
 		}
-
 		knerr = NewInvalidCRD(errAPIStatus.Status().Details.Group, canFindResource)
 		knerr.Status = errAPIStatus
 		return knerr
