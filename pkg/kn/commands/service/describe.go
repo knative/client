@@ -19,7 +19,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"knative.dev/client/pkg/kn/plugin"
 	"sort"
 	"strconv"
 	"strings"
@@ -29,6 +28,7 @@ import (
 	"knative.dev/serving/pkg/apis/serving"
 
 	"knative.dev/client/pkg/kn/commands/revision"
+	"knative.dev/client/pkg/kn/plugin"
 	"knative.dev/client/pkg/printers"
 	clientservingv1 "knative.dev/client/pkg/serving/v1"
 
