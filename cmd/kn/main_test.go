@@ -21,7 +21,7 @@ import (
 	"strings"
 	"testing"
 
-	"knative.dev/client/pkg/kn/plugin"
+	pluginpkg "knative.dev/client/pkg/kn/plugin"
 
 	"github.com/spf13/cobra"
 	"gotest.tools/v3/assert"
@@ -361,7 +361,7 @@ func TestRun(t *testing.T) {
 		args           []string
 		expectedOut    []string
 		expectedErrOut []string
-		plugin         plugin.Plugin
+		plugin         pluginpkg.Plugin
 	}{
 		{
 			[]string{"kn", "version"},
@@ -425,8 +425,8 @@ func TestRun(t *testing.T) {
 	for _, tc := range testCases {
 		os.Args = tc.args
 		if tc.plugin != nil {
-			plugin.InternalPlugins = plugin.PluginList{}
-			plugin.InternalPlugins = append(plugin.InternalPlugins, tc.plugin)
+			pluginpkg.InternalPlugins = pluginpkg.PluginList{}
+			pluginpkg.InternalPlugins = append(pluginpkg.InternalPlugins, tc.plugin)
 		}
 		capture := test.CaptureOutput(t)
 		err := run(tc.args[1:])

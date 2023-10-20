@@ -19,6 +19,9 @@ package config
 
 type Config interface {
 
+	// ContextSharing represents feature flag enabling context sharing
+	ContextSharing() bool
+
 	// ConfigFile returns the location of the configuration file
 	ConfigFile() string
 
@@ -70,9 +73,10 @@ type ChannelTypeMapping struct {
 
 // config Keys for looking up in viper
 const (
-	keyPluginsDirectory    = "plugins.directory"
-	keySinkMappings        = "eventing.sink-mappings"
-	keyChannelTypeMappings = "eventing.channel-type-mappings"
+	keyFeaturesContextSharing = "features.context-sharing"
+	keyPluginsDirectory       = "plugins.directory"
+	keySinkMappings           = "eventing.sink-mappings"
+	keyChannelTypeMappings    = "eventing.channel-type-mappings"
 )
 
 // legacy config keys, deprecated
