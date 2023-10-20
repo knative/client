@@ -3,7 +3,7 @@ module knative.dev/client
 go 1.18
 
 require (
-	github.com/google/go-cmp v0.5.9
+	github.com/google/go-cmp v0.6.0
 	github.com/hashicorp/golang-lru v1.0.2
 	github.com/hashicorp/hcl v1.0.0
 	github.com/mitchellh/go-homedir v1.1.0
@@ -11,7 +11,7 @@ require (
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.16.0
-	golang.org/x/mod v0.12.0
+	golang.org/x/mod v0.13.0
 	golang.org/x/term v0.13.0
 	gotest.tools/v3 v3.3.0
 	k8s.io/api v0.27.6
@@ -20,12 +20,12 @@ require (
 	k8s.io/cli-runtime v0.26.5
 	k8s.io/client-go v0.27.6
 	k8s.io/code-generator v0.27.6
-	knative.dev/client-pkg v0.0.0-20231010132217-9ed2a9604c41
-	knative.dev/eventing v0.38.1-0.20231011142145-da0fba3c161a
-	knative.dev/hack v0.0.0-20231010131532-fc76874b28c6
-	knative.dev/networking v0.0.0-20231011064411-6c502de01ce6
-	knative.dev/pkg v0.0.0-20231011202506-948f5f57818a
-	knative.dev/serving v0.38.1-0.20231011210335-6703812f1314
+	knative.dev/client-pkg v0.0.0-20231020123408-9cea6f6e36ce
+	knative.dev/eventing v0.38.1-0.20231019170735-4d14c2126a20
+	knative.dev/hack v0.0.0-20231016131700-2c938d4918da
+	knative.dev/networking v0.0.0-20231017124814-2a7676e912b7
+	knative.dev/pkg v0.0.0-20231017113806-d6ab72900ea5
+	knative.dev/serving v0.38.1-0.20231020131030-425abcb95f5a
 	sigs.k8s.io/yaml v1.3.0
 )
 
@@ -109,14 +109,14 @@ require (
 	golang.org/x/sys v0.13.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
-	golang.org/x/tools v0.13.0 // indirect
+	golang.org/x/tools v0.14.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
-	google.golang.org/api v0.145.0 // indirect
+	google.golang.org/api v0.147.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20230913181813-007df8e322eb // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20230913181813-007df8e322eb // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20230920204549-e6e6cdab5c13 // indirect
-	google.golang.org/grpc v1.58.2 // indirect
+	google.golang.org/genproto v0.0.0-20231002182017-d307bd883b97 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20231002182017-d307bd883b97 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20231009173412-8bfb1ae86b6c // indirect
+	google.golang.org/grpc v1.58.3 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
