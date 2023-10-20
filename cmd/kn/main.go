@@ -85,8 +85,9 @@ func run(args []string) error {
 	}
 
 	// FT: Context Sharing
+	var ctxManager *pluginpkg.ContextDataManager
 	if config.GlobalConfig.ContextSharing() {
-		ctxManager, err := pluginpkg.NewContextManager()
+		ctxManager, err = pluginpkg.NewContextManager(pluginManager)
 		if err != nil {
 			return err
 		}
@@ -96,15 +97,6 @@ func run(args []string) error {
 				println("error during write")
 			}
 		}(ctxManager)
-
-		err = ctxManager.FetchManifests(pluginManager)
-		if err != nil {
-			return err
-		}
-
-		// Inject shared context data as context.Context
-		contextData := ctxManager.FetchContextData(pluginManager)
-		rootCmd.SetContext(contextData)
 	}
 
 	if plugin != nil {
@@ -113,7 +105,16 @@ func run(args []string) error {
 		if err != nil {
 			return err
 		}
-
+		if config.GlobalConfig.ContextSharing() {
+			if pwm, ok := plugin.(pluginpkg.PluginWithManifest); ok {
+				data, _ := ctxManager.FetchContextData()
+				err := pwm.ExecuteWithContext(data, argsWithoutCommands(args, plugin.CommandParts()))
+				if err != nil {
+					return &runError{err: err}
+				}
+			}
+			return nil
+		}
 		err := plugin.Execute(argsWithoutCommands(args, plugin.CommandParts()))
 		if err != nil {
 			return &runError{err: err}

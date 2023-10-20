@@ -19,7 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-
+	"knative.dev/client/pkg/kn/plugin"
 	"sort"
 	"strconv"
 	"strings"
@@ -102,8 +102,12 @@ func NewServiceDescribeCommand(p *commands.KnParams) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var serviceName string
 			if len(args) != 1 {
-				if cmd.Context() != nil && cmd.Context().Value("service") != nil {
-					serviceName = cmd.Context().Value("service").(string)
+				if plugin.CtxManager != nil {
+					data, err := plugin.CtxManager.FetchContextData()
+					if err != nil {
+						return err
+					}
+					serviceName = data["service"]
 				}
 				if serviceName == "" {
 					return errors.New("'service describe' requires the service name given as single argument")

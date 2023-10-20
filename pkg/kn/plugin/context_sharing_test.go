@@ -17,7 +17,6 @@
 package plugin
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 	"strings"
@@ -34,7 +33,7 @@ type testPluginWithManifest struct {
 
 func (t testPluginWithManifest) GetManifest() *Manifest            { return t.manifest }
 func (t testPluginWithManifest) GetContextData() map[string]string { return t.contextData }
-func (t testPluginWithManifest) ExecuteWithContext(ctx context.Context, args []string) error {
+func (t testPluginWithManifest) ExecuteWithContext(ctx map[string]string, args []string) error {
 	return nil
 }
 
@@ -86,10 +85,10 @@ func TestFetchManifest(t *testing.T) {
 			})
 
 			if len(tc.cmdPart) == 0 {
-				ctxManager, err := NewContextManager()
+				ctxManager, err := NewContextManager(c.pluginManager)
 				assert.NilError(t, err)
 
-				err = ctxManager.FetchManifests(c.pluginManager)
+				err = ctxManager.FetchManifests()
 				assert.NilError(t, err)
 				assert.Assert(t, len(ctxManager.Manifests) == 0)
 				return
@@ -105,10 +104,10 @@ func TestFetchManifest(t *testing.T) {
 				prepareInternalPlugins(testPlugin{parts: tc.cmdPart})
 			}
 
-			ctxManager, err := NewContextManager()
+			ctxManager, err := NewContextManager(c.pluginManager)
 			assert.NilError(t, err)
 
-			err = ctxManager.FetchManifests(c.pluginManager)
+			err = ctxManager.FetchManifests()
 			assert.NilError(t, err)
 			assert.Assert(t, len(ctxManager.Manifests) == 1)
 

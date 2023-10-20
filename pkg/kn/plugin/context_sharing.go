@@ -16,7 +16,6 @@ package plugin
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"io/fs"
 	"os"
@@ -28,10 +27,6 @@ import (
 )
 
 //--TYPES--
-//TODO: move types into its own file
-
-//TODO: let's see if we need this map
-//type ContextData map[string]string
 
 // Manifest represents plugin metadata
 type Manifest struct {
@@ -44,7 +39,6 @@ type Manifest struct {
 	// ProducesContextDataKeys is a list of keys for the ContextData that
 	// a plugin can produce. Nil or an empty list declares that this
 	// plugin is not ContextDataProducer
-	//TODO: well-known keys could be const, or this can be its own data structure
 	ProducesContextDataKeys []string `json:"producesKeys,omitempty"`
 
 	// ConsumesContextDataKeys is a list of keys from a ContextData that a
@@ -65,7 +59,7 @@ type PluginWithManifest interface {
 	GetContextData() map[string]string
 
 	// ExecuteWithContext
-	ExecuteWithContext(ctx context.Context, args []string) error
+	ExecuteWithContext(ctx map[string]string, args []string) error
 }
 
 //--TYPES--
@@ -74,32 +68,19 @@ var CtxManager *ContextDataManager
 
 type ContextDataManager struct {
 	//ContextData map[string]ContextData `json:"-"`
-	Producers map[string][]string `json:"producers"`
-	Consumers map[string][]string `json:"consumers"`
-	Manifests map[string]Manifest `json:"manifests"`
+	PluginManager *Manager            `json:"-"`
+	Producers     map[string][]string `json:"producers"`
+	Consumers     map[string][]string `json:"consumers"`
+	Manifests     map[string]Manifest `json:"manifests"`
 }
 
-func NewContextManager() (*ContextDataManager, error) {
+func NewContextManager(pluginManager *Manager) (*ContextDataManager, error) {
 	if CtxManager == nil {
-		//println("opening file...")
-		//file, err := os.Open(filepath.Join(filepath.Dir(config.GlobalConfig.ConfigFile()), "context.json"))
-		//if err != nil {
-		//	return nil, err
-		//}
-		//decoder := json.NewDecoder(file)
-		//ctxManager = &ContextDataManager{}
-		//if err := decoder.Decode(ctxManager); err != nil {
-		//	return nil, err
-		//}
-		//out := new(bytes.Buffer)
-		//enc := json.NewEncoder(out)
-		//enc.SetIndent("", "    ")
-		//enc.Encode(ctxManager)
-		//println(out.String())
 		CtxManager = &ContextDataManager{
-			Producers: map[string][]string{},
-			Consumers: map[string][]string{},
-			Manifests: map[string]Manifest{},
+			PluginManager: pluginManager,
+			Producers:     map[string][]string{},
+			Consumers:     map[string][]string{},
+			Manifests:     map[string]Manifest{},
 		}
 	}
 	return CtxManager, nil
@@ -115,27 +96,31 @@ func (c *ContextDataManager) GetProducesKeys(pluginName string) []string {
 	return c.Manifests[pluginName].ProducesContextDataKeys
 }
 
-func (c *ContextDataManager) FetchContextData(pluginManager *Manager) context.Context {
-	ctx := context.Background()
-	for _, p := range pluginManager.GetInternalPlugins() {
+func (c *ContextDataManager) FetchContextData() (map[string]string, error) {
+	// Load cached data first
+	if err := c.loadCache(); err != nil {
+		return nil, err
+	}
+
+	// Fetch manifests
+	if err := c.FetchManifests(); err != nil {
+		return nil, err
+	}
+
+	// Get context data, limited to func only
+	for _, p := range c.PluginManager.GetInternalPlugins() {
 		if p.Name() == "kn func" {
 			if pwm, ok := p.(PluginWithManifest); ok {
-				data := pwm.GetContextData()
-
-				for k, v := range data {
-					ctx = context.WithValue(ctx, k, v)
-				}
+				return pwm.GetContextData(), nil
 			}
 		}
 	}
-	//ctx = context.WithValue(ctx, "service", "hello")
-	return ctx
-
+	return map[string]string{}, nil
 }
 
 // FetchManifests it tries to retrieve manifest from both inlined and external plugins
-func (c *ContextDataManager) FetchManifests(pluginManager *Manager) error {
-	for _, plugin := range pluginManager.GetInternalPlugins() {
+func (c *ContextDataManager) FetchManifests() error {
+	for _, plugin := range c.PluginManager.GetInternalPlugins() {
 		manifest := &Manifest{}
 		// For the integrity build the same name format as external plugins
 		pluginName := "kn-" + strings.Join(plugin.CommandParts(), "-")
@@ -150,7 +135,7 @@ func (c *ContextDataManager) FetchManifests(pluginManager *Manager) error {
 			c.populateDataKeys(manifest, pluginName)
 		}
 	}
-	plugins, err := pluginManager.ListPlugins()
+	plugins, err := c.PluginManager.ListPlugins()
 	if err != nil {
 		return err
 	}
@@ -210,16 +195,38 @@ func fetchExternalManifest(p Plugin) *Manifest {
 	return manifest
 }
 
-// TODO: store to file actually
+func (c *ContextDataManager) loadCache() error {
+	cacheFile := filepath.Join(filepath.Dir(config.GlobalConfig.ConfigFile()), "context.json")
+	if _, err := os.Stat(cacheFile); err != nil {
+		if os.IsNotExist(err) {
+			return nil // No cache file yet
+		} else {
+			return err
+		}
+	}
+
+	file, err := os.Open(cacheFile)
+	if err != nil {
+		return err
+	}
+	decoder := json.NewDecoder(file)
+	ctxManager := &ContextDataManager{}
+	if err := decoder.Decode(ctxManager); err != nil {
+		return err
+	}
+	c.Manifests = ctxManager.Manifests
+	c.Producers = ctxManager.Producers
+	c.Consumers = ctxManager.Consumers
+	return nil
+}
+
 // WriteCache store data back to cache file
 func (c *ContextDataManager) WriteCache() error {
-	//println("\n====\nContext Data to be stored:")
 	out := new(bytes.Buffer)
 	enc := json.NewEncoder(out)
 	enc.SetIndent("", "    ")
 	if err := enc.Encode(c); err != nil {
 		return nil
 	}
-	//println(out.String())
 	return os.WriteFile(filepath.Join(filepath.Dir(config.GlobalConfig.ConfigFile()), "context.json"), out.Bytes(), fs.FileMode(0664))
 }
