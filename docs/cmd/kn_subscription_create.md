@@ -14,13 +14,13 @@ kn subscription create NAME
   kn subscription create sub0 --channel imcv1beta1:pipe0 --sink ksvc:receiver
 
   # Create a subscription 'sub1' from KafkaChannel 'k1' to ksvc 'mirror', reply to a broker 'nest' and DeadLetterSink to a ksvc 'bucket'
-  kn subscription create sub1 --channel messaging.knative.dev:v1alpha1:KafkaChannel:k1 --sink mirror --sink-reply broker:nest --sink-dead-letter bucket
+  kn subscription create sub1 --channel messaging.knative.dev:v1beta1:KafkaChannel:k1 --sink mirror --sink-reply broker:nest --sink-dead-letter bucket
 ```
 
 ### Options
 
 ```
-      --channel string            Specify the channel to subscribe to. For the default channel, just use the name (e.g. 'mychannel'). A mapped channel type like 'imc' can be used as a prefix (e.g. 'imc:mychannel'). Finally you can specify the full coordinates to the referenced channel with Group:Version:Kind:Name (e.g. 'messaging.knative.dev:v1alpha1:KafkaChannel:mychannel').
+      --channel string            Specify the channel to subscribe to. For the default channel, just use the name (e.g. 'mychannel'). A mapped channel type like 'imc' can be used as a prefix (e.g. 'imc:mychannel'). Finally you can specify the full coordinates to the referenced channel with Group:Version:Kind:Name (e.g. 'messaging.knative.dev:v1beta1:KafkaChannel:mychannel').
   -h, --help                      help for create
   -n, --namespace string          Specify the namespace to operate in.
   -s, --sink string               Addressable sink for events. You can specify a broker, channel, Knative service or URI. Examples: '--sink broker:nest' for a broker 'nest', '--sink channel:pipe' for a channel 'pipe', '--sink ksvc:mysvc:mynamespace' for a Knative service 'mysvc' in another namespace 'mynamespace', '--sink https://event.receiver.uri' for an HTTP URI, '--sink ksvc:receiver' or simply '--sink receiver' for a Knative service 'receiver' in the current namespace. '--sink special.eventing.dev/v1alpha1/channels:pipe' for GroupVersionResource of v1alpha1 'pipe'. If a prefix is not provided, it is considered as a Knative service in the current namespace.

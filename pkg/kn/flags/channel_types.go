@@ -54,7 +54,7 @@ func (i *ChannelTypeFlags) Add(f *pflag.FlagSet) {
 			"If flag is not specified, it uses default messaging layer settings for channel type, cluster wide or specific namespace. "+
 			"You can configure aliases for channel types in kn config and refer the aliases with this flag. "+
 			"You can also refer inbuilt channel type InMemoryChannel using an alias 'imc' like '--type imc'. "+
-			"Examples: '--type messaging.knative.dev:v1alpha1:KafkaChannel' for specifying explicit Group:Version:Kind.")
+			"Examples: '--type messaging.knative.dev:v1beta1:KafkaChannel' for specifying explicit Group:Version:Kind.")
 
 	for _, p := range config.GlobalConfig.ChannelTypeMappings() {
 		//user configuration might override the default configuration
@@ -94,7 +94,7 @@ func (i *ChannelRef) Add(f *pflag.FlagSet) {
 			"just use the name (e.g. 'mychannel'). A mapped channel type like 'imc' "+
 			"can be used as a prefix (e.g. 'imc:mychannel'). "+
 			"Finally you can specify the full coordinates to the referenced channel "+
-			"with Group:Version:Kind:Name (e.g. 'messaging.knative.dev:v1alpha1:KafkaChannel:mychannel').")
+			"with Group:Version:Kind:Name (e.g. 'messaging.knative.dev:v1beta1:KafkaChannel:mychannel').")
 }
 
 // Parse parses the CLI value for channel ref flag and populates object reference or return error
