@@ -42,7 +42,7 @@ func NewChannelCreateCommand(p *commands.KnParams) *cobra.Command {
   kn channel create imc1 --type messaging.knative.dev:v1:InMemoryChannel
 
   # Create a channel 'k1' of type KafkaChannel
-  kn channel create k1 --type messaging.knative.dev:v1alpha1:KafkaChannel`,
+  kn channel create k1 --type messaging.knative.dev:v1beta1:KafkaChannel`,
 
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {

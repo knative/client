@@ -26,7 +26,6 @@ import (
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
 	knflags "knative.dev/client/pkg/kn/flags"
-	knmessagingv1 "knative.dev/client/pkg/messaging/v1"
 )
 
 // NewSubscriptionCreateCommand to create event subscriptions
@@ -44,7 +43,7 @@ func NewSubscriptionCreateCommand(p *commands.KnParams) *cobra.Command {
   kn subscription create sub0 --channel imcv1beta1:pipe0 --sink ksvc:receiver
 
   # Create a subscription 'sub1' from KafkaChannel 'k1' to ksvc 'mirror', reply to a broker 'nest' and DeadLetterSink to a ksvc 'bucket'
-  kn subscription create sub1 --channel messaging.knative.dev:v1alpha1:KafkaChannel:k1 --sink mirror --sink-reply broker:nest --sink-dead-letter bucket`,
+  kn subscription create sub1 --channel messaging.knative.dev:v1beta1:KafkaChannel:k1 --sink mirror --sink-reply broker:nest --sink-dead-letter bucket`,
 
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
