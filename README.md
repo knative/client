@@ -53,4 +53,5 @@ Additionally you can visit [knative.dev](https://knative.dev) for more examples.
 ## Developers
 
 If you are interested in contributing, see [CONTRIBUTING.md](./CONTRIBUTING.md)
-and [DEVELOPMENT.md](DEVELOPMENT.md).
+and [DEVELOPMENT.md](DEVELOPMENT.md). For a list of help wanted issues in Knative,
+check out [CLOTRIBUTOR](https://clotributor.dev/search?project=knative&page=1)
