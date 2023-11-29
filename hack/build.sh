@@ -23,7 +23,7 @@ set -o nounset
 source_dirs="cmd pkg test lib tools"
 
 # Store for later
-if [ -z "$1" ]; then
+if [ -z "${1-}" ]; then
     ARGS=("")
 else
     ARGS=("$@")
@@ -47,6 +47,12 @@ run() {
     exit 0
   fi
 
+  # Run linter if requested
+  if has_flag --lint; then
+    source_lint
+    exit 0
+  fi
+  
   if has_flag --watch -w; then
     # Build and test first
     go_build
@@ -104,9 +110,6 @@ codegen() {
   # Format source code and cleanup imports
   source_format
 
-  # Lint source code
-  (( ! IS_PROW )) && source_lint
-
   # Check for license headers
   check_license
 
@@ -117,13 +120,13 @@ codegen() {
 
 go_fmt() {
   echo "🧹 ${S}Format"
-  find "$(echo "$source_dirs")" -name "*.go" -print0 | xargs -0 gofmt -s -w
+  find $(echo "$source_dirs") -name "*.go" -print0 | xargs -0 gofmt -s -w
 }
 
 source_format() {
   set +e
-  go_run "golang.org/x/tools/cmd/goimports@${GOIMPORTS_VERSION}" -w "$(echo "$source_dirs")"
-  find "$(echo "$source_dirs")" -name "*.go" -print0 | xargs -0 gofmt -s -w
+  go_run "golang.org/x/tools/cmd/goimports@${GOIMPORTS_VERSION}" -w $(echo "$source_dirs")
+  find $(echo "$source_dirs") -name "*.go" -print0 | xargs -0 gofmt -s -w
   set -e
 }
 
@@ -198,7 +201,11 @@ check_license() {
 
 update_deps() {
   echo "🚒 Update"
-  "$(basedir)"/hack/update-deps.sh
+  if has_flag --verbose; then
+      "$(basedir)"/hack/update-deps.sh
+  else
+      "$(basedir)"/hack/update-deps.sh 1>/dev/null 2>&1 
+  fi
 }
 
 generate_docs() {
@@ -334,6 +341,7 @@ with the following options:
 -w  --watch                   Watch for source changes and recompile in fast mode
 -x  --all                     Only build cross platform binaries without code-generation/testing
 -h  --help                    Display this help message
+    --lint                    Run the code linter
     --verbose                 More output
     --debug                   Debug information for this script (set -x)
 
