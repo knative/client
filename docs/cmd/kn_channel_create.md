@@ -19,7 +19,7 @@ kn channel create NAME
   kn channel create imc1 --type messaging.knative.dev:v1:InMemoryChannel
 
   # Create a channel 'k1' of type KafkaChannel
-  kn channel create k1 --type messaging.knative.dev:v1alpha1:KafkaChannel
+  kn channel create k1 --type messaging.knative.dev:v1beta1:KafkaChannel
 ```
 
 ### Options
@@ -27,7 +27,7 @@ kn channel create NAME
 ```
   -h, --help               help for create
   -n, --namespace string   Specify the namespace to operate in.
-      --type string        Override channel type to create, in the format '--type Group:Version:Kind'. If flag is not specified, it uses default messaging layer settings for channel type, cluster wide or specific namespace. You can configure aliases for channel types in kn config and refer the aliases with this flag. You can also refer inbuilt channel type InMemoryChannel using an alias 'imc' like '--type imc'. Examples: '--type messaging.knative.dev:v1alpha1:KafkaChannel' for specifying explicit Group:Version:Kind.
+      --type string        Override channel type to create, in the format '--type Group:Version:Kind'. If flag is not specified, it uses default messaging layer settings for channel type, cluster wide or specific namespace. You can configure aliases for channel types in kn config and refer the aliases with this flag. You can also refer inbuilt channel type InMemoryChannel using an alias 'imc' like '--type imc'. Examples: '--type messaging.knative.dev:v1beta1:KafkaChannel' for specifying explicit Group:Version:Kind.
 ```
 
 ### Options inherited from parent commands
