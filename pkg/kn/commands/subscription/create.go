@@ -26,6 +26,7 @@ import (
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
 	knflags "knative.dev/client/pkg/kn/flags"
+	knmessagingv1 "knative.dev/client/pkg/messaging/v1"
 )
 
 // NewSubscriptionCreateCommand to create event subscriptions
