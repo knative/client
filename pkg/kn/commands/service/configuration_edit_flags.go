@@ -488,11 +488,27 @@ func (p *ConfigurationEditFlags) Apply(
 
 	if cmd.Flags().Changed("profile") {
 		if len(knconfig.GlobalConfig.Profile(p.Profile).Annotations) > 0 {
-			return fmt.Errorf("profile doesn't exist %s", p.Profile)
-		} else if len(knconfig.GlobalConfig.Profile(p.Profile).Annotations) == 0 {
-			return fmt.Errorf("profile %s doesn't contain any annotations.", p.Profile)
+			annotations := knconfig.GlobalConfig.Profile(p.Profile).Annotations
+			profileAnnotations := make(util.StringMap)
+			profileAnnotations.Merge(annotations)
+			// if strings.HasSuffix(p.Profile, "-") {
+			// 	nothingToDelete := make(map[string]string)
+			// 	err = servinglib.UpdateRevisionTemplateAnnotations(template, nothingToAdd, profileAnnotations)
+			// } else {
+			emptySlice := []string{}
+			err = servinglib.UpdateRevisionTemplateAnnotations(template, profileAnnotations, emptySlice)
+			// }
+
+			if err != nil {
+				return err
+			}
 		} else {
-			return fmt.Errorf("profile %s doesn't exist.", p.Profile)
+			return fmt.Errorf("profile %s doesn't exist", p.Profile)
+		}
+
+		if strings.HasSuffix(p.Profile, "-") {
+		} else {
+
 		}
 	}
 
