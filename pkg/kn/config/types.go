@@ -38,7 +38,8 @@ type Config interface {
 	// ChannelTypeMappings returns additional mappings for channel type aliases
 	ChannelTypeMappings() []ChannelTypeMapping
 
-	Profiles() Profiles
+	// Profile returns a configured profile with this name or nil of no such profile is configured
+	Profile(profile string) Profile
 }
 
 // SinkMappings is the struct of sink prefix config in kn config
@@ -77,9 +78,7 @@ type Profile struct {
 	Annotations map[string]string `yaml:"annotations"`
 }
 
-type Profiles struct {
-	Profiles []Profile `yaml:"profiles"`
-}
+type Profiles map[string]Profile
 
 // config Keys for looking up in viper
 const (

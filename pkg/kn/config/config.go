@@ -65,7 +65,7 @@ type config struct {
 	// channelTypeMappings is a list of channel type mapping
 	channelTypeMappings []ChannelTypeMapping
 
-	profiles Profiles
+	profiles map[string]Profile
 }
 
 func (c *config) ContextSharing() bool {
@@ -102,8 +102,8 @@ func (c *config) SinkMappings() []SinkMapping {
 	return c.sinkMappings
 }
 
-func (c *config) Profiles() Profiles {
-	return c.profiles
+func (c *config) Profile(profile string) Profile {
+	return c.profiles[profile]
 }
 
 func (c *config) ChannelTypeMappings() []ChannelTypeMapping {

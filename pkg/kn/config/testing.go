@@ -24,7 +24,7 @@ type TestConfig struct {
 	TestLookupPluginsInPath bool
 	TestSinkMappings        []SinkMapping
 	TestChannelTypeMappings []ChannelTypeMapping
-	TestProfiles            Profiles
+	TestProfiles            map[string]Profile
 }
 
 // Ensure that TestConfig implements the configuration interface
@@ -36,4 +36,4 @@ func (t TestConfig) ConfigFile() string                        { return t.TestCo
 func (t TestConfig) LookupPluginsInPath() bool                 { return t.TestLookupPluginsInPath }
 func (t TestConfig) SinkMappings() []SinkMapping               { return t.TestSinkMappings }
 func (t TestConfig) ChannelTypeMappings() []ChannelTypeMapping { return t.TestChannelTypeMappings }
-func (t TestConfig) Profiles() Profiles                        { return t.TestProfiles }
+func (t TestConfig) Profile(profile string) Profile            { return t.TestProfiles[profile] }

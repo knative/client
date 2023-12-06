@@ -57,7 +57,7 @@ eventing:
 	assert.Equal(t, GlobalConfig.PluginsDir(), "/tmp")
 	assert.Equal(t, GlobalConfig.LookupPluginsInPath(), true)
 	assert.Equal(t, len(GlobalConfig.SinkMappings()), 1)
-	assert.Equal(t, len(GlobalConfig.Profiles().Profile), 1)
+	assert.Equal(t, GlobalConfig.Profile("istio").Annotations["sidecar.istio.io/inject"], "true")
 	assert.DeepEqual(t, (GlobalConfig.SinkMappings())[0], SinkMapping{
 		Prefix:   "service",
 		Resource: "services",
