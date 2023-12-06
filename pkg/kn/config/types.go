@@ -78,8 +78,6 @@ type Profile struct {
 	Annotations map[string]string `yaml:"annotations"`
 }
 
-type Profiles map[string]Profile
-
 // config Keys for looking up in viper
 const (
 	keyFeaturesContextSharing = "features.context-sharing"

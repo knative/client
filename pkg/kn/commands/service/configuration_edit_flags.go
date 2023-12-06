@@ -24,6 +24,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"knative.dev/serving/pkg/apis/config"
 
+	knconfig "knative.dev/client/pkg/kn/config"
 	knflags "knative.dev/client/pkg/kn/flags"
 	servinglib "knative.dev/client/pkg/serving"
 	"knative.dev/client/pkg/util"
@@ -57,6 +58,7 @@ type ConfigurationEditFlags struct {
 	ClusterLocal        bool
 	ScaleInit           int
 	TimeoutSeconds      int64
+	Profile             string
 
 	// Preferences about how to do the action.
 	LockToDigest         bool
@@ -187,6 +189,11 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 		"Duration in seconds that the request routing layer will wait for a request delivered to a "+""+
 			"container to begin replying")
 	p.markFlagMakesRevision("timeout")
+
+	command.Flags().StringVar(&p.Profile, "profile", "",
+		"The profile name to set. This will add the annotations related to profile to the service. "+
+			"To unset, specify the profile name followed by a \"-\" (e.g., name-).")
+	p.markFlagMakesRevision("profile")
 }
 
 // AddUpdateFlags adds the flags specific to update.
@@ -477,6 +484,16 @@ func (p *ConfigurationEditFlags) Apply(
 
 	if cmd.Flags().Changed("timeout") {
 		service.Spec.Template.Spec.TimeoutSeconds = &p.TimeoutSeconds
+	}
+
+	if cmd.Flags().Changed("profile") {
+		if len(knconfig.GlobalConfig.Profile(p.Profile).Annotations) > 0 {
+			return fmt.Errorf("profile doesn't exist %s", p.Profile)
+		} else if len(knconfig.GlobalConfig.Profile(p.Profile).Annotations) == 0 {
+			return fmt.Errorf("profile %s doesn't contain any annotations.", p.Profile)
+		} else {
+			return fmt.Errorf("profile %s doesn't exist.", p.Profile)
+		}
 	}
 
 	return nil

@@ -75,3 +75,29 @@ func TestScaleActivation(t *testing.T) {
 	assert.NilError(t, err)
 	assert.Equal(t, svc.Spec.Template.Annotations[autoscaling.ActivationScaleKey], "2")
 }
+
+func TestApplyProfileFlagError(t *testing.T) {
+	var editFlags ConfigurationEditFlags
+	knParams := &commands.KnParams{}
+	cmd, _, _ := commands.CreateTestKnCommand(NewServiceCreateCommand(knParams), knParams)
+
+	editFlags.AddCreateFlags(cmd)
+	svc := createTestService("test-svc", []string{"test-svc-00001", "test-svc-00002"}, goodConditions())
+	cmd.SetArgs([]string{"--profile", "invalidprofile"})
+	cmd.Execute()
+	err := editFlags.Apply(&svc, nil, cmd)
+	assert.Assert(t, util.ContainsAll(err.Error(), "profile", "invalidprofile"))
+}
+
+func TestApplyProfileFlagAnnotationError(t *testing.T) {
+	var editFlags ConfigurationEditFlags
+	knParams := &commands.KnParams{}
+	cmd, _, _ := commands.CreateTestKnCommand(NewServiceCreateCommand(knParams), knParams)
+
+	editFlags.AddCreateFlags(cmd)
+	svc := createTestService("test-svc", []string{"test-svc-00001", "test-svc-00002"}, goodConditions())
+	cmd.SetArgs([]string{"--profile", "istio"})
+	cmd.Execute()
+	err := editFlags.Apply(&svc, nil, cmd)
+	assert.Assert(t, util.ContainsAll(err.Error(), "profile", "istio", "doesn't contain any annotations"))
+}
