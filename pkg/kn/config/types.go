@@ -37,6 +37,8 @@ type Config interface {
 
 	// ChannelTypeMappings returns additional mappings for channel type aliases
 	ChannelTypeMappings() []ChannelTypeMapping
+
+	Profiles() Profiles
 }
 
 // SinkMappings is the struct of sink prefix config in kn config
@@ -71,12 +73,21 @@ type ChannelTypeMapping struct {
 	Version string
 }
 
+type Profile struct {
+	Annotations map[string]string `yaml:"annotations"`
+}
+
+type Profiles struct {
+	Profiles []Profile `yaml:"profiles"`
+}
+
 // config Keys for looking up in viper
 const (
 	keyFeaturesContextSharing = "features.context-sharing"
 	keyPluginsDirectory       = "plugins.directory"
 	keySinkMappings           = "eventing.sink-mappings"
 	keyChannelTypeMappings    = "eventing.channel-type-mappings"
+	profiles                  = "profiles"
 )
 
 // legacy config keys, deprecated

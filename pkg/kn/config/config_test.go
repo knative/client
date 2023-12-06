@@ -28,6 +28,12 @@ func TestBootstrapConfig(t *testing.T) {
 	configYaml := `
 plugins:
   directory: /tmp
+profiles:
+  istio:
+    annotations:
+      sidecar.istio.io/inject: "true"
+      sidecar.istio.io/rewriteAppHTTPProbers: "true"
+      serving.knative.openshift.io/enablePassthrough: "true"
 eventing:
   sink-mappings:
   - prefix: service
@@ -51,6 +57,7 @@ eventing:
 	assert.Equal(t, GlobalConfig.PluginsDir(), "/tmp")
 	assert.Equal(t, GlobalConfig.LookupPluginsInPath(), true)
 	assert.Equal(t, len(GlobalConfig.SinkMappings()), 1)
+	assert.Equal(t, len(GlobalConfig.Profiles().Profile), 1)
 	assert.DeepEqual(t, (GlobalConfig.SinkMappings())[0], SinkMapping{
 		Prefix:   "service",
 		Resource: "services",

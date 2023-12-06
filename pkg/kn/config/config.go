@@ -64,6 +64,8 @@ type config struct {
 
 	// channelTypeMappings is a list of channel type mapping
 	channelTypeMappings []ChannelTypeMapping
+
+	profiles Profiles
 }
 
 func (c *config) ContextSharing() bool {
@@ -98,6 +100,10 @@ func (c *config) LookupPluginsInPath() bool {
 
 func (c *config) SinkMappings() []SinkMapping {
 	return c.sinkMappings
+}
+
+func (c *config) Profiles() Profiles {
+	return c.profiles
 }
 
 func (c *config) ChannelTypeMappings() []ChannelTypeMapping {
@@ -163,6 +169,12 @@ func BootstrapConfig() error {
 
 	// Deserialize sink mappings if configured
 	err = parseSinkMappings()
+	if err != nil {
+		return err
+	}
+
+	// Deserialize profiles if configured
+	err = parseProfiles()
 	if err != nil {
 		return err
 	}
@@ -261,6 +273,18 @@ func parseSinkMappings() error {
 		err := viper.UnmarshalKey(key, &globalConfig.sinkMappings)
 		if err != nil {
 			return fmt.Errorf("error while parsing sink mappings in configuration file %s: %w",
+				viper.ConfigFileUsed(), err)
+		}
+	}
+	return nil
+}
+
+// parse profiles and store them in the global configuration
+func parseProfiles() error {
+	if viper.IsSet(profiles) {
+		err := viper.UnmarshalKey(profiles, &globalConfig.profiles)
+		if err != nil {
+			return fmt.Errorf("error while parsing profiles in configuration file %s: %w",
 				viper.ConfigFileUsed(), err)
 		}
 	}
