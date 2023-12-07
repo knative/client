@@ -148,7 +148,13 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			out := cmd.OutOrStdout()
+			var out io.Writer
+			if p.QuietMode {
+				out = io.Discard
+			} else {
+				out = cmd.OutOrStdout()
+			}
+
 			if serviceExists {
 				if !editFlags.ForceCreate {
 					return fmt.Errorf(
