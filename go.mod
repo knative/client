@@ -6,8 +6,8 @@ toolchain go1.21.4
 
 require (
 	github.com/google/go-cmp v0.6.0
-	github.com/hashicorp/golang-lru v1.0.2 // indirect
-	github.com/hashicorp/hcl v1.0.0 // indirect
+	github.com/hashicorp/golang-lru v1.0.2
+	github.com/hashicorp/hcl v1.0.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/spf13/afero v1.9.5 // indirect
 	github.com/spf13/cobra v1.7.0
