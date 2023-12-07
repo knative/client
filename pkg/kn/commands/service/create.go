@@ -83,7 +83,7 @@ var create_example = `
   kn service create gitopstest --image knativesamples/helloworld --target=/user/knfiles/test.json
 
   # Create a service with profile
-  kn service create isoto --image knativesamples/helloworld --profile istio`
+  kn service create profiletest --image knativesamples/helloworld --profile istio`
 
 func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 	var editFlags ConfigurationEditFlags

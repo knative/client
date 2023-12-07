@@ -74,8 +74,16 @@ type ChannelTypeMapping struct {
 	Version string
 }
 
+// NamedValue is the struct of name and values in the Profile struct
+type NamedValue struct {
+	Name  string `yaml:"name"`
+	Value string `yaml:"value"`
+}
+
+// Profile is the struct of profile config in kn config
 type Profile struct {
-	Annotations map[string]string `yaml:"annotations"`
+	Annotations []NamedValue `yaml:"annotations"`
+	Labels      []NamedValue `yaml:"labels"`
 }
 
 // config Keys for looking up in viper
@@ -97,4 +105,9 @@ const (
 // TODO: Remove me if decided that they are not needed
 const (
 	flagPluginsDir = "plugins-dir"
+)
+
+// default profiles
+const (
+	istio = "istio"
 )

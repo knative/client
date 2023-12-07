@@ -191,7 +191,7 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 	p.markFlagMakesRevision("timeout")
 
 	command.Flags().StringVar(&p.Profile, "profile", "",
-		"The profile name to set. This will add the annotations related to profile to the service. "+
+		"The profile name must be defined in config.yaml or part of the built-in profile, e.g. Istio. Related annotations and labels will be added to the service."+
 			"To unset, specify the profile name followed by a \"-\" (e.g., name-).")
 	p.markFlagMakesRevision("profile")
 }
@@ -487,28 +487,59 @@ func (p *ConfigurationEditFlags) Apply(
 	}
 
 	if cmd.Flags().Changed("profile") {
-		if len(knconfig.GlobalConfig.Profile(p.Profile).Annotations) > 0 {
-			annotations := knconfig.GlobalConfig.Profile(p.Profile).Annotations
+		profileName := ""
+		deleteProfile := false
+		if strings.HasSuffix(p.Profile, "-") {
+			profileName = p.Profile[:len(p.Profile)-1]
+			deleteProfile = true
+		} else {
+			profileName = p.Profile
+			deleteProfile = false
+		}
+
+		if len(knconfig.GlobalConfig.Profile(profileName).Annotations) > 0 || len(knconfig.GlobalConfig.Profile(profileName).Labels) > 0 {
+			annotations := knconfig.GlobalConfig.Profile(profileName).Annotations
+			labels := knconfig.GlobalConfig.Profile(profileName).Labels
+
 			profileAnnotations := make(util.StringMap)
-			profileAnnotations.Merge(annotations)
-			// if strings.HasSuffix(p.Profile, "-") {
-			// 	nothingToDelete := make(map[string]string)
-			// 	err = servinglib.UpdateRevisionTemplateAnnotations(template, nothingToAdd, profileAnnotations)
-			// } else {
-			emptySlice := []string{}
-			err = servinglib.UpdateRevisionTemplateAnnotations(template, profileAnnotations, emptySlice)
-			// }
+			for _, value := range annotations {
+				profileAnnotations[value.Name] = value.Value
+			}
+
+			profileLabels := make(util.StringMap)
+			for _, value := range labels {
+				profileLabels[value.Name] = value.Value
+			}
+
+			if deleteProfile {
+				var annotationsToRemove []string
+				for _, value := range annotations {
+					annotationsToRemove = append(annotationsToRemove, value.Name)
+				}
+
+				var labelsToRemove []string
+				for _, value := range labels {
+					labelsToRemove = append(labelsToRemove, value.Name)
+				}
+
+				if err = servinglib.UpdateRevisionTemplateAnnotations(template, map[string]string{}, annotationsToRemove); err != nil {
+					return err
+				}
+				updatedLabels := servinglib.UpdateLabels(service.ObjectMeta.Labels, map[string]string{}, labelsToRemove)
+				service.ObjectMeta.Labels = updatedLabels // In case service.ObjectMeta.Labels was nil
+			} else {
+				if err = servinglib.UpdateRevisionTemplateAnnotations(template, profileAnnotations, []string{}); err != nil {
+					return err
+				}
+				updatedLabels := servinglib.UpdateLabels(service.ObjectMeta.Labels, profileLabels, []string{})
+				service.ObjectMeta.Labels = updatedLabels // In case service.ObjectMeta.Labels was nil
+			}
 
 			if err != nil {
 				return err
 			}
 		} else {
-			return fmt.Errorf("profile %s doesn't exist", p.Profile)
-		}
-
-		if strings.HasSuffix(p.Profile, "-") {
-		} else {
-
+			return fmt.Errorf("profile %s doesn't exist", profileName)
 		}
 	}
 

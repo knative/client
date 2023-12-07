@@ -65,6 +65,7 @@ type config struct {
 	// channelTypeMappings is a list of channel type mapping
 	channelTypeMappings []ChannelTypeMapping
 
+	// profiles is a map of profiles from the config file and built-in profiles
 	profiles map[string]Profile
 }
 
@@ -288,7 +289,38 @@ func parseProfiles() error {
 				viper.ConfigFileUsed(), err)
 		}
 	}
+	globalConfig.profiles = mergeProfilesWithBuiltInProfiles(globalConfig.profiles)
+
 	return nil
+}
+
+// defaultProfiles returns the built-in profiles
+func builtInProfiles() map[string]Profile {
+	return map[string]Profile{
+		istio: {
+			Annotations: []NamedValue{
+				{Name: "sidecar.istio.io/inject", Value: "true"},
+				{Name: "sidecar.istio.io/rewriteAppHTTPProbers", Value: "true"},
+				{Name: "serving.knative.openshift.io/enablePassthrough", Value: "true"},
+			},
+		},
+	}
+}
+
+// mergeProfilesWithDefaultProfiles merges the given profiles with the built-in profiles
+func mergeProfilesWithBuiltInProfiles(profiles map[string]Profile) map[string]Profile {
+	builtInProfiles := builtInProfiles()
+	mergedProfiles := make(map[string]Profile, len(builtInProfiles)+len(profiles))
+
+	for key, value := range builtInProfiles {
+		mergedProfiles[key] = value
+	}
+
+	for key, value := range profiles {
+		mergedProfiles[key] = value
+	}
+
+	return mergedProfiles
 }
 
 // parse channel type mappings and store them in the global configuration
