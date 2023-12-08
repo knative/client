@@ -42,6 +42,7 @@ kn eventtype describe
       --context string         name of the kubeconfig context to use
       --kubeconfig string      kubectl configuration file (default: ~/.kube/config)
       --log-http               log http traffic
+  -q, --quiet-mode             run commands in quiet mode
 ```
 
 ### SEE ALSO
