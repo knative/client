@@ -25,6 +25,7 @@ import (
 	"knative.dev/client/pkg/config"
 	"knative.dev/client/pkg/kn/commands"
 	"knative.dev/client/pkg/kn/commands/flags"
+	"knative.dev/client/pkg/kn/commands/logger"
 	"knative.dev/client/pkg/kn/traffic"
 	servinglib "knative.dev/client/pkg/serving"
 
@@ -148,12 +149,9 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			var out io.Writer
-			if p.QuietMode {
-				out = io.Discard
-			} else {
-				out = cmd.OutOrStdout()
-			}
+			out := logger.NewLogger(logger.Config{
+				QuietMode: p.QuietMode,
+			})
 
 			if serviceExists {
 				if !editFlags.ForceCreate {
@@ -202,10 +200,10 @@ func replaceService(ctx context.Context, client clientservingv1.KnServingClient,
 
 func waitIfRequested(ctx context.Context, client clientservingv1.KnServingClient, waitFlags commands.WaitFlags, serviceName string, verbDoing string, verbDone string, targetFlag string, out io.Writer) error {
 	if !waitFlags.Wait || targetFlag != "" {
-		fmt.Fprintf(out, "Service '%s' %s in namespace '%s'.\n", serviceName, verbDone, client.Namespace())
+		logger.Log(out, fmt.Sprintf("Service '%s' %s in namespace '%s'.\n", serviceName, verbDone, client.Namespace()))
 		return nil
 	}
-	fmt.Fprintf(out, "%s service '%s' in namespace '%s':\n", verbDoing, serviceName, client.Namespace())
+	logger.Log(out, fmt.Sprintf("%s service '%s' in namespace '%s':\n", verbDoing, serviceName, client.Namespace()))
 	wconfig := clientservingv1.WaitConfig{
 		Timeout:     time.Duration(waitFlags.TimeoutInSeconds) * time.Second,
 		ErrorWindow: time.Duration(waitFlags.ErrorWindowInSeconds) * time.Second,
@@ -244,12 +242,12 @@ func prepareAndUpdateService(ctx context.Context, client clientservingv1.KnServi
 }
 
 func waitForServiceToGetReady(ctx context.Context, client clientservingv1.KnServingClient, name string, wconfig clientservingv1.WaitConfig, verbDone string, out io.Writer) error {
-	fmt.Fprintln(out, "")
+	logger.Log(out, fmt.Sprintln(""))
 	err := waitForService(ctx, client, name, out, wconfig)
 	if err != nil {
 		return err
 	}
-	fmt.Fprintln(out, "")
+	logger.Log(out, fmt.Sprintln(""))
 	return showUrl(ctx, client, name, "", verbDone, out)
 }
 
