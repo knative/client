@@ -70,7 +70,7 @@ type KnParams struct {
 	// General global options
 	LogHTTP bool
 
-	QuietMode bool
+	Quiet bool
 
 	// Set this if you want to nail down the namespace
 	fixedCurrentNamespace string
