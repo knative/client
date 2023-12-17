@@ -23,11 +23,11 @@ import (
 )
 
 type Config struct {
-	QuietMode bool
+	Quiet bool
 }
 
 func NewLogger(config Config) io.Writer {
-	if config.QuietMode {
+	if config.Quiet {
 		return io.Discard
 	}
 

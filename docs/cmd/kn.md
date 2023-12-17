@@ -20,7 +20,7 @@ Find more information about Knative at: https://knative.dev
   -h, --help                   help for kn
       --kubeconfig string      kubectl configuration file (default: ~/.kube/config)
       --log-http               log http traffic
-  -q, --quiet-mode             run commands in quiet mode
+  -q, --quiet                  run commands in quiet mode
 ```
 
 ### SEE ALSO

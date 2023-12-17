@@ -150,7 +150,7 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			out := logger.NewLogger(logger.Config{
-				QuietMode: p.QuietMode,
+				Quiet: p.Quiet,
 			})
 
 			if serviceExists {
