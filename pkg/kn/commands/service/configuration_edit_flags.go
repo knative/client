@@ -24,6 +24,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"knative.dev/serving/pkg/apis/config"
 
+	knconfig "knative.dev/client/pkg/kn/config"
 	knflags "knative.dev/client/pkg/kn/flags"
 	servinglib "knative.dev/client/pkg/serving"
 	"knative.dev/client/pkg/util"
@@ -57,6 +58,7 @@ type ConfigurationEditFlags struct {
 	ClusterLocal        bool
 	ScaleInit           int
 	TimeoutSeconds      int64
+	Profile             string
 
 	// Preferences about how to do the action.
 	LockToDigest         bool
@@ -187,6 +189,11 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 		"Duration in seconds that the request routing layer will wait for a request delivered to a "+""+
 			"container to begin replying")
 	p.markFlagMakesRevision("timeout")
+
+	command.Flags().StringVar(&p.Profile, "profile", "",
+		"The profile name must be defined in config.yaml or part of the built-in profile, e.g. Istio. Related annotations and labels will be added to the service."+
+			"To unset, specify the profile name followed by a \"-\" (e.g., name-).")
+	p.markFlagMakesRevision("profile")
 }
 
 // AddUpdateFlags adds the flags specific to update.
@@ -477,6 +484,63 @@ func (p *ConfigurationEditFlags) Apply(
 
 	if cmd.Flags().Changed("timeout") {
 		service.Spec.Template.Spec.TimeoutSeconds = &p.TimeoutSeconds
+	}
+
+	if cmd.Flags().Changed("profile") {
+		profileName := ""
+		deleteProfile := false
+		if strings.HasSuffix(p.Profile, "-") {
+			profileName = p.Profile[:len(p.Profile)-1]
+			deleteProfile = true
+		} else {
+			profileName = p.Profile
+			deleteProfile = false
+		}
+
+		if len(knconfig.GlobalConfig.Profile(profileName).Annotations) > 0 || len(knconfig.GlobalConfig.Profile(profileName).Labels) > 0 {
+			annotations := knconfig.GlobalConfig.Profile(profileName).Annotations
+			labels := knconfig.GlobalConfig.Profile(profileName).Labels
+
+			profileAnnotations := make(util.StringMap)
+			for _, value := range annotations {
+				profileAnnotations[value.Name] = value.Value
+			}
+
+			profileLabels := make(util.StringMap)
+			for _, value := range labels {
+				profileLabels[value.Name] = value.Value
+			}
+
+			if deleteProfile {
+				var annotationsToRemove []string
+				for _, value := range annotations {
+					annotationsToRemove = append(annotationsToRemove, value.Name)
+				}
+
+				var labelsToRemove []string
+				for _, value := range labels {
+					labelsToRemove = append(labelsToRemove, value.Name)
+				}
+
+				if err = servinglib.UpdateRevisionTemplateAnnotations(template, map[string]string{}, annotationsToRemove); err != nil {
+					return err
+				}
+				updatedLabels := servinglib.UpdateLabels(service.ObjectMeta.Labels, map[string]string{}, labelsToRemove)
+				service.ObjectMeta.Labels = updatedLabels // In case service.ObjectMeta.Labels was nil
+			} else {
+				if err = servinglib.UpdateRevisionTemplateAnnotations(template, profileAnnotations, []string{}); err != nil {
+					return err
+				}
+				updatedLabels := servinglib.UpdateLabels(service.ObjectMeta.Labels, profileLabels, []string{})
+				service.ObjectMeta.Labels = updatedLabels // In case service.ObjectMeta.Labels was nil
+			}
+
+			if err != nil {
+				return err
+			}
+		} else {
+			return fmt.Errorf("profile %s doesn't exist", profileName)
+		}
 	}
 
 	return nil

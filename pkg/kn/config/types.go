@@ -37,6 +37,9 @@ type Config interface {
 
 	// ChannelTypeMappings returns additional mappings for channel type aliases
 	ChannelTypeMappings() []ChannelTypeMapping
+
+	// Profile returns a configured profile with this name or nil of no such profile is configured
+	Profile(profile string) Profile
 }
 
 // SinkMappings is the struct of sink prefix config in kn config
@@ -71,12 +74,25 @@ type ChannelTypeMapping struct {
 	Version string
 }
 
+// NamedValue is the struct of name and values in the Profile struct
+type NamedValue struct {
+	Name  string `yaml:"name"`
+	Value string `yaml:"value"`
+}
+
+// Profile is the struct of profile config in kn config
+type Profile struct {
+	Annotations []NamedValue `yaml:"annotations"`
+	Labels      []NamedValue `yaml:"labels"`
+}
+
 // config Keys for looking up in viper
 const (
 	keyFeaturesContextSharing = "features.context-sharing"
 	keyPluginsDirectory       = "plugins.directory"
 	keySinkMappings           = "eventing.sink-mappings"
 	keyChannelTypeMappings    = "eventing.channel-type-mappings"
+	profiles                  = "profiles"
 )
 
 // legacy config keys, deprecated
@@ -89,4 +105,9 @@ const (
 // TODO: Remove me if decided that they are not needed
 const (
 	flagPluginsDir = "plugins-dir"
+)
+
+// default profiles
+const (
+	istio = "istio"
 )

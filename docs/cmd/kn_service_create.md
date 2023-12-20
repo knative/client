@@ -49,6 +49,9 @@ kn service create NAME --image IMAGE
   kn service create gitopstest -n test-ns --image knativesamples/helloworld --target=/user/knfiles
   kn service create gitopstest --image knativesamples/helloworld --target=/user/knfiles/test.yaml
   kn service create gitopstest --image knativesamples/helloworld --target=/user/knfiles/test.json
+
+  # Create a service with profile
+  kn service create profiletest --image knativesamples/helloworld --profile istio
 ```
 
 ### Options
@@ -85,6 +88,7 @@ kn service create NAME --image IMAGE
       --probe-liveness-opts string        Add common options to liveness probe. Common opts (comma separated, case insensitive): InitialDelaySeconds=<int_value>, FailureThreshold=<int_value>, SuccessThreshold=<int_value>, PeriodSeconds=<int_value>, TimeoutSeconds=<int_value>
       --probe-readiness string            Add readiness probe to Service deployment. Supported probe types are HTTGet, Exec and TCPSocket. Format: [http,https]:host:port:path, exec:cmd[,cmd,...], tcp:host:port.
       --probe-readiness-opts string       Add common options to readiness probe. Common opts (comma separated, case insensitive): InitialDelaySeconds=<int_value>, FailureThreshold=<int_value>, SuccessThreshold=<int_value>, PeriodSeconds=<int_value>, TimeoutSeconds=<int_value>
+      --profile string                    The profile name must be defined in config.yaml or part of the built-in profile, e.g. Istio. Related annotations and labels will be added to the service.To unset, specify the profile name followed by a "-" (e.g., name-).
       --pull-policy string                Image pull policy. Valid values (case insensitive): Always | Never | IfNotPresent
       --pull-secret string                Image pull secret to set. An empty argument ("") clears the pull secret. The referenced secret must exist in the service's namespace.
       --request strings                   The resource requirement requests for this Service. For example, 'cpu=100m,memory=256Mi'. You can use this flag multiple times. To unset a resource request, append "-" to the resource name, e.g. '--request cpu-'.

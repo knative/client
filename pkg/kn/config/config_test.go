@@ -24,10 +24,27 @@ import (
 	"gotest.tools/v3/assert"
 )
 
+// TestDefaultProfile tests that the default profile is correctly loaded
+func TestDefaultProfile(t *testing.T) {
+	profile := builtInProfiles()
+	assert.Equal(t, len(profile[istio].Labels), 0)
+	assert.Equal(t, len(profile[istio].Annotations), 3)
+}
+
 func TestBootstrapConfig(t *testing.T) {
 	configYaml := `
 plugins:
   directory: /tmp
+profiles:
+  knative:
+    labels:
+      - name: environment
+        value: "knative"
+    annotations:
+      - name: sidecar.knative.io/inject
+        value: "true"
+      - name: sidecar.knative.io/rewriteAppHTTPProbers
+        value: "true"
 eventing:
   sink-mappings:
   - prefix: service
@@ -51,6 +68,38 @@ eventing:
 	assert.Equal(t, GlobalConfig.PluginsDir(), "/tmp")
 	assert.Equal(t, GlobalConfig.LookupPluginsInPath(), true)
 	assert.Equal(t, len(GlobalConfig.SinkMappings()), 1)
+	assert.Equal(t, len(GlobalConfig.Profile("istio").Annotations), 3)
+	assert.DeepEqual(t, GlobalConfig.Profile("istio").Annotations, []NamedValue{
+		{
+			Name:  "sidecar.istio.io/inject",
+			Value: "true",
+		},
+		{
+			Name:  "sidecar.istio.io/rewriteAppHTTPProbers",
+			Value: "true",
+		},
+		{
+			Name:  "serving.knative.openshift.io/enablePassthrough",
+			Value: "true",
+		},
+	})
+	assert.DeepEqual(t, GlobalConfig.Profile("knative").Annotations, []NamedValue{
+		{
+			Name:  "sidecar.knative.io/inject",
+			Value: "true",
+		},
+		{
+			Name:  "sidecar.knative.io/rewriteAppHTTPProbers",
+			Value: "true",
+		},
+	})
+	assert.Equal(t, len(GlobalConfig.Profile("knative").Labels), 1)
+	assert.DeepEqual(t, GlobalConfig.Profile("knative").Labels, []NamedValue{
+		{
+			Name:  "environment",
+			Value: "knative",
+		},
+	})
 	assert.DeepEqual(t, (GlobalConfig.SinkMappings())[0], SinkMapping{
 		Prefix:   "service",
 		Resource: "services",

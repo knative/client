@@ -80,7 +80,10 @@ var create_example = `
   # Create the service in offline mode instead of kubernetes cluster (Beta)
   kn service create gitopstest -n test-ns --image knativesamples/helloworld --target=/user/knfiles
   kn service create gitopstest --image knativesamples/helloworld --target=/user/knfiles/test.yaml
-  kn service create gitopstest --image knativesamples/helloworld --target=/user/knfiles/test.json`
+  kn service create gitopstest --image knativesamples/helloworld --target=/user/knfiles/test.json
+
+  # Create a service with profile
+  kn service create profiletest --image knativesamples/helloworld --profile istio`
 
 func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 	var editFlags ConfigurationEditFlags

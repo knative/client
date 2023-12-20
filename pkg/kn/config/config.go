@@ -64,6 +64,9 @@ type config struct {
 
 	// channelTypeMappings is a list of channel type mapping
 	channelTypeMappings []ChannelTypeMapping
+
+	// profiles is a map of profiles from the config file and built-in profiles
+	profiles map[string]Profile
 }
 
 func (c *config) ContextSharing() bool {
@@ -98,6 +101,10 @@ func (c *config) LookupPluginsInPath() bool {
 
 func (c *config) SinkMappings() []SinkMapping {
 	return c.sinkMappings
+}
+
+func (c *config) Profile(profile string) Profile {
+	return c.profiles[profile]
 }
 
 func (c *config) ChannelTypeMappings() []ChannelTypeMapping {
@@ -163,6 +170,12 @@ func BootstrapConfig() error {
 
 	// Deserialize sink mappings if configured
 	err = parseSinkMappings()
+	if err != nil {
+		return err
+	}
+
+	// Deserialize profiles if configured
+	err = parseProfiles()
 	if err != nil {
 		return err
 	}
@@ -265,6 +278,49 @@ func parseSinkMappings() error {
 		}
 	}
 	return nil
+}
+
+// parse profiles and store them in the global configuration
+func parseProfiles() error {
+	if viper.IsSet(profiles) {
+		err := viper.UnmarshalKey(profiles, &globalConfig.profiles)
+		if err != nil {
+			return fmt.Errorf("error while parsing profiles in configuration file %s: %w",
+				viper.ConfigFileUsed(), err)
+		}
+	}
+	globalConfig.profiles = mergeProfilesWithBuiltInProfiles(globalConfig.profiles)
+
+	return nil
+}
+
+// defaultProfiles returns the built-in profiles
+func builtInProfiles() map[string]Profile {
+	return map[string]Profile{
+		istio: {
+			Annotations: []NamedValue{
+				{Name: "sidecar.istio.io/inject", Value: "true"},
+				{Name: "sidecar.istio.io/rewriteAppHTTPProbers", Value: "true"},
+				{Name: "serving.knative.openshift.io/enablePassthrough", Value: "true"},
+			},
+		},
+	}
+}
+
+// mergeProfilesWithDefaultProfiles merges the given profiles with the built-in profiles
+func mergeProfilesWithBuiltInProfiles(profiles map[string]Profile) map[string]Profile {
+	builtInProfiles := builtInProfiles()
+	mergedProfiles := make(map[string]Profile, len(builtInProfiles)+len(profiles))
+
+	for key, value := range builtInProfiles {
+		mergedProfiles[key] = value
+	}
+
+	for key, value := range profiles {
+		mergedProfiles[key] = value
+	}
+
+	return mergedProfiles
 }
 
 // parse channel type mappings and store them in the global configuration
