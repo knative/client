@@ -149,8 +149,9 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			out := logger.NewLogger(logger.Config{
+			out := logger.InitLogger(logger.Config{
 				Quiet: p.Quiet,
+				Out:   cmd.OutOrStdout(),
 			})
 
 			if serviceExists {
@@ -192,7 +193,7 @@ func replaceService(ctx context.Context, client clientservingv1.KnServingClient,
 		return err
 	}
 	if !changed {
-		fmt.Fprintf(out, "Service '%s' replaced in namespace '%s' (unchanged).\n", service.Name, client.Namespace())
+		logger.Fprintf("Service '%s' replaced in namespace '%s' (unchanged).\n", service.Name, client.Namespace())
 		return nil
 	}
 	return waitIfRequested(ctx, client, waitFlags, service.Name, "Replacing", "replaced", targetFlag, out)
@@ -200,10 +201,10 @@ func replaceService(ctx context.Context, client clientservingv1.KnServingClient,
 
 func waitIfRequested(ctx context.Context, client clientservingv1.KnServingClient, waitFlags commands.WaitFlags, serviceName string, verbDoing string, verbDone string, targetFlag string, out io.Writer) error {
 	if !waitFlags.Wait || targetFlag != "" {
-		logger.Log(out, fmt.Sprintf("Service '%s' %s in namespace '%s'.\n", serviceName, verbDone, client.Namespace()))
+		logger.Fprintf("Service '%s' %s in namespace '%s'.\n", serviceName, verbDone, client.Namespace())
 		return nil
 	}
-	logger.Log(out, fmt.Sprintf("%s service '%s' in namespace '%s':\n", verbDoing, serviceName, client.Namespace()))
+	logger.Fprintf("%s service '%s' in namespace '%s':\n", verbDoing, serviceName, client.Namespace())
 	wconfig := clientservingv1.WaitConfig{
 		Timeout:     time.Duration(waitFlags.TimeoutInSeconds) * time.Second,
 		ErrorWindow: time.Duration(waitFlags.ErrorWindowInSeconds) * time.Second,
@@ -242,12 +243,12 @@ func prepareAndUpdateService(ctx context.Context, client clientservingv1.KnServi
 }
 
 func waitForServiceToGetReady(ctx context.Context, client clientservingv1.KnServingClient, name string, wconfig clientservingv1.WaitConfig, verbDone string, out io.Writer) error {
-	logger.Log(out, fmt.Sprintln(""))
+	logger.Fprintln("")
 	err := waitForService(ctx, client, name, out, wconfig)
 	if err != nil {
 		return err
 	}
-	logger.Log(out, fmt.Sprintln(""))
+	logger.Fprintln("")
 	return showUrl(ctx, client, name, "", verbDone, out)
 }
 

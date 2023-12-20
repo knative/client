@@ -19,21 +19,29 @@ package logger
 import (
 	"fmt"
 	"io"
-	"os"
 )
+
+var outWriter io.Writer
 
 type Config struct {
 	Quiet bool
+	Out   io.Writer
 }
 
-func NewLogger(config Config) io.Writer {
+func InitLogger(config Config) io.Writer {
 	if config.Quiet {
-		return io.Discard
+		outWriter = io.Discard
+	} else {
+		outWriter = config.Out
 	}
 
-	return io.Writer(os.Stdout)
+	return outWriter
 }
 
-func Log(writer io.Writer, message string) {
-	fmt.Fprintf(writer, message)
+func Fprintf(format string, args ...interface{}) {
+	fmt.Fprintf(outWriter, format, args...)
+}
+
+func Fprintln(args ...interface{}) {
+	fmt.Fprintln(outWriter, args...)
 }
