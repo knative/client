@@ -119,7 +119,10 @@ func printEventType(eventType *eventingv1beta2.EventType, options hprinters.Prin
 	age := commands.TranslateTimestampSince(eventType.CreationTimestamp)
 	cetype := eventType.Spec.Type
 	source := eventType.Spec.Source
-	reference := eventType.Spec.Reference.Name
+	reference := ""
+	if eventType.Spec.Reference != nil {
+		reference = eventType.Spec.Reference.Name
+	}
 	ready := commands.ReadyCondition(eventType.Status.Conditions)
 
 	row := metav1.TableRow{
