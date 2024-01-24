@@ -34,7 +34,6 @@ group "Kubernetes Codegen"
 "${CODEGEN_PKG}"/generate-groups.sh "deepcopy" \
   knative.dev/client/pkg/apis/client/v1alpha1/generated knative.dev/client/pkg/apis \
   client:v1alpha1 \
-  --output-base "$(dirname "${BASH_SOURCE[0]}")/../../.." \
   --go-header-file "${REPO_ROOT_DIR}"/hack/boilerplate.go.txt
 
 group "Update deps post-codegen"
