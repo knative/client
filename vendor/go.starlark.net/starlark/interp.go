@@ -81,14 +81,25 @@ func (fn *Function) CallInternal(thread *Thread, args Tuple, kwargs []Tuple) (Va
 
 	var iterstack []Iterator // stack of active iterators
 
+	// Use defer so that application panics can pass through
+	// interpreter without leaving thread in a bad state.
+	defer func() {
+		// ITERPOP the rest of the iterator stack.
+		for _, iter := range iterstack {
+			iter.Done()
+		}
+
+		fr.locals = nil
+	}()
+
 	sp := 0
 	var pc uint32
 	var result Value
 	code := f.Code
 loop:
 	for {
-		thread.steps++
-		if thread.steps >= thread.maxSteps {
+		thread.Steps++
+		if thread.Steps >= thread.maxSteps {
 			if thread.OnMaxSteps != nil {
 				thread.OnMaxSteps(thread)
 			} else {
@@ -646,14 +657,7 @@ loop:
 			break loop
 		}
 	}
-
-	// ITERPOP the rest of the iterator stack.
-	for _, iter := range iterstack {
-		iter.Done()
-	}
-
-	fr.locals = nil
-
+	// (deferred cleanup runs here)
 	return result, err
 }
 
