@@ -1,5 +1,5 @@
 /*
-Copyright 2021 The Knative Authors
+Copyright 2019 The Knative Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,16 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package feature
-
-const (
-	KReferenceGroup     = "kreference-group"
-	DeliveryRetryAfter  = "delivery-retryafter"
-	DeliveryTimeout     = "delivery-timeout"
-	KReferenceMapping   = "kreference-mapping"
-	NewTriggerFilters   = "new-trigger-filters"
-	TransportEncryption = "transport-encryption"
-	EvenTypeAutoCreate  = "eventtype-auto-create"
-	OIDCAuthentication  = "authentication-oidc"
-	NodeSelectorLabel   = "apiserversources.nodeselector."
-)
+// Package ingress holds utilities related to the implementation of ingress
+// controllers.
+package ingress

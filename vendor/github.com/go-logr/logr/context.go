@@ -1,5 +1,5 @@
 /*
-Copyright 2021 The Knative Authors
+Copyright 2023 The logr Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,16 +14,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package feature
+package logr
 
-const (
-	KReferenceGroup     = "kreference-group"
-	DeliveryRetryAfter  = "delivery-retryafter"
-	DeliveryTimeout     = "delivery-timeout"
-	KReferenceMapping   = "kreference-mapping"
-	NewTriggerFilters   = "new-trigger-filters"
-	TransportEncryption = "transport-encryption"
-	EvenTypeAutoCreate  = "eventtype-auto-create"
-	OIDCAuthentication  = "authentication-oidc"
-	NodeSelectorLabel   = "apiserversources.nodeselector."
-)
+// contextKey is how we find Loggers in a context.Context. With Go < 1.21,
+// the value is always a Logger value. With Go >= 1.21, the value can be a
+// Logger value or a slog.Logger pointer.
+type contextKey struct{}
+
+// notFoundError exists to carry an IsNotFound method.
+type notFoundError struct{}
+
+func (notFoundError) Error() string {
+	return "no logr.Logger was present"
+}
+
+func (notFoundError) IsNotFound() bool {
+	return true
+}
