@@ -28,6 +28,7 @@ import (
 	"math/big"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -137,7 +138,9 @@ func domainDescribe(r *test.KnRunResultCollector, domainName string, tls bool) {
 	for i := 0; i < 20; i++ {
 		out, err := k.Run("get", "domainmapping", domainName, "-o=jsonpath='{.status.url}'")
 		assert.NilError(r.T(), err)
+		out = strings.TrimSpace(out)
 		if len(out) > 0 {
+			println("DEBUG wait loop:" + out + "|DEBUG")
 			break
 		}
 		time.Sleep(time.Second)
