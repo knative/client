@@ -397,6 +397,16 @@ func UpdateSecurityContext(spec *corev1.PodSpec, securityContext string) error {
 	return nil
 }
 
+// UpdateNodeSelector updates the Node Selector
+func UpdateNodeSelector(spec *corev1.PodSpec, nodeSelector []string) error {
+	nodeSelectorNew, err := util.MapFromArrayAllowingSingles(nodeSelector, "=")
+	if err != nil {
+		return err
+	}
+	spec.NodeSelector = nodeSelectorNew
+	return nil
+}
+
 // DefaultStrictSecCon helper function to get default strict Security Context
 func DefaultStrictSecCon() *corev1.SecurityContext {
 	return &corev1.SecurityContext{

@@ -36,6 +36,7 @@ type PodSpecFlags struct {
 	EnvFile         string
 	Mount           []string
 	Volume          []string
+	NodeSelector    []string
 
 	Command []string
 	Arg     []string
@@ -241,6 +242,9 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
 		"and 'strict' for dropping all capabilities, running as non-root, and no privilege escalation.")
 	flagNames = append(flagNames, "security-context")
 
+	flagset.StringArrayVar(&p.NodeSelector, "node-selector", []string{}, "Add node selector to be set, you may provide this flag any number of times to set multiple node selectors. To unset, specify the annotation name followed by a \"-\" (e.g., name-). Examples: --node-selector Disktype=\"ssd\"")
+	flagNames = append(flagNames, "node-selector")
+
 	return flagNames
 }
 
@@ -414,6 +418,12 @@ func (p *PodSpecFlags) ResolvePodSpec(podSpec *corev1.PodSpec, flags *pflag.Flag
 
 	if flags.Changed("security-context") {
 		if err := UpdateSecurityContext(podSpec, p.SecurityContext); err != nil {
+			return err
+		}
+	}
+
+	if flags.Changed("node-selector") {
+		if err := UpdateNodeSelector(podSpec, p.NodeSelector); err != nil {
 			return err
 		}
 	}
