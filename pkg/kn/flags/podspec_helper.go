@@ -469,6 +469,10 @@ func UpdateNodeAffinity(spec *corev1.PodSpec, nodeAffinity []string) error {
 	} else {
 		nodeSelectorTermsExisting = []v1.NodeSelectorTerm{}
 		matchExpressionsExisting = []v1.NodeSelectorRequirement{}
+		spec.Affinity = &v1.Affinity{}
+		spec.Affinity.NodeAffinity = &v1.NodeAffinity{}
+		spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution = &v1.NodeSelector{}
+		spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms = []v1.NodeSelectorTerm{}
 	}
 	matchExpressionNew := v1.NodeSelectorRequirement{}
 	nodeAffinityAllMap, err := util.MapFromArray(nodeAffinity, "=")
