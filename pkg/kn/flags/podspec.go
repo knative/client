@@ -37,6 +37,8 @@ type PodSpecFlags struct {
 	Mount           []string
 	Volume          []string
 	NodeSelector    []string
+	Toleration      []string
+	NodeAffinity    []string
 
 	Command []string
 	Arg     []string
@@ -242,8 +244,19 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
 		"and 'strict' for dropping all capabilities, running as non-root, and no privilege escalation.")
 	flagNames = append(flagNames, "security-context")
 
-	flagset.StringArrayVar(&p.NodeSelector, "node-selector", []string{}, "Add node selector to be set, you may provide this flag any number of times to set multiple node selectors. To unset, specify the annotation name followed by a \"-\" (e.g., name-). Examples: --node-selector Disktype=\"ssd\"")
+	flagset.StringArrayVar(&p.NodeSelector, "node-selector", []string{}, "Add node selector to be set, you may provide this flag any number of times to set multiple node selectors,  example: --node-selector Disktype=\"ssd\". To unset, specify the key name followed by a \"-\", example: --node-selector Disktype- .")
 	flagNames = append(flagNames, "node-selector")
+
+	flagset.StringArrayVarP(&p.Toleration, "toleration", "", []string{},
+		"Add toleration to be set, you may provide this flag any number of times to set multiple tolerations, Example: "+
+			"--tolerations Key=\"key1\", Operator=\"Equal\", Value=\"value1\", Effect=\"NoSchedule\"")
+	flagNames = append(flagNames, "toleration")
+
+	flagset.StringArrayVarP(&p.NodeAffinity, "node-affinity", "", []string{},
+		"Add node affinity to be set, you may provide this flag any number of times to set multiple tolerations. If multiple "+
+			"key, operator and values are defined for a type, they will be appended in matchExpressions, implying the terms will be ANDed. Example: "+
+			"--node-affinity Type=\"Required\", Key=\"topology.kubernetes.io/zone\", Operator=\"In\", Values=\"antarctica-east1, antarctica-west1\"")
+	flagNames = append(flagNames, "node-affinity")
 
 	return flagNames
 }
@@ -424,6 +437,20 @@ func (p *PodSpecFlags) ResolvePodSpec(podSpec *corev1.PodSpec, flags *pflag.Flag
 
 	if flags.Changed("node-selector") {
 		if err := UpdateNodeSelector(podSpec, p.NodeSelector); err != nil {
+			return fmt.Errorf("Invalid --toleration: %w", err)
+		}
+	}
+
+	if flags.Changed("toleration") {
+		err = UpdateTolerations(podSpec, p.Toleration)
+		if err != nil {
+			return err
+		}
+	}
+
+	if flags.Changed("node-affinity") {
+		err = UpdateNodeAffinity(podSpec, p.NodeAffinity)
+		if err != nil {
 			return err
 		}
 	}

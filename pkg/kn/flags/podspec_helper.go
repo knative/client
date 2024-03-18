@@ -399,12 +399,116 @@ func UpdateSecurityContext(spec *corev1.PodSpec, securityContext string) error {
 
 // UpdateNodeSelector updates the Node Selector
 func UpdateNodeSelector(spec *corev1.PodSpec, nodeSelector []string) error {
-	nodeSelectorNew, err := util.MapFromArrayAllowingSingles(nodeSelector, "=")
+	nodeSelectorsAllMap, err := util.MapFromArrayAllowingSingles(nodeSelector, "=")
 	if err != nil {
 		return err
 	}
+	nodeSelectorsToRemove := util.ParseMinusSuffix(nodeSelectorsAllMap)
+	nodeSelectorNew := spec.NodeSelector
+	if nodeSelectorNew == nil {
+		nodeSelectorNew = map[string]string{}
+	}
+	for key, value := range nodeSelectorsAllMap {
+		nodeSelectorNew[key] = value
+	}
+	for _, key := range nodeSelectorsToRemove {
+		delete(nodeSelectorNew, key)
+	}
 	spec.NodeSelector = nodeSelectorNew
 	return nil
+}
+
+// UpdateTolerations updates the configuration for volume mounts and volumes.
+func UpdateTolerations(spec *corev1.PodSpec, toleration []string) error {
+	tolerationsExisting := spec.Tolerations
+	if tolerationsExisting == nil {
+		tolerationsExisting = []corev1.Toleration{}
+	}
+	tolerationNew := v1.Toleration{}
+	tolerationsAllMap, err := util.MapFromArray(toleration, "=")
+	if err != nil {
+		return err
+	}
+	for key, value := range tolerationsAllMap {
+		switch strings.ToLower(key) {
+		case "key":
+			tolerationNew.Key = value
+		case "value":
+			tolerationNew.Value = value
+		case "effect":
+			if value == fmt.Sprintf("%s", v1.TaintEffectNoSchedule) {
+				tolerationNew.Effect = v1.TaintEffectNoSchedule
+			} else if value == fmt.Sprintf("%s", v1.TaintEffectPreferNoSchedule) {
+				tolerationNew.Effect = v1.TaintEffectPreferNoSchedule
+			} else if value == fmt.Sprintf("%s", v1.TaintEffectNoExecute) {
+				tolerationNew.Effect = v1.TaintEffectNoExecute
+			}
+		case "operator":
+			if value == fmt.Sprintf("%s", v1.TolerationOpExists) {
+				tolerationNew.Operator = v1.TolerationOpExists
+			} else if value == fmt.Sprintf("%s", v1.TolerationOpEqual) {
+				tolerationNew.Operator = v1.TolerationOpEqual
+			}
+		}
+	}
+	tolerationsExisting = append(tolerationsExisting, tolerationNew)
+	spec.Tolerations = tolerationsExisting
+
+	return err
+}
+
+// UpdateNodeAffinity updates the configuration for volume mounts and volumes.
+func UpdateNodeAffinity(spec *corev1.PodSpec, nodeAffinity []string) error {
+	var matchExpressionsExisting []v1.NodeSelectorRequirement
+	nodeSelectorTermsExisting := spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms
+	if nodeSelectorTermsExisting != nil {
+		matchExpressionsExisting = nodeSelectorTermsExisting[0].MatchExpressions
+	} else {
+		matchExpressionsExisting = []v1.NodeSelectorRequirement{}
+		nodeSelectorTermsExisting = []v1.NodeSelectorTerm{}
+	}
+	matchExpressionNew := v1.NodeSelectorRequirement{}
+	nodeAffinityAllMap, err := util.MapFromArray(nodeAffinity, "=")
+	if err != nil {
+		return err
+	}
+	/*
+		var nodeAffinityType string
+		for key, value := range nodeAffinityAllMap {
+			if key == "type" {
+				if value == "Required" {
+					nodeAffinityType = "Required"
+				} else if value == "Preferred" {
+					nodeAffinityType = "Preferred"
+				} else {
+					return fmt.Errorf("%s", "Invalid type defined for node affinity, Valid arguments: Required | Preferred")
+				}
+			}
+		}
+	*/
+	for key, value := range nodeAffinityAllMap {
+		switch strings.ToLower(key) {
+		case "key":
+			matchExpressionNew.Key = value
+		case "values":
+			matchExpressionNew.Values = util.ParseStringArrayFromCommaSeparatedStrings(value)
+		case "operator":
+			if value == fmt.Sprintf("%s", v1.NodeSelectorOpIn) {
+				matchExpressionNew.Operator = v1.NodeSelectorOpIn
+			} else if value == fmt.Sprintf("%s", v1.NodeSelectorOpNotIn) {
+				matchExpressionNew.Operator = v1.NodeSelectorOpNotIn
+			} else if value == fmt.Sprintf("%s", v1.NodeSelectorOpExists) {
+				matchExpressionNew.Operator = v1.NodeSelectorOpExists
+			} else if value == fmt.Sprintf("%s", v1.NodeSelectorOpDoesNotExist) {
+				matchExpressionNew.Operator = v1.NodeSelectorOpDoesNotExist
+			}
+		}
+	}
+	matchExpressionsExisting = append(matchExpressionsExisting, matchExpressionNew)
+	nodeSelectorTermsExisting[0].MatchExpressions = matchExpressionsExisting
+	spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms = nodeSelectorTermsExisting
+
+	return err
 }
 
 // DefaultStrictSecCon helper function to get default strict Security Context
