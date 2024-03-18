@@ -461,7 +461,7 @@ func UpdateTolerations(spec *corev1.PodSpec, toleration []string) error {
 func UpdateNodeAffinity(spec *corev1.PodSpec, nodeAffinity []string) error {
 	var matchExpressionsExisting []v1.NodeSelectorRequirement
 	var nodeSelectorTermsExisting []v1.NodeSelectorTerm
-	if len(spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms) > 0 {
+	if spec.Affinity.NodeAffinity != nil && len(spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms) > 0 {
 		nodeSelectorTermsExisting = spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms
 		matchExpressionsExisting = nodeSelectorTermsExisting[0].MatchExpressions
 	} else {
