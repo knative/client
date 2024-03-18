@@ -460,12 +460,13 @@ func UpdateTolerations(spec *corev1.PodSpec, toleration []string) error {
 // UpdateNodeAffinity updates the configuration for volume mounts and volumes.
 func UpdateNodeAffinity(spec *corev1.PodSpec, nodeAffinity []string) error {
 	var matchExpressionsExisting []v1.NodeSelectorRequirement
-	nodeSelectorTermsExisting := spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms
-	if nodeSelectorTermsExisting != nil {
+	var nodeSelectorTermsExisting []v1.NodeSelectorTerm
+	if len(spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms) > 0 {
+		nodeSelectorTermsExisting = spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms
 		matchExpressionsExisting = nodeSelectorTermsExisting[0].MatchExpressions
 	} else {
-		matchExpressionsExisting = []v1.NodeSelectorRequirement{}
 		nodeSelectorTermsExisting = []v1.NodeSelectorTerm{}
+		matchExpressionsExisting = []v1.NodeSelectorRequirement{}
 	}
 	matchExpressionNew := v1.NodeSelectorRequirement{}
 	nodeAffinityAllMap, err := util.MapFromArray(nodeAffinity, "=")

@@ -249,13 +249,13 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
 
 	flagset.StringSliceVar(&p.Toleration, "toleration", []string{},
 		"Add toleration to be set, you may provide this flag any number of times to set multiple tolerations, Example: "+
-			"--tolerations Key=\"key1\", Operator=\"Equal\", Value=\"value1\", Effect=\"NoSchedule\"")
+			"--tolerations Key=\"key1\",Operator=\"Equal\",Value=\"value1\",Effect=\"NoSchedule\"")
 	flagNames = append(flagNames, "toleration")
 
 	flagset.StringSliceVar(&p.NodeAffinity, "node-affinity", []string{},
 		"Add node affinity to be set, you may provide this flag any number of times to set multiple tolerations. If multiple "+
 			"key, operator and values are defined for a type, they will be appended in matchExpressions, implying the terms will be ANDed. Example: "+
-			"--node-affinity Type=\"Required\", Key=\"topology.kubernetes.io/zone\", Operator=\"In\", Values=\"antarctica-east1, antarctica-west1\"")
+			"--node-affinity Type=\"Required\",Key=\"topology.kubernetes.io/zone\",Operator=\"In\",Values=\"antarctica-east1, antarctica-west1\"")
 	flagNames = append(flagNames, "node-affinity")
 
 	return flagNames
