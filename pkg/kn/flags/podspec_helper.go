@@ -532,6 +532,7 @@ func UpdateNodeAffinity(spec *corev1.PodSpec, nodeAffinity []string) error {
 			preferenceWeight = int32(preferenceWeightTemp)
 		}
 	}
+	matchExpressionsExisting = append(matchExpressionsExisting, matchExpressionNew)
 	nodeSelectorTermsExisting = append(nodeSelectorTermsExisting, v1.NodeSelectorTerm{MatchExpressions: matchExpressionsExisting})
 	if nodeAffinityType == "Required" {
 		spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms = nodeSelectorTermsExisting
