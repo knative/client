@@ -17,6 +17,7 @@ package flags
 import (
 	"fmt"
 	"os"
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -461,38 +462,52 @@ func UpdateTolerations(spec *corev1.PodSpec, toleration []string) error {
 func UpdateNodeAffinity(spec *corev1.PodSpec, nodeAffinity []string) error {
 	var matchExpressionsExisting []v1.NodeSelectorRequirement
 	var nodeSelectorTermsExisting []v1.NodeSelectorTerm
-	var ln int
-	if spec.Affinity != nil && spec.Affinity.NodeAffinity != nil && spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution != nil {
-		ln = len(spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms)
-		nodeSelectorTermsExisting = spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms
-		matchExpressionsExisting = nodeSelectorTermsExisting[0].MatchExpressions
-	} else {
-		nodeSelectorTermsExisting = []v1.NodeSelectorTerm{}
-		matchExpressionsExisting = []v1.NodeSelectorRequirement{}
-		spec.Affinity = &v1.Affinity{}
-		spec.Affinity.NodeAffinity = &v1.NodeAffinity{}
-		spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution = &v1.NodeSelector{}
-		spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms = []v1.NodeSelectorTerm{}
-	}
+	var preferenceExisting []v1.PreferredSchedulingTerm
+	var preferenceWeight int32
 	matchExpressionNew := v1.NodeSelectorRequirement{}
 	nodeAffinityAllMap, err := util.MapFromArray(nodeAffinity, "=")
 	if err != nil {
 		return err
 	}
-	/*
-		var nodeAffinityType string
-		for key, value := range nodeAffinityAllMap {
-			if key == "type" {
-				if value == "Required" {
-					nodeAffinityType = "Required"
-				} else if value == "Preferred" {
-					nodeAffinityType = "Preferred"
+	var nodeAffinityType string
+	for key, value := range nodeAffinityAllMap {
+		if strings.ToLower(key) == "type" {
+			if value == "Required" {
+				nodeAffinityType = "Required"
+				if !reflect.ValueOf(spec.Affinity).IsZero() && !reflect.ValueOf(spec.Affinity.NodeAffinity).IsZero() &&
+					!reflect.ValueOf(spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution).IsZero() {
+					nodeSelectorTermsExisting = spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms
+					//matchExpressionsExisting = nodeSelectorTermsExisting[0].MatchExpressions
+					//TODO: only supporting ORed terms, should we support ANDed expressions? If yes, to which term do we add
+					//the matchExpression to?
+					matchExpressionsExisting = []v1.NodeSelectorRequirement{}
 				} else {
-					return fmt.Errorf("%s", "Invalid type defined for node affinity, Valid arguments: Required | Preferred")
+					nodeSelectorTermsExisting = []v1.NodeSelectorTerm{}
+					matchExpressionsExisting = []v1.NodeSelectorRequirement{}
+					spec.Affinity = &v1.Affinity{}
+					spec.Affinity.NodeAffinity = &v1.NodeAffinity{}
+					spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution = &v1.NodeSelector{}
+					spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms = []v1.NodeSelectorTerm{}
 				}
+			} else if value == "Preferred" {
+				nodeAffinityType = "Preferred"
+				if !reflect.ValueOf(spec.Affinity).IsZero() && !reflect.ValueOf(spec.Affinity.NodeAffinity).IsZero() &&
+					!reflect.ValueOf(spec.Affinity.NodeAffinity.PreferredDuringSchedulingIgnoredDuringExecution).IsZero() {
+					preferenceExisting = spec.Affinity.NodeAffinity.PreferredDuringSchedulingIgnoredDuringExecution
+					matchExpressionsExisting = []v1.NodeSelectorRequirement{}
+				} else {
+					nodeSelectorTermsExisting = []v1.NodeSelectorTerm{}
+					matchExpressionsExisting = []v1.NodeSelectorRequirement{}
+					spec.Affinity = &v1.Affinity{}
+					spec.Affinity.NodeAffinity = &v1.NodeAffinity{}
+					spec.Affinity.NodeAffinity.PreferredDuringSchedulingIgnoredDuringExecution = []v1.PreferredSchedulingTerm{}
+				}
+			} else {
+				return fmt.Errorf("%s", "Invalid type defined for node affinity, Valid arguments: Required | Preferred")
 			}
 		}
-	*/
+	}
+
 	for key, value := range nodeAffinityAllMap {
 		switch strings.ToLower(key) {
 		case "key":
@@ -509,17 +524,21 @@ func UpdateNodeAffinity(spec *corev1.PodSpec, nodeAffinity []string) error {
 			} else if value == fmt.Sprintf("%s", v1.NodeSelectorOpDoesNotExist) {
 				matchExpressionNew.Operator = v1.NodeSelectorOpDoesNotExist
 			}
+		case "weight":
+			preferenceWeightTemp, err := strconv.Atoi(value)
+			if err != nil {
+				return fmt.Errorf("error in setting preference weight in node affinity: %v", err)
+			}
+			preferenceWeight = int32(preferenceWeightTemp)
 		}
 	}
-	matchExpressionsExisting = append(matchExpressionsExisting, matchExpressionNew)
-	if ln > 0 {
-		nodeSelectorTermsExisting[0].MatchExpressions = matchExpressionsExisting
+	nodeSelectorTermsExisting = append(nodeSelectorTermsExisting, v1.NodeSelectorTerm{MatchExpressions: matchExpressionsExisting})
+	if nodeAffinityType == "Required" {
+		spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms = nodeSelectorTermsExisting
 	} else {
-		nodeSelectorTermsExisting = append(nodeSelectorTermsExisting, v1.NodeSelectorTerm{MatchExpressions: matchExpressionsExisting})
+		spec.Affinity.NodeAffinity.PreferredDuringSchedulingIgnoredDuringExecution = append(preferenceExisting,
+			v1.PreferredSchedulingTerm{Weight: preferenceWeight, Preference: v1.NodeSelectorTerm{MatchExpressions: matchExpressionsExisting}})
 	}
-
-	spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms = nodeSelectorTermsExisting
-
 	return err
 }
 

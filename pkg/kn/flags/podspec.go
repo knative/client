@@ -254,8 +254,10 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
 
 	flagset.StringSliceVar(&p.NodeAffinity, "node-affinity", []string{},
 		"Add node affinity to be set, you may provide this flag any number of times to set multiple tolerations. If multiple "+
-			"key, operator and values are defined for a type, they will be appended in matchExpressions, implying the terms will be ANDed. Example: "+
-			"--node-affinity Type=\"Required\",Key=\"topology.kubernetes.io/zone\",Operator=\"In\",Values=\"antarctica-east1, antarctica-west1\"")
+			"key, operator and values are defined for a type, they will be appended in nodeSelectorTerms in case of Required clause, "+
+			"implying the terms will be ORed. Similarly for Preferred clause, all the values will be considered a new entry in preferredDuringSchedulingIgnoredDuringExecution. Example: "+
+			"--node-affinity Type=\"Required\",Key=\"topology.kubernetes.io/zone\",Operator=\"In\",Values=\"antarctica-east1, antarctica-west1\" or"+
+			"--node-affinity Type=\"Preferred\",Key=\"topology.kubernetes.io/zone\",Operator=\"In\",Values=\"antarctica-east1\",Weight=\"1\"")
 	flagNames = append(flagNames, "node-affinity")
 
 	return flagNames
