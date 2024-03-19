@@ -162,7 +162,7 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
 	flagset.StringArrayVarP(&p.Volume, "volume", "", []string{},
 		"Add a volume from a ConfigMap (prefix cm: or config-map:) a Secret (prefix secret: or sc:), "+
 			"an EmptyDir (prefix ed: or emptyDir:) or a PersistentVolumeClaim (prefix pvc: or persistentVolumeClaim). "+
-			"Example: --volume myvolume=cm:myconfigmap, --volume myvolume=secret:mysecret or --volume emptyDir:myvol:size=1Gi,type=Memory. "+
+			"PersistentVolumeClaim and EmptyDir only works if the feature gate is enabled in knative serving. Example: --volume myvolume=cm:myconfigmap, --volume myvolume=secret:mysecret or --volume emptyDir:myvol:size=1Gi,type=Memory. "+
 			"You can use this flag multiple times. "+
 			"To unset a ConfigMap/Secret reference, append \"-\" to the name, e.g. --volume myvolume-.")
 	flagNames = append(flagNames, "volume")
@@ -244,19 +244,19 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
 		"and 'strict' for dropping all capabilities, running as non-root, and no privilege escalation.")
 	flagNames = append(flagNames, "security-context")
 
-	flagset.StringArrayVar(&p.NodeSelector, "node-selector", []string{}, "Add node selector to be set, you may provide this flag any number of times to set multiple node selectors,  example: --node-selector Disktype=\"ssd\". To unset, specify the key name followed by a \"-\", example: --node-selector Disktype- .")
+	flagset.StringArrayVar(&p.NodeSelector, "node-selector", []string{}, "Add node selector to be set, you may provide this flag any number of times to set multiple node selectors "+
+		"- only works if the feature gate is enabled in knative serving, example: --node-selector Disktype=\"ssd\". To unset, specify the key name followed by a \"-\", example: --node-selector Disktype- .")
 	flagNames = append(flagNames, "node-selector")
 
 	flagset.StringSliceVar(&p.Toleration, "toleration", []string{},
-		"Add toleration to be set, you may provide this flag any number of times to set multiple tolerations, Example: "+
+		"Add toleration to be set - only works if the feature gate is enabled in knative serving. Example: "+
 			"--tolerations Key=\"key1\",Operator=\"Equal\",Value=\"value1\",Effect=\"NoSchedule\"")
 	flagNames = append(flagNames, "toleration")
 
 	flagset.StringSliceVar(&p.NodeAffinity, "node-affinity", []string{},
-		"Add node affinity to be set, you may provide this flag any number of times to set multiple tolerations. If multiple "+
-			"key, operator and values are defined for a type, they will be appended in nodeSelectorTerms in case of Required clause, "+
-			"implying the terms will be ORed. Similarly for Preferred clause, all the values will be considered a new entry in preferredDuringSchedulingIgnoredDuringExecution. Example: "+
-			"--node-affinity Type=\"Required\",Key=\"topology.kubernetes.io/zone\",Operator=\"In\",Values=\"antarctica-east1, antarctica-west1\" or"+
+		"Add node affinity to be set - only works if the feature gate is enabled in knative serving. When key, operator, values and weight are defined for a type, they will be appended in nodeSelectorTerms in case of Required clause, "+
+			"implying the terms will be ORed, and for Preferred clause, all of them will be considered a new entry in preferredDuringSchedulingIgnoredDuringExecution. Example: "+
+			"--node-affinity Type=\"Required\",Key=\"topology.kubernetes.io/zone\",Operator=\"In\",Values=\"antarctica-east1 antarctica-west1\" or"+
 			"--node-affinity Type=\"Preferred\",Key=\"topology.kubernetes.io/zone\",Operator=\"In\",Values=\"antarctica-east1\",Weight=\"1\"")
 	flagNames = append(flagNames, "node-affinity")
 

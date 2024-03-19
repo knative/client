@@ -42,6 +42,9 @@ func TestPodSpecFlags(t *testing.T) {
 		EnvValueFrom:    []string{},
 		Mount:           []string{},
 		Volume:          []string{},
+		NodeSelector:    []string{},
+		Toleration:      []string{},
+		NodeAffinity:    []string{},
 		Arg:             []string{},
 		Command:         []string{},
 		SecurityContext: "none",
@@ -72,7 +75,10 @@ func TestPodSpecResolve(t *testing.T) {
 		"--cmd", "/app/start", "--arg", "myArg1", "--service-account", "foo-bar-account",
 		"--mount", "/mount/path=volume-name", "--volume", "volume-name=cm:config-map-name",
 		"--env-from", "config-map:config-map-name", "--user", "1001", "--pull-policy", "always",
-		"--probe-readiness", "http::8080:/path", "--probe-liveness", "http::8080:/path"}
+		"--probe-readiness", "http::8080:/path", "--probe-liveness", "http::8080:/path",
+		"--node-selector", "kubernetes.io/hostname=test-clusterw1-123",
+		"--toleration", "Key=node-role.kubernetes.io/master,effect=NoSchedule,operator=Equal,Value=",
+		"--node-affinity", "Type=Required,Key=topology.kubernetes.io/zone,Operator=In,Values=antarctica-east1"}
 	expectedPodSpec := corev1.PodSpec{
 		Containers: []corev1.Container{
 			{
@@ -115,6 +121,34 @@ func TestPodSpecResolve(t *testing.T) {
 				VolumeMounts: []corev1.VolumeMount{{Name: "volume-name", ReadOnly: true, MountPath: "/mount/path"}},
 				SecurityContext: &corev1.SecurityContext{
 					RunAsUser: ptr.Int64(int64(1001)),
+				},
+			},
+		},
+		NodeSelector: map[string]string{
+			"kubernetes.io/hostname": "test-clusterw1-123",
+		},
+		Tolerations: []corev1.Toleration{
+			{
+				Operator: corev1.TolerationOpEqual,
+				Key:      "node-role.kubernetes.io/master",
+				Effect:   corev1.TaintEffectNoSchedule,
+				Value:    "",
+			},
+		},
+		Affinity: &corev1.Affinity{
+			NodeAffinity: &corev1.NodeAffinity{
+				RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
+					NodeSelectorTerms: []corev1.NodeSelectorTerm{
+						{
+							MatchExpressions: []corev1.NodeSelectorRequirement{
+								{
+									Operator: corev1.NodeSelectorOpIn,
+									Key:      "topology.kubernetes.io/zone",
+									Values:   []string{"antarctica-east1"},
+								},
+							},
+						},
+					},
 				},
 			},
 		},

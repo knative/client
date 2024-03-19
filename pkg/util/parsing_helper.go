@@ -201,10 +201,9 @@ func mapFromArray(arr []string, delimiter string, allowSingles bool) (map[string
 	return returnMap, nil
 }
 
-// ParseStringArrayFromCommaSeparatedStrings will parse a string which has substrings separated by a comma into an
+// ParseStringArrayFromSpaceSeparatedStrings will parse a string which has substrings separated by a space into an
 // array which is used to transform values for node affinity.
-func ParseStringArrayFromCommaSeparatedStrings(str string) []string {
-	strWithoutWhiteSpaces := strings.Join(strings.Fields(str), "")
-	arr := strings.Split(strWithoutWhiteSpaces, ",")
+func ParseStringArrayFromSpaceSeparatedStrings(str string) []string {
+	arr := strings.Split(str, ",")
 	return arr
 }

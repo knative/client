@@ -1533,3 +1533,69 @@ func TestUpdateSecurityContext(t *testing.T) {
 		})
 	}
 }
+
+func TestUpdateNodeSelector(t *testing.T) {
+	testCases := []struct {
+		name               string
+		nodeSelectorString []string
+		expected           *corev1.PodSpec
+		expectedError      error
+	}{
+		{
+			name:               "Single node selector",
+			nodeSelectorString: []string{"foo=bar"},
+			expected: &corev1.PodSpec{
+				NodeSelector: map[string]string{
+					"k8s.io/hostname": "test",
+					"foo":             "bar",
+				},
+			},
+			expectedError: nil,
+		},
+		{
+			name:               "Multiple node selectors",
+			nodeSelectorString: []string{"foo1=bar1", "foo2=bar2"},
+			expected: &corev1.PodSpec{
+				NodeSelector: map[string]string{
+					"k8s.io/hostname": "test",
+					"foo1":            "bar1",
+					"foo2":            "bar2",
+				},
+			},
+			expectedError: nil,
+		},
+		{
+			name:               "Removing a node selector",
+			nodeSelectorString: []string{"k8s.io/hostname-"},
+			expected: &corev1.PodSpec{
+				NodeSelector: map[string]string{},
+			},
+			expectedError: nil,
+		},
+		{
+			name:               "Passing empty key in node selector",
+			nodeSelectorString: []string{"=test"},
+			expected: &corev1.PodSpec{
+				NodeSelector: map[string]string{},
+			},
+			expectedError: errors.New("The key is empty"),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := &corev1.PodSpec{
+				NodeSelector: map[string]string{
+					"k8s.io/hostname": "test",
+				},
+			}
+			err := UpdateNodeSelector(actual, tc.nodeSelectorString)
+			if tc.expectedError != nil {
+				assert.Error(t, err, tc.expectedError.Error())
+			} else {
+				assert.NilError(t, err)
+				assert.DeepEqual(t, actual, tc.expected)
+			}
+		})
+	}
+}

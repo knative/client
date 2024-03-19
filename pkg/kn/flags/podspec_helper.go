@@ -513,7 +513,7 @@ func UpdateNodeAffinity(spec *corev1.PodSpec, nodeAffinity []string) error {
 		case "key":
 			matchExpressionNew.Key = value
 		case "values":
-			matchExpressionNew.Values = util.ParseStringArrayFromCommaSeparatedStrings(value)
+			matchExpressionNew.Values = util.ParseStringArrayFromSpaceSeparatedStrings(value)
 		case "operator":
 			if value == fmt.Sprintf("%s", v1.NodeSelectorOpIn) {
 				matchExpressionNew.Operator = v1.NodeSelectorOpIn
