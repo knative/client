@@ -10,6 +10,8 @@ to provide interactive completion
 
 Supported Shells:
  - bash
+ - fish
+ - powershell
  - zsh
 
 ```
@@ -22,6 +24,12 @@ kn completion SHELL
 
  # Generate completion code for bash
  source <(kn completion bash)
+
+ # Generate completion code for fish
+ kn completion fish | source
+
+ # Generate completion code for powershell
+ kn completion powershell | Out-String | Invoke-Expression
 
  # Generate completion code for zsh
  source <(kn completion zsh)
