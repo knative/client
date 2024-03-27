@@ -34,7 +34,7 @@ func TestCompletionUsage(t *testing.T) {
 }
 
 func TestCompletionGeneration(t *testing.T) {
-	for _, shell := range []string{"bash", "zsh"} {
+	for _, shell := range []string{"bash", "fish", "powershell", "zsh"} {
 		completionCmd := NewCompletionCommand(&commands.KnParams{})
 		c := test.CaptureOutput(t)
 		err := completionCmd.RunE(&cobra.Command{}, []string{shell})
@@ -48,11 +48,11 @@ func TestCompletionGeneration(t *testing.T) {
 func TestCompletionNoArg(t *testing.T) {
 	completionCmd := NewCompletionCommand(&commands.KnParams{})
 	err := completionCmd.RunE(&cobra.Command{}, []string{})
-	assert.Assert(t, util.ContainsAll(err.Error(), "bash", "zsh", "one", "argument"))
+	assert.Assert(t, util.ContainsAll(err.Error(), "bash", "fish", "powershell", "zsh", "one", "argument"))
 }
 
 func TestCompletionWrongArg(t *testing.T) {
 	completionCmd := NewCompletionCommand(&commands.KnParams{})
 	err := completionCmd.RunE(&cobra.Command{}, []string{"sh"})
-	assert.Assert(t, util.ContainsAll(err.Error(), "bash", "zsh", "support"))
+	assert.Assert(t, util.ContainsAll(err.Error(), "bash", "fish", "powershell", "zsh", "support"))
 }

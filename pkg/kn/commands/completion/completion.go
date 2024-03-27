@@ -30,10 +30,18 @@ to provide interactive completion
 
 Supported Shells:
  - bash
+ - fish
+ - powershell
  - zsh`
 	eg = `
  # Generate completion code for bash
  source <(kn completion bash)
+
+ # Generate completion code for fish
+ kn completion fish | source
+
+ # Generate completion code for powershell
+ kn completion powershell | Out-String | Invoke-Expression
 
  # Generate completion code for zsh
  source <(kn completion zsh)
@@ -46,20 +54,24 @@ func NewCompletionCommand(p *commands.KnParams) *cobra.Command {
 		Use:       "completion SHELL",
 		Short:     "Output shell completion code",
 		Long:      desc,
-		ValidArgs: []string{"bash", "zsh"},
+		ValidArgs: []string{"bash", "fish", "powershell", "zsh"},
 		Example:   eg,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 1 {
 				switch args[0] {
 				case "bash":
 					return cmd.Root().GenBashCompletion(os.Stdout)
+				case "fish":
+					return cmd.Root().GenFishCompletion(os.Stdout, true)
+				case "powershell":
+					return cmd.Root().GenPowerShellCompletion(os.Stdout)
 				case "zsh":
 					return cmd.Root().GenZshCompletion(os.Stdout)
 				default:
-					return errors.New("'bash' or 'zsh' shell completion is supported")
+					return errors.New("'bash', 'fish', 'powershell' or 'zsh' shell completion is supported")
 				}
 			} else {
-				return errors.New("Only one argument can be provided, either 'bash' or 'zsh'")
+				return errors.New("Only one argument can be provided, either 'bash', 'fish', 'powershell' or 'zsh'")
 			}
 		},
 	}
