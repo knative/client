@@ -125,6 +125,7 @@ kn service create NAME --image IMAGE
       --context string         name of the kubeconfig context to use
       --kubeconfig string      kubectl configuration file (default: ~/.kube/config)
       --log-http               log http traffic
+  -q, --quiet                  run commands in quiet mode
 ```
 
 ### SEE ALSO
