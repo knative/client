@@ -372,13 +372,6 @@ func (p *PodSpecFlags) ResolvePodSpec(podSpec *corev1.PodSpec, flags *pflag.Flag
 		UpdateImagePullSecrets(podSpec, p.ImagePullSecrets)
 	}
 
-	if flags.Changed("user") {
-		err = UpdateUser(podSpec, p.User)
-		if err != nil {
-			return err
-		}
-	}
-
 	if flags.Changed("containers") || flags.Changed("extra-containers") || p.ExtraContainers == "-" {
 		var fromFile *corev1.PodSpec
 		fromFile, err = decodeContainersFromFile(p.ExtraContainers)
@@ -414,6 +407,13 @@ func (p *PodSpecFlags) ResolvePodSpec(podSpec *corev1.PodSpec, flags *pflag.Flag
 
 	if flags.Changed("security-context") {
 		if err := UpdateSecurityContext(podSpec, p.SecurityContext); err != nil {
+			return err
+		}
+	}
+
+	if flags.Changed("user") {
+		err = UpdateUser(podSpec, p.User)
+		if err != nil {
 			return err
 		}
 	}
