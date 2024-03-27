@@ -28,6 +28,7 @@ import (
 	"math/big"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -137,6 +138,8 @@ func domainDescribe(r *test.KnRunResultCollector, domainName string, tls bool) {
 	for i := 0; i < 20; i++ {
 		out, err := k.Run("get", "domainmapping", domainName, "-o=jsonpath='{.status.url}'")
 		assert.NilError(r.T(), err)
+		// Remove additional spaces and single quotes added to kubectl output
+		out = strings.Trim(strings.TrimSpace(out), "'")
 		if len(out) > 0 {
 			break
 		}
