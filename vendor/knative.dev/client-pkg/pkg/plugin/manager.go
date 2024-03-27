@@ -25,16 +25,12 @@ import (
 	"strings"
 	"text/template"
 
-	pkgplugin "knative.dev/client-pkg/pkg/plugin"
-
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 )
 
 // Allow plugins to register to this slice for inlining
 var InternalPlugins PluginList
-
-var synced bool
 
 // Interface describing a plugin
 type Plugin interface {
@@ -53,6 +49,26 @@ type Plugin interface {
 
 	// Location of the plugin where it is stored in the filesystem
 	Path() string
+}
+
+type ContextData map[string]string
+
+type PluginManifest struct {
+	// ProducesContextDataKeys is a list of keys for the ContextData that
+	// a plugin can produce. Nil or an empty list declares that this
+	// plugin is not ContextDataProducer
+	ProducesContextDataKeys []string
+
+	// ConsumesContextDataKeys is a list of keys from a ContextData that a
+	// plugin is interested in to consume. Nil or an empty list declares
+	// that this plugin is not a ContextDataConsumer
+	ConsumesContextDataKeys []string
+}
+
+type ContextDataConsumer interface {
+	// ExecuteWithContextData executes the plugin with the given args much like
+	// Execute() but with an additional argument that holds the ContextData
+	ExecuteWithContextData(args []string, data ContextData) error
 }
 
 type Manager struct {
@@ -88,25 +104,10 @@ func (p PluginList) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
 // NewManager creates a new manager for looking up plugins on the file system
 func NewManager(pluginDir string, lookupInPath bool) *Manager {
-	m := &Manager{
+	return &Manager{
 		pluginsDir:   pluginDir,
 		lookupInPath: lookupInPath,
 	}
-	if !synced {
-		for _, p := range pkgplugin.InternalPlugins {
-			m.AppendPlugin(p)
-		}
-		synced = true
-	}
-	return m
-}
-
-func (manager *Manager) AppendPlugin(plugin Plugin) {
-	InternalPlugins = append(InternalPlugins, plugin)
-}
-
-func (manager *Manager) GetInternalPlugins() PluginList {
-	return InternalPlugins
 }
 
 // FindPlugin checks if a plugin for the given parts exist and return it.

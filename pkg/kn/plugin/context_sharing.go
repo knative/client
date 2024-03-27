@@ -23,7 +23,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"knative.dev/client/pkg/kn/config"
+	"knative.dev/client/pkg/config"
 )
 
 //--TYPES--
