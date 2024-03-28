@@ -200,3 +200,10 @@ func mapFromArray(arr []string, delimiter string, allowSingles bool) (map[string
 	}
 	return returnMap, nil
 }
+
+// ParseStringArrayFromSpaceSeparatedStrings will parse a string which has substrings separated by a space into an
+// array which is used to transform values for node affinity.
+func ParseStringArrayFromSpaceSeparatedStrings(str string) []string {
+	arr := strings.Split(str, " ")
+	return arr
+}
