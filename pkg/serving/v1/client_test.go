@@ -748,6 +748,7 @@ func TestWaitForService(t *testing.T) {
 	serving, client := setup()
 
 	serviceName := "test-service"
+	readyServiceName := "ready-service"
 	notFoundServiceName := "not-found-service"
 	internalErrorServiceName := "internal-error-service"
 
@@ -771,6 +772,9 @@ func TestWaitForService(t *testing.T) {
 			case serviceName:
 				err = nil
 				svc = newService(serviceName)
+			case readyServiceName:
+				err = nil
+				svc = wait.CreateTestServiceWithConditions(readyServiceName, corev1.ConditionTrue, corev1.ConditionTrue, "", "", 2)
 			case notFoundServiceName:
 				err = apierrors.NewNotFound(servingv1.Resource("service"), notFoundServiceName)
 			case internalErrorServiceName:
@@ -789,6 +793,15 @@ func TestWaitForService(t *testing.T) {
 		}, wait.NoopMessageCallback())
 		assert.NilError(t, err)
 		assert.Assert(t, duration > 0)
+	})
+	t.Run("wait on a service that is already ready with success", func(t *testing.T) {
+		err, duration := client.WaitForService(context.Background(), readyServiceName, WaitConfig{
+			Timeout:     time.Duration(10) * time.Second,
+			ErrorWindow: time.Duration(2) * time.Second,
+		}, wait.NoopMessageCallback())
+		assert.NilError(t, err)
+		println("duration:", duration)
+		assert.Assert(t, duration == 0)
 	})
 	t.Run("wait on a service to become ready with not found error", func(t *testing.T) {
 		err, duration := client.WaitForService(context.Background(), notFoundServiceName, WaitConfig{
