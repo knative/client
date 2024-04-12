@@ -71,7 +71,7 @@ func TestPodSpecResolve(t *testing.T) {
 		"--port", "8080", "--limit", "cpu=1000m", "--limit", "memory=1024Mi",
 		"--cmd", "/app/start", "--arg", "myArg1", "--service-account", "foo-bar-account",
 		"--mount", "/mount/path=volume-name", "--volume", "volume-name=cm:config-map-name",
-		"--env-from", "config-map:config-map-name", "--user", "1001", "--pull-policy", "always",
+		"--env-from", "config-map:config-map-name", "--user", "1001", "--security-context", "none", "--pull-policy", "always",
 		"--probe-readiness", "http::8080:/path", "--probe-liveness", "http::8080:/path"}
 	expectedPodSpec := corev1.PodSpec{
 		Containers: []corev1.Container{
