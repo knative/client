@@ -101,10 +101,9 @@ func NewServiceApplyCommand(p *commands.KnParams) *cobra.Command {
 		},
 	}
 	fss := cliflag.NamedFlagSets{}
-	generalFlagSet := fss.FlagSet("general")
 	experimentalFlagSet := fss.FlagSet("experimental")
 	commands.AddNamespaceFlags(serviceApplyCommand.Flags(), false)
-	applyFlags.AddCreateFlags(serviceApplyCommand, generalFlagSet, experimentalFlagSet)
+	applyFlags.AddCreateFlags(serviceApplyCommand, experimentalFlagSet)
 	waitFlags.AddConditionWaitFlags(serviceApplyCommand, commands.WaitDefaultTimeout, "apply", "service", "ready")
 	cols, _, _ := term.TerminalSize(serviceApplyCommand.OutOrStdout())
 	setUsageAndHelpFunc(serviceApplyCommand, fss, cols)

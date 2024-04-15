@@ -76,9 +76,8 @@ func NewContainerAddCommand(p *commands.KnParams) *cobra.Command {
 		},
 	}
 	fss := cliflag.NamedFlagSets{}
-	generalFlagSet := fss.FlagSet("general")
 	experimentalFlagSet := fss.FlagSet("experimental")
-	podSpecFlags.AddFlags(cmd.Flags(), generalFlagSet, experimentalFlagSet)
+	podSpecFlags.AddFlags(cmd.Flags(), experimentalFlagSet)
 	podSpecFlags.AddUpdateFlags(cmd.Flags())
 	// Volume is not part of ContainerSpec
 	cmd.Flag("volume").Hidden = true

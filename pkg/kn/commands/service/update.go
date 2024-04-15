@@ -160,11 +160,10 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 		},
 	}
 	fss := cliflag.NamedFlagSets{}
-	generalFlagSet := fss.FlagSet("general")
 	experimentalFlagSet := fss.FlagSet("experimental")
 	commands.AddNamespaceFlags(serviceUpdateCommand.Flags(), false)
 	commands.AddGitOpsFlags(serviceUpdateCommand.Flags())
-	editFlags.AddUpdateFlags(serviceUpdateCommand, generalFlagSet, experimentalFlagSet)
+	editFlags.AddUpdateFlags(serviceUpdateCommand, experimentalFlagSet)
 	waitFlags.AddConditionWaitFlags(serviceUpdateCommand, commands.WaitDefaultTimeout, "update", "service", "ready")
 	trafficFlags.Add(serviceUpdateCommand)
 	cols, _, _ := term.TerminalSize(serviceUpdateCommand.OutOrStdout())
