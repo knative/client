@@ -19,6 +19,7 @@ package container
 import (
 	"errors"
 	"fmt"
+	cliflag "k8s.io/component-base/cli/flag"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -93,7 +94,10 @@ func NewContainerUpdateCommand(p *commands.KnParams) *cobra.Command {
 		},
 	}
 	commands.AddNamespaceFlags(cmd.Flags(), false)
-	podFlags.AddFlags(cmd.Flags())
+	fss := cliflag.NamedFlagSets{}
+	experimentalFlagSet := fss.FlagSet("experimental")
+	generalFlagSet := fss.FlagSet("general")
+	podFlags.AddFlags(cmd.Flags(), generalFlagSet, experimentalFlagSet)
 	podFlags.AddUpdateFlags(cmd.Flags())
 	sinkFlags.Add(cmd)
 	return cmd

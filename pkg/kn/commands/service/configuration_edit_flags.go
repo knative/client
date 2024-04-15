@@ -16,6 +16,7 @@ package service
 
 import (
 	"fmt"
+	"github.com/spf13/pflag"
 	"os"
 	"strconv"
 	"strings"
@@ -78,8 +79,8 @@ func (p *ConfigurationEditFlags) markFlagMakesRevision(f string) {
 }
 
 // addSharedFlags adds the flags common between create & update.
-func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
-	flagNames := p.PodSpecFlags.AddFlags(command.Flags())
+func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command, generalFlagSet, experimentalFlagSet *pflag.FlagSet) {
+	flagNames := p.PodSpecFlags.AddFlags(command.Flags(), generalFlagSet, experimentalFlagSet)
 	for _, name := range flagNames {
 		p.markFlagMakesRevision(name)
 	}
@@ -197,8 +198,8 @@ func (p *ConfigurationEditFlags) addSharedFlags(command *cobra.Command) {
 }
 
 // AddUpdateFlags adds the flags specific to update.
-func (p *ConfigurationEditFlags) AddUpdateFlags(command *cobra.Command) {
-	p.addSharedFlags(command)
+func (p *ConfigurationEditFlags) AddUpdateFlags(command *cobra.Command, generalFlagSet, experimentalFlagSet *pflag.FlagSet) {
+	p.addSharedFlags(command, generalFlagSet, experimentalFlagSet)
 
 	flagNames := p.PodSpecFlags.AddUpdateFlags(command.Flags())
 	for _, name := range flagNames {
@@ -218,8 +219,8 @@ func (p *ConfigurationEditFlags) AddUpdateFlags(command *cobra.Command) {
 }
 
 // AddCreateFlags adds the flags specific to create
-func (p *ConfigurationEditFlags) AddCreateFlags(command *cobra.Command) {
-	p.addSharedFlags(command)
+func (p *ConfigurationEditFlags) AddCreateFlags(command *cobra.Command, generalFlagSet, experimentalFlagSet *pflag.FlagSet) {
+	p.addSharedFlags(command, generalFlagSet, experimentalFlagSet)
 
 	flagNames := p.PodSpecFlags.AddCreateFlags(command.Flags())
 	for _, name := range flagNames {
