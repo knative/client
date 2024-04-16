@@ -30,8 +30,8 @@ import (
 	"gotest.tools/v3/assert"
 	corev1 "k8s.io/api/core/v1"
 
-	"knative.dev/client/lib/test"
-	"knative.dev/client/pkg/util"
+	"knative.dev/client-pkg/pkg/util"
+	"knative.dev/client-pkg/pkg/util/test"
 	pkgtest "knative.dev/pkg/test"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )

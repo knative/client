@@ -24,8 +24,8 @@ import (
 
 	pkgtest "knative.dev/pkg/test"
 
-	"knative.dev/client/lib/test"
-	"knative.dev/client/pkg/util"
+	"knative.dev/client-pkg/pkg/util"
+	"knative.dev/client-pkg/pkg/util/test"
 )
 
 func TestServiceApply(t *testing.T) {

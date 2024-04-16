@@ -960,9 +960,33 @@ k8s.io/utils/pointer
 k8s.io/utils/ptr
 k8s.io/utils/strings/slices
 k8s.io/utils/trace
-# knative.dev/client-pkg v0.0.0-20240327121233-6984d81a90ec
+# knative.dev/client-pkg v0.0.0-20240327121233-6984d81a90ec => github.com/cardil/knative-client-pkg v0.0.0-20240416181347-fe59266c904d
 ## explicit; go 1.21
+knative.dev/client-pkg/pkg/apis/client
+knative.dev/client-pkg/pkg/apis/client/v1alpha1
+knative.dev/client-pkg/pkg/commands
+knative.dev/client-pkg/pkg/commands/flags/list
+knative.dev/client-pkg/pkg/commands/flags/sink
+knative.dev/client-pkg/pkg/config
+knative.dev/client-pkg/pkg/dynamic
+knative.dev/client-pkg/pkg/dynamic/fake
+knative.dev/client-pkg/pkg/errors
+knative.dev/client-pkg/pkg/eventing/v1
+knative.dev/client-pkg/pkg/eventing/v1beta2
+knative.dev/client-pkg/pkg/flags
+knative.dev/client-pkg/pkg/messaging/v1
 knative.dev/client-pkg/pkg/plugin
+knative.dev/client-pkg/pkg/printers
+knative.dev/client-pkg/pkg/serving
+knative.dev/client-pkg/pkg/serving/v1
+knative.dev/client-pkg/pkg/serving/v1beta1
+knative.dev/client-pkg/pkg/sources
+knative.dev/client-pkg/pkg/sources/v1
+knative.dev/client-pkg/pkg/sources/v1beta2
+knative.dev/client-pkg/pkg/util
+knative.dev/client-pkg/pkg/util/mock
+knative.dev/client-pkg/pkg/util/test
+knative.dev/client-pkg/pkg/wait
 # knative.dev/eventing v0.40.1-0.20240327131403-47543259ceba
 ## explicit; go 1.21
 knative.dev/eventing/pkg/apis/config
@@ -997,6 +1021,10 @@ knative.dev/eventing/pkg/eventingtls
 # knative.dev/hack v0.0.0-20240327150553-47368d631660
 ## explicit; go 1.18
 knative.dev/hack
+knative.dev/hack/cmd/script
+knative.dev/hack/pkg/inflator/cli
+knative.dev/hack/pkg/inflator/extract
+knative.dev/hack/pkg/retcode
 # knative.dev/networking v0.0.0-20240327140628-ae039896b125
 ## explicit; go 1.21
 knative.dev/networking/pkg
@@ -1192,3 +1220,4 @@ sigs.k8s.io/structured-merge-diff/v4/value
 ## explicit; go 1.12
 sigs.k8s.io/yaml
 sigs.k8s.io/yaml/goyaml.v2
+# knative.dev/client-pkg => github.com/cardil/knative-client-pkg v0.0.0-20240416181347-fe59266c904d
