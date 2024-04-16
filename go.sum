@@ -59,6 +59,8 @@ github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
 github.com/blendle/zapdriver v1.3.1 h1:C3dydBOWYRiOk+B8X9IVZ5IOe+7cl+tGOexN4QqHfpE=
 github.com/blendle/zapdriver v1.3.1/go.mod h1:mdXfREi6u5MArG4j9fewC+FGnXaBR+T4Ox4J2u4eHCc=
+github.com/cardil/knative-client-pkg v0.0.0-20240416181347-fe59266c904d h1:WCIfRrazum2AB/ggmNJ3gJAs76c/oO7lQQlQPStx7uQ=
+github.com/cardil/knative-client-pkg v0.0.0-20240416181347-fe59266c904d/go.mod h1:dV9nC/iTPeSv8dl3wI2sunXgZJu32A3vlEimNzaEsr0=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/census-instrumentation/opencensus-proto v0.4.1 h1:iKLQ0xPNFxR/2hzXZMrBo8f1j86j5WHzznCCQxV/b8g=
 github.com/census-instrumentation/opencensus-proto v0.4.1/go.mod h1:4T9NM4+4Vw91VeyqjLS6ao50K5bOcLKN6Q42XnYaRYw=
@@ -839,8 +841,6 @@ k8s.io/kube-openapi v0.0.0-20231010175941-2dd684a91f00 h1:aVUu9fTY98ivBPKR9Y5w/A
 k8s.io/kube-openapi v0.0.0-20231010175941-2dd684a91f00/go.mod h1:AsvuZPBlUDVuCdzJ87iajxtXuR9oktsTctW/R9wwouA=
 k8s.io/utils v0.0.0-20240102154912-e7106e64919e h1:eQ/4ljkx21sObifjzXwlPKpdGLrCfRziVtos3ofG/sQ=
 k8s.io/utils v0.0.0-20240102154912-e7106e64919e/go.mod h1:OLgZIPagt7ERELqWJFomSt595RzquPNLL48iOWgYOg0=
-knative.dev/client-pkg v0.0.0-20240327121233-6984d81a90ec h1:gG8AzUJDHrYONInTv0wm1gSPzWp3n8tooewl+yGpe/I=
-knative.dev/client-pkg v0.0.0-20240327121233-6984d81a90ec/go.mod h1:PYodo1bmKTrxnNCfLJa6a8wdg3QQH0XTOPlZJwrY64A=
 knative.dev/eventing v0.40.1-0.20240327131403-47543259ceba h1:uX9UsYNHJQDpqVSMVijhSljmCSLZm5ocPdQJ4jrkyig=
 knative.dev/eventing v0.40.1-0.20240327131403-47543259ceba/go.mod h1:19sfPiy4dK2jBIHgszOTk43qOvfCXz1GTIncRY3trB8=
 knative.dev/hack v0.0.0-20240327150553-47368d631660 h1:tW6NgyjMnSXBS75+k+Xh5uNiLhJ9TFswS9hrkC3OQOc=

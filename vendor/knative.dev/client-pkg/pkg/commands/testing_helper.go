@@ -1,0 +1,98 @@
+// Copyright © 2018 The Knative Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package commands
+
+import (
+	"bytes"
+
+	"knative.dev/client-pkg/pkg/dynamic/fake"
+	"knative.dev/client-pkg/pkg/flags"
+
+	"github.com/spf13/cobra"
+	"k8s.io/apimachinery/pkg/runtime"
+	clienttesting "k8s.io/client-go/testing"
+	servingv1fake "knative.dev/serving/pkg/client/clientset/versioned/typed/serving/v1/fake"
+
+	clientservingv1 "knative.dev/client-pkg/pkg/serving/v1"
+	v1 "knative.dev/client-pkg/pkg/sources/v1"
+
+	sourcesv1fake "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1/fake"
+
+	clientdynamic "knative.dev/client-pkg/pkg/dynamic"
+)
+
+const FakeNamespace = "current"
+
+// CreateTestKnCommand helper for creating test commands
+func CreateTestKnCommand(cmd *cobra.Command, knParams *KnParams) (*cobra.Command, *servingv1fake.FakeServingV1, *bytes.Buffer) {
+	buf := new(bytes.Buffer)
+	fakeServing := &servingv1fake.FakeServingV1{Fake: &clienttesting.Fake{}}
+	knParams.Output = buf
+	knParams.NewServingClient = func(namespace string) (clientservingv1.KnServingClient, error) {
+		return clientservingv1.NewKnServingClient(fakeServing, FakeNamespace), nil
+	}
+	knParams.fixedCurrentNamespace = FakeNamespace
+	knCommand := NewTestCommand(cmd, knParams)
+	return knCommand, fakeServing, buf
+}
+
+// CreateSourcesTestKnCommand helper for creating test commands
+func CreateSourcesTestKnCommand(cmd *cobra.Command, knParams *KnParams) (*cobra.Command, *sourcesv1fake.FakeSourcesV1, *bytes.Buffer) {
+	buf := new(bytes.Buffer)
+	// create fake serving client because the sink of source depends on serving client
+	fakeServing := &servingv1fake.FakeServingV1{Fake: &clienttesting.Fake{}}
+	knParams.NewServingClient = func(namespace string) (clientservingv1.KnServingClient, error) {
+		return clientservingv1.NewKnServingClient(fakeServing, FakeNamespace), nil
+	}
+	// create fake sources client
+	fakeEventing := &sourcesv1fake.FakeSourcesV1{Fake: &clienttesting.Fake{}}
+	knParams.Output = buf
+	knParams.NewSourcesClient = func(namespace string) (v1.KnSourcesClient, error) {
+		return v1.NewKnSourcesClient(fakeEventing, FakeNamespace), nil
+	}
+	knParams.fixedCurrentNamespace = FakeNamespace
+	knCommand := NewTestCommand(cmd, knParams)
+	return knCommand, fakeEventing, buf
+}
+
+// CreateDynamicTestKnCommand helper for creating test commands using dynamic client
+func CreateDynamicTestKnCommand(cmd *cobra.Command, knParams *KnParams, objects ...runtime.Object) (*cobra.Command, *clientdynamic.KnDynamicClient, *bytes.Buffer) {
+	buf := new(bytes.Buffer)
+	fakeDynamic := fake.CreateFakeKnDynamicClient(FakeNamespace, objects...)
+	knParams.Output = buf
+	knParams.NewDynamicClient = func(namespace string) (clientdynamic.KnDynamicClient, error) {
+		return fakeDynamic, nil
+	}
+
+	knParams.fixedCurrentNamespace = FakeNamespace
+	knCommand := NewTestCommand(cmd, knParams)
+	return knCommand, &fakeDynamic, buf
+
+}
+
+// NewTestCommand can be used by tes
+func NewTestCommand(subCommand *cobra.Command, params *KnParams) *cobra.Command {
+	rootCmd := &cobra.Command{
+		Use: "kn",
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			return flags.ReconcileBoolFlags(cmd.Flags())
+		},
+	}
+	if params.Output != nil {
+		rootCmd.SetOut(params.Output)
+	}
+	rootCmd.AddCommand(subCommand)
+	return rootCmd
+}

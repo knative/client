@@ -18,7 +18,8 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-source $(dirname $0)/../vendor/knative.dev/hack/library.sh
+# shellcheck disable=SC1090
+source "$(go run knative.dev/hack/cmd/script library.sh)"
 
 "${REPO_ROOT_DIR}"/hack/build.sh --codegen
 if output="$(git status --porcelain)" && [ -z "$output" ]; then

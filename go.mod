@@ -2,8 +2,12 @@ module knative.dev/client
 
 go 1.21
 
+// TODO: remove when https://github.com/knative/client-pkg/pull/177 is merged
+replace knative.dev/client-pkg => github.com/cardil/knative-client-pkg v0.0.0-20240416181347-fe59266c904d
+//replace knative.dev/client-pkg => ../knative-client-pkg
+
 require (
-	github.com/google/go-cmp v0.6.0
+	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/hashicorp/golang-lru v1.0.2 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
@@ -15,11 +19,12 @@ require (
 	golang.org/x/term v0.18.0
 	gotest.tools/v3 v3.3.0
 	k8s.io/api v0.29.2
-	k8s.io/apiextensions-apiserver v0.29.2
+	k8s.io/apiextensions-apiserver v0.29.2 // indirect
 	k8s.io/apimachinery v0.29.2
 	k8s.io/cli-runtime v0.29.2
 	k8s.io/client-go v0.29.2
 	k8s.io/code-generator v0.29.2
+	k8s.io/utils v0.0.0-20240102154912-e7106e64919e
 	knative.dev/client-pkg v0.0.0-20240327121233-6984d81a90ec
 	knative.dev/eventing v0.40.1-0.20240327131403-47543259ceba
 	knative.dev/hack v0.0.0-20240327150553-47368d631660
@@ -28,8 +33,6 @@ require (
 	knative.dev/serving v0.40.1-0.20240327150557-17df21964e1d
 	sigs.k8s.io/yaml v1.4.0
 )
-
-require k8s.io/utils v0.0.0-20240102154912-e7106e64919e
 
 require (
 	contrib.go.opencensus.io/exporter/ocagent v0.7.1-0.20200907061046-05415f1de66d // indirect

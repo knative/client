@@ -34,7 +34,7 @@ The following steps are required:
 package plugin
 
 import (
-	"knative.dev/client/pkg/kn/plugin"
+	"knative.dev/client/pkg/plugin"
 )
 
 func init() {

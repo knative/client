@@ -36,8 +36,10 @@ export PRESUBMIT_TEST_FAIL_FAST=1
 export GO111MODULE=on
 export KNATIVE_SERVING_VERSION=${KNATIVE_SERVING_VERSION:-latest}
 export KNATIVE_EVENTING_VERSION=${KNATIVE_EVENTING_VERSION:-latest}
-source $(dirname $0)/../vendor/knative.dev/hack/presubmit-tests.sh
-source $(dirname $0)/common.sh
+
+# shellcheck disable=SC1090
+source "$(go run knative.dev/hack/cmd/script presubmit-tests.sh)"
+source "$(dirname "$0")/common.sh"
 
 # Run cross platform build to ensure kn compiles for Linux, macOS and Windows
 function post_build_tests() {
@@ -50,11 +52,10 @@ function post_build_tests() {
   fi
 }
 
-# Run the unit tests with an additional flag '-mod=vendor' to avoid
-# downloading the deps in unit tests CI job
+# Run the unit tests
 function unit_tests() {
-  report_go_test -race -mod=vendor ./... || failed=1
+  report_go_test -race ./... || failed=1
 }
 
 # We use the default build and integration test runners.
-main $@
+main "$@"

@@ -24,8 +24,8 @@ import (
 
 	"gotest.tools/v3/assert"
 
-	"knative.dev/client/lib/test"
-	"knative.dev/client/pkg/util"
+	"knative.dev/client-pkg/pkg/util"
+	"knative.dev/client-pkg/pkg/util/test"
 )
 
 const (

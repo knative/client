@@ -26,12 +26,12 @@ import (
 	"strings"
 	"testing"
 
-	"knative.dev/client/pkg/util"
+	"knative.dev/client-pkg/pkg/util"
 	pkgtest "knative.dev/pkg/test"
 
 	"gotest.tools/v3/assert"
 
-	"knative.dev/client/lib/test"
+	"knative.dev/client-pkg/pkg/util/test"
 )
 
 func TestMultiContainers(t *testing.T) {

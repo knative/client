@@ -21,15 +21,15 @@ import (
 	"strings"
 	"testing"
 
-	pluginpkg "knative.dev/client/pkg/kn/plugin"
+	pluginpkg "knative.dev/client/pkg/plugin"
 
 	"github.com/spf13/cobra"
 	"gotest.tools/v3/assert"
 
-	"knative.dev/client/lib/test"
-	"knative.dev/client/pkg/kn/config"
-	"knative.dev/client/pkg/kn/root"
-	"knative.dev/client/pkg/util"
+	"knative.dev/client-pkg/pkg/util"
+	"knative.dev/client-pkg/pkg/util/test"
+	"knative.dev/client/pkg/config"
+	"knative.dev/client/pkg/root"
 )
 
 func TestValidatePlugin(t *testing.T) {
