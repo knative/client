@@ -85,13 +85,13 @@ var create_example = `
   # Create a service with profile
   kn service create profiletest --image knativesamples/helloworld --profile istio
   
-  # Create a service with node selector (if feature flag is enabled here: https://knative.dev/docs/serving/configuration/feature-flags)
+  # Create a service with node selector 
   kn service create nodeselectortest --image knativesamples/helloworld --node-selector Disktype="ssd"
 
-  # Create a service with toleration (if feature flag is enabled here: https://knative.dev/docs/serving/configuration/feature-flags)
+  # Create a service with toleration 
   kn service create tolerationtest --image knativesamples/helloworld --toleration Key="node-role.kubernetes.io/master",Effect="NoSchedule",Operator="Equal",Value=""
 
-  # Create a service with node affinity (if feature flag is enabled here: https://knative.dev/docs/serving/configuration/feature-flags)
+  # Create a service with node affinity 
   kn service create nodeaffinitytest --image knativesamples/helloworld --node-affinity Type="Required",Key="topology.kubernetes.io/zone",Operator="In",Values="antarctica-east1 antarctica-east2"`
 
 func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {

@@ -244,18 +244,18 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
 		"and 'strict' for dropping all capabilities, running as non-root, and no privilege escalation.")
 	flagNames = append(flagNames, "security-context")
 
-	flagset.StringArrayVar(&p.NodeSelector, "node-selector", []string{}, "Add node selector to be set, you may provide this flag any number of times to set multiple node selectors "+
-		"- only works if the feature gate is enabled in knative serving, example: --node-selector Disktype=\"ssd\". To unset, specify the key name followed by a \"-\", example: --node-selector Disktype- .")
+	flagset.StringArrayVar(&p.NodeSelector, "node-selector", []string{}, "Add node selector to be set, you may provide this flag any number of times to set multiple node selectors, "+
+		"works if feature flag is enabled here: https://knative.dev/docs/serving/configuration/feature-flags/#kubernetes-node-selector. Example: --node-selector Disktype=\"ssd\". To unset, specify the key name followed by a \"-\", example: --node-selector Disktype- .")
 	flagNames = append(flagNames, "node-selector")
 
 	flagset.StringSliceVar(&p.Toleration, "toleration", []string{},
-		"Add toleration to be set - only works if the feature gate is enabled in knative serving. Example: "+
+		"Add toleration to be set, works if the feature gate is enabled here: https://knative.dev/docs/serving/configuration/feature-flags/#kubernetes-toleration. Example: "+
 			"--tolerations Key=\"key1\",Operator=\"Equal\",Value=\"value1\",Effect=\"NoSchedule\"")
 	flagNames = append(flagNames, "toleration")
 
 	flagset.StringSliceVar(&p.NodeAffinity, "node-affinity", []string{},
 		"Add node affinity to be set - only works if the feature gate is enabled in knative serving. When key, operator, values and weight are defined for a type, they will be appended in nodeSelectorTerms in case of Required clause, "+
-			"implying the terms will be ORed, and for Preferred clause, all of them will be considered a new entry in preferredDuringSchedulingIgnoredDuringExecution. Example: "+
+			"implying the terms will be ORed, and for Preferred clause, all of them will be considered a new entry in preferredDuringSchedulingIgnoredDuringExecution, works if feature flag is enabled here: https://knative.dev/docs/serving/configuration/feature-flags/#kubernetes-node-affinity. Example: "+
 			"--node-affinity Type=\"Required\",Key=\"topology.kubernetes.io/zone\",Operator=\"In\",Values=\"antarctica-east1 antarctica-west1\" or"+
 			"--node-affinity Type=\"Preferred\",Key=\"topology.kubernetes.io/zone\",Operator=\"In\",Values=\"antarctica-east1\",Weight=\"1\"")
 	flagNames = append(flagNames, "node-affinity")

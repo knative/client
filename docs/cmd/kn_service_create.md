@@ -53,15 +53,14 @@ kn service create NAME --image IMAGE
   # Create a service with profile
   kn service create profiletest --image knativesamples/helloworld --profile istio
   
-  # Create a service with node selector (if feature flag is enabled here: https://knative.dev/docs/serving/configuration/feature-flags)
+  # Create a service with node selector 
   kn service create nodeselectortest --image knativesamples/helloworld --node-selector Disktype="ssd"
 
-  # Create a service with toleration (if feature flag is enabled here: https://knative.dev/docs/serving/configuration/feature-flags)
+  # Create a service with toleration 
   kn service create tolerationtest --image knativesamples/helloworld --toleration Key="node-role.kubernetes.io/master",Effect="NoSchedule",Operator="Equal",Value=""
 
-  # Create a service with node affinity (if feature flag is enabled here: https://knative.dev/docs/serving/configuration/feature-flags)
-  kn service create nodeaffinitytest --image knativesamples/helloworld --node-affinity Type="Required",Key="topology.kubernetes.io/zone",Operator="In",Values="antarctica-east1 antarctica-east2"
-```
+  # Create a service with node affinity 
+  kn service create nodeaffinitytest --image knativesamples/helloworld --node-affinity Type="Required",Key="topology.kubernetes.io/zone",Operator="In",Values="antarctica-east1 antarctica-east2"````
 
 ### Options
 
@@ -120,7 +119,7 @@ kn service create NAME --image IMAGE
       --timeout int                       Duration in seconds that the request routing layer will wait for a request delivered to a container to begin replying (default 300)
       --toleration strings                Add toleration to be set - only works if the feature gate is enabled in knative serving. Example: --tolerations Key="key1",Operator="Equal",Value="value1",Effect="NoSchedule"
       --user int                          The user ID to run the container (e.g., 1001).
-      --volume stringArray                Add a volume from a ConfigMap (prefix cm: or config-map:) a Secret (prefix secret: or sc:), an EmptyDir (prefix ed: or emptyDir:) or a PersistentVolumeClaim (prefix pvc: or persistentVolumeClaim). PersistentVolumeClaim and EmptyDir only works if the feature gate is enabled in knative serving. Example: --volume myvolume=cm:myconfigmap, --volume myvolume=secret:mysecret or --volume emptyDir:myvol:size=1Gi,type=Memory. You can use this flag multiple times. To unset a ConfigMap/Secret reference, append "-" to the name, e.g. --volume myvolume-.
+      --volume stringArray                Add a volume from a ConfigMap (prefix cm: or config-map:) a Secret (prefix secret: or sc:), an EmptyDir (prefix ed: or emptyDir:) or a PersistentVolumeClaim (prefix pvc: or persistentVolumeClaim). PersistentVolumeClaim only works if the feature gate is enabled in knative serving. Example: --volume myvolume=cm:myconfigmap, --volume myvolume=secret:mysecret or --volume emptyDir:myvol:size=1Gi,type=Memory. You can use this flag multiple times. To unset a ConfigMap/Secret reference, append "-" to the name, e.g. --volume myvolume-.
       --wait                              Wait for 'service create' operation to be completed. (default true)
       --wait-timeout int                  Seconds to wait before giving up on waiting for service to be ready. (default 600)
       --wait-window int                   Seconds to wait for service to be ready after a false ready condition is returned (default 2)
