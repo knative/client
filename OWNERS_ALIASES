@@ -6,45 +6,33 @@ aliases:
   - itsmurugappan
   client-wg-leads:
   - dsimansk
-  - navidshaikh
   - rhuss
   client-writers:
   - dsimansk
   - maximilien
-  - navidshaikh
   - rhuss
   - vyasgun
-  conformance-task-force-leads:
-  - salaboy
-  conformance-writers:
-  - salaboy
   docs-reviewers:
   - nainaz
   - pmbanugo
   - retocode
   - skonto
   - snneji
-  docs-wg-leads:
-  - snneji
   docs-writers:
   - csantanapr
   - retocode
   - skonto
-  - snneji
   eventing-reviewers:
   - Leo6Leo
   - aslom
   - cali0707
   - creydr
-  eventing-triage:
-  - lberk
   eventing-wg-leads:
   - pierDipi
   eventing-writers:
   - aliok
   - cali0707
   - creydr
-  - lberk
   - lionelvillard
   - matzew
   - odacremolbap
@@ -68,11 +56,13 @@ aliases:
   - Leo6Leo
   - ReToCode
   - aliok
+  - cardil
   - creydr
   - davidhadas
   - dprotaso
   - dsimansk
   - evankanderson
+  - izabelacg
   - knative-automation
   - knative-prow-releaser-robot
   - knative-prow-robot
@@ -82,7 +72,6 @@ aliases:
   - nainaz
   - pierDipi
   - psschwei
-  - puerco
   - salaboy
   - skonto
   - upodroid
@@ -92,6 +81,7 @@ aliases:
   - ReToCode
   - creydr
   - dsimansk
+  - izabelacg
   - pierDipi
   - skonto
   knative-robots:
@@ -113,13 +103,13 @@ aliases:
   - matzew
   - maximilien
   productivity-leads:
-  - krsna-m
+  - cardil
   - upodroid
   productivity-reviewers:
   - evankanderson
   - mgencur
   productivity-wg-leads:
-  - krsna-m
+  - cardil
   - upodroid
   productivity-writers:
   - cardil
@@ -132,7 +122,6 @@ aliases:
   - davidhadas
   - evankanderson
   serving-approvers:
-  - psschwei
   - skonto
   serving-reviewers:
   - izabelacg
@@ -146,13 +135,11 @@ aliases:
   - dprotaso
   serving-writers:
   - dprotaso
-  - psschwei
   - skonto
   steering-committee:
   - aliok
   - evankanderson
   - nainaz
-  - puerco
   - salaboy
   technical-oversight-committee:
   - davidhadas

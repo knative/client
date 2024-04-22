@@ -17,7 +17,7 @@
 # This script runs the end-to-end tests against Knative Serving built from source.
 # It is started by prow for each PR. For convenience, it can also be executed manually.
 
-# If you already have a Knative cluster setup and kubectl pointing
+# If you already have a Kubernetes cluster setup and kubectl pointing
 # to it, call this script with the --run-tests arguments and it will use
 # the cluster and run the tests.
 
@@ -28,7 +28,7 @@
 source $(dirname $0)/e2e-common.sh
 
 # Script entry point.
-initialize --num-nodes=4 --enable-ha --cluster-version=1.27 "$@"
+initialize --num-nodes=4 --enable-ha --cluster-version=1.28 "$@"
 
 # Run the tests
 header "Running tests"
@@ -118,6 +118,11 @@ go_test_e2e -timeout=30m -tags=hpa ./test/e2e ${E2E_TEST_FLAGS} || failed=1
 toggle_feature kubernetes.podspec-init-containers Enabled
 go_test_e2e -timeout=2m ./test/e2e/initcontainers ${E2E_TEST_FLAGS} || failed=1
 toggle_feature kubernetes.podspec-init-containers Disabled
+
+# Run multi-container probe tests
+toggle_feature multi-container-probing Enabled
+go_test_e2e -timeout=2m ./test/e2e/multicontainerprobing ${E2E_TEST_FLAGS} || failed=1
+toggle_feature multi-container-probing Disabled
 
 # RUN PVC tests with default storage class.
 toggle_feature kubernetes.podspec-persistent-volume-claim Enabled

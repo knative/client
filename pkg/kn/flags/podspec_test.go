@@ -79,6 +79,8 @@ func TestPodSpecResolve(t *testing.T) {
 		"--node-selector", "kubernetes.io/hostname=test-clusterw1-123",
 		"--toleration", "Key=node-role.kubernetes.io/master,effect=NoSchedule,operator=Equal,Value=",
 		"--node-affinity", "Type=Required,Key=topology.kubernetes.io/zone,Operator=In,Values=antarctica-east1"}
+		"--env-from", "config-map:config-map-name", "--user", "1001", "--security-context", "none", "--pull-policy", "always",
+		"--probe-readiness", "http::8080:/path", "--probe-liveness", "http::8080:/path"}
 	expectedPodSpec := corev1.PodSpec{
 		Containers: []corev1.Container{
 			{

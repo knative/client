@@ -25,7 +25,7 @@ import (
 	"strings"
 	"text/template"
 
-	pkgplugin "knative.dev/client-pkg/pkg/kn/plugin"
+	pkgplugin "knative.dev/client-pkg/pkg/plugin"
 
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"

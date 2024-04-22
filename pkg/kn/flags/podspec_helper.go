@@ -237,9 +237,10 @@ func UpdateContainerPort(spec *corev1.PodSpec, port string) error {
 // UpdateUser updates container with a given user id
 func UpdateUser(spec *corev1.PodSpec, user int64) error {
 	container := containerOfPodSpec(spec)
-	container.SecurityContext = &corev1.SecurityContext{
-		RunAsUser: &user,
+	if container.SecurityContext == nil {
+		container.SecurityContext = &v1.SecurityContext{}
 	}
+	container.SecurityContext.RunAsUser = &user
 	return nil
 }
 
