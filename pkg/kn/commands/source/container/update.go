@@ -96,7 +96,8 @@ func NewContainerUpdateCommand(p *commands.KnParams) *cobra.Command {
 	commands.AddNamespaceFlags(cmd.Flags(), false)
 	fss := cliflag.NamedFlagSets{}
 	experimentalFlagSet := fss.FlagSet("experimental")
-	podFlags.AddFlags(cmd.Flags(), experimentalFlagSet)
+	generalFlagSet := fss.FlagSet("general")
+	podFlags.AddFlags(cmd.Flags(), generalFlagSet, experimentalFlagSet)
 	podFlags.AddUpdateFlags(cmd.Flags())
 	sinkFlags.Add(cmd)
 	return cmd

@@ -133,20 +133,20 @@ func (p *PodSpecFlags) AddCreateFlags(flagset *pflag.FlagSet) []string {
 }
 
 // AddFlags will add PodSpec related flags to FlagSet
-func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet, experimentalFlagSet *pflag.FlagSet) []string {
+func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet, generalFlagSet, experimentalFlagSet *pflag.FlagSet) []string {
 
 	flagNames := []string{}
 
-	flagset.VarP(&p.Image, "image", "", "Image to run.")
+	generalFlagSet.VarP(&p.Image, "image", "", "Image to run.")
 	flagNames = append(flagNames, "image")
 
-	flagset.StringVar(&p.ImagePullPolicy, "pull-policy", "",
+	generalFlagSet.StringVar(&p.ImagePullPolicy, "pull-policy", "",
 		"Image pull policy. Valid values (case insensitive): Always | Never | IfNotPresent")
 
-	flagset.StringVarP(&p.EnvFile, "env-file", "", "", "Path to a file containing environment variables (e.g. --env-file=/home/knative/service1/env).")
+	generalFlagSet.StringVarP(&p.EnvFile, "env-file", "", "", "Path to a file containing environment variables (e.g. --env-file=/home/knative/service1/env).")
 	flagNames = append(flagNames, "env-file")
 
-	flagset.StringArrayVarP(&p.Mount, "mount", "", []string{},
+	generalFlagSet.StringArrayVarP(&p.Mount, "mount", "", []string{},
 		"Mount a ConfigMap (prefix cm: or config-map:), a Secret (prefix secret: or sc:), an EmptyDir (prefix ed: or emptyDir:), "+
 			"a PersistentVolumeClaim (prefix pvc: or persistentVolumeClaim) or an existing Volume (without any prefix) on the specified directory. "+
 			"Example: --mount /mydir=cm:myconfigmap, --mount /mydir=secret:mysecret, --mount /mydir=emptyDir:myvol "+
@@ -159,7 +159,7 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet, experimentalFlagSet *pfl
 			"For unmounting a directory, append \"-\", e.g. --mount /mydir-, which also removes any auto-generated volume.")
 	flagNames = append(flagNames, "mount")
 
-	flagset.StringArrayVarP(&p.Volume, "volume", "", []string{},
+	generalFlagSet.StringArrayVarP(&p.Volume, "volume", "", []string{},
 		"Add a volume from a ConfigMap (prefix cm: or config-map:) a Secret (prefix secret: or sc:), "+
 			"an EmptyDir (prefix ed: or emptyDir:) or a PersistentVolumeClaim (prefix pvc: or persistentVolumeClaim). "+
 			"PersistentVolumeClaim and EmptyDir only works if the feature gate is enabled in knative serving. Example: --volume myvolume=cm:myconfigmap, --volume myvolume=secret:mysecret or --volume emptyDir:myvol:size=1Gi,type=Memory. "+
@@ -167,24 +167,24 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet, experimentalFlagSet *pfl
 			"To unset a ConfigMap/Secret reference, append \"-\" to the name, e.g. --volume myvolume-.")
 	flagNames = append(flagNames, "volume")
 
-	flagset.StringArrayVarP(&p.Command, "cmd", "", []string{},
+	generalFlagSet.StringArrayVarP(&p.Command, "cmd", "", []string{},
 		"Specify command to be used as entrypoint instead of default one. "+
 			"Example: --cmd /app/start or --cmd sh --cmd /app/start.sh or --cmd /app/start --arg myArg to pass additional arguments.")
 	flagNames = append(flagNames, "cmd")
 
-	flagset.StringArrayVarP(&p.Arg, "arg", "", []string{},
+	generalFlagSet.StringArrayVarP(&p.Arg, "arg", "", []string{},
 		"Add argument to the container command. "+
 			"Example: --arg myArg1 --arg --myArg2 --arg myArg3=3. "+
 			"You can use this flag multiple times.")
 	flagNames = append(flagNames, "arg")
 
 	// DEPRECATED since 1.0
-	flagset.StringVarP(&p.ExtraContainers, "extra-containers", "", "",
+	generalFlagSet.StringVarP(&p.ExtraContainers, "extra-containers", "", "",
 		"Deprecated, use --containers instead.")
-	flagset.MarkHidden("extra-containers")
+	generalFlagSet.MarkHidden("extra-containers")
 	flagNames = append(flagNames, "containers")
 
-	flagset.StringVarP(&p.ExtraContainers, "containers", "", "",
+	generalFlagSet.StringVarP(&p.ExtraContainers, "containers", "", "",
 		"Specify path to file including definition for additional containers, alternatively use '-' to read from stdin. "+
 			"Example: --containers ./containers.yaml or --containers -.")
 	flagNames = append(flagNames, "containers")
@@ -194,20 +194,20 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet, experimentalFlagSet *pfl
 		"Format: [http,https]:host:port:path, exec:cmd[,cmd,...], tcp:host:port."
 	commonProbeOptsDesc := "Common opts (comma separated, case insensitive): InitialDelaySeconds=<int_value>, FailureThreshold=<int_value>, " +
 		"SuccessThreshold=<int_value>, PeriodSeconds=<int_value>, TimeoutSeconds=<int_value>"
-	flagset.StringVarP(&p.LivenessProbe, "probe-liveness", "", "", "Add liveness probe to Service deployment. "+
+	generalFlagSet.StringVarP(&p.LivenessProbe, "probe-liveness", "", "", "Add liveness probe to Service deployment. "+
 		commonProbeDescription)
 	flagNames = append(flagNames, "probe-liveness")
-	flagset.StringVarP(&p.LivenessProbeOpts, "probe-liveness-opts", "", "", "Add common options to liveness probe. "+
+	generalFlagSet.StringVarP(&p.LivenessProbeOpts, "probe-liveness-opts", "", "", "Add common options to liveness probe. "+
 		commonProbeOptsDesc)
 	flagNames = append(flagNames, "probe-liveness-opts")
-	flagset.StringVarP(&p.ReadinessProbe, "probe-readiness", "", "", "Add readiness probe to Service deployment. "+
+	generalFlagSet.StringVarP(&p.ReadinessProbe, "probe-readiness", "", "", "Add readiness probe to Service deployment. "+
 		commonProbeDescription)
 	flagNames = append(flagNames, "probe-readiness")
-	flagset.StringVarP(&p.ReadinessProbeOpts, "probe-readiness-opts", "", "", "Add common options to readiness probe. "+
+	generalFlagSet.StringVarP(&p.ReadinessProbeOpts, "probe-readiness-opts", "", "", "Add common options to readiness probe. "+
 		commonProbeOptsDesc)
 	flagNames = append(flagNames, "probe-liveness-opts")
 
-	flagset.StringSliceVar(&p.Resources.Limits,
+	generalFlagSet.StringSliceVar(&p.Resources.Limits,
 		"limit",
 		nil,
 		"The resource requirement limits for this Service. For example, 'cpu=100m,memory=256Mi'. "+
@@ -215,7 +215,7 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet, experimentalFlagSet *pfl
 			"To unset a resource limit, append \"-\" to the resource name, e.g. '--limit memory-'.")
 	flagNames = append(flagNames, "limit")
 
-	flagset.StringSliceVar(&p.Resources.Requests,
+	generalFlagSet.StringSliceVar(&p.Resources.Requests,
 		"request",
 		nil,
 		"The resource requirement requests for this Service. For example, 'cpu=100m,memory=256Mi'. "+
@@ -223,24 +223,24 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet, experimentalFlagSet *pfl
 			"To unset a resource request, append \"-\" to the resource name, e.g. '--request cpu-'.")
 	flagNames = append(flagNames, "request")
 
-	flagset.StringVarP(&p.Port, "port", "p", "", "The port where application listens on, in the format 'NAME:PORT', where 'NAME' is optional. Examples: '--port h2c:8080' , '--port 8080'.")
+	generalFlagSet.StringVarP(&p.Port, "port", "p", "", "The port where application listens on, in the format 'NAME:PORT', where 'NAME' is optional. Examples: '--port h2c:8080' , '--port 8080'.")
 	flagNames = append(flagNames, "port")
 
-	flagset.StringVar(&p.ServiceAccountName,
+	generalFlagSet.StringVar(&p.ServiceAccountName,
 		"service-account",
 		"",
 		"Service account name to set. An empty argument (\"\") clears the service account. The referenced service account must exist in the service's namespace.")
 	flagNames = append(flagNames, "service-account")
 
-	flagset.StringVar(&p.ImagePullSecrets,
+	generalFlagSet.StringVar(&p.ImagePullSecrets,
 		"pull-secret",
 		"",
 		"Image pull secret to set. An empty argument (\"\") clears the pull secret. The referenced secret must exist in the service's namespace.")
 	flagNames = append(flagNames, "pull-secret")
-	flagset.Int64VarP(&p.User, "user", "", 0, "The user ID to run the container (e.g., 1001).")
+	generalFlagSet.Int64VarP(&p.User, "user", "", 0, "The user ID to run the container (e.g., 1001).")
 	flagNames = append(flagNames, "user")
 
-	flagset.StringVar(&p.SecurityContext, "security-context", "none", "Predefined security context for the service. Accepted values: 'none' for no security context "+
+	generalFlagSet.StringVar(&p.SecurityContext, "security-context", "none", "Predefined security context for the service. Accepted values: 'none' for no security context "+
 		"and 'strict' for dropping all capabilities, running as non-root, and no privilege escalation.")
 	flagNames = append(flagNames, "security-context")
 

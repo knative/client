@@ -15,11 +15,9 @@
 package service
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
-	"github.com/spf13/pflag"
 	"io"
 	cliflag "k8s.io/component-base/cli/flag"
 	"k8s.io/component-base/term"
@@ -175,10 +173,11 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 		},
 	}
 	fss := cliflag.NamedFlagSets{}
+	generalFlagSet := fss.FlagSet("general")
 	experimentalFlagSet := fss.FlagSet("experimental")
 	commands.AddNamespaceFlags(serviceCreateCommand.Flags(), false)
 	commands.AddGitOpsFlags(serviceCreateCommand.Flags())
-	editFlags.AddCreateFlags(serviceCreateCommand, experimentalFlagSet)
+	editFlags.AddCreateFlags(serviceCreateCommand, generalFlagSet, experimentalFlagSet)
 	trafficFlags.AddTagFlag(serviceCreateCommand)
 	waitFlags.AddConditionWaitFlags(serviceCreateCommand, commands.WaitDefaultTimeout, "create", "service", "ready")
 	cols, _, _ := term.TerminalSize(serviceCreateCommand.OutOrStdout())
@@ -216,32 +215,8 @@ func setUsageAndHelpFunc(cmd *cobra.Command, fss cliflag.NamedFlagSets, cols int
 		if cmd.HasAvailableSubCommands() {
 			fmt.Fprintf(cmd.OutOrStdout(), "%s\n", strings.Join(generatesAvailableSubCommands(cmd), "\n"))
 		}
-		printGeneralFlags(cmd.OutOrStdout(), cmd.Flags(), cols)
 		cliflag.PrintSections(cmd.OutOrStdout(), fss, cols)
 	})
-}
-
-func printGeneralFlags(w io.Writer, fs *pflag.FlagSet, cols int) {
-	wideFS := pflag.NewFlagSet("", pflag.ExitOnError)
-	wideFS.AddFlagSet(fs)
-
-	var zzz string
-	if cols > 24 {
-		zzz = strings.Repeat("z", cols-24)
-		wideFS.Int(zzz, 0, strings.Repeat("z", cols-24))
-	}
-
-	var buf bytes.Buffer
-	fmt.Fprintf(&buf, "\n%s flags:\n\n%s", "General", wideFS.FlagUsagesWrapped(cols))
-
-	if cols > 24 {
-		i := strings.Index(buf.String(), zzz)
-		lines := strings.Split(buf.String()[:i], "\n")
-		fmt.Fprint(w, strings.Join(lines[:len(lines)-1], "\n"))
-		fmt.Fprintln(w)
-	} else {
-		fmt.Fprint(w, buf.String())
-	}
 }
 
 func createService(ctx context.Context, client clientservingv1.KnServingClient, service *servingv1.Service, waitFlags commands.WaitFlags, out io.Writer, targetFlag string) error {
