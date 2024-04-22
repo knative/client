@@ -19,10 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	cliflag "k8s.io/component-base/cli/flag"
-	"k8s.io/component-base/term"
 	"os"
-	"strings"
 	"time"
 
 	"knative.dev/client/pkg/config"
@@ -42,10 +39,6 @@ import (
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	clientservingv1 "knative.dev/client/pkg/serving/v1"
-)
-
-const (
-	usageFmt = "Usage:\n  %s\n"
 )
 
 var create_example = `
@@ -92,13 +85,13 @@ var create_example = `
   # Create a service with profile
   kn service create profiletest --image knativesamples/helloworld --profile istio
   
-  # Create a service with node selector 
+  # Create a service with node selector (if feature flag is enabled here: https://knative.dev/docs/serving/configuration/feature-flags)
   kn service create nodeselectortest --image knativesamples/helloworld --node-selector Disktype="ssd"
 
-  # Create a service with toleration 
+  # Create a service with toleration (if feature flag is enabled here: https://knative.dev/docs/serving/configuration/feature-flags)
   kn service create tolerationtest --image knativesamples/helloworld --toleration Key="node-role.kubernetes.io/master",Effect="NoSchedule",Operator="Equal",Value=""
 
-  # Create a service with node affinity 
+  # Create a service with node affinity (if feature flag is enabled here: https://knative.dev/docs/serving/configuration/feature-flags)
   kn service create nodeaffinitytest --image knativesamples/helloworld --node-affinity Type="Required",Key="topology.kubernetes.io/zone",Operator="In",Values="antarctica-east1 antarctica-east2"`
 
 func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
@@ -172,51 +165,12 @@ func NewServiceCreateCommand(p *commands.KnParams) *cobra.Command {
 			return nil
 		},
 	}
-	fss := cliflag.NamedFlagSets{}
-	generalFlagSet := fss.FlagSet("general")
-	experimentalFlagSet := fss.FlagSet("experimental")
 	commands.AddNamespaceFlags(serviceCreateCommand.Flags(), false)
 	commands.AddGitOpsFlags(serviceCreateCommand.Flags())
-	editFlags.AddCreateFlags(serviceCreateCommand, generalFlagSet, experimentalFlagSet)
+	editFlags.AddCreateFlags(serviceCreateCommand)
 	trafficFlags.AddTagFlag(serviceCreateCommand)
 	waitFlags.AddConditionWaitFlags(serviceCreateCommand, commands.WaitDefaultTimeout, "create", "service", "ready")
-	cols, _, _ := term.TerminalSize(serviceCreateCommand.OutOrStdout())
-	setUsageAndHelpFunc(serviceCreateCommand, fss, cols)
 	return serviceCreateCommand
-}
-
-func generatesAvailableSubCommands(cmd *cobra.Command) []string {
-	if !cmd.HasAvailableSubCommands() {
-		return nil
-	}
-
-	info := []string{"\nAvailable Commands:"}
-	for _, sub := range cmd.Commands() {
-		if !sub.Hidden {
-			info = append(info, fmt.Sprintf("  %s %-30s  %s", cmd.CommandPath(), sub.Name(), sub.Short))
-		}
-	}
-	return info
-}
-
-// setUsageAndHelpFunc set both usage and help function.
-func setUsageAndHelpFunc(cmd *cobra.Command, fss cliflag.NamedFlagSets, cols int) {
-	cmd.SetUsageFunc(func(cmd *cobra.Command) error {
-		fmt.Fprintf(cmd.OutOrStderr(), usageFmt, cmd.UseLine())
-		if cmd.HasAvailableSubCommands() {
-			fmt.Fprintf(cmd.OutOrStderr(), "%s\n", strings.Join(generatesAvailableSubCommands(cmd), "\n"))
-		}
-		cliflag.PrintSections(cmd.OutOrStderr(), fss, cols)
-		return nil
-	})
-
-	cmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
-		fmt.Fprintf(cmd.OutOrStdout(), "%s\n\n"+usageFmt+"%s\n\n", cmd.Short, cmd.UseLine(), cmd.Example)
-		if cmd.HasAvailableSubCommands() {
-			fmt.Fprintf(cmd.OutOrStdout(), "%s\n", strings.Join(generatesAvailableSubCommands(cmd), "\n"))
-		}
-		cliflag.PrintSections(cmd.OutOrStdout(), fss, cols)
-	})
 }
 
 func createService(ctx context.Context, client clientservingv1.KnServingClient, service *servingv1.Service, waitFlags commands.WaitFlags, out io.Writer, targetFlag string) error {

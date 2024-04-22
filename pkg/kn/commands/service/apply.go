@@ -17,8 +17,6 @@ package service
 import (
 	"errors"
 	"fmt"
-	cliflag "k8s.io/component-base/cli/flag"
-	"k8s.io/component-base/term"
 
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
@@ -100,14 +98,9 @@ func NewServiceApplyCommand(p *commands.KnParams) *cobra.Command {
 			return waitIfRequested(cmd.Context(), client, waitFlags, service.Name, waitDoing, waitVerb, "", cmd.OutOrStdout())
 		},
 	}
-	fss := cliflag.NamedFlagSets{}
-	generalFlagSet := fss.FlagSet("general")
-	experimentalFlagSet := fss.FlagSet("experimental")
 	commands.AddNamespaceFlags(serviceApplyCommand.Flags(), false)
-	applyFlags.AddCreateFlags(serviceApplyCommand, generalFlagSet, experimentalFlagSet)
+	applyFlags.AddCreateFlags(serviceApplyCommand)
 	waitFlags.AddConditionWaitFlags(serviceApplyCommand, commands.WaitDefaultTimeout, "apply", "service", "ready")
-	cols, _, _ := term.TerminalSize(serviceApplyCommand.OutOrStdout())
-	setUsageAndHelpFunc(serviceApplyCommand, fss, cols)
 	return serviceApplyCommand
 }
 

@@ -17,8 +17,6 @@ package service
 import (
 	"errors"
 	"fmt"
-	cliflag "k8s.io/component-base/cli/flag"
-	"k8s.io/component-base/term"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -159,16 +157,12 @@ func NewServiceUpdateCommand(p *commands.KnParams) *cobra.Command {
 			return preCheck(cmd)
 		},
 	}
-	fss := cliflag.NamedFlagSets{}
-	generalFlagSet := fss.FlagSet("general")
-	experimentalFlagSet := fss.FlagSet("experimental")
+
 	commands.AddNamespaceFlags(serviceUpdateCommand.Flags(), false)
 	commands.AddGitOpsFlags(serviceUpdateCommand.Flags())
-	editFlags.AddUpdateFlags(serviceUpdateCommand, generalFlagSet, experimentalFlagSet)
+	editFlags.AddUpdateFlags(serviceUpdateCommand)
 	waitFlags.AddConditionWaitFlags(serviceUpdateCommand, commands.WaitDefaultTimeout, "update", "service", "ready")
 	trafficFlags.Add(serviceUpdateCommand)
-	cols, _, _ := term.TerminalSize(serviceUpdateCommand.OutOrStdout())
-	setUsageAndHelpFunc(serviceUpdateCommand, fss, cols)
 	return serviceUpdateCommand
 }
 

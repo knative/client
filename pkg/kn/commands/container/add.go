@@ -16,7 +16,6 @@ package container
 
 import (
 	"errors"
-	cliflag "k8s.io/component-base/cli/flag"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -75,10 +74,7 @@ func NewContainerAddCommand(p *commands.KnParams) *cobra.Command {
 			return err
 		},
 	}
-	fss := cliflag.NamedFlagSets{}
-	generalFlagSet := fss.FlagSet("general")
-	experimentalFlagSet := fss.FlagSet("experimental")
-	podSpecFlags.AddFlags(cmd.Flags(), generalFlagSet, experimentalFlagSet)
+	podSpecFlags.AddFlags(cmd.Flags())
 	podSpecFlags.AddUpdateFlags(cmd.Flags())
 	// Volume is not part of ContainerSpec
 	cmd.Flag("volume").Hidden = true
