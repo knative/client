@@ -366,6 +366,10 @@ func (cl *knServingClient) WaitForService(ctx context.Context, name string, wcon
 		}
 		return err, 0
 	}
+	// In case of standalone wait command, it can be executed on already ready ksvc.
+	if service.IsReady() {
+		return nil, 0
+	}
 	return waitForReady.Wait(ctx, name, service.ResourceVersion, wait.Options{Timeout: &wconfig.Timeout, ErrorWindow: &wconfig.ErrorWindow}, msgCallback)
 }
 
