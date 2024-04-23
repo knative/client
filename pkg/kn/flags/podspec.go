@@ -162,7 +162,7 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
 	flagset.StringArrayVarP(&p.Volume, "volume", "", []string{},
 		"Add a volume from a ConfigMap (prefix cm: or config-map:) a Secret (prefix secret: or sc:), "+
 			"an EmptyDir (prefix ed: or emptyDir:) or a PersistentVolumeClaim (prefix pvc: or persistentVolumeClaim). "+
-			"PersistentVolumeClaim and EmptyDir only works if the feature gate is enabled in knative serving. Example: --volume myvolume=cm:myconfigmap, --volume myvolume=secret:mysecret or --volume emptyDir:myvol:size=1Gi,type=Memory. "+
+			"PersistentVolumeClaim only works if the feature gate is enabled here: https://knative.dev/docs/serving/configuration/feature-flags/#kubernetes-persistentvolumeclaim-pvc. Example: --volume myvolume=cm:myconfigmap, --volume myvolume=secret:mysecret or --volume emptyDir:myvol:size=1Gi,type=Memory. "+
 			"You can use this flag multiple times. "+
 			"To unset a ConfigMap/Secret reference, append \"-\" to the name, e.g. --volume myvolume-.")
 	flagNames = append(flagNames, "volume")
