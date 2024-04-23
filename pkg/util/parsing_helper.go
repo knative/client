@@ -185,7 +185,7 @@ func mapFromArray(arr []string, delimiter string, allowSingles bool) (map[string
 		pairSlice := strings.SplitN(pairStr, delimiter, 2)
 		if len(pairSlice) <= 1 {
 			if len(pairSlice) == 0 || !allowSingles {
-				return nil, fmt.Errorf("Argument requires a value that contains the %q character; got %q", delimiter, pairStr)
+				return nil, fmt.Errorf("Argument requires a value that contains the %q character as delimiter; got %q", delimiter, pairStr)
 			}
 			returnMap[pairSlice[0]] = ""
 		} else {

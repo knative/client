@@ -420,13 +420,13 @@ func UpdateNodeSelector(spec *corev1.PodSpec, nodeSelector []string) error {
 	return nil
 }
 
-// UpdateTolerations updates the configuration for volume mounts and volumes.
+// UpdateTolerations updates the configuration for Tolerations
 func UpdateTolerations(spec *corev1.PodSpec, toleration []string) error {
 	tolerationsExisting := spec.Tolerations
 	if tolerationsExisting == nil {
 		tolerationsExisting = []corev1.Toleration{}
 	}
-	tolerationNew := v1.Toleration{}
+	tolerationNew := corev1.Toleration{}
 	tolerationsAllMap, err := util.MapFromArray(toleration, "=")
 	if err != nil {
 		return err
@@ -459,7 +459,7 @@ func UpdateTolerations(spec *corev1.PodSpec, toleration []string) error {
 	return err
 }
 
-// UpdateNodeAffinity updates the configuration for volume mounts and volumes.
+// UpdateNodeAffinity updates the configuration for Node Affinity.
 func UpdateNodeAffinity(spec *corev1.PodSpec, nodeAffinity []string) error {
 	var matchExpressionsExisting []v1.NodeSelectorRequirement
 	var nodeSelectorTermsExisting []v1.NodeSelectorTerm
@@ -478,9 +478,8 @@ func UpdateNodeAffinity(spec *corev1.PodSpec, nodeAffinity []string) error {
 				if !reflect.ValueOf(spec.Affinity).IsZero() && !reflect.ValueOf(spec.Affinity.NodeAffinity).IsZero() &&
 					!reflect.ValueOf(spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution).IsZero() {
 					nodeSelectorTermsExisting = spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms
-					//matchExpressionsExisting = nodeSelectorTermsExisting[0].MatchExpressions
-					//TODO: only supporting ORed terms, should we support ANDed expressions? If yes, to which term do we add
-					//the matchExpression to?
+					//TODO: only supporting ORed terms, also support ANDed expressions in a single term
+					//TODO: only supporting matchExpressions, also support matchFields
 					matchExpressionsExisting = []v1.NodeSelectorRequirement{}
 				} else {
 					nodeSelectorTermsExisting = []v1.NodeSelectorTerm{}
@@ -536,8 +535,10 @@ func UpdateNodeAffinity(spec *corev1.PodSpec, nodeAffinity []string) error {
 	matchExpressionsExisting = append(matchExpressionsExisting, matchExpressionNew)
 	nodeSelectorTermsExisting = append(nodeSelectorTermsExisting, v1.NodeSelectorTerm{MatchExpressions: matchExpressionsExisting})
 	if nodeAffinityType == "Required" {
+		// the new matchExpression is added in the nodeSelectorTerms, and so its an ORed operation
 		spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms = nodeSelectorTermsExisting
 	} else {
+		// the new matchExpression is added directly in preferredDuringSchedulingIgnoredDuringExecution
 		spec.Affinity.NodeAffinity.PreferredDuringSchedulingIgnoredDuringExecution = append(preferenceExisting,
 			v1.PreferredSchedulingTerm{Weight: preferenceWeight, Preference: v1.NodeSelectorTerm{MatchExpressions: matchExpressionsExisting}})
 	}

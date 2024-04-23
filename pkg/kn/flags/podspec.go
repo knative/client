@@ -254,9 +254,9 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
 	flagNames = append(flagNames, "toleration")
 
 	flagset.StringSliceVar(&p.NodeAffinity, "node-affinity", []string{},
-		"Add node affinity to be set - only works if the feature gate is enabled in knative serving. When key, operator, values and weight are defined for a type, they will be appended in nodeSelectorTerms in case of Required clause, "+
-			"implying the terms will be ORed, and for Preferred clause, all of them will be considered a new entry in preferredDuringSchedulingIgnoredDuringExecution, works if feature flag is enabled here: https://knative.dev/docs/serving/configuration/feature-flags/#kubernetes-node-affinity. Example: "+
-			"--node-affinity Type=\"Required\",Key=\"topology.kubernetes.io/zone\",Operator=\"In\",Values=\"antarctica-east1 antarctica-west1\" or"+
+		"Add node affinity to be set - only works if the feature gate is enabled here: https://knative.dev/docs/serving/configuration/feature-flags/#kubernetes-node-affinity. When key, operator, values (whitespace separated) and weight are defined for a type, they will be appended in nodeSelectorTerms in case of Required clause, "+
+			"implying the terms will be ORed, and for Preferred clause, all of them will be added in preferredDuringSchedulingIgnoredDuringExecution. Example: "+
+			"--node-affinity Type=\"Required\",Key=\"topology.kubernetes.io/zone\",Operator=\"In\",Values=\"antarctica-east1 antarctica-west1\" or "+
 			"--node-affinity Type=\"Preferred\",Key=\"topology.kubernetes.io/zone\",Operator=\"In\",Values=\"antarctica-east1\",Weight=\"1\"")
 	flagNames = append(flagNames, "node-affinity")
 
@@ -430,24 +430,23 @@ func (p *PodSpecFlags) ResolvePodSpec(podSpec *corev1.PodSpec, flags *pflag.Flag
 		}
 	}
 
-
 	if flags.Changed("node-selector") {
 		if err := UpdateNodeSelector(podSpec, p.NodeSelector); err != nil {
-			return fmt.Errorf("Invalid --toleration: %w", err)
+			return fmt.Errorf("Invalid --node-selector: %v", err)
 		}
 	}
 
 	if flags.Changed("toleration") {
 		err = UpdateTolerations(podSpec, p.Toleration)
 		if err != nil {
-			return err
+			return fmt.Errorf("Invalid --toleration: %v", err)
 		}
 	}
 
 	if flags.Changed("node-affinity") {
 		err = UpdateNodeAffinity(podSpec, p.NodeAffinity)
-    if err != nil {
-			return err
+		if err != nil {
+			return fmt.Errorf("Invalid --node-affinity: %v", err)
 		}
 	}
 

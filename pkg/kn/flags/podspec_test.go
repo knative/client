@@ -74,11 +74,10 @@ func TestPodSpecResolve(t *testing.T) {
 		"--port", "8080", "--limit", "cpu=1000m", "--limit", "memory=1024Mi",
 		"--cmd", "/app/start", "--arg", "myArg1", "--service-account", "foo-bar-account",
 		"--mount", "/mount/path=volume-name", "--volume", "volume-name=cm:config-map-name",
-		"--env-from", "config-map:config-map-name", "--user", "1001", "--pull-policy", "always",
 		"--probe-readiness", "http::8080:/path", "--probe-liveness", "http::8080:/path",
 		"--node-selector", "kubernetes.io/hostname=test-clusterw1-123",
 		"--toleration", "Key=node-role.kubernetes.io/master,effect=NoSchedule,operator=Equal,Value=",
-		"--node-affinity", "Type=Required,Key=topology.kubernetes.io/zone,Operator=In,Values=antarctica-east1"}
+		"--node-affinity", "Type=Required,Key=topology.kubernetes.io/zone,Operator=In,Values=antarctica-east1",
 		"--env-from", "config-map:config-map-name", "--user", "1001", "--security-context", "none", "--pull-policy", "always",
 		"--probe-readiness", "http::8080:/path", "--probe-liveness", "http::8080:/path"}
 	expectedPodSpec := corev1.PodSpec{
