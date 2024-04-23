@@ -438,17 +438,17 @@ func UpdateTolerations(spec *corev1.PodSpec, toleration []string) error {
 		case "value":
 			tolerationNew.Value = value
 		case "effect":
-			if value == fmt.Sprintf("%s", v1.TaintEffectNoSchedule) {
+			if value == string(v1.TaintEffectNoSchedule) {
 				tolerationNew.Effect = v1.TaintEffectNoSchedule
-			} else if value == fmt.Sprintf("%s", v1.TaintEffectPreferNoSchedule) {
+			} else if value == string(v1.TaintEffectPreferNoSchedule) {
 				tolerationNew.Effect = v1.TaintEffectPreferNoSchedule
-			} else if value == fmt.Sprintf("%s", v1.TaintEffectNoExecute) {
+			} else if value == string(v1.TaintEffectNoExecute) {
 				tolerationNew.Effect = v1.TaintEffectNoExecute
 			}
 		case "operator":
-			if value == fmt.Sprintf("%s", v1.TolerationOpExists) {
+			if value == string(v1.TolerationOpExists) {
 				tolerationNew.Operator = v1.TolerationOpExists
-			} else if value == fmt.Sprintf("%s", v1.TolerationOpEqual) {
+			} else if value == string(v1.TolerationOpEqual) {
 				tolerationNew.Operator = v1.TolerationOpEqual
 			}
 		}
@@ -515,17 +515,17 @@ func UpdateNodeAffinity(spec *corev1.PodSpec, nodeAffinity []string) error {
 		case "values":
 			matchExpressionNew.Values = util.ParseStringArrayFromSpaceSeparatedStrings(value)
 		case "operator":
-			if value == fmt.Sprintf("%s", v1.NodeSelectorOpIn) {
+			if value == string(v1.NodeSelectorOpIn) {
 				matchExpressionNew.Operator = v1.NodeSelectorOpIn
-			} else if value == fmt.Sprintf("%s", v1.NodeSelectorOpNotIn) {
+			} else if value == string(v1.NodeSelectorOpNotIn) {
 				matchExpressionNew.Operator = v1.NodeSelectorOpNotIn
-			} else if value == fmt.Sprintf("%s", v1.NodeSelectorOpExists) {
+			} else if value == string(v1.NodeSelectorOpExists) {
 				matchExpressionNew.Operator = v1.NodeSelectorOpExists
-			} else if value == fmt.Sprintf("%s", v1.NodeSelectorOpDoesNotExist) {
+			} else if value == string(v1.NodeSelectorOpDoesNotExist) {
 				matchExpressionNew.Operator = v1.NodeSelectorOpDoesNotExist
 			}
 		case "weight":
-			preferenceWeightTemp, err := strconv.Atoi(value)
+			preferenceWeightTemp, err := strconv.ParseInt(value, 10, 32)
 			if err != nil {
 				return fmt.Errorf("error in setting preference weight in node affinity: %v", err)
 			}

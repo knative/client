@@ -432,21 +432,21 @@ func (p *PodSpecFlags) ResolvePodSpec(podSpec *corev1.PodSpec, flags *pflag.Flag
 
 	if flags.Changed("node-selector") {
 		if err := UpdateNodeSelector(podSpec, p.NodeSelector); err != nil {
-			return fmt.Errorf("Invalid --node-selector: %v", err)
+			return fmt.Errorf("Invalid --node-selector: %w", err)
 		}
 	}
 
 	if flags.Changed("toleration") {
 		err = UpdateTolerations(podSpec, p.Toleration)
 		if err != nil {
-			return fmt.Errorf("Invalid --toleration: %v", err)
+			return fmt.Errorf("Invalid --toleration: %w", err)
 		}
 	}
 
 	if flags.Changed("node-affinity") {
 		err = UpdateNodeAffinity(podSpec, p.NodeAffinity)
 		if err != nil {
-			return fmt.Errorf("Invalid --node-affinity: %v", err)
+			return fmt.Errorf("Invalid --node-affinity: %w", err)
 		}
 	}
 
