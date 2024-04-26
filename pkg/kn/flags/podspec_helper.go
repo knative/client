@@ -527,7 +527,7 @@ func UpdateNodeAffinity(spec *corev1.PodSpec, nodeAffinity []string) error {
 		case "weight":
 			preferenceWeightTemp, err := strconv.ParseInt(value, 10, 32)
 			if err != nil {
-				return fmt.Errorf("error in setting preference weight in node affinity: %v", err)
+				return fmt.Errorf("error in setting preference weight in node affinity: %w", err)
 			}
 			preferenceWeight = int32(preferenceWeightTemp)
 		}
