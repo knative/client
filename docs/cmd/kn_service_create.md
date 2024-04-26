@@ -52,7 +52,7 @@ kn service create NAME --image IMAGE
 
   # Create a service with profile
   kn service create profiletest --image knativesamples/helloworld --profile istio
-  
+ 
   # Create a service with node selector
   kn service create nodeselectortest --image knativesamples/helloworld --node-selector Disktype="ssd"
 
