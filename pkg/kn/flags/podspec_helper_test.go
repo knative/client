@@ -1533,3 +1533,225 @@ func TestUpdateSecurityContext(t *testing.T) {
 		})
 	}
 }
+
+func TestUpdateNodeSelector(t *testing.T) {
+	testCases := []struct {
+		name               string
+		nodeSelectorString []string
+		expected           *corev1.PodSpec
+		expectedError      error
+	}{
+		{
+			name:               "Single node selector",
+			nodeSelectorString: []string{"foo=bar"},
+			expected: &corev1.PodSpec{
+				NodeSelector: map[string]string{
+					"k8s.io/hostname": "test",
+					"foo":             "bar",
+				},
+			},
+			expectedError: nil,
+		},
+		{
+			name:               "Multiple node selectors",
+			nodeSelectorString: []string{"foo1=bar1", "foo2=bar2"},
+			expected: &corev1.PodSpec{
+				NodeSelector: map[string]string{
+					"k8s.io/hostname": "test",
+					"foo1":            "bar1",
+					"foo2":            "bar2",
+				},
+			},
+			expectedError: nil,
+		},
+		{
+			name:               "Removing a node selector",
+			nodeSelectorString: []string{"k8s.io/hostname-"},
+			expected: &corev1.PodSpec{
+				NodeSelector: map[string]string{},
+			},
+			expectedError: nil,
+		},
+		{
+			name:               "Passing empty key in node selector",
+			nodeSelectorString: []string{"=test"},
+			expected: &corev1.PodSpec{
+				NodeSelector: map[string]string{},
+			},
+			expectedError: errors.New("The key is empty"),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := &corev1.PodSpec{
+				NodeSelector: map[string]string{
+					"k8s.io/hostname": "test",
+				},
+			}
+			err := UpdateNodeSelector(actual, tc.nodeSelectorString)
+			if tc.expectedError != nil {
+				assert.Error(t, err, tc.expectedError.Error())
+			} else {
+				assert.NilError(t, err)
+				assert.DeepEqual(t, actual, tc.expected)
+			}
+		})
+	}
+}
+
+func TestUpdateNodeAffinity(t *testing.T) {
+	testCases := []struct {
+		name               string
+		nodeAffinityString []string
+		expected           *corev1.PodSpec
+		expectedError      error
+	}{
+		{
+			name:               "Node Affinity with Required clause and single value",
+			nodeAffinityString: []string{"Type=Required", "Key=topology.kubernetes.io/zone", "Operator=In", "Values=antarctica-east1"},
+			expected: &corev1.PodSpec{
+				Affinity: &corev1.Affinity{
+					NodeAffinity: &corev1.NodeAffinity{
+						RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
+							NodeSelectorTerms: []corev1.NodeSelectorTerm{
+								{
+									MatchExpressions: []corev1.NodeSelectorRequirement{
+										{
+											Operator: corev1.NodeSelectorOpIn,
+											Key:      "topology.kubernetes.io/zone",
+											Values:   []string{"antarctica-east1"},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expectedError: nil,
+		},
+		{
+			name:               "Node Affinity with Required clause and multiple values",
+			nodeAffinityString: []string{"Type=Required", "Key=topology.kubernetes.io/zone", "Operator=In", "Values=antarctica-east1 antarctica-east2"},
+			expected: &corev1.PodSpec{
+				Affinity: &corev1.Affinity{
+					NodeAffinity: &corev1.NodeAffinity{
+						RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
+							NodeSelectorTerms: []corev1.NodeSelectorTerm{
+								{
+									MatchExpressions: []corev1.NodeSelectorRequirement{
+										{
+											Operator: corev1.NodeSelectorOpIn,
+											Key:      "topology.kubernetes.io/zone",
+											Values:   []string{"antarctica-east1", "antarctica-east2"},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expectedError: nil,
+		},
+		{
+			name:               "Node Affinity with Preferred clause",
+			nodeAffinityString: []string{"Type=Preferred", "Key=topology.kubernetes.io/zone", "Operator=In", "Values=antarctica-east1", "Weight=1"},
+			expected: &corev1.PodSpec{
+				Affinity: &corev1.Affinity{
+					NodeAffinity: &corev1.NodeAffinity{
+						PreferredDuringSchedulingIgnoredDuringExecution: []corev1.PreferredSchedulingTerm{
+							{
+								Weight: 1,
+								Preference: corev1.NodeSelectorTerm{
+									MatchExpressions: []corev1.NodeSelectorRequirement{
+										{
+											Operator: corev1.NodeSelectorOpIn,
+											Key:      "topology.kubernetes.io/zone",
+											Values:   []string{"antarctica-east1"},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expectedError: nil,
+		},
+		{
+			name:               "Passing empty key in node affinity",
+			nodeAffinityString: []string{"=Preferred", "Key=topology.kubernetes.io/zone", "Operator=In", "Values=antarctica-east1,Weight=1"},
+			expected: &corev1.PodSpec{
+				Affinity: &corev1.Affinity{},
+			},
+			expectedError: errors.New("The key is empty"),
+		},
+		{
+			name:               "Passing without delimiter attempting to remove node affinity",
+			nodeAffinityString: []string{"Type=Preferred", "-topology.kubernetes.io/zone", "Operator=In", "Values=antarctica-east1,Weight=1"},
+			expected: &corev1.PodSpec{
+				Affinity: &corev1.Affinity{},
+			},
+			expectedError: errors.New("Argument requires a value that contains the \"=\" character as delimiter; got \"-topology.kubernetes.io/zone\""),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := &corev1.PodSpec{}
+			err := UpdateNodeAffinity(actual, tc.nodeAffinityString)
+			if tc.expectedError != nil {
+				assert.Error(t, err, tc.expectedError.Error())
+			} else {
+				assert.NilError(t, err)
+				assert.DeepEqual(t, actual, tc.expected)
+			}
+		})
+	}
+}
+
+func TestUpdateToleration(t *testing.T) {
+	testCases := []struct {
+		name             string
+		tolerationString []string
+		expected         *corev1.PodSpec
+		expectedError    error
+	}{
+		{
+			name:             "Adding toleration",
+			tolerationString: []string{"Key=node-role.kubernetes.io/master", "effect=NoSchedule", "operator=Equal", "Value="},
+			expected: &corev1.PodSpec{
+				Tolerations: []corev1.Toleration{
+					{
+						Operator: corev1.TolerationOpEqual,
+						Key:      "node-role.kubernetes.io/master",
+						Effect:   corev1.TaintEffectNoSchedule,
+						Value:    "",
+					},
+				},
+			},
+			expectedError: nil,
+		},
+		{
+			name:             "Passing empty key in toleration",
+			tolerationString: []string{"Key=node-role.kubernetes.io/master", "effect=NoSchedule", "operator=Equal", "=test"},
+			expected:         &corev1.PodSpec{},
+			expectedError:    errors.New("The key is empty"),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := &corev1.PodSpec{}
+			err := UpdateTolerations(actual, tc.tolerationString)
+			if tc.expectedError != nil {
+				assert.Error(t, err, tc.expectedError.Error())
+			} else {
+				assert.NilError(t, err)
+				assert.DeepEqual(t, actual, tc.expected)
+			}
+		})
+	}
+}

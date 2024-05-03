@@ -36,6 +36,9 @@ type PodSpecFlags struct {
 	EnvFile         string
 	Mount           []string
 	Volume          []string
+	NodeSelector    []string
+	Toleration      []string
+	NodeAffinity    []string
 
 	Command []string
 	Arg     []string
@@ -159,7 +162,7 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
 	flagset.StringArrayVarP(&p.Volume, "volume", "", []string{},
 		"Add a volume from a ConfigMap (prefix cm: or config-map:) a Secret (prefix secret: or sc:), "+
 			"an EmptyDir (prefix ed: or emptyDir:) or a PersistentVolumeClaim (prefix pvc: or persistentVolumeClaim). "+
-			"Example: --volume myvolume=cm:myconfigmap, --volume myvolume=secret:mysecret or --volume emptyDir:myvol:size=1Gi,type=Memory. "+
+			"PersistentVolumeClaim only works if the feature gate is enabled in Knative Serving feature flags configuration. Example: --volume myvolume=cm:myconfigmap, --volume myvolume=secret:mysecret or --volume emptyDir:myvol:size=1Gi,type=Memory. "+
 			"You can use this flag multiple times. "+
 			"To unset a ConfigMap/Secret reference, append \"-\" to the name, e.g. --volume myvolume-.")
 	flagNames = append(flagNames, "volume")
@@ -240,6 +243,22 @@ func (p *PodSpecFlags) AddFlags(flagset *pflag.FlagSet) []string {
 	flagset.StringVar(&p.SecurityContext, "security-context", "none", "Predefined security context for the service. Accepted values: 'none' for no security context "+
 		"and 'strict' for dropping all capabilities, running as non-root, and no privilege escalation.")
 	flagNames = append(flagNames, "security-context")
+
+	flagset.StringArrayVar(&p.NodeSelector, "node-selector", []string{}, "Add node selector to be set, you may provide this flag any number of times to set multiple node selectors, "+
+		"works if feature flag is enabled in Knative Serving feature flags configuration. Example: --node-selector Disktype=\"ssd\". To unset, specify the key name followed by a \"-\", example: --node-selector Disktype- .")
+	flagNames = append(flagNames, "node-selector")
+
+	flagset.StringSliceVar(&p.Toleration, "toleration", []string{},
+		"Add toleration to be set, works if the feature gate is enabled in Knative Serving feature flags configuration. Example: "+
+			"--tolerations Key=\"key1\",Operator=\"Equal\",Value=\"value1\",Effect=\"NoSchedule\"")
+	flagNames = append(flagNames, "toleration")
+
+	flagset.StringSliceVar(&p.NodeAffinity, "node-affinity", []string{},
+		"Add node affinity to be set - only works if the feature gate is enabled in Knative Serving feature flags configuration. When key, operator, values (whitespace separated) and weight are defined for a type, they will be appended in nodeSelectorTerms in case of Required clause, "+
+			"implying the terms will be ORed, and for Preferred clause, all of them will be added in preferredDuringSchedulingIgnoredDuringExecution. Example: "+
+			"--node-affinity Type=\"Required\",Key=\"topology.kubernetes.io/zone\",Operator=\"In\",Values=\"antarctica-east1 antarctica-west1\" or "+
+			"--node-affinity Type=\"Preferred\",Key=\"topology.kubernetes.io/zone\",Operator=\"In\",Values=\"antarctica-east1\",Weight=\"1\"")
+	flagNames = append(flagNames, "node-affinity")
 
 	return flagNames
 }
@@ -408,6 +427,26 @@ func (p *PodSpecFlags) ResolvePodSpec(podSpec *corev1.PodSpec, flags *pflag.Flag
 	if flags.Changed("security-context") {
 		if err := UpdateSecurityContext(podSpec, p.SecurityContext); err != nil {
 			return err
+		}
+	}
+
+	if flags.Changed("node-selector") {
+		if err := UpdateNodeSelector(podSpec, p.NodeSelector); err != nil {
+			return fmt.Errorf("Invalid --node-selector: %w", err)
+		}
+	}
+
+	if flags.Changed("toleration") {
+		err = UpdateTolerations(podSpec, p.Toleration)
+		if err != nil {
+			return fmt.Errorf("Invalid --toleration: %w", err)
+		}
+	}
+
+	if flags.Changed("node-affinity") {
+		err = UpdateNodeAffinity(podSpec, p.NodeAffinity)
+		if err != nil {
+			return fmt.Errorf("Invalid --node-affinity: %w", err)
 		}
 	}
 
