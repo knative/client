@@ -6,6 +6,7 @@
 [![LICENSE](https://img.shields.io/github/license/knative/client.svg)](https://github.com/knative/client/blob/main/LICENSE)
 [![Slack Status](https://img.shields.io/badge/slack-join_chat-white.svg?logo=slack&style=social)](https://knative.slack.com)
 [![codecov](https://codecov.io/gh/knative/client/branch/main/graph/badge.svg)](https://codecov.io/gh/knative/client)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fknative%2Fclient.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fknative%2Fclient?ref=badge_shield)
 
 The Knative client `kn` is your door to the [Knative](https://knative.dev)
 world. It allows you to create Knative resources interactively from the command
@@ -55,3 +56,7 @@ Additionally you can visit [knative.dev](https://knative.dev) for more examples.
 If you are interested in contributing, see [CONTRIBUTING.md](./CONTRIBUTING.md)
 and [DEVELOPMENT.md](DEVELOPMENT.md). For a list of help wanted issues in Knative,
 check out [CLOTRIBUTOR](https://clotributor.dev/search?project=knative&page=1)
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fknative%2Fclient.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fknative%2Fclient?ref=badge_large)
