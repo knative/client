@@ -251,3 +251,9 @@ func TestStatusError(t *testing.T) {
 		})
 	}
 }
+
+func TestGetResourceNameFromErrMessages(t *testing.T) {
+	l := getResourceNameFromErrMessage("the server could not find the requested resource (get services.serving.knative.dev)")
+	assert.Equal(t, l, "services.serving.knative.dev")
+
+}
