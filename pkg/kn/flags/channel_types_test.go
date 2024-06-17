@@ -87,7 +87,6 @@ func TestChannelTypesFlags(t *testing.T) {
 		})
 	}
 }
-
 func TestChannelRefFlags(t *testing.T) {
 	cases := []*channelRefFlagsTestCase{
 		{
@@ -112,7 +111,7 @@ func TestChannelRefFlags(t *testing.T) {
 			"error case unknown alias",
 			"natss:n1",
 			nil,
-			"Error: unknown alias 'natss' for '--channel', please configure the alias in kn config or specify in the format '--channel Group:Version:Kind:Name'",
+			"Error: unknown alias or invalid format 'natss' for '--channel', please configure the alias in kn config or specify in the format '--channel Group:Version:Kind:Name'",
 		},
 		{
 			"error case incorrect gvk format, missing version",
