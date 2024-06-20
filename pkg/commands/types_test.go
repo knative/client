@@ -21,7 +21,7 @@ import (
 	"strings"
 	"testing"
 
-	"knative.dev/client/lib/test"
+	"knative.dev/client/pkg/util/test"
 
 	"gotest.tools/v3/assert"
 	"k8s.io/client-go/tools/clientcmd"

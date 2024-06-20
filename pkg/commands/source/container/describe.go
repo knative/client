@@ -22,9 +22,9 @@ import (
 
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
-	"knative.dev/client/lib/printing"
 	"knative.dev/client/pkg/commands"
 	"knative.dev/client/pkg/printers"
+	"knative.dev/client/pkg/printers/describe"
 	v1 "knative.dev/eventing/pkg/apis/sources/v1"
 )
 
@@ -67,7 +67,7 @@ func NewContainerDescribeCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			printing.DescribeSink(dw, "Sink", source.Namespace, &source.Spec.Sink)
+			describe.Sink(dw, "Sink", source.Namespace, &source.Spec.Sink)
 			dw.WriteLine()
 			if err := dw.Flush(); err != nil {
 				return err

@@ -24,14 +24,12 @@ import (
 	"strings"
 	"testing"
 
-	"k8s.io/apimachinery/pkg/util/intstr"
-
-	"k8s.io/apimachinery/pkg/api/resource"
-	"knative.dev/client/lib/test"
-
 	"gotest.tools/v3/assert"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"knative.dev/client/pkg/util"
+	"knative.dev/client/pkg/util/test"
 	"knative.dev/pkg/ptr"
 )
 

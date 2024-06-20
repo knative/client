@@ -19,12 +19,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"knative.dev/client/lib/test"
-
-	"k8s.io/client-go/tools/clientcmd"
-
 	"github.com/spf13/cobra"
 	"gotest.tools/v3/assert"
+	"k8s.io/client-go/tools/clientcmd"
+	"knative.dev/client/pkg/util/test"
 )
 
 // testCommandGenerator generates a test cobra command

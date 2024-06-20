@@ -21,10 +21,10 @@ import (
 
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"knative.dev/client/pkg/printers/describe"
 	v1 "knative.dev/eventing/pkg/apis/sources/v1"
 	"knative.dev/pkg/tracker"
 
-	"knative.dev/client/lib/printing"
 	"knative.dev/client/pkg/commands"
 	"knative.dev/client/pkg/printers"
 )
@@ -105,7 +105,7 @@ func NewBindingDescribeCommand(p *commands.KnParams) *cobra.Command {
 func writeSinkBinding(dw printers.PrefixWriter, binding *v1.SinkBinding, printDetails bool) {
 	commands.WriteMetadata(dw, &binding.ObjectMeta, printDetails)
 	writeSubject(dw, binding.Namespace, &binding.Spec.Subject)
-	printing.DescribeSink(dw, "Sink", binding.Namespace, &binding.Spec.Sink)
+	describe.Sink(dw, "Sink", binding.Namespace, &binding.Spec.Sink)
 	if binding.Spec.CloudEventOverrides != nil && binding.Spec.CloudEventOverrides.Extensions != nil {
 		writeCeOverrides(dw, binding.Spec.CloudEventOverrides.Extensions)
 	}

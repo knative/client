@@ -21,25 +21,23 @@ import (
 	"strings"
 	"testing"
 
-	"knative.dev/client/pkg/config"
-	pluginpkg "knative.dev/client/pkg/plugin"
-
 	"github.com/spf13/cobra"
 	"gotest.tools/v3/assert"
-
-	"knative.dev/client/lib/test"
+	"knative.dev/client/pkg/config"
+	pluginpkg "knative.dev/client/pkg/plugin"
 	"knative.dev/client/pkg/root"
 	"knative.dev/client/pkg/util"
+	"knative.dev/client/pkg/util/test"
 )
 
 func TestValidatePlugin(t *testing.T) {
 
 	// Build up simple command hierarchy
-	root := cobra.Command{}
+	rootCmd := cobra.Command{}
 	one := &cobra.Command{Use: "one"}
 	one.AddCommand(&cobra.Command{Use: "eins"}, &cobra.Command{Use: "zwei"})
 	two := &cobra.Command{Use: "two"}
-	root.AddCommand(one, two)
+	rootCmd.AddCommand(one, two)
 
 	data := []struct {
 		givenPluginCommandParts []string
@@ -84,7 +82,7 @@ func TestValidatePlugin(t *testing.T) {
 
 	for i, d := range data {
 		step := fmt.Sprintf("Check %d", i)
-		err := validatePlugin(&root, commandPartsOnlyPlugin(d.givenPluginCommandParts))
+		err := validatePlugin(&rootCmd, commandPartsOnlyPlugin(d.givenPluginCommandParts))
 		if len(d.expectedErrors) == 0 {
 			assert.NilError(t, err, step)
 		} else {

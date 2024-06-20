@@ -27,31 +27,31 @@ import (
 
 	pkgplugin "knative.dev/client-pkg/pkg/plugin"
 
-	homedir "github.com/mitchellh/go-homedir"
+	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 )
 
-// Allow plugins to register to this slice for inlining
+// InternalPlugins allow plugins to register to this slice for inlining
 var InternalPlugins PluginList
 
 var synced bool
 
-// Interface describing a plugin
+// Plugin describes a plugin
 type Plugin interface {
-	// Get the name of the plugin (the file name without extensions)
+	// Name of the plugin (the file name without extensions)
 	Name() string
 
 	// Execute the plugin with the given arguments
 	Execute(args []string) error
 
-	// Return a description of the plugin (if support by the plugin binary)
+	// Description of the plugin (if support by the plugin binary)
 	Description() (string, error)
 
-	// The command path leading to this plugin.
+	// CommandParts leading to this plugin.
 	// Eg. for a plugin "kn source github" this will be [ "source", "github" ]
 	CommandParts() []string
 
-	// Location of the plugin where it is stored in the filesystem
+	// Path of the plugin where it is stored in the filesystem
 	Path() string
 }
 

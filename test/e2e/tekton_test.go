@@ -26,9 +26,8 @@ import (
 
 	"gotest.tools/v3/assert"
 	"k8s.io/apimachinery/pkg/util/wait"
-
-	"knative.dev/client/lib/test"
 	"knative.dev/client/pkg/util"
+	"knative.dev/client/pkg/util/test"
 )
 
 const (

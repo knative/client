@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package printing
+package describe
 
 import (
 	"fmt"
@@ -23,9 +23,9 @@ import (
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 )
 
-// DescribeSink prints the given 'sink' for the given prefix writer 'dw',
+// Sink prints the given 'sink' for the given prefix writer 'dw',
 // provide 'attribute' to print the section heading for this sink,
-func DescribeSink(dw printers.PrefixWriter, attribute, namespace string, sink *duckv1.Destination) {
+func Sink(dw printers.PrefixWriter, attribute, namespace string, sink *duckv1.Destination) {
 	if sink == nil {
 		return
 	}

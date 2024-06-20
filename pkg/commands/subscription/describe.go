@@ -21,11 +21,11 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"knative.dev/client/pkg/printers/describe"
 
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	messagingv1 "knative.dev/eventing/pkg/apis/messaging/v1"
 
-	"knative.dev/client/lib/printing"
 	"knative.dev/client/pkg/commands"
 	knerrors "knative.dev/client/pkg/errors"
 	"knative.dev/client/pkg/printers"
@@ -103,9 +103,9 @@ func writeSubscription(dw printers.PrefixWriter, subscription *messagingv1.Subsc
 	commands.WriteMetadata(dw, &subscription.ObjectMeta, printDetails)
 	ctype := fmt.Sprintf("%s:%s (%s)", subscription.Spec.Channel.Kind, subscription.Spec.Channel.Name, subscription.Spec.Channel.APIVersion)
 	dw.WriteAttribute("Channel", ctype)
-	printing.DescribeSink(dw, "Subscriber", subscription.Namespace, subscription.Spec.Subscriber)
-	printing.DescribeSink(dw, "Reply", subscription.Namespace, subscription.Spec.Reply)
+	describe.Sink(dw, "Subscriber", subscription.Namespace, subscription.Spec.Subscriber)
+	describe.Sink(dw, "Reply", subscription.Namespace, subscription.Spec.Reply)
 	if subscription.Spec.DeepCopy().Delivery != nil {
-		printing.DescribeSink(dw, "DeadLetterSink", subscription.Namespace, subscription.Spec.Delivery.DeadLetterSink)
+		describe.Sink(dw, "DeadLetterSink", subscription.Namespace, subscription.Spec.Delivery.DeadLetterSink)
 	}
 }

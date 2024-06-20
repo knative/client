@@ -19,9 +19,9 @@ import (
 
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
-	"knative.dev/client/lib/printing"
 	"knative.dev/client/pkg/commands"
 	"knative.dev/client/pkg/printers"
+	"knative.dev/client/pkg/printers/describe"
 	v1beta1 "knative.dev/eventing/pkg/apis/eventing/v1"
 )
 
@@ -91,7 +91,7 @@ func NewTriggerDescribeCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			// Revisions summary info
-			printing.DescribeSink(dw, "Sink", trigger.Namespace, &trigger.Spec.Subscriber)
+			describe.Sink(dw, "Sink", trigger.Namespace, &trigger.Spec.Subscriber)
 			dw.WriteLine()
 			if err := dw.Flush(); err != nil {
 				return err

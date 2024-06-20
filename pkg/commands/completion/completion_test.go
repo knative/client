@@ -17,12 +17,11 @@ package completion
 import (
 	"testing"
 
-	"knative.dev/client/lib/test"
-	"knative.dev/client/pkg/commands"
-	"knative.dev/client/pkg/util"
-
 	"github.com/spf13/cobra"
 	"gotest.tools/v3/assert"
+	"knative.dev/client/pkg/commands"
+	"knative.dev/client/pkg/util"
+	"knative.dev/client/pkg/util/test"
 )
 
 func TestCompletionUsage(t *testing.T) {

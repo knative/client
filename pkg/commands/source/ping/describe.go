@@ -20,8 +20,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"knative.dev/client/pkg/printers/describe"
 
-	"knative.dev/client/lib/printing"
 	"knative.dev/client/pkg/commands"
 	"knative.dev/client/pkg/printers"
 	clientsourcesv1beta2 "knative.dev/eventing/pkg/apis/sources/v1beta2"
@@ -85,7 +85,7 @@ func NewPingDescribeCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			// Revisions summary info
-			printing.DescribeSink(dw, "Sink", pingSource.Namespace, &pingSource.Spec.Sink)
+			describe.Sink(dw, "Sink", pingSource.Namespace, &pingSource.Spec.Sink)
 			dw.WriteLine()
 			if err := dw.Flush(); err != nil {
 				return err
