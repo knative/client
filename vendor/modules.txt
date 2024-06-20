@@ -997,6 +997,10 @@ knative.dev/eventing/pkg/eventingtls
 # knative.dev/hack v0.0.0-20240607132042-09143140a254
 ## explicit; go 1.18
 knative.dev/hack
+knative.dev/hack/cmd/script
+knative.dev/hack/pkg/inflator/cli
+knative.dev/hack/pkg/inflator/extract
+knative.dev/hack/pkg/retcode
 # knative.dev/networking v0.0.0-20240611072033-3b8764c0bb4c
 ## explicit; go 1.21
 knative.dev/networking/pkg

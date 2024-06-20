@@ -17,11 +17,12 @@
 # Documentation about this script and how to use it can be found
 # at https://github.com/knative/hack
 
-source $(dirname $0)/../vendor/knative.dev/hack/release.sh
+# shellcheck disable=SC1090
+source "$(go run knative.dev/hack/cmd/script release.sh)"
 
 function build_release() {
   # Env var exported by hack/build-flags.sh
-  source $(dirname $0)/build-flags.sh
+  source "$(dirname "$0")/build-flags.sh"
   local ld_flags="${KN_BUILD_LD_FLAGS:-}"
 
   export CGO_ENABLED=0

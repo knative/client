@@ -18,7 +18,8 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-source $(dirname $0)/../vendor/knative.dev/hack/codegen-library.sh
+# shellcheck disable=SC1090
+source "$(go run knative.dev/hack/cmd/script codegen-library.sh)"
 
 # If we run with -mod=vendor here, then generate-groups.sh looks for vendor files in the wrong place.
 export GOFLAGS=-mod=
