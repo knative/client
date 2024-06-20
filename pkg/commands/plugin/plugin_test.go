@@ -12,31 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package plugin
 
 import (
-	"fmt"
-	"log"
-	"os"
+	"testing"
 
-	"github.com/spf13/cobra/doc"
-	"knative.dev/client/pkg/root"
+	"gotest.tools/v3/assert"
+
+	"knative.dev/client/pkg/commands"
+	"knative.dev/client/pkg/util"
 )
 
-func main() {
-	os.Args = []string{"kn"}
-	rootCmd, err := root.NewRootCommand(nil)
-	if err != nil {
-		log.Panicf("can not create root command: %v", err)
+func TestNewPluginCommand(t *testing.T) {
+	pluginCmd := NewPluginCommand(&commands.KnParams{})
+	if pluginCmd == nil {
+		t.Fatal("pluginCmd = nil, want not nil")
 	}
 
-	dir := "."
-	if len(os.Args) > 1 {
-		dir = os.Args[1]
-	}
-	err = doc.GenMarkdownTree(rootCmd, dir+"/docs/cmd/")
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
+	assert.Equal(t, pluginCmd.Use, "plugin")
+	assert.Assert(t, util.ContainsAllIgnoreCase(pluginCmd.Short, "plugin"))
+	assert.Assert(t, util.ContainsAllIgnoreCase(pluginCmd.Long, "plugins"))
 }

@@ -1,4 +1,4 @@
-// Copyright © 2018 The Knative Authors
+// Copyright © 2019 The Knative Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,31 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package route
 
 import (
-	"fmt"
-	"log"
-	"os"
+	"github.com/spf13/cobra"
 
-	"github.com/spf13/cobra/doc"
-	"knative.dev/client/pkg/root"
+	"knative.dev/client/pkg/commands"
 )
 
-func main() {
-	os.Args = []string{"kn"}
-	rootCmd, err := root.NewRootCommand(nil)
-	if err != nil {
-		log.Panicf("can not create root command: %v", err)
+func NewRouteCommand(p *commands.KnParams) *cobra.Command {
+	routeCmd := &cobra.Command{
+		Use:     "route",
+		Short:   "List and describe service routes",
+		Aliases: []string{"routes"},
 	}
-
-	dir := "."
-	if len(os.Args) > 1 {
-		dir = os.Args[1]
-	}
-	err = doc.GenMarkdownTree(rootCmd, dir+"/docs/cmd/")
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
+	routeCmd.AddCommand(NewRouteListCommand(p))
+	routeCmd.AddCommand(NewRouteDescribeCommand(p))
+	return routeCmd
 }

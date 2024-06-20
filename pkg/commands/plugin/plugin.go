@@ -12,31 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package plugin
 
 import (
-	"fmt"
-	"log"
-	"os"
+	"github.com/spf13/cobra"
 
-	"github.com/spf13/cobra/doc"
-	"knative.dev/client/pkg/root"
+	"knative.dev/client/pkg/commands"
 )
 
-func main() {
-	os.Args = []string{"kn"}
-	rootCmd, err := root.NewRootCommand(nil)
-	if err != nil {
-		log.Panicf("can not create root command: %v", err)
+func NewPluginCommand(p *commands.KnParams) *cobra.Command {
+	pluginCmd := &cobra.Command{
+		Use:     "plugin",
+		Short:   "Manage kn plugins",
+		Aliases: []string{"plugins"},
+		Long: `Manage kn plugins
+
+Plugins provide extended functionality that is not part of the core kn command-line distribution.
+Please refer to the documentation and examples for more information about how to write your own plugins.`,
 	}
 
-	dir := "."
-	if len(os.Args) > 1 {
-		dir = os.Args[1]
-	}
-	err = doc.GenMarkdownTree(rootCmd, dir+"/docs/cmd/")
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
+	pluginCmd.AddCommand(NewPluginListCommand(p))
+
+	return pluginCmd
 }
