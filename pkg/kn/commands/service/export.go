@@ -77,7 +77,7 @@ const (
 // NewServiceExportCommand returns a new command for exporting a service.
 func NewServiceExportCommand(p *commands.KnParams) *cobra.Command {
 
-	// For machine readable output
+	// For machine-readable output
 	machineReadablePrintFlags := genericclioptions.NewPrintFlags("")
 
 	command := &cobra.Command{
@@ -127,14 +127,33 @@ func NewServiceExportCommand(p *commands.KnParams) *cobra.Command {
 	}
 	flags := command.Flags()
 	commands.AddNamespaceFlags(flags, false)
+	flags.StringArray("include", nil, "Include certain info")
 	flags.Bool("with-revisions", false, "Export all routed revisions (Beta)")
 	flags.String("mode", "", "Format for exporting all routed revisions. One of replay|export (Beta)")
+	flags.StringArray("include", nil, "Include certain info")
 	machineReadablePrintFlags.AddFlags(command)
 	return command
+}
+func isSecurityContextIncluded(cmd *cobra.Command) (bool, error) {
+	includes, err := cmd.Flags().GetStringArray("include")
+	if err != nil {
+		return false, err
+	}
+	for _, include := range includes {
+		if include == "securityContext" {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 func exportService(cmd *cobra.Command, service *servingv1.Service, client clientservingv1.KnServingClient, printer printers.ResourcePrinter) error {
 	withRevisions, err := cmd.Flags().GetBool("with-revisions")
+	if err != nil {
+		return err
+	}
+
+	withSecurityContext, err := isSecurityContextIncluded(cmd)
 	if err != nil {
 		return err
 	}
@@ -145,14 +164,14 @@ func exportService(cmd *cobra.Command, service *servingv1.Service, client client
 	}
 
 	if mode == ModeReplay {
-		svcList, err := exportServiceListForReplay(cmd.Context(), service.DeepCopy(), client, withRevisions)
+		svcList, err := exportServiceListForReplay(cmd.Context(), service.DeepCopy(), client, withRevisions, withSecurityContext)
 		if err != nil {
 			return err
 		}
 		return printer.PrintObj(svcList, cmd.OutOrStdout())
 	}
 	// default is export mode
-	knExport, err := exportForKNImport(cmd.Context(), service.DeepCopy(), client, withRevisions)
+	knExport, err := exportForKNImport(cmd.Context(), service.DeepCopy(), client, withRevisions, withSecurityContext)
 	if err != nil {
 		return err
 	}
@@ -160,7 +179,7 @@ func exportService(cmd *cobra.Command, service *servingv1.Service, client client
 	return printer.PrintObj(knExport, cmd.OutOrStdout())
 }
 
-func exportLatestService(latestSvc *servingv1.Service, withRoutes bool) *servingv1.Service {
+func exportLatestService(latestSvc *servingv1.Service, withRoutes bool, withSecurityContext bool) *servingv1.Service {
 	exportedSvc := servingv1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        latestSvc.ObjectMeta.Name,
@@ -177,6 +196,12 @@ func exportLatestService(latestSvc *servingv1.Service, withRoutes bool) *serving
 
 	if withRoutes {
 		exportedSvc.Spec.RouteSpec = latestSvc.Spec.RouteSpec
+	}
+	if withSecurityContext {
+		exportedSvc.Spec.Template.Spec.SecurityContext = nil
+		for i := range exportedSvc.Spec.Template.Spec.Containers {
+			exportedSvc.Spec.Template.Spec.Containers[i].SecurityContext = nil
+		}
 	}
 
 	stripIgnoredAnnotationsFromService(&exportedSvc)
@@ -225,9 +250,9 @@ func constructServiceFromRevision(latestSvc *servingv1.Service, revision *servin
 	return exportedSvc
 }
 
-func exportServiceListForReplay(ctx context.Context, latestSvc *servingv1.Service, client clientservingv1.KnServingClient, withRevisions bool) (runtime.Object, error) {
+func exportServiceListForReplay(ctx context.Context, latestSvc *servingv1.Service, client clientservingv1.KnServingClient, withRevisions bool, withSecurityContext bool) (runtime.Object, error) {
 	if !withRevisions {
-		return exportLatestService(latestSvc, false), nil
+		return exportLatestService(latestSvc, false, withSecurityContext), nil
 	}
 	var exportedSvcItems []servingv1.Service
 
@@ -244,8 +269,7 @@ func exportServiceListForReplay(ctx context.Context, latestSvc *servingv1.Servic
 	}
 
 	//add latest service, add traffic if more than one revision exist
-	exportedSvcItems = append(exportedSvcItems, *(exportLatestService(latestSvc, len(revisionList.Items) > 1)))
-
+	exportedSvcItems = append(exportedSvcItems, *(exportLatestService(latestSvc, len(revisionList.Items) > 1, withSecurityContext)))
 	typeMeta := metav1.TypeMeta{
 		APIVersion: "v1",
 		Kind:       "List",
@@ -258,7 +282,7 @@ func exportServiceListForReplay(ctx context.Context, latestSvc *servingv1.Servic
 	return exportedSvcList, nil
 }
 
-func exportForKNImport(ctx context.Context, latestSvc *servingv1.Service, client clientservingv1.KnServingClient, withRevisions bool) (*clientv1alpha1.Export, error) {
+func exportForKNImport(ctx context.Context, latestSvc *servingv1.Service, client clientservingv1.KnServingClient, withRevisions bool, withSecurityContext bool) (*clientv1alpha1.Export, error) {
 	var exportedRevItems []servingv1.Revision
 	revisionHistoryCount := 0
 	if withRevisions {
@@ -283,7 +307,7 @@ func exportForKNImport(ctx context.Context, latestSvc *servingv1.Service, client
 	knExport := &clientv1alpha1.Export{
 		TypeMeta: typeMeta,
 		Spec: clientv1alpha1.ExportSpec{
-			Service:   *(exportLatestService(latestSvc, revisionHistoryCount > 1)),
+			Service:   *(exportLatestService(latestSvc, revisionHistoryCount > 1, withSecurityContext)),
 			Revisions: exportedRevItems,
 		},
 	}
