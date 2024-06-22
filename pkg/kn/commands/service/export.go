@@ -197,7 +197,7 @@ func exportLatestService(latestSvc *servingv1.Service, withRoutes bool, withSecu
 	if withRoutes {
 		exportedSvc.Spec.RouteSpec = latestSvc.Spec.RouteSpec
 	}
-	if withSecurityContext {
+	if !withSecurityContext {
 		exportedSvc.Spec.Template.Spec.SecurityContext = nil
 		for i := range exportedSvc.Spec.Template.Spec.Containers {
 			exportedSvc.Spec.Template.Spec.Containers[i].SecurityContext = nil
