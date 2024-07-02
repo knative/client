@@ -368,7 +368,9 @@ if has_flag --debug; then
 fi
 
 # Shared funcs from hack repo
-source "$(basedir)"/vendor/knative.dev/hack/library.sh
+
+# shellcheck disable=SC1090
+source "$(go run knative.dev/hack/cmd/script library.sh)"
 
 # Shared funcs with CI
 while IFS= read -r -d '' file; do

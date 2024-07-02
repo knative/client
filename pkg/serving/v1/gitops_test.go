@@ -21,15 +21,13 @@ import (
 	"time"
 
 	"gotest.tools/v3/assert"
-
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	servingtest "knative.dev/serving/pkg/testing/v1"
-
-	libtest "knative.dev/client/lib/test"
+	"knative.dev/client/pkg/util/test"
 	"knative.dev/pkg/ptr"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
+	servingtest "knative.dev/serving/pkg/testing/v1"
 )
 
 func TestGitOpsOperations(t *testing.T) {
@@ -43,10 +41,10 @@ func TestGitOpsOperations(t *testing.T) {
 	diffClusterClient := NewKnServingGitOpsClient("", "tmp")
 
 	// set up test services
-	fooSvc := libtest.BuildServiceWithOptions("foo", servingtest.WithConfigSpec(buildConfiguration()))
-	barSvc := libtest.BuildServiceWithOptions("bar", servingtest.WithConfigSpec(buildConfiguration()))
-	fooUpdateSvc := libtest.BuildServiceWithOptions("foo", servingtest.WithConfigSpec(buildConfiguration()), servingtest.WithEnv(corev1.EnvVar{Name: "a", Value: "mouse"}))
-	mockUpdateSvc := libtest.BuildServiceWithOptions("mock", servingtest.WithConfigSpec(buildConfiguration()), servingtest.WithEnv(corev1.EnvVar{Name: "a", Value: "mouse"}))
+	fooSvc := test.BuildServiceWithOptions("foo", servingtest.WithConfigSpec(buildConfiguration()))
+	barSvc := test.BuildServiceWithOptions("bar", servingtest.WithConfigSpec(buildConfiguration()))
+	fooUpdateSvc := test.BuildServiceWithOptions("foo", servingtest.WithConfigSpec(buildConfiguration()), servingtest.WithEnv(corev1.EnvVar{Name: "a", Value: "mouse"}))
+	mockUpdateSvc := test.BuildServiceWithOptions("mock", servingtest.WithConfigSpec(buildConfiguration()), servingtest.WithEnv(corev1.EnvVar{Name: "a", Value: "mouse"}))
 
 	fooserviceList := getServiceList([]servingv1.Service{*barSvc, *fooSvc})
 	allServices := getServiceList([]servingv1.Service{*barSvc, *barSvc, *fooSvc})
@@ -145,8 +143,8 @@ func TestGitOpsSingleFile(t *testing.T) {
 	mockDirclient := NewKnServingGitOpsClient("", tmpDir)
 
 	// set up test services
-	testSvc := libtest.BuildServiceWithOptions("test", servingtest.WithConfigSpec(buildConfiguration()))
-	updateSvc := libtest.BuildServiceWithOptions("test", servingtest.WithConfigSpec(buildConfiguration()), servingtest.WithEnv(corev1.EnvVar{Name: "a", Value: "mouse"}))
+	testSvc := test.BuildServiceWithOptions("test", servingtest.WithConfigSpec(buildConfiguration()))
+	updateSvc := test.BuildServiceWithOptions("test", servingtest.WithConfigSpec(buildConfiguration()), servingtest.WithEnv(corev1.EnvVar{Name: "a", Value: "mouse"}))
 
 	svcList := getServiceList([]servingv1.Service{*updateSvc})
 
