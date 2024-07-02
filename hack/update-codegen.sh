@@ -14,9 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -o errexit
-set -o nounset
-set -o pipefail
+set -Eeuo pipefail
 
 # shellcheck disable=SC1090
 source "$(go run knative.dev/hack/cmd/script codegen-library.sh)"
@@ -32,12 +30,11 @@ group "Kubernetes Codegen"
 # --output-base    because this script should also be able to run inside the vendor dir of
 #                  k8s.io/kubernetes. The output-base is needed for the generators to output into the vendor dir
 #                  instead of the $GOPATH directly. For normal projects this can be dropped.
-"${CODEGEN_PKG}"/generate-groups.sh "deepcopy" \
+generate-groups "deepcopy" \
   knative.dev/client/pkg/apis/client/v1alpha1/generated knative.dev/client/pkg/apis \
-  client:v1alpha1 \
-  --go-header-file "${REPO_ROOT_DIR}"/hack/boilerplate.go.txt
+  client:v1alpha1 "$@"
 
 group "Update deps post-codegen"
 
 # Make sure our dependencies are up-to-date
-${REPO_ROOT_DIR}/hack/update-deps.sh
+"${REPO_ROOT_DIR}/hack/update-deps.sh"
