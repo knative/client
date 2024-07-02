@@ -1,6 +1,6 @@
 module knative.dev/client
 
-go 1.21
+go 1.22
 
 require (
 	github.com/google/go-cmp v0.6.0
@@ -21,11 +21,11 @@ require (
 	k8s.io/client-go v0.29.2
 	k8s.io/code-generator v0.29.2
 	knative.dev/client-pkg v0.0.0-20240607132727-8fbea3d02b53
-	knative.dev/eventing v0.41.1-0.20240613093107-ea8f0fda4c06
+	knative.dev/eventing v0.41.1-0.20240701131713-96c30bd21612
 	knative.dev/hack v0.0.0-20240607132042-09143140a254
-	knative.dev/networking v0.0.0-20240611072033-3b8764c0bb4c
-	knative.dev/pkg v0.0.0-20240614135239-339c22b8218c
-	knative.dev/serving v0.41.1-0.20240614080555-1f7cc4852a07
+	knative.dev/networking v0.0.0-20240701065241-f35497a61a71
+	knative.dev/pkg v0.0.0-20240626134149-3f6a546ac3a4
+	knative.dev/serving v0.41.1-0.20240701085953-75f7393aaed4
 	sigs.k8s.io/yaml v1.4.0
 )
 
@@ -113,7 +113,7 @@ require (
 	golang.org/x/tools v0.22.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
 	google.golang.org/api v0.183.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20240521202816-d264139d666e // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20240604185151-ef581f913117 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240528184218-531527333157 // indirect
 	google.golang.org/grpc v1.64.0 // indirect
 	google.golang.org/protobuf v1.34.1 // indirect
