@@ -19,17 +19,12 @@ set -Eeuo pipefail
 # shellcheck disable=SC1090
 source "$(go run knative.dev/hack/cmd/script codegen-library.sh)"
 
-# If we run with -mod=vendor here, then generate-groups.sh looks for vendor files in the wrong place.
 export GOFLAGS=-mod=
 
 echo "=== Update Codegen for $MODULE_NAME"
 
 group "Kubernetes Codegen"
 
-# generate the code with:
-# --output-base    because this script should also be able to run inside the vendor dir of
-#                  k8s.io/kubernetes. The output-base is needed for the generators to output into the vendor dir
-#                  instead of the $GOPATH directly. For normal projects this can be dropped.
 generate-groups "deepcopy" \
   knative.dev/client/pkg/apis/client/v1alpha1/generated knative.dev/client/pkg/apis \
   client:v1alpha1 "$@"
