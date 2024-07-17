@@ -1,0 +1,21 @@
+changelog:
+  exclude:
+    authors:
+      - knative-automation
+  categories:
+    - title: 🚨 Breaking or Notable Changes
+      labels:
+        - kind/api-change
+        - kind/deprecation
+        - kind/removal
+        - kind/security
+    - title: 💫 New Features & Enhancements
+      labels:
+        - kind/feature
+        - kind/enhancement
+    - title: 🐞 Bug Fixes
+      labels:
+        - kind/bug
+    - title: Other Changes
+      labels:
+        - "*"
