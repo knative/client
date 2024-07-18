@@ -14,38 +14,39 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -o errexit
+set -Eeuo pipefail
 
 function upload_test_images() {
   echo ">> Publishing test images"
   # Script needs to be executed from the root directory
   # to pickup .ko.yaml
-  cd "$( dirname "$0")/.."
-  local image_dir="test/test_images"
-  local deps_image_dir="knative.dev/serving/test/test_images"
-  local docker_tag=$1
-  local tag_option=""
+  cd "$(dirname "${BASH_SOURCE[0]}")/.."
+  local image_dir='test/test_images'
+  local docker_tag="${1:-}"
+  local tag_option=()
   if [ -n "${docker_tag}" ]; then
-    tag_option="--tags $docker_tag,latest"
+    tag_option+=(--tags "$docker_tag,latest")
   fi
 
   # If PLATFORM environment variable is specified, then images will be built for
   # specific hardware architecture.
   # Example of the variable values - "linux/arm64", "linux/s390x".
-  local platform=""
-  if [ -n "${PLATFORM}" ]; then
-    platform="--platform ${PLATFORM}"
+  local platform=()
+  if [ -n "${PLATFORM:-}" ]; then
+    platform+=(--platform "${PLATFORM}")
   fi
 
   # ko resolve is being used for the side-effect of publishing images,
   # so the resulting yaml produced is ignored.
   # We limit the number of concurrent builds (jobs) to avoid OOMs.
-  ko resolve --jobs=4 ${platform} ${tag_option} -RBf "${image_dir}" > /dev/null
-
-  # Build and publish images from dependencies
-  ko resolve --jobs=4 ${platform} ${tag_option} -RBf "${deps_image_dir}" > /dev/null
+  go run github.com/google/ko@v0.15.4 \
+    resolve \
+    --jobs=4 \
+    "${platform[@]}" \
+    "${tag_option[@]}" \
+    -RBf "${image_dir}" > /dev/null
 }
 
-: ${KO_DOCKER_REPO:?"You must set 'KO_DOCKER_REPO'"}
+: "${KO_DOCKER_REPO:?You must set 'KO_DOCKER_REPO'}"
 
-upload_test_images $@
+upload_test_images "$@"
