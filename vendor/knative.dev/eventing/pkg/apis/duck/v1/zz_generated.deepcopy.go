@@ -154,6 +154,7 @@ func (in *ChannelableStatus) DeepCopyInto(out *ChannelableStatus) {
 	in.AddressStatus.DeepCopyInto(&out.AddressStatus)
 	in.SubscribableStatus.DeepCopyInto(&out.SubscribableStatus)
 	in.DeliveryStatus.DeepCopyInto(&out.DeliveryStatus)
+	in.AppliedEventPoliciesStatus.DeepCopyInto(&out.AppliedEventPoliciesStatus)
 	return
 }
 
@@ -198,6 +199,11 @@ func (in *DeliverySpec) DeepCopyInto(out *DeliverySpec) {
 	if in.RetryAfterMax != nil {
 		in, out := &in.RetryAfterMax, &out.RetryAfterMax
 		*out = new(string)
+		**out = **in
+	}
+	if in.Format != nil {
+		in, out := &in.Format, &out.Format
+		*out = new(FormatType)
 		**out = **in
 	}
 	return

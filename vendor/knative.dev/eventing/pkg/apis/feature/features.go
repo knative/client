@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,6 +18,7 @@ package feature
 
 import (
 	"fmt"
+	"log"
 	"strings"
 
 	corev1 "k8s.io/api/core/v1"
@@ -75,7 +76,6 @@ func newDefaults() Flags {
 		DeliveryRetryAfter:       Disabled,
 		DeliveryTimeout:          Enabled,
 		KReferenceMapping:        Disabled,
-		NewTriggerFilters:        Enabled,
 		TransportEncryption:      Disabled,
 		OIDCAuthentication:       Disabled,
 		EvenTypeAutoCreate:       Disabled,
@@ -186,7 +186,8 @@ func NewFlagsConfigFromMap(data map[string]string) (Flags, error) {
 		} else if strings.Contains(k, NodeSelectorLabel) {
 			flags[sanitizedKey] = Flag(v)
 		} else {
-			return flags, fmt.Errorf("cannot parse the feature flag '%s' = '%s'", k, v)
+			flags[k] = Flag(v)
+			log.Printf("Warning: unknown feature flag value %q=%q\n", k, v)
 		}
 	}
 
