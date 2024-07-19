@@ -108,6 +108,7 @@ restart_pod "${SYSTEM_NAMESPACE}" "app=activator"
 # we need to restart the pod to stop the net-certmanager-controller
 if (( ! HTTPS )); then
   restart_pod "${SYSTEM_NAMESPACE}" "app=controller"
+  kubectl get leases -n "${SYSTEM_NAMESPACE}" -o json | jq -r '.items[] | select(.metadata.name | test("controller.knative.dev.serving.pkg.reconciler.certificate.reconciler")).metadata.name' | xargs kubectl delete lease -n "${SYSTEM_NAMESPACE}"
 fi
 
 kubectl get cm "config-gc" -n "${SYSTEM_NAMESPACE}" -o yaml > "${TMP_DIR}"/config-gc.yaml
@@ -153,7 +154,7 @@ toggle_feature secure-pod-defaults Disabled
 
 # Run HA tests separately as they're stopping core Knative Serving pods.
 # Define short -spoofinterval to ensure frequent probing while stopping pods.
-go_test_e2e -timeout=25m -failfast -parallel=1 ./test/ha \
+go_test_e2e -timeout=30m -failfast -parallel=1 ./test/ha \
   "${E2E_TEST_FLAGS[@]}" \
   -replicas="${REPLICAS:-1}" \
   -buckets="${BUCKETS:-1}" \
@@ -164,6 +165,7 @@ if (( HTTPS )); then
   toggle_feature external-domain-tls Disabled config-network
   # we need to restart the pod to stop the net-certmanager-controller
   restart_pod "${SYSTEM_NAMESPACE}" "app=controller"
+  kubectl get leases -n "${SYSTEM_NAMESPACE}" -o json | jq -r '.items[] | select(.metadata.name | test("controller.knative.dev.serving.pkg.reconciler.certificate.reconciler")).metadata.name' | xargs kubectl delete lease -n "${SYSTEM_NAMESPACE}"
 fi
 
 (( failed )) && fail_test
