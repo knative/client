@@ -53,7 +53,7 @@ import (
 
 	{{if .PluginImportPath}}"{{.PluginImportPath	}}"{{else}}//TODO: add plugin import{{end}}
 
-	"knative.dev/client/pkg/kn/plugin"
+	"knative.dev/client/pkg/plugin"
 )
 
 func init() {

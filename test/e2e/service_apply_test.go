@@ -21,11 +21,9 @@ import (
 	"testing"
 
 	"gotest.tools/v3/assert"
-
-	pkgtest "knative.dev/pkg/test"
-
-	"knative.dev/client/lib/test"
 	"knative.dev/client/pkg/util"
+	"knative.dev/client/pkg/util/test"
+	pkgtest "knative.dev/pkg/test"
 )
 
 func TestServiceApply(t *testing.T) {

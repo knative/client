@@ -22,4 +22,3 @@ ignore:
   - "pkg/client"
   - "test"
   - "third_party"
-  - "vendor"

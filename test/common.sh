@@ -14,7 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-source $(dirname $0)/../vendor/knative.dev/hack/e2e-tests.sh
+# shellcheck disable=SC1090
+source "$(go run knative.dev/hack/cmd/script e2e-tests.sh)"
 
 export INGRESS_CLASS=${INGRESS_CLASS:-istio.ingress.networking.knative.dev}
 
@@ -57,8 +58,11 @@ function install_istio() {
   echo ">> Installing Istio"
   echo "Istio version: ${ISTIO_VERSION}"
   echo "Istio profile: ${ISTIO_PROFILE}"
-  ${NET_ISTIO_DIR}/third_party/istio-${ISTIO_VERSION}/install-istio.sh ${ISTIO_PROFILE}
 
+  # TODO: Hack to walkaround knative-extensions/net-istio#1345
+  pushd "$NET_ISTIO_DIR" &>/dev/null || return 1
+  "${NET_ISTIO_DIR}/third_party/istio-${ISTIO_VERSION}/install-istio.sh" "${ISTIO_PROFILE}"
+  popd &>/dev/null || return 1
 }
 
 function knative_setup() {

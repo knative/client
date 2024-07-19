@@ -20,7 +20,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra/doc"
-	"knative.dev/client/pkg/kn/root"
+	"knative.dev/client/pkg/root"
 )
 
 func main() {

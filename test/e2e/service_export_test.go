@@ -23,16 +23,13 @@ import (
 	"testing"
 
 	"gotest.tools/v3/assert"
-
-	"sigs.k8s.io/yaml"
-
-	"knative.dev/client/lib/test"
-
 	corev1 "k8s.io/api/core/v1"
 	clientv1alpha1 "knative.dev/client/pkg/apis/client/v1alpha1"
+	"knative.dev/client/pkg/util/test"
 	pkgtest "knative.dev/pkg/test"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 	servingtest "knative.dev/serving/pkg/testing/v1"
+	"sigs.k8s.io/yaml"
 )
 
 func TestServiceExport(t *testing.T) {
