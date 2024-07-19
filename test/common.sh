@@ -58,8 +58,11 @@ function install_istio() {
   echo ">> Installing Istio"
   echo "Istio version: ${ISTIO_VERSION}"
   echo "Istio profile: ${ISTIO_PROFILE}"
-  ${NET_ISTIO_DIR}/third_party/istio-${ISTIO_VERSION}/install-istio.sh ${ISTIO_PROFILE}
 
+  # TODO: Hack to walkaround knative-extensions/net-istio#1345
+  pushd "$NET_ISTIO_DIR" &>/dev/null || return 1
+  "${NET_ISTIO_DIR}/third_party/istio-${ISTIO_VERSION}/install-istio.sh" "${ISTIO_PROFILE}"
+  popd &>/dev/null || return 1
 }
 
 function knative_setup() {
