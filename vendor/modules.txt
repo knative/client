@@ -956,10 +956,10 @@ k8s.io/utils/pointer
 k8s.io/utils/ptr
 k8s.io/utils/strings/slices
 k8s.io/utils/trace
-# knative.dev/client-pkg v0.0.0-20240704014437-18eac77f7749
-## explicit; go 1.21
+# knative.dev/client-pkg v0.0.0-20240724091446-8393d69ad672
+## explicit; go 1.22
 knative.dev/client-pkg/pkg/plugin
-# knative.dev/eventing v0.41.1-0.20240716144258-2cc0a5bedff5
+# knative.dev/eventing v0.42.0
 ## explicit; go 1.22
 knative.dev/eventing/pkg/apis/config
 knative.dev/eventing/pkg/apis/duck
@@ -1065,7 +1065,7 @@ knative.dev/pkg/tracing/config
 knative.dev/pkg/tracing/propagation
 knative.dev/pkg/tracing/propagation/tracecontextb3
 knative.dev/pkg/tracker
-# knative.dev/serving v0.41.1-0.20240716005350-fea0e7a481ea
+# knative.dev/serving v0.42.0
 ## explicit; go 1.22
 knative.dev/serving/pkg/apis/autoscaling
 knative.dev/serving/pkg/apis/autoscaling/v1alpha1
