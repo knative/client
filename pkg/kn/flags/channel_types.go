@@ -101,14 +101,17 @@ func (i *ChannelRef) Add(f *pflag.FlagSet) {
 func (i *ChannelRef) Parse() (*duckv1.KReference, error) {
 	parts := strings.Split(i.Cref, ":")
 	switch len(parts) {
-	// if no prefix is given, defer to "messaging.knative.dev/v1:Channel"
 	case 1:
 		return &duckv1.KReference{Kind: "Channel", APIVersion: messagingv1.SchemeGroupVersion.String(), Name: parts[0]}, nil
 	case 2:
 		if typ, ok := ctypeMappings[parts[0]]; ok {
 			return &duckv1.KReference{Kind: typ.Kind, APIVersion: typ.GroupVersion().String(), Name: parts[1]}, nil
 		}
-		return nil, fmt.Errorf("Error: unknown alias '%s' for '--channel', please configure the alias in kn config or specify in the format '--channel Group:Version:Kind:Name'", parts[0])
+		partsFull := strings.Split(parts[0], "/")
+		if len(partsFull) == 3 {
+			return &duckv1.KReference{Kind: partsFull[2], APIVersion: partsFull[0] + "/" + partsFull[1], Name: parts[1]}, nil
+		}
+		return nil, fmt.Errorf("Error: unknown alias or invalid format '%s' for '--channel', please configure the alias in kn config or specify in the format '--channel Group:Version:Kind:Name'", parts[0])
 	case 4:
 		if parts[0] == "" || parts[1] == "" || parts[2] == "" || parts[3] == "" {
 			return nil, fmt.Errorf("Error: incorrect value '%s' for '--channel', must be in the format 'Group:Version:Kind:Name' or configure an alias in kn config and refer as: '--channel ALIAS:NAME'", i.Cref)
