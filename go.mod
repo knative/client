@@ -20,12 +20,12 @@ require (
 	k8s.io/cli-runtime v0.29.2
 	k8s.io/client-go v0.29.2
 	k8s.io/code-generator v0.29.2
-	knative.dev/client-pkg v0.0.0-20240724091446-8393d69ad672
-	knative.dev/eventing v0.42.0
-	knative.dev/hack v0.0.0-20240704013904-b9799599afcf
-	knative.dev/networking v0.0.0-20240716111826-bab7f2a3e556
-	knative.dev/pkg v0.0.0-20240716082220-4355f0c73608
-	knative.dev/serving v0.42.0
+	knative.dev/client-pkg v0.0.0-20240808015000-22f598931483
+	knative.dev/eventing v0.42.1-0.20240809130604-d69b8b46e9d0
+	knative.dev/hack v0.0.0-20240808014239-452e340cbb4b
+	knative.dev/networking v0.0.0-20240808015019-d4c57cd4a1b3
+	knative.dev/pkg v0.0.0-20240808013630-0991b2f920f4
+	knative.dev/serving v0.42.1-0.20240809122229-bf7dbbb46c4f
 	sigs.k8s.io/yaml v1.4.0
 )
 
@@ -87,8 +87,8 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_golang v1.19.1 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
-	github.com/prometheus/common v0.54.0 // indirect
-	github.com/prometheus/procfs v0.12.0 // indirect
+	github.com/prometheus/common v0.55.0 // indirect
+	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/prometheus/statsd_exporter v0.22.8 // indirect
 	github.com/rickb777/date v1.20.0 // indirect
 	github.com/rickb777/plural v1.4.1 // indirect
@@ -106,7 +106,7 @@ require (
 	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/net v0.27.0 // indirect
 	golang.org/x/oauth2 v0.21.0 // indirect
-	golang.org/x/sync v0.7.0 // indirect
+	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/sys v0.22.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
@@ -116,7 +116,7 @@ require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20240604185151-ef581f913117 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240528184218-531527333157 // indirect
 	google.golang.org/grpc v1.65.0 // indirect
-	google.golang.org/protobuf v1.34.1 // indirect
+	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

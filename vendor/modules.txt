@@ -240,13 +240,12 @@ github.com/prometheus/client_golang/prometheus/promhttp
 # github.com/prometheus/client_model v0.6.1
 ## explicit; go 1.19
 github.com/prometheus/client_model/go
-# github.com/prometheus/common v0.54.0
+# github.com/prometheus/common v0.55.0
 ## explicit; go 1.20
 github.com/prometheus/common/expfmt
-github.com/prometheus/common/internal/bitbucket.org/ww/goautoneg
 github.com/prometheus/common/model
-# github.com/prometheus/procfs v0.12.0
-## explicit; go 1.19
+# github.com/prometheus/procfs v0.15.1
+## explicit; go 1.20
 github.com/prometheus/procfs
 github.com/prometheus/procfs/internal/fs
 github.com/prometheus/procfs/internal/util
@@ -368,7 +367,7 @@ golang.org/x/net/trace
 ## explicit; go 1.18
 golang.org/x/oauth2
 golang.org/x/oauth2/internal
-# golang.org/x/sync v0.7.0
+# golang.org/x/sync v0.8.0
 ## explicit; go 1.18
 golang.org/x/sync/errgroup
 golang.org/x/sync/semaphore
@@ -474,8 +473,8 @@ google.golang.org/grpc/serviceconfig
 google.golang.org/grpc/stats
 google.golang.org/grpc/status
 google.golang.org/grpc/tap
-# google.golang.org/protobuf v1.34.1
-## explicit; go 1.17
+# google.golang.org/protobuf v1.34.2
+## explicit; go 1.20
 google.golang.org/protobuf/encoding/protodelim
 google.golang.org/protobuf/encoding/protojson
 google.golang.org/protobuf/encoding/prototext
@@ -956,10 +955,10 @@ k8s.io/utils/pointer
 k8s.io/utils/ptr
 k8s.io/utils/strings/slices
 k8s.io/utils/trace
-# knative.dev/client-pkg v0.0.0-20240724091446-8393d69ad672
+# knative.dev/client-pkg v0.0.0-20240808015000-22f598931483
 ## explicit; go 1.22
 knative.dev/client-pkg/pkg/plugin
-# knative.dev/eventing v0.42.0
+# knative.dev/eventing v0.42.1-0.20240809130604-d69b8b46e9d0
 ## explicit; go 1.22
 knative.dev/eventing/pkg/apis/config
 knative.dev/eventing/pkg/apis/duck
@@ -994,10 +993,10 @@ knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1beta2
 knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1beta2/fake
 knative.dev/eventing/pkg/crossnamespace
 knative.dev/eventing/pkg/eventingtls
-# knative.dev/hack v0.0.0-20240704013904-b9799599afcf
-## explicit; go 1.18
+# knative.dev/hack v0.0.0-20240808014239-452e340cbb4b
+## explicit; go 1.21
 knative.dev/hack
-# knative.dev/networking v0.0.0-20240716111826-bab7f2a3e556
+# knative.dev/networking v0.0.0-20240808015019-d4c57cd4a1b3
 ## explicit; go 1.22
 knative.dev/networking/pkg
 knative.dev/networking/pkg/apis/networking
@@ -1013,7 +1012,7 @@ knative.dev/networking/pkg/http/proxy
 knative.dev/networking/pkg/http/stats
 knative.dev/networking/pkg/ingress
 knative.dev/networking/pkg/k8s
-# knative.dev/pkg v0.0.0-20240716082220-4355f0c73608
+# knative.dev/pkg v0.0.0-20240808013630-0991b2f920f4
 ## explicit; go 1.22
 knative.dev/pkg/apis
 knative.dev/pkg/apis/duck
@@ -1065,7 +1064,7 @@ knative.dev/pkg/tracing/config
 knative.dev/pkg/tracing/propagation
 knative.dev/pkg/tracing/propagation/tracecontextb3
 knative.dev/pkg/tracker
-# knative.dev/serving v0.42.0
+# knative.dev/serving v0.42.1-0.20240809122229-bf7dbbb46c4f
 ## explicit; go 1.22
 knative.dev/serving/pkg/apis/autoscaling
 knative.dev/serving/pkg/apis/autoscaling/v1alpha1
