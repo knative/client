@@ -58,11 +58,7 @@ function install_istio() {
   echo ">> Installing Istio"
   echo "Istio version: ${ISTIO_VERSION}"
   echo "Istio profile: ${ISTIO_PROFILE}"
-
-  # TODO: Hack to walkaround knative-extensions/net-istio#1345
-  pushd "$NET_ISTIO_DIR" &>/dev/null || return 1
-  "${NET_ISTIO_DIR}/third_party/istio-${ISTIO_VERSION}/install-istio.sh" "${ISTIO_PROFILE}"
-  popd &>/dev/null || return 1
+  kubectl apply -f "${NET_ISTIO_DIR}/third_party/istio-${ISTIO_VERSION}/${ISTIO_PROFILE%%.*}/istio.yaml"
 }
 
 function knative_setup() {
