@@ -23,12 +23,11 @@ source "$(go run knative.dev/hack/cmd/script library.sh)"
 
 "${REPO_ROOT_DIR}"/hack/build.sh --codegen
 if output="$(git status --porcelain)" && [ -z "$output" ]; then
-  echo "${REPO_ROOT_DIR} is up to date."
+  subheader "${REPO_ROOT_DIR} is up to date."
 else
-  echo "ERROR: Modified files found:"
+  error 'Modified files found:'
   git status --porcelain
-  echo "ERROR: Diff"
+  error 'Diff'
   git diff
-  echo "ERROR: ${REPO_ROOT_DIR} is out of date. Please run ./hack/build.sh -c and commit."
-  exit 1
+  abort "${REPO_ROOT_DIR} is out of date. Please run ./hack/build.sh -c and commit."
 fi
