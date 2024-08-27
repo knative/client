@@ -166,7 +166,7 @@ func setupConfig(t *testing.T, configContent string) (string, func()) {
 	// Save old args
 	backupArgs := os.Args
 
-	// WriteCache out a temporary configContent file
+	// Write out a temporary configContent file
 	var cfgFile string
 	if configContent != "" {
 		cfgFile = filepath.Join(tmpDir, "config.yaml")
