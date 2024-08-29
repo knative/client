@@ -14,7 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-source $(dirname $0)/../vendor/knative.dev/hack/e2e-tests.sh
+# shellcheck disable=SC1090
+source "$(go run knative.dev/hack/cmd/script e2e-tests.sh)"
 
 export INGRESS_CLASS=${INGRESS_CLASS:-istio.ingress.networking.knative.dev}
 
@@ -57,7 +58,7 @@ function install_istio() {
   echo ">> Installing Istio"
   echo "Istio version: ${ISTIO_VERSION}"
   echo "Istio profile: ${ISTIO_PROFILE}"
-  kubectl apply -f ${NET_ISTIO_DIR}/third_party/istio-${ISTIO_VERSION}/${ISTIO_PROFILE%%.*}/istio.yaml
+  kubectl apply -f "${NET_ISTIO_DIR}/third_party/istio-${ISTIO_VERSION}/${ISTIO_PROFILE%%.*}/istio.yaml"
 
 }
 
