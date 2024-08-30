@@ -368,7 +368,6 @@ if has_flag --debug; then
 fi
 
 # Shared funcs from hack repo
-
 # shellcheck disable=SC1090
 source "$(go run knative.dev/hack/cmd/script library.sh)"
 

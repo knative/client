@@ -28,7 +28,7 @@ require (
 	k8s.io/client-go v0.30.3
 	k8s.io/utils v0.0.0-20240711033017-18e509b52bc8
 	knative.dev/client-pkg v0.0.0-20240808015000-22f598931483
-	knative.dev/eventing v0.42.1-0.20240820132224-5fc4c0fcd118
+	knative.dev/eventing v0.42.1-0.20240828134450-34f9cd384dea
 	knative.dev/networking v0.0.0-20240815142417-37fdbdd0854b
 	knative.dev/pkg v0.0.0-20240815051656-89743d9bbf7c
 	knative.dev/serving v0.42.1-0.20240820122005-5f5f6d820b03
@@ -82,7 +82,7 @@ require (
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
-	github.com/mattn/go-isatty v0.0.19 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-localereader v0.0.2-0.20220822084749-2491eb6c1c75 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect

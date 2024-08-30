@@ -378,8 +378,8 @@ knative.dev/caching v0.0.0-20240812133420-93e6a0a5b46d h1:pj+XufdayIdxV/PUFpuIB1
 knative.dev/caching v0.0.0-20240812133420-93e6a0a5b46d/go.mod h1:vxgDv5XOAYFa2LrreP8quBiyKB2HB2fqWG6nc6LmDR4=
 knative.dev/hack/schema v0.0.0-20240814130635-06f7aff93954 h1:0yjDplGHUnZ8NpcfgmH0thXSzG28VSM16hb3Vz171l8=
 knative.dev/hack/schema v0.0.0-20240814130635-06f7aff93954/go.mod h1:jRH/sx6mwwuMVhvJgnzSaoYA1N4qaIkJa+zxEGtVA5I=
-knative.dev/reconciler-test v0.0.0-20240814180205-22954a20fd47 h1:56SJFVaVl05ae1rtKm145mhSDbDkbUy26nxnExobzSM=
-knative.dev/reconciler-test v0.0.0-20240814180205-22954a20fd47/go.mod h1:GmL2taVxYoXADdFOl534FcW+rYDQP6LDjWj82Q5yQDI=
+knative.dev/reconciler-test v0.0.0-20240820100420-036ce14b8617 h1:UW3CH3wWocQiQKQYxf8gdDw9EEOgL31GU8yXY4w5lE8=
+knative.dev/reconciler-test v0.0.0-20240820100420-036ce14b8617/go.mod h1:GmL2taVxYoXADdFOl534FcW+rYDQP6LDjWj82Q5yQDI=
 rsc.io/binaryregexp v0.2.0 h1:HfqmD5MEmC0zvwBuF187nq9mdnXjXsSivRiXN7SmRkE=
 rsc.io/quote/v3 v3.1.0 h1:9JKUTTIUgS6kzR9mK1YuGKv6Nl+DijDNIc0ghT58FaY=
 rsc.io/sampler v1.3.0 h1:7uVkIFmeBqHfdjD+gZwtXXI+RODJ2Wc4O7MPEh/QiW4=

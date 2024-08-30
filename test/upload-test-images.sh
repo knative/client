@@ -39,7 +39,7 @@ function upload_test_images() {
   # ko resolve is being used for the side-effect of publishing images,
   # so the resulting yaml produced is ignored.
   # We limit the number of concurrent builds (jobs) to avoid OOMs.
-  go run github.com/google/ko@v0.15.4 \
+  ko \
     resolve \
     --jobs=4 \
     "${platform[@]}" \

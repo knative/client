@@ -18,7 +18,7 @@ package tools
 
 // This package imports things required by this repository, to force `go mod` to see them as dependencies
 import (
-	_ "knative.dev/hack/cmd/script"
+	_ "knative.dev/hack/cmd/script" // Allow calling embedded scripts from hack
 	_ "knative.dev/pkg/hack"
 
 	_ "k8s.io/code-generator"

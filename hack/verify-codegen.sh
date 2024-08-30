@@ -22,12 +22,14 @@ set -o pipefail
 source "$(go run knative.dev/hack/cmd/script library.sh)"
 
 "${REPO_ROOT_DIR}"/hack/build.sh --codegen
-if output="$(git status --porcelain)" && [ -z "$output" ]; then
-  subheader "${REPO_ROOT_DIR} is up to date."
-else
+
+if ! git diff --exit-code --name-only > /dev/null; then
   error 'Modified files found:'
-  git status --porcelain
-  error 'Diff'
-  git diff
-  abort "${REPO_ROOT_DIR} is out of date. Please run ./hack/build.sh -c and commit."
+  git diff --name-only
+  error 'Difference:'
+  git --no-pager diff
+  abort "${MODULE_NAME} is out of date!" "" \
+    "Please, run ./hack/build.sh -c and commit."
 fi
+
+header "${MODULE_NAME} is up to date."
