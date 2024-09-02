@@ -14,6 +14,6 @@ on:
 
 jobs:
   test:
-    uses: knative/actions/.github/workflows/reusable-go-test.yaml@main
+    uses: cardil/knative-actions/.github/workflows/reusable-go-test.yaml@feature/unit-test-each-go-module
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
