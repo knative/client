@@ -23,7 +23,7 @@ import (
 	"testing"
 
 	"knative.dev/client/pkg/commands"
-	config2 "knative.dev/client/pkg/config"
+	"knative.dev/client/pkg/config"
 	"knative.dev/client/pkg/util"
 
 	"github.com/spf13/cobra"
@@ -135,8 +135,8 @@ func prepareTestSetup(t *testing.T, args ...interface{}) (string, func()) {
 	tmpPathDir := t.TempDir()
 
 	// Prepare configuration to for our test
-	oldConfig := config2.GlobalConfig
-	config2.GlobalConfig = &config2.TestConfig{
+	oldConfig := config.GlobalConfig
+	config.GlobalConfig = &config.TestConfig{
 		TestPluginsDir:          tmpPathDir,
 		TestLookupPluginsInPath: false,
 	}
@@ -148,7 +148,7 @@ func prepareTestSetup(t *testing.T, args ...interface{}) (string, func()) {
 	}
 
 	return tmpPathDir, func() {
-		config2.GlobalConfig = oldConfig
+		config.GlobalConfig = oldConfig
 	}
 }
 
