@@ -25,9 +25,11 @@ echo "=== Update Codegen for $MODULE_NAME"
 
 group "Kubernetes Codegen"
 
-generate-groups "deepcopy" \
-  knative.dev/client/pkg/apis/client/v1alpha1/generated knative.dev/client/pkg/apis \
-  client:v1alpha1 "$@"
+source "${CODEGEN_PKG}/kube_codegen.sh"
+
+kube::codegen::gen_helpers \
+  --boilerplate "${REPO_ROOT_DIR}/hack/boilerplate.go.txt" \
+  "${REPO_ROOT_DIR}/pkg/apis"
 
 group "Update deps post-codegen"
 
