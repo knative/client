@@ -22,9 +22,9 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"knative.dev/client/pkg/kn/config"
-	pluginpkg "knative.dev/client/pkg/kn/plugin"
-	"knative.dev/client/pkg/kn/root"
+	"knative.dev/client/pkg/config"
+	pluginpkg "knative.dev/client/pkg/plugin"
+	"knative.dev/client/pkg/root"
 )
 
 func main() {

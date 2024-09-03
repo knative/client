@@ -20,7 +20,7 @@ set -o pipefail
 set -o errexit
 set -o nounset
 
-source_dirs="cmd pkg test lib tools"
+source_dirs="cmd pkg test tools"
 
 # Store for later
 if [ -z "${1-}" ]; then

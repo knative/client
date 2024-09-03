@@ -59,7 +59,6 @@ function install_istio() {
   echo "Istio version: ${ISTIO_VERSION}"
   echo "Istio profile: ${ISTIO_PROFILE}"
   kubectl apply -f "${NET_ISTIO_DIR}/third_party/istio-${ISTIO_VERSION}/${ISTIO_PROFILE%%.*}/istio.yaml"
-
 }
 
 function knative_setup() {

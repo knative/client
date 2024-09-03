@@ -22,12 +22,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"gotest.tools/v3/assert/cmp"
-
 	"gotest.tools/v3/assert"
-
-	"knative.dev/client/lib/test"
+	"gotest.tools/v3/assert/cmp"
 	"knative.dev/client/pkg/util"
+	"knative.dev/client/pkg/util/test"
 	pkgtest "knative.dev/pkg/test"
 )
 

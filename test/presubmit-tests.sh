@@ -51,10 +51,5 @@ function post_build_tests() {
   fi
 }
 
-# Run the unit tests
-function unit_tests() {
-  report_go_test -race ./... || failed=1
-}
-
 # We use the default build and integration test runners.
 main "$@"

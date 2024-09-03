@@ -80,7 +80,7 @@ func NewDistroGenerateCmd() *cobra.Command {
 					return fmt.Errorf("update-deps.sh failed failed: %w", err)
 				}
 			} else {
-				fmt.Println("⚠️  hack/update-dep.sh script doesn't exist, make sure to update vendor/ dir")
+				fmt.Println("⚠️  hack/update-dep.sh script doesn't exist")
 			}
 			return nil
 		},
