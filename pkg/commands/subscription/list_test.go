@@ -69,7 +69,7 @@ func TestSubscriptionList(t *testing.T) {
 		assert.NilError(t, err)
 		ol := strings.Split(out, "\n")
 		assert.Check(t, util.ContainsAll(ol[0], "NAME", "CHANNEL", "SUBSCRIBER", "REPLY", "DEAD LETTER SINK", "READY", "REASON"))
-		assert.Check(t, util.ContainsAll(ol[1], "s0", "InMemoryChannel:imc0", "ksvc:ksvc0", "broker:b00", "broker:b01"))
+		assert.Check(t, util.ContainsAll(ol[1], "s0", "InMemoryChannel:imc0", "ksvc0", "broker:b00", "broker:b01"))
 		assert.Check(t, util.ContainsAll(ol[2], "s1", "imc1", "ksvc1", "b10", "b11"))
 		assert.Check(t, util.ContainsAll(ol[3], "s2", "imc2", "ksvc2", "b20", "b21"))
 	})
