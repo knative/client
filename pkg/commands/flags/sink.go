@@ -102,6 +102,10 @@ func (i *SinkFlags) Parse(namespace string) (*sink.Reference, error) {
 func (i *SinkFlags) ResolveSink(ctx context.Context, knclient clientdynamic.KnDynamicClient, namespace string) (*duckv1.Destination, error) {
 	s, err := i.Parse(namespace)
 	if err != nil {
+		if errors.Is(err, sink.ErrSinkIsRequired) {
+			// returns nil, if sink isn't provided to keep the current contract
+			return nil, nil
+		}
 		return nil, err
 	}
 	var dest *duckv1.Destination

@@ -161,6 +161,7 @@ func TestResolve(t *testing.T) {
 			Name:       "foo",
 		}}, ""},
 		{"absent:foo", nil, "absents \"foo\" not found"},
+		{"", nil, ""},
 	}
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient(
 		"default",
@@ -171,11 +172,12 @@ func TestResolve(t *testing.T) {
 		t.Run(c.sink, func(t *testing.T) {
 			sf := &flags.SinkFlags{Sink: c.sink}
 			result, err := sf.ResolveSink(context.Background(), dynamicClient, "default")
-			if c.destination != nil {
+			if c.errContents == "" {
 				assert.DeepEqual(t, result, c.destination)
 				assert.NilError(t, err)
-				assert.Equal(t, c.errContents, "")
 			} else {
+				assert.Check(t, err != nil && err.Error() != "",
+					"error ins't empty")
 				assert.ErrorContains(t, err, c.errContents)
 			}
 		})
