@@ -15,18 +15,14 @@
 package commands
 
 import (
-	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
-	"knative.dev/client/pkg/util/test"
-
 	"gotest.tools/v3/assert"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-	"knative.dev/client/pkg/util"
+	"knative.dev/client/pkg/k8s"
 )
 
 type configTestCase struct {
@@ -106,149 +102,7 @@ func TestPrepareConfig(t *testing.T) {
 	kpEmptyConfig = &KnParams{}
 	kpEmptyConfig.KubeCfgPath = filepath.Join("non", "existing", "file")
 	_, err = kpEmptyConfig.RestConfig()
-	assert.ErrorContains(t, err, "can not be found")
-}
-
-type typeTestCase struct {
-	kubeCfgPath   string
-	kubeContext   string
-	kubeAsUser    string
-	kubeAsUID     string
-	kubeAsGroup   []string
-	kubeCluster   string
-	explicitPath  string
-	expectedError string
-}
-
-func TestGetClientConfig(t *testing.T) {
-	multiConfigs := fmt.Sprintf("%s%s%s", "/testing/assets/kube-config-01.yml", string(os.PathListSeparator), "/testing/assets/kube-config-02.yml")
-
-	tempDir := t.TempDir()
-	tempFile := filepath.Join(tempDir, "mock")
-	err := os.WriteFile(tempFile, []byte(BASIC_KUBECONFIG), test.FileModeReadWrite)
-	assert.NilError(t, err)
-
-	for _, tc := range []typeTestCase{
-		{
-			"",
-			"",
-			"",
-			"",
-			[]string{},
-			"",
-			clientcmd.NewDefaultClientConfigLoadingRules().ExplicitPath,
-			"",
-		},
-		{
-			tempFile,
-			"",
-			"",
-			"",
-			[]string{},
-			"",
-			tempFile,
-			"",
-		},
-		{
-			"/testing/assets/kube-config-01.yml",
-			"foo",
-			"",
-			"",
-			[]string{},
-			"bar",
-			"",
-			fmt.Sprintf("config file '%s' can not be found", "/testing/assets/kube-config-01.yml"),
-		},
-		{
-			multiConfigs,
-			"",
-			"",
-			"",
-			[]string{},
-			"",
-			"",
-			fmt.Sprintf("can not find config file. '%s' looks like a path. Please use the env var KUBECONFIG if you want to check for multiple configuration files", multiConfigs),
-		},
-		{
-			tempFile,
-			"",
-			"admin",
-			"",
-			[]string{},
-			"",
-			tempFile,
-			"",
-		},
-		{
-			tempFile,
-			"",
-			"admin",
-			"",
-			[]string{"system:authenticated", "system:masters"},
-			"",
-			tempFile,
-			"",
-		},
-		{
-			tempFile,
-			"",
-			"admin",
-			"abc123",
-			[]string{},
-			"",
-			tempFile,
-			"",
-		},
-	} {
-		p := &KnParams{
-			KubeCfgPath: tc.kubeCfgPath,
-			KubeContext: tc.kubeContext,
-			KubeAsUser:  tc.kubeAsUser,
-			KubeAsUID:   tc.kubeAsUID,
-			KubeAsGroup: tc.kubeAsGroup,
-			KubeCluster: tc.kubeCluster,
-		}
-
-		clientConfig, err := p.GetClientConfig()
-		if tc.expectedError != "" {
-			assert.Assert(t, util.ContainsAll(err.Error(), tc.expectedError))
-		} else {
-			assert.Assert(t, err == nil, err)
-		}
-
-		if clientConfig != nil {
-			configAccess := clientConfig.ConfigAccess()
-			assert.Assert(t, configAccess.GetExplicitFile() == tc.explicitPath)
-
-			if tc.kubeContext != "" {
-				config, err := clientConfig.RawConfig()
-				assert.NilError(t, err)
-				assert.Assert(t, config.CurrentContext == tc.kubeContext)
-				assert.Assert(t, config.Contexts[tc.kubeContext].Cluster == tc.kubeCluster)
-			}
-
-			if tc.kubeAsUser != "" {
-				config, err := clientConfig.ClientConfig()
-				assert.NilError(t, err)
-				assert.Assert(t, config.Impersonate.UserName == tc.kubeAsUser)
-			}
-
-			if tc.kubeAsUID != "" {
-				config, err := clientConfig.ClientConfig()
-				assert.NilError(t, err)
-				assert.Assert(t, config.Impersonate.UID == tc.kubeAsUID)
-			}
-
-			if len(tc.kubeAsGroup) > 0 {
-				config, err := clientConfig.ClientConfig()
-				assert.NilError(t, err)
-				assert.Assert(t, len(config.Impersonate.Groups) == len(tc.kubeAsGroup))
-				for i := range tc.kubeAsGroup {
-					assert.Assert(t, config.Impersonate.Groups[i] == tc.kubeAsGroup[i])
-				}
-			}
-		}
-	}
+	assert.ErrorIs(t, err, k8s.ErrCantFindConfigFile)
 }
 
 func TestNewSourcesClient(t *testing.T) {

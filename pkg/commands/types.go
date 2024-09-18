@@ -15,12 +15,11 @@
 package commands
 
 import (
-	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 
 	"k8s.io/client-go/kubernetes"
+	"knative.dev/client/pkg/k8s"
 
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
@@ -48,14 +47,8 @@ import (
 
 // KnParams for creating commands. Useful for inserting mocks for testing.
 type KnParams struct {
+	k8s.Params
 	Output                   io.Writer
-	KubeCfgPath              string
-	KubeContext              string
-	KubeCluster              string
-	KubeAsUser               string
-	KubeAsUID                string
-	KubeAsGroup              []string
-	ClientConfig             clientcmd.ClientConfig
 	NewKubeClient            func() (kubernetes.Interface, error)
 	NewServingClient         func(namespace string) (clientservingv1.KnServingClient, error)
 	NewServingV1beta1Client  func(namespace string) (clientservingv1beta1.KnServingClient, error)
@@ -72,8 +65,12 @@ type KnParams struct {
 
 	// Set this if you want to nail down the namespace
 	fixedCurrentNamespace string
+
+	// Memorizes the loaded config
+	clientcmd.ClientConfig
 }
 
+// Initialize will initialize the default factories for the clients.
 func (params *KnParams) Initialize() {
 	if params.NewKubeClient == nil {
 		params.NewKubeClient = params.newKubeClient
@@ -245,45 +242,4 @@ func (params *KnParams) RestConfig() (*rest.Config, error) {
 	})
 
 	return config, nil
-}
-
-// GetClientConfig gets ClientConfig from KubeCfgPath
-func (params *KnParams) GetClientConfig() (clientcmd.ClientConfig, error) {
-	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
-	configOverrides := &clientcmd.ConfigOverrides{}
-	if params.KubeContext != "" {
-		configOverrides.CurrentContext = params.KubeContext
-	}
-	if params.KubeCluster != "" {
-		configOverrides.Context.Cluster = params.KubeCluster
-	}
-	if params.KubeAsUser != "" {
-		configOverrides.AuthInfo.Impersonate = params.KubeAsUser
-	}
-	if params.KubeAsUID != "" {
-		configOverrides.AuthInfo.ImpersonateUID = params.KubeAsUID
-	}
-	if len(params.KubeAsGroup) > 0 {
-		configOverrides.AuthInfo.ImpersonateGroups = params.KubeAsGroup
-	}
-	if len(params.KubeCfgPath) == 0 {
-		return clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, configOverrides), nil
-	}
-
-	_, err := os.Stat(params.KubeCfgPath)
-	if err == nil {
-		loadingRules.ExplicitPath = params.KubeCfgPath
-		return clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, configOverrides), nil
-	}
-
-	if !os.IsNotExist(err) {
-		return nil, err
-	}
-
-	paths := filepath.SplitList(params.KubeCfgPath)
-	if len(paths) > 1 {
-		return nil, fmt.Errorf("can not find config file. '%s' looks like a path. "+
-			"Please use the env var KUBECONFIG if you want to check for multiple configuration files", params.KubeCfgPath)
-	}
-	return nil, fmt.Errorf("config file '%s' can not be found", params.KubeCfgPath)
 }
