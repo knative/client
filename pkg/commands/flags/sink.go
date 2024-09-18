@@ -20,7 +20,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"knative.dev/client/pkg/config"
 	clientdynamic "knative.dev/client/pkg/dynamic"
 	"knative.dev/client/pkg/flags/sink"
 	"knative.dev/client/pkg/util/errors"
@@ -66,26 +65,10 @@ func (i *SinkFlags) Add(cmd *cobra.Command) {
 // WithDefaultMappings will return a copy of SinkFlags with provided mappings
 // and the default ones.
 func (i *SinkFlags) WithDefaultMappings() *SinkFlags {
-	sf := &SinkFlags{
-		Sink: i.Sink,
-		SinkMappings: make(map[string]schema.GroupVersionResource,
-			len(i.SinkMappings)+len(sink.DefaultMappings)),
+	return &SinkFlags{
+		Sink:         i.Sink,
+		SinkMappings: sink.ComputeWithDefaultMappings(i.SinkMappings),
 	}
-	for k, v := range sink.DefaultMappings {
-		sf.SinkMappings[k] = v
-	}
-	for k, v := range i.SinkMappings {
-		sf.SinkMappings[k] = v
-	}
-	for _, p := range config.GlobalConfig.SinkMappings() {
-		// user configuration might override the default configuration
-		sf.SinkMappings[p.Prefix] = schema.GroupVersionResource{
-			Resource: p.Resource,
-			Group:    p.Group,
-			Version:  p.Version,
-		}
-	}
-	return sf
 }
 
 // Parse returns the sink reference, which may refer to URL or to Kubernetes

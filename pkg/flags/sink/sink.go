@@ -26,6 +26,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"knative.dev/client/pkg/config"
 	clientdynamic "knative.dev/client/pkg/dynamic"
 	"knative.dev/pkg/apis"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
@@ -49,7 +50,6 @@ const (
 
 // Reference represents either a URL or Kubernetes resource.
 type Reference struct {
-	Type Type
 	*KubeReference
 	*apis.URL
 }
@@ -93,15 +93,26 @@ var defaultMappingAliasses = map[string]string{
 
 const knativeServiceShorthand = "ksvc"
 
+// Type returns the type of the reference.
+func (r *Reference) Type() Type {
+	if r.KubeReference != nil {
+		return TypeReference
+	}
+	if r.URL != nil {
+		return TypeURL
+	}
+	return Type(-1) // unknown type, unexpected
+}
+
 // Resolve returns the Destination referred to by the sink. It validates that
 // any object the user is referring to exists.
 func (r *Reference) Resolve(ctx context.Context, knclient clientdynamic.KnDynamicClient) (*duckv1.Destination, error) {
-	if r.Type == TypeURL {
+	if r.Type() == TypeURL {
 		return &duckv1.Destination{URI: r.URL}, nil
 	}
-	if r.Type != TypeReference {
+	if r.Type() != TypeReference {
 		return nil, fmt.Errorf("%w: unexpected type %q",
-			ErrSinkIsInvalid, r.Type)
+			ErrSinkIsInvalid, r.Type())
 	}
 	client := knclient.RawClient()
 	obj, err := client.Resource(r.GVR).
@@ -139,10 +150,10 @@ func (r *Reference) String() string {
 // AsText creates a text representation of the resource, and should
 // be used by giving a current namespace.
 func (r *Reference) AsText(currentNamespace string) string {
-	if r.Type == TypeURL {
+	if r.Type() == TypeURL {
 		return r.URL.String()
 	}
-	if r.Type == TypeReference {
+	if r.Type() == TypeReference {
 		repr := r.GvrAsText() + ":" + r.Name
 		if currentNamespace != r.Namespace {
 			repr = fmt.Sprintf("%s:%s", repr, r.Namespace)
@@ -150,7 +161,7 @@ func (r *Reference) AsText(currentNamespace string) string {
 		return repr
 	}
 	return fmt.Errorf("%w: unexpected type %q",
-		ErrSinkIsInvalid, r.Type).Error()
+		ErrSinkIsInvalid, r.Type()).Error()
 }
 
 // GvrAsText returns the
@@ -188,10 +199,7 @@ func Parse(sinkRepr, namespace string, mappings map[string]schema.GroupVersionRe
 		if err != nil {
 			return nil, fmt.Errorf("%w: %w", ErrSinkIsInvalid, err)
 		}
-		return &Reference{
-			Type: TypeURL,
-			URL:  uri,
-		}, nil
+		return &Reference{URL: uri}, nil
 	}
 	gvr, ok := mappings[prefix]
 	if !ok {
@@ -220,14 +228,33 @@ func Parse(sinkRepr, namespace string, mappings map[string]schema.GroupVersionRe
 	if ns != "" {
 		namespace = ns
 	}
-	return &Reference{
-		Type: TypeReference,
-		KubeReference: &KubeReference{
-			GVR:       gvr,
-			Name:      name,
-			Namespace: namespace,
-		},
-	}, nil
+	return &Reference{KubeReference: &KubeReference{
+		GVR:       gvr,
+		Name:      name,
+		Namespace: namespace,
+	}}, nil
+}
+
+// ComputeWithDefaultMappings will compute mapping by including default mappings
+// and mappings provided by the end-user.
+func ComputeWithDefaultMappings(mappings map[string]schema.GroupVersionResource) map[string]schema.GroupVersionResource {
+	sm := make(map[string]schema.GroupVersionResource,
+		len(mappings)+len(DefaultMappings))
+	for k, v := range DefaultMappings {
+		sm[k] = v
+	}
+	for k, v := range mappings {
+		sm[k] = v
+	}
+	for _, p := range config.GlobalConfig.SinkMappings() {
+		// user configuration might override the default configuration
+		sm[p.Prefix] = schema.GroupVersionResource{
+			Resource: p.Resource,
+			Group:    p.Group,
+			Version:  p.Version,
+		}
+	}
+	return sm
 }
 
 // GuessFromDestination converts the duckv1.Destination to the Reference by guessing
@@ -235,10 +262,7 @@ func Parse(sinkRepr, namespace string, mappings map[string]schema.GroupVersionRe
 // Will return nil, if given empty destination.
 func GuessFromDestination(dest duckv1.Destination) *Reference {
 	if dest.URI != nil {
-		return &Reference{
-			Type: TypeURL,
-			URL:  dest.URI,
-		}
+		return &Reference{URL: dest.URI}
 	}
 	if dest.Ref == nil {
 		return nil
@@ -251,14 +275,11 @@ func GuessFromDestination(dest duckv1.Destination) *Reference {
 	}
 	gvk := ref.GroupVersionKind()
 	gvr, _ := meta.UnsafeGuessKindToResource(gvk)
-	return &Reference{
-		Type: TypeReference,
-		KubeReference: &KubeReference{
-			GVR:       gvr,
-			Name:      ref.Name,
-			Namespace: ref.Namespace,
-		},
-	}
+	return &Reference{KubeReference: &KubeReference{
+		GVR:       gvr,
+		Name:      ref.Name,
+		Namespace: ref.Namespace,
+	}}
 }
 
 func withAliasses(
