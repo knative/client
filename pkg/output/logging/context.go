@@ -126,7 +126,7 @@ func createDefaultLogger(ctx context.Context) *zap.Logger {
 	ec.EncodeTime = ElapsedMillisTimeEncoder(time.Now())
 	ec.ConsoleSeparator = " "
 
-	lvl := activeLogLevel(zapcore.WarnLevel)
+	lvl := activeLogLevel(LogLevelFromContext(ctx))
 	logger := zap.New(zapcore.NewCore(
 		zapcore.NewConsoleEncoder(ec),
 		zapcore.AddSync(errout),
