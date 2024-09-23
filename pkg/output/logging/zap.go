@@ -18,23 +18,24 @@ package logging
 
 import "go.uber.org/zap"
 
-type zapLogger struct {
+// ZapLogger is a Google' zap logger based logger.
+type ZapLogger struct {
 	*zap.SugaredLogger
 }
 
-func (z zapLogger) WithName(name string) Logger {
-	return &zapLogger{
+func (z ZapLogger) WithName(name string) Logger {
+	return &ZapLogger{
 		SugaredLogger: z.SugaredLogger.Named(name),
 	}
 }
 
-func (z zapLogger) WithFields(fields Fields) Logger {
+func (z ZapLogger) WithFields(fields Fields) Logger {
 	a := make([]interface{}, 0, len(fields)*2)
 	for k, v := range fields {
 		a = append(a, k, v)
 	}
 
-	return &zapLogger{
+	return &ZapLogger{
 		SugaredLogger: z.SugaredLogger.With(a...),
 	}
 }
