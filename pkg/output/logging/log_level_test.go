@@ -14,28 +14,23 @@
  limitations under the License.
 */
 
-package logging
+package logging_test
 
-import "go.uber.org/zap"
+import (
+	"context"
+	"testing"
 
-// ZapLogger is a Google' zap logger based logger.
-type ZapLogger struct {
-	*zap.SugaredLogger
-}
+	"go.uber.org/zap/zapcore"
+	"gotest.tools/v3/assert"
+	pkgcontext "knative.dev/client/pkg/context"
+	"knative.dev/client/pkg/output/logging"
+)
 
-func (z ZapLogger) WithName(name string) Logger {
-	return &ZapLogger{
-		SugaredLogger: z.SugaredLogger.Named(name),
-	}
-}
-
-func (z ZapLogger) WithFields(fields Fields) Logger {
-	a := make([]interface{}, 0, len(fields)*2)
-	for k, v := range fields {
-		a = append(a, k, v)
-	}
-
-	return &ZapLogger{
-		SugaredLogger: z.SugaredLogger.With(a...),
-	}
+func TestLogLevel(t *testing.T) {
+	ctx := context.TODO()
+	assert.Equal(t, zapcore.WarnLevel, logging.LogLevelFromContext(ctx))
+	ctx = pkgcontext.WithTestingT(ctx, t)
+	assert.Equal(t, zapcore.DebugLevel, logging.LogLevelFromContext(ctx))
+	ctx = logging.WithLogLevel(ctx, zapcore.InfoLevel)
+	assert.Equal(t, zapcore.InfoLevel, logging.LogLevelFromContext(ctx))
 }

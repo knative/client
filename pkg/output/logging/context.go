@@ -18,7 +18,6 @@ package logging
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"time"
 
@@ -40,14 +39,14 @@ var ErrCallEnsureLoggerFirst = errors.New("call EnsureLogger() before LoggerFrom
 // context will have a logger attached to it. Given fields will be added to the
 // logger, either new or existing.
 func EnsureLogger(ctx context.Context, fields ...Fields) context.Context {
-	z, err := loggerFrom(ctx)
+	z, err := zapLoggerFrom(ctx)
 	if errors.Is(err, ErrCallEnsureLoggerFirst) {
 		ctx = EnsureLogFile(ctx)
 		z = setupLogging(ctx)
 	}
-	l := &zapLogger{SugaredLogger: z}
+	l := &ZapLogger{SugaredLogger: z}
 	for _, f := range fields {
-		l = l.WithFields(f).(*zapLogger)
+		l = l.WithFields(f).(*ZapLogger)
 	}
 	return WithLogger(ctx, l)
 }
@@ -55,24 +54,28 @@ func EnsureLogger(ctx context.Context, fields ...Fields) context.Context {
 // LoggerFrom returns the logger from the context. If EnsureLogger() was not
 // called before, it will panic.
 func LoggerFrom(ctx context.Context) Logger {
-	z, err := loggerFrom(ctx)
+	if l, ok := ctx.Value(loggerKey).(Logger); ok {
+		return l
+	}
+	z, err := zapLoggerFrom(ctx)
 	if err != nil {
 		fatal(err)
 	}
 
-	return &zapLogger{z}
+	return &ZapLogger{z}
 }
 
 // WithLogger attaches the given logger to the context.
 func WithLogger(ctx context.Context, l Logger) context.Context {
-	if z, ok := l.(*zapLogger); ok {
+	if z, ok := l.(*ZapLogger); ok {
 		return logging.WithLogger(ctx, z.SugaredLogger)
 	}
-	fatal("unsupported logger type: " + fmt.Sprintf("%#v", l))
-	return nil
+	return context.WithValue(ctx, loggerKey, l)
 }
 
-func loggerFrom(ctx context.Context) (*zap.SugaredLogger, error) {
+var loggerKey = struct{}{}
+
+func zapLoggerFrom(ctx context.Context) (*zap.SugaredLogger, error) {
 	l := logging.FromContext(ctx)
 	if l.Desugar().Name() == "fallback" {
 		return nil, ErrCallEnsureLoggerFirst
@@ -126,7 +129,7 @@ func createDefaultLogger(ctx context.Context) *zap.Logger {
 	ec.EncodeTime = ElapsedMillisTimeEncoder(time.Now())
 	ec.ConsoleSeparator = " "
 
-	lvl := activeLogLevel(zapcore.WarnLevel)
+	lvl := activeLogLevel(LogLevelFromContext(ctx))
 	logger := zap.New(zapcore.NewCore(
 		zapcore.NewConsoleEncoder(ec),
 		zapcore.AddSync(errout),
@@ -161,6 +164,8 @@ func activeLogLevel(defaultLevel zapcore.Level) zapcore.Level {
 	return defaultLevel
 }
 
+// ElapsedMillisTimeEncoder is a time encoder using elapsed time since the
+// logger setup.
 func ElapsedMillisTimeEncoder(setupTime time.Time) zapcore.TimeEncoder {
 	return func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 		enc.AppendInt64(t.Sub(setupTime).Milliseconds())

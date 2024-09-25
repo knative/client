@@ -14,28 +14,24 @@
  limitations under the License.
 */
 
-package logging
+package errors
 
-import "go.uber.org/zap"
+import (
+	"emperror.dev/errors"
+)
 
-// ZapLogger is a Google' zap logger based logger.
-type ZapLogger struct {
-	*zap.SugaredLogger
-}
-
-func (z ZapLogger) WithName(name string) Logger {
-	return &ZapLogger{
-		SugaredLogger: z.SugaredLogger.Named(name),
+// CauseOf will return the error that caused the returned error. This can be
+// used when multierr package is used or fmt.Errorf("%w: %w", ErrFront, cause)
+// from standard library is used, and we know the front error.
+func CauseOf(err, rootErr error) error {
+	if errors.Is(err, rootErr) {
+		for _, cause := range errors.GetErrors(err) {
+			if errors.Is(cause, rootErr) {
+				continue
+			}
+			return cause
+		}
+		return err
 	}
-}
-
-func (z ZapLogger) WithFields(fields Fields) Logger {
-	a := make([]interface{}, 0, len(fields)*2)
-	for k, v := range fields {
-		a = append(a, k, v)
-	}
-
-	return &ZapLogger{
-		SugaredLogger: z.SugaredLogger.With(a...),
-	}
+	return err
 }

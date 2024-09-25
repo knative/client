@@ -22,6 +22,7 @@ import (
 	"github.com/spf13/cobra"
 	"gotest.tools/v3/assert"
 	"k8s.io/client-go/tools/clientcmd"
+	"knative.dev/client/pkg/k8s"
 	"knative.dev/client/pkg/util/test"
 )
 
@@ -41,7 +42,7 @@ func TestGetNamespaceSample(t *testing.T) {
 	testCmd := testCommandGenerator(true)
 	expectedNamespace := "test1"
 	testCmd.SetArgs([]string{"--namespace", expectedNamespace})
-	testCmd.Execute()
+	assert.NilError(t, testCmd.Execute())
 	kp := &KnParams{fixedCurrentNamespace: FakeNamespace}
 	actualNamespace, err := kp.GetNamespace(testCmd)
 	if err != nil {
@@ -63,7 +64,7 @@ func TestGetNamespaceSample(t *testing.T) {
 func TestGetNamespaceDefault(t *testing.T) {
 	testCmd := testCommandGenerator(true)
 	expectedNamespace := "current"
-	testCmd.Execute()
+	assert.NilError(t, testCmd.Execute())
 	kp := &KnParams{fixedCurrentNamespace: FakeNamespace}
 	actualNamespace, err := kp.GetNamespace(testCmd)
 	if err != nil {
@@ -84,7 +85,7 @@ func TestGetNamespaceAllNamespacesSet(t *testing.T) {
 	// Test both variants of the "all namespaces" flag
 	for _, arg := range []string{"--all-namespaces", "-A"} {
 		testCmd.SetArgs([]string{"--namespace", sampleNamespace, arg})
-		testCmd.Execute()
+		assert.NilError(t, testCmd.Execute())
 		kp := &KnParams{fixedCurrentNamespace: FakeNamespace}
 		actualNamespace, err := kp.GetNamespace(testCmd)
 		if err != nil {
@@ -106,7 +107,7 @@ func TestGetNamespaceDefaultAllNamespacesUnset(t *testing.T) {
 	// Test both variants of the "all namespaces" flag
 	for _, arg := range []string{"--all-namespaces", "-A"} {
 		testCmd.SetArgs([]string{arg})
-		testCmd.Execute()
+		assert.NilError(t, testCmd.Execute())
 		kp := &KnParams{fixedCurrentNamespace: FakeNamespace}
 		actualNamespace, err := kp.GetNamespace(testCmd)
 		if err != nil {
@@ -124,7 +125,7 @@ func TestGetNamespaceAllNamespacesNotDefined(t *testing.T) {
 	testCmd := testCommandGenerator(false)
 	expectedNamespace := "test1"
 	testCmd.SetArgs([]string{"--namespace", expectedNamespace})
-	testCmd.Execute()
+	assert.NilError(t, testCmd.Execute())
 	kp := &KnParams{fixedCurrentNamespace: FakeNamespace}
 	actualNamespace, err := kp.GetNamespace(testCmd)
 	if err != nil {
@@ -143,9 +144,9 @@ func TestGetNamespaceFallback(t *testing.T) {
 		err := os.WriteFile(tempFile, []byte(BASIC_KUBECONFIG), test.FileModeReadWrite)
 		assert.NilError(t, err)
 
-		kp := &KnParams{KubeCfgPath: tempFile}
+		kp := &KnParams{Params: k8s.Params{KubeCfgPath: tempFile}}
 		testCmd := testCommandGenerator(true)
-		testCmd.Execute()
+		assert.NilError(t, testCmd.Execute())
 		actual, err := kp.GetNamespace(testCmd)
 		assert.NilError(t, err)
 		if isInCluster() {
@@ -161,9 +162,9 @@ func TestGetNamespaceFallback(t *testing.T) {
 		err := os.WriteFile(tempFile, []byte(""), test.FileModeReadWrite)
 		assert.NilError(t, err)
 
-		kp := &KnParams{KubeCfgPath: tempFile}
+		kp := &KnParams{Params: k8s.Params{KubeCfgPath: tempFile}}
 		testCmd := testCommandGenerator(true)
-		testCmd.Execute()
+		assert.NilError(t, testCmd.Execute())
 		actual, err := kp.GetNamespace(testCmd)
 		assert.NilError(t, err)
 		if isInCluster() {
@@ -175,11 +176,11 @@ func TestGetNamespaceFallback(t *testing.T) {
 	})
 
 	t.Run("MissingConfig", func(t *testing.T) {
-		kp := &KnParams{KubeCfgPath: filepath.Join(tempDir, "missing")}
+		kp := &KnParams{Params: k8s.Params{KubeCfgPath: filepath.Join(tempDir, "missing")}}
 		testCmd := testCommandGenerator(true)
-		testCmd.Execute()
+		assert.NilError(t, testCmd.Execute())
 		actual, err := kp.GetNamespace(testCmd)
-		assert.ErrorContains(t, err, "can not be found")
+		assert.ErrorIs(t, err, k8s.ErrCantFindConfigFile)
 		assert.Equal(t, actual, "")
 	})
 }
@@ -193,7 +194,7 @@ func TestCurrentNamespace(t *testing.T) {
 		err := os.WriteFile(tempFile, []byte(""), test.FileModeReadWrite)
 		assert.NilError(t, err)
 
-		kp := &KnParams{KubeCfgPath: tempFile}
+		kp := &KnParams{Params: k8s.Params{KubeCfgPath: tempFile}}
 		actual, err := kp.CurrentNamespace()
 		if isInCluster() {
 			// In-cluster config overrides the mocked one in OpenShift CI
@@ -209,10 +210,10 @@ func TestCurrentNamespace(t *testing.T) {
 
 	t.Run("MissingConfig", func(t *testing.T) {
 		// Missing kubeconfig
-		kp := &KnParams{KubeCfgPath: filepath.Join(tempDir, "missing")}
+		kp := &KnParams{Params: k8s.Params{KubeCfgPath: filepath.Join(tempDir, "missing")}}
 		actual, err := kp.CurrentNamespace()
 		assert.Assert(t, err != nil)
-		assert.ErrorContains(t, err, "can not be found")
+		assert.ErrorIs(t, err, k8s.ErrCantFindConfigFile)
 		assert.Assert(t, actual == "")
 	})
 
@@ -229,7 +230,7 @@ func TestCurrentNamespace(t *testing.T) {
 		tempFile := filepath.Join(tempDir, "mock")
 		err := os.WriteFile(tempFile, []byte(BASIC_KUBECONFIG), test.FileModeReadWrite)
 		assert.NilError(t, err)
-		kp := &KnParams{KubeCfgPath: tempFile}
+		kp := &KnParams{Params: k8s.Params{KubeCfgPath: tempFile}}
 		actual, err := kp.CurrentNamespace()
 		assert.NilError(t, err)
 		if isInCluster() {

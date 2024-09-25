@@ -16,7 +16,9 @@ package fake
 
 import (
 	"context"
+	"testing"
 
+	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
@@ -32,13 +34,17 @@ import (
 
 // CreateFakeKnDynamicClient gives you a dynamic client for testing containing the given objects.
 func CreateFakeKnDynamicClient(testNamespace string, objects ...runtime.Object) dynamic.KnDynamicClient {
+	if !testing.Testing() {
+		panic("For test usage only!")
+	}
 	scheme := runtime.NewScheme()
-	servingv1.AddToScheme(scheme)
-	eventingv1.AddToScheme(scheme)
-	messagingv1.AddToScheme(scheme)
-	sourcesv1.AddToScheme(scheme)
-	sourcesv1beta2.AddToScheme(scheme)
-	apiextensionsv1.AddToScheme(scheme)
+	_ = corev1.AddToScheme(scheme)
+	_ = servingv1.AddToScheme(scheme)
+	_ = eventingv1.AddToScheme(scheme)
+	_ = messagingv1.AddToScheme(scheme)
+	_ = sourcesv1.AddToScheme(scheme)
+	_ = sourcesv1beta2.AddToScheme(scheme)
+	_ = apiextensionsv1.AddToScheme(scheme)
 	_, dynamicClient := dynamicclientfake.With(context.TODO(), scheme, objects...)
 	return dynamic.NewKnDynamicClient(dynamicClient, testNamespace)
 }

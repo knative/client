@@ -14,28 +14,19 @@
  limitations under the License.
 */
 
-package logging
+package errors
 
-import "go.uber.org/zap"
+import "emperror.dev/errors"
 
-// ZapLogger is a Google' zap logger based logger.
-type ZapLogger struct {
-	*zap.SugaredLogger
+// Is reports whether any error in err's chain matches target.
+//
+// An error is considered to match a target if it is equal to that target or if
+// it implements a method Is(error) bool such that Is(target) returns true.
+func Is(err, target error) bool {
+	return errors.Is(err, target)
 }
 
-func (z ZapLogger) WithName(name string) Logger {
-	return &ZapLogger{
-		SugaredLogger: z.SugaredLogger.Named(name),
-	}
-}
-
-func (z ZapLogger) WithFields(fields Fields) Logger {
-	a := make([]interface{}, 0, len(fields)*2)
-	for k, v := range fields {
-		a = append(a, k, v)
-	}
-
-	return &ZapLogger{
-		SugaredLogger: z.SugaredLogger.With(a...),
-	}
+// New returns a new error annotated with stack trace at the point New is called.
+func New(msg string) error {
+	return errors.New(msg)
 }

@@ -14,28 +14,23 @@
  limitations under the License.
 */
 
-package logging
+package errors_test
 
-import "go.uber.org/zap"
+import (
+	"fmt"
+	"syscall"
+	"testing"
 
-// ZapLogger is a Google' zap logger based logger.
-type ZapLogger struct {
-	*zap.SugaredLogger
-}
+	"knative.dev/client/pkg/util/errors"
+)
 
-func (z ZapLogger) WithName(name string) Logger {
-	return &ZapLogger{
-		SugaredLogger: z.SugaredLogger.Named(name),
-	}
-}
+func TestCauseOf(t *testing.T) {
+	errExample := errors.New("example error")
+	want := syscall.EINVAL
+	err := fmt.Errorf("%w: %w", errExample, want)
 
-func (z ZapLogger) WithFields(fields Fields) Logger {
-	a := make([]interface{}, 0, len(fields)*2)
-	for k, v := range fields {
-		a = append(a, k, v)
-	}
-
-	return &ZapLogger{
-		SugaredLogger: z.SugaredLogger.With(a...),
+	got := errors.CauseOf(err, errExample)
+	if !errors.Is(got, want) {
+		t.Errorf("got error %v, want %v", got, want)
 	}
 }

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package flags
+package flags_test
 
 import (
 	"context"
@@ -20,7 +20,9 @@ import (
 
 	"github.com/spf13/cobra"
 	"gotest.tools/v3/assert"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"knative.dev/client/pkg/commands/flags"
 	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
 	messagingv1 "knative.dev/eventing/pkg/apis/messaging/v1"
 	"knative.dev/eventing/pkg/apis/sources/v1beta2"
@@ -44,37 +46,33 @@ type sinkFlagAddTestCases struct {
 }
 
 func TestSinkFlagAdd(t *testing.T) {
-	cases := []*sinkFlagAddTestCases{
-		{
-			"",
-			"sink",
-			"s",
-		},
-		{
-			"subscriber",
-			"subscriber",
-			"",
-		},
-	}
+	cases := []sinkFlagAddTestCases{{
+		"",
+		"sink",
+		"s",
+	}, {
+		"subscriber",
+		"subscriber",
+		"",
+	}}
 	for _, tc := range cases {
-		c := &cobra.Command{Use: "sinktest"}
-		sinkFlags := SinkFlags{}
-		if tc.flagName == "" {
-			sinkFlags.Add(c)
-			assert.Equal(t, tc.expectedFlagName, c.Flag("sink").Name)
-			assert.Equal(t, tc.expectedShortName, c.Flag("sink").Shorthand)
-		} else {
-			sinkFlags.AddWithFlagName(c, tc.flagName, "")
-			assert.Equal(t, tc.expectedFlagName, c.Flag(tc.flagName).Name)
-			assert.Equal(t, tc.expectedShortName, c.Flag(tc.flagName).Shorthand)
-		}
+		t.Run(tc.flagName, func(t *testing.T) {
+			c := &cobra.Command{Use: "sinktest"}
+			sinkFlags := flags.SinkFlags{}
+			if tc.flagName == "" {
+				sinkFlags.Add(c)
+				assert.Equal(t, tc.expectedFlagName, c.Flag("sink").Name)
+				assert.Equal(t, tc.expectedShortName, c.Flag("sink").Shorthand)
+			} else {
+				sinkFlags.AddWithFlagName(c, tc.flagName, "")
+				assert.Equal(t, tc.expectedFlagName, c.Flag(tc.flagName).Name)
+				assert.Equal(t, tc.expectedShortName, c.Flag(tc.flagName).Shorthand)
+			}
+		})
 	}
 }
 
 func TestResolve(t *testing.T) {
-	targetExampleCom, err := apis.ParseURL("http://target.example.com")
-	assert.NilError(t, err)
-
 	mysvc := &servingv1.Service{
 		TypeMeta:   metav1.TypeMeta{Kind: "Service", APIVersion: "serving.knative.dev/v1"},
 		ObjectMeta: metav1.ObjectMeta{Name: "mysvc", Namespace: "default"},
@@ -89,6 +87,10 @@ func TestResolve(t *testing.T) {
 	}
 	pingSource := &v1beta2.PingSource{
 		TypeMeta:   metav1.TypeMeta{Kind: "PingSource", APIVersion: "sources.knative.dev/v1"},
+		ObjectMeta: metav1.ObjectMeta{Name: "foo", Namespace: "default"},
+	}
+	k8sService := &corev1.Service{
+		TypeMeta:   metav1.TypeMeta{Kind: "Service", APIVersion: "v1"},
 		ObjectMeta: metav1.ObjectMeta{Name: "foo", Namespace: "default"},
 	}
 	cases := []resolveCase{
@@ -143,24 +145,42 @@ func TestResolve(t *testing.T) {
 			Name:       "foo",
 		}}, ""},
 		{"http://target.example.com", &duckv1.Destination{
-			URI: targetExampleCom,
+			URI: url(t, "http://target.example.com"),
 		}, ""},
 		{"k8ssvc:foo", nil, "k8ssvcs \"foo\" not found"},
-		{"svc:foo", nil, "please use prefix 'ksvc' for knative service"},
-		{"service:foo", nil, "please use prefix 'ksvc' for knative service"},
+		{"svc:foo", &duckv1.Destination{Ref: &duckv1.KReference{
+			APIVersion: "v1",
+			Kind:       "Service",
+			Namespace:  "default",
+			Name:       "foo",
+		}}, ""},
+		{"service:foo", &duckv1.Destination{Ref: &duckv1.KReference{
+			APIVersion: "v1",
+			Kind:       "Service",
+			Namespace:  "default",
+			Name:       "foo",
+		}}, ""},
 		{"absent:foo", nil, "absents \"foo\" not found"},
+		{"", nil, ""},
 	}
-	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("default", mysvc, defaultBroker, pipeChannel, pingSource)
+	dynamicClient := dynamicfake.CreateFakeKnDynamicClient(
+		"default",
+		mysvc, defaultBroker, pipeChannel, pingSource, k8sService,
+	)
 
 	for _, c := range cases {
-		i := &SinkFlags{Sink: c.sink}
-		result, err := i.ResolveSink(context.Background(), dynamicClient, "default")
-		if c.destination != nil {
-			assert.DeepEqual(t, result, c.destination)
-			assert.NilError(t, err)
-		} else {
-			assert.ErrorContains(t, err, c.errContents)
-		}
+		t.Run(c.sink, func(t *testing.T) {
+			sf := &flags.SinkFlags{Sink: c.sink}
+			result, err := sf.ResolveSink(context.Background(), dynamicClient, "default")
+			if c.errContents == "" {
+				assert.DeepEqual(t, result, c.destination)
+				assert.NilError(t, err)
+			} else {
+				assert.Check(t, err != nil && err.Error() != "",
+					"error ins't empty")
+				assert.ErrorContains(t, err, c.errContents)
+			}
+		})
 	}
 }
 
@@ -197,47 +217,73 @@ func TestResolveWithNamespace(t *testing.T) {
 	}
 	dynamicClient := dynamicfake.CreateFakeKnDynamicClient("my-namespace", mysvc, defaultBroker, pipeChannel)
 	for _, c := range cases {
-		i := &SinkFlags{Sink: c.sink}
-		result, err := i.ResolveSink(context.Background(), dynamicClient, "default")
-		if c.destination != nil {
-			assert.DeepEqual(t, result, c.destination)
-			assert.Equal(t, c.destination.Ref.Namespace, "my-namespace")
-			assert.NilError(t, err)
-		} else {
-			assert.ErrorContains(t, err, c.errContents)
-		}
+		t.Run(c.sink, func(t *testing.T) {
+			i := &flags.SinkFlags{Sink: c.sink}
+			result, err := i.ResolveSink(context.Background(), dynamicClient, "default")
+			if c.destination != nil {
+				assert.DeepEqual(t, result, c.destination)
+				assert.Equal(t, c.destination.Ref.Namespace, "my-namespace")
+				assert.NilError(t, err)
+			} else {
+				assert.ErrorContains(t, err, c.errContents)
+			}
+		})
 	}
 }
 
 func TestSinkToString(t *testing.T) {
-	sink := duckv1.Destination{
-		Ref: &duckv1.KReference{Kind: "Service",
+	tcs := []resolveCase{{
+		sink: "ksvc:mysvc",
+		destination: &duckv1.Destination{Ref: &duckv1.KReference{
+			Kind:       "Service",
 			APIVersion: "serving.knative.dev/v1",
 			Namespace:  "my-namespace",
-			Name:       "mysvc"}}
-	expected := "ksvc:mysvc"
-	assert.Equal(t, expected, SinkToString(sink))
-	sink = duckv1.Destination{
-		Ref: &duckv1.KReference{Kind: "Broker",
+			Name:       "mysvc",
+		}},
+	}, {
+		sink: "broker:default",
+		destination: &duckv1.Destination{Ref: &duckv1.KReference{
+			Kind:       "Broker",
 			APIVersion: "eventing.knative.dev/v1",
 			Namespace:  "my-namespace",
-			Name:       "default"}}
-	expected = "broker:default"
-	assert.Equal(t, expected, SinkToString(sink))
-	sink = duckv1.Destination{
-		Ref: &duckv1.KReference{Kind: "Service",
+			Name:       "default",
+		}},
+	}, {
+		sink: "svc:mysvc",
+		destination: &duckv1.Destination{Ref: &duckv1.KReference{
+			Kind:       "Service",
 			APIVersion: "v1",
 			Namespace:  "my-namespace",
-			Name:       "mysvc"}}
-	expected = "service:mysvc"
-	assert.Equal(t, expected, SinkToString(sink))
-
-	uri := "http://target.example.com"
-	targetExampleCom, err := apis.ParseURL(uri)
-	assert.NilError(t, err)
-	sink = duckv1.Destination{
-		URI: targetExampleCom,
+			Name:       "mysvc",
+		}},
+	}, {
+		sink: "things.acme.dev/v1alpha1:abc",
+		destination: &duckv1.Destination{Ref: &duckv1.KReference{
+			Kind:       "Thing",
+			APIVersion: "acme.dev/v1alpha1",
+			Namespace:  "my-namespace",
+			Name:       "abc",
+		}},
+	}, {
+		sink: "http://target.example.com",
+		destination: &duckv1.Destination{
+			URI: url(t, "http://target.example.com"),
+		},
+	}, {
+		sink:        "",
+		destination: &duckv1.Destination{},
+	}}
+	for _, tc := range tcs {
+		t.Run(tc.sink, func(t *testing.T) {
+			got := flags.SinkToString(*tc.destination)
+			assert.Equal(t, got, tc.sink)
+		})
 	}
-	assert.Equal(t, uri, SinkToString(sink))
-	assert.Equal(t, "", SinkToString(duckv1.Destination{}))
+}
+
+func url(t testing.TB, uri string) *apis.URL {
+	t.Helper()
+	u, err := apis.ParseURL(uri)
+	assert.NilError(t, err)
+	return u
 }
