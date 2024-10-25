@@ -30,7 +30,7 @@ import (
 const spinnerColor = lipgloss.Color("205")
 
 type Spinner interface {
-	Runnable[Spinner]
+	Runnable[SpinnerControl]
 }
 
 func (w *widgets) NewSpinner(message string) Spinner {
@@ -44,17 +44,27 @@ type BubbleSpinner struct {
 	output.InputOutput
 	Message
 
+	*updater
 	spin     spinner.Model
 	tea      *tea.Program
 	quitChan chan struct{}
 	teaErr   error
 }
 
-func (b *BubbleSpinner) With(fn func(Spinner) error) error {
+// SpinnerControl allows one to control the spinner, for example, to change the
+// message.
+type SpinnerControl interface {
+	UpdateMessage(message string)
+}
+
+// With will start the spinner and perform long operation within the
+// provided fn. The spinner will be automatically shutdown when the provided
+// function exits.
+func (b *BubbleSpinner) With(fn func(SpinnerControl) error) error {
 	b.start()
 	err := func() error {
 		defer b.stop()
-		return fn(b)
+		return fn(b.updater)
 	}()
 	return multierr.Combine(err, b.teaErr)
 }
@@ -70,10 +80,20 @@ func (b *BubbleSpinner) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (b *BubbleSpinner) View() string {
+	select {
+	case m := <-b.updater.messages:
+		// nil on channel close
+		if m != nil {
+			b.Message.Text = *m
+		}
+	default:
+		// nothing
+	}
 	return fmt.Sprintf("%s %s", b.Message.Text, b.spin.View())
 }
 
 func (b *BubbleSpinner) start() {
+	b.updater = &updater{make(chan *string)}
 	b.spin = spinner.New(
 		spinner.WithSpinner(spinner.Meter),
 		spinner.WithStyle(spinnerStyle()),
@@ -94,6 +114,7 @@ func (b *BubbleSpinner) stop() {
 		return
 	}
 
+	close(b.updater.messages)
 	b.tea.Quit()
 	<-b.quitChan
 
@@ -110,4 +131,12 @@ func (b *BubbleSpinner) stop() {
 
 func spinnerStyle() lipgloss.Style {
 	return lipgloss.NewStyle().Foreground(spinnerColor)
+}
+
+type updater struct {
+	messages chan *string
+}
+
+func (u updater) UpdateMessage(message string) {
+	u.messages <- &message
 }
