@@ -33,6 +33,7 @@ import (
 )
 
 func TestProgress(t *testing.T) {
+	t.Parallel()
 	ctx := context.TestContext(t)
 	prt := output.NewTestPrinter()
 	ctx = output.WithContext(ctx, prt)

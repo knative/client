@@ -24,6 +24,7 @@ import (
 )
 
 func TestNewWidgets(t *testing.T) {
+	t.Parallel()
 	ctx := context.TestContext(t)
 	w := tui.NewWidgets(ctx)
 
@@ -33,6 +34,7 @@ func TestNewWidgets(t *testing.T) {
 }
 
 func TestNewInteractiveWidgets(t *testing.T) {
+	t.Parallel()
 	ctx := context.TestContext(t)
 	w, err := tui.NewInteractiveWidgets(ctx)
 
