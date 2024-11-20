@@ -1,6 +1,6 @@
 module knative.dev/client/pkg
 
-go 1.22.0
+go 1.22.7
 
 require (
 	emperror.dev/errors v0.8.1
@@ -18,8 +18,8 @@ require (
 	github.com/spf13/viper v1.16.0
 	go.uber.org/multierr v1.11.0
 	go.uber.org/zap v1.27.0
-	golang.org/x/mod v0.21.0
-	golang.org/x/term v0.25.0
+	golang.org/x/mod v0.22.0
+	golang.org/x/term v0.26.0
 	gotest.tools/v3 v3.3.0
 	k8s.io/api v0.30.3
 	k8s.io/apiextensions-apiserver v0.30.3
@@ -27,11 +27,11 @@ require (
 	k8s.io/cli-runtime v0.29.2
 	k8s.io/client-go v0.30.3
 	k8s.io/utils v0.0.0-20240711033017-18e509b52bc8
-	knative.dev/client-pkg v0.0.0-20241022130700-7b4bb48ac250
-	knative.dev/eventing v0.43.0
-	knative.dev/networking v0.0.0-20241022012959-60e29ff520dc
-	knative.dev/pkg v0.0.0-20241021183759-9b9d535af5ad
-	knative.dev/serving v0.43.0
+	knative.dev/client-pkg v0.0.0-20241106014333-14f4a3a4c3e1
+	knative.dev/eventing v0.43.1-0.20241119173100-ebe99e655146
+	knative.dev/networking v0.0.0-20241118132247-bbd3279aa3a4
+	knative.dev/pkg v0.0.0-20241118074447-a7fd9b10bb9f
+	knative.dev/serving v0.43.1-0.20241119121959-3e45e8f8392b
 	sigs.k8s.io/yaml v1.4.0
 )
 
@@ -118,18 +118,18 @@ require (
 	github.com/xlab/treeprint v1.2.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.starlark.net v0.0.0-20230525235612-a134d8f9ddca // indirect
-	golang.org/x/net v0.30.0 // indirect
-	golang.org/x/oauth2 v0.22.0 // indirect
-	golang.org/x/sync v0.8.0 // indirect
-	golang.org/x/sys v0.26.0 // indirect
-	golang.org/x/text v0.19.0 // indirect
+	golang.org/x/net v0.31.0 // indirect
+	golang.org/x/oauth2 v0.23.0 // indirect
+	golang.org/x/sync v0.9.0 // indirect
+	golang.org/x/sys v0.27.0 // indirect
+	golang.org/x/text v0.20.0 // indirect
 	golang.org/x/time v0.6.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
 	google.golang.org/api v0.183.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20240814211410-ddb44dafa142 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240814211410-ddb44dafa142 // indirect
-	google.golang.org/grpc v1.67.1 // indirect
-	google.golang.org/protobuf v1.35.1 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20240903143218-8af14fe29dc1 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240903143218-8af14fe29dc1 // indirect
+	google.golang.org/grpc v1.68.0 // indirect
+	google.golang.org/protobuf v1.35.2 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
