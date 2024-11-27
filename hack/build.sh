@@ -75,6 +75,15 @@ run() {
     exit 0
   fi
 
+# platform mode: Only to build target platform for cross-compilation
+  if has_flag --platform -p; then
+  # Extract GOOS and GOARCH from command-line arguments
+    GOOS="${ARGS[1]}"
+    GOARCH="${ARGS[2]}"
+    go_build_with_goos_goarch "$GOOS" "$GOARCH"
+    exit 0
+  fi
+
   # Run only tests
   if has_flag --test -t; then
     go_test
@@ -142,6 +151,25 @@ go_build() {
   go build -ldflags "${KN_BUILD_LD_FLAGS:-}" -o kn ./cmd/...
 
   if file kn | grep -q -i "Windows"; then
+    mv kn kn.exe
+  fi
+}
+
+go_build_with_goos_goarch() {
+  GOOS="${1}"
+  GOARCH="${2}"
+
+  if [ -z "${GOOS}" ] || [ -z "${GOARCH}" ]; then
+    echo "❌ Missing GOOS or GOARCH. Please provide both GOOS and GOARCH as arguments."
+    exit 1
+  fi
+
+  echo "🚧 Compile for GOOS=${GOOS} GOARCH=${GOARCH}"
+
+  # Env var exported by hack/build-flags.sh
+  GOOS="${GOOS}" GOARCH="${GOARCH}" go build -mod=vendor -ldflags "${KN_BUILD_LD_FLAGS:-}" -o kn ./cmd/...
+
+  if $(file kn | grep -q -i "Windows"); then
     mv kn kn.exe
   fi
 }
@@ -336,6 +364,7 @@ Usage: $(basename "${BASH_SOURCE[0]}") [... options ...]
 with the following options:
 
 -f  --fast                    Only compile (without dep update, formatting, testing, doc gen)
+-p  --platform                Specify the target platform for cross-compilation (e.g., linux amd64, darwin amd64)"
 -t  --test                    Run tests when used with --fast or --watch
 -c  --codegen                 Runs formatting, doc gen and update without compiling/testing
 -w  --watch                   Watch for source changes and recompile in fast mode
@@ -353,12 +382,13 @@ ln -s $(basedir)/hack/build.sh /usr/local/bin/kn_build.sh
 Examples:
 
 * Update deps, format, license check,
-  gen docs, compile, test: ........... build.sh
-* Compile only: ...................... build.sh --fast
-* Run only tests: .................... build.sh --test
-* Compile with tests: ................ build.sh -f -t
-* Automatic recompilation: ........... build.sh --watch
-* Build cross platform binaries: ..... build.sh --all
+  gen docs, compile, test: ........................ build.sh
+* Compile only: ................................... build.sh --fast
+* Build cross platform binaries for a platform: ... build.sh -p linux amd64
+* Run only tests: ................................. build.sh --test
+* Compile with tests: ............................. build.sh -f -t
+* Automatic recompilation: ........................ build.sh --watch
+* Build cross platform binaries: .................. build.sh --all
 EOT
 }
 
