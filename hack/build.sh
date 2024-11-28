@@ -156,8 +156,8 @@ go_build() {
 }
 
 go_build_with_goos_goarch() {
-  GOOS="${1}"
-  GOARCH="${2}"
+  GOOS="${1:-}"
+  GOARCH="${2:-}"
 
   if [ -z "${GOOS}" ] || [ -z "${GOARCH}" ]; then
     echo "❌ Missing GOOS or GOARCH. Please provide both GOOS and GOARCH as arguments."
