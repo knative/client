@@ -19,7 +19,7 @@ require (
 	go.uber.org/multierr v1.11.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/mod v0.22.0
-	golang.org/x/term v0.26.0
+	golang.org/x/term v0.27.0
 	gotest.tools/v3 v3.3.0
 	k8s.io/api v0.30.3
 	k8s.io/apiextensions-apiserver v0.30.3
@@ -27,11 +27,11 @@ require (
 	k8s.io/cli-runtime v0.29.2
 	k8s.io/client-go v0.30.3
 	k8s.io/utils v0.0.0-20240711033017-18e509b52bc8
-	knative.dev/client-pkg v0.0.0-20241106014333-14f4a3a4c3e1
-	knative.dev/eventing v0.43.1-0.20241119173100-ebe99e655146
-	knative.dev/networking v0.0.0-20241118132247-bbd3279aa3a4
-	knative.dev/pkg v0.0.0-20241118074447-a7fd9b10bb9f
-	knative.dev/serving v0.43.1-0.20241119121959-3e45e8f8392b
+	knative.dev/client-pkg v0.0.0-20241223132438-847849858508
+	knative.dev/eventing v0.43.1-0.20241223131119-c9047a198255
+	knative.dev/networking v0.0.0-20241223132331-43a6a77176e5
+	knative.dev/pkg v0.0.0-20241223131119-4c901591eb4a
+	knative.dev/serving v0.43.1-0.20241224133707-b4c8ac949108
 	sigs.k8s.io/yaml v1.4.0
 )
 
@@ -120,9 +120,9 @@ require (
 	go.starlark.net v0.0.0-20230525235612-a134d8f9ddca // indirect
 	golang.org/x/net v0.31.0 // indirect
 	golang.org/x/oauth2 v0.23.0 // indirect
-	golang.org/x/sync v0.9.0 // indirect
-	golang.org/x/sys v0.27.0 // indirect
-	golang.org/x/text v0.20.0 // indirect
+	golang.org/x/sync v0.10.0 // indirect
+	golang.org/x/sys v0.28.0 // indirect
+	golang.org/x/text v0.21.0 // indirect
 	golang.org/x/time v0.6.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
 	google.golang.org/api v0.183.0 // indirect
