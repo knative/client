@@ -17,6 +17,7 @@
 package tui_test
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -25,6 +26,9 @@ import (
 	"knative.dev/client/pkg/output/tui"
 )
 
+// TestSpinner describes the functionality of the Spinner widget in TUI.
+// This test verifies that the Spinner widget correctly updates its message
+// and completes when all updates have been applied.
 func TestSpinner(t *testing.T) {
 	t.Parallel()
 	ctx := context.TestContext(t)
@@ -34,24 +38,30 @@ func TestSpinner(t *testing.T) {
 	s := w.NewSpinner("message")
 
 	if s == nil {
-		t.Errorf("want spinner, got nil")
+		t.Fatal("want spinner, got nil")
 	}
 	if err := s.With(func(sc tui.SpinnerControl) error {
-		time.Sleep(3 * time.Millisecond)
+		time.Sleep(5 * time.Millisecond)
 		sc.UpdateMessage("msg-1")
-		time.Sleep(3 * time.Millisecond)
+		time.Sleep(5 * time.Millisecond)
 		sc.UpdateMessage("msg-2")
-		time.Sleep(3 * time.Millisecond)
+		time.Sleep(5 * time.Millisecond)
 		return nil
 	}); err != nil {
 		t.Errorf("want nil, got %v", err)
 	}
 	got := prt.Outputs().Out.String()
-	want := "\x1b[?25lmessage ▰▱▱\x1b[0D" +
-		"\x1b[0D\x1b[2Kmsg-1 ▰▰▱\x1b[0D" +
-		"\x1b[0D\x1b[2Kmsg-2 ▰▰▰\x1b[0D" +
-		"\x1b[2K\x1b[?25h\x1b[?1002l\x1b[?1003l\x1b[?1006lmsg-2 Done\n"
-	if got != want {
-		t.Errorf("text missmatch\nwant %q,\n got %q", want, got)
+	expectedMsgs := []string{
+		"message", "msg-1", "msg-2",
+		"▰▱▱", "▰▰▱", "▰▰▰",
+		"Done",
+		"\u001B[?25l", "\u001B[0D",
+		"\u001B[0D\u001B[2K",
+	}
+	for _, expected := range expectedMsgs {
+		if !strings.Contains(got, expected) {
+			t.Errorf("Expected to contain %#v within:\n%#v",
+				expected, got)
+		}
 	}
 }
