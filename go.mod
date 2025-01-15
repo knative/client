@@ -12,7 +12,7 @@ require (
 	knative.dev/hack v0.0.0-20250109131303-f8be0ccdff36
 	knative.dev/networking v0.0.0-20250113195501-679796878afc
 	knative.dev/pkg v0.0.0-20250113161000-0c2a238a16ed
-	knative.dev/serving v0.43.1-0.20250113213300-dd48437f3dfa
+	knative.dev/serving v0.43.1-0.20250115103709-b484fa275687
 	sigs.k8s.io/yaml v1.4.0
 )
 
@@ -97,7 +97,6 @@ require (
 	github.com/xlab/treeprint v1.2.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.starlark.net v0.0.0-20230525235612-a134d8f9ddca // indirect
-	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/mod v0.22.0 // indirect
