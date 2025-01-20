@@ -25,16 +25,12 @@ import (
 	"strings"
 	"text/template"
 
-	pkgplugin "knative.dev/client-pkg/pkg/plugin"
-
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 )
 
 // InternalPlugins allow plugins to register to this slice for inlining
 var InternalPlugins PluginList
-
-var synced bool
 
 // Plugin describes a plugin
 type Plugin interface {
@@ -91,12 +87,6 @@ func NewManager(pluginDir string, lookupInPath bool) *Manager {
 	m := &Manager{
 		pluginsDir:   pluginDir,
 		lookupInPath: lookupInPath,
-	}
-	if !synced {
-		for _, p := range pkgplugin.InternalPlugins {
-			m.AppendPlugin(p)
-		}
-		synced = true
 	}
 	return m
 }
