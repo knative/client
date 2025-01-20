@@ -24,8 +24,8 @@ import (
 
 	"knative.dev/client/pkg/commands"
 	"knative.dev/client/pkg/commands/flags"
-	sourcesv1beta2 "knative.dev/client/pkg/sources/v1beta2"
-	eventingsourcesv1beta2 "knative.dev/eventing/pkg/apis/sources/v1beta2"
+	sourcesv1 "knative.dev/client/pkg/sources/v1"
+	eventingsourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"
 
 	"knative.dev/client/pkg/util"
 )
@@ -63,8 +63,8 @@ func NewPingUpdateCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			updateFunc := func(origSource *eventingsourcesv1beta2.PingSource) (*eventingsourcesv1beta2.PingSource, error) {
-				b := sourcesv1beta2.NewPingSourceBuilderFromExisting(origSource)
+			updateFunc := func(origSource *eventingsourcesv1.PingSource) (*eventingsourcesv1.PingSource, error) {
+				b := sourcesv1.NewPingSourceBuilderFromExisting(origSource)
 				if cmd.Flags().Changed("schedule") {
 					b.Schedule(updateFlags.schedule)
 				}

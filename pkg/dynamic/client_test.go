@@ -32,7 +32,6 @@ import (
 	"knative.dev/eventing/pkg/apis/messaging"
 	messagingv1 "knative.dev/eventing/pkg/apis/messaging/v1"
 	sourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"
-	sourcesv1beta2 "knative.dev/eventing/pkg/apis/sources/v1beta2"
 	dynamicclientfake "knative.dev/pkg/injection/clients/dynamicclient/fake"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
@@ -113,7 +112,7 @@ func TestListSources(t *testing.T) {
 
 	t.Run("source list empty", func(t *testing.T) {
 		client := createFakeKnDynamicClient(testNamespace,
-			newSourceCRDObjWithSpec("pingsources", "sources.knative.dev", "v1beta2", "PingSource"),
+			newSourceCRDObjWithSpec("pingsources", "sources.knative.dev", "v1", "PingSource"),
 		)
 		sources, err := client.ListSources(context.Background())
 		assert.NilError(t, err)
@@ -122,9 +121,9 @@ func TestListSources(t *testing.T) {
 
 	t.Run("source list non empty", func(t *testing.T) {
 		client := createFakeKnDynamicClient(testNamespace,
-			newSourceCRDObjWithSpec("pingsources", "sources.knative.dev", "v1beta2", "PingSource"),
+			newSourceCRDObjWithSpec("pingsources", "sources.knative.dev", "v1", "PingSource"),
 			newSourceCRDObjWithSpec("apiserversources", "sources.knative.dev", "v1", "ApiServerSource"),
-			newSourceUnstructuredObj("p1", "sources.knative.dev/v1beta2", "PingSource"),
+			newSourceUnstructuredObj("p1", "sources.knative.dev/v1", "PingSource"),
 			newSourceUnstructuredObj("a1", "sources.knative.dev/v1", "ApiServerSource"),
 		)
 		sources, err := client.ListSources(context.Background(), WithTypeFilter("pingsource"), WithTypeFilter("ApiServerSource"))
@@ -145,14 +144,14 @@ func TestListSourcesUsingGVKs(t *testing.T) {
 
 	t.Run("source list with given GVKs", func(t *testing.T) {
 		client := createFakeKnDynamicClient(testNamespace,
-			newSourceCRDObjWithSpec("pingsources", "sources.knative.dev", "v1beta2", "PingSource"),
+			newSourceCRDObjWithSpec("pingsources", "sources.knative.dev", "v1", "PingSource"),
 			newSourceCRDObjWithSpec("apiserversources", "sources.knative.dev", "v1", "ApiServerSource"),
-			newSourceUnstructuredObj("p1", "sources.knative.dev/v1beta2", "PingSource"),
+			newSourceUnstructuredObj("p1", "sources.knative.dev/v1", "PingSource"),
 			newSourceUnstructuredObj("a1", "sources.knative.dev/v1", "ApiServerSource"),
 		)
 		assert.Check(t, client.RawClient() != nil)
 		gvks := []schema.GroupVersionKind{
-			{Group: "sources.knative.dev", Version: "v1beta2", Kind: "PingSource"},
+			{Group: "sources.knative.dev", Version: "v1", Kind: "PingSource"},
 			{Group: "sources.knative.dev", Version: "v1", Kind: "ApiServerSource"},
 		}
 
@@ -184,7 +183,7 @@ func createFakeKnDynamicClient(testNamespace string, objects ...runtime.Object) 
 	eventingv1.AddToScheme(scheme)
 	messagingv1.AddToScheme(scheme)
 	sourcesv1.AddToScheme(scheme)
-	sourcesv1beta2.AddToScheme(scheme)
+	sourcesv1.AddToScheme(scheme)
 	apiextensionsv1.AddToScheme(scheme)
 	_, dynamicClient := dynamicclientfake.With(context.TODO(), scheme, objects...)
 	return NewKnDynamicClient(dynamicClient, testNamespace)

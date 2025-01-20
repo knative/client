@@ -29,13 +29,10 @@ import (
 	v1beta1 "knative.dev/client/pkg/messaging/v1"
 	clientv1beta1 "knative.dev/client/pkg/serving/v1beta1"
 	clientsourcesv1 "knative.dev/client/pkg/sources/v1"
-	"knative.dev/client/pkg/sources/v1beta2"
 	eventingv1beta2 "knative.dev/eventing/pkg/apis/eventing/v1beta2"
 	messagingv1 "knative.dev/eventing/pkg/apis/messaging/v1"
 	sourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"
-	sourcesv1beta2 "knative.dev/eventing/pkg/apis/sources/v1beta2"
 	sourcesv1fake "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1/fake"
-	sourcesv1beta2fake "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1beta2/fake"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
@@ -311,29 +308,29 @@ var (
 )
 
 var (
-	testPingSource1 = sourcesv1beta2.PingSource{
+	testPingSource1 = sourcesv1.PingSource{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "PingSource",
 			APIVersion: "sources.knative.dev/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{Name: "test-ping-source-1", Namespace: testNs},
 	}
-	testPingSource2 = sourcesv1beta2.PingSource{
+	testPingSource2 = sourcesv1.PingSource{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "PingSource",
 			APIVersion: "sources.knative.dev/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{Name: "test-ping-source-2", Namespace: testNs},
 	}
-	testPingSource3 = sourcesv1beta2.PingSource{
+	testPingSource3 = sourcesv1.PingSource{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "PingSource",
 			APIVersion: "sources.knative.dev/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{Name: "test-ping-source-3", Namespace: testNs},
 	}
-	testNsPingSources  = []sourcesv1beta2.PingSource{testPingSource1, testPingSource2, testPingSource3}
-	fakeSourcesV1Beta2 = &sourcesv1beta2fake.FakeSourcesV1beta2{Fake: &clienttesting.Fake{}}
+	testNsPingSources  = []sourcesv1.PingSource{testPingSource1, testPingSource2, testPingSource3}
+	fakeSourcesV1Beta2 = &sourcesv1fake.FakeSourcesV1{Fake: &clienttesting.Fake{}}
 )
 
 var (
@@ -448,9 +445,6 @@ current-context: x
 		},
 		NewSourcesClient: func(namespace string) (clientsourcesv1.KnSourcesClient, error) {
 			return clientsourcesv1.NewKnSourcesClient(fakeSources, namespace), nil
-		},
-		NewSourcesV1beta2Client: func(namespace string) (v1beta2.KnSourcesClient, error) {
-			return v1beta2.NewKnSourcesClient(fakeSourcesV1Beta2, namespace), nil
 		},
 		NewEventingV1beta2Client: func(namespace string) (clienteventingv1beta2.KnEventingV1Beta2Client, error) {
 			return clienteventingv1beta2.NewKnEventingV1Beta2Client(fakeEventingBeta2Client, namespace), nil
@@ -1254,7 +1248,7 @@ func TestResourceNameCompletionFuncPingSource(t *testing.T) {
 			if a.GetNamespace() == errorNs {
 				return true, nil, errors.NewInternalError(fmt.Errorf("unable to list ping sources"))
 			}
-			return true, &sourcesv1beta2.PingSourceList{Items: testNsPingSources}, nil
+			return true, &sourcesv1.PingSourceList{Items: testNsPingSources}, nil
 		})
 
 	tests := []testType{

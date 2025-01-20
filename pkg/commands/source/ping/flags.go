@@ -26,7 +26,7 @@ import (
 	"knative.dev/client/pkg/commands"
 	hprinters "knative.dev/client/pkg/printers"
 
-	sourcesv1beta2 "knative.dev/eventing/pkg/apis/sources/v1beta2"
+	sourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"
 )
 
 type pingUpdateFlags struct {
@@ -78,7 +78,7 @@ func PingSourceListHandlers(h hprinters.PrintHandler) {
 }
 
 // printSource populates a single row of Ping source list
-func printSource(source *sourcesv1beta2.PingSource, options hprinters.PrintOptions) ([]metav1.TableRow, error) {
+func printSource(source *sourcesv1.PingSource, options hprinters.PrintOptions) ([]metav1.TableRow, error) {
 	row := metav1.TableRow{
 		Object: runtime.RawExtension{Object: source},
 	}
@@ -111,7 +111,7 @@ func printSource(source *sourcesv1beta2.PingSource, options hprinters.PrintOptio
 }
 
 // printSourceList populates the Ping source list table rows
-func printSourceList(sourceList *sourcesv1beta2.PingSourceList, options hprinters.PrintOptions) ([]metav1.TableRow, error) {
+func printSourceList(sourceList *sourcesv1.PingSourceList, options hprinters.PrintOptions) ([]metav1.TableRow, error) {
 	if options.AllNamespaces {
 		return printSourceListWithNamespace(sourceList, options)
 	}
@@ -135,7 +135,7 @@ func printSourceList(sourceList *sourcesv1beta2.PingSourceList, options hprinter
 }
 
 // printSourceListWithNamespace populates the knative service table rows with namespace column
-func printSourceListWithNamespace(sourceList *sourcesv1beta2.PingSourceList, options hprinters.PrintOptions) ([]metav1.TableRow, error) {
+func printSourceListWithNamespace(sourceList *sourcesv1.PingSourceList, options hprinters.PrintOptions) ([]metav1.TableRow, error) {
 	rows := make([]metav1.TableRow, 0, len(sourceList.Items))
 
 	// temporary slice for sorting services in non-default namespace

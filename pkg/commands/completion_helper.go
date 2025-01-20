@@ -354,7 +354,7 @@ func completePingSource(config *completionConfig) (suggestions []string) {
 		return
 	}
 
-	client, err := config.params.NewSourcesV1beta2Client(namespace)
+	client, err := config.params.NewSourcesClient(namespace)
 	if err != nil {
 		return
 	}

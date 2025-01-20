@@ -20,16 +20,16 @@ import (
 
 	"gotest.tools/v3/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	sourcesv1beta "knative.dev/eventing/pkg/apis/sources/v1beta2"
+	sourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 
-	clientv1beta2 "knative.dev/client/pkg/sources/v1beta2"
+	clientv1 "knative.dev/client/pkg/sources/v1"
 	"knative.dev/client/pkg/util"
 	"knative.dev/pkg/apis"
 )
 
 func TestDescribeRef(t *testing.T) {
-	pingClient := clientv1beta2.NewMockKnPingSourceClient(t, "mynamespace")
+	pingClient := clientv1.NewMockKnPingSourceClient(t, "mynamespace")
 
 	pingRecorder := pingClient.Recorder()
 	pingRecorder.GetPingSource("testping",
@@ -51,7 +51,7 @@ func TestDescribeRef(t *testing.T) {
 }
 
 func TestDescribeURI(t *testing.T) {
-	pingClient := clientv1beta2.NewMockKnPingSourceClient(t, "mynamespace")
+	pingClient := clientv1.NewMockKnPingSourceClient(t, "mynamespace")
 
 	pingRecorder := pingClient.Recorder()
 	pingRecorder.GetPingSource("testsource-uri", getPingSourceSinkURI(), nil)
@@ -64,7 +64,7 @@ func TestDescribeURI(t *testing.T) {
 }
 
 func TestDescribeMachineReadable(t *testing.T) {
-	pingClient := clientv1beta2.NewMockKnPingSourceClient(t, "mynamespace")
+	pingClient := clientv1.NewMockKnPingSourceClient(t, "mynamespace")
 
 	pingRecorder := pingClient.Recorder()
 	pingRecorder.GetPingSource("testsource-uri", getPingSourceSinkURI(), nil)
@@ -76,7 +76,7 @@ func TestDescribeMachineReadable(t *testing.T) {
 }
 
 func TestDescribeError(t *testing.T) {
-	pingClient := clientv1beta2.NewMockKnPingSourceClient(t, "mynamespace")
+	pingClient := clientv1.NewMockKnPingSourceClient(t, "mynamespace")
 
 	pingRecorder := pingClient.Recorder()
 	pingRecorder.GetPingSource("testsource", nil, errors.New("no Ping source testsource"))
@@ -90,14 +90,14 @@ func TestDescribeError(t *testing.T) {
 }
 
 func TestPingDescribeErrorForNoArgs(t *testing.T) {
-	pingClient := clientv1beta2.NewMockKnPingSourceClient(t, "mynamespace")
+	pingClient := clientv1.NewMockKnPingSourceClient(t, "mynamespace")
 	out, err := executePingSourceCommand(pingClient, nil, "describe")
 	assert.ErrorContains(t, err, "single argument")
 	assert.Assert(t, util.ContainsAll(out, "requires", "single argument"))
 }
 
-func getPingSourceSinkURI() *sourcesv1beta.PingSource {
-	return &sourcesv1beta.PingSource{
+func getPingSourceSinkURI() *sourcesv1.PingSource {
+	return &sourcesv1.PingSource{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "PingSource",
 			APIVersion: "sources.knative.dev/v1beta2",
@@ -106,7 +106,7 @@ func getPingSourceSinkURI() *sourcesv1beta.PingSource {
 			Name:      "testsource-uri",
 			Namespace: "mynamespace",
 		},
-		Spec: sourcesv1beta.PingSourceSpec{
+		Spec: sourcesv1.PingSourceSpec{
 			Schedule: "1 2 3 4 5",
 			Data:     "honeymoon",
 			SourceSpec: duckv1.SourceSpec{
@@ -118,6 +118,6 @@ func getPingSourceSinkURI() *sourcesv1beta.PingSource {
 				},
 			},
 		},
-		Status: sourcesv1beta.PingSourceStatus{},
+		Status: sourcesv1.PingSourceStatus{},
 	}
 }

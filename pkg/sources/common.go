@@ -17,7 +17,6 @@ package sources
 import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	v1 "knative.dev/eventing/pkg/apis/sources/v1"
-	"knative.dev/eventing/pkg/apis/sources/v1beta2"
 )
 
 // BuiltInSourcesGVKs returns the GVKs for built in sources
@@ -26,6 +25,6 @@ func BuiltInSourcesGVKs() []schema.GroupVersionKind {
 		v1.SchemeGroupVersion.WithKind("ApiServerSource"),
 		v1.SchemeGroupVersion.WithKind("ContainerSource"),
 		v1.SchemeGroupVersion.WithKind("SinkBinding"),
-		v1beta2.SchemeGroupVersion.WithKind("PingSource"),
+		v1.SchemeGroupVersion.WithKind("PingSource"),
 	}
 }

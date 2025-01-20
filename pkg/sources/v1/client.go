@@ -21,6 +21,9 @@ import (
 // KnSinkBindingClient to Eventing Sources. All methods are relative to the
 // namespace specified during construction
 type KnSourcesClient interface {
+	// Get client for Ping sources
+	PingSourcesClient() KnPingSourcesClient
+
 	// Get client for sink binding sources
 	SinkBindingClient() KnSinkBindingClient
 
@@ -45,6 +48,11 @@ func NewKnSourcesClient(client clientv1.SourcesV1Interface, namespace string) Kn
 		client:    client,
 		namespace: namespace,
 	}
+}
+
+// Get the client for dealing with Ping sources
+func (c *sourcesClient) PingSourcesClient() KnPingSourcesClient {
+	return newKnPingSourcesClient(c.client.PingSources(c.namespace), c.namespace)
 }
 
 // ApiServerSourcesClient for dealing with ApiServer sources
