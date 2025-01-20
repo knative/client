@@ -73,7 +73,7 @@ func TestSourceListTypesNoSourcesWithJsonOutput(t *testing.T) {
 
 func TestSourceListTypes(t *testing.T) {
 	output, err := sourceFakeCmd([]string{"source", "list-types"},
-		newSourceCRDObjWithSpec("pingsources", "sources.knative.dev", "v1beta2", "PingSource"),
+		newSourceCRDObjWithSpec("pingsources", "sources.knative.dev", "v1", "PingSource"),
 		newSourceCRDObjWithSpec("apiserversources", "sources.knative.dev", "v1", "ApiServerSource"),
 	)
 	assert.NilError(t, err)
@@ -108,7 +108,7 @@ func TestSourceListNoSourcesInstalled(t *testing.T) {
 
 func TestSourceListEmpty(t *testing.T) {
 	output, err := sourceFakeCmd([]string{"source", "list", "-o", "json"},
-		newSourceCRDObjWithSpec("pingsources", "sources.knative.dev", "v1beta2", "PingSource"),
+		newSourceCRDObjWithSpec("pingsources", "sources.knative.dev", "v1", "PingSource"),
 	)
 	assert.NilError(t, err)
 	outputJson := strings.Join(output[:], "\n")
@@ -117,10 +117,10 @@ func TestSourceListEmpty(t *testing.T) {
 
 func TestSourceList(t *testing.T) {
 	output, err := sourceFakeCmd([]string{"source", "list"},
-		newSourceCRDObjWithSpec("pingsources", "sources.knative.dev", "v1beta2", "PingSource"),
+		newSourceCRDObjWithSpec("pingsources", "sources.knative.dev", "v1", "PingSource"),
 		newSourceCRDObjWithSpec("sinkbindings", "sources.knative.dev", "v1", "SinkBinding"),
 		newSourceCRDObjWithSpec("apiserversources", "sources.knative.dev", "v1", "ApiServerSource"),
-		newSourceUnstructuredObj("p1", "sources.knative.dev/v1beta2", "PingSource"),
+		newSourceUnstructuredObj("p1", "sources.knative.dev/v1", "PingSource"),
 		newSourceUnstructuredObj("s1", "sources.knative.dev/v1", "SinkBinding"),
 		newSourceUnstructuredObj("a1", "sources.knative.dev/v1", "ApiServerSource"),
 	)
@@ -145,8 +145,8 @@ func TestSourceListUntyped(t *testing.T) {
 
 func TestSourceListNoHeaders(t *testing.T) {
 	output, err := sourceFakeCmd([]string{"source", "list", "--no-headers"},
-		newSourceCRDObjWithSpec("pingsources", "sources.knative.dev", "v1beta2", "PingSource"),
-		newSourceUnstructuredObj("p1", "sources.knative.dev/v1beta2", "PingSource"),
+		newSourceCRDObjWithSpec("pingsources", "sources.knative.dev", "v1", "PingSource"),
+		newSourceUnstructuredObj("p1", "sources.knative.dev/v1", "PingSource"),
 	)
 	assert.NilError(t, err)
 	assert.Check(t, util.ContainsNone(output[0], "NAME", "TYPE", "RESOURCE", "SINK", "READY"))
@@ -208,10 +208,10 @@ func newSourceUnstructuredObj(name, apiVersion, kind string) *unstructured.Unstr
 
 func TestSourceListAllNamespace(t *testing.T) {
 	output, err := sourceFakeCmd([]string{"source", "list", "--all-namespaces"},
-		newSourceCRDObjWithSpec("pingsources", "sources.knative.dev", "v1beta2", "PingSource"),
+		newSourceCRDObjWithSpec("pingsources", "sources.knative.dev", "v1", "PingSource"),
 		newSourceCRDObjWithSpec("sinkbindings", "sources.knative.dev", "v1", "SinkBinding"),
 		newSourceCRDObjWithSpec("apiserversources", "sources.knative.dev", "v1", "ApiServerSource"),
-		newSourceUnstructuredObj("p1", "sources.knative.dev/v1beta2", "PingSource"),
+		newSourceUnstructuredObj("p1", "sources.knative.dev/v1", "PingSource"),
 		newSourceUnstructuredObj("s1", "sources.knative.dev/v1", "SinkBinding"),
 		newSourceUnstructuredObj("a1", "sources.knative.dev/v1", "ApiServerSource"),
 	)

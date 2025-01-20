@@ -20,17 +20,12 @@ import (
 	"gotest.tools/v3/assert"
 
 	sourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"
-	sourcesv1beta2 "knative.dev/eventing/pkg/apis/sources/v1beta2"
 )
 
 func TestBuiltInSourcesGVks(t *testing.T) {
 	gvks := BuiltInSourcesGVKs()
 	for _, each := range gvks {
-		if each.Kind != "PingSource" {
-			assert.DeepEqual(t, each.GroupVersion(), sourcesv1.SchemeGroupVersion)
-		} else {
-			assert.DeepEqual(t, each.GroupVersion(), sourcesv1beta2.SchemeGroupVersion)
-		}
+		assert.DeepEqual(t, each.GroupVersion(), sourcesv1.SchemeGroupVersion)
 	}
 	assert.Equal(t, len(gvks), 4)
 }

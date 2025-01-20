@@ -25,7 +25,7 @@ import (
 	"knative.dev/client/pkg/commands/flags"
 	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
 	messagingv1 "knative.dev/eventing/pkg/apis/messaging/v1"
-	"knative.dev/eventing/pkg/apis/sources/v1beta2"
+	sourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"
 	"knative.dev/pkg/apis"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
@@ -85,7 +85,7 @@ func TestResolve(t *testing.T) {
 		TypeMeta:   metav1.TypeMeta{Kind: "Channel", APIVersion: "messaging.knative.dev/v1"},
 		ObjectMeta: metav1.ObjectMeta{Name: "pipe", Namespace: "default"},
 	}
-	pingSource := &v1beta2.PingSource{
+	pingSource := &sourcesv1.PingSource{
 		TypeMeta:   metav1.TypeMeta{Kind: "PingSource", APIVersion: "sources.knative.dev/v1"},
 		ObjectMeta: metav1.ObjectMeta{Name: "foo", Namespace: "default"},
 	}

@@ -27,7 +27,6 @@ import (
 	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
 	messagingv1 "knative.dev/eventing/pkg/apis/messaging/v1"
 	sourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"
-	sourcesv1beta2 "knative.dev/eventing/pkg/apis/sources/v1beta2"
 	dynamicclientfake "knative.dev/pkg/injection/clients/dynamicclient/fake"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
@@ -43,7 +42,6 @@ func CreateFakeKnDynamicClient(testNamespace string, objects ...runtime.Object) 
 	_ = eventingv1.AddToScheme(scheme)
 	_ = messagingv1.AddToScheme(scheme)
 	_ = sourcesv1.AddToScheme(scheme)
-	_ = sourcesv1beta2.AddToScheme(scheme)
 	_ = apiextensionsv1.AddToScheme(scheme)
 	_, dynamicClient := dynamicclientfake.With(context.TODO(), scheme, objects...)
 	return dynamic.NewKnDynamicClient(dynamicClient, testNamespace)

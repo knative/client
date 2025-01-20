@@ -22,7 +22,7 @@ import (
 
 	"knative.dev/client/pkg/commands"
 	"knative.dev/client/pkg/commands/flags"
-	clientsourcesv1beta2 "knative.dev/client/pkg/sources/v1beta2"
+	clientsourcesv1 "knative.dev/client/pkg/sources/v1"
 	"knative.dev/client/pkg/util"
 )
 
@@ -76,7 +76,7 @@ func NewPingCreateCommand(p *commands.KnParams) *cobra.Command {
 					"%q because: %s", name, namespace, err)
 			}
 
-			err = pingSourceClient.CreatePingSource(cmd.Context(), clientsourcesv1beta2.NewPingSourceBuilder(name).
+			err = pingSourceClient.CreatePingSource(cmd.Context(), clientsourcesv1.NewPingSourceBuilder(name).
 				Schedule(updateFlags.schedule).
 				Data(data).
 				DataBase64(dataBase64).

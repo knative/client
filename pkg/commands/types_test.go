@@ -185,7 +185,7 @@ func TestNewSourcesV1beta2Client(t *testing.T) {
 			LogHTTP:      tc.logHttp,
 		}
 
-		sourcesClient, err := p.newSourcesClientV1beta2(namespace)
+		sourcesClient, err := p.newSourcesClient(namespace)
 
 		switch len(tc.expectedErrString) {
 		case 0:

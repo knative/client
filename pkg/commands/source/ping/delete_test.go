@@ -19,13 +19,13 @@ import (
 	"testing"
 
 	"gotest.tools/v3/assert"
-	clientsourcesv1beta2 "knative.dev/client/pkg/sources/v1beta2"
+	clientsourcesv1 "knative.dev/client/pkg/sources/v1"
 
 	"knative.dev/client/pkg/util"
 )
 
 func TestSimpleDelete(t *testing.T) {
-	pingClient := clientsourcesv1beta2.NewMockKnPingSourceClient(t, "mynamespace")
+	pingClient := clientsourcesv1.NewMockKnPingSourceClient(t, "mynamespace")
 
 	pingRecorder := pingClient.Recorder()
 	pingRecorder.DeletePingSource("testsource", nil)
@@ -38,7 +38,7 @@ func TestSimpleDelete(t *testing.T) {
 }
 
 func TestDeleteWithError(t *testing.T) {
-	pingClient := clientsourcesv1beta2.NewMockKnPingSourceClient(t, "mynamespace")
+	pingClient := clientsourcesv1.NewMockKnPingSourceClient(t, "mynamespace")
 
 	pingRecorder := pingClient.Recorder()
 	pingRecorder.DeletePingSource("testsource", errors.New("no such Ping source testsource"))
@@ -51,7 +51,7 @@ func TestDeleteWithError(t *testing.T) {
 }
 
 func TestPingDeleteErrorForNoArgs(t *testing.T) {
-	pingClient := clientsourcesv1beta2.NewMockKnPingSourceClient(t, "mynamespace")
+	pingClient := clientsourcesv1.NewMockKnPingSourceClient(t, "mynamespace")
 	out, err := executePingSourceCommand(pingClient, nil, "delete")
 	assert.ErrorContains(t, err, "single argument")
 	assert.Assert(t, util.ContainsAll(out, "requires", "single argument"))

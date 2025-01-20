@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1beta2
+package v1
 
 import (
 	"context"
 	"testing"
 
-	sourcesv1beta2 "knative.dev/eventing/pkg/apis/sources/v1beta2"
+	sourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"
 )
 
 func TestMockKnPingSourceClient(t *testing.T) {
@@ -29,20 +29,20 @@ func TestMockKnPingSourceClient(t *testing.T) {
 
 	// Record all services
 	recorder.GetPingSource("hello", nil, nil)
-	recorder.CreatePingSource(&sourcesv1beta2.PingSource{}, nil)
-	recorder.UpdatePingSource(&sourcesv1beta2.PingSource{}, nil)
+	recorder.CreatePingSource(&sourcesv1.PingSource{}, nil)
+	recorder.UpdatePingSource(&sourcesv1.PingSource{}, nil)
 
-	recorder.GetPingSource("hello", &sourcesv1beta2.PingSource{}, nil)
-	recorder.UpdatePingSource(&sourcesv1beta2.PingSource{}, nil)
+	recorder.GetPingSource("hello", &sourcesv1.PingSource{}, nil)
+	recorder.UpdatePingSource(&sourcesv1.PingSource{}, nil)
 
 	recorder.DeletePingSource("hello", nil)
 
 	// Call all service
 	ctx := context.Background()
 	client.GetPingSource(ctx, "hello")
-	client.CreatePingSource(ctx, &sourcesv1beta2.PingSource{})
-	client.UpdatePingSource(ctx, &sourcesv1beta2.PingSource{})
-	client.UpdatePingSourceWithRetry(ctx, "hello", func(origSource *sourcesv1beta2.PingSource) (*sourcesv1beta2.PingSource, error) {
+	client.CreatePingSource(ctx, &sourcesv1.PingSource{})
+	client.UpdatePingSource(ctx, &sourcesv1.PingSource{})
+	client.UpdatePingSourceWithRetry(ctx, "hello", func(origSource *sourcesv1.PingSource) (*sourcesv1.PingSource, error) {
 		return origSource, nil
 	}, 10)
 	client.DeletePingSource(ctx, "hello")

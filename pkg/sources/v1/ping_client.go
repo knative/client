@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1beta2
+package v1
 
 import (
 	"context"
@@ -29,25 +29,25 @@ import (
 	knerrors "knative.dev/client/pkg/errors"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	sourcesv1beta2 "knative.dev/eventing/pkg/apis/sources/v1beta2"
+	sourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"
 
-	clientv1beta2 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1beta2"
+	clientv1 "knative.dev/eventing/pkg/client/clientset/versioned/typed/sources/v1"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 )
 
-type PingSourceUpdateFunc func(origSource *sourcesv1beta2.PingSource) (*sourcesv1beta2.PingSource, error)
+type PingSourceUpdateFunc func(origSource *sourcesv1.PingSource) (*sourcesv1.PingSource, error)
 
 // Interface for interacting with a Ping source
 type KnPingSourcesClient interface {
 
 	// GetPingSource fetches a Ping source by its name
-	GetPingSource(ctx context.Context, name string) (*sourcesv1beta2.PingSource, error)
+	GetPingSource(ctx context.Context, name string) (*sourcesv1.PingSource, error)
 
 	// CreatePingSource creates a Ping source
-	CreatePingSource(ctx context.Context, pingSource *sourcesv1beta2.PingSource) error
+	CreatePingSource(ctx context.Context, pingSource *sourcesv1.PingSource) error
 
 	// UpdatePingSource updates a Ping source
-	UpdatePingSource(ctx context.Context, pingSource *sourcesv1beta2.PingSource) error
+	UpdatePingSource(ctx context.Context, pingSource *sourcesv1.PingSource) error
 
 	// UpdatePingSourceWithRetry updates a Ping source and retries on conflict
 	UpdatePingSourceWithRetry(ctx context.Context, name string, updateFunc PingSourceUpdateFunc, nrRetries int) error
@@ -57,7 +57,7 @@ type KnPingSourcesClient interface {
 
 	// ListPingSource lists all Ping sources
 	// TODO: Support list configs like in service list
-	ListPingSource(ctx context.Context) (*sourcesv1beta2.PingSourceList, error)
+	ListPingSource(ctx context.Context) (*sourcesv1.PingSourceList, error)
 
 	// Get namespace for this source
 	Namespace() string
@@ -67,12 +67,12 @@ type KnPingSourcesClient interface {
 // Temporarily help to add sources dependencies
 // May be changed when adding real sources features
 type pingSourcesClient struct {
-	client    clientv1beta2.PingSourceInterface
+	client    clientv1.PingSourceInterface
 	namespace string
 }
 
 // NewKnSourcesClient is to invoke Eventing Sources Client API to create object
-func newKnPingSourcesClient(client clientv1beta2.PingSourceInterface, namespace string) KnPingSourcesClient {
+func newKnPingSourcesClient(client clientv1.PingSourceInterface, namespace string) KnPingSourcesClient {
 	return &pingSourcesClient{
 		client:    client,
 		namespace: namespace,
@@ -84,7 +84,7 @@ func (c *pingSourcesClient) Namespace() string {
 	return c.namespace
 }
 
-func (c *pingSourcesClient) CreatePingSource(ctx context.Context, pingsource *sourcesv1beta2.PingSource) error {
+func (c *pingSourcesClient) CreatePingSource(ctx context.Context, pingsource *sourcesv1.PingSource) error {
 	if pingsource.Spec.Sink.Ref == nil && pingsource.Spec.Sink.URI == nil {
 		return fmt.Errorf("a sink is required for creating a source")
 	}
@@ -95,7 +95,7 @@ func (c *pingSourcesClient) CreatePingSource(ctx context.Context, pingsource *so
 	return nil
 }
 
-func (c *pingSourcesClient) UpdatePingSource(ctx context.Context, pingSource *sourcesv1beta2.PingSource) error {
+func (c *pingSourcesClient) UpdatePingSource(ctx context.Context, pingSource *sourcesv1.PingSource) error {
 	_, err := c.client.Update(ctx, pingSource, metav1.UpdateOptions{})
 	if err != nil {
 		return knerrors.GetError(err)
@@ -140,12 +140,12 @@ func (c *pingSourcesClient) DeletePingSource(ctx context.Context, name string) e
 	return nil
 }
 
-func (c *pingSourcesClient) GetPingSource(ctx context.Context, name string) (*sourcesv1beta2.PingSource, error) {
+func (c *pingSourcesClient) GetPingSource(ctx context.Context, name string) (*sourcesv1.PingSource, error) {
 	source, err := c.client.Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return nil, knerrors.GetError(err)
 	}
-	err = updateSourceGVK(source)
+	err = updatePingSourceGVK(source)
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +153,7 @@ func (c *pingSourcesClient) GetPingSource(ctx context.Context, name string) (*so
 }
 
 // ListPingSource returns the available Ping sources
-func (c *pingSourcesClient) ListPingSource(ctx context.Context) (*sourcesv1beta2.PingSourceList, error) {
+func (c *pingSourcesClient) ListPingSource(ctx context.Context) (*sourcesv1.PingSourceList, error) {
 	sourceList, err := c.client.List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, knerrors.GetError(err)
@@ -162,21 +162,21 @@ func (c *pingSourcesClient) ListPingSource(ctx context.Context) (*sourcesv1beta2
 	return updatePingSourceListGVK(sourceList)
 }
 
-func updateSourceGVK(obj runtime.Object) error {
-	return util.UpdateGroupVersionKindWithScheme(obj, sourcesv1beta2.SchemeGroupVersion, scheme.Scheme)
+func updatePingSourceGVK(obj runtime.Object) error {
+	return util.UpdateGroupVersionKindWithScheme(obj, sourcesv1.SchemeGroupVersion, scheme.Scheme)
 }
 
-func updatePingSourceListGVK(sourceList *sourcesv1beta2.PingSourceList) (*sourcesv1beta2.PingSourceList, error) {
+func updatePingSourceListGVK(sourceList *sourcesv1.PingSourceList) (*sourcesv1.PingSourceList, error) {
 	sourceListNew := sourceList.DeepCopy()
-	err := updateSourceGVK(sourceListNew)
+	err := updatePingSourceGVK(sourceListNew)
 	if err != nil {
 		return nil, err
 	}
 
-	sourceListNew.Items = make([]sourcesv1beta2.PingSource, len(sourceList.Items))
+	sourceListNew.Items = make([]sourcesv1.PingSource, len(sourceList.Items))
 	for idx, source := range sourceList.Items {
 		sourceClone := source.DeepCopy()
-		err := updateSourceGVK(sourceClone)
+		err := updatePingSourceGVK(sourceClone)
 		if err != nil {
 			return nil, err
 		}
@@ -188,18 +188,18 @@ func updatePingSourceListGVK(sourceList *sourcesv1beta2.PingSourceList) (*source
 // Builder for building up Ping sources
 
 type PingSourceBuilder struct {
-	pingSource *sourcesv1beta2.PingSource
+	pingSource *sourcesv1.PingSource
 }
 
 func NewPingSourceBuilder(name string) *PingSourceBuilder {
-	return &PingSourceBuilder{pingSource: &sourcesv1beta2.PingSource{
+	return &PingSourceBuilder{pingSource: &sourcesv1.PingSource{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
 		},
 	}}
 }
 
-func NewPingSourceBuilderFromExisting(pingsource *sourcesv1beta2.PingSource) *PingSourceBuilder {
+func NewPingSourceBuilderFromExisting(pingsource *sourcesv1.PingSource) *PingSourceBuilder {
 	return &PingSourceBuilder{pingSource: pingsource.DeepCopy()}
 }
 
@@ -244,6 +244,6 @@ func (b *PingSourceBuilder) CloudEventOverrides(ceo map[string]string, toRemove 
 	return b
 }
 
-func (b *PingSourceBuilder) Build() *sourcesv1beta2.PingSource {
+func (b *PingSourceBuilder) Build() *sourcesv1.PingSource {
 	return b.pingSource
 }

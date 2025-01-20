@@ -24,7 +24,7 @@ import (
 
 	"knative.dev/client/pkg/commands"
 	"knative.dev/client/pkg/printers"
-	clientsourcesv1beta2 "knative.dev/eventing/pkg/apis/sources/v1beta2"
+	clientsourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"
 )
 
 var describeExample = `
@@ -115,7 +115,7 @@ func NewPingDescribeCommand(p *commands.KnParams) *cobra.Command {
 	return command
 }
 
-func writePingSource(dw printers.PrefixWriter, source *clientsourcesv1beta2.PingSource, printDetails bool) {
+func writePingSource(dw printers.PrefixWriter, source *clientsourcesv1.PingSource, printDetails bool) {
 	commands.WriteMetadata(dw, &source.ObjectMeta, printDetails)
 	dw.WriteAttribute("Schedule", source.Spec.Schedule)
 	if source.Spec.DataBase64 != "" {
