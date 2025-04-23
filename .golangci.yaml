@@ -1,9 +1,7 @@
+version: "2"
 run:
-  timeout: 5m
-
   build-tags:
     - e2e
-
 linters:
   enable:
     - errorlint
@@ -13,10 +11,26 @@ linters:
     - unparam
   disable:
     - errcheck
-
-issues:
-  exclude-rules:
-    - path: test # Excludes /test, *_test.go etc.
-      linters:
-        - gosec
-        - unparam
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - gosec
+          - unparam
+        path: test
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

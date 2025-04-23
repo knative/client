@@ -778,7 +778,7 @@ func TestWaitForService(t *testing.T) {
 			case notFoundServiceName:
 				err = apierrors.NewNotFound(servingv1.Resource("service"), notFoundServiceName)
 			case internalErrorServiceName:
-				err = apierrors.NewInternalError(fmt.Errorf(internalErrorServiceName))
+				err = apierrors.NewInternalError(fmt.Errorf("%s", internalErrorServiceName))
 			default:
 				t.Log("Service name didn't match any of the given patterns")
 				t.FailNow()
