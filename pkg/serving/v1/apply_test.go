@@ -280,7 +280,7 @@ spec:
 			expectedMap := &unstructured.Unstructured{}
 			yaml.Unmarshal([]byte(tt.want), &expectedMap)
 			if !reflect.DeepEqual(ud, expectedMap) {
-				t.Errorf("cleanupServiceUnstructured(): " + cmp.Diff(ud, expectedMap))
+				t.Errorf("cleanupServiceUnstructured(): %s", cmp.Diff(ud, expectedMap))
 			}
 		})
 	}
