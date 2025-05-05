@@ -27,10 +27,10 @@ require (
 	k8s.io/cli-runtime v0.29.2
 	k8s.io/client-go v0.32.2
 	k8s.io/utils v0.0.0-20241210054802-24370beab758
-	knative.dev/eventing v0.45.0
-	knative.dev/networking v0.0.0-20250415164913-6268d931d247
-	knative.dev/pkg v0.0.0-20250415155312-ed3e2158b883
-	knative.dev/serving v0.45.0
+	knative.dev/eventing v0.45.1-0.20250430151906-06f8dc9242d1
+	knative.dev/networking v0.0.0-20250501223908-a06da1d4a880
+	knative.dev/pkg v0.0.0-20250424013628-d5e74d29daa3
+	knative.dev/serving v0.45.1-0.20250505122054-a01a07861356
 	sigs.k8s.io/yaml v1.4.0
 )
 
@@ -127,9 +127,9 @@ require (
 	golang.org/x/time v0.10.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.5.0 // indirect
 	google.golang.org/api v0.198.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20250207221924-e9438ea467c6 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250207221924-e9438ea467c6 // indirect
-	google.golang.org/grpc v1.71.1 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20250218202821-56aae31c358a // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250218202821-56aae31c358a // indirect
+	google.golang.org/grpc v1.72.0 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.12.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
