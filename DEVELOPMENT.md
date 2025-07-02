@@ -62,7 +62,7 @@ Once you've [set up your development environment](#prerequisites), let's build
 
 **Dependencies:**
 
-[go mod](https://go.dev/wiki/) is used and
+[go mod](https://go.dev/wiki/Modules) is used and
 required for dependencies.
 
 **Building:**
