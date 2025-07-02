@@ -1,10 +1,7 @@
 # Development
 
 This doc explains how to set up a development environment so you can get started
-[contributing](https://www.knative.dev/contributing/) to `Knative Client`. Also
-take a look at:
-
-- [The pull request workflow](https://www.knative.dev/contributing/reviewing/)
+[contributing](https://www.knative.dev/contributing/) to `Knative Client`.
 
 ## Prerequisites
 
@@ -35,7 +32,7 @@ You must install these tools:
 
 ### Create a cluster
 
-1. [Set up Knative](https://knative.dev/docs/install/any-kubernetes-cluster)
+1. [Set up Knative](https://knative.dev/docs/install/)
 
 ### Checkout your fork
 
@@ -65,7 +62,7 @@ Once you've [set up your development environment](#prerequisites), let's build
 
 **Dependencies:**
 
-[go mod](https://github.com/golang/go/wiki/Modules#quick-start) is used and
+[go mod](https://go.dev/wiki/Modules) is used and
 required for dependencies.
 
 **Building:**
