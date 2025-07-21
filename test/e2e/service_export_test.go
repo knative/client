@@ -120,9 +120,9 @@ func TestServiceExport(t *testing.T) {
 		servingtest.WithBYORevisionName("hello-rev2"),
 		test.WithTrafficSpec([]string{"latest", "hello-rev1"}, []int{98, 2}, []string{"", "candidate"}),
 		servingtest.WithEnv(corev1.EnvVar{Name: "a", Value: "mouse"}),
-			func(s *servingv1.Service) {
-				s.Spec.Traffic[0].RevisionName = "hello-rev2"
-			},
+		func(s *servingv1.Service) {
+			s.Spec.Traffic[0].RevisionName = "hello-rev2"
+		},
 	), test.BuildKNExportWithOptions(
 		test.WithKNRevision(*(test.BuildRevision("hello-rev1",
 			servingtest.WithRevisionAnn("client.knative.dev/user-image", userImage),
