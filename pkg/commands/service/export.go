@@ -177,6 +177,11 @@ func exportLatestService(latestSvc *servingv1.Service, withRoutes bool) *serving
 
 	if withRoutes {
 		exportedSvc.Spec.RouteSpec = latestSvc.Spec.RouteSpec
+		for i := range exportedSvc.Spec.RouteSpec.Traffic {
+			if exportedSvc.Spec.RouteSpec.Traffic[i].LatestRevision != nil && *exportedSvc.Spec.RouteSpec.Traffic[i].LatestRevision {
+				exportedSvc.Spec.RouteSpec.Traffic[i].RevisionName = latestSvc.Status.LatestReadyRevisionName
+			}
+		}
 	}
 
 	stripIgnoredAnnotationsFromService(&exportedSvc)

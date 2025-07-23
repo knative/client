@@ -72,6 +72,9 @@ func TestServiceExport(t *testing.T) {
 			servingtest.WithConfigSpec(test.BuildConfigurationSpec()),
 			servingtest.WithBYORevisionName("hello-rev2"),
 			test.WithTrafficSpec([]string{"latest"}, []int{100}, []string{""}),
+			func(s *servingv1.Service) {
+				s.Spec.Traffic[0].RevisionName = "hello-rev2"
+			},
 			servingtest.WithEnv(corev1.EnvVar{Name: "a", Value: "mouse"}),
 		)),
 	), "--with-revisions", "--mode", "replay", "-o", "yaml")
@@ -82,6 +85,9 @@ func TestServiceExport(t *testing.T) {
 		servingtest.WithBYORevisionName("hello-rev2"),
 		test.WithTrafficSpec([]string{"latest"}, []int{100}, []string{""}),
 		servingtest.WithEnv(corev1.EnvVar{Name: "a", Value: "mouse"}),
+		func(s *servingv1.Service) {
+			s.Spec.Traffic[0].RevisionName = "hello-rev2"
+		},
 	), test.BuildKNExportWithOptions(), "--with-revisions", "--mode", "export", "-o", "yaml")
 
 	t.Log("update service with tag and split traffic")
@@ -102,6 +108,9 @@ func TestServiceExport(t *testing.T) {
 			servingtest.WithBYORevisionName("hello-rev2"),
 			test.WithTrafficSpec([]string{"latest", "hello-rev1"}, []int{98, 2}, []string{"", "candidate"}),
 			servingtest.WithEnv(corev1.EnvVar{Name: "a", Value: "mouse"}),
+			func(s *servingv1.Service) {
+				s.Spec.Traffic[0].RevisionName = "hello-rev2"
+			},
 		)),
 	), "--with-revisions", "--mode", "replay", "-o", "yaml")
 
@@ -111,6 +120,9 @@ func TestServiceExport(t *testing.T) {
 		servingtest.WithBYORevisionName("hello-rev2"),
 		test.WithTrafficSpec([]string{"latest", "hello-rev1"}, []int{98, 2}, []string{"", "candidate"}),
 		servingtest.WithEnv(corev1.EnvVar{Name: "a", Value: "mouse"}),
+		func(s *servingv1.Service) {
+			s.Spec.Traffic[0].RevisionName = "hello-rev2"
+		},
 	), test.BuildKNExportWithOptions(
 		test.WithKNRevision(*(test.BuildRevision("hello-rev1",
 			servingtest.WithRevisionAnn("client.knative.dev/user-image", userImage),
