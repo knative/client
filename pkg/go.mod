@@ -14,12 +14,12 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/spf13/afero v1.10.0 // indirect
 	github.com/spf13/cobra v1.8.1
-	github.com/spf13/pflag v1.0.6
+	github.com/spf13/pflag v1.0.7
 	github.com/spf13/viper v1.16.0
 	go.uber.org/multierr v1.11.0
 	go.uber.org/zap v1.27.0
-	golang.org/x/mod v0.25.0
-	golang.org/x/term v0.32.0
+	golang.org/x/mod v0.27.0
+	golang.org/x/term v0.34.0
 	gotest.tools/v3 v3.3.0
 	k8s.io/api v0.33.1
 	k8s.io/apiextensions-apiserver v0.33.1
@@ -27,11 +27,11 @@ require (
 	k8s.io/cli-runtime v0.29.2
 	k8s.io/client-go v0.33.1
 	k8s.io/utils v0.0.0-20241210054802-24370beab758
-	knative.dev/eventing v0.46.0
-	knative.dev/networking v0.0.0-20250716125000-edb1a4a0c863
-	knative.dev/pkg v0.0.0-20250716115900-19d3cc2da0b9
-	knative.dev/serving v0.46.0
-	sigs.k8s.io/yaml v1.5.0
+	knative.dev/eventing v0.46.1-0.20250807145849-50a65f4eec4d
+	knative.dev/networking v0.0.0-20250807143752-5be3ba43ad43
+	knative.dev/pkg v0.0.0-20250811181739-e06d4c9af190
+	knative.dev/serving v0.46.1-0.20250811203339-43463bc1e48a
+	sigs.k8s.io/yaml v1.6.0
 )
 
 require (
@@ -108,14 +108,14 @@ require (
 	go.opentelemetry.io/otel/trace v1.37.0 // indirect
 	go.starlark.net v0.0.0-20230525235612-a134d8f9ddca // indirect
 	go.yaml.in/yaml/v2 v2.4.2 // indirect
-	golang.org/x/net v0.41.0 // indirect
+	golang.org/x/net v0.43.0 // indirect
 	golang.org/x/oauth2 v0.30.0 // indirect
-	golang.org/x/sync v0.15.0 // indirect
-	golang.org/x/sys v0.33.0 // indirect
-	golang.org/x/text v0.26.0 // indirect
+	golang.org/x/sync v0.16.0 // indirect
+	golang.org/x/sys v0.35.0 // indirect
+	golang.org/x/text v0.28.0 // indirect
 	golang.org/x/time v0.12.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.5.0 // indirect
-	google.golang.org/protobuf v1.36.6 // indirect
+	google.golang.org/protobuf v1.36.7 // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.12.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
