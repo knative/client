@@ -135,7 +135,7 @@ func NewServiceExportCommand(p *commands.KnParams) *cobra.Command {
 	commands.AddNamespaceFlags(flags, false)
 	flags.Bool("with-revisions", false, "Export all routed revisions (Beta)")
 	flags.String("mode", "", "Format for exporting all routed revisions. One of replay|export (Beta)")
-	flags.StringSlice("include", []string{}, "Specify comma separated list of key=value")
+	flags.StringSlice("include", []string{}, "Specify a list of fields to include. e.g.: --include securityContext,namespace")
 	machineReadablePrintFlags.AddFlags(command)
 	return command
 }
