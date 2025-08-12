@@ -18,6 +18,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	clientserving "knative.dev/client/pkg/serving"
 
@@ -70,8 +71,9 @@ var IgnoredRevisionLabels = []string{
 }
 
 const (
-	ModeReplay = "replay"
-	ModeExport = "export"
+	ModeReplay      = "replay"
+	ModeExport      = "export"
+	SecurityContext = "securityContext"
 )
 
 // NewServiceExportCommand returns a new command for exporting a service.
@@ -94,7 +96,11 @@ func NewServiceExportCommand(p *commands.KnParams) *cobra.Command {
   kn service export foo --with-revisions --mode=export -n bar -o json
 
   # Export services in kubectl friendly format, as a list kind, one service item for each revision (Beta)
-  kn service export foo --with-revisions --mode=replay -n bar -o json`,
+  kn service export foo --with-revisions --mode=replay -n bar -o json
+
+  # Export a service with securityContext (Beta)
+  kn service export foo --with-revisions --mode=replay --include securityContext -n bar -o json`,
+
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("'kn service export' requires name of the service as single argument")
@@ -129,12 +135,18 @@ func NewServiceExportCommand(p *commands.KnParams) *cobra.Command {
 	commands.AddNamespaceFlags(flags, false)
 	flags.Bool("with-revisions", false, "Export all routed revisions (Beta)")
 	flags.String("mode", "", "Format for exporting all routed revisions. One of replay|export (Beta)")
+	flags.StringSlice("include", []string{}, "Specify comma separated list of key=value")
 	machineReadablePrintFlags.AddFlags(command)
 	return command
 }
 
 func exportService(cmd *cobra.Command, service *servingv1.Service, client clientservingv1.KnServingClient, printer printers.ResourcePrinter) error {
 	withRevisions, err := cmd.Flags().GetBool("with-revisions")
+	if err != nil {
+		return err
+	}
+
+	includeFlags, err := cmd.Flags().GetStringSlice("include")
 	if err != nil {
 		return err
 	}
@@ -149,6 +161,11 @@ func exportService(cmd *cobra.Command, service *servingv1.Service, client client
 		if err != nil {
 			return err
 		}
+		if servicesList, ok := svcList.(*servingv1.ServiceList); ok {
+			for i := range servicesList.Items {
+				cleanupServiceBeforeExport(&servicesList.Items[i], includeFlags)
+			}
+		}
 		return printer.PrintObj(svcList, cmd.OutOrStdout())
 	}
 	// default is export mode
@@ -156,6 +173,8 @@ func exportService(cmd *cobra.Command, service *servingv1.Service, client client
 	if err != nil {
 		return err
 	}
+
+	cleanupServiceBeforeExport(&knExport.Spec.Service, includeFlags)
 	//print kn export
 	return printer.PrintObj(knExport, cmd.OutOrStdout())
 }
@@ -388,5 +407,19 @@ func stripIgnoredLabelsFromRevision(rev *servingv1.Revision) {
 func stripIgnoredLabelsFromRevisionTemplate(template *servingv1.RevisionTemplateSpec) {
 	for _, label := range IgnoredRevisionLabels {
 		delete(template.ObjectMeta.Labels, label)
+	}
+}
+
+func cleanupServiceBeforeExport(svc *servingv1.Service, includeFlags []string) {
+	hasFlag := make(map[string]bool)
+	for _, flag := range includeFlags {
+		hasFlag[strings.ToLower(flag)] = true
+	}
+
+	if ok := hasFlag[strings.ToLower(SecurityContext)]; !ok {
+		svc.Spec.Template.Spec.SecurityContext = nil
+		for i := range svc.Spec.Template.Spec.Containers {
+			svc.Spec.Template.Spec.Containers[i].SecurityContext = nil
+		}
 	}
 }
