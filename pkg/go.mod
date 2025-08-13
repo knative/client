@@ -30,7 +30,7 @@ require (
 	knative.dev/eventing v0.46.1-0.20250812205542-23fa8200f151
 	knative.dev/networking v0.0.0-20250812143640-1456f137af1a
 	knative.dev/pkg v0.0.0-20250811181739-e06d4c9af190
-	knative.dev/serving v0.46.1-0.20250812161542-d4eb67759c4c
+	knative.dev/serving v0.46.1-0.20250813121741-7040345eb739
 	sigs.k8s.io/yaml v1.6.0
 )
 
