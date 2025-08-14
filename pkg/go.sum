@@ -789,8 +789,8 @@ knative.dev/eventing v0.46.1-0.20250812205542-23fa8200f151 h1:VhJ7RgMLnP5oePgbZF
 knative.dev/eventing v0.46.1-0.20250812205542-23fa8200f151/go.mod h1:iBeSAnDSzSs0OQNkC6USa0LrF50r8kZhTh0mrKmsW0Y=
 knative.dev/networking v0.0.0-20250812143640-1456f137af1a h1:VzAosy90vRkHgZkvf1PjewE1B4mQgFrBNrK4ev4LeuY=
 knative.dev/networking v0.0.0-20250812143640-1456f137af1a/go.mod h1:HncYx48S0i15QNzBWi/4GYvhEYnmMjNGt+MoCPPQU+A=
-knative.dev/pkg v0.0.0-20250811181739-e06d4c9af190 h1:YAb1BppD0yXKJ8axSYRHFwkrJ+TiYLLJ06dNt4XdOqk=
-knative.dev/pkg v0.0.0-20250811181739-e06d4c9af190/go.mod h1:fjxsqJKXTSnVPtW9Z0lXGaGw7qrUtAoinUpWFJzSn+4=
+knative.dev/pkg v0.0.0-20250813152941-6c39c7c0f363 h1:LWnPilvpMV9Yzvf3x34AweQ+nj82y4rvg4e+b8lnbwY=
+knative.dev/pkg v0.0.0-20250813152941-6c39c7c0f363/go.mod h1:Sfr4wvc45NpT6UhONuLTYAOhQyT+C0JmjoY7XGec+kI=
 knative.dev/serving v0.46.1-0.20250813121741-7040345eb739 h1:r9iH2pp0OEIlAIcGCTAUEgkwPZRxb+q0KYy3fxAe8lI=
 knative.dev/serving v0.46.1-0.20250813121741-7040345eb739/go.mod h1:kDahSxSJcGc2d6yW/L0pPVrSfM7A1SARX2D9WxJQVas=
 rsc.io/binaryregexp v0.2.0/go.mod h1:qTv7/COck+e2FymRvadv62gMdZztPaShugOCi3I+8D8=
