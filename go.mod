@@ -11,8 +11,8 @@ require (
 	knative.dev/client/pkg v0.0.0-00010101000000-000000000000
 	knative.dev/hack v0.0.0-20250708013849-70d4b00da6ba
 	knative.dev/networking v0.0.0-20250814015442-a7d77604fab6
-	knative.dev/pkg v0.0.0-20250814150843-2e0e61e26e24
-	knative.dev/serving v0.46.1-0.20250815124142-4df9185d79e4
+	knative.dev/pkg v0.0.0-20250817140644-c745f1fcaa2e
+	knative.dev/serving v0.46.1-0.20250815165043-5ea75ccf2736
 	sigs.k8s.io/yaml v1.6.0
 )
 
