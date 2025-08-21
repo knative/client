@@ -10,7 +10,7 @@ require (
 	k8s.io/code-generator v0.33.4
 	knative.dev/client/pkg v0.0.0-00010101000000-000000000000
 	knative.dev/hack v0.0.0-20250819212847-f88b7db09b1c
-	knative.dev/networking v0.0.0-20250818184848-2d1ca411020d
+	knative.dev/networking v0.0.0-20250821144952-042b64d7bbde
 	knative.dev/pkg v0.0.0-20250821143151-4ffdcf6b3fa5
 	knative.dev/serving v0.46.1
 	sigs.k8s.io/yaml v1.6.0
@@ -99,7 +99,6 @@ require (
 	golang.org/x/text v0.28.0 // indirect
 	golang.org/x/time v0.12.0 // indirect
 	golang.org/x/tools v0.35.0 // indirect
-	golang.org/x/tools/go/expect v0.1.1-deprecated // indirect
 	gomodules.xyz/jsonpatch/v2 v2.5.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250818200422-3122310a409c // indirect
 	google.golang.org/grpc v1.75.0 // indirect
