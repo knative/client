@@ -785,8 +785,8 @@ k8s.io/kube-openapi v0.0.0-20250318190949-c8a335a9a2ff h1:/usPimJzUKKu+m+TE36gUy
 k8s.io/kube-openapi v0.0.0-20250318190949-c8a335a9a2ff/go.mod h1:5jIi+8yX4RIb8wk3XwBo5Pq2ccx4FP10ohkbSKCZoK8=
 k8s.io/utils v0.0.0-20241210054802-24370beab758 h1:sdbE21q2nlQtFh65saZY+rRM6x6aJJI8IUa1AmH/qa0=
 k8s.io/utils v0.0.0-20241210054802-24370beab758/go.mod h1:OLgZIPagt7ERELqWJFomSt595RzquPNLL48iOWgYOg0=
-knative.dev/eventing v0.46.1-0.20250825120254-ece67ee30709 h1:92R3bu6KzJWFEO9sowg+tynFq3oZ150mEycWNvkvIu8=
-knative.dev/eventing v0.46.1-0.20250825120254-ece67ee30709/go.mod h1:q3W3uSTRQ7lVH24cLUuO7hmLVKxqRFZErxyF4mwTlz0=
+knative.dev/eventing v0.46.1-0.20250827115136-841dfae2b2b2 h1:2duQtjA8RK4C/z/8SdSHvF416skpqKrqqYgAXmwqWAM=
+knative.dev/eventing v0.46.1-0.20250827115136-841dfae2b2b2/go.mod h1:q3W3uSTRQ7lVH24cLUuO7hmLVKxqRFZErxyF4mwTlz0=
 knative.dev/networking v0.0.0-20250820015349-8f495ee80e52 h1:otZjfxLAOcn1wV9Yl8i7VZ4aDWiS2NEo2Kyg3b0a4pA=
 knative.dev/networking v0.0.0-20250820015349-8f495ee80e52/go.mod h1:rEXgxXZ7rmrif823YRJgaQO89jySTDor0NNEq6tlC6Q=
 knative.dev/pkg v0.0.0-20250820014848-e9c87121ec4c h1:l+HQf+byp7MpDz7A4GHyh6U0Yhf/T0A7zbl5EoLGado=
