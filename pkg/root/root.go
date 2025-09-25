@@ -39,6 +39,7 @@ import (
 	"knative.dev/client/pkg/commands/eventtype"
 	"knative.dev/client/pkg/commands/options"
 	"knative.dev/client/pkg/commands/plugin"
+	"knative.dev/client/pkg/commands/quickstart"
 	"knative.dev/client/pkg/commands/revision"
 	"knative.dev/client/pkg/commands/route"
 	"knative.dev/client/pkg/commands/service"
@@ -116,6 +117,7 @@ Find more information about Knative at: https://knative.dev`, rootName),
 			Header: "Other Commands:",
 			Commands: []*cobra.Command{
 				plugin.NewPluginCommand(p),
+				quickstart.NewQuickstartCommand(p),
 				secret.NewSecretCommand(p),
 				completion.NewCompletionCommand(p),
 				version.NewVersionCommand(p),
