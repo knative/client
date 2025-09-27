@@ -43,7 +43,7 @@ var kubernetesVersion = "kindest/node:v1.32.0"
 var clusterName string
 var kindVersion = 0.26
 var containerRegName = "kind-registry"
-var container_reg_port = "5001"
+var containerRegPort = "5001"
 var installKnative = true
 
 // SetUp creates a local Kind cluster and installs all the relevant Knative components
