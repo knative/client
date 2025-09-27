@@ -175,10 +175,9 @@ func checkForExistingCluster() error {
 					fmt.Println("Skipping installation")
 					installKnative = false
 					return nil
-				} else {
-					if err := recreateCluster(); err != nil {
-						return fmt.Errorf("failed while recreating minikube cluster: %w", err)
-					}
+				}
+				if err := recreateCluster(); err != nil {
+					return fmt.Errorf("failed while recreating minikube cluster: %w", err)
 				}
 			}
 			return nil

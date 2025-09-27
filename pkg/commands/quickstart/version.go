@@ -21,8 +21,13 @@ import (
 	"knative.dev/client/pkg/commands"
 )
 
+// Version contains the version string of the quickstart command
 var Version string
+
+// BuildDate contains the build date of the quickstart command
 var BuildDate string
+
+// GitRevision contains the git revision of the quickstart command
 var GitRevision string
 
 // NewVersionCommand implements 'kn quickstart version' command

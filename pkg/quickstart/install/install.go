@@ -22,8 +22,14 @@ import (
 )
 
 // Component versions are generated at buildtime via the hack/build.sh script
+
+// ServingVersion contains the version of Knative Serving to install
 var ServingVersion string
+
+// KourierVersion contains the version of Kourier networking layer to install
 var KourierVersion string
+
+// EventingVersion contains the version of Knative Eventing to install
 var EventingVersion string
 
 // Kourier installs Kourier networking layer from Github YAML files
@@ -81,8 +87,8 @@ spec:
 
 	fmt.Println("    Kourier service installed...")
 
-	domainDns := exec.Command("kubectl", "patch", "configmap", "-n", "knative-serving", "config-domain", "-p", "{\"data\": {\"127.0.0.1.sslip.io\": \"\"}}")
-	if err := runCommand(domainDns); err != nil {
+	domainDNS := exec.Command("kubectl", "patch", "configmap", "-n", "knative-serving", "config-domain", "-p", "{\"data\": {\"127.0.0.1.sslip.io\": \"\"}}")
+	if err := runCommand(domainDNS); err != nil {
 		return fmt.Errorf("domain dns: %w", err)
 	}
 	fmt.Println("    Domain DNS set up...")
