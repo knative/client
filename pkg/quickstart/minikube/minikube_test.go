@@ -118,13 +118,13 @@ func TestConstants(t *testing.T) {
 // Test parameter processing logic
 func TestSetUpParameterProcessing(t *testing.T) {
 	testCases := []struct {
-		name            string
-		kVersion        string
-		installServing  bool
-		installEventing bool
-		expectedServing bool
+		name             string
+		kVersion         string
+		installServing   bool
+		installEventing  bool
+		expectedServing  bool
 		expectedEventing bool
-		description     string
+		description      string
 	}{
 		{
 			name:             "both-false-should-default-to-both-true",
@@ -189,8 +189,8 @@ func TestKubernetesVersionProcessing(t *testing.T) {
 	}()
 
 	testCases := []struct {
-		input           string
-		expectedVersion string
+		input            string
+		expectedVersion  string
 		expectedOverride bool
 	}{
 		{
