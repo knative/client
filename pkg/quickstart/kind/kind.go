@@ -418,7 +418,7 @@ func patchKindNodes() error {
 
 	for _, node := range nodes {
 		fmt.Println("🔗 Patching node: " + node) // DEBUG
-		reg_config_dir := fmt.Sprintf("/etc/containerd/certs.d/localhost:%s/", container_reg_port)
+		regConfigDir := fmt.Sprintf("/etc/containerd/certs.d/localhost:%s/", container_reg_port)
 		execOpts := container.ExecOptions{
 			Cmd:    []string{"sh", "-c", fmt.Sprintf(`mkdir -p %s && echo '[host."http://%s:5000"]' > %shosts.toml`, reg_config_dir, container_reg_name, reg_config_dir)},
 			Detach: true,
