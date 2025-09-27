@@ -83,7 +83,7 @@ func SetUp(name, kVersion string, installServing, installEventing, installKindRe
 			// See https://github.com/knative-extensions/kn-plugin-quickstart/issues/467
 			registries := ""
 			if installKindRegistry {
-				registries = fmt.Sprintf("localhost:%s", container_reg_port)
+				registries = fmt.Sprintf("localhost:%s", containerRegPort)
 			}
 			if err := install.Serving(registries); err != nil {
 				return fmt.Errorf("failed to install serving to kind cluster %s: %w", clusterName, err)
@@ -189,12 +189,12 @@ func createLocalRegistry(dcli *dclient.Client) error {
 			"5000/tcp": []nat.PortBinding{
 				{
 					HostIP:   "0.0.0.0",
-					HostPort: container_reg_port,
+					HostPort: containerRegPort,
 				},
 			},
 		},
 		NetworkMode: "bridge",
-	}, nil, nil, container_reg_name)
+	}, nil, nil, containerRegName)
 	if err != nil {
 		return fmt.Errorf("failed to create local registry container: %w", err)
 	}
@@ -211,7 +211,7 @@ func connectLocalRegistry(dcli *dclient.Client) error {
 		return fmt.Errorf("failed to patch kind nodes: %w", err)
 	}
 
-	err = dcli.NetworkConnect(context.Background(), "kind", container_reg_name, nil)
+	err = dcli.NetworkConnect(context.Background(), "kind", containerRegName, nil)
 	if err != nil {
 		return fmt.Errorf("failed to connect local registry to kind network: %w", err)
 	}
@@ -225,7 +225,7 @@ metadata:
 data:
   localRegistryHosting.v1: |
     host: "localhost:%s"
-    help: "https://kind.sigs.k8s.io/docs/user/local-registry/"`, container_reg_port)
+    help: "https://kind.sigs.k8s.io/docs/user/local-registry/"`, containerRegPort)
 	createLocalRegistryConfigMap := exec.Command("kubectl", "apply", "-f", "-")
 
 	createLocalRegistryConfigMap.Stdin = strings.NewReader(cm)
@@ -418,9 +418,9 @@ func patchKindNodes() error {
 
 	for _, node := range nodes {
 		fmt.Println("🔗 Patching node: " + node) // DEBUG
-		regConfigDir := fmt.Sprintf("/etc/containerd/certs.d/localhost:%s/", container_reg_port)
+		regConfigDir := fmt.Sprintf("/etc/containerd/certs.d/localhost:%s/", containerRegPort)
 		execOpts := container.ExecOptions{
-			Cmd:    []string{"sh", "-c", fmt.Sprintf(`mkdir -p %s && echo '[host."http://%s:5000"]' > %shosts.toml`, reg_config_dir, container_reg_name, reg_config_dir)},
+			Cmd:    []string{"sh", "-c", fmt.Sprintf(`mkdir -p %s && echo '[host."http://%s:5000"]' > %shosts.toml`, regConfigDir, containerRegName, regConfigDir)},
 			Detach: true,
 			Tty:    false,
 		}
@@ -461,7 +461,7 @@ func parseKindVersion(v string) (float64, error) {
 }
 
 func deleteContainerRegistry(dcli *dclient.Client) error {
-	if err := dcli.ContainerRemove(context.Background(), container_reg_name, container.RemoveOptions{Force: true}); err != nil {
+	if err := dcli.ContainerRemove(context.Background(), containerRegName, container.RemoveOptions{Force: true}); err != nil {
 		if strings.Contains(strings.ToLower(err.Error()), ": no such container") {
 			return nil
 		}
