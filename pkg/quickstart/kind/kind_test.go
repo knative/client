@@ -25,14 +25,14 @@ func TestSetUpFunction(t *testing.T) {
 
 	// Test that function can be called without panicking with various parameter combinations
 	testCases := []struct {
-		name                                  string
-		kVersion                              string
-		installServing                        bool
-		installEventing                       bool
-		installKindRegistry                   bool
-		installKindExtraMountHostPath         string
-		installKindExtraMountContainerPath    string
-		expectError                           bool
+		name                               string
+		kVersion                           string
+		installServing                     bool
+		installEventing                    bool
+		installKindRegistry                bool
+		installKindExtraMountHostPath      string
+		installKindExtraMountContainerPath string
+		expectError                        bool
 	}{
 		{
 			name:                               "basic-test",
