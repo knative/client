@@ -42,7 +42,7 @@ import (
 var kubernetesVersion = "kindest/node:v1.32.0"
 var clusterName string
 var kindVersion = 0.26
-var container_reg_name = "kind-registry"
+var containerRegName = "kind-registry"
 var container_reg_port = "5001"
 var installKnative = true
 
