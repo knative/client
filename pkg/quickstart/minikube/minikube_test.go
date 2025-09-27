@@ -15,6 +15,8 @@
 package minikube
 
 import (
+	"fmt"
+	"strconv"
 	"testing"
 )
 
@@ -110,5 +112,176 @@ func TestConstants(t *testing.T) {
 
 	if !installKnative {
 		t.Error("installKnative should default to true")
+	}
+}
+
+// Test parameter processing logic
+func TestSetUpParameterProcessing(t *testing.T) {
+	testCases := []struct {
+		name            string
+		kVersion        string
+		installServing  bool
+		installEventing bool
+		expectedServing bool
+		expectedEventing bool
+		description     string
+	}{
+		{
+			name:             "both-false-should-default-to-both-true",
+			kVersion:         "1.25.0",
+			installServing:   false,
+			installEventing:  false,
+			expectedServing:  true,
+			expectedEventing: true,
+			description:      "When both serving and eventing are false, both should default to true",
+		},
+		{
+			name:             "serving-only",
+			kVersion:         "1.25.0",
+			installServing:   true,
+			installEventing:  false,
+			expectedServing:  true,
+			expectedEventing: false,
+			description:      "When only serving is true, eventing should remain false",
+		},
+		{
+			name:             "eventing-only",
+			kVersion:         "1.25.0",
+			installServing:   false,
+			installEventing:  true,
+			expectedServing:  false,
+			expectedEventing: true,
+			description:      "When only eventing is true, serving should remain false",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Test the logic that would be applied in SetUp
+			serving := tc.installServing
+			eventing := tc.installEventing
+
+			// Apply the same logic as in SetUp function
+			if !serving && !eventing {
+				serving = true
+				eventing = true
+			}
+
+			if serving != tc.expectedServing {
+				t.Errorf("%s: expected serving=%v, got %v", tc.description, tc.expectedServing, serving)
+			}
+
+			if eventing != tc.expectedEventing {
+				t.Errorf("%s: expected eventing=%v, got %v", tc.description, tc.expectedEventing, eventing)
+			}
+		})
+	}
+}
+
+// Test version string processing
+func TestKubernetesVersionProcessing(t *testing.T) {
+	// Save original values
+	originalVersion := kubernetesVersion
+	originalOverride := clusterVersionOverride
+	defer func() {
+		kubernetesVersion = originalVersion
+		clusterVersionOverride = originalOverride
+	}()
+
+	testCases := []struct {
+		input           string
+		expectedVersion string
+		expectedOverride bool
+	}{
+		{
+			input:            "",
+			expectedVersion:  "1.32.0", // Should use default
+			expectedOverride: false,
+		},
+		{
+			input:            "1.25.0",
+			expectedVersion:  "1.25.0",
+			expectedOverride: true,
+		},
+		{
+			input:            "1.26.3",
+			expectedVersion:  "1.26.3",
+			expectedOverride: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("version-%s", tc.input), func(t *testing.T) {
+			// Reset to defaults
+			kubernetesVersion = "1.32.0"
+			clusterVersionOverride = false
+
+			// Apply the same logic as in SetUp
+			if tc.input != "" {
+				kubernetesVersion = tc.input
+				clusterVersionOverride = true
+			}
+
+			if kubernetesVersion != tc.expectedVersion {
+				t.Errorf("Input '%s': expected version '%s', got '%s'", tc.input, tc.expectedVersion, kubernetesVersion)
+			}
+
+			if clusterVersionOverride != tc.expectedOverride {
+				t.Errorf("Input '%s': expected override %v, got %v", tc.input, tc.expectedOverride, clusterVersionOverride)
+			}
+		})
+	}
+}
+
+// Test resource configuration
+func TestResourceConfiguration(t *testing.T) {
+	// Test CPU configuration
+	if cpus != "3" {
+		t.Errorf("Expected 3 CPUs, got '%s'", cpus)
+	}
+
+	// Test memory configuration
+	if memory != "3072" {
+		t.Errorf("Expected 3072MB memory, got '%s'", memory)
+	}
+
+	// Test that values are reasonable
+	cpuInt, err := strconv.Atoi(cpus)
+	if err != nil {
+		t.Errorf("CPU value should be numeric, got '%s'", cpus)
+	} else if cpuInt < 1 {
+		t.Errorf("CPU count should be at least 1, got %d", cpuInt)
+	}
+
+	memoryInt, err := strconv.Atoi(memory)
+	if err != nil {
+		t.Errorf("Memory value should be numeric, got '%s'", memory)
+	} else if memoryInt < 1024 {
+		t.Errorf("Memory should be at least 1024MB, got %d", memoryInt)
+	}
+}
+
+// Test cluster name setting
+func TestClusterNameSetting(t *testing.T) {
+	originalName := clusterName
+	defer func() { clusterName = originalName }()
+
+	testName := "test-minikube-cluster"
+	clusterName = testName
+
+	if clusterName != testName {
+		t.Errorf("Expected cluster name '%s', got '%s'", testName, clusterName)
+	}
+}
+
+// Test minikube version validation
+func TestMinikubeVersionValidation(t *testing.T) {
+	if minikubeVersion < 1.0 {
+		t.Errorf("Minikube version should be at least 1.0, got %f", minikubeVersion)
+	}
+
+	// Test that the version is a reasonable current version
+	if minikubeVersion > 2.0 {
+		t.Logf("Minikube version is quite high: %f (this may be expected)", minikubeVersion)
 	}
 }

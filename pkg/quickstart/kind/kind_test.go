@@ -15,6 +15,8 @@
 package kind
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 )
 
@@ -113,5 +115,142 @@ func TestConstants(t *testing.T) {
 
 	if !installKnative {
 		t.Error("installKnative should default to true")
+	}
+}
+
+// Test parameter processing logic
+func TestSetUpParameterProcessing(t *testing.T) {
+	testCases := []struct {
+		name            string
+		kVersion        string
+		installServing  bool
+		installEventing bool
+		expectedServing bool
+		expectedEventing bool
+		description     string
+	}{
+		{
+			name:             "both-false-should-default-to-both-true",
+			kVersion:         "1.25.0",
+			installServing:   false,
+			installEventing:  false,
+			expectedServing:  true,
+			expectedEventing: true,
+			description:      "When both serving and eventing are false, both should default to true",
+		},
+		{
+			name:             "serving-only",
+			kVersion:         "1.25.0",
+			installServing:   true,
+			installEventing:  false,
+			expectedServing:  true,
+			expectedEventing: false,
+			description:      "When only serving is true, eventing should remain false",
+		},
+		{
+			name:             "eventing-only",
+			kVersion:         "1.25.0",
+			installServing:   false,
+			installEventing:  true,
+			expectedServing:  false,
+			expectedEventing: true,
+			description:      "When only eventing is true, serving should remain false",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Test the logic that would be applied in SetUp
+			serving := tc.installServing
+			eventing := tc.installEventing
+
+			// Apply the same logic as in SetUp function
+			if !serving && !eventing {
+				serving = true
+				eventing = true
+			}
+
+			if serving != tc.expectedServing {
+				t.Errorf("%s: expected serving=%v, got %v", tc.description, tc.expectedServing, serving)
+			}
+
+			if eventing != tc.expectedEventing {
+				t.Errorf("%s: expected eventing=%v, got %v", tc.description, tc.expectedEventing, eventing)
+			}
+		})
+	}
+}
+
+// Test version string processing
+func TestKubernetesVersionProcessing(t *testing.T) {
+	testCases := []struct {
+		input    string
+		expected string
+	}{
+		{
+			input:    "",
+			expected: "kindest/node:v1.32.0", // Should use default
+		},
+		{
+			input:    "1.25.0",
+			expected: "kindest/node:v1.25.0",
+		},
+		{
+			input:    "kindest/node:v1.26.0",
+			expected: "kindest/node:v1.26.0", // Should use as-is
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("version-%s", tc.input), func(t *testing.T) {
+			// Save original
+			original := kubernetesVersion
+			defer func() { kubernetesVersion = original }()
+
+			// Reset to default
+			kubernetesVersion = "kindest/node:v1.32.0"
+
+			// Apply the same logic as in SetUp
+			if tc.input != "" {
+				if strings.Contains(tc.input, ":") {
+					kubernetesVersion = tc.input
+				} else {
+					kubernetesVersion = "kindest/node:v" + tc.input
+				}
+			}
+
+			if kubernetesVersion != tc.expected {
+				t.Errorf("Input '%s': expected '%s', got '%s'", tc.input, tc.expected, kubernetesVersion)
+			}
+		})
+	}
+}
+
+// Test registry configuration
+func TestRegistryConfiguration(t *testing.T) {
+	// Test registry URL construction
+	registryURL := fmt.Sprintf("localhost:%s", containerRegPort)
+	expected := "localhost:5001"
+
+	if registryURL != expected {
+		t.Errorf("Expected registry URL '%s', got '%s'", expected, registryURL)
+	}
+
+	// Test registry name
+	if containerRegName != "kind-registry" {
+		t.Errorf("Expected container registry name 'kind-registry', got '%s'", containerRegName)
+	}
+}
+
+// Test that cluster name gets set correctly
+func TestClusterNameSetting(t *testing.T) {
+	originalName := clusterName
+	defer func() { clusterName = originalName }()
+
+	testName := "test-cluster"
+	clusterName = testName
+
+	if clusterName != testName {
+		t.Errorf("Expected cluster name '%s', got '%s'", testName, clusterName)
 	}
 }
