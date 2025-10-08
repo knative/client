@@ -27,10 +27,10 @@ require (
 	k8s.io/cli-runtime v0.29.2
 	k8s.io/client-go v0.33.5
 	k8s.io/utils v0.0.0-20241210054802-24370beab758
-	knative.dev/eventing v0.46.1-0.20251002211605-5828b491e837
-	knative.dev/networking v0.0.0-20250916015400-8cc248b445a0
-	knative.dev/pkg v0.0.0-20251007000110-e53fcbb06907
-	knative.dev/serving v0.46.1-0.20251007000510-4ce8c6e900ec
+	knative.dev/eventing v0.46.1-0.20251008070512-9fe13ee820cf
+	knative.dev/networking v0.0.0-20251008015313-0e1a0aa62ad1
+	knative.dev/pkg v0.0.0-20251007184713-a624c759bede
+	knative.dev/serving v0.46.1-0.20251008121813-85563f5d21ca
 	sigs.k8s.io/yaml v1.6.0
 )
 
@@ -102,12 +102,13 @@ require (
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xlab/treeprint v1.2.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
-	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.62.0 // indirect
-	go.opentelemetry.io/otel v1.37.0 // indirect
-	go.opentelemetry.io/otel/metric v1.37.0 // indirect
-	go.opentelemetry.io/otel/trace v1.37.0 // indirect
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.63.0 // indirect
+	go.opentelemetry.io/otel v1.38.0 // indirect
+	go.opentelemetry.io/otel/metric v1.38.0 // indirect
+	go.opentelemetry.io/otel/trace v1.38.0 // indirect
 	go.starlark.net v0.0.0-20230525235612-a134d8f9ddca // indirect
 	go.yaml.in/yaml/v2 v2.4.2 // indirect
+	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/net v0.44.0 // indirect
 	golang.org/x/oauth2 v0.30.0 // indirect
 	golang.org/x/sync v0.17.0 // indirect
