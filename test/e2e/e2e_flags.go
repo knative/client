@@ -22,16 +22,13 @@ package e2e
 import (
 	"flag"
 
-	// Load the generic flags of knative.dev/pkg too.
 	_ "knative.dev/pkg/test"
 )
 
-// ClientFlags holds the flags or defaults for knative/client settings in the user's environment.
 var ClientFlags = initializeClientFlags()
 
-// ClientEnvironmentFlags holds the e2e flags needed only by the client repo.
 type ClientEnvironmentFlags struct {
-	HTTPS bool // Indicates where the test service will be created with https
+	HTTPS bool
 }
 
 func initializeClientFlags() *ClientEnvironmentFlags {
