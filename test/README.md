@@ -69,15 +69,13 @@ test/local-e2e-tests.sh -short
 
 ### Running tests with HTTPS
 
-When running tests against a Knative cluster configured with `defaultExternalScheme=https`,
-use the `--https` flag to make tests expect HTTPS URLs for services:
+When running tests against a cluster configured to use HTTPS, use the `--https` flag to make tests expect HTTPS URLs:
 
 ```bash
 test/local-e2e-tests.sh --https
 ```
 
-This is particularly useful for the domain mapping tests, which need to know whether
-to expect HTTP or HTTPS URLs from services.
+
 
 ### Running E2E tests as a project admin
 
