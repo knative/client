@@ -75,8 +75,6 @@ When running tests against a cluster configured to use HTTPS, use the `--https` 
 test/local-e2e-tests.sh --https
 ```
 
-
-
 ### Running E2E tests as a project admin
 
 It is possible to run the E2E tests by a user with reduced privileges, e.g. project admin.
