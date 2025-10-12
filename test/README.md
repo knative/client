@@ -72,7 +72,7 @@ test/local-e2e-tests.sh -short
 When running tests against a cluster configured to use HTTPS, use the `--https` flag to make tests expect HTTPS URLs:
 
 ```bash
-test/local-e2e-tests.sh --https
+ test/local-e2e-tests.sh --https
 ```
 
 ### Running E2E tests as a project admin
