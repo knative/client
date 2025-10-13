@@ -21,6 +21,9 @@ kn service export NAME
 
   # Export services in kubectl friendly format, as a list kind, one service item for each revision (Beta)
   kn service export foo --with-revisions --mode=replay -n bar -o json
+
+  # Export a service with securityContext (Beta)
+  kn service export foo --with-revisions --mode=replay --include securityContext -n bar -o json
 ```
 
 ### Options
@@ -28,6 +31,7 @@ kn service export NAME
 ```
       --allow-missing-template-keys   If true, ignore any errors in templates when a field or map key is missing in the template. Only applies to golang and jsonpath output formats. (default true)
   -h, --help                          help for export
+      --include strings               Specify a list of fields to include. e.g.: --include securityContext,namespace
       --mode string                   Format for exporting all routed revisions. One of replay|export (Beta)
   -n, --namespace string              Specify the namespace to operate in.
   -o, --output string                 Output format. One of: (json, yaml, name, go-template, go-template-file, template, templatefile, jsonpath, jsonpath-as-json, jsonpath-file).
