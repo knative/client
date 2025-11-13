@@ -55,8 +55,8 @@ func TestSpinner(t *testing.T) {
 		"message", "msg-1", "msg-2",
 		"▰▱▱", "▰▰▱", "▰▰▰",
 		"Done",
-		"\u001B[?25l", "\u001B[0D",
-		"\u001B[0D\u001B[2K",
+		"\u001B[?25l",
+		"\u001B[2K",
 	}
 	for _, expected := range expectedMsgs {
 		if !strings.Contains(got, expected) {

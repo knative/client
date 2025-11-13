@@ -70,13 +70,12 @@ func createUnstructured(name string) unstructured.Unstructured {
 			"apiVersion": "serving.knative.dev/v1",
 			"kind":       "Service",
 			"metadata": map[string]interface{}{
-				"namespace":         "default",
-				"name":              name,
-				"creationTimestamp": nil,
+				"namespace": "default",
+				"name":      name,
 			},
 			"spec": map[string]interface{}{
 				"template": map[string]interface{}{
-					"metadata": map[string]interface{}{"creationTimestamp": nil},
+					"metadata": map[string]interface{}{},
 					"spec":     map[string]interface{}{"containers": nil},
 				},
 			},

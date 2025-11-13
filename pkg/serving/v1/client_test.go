@@ -694,7 +694,7 @@ func TestListRoutes(t *testing.T) {
 			assert.Assert(t, restrictions.Labels.Empty())
 			if !restrictions.Fields.Empty() {
 				nameField := fields.Set{"metadata.name": singleRouteName}
-				assert.Check(t, restrictions.Labels.Matches(nameField))
+				assert.Check(t, restrictions.Fields.Matches(nameField))
 				return true, &servingv1.RouteList{Items: []servingv1.Route{singleRoute}}, nil
 			}
 			return true, &servingv1.RouteList{Items: routes}, nil
