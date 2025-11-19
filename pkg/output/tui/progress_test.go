@@ -46,7 +46,7 @@ func TestProgress(t *testing.T) {
 	}
 	if err := p.With(func(pc tui.ProgressControl) error {
 		time.Sleep(20 * time.Millisecond)
-		for i := 0; i < 42; i++ {
+		for range 42 {
 			buf := make([]byte, 1000)
 			if _, err := rand.Read(buf); err != nil {
 				return err
@@ -62,7 +62,7 @@ func TestProgress(t *testing.T) {
 	}
 
 	got := prt.Outputs().Out.String()
-	want := "\x1b[?25lmessage  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░   0% ⋮   0.00 B/s   ⋮  41.02 KiB\r\n" +
+	want := "\x1b[?25l\x1b[?2004h\rmessage  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░   0% ⋮   0.00 B/s   ⋮  41.02 KiB\r\n" +
 		"Press Ctrl+C to cancel"
 	if !strings.HasPrefix(got, want) {
 		t.Errorf("prefix missmatch\nwant %q,\n got %q", want, got)
