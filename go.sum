@@ -344,8 +344,8 @@ knative.dev/networking v0.0.0-20260303015753-965e7c322093 h1:s+HccZPL2A5cBb2FU5C
 knative.dev/networking v0.0.0-20260303015753-965e7c322093/go.mod h1:cIMr1+bAKHFzpou2kVBb82skixqeheSC9heFVc/s1r8=
 knative.dev/pkg v0.0.0-20260304131155-a902bbfa38de h1:cz1QT/L7SNC+dF47xYRPJt1WRP/HfTx8+KoZjmGA8V8=
 knative.dev/pkg v0.0.0-20260304131155-a902bbfa38de/go.mod h1:mV8s7Uc92am8byZSJPIaVm1NBr0h8vsFL+sEEvMoBbk=
-knative.dev/serving v0.48.1-0.20260304122354-f161c41d3df3 h1:bDZ+w8ULeTMotPmBvppuFYyXFLOkuMpP3yUPIKCMm70=
-knative.dev/serving v0.48.1-0.20260304122354-f161c41d3df3/go.mod h1:5EbHL9BqS4wVEXINAc7oSrQojcDh9i6tEiACyEApiLM=
+knative.dev/serving v0.48.1-0.20260304145556-42495d468bf1 h1:R+SwZHjBHxm88ymx6xPGDAGGh8sjQbIvfXbTaiKLIvU=
+knative.dev/serving v0.48.1-0.20260304145556-42495d468bf1/go.mod h1:wz8mxjdRIUcWVnOUwJzuVHKhrb5IxTeIFHnXljMzS9o=
 sigs.k8s.io/gateway-api v1.1.0 h1:DsLDXCi6jR+Xz8/xd0Z1PYl2Pn0TyaFMOPPZIj4inDM=
 sigs.k8s.io/gateway-api v1.1.0/go.mod h1:ZH4lHrL2sDi0FHZ9jjneb8kKnGzFWyrTya35sWUTrRs=
 sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730 h1:IpInykpT6ceI+QxKBbEflcR5EXP7sU1kvOlxwZh5txg=
