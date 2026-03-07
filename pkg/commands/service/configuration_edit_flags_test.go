@@ -95,7 +95,7 @@ func TestApplyDefaultProfileFlag(t *testing.T) {
 	cmd.SetArgs([]string{"--profile", "istio"})
 	cmd.Execute()
 	editFlags.Apply(&svc, nil, cmd)
-	assert.Equal(t, svc.Spec.Template.Annotations["sidecar.istio.io/inject"], "true")
+	assert.Equal(t, svc.ObjectMeta.Labels["sidecar.istio.io/inject"], "true")
 	assert.Equal(t, svc.Spec.Template.Annotations["sidecar.istio.io/rewriteAppHTTPProbers"], "true")
 	assert.Equal(t, svc.Spec.Template.Annotations["serving.knative.openshift.io/enablePassthrough"], "true")
 }
@@ -169,7 +169,7 @@ profiles:
 	cmd.Execute()
 	editFlags.Apply(&svc, nil, cmd)
 
-	assert.Equal(t, svc.Spec.Template.Annotations["sidecar.istio.io/inject"], "")
+	assert.Equal(t, svc.Spec.Template.Annotations["sidecar.testprofile.io/inject"], "")
 	assert.Equal(t, len(svc.Spec.Template.Annotations), 1)
 
 	assert.Equal(t, svc.ObjectMeta.Labels["environment"], "")

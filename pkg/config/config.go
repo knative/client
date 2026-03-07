@@ -299,9 +299,11 @@ func builtInProfiles() map[string]Profile {
 	return map[string]Profile{
 		istio: {
 			Annotations: []NamedValue{
-				{Name: "sidecar.istio.io/inject", Value: "true"},
 				{Name: "sidecar.istio.io/rewriteAppHTTPProbers", Value: "true"},
 				{Name: "serving.knative.openshift.io/enablePassthrough", Value: "true"},
+			},
+			Labels: []NamedValue{
+				{Name: "sidecar.istio.io/inject", Value: "true"},
 			},
 		},
 	}
