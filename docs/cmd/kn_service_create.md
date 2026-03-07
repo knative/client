@@ -34,8 +34,8 @@ kn service create NAME --image IMAGE
   # (earlier configured environment variables will be cleared too if any)
   kn service create --force s1 --image knativesamples/helloworld
 
-  # Create a service with annotation
-  kn service create s3 --image knativesamples/helloworld --annotation sidecar.istio.io/inject=false
+  # Create a service with label
+  kn service create s3 --image knativesamples/helloworld --label sidecar.istio.io/inject=false
 
   # Create a private service (that is a service with no external endpoint)
   kn service create s1 --image knativesamples/helloworld --cluster-local

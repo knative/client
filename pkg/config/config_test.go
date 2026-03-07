@@ -27,8 +27,8 @@ import (
 // TestDefaultProfile tests that the default profile is correctly loaded
 func TestDefaultProfile(t *testing.T) {
 	profile := builtInProfiles()
-	assert.Equal(t, len(profile[istio].Labels), 0)
-	assert.Equal(t, len(profile[istio].Annotations), 3)
+	assert.Equal(t, len(profile[istio].Labels), 1)
+	assert.Equal(t, len(profile[istio].Annotations), 2)
 }
 
 func TestBootstrapConfig(t *testing.T) {
@@ -68,12 +68,15 @@ eventing:
 	assert.Equal(t, GlobalConfig.PluginsDir(), "/tmp")
 	assert.Equal(t, GlobalConfig.LookupPluginsInPath(), true)
 	assert.Equal(t, len(GlobalConfig.SinkMappings()), 1)
-	assert.Equal(t, len(GlobalConfig.Profile("istio").Annotations), 3)
-	assert.DeepEqual(t, GlobalConfig.Profile("istio").Annotations, []NamedValue{
+	assert.Equal(t, len(GlobalConfig.Profile("istio").Labels), 1)
+	assert.Equal(t, len(GlobalConfig.Profile("istio").Annotations), 2)
+	assert.DeepEqual(t, GlobalConfig.Profile("istio").Labels, []NamedValue{
 		{
 			Name:  "sidecar.istio.io/inject",
 			Value: "true",
 		},
+	})
+	assert.DeepEqual(t, GlobalConfig.Profile("istio").Annotations, []NamedValue{
 		{
 			Name:  "sidecar.istio.io/rewriteAppHTTPProbers",
 			Value: "true",
