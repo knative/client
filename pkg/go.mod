@@ -17,8 +17,8 @@ require (
 	github.com/spf13/viper v1.21.0
 	go.uber.org/multierr v1.11.0
 	go.uber.org/zap v1.27.1
-	golang.org/x/mod v0.33.0
-	golang.org/x/term v0.40.0
+	golang.org/x/mod v0.34.0
+	golang.org/x/term v0.41.0
 	gotest.tools/v3 v3.5.2
 	k8s.io/api v0.35.2
 	k8s.io/apiextensions-apiserver v0.35.2
@@ -28,8 +28,8 @@ require (
 	k8s.io/utils v0.0.0-20251002143259-bc988d571ff4
 	knative.dev/eventing v0.48.1-0.20260316031422-ce3fe6b62f97
 	knative.dev/networking v0.0.0-20260316020026-a339c355a2b2
-	knative.dev/pkg v0.0.0-20260314220421-b3fe2e572de3
-	knative.dev/serving v0.48.1-0.20260316123724-07c6cde81b9e
+	knative.dev/pkg v0.0.0-20260316154451-5d1c12d99335
+	knative.dev/serving v0.48.1-0.20260316224151-10d950c3a0d7
 	sigs.k8s.io/yaml v1.6.0
 )
 
@@ -112,11 +112,11 @@ require (
 	go.opentelemetry.io/otel/trace v1.42.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.3 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/net v0.51.0 // indirect
+	golang.org/x/net v0.52.0 // indirect
 	golang.org/x/oauth2 v0.35.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
-	golang.org/x/sys v0.41.0 // indirect
-	golang.org/x/text v0.34.0 // indirect
+	golang.org/x/sys v0.42.0 // indirect
+	golang.org/x/text v0.35.0 // indirect
 	golang.org/x/time v0.12.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.5.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
