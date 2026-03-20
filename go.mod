@@ -11,7 +11,7 @@ require (
 	knative.dev/client/pkg v0.0.0-00010101000000-000000000000
 	knative.dev/hack v0.0.0-20260318014029-7eede7fdcbad
 	knative.dev/networking v0.0.0-20260318014906-001fb594d5a2
-	knative.dev/pkg v0.0.0-20260318013857-98d5a706d4fd
+	knative.dev/pkg v0.0.0-20260319144801-8c68e18a5cc7
 	knative.dev/serving v0.48.1-0.20260318220159-5237de8fe037
 	sigs.k8s.io/yaml v1.6.0
 )
@@ -99,7 +99,7 @@ require (
 	golang.org/x/tools v0.43.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.5.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260209200024-4cfbd4190f57 // indirect
-	google.golang.org/grpc v1.79.2 // indirect
+	google.golang.org/grpc v1.79.3 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.13.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect

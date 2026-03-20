@@ -314,8 +314,8 @@ google.golang.org/genproto/googleapis/api v0.0.0-20260209200024-4cfbd4190f57 h1:
 google.golang.org/genproto/googleapis/api v0.0.0-20260209200024-4cfbd4190f57/go.mod h1:kSJwQxqmFXeo79zOmbrALdflXQeAYcUbgS7PbpMknCY=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20260209200024-4cfbd4190f57 h1:mWPCjDEyshlQYzBpMNHaEof6UX1PmHcaUODUywQ0uac=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20260209200024-4cfbd4190f57/go.mod h1:j9x/tPzZkyxcgEFkiKEEGxfvyumM01BEtsW8xzOahRQ=
-google.golang.org/grpc v1.79.2 h1:fRMD94s2tITpyJGtBBn7MkMseNpOZU8ZxgC3MMBaXRU=
-google.golang.org/grpc v1.79.2/go.mod h1:KmT0Kjez+0dde/v2j9vzwoAScgEPx/Bw1CYChhHLrHQ=
+google.golang.org/grpc v1.79.3 h1:sybAEdRIEtvcD68Gx7dmnwjZKlyfuc61Dyo9pGXXkKE=
+google.golang.org/grpc v1.79.3/go.mod h1:KmT0Kjez+0dde/v2j9vzwoAScgEPx/Bw1CYChhHLrHQ=
 google.golang.org/protobuf v1.36.11 h1:fV6ZwhNocDyBLK0dj+fg8ektcVegBBuEolpbTQyBNVE=
 google.golang.org/protobuf v1.36.11/go.mod h1:HTf+CrKn2C3g5S8VImy6tdcUvCska2kB7j23XfzDpco=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
@@ -352,8 +352,8 @@ knative.dev/eventing v0.48.1-0.20260318123800-cb8edb94867e h1:Fl7sJs/Z3fozCQVpLg
 knative.dev/eventing v0.48.1-0.20260318123800-cb8edb94867e/go.mod h1:h9JayEpHILt+NMiQ0KWqs9Bfu1hJeyYO04Ak41ZJ3U8=
 knative.dev/networking v0.0.0-20260318014906-001fb594d5a2 h1:GcSmyeVB/I9BU1dP36M1iDm09lfv9Z48bv/qXu0Yp90=
 knative.dev/networking v0.0.0-20260318014906-001fb594d5a2/go.mod h1:0UAbiLzpmMyhpjWVwRo9vYEWPKGyY6PM2VCKQkBpXE4=
-knative.dev/pkg v0.0.0-20260318013857-98d5a706d4fd h1:yeh+smYaouOwhkyCPj+AYACt1MeD+EI4mXSzSbmtj10=
-knative.dev/pkg v0.0.0-20260318013857-98d5a706d4fd/go.mod h1:o/XS1E/hYh9IR8deEEiJG4kKtQfqnf9Gwt5bwp2x4AU=
+knative.dev/pkg v0.0.0-20260319144801-8c68e18a5cc7 h1:CGvCs59CA7mO81TrJpwxD0dLEpWVhfCRyjfHmsP1c6I=
+knative.dev/pkg v0.0.0-20260319144801-8c68e18a5cc7/go.mod h1:RdLk2PjzyP79Zsj4no0G8zGHeEq5JzYzP69owy2NiGY=
 knative.dev/serving v0.48.1-0.20260318220159-5237de8fe037 h1:lJfAaK2B1M2sDTcW1Vvn2ZVmRK++ohLOKKTwNlr0/5s=
 knative.dev/serving v0.48.1-0.20260318220159-5237de8fe037/go.mod h1:bQYwglHKejWgU/8tZvTRgJZD1LG+DD9O/SybqW57Pr8=
 sigs.k8s.io/gateway-api v1.1.0 h1:DsLDXCi6jR+Xz8/xd0Z1PYl2Pn0TyaFMOPPZIj4inDM=
