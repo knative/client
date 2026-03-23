@@ -12,7 +12,7 @@ require (
 	knative.dev/hack v0.0.0-20260318014029-7eede7fdcbad
 	knative.dev/networking v0.0.0-20260320015802-dd06704493e2
 	knative.dev/pkg v0.0.0-20260319144801-8c68e18a5cc7
-	knative.dev/serving v0.48.1-0.20260320122707-826b854c5654
+	knative.dev/serving v0.48.1-0.20260320181408-75d7cae45942
 	sigs.k8s.io/yaml v1.6.0
 )
 
