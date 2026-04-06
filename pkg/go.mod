@@ -27,9 +27,9 @@ require (
 	k8s.io/client-go v0.35.3
 	k8s.io/utils v0.0.0-20251002143259-bc988d571ff4
 	knative.dev/eventing v0.48.1-0.20260402142557-263a3a52c638
-	knative.dev/networking v0.0.0-20260331164354-4103dd9b792c
+	knative.dev/networking v0.0.0-20260405224958-4d3f1a4897bc
 	knative.dev/pkg v0.0.0-20260329160701-396dbaacd652
-	knative.dev/serving v0.48.1-0.20260402181955-0528bdda27c8
+	knative.dev/serving v0.48.1-0.20260405234958-722ed8568f9a
 	sigs.k8s.io/yaml v1.6.0
 )
 
