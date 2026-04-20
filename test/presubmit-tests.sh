@@ -33,9 +33,13 @@
 
 export PRESUBMIT_TEST_FAIL_FAST=1
 
-export GO111MODULE=on
 export KNATIVE_SERVING_VERSION=${KNATIVE_SERVING_VERSION:-latest}
 export KNATIVE_EVENTING_VERSION=${KNATIVE_EVENTING_VERSION:-latest}
+
+# Library gotest.tools/v3 which has a short-form Apache 2.0 notice
+# that go-licenses v2 fails to classify.
+export GO_LICENSES_FLAGS="--ignore gotest.tools/v3"
+
 # shellcheck disable=SC1090
 source "$(go run knative.dev/hack/cmd/script presubmit-tests.sh)"
 source "$(dirname "$0")/common.sh"
