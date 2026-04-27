@@ -384,8 +384,8 @@ knative.dev/caching v0.0.0-20260421015111-f26a9256cf81 h1:DeztT7rIQHR0mIsiqELRff
 knative.dev/caching v0.0.0-20260421015111-f26a9256cf81/go.mod h1:cGysUv6hp+/srSuyi+Prh/468erE65cht8kT1eRUwV4=
 knative.dev/hack/schema v0.0.0-20260421155212-aeb7b4a9bf96 h1:4ToyLixtDPZWuPLl6iLRX+TH77gujQu8n3II1ByTonU=
 knative.dev/hack/schema v0.0.0-20260421155212-aeb7b4a9bf96/go.mod h1:KkibP1IazICP5ClxwN5D26LDSygsqbYnVGuGFTsHNOQ=
-knative.dev/reconciler-test v0.0.0-20260421022012-298b588e0905 h1:pinpsdPa1+YiPDOvefkpw6eNolBTzeoN0ZWfNw6UnSQ=
-knative.dev/reconciler-test v0.0.0-20260421022012-298b588e0905/go.mod h1:yI2cEPdMwj/wzshKCC8xcn2Ft1OkNMLxmGgUK/TJTJM=
+knative.dev/reconciler-test v0.0.0-20260424102515-e1c3185a30af h1:DR4ZkCxbspf65OZ1a4t/Y1+qW3ITIUTkP5IyFAkiG7w=
+knative.dev/reconciler-test v0.0.0-20260424102515-e1c3185a30af/go.mod h1:96PDjAjfSmnUSvDi4obIlI3CI0v+hQOWlCxQnGogO8g=
 sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.31.2 h1:jpcvIRr3GLoUoEKRkHKSmGjxb6lWwrBlJsXc+eUYQHM=
 sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.31.2/go.mod h1:Ve9uj1L+deCXFrPOk1LpFXqTg7LCFzFso6PA48q/XZw=
 sigs.k8s.io/controller-runtime v0.19.0 h1:nWVM7aq+Il2ABxwiCizrVDSlmDcshi9llbaFbC0ji/Q=
