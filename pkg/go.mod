@@ -16,7 +16,7 @@ require (
 	github.com/spf13/pflag v1.0.10
 	github.com/spf13/viper v1.21.0
 	go.uber.org/multierr v1.11.0
-	go.uber.org/zap v1.27.1
+	go.uber.org/zap v1.28.0
 	golang.org/x/mod v0.35.0
 	golang.org/x/term v0.42.0
 	gotest.tools/v3 v3.5.2
@@ -26,10 +26,10 @@ require (
 	k8s.io/cli-runtime v0.34.1
 	k8s.io/client-go v0.35.4
 	k8s.io/utils v0.0.0-20251002143259-bc988d571ff4
-	knative.dev/eventing v0.49.0
-	knative.dev/networking v0.0.0-20260422140718-e9578ef11562
-	knative.dev/pkg v0.0.0-20260422015212-ec452872dcc1
-	knative.dev/serving v0.49.0
+	knative.dev/eventing v0.49.1-0.20260504114613-23fbca18994b
+	knative.dev/networking v0.0.0-20260428014950-5876dec269ce
+	knative.dev/pkg v0.0.0-20260505204821-021ad709ec68
+	knative.dev/serving v0.49.1-0.20260504070613-3d28fb878e74
 	sigs.k8s.io/yaml v1.6.0
 )
 
