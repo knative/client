@@ -355,8 +355,8 @@ go.opentelemetry.io/contrib/instrumentation/runtime v0.69.0 h1:MtkMsuRo3zEXTTMAL
 go.opentelemetry.io/contrib/instrumentation/runtime v0.69.0/go.mod h1:FYTxnpsm+UPD0erZNq20GvnM8T2YQHiHtT2vokdpoac=
 go.uber.org/automaxprocs v1.6.0 h1:O3y2/QNTOdbF+e/dpXNNW7Rx2hZ4sTIPyybbxyNqTUs=
 go.uber.org/automaxprocs v1.6.0/go.mod h1:ifeIMSnPZuznNm6jmdzmU3/bfk01Fe2fotchwEFJ8r8=
-golang.org/x/telemetry v0.0.0-20260508192327-42602be52be6 h1:HjU6IWBiAgRIdAJ9/y1rwCn+UELEmwV+VsTLzj/W4sE=
-golang.org/x/telemetry v0.0.0-20260508192327-42602be52be6/go.mod h1:Eqhaxk/wZsWEH8CRxLwj6xzEJbz7k1EFGqx7nyCoabE=
+golang.org/x/telemetry v0.0.0-20260610154732-fb80ec83bdd9 h1:FjUup8XrRy7lv+XHONi6KKUSizeF2NnVrTnz/HhbohQ=
+golang.org/x/telemetry v0.0.0-20260610154732-fb80ec83bdd9/go.mod h1:3AWMyWHS+caVoiEXpiq6+tzKA40J4vQT3MYr80ZtQpc=
 golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 h1:go1bK/D/BFZV2I8cIQd1NKEZ+0owSTG1fDTci4IqFcE=
 google.golang.org/api v0.198.0 h1:OOH5fZatk57iN0A7tjJQzt6aPfYQ1JiWkt1yGseazks=
 google.golang.org/api v0.198.0/go.mod h1:/Lblzl3/Xqqk9hw/yS97TImKTUwnf1bv89v7+OagJzc=
@@ -384,8 +384,8 @@ knative.dev/caching v0.0.0-20260602144006-dd092fc806ea h1:mEaJOrBttRcfb6pzWBsgVG
 knative.dev/caching v0.0.0-20260602144006-dd092fc806ea/go.mod h1:CFF4YV9sYdDj7mLkBomZO7/F0cc0WCOTW5Gbd75YiA8=
 knative.dev/hack/schema v0.0.0-20260428014158-b2a37f1b6e7b h1:kxf2D8xsycu8QCCY+eyTuXRs5aRDvF+Frv09Pn29guI=
 knative.dev/hack/schema v0.0.0-20260428014158-b2a37f1b6e7b/go.mod h1:KkibP1IazICP5ClxwN5D26LDSygsqbYnVGuGFTsHNOQ=
-knative.dev/reconciler-test v0.0.0-20260529022136-ec384da06e43 h1:XIvFF01Hv6kvtan2MoSLYpWmk3G5MIqp/ZUgakOBaWU=
-knative.dev/reconciler-test v0.0.0-20260529022136-ec384da06e43/go.mod h1:QeRVuKVh7D1tvU4+Z/D4DuB/RWR3IJ+2FZHwuMdwdzg=
+knative.dev/reconciler-test v0.0.0-20260602150814-125bf8d48e1c h1:M8GPqYxAGOLtvqk0fNUjnJp6rzxqpIRCbESh3hfMsVs=
+knative.dev/reconciler-test v0.0.0-20260602150814-125bf8d48e1c/go.mod h1:QBq7VXOkZ5mbuXn7lK2pGCXLGIJsRyh0hSjoF1wd1Ds=
 sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.31.2 h1:jpcvIRr3GLoUoEKRkHKSmGjxb6lWwrBlJsXc+eUYQHM=
 sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.31.2/go.mod h1:Ve9uj1L+deCXFrPOk1LpFXqTg7LCFzFso6PA48q/XZw=
 sigs.k8s.io/controller-runtime v0.19.0 h1:nWVM7aq+Il2ABxwiCizrVDSlmDcshi9llbaFbC0ji/Q=
