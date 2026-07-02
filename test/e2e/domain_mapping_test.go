@@ -146,7 +146,8 @@ func domainDescribe(r *test.KnRunResultCollector, domainName string, tls bool) {
 	out := r.KnTest().Kn().Run("domain", "describe", domainName)
 	r.AssertNoError(out)
 	var url string
-	if tls {
+	// Use HTTPS if either TLS is explicitly configured or the --https flag is set
+	if tls || ClientFlags.HTTPS {
 		url = "https://" + domainName
 	} else {
 		url = "http://" + domainName
