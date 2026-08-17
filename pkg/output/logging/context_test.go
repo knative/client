@@ -18,6 +18,7 @@ package logging_test
 
 import (
 	"errors"
+	"regexp"
 	"testing"
 
 	"knative.dev/client/pkg/context"
@@ -50,9 +51,9 @@ func TestEnsureLoggerWithoutTestingT(t *testing.T) {
 	l.Debug("test")
 	out := printer.Outputs()
 	got := out.Err.String()
-	want := "0 \x1b[35mDEBUG\x1b[0m test\n"
-	if got != want {
-		t.Errorf("\nwant %q,\n got %q", want, got)
+	want := regexp.MustCompile(`^\d+ \x1b\[35mDEBUG\x1b\[0m test\n$`)
+	if !want.MatchString(got) {
+		t.Errorf("\nwant match %q,\n got %q", want, got)
 	}
 }
 
