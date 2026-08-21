@@ -10,9 +10,9 @@ require (
 	k8s.io/code-generator v0.35.7
 	knative.dev/client/pkg v0.0.0-00010101000000-000000000000
 	knative.dev/hack v0.0.0-20260428014158-b2a37f1b6e7b
-	knative.dev/networking v0.0.0-20260727162500-c7a7b772cac9
+	knative.dev/networking v0.0.0-20260821014922-17b28c62e1cb
 	knative.dev/pkg v0.0.0-20260820190123-c9015f8bfdea
-	knative.dev/serving v0.50.1-0.20260819122420-ffaaaf78b938
+	knative.dev/serving v0.50.1-0.20260821122824-98e5ef90aa70
 	sigs.k8s.io/yaml v1.6.0
 )
 

@@ -340,12 +340,12 @@ knative.dev/eventing v0.50.1-0.20260820115420-72ec4f420db1 h1:N61jbMWe2eUDVBnXP2
 knative.dev/eventing v0.50.1-0.20260820115420-72ec4f420db1/go.mod h1:HC1K7A1oa/sMd6X6RHO547NgvL2gtKlmNK+HYnELz6g=
 knative.dev/hack v0.0.0-20260428014158-b2a37f1b6e7b h1:MvbV2F2BdI8qKrYYUhDwbUZbX0BAYRSIpXM2TOtTvs0=
 knative.dev/hack v0.0.0-20260428014158-b2a37f1b6e7b/go.mod h1:L5RzHgbvam0u8QFHfzCX6MKxu/a/gIGEdaRBqNiVbl0=
-knative.dev/networking v0.0.0-20260727162500-c7a7b772cac9 h1:DX4tHb6E2L6sqJbbbSoK7ury7jobfC95Tx3To+tQQF0=
-knative.dev/networking v0.0.0-20260727162500-c7a7b772cac9/go.mod h1:B1jEsChm8uZvhXwuc7ySZEKG8B6GK+FrQeGx+cL7GGc=
+knative.dev/networking v0.0.0-20260821014922-17b28c62e1cb h1:ukTLqsBsPfPsvEvB7c8DsVoKpDGi4tMsHCDzL8y8ycM=
+knative.dev/networking v0.0.0-20260821014922-17b28c62e1cb/go.mod h1:LcjiQvD89e7hdND0fI4O4sbWt7L8fEnb+9xPi5BEa5Y=
 knative.dev/pkg v0.0.0-20260820190123-c9015f8bfdea h1:vNg/ixrFn2UMDAh727Ag26G3jZAQGskbn5VOwZvKoOM=
 knative.dev/pkg v0.0.0-20260820190123-c9015f8bfdea/go.mod h1:azi5R3dOIcS9Pp8+QAZR9Yp7e/eoD7rNVFIefkZr8N8=
-knative.dev/serving v0.50.1-0.20260819122420-ffaaaf78b938 h1:iAZ7KwBpkLDcbOa+w+7HVFDV3SedkqMi6D/npvAE7F0=
-knative.dev/serving v0.50.1-0.20260819122420-ffaaaf78b938/go.mod h1:MP+yKsx/gLczU+agah1HgRrpU6KT0SV96a7bD+v5PKo=
+knative.dev/serving v0.50.1-0.20260821122824-98e5ef90aa70 h1:15SH9Ne0DBpYFNLuCnF4UQJ+MNi3WopTWmSZPNMfX40=
+knative.dev/serving v0.50.1-0.20260821122824-98e5ef90aa70/go.mod h1:MP+yKsx/gLczU+agah1HgRrpU6KT0SV96a7bD+v5PKo=
 sigs.k8s.io/gateway-api v1.1.0 h1:DsLDXCi6jR+Xz8/xd0Z1PYl2Pn0TyaFMOPPZIj4inDM=
 sigs.k8s.io/gateway-api v1.1.0/go.mod h1:ZH4lHrL2sDi0FHZ9jjneb8kKnGzFWyrTya35sWUTrRs=
 sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730 h1:IpInykpT6ceI+QxKBbEflcR5EXP7sU1kvOlxwZh5txg=
