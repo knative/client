@@ -354,6 +354,38 @@ func TestDeleteService(t *testing.T) {
 	})
 }
 
+// Verifies the delete-then-watch call order that fixes the DeleteService race:
+// starting the watch concurrently with the delete call could miss the "Deleted"
+// event if deletion completed before the watch was established, causing the
+// wait to block for the full timeout even though the service was already gone.
+func TestDeleteServiceDeletesBeforeWatching(t *testing.T) {
+	serving, client := setup()
+	const serviceName = "test-service"
+
+	var callOrder []string
+
+	serving.AddReactor("get", "services",
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			return false, nil, nil
+		})
+	serving.AddReactor("delete", "services",
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			callOrder = append(callOrder, "delete")
+			return true, nil, nil
+		})
+	serving.AddWatchReactor("services",
+		func(a clienttesting.Action) (bool, watch.Interface, error) {
+			callOrder = append(callOrder, "watch")
+			w := wait.NewFakeWatch(getServiceDeleteEvents(serviceName))
+			w.Start()
+			return true, w, nil
+		})
+
+	err := client.DeleteService(context.Background(), serviceName, time.Duration(10)*time.Second)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, []string{"delete", "watch"}, callOrder)
+}
+
 func TestDeleteServiceNoWait(t *testing.T) {
 	serving, client := setup()
 	const (
@@ -505,6 +537,35 @@ func TestDeleteRevision(t *testing.T) {
 		assert.ErrorContains(t, err, "marked for deletion")
 		assert.ErrorContains(t, err, deletedRevisionName)
 	})
+}
+
+// See TestDeleteServiceDeletesBeforeWatching.
+func TestDeleteRevisionDeletesBeforeWatching(t *testing.T) {
+	serving, client := setup()
+	const revisionName = "test-revision"
+
+	var callOrder []string
+
+	serving.AddReactor("get", "revisions",
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			return false, nil, nil
+		})
+	serving.AddReactor("delete", "revisions",
+		func(a clienttesting.Action) (bool, runtime.Object, error) {
+			callOrder = append(callOrder, "delete")
+			return true, nil, nil
+		})
+	serving.AddWatchReactor("revisions",
+		func(a clienttesting.Action) (bool, watch.Interface, error) {
+			callOrder = append(callOrder, "watch")
+			w := wait.NewFakeWatch(getRevisionDeleteEvents(revisionName))
+			w.Start()
+			return true, w, nil
+		})
+
+	err := client.DeleteRevision(context.Background(), revisionName, time.Duration(10)*time.Second)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, []string{"delete", "watch"}, callOrder)
 }
 
 func TestDeleteRevisionNoWait(t *testing.T) {
