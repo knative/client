@@ -955,6 +955,9 @@ func parseMountOptions(options string) (*util.OrderedMap, error) {
 		pair := strings.SplitN(slice, "=", 2)
 		switch strings.ToLower(pair[0]) {
 		case "readonly":
+			if len(pair) != 2 {
+				return nil, fmt.Errorf("mount option %q requires a value, for example readOnly=true", pair[0])
+			}
 			mountOptions.Set("readonly", pair[1])
 		default:
 			return nil, fmt.Errorf("unknown mount option %q", pair[0])
@@ -994,11 +997,6 @@ func getMountInfo(volume string) *MountInfo {
 	configSlices := strings.SplitN(volume, ":", 2)
 	var mountInfo MountInfo
 	if len(configSlices) == 2 {
-		readOnlySlices := strings.SplitN(configSlices[1], "=", 2)
-		switch strings.ToLower(readOnlySlices[0]) {
-		case "readonly":
-
-		}
 		mountInfo.MountOptions = configSlices[1]
 	}
 	slices := strings.SplitN(configSlices[0], "/", 2)
