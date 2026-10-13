@@ -1,6 +1,6 @@
 approvers:
-- client-writers
-- technical-oversight-committee
+- steering-committee
 - knative-release-leads
+- client-writers
 reviewers:
 - client-reviewers
