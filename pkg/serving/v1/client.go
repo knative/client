@@ -328,18 +328,15 @@ func (cl *knServingClient) DeleteService(ctx context.Context, serviceName string
 		return cl.deleteService(ctx, serviceName, v1.DeletePropagationBackground)
 	}
 
-	waitC := make(chan error)
-	go func() {
-		waitForEvent := wait.NewWaitForEvent("service", cl.WatchServiceWithVersion, func(evt *watch.Event) bool { return evt.Type == watch.Deleted })
-		err, _ := waitForEvent.Wait(ctx, serviceName, service.ResourceVersion, wait.Options{Timeout: &timeout}, wait.NoopMessageCallback())
-		waitC <- err
-	}()
+	// Delete first, then watch from the pre-delete resourceVersion to avoid racing the watch setup.
 	err = cl.deleteService(ctx, serviceName, v1.DeletePropagationForeground)
 	if err != nil {
 		return err
 	}
 
-	return <-waitC
+	waitForEvent := wait.NewWaitForEvent("service", cl.WatchServiceWithVersion, func(evt *watch.Event) bool { return evt.Type == watch.Deleted })
+	err, _ = waitForEvent.Wait(ctx, serviceName, service.ResourceVersion, wait.Options{Timeout: &timeout}, wait.NoopMessageCallback())
+	return err
 }
 
 func (cl *knServingClient) deleteService(ctx context.Context, serviceName string, propagationPolicy v1.DeletionPropagation) error {
@@ -475,18 +472,15 @@ func (cl *knServingClient) DeleteRevision(ctx context.Context, name string, time
 	if timeout == 0 {
 		return cl.deleteRevision(ctx, name)
 	}
-	waitC := make(chan error)
-	go func() {
-		waitForEvent := wait.NewWaitForEvent("revision", cl.WatchRevisionWithVersion, func(evt *watch.Event) bool { return evt.Type == watch.Deleted })
-		err, _ := waitForEvent.Wait(ctx, name, revision.ResourceVersion, wait.Options{Timeout: &timeout}, wait.NoopMessageCallback())
-		waitC <- err
-	}()
+
 	err = cl.deleteRevision(ctx, name)
 	if err != nil {
 		return clienterrors.GetError(err)
 	}
 
-	return <-waitC
+	waitForEvent := wait.NewWaitForEvent("revision", cl.WatchRevisionWithVersion, func(evt *watch.Event) bool { return evt.Type == watch.Deleted })
+	err, _ = waitForEvent.Wait(ctx, name, revision.ResourceVersion, wait.Options{Timeout: &timeout}, wait.NoopMessageCallback())
+	return err
 }
 
 func (cl *knServingClient) deleteRevision(ctx context.Context, name string) error {
