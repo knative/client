@@ -44,6 +44,7 @@ func TestMockKnClient(t *testing.T) {
 		Timeout:     time.Duration(10) * time.Second,
 		ErrorWindow: time.Duration(2) * time.Second,
 	}, wait.NoopMessageCallback(), nil, 10*time.Second)
+	recorder.WatchServiceWithVersion("hello", "1", time.Duration(10)*time.Second, nil, nil)
 	recorder.GetRevision("hello", nil, nil)
 	recorder.ListRevisions(mock.Any(), nil, nil)
 	recorder.CreateRevision(&servingv1.Revision{}, nil)
@@ -67,6 +68,7 @@ func TestMockKnClient(t *testing.T) {
 		time.Duration(10) * time.Second,
 		time.Duration(2) * time.Second,
 	}, wait.NoopMessageCallback())
+	client.WatchServiceWithVersion(ctx, "hello", "1", time.Duration(10)*time.Second)
 	client.GetRevision(ctx, "hello")
 	client.ListRevisions(ctx, WithName("blub"))
 	client.CreateRevision(ctx, &servingv1.Revision{})
