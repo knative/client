@@ -744,6 +744,32 @@ func TestListRoutesError(t *testing.T) {
 	})
 }
 
+func TestWatchServiceWithVersion(t *testing.T) {
+	serving, client := setup()
+
+	serving.AddWatchReactor("services",
+		func(a clienttesting.Action) (bool, watch.Interface, error) {
+			watchAction := a.(clienttesting.WatchAction)
+			name, found := watchAction.GetWatchRestrictions().Fields.RequiresExactMatch("metadata.name")
+			if !found {
+				return true, nil, fmt.Errorf("no field selector on metadata.name found")
+			}
+			w := wait.NewFakeWatch(getServiceEvents(name))
+			w.Start()
+			return true, w, nil
+		})
+
+	w, err := client.WatchServiceWithVersion(context.Background(), "test-service", "", 10*time.Second)
+	assert.NilError(t, err)
+	defer w.Stop()
+
+	evt := <-w.ResultChan()
+	assert.Equal(t, evt.Type, watch.Added)
+	svc, ok := evt.Object.(*servingv1.Service)
+	assert.Assert(t, ok)
+	assert.Equal(t, svc.Name, "test-service")
+}
+
 func TestWaitForService(t *testing.T) {
 	serving, client := setup()
 
