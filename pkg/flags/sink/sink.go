@@ -111,7 +111,7 @@ func (r *Reference) Resolve(ctx context.Context, knclient clientdynamic.KnDynami
 		return &duckv1.Destination{URI: r.URL}, nil
 	}
 	if r.Type() != TypeReference {
-		return nil, fmt.Errorf("%w: unexpected type %q",
+		return nil, fmt.Errorf("%w: unexpected type %v",
 			ErrSinkIsInvalid, r.Type())
 	}
 	client := knclient.RawClient()
@@ -160,7 +160,7 @@ func (r *Reference) AsText(currentNamespace string) string {
 		}
 		return repr
 	}
-	return fmt.Errorf("%w: unexpected type %q",
+	return fmt.Errorf("%w: unexpected type %v",
 		ErrSinkIsInvalid, r.Type()).Error()
 }
 
