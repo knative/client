@@ -96,6 +96,10 @@ type KnServingClient interface {
 	// Return error and how long has been waited
 	WaitForService(ctx context.Context, name string, wconfig WaitConfig, msgCallback wait.MessageCallback) (error, time.Duration)
 
+	// Watch a service by name for changes. The watch starts at initialVersion
+	// (a resource version, may be empty) and is stopped after timeout.
+	WatchServiceWithVersion(ctx context.Context, name string, initialVersion string, timeout time.Duration) (watch.Interface, error)
+
 	// Get a configuration by name
 	GetConfiguration(ctx context.Context, name string) (*servingv1.Configuration, error)
 

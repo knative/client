@@ -22,6 +22,7 @@ import (
 	"gotest.tools/v3/assert"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/watch"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	"knative.dev/client/pkg/util/mock"
@@ -133,6 +134,20 @@ func (sr *ServingRecorder) WaitForService(name interface{}, wconfig interface{},
 func (c *MockKnServingClient) WaitForService(ctx context.Context, name string, wconfig WaitConfig, msgCallback wait.MessageCallback) (error, time.Duration) {
 	call := c.recorder.r.VerifyCall("WaitForService", name, wconfig, msgCallback)
 	return mock.ErrorOrNil(call.Result[0]), call.Result[1].(time.Duration)
+}
+
+// Watch a service by name
+func (sr *ServingRecorder) WatchServiceWithVersion(name, initialVersion, timeout interface{}, watcher watch.Interface, err error) {
+	sr.r.Add("WatchServiceWithVersion", []interface{}{name, initialVersion, timeout}, []interface{}{watcher, err})
+}
+
+func (c *MockKnServingClient) WatchServiceWithVersion(ctx context.Context, name string, initialVersion string, timeout time.Duration) (watch.Interface, error) {
+	call := c.recorder.r.VerifyCall("WatchServiceWithVersion", name, initialVersion, timeout)
+	var w watch.Interface
+	if call.Result[0] != nil {
+		w = call.Result[0].(watch.Interface)
+	}
+	return w, mock.ErrorOrNil(call.Result[1])
 }
 
 // Get a revision by name
