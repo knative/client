@@ -169,6 +169,79 @@ func TestUpdateEnvVarsAllNew(t *testing.T) {
 	assert.DeepEqual(t, expected, spec.Containers[0].Env)
 }
 
+func TestUpdateEnvVarsNotInArgs(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		args     []string
+		argsEnv  []string
+		expected []corev1.EnvVar
+	}{{
+		name:    "short flag without separator",
+		args:    []string{"command", "-ea=foo", "-e", "b=bar"},
+		argsEnv: []string{"a=foo", "b=bar"},
+		expected: []corev1.EnvVar{
+			{Name: "a", Value: "foo"},
+			{Name: "b", Value: "bar"},
+		},
+	}, {
+		name:    "repeated name",
+		args:    []string{"command", "a=foo", "b=bar", "a=baz"},
+		argsEnv: []string{"a=foo", "b=bar", "a=baz"},
+		expected: []corev1.EnvVar{
+			{Name: "a", Value: "baz"},
+			{Name: "b", Value: "bar"},
+		},
+	}, {
+		name:    "no matching args",
+		args:    []string{"command"},
+		argsEnv: []string{"a=foo", "b=bar"},
+		expected: []corev1.EnvVar{
+			{Name: "a", Value: "foo"},
+			{Name: "b", Value: "bar"},
+		},
+	}} {
+		t.Run(tc.name, func(t *testing.T) {
+			spec, _ := getPodSpec()
+			envToUpdate, envToRemove, err := util.OrderedMapAndRemovalListFromArray(tc.argsEnv, "=")
+			assert.NilError(t, err)
+			err = UpdateEnvVars(spec, tc.args, envToUpdate, envToRemove, util.NewOrderedMap(), []string{}, "", util.NewOrderedMap(), []string{})
+			assert.NilError(t, err)
+			assert.DeepEqual(t, tc.expected, spec.Containers[0].Env)
+		})
+	}
+}
+
+func TestUpdateEnvVarsAllNotInArgs(t *testing.T) {
+	spec, _ := getPodSpec()
+	expected := []corev1.EnvVar{
+		{Name: "a", Value: "foo"},
+		{Name: "b", ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "bar",
+				},
+				Key: "key",
+			},
+		}},
+		{Name: "c", Value: "baz"},
+	}
+	envToUpdate, envToRemove, err := util.OrderedMapAndRemovalListFromArray([]string{"a=foo"}, "=")
+	assert.NilError(t, err)
+	envValueFromToUpdate, envValueFromToRemove, err := util.OrderedMapAndRemovalListFromArray([]string{"b=secret:bar:key"}, "=")
+	assert.NilError(t, err)
+	envValueFileToUpdate, envValueFileToRemove, err := util.OrderedMapAndRemovalListFromArray([]string{"c=baz"}, "=")
+	assert.NilError(t, err)
+	err = UpdateEnvVars(spec, []string{"command"}, envToUpdate, envToRemove, envValueFromToUpdate, envValueFromToRemove, "env.file", envValueFileToUpdate, envValueFileToRemove)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, expected, spec.Containers[0].Env)
+
+	spec, _ = getPodSpec()
+	envValueFromToUpdate, envValueFromToRemove, err = util.OrderedMapAndRemovalListFromArray([]string{"b=secret:bar"}, "=")
+	assert.NilError(t, err)
+	err = UpdateEnvVars(spec, []string{"command"}, util.NewOrderedMap(), []string{}, envValueFromToUpdate, envValueFromToRemove, "", util.NewOrderedMap(), []string{})
+	assert.ErrorContains(t, err, "resourceType:name:key")
+}
+
 func TestUpdateEnvVarsValueFromValidate(t *testing.T) {
 	spec, _ := getPodSpec()
 	envValueFromWrongInput := [][]string{
@@ -871,6 +944,12 @@ func Test_isValidEnvArg(t *testing.T) {
 		envKey:   "FOO",
 		envValue: "bar",
 		isValid:  false,
+	}, {
+		name:     "valid env arg specified: -e without separator",
+		arg:      "-eFOO=bar",
+		envKey:   "FOO",
+		envValue: "bar",
+		isValid:  true,
 	}, {
 		name:     "valid env arg specified: --env",
 		arg:      "--env=FOO=bar",

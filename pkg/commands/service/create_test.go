@@ -264,6 +264,30 @@ func TestServiceCreateEnv(t *testing.T) {
 	}
 }
 
+func TestServiceCreateEnvNotMatchingArgs(t *testing.T) {
+
+	// we need to temporarily reset os.Args, because it is being used for evaluation
+	// of order of envs set by --env and --env-value-from
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+
+	args := []string{
+		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
+		"-eA=DOGS", "--env", "B=WOLVES", "--env", "A=CATS", "--env", "C=BIRDS", "--no-wait"}
+	os.Args = args
+
+	action, created, _, err := fakeServiceCreate(args, false)
+	assert.NilError(t, err)
+	assert.Assert(t, action.Matches("create", "services"))
+
+	expectedEnvVars := []corev1.EnvVar{
+		{Name: "A", Value: "CATS"},
+		{Name: "B", Value: "WOLVES"},
+		{Name: "C", Value: "BIRDS"},
+	}
+	assert.DeepEqual(t, expectedEnvVars, created.Spec.Template.Spec.Containers[0].Env)
+}
+
 func TestServiceCreateWithRequests(t *testing.T) {
 	action, created, _, err := fakeServiceCreate([]string{
 		"service", "create", "foo", "--image", "gcr.io/foo/bar:baz",
