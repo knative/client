@@ -307,17 +307,15 @@ func (c *knEventingClient) DeleteBroker(ctx context.Context, name string, timeou
 	if timeout == 0 {
 		return c.deleteBroker(ctx, name, apis_v1.DeletePropagationBackground)
 	}
-	waitC := make(chan error)
-	go func() {
-		waitForEvent := wait.NewWaitForEvent("broker", c.WatchBroker, func(evt *watch.Event) bool { return evt.Type == watch.Deleted })
-		err, _ := waitForEvent.Wait(ctx, name, broker.ResourceVersion, wait.Options{Timeout: &timeout}, wait.NoopMessageCallback())
-		waitC <- err
-	}()
+
 	err = c.deleteBroker(ctx, name, apis_v1.DeletePropagationForeground)
 	if err != nil {
 		return err
 	}
-	return <-waitC
+
+	waitForEvent := wait.NewWaitForEvent("broker", c.WatchBroker, func(evt *watch.Event) bool { return evt.Type == watch.Deleted })
+	err, _ = waitForEvent.Wait(ctx, name, broker.ResourceVersion, wait.Options{Timeout: &timeout}, wait.NoopMessageCallback())
+	return err
 }
 
 // deleteBroker is used to delete an instance of broker
