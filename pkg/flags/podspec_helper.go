@@ -17,7 +17,6 @@ package flags
 import (
 	"fmt"
 	"os"
-	"reflect"
 	"strconv"
 	"strings"
 
@@ -461,9 +460,6 @@ func UpdateTolerations(spec *corev1.PodSpec, toleration []string) error {
 
 // UpdateNodeAffinity updates the configuration for Node Affinity.
 func UpdateNodeAffinity(spec *corev1.PodSpec, nodeAffinity []string) error {
-	var matchExpressionsExisting []v1.NodeSelectorRequirement
-	var nodeSelectorTermsExisting []v1.NodeSelectorTerm
-	var preferenceExisting []v1.PreferredSchedulingTerm
 	var preferenceWeight int32
 	matchExpressionNew := v1.NodeSelectorRequirement{}
 	nodeAffinityAllMap, err := util.MapFromArray(nodeAffinity, "=")
@@ -473,39 +469,14 @@ func UpdateNodeAffinity(spec *corev1.PodSpec, nodeAffinity []string) error {
 	var nodeAffinityType string
 	for key, value := range nodeAffinityAllMap {
 		if strings.ToLower(key) == "type" {
-			if value == "Required" {
-				nodeAffinityType = "Required"
-				if !reflect.ValueOf(spec.Affinity).IsZero() && !reflect.ValueOf(spec.Affinity.NodeAffinity).IsZero() &&
-					!reflect.ValueOf(spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution).IsZero() {
-					nodeSelectorTermsExisting = spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms
-					//TODO: only supporting ORed terms, also support ANDed expressions in a single term
-					//TODO: only supporting matchExpressions, also support matchFields
-					matchExpressionsExisting = []v1.NodeSelectorRequirement{}
-				} else {
-					nodeSelectorTermsExisting = []v1.NodeSelectorTerm{}
-					matchExpressionsExisting = []v1.NodeSelectorRequirement{}
-					spec.Affinity = &v1.Affinity{}
-					spec.Affinity.NodeAffinity = &v1.NodeAffinity{}
-					spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution = &v1.NodeSelector{}
-					spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms = []v1.NodeSelectorTerm{}
-				}
-			} else if value == "Preferred" {
-				nodeAffinityType = "Preferred"
-				if !reflect.ValueOf(spec.Affinity).IsZero() && !reflect.ValueOf(spec.Affinity.NodeAffinity).IsZero() &&
-					!reflect.ValueOf(spec.Affinity.NodeAffinity.PreferredDuringSchedulingIgnoredDuringExecution).IsZero() {
-					preferenceExisting = spec.Affinity.NodeAffinity.PreferredDuringSchedulingIgnoredDuringExecution
-					matchExpressionsExisting = []v1.NodeSelectorRequirement{}
-				} else {
-					nodeSelectorTermsExisting = []v1.NodeSelectorTerm{}
-					matchExpressionsExisting = []v1.NodeSelectorRequirement{}
-					spec.Affinity = &v1.Affinity{}
-					spec.Affinity.NodeAffinity = &v1.NodeAffinity{}
-					spec.Affinity.NodeAffinity.PreferredDuringSchedulingIgnoredDuringExecution = []v1.PreferredSchedulingTerm{}
-				}
-			} else {
+			if value != "Required" && value != "Preferred" {
 				return fmt.Errorf("%s", "Invalid type defined for node affinity, Valid arguments: Required | Preferred")
 			}
+			nodeAffinityType = value
 		}
+	}
+	if nodeAffinityType == "" {
+		return fmt.Errorf("%s", "No type defined for node affinity, Valid arguments: Required | Preferred")
 	}
 
 	for key, value := range nodeAffinityAllMap {
@@ -532,17 +503,30 @@ func UpdateNodeAffinity(spec *corev1.PodSpec, nodeAffinity []string) error {
 			preferenceWeight = int32(preferenceWeightTemp)
 		}
 	}
-	matchExpressionsExisting = append(matchExpressionsExisting, matchExpressionNew)
-	nodeSelectorTermsExisting = append(nodeSelectorTermsExisting, v1.NodeSelectorTerm{MatchExpressions: matchExpressionsExisting})
+	// Keep any other affinity already defined for the pod
+	if spec.Affinity == nil {
+		spec.Affinity = &v1.Affinity{}
+	}
+	if spec.Affinity.NodeAffinity == nil {
+		spec.Affinity.NodeAffinity = &v1.NodeAffinity{}
+	}
+	podNodeAffinity := spec.Affinity.NodeAffinity
+	//TODO: only supporting ORed terms, also support ANDed expressions in a single term
+	//TODO: only supporting matchExpressions, also support matchFields
+	matchExpressionsNew := []v1.NodeSelectorRequirement{matchExpressionNew}
 	if nodeAffinityType == "Required" {
+		if podNodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution == nil {
+			podNodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution = &v1.NodeSelector{}
+		}
 		// the new matchExpression is added in the nodeSelectorTerms, and so its an ORed operation
-		spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms = nodeSelectorTermsExisting
+		required := podNodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution
+		required.NodeSelectorTerms = append(required.NodeSelectorTerms, v1.NodeSelectorTerm{MatchExpressions: matchExpressionsNew})
 	} else {
 		// the new matchExpression is added directly in preferredDuringSchedulingIgnoredDuringExecution
-		spec.Affinity.NodeAffinity.PreferredDuringSchedulingIgnoredDuringExecution = append(preferenceExisting,
-			v1.PreferredSchedulingTerm{Weight: preferenceWeight, Preference: v1.NodeSelectorTerm{MatchExpressions: matchExpressionsExisting}})
+		podNodeAffinity.PreferredDuringSchedulingIgnoredDuringExecution = append(podNodeAffinity.PreferredDuringSchedulingIgnoredDuringExecution,
+			v1.PreferredSchedulingTerm{Weight: preferenceWeight, Preference: v1.NodeSelectorTerm{MatchExpressions: matchExpressionsNew}})
 	}
-	return err
+	return nil
 }
 
 // DefaultStrictSecCon helper function to get default strict Security Context
