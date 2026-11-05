@@ -28,7 +28,7 @@ require (
 	k8s.io/utils v0.0.0-20260210185600-b8788abfbbc2
 	knative.dev/eventing v0.51.1-0.20261102011616-215395341752
 	knative.dev/networking v0.0.0-20261102012212-6bc1029107dc
-	knative.dev/pkg v0.0.0-20261102011501-7b6dcbbe4ea4
+	knative.dev/pkg v0.0.0-20261105010531-413147c6293d
 	knative.dev/serving v0.51.1-0.20261104122332-bbf5b7522922
 	sigs.k8s.io/yaml v1.6.0
 )
