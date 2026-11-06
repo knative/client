@@ -117,6 +117,31 @@ func UpdateEnvVars(spec *corev1.PodSpec, allArgs []string,
 		}
 	}
 
+	// Add the env vars which could not be matched with the given arguments, e.g. because
+	// a name was repeated or the arguments don't contain the flags, so that none is dropped
+	for ; envExists; envKey, envValue, envExists = envIterator.NextString() {
+		allEnvsToUpdate.Set(envKey, corev1.EnvVar{
+			Name:  envKey,
+			Value: envValue,
+		})
+	}
+	for ; envValueFromExists; envValueFromKey, envValueFromValue, envValueFromExists = envValueFromIterator.NextString() {
+		envVarSource, err := createEnvVarSource(envValueFromValue)
+		if err != nil {
+			return err
+		}
+		allEnvsToUpdate.Set(envValueFromKey, corev1.EnvVar{
+			Name:      envValueFromKey,
+			ValueFrom: envVarSource,
+		})
+	}
+	for ; envValueFileExists; envValueFileKey, envValueFileValue, envValueFileExists = envValueFileIterator.NextString() {
+		allEnvsToUpdate.Set(envValueFileKey, corev1.EnvVar{
+			Name:  envValueFileKey,
+			Value: envValueFileValue,
+		})
+	}
+
 	updated := updateEnvVarsFromMap(container.Env, allEnvsToUpdate)
 	updated = removeEnvVars(updated, append(envToRemove, envValueFromToRemove...))
 
@@ -128,7 +153,7 @@ func UpdateEnvVars(spec *corev1.PodSpec, allArgs []string,
 // isValidEnvArg checks that the input arg is a valid argument for specifying env value,
 // ie. stored as NAME=value
 func isValidEnvArg(arg, envKey, envValue string) bool {
-	return strings.HasPrefix(arg, envKey+"="+envValue) || strings.HasPrefix(arg, "-e="+envKey+"="+envValue) || strings.HasPrefix(arg, "--env="+envKey+"="+envValue)
+	return strings.HasPrefix(arg, envKey+"="+envValue) || strings.HasPrefix(arg, "-e="+envKey+"="+envValue) || strings.HasPrefix(arg, "-e"+envKey+"="+envValue) || strings.HasPrefix(arg, "--env="+envKey+"="+envValue)
 }
 
 // isValidEnvValueFromArg checks that the input arg is a valid argument for specifying env from value,
