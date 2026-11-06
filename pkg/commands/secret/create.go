@@ -70,8 +70,8 @@ func NewSecretCreateCommand(p *commands.KnParams) *cobra.Command {
 					return err
 				}
 				certData := map[string]string{
-					"tls.cert": string(cerFromFile),
-					"tls.key":  string(keyFromFile),
+					corev1.TLSCertKey:       string(cerFromFile),
+					corev1.TLSPrivateKeyKey: string(keyFromFile),
 				}
 				toCreate.Type = corev1.SecretTypeTLS
 				toCreate.StringData = certData
