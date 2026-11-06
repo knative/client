@@ -531,6 +531,38 @@ func TestBrokerDeleteWithWait(t *testing.T) {
 	assert.ErrorContains(t, err, deleted, time.Duration(10)*time.Second)
 }
 
+// Verifies the delete-then-watch call order that fixes the DeleteBroker race:
+// starting the watch concurrently with the delete call could miss the "Deleted"
+// event if deletion completed before the watch was established, causing the
+// wait to block for the full timeout even though the broker was already gone.
+func TestDeleteBrokerDeletesBeforeWatching(t *testing.T) {
+	server, client := setup()
+	const brokerName = "fooBroker"
+
+	var callOrder []string
+
+	server.AddReactor("get", "brokers",
+		func(a client_testing.Action) (bool, runtime.Object, error) {
+			return false, nil, nil
+		})
+	server.AddReactor("delete", "brokers",
+		func(a client_testing.Action) (bool, runtime.Object, error) {
+			callOrder = append(callOrder, "delete")
+			return true, nil, nil
+		})
+	server.AddWatchReactor("brokers",
+		func(a client_testing.Action) (bool, watch.Interface, error) {
+			callOrder = append(callOrder, "watch")
+			w := wait.NewFakeWatch(getBrokerDeleteEvents(brokerName))
+			w.Start()
+			return true, w, nil
+		})
+
+	err := client.DeleteBroker(context.Background(), brokerName, time.Duration(10)*time.Second)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, []string{"delete", "watch"}, callOrder)
+}
+
 func TestBrokerList(t *testing.T) {
 	serving, client := setup()
 
