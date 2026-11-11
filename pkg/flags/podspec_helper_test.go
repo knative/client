@@ -1601,6 +1601,7 @@ func TestUpdateNodeSelector(t *testing.T) {
 func TestUpdateNodeAffinity(t *testing.T) {
 	testCases := []struct {
 		name               string
+		existing           *corev1.PodSpec
 		nodeAffinityString []string
 		expected           *corev1.PodSpec
 		expectedError      error
@@ -1694,11 +1695,198 @@ func TestUpdateNodeAffinity(t *testing.T) {
 			},
 			expectedError: errors.New("Argument requires a value that contains the \"=\" character as delimiter; got \"-topology.kubernetes.io/zone\""),
 		},
+		{
+			name:               "Passing node affinity without type",
+			nodeAffinityString: []string{"Key=topology.kubernetes.io/zone", "Operator=In", "Values=antarctica-east1"},
+			expectedError:      errors.New("No type defined for node affinity, Valid arguments: Required | Preferred"),
+		},
+		{
+			name:               "Passing node affinity with invalid type",
+			nodeAffinityString: []string{"Type=Mandatory", "Key=topology.kubernetes.io/zone", "Operator=In", "Values=antarctica-east1"},
+			expectedError:      errors.New("Invalid type defined for node affinity, Valid arguments: Required | Preferred"),
+		},
+		{
+			name: "Node Affinity with Required clause added to existing Required clause",
+			existing: &corev1.PodSpec{
+				Affinity: &corev1.Affinity{
+					NodeAffinity: &corev1.NodeAffinity{
+						RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
+							NodeSelectorTerms: []corev1.NodeSelectorTerm{
+								{
+									MatchExpressions: []corev1.NodeSelectorRequirement{
+										{
+											Operator: corev1.NodeSelectorOpIn,
+											Key:      "topology.kubernetes.io/zone",
+											Values:   []string{"antarctica-east1"},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			nodeAffinityString: []string{"Type=Required", "Key=topology.kubernetes.io/zone", "Operator=In", "Values=antarctica-west1"},
+			expected: &corev1.PodSpec{
+				Affinity: &corev1.Affinity{
+					NodeAffinity: &corev1.NodeAffinity{
+						RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
+							NodeSelectorTerms: []corev1.NodeSelectorTerm{
+								{
+									MatchExpressions: []corev1.NodeSelectorRequirement{
+										{
+											Operator: corev1.NodeSelectorOpIn,
+											Key:      "topology.kubernetes.io/zone",
+											Values:   []string{"antarctica-east1"},
+										},
+									},
+								},
+								{
+									MatchExpressions: []corev1.NodeSelectorRequirement{
+										{
+											Operator: corev1.NodeSelectorOpIn,
+											Key:      "topology.kubernetes.io/zone",
+											Values:   []string{"antarctica-west1"},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "Node Affinity with Required clause added to existing affinity",
+			existing: &corev1.PodSpec{
+				Affinity: &corev1.Affinity{
+					NodeAffinity: &corev1.NodeAffinity{
+						PreferredDuringSchedulingIgnoredDuringExecution: []corev1.PreferredSchedulingTerm{
+							{
+								Weight: 1,
+								Preference: corev1.NodeSelectorTerm{
+									MatchExpressions: []corev1.NodeSelectorRequirement{
+										{
+											Operator: corev1.NodeSelectorOpIn,
+											Key:      "disktype",
+											Values:   []string{"ssd"},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			nodeAffinityString: []string{"Type=Required", "Key=topology.kubernetes.io/zone", "Operator=In", "Values=antarctica-east1"},
+			expected: &corev1.PodSpec{
+				Affinity: &corev1.Affinity{
+					NodeAffinity: &corev1.NodeAffinity{
+						RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
+							NodeSelectorTerms: []corev1.NodeSelectorTerm{
+								{
+									MatchExpressions: []corev1.NodeSelectorRequirement{
+										{
+											Operator: corev1.NodeSelectorOpIn,
+											Key:      "topology.kubernetes.io/zone",
+											Values:   []string{"antarctica-east1"},
+										},
+									},
+								},
+							},
+						},
+						PreferredDuringSchedulingIgnoredDuringExecution: []corev1.PreferredSchedulingTerm{
+							{
+								Weight: 1,
+								Preference: corev1.NodeSelectorTerm{
+									MatchExpressions: []corev1.NodeSelectorRequirement{
+										{
+											Operator: corev1.NodeSelectorOpIn,
+											Key:      "disktype",
+											Values:   []string{"ssd"},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "Node Affinity with Preferred clause added to existing affinity",
+			existing: &corev1.PodSpec{
+				Affinity: &corev1.Affinity{
+					NodeAffinity: &corev1.NodeAffinity{
+						RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
+							NodeSelectorTerms: []corev1.NodeSelectorTerm{
+								{
+									MatchExpressions: []corev1.NodeSelectorRequirement{
+										{
+											Operator: corev1.NodeSelectorOpIn,
+											Key:      "topology.kubernetes.io/zone",
+											Values:   []string{"antarctica-east1"},
+										},
+									},
+								},
+							},
+						},
+					},
+					PodAntiAffinity: &corev1.PodAntiAffinity{
+						RequiredDuringSchedulingIgnoredDuringExecution: []corev1.PodAffinityTerm{
+							{TopologyKey: "kubernetes.io/hostname"},
+						},
+					},
+				},
+			},
+			nodeAffinityString: []string{"Type=Preferred", "Key=disktype", "Operator=In", "Values=ssd", "Weight=1"},
+			expected: &corev1.PodSpec{
+				Affinity: &corev1.Affinity{
+					NodeAffinity: &corev1.NodeAffinity{
+						RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
+							NodeSelectorTerms: []corev1.NodeSelectorTerm{
+								{
+									MatchExpressions: []corev1.NodeSelectorRequirement{
+										{
+											Operator: corev1.NodeSelectorOpIn,
+											Key:      "topology.kubernetes.io/zone",
+											Values:   []string{"antarctica-east1"},
+										},
+									},
+								},
+							},
+						},
+						PreferredDuringSchedulingIgnoredDuringExecution: []corev1.PreferredSchedulingTerm{
+							{
+								Weight: 1,
+								Preference: corev1.NodeSelectorTerm{
+									MatchExpressions: []corev1.NodeSelectorRequirement{
+										{
+											Operator: corev1.NodeSelectorOpIn,
+											Key:      "disktype",
+											Values:   []string{"ssd"},
+										},
+									},
+								},
+							},
+						},
+					},
+					PodAntiAffinity: &corev1.PodAntiAffinity{
+						RequiredDuringSchedulingIgnoredDuringExecution: []corev1.PodAffinityTerm{
+							{TopologyKey: "kubernetes.io/hostname"},
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			actual := &corev1.PodSpec{}
+			if tc.existing != nil {
+				actual = tc.existing
+			}
 			err := UpdateNodeAffinity(actual, tc.nodeAffinityString)
 			if tc.expectedError != nil {
 				assert.Error(t, err, tc.expectedError.Error())
