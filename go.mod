@@ -10,9 +10,9 @@ require (
 	k8s.io/code-generator v0.36.5
 	knative.dev/client/pkg v0.0.0-00010101000000-000000000000
 	knative.dev/hack v0.0.0-20261106011541-9aee2b079953
-	knative.dev/networking v0.0.0-20261106012327-9f5722280cfd
-	knative.dev/pkg v0.0.0-20261106011441-a8ce7f3f6f84
-	knative.dev/serving v0.51.1-0.20261110122020-ac8f13e9ff3a
+	knative.dev/networking v0.0.0-20261111011822-0e61e4e4cfa5
+	knative.dev/pkg v0.0.0-20261110182720-ae1437a8b141
+	knative.dev/serving v0.51.1-0.20261112230022-bd5953c7d730
 	sigs.k8s.io/yaml v1.6.0
 )
 
@@ -82,7 +82,7 @@ require (
 	github.com/sagikazarmark/locafero v0.12.0 // indirect
 	github.com/spf13/afero v1.15.0 // indirect
 	github.com/spf13/cast v1.10.0 // indirect
-	github.com/spf13/pflag v1.0.10 // indirect
+	github.com/spf13/pflag v1.1.0 // indirect
 	github.com/spf13/viper v1.21.0 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
@@ -120,7 +120,7 @@ require (
 	k8s.io/klog/v2 v2.140.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20260317180543-43fb72c5454a // indirect
 	k8s.io/utils v0.0.0-20260210185600-b8788abfbbc2 // indirect
-	knative.dev/eventing v0.51.1-0.20261106033240-495a0f9afe89 // indirect
+	knative.dev/eventing v0.51.1-0.20261112023221-94f98d6a976c // indirect
 	sigs.k8s.io/gateway-api v1.5.0 // indirect
 	sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730 // indirect
 	sigs.k8s.io/kustomize/api v0.20.1 // indirect
